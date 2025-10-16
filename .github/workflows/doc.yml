@@ -83,8 +83,10 @@ jobs:
         run: |
             pip install --upgrade pip
             pip install -r scripts/doc-requirements.txt
-            npm install @mermaid-js/mermaid-cli
+            npm install -g @mermaid-js/mermaid-cli
+            which -a mmdc | echo "Not found"
             npx puppeteer browsers install
+            which -a mmdc | echo "Not found"
       - name: Configure celeritas
         run: |
           # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
