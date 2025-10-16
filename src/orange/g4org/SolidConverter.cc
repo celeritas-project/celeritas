@@ -732,7 +732,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     auto azi = enclosed_azi_from_poly(solid);
     CELER_VALIDATE(
         !azi,
-        << R"(azimuthal clipping isn't properly implemented for poylhedra)");
+        << R"(azimuthal clipping isn't properly implemented for polyhedra)");
 
     return PolyPrism::or_solid(
         std::string{solid.GetName()},

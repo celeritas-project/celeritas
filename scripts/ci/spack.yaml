@@ -7,6 +7,7 @@ spack:
   - ccache
   - cli11 +pic ~ipo
   - cmake
+  - covfie
   - googletest
   - hepmc3
   - libpng

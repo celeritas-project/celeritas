@@ -132,6 +132,7 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
     {
         CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
     }
+    CELER_VALIDATE(radii_[0] > 0 || radii_[1] > 0, << "degenerate zero radii");
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
 }
 
