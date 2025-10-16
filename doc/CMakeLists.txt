@@ -289,7 +289,7 @@ set(_output_base "${CMAKE_CURRENT_SOURCE_DIR}/_static/mermaid")
 
 macro(_celer_build_mermaid inp)
   get_filename_component(basename "${inp}" NAME_WE)
-  if(NOT MMDC_EXECUTABLE)
+  if(MMDC_EXECUTABLE)
     # Generate SVG and PDF for HTML, PDF respectively
     foreach(_fmt pdf svg)
       set(_output "${_output_base}/${basename}.${_fmt}")
