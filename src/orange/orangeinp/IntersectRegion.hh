@@ -144,8 +144,7 @@ class Cone final : public IntersectRegionInterface
  *
  * The shape is defined with a radius, half-height, and the outward-facing
  * normals of the cutting planes, passing through \f$(0, 0, \pm
- * \mathrm{hh})\f$. This class does not support the case where both cut planes
- * are perpendicular to the \em z axis; a Cylinder should be used in this case.
+ * \mathrm{hh})\f$.
  */
 class CutCylinder final : public IntersectRegionInterface
 {

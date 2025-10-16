@@ -366,7 +366,6 @@ TEST_F(CutCylinderTest, errors)
     EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0, -k}, {0, 0, -k}), RuntimeError);
     EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0.5, -0.5}, {0, k, -k}),
                  RuntimeError);
-    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0, -1}, {0, 0, 1}), RuntimeError);
 }
 
 TEST_F(CutCylinderTest, encloses)
