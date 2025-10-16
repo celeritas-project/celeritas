@@ -210,20 +210,25 @@ is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
  *
  * This is done by checking if the Gram determinant is soft zero:
  * \f[
- * (x \cdot x) (y \cdot y) - (x \cdot y)^2 \approx 0
+ * G(x, y) = (x \cdot x) (y \cdot y) - (x \cdot y)^2 \approx 0
  * \f]
  * This method is advantageous because it doesn't require normalizing inputs.
+ * Note that:
+ * \f[
+ * G([a, b], [a, b + \epsilson]) = a^2 \epsilon^2.
+ * \f]
+ * Thus, soft comparison is with respect to \f$ \epsilson^2 \f$.
  */
 template<class T, size_type N>
 inline CELER_FUNCTION bool
 is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y)
 {
-    SoftZero const soft_zero{SoftEqual<T>{}.rel()};
+    SoftZero const soft_zero{ipow<2>(SoftEqual<T>{}.rel())};
     T const xxyy = dot_product(x, x) * dot_product(y, y);
 
     if (xxyy == 0)
     {
-        // Degenerate case: at least one vector has exactly zero magnitude
+        // Degenerate case: at least one vector has *exactly* zero magnitude
         return false;
     }
 
