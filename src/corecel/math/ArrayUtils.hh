@@ -218,12 +218,12 @@ template<class T, size_type N>
 inline CELER_FUNCTION bool
 is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y)
 {
-    SoftZero const soft_zero{SoftEqual{}.rel()};
+    SoftZero const soft_zero{SoftEqual<T>{}.rel()};
     T const xxyy = dot_product(x, x) * dot_product(y, y);
 
-    if (soft_zero(xxyy))
+    if (xxyy == 0)
     {
-        // Degenerate case: at least one vector has zero magnitude
+        // Degenerate case: at least one vector has exactly zero magnitude
         return false;
     }
 
