@@ -261,8 +261,20 @@ CutCylinder::CutCylinder(real_type radius,
                    << bot_normal_[Z]);
     CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
                    << "bottom cutting plane normal is not a unit vector");
-    CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
+    CELER_VALIDATE(is_soft_unit_vector(top_normal_),
                    << "top cutting plane normal is not a unit vector");
+    CELER_VALIDATE(
+        !(soft_equal(-1., bot_normal_[Z]) && soft_equal(1., top_normal_[Z])),
+        << "both planes are perpendicular to Z; use Cylinder instead");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another cut cylinder
+ */
+bool CutCylinder::encloses(CutCylinder const& other) const
+{
+    return radius_ >= other.radius_ && hh_ >= other.hh_;
 }
 
 //---------------------------------------------------------------------------//
@@ -271,9 +283,9 @@ CutCylinder::CutCylinder(real_type radius,
  */
 void CutCylinder::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    insert_surface(Sense::outside, Plane{bot_normal_, {0, 0, -hh_}});
+    insert_surface(Sense::inside, Plane{bot_normal_, {0, 0, -hh_}});
     insert_surface(Sense::inside, Plane{top_normal_, {0, 0, hh_}});
-    insert_surface(CCylZ{radius_});
+    insert_surface(Sense::inside, CCylZ{radius_});
     insert_surface(Sense::inside,
                    BBox{{-radius_, -radius_, -hh_}, {radius_, radius_, hh_}});
 }

@@ -358,12 +358,14 @@ using CutCylinderTest = IntersectRegionTest;
 
 TEST_F(CutCylinderTest, errors)
 {
-    EXPECT_THROW(CutCylinder(0.0, 1.0, {0, 0, -1}, {0, 0, 1}), RuntimeError);
-    EXPECT_THROW(CutCylinder(1.0, -1.0, {0, 0, -1}, {0, 0, 1}), RuntimeError);
-    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0, 1}, {0, 0, 1}), RuntimeError);
-    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0, -1}, {0, 0, -1}), RuntimeError);
-    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0.5, -0.5}, {0, 0, -1}),
+    real_type k = std::sqrt(2) / 2;
+    EXPECT_THROW(CutCylinder(0.0, 1.0, {k, 0, -k}, {k, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, -1.0, {k, 0, -k}, {k, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {k, 0, k}, {0, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0, -k}, {0, 0, -k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0.5, -0.5}, {0, k, -k}),
                  RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0, -1}, {0, 0, 1}), RuntimeError);
 }
 
 TEST_F(CutCylinderTest, standard)
@@ -372,7 +374,7 @@ TEST_F(CutCylinderTest, standard)
 
     auto result = this->test(CutCylinder(0.75, 0.9, {0, k, -k}, {-k, 0, k}));
 
-    static char const expected_node[] = "all(+0, +1, -2)";
+    static char const expected_node[] = "all(-0, +1, -2)";
     static char const* const expected_surfaces[]
         = {"Plane: n={0,0.70711,-0.70711}, d=0.63640",
            "Plane: n={0.70711,0,-0.70711}, d=-0.63640",
