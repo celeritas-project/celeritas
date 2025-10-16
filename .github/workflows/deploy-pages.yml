@@ -1,3 +1,10 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Deploy documentation after pushes to develop.
+#-----------------------------------------------------------------------------#
+
 name: deploy-pages
 on:
   push:
@@ -30,6 +37,8 @@ jobs:
         with:
           python-version-file: .python-version
       - name: Install Python packages
+        # NOTE: this is the requirements path in the orphaned
+        # doc/gh-pages-base branch, NOT the Celeritas branch!
         run: |
           pip install --upgrade pip
           pip install -r scripts/requirements.txt

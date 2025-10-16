@@ -1,8 +1,16 @@
-name: pull_request_completed
-
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Post test results after a pull request
+#
 # NOTE: this workflow runs on the *develop* branch of the main repository
 # after an incoming pull request is run. Changes to this script *will not*
 # affect a PR and must first be tested on the develop branch of a fork.
+#-----------------------------------------------------------------------------#
+
+name: pull_request_completed
+
 on:
   workflow_run:
     workflows: ["pull_request"]

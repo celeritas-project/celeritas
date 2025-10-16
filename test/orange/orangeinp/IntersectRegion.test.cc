@@ -210,6 +210,7 @@ TEST_F(ConeTest, errors)
 {
     EXPECT_THROW(Cone({-1, 1}, 1), RuntimeError);
     EXPECT_THROW(Cone({0.5, 1}, 0), RuntimeError);
+    EXPECT_THROW(Cone({0, 0}, 1), RuntimeError);
 }
 
 TEST_F(ConeTest, encloses)
