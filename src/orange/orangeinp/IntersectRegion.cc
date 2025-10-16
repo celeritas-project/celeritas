@@ -264,9 +264,10 @@ CutCylinder::CutCylinder(real_type radius,
                    << "bottom cutting plane normal is not a unit vector");
     CELER_VALIDATE(is_soft_unit_vector(top_normal_),
                    << "top cutting plane normal is not a unit vector");
-    CELER_VALIDATE(
-        !soft_equal(-1., bot_normal_[Z]) || !soft_equal(1., top_normal_[Z]),
-        << "both planes are perpendicular to Z; use Cylinder instead");
+    CELER_VALIDATE(!soft_equal<real_type>(-1, bot_normal_[Z])
+                       || !soft_equal<real_type>(1, top_normal_[Z]),
+                   << "both planes are perpendicular to Z (use cylinder "
+                      "instead)");
 }
 
 //---------------------------------------------------------------------------//
