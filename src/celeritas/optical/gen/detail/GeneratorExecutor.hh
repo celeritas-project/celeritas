@@ -91,7 +91,8 @@ CELER_FUNCTION void GeneratorExecutor<G>::operator()(TrackSlotId tid) const
     Span<size_type> offsets{buffer_start, all_offsets.end()};
 
     // Find the distribution this thread will generate from
-    size_type dist_idx = find_distribution_index(offsets, tid.get());
+    size_type dist_idx = buffer_start - all_offsets.begin()
+                         + find_distribution_index(offsets, tid.get());
     CELER_ASSERT(dist_idx < offload.distributions.size());
     auto const& dist = offload.distributions[DistId(dist_idx)];
     CELER_ASSERT(dist);

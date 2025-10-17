@@ -93,6 +93,7 @@ TEST(OpticalUtilsTest, find_distribution_index)
         auto start = celeritas::upper_bound(
             counts.begin(), counts.end(), size_type(0));
 
+        size_type offset = start - counts.begin();
         Span<size_type> span_counts{start, counts.end()};
 
         for (auto thread_idx : range(vacancies.size()))
@@ -100,7 +101,7 @@ TEST(OpticalUtilsTest, find_distribution_index)
             // In the vacsnt track slot, store the index of the distribution
             // that will generate the track
             result[vacancies[thread_idx]]
-                = find_distribution_index(span_counts, thread_idx);
+                = offset + find_distribution_index(span_counts, thread_idx);
         }
         return result;
     };
