@@ -410,8 +410,24 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
 auto SolidConverter::cuttubs(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4CutTubs const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("cuttubs");
+    real_type const hh = scale_(solid.GetZHalfLength());
+
+    // Get bottom and top normal vectors
+    auto const b_norm = convert_from_geant(solid.GetLowNorm());
+    auto const t_norm = convert_from_geant(solid.GetHighNorm());
+
+    // Optional inner cylinder
+    std::optional<CutCylinder> inner;
+    if (solid.GetInnerRadius() != 0.0)
+    {
+        inner = CutCylinder{scale_(solid.GetInnerRadius()), hh, b_norm, t_norm};
+    }
+
+    return make_solid(
+        solid,
+        CutCylinder{scale_(solid.GetOuterRadius()), hh, b_norm, t_norm},
+        std::move(inner),
+        enclosed_azi_from(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -705,6 +721,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
 
     // Convert from circumradius to apothem
     double const radius_factor = cospi(1 / static_cast<double>(params.numSide));
+    CELER_ASSERT(radius_factor > 0);
 
     std::vector<real_type> zs(params.Num_z_planes);
     std::vector<real_type> rmin(zs.size());
@@ -724,13 +741,19 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
 
     // Get orientation from the start/end phi, which still may be a full Turn
     auto frac_turn = native_value_to<Turn>(solid.GetStartPhi()).value();
+
     double const orientation
         = std::fmod(params.numSide * frac_turn, real_type{1});
+
+    auto azi = enclosed_azi_from_poly(solid);
+    CELER_VALIDATE(
+        !azi,
+        << R"(azimuthal clipping isn't properly implemented for polyhedra)");
 
     return PolyPrism::or_solid(
         std::string{solid.GetName()},
         PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
-        enclosed_azi_from_poly(solid),
+        std::move(azi),
         params.numSide,
         orientation);
 }
@@ -812,21 +835,32 @@ auto SolidConverter::tessellatedsolid(arg_type solid_base) -> result_type
 auto SolidConverter::tet(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Tet const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("tet");
+    std::vector<G4ThreeVector> vertices = solid.GetVertices();
+    CELER_ASSERT(vertices.size() == 4);
+    return make_shape<Tet>(
+        solid,
+        scale_.to<Tet::ArrReal3>(
+            vertices[0], vertices[1], vertices[2], vertices[3]));
 }
 
 //---------------------------------------------------------------------------//
 //! Convert a torus
 auto SolidConverter::torus(arg_type solid_base) -> result_type
 {
-    CELER_LOG(warning) << "G4Torus is not fully supported; approximating with "
-                          "bounding cylinders";
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
+    CELER_LOG(error) << "G4Torus is not fully supported: replacing '"
+                     << solid.GetName() << "' with bounding cylinders";
+
     auto rmax = scale_(solid.GetRmax());
     auto rtor = scale_(solid.GetRtor());
+    CELER_VALIDATE(rtor >= rmax,
+                   << "invalid rtor=" << rtor << " < rmax=" << rmax);
 
-    std::optional<Cylinder> inner{std::in_place, rtor - rmax, rmax};
+    std::optional<Cylinder> inner;
+    if (!soft_equal(rtor, rmax))
+    {
+        inner.emplace(rtor - rmax, rmax);
+    }
 
     return make_solid(solid,
                       Cylinder{rtor + rmax, rmax},

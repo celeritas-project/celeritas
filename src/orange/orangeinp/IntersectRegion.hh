@@ -105,6 +105,10 @@ class Box final : public IntersectRegionInterface
  *
  * This intersect region, along with the Cylinder, is a base component of the
  * G4Polycone (PCON).
+ *
+ * \note The Cone is allowed to be "degenerate" in the sense of
+ * having nearly equal lower and upper radii. It will construct a cylinder with
+ * an average of the two radii.
  */
 class Cone final : public IntersectRegionInterface
 {
@@ -136,6 +140,55 @@ class Cone final : public IntersectRegionInterface
   private:
     Real2 radii_;
     real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A *z*-aligned cylinder centered on the origin, with top/bottom cuts.
+ *
+ * The shape is defined with a radius, half-height, and the outward-facing
+ * normals of the cutting planes, passing through \f$(0, 0, \pm
+ * \mathrm{hh})\f$.
+ */
+class CutCylinder final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radius, half-height, and bottom/top cut plane normals
+    CutCylinder(real_type radius,
+                real_type halfheight,
+                Real3 const& bottom_normal,
+                Real3 const& top_normal);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another cut cylinder
+    bool encloses(CutCylinder const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radius
+    real_type radius() const { return radius_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+    //! Outward-facing normal of the bottom cuting plane
+    Real3 const& bottom_normal() const { return bot_normal_; }
+
+    //! Outward-facing normal of the top cuting plane
+    Real3 const& top_normal() const { return top_normal_; }
+
+  private:
+    real_type radius_;
+    real_type hh_;
+    Real3 bot_normal_;
+    Real3 top_normal_;
 };
 
 //---------------------------------------------------------------------------//
@@ -893,6 +946,55 @@ class Sphere final : public IntersectRegionInterface
 
   private:
     real_type radius_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A tetrahedron defined by four vertices.
+ *
+ * A tetrahedron is a polyhedron with four triangular faces. The four vertices
+ * should not be coplanar, and they should be ordered such that when viewed
+ * from outside the tetrahedron, each triangular face has vertices in
+ * counterclockwise order (following the right-hand rule for outward normals).
+ *
+ * The tetrahedron is constructed by defining four planes, one for each face.
+ * Each plane is determined by three vertices. Face \em i uses all the vertices
+ * except for the one at index \em i .
+ */
+class Tet final : public IntersectRegionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using ArrReal3 = Array<Real3, 4>;
+    //!@}
+
+  public:
+    // Construct from an array of four vertices
+    explicit Tet(ArrReal3 const&);
+
+    //! Construct from four vertices
+    Tet(Real3 const& v0, Real3 const& v1, Real3 const& v2, Real3 const& v3)
+        : Tet(ArrReal3{v0, v1, v2, v3})
+    {
+    }
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    // Get a vertex by index
+    Real3 const& vertex(size_type i) const;
+
+    //! Get all vertices
+    ArrReal3 const& vertices() const { return v_; }
+
+  private:
+    ArrReal3 v_;  //!< Four vertices defining the tetrahedron
 };
 
 //---------------------------------------------------------------------------//

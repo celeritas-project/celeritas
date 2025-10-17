@@ -39,6 +39,7 @@ class EnclosedPolar;
 class IntersectRegionInterface;
 class Box;
 class Cone;
+class CutCylinder;
 class Cylinder;
 class Ellipsoid;
 class EllipticalCone;
@@ -53,6 +54,7 @@ class Paraboloid;
 class Parallelepiped;
 class Prism;
 class Sphere;
+class Tet;
 
 //---------------------------------------------------------------------------//
 
@@ -81,6 +83,7 @@ void to_json(nlohmann::json& j, EnclosedPolar const&);
 void to_json(nlohmann::json& j, IntersectRegionInterface const& cr);
 void to_json(nlohmann::json& j, Box const& cr);
 void to_json(nlohmann::json& j, Cone const& cr);
+void to_json(nlohmann::json& j, CutCylinder const& cr);
 void to_json(nlohmann::json& j, Cylinder const& cr);
 void to_json(nlohmann::json& j, Ellipsoid const& cr);
 void to_json(nlohmann::json& j, EllipticalCone const& cr);
@@ -95,6 +98,7 @@ void to_json(nlohmann::json& j, Paraboloid const& cr);
 void to_json(nlohmann::json& j, Parallelepiped const& cr);
 void to_json(nlohmann::json& j, Prism const& cr);
 void to_json(nlohmann::json& j, Sphere const& cr);
+void to_json(nlohmann::json& j, Tet const& cr);
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

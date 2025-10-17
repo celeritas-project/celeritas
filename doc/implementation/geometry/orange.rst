@@ -32,6 +32,7 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::IntersectRegionInterface
 .. doxygenclass:: celeritas::orangeinp::Box
 .. doxygenclass:: celeritas::orangeinp::Cone
+.. doxygenclass:: celeritas::orangeinp::CutCylinder
 .. doxygenclass:: celeritas::orangeinp::Cylinder
 .. doxygenclass:: celeritas::orangeinp::Ellipsoid
 .. doxygenclass:: celeritas::orangeinp::EllipticalCylinder
@@ -93,12 +94,15 @@ be reused in multiple locations. :numref:`fig-orangeinp-types` summarizes these 
 
 .. highlight:: cpp
 
+.. doxygenclass:: celeritas::orangeinp::EnclosedAzi
+.. doxygenclass:: celeritas::orangeinp::EnclosedPolar
 .. doxygenclass:: celeritas::orangeinp::Shape
 .. doxygenclass:: celeritas::orangeinp::Solid
 .. doxygenclass:: celeritas::orangeinp::Truncated
 
 .. highlight:: none
 
+.. doxygenclass:: celeritas::orangeinp::PolySegments
 .. doxygenclass:: celeritas::orangeinp::PolyCone
 .. doxygenclass:: celeritas::orangeinp::PolyPrism
 .. doxygenclass:: celeritas::orangeinp::RevolvedPolygon

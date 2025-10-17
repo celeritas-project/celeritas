@@ -209,6 +209,15 @@ void to_json(nlohmann::json& j, Cone const& cr)
          SIO_ATTR_PAIR(cr, halfheight)};
 }
 
+void to_json(nlohmann::json& j, CutCylinder const& cr)
+{
+    j = {{"_type", "cutcylinder"},
+         SIO_ATTR_PAIR(cr, radius),
+         SIO_ATTR_PAIR(cr, halfheight),
+         SIO_ATTR_PAIR(cr, bottom_normal),
+         SIO_ATTR_PAIR(cr, top_normal)};
+}
+
 void to_json(nlohmann::json& j, Cylinder const& cr)
 {
     j = {{"_type", "cylinder"},
@@ -314,6 +323,11 @@ void to_json(nlohmann::json& j, Prism const& cr)
 void to_json(nlohmann::json& j, Sphere const& cr)
 {
     j = {{"_type", "sphere"}, SIO_ATTR_PAIR(cr, radius)};
+}
+
+void to_json(nlohmann::json& j, Tet const& cr)
+{
+    j = {{"_type", "tet"}, SIO_ATTR_PAIR(cr, vertices)};
 }
 //!@}
 

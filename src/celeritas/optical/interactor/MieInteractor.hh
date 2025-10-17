@@ -81,7 +81,7 @@ MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
     CELER_EXPECT(mat_id < shared.mie_record.size());
     CELER_EXPECT(is_soft_unit_vector(inc_dir_));
     CELER_EXPECT(is_soft_unit_vector(inc_pol_));
-    CELER_EXPECT(soft_zero(dot_product(inc_dir_, inc_pol_)));
+    CELER_EXPECT(is_soft_orthogonal(inc_dir_, inc_pol_));
 }
 
 //---------------------------------------------------------------------------//
@@ -141,7 +141,7 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
 
     CELER_ENSURE(is_soft_unit_vector(new_dir));
     CELER_ENSURE(is_soft_unit_vector(new_pol));
-    CELER_ENSURE(soft_zero(dot_product(new_pol, new_dir)));
+    CELER_ENSURE(is_soft_orthogonal(new_pol, new_dir));
 
     return result;
 }

@@ -173,19 +173,20 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 # USER DOXYGEN
+function(_set_jsonbool varname)
+  if(ARGC GREATER 1 AND ARGV1)
+    set(${varname} true PARENT_SCOPE)
+  else()
+    set(${varname} false PARENT_SCOPE)
+  endif()
+endfunction()
 
 # Define a configure file with version and configuration info
-# NOTE: the resulting JSON file should be syntactically correct because
-# of how celeritas_check_python_module is implemented
-set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
-set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
-set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
-if(MMDC_EXECUTABLE)
-  set(CELERITAS_USE_MMDC true)
-else()
-  set(CELERITAS_USE_MMDC false)
-endif()
-set(CELERITAS_USE_MMDC ${CELERITAS_USE_SphinxMermaid})
+_set_jsonbool(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
+_set_jsonbool(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
+_set_jsonbool(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
+_set_jsonbool(CELERITAS_USE_MMDC ${MMDC_EXECUTABLE})
+
 if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
   set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
 elseif("${Celeritas_VERSION_STRING}" MATCHES
@@ -277,54 +278,51 @@ doxygen_add_docs(doxygen_xml
 )
 
 #-----------------------------------------------------------------------------#
-# MERMAID DIAGRAMS
+# MMD PROCESSING
 
 # Note that *all* mermaid files must be present at the same time to prevent
 # errors when doing separate HTML/PDF builds: the doctrees directory caches the
 # file listing and will fail if only one image type is generated
 set(_mermaid_output)
+set(_png_fallback "${CMAKE_CURRENT_SOURCE_DIR}/_static/mermaid-not-found.png")
+set(_output_base "${CMAKE_CURRENT_SOURCE_DIR}/_static/mermaid")
 
-if(Sphinx_FOUND)
-  set(_png_fallback "${CMAKE_CURRENT_SOURCE_DIR}/_static/mermaid-not-found.png")
-  set(_output_base "${CMAKE_CURRENT_SOURCE_DIR}/_static/mermaid")
-
-  macro(_celer_build_mermaid inp)
-    get_filename_component(basename "${inp}" NAME_WE)
-    if(NOT MMDC_EXECUTABLE)
-      # Copy the file and use for both HTML and PDF
-      set(_output "${_output_base}/${basename}.png")
+macro(_celer_build_mermaid inp)
+  get_filename_component(basename "${inp}" NAME_WE)
+  if(MMDC_EXECUTABLE)
+    # Generate SVG and PDF for HTML, PDF respectively
+    foreach(_fmt pdf svg)
+      set(_output "${_output_base}/${basename}.${_fmt}")
       add_custom_command(
         OUTPUT "${_output}"
         COMMAND
-        "${CMAKE_COMMAND}" -E copy "${_png_fallback}" "${_output}"
-        COMMENT "Copying fallback Mermaid PNG: ${basename}.png"
+          "${MMDC_EXECUTABLE}" -i "${inp}" -o "${_output}"
+           --backgroundColor white
+        COMMENT "Generating Mermaid: ${basename}.${_fmt}"
         DEPENDS "${inp}"
         VERBATIM
       )
       list(APPEND _mermaid_output "${_output}")
-    else()
-      # Generate SVG and PDF for HTML, PDF respectively
-      foreach(_fmt pdf svg)
-        set(_output "${_output_base}/${basename}.${_fmt}")
-        add_custom_command(
-          OUTPUT "${_output}"
-          COMMAND
-            "${MMDC_EXECUTABLE}" -i "${inp}" -o "${_output}"
-             --backgroundColor white
-          COMMENT "Generating Mermaid: ${basename}.${_fmt}"
-          DEPENDS "${inp}"
-          VERBATIM
-        )
-        list(APPEND _mermaid_output "${_output}")
-      endforeach()
-    endif()
-  endmacro()
+    endforeach()
+  else()
+    # Fallback: copy placeholder and use for both HTML and PDF
+    set(_output "${_output_base}/${basename}.png")
+    add_custom_command(
+      OUTPUT "${_output}"
+      COMMAND
+      "${CMAKE_COMMAND}" -E copy "${_png_fallback}" "${_output}"
+      COMMENT "Copying fallback Mermaid PNG: ${basename}.png"
+      DEPENDS "${inp}"
+      VERBATIM
+    )
+    list(APPEND _mermaid_output "${_output}")
+  endif()
+endmacro()
 
-  file(GLOB _mermaid_input "${CMAKE_CURRENT_SOURCE_DIR}/_input/*.mmd")
-  foreach(_inp IN LISTS _mermaid_input)
-    _celer_build_mermaid("${_inp}")
-  endforeach()
-endif()
+file(GLOB _mermaid_input "${CMAKE_CURRENT_SOURCE_DIR}/_input/*.mmd")
+foreach(_inp IN LISTS _mermaid_input)
+  _celer_build_mermaid("${_inp}")
+endforeach()
 
 #-----------------------------------------------------------------------------#
 # RST PROCESSING
