@@ -121,3 +121,4 @@ reflection, and refraction on the surface.
 
 .. doxygenclass:: celeritas::optical::FresnelCalculator
 .. doxygenclass:: celeritas::optical::ReflectionFormCalculator
+.. doxygenclass:: celeritas::optical::DielectricInteractor

@@ -22,16 +22,18 @@ namespace optical
  * interfaces.
  *
  * For both interfaces, the reflectivity is first calculated from Fresnel
- * equations and sampled to determine if the photon will reflect or refract. If
- * it reflects, then the UNIFIED model is used to handle the different forms of
- * reflection. If it refracts, then dielectric-dielectric interfaces will use
- * Snell's law to determine the refracted wave direction and polarization. For
- * dielectric-metal interfaces, refracted waves are just absorbed.
+ * equations with the \c FresnelCalculator and sampled to determine if the
+ * photon will reflect or refract. If it reflects, then the UNIFIED model is
+ * used to handle the different forms of reflection via \c
+ * ReflectionFormSampler. If it refracts, then dielectric-dielectric interfaces
+ * will use Snell's law to determine the refracted wave direction and
+ * polarization. For dielectric-metal interfaces, refracted waves are just
+ * absorbed.
  */
 class DielectricInteractor
 {
   public:
-    struct Builder
+    struct Executor
     {
         NativeCRef<DielectricData> dielectric_data;
         NativeCRef<UnifiedReflectionData> unified_data;
@@ -72,7 +74,7 @@ class DielectricInteractor
  * Create an interactor and sample it for the given track.
  */
 CELER_FUNCTION SurfaceInteraction
-DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
+DielectricInteractor::Executor::operator()(CoreTrackView const& track) const
 {
     auto s_phys = track.surface_physics();
 
@@ -91,6 +93,7 @@ DielectricInteractor::Builder::operator()(CoreTrackView const& track) const
     auto rng = track.rng();
     auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::interaction)
                             .internal_surface_id();
+    CELER_ASSERT(sub_model_id < dielectric_data.interface.size());
 
     return DielectricInteractor{
         track.particle(),

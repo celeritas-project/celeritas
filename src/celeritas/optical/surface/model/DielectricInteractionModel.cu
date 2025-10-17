@@ -30,7 +30,7 @@ void DielectricInteractionModel::step(CoreParams const& params,
         state.ptr(),
         SurfacePhysicsOrder::interaction,
         this->surface_model_id(),
-        SurfaceInteractionApplier{DielectricInteractor::Builder{
+        SurfaceInteractionApplier{DielectricInteractor::Executor{
             dielectric_data_.device_ref(), reflection_data_.device_ref()}});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
