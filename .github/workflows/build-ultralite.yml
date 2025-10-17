@@ -1,4 +1,10 @@
-# Build directly on the GitHub runner with caching
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build Celeritas with minimal dependencies using only local packages
+#-----------------------------------------------------------------------------#
+
 name: build-ultralite
 on:
   workflow_dispatch:
@@ -34,10 +40,10 @@ jobs:
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --version
-          cmake --preset=${CMAKE_PRESET} \
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
+              && format(';-pr.{0};;;', github.event.pull_request.number)
+              || format(';-{0};;;', github.ref_name)}}"
 
       ### BUILD ###
 
