@@ -738,6 +738,7 @@ TEST_F(SolidConverterTest, polyhedra)
     static double const no_rmin[] = {0, 0, 0, 0};
     static double const rmin[] = {20, 4, 17, 4};
     static double const rmax[] = {30, 10, 20, 5};
+    static real_type const sqrt2 = std::sqrt(2);
 
     // Full diamond shape, no interior
     this->build_and_test(
@@ -747,7 +748,7 @@ TEST_F(SolidConverterTest, polyhedra)
         {
             {0, 0, 26.},
             {0, 0, -11.},
-            {15 * std::sqrt(2), 15 * std::sqrt(2), -9.},
+            {15 * sqrt2, 15 * sqrt2, -9.},
 
         });
 
@@ -759,7 +760,7 @@ TEST_F(SolidConverterTest, polyhedra)
         {
             {-0.1, 0, 26.},
             {-0.1, 0, -11.},
-            {15 * std::sqrt(2), 15 * std::sqrt(2), -9.},
+            {15 * sqrt2, 15 * sqrt2, -9.},
             {10, 0, -5},
             {10, 10, -5},
         });
