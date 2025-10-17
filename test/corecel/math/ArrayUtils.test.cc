@@ -7,6 +7,7 @@
 #include "corecel/math/ArrayUtils.hh"
 
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
 
 #include "TestMacros.hh"
@@ -104,8 +105,8 @@ TEST(ArrayUtilsTest, is_soft_orthogonal)
 
 TEST(ArrayUtilsTest, is_soft_collinear)
 {
-    double x2 = std::sqrt(2) / 2;
-    double x3 = std::sqrt(3) / 3;
+    constexpr double x2{1 / constants::sqrt_two};
+    constexpr double x3{1 / constants::sqrt_three};
 
     EXPECT_TRUE(is_soft_collinear(Dbl3{1, 0, 0}, Dbl3{1, 0, 0}));
     EXPECT_TRUE(is_soft_collinear(Dbl3{0, x2, x2}, Dbl3{0, x2, x2}));
@@ -122,8 +123,13 @@ TEST(ArrayUtilsTest, is_soft_collinear)
     EXPECT_FALSE(is_soft_collinear(make_unit_vector(Dbl3{x3 - 1e-4, x3, x3}),
                                    Dbl3{x3, x3, x3}));
 
-    EXPECT_THROW(is_soft_collinear(Dbl3{1, 0, 0}, Dbl3{1, 1, 0}), DebugError);
-    EXPECT_THROW(is_soft_collinear(Dbl3{x3, x3, 0}, Dbl3{1, 0, 0}), DebugError);
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(is_soft_collinear(Dbl3{1, 0, 0}, Dbl3{1, 1, 0}),
+                     DebugError);
+        EXPECT_THROW(is_soft_collinear(Dbl3{x3, x3, 0}, Dbl3{1, 0, 0}),
+                     DebugError);
+    }
 }
 
 TEST(ArrayUtilsTest, is_soft_unit_vector)
@@ -152,7 +158,7 @@ TEST(ArrayUtilsTest, rotate)
 
     // transform through some directions
     double costheta = std::cos(2.0 / 3.0);
-    double sintheta = std::sqrt(1.0 - costheta * costheta);
+    double sintheta = std::sqrt(1.0 - ipow<2>(costheta));
     double phi = 2 * m_pi / 3.0;
 
     double a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
