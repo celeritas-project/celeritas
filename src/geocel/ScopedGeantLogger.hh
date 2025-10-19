@@ -51,8 +51,7 @@ class ScopedGeantLogger
 };
 
 #if !CELERITAS_USE_GEANT4
-//!@{
-//! Do nothing if Geant4 is disabled (source file will not be compiled)
+// Do nothing if Geant4 is disabled (source file will not be compiled)
 inline bool ScopedGeantLogger::enabled()
 {
     return false;
@@ -60,7 +59,6 @@ inline bool ScopedGeantLogger::enabled()
 inline ScopedGeantLogger::ScopedGeantLogger(Logger&) {}
 inline ScopedGeantLogger::ScopedGeantLogger() {}
 inline ScopedGeantLogger::~ScopedGeantLogger() {}
-//!@}
 #endif
 
 //---------------------------------------------------------------------------//

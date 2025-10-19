@@ -52,7 +52,9 @@ struct ScopedProfilingInput
  * behavior. Profiling is never enabled if CUDA/ROC-TX/Perfetto are
  * unavailable.
  *
- * \par Example \code
+ * \par Example:
+ * Profile only the run, not the setup.
+ * \code
  * void do_program()
  * {
  *     do_setup()
@@ -61,8 +63,7 @@ struct ScopedProfilingInput
  * }
  * \endcode
  *
- * \par Caveats
- *
+ * \par Caveats:
  * - The Nvidia/CUDA implementation of \c ScopedProfiling only does something
  *   when the application using Celeritas is run through a tool that supports
  *   NVTX, e.g., nsight compute with the --nvtx argument. If this is not the
