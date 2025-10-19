@@ -434,7 +434,7 @@ void UnitProto::build(ProtoBuilder& input) const
 
     if (input.save_json())
     {
-        // Write debug information
+        // Write CSG debug output
         JsonPimpl jp;
         jp.obj = csg_unit;
         jp.obj["remapped_surfaces"] = [&sorted_local_surfaces] {
