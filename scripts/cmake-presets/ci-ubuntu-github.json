@@ -34,17 +34,6 @@
       }
     },
     {
-      "name": "doc",
-      "inherits": ["base"],
-      "displayName": "CONFIG: build only documentation",
-      "cacheVariables": {
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_DOXYGEN_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"}
-      }
-    },
-    {
       "name": "spack",
       "inherits": ["base", ".spack-base"],
       "displayName": "CONFIG: use full spack toolchain",
@@ -73,6 +62,17 @@
       "description": "CONFIG: options to enable VecGeom on Ubuntu",
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "doc",
+      "inherits": [".system"],
+      "displayName": "FINAL: build only documentation",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_DOXYGEN_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"}
       }
     },
     {

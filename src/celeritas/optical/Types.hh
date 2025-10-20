@@ -38,6 +38,7 @@ enum class GeneratorType
 {
     cherenkov,
     scintillation,
+    size_
 };
 
 namespace optical

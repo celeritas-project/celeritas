@@ -144,6 +144,55 @@ class Cone final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * A *z*-aligned cylinder centered on the origin, with top/bottom cuts.
+ *
+ * The shape is defined with a radius, half-height, and the outward-facing
+ * normals of the cutting planes, passing through \f$(0, 0, \pm
+ * \mathrm{hh})\f$.
+ */
+class CutCylinder final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radius, half-height, and bottom/top cut plane normals
+    CutCylinder(real_type radius,
+                real_type halfheight,
+                Real3 const& bottom_normal,
+                Real3 const& top_normal);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another cut cylinder
+    bool encloses(CutCylinder const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radius
+    real_type radius() const { return radius_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+    //! Outward-facing normal of the bottom cuting plane
+    Real3 const& bottom_normal() const { return bot_normal_; }
+
+    //! Outward-facing normal of the top cuting plane
+    Real3 const& top_normal() const { return top_normal_; }
+
+  private:
+    real_type radius_;
+    real_type hh_;
+    Real3 bot_normal_;
+    Real3 top_normal_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * A *z*-aligned cylinder centered on the origin.
  *
  * The cylinder is defined with a radius and half-height.
