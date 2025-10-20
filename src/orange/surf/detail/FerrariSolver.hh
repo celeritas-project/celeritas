@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/detail/QuadraticSolver.hh"
 
@@ -83,6 +84,9 @@ class FerrariSolver
     real_type da_;  // d/a
 
     //// UTIL ////
+    // Soft zero for biquadratic and degenerate cubic detection
+    static inline SoftZero<real_type> const soft_zero_;
+
     // Place real root in an ascending list
     static inline CELER_FUNCTION void
     place_root_sorted(Intersections& roots, real_type new_root);
@@ -150,7 +154,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
                         no_intersection());
 
     // Edge case: equation is biquadratic TODO: need biquadratic tolerance
-    if (std::abs(q) <= 0)
+    if (soft_zero_(q))
     {
         // QuadraticSolver solve(1, -2*p);
         // auto ir = solve(-r);
@@ -188,8 +192,8 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
     {
         real_type s = std::sqrt(s2);
         real_type t;
-        if (s == 0)
-        {  // TODO: Is there a tolerance where it makes more sense to use s=0?
+        if (soft_zero_(s))
+        {
             t = z0 * z0 + r;
         }
         else
@@ -212,6 +216,14 @@ CELER_FUNCTION auto FerrariSolver::operator()() const -> Intersections
     // TODO: Either find an optimization to make here, or remove this entirely
     return operator()(0);
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Soft zero for use in detecting degenerate cases, such as the reduced quartic
+ * being biquadratic.
+ * Currently defined to follow analogous quadratic solver tolerance.
+ */
+static SoftZero const soft_zero_{Tolerance<real_type>::sqrt_quadratic()};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -267,8 +279,7 @@ CELER_FUNCTION real_type FerrariSolver::dominant_root_normalized_cubic(
     real_type g = third_b * (2 * ninth_b2 - c) + d;
     real_type h = 0.25 * g * g + f * f * f;
 
-    // degenerate case, NEEDS TOLERANCE FOR ZERO CHECK
-    if (f == 0 && g == 0 && h == 0)
+    if (soft_zero_(f) && soft_zero_(g) && soft_zero_(h))
     {
         return -1.0 * std::cbrt(d);
     }
@@ -309,7 +320,7 @@ FerrariSolver::real_roots_normalized_quadratic(real_type hb, real_type c)
         real_type ht = std::sqrt(qb2 - c);
         return Roots2(-hb - ht, -hb + ht);
     }
-    else if (qb2 == c)
+    else if (soft_zero_(qb2 - c))
     {
         return Roots2(-hb, no_intersection());
     }
