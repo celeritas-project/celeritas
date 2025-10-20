@@ -15,7 +15,6 @@
 #include "celeritas/track/Utils.hh"
 
 #include "GeneratorAlgorithms.hh"
-#include "GeneratorTraits.hh"
 #include "../OffloadData.hh"
 
 namespace celeritas
@@ -30,21 +29,15 @@ namespace detail
 /*!
  * Generate photons from optical distribution data.
  */
-template<GeneratorType G>
 struct GeneratorExecutor
 {
-    //// TYPES ////
-
-    template<Ownership W, MemSpace M>
-    using Data = typename GeneratorTraits<G>::template Data<W, M>;
-    using Generator = typename GeneratorTraits<G>::Generator;
-
     //// DATA ////
 
     CRefPtr<CoreParamsData, MemSpace::native> params;
     RefPtr<CoreStateData, MemSpace::native> state;
     NativeCRef<MaterialParamsData> const material;
-    NativeCRef<Data> const shared;
+    NativeCRef<CherenkovData> const cherenkov;
+    NativeCRef<ScintillationData> const scintillation;
     NativeRef<GeneratorStateData> const offload;
     size_type buffer_size{};
     CoreStateCounters counters;
@@ -65,11 +58,9 @@ struct GeneratorExecutor
 /*!
  * Generate photons from optical distribution data.
  */
-template<GeneratorType G>
-CELER_FUNCTION void GeneratorExecutor<G>::operator()(TrackSlotId tid) const
+CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
 {
     CELER_EXPECT(state);
-    CELER_EXPECT(shared);
     CELER_EXPECT(material);
     CELER_EXPECT(offload);
 
@@ -106,10 +97,19 @@ CELER_FUNCTION void GeneratorExecutor<G>::operator()(TrackSlotId tid) const
                               return state->init.vacancies[idx];
                           }()};
 
-    // Generate one primary from the distribution
+    // Generate one track from the distribution
     auto rng = track.rng();
     MaterialView opt_mat{material, dist.material};
-    vacancy = Generator(opt_mat, shared, dist)(rng);
+    if (dist.type == GeneratorType::cherenkov)
+    {
+        CELER_ASSERT(cherenkov);
+        vacancy = CherenkovGenerator(opt_mat, cherenkov, dist)(rng);
+    }
+    else
+    {
+        CELER_ASSERT(scintillation);
+        vacancy = ScintillationGenerator(opt_mat, scintillation, dist)(rng);
+    }
 }
 
 //---------------------------------------------------------------------------//
