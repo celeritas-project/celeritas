@@ -15,15 +15,6 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-// Trivial interaction modes
-enum class TrivialInteractionMode
-{
-    absorb,  //!< absorb on surface
-    transmit,  //!< transmit with no change
-    backscatter,  //!< back scatter
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Data for the trivial surface interaction model.
  */

@@ -30,7 +30,8 @@ void TrivialInteractionModel::step(CoreParams const& params,
         state.ptr(),
         SurfacePhysicsOrder::interaction,
         this->surface_model_id(),
-        SurfaceInteractionApplier{data_.device_ref()});
+        SurfaceInteractionApplier{
+            TrivialInteractionExecutor{data_.device_ref()}});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
