@@ -1,5 +1,9 @@
 # Codecov configuration
 # See https://docs.codecov.com/docs/codecov-yaml
+# See https://docs.codecov.com/docs/codecovyml-reference
+#
+# This file can be validated with:
+#   curl -X POST --data-binary @.github/codecov.yml https://codecov.io/validate
 
 coverage:
   precision: 2
@@ -33,10 +37,6 @@ comment:
   require_changes: false
 
 ignore:
-#  - "test/**/*"
-#  - "tests/**/*"
-#  - "example/**/*"
-#  - "examples/**/*"
   - "doc/**/*"
   - "docs/**/*"
   - "*.md"
