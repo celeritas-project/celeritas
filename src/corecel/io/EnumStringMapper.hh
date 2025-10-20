@@ -21,7 +21,7 @@ namespace celeritas
  *
  * This should generally be a static const class.
  *
- * Example:
+ * \par Example:
  * \code
     char const* to_cstring(Foo value)
     {

@@ -255,8 +255,7 @@
  * RuntimeError if it fails. If no device platform is enabled, throw an
  * unconfigured assertion.
  *
- * Example:
- *
+ * \par Example:
  * \code
    CELER_DEVICE_API_CALL(Malloc(&ptr_gpu, 100 * sizeof(float)));
    CELER_DEVICE_API_CALL(DeviceSynchronize());
