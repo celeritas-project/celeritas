@@ -410,8 +410,24 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
 auto SolidConverter::cuttubs(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4CutTubs const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("cuttubs");
+    real_type const hh = scale_(solid.GetZHalfLength());
+
+    // Get bottom and top normal vectors
+    auto const b_norm = convert_from_geant(solid.GetLowNorm());
+    auto const t_norm = convert_from_geant(solid.GetHighNorm());
+
+    // Optional inner cylinder
+    std::optional<CutCylinder> inner;
+    if (solid.GetInnerRadius() != 0.0)
+    {
+        inner = CutCylinder{scale_(solid.GetInnerRadius()), hh, b_norm, t_norm};
+    }
+
+    return make_solid(
+        solid,
+        CutCylinder{scale_(solid.GetOuterRadius()), hh, b_norm, t_norm},
+        std::move(inner),
+        enclosed_azi_from(solid));
 }
 
 //---------------------------------------------------------------------------//

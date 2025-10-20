@@ -353,6 +353,56 @@ TEST_F(ConeTest, transformed)
 }
 
 //---------------------------------------------------------------------------//
+// CUTCYLINDER
+//---------------------------------------------------------------------------//
+using CutCylinderTest = IntersectRegionTest;
+
+TEST_F(CutCylinderTest, errors)
+{
+    real_type k = std::sqrt(2) / 2;
+
+    EXPECT_THROW(CutCylinder(0.0, 1.0, {k, 0, -k}, {k, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, -1.0, {k, 0, -k}, {k, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {k, 0, k}, {0, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0, -k}, {0, 0, -k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0.5, -0.5}, {0, k, -k}),
+                 RuntimeError);
+}
+
+TEST_F(CutCylinderTest, encloses)
+{
+    real_type k = std::sqrt(2) / 2;
+    CutCylinder cyl1(1.0, 1.0, {k, 0, -k}, {k, 0, k});
+
+    EXPECT_TRUE(cyl1.encloses(CutCylinder(0.9, 0.9, {k, 0, -k}, {k, 0, k})));
+    EXPECT_FALSE(cyl1.encloses(CutCylinder(0.9, 1.9, {k, 0, -k}, {k, 0, k})));
+    EXPECT_FALSE(cyl1.encloses(CutCylinder(1.9, 0.9, {k, 0, -k}, {k, 0, k})));
+
+    EXPECT_THROW(cyl1.encloses(CutCylinder(0.9, 0.9, {k, 0, -k}, {0, k, k})),
+                 RuntimeError);
+    EXPECT_THROW(cyl1.encloses(CutCylinder(0.9, 0.9, {0, k, -k}, {k, 0, k})),
+                 RuntimeError);
+}
+
+TEST_F(CutCylinderTest, standard)
+{
+    real_type k = std::sqrt(2) / 2;
+
+    auto result = this->test(CutCylinder(0.75, 0.9, {0, k, -k}, {-k, 0, k}));
+
+    static char const expected_node[] = "all(-0, +1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: n={0,0.70711,-0.70711}, d=0.63640",
+           "Plane: n={0.70711,0,-0.70711}, d=-0.63640",
+           "Cyl z: r=0.75"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-0.75, -0.75, -0.9}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.75, 0.75, 0.9}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
 // CYLINDER
 //---------------------------------------------------------------------------//
 using CylinderTest = IntersectRegionTest;

@@ -31,9 +31,8 @@ namespace optical
 /*!
  * Launch a kernel to generate optical photons.
  */
-template<GeneratorType G>
-void GeneratorAction<G>::generate(CoreParams const& params,
-                                  CoreStateDevice& state) const
+void GeneratorAction::generate(CoreParams const& params,
+                               CoreStateDevice& state) const
 {
     CELER_EXPECT(state.aux());
 
@@ -42,14 +41,20 @@ void GeneratorAction<G>::generate(CoreParams const& params,
     size_type num_gen
         = min(state.counters().num_vacancies, aux_state.counters.num_pending);
     {
+        auto cherenkov = data_.cherenkov ? data_.cherenkov->device_ref()
+                                         : DeviceCRef<CherenkovData>{};
+        auto scint = data_.scintillation ? data_.scintillation->device_ref()
+                                         : DeviceCRef<ScintillationData>{};
+
         // Generate optical photons in vacant track slots
-        detail::GeneratorExecutor<G> execute{params.ptr<MemSpace::native>(),
-                                             state.ptr(),
-                                             data_.material->device_ref(),
-                                             data_.shared->device_ref(),
-                                             aux_state.store.ref(),
-                                             aux_state.counters.buffer_size,
-                                             state.counters()};
+        detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
+                                          state.ptr(),
+                                          data_.material->device_ref(),
+                                          cherenkov,
+                                          scint,
+                                          aux_state.store.ref(),
+                                          aux_state.counters.buffer_size,
+                                          state.counters()};
         static ActionLauncher<decltype(execute)> const launch(*this);
         launch(num_gen, state.stream_id(), execute);
     }
@@ -63,13 +68,6 @@ void GeneratorAction<G>::generate(CoreParams const& params,
             aux_state.counters.buffer_size, state.stream_id(), execute);
     }
 }
-
-//---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
-//---------------------------------------------------------------------------//
-
-template class GeneratorAction<GeneratorType::cherenkov>;
-template class GeneratorAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
