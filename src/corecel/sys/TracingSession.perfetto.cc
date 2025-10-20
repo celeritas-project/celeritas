@@ -11,6 +11,7 @@
 #include <perfetto.h>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 
 #include "Environment.hh"
 #include "ScopedProfiling.hh"
@@ -47,6 +48,31 @@ perfetto::TraceConfig configure_session() noexcept
     ds_cfg->set_name("track_event");
     ds_cfg->set_track_event_config_raw(track_event_cfg.SerializeAsString());
     return cfg;
+}
+
+//! Forward perfetto log messages to the Celeritas logger
+void perfetto_log_adapter(perfetto::LogMessageCallbackArgs args)
+{
+    // Map perfetto log levels to Celeritas log levels
+    LogLevel celer_level = [&] {
+        switch (args.level)
+        {
+            case perfetto::LogLev::kLogDebug:
+                return LogLevel::debug;
+            case perfetto::LogLev::kLogInfo:
+                return LogLevel::diagnostic;
+            case perfetto::LogLev::kLogImportant:
+                return LogLevel::info;
+            case perfetto::LogLev::kLogError:
+                return LogLevel::error;
+            default:
+                return LogLevel::diagnostic;
+        }
+    }();
+
+    // Create log provenance from perfetto's file/line info
+    char const* filename = args.filename ? args.filename : "perfetto";
+    world_logger()({filename, args.line}, celer_level) << args.message;
 }
 
 //---------------------------------------------------------------------------//
@@ -106,13 +132,13 @@ void TracingSession::flush() noexcept
 /*!
  * Start a system tracing session.
  */
-TracingSession::TracingSession() noexcept : TracingSession(std::string{}) {}
+TracingSession::TracingSession() : TracingSession(std::string{}) {}
 
 //---------------------------------------------------------------------------//
 /*!
  * Start an in-process tracing session.
  */
-TracingSession::TracingSession(std::string const& filename) noexcept
+TracingSession::TracingSession(std::string const& filename)
 {
     if (!ScopedProfiling::enabled())
     {
@@ -127,6 +153,7 @@ TracingSession::TracingSession(std::string const& filename) noexcept
     // Create implementation that stores tracing session and file handle
     impl_.reset(new Impl);
     perfetto::TracingInitArgs args;
+    args.log_message_callback = &perfetto_log_adapter;
     if (filename.empty())
     {
         CELER_LOG(info) << "Starting Perfetto system tracing session";
@@ -146,21 +173,15 @@ TracingSession::TracingSession(std::string const& filename) noexcept
 
     // Start tracing and cancel if it failed
     perfetto::Tracing::Initialize(args);
-    if (!perfetto::Tracing::IsInitialized())
-    {
-        CELER_LOG(warning) << "Failed to initialize Perfetto";
-        impl_.reset();
-        return;
-    }
+    CELER_VALIDATE(
+        perfetto::Tracing::IsInitialized(),
+        << R"(failed to initialize Perfetto (re-run with CELER_ENABLE_PROFILING=0))");
 
     perfetto::TrackEvent::Register();
     auto session = perfetto::Tracing::NewTrace();
-    if (!session)
-    {
-        CELER_LOG(warning) << "Failed to open Perfetto tracing session";
-        impl_.reset();
-        return;
-    }
+    CELER_VALIDATE(
+        session,
+        << R"(failed to open Perfetto tracing session (re-run with CELER_ENABLE_PROFILING=0))");
 
     session->Setup(configure_session(), impl_->fd);
     session->StartBlocking();

@@ -179,12 +179,14 @@ TEST_F(BoxTest, standard)
 {
     auto result = this->test(Box({1, 2, 3}));
     static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
-    static char const* const expected_surfaces[] = {"Plane: x=-1",
-                                                    "Plane: x=1",
-                                                    "Plane: y=-2",
-                                                    "Plane: y=2",
-                                                    "Plane: z=-3",
-                                                    "Plane: z=3"};
+    static char const* const expected_surfaces[] = {
+        "Plane: x=-1",
+        "Plane: x=1",
+        "Plane: y=-2",
+        "Plane: y=2",
+        "Plane: z=-3",
+        "Plane: z=3",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -208,6 +210,7 @@ TEST_F(ConeTest, errors)
 {
     EXPECT_THROW(Cone({-1, 1}, 1), RuntimeError);
     EXPECT_THROW(Cone({0.5, 1}, 0), RuntimeError);
+    EXPECT_THROW(Cone({0, 0}, 1), RuntimeError);
 }
 
 TEST_F(ConeTest, encloses)
@@ -347,6 +350,56 @@ TEST_F(ConeTest, transformed)
                        result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1.4142135623731, 1.4142135623731, 4}),
                        result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+// CUTCYLINDER
+//---------------------------------------------------------------------------//
+using CutCylinderTest = IntersectRegionTest;
+
+TEST_F(CutCylinderTest, errors)
+{
+    real_type k = std::sqrt(2) / 2;
+
+    EXPECT_THROW(CutCylinder(0.0, 1.0, {k, 0, -k}, {k, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, -1.0, {k, 0, -k}, {k, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {k, 0, k}, {0, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0, -k}, {0, 0, -k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0.5, -0.5}, {0, k, -k}),
+                 RuntimeError);
+}
+
+TEST_F(CutCylinderTest, encloses)
+{
+    real_type k = std::sqrt(2) / 2;
+    CutCylinder cyl1(1.0, 1.0, {k, 0, -k}, {k, 0, k});
+
+    EXPECT_TRUE(cyl1.encloses(CutCylinder(0.9, 0.9, {k, 0, -k}, {k, 0, k})));
+    EXPECT_FALSE(cyl1.encloses(CutCylinder(0.9, 1.9, {k, 0, -k}, {k, 0, k})));
+    EXPECT_FALSE(cyl1.encloses(CutCylinder(1.9, 0.9, {k, 0, -k}, {k, 0, k})));
+
+    EXPECT_THROW(cyl1.encloses(CutCylinder(0.9, 0.9, {k, 0, -k}, {0, k, k})),
+                 RuntimeError);
+    EXPECT_THROW(cyl1.encloses(CutCylinder(0.9, 0.9, {0, k, -k}, {k, 0, k})),
+                 RuntimeError);
+}
+
+TEST_F(CutCylinderTest, standard)
+{
+    real_type k = std::sqrt(2) / 2;
+
+    auto result = this->test(CutCylinder(0.75, 0.9, {0, k, -k}, {-k, 0, k}));
+
+    static char const expected_node[] = "all(-0, +1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: n={0,0.70711,-0.70711}, d=0.63640",
+           "Plane: n={0.70711,0,-0.70711}, d=-0.63640",
+           "Cyl z: r=0.75"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-0.75, -0.75, -0.9}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.75, 0.75, 0.9}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//
@@ -595,12 +648,14 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {"Plane: z=0",
-                                                    "Plane: z=1",
-                                                    "Plane: x=1",
-                                                    "Plane: y=1",
-                                                    "Plane: x=0",
-                                                    "Plane: y=0"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=0",
+        "Plane: z=1",
+        "Plane: x=1",
+        "Plane: y=1",
+        "Plane: x=0",
+        "Plane: y=0",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -630,12 +685,14 @@ TEST_F(ExtrudedPolygonTest, collinear)
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {"Plane: z=0",
-                                                    "Plane: z=1",
-                                                    "Plane: x=1",
-                                                    "Plane: y=1",
-                                                    "Plane: x=0",
-                                                    "Plane: y=0"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=0",
+        "Plane: z=1",
+        "Plane: x=1",
+        "Plane: y=1",
+        "Plane: x=0",
+        "Plane: y=0",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -656,13 +713,14 @@ TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
     // Planes have x- and y-slopes equal to +/- sqrt(2)/2, as expected
-    static char const* const expected_surfaces[]
-        = {"Plane: z=0",
-           "Plane: z=0.5",
-           "Plane: n={0.70711,-0,0.70711}, d=0.70711",
-           "Plane: n={0,0.70711,0.70711}, d=0.70711",
-           "Plane: x=0",
-           "Plane: y=0"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=0",
+        "Plane: z=0.5",
+        "Plane: n={0.70711,-0,0.70711}, d=0.70711",
+        "Plane: n={0,0.70711,0.70711}, d=0.70711",
+        "Plane: x=0",
+        "Plane: y=0",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -953,13 +1011,14 @@ TEST_F(GenPrismTest, trapezoid_ccw)
     auto result = this->test(pri);
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-40",
-           "Plane: z=40",
-           "Plane: y=-30",
-           "Plane: n={0.99969,0,0.024992}, d=19.994",
-           "Plane: y=30",
-           "Plane: n={0.99969,0,0.024992}, d=-19.994"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-40",
+        "Plane: z=40",
+        "Plane: y=-30",
+        "Plane: n={0.99969,0,0.024992}, d=19.994",
+        "Plane: y=30",
+        "Plane: n={0.99969,0,0.024992}, d=-19.994",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1034,11 +1093,12 @@ TEST_F(GenPrismTest, tetrahedron)
 
     auto result = this->test(pri);
     static char const expected_node[] = "all(+0, -1, -2, +3)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-3",
-           "Plane: n={0.31449,-0.94346,0.10483}, d=0.31449",
-           "Plane: n={0.31449,0.94346,0.10483}, d=0.31449",
-           "Plane: n={0.98639,0,-0.16440}, d=-0.49320"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-3",
+        "Plane: n={0.31449,-0.94346,0.10483}, d=0.31449",
+        "Plane: n={0.31449,0.94346,0.10483}, d=0.31449",
+        "Plane: n={0.98639,0,-0.16440}, d=-0.49320",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1059,11 +1119,12 @@ TEST_F(GenPrismTest, odd_tetrahedron)
 
     auto result = this->test(pri);
     static char const expected_node[] = "all(-0, -1, -2, +3)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=3",
-           "Plane: n={0.31623,-0.94868,0}, d=0.63246",
-           "Plane: n={0.31623,0.94868,0}, d=0.63246",
-           "Plane: n={0.89443,0,0.44721}, d=0.44721"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=3",
+        "Plane: n={0.31623,-0.94868,0}, d=0.63246",
+        "Plane: n={0.31623,0.94868,0}, d=0.63246",
+        "Plane: n={0.89443,0,0.44721}, d=0.44721",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1195,13 +1256,14 @@ TEST_F(GenPrismTest, trap_g4)
                                    {3, 1.5, 1.5, 15 * degree});
     auto result = this->test(pri);
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-4",
-           "Plane: z=4",
-           "Plane: n={-0.95664,0.25633,0.13832}, d=-1.1958",
-           "Plane: n={0,0.99032,-0.13883}, d=2.4758",
-           "Plane: n={-0.96575,0.25877,0.018918}, d=1.2072",
-           "Plane: n={0,0.99403,0.10915}, d=-2.4851"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-4",
+        "Plane: z=4",
+        "Plane: n={-0.95664,0.25633,0.13832}, d=-1.1958",
+        "Plane: n={0,0.99032,-0.13883}, d=2.4758",
+        "Plane: n={-0.96575,0.25877,0.018918}, d=1.2072",
+        "Plane: n={0,0.99403,0.10915}, d=-2.4851",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -2475,6 +2537,87 @@ TEST_F(SphereTest, standard)
         result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -2}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+// TET
+//---------------------------------------------------------------------------//
+using TetTest = IntersectRegionTest;
+
+TEST_F(TetTest, errors)
+{
+    // Coplanar vertices (all in xy plane)
+    EXPECT_THROW(Tet({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 0}), RuntimeError);
+    // Degenerate: duplicate vertices
+    EXPECT_THROW(Tet({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 0}), RuntimeError);
+    // Three collinear points
+    EXPECT_THROW(Tet({0, 0, 0}, {1, 0, 0}, {2, 0, 0}, {0, 1, 1}), RuntimeError);
+}
+
+TEST_F(TetTest, standard)
+{
+    // Regular tetrahedron vertices
+    Tet tet({1, 1, 1}, {1, -1, -1}, {-1, 1, -1}, {-1, -1, 1});
+
+    auto result = this->test(tet);
+
+    IntersectTestResult ref;
+    ref.node = "all(-0, -1, -2, +3)";
+    ref.surfaces = {
+        "Plane: n={0.57735,0.57735,-0.57735}, d=0.57735",
+        "Plane: n={0.57735,-0.57735,0.57735}, d=0.57735",
+        "Plane: n={-0.57735,0.57735,0.57735}, d=0.57735",
+        "Plane: n={0.57735,0.57735,0.57735}, d=-0.57735",
+    };
+    ref.interior = {};
+    ref.exterior = {{-1, -1, -1}, {1, 1, 1}};
+    EXPECT_REF_EQ(ref, result);
+
+    // Test senses
+    EXPECT_EQ(SignedSense::inside,
+              this->calc_sense(result.node_id, Real3{0, 0, 0}));
+    for (auto i : range(4))
+    {
+        EXPECT_EQ(SignedSense::on,
+                  this->calc_sense(result.node_id, tet.vertex(i)));
+    }
+    EXPECT_EQ(SignedSense::outside,
+              this->calc_sense(result.node_id, Real3{2, 2, 2}));
+}
+
+TEST_F(TetTest, reordered)
+{
+    // Right-angled tetrahedron at origin, with first two points switched
+    Tet tet({1, 0, 0}, {0, 0, 0}, {0, 1, 0}, {0, 0, 1});
+
+    auto result = this->test(tet);
+    IntersectTestResult ref;
+    ref.node = "all(+0, +1, -2, +3)";
+    ref.surfaces = {
+        "Plane: z=0",
+        "Plane: y=0",
+        "Plane: n={0.57735,0.57735,0.57735}, d=0.57735",
+        "Plane: x=0",
+    };
+    ref.interior = {};
+    ref.exterior = {{0, 0, 0}, {1, 1, 1}};
+    EXPECT_REF_EQ(ref, result);
+
+    EXPECT_EQ(SignedSense::inside,
+              this->calc_sense(result.node_id, Real3{0.3, 0.3, 0.3}));
+}
+
+TEST_F(TetTest, soft_degenerate)
+{
+    Tet tet({1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, 0, 1e-6});
+
+    auto result = this->test(tet);
+    IntersectTestResult ref;
+    ref.node = "F";
+    ref.surfaces = {"Plane: z=0", "Plane: y=0"};
+    ref.interior = {{-1, 0, 0}, {1, 1, 0}};
+    ref.exterior = {{-1, 0, 0}, {1, 1, 0}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//

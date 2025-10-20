@@ -96,18 +96,12 @@ class CsgUnitBuilder
     // Mark a CSG node as a volume of real space
     LocalVolumeId insert_volume(NodeId);
 
-    // Fill LocalVolumeId{0} with "exterior" to adjust the interior region
-    void fill_exterior();
-
     // Fill a volume node with a material
     void fill_volume(LocalVolumeId, GeoMatId);
 
     // Fill a volume node with a daughter using the local transform
     void
     fill_volume(LocalVolumeId, UniverseId, VariantTransform const& transform);
-
-    // Simplify negated joins for Infix evaluation
-    void simplify_joins();
 
   private:
     CsgUnit* unit_;

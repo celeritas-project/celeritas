@@ -12,10 +12,13 @@
 #include "corecel/Constants.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/Involute.hh"
@@ -130,6 +133,7 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
     {
         CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
     }
+    CELER_VALIDATE(radii_[0] > 0 || radii_[1] > 0, << "degenerate zero radii");
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
 }
 
@@ -230,6 +234,77 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void Cone::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// CUTCYLINDER
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with radius, half-height, and bottom/top cutting plane normals
+ */
+CutCylinder::CutCylinder(real_type radius,
+                         real_type halfheight,
+                         Real3 const& bottom_normal,
+                         Real3 const& top_normal)
+    : radius_{radius}
+    , hh_{halfheight}
+    , bot_normal_{bottom_normal}
+    , top_normal_{top_normal}
+{
+    CELER_VALIDATE(radius_ > 0, << "nonpositive radius: " << radius_);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
+    CELER_VALIDATE(bot_normal_[Z] < 0,
+                   << "bottom cutting plane normal is not pointing down: "
+                   << bot_normal_[Z]);
+    CELER_VALIDATE(top_normal_[Z] > 0,
+                   << "top cutting plane normal is not pointing up: "
+                   << top_normal_[Z]);
+    CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
+                   << "bottom cutting plane normal is not a unit vector");
+    CELER_VALIDATE(is_soft_unit_vector(top_normal_),
+                   << "top cutting plane normal is not a unit vector");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another cut cylinder
+ */
+bool CutCylinder::encloses(CutCylinder const& other) const
+{
+    // Check that cylinders have the same cut planes. Since the normal vectors
+    // have unit magnitude, a check for collinearity is sufficient. When
+    // cylinders have different cut planes, testing for enclosure becomes
+    // challenging.
+    if (!is_soft_collinear(bot_normal_, other.bottom_normal())
+        || !is_soft_collinear(top_normal_, other.top_normal()))
+    {
+        CELER_NOT_IMPLEMENTED(
+            "enclosure checks for cut cylinders with different cut planes");
+    }
+
+    return radius_ >= other.radius_ && hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void CutCylinder::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::inside, Plane{bot_normal_, {0, 0, -hh_}});
+    insert_surface(Sense::inside, Plane{top_normal_, {0, 0, hh_}});
+    insert_surface(Sense::inside, CCylZ{radius_});
+    insert_surface(Sense::inside,
+                   BBox{{-radius_, -radius_, -hh_}, {radius_, radius_, hh_}});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void CutCylinder::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
@@ -983,7 +1058,7 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
                          mxl - mxr,
                          canonicalize_zero(txr * myl - txl * myr + tyl * mxr
                                            - tyr * mxl)};
-            // Cross product of midpoint
+            // Cross product of midpoint ("displacement")
             real_type js = canonicalize_zero(mxr * myl - mxl * myr);
 
             // Normalize based on linear components to represent as a plane
@@ -1551,6 +1626,90 @@ void Sphere::output(JsonPimpl* j) const
 bool Sphere::encloses(Sphere const& other) const
 {
     return radius_ >= other.radius();
+}
+
+//---------------------------------------------------------------------------//
+// TET
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from four vertices.
+ */
+Tet::Tet(ArrReal3 const& vertices) : v_{vertices}
+{
+    // Check that vertices are not coplanar by computing volume
+    SquareMatrixReal3 delta;
+    for (auto i : range(size_type(3)))
+    {
+        delta[i] = v_[i + 1] - v_[0];
+    }
+
+    // The determinant is dot(a, cross(b, c))
+    real_type volume = determinant(delta) / 6;
+    CELER_VALIDATE(volume != 0,
+                   << "vertices are degenerate: "
+                   << join(v_.begin(), v_.end(), ", "));
+
+    // If volume is negative, vertices are in wrong order (left-handed)
+    // Swap two vertices to make right-handed
+    if (volume < 0)
+    {
+        std::swap(v_[0], v_[1]);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Tet::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    constexpr size_type face_vertices[4][3] = {
+        {0, 2, 1},  // bottom
+        {0, 1, 3},  // front
+        {1, 2, 3},  // right
+        {2, 0, 3}  // left
+    };
+
+    for (auto i : range(size_type(4)))
+    {
+        auto const& indices = face_vertices[i];
+        insert_surface(
+            Sense::inside,
+            Plane{detail::normal_from_triangle(
+                      v_[indices[0]], v_[indices[1]], v_[indices[2]]),
+                  v_[indices[0]]},
+            "t" + std::to_string(i));
+    }
+
+    // Construct exterior bounding box
+    BBox exterior_bbox;
+    for (auto const& vertex : v_)
+    {
+        for (auto ax : {Axis::x, Axis::y, Axis::z})
+        {
+            exterior_bbox.grow(ax, vertex[to_int(ax)]);
+        }
+    }
+    insert_surface(Sense::inside, exterior_bbox);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Tet::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a vertex by index.
+ */
+Real3 const& Tet::vertex(size_type i) const
+{
+    CELER_EXPECT(i < 4);
+    return v_[i];
 }
 
 //---------------------------------------------------------------------------//

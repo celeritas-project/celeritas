@@ -49,10 +49,10 @@ class TracingSession
     static void flush() noexcept;
 
     // Configure a system session recording to a daemon
-    TracingSession() noexcept;
+    TracingSession();
 
     // Configure an in-process session recording to filename
-    explicit TracingSession(std::string const& filename) noexcept;
+    explicit TracingSession(std::string const& filename);
 
     // Start the profiling session (DEPRECATED: remove in v1.0)
     //! The session is now started on construction; this is now a null-op
@@ -80,8 +80,8 @@ inline void flush_tracing() noexcept
 }
 
 #if !CELERITAS_USE_PERFETTO
-inline TracingSession::TracingSession() noexcept = default;
-inline TracingSession::TracingSession(std::string const& s) noexcept
+inline TracingSession::TracingSession() = default;
+inline TracingSession::TracingSession(std::string const& s)
 {
     if (!s.empty())
     {

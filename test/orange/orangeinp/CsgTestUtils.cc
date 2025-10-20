@@ -271,6 +271,41 @@ std::vector<real_type> flattened(BoundingZone const& bz)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Count the number of surface types used in the CSG unit's tree.
+ *
+ * Note that this uses only the deduplicated surfaces, because the actual
+ * surface count is much more sensitive to floating point errors.
+ */
+std::string count_surface_types(detail::CsgUnit const& u)
+{
+    EnumArray<SurfaceType, size_type> counts = {};
+    for (auto nid : range(NodeId{u.tree.size()}))
+    {
+        if (auto* surf_node = std::get_if<Surface>(&u.tree[nid]))
+        {
+            auto lsid = surf_node->id;
+            CELER_ASSERT(lsid < u.surfaces.size());
+
+            std::visit(
+                [&counts](auto&& surf) { ++counts[surf.surface_type()]; },
+                u.surfaces[lsid.get()]);
+        }
+    }
+
+    nlohmann::json j;
+    for (auto st : range(SurfaceType::size_))
+    {
+        if (counts[st] > 0)
+        {
+            j[std::string{to_cstring(st)}] = counts[st];
+        }
+    }
+
+    return j.dump();
+}
+
+//---------------------------------------------------------------------------//
 void print_expected(CsgUnit const& u)
 {
     std::cout << R"cpp(
