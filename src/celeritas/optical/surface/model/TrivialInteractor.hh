@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 
 #include "SurfaceInteraction.hh"
