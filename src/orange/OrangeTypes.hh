@@ -34,6 +34,9 @@ using fast_real_type = float;
 //! Integer type for volume CSG tree representation
 using logic_int = size_type;
 
+//! Integer type for volume tree depth
+using depth_int = LevelId::size_type;
+
 //! Helper class for some template dispatch functions
 template<Axis T>
 using AxisTag = std::integral_constant<Axis, T>;
