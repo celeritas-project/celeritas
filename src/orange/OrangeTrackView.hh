@@ -1341,7 +1341,7 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(ImplLevelId lev) const
  */
 CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id(ImplLevelId lev) const
 {
-    CELER_EXPECT(lev < this->univ_level());
+    CELER_EXPECT(lev <= this->univ_level());
     auto lsa = this->make_lsa(lev);
     auto ui = this->make_universe_indexer();
     return ui.global_volume(lsa.universe(), lsa.vol());
