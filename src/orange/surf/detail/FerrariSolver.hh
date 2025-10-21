@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/PolyEvaluator.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/detail/QuadraticSolver.hh"
@@ -142,13 +143,14 @@ FerrariSolver::FerrariSolver(real_type a, real_type b, real_type c, real_type d)
 CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
     -> Intersections
 {
-    real_type qb = 0.25 * ba_;
+    constexpr real_type half{0.5};
+    real_type qb = real_type{0.25} * ba_;
     real_type qb2 = ipow<2>(qb);
 
     // Incomplete quartic
-    real_type p = 3 * qb2 - 0.5 * ca_;
-    real_type q = 4 * qb * qb2 - ca_ * qb + 0.5 * da_;
-    real_type r = 3 * ipow<2>(qb2) - ca_ * qb2 + da_ * qb - (e * a_inv_);
+    real_type p = PolyEvaluator{-half * ca_, 0, 3}(qb);
+    real_type q = PolyEvaluator{half * da_, -ca_, 0, 4}(qb);
+    real_type r = PolyEvaluator{-e * a_inv_, da_, -ca_, 0, 3}(qb);
 
     // Edge case: equation is biquadratic
     if (soft_zero_(q))
@@ -158,7 +160,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
 
     // One real root of subsidiary cubic
     real_type z0 = FerrariSolver::dominant_root_normalized_cubic(
-        p, r, p * r - 0.5 * q * q);
+        p, r, p * r - half * q * q);
 
     real_type s2 = 2 * p + 2 * z0;
     if (s2 >= 0)
@@ -173,8 +175,9 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
         {
             t = -q / s;
         }
-        auto const [r0, r1] = real_roots_normalized_quadratic(s * 0.5, z0 + t);
-        auto const [r2, r3] = real_roots_normalized_quadratic(-s * 0.5, z0 - t);
+        auto const [r0, r1] = real_roots_normalized_quadratic(s * half, z0 + t);
+        auto const [r2, r3]
+            = real_roots_normalized_quadratic(-s * half, z0 - t);
 
         Intersections roots(no_intersection(),
                             no_intersection(),
@@ -282,31 +285,31 @@ FerrariSolver::calc_biquadratic_roots(real_type qb, real_type p, real_type r)
 CELER_FUNCTION real_type FerrariSolver::dominant_root_normalized_cubic(
     real_type b, real_type c, real_type d)
 {
-    real_type third = 1.0 / 3.0;
+    constexpr real_type half = real_type{0.5};
+    constexpr real_type third = real_type{1} / real_type{3};
     real_type third_b = b * third;
-    real_type ninth_b2 = third_b * third_b;
 
     // Intermediate values
-    real_type f = third * c - ninth_b2;
-    real_type g = third_b * (2 * ninth_b2 - c) + d;
-    real_type h = 0.25 * g * g + f * f * f;
+    real_type f = third * c - ipow<2>(third_b);
+    real_type g = PolyEvaluator{d, -c, 0, 2}(third_b);
+    real_type h = real_type{0.25} * ipow<2>(g) + ipow<3>(f);
 
     if (soft_zero_(f) && soft_zero_(g) && soft_zero_(h))
     {
-        return -1.0 * std::cbrt(d);
+        return -std::cbrt(d);
     }
     else if (h <= 0)
     {
         real_type j = std::sqrt(-f);
-        real_type k = std::acos(-0.5 * g / (j * j * j));
+        real_type k = std::acos(-half * g / ipow<3>(j));
         real_type m = std::cos(third * k);
         return 2 * j * m - third_b;
     }
     else
     {
         real_type sqrt_h = std::sqrt(h);
-        real_type s = std::cbrt(-0.5 * g + sqrt_h);
-        real_type u = std::cbrt(-0.5 * g - sqrt_h);
+        real_type s = std::cbrt(-half * g + sqrt_h);
+        real_type u = std::cbrt(-half * g - sqrt_h);
         return s + u - third_b;
     }
 }
