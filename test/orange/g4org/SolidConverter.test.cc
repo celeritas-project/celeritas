@@ -876,40 +876,39 @@ TEST_F(SolidConverterTest, subtractionsolid)
     }
 }
 
-// TEST_F(SolidConverterTest, reflectedsolid)
-//{
-//     // Triangle, flat top
-//     static double const z[] = {10, 50};
-//     static double const rmin[] = {0, 0};
-//     static double const rmax[] = {10, 10};
-//     G4Polyhedra tri("tri", 30 * deg, 360 * deg, 3, std::size(z), z, rmin,
-//     rmax);
-//
-//     // Reflect across xy plane
-//     G4ReflectedSolid reflz("tri_refl", &tri, G4ScaleZ3D());
-//     this->build_and_test(
-//         reflz,
-//         R"json({"_type":"transformed","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.25},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json",
-//         {
-//             {0, 0, 1.1},
-//             {0, 0, 5.1},
-//             {0, 0, -1.1},
-//             {0, 0, -5.1},
-//             {0, 1.0, -1.1},
-//         });
-//
-//     // Reflect across yz plane
-//     G4ReflectedSolid reflx("tri_refl", &tri, G4ScaleX3D());
-//     this->build_and_test(
-//         reflx,
-//         R"json({"_type":"transformed","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.25},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json",
-//         {
-//             {0, 0.99, 1.1},
-//             {0, -0.99, 5.1},
-//             {0, 1.01, 1.1},
-//             {0, -1.01, 5.1},
-//         });
-// }
+TEST_F(SolidConverterTest, reflectedsolid)
+{
+    // Triangle, flat top
+    static double const z[] = {10, 50};
+    static double const rmin[] = {0, 0};
+    static double const rmax[] = {10, 10};
+    G4Polyhedra tri("tri", 30 * deg, 360 * deg, 3, std::size(z), z, rmin, rmax);
+
+    // Reflect across xy plane
+    G4ReflectedSolid reflz("tri_refl", &tri, G4ScaleZ3D());
+    this->build_and_test(
+        reflz,
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.0,"polygon":[[1.7320508075688772,0.9999999999999998],[-1.7320508075688767,1.0000000000000004],[-3.673940397442059e-16,-1.9999999999999998]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.0},"label":"tri"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json",
+        {
+            {0, 0, 1.1},
+            {0, 0, 5.1},
+            {0, 0, -1.1},
+            {0, 0, -5.1},
+            {0, 1.0, -1.1},
+        });
+
+    // Reflect across yz plane
+    G4ReflectedSolid reflx("tri_refl", &tri, G4ScaleX3D());
+    this->build_and_test(
+        reflx,
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.0,"polygon":[[1.7320508075688772,0.9999999999999998],[-1.7320508075688767,1.0000000000000004],[-3.673940397442059e-16,-1.9999999999999998]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.0},"label":"tri"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json",
+        {
+            {0, 0.99, 1.1},
+            {0, -0.99, 5.1},
+            {0, 1.01, 1.1},
+            {0, -1.01, 5.1},
+        });
+}
 
 TEST_F(SolidConverterTest, DISABLED_scaledsolid)
 {
