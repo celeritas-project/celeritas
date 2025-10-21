@@ -20,7 +20,8 @@ namespace celeritas
 /*!
  * Helper class for dispatching type-specific lambdas.
  *
- * Example applied to a variant that converts to int or string: \code
+ * \par Example applied to a variant that converts to int or string:
+ * \code
   std::visit(Overload{[](int a) { cout << a + 2; },
                       [](std::string const& s) { cout << '"' << s << '"'; }},
              my_variant);
@@ -48,7 +49,8 @@ Overload(Ts&...) -> Overload<Ts...>;
  * on a generic type \c U . The class is necessary because \c std::visit
  * requires all return types to be the same.
  *
- * Example: \code
+ * \par Example:
+ * \code
    std::visit(return_as<VariantTransform>(Translate{{1,2,3}}), value);
  \endcode
  */
@@ -78,7 +80,8 @@ using EnumVariant = typename detail::EnumVariantImpl<E, ETraits>::type;
 /*!
  * Visit a container's element by calling "visit" on the corresponding index.
  *
- * example: \code
+ * \par Example:
+ * \code
    std::vector<std::variant<int, std:string>> myvec{"hi", 123, "bye"};
    ContainerVisitor visit_element{myvec};
    visit_element([](auto&& v) { cout << v; }, 1); // Prints '123'

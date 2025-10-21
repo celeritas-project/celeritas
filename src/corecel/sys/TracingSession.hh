@@ -24,9 +24,9 @@ namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
- * RAII wrapper for a tracing session.
+ * Record Perfetto events during the lifetime of this object.
  *
- * Constructors will only configure and initialize the session.
+ * This RAII class manages a Perfetto tracing session.
  * Only a single tracing mode is supported. If you are only interested in
  * application-level events (\c ScopedProfiling and \c trace_counter),
  * then the in-process mode is sufficient and is enabled by providing the
@@ -40,7 +40,8 @@ namespace celeritas
  * required. To start the system daemons using the perfetto backend,
  * see https://perfetto.dev/docs/quickstart/linux-tracing#capturing-a-trace
  *
- * TODO: Support multiple tracing modes.
+ * \note Profiling is disabled unless the \c CELER_ENABLE_PROFILING environment
+ * variable is set; see celeritas::ScopedProfiling.
  */
 class TracingSession
 {
