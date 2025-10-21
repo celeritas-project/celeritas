@@ -28,7 +28,7 @@ class LevelStateAccessor
     // Construct from states and indices
     inline CELER_FUNCTION LevelStateAccessor(StateRef const* states,
                                              TrackSlotId tid,
-                                             LevelId level_id);
+                                             ImplLevelId level_id);
 
     LevelStateAccessor(LevelStateAccessor const&) = default;
     LevelStateAccessor(LevelStateAccessor&&) = default;
@@ -90,12 +90,12 @@ class LevelStateAccessor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from states and indices
+ * Construct from states and indices.
  */
 CELER_FUNCTION
 LevelStateAccessor::LevelStateAccessor(StateRef const* states,
                                        TrackSlotId tid,
-                                       LevelId level_id)
+                                       ImplLevelId level_id)
     : states_(states), index_(tid.get() * states_->max_depth + level_id.get())
 {
     CELER_EXPECT(level_id < states->max_depth);
@@ -103,7 +103,7 @@ LevelStateAccessor::LevelStateAccessor(StateRef const* states,
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy data from another LSA
+ * Copy data from another LSA.
  */
 CELER_FUNCTION LevelStateAccessor&
 LevelStateAccessor::operator=(LevelStateAccessor const& other)

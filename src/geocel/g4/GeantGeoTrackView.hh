@@ -80,7 +80,7 @@ class GeantGeoTrackView
     // Get the physical volume ID in the current cell
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline LevelId level() const;
+    inline LevelId depth() const;
     // Get the volume instance ID for all levels
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
 
@@ -297,7 +297,7 @@ VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 /*!
  * Get the depth in the geometry hierarchy.
  */
-LevelId GeantGeoTrackView::level() const
+LevelId GeantGeoTrackView::depth() const
 {
     auto* touch = touch_handle_();
     return id_cast<LevelId>(touch->GetHistoryDepth());
@@ -313,7 +313,7 @@ LevelId GeantGeoTrackView::level() const
  */
 void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(levels.size() == this->level().get() + 1);
+    CELER_EXPECT(levels.size() == this->depth().get() + 1);
 
     auto* touch = touch_handle_();
     auto const max_depth = static_cast<size_type>(touch->GetHistoryDepth());

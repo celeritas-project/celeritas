@@ -34,6 +34,9 @@ inline constexpr LocalVolumeId orange_exterior_volume{0};
 //! ID of the top-level (global/world, level=0) universe (scene)
 inline constexpr UniverseId orange_global_universe{0};
 
+//! ID of the global universe level
+inline constexpr ImplLevelId orange_global_level{0};
+
 //---------------------------------------------------------------------------//
 /*!
  * Scalar values particular to an ORANGE geometry instance.

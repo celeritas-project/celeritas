@@ -152,7 +152,7 @@ GenericGeoTestBase<HP>::unique_volume_name(GeoTrackView const& geo) const
         return "[OUTSIDE]";
     }
 
-    auto level = geo.level();
+    auto level = geo.depth();
     CELER_ASSERT(level && level >= LevelId{0});
 
     std::vector<VolumeInstanceId> ids(level.get() + 1);
@@ -434,12 +434,12 @@ auto GenericGeoTestBase<HP>::volume_stack(Real3 const& pos)
 {
     auto geo = this->make_geo_track_view(pos, Real3{0, 0, 1});
 
-    auto level = geo.level();
-    if (!level)
+    auto depth = geo.depth();
+    if (!depth)
     {
         return {};
     }
-    std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
+    std::vector<VolumeInstanceId> inst_ids(depth.get() + 1);
     geo.volume_instance_id(make_span(inst_ids));
 
     CELER_ASSERT(volumes_);
