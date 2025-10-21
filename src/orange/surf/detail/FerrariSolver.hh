@@ -136,9 +136,11 @@ FerrariSolver::FerrariSolver(real_type a, real_type b, real_type c, real_type d)
 
 //---------------------------------------------------------------------------//
 /*!
- * Find all positive roots of x^4 + (b/a)x^3 + (c/a)x^2 + (d/a)x + (e/a) = 0
- *
- * Replaces negative or complex roots with no_intersection()
+ * Find all positive roots of the given polynomial:
+  * \f[
+   x^4 + (b/a)x^3 + (c/a)x^2 + (d/a)x + (e/a) = 0.
+ *\f]
+ * Replaces negative or complex roots with no_intersection().
  */
 CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
     -> Intersections
@@ -214,7 +216,6 @@ static SoftZero const soft_zero_{Tolerance<real_type>::sqrt_quadratic()};
 /*!
  * Utility function which places the given real root into an intersection list
  * in increasing order.
- *
  */
 CELER_FUNCTION int FerrariSolver::place_root(Intersections& roots,
                                              real_type new_root,
@@ -324,7 +325,7 @@ CELER_FUNCTION real_type FerrariSolver::dominant_root_normalized_cubic(
  * where a is assumed to already be 1 and not provided.
  *
  * \return A pair of roots. If roots are imaginary, returns 2x
- * no_intersection()
+ * no_intersection().
  */
 CELER_FUNCTION auto
 FerrariSolver::real_roots_normalized_quadratic(real_type hb, real_type c)
