@@ -66,6 +66,10 @@ class FerrariSolver
     // Solver fully general case
     inline CELER_FUNCTION Intersections operator()(real_type e) const;
 
+    // Find roots of special reduced quartic which is biquadratic
+    static inline CELER_FUNCTION Intersections calc_biquadratic_roots(
+        real_type qb, real_type p, real_type r, Intersections roots);
+
     // Find dominant root of normalized cubic
     static inline CELER_FUNCTION real_type
     dominant_root_normalized_cubic(real_type b, real_type c, real_type d);
@@ -154,31 +158,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
     // Edge case: equation is biquadratic TODO: need biquadratic tolerance
     if (soft_zero_(q))
     {
-        // QuadraticSolver solve(1, -2*p);
-        // auto ir = solve(-r);
-        auto ir = real_roots_normalized_quadratic(-p, -r);
-        // QuadraticSolver puts real & >0 roots last
-        if (ir[1] != no_intersection() && ir[1] > 0)
-        {
-            real_type sqrt_ir1 = std::sqrt(ir[1]);
-            real_type from_pos1 = sqrt_ir1 - qb;
-            place_root_sorted(roots, from_pos1);
-            if (from_pos1 > 0)
-            {
-                place_root_sorted(roots, -sqrt_ir1 - qb);
-            }
-        }
-        if (ir[0] != no_intersection() && ir[0] > 0)
-        {
-            real_type sqrt_ir0 = std::sqrt(ir[0]);
-            real_type from_pos0 = sqrt_ir0 - qb;
-            place_root_sorted(roots, from_pos0);
-            if (from_pos0 > 0)
-            {
-                place_root_sorted(roots, -sqrt_ir0 - qb);
-            }
-        }
-        return roots;
+        return calc_biquadratic_roots(qb, p, r, roots);
     }
 
     // One real root of subsidiary cubic
@@ -247,6 +227,45 @@ FerrariSolver::place_root_sorted(Intersections& roots, real_type new_root)
             break;
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Solves special case of Ferrari where reduced quartic is also biquadratic.
+ *
+ * In this special case, the normal solution won't work, and must instead be
+ * solved as a quadratic equation: The square roots of each quadratic solution
+ * then go on to form potential quartic solutions, for up to four roots.
+ */
+CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
+                                                          real_type p,
+                                                          real_type r,
+                                                          Intersections roots)
+    -> Intersections
+{
+    auto ir = real_roots_normalized_quadratic(-p, -r);
+
+    if (ir[1] != no_intersection() && ir[1] > 0)
+    {
+        real_type sqrt_ir1 = std::sqrt(ir[1]);
+        real_type from_pos1 = sqrt_ir1 - qb;
+        place_root_sorted(roots, from_pos1);
+        if (from_pos1 > 0)
+        {
+            place_root_sorted(roots, -sqrt_ir1 - qb);
+        }
+    }
+    if (ir[0] != no_intersection() && ir[0] > 0)
+    {
+        real_type sqrt_ir0 = std::sqrt(ir[0]);
+        real_type from_pos0 = sqrt_ir0 - qb;
+        place_root_sorted(roots, from_pos0);
+        if (from_pos0 > 0)
+        {
+            place_root_sorted(roots, -sqrt_ir0 - qb);
+        }
+    }
+    return roots;
 }
 
 //---------------------------------------------------------------------------//
