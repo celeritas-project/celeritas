@@ -319,7 +319,7 @@ CELER_FUNCTION LevelId VecgeomTrackView::depth() const
 CELER_FUNCTION void
 VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(levels.size() == this->depth().get() + 1);
+    CELER_EXPECT(id_cast<LevelId>(levels.size()) == this->depth() + 1);
     for (auto lev : range(levels.size()))
     {
         vecgeom::VPlacedVolume const* pv = vgstate_.At(lev);
