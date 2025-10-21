@@ -147,7 +147,6 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
 {
     constexpr real_type half{0.5};
     real_type qb = real_type{0.25} * ba_;
-    real_type qb2 = ipow<2>(qb);
 
     // Incomplete quartic
     real_type p = PolyEvaluator{-half * ca_, 0, 3}(qb);
