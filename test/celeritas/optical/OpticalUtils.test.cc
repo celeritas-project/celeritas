@@ -79,22 +79,62 @@ TEST(OpticalUtilsTest, find_distribution_index)
     std::vector<size_type> counts(distributions.size());
     std::partial_sum(
         distributions.begin(), distributions.end(), counts.begin());
-
-    static unsigned int const expected_counts[]
-        = {1u, 2u, 7u, 9u, 14u, 22u, 23u, 29u, 36u, 43u};
-    EXPECT_VEC_EQ(expected_counts, counts);
-
-    std::vector<int> result(num_threads, -1);
-    for (auto thread_idx : range(vacancies.size()))
     {
-        // In the vacsnt track slot, store the index of the distribution that
-        // will generate the track
-        result[vacancies[thread_idx]]
-            = find_distribution_index(make_span(counts), thread_idx);
+        static unsigned int const expected_counts[]
+            = {1u, 2u, 7u, 9u, 14u, 22u, 23u, 29u, 36u, 43u};
+        EXPECT_VEC_EQ(expected_counts, counts);
     }
-    PRINT_EXPECTED(result);
-    static int const expected_result[] = {-1, 0, 1, -1, 2, -1, 2, 2};
-    EXPECT_VEC_EQ(expected_result, result);
+
+    auto fill_vacancies = [&]() {
+        std::vector<int> result(num_threads, -1);
+
+        // Find the index of the first distribution that has a nonzero number
+        // of primaries left to generate
+        auto start = celeritas::upper_bound(
+            counts.begin(), counts.end(), size_type(0));
+
+        size_type offset = start - counts.begin();
+        Span<size_type> span_counts{start, counts.end()};
+
+        for (auto thread_idx : range(vacancies.size()))
+        {
+            // In the vacsnt track slot, store the index of the distribution
+            // that will generate the track
+            result[vacancies[thread_idx]]
+                = offset + find_distribution_index(span_counts, thread_idx);
+        }
+        return result;
+    };
+
+    {
+        auto result = fill_vacancies();
+        static int const expected_result[] = {-1, 0, 1, -1, 2, -1, 2, 2};
+        EXPECT_VEC_EQ(expected_result, result);
+    }
+
+    size_type num_gen = vacancies.size();
+    for (auto thread_idx : range(counts.size()))
+    {
+        // Update the cumulative sum of the number of photons per distribution
+        if (counts[thread_idx] < num_gen)
+        {
+            counts[thread_idx] = 0;
+        }
+        else
+        {
+            counts[thread_idx] -= num_gen;
+        }
+    }
+    {
+        static unsigned int const expected_counts[]
+            = {0u, 0u, 2u, 4u, 9u, 17u, 18u, 24u, 31u, 38u};
+        EXPECT_VEC_EQ(expected_counts, counts);
+    }
+    {
+        auto result = fill_vacancies();
+        static int const expected_result[] = {-1, 2, 2, -1, 3, -1, 3, 4};
+        EXPECT_VEC_EQ(expected_result, result);
+    }
 }
 
 TEST(OpticalUtilsTest, copy_if_vacant_host)

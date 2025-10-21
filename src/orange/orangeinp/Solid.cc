@@ -244,6 +244,7 @@ Solid<T>::Solid(std::string&& label,
 //---------------------------------------------------------------------------//
 
 template class Solid<Cone>;
+template class Solid<CutCylinder>;
 template class Solid<Cylinder>;
 template class Solid<Prism>;
 template class Solid<Sphere>;

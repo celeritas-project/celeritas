@@ -1,0 +1,44 @@
+# Codecov configuration
+# See https://docs.codecov.com/docs/codecov-yaml
+# See https://docs.codecov.com/docs/codecovyml-reference
+#
+# This file can be validated with:
+#   curl -X POST --data-binary @.github/codecov.yml https://codecov.io/validate
+
+coverage:
+  precision: 2
+  round: down
+  # Default was 70...100
+  range: "60...100"
+
+  status:
+    project:
+      default:
+        # 'auto' will use the coverage from the base commit (pull request base or
+        # parent commit) coverage to compare against. This is the default.
+        target: auto
+        # The default threshold is 1%, which means any drop in coverage will cause
+        threshold: 5%
+        base: auto
+        if_not_found: success
+        if_ci_failed: error
+    patch:
+      default:
+        target: auto
+        # For now only failing if the coverage drops a lot.
+        threshold: 25%
+        base: auto
+        if_not_found: success
+        if_ci_failed: error
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false
+
+ignore:
+  - "doc/**/*"
+  - "docs/**/*"
+  - "*.md"
+  - "scripts/**/*"
+  - ".github/**/*"

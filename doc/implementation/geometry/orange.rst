@@ -32,6 +32,7 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::IntersectRegionInterface
 .. doxygenclass:: celeritas::orangeinp::Box
 .. doxygenclass:: celeritas::orangeinp::Cone
+.. doxygenclass:: celeritas::orangeinp::CutCylinder
 .. doxygenclass:: celeritas::orangeinp::Cylinder
 .. doxygenclass:: celeritas::orangeinp::Ellipsoid
 .. doxygenclass:: celeritas::orangeinp::EllipticalCylinder

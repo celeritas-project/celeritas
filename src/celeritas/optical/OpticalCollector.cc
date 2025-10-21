@@ -53,21 +53,21 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     // Create core action to gather pre-step data for populating distributions
     gather_ = OffloadGatherAction::make_and_insert(core);
 
+    // Create optical action to generate Cherenkov or scintillation photons
+    optical::GeneratorAction::Input ga_inp;
+    ga_inp.material = inp.optical_params->material();
+    ga_inp.cherenkov = inp.cherenkov;
+    ga_inp.scintillation = inp.scintillation;
+    ga_inp.capacity = inp.buffer_capacity;
+    generate_ = optical::GeneratorAction::make_and_insert(
+        core, *inp.optical_params, std::move(ga_inp));
+
     if (inp.cherenkov)
     {
-        // Create optical action to generate Cherenkov primaries
-        optical::GeneratorAction<GT::cherenkov>::Input ga_inp;
-        ga_inp.material = inp.optical_params->material();
-        ga_inp.shared = inp.cherenkov;
-        ga_inp.capacity = inp.buffer_capacity;
-        cherenkov_generate_
-            = optical::GeneratorAction<GT::cherenkov>::make_and_insert(
-                core, *inp.optical_params, std::move(ga_inp));
-
         // Create core action to generate Cherenkov optical distributions
         OffloadAction<GT::cherenkov>::Input oa_inp;
         oa_inp.step_id = gather_->aux_id();
-        oa_inp.gen_id = cherenkov_generate_->aux_id();
+        oa_inp.gen_id = generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();
         oa_inp.shared = inp.cherenkov;
@@ -76,19 +76,10 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     }
     if (inp.scintillation)
     {
-        // Create action to generate scintillation primaries
-        optical::GeneratorAction<GT::scintillation>::Input ga_inp;
-        ga_inp.material = inp.optical_params->material();
-        ga_inp.shared = inp.scintillation;
-        ga_inp.capacity = inp.buffer_capacity;
-        scint_generate_
-            = optical::GeneratorAction<GT::scintillation>::make_and_insert(
-                core, *inp.optical_params, std::move(ga_inp));
-
         // Create action to generate scintillation optical distributions
         OffloadAction<GT::scintillation>::Input oa_inp;
         oa_inp.step_id = gather_->aux_id();
-        oa_inp.gen_id = scint_generate_->aux_id();
+        oa_inp.gen_id = generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();
         oa_inp.shared = inp.scintillation;

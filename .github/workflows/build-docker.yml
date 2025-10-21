@@ -1,3 +1,10 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build using CUDA/ROCm docker images
+#-----------------------------------------------------------------------------#
+
 name: build-docker
 on:
   workflow_dispatch:
@@ -79,7 +86,7 @@ jobs:
         run: |
           git config --global --add safe.directory ${PWD}
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
-          cmake --preset=${CMAKE_PRESET}
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
 
       ### BUILD ###
 
