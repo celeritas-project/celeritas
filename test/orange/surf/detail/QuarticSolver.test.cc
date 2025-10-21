@@ -64,37 +64,16 @@ class QuarticSolverTest : public ::celeritas::test::Test
         this->expect_softeq_list(expected, x);
     }
 };
-//---------------------------------------------------------------------------//
-/*!
- * Test suite for the dominant cubic utility function in FerrariSolver
- */
-class FerrariSolverCubicTest : public ::celeritas::test::Test
-{
-  public:
-    using FS = FerrariSolver;
-    using Coeffs3 = Array<real_type, 3>;
-
-    FerrariSolverCubicTest() {}
-
-    void
-    expect_dominant_cubic_root(real_type const& expected, Coeffs3 const& bcd)
-    {
-        FS solve_quartic(1, 1, 1, 1);
-        real_type bigroot = solve_quartic.dominant_root_normalized_cubic(
-            bcd[0], bcd[1], bcd[2]);
-        EXPECT_SOFT_EQ(expected, bigroot);
-    }
-};
 
 //---------------------------------------------------------------------------//
 
 using TestTypes = ::testing::Types<FerrariSolver>;
+TYPED_TEST_SUITE(QuarticSolverTest, TestTypes);
 
 /*
  * Test cases with all non-zero roots, i.e., the ray does not start on or close
  * to the surface
  */
-TYPED_TEST_SUITE(QuarticSolverTest, TestTypes);
 
 TYPED_TEST(QuarticSolverTest, no_roots)
 {
@@ -209,6 +188,20 @@ TYPED_TEST(QuarticSolverTest, surf_zero_roots)
                                             no_intersection(),
                                             no_intersection()},
                                            {1, 6, 11, 6});
+    // x**4
+    // Quadruple root at 0, to catch degenerate cases
+    this->expect_surface_roots_from_coeffs({no_intersection(),
+                                            no_intersection(),
+                                            no_intersection(),
+                                            no_intersection()},
+                                           {1, 0, 0, 0});
+    // x**4 + 4*x**3
+    // Triple root at 3, one at -4, to catch degenerate cases
+    this->expect_surface_roots_from_coeffs({no_intersection(),
+                                            no_intersection(),
+                                            no_intersection(),
+                                            no_intersection()},
+                                           {1, 4, 0, 0});
 }
 
 TYPED_TEST(QuarticSolverTest, surf_one_root)
@@ -243,49 +236,6 @@ TYPED_TEST(QuarticSolverTest, surf_two_roots_one_double)
     // Surface, one double root at 2, one root at 1
     this->expect_surface_roots_from_coeffs(
         {1.0, 2.0, no_intersection(), no_intersection()}, {1, -5, 8, -4});
-}
-
-//---------------------------------------------------------------------------//
-/*
- * Test cases for the cubic function solver, which should always return the
- * largest root
- */
-TEST_F(FerrariSolverCubicTest, cubic_three_real)
-{
-    // x**3 - 6*x**2 + 11*x - 6
-    // At 3, 2, 1, should find 3
-    {
-        expect_dominant_cubic_root(3.0, Coeffs3(-6, 11, -6));
-    }
-    // x**3 + 4*x**2 + 3*x
-    // At 0, -1, -3 should find 0
-    {
-        expect_dominant_cubic_root(0.0, Coeffs3(4, 3, 0));
-    }
-    // x**3 + 6*x**2 + 11*x + 6
-    // At -1, -2, -3 should find -1
-    {
-        expect_dominant_cubic_root(-1.0, Coeffs3(6, 11, 6));
-    }
-    // x**3 + 301*x**2 + 298*x - 600
-    // At 1, -2, -300 should find 1
-    {
-        expect_dominant_cubic_root(1.0, Coeffs3(301, 298, -600));
-    }
-}
-
-TEST_F(FerrariSolverCubicTest, cubic_one_real)
-{
-    // x**3 + 3*x**2 + x - 5
-    // At 1 with two imag should find 1
-    {
-        expect_dominant_cubic_root(1.0, Coeffs3(3, 1, -5));
-    }
-    // x**3 - 3*x**2 + x + 5
-    // At -1 with two imag should find -1
-    {
-        expect_dominant_cubic_root(-1, Coeffs3(-3, 1, 5));
-    }
 }
 
 //---------------------------------------------------------------------------//
