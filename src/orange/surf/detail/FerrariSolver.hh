@@ -143,12 +143,12 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
     -> Intersections
 {
     real_type qb = 0.25 * ba_;
-    real_type qb2 = qb * qb;
+    real_type qb2 = ipow<2>(qb);
 
     // Incomplete quartic
     real_type p = 3 * qb2 - 0.5 * ca_;
     real_type q = 4 * qb * qb2 - ca_ * qb + 0.5 * da_;
-    real_type r = 3 * qb2 * qb2 - ca_ * qb2 + da_ * qb - (e * a_inv_);
+    real_type r = 3 * ipow<2>(qb2) - ca_ * qb2 + da_ * qb - (e * a_inv_);
 
     // Final roots to return
     Intersections roots(no_intersection(),
@@ -330,15 +330,16 @@ FerrariSolver::real_roots_normalized_quadratic(real_type hb, real_type c)
     -> Real2
 {
     real_type qb2 = ipow<2>(hb);
-    if (qb2 > c)
+    if (soft_zero_(qb2 - c))
+    {
+        // One critical root
+        return Real2(-hb, no_intersection());
+    }
+    else if (qb2 > c)
     {
         // Two real roots
         real_type ht = std::sqrt(qb2 - c);
         return Real2(-hb - ht, -hb + ht);
-    }
-    else if (soft_zero_(qb2 - c))
-    {
-        return Real2(-hb, no_intersection());
     }
     else
     {
