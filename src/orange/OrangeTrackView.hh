@@ -267,6 +267,9 @@ class OrangeTrackView
     // Get the transform ID to move from this level to the one below.
     inline CELER_FUNCTION TransformId get_transform(ImplLevelId lev) const;
 
+    // The current implementation volume ID
+    inline CELER_FUNCTION ImplVolumeId impl_volume_id(ImplLevelId lev) const;
+
     // Get the surface normal as defined by the geometry
     inline CELER_FUNCTION Real3 geo_normal() const;
 };
@@ -487,18 +490,14 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(!params_.volume_instance_ids.empty());
 
-    // If we're in a 'background' volume, we don't know the PV until reaching
-    // the parent placement (i.e., the volume instance in the parent universe)
-    auto ui = this->make_universe_indexer();
-    LevelId lev{this->level()};
-    auto get_vol_inst = [&]() {
-        auto lsa = this->make_lsa(lev);
-        CELER_ASSERT(lsa.universe());
-        ImplVolumeId impl_id = ui.global_volume(lsa.universe(), lsa.vol());
-        return params_.volume_instance_ids[impl_id];
+    auto get_vol_inst = [this](ImplLevelId lev) {
+        return params_.volume_instance_ids[this->impl_volume_id(lev)];
     };
 
-    if (auto vi_id = get_vol_inst())
+    // If we're in a 'background' volume, we don't know the PV until reaching
+    // the parent placement (i.e., the volume instance in the parent universe)
+    ImplLevelId lev{this->univ_level()};
+    if (auto vi_id = get_vol_inst(lev))
     {
         // Canonical mapping found at this level: we're locally in a volume
         // placement
@@ -508,9 +507,9 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
     // Otherwise we're in a background volume, and the volume instance in the
     // parent level *must* be a volume instance if this is a correctly
     // constructed geometry
-    CELER_ASSERT(lev != LevelId{0});
+    CELER_ASSERT(lev != orange_global_level);
     --lev;
-    return get_vol_inst();
+    return get_vol_inst(lev);
 }
 
 //---------------------------------------------------------------------------//
@@ -535,11 +534,13 @@ CELER_FUNCTION LevelId OrangeTrackView::depth() const
 CELER_FUNCTION void
 OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(levels.size() == this->level().get() + 1);
-    for (auto lev : range(levels.size()))
-    {
-        levels[lev] = {};
-    }
+    CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(this->univ_level() < levels.size());
+
+    // To guard against errors and enable unit tests, we first make sure we're
+    // not going off the end. (If we are in the global level without correct
+    // instance information, then this will just return a null ID.)
+    CELER_NOT_IMPLEMENTED("canonical volume instance");
 }
 
 //---------------------------------------------------------------------------//
@@ -1329,6 +1330,21 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(ImplLevelId lev) const
     CELER_EXPECT(lev < this->univ_level());
     LSA lsa(&states_, track_slot_, lev);
     return this->get_transform(this->get_daughter(lsa));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The "global" volume ID at a given level.
+ *
+ * \note It is allowable to call this function when "outside", because the
+ * outside in ORANGE is just a special volume.
+ */
+CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id(ImplLevelId lev) const
+{
+    CELER_EXPECT(lev < this->univ_level());
+    auto lsa = this->make_lsa(lev);
+    auto ui = this->make_universe_indexer();
+    return ui.global_volume(lsa.universe(), lsa.vol());
 }
 
 //---------------------------------------------------------------------------//
