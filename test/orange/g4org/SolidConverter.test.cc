@@ -241,8 +241,6 @@ TEST_F(SolidConverterTest, cons)
 
 TEST_F(SolidConverterTest, cuttubs)
 {
-    real_type k = std::sqrt(2) / 2;
-    real_type m = std::sqrt(3) / 3;
     this->build_and_test(
         G4CutTubs("Solid Cut Tube #1",
                   10 * mm,
@@ -250,8 +248,8 @@ TEST_F(SolidConverterTest, cuttubs)
                   80 * mm,
                   0.15 * pi,
                   1.75 * pi,
-                  G4ThreeVector(0, k, -k),
-                  G4ThreeVector(m, m, m)),
+                  G4ThreeVector(0, 1, -1),
+                  G4ThreeVector(1, 1, 1)),
         R"json({"_type":"solid","enclosed_azi":{"start":0.075,"stop":0.95},"excluded":{"_type":"cutcylinder","bottom_normal":[0.0,0.7071067811865476,-0.7071067811865476],"halfheight":8.0,"radius":1.0,"top_normal":[0.5773502691896258,0.5773502691896258,0.5773502691896258]},"interior":{"_type":"cutcylinder","bottom_normal":[0.0,0.7071067811865476,-0.7071067811865476],"halfheight":8.0,"radius":5.0,"top_normal":[0.5773502691896258,0.5773502691896258,0.5773502691896258]},"label":"Solid Cut Tube #1"})json");
 }
 
@@ -738,7 +736,7 @@ TEST_F(SolidConverterTest, polyhedra)
     static double const no_rmin[] = {0, 0, 0, 0};
     static double const rmin[] = {20, 4, 17, 4};
     static double const rmax[] = {30, 10, 20, 5};
-    static real_type const sqrt2 = std::sqrt(2);
+    auto sqrt_two = double{constants::sqrt_two};
 
     // Full diamond shape, no interior
     this->build_and_test(
@@ -748,7 +746,7 @@ TEST_F(SolidConverterTest, polyhedra)
         {
             {0, 0, 26.},
             {0, 0, -11.},
-            {15 * sqrt2, 15 * sqrt2, -9.},
+            {15 * sqrt_two, 15 * sqrt_two, -9.},
 
         });
 
@@ -760,7 +758,7 @@ TEST_F(SolidConverterTest, polyhedra)
         {
             {-0.1, 0, 26.},
             {-0.1, 0, -11.},
-            {15 * sqrt2, 15 * sqrt2, -9.},
+            {15 * sqrt_two, 15 * sqrt_two, -9.},
             {10, 0, -5},
             {10, 10, -5},
         });
