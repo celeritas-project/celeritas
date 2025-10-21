@@ -721,13 +721,16 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     using VecReal3 = StackedExtrudedPolygon::VecReal3;
 
     auto const& solid = dynamic_cast<G4Polyhedra const&>(solid_base);
+    auto azi = enclosed_azi_from_poly(solid);
     auto const& params = *solid.GetOriginalParameters();
     size_type num_sides = params.numSide;
     size_type num_z = params.Num_z_planes;
+
+    // Note that we must use the original start/stop angles rather than
+    // normalizing with EnclosedAzi because the start angle determines where
+    // the first vertex of the polygon appears.
     real_type start_angle = params.Start_angle;
     real_type open_angle = params.Opening_angle;
-    bool is_two_pi
-        = soft_equal(open_angle, static_cast<real_type>(2 * constants::pi));
 
     CELER_VALIDATE(num_sides >= 1, << "must have at least one side");
     CELER_VALIDATE(num_z >= 2, << "must have at least two z planes");
@@ -735,7 +738,9 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     // If there is only 1 side, the "opening angle" must be less than pi. If
     // there are only two sides, the opening angle must be less than 2pi.
     CELER_VALIDATE(
-        num_sides > 2 || (!is_two_pi && open_angle < num_sides * constants::pi),
+        num_sides > 2
+            || (azi
+                && azi.stop() - azi.start() < Turn{real_type{0.5} * num_sides}),
         << "invalid number of sizes for the opening angle");
 
     // Scale input values
@@ -763,7 +768,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     {
         polygon.push_back(make_point(start_angle + i * step));
     }
-    if (!is_two_pi)
+    if (azi)
     {
         polygon.push_back(make_point(start_angle + open_angle));
         polygon.push_back({0, 0});
