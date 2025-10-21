@@ -242,7 +242,9 @@ operator+(OpaqueId<I, T> id, std::make_signed_t<T> offset)
 {
     CELER_EXPECT(id);
     CELER_EXPECT(offset >= 0 || static_cast<T>(-offset) <= id.unchecked_get());
-    return OpaqueId<I, T>{id.unchecked_get() + static_cast<T>(offset)};
+    // Note: an extra cast is needed for short T due to integer promotion
+    return OpaqueId<I, T>{
+        static_cast<T>(id.unchecked_get() + static_cast<T>(offset))};
 }
 
 //---------------------------------------------------------------------------//
@@ -253,7 +255,9 @@ operator-(OpaqueId<I, T> id, std::make_signed_t<T> offset)
 {
     CELER_EXPECT(id);
     CELER_EXPECT(offset <= 0 || static_cast<T>(offset) <= id.unchecked_get());
-    return OpaqueId<I, T>{id.unchecked_get() - static_cast<T>(offset)};
+    // Note: an extra cast is needed for short T due to integer promotion
+    return OpaqueId<I, T>{
+        static_cast<T>(id.unchecked_get() - static_cast<T>(offset))};
 }
 
 //---------------------------------------------------------------------------//
