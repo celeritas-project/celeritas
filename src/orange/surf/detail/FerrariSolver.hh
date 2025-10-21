@@ -67,18 +67,6 @@ class FerrariSolver
     // Solver fully general case
     inline CELER_FUNCTION Intersections operator()(real_type e) const;
 
-    // Find roots of special reduced quartic which is biquadratic
-    static inline CELER_FUNCTION Intersections
-    calc_biquadratic_roots(real_type qb, real_type p, real_type r);
-
-    // Find dominant root of normalized cubic
-    static inline CELER_FUNCTION real_type
-    dominant_root_normalized_cubic(real_type b, real_type c, real_type d);
-
-    // Find real quadratic roots
-    static inline CELER_FUNCTION Real2
-    real_roots_normalized_quadratic(real_type b, real_type c);
-
   private:
     //// DATA ////
     real_type a_inv_;  // 1/a
@@ -93,6 +81,18 @@ class FerrariSolver
     // Try to place real at given index in list, return next free index
     static inline CELER_FUNCTION int
     place_root(Intersections& roots, real_type new_root, int free_index);
+
+    // Find roots of special reduced quartic which is biquadratic
+    static inline CELER_FUNCTION Intersections
+    calc_biquadratic_roots(real_type qb, real_type p, real_type r);
+
+    // Find dominant root of normalized cubic
+    static inline CELER_FUNCTION real_type
+    dominant_root_normalized_cubic(real_type b, real_type c, real_type d);
+
+    // Find real quadratic roots
+    static inline CELER_FUNCTION Real2
+    real_roots_normalized_quadratic(real_type b, real_type c);
 };
 
 //---------------------------------------------------------------------------//
