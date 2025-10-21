@@ -21,6 +21,50 @@ namespace test
 /*
  * Abstract test harness for quartic solvers
  */
+template<typename MySolver>
+class NewQSTest : public ::celeritas::test::Test
+{
+  public:
+    using Intersections = Array<real_type, 4>;
+    using Coeffs4 = Array<real_type, 4>;
+    using Coeffs5 = Array<real_type, 5>;
+
+    NewQSTest() {}
+
+    template<class MS = MySolver>
+    Intersections get_roots(Coeffs4 const& abcd, real_type const& e = 0)
+    {
+        auto [a, b, c, d] = abcd;
+        MS solve_quartic(a, b, c, d);
+        return solve_quartic(e);
+    }
+
+    void expect_softeq_list(Intersections const& expected,
+                            Intersections const& actual)
+    {
+        ASSERT_EQ(expected.size(), actual.size());
+        for (auto i : range(expected.size()))
+        {
+            EXPECT_SOFT_EQ(expected[i], actual[i]);
+        }
+    }
+
+    void
+    expect_surface_roots(Intersections const& expected, Coeffs4 const& abcd)
+    {
+        auto x = this->get_roots(abcd);
+        this->expect_softeq_list(expected, x);
+    }
+
+    void expect_nonsurface_roots(Intersections const& expected,
+                                 Coeffs5 const& abcde)
+    {
+        auto [a, b, c, d, e] = abcde;
+        auto x = this->get_roots(Coeffs4(a, b, c, d), e);
+        this->expect_softeq_list(expected, x);
+    }
+};
+
 class QuarticSolverTest : public ::celeritas::test::Test
 {
   public:
@@ -93,39 +137,47 @@ class FerrariSolverTest : public QuarticSolverTest
 };
 
 //---------------------------------------------------------------------------//
+
+using TestTypes = ::testing::Types<FerrariSolver>;
+
 /*
  * Test cases with all non-zero roots, i.e., the ray does not start on or close
  * to the surface
  */
-TEST_F(FerrariSolverTest, no_roots)
+TYPED_TEST_SUITE(NewQSTest, TestTypes);
+// TEST_F(FerrariSolverTest, no_roots)
+TYPED_TEST(NewQSTest, no_roots)
 {
     // x**4 + 2*x**3 - 2.999998*x**2 - 3.999998*x + 4.000005000001
     // Four complex roots 1+-0.001i, -2+-0.001i
     {
-        expect_nonsurface_roots(
-            Intersections(no_intersection(),
-                          no_intersection(),
-                          no_intersection(),
-                          no_intersection()),
-            Coeffs5(1, 2, -2.999998, -3.999998, 4.000005000001));
+        this->expect_nonsurface_roots(
+            typename TestFixture::Intersections(no_intersection(),
+                                                no_intersection(),
+                                                no_intersection(),
+                                                no_intersection()),
+            typename TestFixture::Coeffs5(
+                1, 2, -2.999998, -3.999998, 4.000005000001));
     }
     // x**4 + x**3 - 2.999999*x**2 - 0.999997*x + 2.000002
     // Two negative real roots 2, 1, and two imaginary roots 1+-0.001i
     {
-        expect_nonsurface_roots(Intersections(no_intersection(),
-                                              no_intersection(),
-                                              no_intersection(),
-                                              no_intersection()),
-                                Coeffs5(1, 1, -2.999999, -0.999997, 2.000002));
+        this->expect_nonsurface_roots(
+            typename TestFixture::Intersections(no_intersection(),
+                                                no_intersection(),
+                                                no_intersection(),
+                                                no_intersection()),
+            typename TestFixture::Coeffs5(1, 1, -2.999999, -0.999997, 2.000002));
     }
     // x**4 + 10*x**3 + 35*x**2 + 50*x + 24
     // Four negative roots -1, -2, -3, -4
     {
-        expect_nonsurface_roots(Intersections(no_intersection(),
-                                              no_intersection(),
-                                              no_intersection(),
-                                              no_intersection()),
-                                Coeffs5(1, 10, 35, 50, 24));
+        this->expect_nonsurface_roots(
+            typename TestFixture::Intersections(no_intersection(),
+                                                no_intersection(),
+                                                no_intersection(),
+                                                no_intersection()),
+            typename TestFixture::Coeffs5(1, 10, 35, 50, 24));
     }
 }
 
