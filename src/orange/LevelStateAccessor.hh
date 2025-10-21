@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
+
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
 
@@ -22,6 +24,8 @@ class LevelStateAccessor
     //!@{
     //! Type aliases
     using StateRef = NativeRef<OrangeStateData>;
+    using LVolId = LocalVolumeId;
+    using UnivId = UniverseId;
     //!@}
 
   public:
@@ -30,60 +34,52 @@ class LevelStateAccessor
                                              TrackSlotId tid,
                                              ImplLevelId level_id);
 
-    LevelStateAccessor(LevelStateAccessor const&) = default;
-    LevelStateAccessor(LevelStateAccessor&&) = default;
     // Copy data from another LSA
     inline CELER_FUNCTION LevelStateAccessor&
     operator=(LevelStateAccessor const& other);
+
+    // Default move/copy
+    LevelStateAccessor(LevelStateAccessor const&) = default;
+    LevelStateAccessor(LevelStateAccessor&&) = default;
     ~LevelStateAccessor() = default;
 
     //// ACCESSORS ////
 
-    CELER_FUNCTION LocalVolumeId& vol()
-    {
-        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
-    }
-
-    CELER_FUNCTION Real3& pos()
-    {
-        return states_->pos[OpaqueId<Real3>{index_}];
-    }
-
-    CELER_FUNCTION Real3& dir()
-    {
-        return states_->dir[OpaqueId<Real3>{index_}];
-    }
-
-    CELER_FUNCTION UniverseId& universe()
-    {
-        return states_->universe[OpaqueId<UniverseId>{index_}];
-    }
+    CELER_FIF LVolId& vol() { return this->get(s_.vol); }
+    CELER_FIF Real3& pos() { return this->get(s_.pos); }
+    CELER_FIF Real3& dir() { return this->get(s_.dir); }
+    CELER_FIF UnivId& universe() { return this->get(s_.universe); }
 
     //// CONST ACCESSORS ////
 
-    CELER_FUNCTION LocalVolumeId const& vol() const
-    {
-        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
-    }
-
-    CELER_FUNCTION Real3 const& pos() const
-    {
-        return states_->pos[OpaqueId<Real3>{index_}];
-    }
-
-    CELER_FUNCTION Real3 const& dir() const
-    {
-        return states_->dir[OpaqueId<Real3>{index_}];
-    }
-
-    CELER_FUNCTION UniverseId const& universe() const
-    {
-        return states_->universe[OpaqueId<UniverseId>{index_}];
-    }
+    CELER_FIF LVolId const& vol() const { return this->get(s_.vol); }
+    CELER_FIF Real3 const& pos() const { return this->get(s_.pos); }
+    CELER_FIF Real3 const& dir() const { return this->get(s_.dir); }
+    CELER_FIF UnivId const& universe() const { return this->get(s_.universe); }
 
   private:
-    StateRef const* const states_;
-    size_type const index_;
+    //// TYPES ////
+
+    template<class T>
+    using Items = Collection<T, Ownership::reference, MemSpace::native>;
+
+    //// DATA ////
+
+    StateRef const& s_;
+    size_type index_;
+
+    //// HELPER FUNCTIONS ////
+    template<class T>
+    CELER_FIF T& get(Items<T> const& items)
+    {
+        return items[OpaqueId<T>{index_}];
+    }
+
+    template<class T>
+    CELER_FIF T const& get(Items<T> const& items) const
+    {
+        return items[OpaqueId<T>{index_}];
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -92,26 +88,24 @@ class LevelStateAccessor
 /*!
  * Construct from states and indices.
  */
-CELER_FUNCTION
+CELER_FIF
 LevelStateAccessor::LevelStateAccessor(StateRef const* states,
                                        TrackSlotId tid,
                                        ImplLevelId level_id)
-    : states_(states), index_(tid.get() * states_->max_depth + level_id.get())
+    : s_(*states), index_(tid.get() * s_.max_depth + level_id.get())
 {
-    CELER_EXPECT(level_id < states->max_depth);
+    CELER_EXPECT(level_id < s_.max_depth);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Copy data from another LSA.
  */
-CELER_FUNCTION LevelStateAccessor&
+CELER_FIF LevelStateAccessor&
 LevelStateAccessor::operator=(LevelStateAccessor const& other)
 {
-    if (this == &other)
-    {
-        return *this;
-    }
+    CELER_EXPECT(index_ != other.index_);
+
     this->vol() = other.vol();
     this->pos() = other.pos();
     this->dir() = other.dir();

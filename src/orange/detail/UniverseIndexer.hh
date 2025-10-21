@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
 
@@ -98,14 +96,15 @@ class UniverseIndexer
 //---------------------------------------------------------------------------//
 /*!
  * Construct from UniverseIndexerData.
+ *
+ * Note that the front values for both surface and volume are zero by
+ * construction.
  */
 CELER_FUNCTION
 UniverseIndexer::UniverseIndexer(UniverseIndexerDataRef const& data)
     : data_(data)
 {
-    CELER_EXPECT(data_.surfaces.size() == data_.volumes.size());
-    CELER_EXPECT(data_.surfaces[AllVals{}].front() == 0);
-    CELER_EXPECT(data_.volumes[AllVals{}].front() == 0);
+    CELER_EXPECT(data_);
 }
 
 //---------------------------------------------------------------------------//
