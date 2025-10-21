@@ -99,7 +99,7 @@ struct GeoTrackInitializer
     //// FUNCTIONS ////
 
     //! Construct in an invalid state
-    CELER_FUNCTION GeoTrackInitializer() = default;
+    GeoTrackInitializer() = default;
 
     //! Construct with an invalid parent ID
     CELER_FUNCTION GeoTrackInitializer(Real3 const& pos, Real3 const& dir)
