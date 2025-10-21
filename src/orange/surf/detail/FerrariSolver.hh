@@ -46,7 +46,7 @@ class FerrariSolver
     //!@{
     //! \name Type aliases
     using Intersections = Array<real_type, 4>;
-    using Roots2 = Array<real_type, 2>;
+    using Real2 = Array<real_type, 2>;
     //!@}
 
     // General case solve
@@ -71,7 +71,7 @@ class FerrariSolver
     dominant_root_normalized_cubic(real_type b, real_type c, real_type d);
 
     // Find real quadratic roots TODO: is there a way to use existing one?
-    static inline CELER_FUNCTION Roots2
+    static inline CELER_FUNCTION Real2
     real_roots_normalized_quadratic(real_type b, real_type c);
 
   private:
@@ -303,22 +303,22 @@ CELER_FUNCTION real_type FerrariSolver::dominant_root_normalized_cubic(
  */
 CELER_FUNCTION auto
 FerrariSolver::real_roots_normalized_quadratic(real_type hb, real_type c)
-    -> Roots2
+    -> Real2
 {
     real_type qb2 = ipow<2>(hb);
     if (qb2 > c)
     {
         // Two real roots
         real_type ht = std::sqrt(qb2 - c);
-        return Roots2(-hb - ht, -hb + ht);
+        return Real2(-hb - ht, -hb + ht);
     }
     else if (soft_zero_(qb2 - c))
     {
-        return Roots2(-hb, no_intersection());
+        return Real2(-hb, no_intersection());
     }
     else
     {
-        return Roots2(no_intersection(), no_intersection());
+        return Real2(no_intersection(), no_intersection());
     }
 }
 
