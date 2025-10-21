@@ -251,6 +251,20 @@ TEST_F(SolidConverterTest, cuttubs)
                   G4ThreeVector(0, 1, -1),
                   G4ThreeVector(1, 1, 1)),
         R"json({"_type":"solid","enclosed_azi":{"start":0.075,"stop":0.95},"excluded":{"_type":"cutcylinder","bottom_normal":[0.0,0.7071067811865476,-0.7071067811865476],"halfheight":8.0,"radius":1.0,"top_normal":[0.5773502691896258,0.5773502691896258,0.5773502691896258]},"interior":{"_type":"cutcylinder","bottom_normal":[0.0,0.7071067811865476,-0.7071067811865476],"halfheight":8.0,"radius":5.0,"top_normal":[0.5773502691896258,0.5773502691896258,0.5773502691896258]},"label":"Solid Cut Tube #1"})json");
+
+    // Cuttub from CMS run 3
+    this->build_and_test(
+        G4CutTubs("pixfwdInnerDiskZplus_PixelForwardInnerDiskOuterRing_seg_"
+                  "10x7f7110ba4900",
+                  114.85 * mm,
+                  117.35 * mm,
+                  15.5 * mm,
+                  87.03229 * deg,
+                  7.90680999999999 * deg,
+                  G4ThreeVector(
+                      0.48599950039277, 0.00835999140593325, -0.873919101611625),
+                  G4ThreeVector(0, 0, 1)),
+        R"json({"_type":"solid","enclosed_azi":{"start":0.24175636111111112,"stop":0.2637197222222222},"excluded":{"_type":"cutcylinder","bottom_normal":[0.48599950039277023,0.008359991405933253,-0.8739191016116253],"halfheight":1.55,"radius":11.485,"top_normal":[0.0,0.0,1.0]},"interior":{"_type":"cutcylinder","bottom_normal":[0.48599950039277023,0.008359991405933253,-0.8739191016116253],"halfheight":1.55,"radius":11.735,"top_normal":[0.0,0.0,1.0]},"label":"pixfwdInnerDiskZplus_PixelForwardInnerDiskOuterRing_seg_10x7f7110ba4900"})json");
 }
 
 TEST_F(SolidConverterTest, displaced)
