@@ -800,17 +800,17 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     }
     else
     {
-        // Make copies, as or_solids expecteds rvalues
+        // Make copies, as or_solids expects rvalues
         auto inner_polygon = polygon;
         auto inner_polyline = polyline;
 
         auto base_name = std::string{solid_base.GetName()};
 
-        auto outer = StackedExtrudedPolygon::or_solid(base_name + "_outer",
+        auto outer = StackedExtrudedPolygon::or_solid(base_name + ".exc",
                                                       std::move(polygon),
                                                       std::move(polyline),
                                                       make_scaling(rmax));
-        auto inner = StackedExtrudedPolygon::or_solid(base_name + "_inner",
+        auto inner = StackedExtrudedPolygon::or_solid(base_name + ".int",
                                                       std::move(inner_polygon),
                                                       std::move(inner_polyline),
                                                       make_scaling(rmin));
