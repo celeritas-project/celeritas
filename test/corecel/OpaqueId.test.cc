@@ -34,7 +34,7 @@ class OpaqueIdTypedTest : public ::testing::Test
 };
 
 using IntTypes = ::testing::Types<unsigned char, unsigned int, std::size_t>;
-TYPED_TEST_SUITE(OpaqueIdTypedTest, IntTypes);
+TYPED_TEST_SUITE(OpaqueIdTypedTest, IntTypes, );
 
 TYPED_TEST(OpaqueIdTypedTest, operations)
 {
