@@ -34,7 +34,8 @@ namespace detail
  * consequence of the particular algorithm chosen. This solver implements the
  * Ferrari-Cardano method, which is well-established and simple, but more
  * prone to numerical error than contemporary methods to be explored such as
- * Algorithm 1010.
+ * Algorithm 1010\citet{orellana-alg1010-2020,
+ * https://doi.org/10.1145/3386241}.
  *
  * \return An Intersections array where each item is either a positive valid
  * intersection or the sentinel result \c no_intersection().
