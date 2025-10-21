@@ -173,8 +173,3 @@ each become a CSG unit. This decomposition is currently tuned so that:
   used multiple times and have daughter volumes.
 
 .. _Geant4 documentation: https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/index.html
-
-Runtime interface
------------------
-
-.. doxygenclass:: celeritas::OrangeTrackView
