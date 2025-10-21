@@ -75,7 +75,7 @@ class FerrariSolver
     static inline CELER_FUNCTION real_type
     dominant_root_normalized_cubic(real_type b, real_type c, real_type d);
 
-    // Find real quadratic roots TODO: is there a way to use existing one?
+    // Find real quadratic roots
     static inline CELER_FUNCTION Real2
     real_roots_normalized_quadratic(real_type b, real_type c);
 
@@ -156,7 +156,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
                         no_intersection(),
                         no_intersection());
 
-    // Edge case: equation is biquadratic TODO: need biquadratic tolerance
+    // Edge case: equation is biquadratic
     if (soft_zero_(q))
     {
         return calc_biquadratic_roots(qb, p, r, roots);
