@@ -37,6 +37,8 @@ comment:
   require_changes: false
 
 ignore:
+  - "test"
+  - "app"
   - "doc/**/*"
   - "docs/**/*"
   - "*.md"
