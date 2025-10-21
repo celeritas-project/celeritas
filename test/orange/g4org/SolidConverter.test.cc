@@ -804,6 +804,51 @@ TEST_F(SolidConverterTest, polyhedra)
         });
 }
 
+TEST_F(SolidConverterTest, polyhedra_hgcal)
+{
+    static double const z[] = {-0.6, 0.6};
+    static double const rmin[] = {0, 0};
+    static double const rmax[] = {61.85, 61.85};
+
+    // Flat-top hexagon
+    this->build_and_test(
+        G4Polyhedra(
+            "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
+        R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,-0.06],"bot_scaling_factor":0.9999999999999999,"polygon":[[6.184999999999998,-3.5709114149378385],[6.185000000000003,3.57091141493783],[2.186552617171183e-15,7.141822829875671],[-6.184999999999995,3.5709114149378447],[-6.185000000000004,-3.5709114149378296],[-3.0611736640396562e-15,-7.141822829875671]],"top_line_segment_point":[0.0,0.0,0.06],"top_scaling_factor":0.9999999999999999},"label":"HGCalEEAbs"})json",
+        {{6.18, 6.18, 0.05},
+         {0, 0, 0.06},
+         {7.15, 7.15, 0.05},
+         {3.0, 6.01, 0},
+         {6.18, 7.15, 0}});
+
+    // Triangle
+    static double const z2[] = {10, 50};
+    static double const rmin2[] = {0, 0};
+    static double const rmax2[] = {10, 10};
+    this->build_and_test(
+        G4Polyhedra(
+            "tri", 30 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+        R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.0,"polygon":[[1.7320508075688772,0.9999999999999998],[-1.7320508075688767,1.0000000000000004],[-3.673940397442059e-16,-1.9999999999999998]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.0},"label":"tri"})json",
+        {
+            {0, 0, 0.9},
+            {0, 0, 1.1},
+            {0, 0, 4.9},
+            {0, 0, 5.1},
+            {0, 1.01, 1.1},
+            {0, -1.01, 1.1},
+        });
+    // Rotate 60 degrees
+    this->build_and_test(
+        G4Polyhedra(
+            "tri", 60 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+        R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.0,"polygon":[[1.0,1.732050807568877],[-1.9999999999999998,2.449293598294706e-16],[0.9999999999999986,-1.7320508075688779]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.0},"label":"tri"})json");
+    // Rotate 90 degrees
+    this->build_and_test(
+        G4Polyhedra(
+            "tri", 90 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+        R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.0,"polygon":[[1.224646799147353e-16,1.9999999999999998],[-1.7320508075688774,-0.9999999999999994],[1.7320508075688765,-1.0000000000000007]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.0},"label":"tri"})json");
+}
+
 TEST_F(SolidConverterTest, sphere)
 {
     this->build_and_test(
