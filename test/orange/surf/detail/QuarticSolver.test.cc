@@ -79,14 +79,7 @@ class FerrariSolverTest : public QuarticSolverTest
     {
         auto [a, b, c, d] = abcd;
         FS solve_quartic(a, b, c, d);
-        if (e == 0)
-        {
-            return solve_quartic();
-        }
-        else
-        {
-            return solve_quartic(e);
-        }
+        return solve_quartic(e);
     }
 
     void

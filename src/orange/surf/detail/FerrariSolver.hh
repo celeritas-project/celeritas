@@ -65,9 +65,6 @@ class FerrariSolver
     // Solver fully general case
     inline CELER_FUNCTION Intersections operator()(real_type e) const;
 
-    // Solve degenerate / known surface case (e = 0)
-    inline CELER_FUNCTION Intersections operator()() const;
-
     // Find dominant root of normalized cubic
     static inline CELER_FUNCTION real_type
     dominant_root_normalized_cubic(real_type b, real_type c, real_type d);
@@ -112,7 +109,7 @@ CELER_FUNCTION auto FerrariSolver::solve_general(real_type a,
     FerrariSolver solve(a, b, c, d);
     if (on_surface == SurfaceState::on)
     {
-        return solve();
+        return solve(0);
     }
     else
     {
@@ -209,12 +206,6 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
         place_root_sorted(roots, roots23[1] - qb);
     }
     return roots;
-}
-
-CELER_FUNCTION auto FerrariSolver::operator()() const -> Intersections
-{
-    // TODO: Either find an optimization to make here, or remove this entirely
-    return operator()(0);
 }
 
 //---------------------------------------------------------------------------//
