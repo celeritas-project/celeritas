@@ -68,8 +68,8 @@ class FerrariSolver
     inline CELER_FUNCTION Intersections operator()(real_type e) const;
 
     // Find roots of special reduced quartic which is biquadratic
-    static inline CELER_FUNCTION Intersections calc_biquadratic_roots(
-        real_type qb, real_type p, real_type r, Intersections roots);
+    static inline CELER_FUNCTION Intersections
+    calc_biquadratic_roots(real_type qb, real_type p, real_type r);
 
     // Find dominant root of normalized cubic
     static inline CELER_FUNCTION real_type
@@ -90,9 +90,9 @@ class FerrariSolver
     // Soft zero for biquadratic and degenerate cubic detection
     static inline SoftZero<real_type> const soft_zero_;
 
-    // Place real root in an ascending list
-    static inline CELER_FUNCTION void
-    place_root_sorted(Intersections& roots, real_type new_root);
+    // Try to place real at given index in list, return next free index
+    static inline CELER_FUNCTION int
+    place_root(Intersections& roots, real_type new_root, int free_index);
 };
 
 //---------------------------------------------------------------------------//
@@ -150,16 +150,10 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
     real_type q = 4 * qb * qb2 - ca_ * qb + 0.5 * da_;
     real_type r = 3 * ipow<2>(qb2) - ca_ * qb2 + da_ * qb - (e * a_inv_);
 
-    // Final roots to return
-    Intersections roots(no_intersection(),
-                        no_intersection(),
-                        no_intersection(),
-                        no_intersection());
-
     // Edge case: equation is biquadratic
     if (soft_zero_(q))
     {
-        return calc_biquadratic_roots(qb, p, r, roots);
+        return calc_biquadratic_roots(qb, p, r);
     }
 
     // One real root of subsidiary cubic
@@ -179,15 +173,30 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
         {
             t = -q / s;
         }
-        auto roots01 = real_roots_normalized_quadratic(s * 0.5, z0 + t);
-        auto roots23 = real_roots_normalized_quadratic(-s * 0.5, z0 - t);
+        auto const [r0, r1] = real_roots_normalized_quadratic(s * 0.5, z0 + t);
+        auto const [r2, r3] = real_roots_normalized_quadratic(-s * 0.5, z0 - t);
 
-        place_root_sorted(roots, roots01[0] - qb);
-        place_root_sorted(roots, roots01[1] - qb);
-        place_root_sorted(roots, roots23[0] - qb);
-        place_root_sorted(roots, roots23[1] - qb);
+        Intersections roots(no_intersection(),
+                            no_intersection(),
+                            no_intersection(),
+                            no_intersection());
+        int idx = 0;
+        idx = place_root(roots, r0 - qb, idx);
+        idx = place_root(roots, r1 - qb, idx);
+        idx = place_root(roots, r2 - qb, idx);
+        idx = place_root(roots, r3 - qb, idx);
+
+        sort(&roots[0], &roots[idx]);
+
+        return roots;
     }
-    return roots;
+    else
+    {
+        return Intersections(no_intersection(),
+                             no_intersection(),
+                             no_intersection(),
+                             no_intersection());
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -204,30 +213,16 @@ static SoftZero const soft_zero_{Tolerance<real_type>::sqrt_quadratic()};
  * in increasing order.
  *
  */
-CELER_FUNCTION void
-FerrariSolver::place_root_sorted(Intersections& roots, real_type new_root)
+CELER_FUNCTION int FerrariSolver::place_root(Intersections& roots,
+                                             real_type new_root,
+                                             int free_index)
 {
-    if (new_root == no_intersection() || new_root <= 0)
+    if (!(new_root == no_intersection() || new_root <= 0))
     {
-        return;
+        roots[free_index] = new_root;
     }
-    for (int i = 0; i < 4; i++)
-    {
-        if (roots[i] == no_intersection())
-        {
-            roots[i] = new_root;
-            break;
-        }
-        else if (new_root < roots[i])
-        {
-            for (int j = 3; j > i; j--)
-            {
-                roots[j] = roots[j - 1];
-            }
-            roots[i] = new_root;
-            break;
-        }
-    }
+    free_index += 1;
+    return free_index;
 }
 
 //---------------------------------------------------------------------------//
@@ -238,34 +233,37 @@ FerrariSolver::place_root_sorted(Intersections& roots, real_type new_root)
  * solved as a quadratic equation: The square roots of each quadratic solution
  * then go on to form potential quartic solutions, for up to four roots.
  */
-CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
-                                                          real_type p,
-                                                          real_type r,
-                                                          Intersections roots)
+CELER_FUNCTION auto
+FerrariSolver::calc_biquadratic_roots(real_type qb, real_type p, real_type r)
     -> Intersections
 {
     auto ir = real_roots_normalized_quadratic(-p, -r);
-
+    Intersections roots(no_intersection(),
+                        no_intersection(),
+                        no_intersection(),
+                        no_intersection());
+    int idx = 0;
     if (ir[1] != no_intersection() && ir[1] > 0)
     {
         real_type sqrt_ir1 = std::sqrt(ir[1]);
         real_type from_pos1 = sqrt_ir1 - qb;
-        place_root_sorted(roots, from_pos1);
+        idx = place_root(roots, from_pos1, idx);
         if (from_pos1 > 0)
         {
-            place_root_sorted(roots, -sqrt_ir1 - qb);
+            idx = place_root(roots, -sqrt_ir1 - qb, idx);
         }
     }
     if (ir[0] != no_intersection() && ir[0] > 0)
     {
         real_type sqrt_ir0 = std::sqrt(ir[0]);
         real_type from_pos0 = sqrt_ir0 - qb;
-        place_root_sorted(roots, from_pos0);
+        idx = place_root(roots, from_pos0, idx);
         if (from_pos0 > 0)
         {
-            place_root_sorted(roots, -sqrt_ir0 - qb);
+            idx = place_root(roots, -sqrt_ir0 - qb, idx);
         }
     }
+    sort(&roots[0], &roots[idx]);
     return roots;
 }
 
