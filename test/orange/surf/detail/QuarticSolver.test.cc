@@ -90,19 +90,19 @@ TYPED_TEST_SUITE(QuarticSolverTest, TestTypes);
 
 TYPED_TEST(QuarticSolverTest, no_roots)
 {
-    // x**4 + 2*x**3 - 2.999998*x**2 - 3.999998*x + 4.000005000001
+    // x^4 + 2*x^3 - 2.999998*x^2 - 3.999998*x + 4.000005000001
     // Four complex roots 1+-0.001i, -2+-0.001i
     {
         this->expect_nonsurface_roots_from_coeffs(
             {}, {1, 2, -2.999998, -3.999998, 4.000005000001});
     }
-    // x**4 + x**3 - 2.999999*x**2 - 0.999997*x + 2.000002
+    // x^4 + x^3 - 2.999999*x^2 - 0.999997*x + 2.000002
     // Two negative real roots 2, 1, and two imaginary roots 1+-0.001i
     {
         this->expect_nonsurface_roots_from_coeffs(
             {}, {1, 1, -2.999999, -0.999997, 2.000002});
     }
-    // x**4 + 10*x**3 + 35*x**2 + 50*x + 24
+    // x^4 + 10*x^3 + 35*x^2 + 50*x + 24
     // Four negative roots -1, -2, -3, -4
     {
         this->expect_nonsurface_roots_from_coeffs({}, {1, 10, 35, 50, 24});
@@ -111,17 +111,17 @@ TYPED_TEST(QuarticSolverTest, no_roots)
 
 TYPED_TEST(QuarticSolverTest, one_root)
 {
-    // x**4 - 16
+    // x^4 - 16
     // One quadruple root at 2 (Critically degenerate torus)
     {
         this->expect_nonsurface_roots_from_coeffs({2.0}, {1, 0, 0, 0, -16});
     }
-    // x**4 - 2*x**3 - 2*x**2 + 8
+    // x^4 - 2*x^3 - 2*x^2 + 8
     // One double root at 2, two imag rooots
     {
         this->expect_nonsurface_roots_from_coeffs({2.0}, {1, -2, -2, 0, 8});
     }
-    // x**4 - 3*x**3 + 1.000001*x**2 + 2.999999*x - 2.000002
+    // x^4 - 3*x^3 + 1.000001*x^2 + 2.999999*x - 2.000002
     // One root at 2, one negative root at -1, two imag roots
     {
         this->expect_nonsurface_roots_from_coeffs(
@@ -131,13 +131,13 @@ TYPED_TEST(QuarticSolverTest, one_root)
 
 TYPED_TEST(QuarticSolverTest, two_roots)
 {
-    // x**4 + x**3 - 5*x**2 - 7*x + 10
+    // x^4 + x^3 - 5*x^2 - 7*x + 10
     // Two roots at 2, 1, two imaginary roots
     {
         this->expect_nonsurface_roots_from_coeffs({1.0, 2.0},
                                                   {1, 1, -5, -7, 10});
     }
-    // x**4 - 6*x**3 + 13*x**2 - 12*x + 4
+    // x^4 - 6*x^3 + 13*x^2 - 12*x + 4
     // Double root at 1, double root at 2
     {
         this->expect_nonsurface_roots_from_coeffs({1.0, 2.0},
@@ -147,13 +147,13 @@ TYPED_TEST(QuarticSolverTest, two_roots)
 
 TYPED_TEST(QuarticSolverTest, three_roots)
 {
-    // x**4 - 7*x**3 + 17*x**2 - 17*x + 6
+    // x^4 - 7*x^3 + 17*x^2 - 17*x + 6
     // Double root at 1, two roots at 2, 3
     {
         this->expect_nonsurface_roots_from_coeffs({1.0, 2.0, 3.0},
                                                   {1, -7, 17, -17, 6});
     }
-    // x**4 - 5*x**3 + 5*x**2 + 5*x - 6
+    // x^4 - 5*x^3 + 5*x^2 + 5*x - 6
     // Three roots at 1, 2, 3, negative root at -1
     {
         this->expect_nonsurface_roots_from_coeffs({1.0, 2.0, 3.0},
@@ -163,7 +163,7 @@ TYPED_TEST(QuarticSolverTest, three_roots)
 
 TYPED_TEST(QuarticSolverTest, four_roots)
 {
-    // x**4 - 10*x**3 + 35*x**2 - 50*x + 24
+    // x^4 - 10*x^3 + 35*x^2 - 50*x + 24
     // Four roots at 1, 2, 3, 4
     this->expect_nonsurface_roots_from_coeffs({1.0, 2.0, 3.0, 4.0},
                                               {1, -10, 35, -50, 24});
@@ -175,25 +175,25 @@ TYPED_TEST(QuarticSolverTest, four_roots)
  */
 TYPED_TEST(QuarticSolverTest, surf_zero_roots)
 {
-    // x**4 + 6*x**3 + 11*x**2 + 6*x
+    // x^4 + 6*x^3 + 11*x^2 + 6*x
     // Surface, three negative roots at -1, -2, -3
     this->expect_surface_roots_from_coeffs({}, {1, 6, 11, 6});
-    // x**4
+    // x^4
     // Quadruple root at 0, to catch degenerate cases
     this->expect_surface_roots_from_coeffs({}, {1, 0, 0, 0});
-    // x**4 + 4*x**3
+    // x^4 + 4*x^3
     // Triple root at 3, one at -4, to catch degenerate cases
     this->expect_surface_roots_from_coeffs({}, {1, 4, 0, 0});
 }
 
 TYPED_TEST(QuarticSolverTest, surf_one_root)
 {
-    // x**4 + 3*x**3 + 1*x**2 + -5*x
+    // x^4 + 3*x^3 + 1*x^2 + -5*x
     // Surface, one root at 1, two imaginary roots
     {
         this->expect_surface_roots_from_coeffs({1.0}, {1, 3, 1, -5});
     }
-    // x**4 - 2*x**3 + x**2
+    // x^4 - 2*x^3 + x^2
     // Double root on surface, double root at 1
     {
         this->expect_surface_roots_from_coeffs({1.0}, {1, -2, 1, 0});
@@ -202,14 +202,14 @@ TYPED_TEST(QuarticSolverTest, surf_one_root)
 
 TYPED_TEST(QuarticSolverTest, surf_two_roots)
 {
-    // x**4 - 3*x**3 + 2*x**2
+    // x^4 - 3*x^3 + 2*x^2
     // Double root on surface, two roots at 1, 2
     this->expect_surface_roots_from_coeffs({1.0, 2.0}, {1, -3, 2, 0});
 }
 
 TYPED_TEST(QuarticSolverTest, surf_two_roots_one_double)
 {
-    // x**4 - 5*x**3 + 8*x**2 - 4*x
+    // x^4 - 5*x^3 + 8*x^2 - 4*x
     // Surface, one double root at 2, one root at 1
     this->expect_surface_roots_from_coeffs({1.0, 2.0}, {1, -5, 8, -4});
 }
