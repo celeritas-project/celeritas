@@ -25,8 +25,9 @@ namespace detail
  * Find positive, real, non-zero roots for quartic functions using the
  * Ferrari-Cardano method.
  *
- * The quartic equation \f[
- * a x^4 + b x^3 + c x^2 + d x + e = 0
+ * The quartic equation
+  * \f[
+   a x^4 + b x^3 + c x^2 + d x + e = 0
  * \f]
  * has four solutions mathematically, but we only require solutions which are
  * both real and positive. This equation is also subject to multiple cases of
@@ -271,9 +272,11 @@ CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
 //---------------------------------------------------------------------------//
 /*!
  * Utility function which solves for the dominant root of a cubic function.
- * Specifically, the cubic function \f[
- * a x^3 + b x^2 + c x + d
- * \f], where a is assumed to already be 1, and is not provided to the
+ * Specifically, the cubic function
+  * \f[
+   a x^3 + b x^2 + c x + d
+ * \f]
+ * where a is assumed to already be 1, and is not provided to the
  * function.
  *
  * \return The dominant real root of the given cubic equation.
@@ -313,9 +316,11 @@ CELER_FUNCTION real_type FerrariSolver::dominant_root_normalized_cubic(
 //---------------------------------------------------------------------------//
 /*!
  * Utility function to return real roots of a quadratic function.
- * Specifically, \f[
- * a x^2 + (hb*2) x + c
- * \f], where a is assumed to already be 1 and not provided.
+ * Specifically, the quadratic function
+  * \f[
+   a x^2 + (hb*2) x + c
+ * \f]
+ * where a is assumed to already be 1 and not provided.
  *
  * \return A pair of roots. If roots are imaginary, returns 2x
  * no_intersection()
