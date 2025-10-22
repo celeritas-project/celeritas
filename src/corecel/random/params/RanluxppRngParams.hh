@@ -1,8 +1,13 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
-// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+// SPDX-FileCopyrightText: 2020 CERN
+// SPDX-License-Identifier: Apache-2.0
 //---------------------------------------------------------------------------//
-//! \file corecel/random/params/RanluxppRngParams.hh
+/*!
+ * \file corecel/random/params/RanluxppRngParams.hh
+ *
+ * Original source:
+ * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/Ranluxpp.h
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,9 +29,6 @@ class RanluxppRngParams final
     // Construct with seed
     explicit RanluxppRngParams(RanluxppUInt seed);
 
-    //! \todo Construct with a seed of 256 bytes (16-byte hex) or shasum string
-    // explicit XorwowRngParams(const std::string& hexstring);
-
     //! Access rng params data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
@@ -37,6 +39,7 @@ class RanluxppRngParams final
     // Host/device storage and reference
     CollectionMirror<RanluxppRngParamsData> data_;
 
+    // Return the kA value
     RanluxppArray9 const& getKa() const;
 };
 
