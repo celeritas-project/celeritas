@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "OrangeTestBase.hh"
 
-#include "geocel/CheckedGeoTrackView.t.hh"
 #include "geocel/GenericGeoTestBase.t.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeParams.hh"
@@ -24,12 +23,12 @@ std::string OrangeTestBase::surface_name(GeoTrackView const& geo) const
         return "---";
     }
 
-    // Only call this function if the geometry supports surfaces
-    return this->geometry()->surfaces().at(geo.impl_surface_id()).name;
+    auto& wrapped = dynamic_cast<WrappedGeoTrack const&>(geo);
+    auto impl_surface = wrapped.track_view().impl_surface_id();
+    return this->geometry()->surfaces().at(impl_surface).name;
 }
 
 //---------------------------------------------------------------------------//
-template class CheckedGeoTrackView<OrangeTrackView>;
 template class GenericGeoTestBase<OrangeParams>;
 
 //---------------------------------------------------------------------------//

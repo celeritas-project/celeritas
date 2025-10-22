@@ -10,11 +10,13 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "geocel/GeoTraits.hh"
+#include "geocel/WrappedGeoTrackView.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
 #include "LazyGeantGeoManager.hh"
 #include "Test.hh"
+#include "WrappedGeoTrackView.hh"
 
 class G4VPhysicalVolume;
 
@@ -33,9 +35,7 @@ namespace test
  * \note This class is instantiated in XTestBase.cc for geometry type X.
  */
 template<class G>
-class GenericGeoTestBase : virtual public Test,
-                           public GenericGeoTestInterface,
-                           public LazyGeantGeoManager
+class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
 {
     static_assert(std::is_base_of_v<GeoParamsInterface, G>);
 
@@ -45,7 +45,7 @@ class GenericGeoTestBase : virtual public Test,
     //!@{
     //! \name Type aliases
     using SPConstGeo = std::shared_ptr<G const>;
-    using GeoTrackView = typename TraitsT::TrackView;
+    using WrappedGeoTrack = WrappedGeoTrackView<typename TraitsT::TrackView>;
     //!@}
 
   public:
@@ -74,17 +74,12 @@ class GenericGeoTestBase : virtual public Test,
     SPConstGeo const& geometry();
     SPConstGeo const& geometry() const;
 
-    //! Get the name of the current volume
-    std::string volume_name(GeoTrackView const& geo) const;
-    //! Get the name of the current surface if available
-    virtual std::string surface_name(GeoTrackView const& geo) const;
-    //! Get the stack of volume instances
-    std::string unique_volume_name(GeoTrackView const& geo) const;
-
+    //! Create a track view
+    UPGeoTrack make_geo_track_view_interface() final;
     //! Get a host track view
-    GeoTrackView make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});
+    WrappedGeoTrack make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});
     //! Get and initialize a single-thread host track view
-    GeoTrackView make_geo_track_view(Real3 const& pos_cm, Real3 dir);
+    WrappedGeoTrack make_geo_track_view(Real3 const& pos_cm, Real3 dir);
 
     //// GenericGeoTestInterface ////
 
@@ -92,10 +87,6 @@ class GenericGeoTestBase : virtual public Test,
     std::string_view geometry_type() const final;
     // Access the geometry interface
     GeoParamsInterface const& geometry_interface() const final;
-    // Find linear segments until outside
-    TrackingResult track(Real3 const& pos_cm, Real3 const& dir) final;
-    // Get the geometry volume path to the given position
-    VolumeStackResult volume_stack(Real3 const& pos_cm) final;
 
   private:
     template<Ownership W, MemSpace M>
@@ -103,7 +94,6 @@ class GenericGeoTestBase : virtual public Test,
     using HostStateStore = CollectionStateStore<StateData, MemSpace::host>;
 
     SPConstGeo geo_;
-    SPConstVolumes volumes_;
     HostStateStore host_state_;
 
     //// LAZY GEO INTERFACE ////

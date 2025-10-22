@@ -273,7 +273,7 @@ TEST_F(ZnenvTest, debug)
 {"dir":[1.0,0.0,0.0],"pos":[-1.66,-0.160,0.0],"universe":"ZNSL","volume":{"canonical":"ZNST","impl":"ZNST","instance":"ZNST_PV@0","local":1}},
 {"dir":[1.0,0.0,0.0],"pos":[-0.0600,-0.160,0.0],"universe":"ZNST","volume":{"canonical":"ZNST","impl":"ZNST","instance":null,"local":5}}],
 "surface":null})json",
-            StringSimplifier{3}(to_json_string(geo)));
+            StringSimplifier{3}(to_json_string(geo.track_view())));
     }
     else
     {

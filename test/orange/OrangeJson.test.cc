@@ -225,10 +225,10 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
 
         EXPECT_JSON_EQ(
             R"json({"levels":[{"dir":[0.0,1.0,0.0],"pos":[0.625,-2.0,1.0],"universe":"outer","volume":{"impl":"inner_b@outer","local":2}},{"dir":[0.0,1.0,0.0],"pos":[-1.375,0.0,0.5],"universe":"inner","volume":{"impl":"c@inner","local":4}}],"surface":null})json",
-            to_json_string(geo));
+            to_json_string(geo.track_view()));
         EXPECT_JSON_EQ(
             R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[0.625,-2.0,1.0],"universe":"outer","volume":{"impl":"inner_b@outer","local":2}},{"dir":[1.0,0.0,0.0],"pos":[-1.375,0.0,0.5],"universe":"inner","volume":{"impl":"c@inner","local":4}}],"surface":null})json",
-            to_json_string(other));
+            to_json_string(other.track_view()));
     }
 }
 
@@ -612,7 +612,7 @@ TEST_F(NestedRectArraysTest, leaving)
 
     EXPECT_JSON_EQ(
         R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"global","volume":{"impl":"arrfill@global","local":1}},{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"parent","volume":{"impl":"parent+@parent","local":1}},{"dir":[1.0,0.0,0.0],"pos":[3.5,1.5,0.5],"universe":"parent+","volume":{"impl":"{1,0,0}@parent+","local":2}},{"dir":[1.0,0.0,0.0],"pos":[1.5,1.5,0.5],"universe":"arr","volume":{"impl":"arr+@arr","local":1}},{"dir":[1.0,0.0,0.0],"pos":[1.5,1.5,0.5],"universe":"arr+","volume":{"impl":"{1,1,0}@arr+","local":3}},{"dir":[1.0,0.0,0.0],"pos":[0.5,0.5,0.5],"universe":"B","volume":{"impl":"Bfill@B","local":1}}],"surface":null})json",
-        StringSimplifier{3}(to_json_string(geo)));
+        StringSimplifier{3}(to_json_string(geo.track_view())));
 
     EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
@@ -651,13 +651,13 @@ class Geant4Testem15Test : public JsonOrangeTest
 
 TEST_F(Geant4Testem15Test, safety)
 {
-    OrangeTrackView geo = this->make_geo_track_view();
+    auto geo = this->make_geo_track_view();
 
     geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
-    EXPECT_EQ(ImplSurfaceId{}, geo.impl_surface_id());
+    EXPECT_FALSE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
 
     // Safety at middle should be to the box boundary
@@ -897,7 +897,7 @@ TEST_F(InputBuilderTest, hierarchy)
 {"dir":[0.0,1.0,0.0],"pos":[0.0,-5.0,0.0],"universe":"filled_daughter","volume":{"impl":"e@filled_daughter","local":2}},
 {"dir":[0.0,0.0,-1.0],"pos":[0.0,0.0,0.0],"universe":"d2","volume":{"impl":"d2@bg","local":1}}
 ],"surface":null})json",
-            StringSimplifier{3}(to_json_string(geo)));
+            StringSimplifier{3}(to_json_string(geo.track_view())));
     }
     {
         SCOPED_TRACE("py");

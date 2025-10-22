@@ -86,9 +86,9 @@ TEST_F(MultiLevelTest, printable_nav)
 {
     auto geo = this->make_geo_track_view();
     auto get_nav_str = [&geo](Real3 const& pos) {
-        geo = {from_cm(pos), Real3{1, 0, 0}};
+        geo = GeoTrackInitializer{from_cm(pos), Real3{1, 0, 0}};
         std::ostringstream os;
-        os << StreamableNavHistory{geo.nav_history()};
+        os << StreamableNavHistory{geo.track_view().nav_history()};
         return std::move(os).str();
     };
 

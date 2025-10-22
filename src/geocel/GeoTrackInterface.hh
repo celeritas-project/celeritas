@@ -21,7 +21,7 @@ namespace celeritas
  * Standard interface to geometry navigation for a track for testing on CPU.
  * \tparam RealType Floating point precision
  *
- * \important This class is for illustrative and testing purposes \b only
+ * \note This class is for illustrative and testing purposes \b only
  *   (see celeritas::test::WrappedGeoTrackView) and is
  *   \b not used during the main Celeritas execution. The geometry there is
  *   determined by the \c CELERITAS_CORE_GEO configuration variable and defined
@@ -100,8 +100,8 @@ class GeoTrackInterface
     virtual VolumeId volume_id() const = 0;
     //! Get the physical volume ID in the current cell
     virtual VolumeInstanceId volume_instance_id() const = 0;
-    //! Get the depth in the geometry hierarchy
-    virtual LevelId depth() const = 0;
+    //! Get the distance from root volume in the geometry hierarchy
+    virtual VolumeLevelId volume_level() const = 0;
     //! Get the volume instance ID for all levels
     virtual void volume_instance_id(Span<VolumeInstanceId> levels) const = 0;
     //!@}

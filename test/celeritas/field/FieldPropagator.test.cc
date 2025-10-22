@@ -63,34 +63,37 @@ class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
   public:
     //!@{
     //! \name Type aliases
-    using CGeoTrackView = CheckedGeoTrackView<CoreGeoTestBase::GeoTrackView>;
+    using CGeoTrackView = CheckedGeoTrackView;
     //!@}
 
   protected:
     //! Get a single-thread host track view
     CGeoTrackView make_geo_track_view()
     {
-        return CGeoTrackView{CGBase::make_geo_track_view()};
+        return CGeoTrackView{
+            std::make_unique<WrappedGeoTrack>(CGBase::make_geo_track_view())};
     }
 
     //! Get and initialize a single-thread host track view
-    CGeoTrackView make_geo_track_view(Real3 const& pos, Real3 dir)
+    CGeoTrackView make_geo_track_view(Real3 const& pos, Real3 const& dir)
     {
-        return CGeoTrackView{CGBase::make_geo_track_view(pos, dir)};
+        auto result = this->make_geo_track_view();
+        result = GeoTrackInitializer{pos, make_unit_vector(dir)};
+        return result;
     }
 
     SPConstParticle build_particle() const final;
 
-    std::string
-    surface_name(CoreGeoTestBase::GeoTrackView const& geo) const override
+    std::string surface_name(GeoTrackView const& geo) const override
     {
         if (!geo.is_on_boundary())
         {
             return "---";
         }
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-        return to_string(
-            this->geometry()->surfaces().at(geo.impl_surface_id()));
+        auto& wrapped = dynamic_cast<WrappedGeoTrack const&>(geo);
+        return to_string(this->geometry()->surfaces().at(
+            wrapped.track_view().impl_surface_id()));
 #else
         return "[unknown]";
 #endif
@@ -1252,7 +1255,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         {7.01343313647855e-01, -6.43327996599957e-01, 3.06996164784077e-01});
 
     auto calc_radius
-        = [geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
     EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
     // NOTE: vecgeom surface puts this position slightly *inside* the beam tube
     // rather than *outside*
@@ -1322,7 +1325,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
                                           -5.23221772848529443e-01});
 
     auto calc_radius
-        = [geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
 
     bool successful_reentry = false;
     {
