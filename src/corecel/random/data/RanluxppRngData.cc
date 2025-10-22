@@ -22,6 +22,31 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize the state with the given seed
+ */
+CELER_FUNCTION void
+initialize_state(RanluxppRngState& state,
+                 RanluxppUInt seed,
+                 HostCRef<RanluxppRngParamsData> const& params)
+{
+    // Skip 2 ** 96 states
+    RanluxppArray9 a_seed = celeritas::detail::compute_power_modulus(
+        params.kA_2048, RanluxppUInt(1) << 48);
+    a_seed = celeritas::detail::compute_power_modulus(a_seed,
+                                                      RanluxppUInt(1) << 48);
+
+    // Skip another s states.
+    a_seed = celeritas::detail::compute_power_modulus(a_seed, seed);
+    RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0, 0};
+    lcg = celeritas::detail::compute_mod_multiply(a_seed, lcg);
+
+    // Set state and carry variable
+    state.state = celeritas::detail::to_ranlux(lcg, state.carry);
+    state.position = 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Initialize Ranluxpp states with well-distributed random data
  *
  * This generates pseudorandom, independent starting states for all data in
@@ -53,7 +78,7 @@ void initialize_ranluxpp(Span<RanluxppRngState> states,
         RanluxppUInt s = sample_uniform_int(rng);
 
         // Initialize the state with the given seed
-        state.initialize(s, params.kA_2048);
+        initialize_state(state, s, params);
     }
 }
 

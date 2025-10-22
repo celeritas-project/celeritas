@@ -21,42 +21,31 @@
 
 namespace celeritas
 {
-
 //---------------------------------------------------------------------------//
 /*!
- * Implementation of the RanluxPP RNG Engine
- *
- * \tparam w  Position offset amount in bits
+ * Implements the Ranluxpp random number generator engine
  */
-template<int w>
-class RanluxppRngEngineImpl
+class RanluxppRngEngine
 {
   public:
-    //!{
-    //! Type aliases
+    //@{
+    //! Public types
     using ParamsRef = NativeCRef<RanluxppRngParamsData>;
     using StateRef = NativeRef<RanluxppRngStateData>;
     using result_type = RanluxppUInt;
-    //!}
-
-  protected:
-    // Return the next random bits, generate a new block if necessary
-    CELER_FUNCTION inline RanluxppUInt nextRandomBits();
-
-    //! Initialize and seed the state of the generator
-    CELER_FUNCTION void setSeed(RanluxppUInt s)
-    {
-        state_->initialize(s, params_.kA_2048);
-    }
-
-    //! Skip `n` random numbers without generating them
-    CELER_FUNCTION void skip(RanluxppUInt n)
-    {
-        CELER_ASSERT(n > 0);
-        state_->skip(n, params_.kMaxPos, params_.kA_2048, w);
-    }
+    //@}
 
   public:
+    //! Instantiate with optional default seed
+    CELER_FUNCTION RanluxppRngEngine(ParamsRef const& params,
+                                     StateRef const& state,
+                                     TrackSlotId tid)
+        : params_(params)
+    {
+        CELER_EXPECT(tid < state.state.size());
+        state_ = &state.state[tid];
+    }
+
     //! Lowest value potentially generated (check this)
     static CELER_CONSTEXPR_FUNCTION result_type min() { return 0u; }
 
@@ -66,51 +55,17 @@ class RanluxppRngEngineImpl
         return celeritas::numeric_limits<RanluxppUInt>::max();
     }
 
-    // Construct from state and persistent data
-    CELER_FUNCTION RanluxppRngEngineImpl(ParamsRef const& params,
-                                         StateRef const& state,
-                                         TrackSlotId tid)
-        : params_(params)
-    {
-        CELER_EXPECT(tid < state.state.size());
-        state_ = &state.state[tid];
-    }
-
-  private:
-    /// DATA ///
-    ParamsRef const& params_;
-    RanluxppRngState* state_;
-};
-
-//---------------------------------------------------------------------------//
-
-class RanluxppRngEngine final : public RanluxppRngEngineImpl<48>
-{
-    using Base = RanluxppRngEngineImpl<48>;
-
-  public:
-    //@{
-    //! Public types
-    using result_type = typename Base::result_type;
-    using ParamsRef = typename Base::ParamsRef;
-    using StateRef = typename Base::StateRef;
-    //@}
-
-  public:
-    //! Instantiate with optional default seed
-    CELER_FUNCTION RanluxppRngEngine(ParamsRef const& params,
-                                     StateRef const& state,
-                                     TrackSlotId tid)
-        : Base(params, state, tid)
-    {
-        /* * */
-    }
-
     //! Initialize state with the given seed
     inline CELER_FUNCTION RanluxppRngEngine& operator=(RanluxppUInt seed)
     {
-        Base::setSeed(seed);
+        this->setSeed(seed);
         return *this;
+    }
+
+    //! Initialize and seed the state of the generator
+    CELER_FUNCTION void setSeed(RanluxppUInt seed)
+    {
+        celeritas::initialize_state(*state_, seed, params_);
     }
 
     //! Generate a double-precision random number
@@ -121,10 +76,18 @@ class RanluxppRngEngine final : public RanluxppRngEngineImpl<48>
     {
         // Have to discard twice because 64-bit random numbers are composed of
         // *two* calls to nextRandomBits
-        Base::skip(2 * count);
+        this->skip(2 * count);
     }
 
   private:
+    /// IMPLEMENTATION ///
+
+    // Skip 'n' random numbers without generating them
+    CELER_FUNCTION void skip(RanluxppUInt n);
+
+    // Return the next random bits, generate a new block if necessary
+    CELER_FUNCTION RanluxppUInt nextRandomBits();
+
     //! Generate a uniformly random 64-bit integer by concatenating two
     //! 32-bit words
     CELER_FUNCTION RanluxppUInt intRndm64()
@@ -134,38 +97,22 @@ class RanluxppRngEngine final : public RanluxppRngEngineImpl<48>
         RanluxppUInt hi = this->nextRandomBits() & 0xFFFFFFFFu;
         return (lo << 32) | hi;
     }
+
+    //! Produce the next block of random bits
+    CELER_FUNCTION void advance()
+    {
+        RanluxppArray9 lcg
+            = celeritas::detail::to_lcg(state_->state, state_->carry);
+        lcg = celeritas::detail::compute_mod_multiply(params_.kA_2048, lcg);
+        state_->state = celeritas::detail::to_ranlux(lcg, state_->carry);
+        state_->position = 0;
+    }
+
+    /// DATA ///
+    static constexpr int offset_ = 48;
+    ParamsRef const& params_;
+    RanluxppRngState* state_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Return the next random bits, generate a new block if necessary
- */
-template<int w>
-CELER_FUNCTION RanluxppUInt RanluxppRngEngineImpl<w>::nextRandomBits()
-{
-    if (state_->position + w > params_.kMaxPos)
-    {
-        state_->advance(params_.kA_2048);
-    }
-
-    int idx = state_->position / 64;
-    int offset = state_->position % 64;
-    int numBits = 64 - offset;
-
-    RanluxppUInt bits = state_->state[idx] >> offset;
-    if (numBits < w)
-    {
-        bits |= state_->state[idx + 1] << numBits;
-    }
-    bits &= ((RanluxppUInt(1) << w) - 1);
-
-    state_->position += w;
-    CELER_ASSERT(state_->position <= params_.kMaxPos);
-
-    return bits;
-}
 
 //---------------------------------------------------------------------------//
 }  // end namespace celeritas

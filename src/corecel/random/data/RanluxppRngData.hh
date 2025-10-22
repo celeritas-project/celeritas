@@ -77,23 +77,6 @@ struct RanluxppRngState
             state[i] ^= other_state[i];
         }
     }
-
-    // Initialize the state with the given seed
-    CELER_FUNCTION inline void
-    initialize(RanluxppUInt seed, RanluxppArray9 const& kA_2048);
-
-    // Produce the next block of random bits
-    CELER_FUNCTION void advance(RanluxppArray9 const& kA)
-    {
-        RanluxppArray9 lcg = celeritas::detail::to_lcg(state, carry);
-        lcg = celeritas::detail::compute_mod_multiply(kA, lcg);
-        state = celeritas::detail::to_ranlux(lcg, carry);
-        position = 0;
-    }
-
-    // Skip 'n' random numbers without generating them
-    CELER_FUNCTION inline void
-    skip(RanluxppUInt n, int kMaxPos, RanluxppArray9 const& kA_2048, int offset);
 };
 
 //---------------------------------------------------------------------------//
@@ -129,9 +112,15 @@ struct RanluxppRngStateData
 };
 
 //---------------------------------------------------------------------------//
+// Initialize a single Ranluxpp state
+void initialize_state(RanluxppRngState& state,
+                      RanluxppUInt seed,
+                      HostCRef<RanluxppRngParamsData> const& params);
+
+//---------------------------------------------------------------------------//
 // Initialize Ranluxpp states with well-distributed random data
 void initialize_ranluxpp(Span<RanluxppRngState> state,
-                         RanluxppUInt const& seed,
+                         HostCRef<RanluxppRngParamsData> const& params,
                          StreamId stream);
 
 //---------------------------------------------------------------------------//
@@ -141,74 +130,6 @@ void resize(RanluxppRngStateData<Ownership::value, M>* state,
             HostCRef<RanluxppRngParamsData> const& params,
             StreamId stream,
             size_type size);
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Initialize the state with the given seed
- */
-// Initialize the state with the given seed
-CELER_FUNCTION void
-RanluxppRngState::initialize(RanluxppUInt seed, RanluxppArray9 const& kA_2048)
-{
-    // Skip 2 ** 96 states
-    RanluxppArray9 a_seed = celeritas::detail::compute_power_modulus(
-        kA_2048, RanluxppUInt(1) << 48);
-    a_seed = celeritas::detail::compute_power_modulus(a_seed,
-                                                      RanluxppUInt(1) << 48);
-
-    // Skip another s states.
-    a_seed = celeritas::detail::compute_power_modulus(a_seed, seed);
-    RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0, 0};
-    lcg = celeritas::detail::compute_mod_multiply(a_seed, lcg);
-
-    // Set state and carry variable
-    state = celeritas::detail::to_ranlux(lcg, carry);
-    position = 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Skip 'n' positions in the bit stream without generating them
- */
-CELER_FUNCTION void RanluxppRngState::skip(RanluxppUInt n,
-                                           int kMaxPos,
-                                           RanluxppArray9 const& kA_2048,
-                                           int offset)
-{
-    CELER_ASSERT(n > 0);
-    CELER_ASSERT(kMaxPos > 0);
-
-    int left = (kMaxPos - position) / offset;
-    CELER_ASSERT(left >= 0);
-    if (n < static_cast<RanluxppUInt>(left))
-    {
-        // Just skip the next few entries in the currently
-        // available bits.
-        position += n * offset;
-        CELER_ASSERT(position <= kMaxPos);
-        return;
-    }
-
-    n -= left;
-    // Need to advance and possibly skip over blocks.
-    int nPerState = kMaxPos / offset;
-    int skip = n / nPerState;
-
-    RanluxppArray9 a_skip
-        = celeritas::detail::compute_power_modulus(kA_2048, skip + 1);
-
-    RanluxppArray9 lcg = celeritas::detail::to_lcg(state, carry);
-    lcg = celeritas::detail::compute_mod_multiply(a_skip, lcg);
-    state = celeritas::detail::to_ranlux(lcg, carry);
-
-    // Potentially skip numbers in the freshly generated block.
-    int remaining = n - skip * nPerState;
-    CELER_ASSERT(remaining >= 0);
-    position = remaining * offset;
-    CELER_ASSERT(position <= kMaxPos);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
