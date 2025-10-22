@@ -5,14 +5,12 @@
 """
 Run celer-g4.
 """
-
 import json
 import re
 import subprocess
 from os import environ, getcwd, path
 from pprint import pprint
 from sys import exit, argv, stderr
-
 
 def strtobool(text):
     text = text.lower()
@@ -21,7 +19,6 @@ def strtobool(text):
     if text in {"false", "off", "no", "0"}:
         return False
     raise ValueError(text)
-
 
 #### LOAD OPTIONS ####
 
@@ -39,11 +36,18 @@ except ValueError:
     print(f"usage: {argv[0]} celer-g4 inp.gdml inp.hepmc3")
     exit(1)
 
-problem_name = "-".join([path.splitext(path.basename(model_file))[0], ext])
+problem_name = "-".join([
+    path.splitext(path.basename(model_file))[0],
+    ext
+])
 
 #### BUILD INPUT  ####
 
-offload_file = ".".join([problem_name, "offloaded", "root" if use_root else "hepmc3"])
+offload_file = ".".join([
+    problem_name,
+    "offloaded",
+    "root" if use_root else "hepmc3"
+])
 inp_file = f"{problem_name}.inp.json"
 out_file = f"{problem_name}.out.json"
 
@@ -71,12 +75,12 @@ inp = {
     "secondary_stack_factor": 2,
     "physics_list": "celer_ftfp_bert",
     "field_type": "uniform",
-    "field": [0.0, 0.0, 1.0],
+    "field": [ 0.0, 0.0, 1.0 ],
     "field_options": {
-        "minimum_step": 0.000001,
-        "delta_chord": 0.025,
-        "delta_intersection": 0.00001,
-        "epsilon_step": 0.00001,
+     "minimum_step": 0.000001,
+     "delta_chord": 0.025,
+     "delta_intersection": 0.00001,
+     "epsilon_step": 0.00001
     },
     "sd_type": "simple_calo",
     "step_diagnostic": ext == "none",
@@ -84,14 +88,12 @@ inp = {
 }
 
 if ext == "cpu-nonfatal":
-    inp.update(
-        {
-            "max_steps": 30,
-            "environ": {
-                "CELER_NONFATAL_FLUSH": "1",
-            },
+    inp.update({
+        "max_steps": 30,
+        "environ": {
+            "CELER_NONFATAL_FLUSH": "1",
         }
-    )
+    })
 
 kwargs = {}
 args = [exe, inp_file]
@@ -113,7 +115,9 @@ if use_celeritas:
 with open(inp_file, "w") as f:
     json.dump(inp, f, indent=1)
 
-envstr = " ".join(f"{k}={v}" for (k, v) in environ.items() if k.startswith("CELER_"))
+envstr = " ".join(f"{k}={v}"
+                  for (k, v) in environ.items()
+                  if k.startswith("CELER_"))
 print("Running", envstr, exe, inp_file, file=stderr)
 print("working directory:", getcwd(), file=stderr)
 result = subprocess.run(args, **kwargs)
@@ -128,7 +132,7 @@ if use_celeritas:
         print(out_text)
         j = {}
     else:
-        with open(out_file, "w") as f:
+        with open(out_file, 'w') as f:
             json.dump(j, f, indent=1)
 
 if result.returncode:
@@ -139,8 +143,8 @@ if result.returncode:
         except:
             pass
         else:
-            out_file = f"{problem_name}.out.failed.json"
-            with open(out_file, "w") as f:
+            out_file = f'{problem_name}.out.failed.json'
+            with open(out_file, 'w') as f:
                 json.dump(j, f, indent=1)
             print("Failure written to", out_file, file=stderr)
             j = {}
@@ -153,7 +157,7 @@ if not use_celeritas:
         j = json.load(f)
 
     # Rewrite with indentation
-    with open(out_file, "w") as f:
+    with open(out_file, 'w') as f:
         json.dump(j, f, indent=1)
 
 pprint(j["result"])

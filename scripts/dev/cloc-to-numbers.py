@@ -93,9 +93,7 @@ def process_csv_output(csv_output):
     if df.iloc[-1, 1] == "SUM":
         df = df.iloc[:-1]
     # Rename and reorder columns
-    df = df.rename(columns=str.capitalize)[
-        ["Language", "Files", "Comment", "Code", "Blank"]
-    ]
+    df = df.rename(columns=str.capitalize)[["Language", "Files", "Comment", "Code", "Blank"]]
     # Coerce all but the first column to integers
     for col in df.columns[1:]:
         df[col] = df[col].astype(int)

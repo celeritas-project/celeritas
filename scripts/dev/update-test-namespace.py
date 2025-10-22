@@ -21,14 +21,11 @@ namespace celeritas
 namespace test
 {
 """
-NS_SEP = (
-    "//---------------------------------------------------------------------------//\n"
-)
+NS_SEP = "//---------------------------------------------------------------------------//\n"
 NS_CLOSE = """\
 }  // namespace test
 }  // namespace celeritas
 """
-
 
 def update(filename):
     with ReWriter(filename) as rewriter:
@@ -66,7 +63,7 @@ def update(filename):
                 has_right_ns = True
                 needs_closing = True
                 line = NS_OPEN
-                next(old)  # Skip following brace
+                next(old) # Skip following brace
             elif line == "}  // namespace celeritas_test\n":
                 needs_closing = True
                 continue
@@ -99,7 +96,7 @@ def walk_filtered_paths(paths, invisibles=False, extensions=None):
         extensions = HasExtension()
 
     for path in paths:
-        for root, dirs, files in os.walk(path):
+        for (root, dirs, files) in os.walk(path):
             # Don't look in invisible dirs like .hg or .git
             dirs[:] = [d for d in dirs if not d.startswith(".")]
 
@@ -190,16 +187,20 @@ class ReWriter(object):
 
 def main(argv=None):
     from argparse import ArgumentParser
-
-    parser = ArgumentParser(description=DESCRIPTION)
-    parser.add_argument("-r", dest="recursive", help="Recursive", action="store_true")
-    parser.add_argument(
-        "-x",
-        "--extensions",
-        help="Comma-separated extensions to use when searching recursively",
-        default=".hh,.cc,.cu",
+    parser = ArgumentParser(
+        description=DESCRIPTION
     )
-    parser.add_argument("path", nargs="+", help="Files/dirs to process")
+    parser.add_argument(
+        '-r', dest="recursive",
+        help="Recursive",
+        action='store_true')
+    parser.add_argument(
+        '-x', '--extensions',
+        help="Comma-separated extensions to use when searching recursively",
+        default=".hh,.cc,.cu")
+    parser.add_argument(
+        'path', nargs='+',
+        help="Files/dirs to process")
 
     args = parser.parse_args(argv)
 
@@ -208,8 +209,9 @@ def main(argv=None):
     if args.recursive:
         extensions = None
         if args.extensions:
-            extensions = args.extensions.split(",")
-            log.info("Recursively searching for %s files", ", ".join(extensions))
+            extensions = args.extensions.split(',')
+            log.info("Recursively searching for %s files",
+                     ", ".join(extensions))
         paths = walk_filtered_paths(args.path, extensions=extensions)
     else:
         paths = iter(args.path)
@@ -224,5 +226,5 @@ def main(argv=None):
     log.info("Done.")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
