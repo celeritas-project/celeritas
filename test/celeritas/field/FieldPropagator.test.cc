@@ -80,7 +80,7 @@ class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
     CGeoTrackView make_geo_track_view(Real3 const& pos, Real3 const& dir)
     {
         auto result = this->make_geo_track_view();
-        result = GeoTrackInitializer{pos, make_unit_vector(dir)};
+        result = this->make_initializer(pos, dir);
         return result;
     }
 

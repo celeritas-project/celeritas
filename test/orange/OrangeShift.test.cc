@@ -24,7 +24,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
+//! Test the use of \em persistent data with \em ephemeral track views
 class ShiftTrackerTest : public OrangeGeoTestBase
 {
   protected:
@@ -41,7 +41,7 @@ class ShiftTrackerTest : public OrangeGeoTestBase
         return static_cast<unsigned int>(-1);
     }
 
-    void initialize(Real3 pos, Real3 dir)
+    void initialize(Real3 const& pos, Real3 const& dir)
     {
         auto track = this->make_geo_track_view();
         track = GeoTrackInitializer{pos, dir};

@@ -28,11 +28,15 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
+//! Test precompiled geometry loaded from OrangeInput
 class JsonOrangeTest : public OrangeGeoTestBase
 {
   public:
+    using Initializer_t = GeoTrackInitializer;
+
+    //! Use multiple track slots to check detailed initialization
     size_type num_track_slots() const override { return 2; }
+    //! Length scale is hardcoded into JSON files
     Constant unit_length() const override { return Constant{1}; }
 
     virtual std::string_view geometry_basename() const = 0;

@@ -32,8 +32,12 @@ constexpr real_type sqrt_two{constants::sqrt_two};
 class OrangeTest : public OrangeGeoTestBase
 {
   protected:
+    using Initializer_t = GeoTrackInitializer;
+
+    //! Length scale is hardcoded into JSON files
     Constant unit_length() const override { return Constant{1}; }
 
+    //! Shortcut to get the surface ID
     ImplSurfaceId impl_surface_id(WrappedGeoTrack const& geo) const
     {
         return geo.track_view().impl_surface_id();
