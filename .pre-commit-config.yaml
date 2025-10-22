@@ -21,6 +21,12 @@ repos:
     - id: clang-format
       types_or: [file]
       files: \.(cc|hh|h|cpp|hpp|cu|cuh)$
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 3b4bc031619cde2e0a9f3c4441ac7cc8227245a4 # v0.14.1, 16 Oct 2025
+    hooks:
+    - id: ruff-check
+      args: [ --fix ]
+    - id: ruff-format
 
   # Spell checking
   - repo: https://github.com/codespell-project/codespell
