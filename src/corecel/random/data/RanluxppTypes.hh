@@ -19,13 +19,13 @@ namespace celeritas
 {
 
 //---------------------------------------------------------------------------//
-//! 64-bit unsigned integer type for Ranluxpp
+//! 64-bit unsigned integer type for Ranluxpp.
 using RanluxppUInt = std::uint64_t;
 
-//! Array of unsigned ints of length 9
+//! Array of unsigned ints of length 9.
 using RanluxppArray9 = Array<RanluxppUInt, 9>;
 
-//! Array of unsigned ints of length 18
+//! Array of unsigned ints of length 18.
 using RanluxppArray18 = Array<RanluxppUInt, 18>;
 
 //---------------------------------------------------------------------------//
