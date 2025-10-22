@@ -51,7 +51,7 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
   public:
     //// TESTS ////
 
-    //! Generate a track
+    // Track until exiting the geometry
     TrackingResult track(Real3 const& pos_cm, Real3 const& dir);
     // Obtain the "touchable history" at a point
     VolumeStackResult volume_stack(Real3 const& pos_cm);

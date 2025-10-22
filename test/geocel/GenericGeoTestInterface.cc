@@ -28,6 +28,12 @@ namespace test
 {
 
 //---------------------------------------------------------------------------//
+/*!
+ * Track until exiting the geometry.
+ *
+ * The position uses the length scale defined by the test. It is loop checked
+ * using a hardcoded value of 1000 steps.
+ */
 auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
@@ -229,6 +235,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
 
     return result;
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the volume instance stack at a position.

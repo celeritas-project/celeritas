@@ -70,11 +70,9 @@ class FourLevelsGeoTest
     FourLevelsGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_accessors() const;
-    void test_trace() const;
-
     void test_consecutive_compute() const;
-
     void test_detailed_tracking() const;
+    void test_trace() const;
 
   private:
     GenericGeoTestInterface* test_;
@@ -188,7 +186,6 @@ class SimpleCmsGeoTest
     SimpleCmsGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_trace() const;
-
     void test_detailed_tracking() const;
 
   private:
@@ -303,7 +300,6 @@ class TwoBoxesGeoTest
 
     void test_accessors() const;
     void test_trace() const;
-
     void test_detailed_tracking() const;
 
   private:
