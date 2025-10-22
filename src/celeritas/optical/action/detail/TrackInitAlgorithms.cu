@@ -62,23 +62,20 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     size_t temp_storage_bytes = 0;
     // *** For testing with existing code for consistency
     size_type* d_num_vacancies = nullptr;
-    // *** Allocate temporary storage
-    // *** For testing with existing code for consistency
     d_num_vacancies
         = static_cast<size_type*>(s.malloc_async(sizeof(size_type)));
+    // *** For testing with existing code for consistency
 
     // The first call just computes the number of additional bytes needed for
     // the in-place selection. The nullptr value causes this instead of running
     // the function.
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
-    auto result = device_pointer_cast(vacancies.data());
-    auto flags = device_pointer_cast(status.data());
     cub::DeviceSelect::FlaggedIf(d_temp_storage,
                                  temp_storage_bytes,
                                  start,
-                                 flags,
-                                 result,
+                                 status.data().get(),
+                                 vacancies.data().get(),
                                  d_num_vacancies,
                                  vacancies.size(),
                                  IsVacant{},
@@ -90,8 +87,8 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     cub::DeviceSelect::FlaggedIf(d_temp_storage,
                                  temp_storage_bytes,
                                  start,
-                                 flags,
-                                 result,
+                                 status.data().get(),
+                                 vacancies.data().get(),
                                  d_num_vacancies,
                                  vacancies.size(),
                                  IsVacant{},
