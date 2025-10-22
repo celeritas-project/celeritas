@@ -3,9 +3,10 @@ import sys
 import re
 from collections import Counter
 
+
 def main():
     # Regex to extract filename and line number.
-    pattern = re.compile(r'^(.*?)\((\d+)\):')
+    pattern = re.compile(r"^(.*?)\((\d+)\):")
     counts = Counter()
 
     # Read lines from standard input.
@@ -45,5 +46,6 @@ def main():
         line_range = f"{start}" if start == end else f"{start}-{end}"
         print(f"{fn}({line_range}): {cnt}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
