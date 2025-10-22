@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Run celer-geo as part of a CMake-based test harness."""
 
@@ -58,6 +56,7 @@ def write_commands(commands):
         f.write("\n")
     return inp_path
 
+
 # NOTE: it's important to inherit the environment rather than replacing it for
 # apps; MPI will fail if HOME is undefined, for example
 env = dict(environ)
@@ -78,13 +77,13 @@ if ext == "errcheck":
         stdout=subprocess.PIPE,
         env=env,
     )
-    lines = result.stdout.decode().split('\n')
+    lines = result.stdout.decode().split("\n")
     if len(lines) != 1:
         log("Unexpected number of lines: ", lines)
     exception_obj = json.loads(lines[0])
     log("Result:", exception_obj)
     if result.returncode:
-        assert exception_obj['type'] == "RuntimeError"
+        assert exception_obj["type"] == "RuntimeError"
         log("Initial config run returned with error", result.returncode)
         log("Successfully checked failure mode for the app")
         exit(0)
@@ -94,7 +93,10 @@ if ext == "errcheck":
 # Run to get configuration
 log("Running", exe, "from", getcwd())
 result = subprocess.run(
-    [exe, "-"], input=b"\n", stdout=subprocess.PIPE, env=env,
+    [exe, "-"],
+    input=b"\n",
+    stdout=subprocess.PIPE,
+    env=env,
 )
 if result.returncode:
     log("Initial config run failed with error", result.returncode)
