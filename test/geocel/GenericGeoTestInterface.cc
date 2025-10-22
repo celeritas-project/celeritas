@@ -315,13 +315,6 @@ std::string GenericGeoTestInterface::volume_name(GeoTrackView const& geo) const
 }
 
 //---------------------------------------------------------------------------//
-std::string GenericGeoTestInterface::surface_name(GeoTrackView const&) const
-{
-    // TODO: use Surfaces class
-    return "---";
-}
-
-//---------------------------------------------------------------------------//
 std::string
 GenericGeoTestInterface::unique_volume_name(GeoTrackView const& geo) const
 {

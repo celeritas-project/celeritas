@@ -42,6 +42,17 @@ class JsonOrangeTest : public OrangeGeoTestBase
         this->build_geometry(std::string{this->geometry_basename()}
                              + ".org.json");
     }
+
+    std::string surface_name(WrappedGeoTrack const& geo) const
+    {
+        if (!geo.is_on_boundary())
+        {
+            return "---";
+        }
+        // Access OrangeTrackView through WrappedTrackView
+        auto impl_surface = geo.track_view().impl_surface_id();
+        return this->geometry()->surfaces().at(impl_surface).name;
+    }
 };
 
 class InputBuilderTest : public JsonOrangeTest

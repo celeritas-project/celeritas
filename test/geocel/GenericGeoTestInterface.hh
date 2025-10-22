@@ -88,8 +88,6 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
 
     //! Get the name of the current volume
     std::string volume_name(GeoTrackView const& geo) const;
-    //! Get the name of the current surface if available
-    virtual std::string surface_name(GeoTrackView const& geo) const;
     //! Get the stack of volume instances
     std::string unique_volume_name(GeoTrackView const& geo) const;
 
