@@ -1,8 +1,17 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
-// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+// SPDX-FileCopyrightText: 2020 CERN
+// SPDX-License-Identifier: LGPL-2.1-or-later
 //---------------------------------------------------------------------------//
-//! \file corecel/random/data/detail/RanluxppImpl.hh
+/*!
+ * \file corecel/random/data/detail/RanluxppImpl.hh
+ *
+ * Original source:
+ * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/ranluxpp/helpers.h
+ * and
+ * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/ranluxpp/mulmod.h
+ * and
+ * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/ranluxpp/ranlux_lcg.h
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -60,8 +69,8 @@ CELER_FUNCTION [[nodiscard]] RanluxppArray9
 to_lcg(RanluxppArray9 const& ranlux, unsigned int c);
 
 // Convert an LCG state to RANLUX numbers
-CELER_FUNCTION [[nodiscard]] RanluxppArray9
-to_ranlux(RanluxppArray9 const& lcg, unsigned int& c_out);
+CELER_FUNCTION RanluxppArray9 to_ranlux(RanluxppArray9 const& lcg,
+                                        unsigned int& c_out);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

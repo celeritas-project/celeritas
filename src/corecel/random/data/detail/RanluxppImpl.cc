@@ -1,8 +1,17 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
-// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+// SPDX-FileCopyrightText: 2020 CERN
+// SPDX-License-Identifier: Apache-2.0
 //---------------------------------------------------------------------------//
-//! \file corecel/random/data/detail/RanluxppImpl.cc
+/*!
+ * \file corecel/random/data/detail/RanluxppImpl.cc
+ *
+ * Original source:
+ * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/ranluxpp/helpers.h
+ * and
+ * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/ranluxpp/mulmod.h
+ * and
+ * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/ranluxpp/ranlux_lcg.h
+ */
 //---------------------------------------------------------------------------//
 #include "RanluxppImpl.hh"
 

@@ -1,8 +1,13 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
-// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+// SPDX-FileCopyrightText: 2020 CERN
+// SPDX-License-Identifier: Apache-2.0
 //---------------------------------------------------------------------------//
-//! \file corecel/random/data/RanluxppRngData.hh
+/*!
+ * \file corecel/random/data/RanluxppRngData.hh
+ *
+ * Original source:
+ * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/Ranluxpp.h
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -67,11 +72,10 @@ struct RanluxppRngState
     //! Perform XOR operation on state
     CELER_FUNCTION void xorState(RanluxppArray9 const& other_state)
     {
-        std::transform(other_state.cbegin(),
-                       other_state.cend(),
-                       state.cbegin(),
-                       state.begin(),
-                       [](RanluxppUInt a, RanluxppUInt b) { return a ^ b; });
+        for (auto i : celeritas::range(9))
+        {
+            state[i] ^= other_state[i];
+        }
     }
 
     // Initialize the state with the given seed
