@@ -100,10 +100,10 @@ class FerrariSolver
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Find all positive roots for general quartic surfaces.
- * Uses the Ferrari-Cardano algorithm.
+ * Find all positive roots for quartic surfaces using Ferrari-Cardano method.
  *
- * Currently, this is only used for toroids.
+ * This method allows the user to manually specify if the particle starts on
+ * the surface.
  */
 CELER_FUNCTION auto FerrariSolver::solve_general(real_type a,
                                                  real_type b,
@@ -126,7 +126,10 @@ CELER_FUNCTION auto FerrariSolver::solve_general(real_type a,
 
 //---------------------------------------------------------------------------//
 /*!
- * Default constructor with all five parameters a, b, c, d, and e.
+ * Construct a solver instance with first four coefficients a, b, c, and d.
+ *
+ * The solver stores the normalized values of (b/a), (c/a), (d/a), and factor
+ * (1/a) to normalize e if necessary.
  */
 CELER_FUNCTION
 FerrariSolver::FerrariSolver(real_type a, real_type b, real_type c, real_type d)
@@ -136,10 +139,15 @@ FerrariSolver::FerrariSolver(real_type a, real_type b, real_type c, real_type d)
 
 //---------------------------------------------------------------------------//
 /*!
- * Find all positive roots of the given polynomial:
+ * Find all positive roots of the polynomial with stored abcd and given e.
+ *
+ * As the stored coefficients have already been normalized, the polynomial
+ * takes the form:
   * \f[
    x^4 + (b/a)x^3 + (c/a)x^2 + (d/a)x + (e/a) = 0.
  *\f]
+ * Where a, b, c, and d were the initialized coefficients and e is given as an
+ * operator parameter.
  * Replaces negative or complex roots with no_intersection().
  */
 CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
@@ -205,16 +213,19 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Soft zero for use in detecting degenerate cases, such as the reduced quartic
- * being biquadratic.
+ * Soft zero for detecting edge cases.
+ *
  * Currently defined to follow analogous quadratic solver tolerance.
  */
 static SoftZero const soft_zero_{Tolerance<real_type>::sqrt_quadratic()};
 
 //---------------------------------------------------------------------------//
 /*!
- * Utility function which places the given real root into an intersection list
- * in increasing order.
+ * Attempt to put a value into the given list at given index, returning where
+ * to place the next item.
+ *
+ * If the given value is no_intersection() or is not positive, does not place
+ * the root, and returns the same index for the next one.
  */
 CELER_FUNCTION int FerrariSolver::place_root(Intersections& roots,
                                              real_type new_root,
@@ -230,7 +241,7 @@ CELER_FUNCTION int FerrariSolver::place_root(Intersections& roots,
 
 //---------------------------------------------------------------------------//
 /*!
- * Solves special case of Ferrari where reduced quartic is also biquadratic.
+ * Solve special case of Ferrari where reduced quartic is also biquadratic.
  *
  * In this special case, the normal solution won't work, and must instead be
  * solved as a quadratic equation: The square roots of each quadratic solution
@@ -272,7 +283,8 @@ FerrariSolver::calc_biquadratic_roots(real_type qb, real_type p, real_type r)
 
 //---------------------------------------------------------------------------//
 /*!
- * Utility function which solves for the dominant root of a cubic function.
+ * Solve for the dominant root of a cubic function.
+ *
  * Specifically, the cubic function
   * \f[
    a x^3 + b x^2 + c x + d
@@ -316,7 +328,8 @@ CELER_FUNCTION real_type FerrariSolver::dominant_root_normalized_cubic(
 
 //---------------------------------------------------------------------------//
 /*!
- * Utility function to return real roots of a quadratic function.
+ * Solve for the real roots of a quadratic function.
+ *
  * Specifically, the quadratic function
   * \f[
    a x^2 + (hb*2) x + c
