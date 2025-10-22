@@ -30,8 +30,6 @@ namespace test
  *
  * \tparam G Geometry host params class, e.g. OrangeParams
  *
- * \sa AllGeoTypedTestBase
- *
  * \note This class is instantiated in XTestBase.cc for geometry type X.
  */
 template<class G>
