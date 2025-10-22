@@ -98,7 +98,7 @@ subgraph Volumes
         yield self.write_volume
         self.write("end\n")
 
-    def write_volume(self, i:int , label: str):
+    def write_volume(self, i: int, label: str):
         label = f'(["{label}"])' if label else ""
         self.write(f"  v{i:02d}{label}\n")
         self.vol_edges.append(i)

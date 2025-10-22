@@ -294,6 +294,7 @@ TEST_FIXTURES = {
 def main() -> int:
     """Main entry point for the test harness."""
     import argparse
+
     parser = argparse.ArgumentParser(
         description="Run celer-geo as part of a CMake-based test harness."
     )
