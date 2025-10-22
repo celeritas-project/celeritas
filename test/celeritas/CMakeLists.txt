@@ -407,6 +407,7 @@ celeritas_add_test(optical/SurfacePhysics.test.cc)
 celeritas_add_test(optical/ReflectionFormSampler.test.cc)
 celeritas_add_test(optical/Fresnel.test.cc)
 celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
+celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat

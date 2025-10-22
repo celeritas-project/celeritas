@@ -73,6 +73,7 @@
 #pragma link C++ class celeritas::inp::ReflectivityModels+;
 #pragma link C++ class celeritas::inp::RoughnessModels+;
 #pragma link C++ class celeritas::inp::SeltzerBergerModel+;
+#pragma link C++ enum class celeritas::optical::TrivialInteractionMode+;
 
 // Quantities
 #pragma link C++ class celeritas::Quantity<celeritas::units::EElectron,double>+;
