@@ -6,10 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/base/Config.h>
-#include <VecGeom/base/Cuda.h>
-#include <VecGeom/base/Math.h>
 #include <VecGeom/base/Version.h>
+// NOTE: must include Global before most other vecgeom/veccore includes
+#include <VecGeom/base/Global.h>
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/volumes/LogicalVolume.h>
