@@ -10,6 +10,7 @@
   "hartsw": "ORNL",
   "hhollenb": "UVA",
   "lebuller": "ORNL",
+  "LSchwiebert": "Wayne State U",
   "mdemarteau": "ORNL",
   "mrguilima": "FNAL",
   "pcanal": "FNAL",
@@ -37,6 +38,7 @@
   "hartsw": "0000-0002-0709-2097",
   "hhollenb": "0009-0000-6359-3294",
   "lebuller": "0009-0004-0708-833X",
+  "LSchwiebert": "0000-0002-7167-7436",
   "mdemarteau": "0000-0001-9409-4308",
   "mrguilima": "0000-0003-4585-0546",
   "paulromano": "0000-0002-1147-045X",
@@ -53,6 +55,7 @@
  "github_names": {
   "mdemarteau": "Marcel Demarteau",
   "hartsw": "Shane Hart",
-  "DoaaDeeb": "Doaa Deeb"
+  "DoaaDeeb": "Doaa Deeb",
+  "LSchwiebert": "Loren Schwiebert"
  }
 }
