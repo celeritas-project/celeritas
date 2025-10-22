@@ -37,6 +37,11 @@ repos:
   # see https://github.com/celeritas-project/celeritas/issues/1763
 
 ci:
+  autofix_commit_msg: |
+    Apply pre-commit hooks: please install pre-commit locally!
+
+    For more information, see https://pre-commit.ci and
+    https://celeritas-project.github.io/celeritas/user/development/style.html#formatting
   autoupdate_schedule: quarterly
   autoupdate_commit_msg: "Update pre-commit version"
 
