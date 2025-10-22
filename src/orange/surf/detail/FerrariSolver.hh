@@ -234,8 +234,8 @@ CELER_FUNCTION int FerrariSolver::place_root(Intersections& roots,
     if (!(new_root == no_intersection() || new_root <= 0))
     {
         roots[free_index] = new_root;
+        free_index += 1;
     }
-    free_index += 1;
     return free_index;
 }
 
