@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 Convert an ORANGE CSG JSON representation to a GraphViz input.
 """
+
 from itertools import count, repeat
 from contextlib import contextmanager
 import json
 import sys
+
 
 class DotGenerator:
     def __init__(self, f, args):
@@ -39,7 +40,7 @@ edge [color=gray, dir=both]
             id_format = f"{i:02d}:"
         else:
             id_format = ""
-        self.write(f"{i:02d} [label=\"{id_format}{value}\"]\n")
+        self.write(f'{i:02d} [label="{id_format}{value}"]\n')
 
     @contextmanager
     def write_volumes(self):
@@ -53,9 +54,8 @@ node [style=rounded, shape=box]
         yield self.write_volume
         self.write("}\n")
 
-
     def write_volume(self, i, value):
-        self.write(f"volume{i:02d} [label=\"{value}\"]\n")
+        self.write(f'volume{i:02d} [label="{value}"]\n')
         self.vol_edges.append(i)
 
     def write_edge(self, i, e):
@@ -82,7 +82,7 @@ class MermaidGenerator:
             id_format = f"{i:02d}:"
         else:
             id_format = ""
-        self.write(f"  n{i:02d}[\"{id_format}{value}\"]\n")
+        self.write(f'  n{i:02d}["{id_format}{value}"]\n')
 
     @contextmanager
     def write_volumes(self):
@@ -93,17 +93,18 @@ subgraph Volumes
         self.write("end\n")
 
     def write_volume(self, i, value):
-        self.write(f"  v{i:02d}([\"{value}\"])\n")
+        self.write(f'  v{i:02d}(["{value}"])\n')
         self.vol_edges.append(i)
 
     def write_edge(self, i, e):
         self.write(f"  n{i:02d} --> n{e:02d}\n")
 
+
 def write_tree(gen, csg_unit):
     tree = csg_unit["tree"]
     labels = csg_unit["metadata"] or repeat(None)
 
-    for (i, node, labs) in zip(count(), tree, labels):
+    for i, node, labs in zip(count(), tree, labels):
         if isinstance(node, str):
             # True (or false??)
             gen.write_node(i, node)
@@ -129,6 +130,7 @@ def write_tree(gen, csg_unit):
             # Aliased/negated
             gen.write_edge(i, value)
 
+
 def write_volumes(gen, volumes):
     if not volumes:
         return
@@ -136,6 +138,7 @@ def write_volumes(gen, volumes):
     with gen.write_volumes() as write_volume:
         for v in volumes:
             write_volume(v["csg_node"], v["label"])
+
 
 def run(infile, outfile, gencls, args):
     tree = json.load(infile)
@@ -146,9 +149,11 @@ def run(infile, outfile, gencls, args):
     else:
         if isinstance(tree, list) and isinstance(tree[0], dict) and "tree" in tree[0]:
             num_univ = len(tree)
-            print("Input tree is a CSG listing: please rerun with -u N "
-                  f"where 0 ≤ N < {num_univ}",
-                  file=sys.stderr)
+            print(
+                "Input tree is a CSG listing: please rerun with -u N "
+                f"where 0 ≤ N < {num_univ}",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
         csg_unit = {
@@ -159,25 +164,31 @@ def run(infile, outfile, gencls, args):
 
     with gencls(outfile, args) as gen:
         write_tree(gen, csg_unit)
-        if (vols := csg_unit.get("volumes")):
+        if vols := csg_unit.get("volumes"):
             write_volumes(gen, vols)
+
 
 def main():
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("input", help="Input filename (- for stdin)")
     parser.add_argument(
-        "input",
-        help="Input filename (- for stdin)")
-    parser.add_argument('-T', '--type', default=None,
-                        help="Output type: 'dot' or 'mermaid'")
-    parser.add_argument('-u', '--universe', type=int, default=None,
-                        help="Universe ID if a 'csg.json' debug file")
-    parser.add_argument('--print-ids', action='store_true', help="print CsgTree node ids")
+        "-T", "--type", default=None, help="Output type: 'dot' or 'mermaid'"
+    )
     parser.add_argument(
-        "-o", "--output",
+        "-u",
+        "--universe",
+        type=int,
         default=None,
-        help="Output filename (empty for stdout)")
+        help="Universe ID if a 'csg.json' debug file",
+    )
+    parser.add_argument(
+        "--print-ids", action="store_true", help="print CsgTree node ids"
+    )
+    parser.add_argument(
+        "-o", "--output", default=None, help="Output filename (empty for stdout)"
+    )
     args = parser.parse_args()
 
     if args.input == "-":
@@ -199,17 +210,16 @@ def main():
             gencls = gencls_dict[args.type]
         except KeyError:
             valid = ",".join(gencls_dict)
-            print(f"invalid type {args.type}: valid types are {valid}",
-                  file=sys.stderr)
+            print(f"invalid type {args.type}: valid types are {valid}", file=sys.stderr)
             sys.exit(1)
-
 
     if not args.output:
         outfile = sys.stdout
     else:
-        outfile = open(args.output, 'w')
+        outfile = open(args.output, "w")
 
     run(infile, outfile, gencls, args)
+
 
 if __name__ == "__main__":
     main()
