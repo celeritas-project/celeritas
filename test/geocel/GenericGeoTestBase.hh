@@ -60,9 +60,6 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
     // Build the geometry for a new test (default to lazy geo)
     virtual SPConstGeo build_geometry() const;
 
-    //! Maximum number of local track slots
-    virtual size_type num_track_slots() const { return 1; }
-
     //// Geometry-specific functions ////
 
     // Build and/or access geometry
@@ -72,7 +69,12 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
     //! Get a host track view
     WrappedGeoTrack make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});
     //! Get and initialize a single-thread host track view
-    WrappedGeoTrack make_geo_track_view(Real3 const& pos_cm, Real3 dir);
+    WrappedGeoTrack make_geo_track_view(Real3 const& pos_cm, Real3 dir)
+    {
+        auto tv = this->make_geo_track_view();
+        tv = this->make_initializer(pos_cm, dir);
+        return tv;
+    }
 
     //// GenericGeoTestInterface ////
 

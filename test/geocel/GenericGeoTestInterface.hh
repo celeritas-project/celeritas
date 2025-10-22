@@ -56,15 +56,12 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     // Obtain the "touchable history" at a point
     VolumeStackResult volume_stack(Real3 const& pos_cm);
 
-    //// INTERFACE ////
+    //// BASE INTERFACE ////
 
     // Default to using test suite name
     std::string_view gdml_basename() const override;
 
-    //// INTERFACE ////
-
-    //! Get the safety tolerance (defaults to SoftEq tol) for tracking result
-    virtual GenericGeoTrackingTolerance tracking_tol() const;
+    //// PURE INTERFACE ////
 
     //! Get the label for this geometry: Geant4, VecGeom, ORANGE
     virtual std::string_view geometry_type() const = 0;
@@ -75,17 +72,28 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //! Create a track view (TODO: replace geo test base view)
     virtual UPGeoTrack make_geo_track_view_interface() = 0;
 
+    //// CONFIGURABLE INTERFACE ////
+
+    // Unit length for "track" testing and other results (defaults to cm)
+    virtual Constant unit_length() const;
+
+    // Maximum number of local track slots
+    virtual size_type num_track_slots() const;
+
     // Whether surface normals work for the current geometry/test
     virtual bool supports_surface_normal() const;
+
+    // Get the safety tolerance (defaults to SoftEq tol) for tracking result
+    virtual GenericGeoTrackingTolerance tracking_tol() const;
 
     // Get the threshold in "unit lengths" for a movement being a "bump"
     virtual real_type bump_tol() const;
 
-    //! Unit length for "track" testing and other results
-    virtual Constant unit_length() const { return lengthunits::centimeter; }
-
     //// UTILITIES ////
 
+    // Construct an initializer with correct scaling/normalization
+    GeoTrackInitializer
+    make_initializer(Real3 const& pos_unit, Real3 const& dir) const;
     //! Get the name of the current volume
     std::string volume_name(GeoTrackView const& geo) const;
     //! Get the stack of volume instances

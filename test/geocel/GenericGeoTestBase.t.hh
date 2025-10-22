@@ -109,19 +109,6 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
 }
 
 //---------------------------------------------------------------------------//
-// Get and initialize a single-thread host track view
-template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
-    -> WrappedGeoTrack
-{
-    auto geo = this->make_geo_track_view();
-    GeoTrackInitializer init{pos, make_unit_vector(dir)};
-    init.pos *= static_cast<real_type>(this->unit_length());
-    geo = init;
-    return geo;
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Get the label for this geometry: Geant4, VecGeom, ORANGE.
  */

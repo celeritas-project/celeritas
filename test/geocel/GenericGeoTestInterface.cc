@@ -13,6 +13,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
 #include "geocel/inp/Model.hh"
 
@@ -52,7 +53,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     auto& geo = *geo_sp;
 #endif
 
-    geo = GeoTrackInitializer{pos, dir};
+    // Note: position is scaled according to test
+    geo = this->make_initializer(pos, dir);
 
     auto const& vol_inst = this->get_test_volumes().volume_instance_labels();
     real_type const inv_length = real_type{1} / this->unit_length();
@@ -265,6 +267,21 @@ std::string_view GenericGeoTestInterface::gdml_basename() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Unit length for "track" testing and other results (defaults to cm).
+ */
+Constant GenericGeoTestInterface::unit_length() const
+{
+    return lengthunits::centimeter;
+}
+
+//---------------------------------------------------------------------------//
+size_type GenericGeoTestInterface::num_track_slots() const
+{
+    return 1;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the safety tolerance (defaults to SoftEq tol).
  */
 GenericGeoTrackingTolerance GenericGeoTestInterface::tracking_tol() const
@@ -297,6 +314,19 @@ bool GenericGeoTestInterface::supports_surface_normal() const
 real_type GenericGeoTestInterface::bump_tol() const
 {
     return 1e-7;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an initializer with correct scaling/normalization.
+ */
+GeoTrackInitializer
+GenericGeoTestInterface::make_initializer(Real3 const& pos_unit_length,
+                                          Real3 const& dir) const
+{
+    GeoTrackInitializer init{pos_unit_length, make_unit_vector(dir)};
+    init.pos *= static_cast<real_type>(this->unit_length());
+    return init;
 }
 
 //---------------------------------------------------------------------------//
@@ -367,6 +397,5 @@ VolumeParams const& GenericGeoTestInterface::get_test_volumes() const
     return *volumes_;
 }
 
-//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
