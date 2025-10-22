@@ -88,10 +88,6 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     set(_mctruth_out "${CMAKE_CURRENT_BINARY_DIR}/${mctruth_name}")
   endif()
   set(CELER_GEO ${CELERITAS_CORE_GEO})
-  if(CELERITAS_CORE_GEO STREQUAL "ORANGE" AND NOT CELERITAS_USE_Geant4)
-    # Signal to the app that we have to use the JSON input
-    set(CELER_GEO "${CELER_CORE_GEO}-JSON")
-  endif()
 
   set(_name "app/celer-sim:${test_ext}:cpu")
   add_test(NAME "${_name}"
