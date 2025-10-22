@@ -59,9 +59,6 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
 
     //// Interface ////
 
-    // Default to using test suite name
-    std::string_view gdml_basename() const override;
-
     // Build the geometry for a new test (default to lazy geo)
     virtual SPConstGeo build_geometry() const;
 
@@ -74,8 +71,6 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
     SPConstGeo const& geometry();
     SPConstGeo const& geometry() const;
 
-    //! Create a track view
-    UPGeoTrack make_geo_track_view_interface() final;
     //! Get a host track view
     WrappedGeoTrack make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});
     //! Get and initialize a single-thread host track view
@@ -83,6 +78,8 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
 
     //// GenericGeoTestInterface ////
 
+    //! Create a track view
+    UPGeoTrack make_geo_track_view_interface() final;
     // Get the label for this geometry: Geant4, VecGeom, ORANGE
     std::string_view geometry_type() const final;
     // Access the geometry interface

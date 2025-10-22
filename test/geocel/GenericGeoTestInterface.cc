@@ -44,7 +44,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     }
 
 #if 0
-// FIXME: Geant4 solidstest fails at one point
+    // FIXME: Geant4 solidstest fails at one point
     CheckedGeoTrackView geo{this->make_geo_track_view_interface()};
     geo.check_normal(check_surface_normal);
 #else
@@ -247,6 +247,20 @@ auto GenericGeoTestInterface::volume_stack(Real3 const& pos)
 
     return VolumeStackResult::from_span(
         this->get_test_volumes().volume_instance_labels(), make_span(inst_ids));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return test suite name by default.
+ */
+std::string_view GenericGeoTestInterface::gdml_basename() const
+{
+    auto* ut = ::testing::UnitTest::GetInstance();
+    CELER_ASSERT(ut);
+    auto* test = ut->current_test_info();
+    CELER_VALIDATE(
+        test, << "cannot get default GDML filename when run outside test");
+    return test->test_suite_name();
 }
 
 //---------------------------------------------------------------------------//

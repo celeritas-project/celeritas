@@ -44,18 +44,6 @@ void GenericGeoTestBase<HP>::SetUp()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return test suite name by default.
- */
-template<class HP>
-std::string_view GenericGeoTestBase<HP>::gdml_basename() const
-{
-    return ::testing::UnitTest::GetInstance()
-        ->current_test_info()
-        ->test_suite_name();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Build the geometry, defaulting to using the lazy Geant4 construction.
  */
 template<class HP>

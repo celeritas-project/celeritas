@@ -58,6 +58,11 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
 
     //// INTERFACE ////
 
+    // Default to using test suite name
+    std::string_view gdml_basename() const override;
+
+    //// INTERFACE ////
+
     //! Get the safety tolerance (defaults to SoftEq tol) for tracking result
     virtual GenericGeoTrackingTolerance tracking_tol() const;
 
@@ -69,9 +74,6 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
 
     //! Create a track view (TODO: replace geo test base view)
     virtual UPGeoTrack make_geo_track_view_interface() = 0;
-
-    // Get the basename or unique geometry key
-    virtual std::string_view gdml_basename() const = 0;
 
     // Whether surface normals work for the current geometry/test
     virtual bool supports_surface_normal() const;
