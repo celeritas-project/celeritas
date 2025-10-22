@@ -184,7 +184,6 @@ size_type exclusive_scan_counts(
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return ItemCopier<size_type>{stream_id}(counts.data().get() + counts.size()
                                             - 1);
-
     // ScopedProfiling profile_this{"exclusive-scan-counts"};
     // // Exclusive scan:
     // auto data = device_pointer_cast(counts.data());
