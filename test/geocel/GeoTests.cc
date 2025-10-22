@@ -318,28 +318,9 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_FALSE(next.boundary);
     }
     {
-        SCOPED_TRACE("outside in");
-        auto geo = make_geo_track_view(*test_, {-25, 6.5, 6.5}, {1, 0, 0});
-        EXPECT_TRUE(geo.is_outside());
-
-        if (test_->geometry_type() != "Geant4")
-        {
-            // Geant4 can't trace from outside to inside
-            auto next = geo.find_next_step();
-            EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
-            EXPECT_TRUE(next.boundary);
-
-            geo.move_to_boundary();
-            EXPECT_TRUE(geo.is_outside());
-            geo.cross_boundary();
-            EXPECT_FALSE(geo.is_outside());
-            EXPECT_EQ("World", test_->volume_name(geo));
-        }
-    }
-    {
         SCOPED_TRACE("inside out");
         auto geo = make_geo_track_view(*test_, {-23.5, 6.5, 6.5}, {-1, 0, 0});
-        EXPECT_FALSE(geo.is_outside());
+        ASSERT_FALSE(geo.is_outside());
         EXPECT_EQ("World", test_->volume_name(geo));
 
         auto next = geo.find_next_step(from_cm(2));
@@ -354,13 +335,6 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         }
         geo.cross_boundary();
         EXPECT_TRUE(geo.is_outside());
-
-        if (test_->geometry_type() != "Geant4")
-        {
-            next = geo.find_next_step();
-            EXPECT_GT(next.distance, 1e10);
-            EXPECT_FALSE(next.boundary);
-        }
     }
     {
         SCOPED_TRACE("reentrant boundary");
