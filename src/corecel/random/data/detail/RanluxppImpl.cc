@@ -44,7 +44,8 @@ CELER_FUNCTION RanluxppUInt add_overflow(RanluxppUInt a,
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute sum of \p a and \p b and increment \p carry if there was an overflow
+ * Compute sum of \p a and \p b and increment \p carry if there was an
+ * overflow.
  *
  * \param[in]  a      The first operand of the sum
  * \param[in]  b      The second operand of the sum
@@ -67,7 +68,7 @@ CELER_FUNCTION RanluxppUInt add_carry(RanluxppUInt a,
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute difference of \p a and \p b and set \p overflow accordingly
+ * Compute difference of \p a and \p b and set \p overflow accordingly.
  *
  * \param[in] a          The first operand of the subtraction
  * \param[in] b          The second operand of the subtraction
@@ -87,7 +88,7 @@ CELER_FUNCTION RanluxppUInt sub_overflow(RanluxppUInt a,
 //---------------------------------------------------------------------------//
 /*!
  * Compute difference of \p a and \p b and increment \p carry if there was an
- * overflow
+ * overflow.
  *
  * \param[in] a       The first operand of the subtraction
  * \param[in] b       The second operand of the subtraction
@@ -110,7 +111,7 @@ CELER_FUNCTION RanluxppUInt sub_carry(RanluxppUInt a,
 
 //---------------------------------------------------------------------------//
 /*!
- * Update r = r - (t1 + t2) + (t3 + t2) * b ** 10
+ * Update r = r - (t1 + t2) + (t3 + t2) * b ** 10.
  *
  * This function also yields cbar = floor(r / m) as its return value (int64_t
  * because the value can be -1). With an initial value of r = t0, this can
@@ -221,7 +222,7 @@ CELER_FUNCTION int64_t compute_remainder(Span<RanluxppUInt const, 9> upper,
 
 //---------------------------------------------------------------------------//
 /*!
- * Multiply two 576 bit numbers, stored as 9 numbers of 64 bits each
+ * Multiply two 576 bit numbers, stored as 9 numbers of 64 bits each.
  *
  * \param[in]  in1  first factor as 9 numbers of 64 bits each
  * \param[in]  in2  second factor as 9 numbers of 64 bits each
@@ -366,7 +367,7 @@ CELER_FUNCTION RanluxppArray18 multiply_9x9(RanluxppArray9 const& in1,
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute a value congruent to mul modulo m less than 2 ** 576
+ * Compute a value congruent to mul modulo m less than 2 ** 576.
  *
  * This computes \f$ m = 2^{576} - 2^{240} + 1 \f$. The result in
  * \p out is guaranteed to be smaller than the modulus.
@@ -453,7 +454,7 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
 
 //---------------------------------------------------------------------------//
 /*!
- * Combine multiply_9x9 and compute_modulus with internal temporary storage
+ * Combine multiply_9x9 and compute_modulus with internal temporary storage.
  *
  * The result in \p fac_result is guaranteed to be smaller than the modulus.
  *
@@ -469,7 +470,7 @@ CELER_FUNCTION RanluxppArray9 compute_mod_multiply(
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute \p base to the \p n modulo m
+ * Compute \p base to the \p n modulo m.
  *
  * The arguments \p base and \p res may point to the same location.
  *
@@ -504,7 +505,7 @@ CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert RANLUX numbers to an LCG state
+ * Convert RANLUX numbers to an LCG state.
  *
  * Computes \f$ m = 2^{576} - 2^{240} + 1 \f$.
  *
@@ -548,7 +549,7 @@ CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppArray9 const& ranlux,
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an LCG state to RANLUX numbers
+ * Convert an LCG state to RANLUX numbers.
  *
  * \f$ m = 2^{576} - 2^{240} + 1 \f$
  *

@@ -10,7 +10,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Skip `n` random numbers without generating them
+ * Skip `n` random numbers without generating them.
  */
 CELER_FUNCTION void RanluxppRngEngine::skip(RanluxppUInt n)
 {
@@ -50,7 +50,7 @@ CELER_FUNCTION void RanluxppRngEngine::skip(RanluxppUInt n)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the next random bits, generate a new block if necessary
+ * Return the next random bits, generate a new block if necessary.
  */
 CELER_FUNCTION RanluxppUInt RanluxppRngEngine::nextRandomBits()
 {

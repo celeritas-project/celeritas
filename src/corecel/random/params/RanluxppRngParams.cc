@@ -15,7 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a seed
+ * Construct with a seed.
  */
 RanluxppRngParams::RanluxppRngParams(RanluxppUInt seed)
 {
@@ -30,7 +30,7 @@ RanluxppRngParams::RanluxppRngParams(RanluxppUInt seed)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the Ka polynomial
+ * Get the Ka polynomial.
  */
 RanluxppArray9 const& RanluxppRngParams::getKa() const
 {

@@ -20,7 +20,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Shared ata for Ranluxpp pseudo-random number generator
+ * Shared data for Ranluxpp pseudo-random number generator.
  */
 class RanluxppRngParams final
     : public ParamsDataInterface<RanluxppRngParamsData>

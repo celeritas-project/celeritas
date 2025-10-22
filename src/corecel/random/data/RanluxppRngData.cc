@@ -22,7 +22,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the state with the given seed
+ * Initialize the state with the given seed.
  */
 CELER_FUNCTION void
 initialize_state(RanluxppRngState& state,
@@ -47,7 +47,7 @@ initialize_state(RanluxppRngState& state,
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize Ranluxpp states with well-distributed random data
+ * Initialize Ranluxpp states with well-distributed random data.
  *
  * This generates pseudorandom, independent starting states for all data in
  * all threads using a 32-bit MT19937 engine.
@@ -84,7 +84,7 @@ void initialize_ranluxpp(Span<RanluxppRngState> states,
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize and seed the RNG states
+ * Resize and seed the RNG states.
  */
 template<MemSpace M>
 void resize(RanluxppRngStateData<Ownership::value, M>* state,

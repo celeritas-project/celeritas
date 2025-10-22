@@ -26,7 +26,7 @@ namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
- * Persistent data for the Ranluxpp random number generator
+ * Persistent data for the Ranluxpp random number generator.
  */
 template<Ownership W, MemSpace M>
 struct RanluxppRngParamsData
@@ -37,10 +37,10 @@ struct RanluxppRngParamsData
     RanluxppUInt seed = 314159265;
 
     //// FUNCTIONS ////
-    //! Whether the data is assigned
+    //! Whether the data is assigned.
     explicit CELER_FUNCTION operator bool() const { return !kA_2048.empty(); }
 
-    //! Assign from another set of data
+    //! Assign from another set of data.
     template<Ownership W2, MemSpace M2>
     RanluxppRngParamsData& operator=(RanluxppRngParamsData<W2, M2> const& other)
     {
@@ -54,7 +54,7 @@ struct RanluxppRngParamsData
 
 //---------------------------------------------------------------------------//
 /*!
- * Individual RNG state for Ranluxpp
+ * Individual RNG state for Ranluxpp.
  */
 struct RanluxppRngState
 {
@@ -66,7 +66,7 @@ struct RanluxppRngState
 
 //---------------------------------------------------------------------------//
 /*!
- * State data for Ranluxpp generator
+ * State data for Ranluxpp generator.
  */
 template<Ownership W, MemSpace M>
 struct RanluxppRngStateData
