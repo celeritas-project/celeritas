@@ -62,21 +62,6 @@ struct RanluxppRngState
     RanluxppArray9 state;
     unsigned int carry;
     int position;
-
-    //! Pickle the state into the given array
-    CELER_FUNCTION void saveState(RanluxppArray9& state) const
-    {
-        std::copy_n(state.cbegin(), 9, state.begin());
-    }
-
-    //! Perform XOR operation on state
-    CELER_FUNCTION void xorState(RanluxppArray9 const& other_state)
-    {
-        for (auto i : celeritas::range(9))
-        {
-            state[i] ^= other_state[i];
-        }
-    }
 };
 
 //---------------------------------------------------------------------------//
