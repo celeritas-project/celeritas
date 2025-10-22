@@ -3,3 +3,5 @@ nax
 nd
 VarT
 therefrom
+TE
+TM
