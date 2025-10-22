@@ -22,6 +22,8 @@
 #include "geocel/GenericGeoResults.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/GeoTests.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/g4/GeantGeoData.hh"
@@ -79,6 +81,9 @@ class GeantGeoTest : public GeantGeoTestBase
     }
 
     virtual SpanStringView expected_log_levels() const { return {}; }
+
+    ScopedGeantExceptionHandler exception_handler;
+    ScopedGeantLogger logger{celeritas::world_logger()};
 };
 
 //---------------------------------------------------------------------------//
@@ -285,14 +290,12 @@ TEST_F(FourLevelsTest, trace)
 
 TEST_F(FourLevelsTest, consecutive_compute)
 {
-    // Templated test
-    FourLevelsGeoTest::test_consecutive_compute(this);
+    this->impl().test_consecutive_compute();
 }
 
 TEST_F(FourLevelsTest, detailed_track)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(FourLevelsTest, safety)
@@ -784,8 +787,7 @@ TEST_F(SimpleCmsTest, trace)
 
 TEST_F(SimpleCmsTest, detailed_track)
 {
-    // Templated test
-    SimpleCmsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 //---------------------------------------------------------------------------//
@@ -938,8 +940,7 @@ TEST_F(TwoBoxesTest, model)
 
 TEST_F(TwoBoxesTest, track)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(TwoBoxesTest, trace)
