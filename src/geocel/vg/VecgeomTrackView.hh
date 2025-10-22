@@ -8,6 +8,7 @@
 
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
+#include <VecGeom/base/Math.h>
 #include <VecGeom/base/Version.h>
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
@@ -17,6 +18,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -67,6 +69,7 @@ class VecgeomTrackView
     using Navigator = celeritas::detail::BVHNavigator;
 #endif
     using ImplVolInstanceId = VecgeomPlacedVolumeId;
+    using real_type = vecgeom::Precision;
     //!@}
 
   public:
