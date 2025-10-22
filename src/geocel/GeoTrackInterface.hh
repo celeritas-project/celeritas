@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
+#include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 
@@ -18,8 +21,9 @@ namespace celeritas
  * Standard interface to geometry navigation for a track for testing on CPU.
  * \tparam RealType Floating point precision
  *
- * \important This class is for illustrative and testing purposes only and is
- *   \em not used during the main Celeritas execution. The geometry there is
+ * \important This class is for illustrative and testing purposes \b only
+ *   (see celeritas::test::WrappedGeoTrackView) and is
+ *   \b not used during the main Celeritas execution. The geometry there is
  *   determined by the \c CELERITAS_CORE_GEO configuration variable and defined
  *   as a type alias \c celeritas::CoreGeoTrackView .
  *
@@ -71,6 +75,9 @@ class GeoTrackInterface
     //!@}
 
   public:
+    // Anchor virtual destructor in GeoInterface.cc
+    virtual ~GeoTrackInterface() = 0;
+
     /*!
      * Initialize the state.
      *
@@ -215,17 +222,17 @@ class GeoTrackInterface
      */
     virtual void move_internal(Real3 const& pos) = 0;
     //!@}
+
+  protected:
+    GeoTrackInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(GeoTrackInterface);
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Wrap a track view for CPU testing and interface validation.
- */
-template<class TrackViewT>
-class WrappedGeoTrack final
-    : public GeoTrackInterface<typename TrackViewT::real_type>
-{
-};
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+extern template class GeoTrackInterface<float>;
+#endif
+extern template class GeoTrackInterface<double>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
