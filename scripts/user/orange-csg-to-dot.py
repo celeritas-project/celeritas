@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 Convert an ORANGE CSG JSON representation to a GraphViz input.

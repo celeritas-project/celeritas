@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2022-2024 UT-Battelle, LLC and other Celeritas Developers.
-# See the top-level COPYRIGHT file for details.
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 ORANGE testem3 input definition using python.
