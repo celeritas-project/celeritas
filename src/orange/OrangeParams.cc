@@ -190,7 +190,16 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
-    host_data.scalars.max_depth = detail::DepthCalculator{input.universes}();
+
+    host_data.scalars.max_depth = [&univ_inp = input.universes] {
+        auto result = detail::DepthCalculator{univ_inp}();
+        constexpr auto max_ud = static_cast<int>(UnivDepthId{}.unchecked_get())
+                                - 1;
+        CELER_VALIDATE(result <= max_ud,
+                       << "universe depth " << result
+                       << " exceeds maximum hardcoded depth " << max_ud);
+        return static_cast<UnivDepthId::size_type>(result);
+    }();
 
     // Insert all universes
     {
