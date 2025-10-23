@@ -27,8 +27,6 @@ class LevelStateAccessor
     //!@{
     //! Type aliases
     using StateRef = NativeRef<OrangeStateData>;
-    using LVolId = LocalVolumeId;
-    using UnivId = UniverseId;
     //!@}
 
   public:
@@ -37,78 +35,88 @@ class LevelStateAccessor
                                              TrackSlotId tid,
                                              UnivDepthId ud_id);
 
+    LevelStateAccessor(LevelStateAccessor const&) = default;
+    LevelStateAccessor(LevelStateAccessor&&) = default;
     // Copy data from another LSA
     inline CELER_FUNCTION LevelStateAccessor&
     operator=(LevelStateAccessor const& other);
-
-    // Default move/copy
-    LevelStateAccessor(LevelStateAccessor const&) = default;
-    LevelStateAccessor(LevelStateAccessor&&) = default;
     ~LevelStateAccessor() = default;
 
     //// ACCESSORS ////
 
-    CELER_FIF LVolId& vol() { return this->get(s_.vol); }
-    CELER_FIF Real3& pos() { return this->get(s_.pos); }
-    CELER_FIF Real3& dir() { return this->get(s_.dir); }
-    CELER_FIF UnivId& universe() { return this->get(s_.universe); }
+    CELER_FUNCTION LocalVolumeId& vol()
+    {
+        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
+    }
+
+    CELER_FUNCTION Real3& pos()
+    {
+        return states_->pos[OpaqueId<Real3>{index_}];
+    }
+
+    CELER_FUNCTION Real3& dir()
+    {
+        return states_->dir[OpaqueId<Real3>{index_}];
+    }
+
+    CELER_FUNCTION UniverseId& universe()
+    {
+        return states_->universe[OpaqueId<UniverseId>{index_}];
+    }
 
     //// CONST ACCESSORS ////
 
-    CELER_FIF LVolId const& vol() const { return this->get(s_.vol); }
-    CELER_FIF Real3 const& pos() const { return this->get(s_.pos); }
-    CELER_FIF Real3 const& dir() const { return this->get(s_.dir); }
-    CELER_FIF UnivId const& universe() const { return this->get(s_.universe); }
+    CELER_FUNCTION LocalVolumeId const& vol() const
+    {
+        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
+    }
+
+    CELER_FUNCTION Real3 const& pos() const
+    {
+        return states_->pos[OpaqueId<Real3>{index_}];
+    }
+
+    CELER_FUNCTION Real3 const& dir() const
+    {
+        return states_->dir[OpaqueId<Real3>{index_}];
+    }
+
+    CELER_FUNCTION UniverseId const& universe() const
+    {
+        return states_->universe[OpaqueId<UniverseId>{index_}];
+    }
 
   private:
-    //// TYPES ////
-
-    template<class T>
-    using Items = Collection<T, Ownership::reference, MemSpace::native>;
-
-    //// DATA ////
-
-    StateRef const& s_;
-    size_type index_;
-
-    //// HELPER FUNCTIONS ////
-    template<class T>
-    CELER_FIF T& get(Items<T> const& items)
-    {
-        return items[OpaqueId<T>{index_}];
-    }
-
-    template<class T>
-    CELER_FIF T const& get(Items<T> const& items) const
-    {
-        return items[OpaqueId<T>{index_}];
-    }
+    StateRef const* const states_;
+    size_type const index_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from states and indices.
+ * Construct from states and indices
  */
-CELER_FIF
+CELER_FUNCTION
 LevelStateAccessor::LevelStateAccessor(StateRef const* states,
                                        TrackSlotId tid,
                                        UnivDepthId ud_id)
-    : s_(*states), index_(tid.get() * s_.univ_depth + ud_id.get())
+    : states_(states), index_(tid.get() * states_->univ_depth + ud_id.get())
 {
-    CELER_EXPECT(ud_id < s_.univ_depth);
+    CELER_EXPECT(ud_id < states->univ_depth);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy data from another LSA.
+ * Copy data from another LSA
  */
-CELER_FIF LevelStateAccessor&
+CELER_FUNCTION LevelStateAccessor&
 LevelStateAccessor::operator=(LevelStateAccessor const& other)
 {
-    CELER_EXPECT(index_ != other.index_);
-
+    if (this == &other)
+    {
+        return *this;
+    }
     this->vol() = other.vol();
     this->pos() = other.pos();
     this->dir() = other.dir();

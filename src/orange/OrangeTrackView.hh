@@ -490,14 +490,18 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(!params_.volume_instance_ids.empty());
 
-    auto get_vol_inst = [this](UnivDepthId ud_id) {
-        return params_.volume_instance_ids[this->impl_volume_id(ud_id)];
-    };
-
     // If we're in a 'background' volume, we don't know the PV until reaching
     // the parent placement (i.e., the volume instance in the parent universe)
+    auto ui = this->make_universe_indexer();
     UnivDepthId ud_id{this->udepth()};
-    if (auto vi_id = get_vol_inst(ud_id))
+    auto get_vol_inst = [&]() {
+        auto lsa = this->make_lsa(ud_id);
+        CELER_ASSERT(lsa.universe());
+        ImplVolumeId impl_id = ui.global_volume(lsa.universe(), lsa.vol());
+        return params_.volume_instance_ids[impl_id];
+    };
+
+    if (auto vi_id = get_vol_inst())
     {
         // Canonical mapping found in this universe: we're locally in a volume
         // placement
@@ -509,7 +513,7 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
     // constructed geometry
     CELER_ASSERT(ud_id != orange_global_level);
     --ud_id;
-    return get_vol_inst(ud_id);
+    return get_vol_inst();
 }
 
 //---------------------------------------------------------------------------//
