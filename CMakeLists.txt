@@ -409,7 +409,7 @@ endif()
 
 if(CELERITAS_USE_Python)
   if(NOT Python_FOUND)
-    find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
+    find_package(Python 3.9 REQUIRED COMPONENTS Interpreter)
   endif()
 endif()
 

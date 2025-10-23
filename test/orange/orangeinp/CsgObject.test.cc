@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/CsgObject.hh"
 
+#include "corecel/StringSimplifier.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Transformed.hh"
@@ -20,6 +22,8 @@ namespace orangeinp
 {
 namespace test
 {
+using celeritas::test::StringSimplifier;
+
 //---------------------------------------------------------------------------//
 
 class CsgObjectTest : public ObjectTestBase
@@ -75,6 +79,26 @@ TEST_F(NegatedObjectTest, just_neg)
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
+
+    // Test output
+    {
+        // Note that print_expected goes through string simplifier
+        ScopedStreamRedirect redirected(&std::cout);
+        this->print_expected();
+        EXPECT_EQ(1545, redirected.str().size());
+    }
+    {
+        ScopedStreamRedirect redirected(&std::cout);
+        this->print_csg();
+
+        // But print_csg does not
+        auto orig = std::move(redirected).str();
+        auto simplified = StringSimplifier{2}(orig);
+        EXPECT_NE(orig.size(), simplified.size());
+        EXPECT_JSON_EQ(
+            R"json([{"fills":[2,4],"metadata":[[],[],["antisph","sph@s"],["sph"],["antitrsph","sph@s"],["sph"]],"regions":{"2":{"exterior":[[-1.0,-1.0,-1.0],[1.0,1.0,1.0]],"interior":[[-0.87,-0.87,-0.87],[0.87,0.87,0.87]],"negated":true,"transform":0},"3":{"exterior":[[-1.0,-1.0,-1.0],[1.0,1.0,1.0]],"interior":[[-0.87,-0.87,-0.87],[0.87,0.87,0.87]],"transform":0},"4":{"exterior":[[-1.0,-1.0,0.0],[1.0,1.0,2.0]],"interior":[[-0.87,-0.87,0.13],[0.87,0.87,1.9]],"negated":true,"transform":0},"5":{"exterior":[[-1.0,-1.0,0.0],[1.0,1.0,2.0]],"interior":[[-0.87,-0.87,0.13],[0.87,0.87,1.9]],"transform":1}},"surfaces":["Sphere: r=1","Sphere: r=1 at {0,0,1}"],"transforms":["{}","{{0,0,1}}"],"tree":["t",["~",0],["S",0],["~",2],["S",1],["~",4]],"volumes":[{"csg_node":2,"label":"antisph"},{"csg_node":4,"label":"antitrsph"}]}])json",
+            simplified);
+    }
 }
 
 TEST_F(NegatedObjectTest, pos_neg)
