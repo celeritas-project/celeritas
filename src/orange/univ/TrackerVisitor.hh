@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Apply a functor to a universe tracker of unknown type.
  *
- * An instance of this class is like \c std::visit but accepting a UniverseId
+ * An instance of this class is like \c std::visit but accepting a UnivId
  * rather than a \c std::variant .
  *
  * Example: \code
@@ -43,7 +43,7 @@ class TrackerVisitor
 
     // Apply the function to the universe specified by the given ID
     template<class F>
-    CELER_FUNCTION decltype(auto) operator()(F&& func, UniverseId id);
+    CELER_FUNCTION decltype(auto) operator()(F&& func, UnivId id);
 
   private:
     ParamsRef const& params_;
@@ -66,8 +66,7 @@ CELER_FUNCTION TrackerVisitor::TrackerVisitor(ParamsRef const& params)
  * Apply the function to the universe specified by the given ID.
  */
 template<class F>
-CELER_FUNCTION decltype(auto)
-TrackerVisitor::operator()(F&& func, UniverseId id)
+CELER_FUNCTION decltype(auto) TrackerVisitor::operator()(F&& func, UnivId id)
 {
     CELER_EXPECT(id < params_.universe_types.size());
     size_type universe_idx = params_.universe_indices[id];

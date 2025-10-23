@@ -36,7 +36,7 @@ void VecgeomParamsOutput::output(JsonPimpl* j) const
     using json = nlohmann::json;
 
     auto scalars = json::object({
-        {"depth", vecgeom_->depth()},
+        {"depth", vecgeom_->volume_depth()},
         {"use_vgdml", vecgeom_->use_vgdml()},
         {"use_surface_tracking", vecgeom_->use_surface_tracking()},
     });

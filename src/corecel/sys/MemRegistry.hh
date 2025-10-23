@@ -74,7 +74,7 @@ class MemRegistry
     inline MemUsageEntry const& get(MemUsageId id) const;
 
     //! Number of memory entries deep
-    size_type depth() const { return stack_.size(); }
+    size_type volume_depth() const { return stack_.size(); }
 
     //// MUTATORS ////
 

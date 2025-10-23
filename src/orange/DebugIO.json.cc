@@ -64,7 +64,7 @@ struct IdToJson
         return id;
     }
 
-    nlohmann::json operator()(UniverseId const& id) const
+    nlohmann::json operator()(UnivId const& id) const
     {
         if (id && orange)
         {
@@ -77,7 +77,7 @@ struct IdToJson
     {
         CELER_EXPECT(orange);
 
-        UniverseId u_id = lsa.universe();
+        UnivId u_id = lsa.universe();
 
         return {
             {"pos", lsa.pos()},

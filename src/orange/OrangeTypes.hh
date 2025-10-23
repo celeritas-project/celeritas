@@ -35,7 +35,7 @@ using fast_real_type = float;
 using logic_int = size_type;
 
 //! Integer type for volume tree depth
-using depth_uint = DepthId::size_type;
+using vol_depth_uint = VolumeDepthId::size_type;
 
 //! Helper class for some template dispatch functions
 template<Axis T>
@@ -80,10 +80,10 @@ using RectArrayId = OpaqueId<struct RectArrayRecord>;
 using TransformId = OpaqueId<struct TransformRecord>;
 
 //! Identifier for a relocatable set of volumes
-using UniverseId = OpaqueId<struct Universe_>;
+using UnivId = OpaqueId<struct Universe_>;
 
 //! Universe depth, not necessarily canonical volume depth
-using UnivDepthId = OpaqueId<struct UnivDepth_, depth_uint>;
+using UnivDepthId = OpaqueId<struct UnivDepth_, vol_depth_uint>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -284,7 +284,7 @@ enum class ZOrder : size_type
  */
 struct Daughter
 {
-    UniverseId universe_id;
+    UnivId univ_id;
     TransformId trans_id;
 };
 
@@ -379,11 +379,11 @@ CELER_CONSTEXPR_FUNCTION real_type no_intersection()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the UniverseId of the highest-level (i.e., root) universe.
+ * Return the UnivId of the highest-level (i.e., root) universe.
  */
-CELER_CONSTEXPR_FUNCTION UniverseId top_universe_id()
+CELER_CONSTEXPR_FUNCTION UnivId top_universe_id()
 {
-    return UniverseId{0};
+    return UnivId{0};
 }
 
 //---------------------------------------------------------------------------//

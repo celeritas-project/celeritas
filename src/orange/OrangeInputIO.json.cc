@@ -303,7 +303,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         for (auto i : range(parent_vols.size()))
         {
             DaughterInput daughter;
-            daughter.universe_id = UniverseId{daughters[i]};
+            daughter.univ_id = UnivId{daughters[i]};
             daughter.transform = std::move(transforms[i]);
             value.daughter_map.emplace(LocalVolumeId{parent_vols[i]},
                                        std::move(daughter));
@@ -359,7 +359,7 @@ void to_json(nlohmann::json& j, UnitInput const& value)
         for (auto const& [local_vol, daughter_inp] : value.daughter_map)
         {
             parent_cells.push_back(local_vol.unchecked_get());
-            daughters.push_back(daughter_inp.universe_id.unchecked_get());
+            daughters.push_back(daughter_inp.univ_id.unchecked_get());
             transforms.push_back(
                 detail::export_transform(daughter_inp.transform));
         }
@@ -412,7 +412,7 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
         for (auto i : range(daughters.size()))
         {
             DaughterInput daughter;
-            daughter.universe_id = UniverseId{daughters[i]};
+            daughter.univ_id = UnivId{daughters[i]};
 
             // Read and convert transform
             daughter.transform
@@ -448,7 +448,7 @@ void to_json(nlohmann::json& j, RectArrayInput const& value)
 
         for (auto const& d : value.daughters)
         {
-            daughters.push_back(d.universe_id.unchecked_get());
+            daughters.push_back(d.univ_id.unchecked_get());
             if (auto* tr = std::get_if<Translation>(&d.transform))
             {
                 translations.insert(translations.end(),

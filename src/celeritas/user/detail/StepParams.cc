@@ -120,7 +120,7 @@ StepParams::StepParams(AuxId aux_id,
         {
             // TODO: replace with volume params, so we can use touchable
             // representation
-            host_data.volume_instance_depth = volume_params->depth() + 1;
+            host_data.volume_instance_depth = volume_params->volume_depth() + 1;
             CELER_VALIDATE(host_data.volume_instance_depth > 0,
                            << "geometry type does not support volume "
                               "instance IDs: max depth is "

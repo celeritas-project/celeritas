@@ -31,7 +31,7 @@ class VolumeParams;
 inline constexpr LocalVolumeId orange_exterior_volume{0};
 
 //! ID of the top (root/global/world, depth=0) universe (scene)
-inline constexpr UniverseId orange_global_universe{0};
+inline constexpr UnivId orange_global_universe{0};
 
 //! ID of the global universe depth
 inline constexpr UnivDepthId orange_global_depth{0};
@@ -276,7 +276,7 @@ struct RectArrayRecord
  * Each collection should be of length num_universes + 1. The first entry is
  * zero and the last item should be the total number of surfaces or volumes.
  *
- * \todo These should be indexed into by UniverseId, not the default
+ * \todo These should be indexed into by UnivId, not the default
  * OpaqueId<size_type>.
  * \todo move to detail/UniverseIndexerData
  */
@@ -364,7 +364,7 @@ struct OrangeParamsData
     template<class T>
     using ImplVolumeItems = Collection<T, W, M, ImplVolumeId>;
     template<class T>
-    using UnivItems = Collection<T, W, M, UniverseId>;
+    using UnivItems = Collection<T, W, M, UnivId>;
 
     using RealId = SurfacesRecord::RealId;
 
@@ -494,7 +494,7 @@ struct OrangeStateData
     Items<Real3> pos;
     Items<Real3> dir;
     Items<LocalVolumeId> vol;
-    Items<UniverseId> universe;
+    Items<UnivId> universe;
 
     // Scratch space with dimensions {track}{max_faces}
     Items<SenseValue> temp_sense;

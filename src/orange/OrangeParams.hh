@@ -42,7 +42,7 @@ class OrangeParams final : public GeoParamsInterface,
     //!@{
     //! \name Type aliases
     using SurfaceMap = LabelIdMultiMap<ImplSurfaceId>;
-    using UniverseMap = LabelIdMultiMap<UniverseId>;
+    using UniverseMap = LabelIdMultiMap<UnivId>;
     using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     //!@}
 

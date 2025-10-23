@@ -35,10 +35,11 @@ struct VecgeomScalars
 {
     template<MemSpace M>
     using PlacedVolumeT = typename detail::VecgeomTraits<M>::PlacedVolume;
+    using vol_depth_uint = VolumeDepthId::size_type;
 
     PlacedVolumeT<MemSpace::host> const* host_world{nullptr};
     PlacedVolumeT<MemSpace::device> const* device_world{nullptr};
-    DepthId::size_type depth = 0;  //!< Volume graph depth
+    vol_depth_uint volume_depth{0};
 
     template<MemSpace M>
     CELER_FUNCTION PlacedVolumeT<M> const* world() const
@@ -59,7 +60,7 @@ struct VecgeomScalars
     //! Whether the scalars are valid (device may be null)
     explicit CELER_FUNCTION operator bool() const
     {
-        return host_world != nullptr && depth > 0;
+        return host_world != nullptr && volume_depth > 0;
     }
 };
 
@@ -183,8 +184,8 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 #if CELERITAS_VECGEOM_SURFACE
     resize(&data->next_surface, size);
 #endif
-    data->vgstate.resize(params.scalars.depth, size);
-    data->vgnext.resize(params.scalars.depth, size);
+    data->vgstate.resize(params.scalars.volume_depth, size);
+    data->vgnext.resize(params.scalars.volume_depth, size);
 
     CELER_ENSURE(data);
 }

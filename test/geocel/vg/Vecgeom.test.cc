@@ -257,7 +257,7 @@ using SimpleCmsVgdmlTest
 TEST_F(SimpleCmsVgdmlTest, accessors)
 {
     auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.depth());
+    EXPECT_EQ(2, geom.volume_depth());
     EXPECT_EQ(7, geom.impl_volumes().size());
 }
 
@@ -382,7 +382,7 @@ TEST_F(SolidsVgdmlTest, accessors)
     }
 
     auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.depth());
+    EXPECT_EQ(2, geom.volume_depth());
 
     if (vecgeom_version < Version(1, 2, 2))
     {

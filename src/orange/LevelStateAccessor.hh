@@ -59,9 +59,9 @@ class LevelStateAccessor
         return states_->dir[OpaqueId<Real3>{index_}];
     }
 
-    CELER_FUNCTION UniverseId& universe()
+    CELER_FUNCTION UnivId& universe()
     {
-        return states_->universe[OpaqueId<UniverseId>{index_}];
+        return states_->universe[OpaqueId<UnivId>{index_}];
     }
 
     //// CONST ACCESSORS ////
@@ -81,9 +81,9 @@ class LevelStateAccessor
         return states_->dir[OpaqueId<Real3>{index_}];
     }
 
-    CELER_FUNCTION UniverseId const& universe() const
+    CELER_FUNCTION UnivId const& universe() const
     {
-        return states_->universe[OpaqueId<UniverseId>{index_}];
+        return states_->universe[OpaqueId<UnivId>{index_}];
     }
 
   private:

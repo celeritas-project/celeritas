@@ -80,7 +80,7 @@ class GeantGeoTrackView
     // Get the physical volume ID in the current cell
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline DepthId depth() const;
+    inline VolumeDepthId volume_depth() const;
     // Get the volume instance ID for all depths
     inline void volume_instance_id(Span<VolumeInstanceId> depths) const;
 
@@ -297,10 +297,10 @@ VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 /*!
  * Get the depth in the geometry hierarchy.
  */
-DepthId GeantGeoTrackView::depth() const
+VolumeDepthId GeantGeoTrackView::volume_depth() const
 {
     auto* touch = touch_handle_();
-    return id_cast<DepthId>(touch->GetHistoryDepth());
+    return id_cast<VolumeDepthId>(touch->GetHistoryDepth());
 }
 
 //---------------------------------------------------------------------------//
@@ -313,18 +313,19 @@ DepthId GeantGeoTrackView::depth() const
  */
 void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> depths) const
 {
-    CELER_EXPECT(id_cast<DepthId>(depths.size()) == this->depth() + 1);
+    CELER_EXPECT(id_cast<VolumeDepthId>(depths.size())
+                 == this->volume_depth() + 1);
 
     auto* touch = touch_handle_();
-    auto const depth = id_cast<DepthId>(touch->GetHistoryDepth());
-    for (auto d_id : range(id_cast<DepthId>(depths.size())))
+    auto const vol_depth = id_cast<VolumeDepthId>(touch->GetHistoryDepth());
+    for (auto vd_id : range(id_cast<VolumeDepthId>(depths.size())))
     {
         VolumeInstanceId vi_id;
-        if (G4VPhysicalVolume* pv = touch->GetVolume(depth - d_id))
+        if (G4VPhysicalVolume* pv = touch->GetVolume(vol_depth - vd_id))
         {
             vi_id = params_.vi_mapper->geant_to_id(*pv);
         }
-        depths[d_id.get()] = vi_id;
+        depths[vd_id.get()] = vi_id;
     }
 }
 

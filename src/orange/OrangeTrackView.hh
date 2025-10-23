@@ -103,7 +103,7 @@ class OrangeTrackView
     // Get the canonical volume instance ID in the current impl volume
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
     // The depth in the canonical volume graph
-    inline CELER_FUNCTION DepthId depth() const;
+    inline CELER_FUNCTION VolumeDepthId volume_depth() const;
     // Get the volume instance ID for all universe depths
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
 
@@ -330,7 +330,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     };
 
     // Recurse into daughter universes starting with the outermost universe
-    UniverseId univ_id = top_universe_id();
+    UnivId univ_id = top_universe_id();
     DaughterId daughter_id;
     UnivDepthId ud_id{0};
     do
@@ -377,7 +377,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
             // Apply "transform down" based on stored transform
             apply_transform(transform_down_local, daughter.trans_id);
             // Update universe and increase universe depth
-            univ_id = daughter.universe_id;
+            univ_id = daughter.univ_id;
             ++ud_id;
         }
 
@@ -520,7 +520,7 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 /*!
  * The depth in the canonical volume graph.
  */
-CELER_FUNCTION DepthId OrangeTrackView::depth() const
+CELER_FUNCTION VolumeDepthId OrangeTrackView::volume_depth() const
 {
     CELER_NOT_IMPLEMENTED("canonical depth");
 }
@@ -747,7 +747,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     // Create local state from post-crossing depth and updated sense
     UnivDepthId ud_id{this->surface_udepth()};
-    UniverseId universe;
+    UnivId universe;
     LocalVolumeId volume;
     detail::LocalState local;
     {
@@ -805,7 +805,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
                 local.dir = t.rotate_down(local.dir);
             };
             apply_transform(transform_down_local, daughter.trans_id);
-            universe = daughter.universe_id;
+            universe = daughter.univ_id;
         }
 
         // Initialize in daughter and get IDs of volume and potential daughter

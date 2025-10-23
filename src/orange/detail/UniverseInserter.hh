@@ -48,22 +48,22 @@ class UniverseInserter
                      Data* data);
 
     // Append the number of local surfaces and volumes
-    UniverseId operator()(UniverseType type,
-                          Label univ_label,
-                          VecLabel surface_labels,
-                          VecLabel volume_labels);
+    UnivId operator()(UniverseType type,
+                      Label univ_label,
+                      VecLabel surface_labels,
+                      VecLabel volume_labels);
 
     // Append the number of local surfaces and volumes
-    UniverseId operator()(UniverseType type,
-                          Label univ_label,
-                          VecLabel surface_labels,
-                          VecVarLabel volume_labels);
+    UnivId operator()(UniverseType type,
+                      Label univ_label,
+                      VecLabel surface_labels,
+                      VecVarLabel volume_labels);
 
     //!@{
     //! \name Local-to-global mappings for the next universe being built
 
     //! Next universe
-    UniverseId next_univ_id() const { return types_.size_id(); }
+    UnivId next_univ_id() const { return types_.size_id(); }
 
     //! Get the global ID for the next LocalSurfaceId{0}
     SurfId next_surface_id() const { return SurfId{accum_surface_}; }
@@ -83,8 +83,8 @@ class UniverseInserter
     VecLabel* volume_labels_;
 
     // Data being constructed
-    CollectionBuilder<UniverseType, MemSpace::host, UniverseId> types_;
-    CollectionBuilder<size_type, MemSpace::host, UniverseId> indices_;
+    CollectionBuilder<UniverseType, MemSpace::host, UnivId> types_;
+    CollectionBuilder<size_type, MemSpace::host, UnivId> indices_;
     CollectionBuilder<size_type> surfaces_;
     CollectionBuilder<size_type> volumes_;
 
@@ -97,9 +97,9 @@ class UniverseInserter
     SurfId::size_type accum_surface_{0};
     VolId::size_type accum_volume_{0};
 
-    UniverseId update_counters(UniverseType type,
-                               size_type num_surfaces,
-                               size_type num_volumes);
+    UnivId update_counters(UniverseType type,
+                           size_type num_surfaces,
+                           size_type num_volumes);
 };
 
 //---------------------------------------------------------------------------//

@@ -70,7 +70,7 @@ RectArrayInserter::RectArrayInserter(UniverseInserter* insert_universe,
 /*!
  * Create a rect array unit and return its ID.
  */
-UniverseId RectArrayInserter::operator()(RectArrayInput const& inp)
+UnivId RectArrayInserter::operator()(RectArrayInput const& inp)
 {
     CELER_VALIDATE(
         inp, << "rect array '" << inp.label << "' is not properly constructed");
@@ -128,7 +128,7 @@ UniverseId RectArrayInserter::operator()(RectArrayInput const& inp)
     for (auto const& daughter_input : inp.daughters)
     {
         Daughter d;
-        d.universe_id = daughter_input.universe_id;
+        d.univ_id = daughter_input.univ_id;
         d.trans_id = insert_transform_(daughter_input.transform);
         daughters.push_back(d);
     }

@@ -91,15 +91,15 @@ UniverseInserter::UniverseInserter(SPConstVolumes volume_params,
 /*!
  * Accumulate the number of local surfaces and volumes.
  */
-UniverseId UniverseInserter::operator()(UniverseType type,
-                                        Label univ_label,
-                                        VecLabel surface_labels,
-                                        VecLabel volume_labels)
+UnivId UniverseInserter::operator()(UniverseType type,
+                                    Label univ_label,
+                                    VecLabel surface_labels,
+                                    VecLabel volume_labels)
 {
     CELER_EXPECT(type != UniverseType::size_);
     CELER_EXPECT(!volume_labels.empty());
 
-    UniverseId result = this->update_counters(
+    UnivId result = this->update_counters(
         type, surface_labels.size(), volume_labels.size());
 
     // Append metadata
@@ -114,10 +114,10 @@ UniverseId UniverseInserter::operator()(UniverseType type,
 /*!
  * Accumulate the number of local surfaces and volumes.
  */
-UniverseId UniverseInserter::operator()(UniverseType type,
-                                        Label univ_label,
-                                        VecLabel surface_labels,
-                                        VecVarLabel volume_labels)
+UnivId UniverseInserter::operator()(UniverseType type,
+                                    Label univ_label,
+                                    VecLabel surface_labels,
+                                    VecVarLabel volume_labels)
 {
     CELER_EXPECT(type != UniverseType::size_);
     CELER_EXPECT(!volume_labels.empty());
@@ -128,7 +128,7 @@ UniverseId UniverseInserter::operator()(UniverseType type,
                 return std::holds_alternative<Label>(varlabel);
             }));
 
-    UniverseId result = this->update_counters(
+    UnivId result = this->update_counters(
         type, surface_labels.size(), volume_labels.size());
 
     if (volume_params_)
@@ -178,11 +178,11 @@ UniverseId UniverseInserter::operator()(UniverseType type,
     return result;
 }
 
-UniverseId UniverseInserter::update_counters(UniverseType type,
-                                             size_type num_surfaces,
-                                             size_type num_volumes)
+UnivId UniverseInserter::update_counters(UniverseType type,
+                                         size_type num_surfaces,
+                                         size_type num_volumes)
 {
-    UniverseId result = this->next_univ_id();
+    UnivId result = this->next_univ_id();
 
     // Add universe type and index
     types_.push_back(type);

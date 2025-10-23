@@ -164,8 +164,9 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
             }();
 
             // Fill every level from the geometry
-            size_type depth
-                = geo.is_outside() ? 0 : geo.depth().unchecked_get() + 1;
+            size_type depth = geo.is_outside()
+                                  ? 0
+                                  : geo.volume_depth().unchecked_get() + 1;
             CELER_ASSERT(depth <= dst.size());
             if (depth != 0)
             {

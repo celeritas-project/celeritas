@@ -299,7 +299,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
 /*!
  * Create a simple unit and return its ID.
  */
-UniverseId UnitInserter::operator()(UnitInput&& inp)
+UnivId UnitInserter::operator()(UnitInput&& inp)
 {
     CELER_VALIDATE(inp,
                    << "simple unit '" << inp.label
@@ -550,7 +550,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
                                     DaughterInput const& daughter_input)
 {
     Daughter daughter;
-    daughter.universe_id = daughter_input.universe_id;
+    daughter.univ_id = daughter_input.univ_id;
     daughter.trans_id = insert_transform_(daughter_input.transform);
 
     vol_record->daughter_id = daughters_.push_back(daughter);
