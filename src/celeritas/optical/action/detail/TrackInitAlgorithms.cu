@@ -6,7 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
-#include <cub/cub.cuh>
+#if CELERITAS_USE_CUDA
+#    include <cub/device/device_select.cuh>
+#elif CELERITAS_USE_HIP
+#    include <hipcub/device/device_select.hpp>
+#endif
 // #include <thrust/copy.h>
 #include <thrust/device_ptr.h>
 #include <thrust/execution_policy.h>
@@ -19,6 +23,12 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
+
+#if CELERITAS_USE_CUDA
+using namespace cub;
+#elif CELERITAS_USE_HIP
+using namespace hipcub;
+#endif
 
 namespace celeritas
 {
@@ -58,6 +68,9 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     Stream& s = device().stream(stream_id);
     StreamT stream = s.get();
 
+    // The first call just computes the number of additional bytes needed for
+    // the in-place selection. The nullptr value causes this instead of running
+    // the function.
     void* d_temp_storage = nullptr;
     size_t temp_storage_bytes = 0;
     // *** For testing with existing code for consistency
@@ -66,33 +79,30 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
         = static_cast<size_type*>(s.malloc_async(sizeof(size_type)));
     // *** For testing with existing code for consistency
 
-    // The first call just computes the number of additional bytes needed for
-    // the in-place selection. The nullptr value causes this instead of running
-    // the function.
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
-    cub::DeviceSelect::FlaggedIf(d_temp_storage,
-                                 temp_storage_bytes,
-                                 start,
-                                 status.data().get(),
-                                 vacancies.data().get(),
-                                 d_num_vacancies,
-                                 vacancies.size(),
-                                 IsVacant{},
-                                 stream);
+    DeviceSelect::FlaggedIf(d_temp_storage,
+                            temp_storage_bytes,
+                            start,
+                            status.data().get(),
+                            vacancies.data().get(),
+                            d_num_vacancies,
+                            vacancies.size(),
+                            IsVacant{},
+                            stream);
 
     // Allocate temporary storage
     d_temp_storage = s.malloc_async(temp_storage_bytes);
 
-    cub::DeviceSelect::FlaggedIf(d_temp_storage,
-                                 temp_storage_bytes,
-                                 start,
-                                 status.data().get(),
-                                 vacancies.data().get(),
-                                 d_num_vacancies,
-                                 vacancies.size(),
-                                 IsVacant{},
-                                 stream);
+    DeviceSelect::FlaggedIf(d_temp_storage,
+                            temp_storage_bytes,
+                            start,
+                            status.data().get(),
+                            vacancies.data().get(),
+                            d_num_vacancies,
+                            vacancies.size(),
+                            IsVacant{},
+                            stream);
 
     // Deallocate temporary storage
     s.free_async(d_temp_storage);

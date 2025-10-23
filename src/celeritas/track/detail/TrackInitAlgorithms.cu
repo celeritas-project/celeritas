@@ -6,7 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
-#include <cub/cub.cuh>
+#if CELERITAS_USE_CUDA
+#    include <cub/device/device_scan.cuh>
+#    include <cub/device/device_select.cuh>
+#elif CELERITAS_USE_HIP
+#    include <hipcub/device/device_scan.hpp>
+#    include <hipcub/device/device_select.hpp>
+#endif
 #include <thrust/device_ptr.h>
 #include <thrust/execution_policy.h>
 #include <thrust/partition.h>
@@ -24,6 +30,12 @@
 #include "corecel/sys/Thrust.device.hh"
 
 #include "../Utils.hh"
+
+#if CELERITAS_USE_CUDA
+using namespace cub;
+#elif CELERITAS_USE_HIP
+using namespace hipcub;
+#endif
 
 namespace celeritas
 {
@@ -81,25 +93,25 @@ size_type remove_if_alive(
     // *** First call and memory allocation/deallocation for temp space should
     // *** probably go in ExtendFromSecondariesAction.cu::begin_run()
     // *** Put the exclusive sum allocation there, too?
-    cub::DeviceSelect::If(d_temp_storage,
-                          temp_storage_bytes,
-                          vacancies.data().get(),
-                          d_num_not_active,
-                          vacancies.size(),
-                          select_op,
-                          stream);
+    DeviceSelect::If(d_temp_storage,
+                     temp_storage_bytes,
+                     vacancies.data().get(),
+                     d_num_not_active,
+                     vacancies.size(),
+                     select_op,
+                     stream);
 
     // Allocate temporary storage
     d_temp_storage = s.malloc_async(temp_storage_bytes);
 
     // Run selection
-    cub::DeviceSelect::If(d_temp_storage,
-                          temp_storage_bytes,
-                          vacancies.data().get(),
-                          d_num_not_active,
-                          vacancies.size(),
-                          select_op,
-                          stream);
+    DeviceSelect::If(d_temp_storage,
+                     temp_storage_bytes,
+                     vacancies.data().get(),
+                     d_num_not_active,
+                     vacancies.size(),
+                     select_op,
+                     stream);
 
     // Deallocate temporary storage
     s.free_async(d_temp_storage);
@@ -160,21 +172,21 @@ size_type exclusive_scan_counts(
 
     void* d_temp_storage = nullptr;
     size_t temp_storage_bytes = 0;
-    cub::DeviceScan::ExclusiveSum(d_temp_storage,
-                                  temp_storage_bytes,
-                                  counts.data().get(),
-                                  counts.size(),
-                                  stream);
+    DeviceScan::ExclusiveSum(d_temp_storage,
+                             temp_storage_bytes,
+                             counts.data().get(),
+                             counts.size(),
+                             stream);
 
     // Allocate temporary storage
     d_temp_storage = s.malloc_async(temp_storage_bytes);
 
     // Run exclusive prefix sum
-    cub::DeviceScan::ExclusiveSum(d_temp_storage,
-                                  temp_storage_bytes,
-                                  counts.data().get(),
-                                  counts.size(),
-                                  stream);
+    DeviceScan::ExclusiveSum(d_temp_storage,
+                             temp_storage_bytes,
+                             counts.data().get(),
+                             counts.size(),
+                             stream);
 
     // Deallocate temporary storage
     s.free_async(d_temp_storage);
