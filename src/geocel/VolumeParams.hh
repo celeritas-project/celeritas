@@ -27,13 +27,15 @@ struct Volumes;
  *
  * See the introduction to \rstref{the Geometry API section,api_geometry} for
  * a detailed description of volumes in the detector geometry description. This
- * class abstracts the graph of user-defined volumes,
- * relating \em nodes (VolumeId, aka
- * logical volume) to \em edges (VolumeInstanceId, aka physical volume) and
- * providing the means to determine the \em path (VolumeUniqueInstanceId, aka
- * touchable history) of a track state. In conjunction with \c GeantGeoParams
- * this allows conversion between the Celeritas geometry implementation and the
- * Geant4 geometry navigation.
+ * class abstracts the graph of user-defined volumes, relating \em nodes
+ * (VolumeId, aka logical volume) to \em edges (VolumeInstanceId, aka physical
+ * volume) and providing the means to determine the \em path
+ * (VolumeUniqueInstanceId, aka touchable history) of a track state. The
+ * \em depth of the graph is the maximum nesting of child volumes (zero if only
+ * a single world volume).
+ *
+ * In conjunction with \c GeantGeoParams this class allows conversion between
+ * the Celeritas geometry implementation and the Geant4 geometry navigation.
  *
  * \internal Construction requirements:
  * - At least one volume must be defined.
