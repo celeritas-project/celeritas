@@ -11,24 +11,14 @@
 #include <type_traits>
 
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/Quantity.hh"
 
 #include "detail/LdgIteratorImpl.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-//! True if T is supported by a LdgLoader specialization
-template<class T>
-inline constexpr bool is_ldg_supported_v
-    = std::is_const_v<T>
-      && (std::is_arithmetic_v<T> || is_opaque_id_v<T> || is_quantity_v<T>
-          || std::is_enum_v<T>);
-
 //---------------------------------------------------------------------------//
 /*!
  * Iterator for read-only device data in global memory.
@@ -39,7 +29,7 @@ inline constexpr bool is_ldg_supported_v
 template<class T>
 class LdgIterator
 {
-    static_assert(is_ldg_supported_v<T>,
+    static_assert(detail::is_ldg_supported_v<T>,
                   "LdgIterator requires const arithmetic, OpaqueId or "
                   "enum type");
 
@@ -260,8 +250,9 @@ template<class T>
 struct LdgValue
 {
     using value_type = T;
-    static_assert(is_ldg_supported_v<T>,
-                  "const arithmetic, OpaqueId or enum type required");
+    static_assert(detail::is_ldg_supported_v<T>,
+                  "const arithmetic, OpaqueId or enum type "
+                  "required");
 };
 
 //---------------------------------------------------------------------------//

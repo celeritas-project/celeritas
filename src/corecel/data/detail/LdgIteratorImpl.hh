@@ -13,6 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Quantity.hh"
 
+#include "TypeTraits.hh"
+
 namespace celeritas
 {
 namespace detail

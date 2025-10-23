@@ -12,7 +12,8 @@
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/data/Collection.hh"
+
+#include "../Collection.hh"
 
 namespace celeritas
 {

@@ -11,19 +11,20 @@
 #ifndef CELER_DEVICE_COMPILE
 #    include <vector>
 
-#    include "corecel/data/DeviceVector.hh"
+#    include "../DeviceVector.hh"
 #endif
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/Copier.hh"
-#include "corecel/data/LdgIterator.hh"
-#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/sys/Device.hh"
 
 #include "DisabledStorage.hh"
+#include "TypeTraits.hh"
+#include "../Copier.hh"
+#include "../LdgIterator.hh"
+#include "../PinnedAllocator.hh"
 
 namespace celeritas
 {

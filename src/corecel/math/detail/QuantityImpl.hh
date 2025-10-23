@@ -6,18 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "corecel/Macros.hh"
-#include "corecel/math/Constant.hh"
-#include "corecel/math/NumericLimits.hh"
+
+#include "../Constant.hh"
+#include "../NumericLimits.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<class UnitT, class ValueT>
-class Quantity;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -73,21 +68,6 @@ struct AccessorTraits<ResultType (ClassType::*)() const>
 //! Get the result type of a class accessor
 template<class T>
 using AccessorResultType = typename AccessorTraits<T>::result_type;
-
-//---------------------------------------------------------------------------//
-//! Template matching to determine if T is a Quantity
-template<class T>
-struct IsQuantity : std::false_type
-{
-};
-template<class V, class S>
-struct IsQuantity<Quantity<V, S>> : std::true_type
-{
-};
-template<class V, class S>
-struct IsQuantity<Quantity<V, S> const> : std::true_type
-{
-};
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
