@@ -13,7 +13,6 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "geocel/BoundingBox.hh"
 
 #include "OrangeTypes.hh"
 #include "SenseUtils.hh"
@@ -35,7 +34,7 @@ inline constexpr LocalVolumeId orange_exterior_volume{0};
 inline constexpr UniverseId orange_global_universe{0};
 
 //! ID of the global universe depth
-inline constexpr UnivDepthId orange_global_level{0};
+inline constexpr UnivDepthId orange_global_depth{0};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -486,7 +485,7 @@ struct OrangeStateData
     StateItems<BoundaryResult> boundary;
 
     // "Local" state, needed for Shift {num_tracks}
-    StateItems<DepthId> next_level;
+    StateItems<DepthId> next_depth;
     StateItems<real_type> next_step;
     StateItems<LocalSurfaceId> next_surf;
     StateItems<Sense> next_sense;
@@ -517,7 +516,7 @@ struct OrangeStateData
             && surf.size() == this->size()
             && sense.size() == this->size()
             && boundary.size() == this->size()
-            && next_level.size() == this->size()
+            && next_depth.size() == this->size()
             && next_step.size() == this->size()
             && next_surf.size() == this->size()
             && next_sense.size() == this->size()
@@ -551,7 +550,7 @@ struct OrangeStateData
         sense = other.sense;
         boundary = other.boundary;
 
-        next_level = other.next_level;
+        next_depth = other.next_depth;
         next_step = other.next_step;
         next_surf = other.next_surf;
         next_sense = other.next_sense;
@@ -592,7 +591,7 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->sense, num_tracks);
     resize(&data->boundary, num_tracks);
 
-    resize(&data->next_level, num_tracks);
+    resize(&data->next_depth, num_tracks);
     resize(&data->next_step, num_tracks);
     resize(&data->next_surf, num_tracks);
     resize(&data->next_sense, num_tracks);

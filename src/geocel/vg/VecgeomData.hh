@@ -38,8 +38,7 @@ struct VecgeomScalars
 
     PlacedVolumeT<MemSpace::host> const* host_world{nullptr};
     PlacedVolumeT<MemSpace::device> const* device_world{nullptr};
-    // FIXME: use DepthId, depth
-    DepthId::size_type depth = 0;
+    DepthId::size_type depth = 0;  //!< Volume graph depth
 
     template<MemSpace M>
     CELER_FUNCTION PlacedVolumeT<M> const* world() const

@@ -1,5 +1,5 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// Copyright Celeritas contributors: see top-udepth COPYRIGHT file for details
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeTrackView.hh
@@ -452,7 +452,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
  */
 CELER_FUNCTION Real3 const& OrangeTrackView::pos() const
 {
-    return this->make_lsa(orange_global_level).pos();
+    return this->make_lsa(orange_global_depth).pos();
 }
 
 //---------------------------------------------------------------------------//
@@ -461,7 +461,7 @@ CELER_FUNCTION Real3 const& OrangeTrackView::pos() const
  */
 CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
 {
-    return this->make_lsa(orange_global_level).dir();
+    return this->make_lsa(orange_global_depth).dir();
 }
 
 //---------------------------------------------------------------------------//
@@ -511,7 +511,7 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
     // Otherwise we're in a background volume, and the volume instance in the
     // parent universe *must* be a volume instance if this is a correctly
     // constructed geometry
-    CELER_ASSERT(ud_id != orange_global_level);
+    CELER_ASSERT(ud_id != orange_global_depth);
     --ud_id;
     return get_vol_inst();
 }
@@ -555,7 +555,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
 {
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
-    auto lsa = this->make_lsa(orange_global_level);
+    auto lsa = this->make_lsa(orange_global_depth);
     return lsa.vol() == orange_exterior_volume;
 }
 
@@ -605,7 +605,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
     // Find intersection at the root depth: always the first simple unit
     auto global_isect = [this] {
         SimpleUnitTracker t{params_, SimpleUnitId{0}};
-        return t.intersect(this->make_local_state(orange_global_level));
+        return t.intersect(this->make_local_state(orange_global_depth));
     }();
     // Find intersection for all lower universe depths
     return this->find_next_step_impl(global_isect);
@@ -631,7 +631,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
     // Find intersection at the root depth: always the first simple unit
     auto global_isect = [this, &max_step] {
         SimpleUnitTracker t{params_, SimpleUnitId{0}};
-        return t.intersect(this->make_local_state(orange_global_level),
+        return t.intersect(this->make_local_state(orange_global_depth),
                            max_step);
     }();
 
@@ -852,8 +852,6 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
  * the boundary, but changing direction so that it goes from pointing outward
  * to inward (or vice versa) will mean that \c cross_boundary will be a
  * null-op.
- *
- * TODO: This needs to be updated to handle reflections through universe depths
  */
 CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 {
@@ -888,7 +886,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         apply_transform(rotate_down,
                         this->get_transform(this->get_daughter(lsa)));
     }
-    // Save final universe direction
+    // Save direction at deepest level
     this->make_lsa().dir() = localdir;
 
     this->clear_next();
@@ -1039,7 +1037,7 @@ OrangeTrackView::next_surf(detail::OnLocalSurface const& s)
 CELER_FORCEINLINE_FUNCTION void
 OrangeTrackView::next_surface_udepth(UnivDepthId ud_id)
 {
-    states_.next_level[track_slot_] = ud_id;
+    states_.next_depth[track_slot_] = ud_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -1100,7 +1098,7 @@ OrangeTrackView::next_surf() const
  */
 CELER_FORCEINLINE_FUNCTION UnivDepthId OrangeTrackView::next_surface_udepth() const
 {
-    return states_.next_level[track_slot_];
+    return states_.next_depth[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
