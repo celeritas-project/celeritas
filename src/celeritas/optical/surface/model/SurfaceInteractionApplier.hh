@@ -55,18 +55,21 @@ SurfaceInteractionApplier<F>::operator()(CoreTrackView const& track) const
     }
     else
     {
-        // Cross boundary if refracted
+        // Cross boundary if refracted or transmitted
         auto surface_physics = track.surface_physics();
         auto traverse = surface_physics.traversal();
-        if (result.action == SurfaceInteraction::Action::refracted)
+        if (result.action != SurfaceInteraction::Action::reflected)
         {
             traverse.cross_interface(traverse.dir());
         }
 
-        // Update direction and polarization
-        track.geometry().set_dir(result.direction);
-        track.particle().polarization(result.polarization);
-        surface_physics.update_traversal_direction(result.direction);
+        if (result.action != SurfaceInteraction::Action::transmitted)
+        {
+            // Update direction and polarization
+            track.geometry().set_dir(result.direction);
+            track.particle().polarization(result.polarization);
+            surface_physics.update_traversal_direction(result.direction);
+        }
 
         if (traverse.is_exiting())
         {
