@@ -59,8 +59,6 @@ class VolumeParams
     using VolumeInstanceRef = VolumeInstanceId;
     //!@}
 
-    using depth_uint = DepthId::size_type;
-
   public:
     // Construct from input
     explicit VolumeParams(inp::Volumes const&);
@@ -75,7 +73,7 @@ class VolumeParams
     VolumeId world() const { return world_; }
 
     //! Depth of the volume DAG (a world without children is depth zero)
-    depth_uint depth() const { return depth_; }
+    size_type depth() const { return depth_; }
 
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return v_labels_.size(); }
@@ -109,7 +107,7 @@ class VolumeParams
     VolInstMap vi_labels_;
 
     VolumeId world_;
-    depth_uint depth_{};
+    size_type depth_{};
 
     std::vector<std::vector<VolumeInstanceId>> parents_;
     std::vector<std::vector<VolumeInstanceId>> children_;
