@@ -473,14 +473,14 @@ struct OrangeStateData
     //// DATA ////
 
     // State with dimensions {num_tracks}
-    StateItems<UnivDepthId> udepth;
-    StateItems<UnivDepthId> surface_udepth;
+    StateItems<UnivDepthId> univ_depth;
+    StateItems<UnivDepthId> surface_univ_depth;
     StateItems<LocalSurfaceId> surf;
     StateItems<Sense> sense;
     StateItems<BoundaryResult> boundary;
 
     // "Local" state, needed for Shift {num_tracks}
-    StateItems<UnivDepthId> next_udepth;
+    StateItems<UnivDepthId> next_univ_depth;
     StateItems<real_type> next_step;
     StateItems<LocalSurfaceId> next_surf;
     StateItems<Sense> next_sense;
@@ -505,12 +505,12 @@ struct OrangeStateData
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return !udepth.empty()
-            && surface_udepth.size() == this->size()
+        return !univ_depth.empty()
+            && surface_univ_depth.size() == this->size()
             && surf.size() == this->size()
             && sense.size() == this->size()
             && boundary.size() == this->size()
-            && next_udepth.size() == this->size()
+            && next_univ_depth.size() == this->size()
             && next_step.size() == this->size()
             && next_surf.size() == this->size()
             && next_sense.size() == this->size()
@@ -528,7 +528,7 @@ struct OrangeStateData
     //! State size
     CELER_FUNCTION TrackSlotId::size_type size() const
     {
-        return udepth.size();
+        return univ_depth.size();
     }
 
     //! Assign from another set of data
@@ -537,13 +537,13 @@ struct OrangeStateData
     {
         CELER_EXPECT(other);
 
-        udepth = other.udepth;
-        surface_udepth = other.surface_udepth;
+        univ_depth = other.univ_depth;
+        surface_univ_depth = other.surface_univ_depth;
         surf = other.surf;
         sense = other.sense;
         boundary = other.boundary;
 
-        next_udepth = other.next_udepth;
+        next_univ_depth = other.next_univ_depth;
         next_step = other.next_step;
         next_surf = other.next_surf;
         next_sense = other.next_sense;
@@ -576,13 +576,13 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     CELER_EXPECT(data);
     CELER_EXPECT(num_tracks > 0);
 
-    resize(&data->udepth, num_tracks);
-    resize(&data->surface_udepth, num_tracks);
+    resize(&data->univ_depth, num_tracks);
+    resize(&data->surface_univ_depth, num_tracks);
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
     resize(&data->boundary, num_tracks);
 
-    resize(&data->next_udepth, num_tracks);
+    resize(&data->next_univ_depth, num_tracks);
     resize(&data->next_step, num_tracks);
     resize(&data->next_surf, num_tracks);
     resize(&data->next_sense, num_tracks);

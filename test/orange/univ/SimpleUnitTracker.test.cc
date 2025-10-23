@@ -287,7 +287,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     // Clear other data
     fill(LocalVolumeId{}, &result.vol);
     fill(LocalSurfaceId{}, &result.surf);
-    fill(UnivDepthId{}, &result.udepth);
+    fill(UnivDepthId{}, &result.univ_depth);
 
     CELER_ENSURE(result);
     return result;
