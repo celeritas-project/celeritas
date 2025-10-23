@@ -32,11 +32,11 @@ int calc_depth(VolumeParams const& params)
         },
         params.world());
 
-    auto max_depth = static_cast<int>(LevelId{}.unchecked_get()) - 1;
+    constexpr auto max_depth = static_cast<int>(DepthId{}.unchecked_get()) - 1;
     CELER_VALIDATE(result <= max_depth,
                    << "geometry depth " << result
                    << " exceeds maximum hardcoded depth " << max_depth);
-    return static_cast<LevelId::size_type>(result);
+    return static_cast<DepthId::size_type>(result);
 }
 
 //---------------------------------------------------------------------------//
