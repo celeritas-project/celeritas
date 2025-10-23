@@ -35,7 +35,7 @@ using fast_real_type = float;
 using logic_int = size_type;
 
 //! Integer type for volume tree depth
-using depth_int = DepthId::size_type;
+using depth_uint = DepthId::size_type;
 
 //! Helper class for some template dispatch functions
 template<Axis T>
@@ -83,8 +83,7 @@ using TransformId = OpaqueId<struct TransformRecord>;
 using UniverseId = OpaqueId<struct Universe_>;
 
 //! Universe depth, not necessarily canonical volume depth
-// TODO: make own typesafe opaque ID
-using UnivDepthId = DepthId;
+using UnivDepthId = OpaqueId<struct UnivDepth_, depth_uint>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS

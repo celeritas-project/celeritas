@@ -1037,7 +1037,7 @@ OrangeTrackView::next_surf(detail::OnLocalSurface const& s)
 CELER_FORCEINLINE_FUNCTION void
 OrangeTrackView::next_surface_udepth(UnivDepthId ud_id)
 {
-    states_.next_depth[track_slot_] = ud_id;
+    states_.next_udepth[track_slot_] = ud_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -1098,7 +1098,7 @@ OrangeTrackView::next_surf() const
  */
 CELER_FORCEINLINE_FUNCTION UnivDepthId OrangeTrackView::next_surface_udepth() const
 {
-    return states_.next_depth[track_slot_];
+    return states_.next_udepth[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
