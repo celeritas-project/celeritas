@@ -276,8 +276,10 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        auto lsa
-            = LevelStateAccessor(&result_ref, TrackSlotId{i}, UnivDepthId{0});
+        auto lsa = LevelStateAccessor(this->host_params().scalars,
+                                      &result_ref,
+                                      TrackSlotId{i},
+                                      UnivDepthId{0});
         lsa.pos() = sample_box(rng);
         lsa.dir() = sample_isotropic(rng);
     }
@@ -308,7 +310,8 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
     for (auto i : range(host.size()))
     {
         auto tid = TrackSlotId{i};
-        LevelStateAccessor lsa(&host, tid, UnivDepthId{0});
+        LevelStateAccessor lsa(
+            this->host_params().scalars, &host, tid, UnivDepthId{0});
         auto vol = lsa.vol();
 
         if (vol < counts.size())

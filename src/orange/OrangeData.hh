@@ -472,11 +472,6 @@ struct OrangeStateData
 
     //// DATA ////
 
-    // Note: this is duplicated from the associated OrangeParamsData .
-    // It defines the stride into the preceding pseudo-2D Collections (pos,
-    // dir, ..., etc.) and is one past the *maximum* value of any udepth
-    size_type univ_depth{0};
-
     // State with dimensions {num_tracks}
     StateItems<UnivDepthId> udepth;
     StateItems<UnivDepthId> surface_udepth;
@@ -490,7 +485,7 @@ struct OrangeStateData
     StateItems<LocalSurfaceId> next_surf;
     StateItems<Sense> next_sense;
 
-    // State with dimensions {num_tracks, univ_depth}
+    // State with dimensions {num_tracks, scalars.univ_depth}
     Items<Real3> pos;
     Items<Real3> dir;
     Items<LocalVolumeId> vol;
@@ -510,8 +505,7 @@ struct OrangeStateData
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return univ_depth > 0
-            && !udepth.empty()
+        return !udepth.empty()
             && surface_udepth.size() == this->size()
             && surf.size() == this->size()
             && sense.size() == this->size()
@@ -520,10 +514,10 @@ struct OrangeStateData
             && next_step.size() == this->size()
             && next_surf.size() == this->size()
             && next_sense.size() == this->size()
-            && pos.size() == univ_depth * this->size()
-            && dir.size() == univ_depth  * this->size()
-            && vol.size() == univ_depth  * this->size()
-            && universe.size() == univ_depth  * this->size()
+            && pos.size() >= this->size()
+            && dir.size() == pos.size()
+            && vol.size() == pos.size()
+            && universe.size() == pos.size()
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -542,7 +536,6 @@ struct OrangeStateData
     OrangeStateData& operator=(OrangeStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        univ_depth = other.univ_depth;
 
         udepth = other.udepth;
         surface_udepth = other.surface_udepth;
@@ -583,8 +576,6 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     CELER_EXPECT(data);
     CELER_EXPECT(num_tracks > 0);
 
-    data->univ_depth = params.scalars.univ_depth;
-
     resize(&data->udepth, num_tracks);
     resize(&data->surface_udepth, num_tracks);
     resize(&data->surf, num_tracks);
@@ -596,19 +587,19 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->next_surf, num_tracks);
     resize(&data->next_sense, num_tracks);
 
-    size_type level_states = params.scalars.univ_depth * num_tracks;
-    resize(&data->pos, level_states);
-    resize(&data->dir, level_states);
-    resize(&data->vol, level_states);
-    resize(&data->universe, level_states);
+    size_type num_track_univ = params.scalars.univ_depth * num_tracks;
+    resize(&data->pos, num_track_univ);
+    resize(&data->dir, num_track_univ);
+    resize(&data->vol, num_track_univ);
+    resize(&data->universe, num_track_univ);
 
-    size_type face_states = params.scalars.max_faces * num_tracks;
-    resize(&data->temp_sense, face_states);
+    size_type num_track_face = params.scalars.max_faces * num_tracks;
+    resize(&data->temp_sense, num_track_face);
 
-    size_type isect_states = params.scalars.max_intersections * num_tracks;
-    resize(&data->temp_face, isect_states);
-    resize(&data->temp_distance, isect_states);
-    resize(&data->temp_isect, isect_states);
+    size_type num_track_isect = params.scalars.max_intersections * num_tracks;
+    resize(&data->temp_face, num_track_isect);
+    resize(&data->temp_distance, num_track_isect);
+    resize(&data->temp_isect, num_track_isect);
 
     CELER_ENSURE(*data);
 }

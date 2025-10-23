@@ -31,7 +31,8 @@ class LevelStateAccessor
 
   public:
     // Construct from states and indices
-    inline CELER_FUNCTION LevelStateAccessor(StateRef const* states,
+    inline CELER_FUNCTION LevelStateAccessor(OrangeParamsScalars const& scalars,
+                                             StateRef const* states,
                                              TrackSlotId tid,
                                              UnivDepthId ud_id);
 
@@ -98,12 +99,13 @@ class LevelStateAccessor
  * Construct from states and indices
  */
 CELER_FUNCTION
-LevelStateAccessor::LevelStateAccessor(StateRef const* states,
+LevelStateAccessor::LevelStateAccessor(OrangeParamsScalars const& scalars,
+                                       StateRef const* states,
                                        TrackSlotId tid,
                                        UnivDepthId ud_id)
-    : states_(states), index_(tid.get() * states_->univ_depth + ud_id.get())
+    : states_(states), index_(tid.get() * scalars.univ_depth + ud_id.get())
 {
-    CELER_EXPECT(ud_id < states->univ_depth);
+    CELER_EXPECT(ud_id < scalars.univ_depth);
 }
 
 //---------------------------------------------------------------------------//

@@ -991,7 +991,7 @@ CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa() const -> LSA
 CELER_FORCEINLINE_FUNCTION auto
 OrangeTrackView::make_lsa(UnivDepthId ud_id) const -> LSA
 {
-    return LSA(&states_, track_slot_, ud_id);
+    return LSA(params_.scalars, &states_, track_slot_, ud_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -1330,7 +1330,7 @@ OrangeTrackView::get_transform(DaughterId daughter_id) const
 CELER_FUNCTION TransformId OrangeTrackView::get_transform(UnivDepthId ud_id) const
 {
     CELER_EXPECT(ud_id < this->udepth());
-    LSA lsa(&states_, track_slot_, ud_id);
+    LSA lsa(params_.scalars, &states_, track_slot_, ud_id);
     return this->get_transform(this->get_daughter(lsa));
 }
 
