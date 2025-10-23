@@ -72,7 +72,9 @@ inline CELER_FUNCTION T id_cast_impl(U value) noexcept(!CELERITAS_DEBUG)
  *
  * An \c OpaqueId object evaluates to \c true if it has a value, or \c false if
  * it does not (a "null" ID, analogous to a null pointer: it does not
- * correspond to a valid value).
+ * correspond to a valid value). A "true" ID will always compare less than a
+ * "false" ID: you can use \c std::partition and \c erase to remove invalid IDs
+ * from a vector.
  *
  * See also \c id_cast below for checked construction of OpaqueIds from generic
  * integer values (avoid compile-time warnings or errors from signed/truncated
@@ -240,7 +242,9 @@ operator+(OpaqueId<I, T> id, std::make_signed_t<T> offset)
 {
     CELER_EXPECT(id);
     CELER_EXPECT(offset >= 0 || static_cast<T>(-offset) <= id.unchecked_get());
-    return OpaqueId<I, T>{id.unchecked_get() + static_cast<T>(offset)};
+    // Note: an extra cast is needed for short T due to integer promotion
+    return OpaqueId<I, T>{
+        static_cast<T>(id.unchecked_get() + static_cast<T>(offset))};
 }
 
 //---------------------------------------------------------------------------//
@@ -251,7 +255,9 @@ operator-(OpaqueId<I, T> id, std::make_signed_t<T> offset)
 {
     CELER_EXPECT(id);
     CELER_EXPECT(offset <= 0 || static_cast<T>(offset) <= id.unchecked_get());
-    return OpaqueId<I, T>{id.unchecked_get() - static_cast<T>(offset)};
+    // Note: an extra cast is needed for short T due to integer promotion
+    return OpaqueId<I, T>{
+        static_cast<T>(id.unchecked_get() - static_cast<T>(offset))};
 }
 
 //---------------------------------------------------------------------------//

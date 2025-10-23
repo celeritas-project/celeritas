@@ -68,13 +68,6 @@ if geant_exp_exe:
         print(f"fatal: {geant_exp_exe} failed with error {result_ge.returncode}")
         exit(result_ge.returncode)
 
-if core_geo == "orange-json":
-    print(
-        "Replacing .gdml extension since VecGeom and Geant4 conversion are disabled",
-        file=stderr,
-    )
-    env["ORANGE_FORCE_INPUT"] = re.sub(r"\.gdml$", ".org.json", geometry_filename)
-
 simple_calo = []
 if not rootout_filename and "cms" in geometry_filename:
     simple_calo = ["si_tracker", "em_calorimeter"]

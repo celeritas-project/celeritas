@@ -8,8 +8,10 @@
 
 #include <cstdint>
 #include <numeric>
-#include <utility>
 
+#include "corecel/Config.hh"
+
+#include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 
@@ -26,11 +28,18 @@ struct TestInstantiator;
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-
-TEST(OpaqueIdTest, operations)
+template<class T>
+class OpaqueIdTypedTest : public ::testing::Test
 {
-    using Id_t = OpaqueId<TestInstantiator, std::size_t>;
-    constexpr auto sizemax = static_cast<std::size_t>(-1);
+};
+
+using IntTypes = ::testing::Types<unsigned char, unsigned int, std::size_t>;
+TYPED_TEST_SUITE(OpaqueIdTypedTest, IntTypes, );
+
+TYPED_TEST(OpaqueIdTypedTest, operations)
+{
+    using Id_t = OpaqueId<TestInstantiator, TypeParam>;
+    constexpr auto sizemax = static_cast<TypeParam>(-1);
 
     Id_t unassigned;
     EXPECT_FALSE(unassigned);
@@ -38,7 +47,11 @@ TEST(OpaqueIdTest, operations)
     EXPECT_EQ(unassigned, unassigned);
     EXPECT_EQ(unassigned, Id_t{});
     EXPECT_EQ(sizemax, Id_t{}.unchecked_get());
-    EXPECT_EQ(std::hash<std::size_t>()(sizemax), std::hash<Id_t>()(unassigned));
+    EXPECT_EQ(std::hash<TypeParam>()(sizemax), std::hash<Id_t>()(unassigned));
+    if constexpr (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(unassigned.get(), DebugError);
+    }
 
     Id_t assigned{123};
     EXPECT_TRUE(assigned);
@@ -46,7 +59,7 @@ TEST(OpaqueIdTest, operations)
     EXPECT_EQ(123, assigned.get());
     EXPECT_NE(unassigned, assigned);
     EXPECT_EQ(assigned, assigned);
-    EXPECT_EQ(std::hash<std::size_t>()(123), std::hash<Id_t>()(assigned));
+    EXPECT_EQ(std::hash<TypeParam>()(123), std::hash<Id_t>()(assigned));
 
     EXPECT_EQ(10, Id_t{22} - Id_t{12});
     EXPECT_TRUE(Id_t{22} < Id_t{23});
@@ -59,20 +72,20 @@ TEST(OpaqueIdTest, operations)
     EXPECT_EQ(Id_t{0}, Id_t{1} - 1);
     EXPECT_EQ(Id_t{0}, Id_t{2} + (-2));
     EXPECT_EQ(Id_t{1}, ++Id_t{0});
+    if constexpr (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(Id_t{} + (-2), DebugError);
+        EXPECT_THROW(Id_t{} - 2, DebugError);
+        EXPECT_THROW(Id_t{1} + (-2), DebugError);
+        EXPECT_THROW(Id_t{1} - 2, DebugError);
+        // NOTE: since the operators take a signed integer, adding/subtracting
+        // sizemax will cause it to overflow (UB)
+    }
 
     Id_t id{0};
     Id_t old{id++};
     EXPECT_EQ(Id_t{1}, id);
     EXPECT_EQ(Id_t{0}, old);
-}
-
-TEST(OpaqueIdTest, TEST_IF_CELERITAS_DEBUG(assertions))
-{
-    using Id_t = OpaqueId<TestInstantiator, unsigned int>;
-
-    EXPECT_THROW(Id_t{}.get(), DebugError);
-    EXPECT_THROW(Id_t{1} + (-2), DebugError);
-    EXPECT_THROW(Id_t{1} - 2, DebugError);
 }
 
 TEST(OpaqueIdTest, multi_int)
