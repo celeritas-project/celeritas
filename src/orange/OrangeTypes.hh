@@ -85,6 +85,12 @@ using UnivId = OpaqueId<struct Universe_>;
 //! Universe depth, not necessarily canonical volume depth
 using UnivDepthId = OpaqueId<struct UnivDepth_, vol_depth_uint>;
 
+//// DEPRECATED ALIASES (to be removed in v1.0) ////
+
+using LevelId [[deprecated("use UnivDepthId")]] = UnivDepthId;
+
+using UniverseId [[deprecated("use UnivId")]] = UnivId;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
