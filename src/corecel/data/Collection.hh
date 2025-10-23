@@ -185,8 +185,8 @@ using ItemRange = Range<OpaqueId<T, Size>>;
 template<class T1, class T2>
 class ItemMap
 {
-    static_assert(detail::is_opaque_id_v<T1>, "T1 is not OpaqueID");
-    static_assert(detail::is_opaque_id_v<T2>, "T2 is not OpaqueID");
+    static_assert(is_opaque_id_v<T1>, "T1 is not OpaqueID");
+    static_assert(is_opaque_id_v<T2>, "T2 is not OpaqueID");
 
   public:
     //!@{
