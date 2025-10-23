@@ -16,20 +16,27 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-LevelId::size_type calc_depth(VolumeParams const& params)
+//! Calculate graph depth
+int calc_depth(VolumeParams const& params)
 {
     CELER_EXPECT(params.world());
-    LevelId::size_type result{0};
+    // VolumeVisitor uses `int` for overflow semantics
+    int result{0};
 
     VolumeVisitor visit_vol{params};
     visit_vol(
         [&result](VolumeId, int level) {
             CELER_ASSERT(level >= 0);
-            result = std::max(result, static_cast<LevelId::size_type>(level));
+            result = std::max(result, level);
             return true;
         },
         params.world());
-    return result;
+
+    auto max_depth = static_cast<int>(LevelId{}.unchecked_get()) - 1;
+    CELER_VALIDATE(result <= max_depth,
+                   << "geometry depth " << result
+                   << " exceeds maximum hardcoded depth " << max_depth);
+    return static_cast<LevelId::size_type>(result);
 }
 
 //---------------------------------------------------------------------------//
