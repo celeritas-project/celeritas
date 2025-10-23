@@ -116,8 +116,8 @@ Applications:
   ``operator()`` to transform some input into the desired output
 - Use only ``const`` data when sharing. Non-const shared data is almost like
   using global variables.
-- Use ``OpaqueId`` instead of integers and magic sentinel values for
-  integer identifiers that aren't supposed to be arithmetical.
+- Use :cpp:class:`celeritas::OpaqueId` instead of integers and magic sentinel
+  values for integer identifiers that aren't supposed to be arithmetical.
 
 Examples:
 
