@@ -2,19 +2,31 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
-Convert an ORANGE CSG JSON representation to a GraphViz input.
+Convert an ORANGE CSG JSON representation to a GraphViz or Mermaid input.
+
+.. example::
+
+    To run from a raw CSG tree that you've copied to your clipboard::
+
+        pbpaste | ./orange-csg-to-dot.py -T dot - | dot -Tpdf -o tree.pdf
+
+    To copy a mermaid plot generated from universe 2 of an external .csg.json
+    ORANGE debug output, so that you can paste on github::
+
+       ./orange-csg-to-dot.py -T mermaid -u 2 | pbcopy
+
 """
 
 from itertools import count, repeat
 from contextlib import contextmanager
 import json
 import sys
+from typing import Any
 
 
 class DotGenerator:
     def __init__(self, f, args):
         self.f = f
-        self.print_ids = args.print_ids
         self.write = f.write
         self.vol_edges = []
 
@@ -35,12 +47,9 @@ edge [color=gray, dir=both]
             self.write(f"volume{i:02d} -> {i:02d}\n")
         self.write("}\n}\n")
 
-    def write_node(self, i, value):
-        if self.print_ids:
-            id_format = f"{i:02d}:"
-        else:
-            id_format = ""
-        self.write(f'{i:02d} [label="{id_format}{value}"]\n')
+    def write_node(self, i: int, label: str):
+        label = f' [label="{label}"]' if label else ""
+        self.write(f"{i:02d}{label}\n")
 
     @contextmanager
     def write_volumes(self):
@@ -54,18 +63,18 @@ node [style=rounded, shape=box]
         yield self.write_volume
         self.write("}\n")
 
-    def write_volume(self, i, value):
-        self.write(f'volume{i:02d} [label="{value}"]\n')
+    def write_volume(self, i: int, label: str):
+        label = f' [label="{label}"]' if label else ""
+        self.write(f"volume{i:02d}{label}\n")
         self.vol_edges.append(i)
 
-    def write_edge(self, i, e):
+    def write_edge(self, i: int, e: int):
         self.write(f"{i:02d} -> {e:02d};\n")
 
 
 class MermaidGenerator:
     def __init__(self, f, args):
         self.f = f
-        self.print_ids = args.print_ids
         self.write = f.write
         self.vol_edges = []
 
@@ -77,12 +86,9 @@ class MermaidGenerator:
         for i in self.vol_edges:
             self.write(f"  v{i:02d} <--> n{i:02d}\n")
 
-    def write_node(self, i, value):
-        if self.print_ids:
-            id_format = f"{i:02d}:"
-        else:
-            id_format = ""
-        self.write(f'  n{i:02d}["{id_format}{value}"]\n')
+    def write_node(self, i: int, label: str):
+        label = f'["{label}"]' if label else ""
+        self.write(f"  n{i:02d}{label}\n")
 
     @contextmanager
     def write_volumes(self):
@@ -92,52 +98,60 @@ subgraph Volumes
         yield self.write_volume
         self.write("end\n")
 
-    def write_volume(self, i, value):
-        self.write(f'  v{i:02d}(["{value}"])\n')
+    def write_volume(self, i: int, label: str):
+        label = f'(["{label}"])' if label else ""
+        self.write(f"  v{i:02d}{label}\n")
         self.vol_edges.append(i)
 
-    def write_edge(self, i, e):
+    def write_edge(self, i: int, e: int):
         self.write(f"  n{i:02d} --> n{e:02d}\n")
 
 
-def write_tree(gen, csg_unit):
+def write_tree(gen: DotGenerator, csg_unit: dict[str, Any], args):
     tree = csg_unit["tree"]
-    labels = csg_unit["metadata"] or repeat(None)
+    metadata = csg_unit["metadata"] or repeat(None)
+    get_surface = (
+        csg_unit["surfaces"].__getitem__ if "surfaces" in csg_unit else (lambda i: None)
+    )
+    print_surf = args.print_surface
+    print_id = args.print_id
 
-    for i, node, labs in zip(count(), tree, labels):
+    for i, node, labels in zip(count(), tree, metadata):
         if isinstance(node, str):
-            # True (or false??)
-            gen.write_node(i, node)
-            continue
-        label = "\\n".join(labs) if labs else ""
+            # True literal
+            node = (node.upper(), node)
 
         (nodetype, value) = node
-        if nodetype == "S":
-            # Surface (literal)
-            gen.write_node(i, label or f"S{value}")
-            continue
 
-        if label:
-            label += "\\n"
-        label += nodetype
+        if nodetype == "S":
+            if print_surf and (s := get_surface(value)):
+                labels.append(s)
+            if print_id:
+                labels.append(f"[N{i:02d} = S{value}]")
+        else:
+            if print_id:
+                labels.append(f"[N{i:02d}]")
+            labels.append(nodetype)
+
+        label = r"\n".join(labels)
         gen.write_node(i, label)
 
         if isinstance(value, list):
             # Joined
             for v in value:
                 gen.write_edge(i, v)
-        else:
+        elif nodetype in "=~":
             # Aliased/negated
             gen.write_edge(i, value)
 
 
-def write_volumes(gen, volumes):
+def write_volumes(gen, volumes: dict[str, Any]):
     if not volumes:
         return
 
     with gen.write_volumes() as write_volume:
         for v in volumes:
-            write_volume(v["csg_node"], v["label"])
+            write_volume(v["csg_node"], v.get("label"))
 
 
 def run(infile, outfile, gencls, args):
@@ -146,16 +160,24 @@ def run(infile, outfile, gencls, args):
     if universe is not None:
         # Load from a .csg.json debug file
         csg_unit = tree[universe]
-    else:
-        if isinstance(tree, list) and isinstance(tree[0], dict) and "tree" in tree[0]:
-            num_univ = len(tree)
+    elif isinstance(tree, list) and isinstance(tree[0], dict) and "tree" in tree[0]:
+        # No -u option given, but it's a csg.json file
+        num_univ = len(tree)
+        if num_univ == 1:
+            print(
+                "Input tree is a CSG listing with one unit:assuming `-u N=0`",
+                file=sys.stderr,
+            )
+            csg_unit = tree[0]
+        else:
             print(
                 "Input tree is a CSG listing: please rerun with -u N "
                 f"where 0 ≤ N < {num_univ}",
                 file=sys.stderr,
             )
             sys.exit(1)
-
+    else:
+        # Raw CSG tree, no metadata
         csg_unit = {
             "tree": tree,
             "metadata": None,
@@ -163,7 +185,7 @@ def run(infile, outfile, gencls, args):
         }
 
     with gencls(outfile, args) as gen:
-        write_tree(gen, csg_unit)
+        write_tree(gen, csg_unit, args)
         if vols := csg_unit.get("volumes"):
             write_volumes(gen, vols)
 
@@ -184,7 +206,10 @@ def main():
         help="Universe ID if a 'csg.json' debug file",
     )
     parser.add_argument(
-        "--print-ids", action="store_true", help="print CsgTree node ids"
+        "--print-id", action="store_true", help="print CsgTree node ids"
+    )
+    parser.add_argument(
+        "--print-surface", action="store_true", help="print surface definitions"
     )
     parser.add_argument(
         "-o", "--output", default=None, help="Output filename (empty for stdout)"

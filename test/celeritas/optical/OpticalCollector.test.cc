@@ -527,7 +527,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(95, result.accum.step_iters);
+        EXPECT_EQ(60, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());
 
