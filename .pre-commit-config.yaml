@@ -28,10 +28,10 @@ repos:
     - id: ruff-format
 
   # Spell checking
-  - repo: https://github.com/codespell-project/codespell    
+  - repo: https://github.com/codespell-project/codespell
     rev: 63c8f8312b7559622c0d82815639671ae42132ac # v2.4.1, 28 Jan 2025
     hooks:
-    - id: codespell    
+    - id: codespell
 
   # TODO: licensing
   # see https://github.com/celeritas-project/celeritas/issues/1763
