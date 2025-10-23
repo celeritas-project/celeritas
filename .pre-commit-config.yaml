@@ -38,7 +38,7 @@ repos:
 
 ci:
   autofix_commit_msg: |
-    Apply fixes from pre-commit hooks
+    Apply fixes from pre-commit hooks: see detailed commit message →
 
     This commit means that you must (please!) install pre-commit
     on your development machine and run `pre-commit install --install-hooks`.
