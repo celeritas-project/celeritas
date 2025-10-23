@@ -80,9 +80,9 @@ class GeantGeoTrackView
     // Get the physical volume ID in the current cell
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline LevelId depth() const;
-    // Get the volume instance ID for all levels
-    inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
+    inline DepthId depth() const;
+    // Get the volume instance ID for all depths
+    inline void volume_instance_id(Span<VolumeInstanceId> depths) const;
 
     // Get the implementation volume ID
     inline ImplVolumeId impl_volume_id() const;
@@ -297,10 +297,10 @@ VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 /*!
  * Get the depth in the geometry hierarchy.
  */
-LevelId GeantGeoTrackView::depth() const
+DepthId GeantGeoTrackView::depth() const
 {
     auto* touch = touch_handle_();
-    return id_cast<LevelId>(touch->GetHistoryDepth());
+    return id_cast<DepthId>(touch->GetHistoryDepth());
 }
 
 //---------------------------------------------------------------------------//
@@ -311,20 +311,20 @@ LevelId GeantGeoTrackView::depth() const
  * top-most level ("world" or level zero) starts at index zero and moves
  * downward. Note that Geant4 uses the \em reverse nomenclature.
  */
-void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
+void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> depths) const
 {
-    CELER_EXPECT(id_cast<LevelId>(levels.size()) == this->depth() + 1);
+    CELER_EXPECT(id_cast<DepthId>(depths.size()) == this->depth() + 1);
 
     auto* touch = touch_handle_();
-    auto const max_depth = static_cast<size_type>(touch->GetHistoryDepth());
-    for (auto lev : range(levels.size()))
+    auto const depth = id_cast<DepthId>(touch->GetHistoryDepth());
+    for (auto d_id : range(id_cast<DepthId>(depths.size())))
     {
         VolumeInstanceId vi_id;
-        if (G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev))
+        if (G4VPhysicalVolume* pv = touch->GetVolume(depth - d_id))
         {
             vi_id = params_.vi_mapper->geant_to_id(*pv);
         }
-        levels[lev] = vi_id;
+        depths[d_id.get()] = vi_id;
     }
 }
 

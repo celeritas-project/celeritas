@@ -276,7 +276,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        auto lsa = LevelStateAccessor(&result_ref, TrackSlotId{i}, LevelId{0});
+        auto lsa = LevelStateAccessor(&result_ref, TrackSlotId{i}, DepthId{0});
         lsa.pos() = sample_box(rng);
         lsa.dir() = sample_isotropic(rng);
     }
@@ -284,7 +284,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     // Clear other data
     fill(LocalVolumeId{}, &result.vol);
     fill(LocalSurfaceId{}, &result.surf);
-    fill(LevelId{}, &result.level);
+    fill(DepthId{}, &result.udepth);
 
     CELER_ENSURE(result);
     return result;
@@ -300,14 +300,14 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
 {
     CELER_EXPECT(host);
     CELER_EXPECT(wall_time > 0);
-    CELER_EXPECT(this->geometry()->max_depth() == 1);
+    CELER_EXPECT(this->geometry()->univ_depth() == 1);
     std::vector<size_type> counts(this->num_volumes());
     size_type error_count{};
 
     for (auto i : range(host.size()))
     {
         auto tid = TrackSlotId{i};
-        LevelStateAccessor lsa(&host, tid, LevelId{0});
+        LevelStateAccessor lsa(&host, tid, DepthId{0});
         auto vol = lsa.vol();
 
         if (vol < counts.size())

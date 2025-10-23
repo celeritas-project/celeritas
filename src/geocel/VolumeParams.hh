@@ -59,7 +59,7 @@ class VolumeParams
     using VolumeInstanceRef = VolumeInstanceId;
     //!@}
 
-    using depth_uint = LevelId::size_type;
+    using depth_uint = DepthId::size_type;
 
   public:
     // Construct from input

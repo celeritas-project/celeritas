@@ -35,7 +35,7 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-constexpr int invalid_max_depth = -1;
+constexpr int invalid_depth = -1;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -44,12 +44,12 @@ constexpr int invalid_max_depth = -1;
  * Return 0 if the definition is invalid so that we can raise an assertion in
  * the caller with more context.
  */
-int calc_max_depth(Span<logic_int const> logic)
+int calc_depth(Span<logic_int const> logic)
 {
     CELER_EXPECT(!logic.empty());
 
     // Calculate max depth
-    int max_depth = 1;
+    int depth = 1;
     int cur_depth = 0;
 
     for (auto id : logic)
@@ -60,17 +60,17 @@ int calc_max_depth(Span<logic_int const> logic)
         }
         else if (id == logic::land || id == logic::lor)
         {
-            max_depth = std::max(cur_depth, max_depth);
+            depth = std::max(cur_depth, depth);
             --cur_depth;
         }
     }
     if (cur_depth != 1)
     {
         // Input definition is invalid; return a sentinel value
-        max_depth = invalid_max_depth;
+        depth = invalid_depth;
     }
-    CELER_ENSURE(max_depth > 0 || max_depth == invalid_max_depth);
-    return max_depth;
+    CELER_ENSURE(depth > 0 || depth == invalid_depth);
+    return depth;
 }
 
 //---------------------------------------------------------------------------//
@@ -498,8 +498,8 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     }
 
     // Calculate the maximum stack depth of the volume definition
-    int max_depth = calc_max_depth(input_logic);
-    CELER_VALIDATE(max_depth > 0,
+    int depth = calc_depth(input_logic);
+    CELER_VALIDATE(depth > 0,
                    << "invalid logic definition: operators do not balance");
 
     // Update global max faces/intersections/logic
@@ -507,7 +507,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     inplace_max<size_type>(&scalars.max_faces, output.faces.size());
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
-    inplace_max<size_type>(&scalars.max_logic_depth, max_depth);
+    inplace_max<size_type>(&scalars.max_logic_depth, depth);
 
     return output;
 }

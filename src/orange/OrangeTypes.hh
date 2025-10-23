@@ -35,7 +35,7 @@ using fast_real_type = float;
 using logic_int = size_type;
 
 //! Integer type for volume tree depth
-using depth_int = LevelId::size_type;
+using depth_int = DepthId::size_type;
 
 //! Helper class for some template dispatch functions
 template<Axis T>
@@ -61,9 +61,6 @@ using FastBBoxId = OpaqueId<FastBBox>;
 //! Identifier for an array of length three of floating point values
 using FastReal3 = Array<float, 3>;
 
-//! Universe depth, not necessarily canonical volume depth
-using ImplLevelId = LevelId;
-
 //! Local identifier for a surface within a universe
 using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
 
@@ -84,6 +81,10 @@ using TransformId = OpaqueId<struct TransformRecord>;
 
 //! Identifier for a relocatable set of volumes
 using UniverseId = OpaqueId<struct Universe_>;
+
+//! Universe depth, not necessarily canonical volume depth
+// TODO: make own typesafe opaque ID
+using UnivDepthId = DepthId;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS

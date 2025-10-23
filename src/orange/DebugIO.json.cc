@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "DebugIO.json.hh"
 
-#include "corecel/io/JsonUtils.json.hh"
-#include "corecel/io/LabelIO.json.hh"
-#include "corecel/math/QuantityIO.json.hh"
+#include "corecel/io/JsonUtils.json.hh"  // IWYU pragma: keep
+#include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
+#include "corecel/math/QuantityIO.json.hh"  // IWYU pragma: keep
 #include "geocel/VolumeParams.hh"
 
 #include "LevelStateAccessor.hh"
@@ -118,9 +118,9 @@ void to_json(nlohmann::json& j, OrangeTrackView const& view)
                         view.scalars().host_volume_params};
 
     nlohmann::json levels = nlohmann::json::array();
-    for (auto lev_id : range(view.univ_level() + 1))
+    for (auto ud_id : range(view.udepth() + 1))
     {
-        levels.push_back(id_to_json(view.make_lsa(lev_id)));
+        levels.push_back(id_to_json(view.make_lsa(ud_id)));
     }
 
     j = {

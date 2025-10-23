@@ -39,8 +39,7 @@ using SquareMatrixReal3 = SquareMatrix<real_type, 3>;
 //---------------------------------------------------------------------------//
 
 //! Type-safe depth in the volume graph (zero for world)
-using LevelId = OpaqueId<struct LevelId_, std::uint_least8_t>;
-using DepthId = LevelId;
+using DepthId = OpaqueId<struct Depth_, std::uint_least8_t>;
 
 //! Identifier for a material fill
 using GeoMatId = OpaqueId<struct GeoMaterial_>;

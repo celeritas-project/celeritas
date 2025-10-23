@@ -20,6 +20,8 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the maximum number of levels deep in a geometry.
+ *
+ * \todo Replace with VolumeVisitor? Rename UnivDepthCalculator?
  */
 class DepthCalculator
 {

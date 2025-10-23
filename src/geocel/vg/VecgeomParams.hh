@@ -112,7 +112,7 @@ class VecgeomParams final : public GeoParamsInterface,
     BBox const& bbox() const final { return bbox_; }
 
     // Maximum nested geometry depth
-    inline LevelId::size_type max_depth() const;
+    inline DepthId::size_type depth() const;
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
@@ -175,9 +175,9 @@ extern template class ParamsDataInterface<VecgeomParamsData>;
  *
  * \todo Only use in VolumeParams
  */
-LevelId::size_type VecgeomParams::max_depth() const
+DepthId::size_type VecgeomParams::depth() const
 {
-    return this->host_ref().scalars.max_depth;
+    return this->host_ref().scalars.depth;
 }
 //
 //---------------------------------------------------------------------------//

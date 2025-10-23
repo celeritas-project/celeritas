@@ -88,7 +88,7 @@ class OrangeParams final : public GeoParamsInterface,
     BBox const& bbox() const final { return bbox_; }
 
     // Maximum universe depth (not geometry volume depth!)
-    inline size_type max_depth() const;
+    inline UnivDepthId::size_type univ_depth() const;
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
@@ -144,9 +144,9 @@ extern template class ParamsDataInterface<OrangeParamsData>;
 /*!
  * Maximum universe depth.
  */
-size_type OrangeParams::max_depth() const
+UnivDepthId::size_type OrangeParams::univ_depth() const
 {
-    return this->host_ref().scalars.max_depth;
+    return this->host_ref().scalars.univ_depth;
 }
 
 //---------------------------------------------------------------------------//

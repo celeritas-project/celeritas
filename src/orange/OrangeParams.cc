@@ -191,7 +191,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
 
-    host_data.scalars.max_depth = [&univ_inp = input.universes] {
+    host_data.scalars.univ_depth = [&univ_inp = input.universes] {
         auto result = detail::DepthCalculator{univ_inp}();
         constexpr auto max_ud = static_cast<int>(UnivDepthId{}.unchecked_get())
                                 - 1;

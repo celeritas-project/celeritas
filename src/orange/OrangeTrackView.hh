@@ -1,5 +1,5 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// Copyright Celeritas contributors: see top-udepth COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeTrackView.hh
@@ -103,8 +103,8 @@ class OrangeTrackView
     // Get the canonical volume instance ID in the current impl volume
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
     // The depth in the canonical volume graph
-    inline CELER_FUNCTION LevelId depth() const;
-    // Get the volume instance ID for all levels
+    inline CELER_FUNCTION DepthId depth() const;
+    // Get the volume instance ID for all universe depths
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
 
     // Whether the track is outside the valid geometry region
@@ -151,7 +151,7 @@ class OrangeTrackView
     inline CELER_FUNCTION OrangeParamsScalars const& scalars() const;
 
     // The depth in the universe graph
-    inline CELER_FUNCTION ImplLevelId univ_level() const;
+    inline CELER_FUNCTION UnivDepthId udepth() const;
     // The current implementation volume ID
     inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
     // The current surface ID
@@ -161,10 +161,10 @@ class OrangeTrackView
 
     // Make a universe indexer
     inline CELER_FUNCTION UniverseIndexer make_universe_indexer() const;
-    // Make a LevelStateAccessor for the current thread and level
+    // Make a LevelStateAccessor for the current thread and udepth
     inline CELER_FUNCTION LSA make_lsa() const;
-    // Make a LevelStateAccessor for the current thread and a given level
-    inline CELER_FUNCTION LSA make_lsa(ImplLevelId level) const;
+    // Make a LevelStateAccessor for the current thread and a given udepth
+    inline CELER_FUNCTION LSA make_lsa(UnivDepthId ud_id) const;
 
   private:
     //// TYPES ////
@@ -185,10 +185,10 @@ class OrangeTrackView
 
     //// PRIVATE STATE MUTATORS ////
 
-    // The current level
-    inline CELER_FUNCTION void univ_level(ImplLevelId);
+    // The current universe udepth
+    inline CELER_FUNCTION void udepth(UnivDepthId);
 
-    // The boundary on the current surface level
+    // The boundary on the current surface udepth
     inline CELER_FUNCTION void boundary(BoundaryResult);
 
     // The next step distance, as stored on the state
@@ -197,21 +197,21 @@ class OrangeTrackView
     // The next surface to be encountered
     inline CELER_FUNCTION void next_surf(detail::OnLocalSurface const&);
 
-    // The level of the next surface to be encountered
-    inline CELER_FUNCTION void next_surface_level(ImplLevelId);
+    // The udepth of the next surface to be encountered
+    inline CELER_FUNCTION void next_surface_udepth(UnivDepthId);
 
     //// PRIVATE STATE ACCESSORS ////
 
-    // The current surface universe level
-    inline CELER_FUNCTION ImplLevelId const& surface_level() const;
+    // The current surface universe udepth
+    inline CELER_FUNCTION UnivDepthId const& surface_udepth() const;
 
-    // The local surface on the current surface level
+    // The local surface on the current surface udepth
     inline CELER_FUNCTION LocalSurfaceId const& surf() const;
 
-    // The sense on the current surface level
+    // The sense on the current surface udepth
     inline CELER_FUNCTION Sense const& sense() const;
 
-    // The boundary on the current surface level
+    // The boundary on the current surface udepth
     inline CELER_FUNCTION BoundaryResult const& boundary() const;
 
     // The next step distance, as stored on the state
@@ -220,8 +220,8 @@ class OrangeTrackView
     // The next surface to be encountered
     inline CELER_FUNCTION detail::OnLocalSurface next_surf() const;
 
-    // The level of the next surface to be encountered
-    inline CELER_FUNCTION ImplLevelId next_surface_level() const;
+    // The universe depth of the next surface to be encountered
+    inline CELER_FUNCTION UnivDepthId next_surface_udepth() const;
 
     //// HELPER FUNCTIONS ////
 
@@ -229,7 +229,7 @@ class OrangeTrackView
     inline CELER_FUNCTION OrangeTrackView&
     operator=(DetailedInitializer const& init);
 
-    // Iterate over lower levels to find the next step
+    // Iterate over lower universe depths to find the next step
     inline CELER_FUNCTION Propagation
     find_next_step_impl(detail::Intersection isect);
 
@@ -240,7 +240,7 @@ class OrangeTrackView
     inline CELER_FUNCTION detail::TempNextFace make_temp_next() const;
 
     inline CELER_FUNCTION detail::LocalState
-    make_local_state(ImplLevelId level) const;
+    make_local_state(UnivDepthId ud_id) const;
 
     // Whether the next distance-to-boundary has been found
     inline CELER_FUNCTION bool has_next_step() const;
@@ -251,11 +251,11 @@ class OrangeTrackView
     // Invalidate the next distance-to-boundary and surface
     inline CELER_FUNCTION void clear_next();
 
-    // Assign the surface on the current level
+    // Assign the surface at the current universe depth
     inline CELER_FUNCTION void
-    surface(ImplLevelId level, detail::OnLocalSurface surf);
+    surface(UnivDepthId ud_id, detail::OnLocalSurface surf);
 
-    // Clear the surface on the current level
+    // Clear the surface at the current universe depth
     inline CELER_FUNCTION void clear_surface();
 
     // Get the daughter ID for the volume in the universe (or null)
@@ -264,11 +264,11 @@ class OrangeTrackView
     // Get the transform ID for the given daughter.
     inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id) const;
 
-    // Get the transform ID to move from this level to the one below.
-    inline CELER_FUNCTION TransformId get_transform(ImplLevelId lev) const;
+    // Get the transform ID to increase the universe depth by 1
+    inline CELER_FUNCTION TransformId get_transform(UnivDepthId ud_id) const;
 
-    // The current implementation volume ID
-    inline CELER_FUNCTION ImplVolumeId impl_volume_id(ImplLevelId lev) const;
+    // The implementation volume ID at a given depth
+    inline CELER_FUNCTION ImplVolumeId impl_volume_id(UnivDepthId ud_id) const;
 
     // Get the surface normal as defined by the geometry
     inline CELER_FUNCTION Real3 geo_normal() const;
@@ -332,7 +332,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     // Recurse into daughter universes starting with the outermost universe
     UniverseId univ_id = top_universe_id();
     DaughterId daughter_id;
-    ImplLevelId level{0};
+    UnivDepthId ud_id{0};
     do
     {
         TrackerVisitor visit_tracker{params_};
@@ -357,12 +357,12 @@ OrangeTrackView::operator=(Initializer_t const& init)
                 << " at local position " << repr(local.pos);
 #endif
             // Mark as failed and place in local "exterior" to end the search
-            // but preserve the current level information
+            // but preserve the current universe depth information
             failed_ = true;
             tinit.volume = orange_exterior_volume;
         }
 
-        auto lsa = this->make_lsa(level);
+        auto lsa = this->make_lsa(ud_id);
         lsa.vol() = tinit.volume;
         lsa.pos() = local.pos;
         lsa.dir() = local.dir;
@@ -376,15 +376,15 @@ OrangeTrackView::operator=(Initializer_t const& init)
             auto const& daughter = params_.daughters[daughter_id];
             // Apply "transform down" based on stored transform
             apply_transform(transform_down_local, daughter.trans_id);
-            // Update universe and increase level depth
+            // Update universe and increase universe depth
             univ_id = daughter.universe_id;
-            ++level;
+            ++ud_id;
         }
 
     } while (daughter_id);
 
-    // Save found level
-    this->univ_level(level);
+    // Save found universe depth
+    this->udepth(ud_id);
 
     // Reset surface/boundary information
     this->boundary(BoundaryResult::exiting);
@@ -410,15 +410,15 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
     {
         // Copy init track's position and logical state
         OrangeTrackView other(params_, states_, init.parent);
-        this->univ_level(states_.level[other.track_slot_]);
-        this->surface(other.surface_level(), {other.surf(), other.sense()});
+        this->udepth(states_.udepth[other.track_slot_]);
+        this->surface(other.surface_udepth(), {other.surf(), other.sense()});
         this->boundary(other.boundary());
 
-        for (auto lev : range(this->univ_level() + 1))
+        for (auto ud_id : range(this->udepth() + 1))
         {
             // Copy all data accessed via LSA
-            auto lsa = this->make_lsa(lev);
-            lsa = other.make_lsa(lev);
+            auto lsa = this->make_lsa(ud_id);
+            lsa = other.make_lsa(ud_id);
         }
     }
 
@@ -431,15 +431,15 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
     auto apply_transform = TransformVisitor{params_};
     auto rotate_down
         = [&localdir](auto&& t) { localdir = t.rotate_down(localdir); };
-    for (auto lev : range(this->univ_level()))
+    for (auto ud_id : range(this->udepth()))
     {
-        auto lsa = this->make_lsa(lev);
+        auto lsa = this->make_lsa(ud_id);
         lsa.dir() = localdir;
         apply_transform(rotate_down,
                         this->get_transform(this->get_daughter(lsa)));
     }
 
-    // Save final level
+    // Save final universe depth
     this->make_lsa().dir() = localdir;
 
     CELER_ENSURE(!this->has_next_step());
@@ -490,55 +490,55 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(!params_.volume_instance_ids.empty());
 
-    auto get_vol_inst = [this](ImplLevelId lev) {
-        return params_.volume_instance_ids[this->impl_volume_id(lev)];
+    auto get_vol_inst = [this](UnivDepthId ud_id) {
+        return params_.volume_instance_ids[this->impl_volume_id(ud_id)];
     };
 
     // If we're in a 'background' volume, we don't know the PV until reaching
     // the parent placement (i.e., the volume instance in the parent universe)
-    ImplLevelId lev{this->univ_level()};
-    if (auto vi_id = get_vol_inst(lev))
+    UnivDepthId ud_id{this->udepth()};
+    if (auto vi_id = get_vol_inst(ud_id))
     {
-        // Canonical mapping found at this level: we're locally in a volume
+        // Canonical mapping found in this universe: we're locally in a volume
         // placement
         return vi_id;
     }
 
     // Otherwise we're in a background volume, and the volume instance in the
-    // parent level *must* be a volume instance if this is a correctly
+    // parent universe *must* be a volume instance if this is a correctly
     // constructed geometry
-    CELER_ASSERT(lev != orange_global_level);
-    --lev;
-    return get_vol_inst(lev);
+    CELER_ASSERT(ud_id != orange_global_level);
+    --ud_id;
+    return get_vol_inst(ud_id);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * The depth in the canonical volume graph.
  */
-CELER_FUNCTION LevelId OrangeTrackView::depth() const
+CELER_FUNCTION DepthId OrangeTrackView::depth() const
 {
     CELER_NOT_IMPLEMENTED("canonical depth");
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume instance ID at every level.
+ * Get the volume instance ID at every depth.
  *
- * The input span size must be equal to the value of "level" plus one. The
- * top-most level ("world" or level zero) starts at index zero and moves
+ * The input span size must be equal to the value of "depth" plus one. The
+ * top-most volume ("world" or depth zero) starts at index zero and moves
  * downward. Note that Geant4 uses the \em reverse nomenclature.
  *
  * \todo Implement \c parent_impl_volumes in OrangeData.
  */
 CELER_FUNCTION void
-OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
+OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> depths) const
 {
     CELER_EXPECT(!this->is_outside());
-    CELER_EXPECT(this->univ_level() < levels.size());
+    CELER_EXPECT(this->udepth() < depths.size());
 
     // To guard against errors and enable unit tests, we first make sure we're
-    // not going off the end. (If we are in the global level without correct
+    // not going off the end. (If we are at the global depth without correct
     // instance information, then this will just return a null ID.)
     CELER_NOT_IMPLEMENTED("canonical volume instance");
 }
@@ -561,7 +561,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
  */
 CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::is_on_boundary() const
 {
-    return static_cast<bool>(this->surface_level());
+    return static_cast<bool>(this->surface_udepth());
 }
 
 //---------------------------------------------------------------------------//
@@ -598,12 +598,12 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
         return {0, true};
     }
 
-    // Find intersection at the top level: always the first simple unit
+    // Find intersection at the root depth: always the first simple unit
     auto global_isect = [this] {
         SimpleUnitTracker t{params_, SimpleUnitId{0}};
         return t.intersect(this->make_local_state(orange_global_level));
     }();
-    // Find intersection for all lower levels
+    // Find intersection for all lower universe depths
     return this->find_next_step_impl(global_isect);
 }
 
@@ -624,14 +624,14 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
         return {0, true};
     }
 
-    // Find intersection at the top level: always the first simple unit
+    // Find intersection at the root depth: always the first simple unit
     auto global_isect = [this, &max_step] {
         SimpleUnitTracker t{params_, SimpleUnitId{0}};
         return t.intersect(this->make_local_state(orange_global_level),
                            max_step);
     }();
 
-    // Find intersection for all lower levels
+    // Find intersection for all further depths
     auto result = this->find_next_step_impl(global_isect);
     CELER_ENSURE(result.distance <= max_step);
     return result;
@@ -649,13 +649,13 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 
     // Physically move next step
     real_type const dist = this->next_step();
-    for (auto i : range(this->univ_level() + 1))
+    for (auto ud_id : range(this->udepth() + 1))
     {
-        auto lsa = this->make_lsa(LevelId{i});
+        auto lsa = this->make_lsa(ud_id);
         axpy(dist, lsa.dir(), &lsa.pos());
     }
 
-    this->surface(this->next_surface_level(), this->next_surf());
+    this->surface(this->next_surface_udepth(), this->next_surf());
     this->clear_next();
 
     CELER_ENSURE(this->is_on_boundary());
@@ -675,9 +675,9 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     CELER_EXPECT(dist != this->next_step() || !this->has_next_surface());
 
     // Move and update the next step
-    for (auto i : range(this->univ_level() + 1))
+    for (auto i : range(this->udepth() + 1))
     {
-        auto lsa = this->make_lsa(ImplLevelId{i});
+        auto lsa = this->make_lsa(UnivDepthId{i});
         axpy(dist, lsa.dir(), &lsa.pos());
     }
     this->next_step(this->next_step() - dist);
@@ -693,14 +693,14 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
  */
 CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
-    // Transform all nonlocal levels
+    // Transform all nonlocal universe depths
     auto local_pos = pos;
     auto apply_transform = TransformVisitor{params_};
     auto translate_down
         = [&local_pos](auto&& t) { local_pos = t.transform_down(local_pos); };
-    for (auto lev : range(this->univ_level()))
+    for (auto ud_id : range(this->udepth()))
     {
-        auto lsa = this->make_lsa(lev);
+        auto lsa = this->make_lsa(ud_id);
         lsa.pos() = local_pos;
 
         // Apply "transform down" based on stored transform
@@ -708,7 +708,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
                         this->get_transform(this->get_daughter(lsa)));
     }
 
-    // Save final level
+    // Save final depth
     auto lsa = this->make_lsa();
     lsa.pos() = local_pos;
 
@@ -741,13 +741,13 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     states_.sense[track_slot_] = flip_sense(this->sense());
     this->boundary(BoundaryResult::exiting);
 
-    // Create local state from post-crossing level and updated sense
-    ImplLevelId level{this->surface_level()};
+    // Create local state from post-crossing depth and updated sense
+    UnivDepthId ud_id{this->surface_udepth()};
     UniverseId universe;
     LocalVolumeId volume;
     detail::LocalState local;
     {
-        auto lsa = this->make_lsa(level);
+        auto lsa = this->make_lsa(ud_id);
         universe = lsa.universe();
         local.pos = lsa.pos();
         local.dir = lsa.dir();
@@ -759,7 +759,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     TrackerVisitor visit_tracker{params_};
 
     // Update the post-crossing volume by crossing the boundary of the "surface
-    // crossing" level universe
+    // crossing" udepth
     volume = visit_tracker(
         [&local](auto&& t) { return t.cross_boundary(local).volume; },
         universe);
@@ -774,24 +774,24 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
             << repr(local.pos) << " along local direction " << repr(local.dir);
 #endif
         // Mark as failed and place in local "exterior" to end the search
-        // but preserve the current level information
+        // but preserve the current udepth
         failed_ = true;
         volume = orange_exterior_volume;
     }
-    make_lsa(level).vol() = volume;
+    make_lsa(ud_id).vol() = volume;
 
     // Clear local surface before diving into daughters
     // TODO: this is where we'd do inter-universe mapping
     local.volume = {};
     local.surface = {};
 
-    // Starting with the current level (i.e., next_surface_level), iterate
-    // down into the deepest level: *initializing* not *crossing*
+    // Starting with the current udepth (i.e., next_surface_udepth), iterate
+    // down into the deepest udepth: *initializing* not *crossing*
     auto daughter_id = visit_tracker(
         [volume](auto&& t) { return t.daughter(volume); }, universe);
     while (daughter_id)
     {
-        ++level;
+        ++ud_id;
         {
             // Update universe, local position/direction
             auto const& daughter = params_.daughters[daughter_id];
@@ -819,22 +819,22 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
                 << repr(local.pos);
 #endif
             // Mark as failed and place in local "exterior" to end the search
-            // but preserve the current level information
+            // but preserve the current udepth
             failed_ = true;
             volume = orange_exterior_volume;
         }
         daughter_id = visit_tracker(
             [volume](auto&& t) { return t.daughter(volume); }, universe);
 
-        auto lsa = make_lsa(level);
+        auto lsa = make_lsa(ud_id);
         lsa.vol() = volume;
         lsa.pos() = local.pos;
         lsa.dir() = local.dir;
         lsa.universe() = universe;
     }
 
-    // Save final level
-    this->univ_level(level);
+    // Save final udepth
+    this->udepth(ud_id);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -849,7 +849,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
  * to inward (or vice versa) will mean that \c cross_boundary will be a
  * null-op.
  *
- * TODO: This needs to be updated to handle reflections through levels
+ * TODO: This needs to be updated to handle reflections through universe depths
  */
 CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 {
@@ -877,14 +877,14 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     auto apply_transform = TransformVisitor{params_};
     auto rotate_down
         = [&localdir](auto&& t) { localdir = t.rotate_down(localdir); };
-    for (auto lev : range(this->univ_level()))
+    for (auto ud_id : range(this->udepth()))
     {
-        auto lsa = this->make_lsa(lev);
+        auto lsa = this->make_lsa(ud_id);
         lsa.dir() = localdir;
         apply_transform(rotate_down,
                         this->get_transform(this->get_daughter(lsa)));
     }
-    // Save final level
+    // Save final universe direction
     this->make_lsa().dir() = localdir;
 
     this->clear_next();
@@ -903,13 +903,13 @@ CELER_FUNCTION OrangeParamsScalars const& OrangeTrackView::scalars() const
 
 //---------------------------------------------------------------------------//
 /*!
- * The current universe hierarchy depth.
+ * The track's depth in the universe hierarchy.
  *
  * Zero corresponds to being in the global universe.
  */
-CELER_FORCEINLINE_FUNCTION ImplLevelId OrangeTrackView::univ_level() const
+CELER_FORCEINLINE_FUNCTION UnivDepthId OrangeTrackView::udepth() const
 {
-    return states_.level[track_slot_];
+    return states_.udepth[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -937,7 +937,7 @@ CELER_FUNCTION ImplSurfaceId OrangeTrackView::impl_surface_id() const
         return {};
     }
 
-    auto lsa = this->make_lsa(this->surface_level());
+    auto lsa = this->make_lsa(this->surface_udepth());
     return this->make_universe_indexer().global_surface(lsa.universe(),
                                                         this->surf());
 }
@@ -953,7 +953,7 @@ CELER_FUNCTION ImplSurfaceId OrangeTrackView::next_impl_surface_id() const
         return {};
     }
 
-    auto lsa = this->make_lsa(this->next_surface_level());
+    auto lsa = this->make_lsa(this->next_surface_udepth());
     return this->make_universe_indexer().global_surface(
         lsa.universe(), this->next_surf().id());
 }
@@ -970,41 +970,41 @@ CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_universe_indexer() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Make a LevelStateAccessor for the current thread and level.
+ * Make a LevelStateAccessor for the current thread and depth.
  *
  * Please treat as read-only outside this class!
  */
 CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa() const -> LSA
 {
-    return this->make_lsa(this->univ_level());
+    return this->make_lsa(this->udepth());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Make a LevelStateAccessor for the current thread and a given level.
+ * Make a LevelStateAccessor for the current thread and a given udepth.
  *
- * Note that access beyond the current level is allowable: cross_boundary
- * locally updates the level before committing the change.
+ * Note that access beyond the current udepth is allowable: cross_boundary
+ * locally updates the udepth before committing the change.
  */
 CELER_FORCEINLINE_FUNCTION auto
-OrangeTrackView::make_lsa(ImplLevelId level) const -> LSA
+OrangeTrackView::make_lsa(UnivDepthId ud_id) const -> LSA
 {
-    return LSA(&states_, track_slot_, level);
+    return LSA(&states_, track_slot_, ud_id);
 }
 
 //---------------------------------------------------------------------------//
 // PRIVATE MUTABLE STATE ACCESSORS
 //---------------------------------------------------------------------------//
 /*!
- * The current level.
+ * The track's current universe depth.
  */
-CELER_FORCEINLINE_FUNCTION void OrangeTrackView::univ_level(ImplLevelId lev)
+CELER_FORCEINLINE_FUNCTION void OrangeTrackView::udepth(UnivDepthId ud_id)
 {
-    states_.level[track_slot_] = lev;
+    states_.udepth[track_slot_] = ud_id;
 }
 
 /*!
- * The boundary on the current surface level.
+ * The boundary on the current surface universe depth.
  */
 CELER_FORCEINLINE_FUNCTION void OrangeTrackView::boundary(BoundaryResult br)
 {
@@ -1030,27 +1030,27 @@ OrangeTrackView::next_surf(detail::OnLocalSurface const& s)
 }
 
 /*!
- * The level of the next surface to be encountered.
+ * The universe depth of the next surface to be encountered.
  */
 CELER_FORCEINLINE_FUNCTION void
-OrangeTrackView::next_surface_level(ImplLevelId lev)
+OrangeTrackView::next_surface_udepth(UnivDepthId ud_id)
 {
-    states_.next_level[track_slot_] = lev;
+    states_.next_level[track_slot_] = ud_id;
 }
 
 //---------------------------------------------------------------------------//
 // PRIVATE CONST STATE ACCESSORS
 /*!
- * The current surface level.
+ * The universe depth of the current surface.
  */
-CELER_FORCEINLINE_FUNCTION ImplLevelId const&
-OrangeTrackView::surface_level() const
+CELER_FORCEINLINE_FUNCTION UnivDepthId const&
+OrangeTrackView::surface_udepth() const
 {
-    return states_.surface_level[track_slot_];
+    return states_.surface_udepth[track_slot_];
 }
 
 /*!
- * The local surface on the current surface level.
+ * The local surface on the current surface udepth.
  */
 CELER_FORCEINLINE_FUNCTION LocalSurfaceId const& OrangeTrackView::surf() const
 {
@@ -1058,7 +1058,7 @@ CELER_FORCEINLINE_FUNCTION LocalSurfaceId const& OrangeTrackView::surf() const
 }
 
 /*!
- * The sense on the current surface level.
+ * The sense on the current surface.
  */
 CELER_FORCEINLINE_FUNCTION Sense const& OrangeTrackView::sense() const
 {
@@ -1066,7 +1066,7 @@ CELER_FORCEINLINE_FUNCTION Sense const& OrangeTrackView::sense() const
 }
 
 /*!
- * The boundary on the current surface level.
+ * The boundary on the current surface.
  */
 CELER_FORCEINLINE_FUNCTION BoundaryResult const&
 OrangeTrackView::boundary() const
@@ -1092,9 +1092,9 @@ OrangeTrackView::next_surf() const
 }
 
 /*!
- * The level of the next surface to be encountered.
+ * The universe depth of the next surface to be encountered.
  */
-CELER_FORCEINLINE_FUNCTION ImplLevelId OrangeTrackView::next_surface_level() const
+CELER_FORCEINLINE_FUNCTION UnivDepthId OrangeTrackView::next_surface_udepth() const
 {
     return states_.next_level[track_slot_];
 }
@@ -1103,9 +1103,9 @@ CELER_FORCEINLINE_FUNCTION ImplLevelId OrangeTrackView::next_surface_level() con
 // PRIVATE HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Iterate over levels 1 to N to find the next step.
+ * Iterate over universe depths 1 to N to find the next step.
  *
- * Caller is responsible for finding the candidate next step on level 0, and
+ * Caller is responsible for finding the candidate next step on depth 0, and
  * passing the resultant Intersection object as an argument.
  */
 CELER_FUNCTION Propagation
@@ -1113,16 +1113,16 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
 {
     TrackerVisitor visit_tracker{params_};
 
-    // The level with minimum distance to intersection
-    ImplLevelId min_level{0};
+    // The depth with minimum distance to intersection
+    UnivDepthId min_udepth{0};
 
-    // Find the nearest intersection from level 0 to current level
-    // inclusive, preferring the shallowest level (i.e., lowest univ_id)
-    for (auto levelid : range(ImplLevelId{1}, this->univ_level() + 1))
+    // Find the nearest intersection from udepth 0 to current udepth
+    // inclusive, preferring the shallowest udepth (i.e., lowest univ_id)
+    for (auto ud_id : range(UnivDepthId{1}, this->udepth() + 1))
     {
-        auto univ_id = this->make_lsa(levelid).universe();
+        auto univ_id = this->make_lsa(ud_id).universe();
         auto local_isect = visit_tracker(
-            [local_state = this->make_local_state(levelid), &isect](auto&& t) {
+            [local_state = this->make_local_state(ud_id), &isect](auto&& t) {
                 return t.intersect(local_state, isect.distance);
             },
             univ_id);
@@ -1130,7 +1130,7 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
         if (local_isect.distance < isect.distance)
         {
             isect = local_isect;
-            min_level = levelid;
+            min_udepth = ud_id;
         }
     }
 
@@ -1138,8 +1138,8 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     this->next_surf(isect.surface);
     if (isect)
     {
-        // Save level corresponding to the intersection
-        this->next_surface_level(min_level);
+        // Save udepth corresponding to the intersection
+        this->next_surface_udepth(min_udepth);
     }
 
     Propagation result;
@@ -1153,8 +1153,8 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
  * Find the distance to the nearest boundary in any direction.
  *
  * The safety distance at a given point is the minimum safety distance over all
- * levels, since surface deduplication can potentionally elide bounding
- * surfaces at more deeply embedded levels.
+ * universe depths, since surface deduplication can potentionally elide
+ * bounding surfaces at more deeply embedded universe depths.
  */
 CELER_FUNCTION real_type OrangeTrackView::find_safety()
 {
@@ -1164,9 +1164,9 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
 
     real_type min_safety_dist = numeric_limits<real_type>::infinity();
 
-    for (auto lev : range(this->univ_level() + 1))
+    for (auto ud_id : range(this->udepth() + 1))
     {
-        auto lsa = this->make_lsa(lev);
+        auto lsa = this->make_lsa(ud_id);
         auto sd = visit_tracker(
             [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
             lsa.universe());
@@ -1223,16 +1223,16 @@ CELER_FUNCTION detail::TempNextFace OrangeTrackView::make_temp_next() const
  * Create a local state.
  */
 CELER_FUNCTION detail::LocalState
-OrangeTrackView::make_local_state(ImplLevelId level) const
+OrangeTrackView::make_local_state(UnivDepthId ud_id) const
 {
     detail::LocalState local;
 
-    auto lsa = this->make_lsa(level);
+    auto lsa = this->make_lsa(ud_id);
 
     local.pos = lsa.pos();
     local.dir = lsa.dir();
     local.volume = lsa.vol();
-    if (level == this->surface_level())
+    if (ud_id == this->surface_udepth())
     {
         local.surface = {this->surf(), this->sense()};
     }
@@ -1277,23 +1277,23 @@ CELER_FUNCTION void OrangeTrackView::clear_next()
 
 //---------------------------------------------------------------------------//
 /*!
- * Assign the surface on the current level.
+ * Assign the surface on the current universe depth.
  */
 CELER_FUNCTION void
-OrangeTrackView::surface(ImplLevelId level, detail::OnLocalSurface surf)
+OrangeTrackView::surface(UnivDepthId ud_id, detail::OnLocalSurface surf)
 {
-    states_.surface_level[track_slot_] = level;
+    states_.surface_udepth[track_slot_] = ud_id;
     states_.surf[track_slot_] = surf.id();
     states_.sense[track_slot_] = surf.unchecked_sense();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Clear the surface on the current level.
+ * Clear the surface on the current universe depth.
  */
 CELER_FUNCTION void OrangeTrackView::clear_surface()
 {
-    states_.surface_level[track_slot_] = {};
+    states_.surface_udepth[track_slot_] = {};
     CELER_ENSURE(!this->is_on_boundary());
 }
 
@@ -1325,24 +1325,24 @@ OrangeTrackView::get_transform(DaughterId daughter_id) const
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(ImplLevelId lev) const
+CELER_FUNCTION TransformId OrangeTrackView::get_transform(UnivDepthId ud_id) const
 {
-    CELER_EXPECT(lev < this->univ_level());
-    LSA lsa(&states_, track_slot_, lev);
+    CELER_EXPECT(ud_id < this->udepth());
+    LSA lsa(&states_, track_slot_, ud_id);
     return this->get_transform(this->get_daughter(lsa));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * The "global" volume ID at a given level.
+ * The "global" volume ID at a given udepth.
  *
  * \note It is allowable to call this function when "outside", because the
  * outside in ORANGE is just a special volume.
  */
-CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id(ImplLevelId lev) const
+CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id(UnivDepthId ud_id) const
 {
-    CELER_EXPECT(lev <= this->univ_level());
-    auto lsa = this->make_lsa(lev);
+    CELER_EXPECT(ud_id <= this->udepth());
+    auto lsa = this->make_lsa(ud_id);
     auto ui = this->make_universe_indexer();
     return ui.global_volume(lsa.universe(), lsa.vol());
 }
@@ -1356,7 +1356,7 @@ CELER_FUNCTION Real3 OrangeTrackView::geo_normal() const
     CELER_EXPECT(this->is_on_boundary());
 
     auto normal = [this] {
-        auto lsa = this->make_lsa(this->surface_level());
+        auto lsa = this->make_lsa(this->surface_udepth());
         auto const& pos = lsa.pos();
         auto local_surf = this->surf();
         TrackerVisitor visit_tracker{params_};
@@ -1368,10 +1368,10 @@ CELER_FUNCTION Real3 OrangeTrackView::geo_normal() const
     // Rotate normal up to global coordinates
     auto apply_transform = TransformVisitor{params_};
     auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
-    for (auto level : range<int>(this->surface_level().get()).step(-1))
+    for (auto ud_id : range<int>(this->surface_udepth().get()).step(-1))
     {
         apply_transform(rotate_up,
-                        this->get_transform(id_cast<ImplLevelId>(level)));
+                        this->get_transform(id_cast<UnivDepthId>(ud_id)));
     }
 
     CELER_ENSURE(is_soft_unit_vector(normal));

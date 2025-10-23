@@ -1,5 +1,5 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// Copyright Celeritas contributors: see top-depth COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeData.hh
@@ -31,11 +31,11 @@ class VolumeParams;
 //! Local ID of exterior volume for unit-type universes
 inline constexpr LocalVolumeId orange_exterior_volume{0};
 
-//! ID of the top-level (global/world, level=0) universe (scene)
+//! ID of the top (root/global/world, depth=0) universe (scene)
 inline constexpr UniverseId orange_global_universe{0};
 
-//! ID of the global universe level
-inline constexpr ImplLevelId orange_global_level{0};
+//! ID of the global universe depth
+inline constexpr UnivDepthId orange_global_level{0};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -43,10 +43,10 @@ inline constexpr ImplLevelId orange_global_level{0};
  */
 struct OrangeParamsScalars
 {
-    // Maximum universe depth, i.e., depth of the universe tree DAG: its value
-    // is 1 for a non-nested geometry. It may not correspond to the depth of a
-    // Geant4 geometry since we may "inline" certain logical volumes.
-    size_type max_depth{};
+    // Depth of the universe graph: its value is 1 for a non-nested geometry.
+    // It may not correspond to the depth of a  Geant4 geometry since we may
+    // "inline" certain logical volumes.
+    size_type univ_depth{};
     size_type max_faces{};
     size_type max_intersections{};
     size_type max_logic_depth{};
@@ -61,7 +61,7 @@ struct OrangeParamsScalars
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_depth > 0 && max_faces > 0 && max_intersections > 0 && tol;
+        return univ_depth > 0 && max_faces > 0 && max_intersections > 0 && tol;
     }
 };
 
@@ -475,23 +475,23 @@ struct OrangeStateData
 
     // Note: this is duplicated from the associated OrangeParamsData .
     // It defines the stride into the preceding pseudo-2D Collections (pos,
-    // dir, ..., etc.)
-    size_type max_depth{0};
+    // dir, ..., etc.) and is one past the *maximum* value of any udepth
+    size_type univ_depth{0};
 
     // State with dimensions {num_tracks}
-    StateItems<LevelId> level;
-    StateItems<LevelId> surface_level;
+    StateItems<DepthId> udepth;
+    StateItems<DepthId> surface_udepth;
     StateItems<LocalSurfaceId> surf;
     StateItems<Sense> sense;
     StateItems<BoundaryResult> boundary;
 
     // "Local" state, needed for Shift {num_tracks}
-    StateItems<LevelId> next_level;
+    StateItems<DepthId> next_level;
     StateItems<real_type> next_step;
     StateItems<LocalSurfaceId> next_surf;
     StateItems<Sense> next_sense;
 
-    // State with dimensions {num_tracks, max_depth}
+    // State with dimensions {num_tracks, univ_depth}
     Items<Real3> pos;
     Items<Real3> dir;
     Items<LocalVolumeId> vol;
@@ -511,9 +511,9 @@ struct OrangeStateData
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return max_depth > 0
-            && !level.empty()
-            && surface_level.size() == this->size()
+        return univ_depth > 0
+            && !udepth.empty()
+            && surface_udepth.size() == this->size()
             && surf.size() == this->size()
             && sense.size() == this->size()
             && boundary.size() == this->size()
@@ -521,10 +521,10 @@ struct OrangeStateData
             && next_step.size() == this->size()
             && next_surf.size() == this->size()
             && next_sense.size() == this->size()
-            && pos.size() == max_depth * this->size()
-            && dir.size() == max_depth  * this->size()
-            && vol.size() == max_depth  * this->size()
-            && universe.size() == max_depth  * this->size()
+            && pos.size() == univ_depth * this->size()
+            && dir.size() == univ_depth  * this->size()
+            && vol.size() == univ_depth  * this->size()
+            && universe.size() == univ_depth  * this->size()
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -533,17 +533,20 @@ struct OrangeStateData
     }
 
     //! State size
-    CELER_FUNCTION TrackSlotId::size_type size() const { return level.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const
+    {
+        return udepth.size();
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     OrangeStateData& operator=(OrangeStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        max_depth = other.max_depth;
+        univ_depth = other.univ_depth;
 
-        level = other.level;
-        surface_level = other.surface_level;
+        udepth = other.udepth;
+        surface_udepth = other.surface_udepth;
         surf = other.surf;
         sense = other.sense;
         boundary = other.boundary;
@@ -581,10 +584,10 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     CELER_EXPECT(data);
     CELER_EXPECT(num_tracks > 0);
 
-    data->max_depth = params.scalars.max_depth;
+    data->univ_depth = params.scalars.univ_depth;
 
-    resize(&data->level, num_tracks);
-    resize(&data->surface_level, num_tracks);
+    resize(&data->udepth, num_tracks);
+    resize(&data->surface_udepth, num_tracks);
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
     resize(&data->boundary, num_tracks);
@@ -594,7 +597,7 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->next_surf, num_tracks);
     resize(&data->next_sense, num_tracks);
 
-    size_type level_states = params.scalars.max_depth * num_tracks;
+    size_type level_states = params.scalars.univ_depth * num_tracks;
     resize(&data->pos, level_states);
     resize(&data->dir, level_states);
     resize(&data->vol, level_states);

@@ -16,7 +16,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access the 2D fields (i.e., {track slot, level}) of OrangeStateData.
+ * Access the 2D fields (i.e., {track slot, udepth}) of OrangeStateData.
+ *
+ * \internal The class name is from the legacy nomenclature of "level" meaning
+ * "universe depth".
  */
 class LevelStateAccessor
 {
@@ -32,7 +35,7 @@ class LevelStateAccessor
     // Construct from states and indices
     inline CELER_FUNCTION LevelStateAccessor(StateRef const* states,
                                              TrackSlotId tid,
-                                             ImplLevelId level_id);
+                                             UnivDepthId ud_id);
 
     // Copy data from another LSA
     inline CELER_FUNCTION LevelStateAccessor&
@@ -91,10 +94,10 @@ class LevelStateAccessor
 CELER_FIF
 LevelStateAccessor::LevelStateAccessor(StateRef const* states,
                                        TrackSlotId tid,
-                                       ImplLevelId level_id)
-    : s_(*states), index_(tid.get() * s_.max_depth + level_id.get())
+                                       UnivDepthId ud_id)
+    : s_(*states), index_(tid.get() * s_.univ_depth + ud_id.get())
 {
-    CELER_EXPECT(level_id < s_.max_depth);
+    CELER_EXPECT(ud_id < s_.univ_depth);
 }
 
 //---------------------------------------------------------------------------//

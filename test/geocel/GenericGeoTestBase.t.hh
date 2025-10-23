@@ -153,7 +153,7 @@ GenericGeoTestBase<HP>::unique_volume_name(GeoTrackView const& geo) const
     }
 
     auto level = geo.depth();
-    CELER_ASSERT(level && level >= LevelId{0});
+    CELER_ASSERT(level && level >= DepthId{0});
 
     std::vector<VolumeInstanceId> ids(level.get() + 1);
     geo.volume_instance_id(make_span(ids));
