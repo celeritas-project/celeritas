@@ -348,4 +348,9 @@ inline char const* accessor_unit_label()
 }
 
 //---------------------------------------------------------------------------//
+//! True if T is a Quantity
+template<class T>
+inline constexpr bool is_quantity_v = detail::IsQuantity<T>::value;
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
