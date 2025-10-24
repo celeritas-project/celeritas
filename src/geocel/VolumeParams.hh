@@ -30,11 +30,14 @@ struct Volumes;
  * class abstracts the graph of user-defined volumes, relating \em nodes
  * (VolumeId, aka logical volume) to \em edges (VolumeInstanceId, aka physical
  * volume) and providing the means to determine the \em path
- * (VolumeUniqueInstanceId, aka touchable history) of a track state. The
- * \em depth of the graph is the maximum nesting of child volumes (zero if only
- * a single world volume).
+ * (isomorphic to a VolumeUniqueInstanceId, aka touchable history) of a track
+ * state. The \em root of the graph is the world volume, and the \em level of a
+ * volume in the path is the distance to the root: zero for the root volume,
+ * one for its direct child, etc. The maximum value of the level in any path is
+ * one less than \c num_volume_levels : an array of \c VolumeId with that size
+ * can represent any path.
  *
- * In conjunction with \c GeantGeoParams this class allows conversion between
+ * In conjunction with \c GeantGeoParams, this class allows conversion between
  * the Celeritas geometry implementation and the Geant4 geometry navigation.
  *
  * \internal Construction requirements:
@@ -61,7 +64,7 @@ class VolumeParams
     using VolumeInstanceRef = VolumeInstanceId;
     //!@}
 
-    using vol_depth_uint = VolumeDepthId::size_type;
+    using vol_level_uint = VolumeLevelId::size_type;
 
   public:
     // Construct from input
@@ -76,8 +79,8 @@ class VolumeParams
     //! World volume
     VolumeId world() const { return world_; }
 
-    //! Depth of the volume DAG (a world without children is depth zero)
-    vol_depth_uint volume_depth() const { return depth_; }
+    //! Depth of the volume DAG (a world without children is 1)
+    vol_level_uint num_volume_levels() const { return num_volume_levels_; }
 
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return v_labels_.size(); }
@@ -111,7 +114,7 @@ class VolumeParams
     VolInstMap vi_labels_;
 
     VolumeId world_;
-    vol_depth_uint depth_{};
+    vol_level_uint num_volume_levels_{0};
 
     std::vector<std::vector<VolumeInstanceId>> parents_;
     std::vector<std::vector<VolumeInstanceId>> children_;

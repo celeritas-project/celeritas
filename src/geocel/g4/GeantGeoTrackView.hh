@@ -80,9 +80,9 @@ class GeantGeoTrackView
     // Get the physical volume ID in the current cell
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline VolumeDepthId volume_depth() const;
-    // Get the volume instance ID for all depths
-    inline void volume_instance_id(Span<VolumeInstanceId> depths) const;
+    inline VolumeLevelId volume_level() const;
+    // Get the volume instance ID for all levels
+    inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
 
     // Get the implementation volume ID
     inline ImplVolumeId impl_volume_id() const;
@@ -297,35 +297,36 @@ VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 /*!
  * Get the depth in the geometry hierarchy.
  */
-VolumeDepthId GeantGeoTrackView::volume_depth() const
+VolumeLevelId GeantGeoTrackView::volume_level() const
 {
     auto* touch = touch_handle_();
-    return id_cast<VolumeDepthId>(touch->GetHistoryDepth());
+    return id_cast<VolumeLevelId>(touch->GetHistoryDepth());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the volume instance ID at every level.
  *
- * The input span size must be equal to the value of "level" plus one. The
- * top-most level ("world" or level zero) starts at index zero and moves
+ * The input span size must be equal to the value of "volume_level" plus one.
+ * The top-most level ("world" or level zero) starts at index zero and moves
  * downward. Note that Geant4 uses the \em reverse nomenclature.
  */
-void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> depths) const
+void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(id_cast<VolumeDepthId>(depths.size())
-                 == this->volume_depth() + 1);
+    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
+                 == this->volume_level() + 1);
 
     auto* touch = touch_handle_();
-    auto const vol_depth = id_cast<VolumeDepthId>(touch->GetHistoryDepth());
-    for (auto vd_id : range(id_cast<VolumeDepthId>(depths.size())))
+    auto const num_vol_levels
+        = id_cast<VolumeLevelId>(touch->GetHistoryDepth());
+    for (auto vl_id : range(id_cast<VolumeLevelId>(levels.size())))
     {
         VolumeInstanceId vi_id;
-        if (G4VPhysicalVolume* pv = touch->GetVolume(vol_depth - vd_id))
+        if (G4VPhysicalVolume* pv = touch->GetVolume(num_vol_levels - vl_id))
         {
             vi_id = params_.vi_mapper->geant_to_id(*pv);
         }
-        depths[vd_id.get()] = vi_id;
+        levels[vl_id.get()] = vi_id;
     }
 }
 

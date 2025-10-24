@@ -30,11 +30,11 @@ class VolumeParams;
 //! Local ID of exterior volume for unit-type universes
 inline constexpr LocalVolumeId orange_exterior_volume{0};
 
-//! ID of the top (root/global/world, depth=0) universe (scene)
-inline constexpr UnivId orange_global_universe{0};
+//! ID of the top (root/global/world, level=0) universe (scene)
+inline constexpr UnivId orange_global_univ{0};
 
-//! ID of the global universe depth
-inline constexpr UnivDepthId orange_global_depth{0};
+//! ID of the global universe
+inline constexpr UnivLevelId orange_global_univ_level{0};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -42,13 +42,10 @@ inline constexpr UnivDepthId orange_global_depth{0};
  */
 struct OrangeParamsScalars
 {
-    // Depth of the universe graph: its value is 1 for a non-nested geometry.
-    // It may not correspond to the depth of a  Geant4 geometry since we may
-    // "inline" certain logical volumes.
-    size_type univ_depth{};
+    size_type num_univ_levels{};
     size_type max_faces{};
     size_type max_intersections{};
-    size_type max_logic_depth{};
+    size_type max_logic_levels{};
 
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
@@ -60,7 +57,8 @@ struct OrangeParamsScalars
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return univ_depth > 0 && max_faces > 0 && max_intersections > 0 && tol;
+        return num_univ_levels > 0 && max_faces > 0 && max_intersections > 0
+               && tol;
     }
 };
 
@@ -473,19 +471,19 @@ struct OrangeStateData
     //// DATA ////
 
     // State with dimensions {num_tracks}
-    StateItems<UnivDepthId> univ_depth;
-    StateItems<UnivDepthId> surface_univ_depth;
+    StateItems<UnivLevelId> univ_level;
+    StateItems<UnivLevelId> surface_univ_level;
     StateItems<LocalSurfaceId> surf;
     StateItems<Sense> sense;
     StateItems<BoundaryResult> boundary;
 
     // "Local" state, needed for Shift {num_tracks}
-    StateItems<UnivDepthId> next_univ_depth;
+    StateItems<UnivLevelId> next_univ_level;
     StateItems<real_type> next_step;
     StateItems<LocalSurfaceId> next_surf;
     StateItems<Sense> next_sense;
 
-    // State with dimensions {num_tracks, scalars.univ_depth}
+    // State with dimensions {num_tracks, scalars.univ_level}
     Items<Real3> pos;
     Items<Real3> dir;
     Items<LocalVolumeId> vol;
@@ -505,12 +503,12 @@ struct OrangeStateData
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return !univ_depth.empty()
-            && surface_univ_depth.size() == this->size()
+        return !univ_level.empty()
+            && surface_univ_level.size() == this->size()
             && surf.size() == this->size()
             && sense.size() == this->size()
             && boundary.size() == this->size()
-            && next_univ_depth.size() == this->size()
+            && next_univ_level.size() == this->size()
             && next_step.size() == this->size()
             && next_surf.size() == this->size()
             && next_sense.size() == this->size()
@@ -528,7 +526,7 @@ struct OrangeStateData
     //! State size
     CELER_FUNCTION TrackSlotId::size_type size() const
     {
-        return univ_depth.size();
+        return univ_level.size();
     }
 
     //! Assign from another set of data
@@ -537,13 +535,13 @@ struct OrangeStateData
     {
         CELER_EXPECT(other);
 
-        univ_depth = other.univ_depth;
-        surface_univ_depth = other.surface_univ_depth;
+        univ_level = other.univ_level;
+        surface_univ_level = other.surface_univ_level;
         surf = other.surf;
         sense = other.sense;
         boundary = other.boundary;
 
-        next_univ_depth = other.next_univ_depth;
+        next_univ_level = other.next_univ_level;
         next_step = other.next_step;
         next_surf = other.next_surf;
         next_sense = other.next_sense;
@@ -576,18 +574,18 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     CELER_EXPECT(data);
     CELER_EXPECT(num_tracks > 0);
 
-    resize(&data->univ_depth, num_tracks);
-    resize(&data->surface_univ_depth, num_tracks);
+    resize(&data->univ_level, num_tracks);
+    resize(&data->surface_univ_level, num_tracks);
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
     resize(&data->boundary, num_tracks);
 
-    resize(&data->next_univ_depth, num_tracks);
+    resize(&data->next_univ_level, num_tracks);
     resize(&data->next_step, num_tracks);
     resize(&data->next_surf, num_tracks);
     resize(&data->next_sense, num_tracks);
 
-    size_type num_track_univ = params.scalars.univ_depth * num_tracks;
+    size_type num_track_univ = params.scalars.num_univ_levels * num_tracks;
     resize(&data->pos, num_track_univ);
     resize(&data->dir, num_track_univ);
     resize(&data->vol, num_track_univ);

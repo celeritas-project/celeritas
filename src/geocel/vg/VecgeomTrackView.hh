@@ -97,10 +97,10 @@ class VecgeomTrackView
     // Get the ID of the current volume instance
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline CELER_FUNCTION VolumeDepthId volume_depth() const;
-    // Get the volume instance ID for all depths
+    inline CELER_FUNCTION VolumeLevelId volume_level() const;
+    // Get the volume instance ID for all levels
     inline CELER_FUNCTION void
-    volume_instance_id(Span<VolumeInstanceId> depths) const;
+    volume_instance_id(Span<VolumeInstanceId> levels) const;
 
     // Get the current volume's ID
     inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
@@ -210,8 +210,8 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     : params_(params)
     , state_(states)
     , tid_(tid)
-    , vgstate_(states.vgstate.at(params_.scalars.volume_depth, tid))
-    , vgnext_(states.vgnext.at(params_.scalars.volume_depth, tid))
+    , vgstate_(states.vgstate.at(params_.scalars.num_volume_levels, tid))
+    , vgnext_(states.vgnext.at(params_.scalars.num_volume_levels, tid))
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
 #if CELERITAS_VECGEOM_SURFACE
@@ -307,26 +307,26 @@ CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
 /*!
  * Get the depth in the geometry hierarchy.
  */
-CELER_FUNCTION VolumeDepthId VecgeomTrackView::volume_depth() const
+CELER_FUNCTION VolumeLevelId VecgeomTrackView::volume_level() const
 {
-    return id_cast<VolumeDepthId>(vgstate_.GetLevel());
+    return id_cast<VolumeLevelId>(vgstate_.GetLevel());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume instance ID at each volume depth.
+ * Get the volume instance ID at each volume level.
  */
 CELER_FUNCTION void
-VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> depths) const
+VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(id_cast<VolumeDepthId>(depths.size())
-                 == this->volume_depth() + 1);
-    for (auto lev : range(depths.size()))
+    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
+                 == this->volume_level() + 1);
+    for (auto lev : range(levels.size()))
     {
         vecgeom::VPlacedVolume const* pv = vgstate_.At(lev);
         CELER_ASSERT(pv);
         auto ipv_id = id_cast<ImplVolInstanceId>(pv->id());
-        depths[lev] = params_.volume_instances[ipv_id];
+        levels[lev] = params_.volume_instances[ipv_id];
     }
 }
 

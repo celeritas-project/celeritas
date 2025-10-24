@@ -225,7 +225,7 @@ auto UnitProto::daughters() const -> VecProto
 void UnitProto::build(ProtoBuilder& input) const
 {
     // Bounding box should be finite if and only if this is the global universe
-    CELER_EXPECT((input.next_id() == orange_global_universe)
+    CELER_EXPECT((input.next_id() == orange_global_univ)
                  == !input.bbox(input.next_id()));
 
     ScopedProfiling profile_this{"orange-unitproto"};
@@ -358,7 +358,7 @@ void UnitProto::build(ProtoBuilder& input) const
     auto vol_iter = result.volumes.begin();
 
     // Save attributes for exterior volume
-    if (input.next_id() != orange_global_universe)
+    if (input.next_id() != orange_global_univ)
     {
         vol_iter->zorder = ZOrder::implicit_exterior;
         vol_iter->flags |= VolumeRecord::implicit_vol;

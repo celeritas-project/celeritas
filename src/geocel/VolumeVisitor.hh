@@ -210,7 +210,7 @@ void VolumeVisitor<VA>::operator()(F&& visit, VolumeRef top)
 /*!
  * Add child instances from the current volume to the queue.
  *
- * \arg depth Depth of the given volume
+ * \arg depth Level of the given volume (zero for root)
  */
 template<class VA>
 void VolumeVisitor<VA>::add_children(VolumeInstanceRef vi, int depth)

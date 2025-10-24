@@ -118,9 +118,9 @@ void to_json(nlohmann::json& j, OrangeTrackView const& view)
                         view.scalars().host_volume_params};
 
     nlohmann::json levels = nlohmann::json::array();
-    for (auto ud_id : range(view.univ_depth() + 1))
+    for (auto ulev_id : range(view.univ_level() + 1))
     {
-        levels.push_back(id_to_json(view.make_lsa(ud_id)));
+        levels.push_back(id_to_json(view.make_lsa(ulev_id)));
     }
 
     j = {

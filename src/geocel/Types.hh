@@ -45,14 +45,14 @@ using GeoMatId = OpaqueId<struct GeoMaterial_>;
 //! Combined boundary/interface surface identifier
 using SurfaceId = OpaqueId<struct Surface_, unsigned int>;
 
-//! Type-safe depth in the volume graph (zero for world)
-using VolumeDepthId = OpaqueId<struct Depth_, unsigned int>;
-
 //! Identifier for a canonical geometry volume that may be repeated
 using VolumeId = OpaqueId<struct Volume_, unsigned int>;
 
 //! Identifier for an instance of a geometry volume (aka physical/placed)
 using VolumeInstanceId = OpaqueId<struct VolumeInstance_, unsigned int>;
+
+//! Type-safe depth in the volume graph (zero for world)
+using VolumeLevelId = OpaqueId<struct VolumeLevel_, unsigned int>;
 
 //! Identifier for a unique volume in global space (aka touchable)
 using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;

@@ -71,7 +71,7 @@ size_type DepthCalculator::operator()(UnivId univ_id)
 {
     CELER_EXPECT(univ_id < num_univ_);
     // Check for cached value
-    auto&& [iter, inserted] = depths_.insert({univ_id, {}});
+    auto&& [iter, inserted] = levels_.insert({univ_id, {}});
     if (inserted)
     {
         // Visit and save value

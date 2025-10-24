@@ -507,7 +507,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     inplace_max<size_type>(&scalars.max_faces, output.faces.size());
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
-    inplace_max<size_type>(&scalars.max_logic_depth, depth);
+    inplace_max<size_type>(&scalars.max_logic_levels, depth);
 
     return output;
 }

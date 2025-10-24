@@ -17,9 +17,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Access the 2D fields (i.e., {track slot, udepth}) of OrangeStateData.
- *
- * \internal The class name is from the legacy nomenclature of "level" meaning
- * "universe depth".
  */
 class LevelStateAccessor
 {
@@ -34,7 +31,7 @@ class LevelStateAccessor
     inline CELER_FUNCTION LevelStateAccessor(OrangeParamsScalars const& scalars,
                                              StateRef const* states,
                                              TrackSlotId tid,
-                                             UnivDepthId ud_id);
+                                             UnivLevelId ulev_id);
 
     LevelStateAccessor(LevelStateAccessor const&) = default;
     LevelStateAccessor(LevelStateAccessor&&) = default;
@@ -102,10 +99,11 @@ CELER_FUNCTION
 LevelStateAccessor::LevelStateAccessor(OrangeParamsScalars const& scalars,
                                        StateRef const* states,
                                        TrackSlotId tid,
-                                       UnivDepthId ud_id)
-    : states_(states), index_(tid.get() * scalars.univ_depth + ud_id.get())
+                                       UnivLevelId ulev_id)
+    : states_(states)
+    , index_(tid.get() * scalars.num_univ_levels + ulev_id.get())
 {
-    CELER_EXPECT(ud_id < scalars.univ_depth);
+    CELER_EXPECT(ulev_id < scalars.num_univ_levels);
 }
 
 //---------------------------------------------------------------------------//

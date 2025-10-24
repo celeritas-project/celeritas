@@ -45,10 +45,10 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 
     // Save param scalars
     obj["scalars"] = {
-        OPO_PAIR(data.scalars, univ_depth),
+        OPO_PAIR(data.scalars, num_univ_levels),
         OPO_PAIR(data.scalars, max_faces),
         OPO_PAIR(data.scalars, max_intersections),
-        OPO_PAIR(data.scalars, max_logic_depth),
+        OPO_PAIR(data.scalars, max_logic_levels),
         OPO_PAIR(data.scalars, tol),
     };
 

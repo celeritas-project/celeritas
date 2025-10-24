@@ -35,7 +35,7 @@ using fast_real_type = float;
 using logic_int = size_type;
 
 //! Integer type for volume tree depth
-using vol_depth_uint = VolumeDepthId::size_type;
+using vol_level_uint = VolumeLevelId::size_type;
 
 //! Helper class for some template dispatch functions
 template<Axis T>
@@ -82,12 +82,12 @@ using TransformId = OpaqueId<struct TransformRecord>;
 //! Identifier for a relocatable set of volumes
 using UnivId = OpaqueId<struct Universe_>;
 
-//! Universe depth, not necessarily canonical volume depth
-using UnivDepthId = OpaqueId<struct UnivDepth_, vol_depth_uint>;
+//! Universe depth, not necessarily canonical volume level
+using UnivLevelId = OpaqueId<struct UnivDepth_, vol_level_uint>;
 
 //// DEPRECATED ALIASES (to be removed in v1.0) ////
 
-using LevelId [[deprecated("use UnivDepthId")]] = UnivDepthId;
+using LevelId [[deprecated("use UnivLevelId")]] = UnivLevelId;
 
 using UniverseId [[deprecated("use UnivId")]] = UnivId;
 

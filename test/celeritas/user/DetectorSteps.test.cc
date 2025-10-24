@@ -56,7 +56,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
             .insert_back(detectors.begin(), detectors.end());
 
         host_data.selection = this->selection();
-        host_data.volume_instance_depth = 4;
+        host_data.num_volume_levels = 4;
 
         params_ = CollectionMirror<StepParamsData>(std::move(host_data));
 
@@ -98,7 +98,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
         HostStates result;
         resize(&result, this->params(), StreamId{0}, count);
         auto& step = result.data;
-        result.volume_instance_depth = this->params().volume_instance_depth;
+        result.num_volume_levels = this->params().num_volume_levels;
 
         // Fill with bogus data
         int i = 0;
@@ -122,16 +122,15 @@ class DetectorStepsTest : public ::celeritas::test::Test
                 {
                     using ViId = ItemId<VolumeInstanceId>;
                     auto depth = tid.unchecked_get() % 4;
-                    for (auto j : range(result.volume_instance_depth))
+                    for (auto j : range(result.num_volume_levels))
                     {
                         VolumeInstanceId val;
                         if (j <= depth)
                         {
                             val = id_cast<VolumeInstanceId>((j + i) % 8);
                         }
-                        ViId vi_id{result.volume_instance_depth
-                                       * tid.unchecked_get()
-                                   + j};
+                        ViId vi_id{
+                            result.num_volume_levels * tid.unchecked_get() + j};
                         state_point.volume_instance_ids[vi_id] = val;
                     }
                 }

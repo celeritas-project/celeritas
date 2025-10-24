@@ -279,7 +279,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
         auto lsa = LevelStateAccessor(this->host_params().scalars,
                                       &result_ref,
                                       TrackSlotId{i},
-                                      UnivDepthId{0});
+                                      UnivLevelId{0});
         lsa.pos() = sample_box(rng);
         lsa.dir() = sample_isotropic(rng);
     }
@@ -287,7 +287,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     // Clear other data
     fill(LocalVolumeId{}, &result.vol);
     fill(LocalSurfaceId{}, &result.surf);
-    fill(UnivDepthId{}, &result.univ_depth);
+    fill(UnivLevelId{}, &result.univ_level);
 
     CELER_ENSURE(result);
     return result;
@@ -303,7 +303,7 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
 {
     CELER_EXPECT(host);
     CELER_EXPECT(wall_time > 0);
-    CELER_EXPECT(this->geometry()->univ_depth() == 1);
+    CELER_EXPECT(this->geometry()->num_univ_levels() == 1);
     std::vector<size_type> counts(this->num_volumes());
     size_type error_count{};
 
@@ -311,7 +311,7 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
     {
         auto tid = TrackSlotId{i};
         LevelStateAccessor lsa(
-            this->host_params().scalars, &host, tid, UnivDepthId{0});
+            this->host_params().scalars, &host, tid, UnivLevelId{0});
         auto vol = lsa.vol();
 
         if (vol < counts.size())

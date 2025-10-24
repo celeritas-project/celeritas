@@ -115,7 +115,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 
     // Construct the hierarchy of protos
     detail::ProtoMap const protos{global};
-    CELER_ASSERT(protos.find(&global) == orange_global_universe);
+    CELER_ASSERT(protos.find(&global) == orange_global_univ);
     if (!opts_.objects_output_file.empty())
     {
         write_objects(protos, opts_.objects_output_file);
