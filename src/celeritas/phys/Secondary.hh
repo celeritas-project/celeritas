@@ -18,9 +18,6 @@ namespace celeritas
  *
  * It will be converted into a "track initializer" using the parent track's
  * information.
- *
- * \internal The constructors are defined out-of-line to try to avoid strange
- * link errors: see issue #118
  */
 struct Secondary
 {
@@ -28,22 +25,12 @@ struct Secondary
     units::MevEnergy energy{};  //!< New kinetic energy
     Real3 direction{};  //!< New direction
 
-    //// CONSTRUCTORS ////
-
-    inline CELER_FUNCTION Secondary();
-
-    //// CONSTRUCTORS ////
-
     //! Whether the secondary survived cutoffs
     explicit CELER_FUNCTION operator bool() const
     {
         return static_cast<bool>(this->particle_id);
     }
 };
-
-//---------------------------------------------------------------------------//
-// Explicitly define secondary constructor out of line to work around NVCC bug
-CELER_FUNCTION Secondary::Secondary() {}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
