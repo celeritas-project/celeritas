@@ -9,7 +9,6 @@
 #include <type_traits>
 
 #include "corecel/Macros.hh"
-#include "corecel/math/Constant.hh"
 #include "corecel/math/NumericLimits.hh"
 
 namespace celeritas

@@ -290,6 +290,26 @@ inline CELER_FUNCTION IdT id_cast(U value) noexcept(!CELERITAS_DEBUG)
 }
 
 //---------------------------------------------------------------------------//
+// TRAITS
+//---------------------------------------------------------------------------//
+
+template<class T, class>
+struct LdgTraits;
+
+// Set up cached const global loading for OpaqueId
+template<class I, class T>
+struct LdgTraits<OpaqueId<I, T>, void>
+{
+    using underlying_type = T;
+
+    static CELER_CONSTEXPR_FUNCTION underlying_type const*
+    data(OpaqueId<I, T> const* ptr)
+    {
+        return ptr->data();
+    }
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
 
 //---------------------------------------------------------------------------//

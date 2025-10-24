@@ -11,27 +11,49 @@
 #include <type_traits>
 
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueId.hh"
-#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/math/Algorithms.hh"
-#include "corecel/math/Quantity.hh"
 
-#include "detail/LdgIteratorImpl.hh"
+#include "LdgTraits.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! True if T is supported by a LdgLoader specialization
+//! Whether a type is supported by __ldg
 template<class T>
 inline constexpr bool is_ldg_supported_v
-    = std::is_const_v<T>
-      && (std::is_arithmetic_v<T> || is_opaque_id_v<T> || is_quantity_v<T>
-          || std::is_enum_v<T>);
+    = !std::is_void_v<typename LdgTraits<T>::underlying_type>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wrap the low-level CUDA/HIP "load read-only global memory" function.
+ *
+ * This low-level capability allows improved caching because we're \em
+ * promising that the data is not mem. For CUDA the load is cached
+ *
+ * \warning The target address must be read-only for the lifetime of the
+ * kernel. This is generally true for Params data but not State data.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T ldg(T const* ptr)
+{
+    using TraitsT = LdgTraits<T>;
+    using underlying_type = typename TraitsT::underlying_type;
+    static_assert(std::is_arithmetic_v<underlying_type>,
+                  "Only types with arithmetic underlying types are supported "
+                  "by __ldg");
+
+    auto const* data_ptr = TraitsT::data(ptr);
+#if CELER_DEVICE_COMPILE
+    return T{__ldg(data_ptr)};
+#else
+    return T{*data_ptr};
+#endif
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Iterator for read-only device data in global memory.
+ * \tparam T value type being accessed
  *
  * This wraps pointer accesses with the \c __ldg intrinsic to load
  * read-only data using texture cache.
@@ -39,20 +61,17 @@ inline constexpr bool is_ldg_supported_v
 template<class T>
 class LdgIterator
 {
-    static_assert(is_ldg_supported_v<T>,
-                  "LdgIterator requires const arithmetic, OpaqueId or "
-                  "enum type");
-
-  private:
-    using LoadPolicyT = detail::LdgLoader<T>;
+    using TraitsT = LdgTraits<T>;
+    static_assert(std::is_const_v<T>,
+                  "LDG access can only be performed for constant data");
 
   public:
     //!@{
     //! \name Type aliases
     using difference_type = std::ptrdiff_t;
-    using value_type = typename LoadPolicyT::value_type;
-    using pointer = typename LoadPolicyT::pointer;
-    using reference = typename LoadPolicyT::reference;
+    using value_type = std::remove_const_t<T>;
+    using pointer = T*;
+    using reference = value_type;
     using iterator_category = std::random_access_iterator_tag;
     //!@}
 
@@ -71,16 +90,12 @@ class LdgIterator
     //! \name RandomAccessIterator requirements
     CELER_CONSTEXPR_FUNCTION reference operator*() const noexcept
     {
-        return LoadPolicyT::read(ptr_);
+        return ldg(ptr_);
     }
     CELER_CONSTEXPR_FUNCTION LdgIterator& operator++() noexcept
     {
         ++ptr_;
         return *this;
-    }
-    CELER_CONSTEXPR_FUNCTION void swap(LdgIterator& it) noexcept
-    {
-        ::celeritas::trivial_swap(ptr_, it.ptr_);
     }
     CELER_CONSTEXPR_FUNCTION LdgIterator operator++(int) noexcept
     {
@@ -115,7 +130,7 @@ class LdgIterator
     }
     CELER_CONSTEXPR_FUNCTION reference operator[](difference_type n) const noexcept
     {
-        return LoadPolicyT::read(ptr_ + n);
+        return ldg(ptr_ + n);
     }
     //!@}
 
@@ -240,12 +255,6 @@ operator-(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs) noexcept ->
     using pointer = typename LdgIterator<T>::pointer;
     return static_cast<pointer>(lhs) - static_cast<pointer>(rhs);
 }
-template<class T>
-CELER_CONSTEXPR_FUNCTION void
-swap(LdgIterator<T>& lhs, LdgIterator<T>& rhs) noexcept
-{
-    return lhs.swap(rhs);
-}
 //!@}
 
 //---------------------------------------------------------------------------//
@@ -260,12 +269,13 @@ template<class T>
 struct LdgValue
 {
     using value_type = T;
-    static_assert(is_ldg_supported_v<T>,
+    static_assert(std::is_const_v<T>);
+    static_assert(is_ldg_supported_v<std::remove_const_t<T>>,
                   "const arithmetic, OpaqueId or enum type required");
 };
 
 //---------------------------------------------------------------------------//
-//! Alias for a Span iterating over values read using __ldg
+//! Alias for a Span iterating over const values read using __ldg
 template<class T, std::size_t Extent = dynamic_extent>
 using LdgSpan = Span<LdgValue<T>, Extent>;
 
