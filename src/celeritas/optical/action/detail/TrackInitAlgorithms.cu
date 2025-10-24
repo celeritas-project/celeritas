@@ -18,6 +18,7 @@
 #include <thrust/iterator/transform_iterator.h>
 
 #include "corecel/Macros.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -69,37 +70,36 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     StreamT stream = s.get();
 
     // The first call just computes the number of additional bytes needed for
-    // the in-place selection. The nullptr value causes this instead of running
-    // the function.
-    void* d_temp_storage = nullptr;
+    // the in-place selection. Calling with nullptr causes this instead of
+    // invoking the kernel.
     size_t temp_storage_bytes = 0;
     // *** For testing with existing code for consistency
-    size_type* d_num_vacancies = nullptr;
-    d_num_vacancies
-        = static_cast<size_type*>(s.malloc_async(sizeof(size_type)));
+    DeviceVector<size_type> num_vacancies{1, stream_id};
     // *** For testing with existing code for consistency
 
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
-    DeviceSelect::FlaggedIf(d_temp_storage,
+    auto flags = device_pointer_cast(status.data());
+    auto result = device_pointer_cast(vacancies.data());
+    DeviceSelect::FlaggedIf(nullptr,
                             temp_storage_bytes,
                             start,
-                            status.data().get(),
-                            vacancies.data().get(),
-                            d_num_vacancies,
+                            flags,
+                            result,
+                            num_vacancies.data(),
                             vacancies.size(),
                             IsVacant{},
                             stream);
 
     // Allocate temporary storage
-    d_temp_storage = s.malloc_async(temp_storage_bytes);
+    void* d_temp_storage = s.malloc_async(temp_storage_bytes);
 
     DeviceSelect::FlaggedIf(d_temp_storage,
                             temp_storage_bytes,
                             start,
-                            status.data().get(),
-                            vacancies.data().get(),
-                            d_num_vacancies,
+                            flags,
+                            result,
+                            num_vacancies.data(),
                             vacancies.size(),
                             IsVacant{},
                             stream);
@@ -109,8 +109,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 
     // *** For testing with existing code for consistency
     // *** Replace with the appropriate GPU counter
-    auto num = ItemCopier<size_type>{stream_id}(d_num_vacancies);
-    s.free_async(d_num_vacancies);
+    auto num = ItemCopier<size_type>{stream_id}(num_vacancies.data());
     // *** For testing with existing code for consistency
 
     CELER_DEVICE_API_CALL(PeekAtLastError());
