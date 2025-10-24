@@ -9,7 +9,7 @@ spack:
     - git
     - "googletest@1.10:"
     - py-pre-commit
-    - "python@3.6:"
+    - "python@3.9:"
     # ... plus *recommended* options
     - "covfie@0.13:"
     - "g4vg@1.0.3:"

@@ -6,7 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "DielectricInteractionData.hh"
+#include "celeritas/optical/ParticleTrackView.hh"
+#include "celeritas/optical/surface/SurfacePhysicsTrackView.hh"
+#include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
+
+#include "LambertianDistribution.hh"
+#include "SurfaceInteraction.hh"
 
 namespace celeritas
 {
@@ -14,61 +19,157 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * A view into UNIFIED model grids to calculate reflection mode probabilities.
+ * Calculator for UNIFIED reflection model.
+ *
+ * The model specifies 4 different reflection modes:
+ *  1. Specular spike: geometric reflection about global normal
+ *  2. Specular lobe: geometric reflection about facet normal
+ *  3. Back-scattering: reversed photon direction and polarization
+ *  4. Diffuse Lambertian: reflection following Lambert's cosine law
  */
 class ReflectionFormCalculator
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using DataRef = NativeCRef<UnifiedReflectionData>;
-    using Energy = units::MevEnergy;
-    //!@}
-
-  public:
-    // Construct from data, surface, and energy
+    // Construct from photon and surface data
     explicit inline CELER_FUNCTION
-    ReflectionFormCalculator(DataRef const&, SubModelId, Energy);
+    ReflectionFormCalculator(Real3 const& direction,
+                             Real3 const& polarization,
+                             Real3 const& global_normal,
+                             Real3 const& facet_normal);
 
-    // Calculate probability for a specific reflection mode
-    inline CELER_FUNCTION real_type operator()(UnifiedReflectionMode) const;
+    // Construct from track views
+    explicit inline CELER_FUNCTION
+    ReflectionFormCalculator(Real3 const& inc_direction,
+                             ParticleTrackView const& photon,
+                             SurfacePhysicsTrackView const& surface_physics);
+
+    // Calculate specular spike reflection
+    inline CELER_FUNCTION SurfaceInteraction calc_specular_spike() const;
+
+    // Calculate specular lobe reflection
+    inline CELER_FUNCTION SurfaceInteraction calc_specular_lobe() const;
+
+    // Calculate back-scattering reflection
+    inline CELER_FUNCTION SurfaceInteraction calc_backscatter() const;
+
+    // Sample diffuse Lambertian reflection
+    template<class Engine>
+    inline CELER_FUNCTION SurfaceInteraction
+    sample_lambertian_reflection(Engine& rng) const;
 
   private:
-    DataRef const& data_;
-    SubModelId surface_;
-    Energy energy_;
+    Real3 const& direction_;
+    Real3 const& polarization_;
+    Real3 const& global_normal_;
+    Real3 const& facet_normal_;
+
+    // Calculate specular reflection about the given normal
+    inline CELER_FUNCTION SurfaceInteraction
+    calc_specular_reflection(Real3 const& normal) const;
 };
 
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
 /*!
- * Construct from data, surface, and energy.
+ * Construct calculator from photon and surface data.
  */
 CELER_FUNCTION
-ReflectionFormCalculator::ReflectionFormCalculator(DataRef const& data,
-                                                   SubModelId surface,
-                                                   Energy energy)
-    : data_(data), surface_(surface), energy_(energy)
+ReflectionFormCalculator::ReflectionFormCalculator(Real3 const& direction,
+                                                   Real3 const& polarization,
+                                                   Real3 const& global_normal,
+                                                   Real3 const& facet_normal)
+    : direction_(direction)
+    , polarization_(polarization)
+    , global_normal_(global_normal)
+    , facet_normal_(facet_normal)
 {
-    CELER_EXPECT(surface_ < data_.size());
+    CELER_EXPECT(is_soft_unit_vector(global_normal_));
+    CELER_EXPECT(is_soft_unit_vector(facet_normal_));
+    CELER_EXPECT(is_entering_surface(direction_, global_normal_));
+    CELER_EXPECT(is_entering_surface(direction_, facet_normal_));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate probability for the given reflection mode.
- *
- * Only the specular spike, specular lobe, and back-scattering probabilities
- * are defined as grids in the data. The diffuse Lambertian mode is the
- * remaining probability.
+ * Construct calculator from a given track's views.
  */
-CELER_FUNCTION real_type
-ReflectionFormCalculator::operator()(UnifiedReflectionMode mode) const
+CELER_FUNCTION ReflectionFormCalculator::ReflectionFormCalculator(
+    Real3 const& inc_direction,
+    ParticleTrackView const& photon,
+    SurfacePhysicsTrackView const& surface_physics)
+    : ReflectionFormCalculator(inc_direction,
+                               photon.polarization(),
+                               surface_physics.global_normal(),
+                               surface_physics.facet_normal())
 {
-    NonuniformGridCalculator calc{data_.reflection_grids[mode][surface_],
-                                  data_.reals};
-    real_type result = calc(value_as<Energy>(energy));
-    CELER_ENSURE(result >= 0 && result <= 1);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate specular spike reflection.
+ *
+ * This is geometric reflection about the global normal.
+ */
+CELER_FUNCTION SurfaceInteraction
+ReflectionFormCalculator::calc_specular_spike() const
+{
+    return this->calc_specular_reflection(global_normal_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate specular lobe reflection.
+ *
+ * This is geometric reflection about the facet normal.
+ */
+CELER_FUNCTION SurfaceInteraction
+ReflectionFormCalculator::calc_specular_lobe() const
+{
+    return this->calc_specular_reflection(facet_normal_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate back-scattering reflection.
+ *
+ * The photon direction and polarization are reversed.
+ */
+CELER_FUNCTION SurfaceInteraction ReflectionFormCalculator::calc_backscatter() const
+{
+    SurfaceInteraction result;
+    result.action = SurfaceInteraction::Action::reflected;
+    result.direction = -direction_;
+    result.polarization = -polarization_;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample diffuse Lambertian reflection.
+ *
+ * Ideal diffuse reflection following Lambert's cosine law.
+ */
+template<class Engine>
+CELER_FUNCTION SurfaceInteraction
+ReflectionFormCalculator::sample_lambertian_reflection(Engine& rng) const
+{
+    SurfaceInteraction result;
+    result.action = SurfaceInteraction::Action::reflected;
+    result.direction = LambertianDistribution{global_normal_}(rng);
+    // \todo get correct polarization?
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to calculate geometric reflection about a given normal.
+ */
+CELER_FUNCTION SurfaceInteraction
+ReflectionFormCalculator::calc_specular_reflection(Real3 const& normal) const
+{
+    SurfaceInteraction result;
+    result.action = SurfaceInteraction::Action::reflected;
+    result.direction = geometric_reflected_from(direction_, normal);
+    result.polarization = -geometric_reflected_from(polarization_, normal);
     return result;
 }
 

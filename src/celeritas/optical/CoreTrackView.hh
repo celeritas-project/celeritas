@@ -57,6 +57,9 @@ class CoreTrackView
     // Return a material view (using an existing geo view)
     inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
 
+    // Return a material view for a specific optical material
+    inline CELER_FUNCTION MaterialView material_record(OptMatId) const;
+
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
 
@@ -176,6 +179,18 @@ CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
     return MaterialView{params_.material, geo.impl_volume_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a material view for a specific optical material ID.
+ */
+CELER_FUNCTION auto CoreTrackView::material_record(OptMatId opt_mat) const
+    -> MaterialView
+{
+    auto material = MaterialView{params_.material, opt_mat};
+    CELER_ENSURE(material);
+    return material;
 }
 
 //---------------------------------------------------------------------------//

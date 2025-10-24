@@ -70,6 +70,14 @@ enum class ReflectionMode
     size_ = diffuse_lobe,
 };
 
+//! Trivial interaction modes
+enum class TrivialInteractionMode
+{
+    absorb,  //!< absorb on surface
+    transmit,  //!< transmit with no change
+    backscatter,  //!< back scatter
+};
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
