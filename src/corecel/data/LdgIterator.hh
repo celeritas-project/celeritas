@@ -28,7 +28,9 @@ inline constexpr bool is_ldg_supported_v
  * Wrap the low-level CUDA/HIP "load read-only global memory" function.
  *
  * This low-level capability allows improved caching because we're \em
- * promising that the data is not mem. For CUDA the load is cached
+ * promising that the data is not mem. For CUDA the load is cached in
+ * L1/texture memory, theoretically improving performance if repeatedly
+ * accessed.
  *
  * \warning The target address must be read-only for the lifetime of the
  * kernel. This is generally true for Params data but not State data.
@@ -64,6 +66,8 @@ class LdgIterator
     using TraitsT = LdgTraits<T>;
     static_assert(std::is_const_v<T>,
                   "LDG access can only be performed for constant data");
+    static_assert(is_ldg_supported_v<T>,
+                  "LDG access is limited to certain primitive types");
 
   public:
     //!@{

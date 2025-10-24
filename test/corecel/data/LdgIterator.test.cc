@@ -174,6 +174,17 @@ TEST_F(LdgIteratorTest, enum_class)
     EXPECT_EQ(Color::g, *(end - 1));
 }
 
+#ifdef CELERITAS_SHOULD_NOT_COMPILE
+// Note that this will fail to compile due to the invalid type
+TEST_F(LdgIteratorTest, invalid_type)
+{
+    std::pair<int, int> ints;
+
+    LdgIterator start{&ints};
+    EXPECT_EQ(&ints, &(*start));
+}
+#endif
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

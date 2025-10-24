@@ -31,6 +31,7 @@ struct LdgTraits
     }
 };
 
+//---------------------------------------------------------------------------//
 /*!
  * Specialization for arithmetic types.
  */
@@ -45,6 +46,7 @@ struct LdgTraits<T, std::enable_if_t<std::is_arithmetic_v<T>>>
     }
 };
 
+//---------------------------------------------------------------------------//
 /*!
  * Specialization for enum types.
  */
