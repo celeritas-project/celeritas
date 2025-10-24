@@ -118,12 +118,18 @@ struct BackgroundInput
 struct UnitInput
 {
     using MapVolumeDaughter = std::map<LocalVolumeId, DaughterInput>;
+    using MapLocalParent = std::map<LocalVolumeId, LocalVolumeId>;
 
     std::vector<VariantSurface> surfaces;
     std::vector<VolumeInput> volumes;
-    BBox bbox;  //!< Outer bounding box
-    MapVolumeDaughter daughter_map;
+    //! Outer bounding box
+    BBox bbox;
 
+    //! The given local volume is replaced by a transformed universe
+    MapVolumeDaughter daughter_map;
+    //! The given local volume is structurally "inside" another local volume
+    MapLocalParent local_parent_map;
+    //! Metadata for the volume that represents the boundary of the unit
     BackgroundInput background;
 
     // Unit metadata
