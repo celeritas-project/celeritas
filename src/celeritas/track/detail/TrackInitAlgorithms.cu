@@ -22,6 +22,7 @@
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Macros.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Device.hh"
@@ -75,40 +76,38 @@ size_type remove_if_alive(
     NotEqual select_op(-1);
 
     // The first call just computes the number of additional bytes needed for
-    // the in-place selection. The nullptr value causes this instead of running
-    // the function.
-    void* d_temp_storage = nullptr;
+    // the in-place selection. Calling with nullptr causes this instead of
+    // invoking the kernel.
     size_t temp_storage_bytes = 0;
     // *** For testing with existing code for consistency
     // *** Instead, we should place the result in the appropriate GPU variable
-    size_type* d_num_not_active = nullptr;
     // *** For testing with existing code for consistency
 
     // *** Allocate temporary storage
     // *** For testing with existing code for consistency
-    d_num_not_active
-        = static_cast<size_type*>(s.malloc_async(sizeof(size_type)));
+    DeviceVector<size_type> num_not_active{1, stream_id};
+    auto data = device_pointer_cast(vacancies.data());
     // *** For testing with existing code for consistency
 
     // *** First call and memory allocation/deallocation for temp space should
     // *** probably go in ExtendFromSecondariesAction.cu::begin_run()
     // *** Put the exclusive sum allocation there, too?
-    DeviceSelect::If(d_temp_storage,
+    DeviceSelect::If(nullptr,
                      temp_storage_bytes,
-                     vacancies.data().get(),
-                     d_num_not_active,
+                     data,
+                     num_not_active.data(),
                      vacancies.size(),
                      select_op,
                      stream);
 
     // Allocate temporary storage
-    d_temp_storage = s.malloc_async(temp_storage_bytes);
+    void* d_temp_storage = s.malloc_async(temp_storage_bytes);
 
     // Run selection
     DeviceSelect::If(d_temp_storage,
                      temp_storage_bytes,
-                     vacancies.data().get(),
-                     d_num_not_active,
+                     data,
+                     num_not_active.data(),
                      vacancies.size(),
                      select_op,
                      stream);
@@ -118,8 +117,7 @@ size_type remove_if_alive(
 
     // *** For testing with existing code for consistency
     // *** Replace with the num_vacancies counter
-    auto num = ItemCopier<size_type>{stream_id}(d_num_not_active);
-    s.free_async(d_num_not_active);
+    auto num = ItemCopier<size_type>{stream_id}(num_not_active.data());
 
     // *** For testing with existing code for consistency
 
@@ -163,30 +161,24 @@ size_type exclusive_scan_counts(
     // (2) See (1) and change to void function
 
     // The first call just computes the number of additional bytes needed for
-    // the in-place exclusive scan. The nullptr value causes this instead of
-    // running the function
+    // the in-place selection. Calling with nullptr causes this instead of
+    // invoking the kernel.
 
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     Stream& s = device().stream(stream_id);
     StreamT stream = s.get();
 
-    void* d_temp_storage = nullptr;
     size_t temp_storage_bytes = 0;
-    DeviceScan::ExclusiveSum(d_temp_storage,
-                             temp_storage_bytes,
-                             counts.data().get(),
-                             counts.size(),
-                             stream);
+    auto data = device_pointer_cast(counts.data());
+    DeviceScan::ExclusiveSum(
+        nullptr, temp_storage_bytes, data, counts.size(), stream);
 
     // Allocate temporary storage
-    d_temp_storage = s.malloc_async(temp_storage_bytes);
+    void* d_temp_storage = s.malloc_async(temp_storage_bytes);
 
     // Run exclusive prefix sum
-    DeviceScan::ExclusiveSum(d_temp_storage,
-                             temp_storage_bytes,
-                             counts.data().get(),
-                             counts.size(),
-                             stream);
+    DeviceScan::ExclusiveSum(
+        d_temp_storage, temp_storage_bytes, data, counts.size(), stream);
 
     // Deallocate temporary storage
     s.free_async(d_temp_storage);
