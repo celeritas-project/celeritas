@@ -140,7 +140,7 @@ UnivId RectArrayInserter::operator()(RectArrayInput const& inp)
     rect_arrays_.push_back(record);
 
     // Construct universe
-    return (*insert_universe_)(UniverseType::rect_array,
+    return (*insert_universe_)(UnivType::rect_array,
                                inp.label,
                                std::move(surface_labels),
                                make_volume_labels(inp));

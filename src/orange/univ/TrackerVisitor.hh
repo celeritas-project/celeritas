@@ -11,7 +11,7 @@
 
 #include "RectArrayTracker.hh"
 #include "SimpleUnitTracker.hh"
-#include "UniverseTypeTraits.hh"
+#include "UnivTypeTraits.hh"
 
 namespace celeritas
 {
@@ -68,18 +68,18 @@ CELER_FUNCTION TrackerVisitor::TrackerVisitor(ParamsRef const& params)
 template<class F>
 CELER_FUNCTION decltype(auto) TrackerVisitor::operator()(F&& func, UnivId id)
 {
-    CELER_EXPECT(id < params_.universe_types.size());
-    size_type universe_idx = params_.universe_indices[id];
+    CELER_EXPECT(id < params_.univ_types.size());
+    size_type univ_idx = params_.univ_indices[id];
 
     // Apply type-deleted functor based on type
-    return visit_universe_type(
+    return visit_univ_type(
         [&](auto u_traits) {
             using UTraits = decltype(u_traits);
             using UId = OpaqueId<typename UTraits::record_type>;
             using Tracker = typename UTraits::tracker_type;
-            return func(Tracker{params_, UId{universe_idx}});
+            return func(Tracker{params_, UId{univ_idx}});
         },
-        params_.universe_types[id]);
+        params_.univ_types[id]);
 }
 #endif
 

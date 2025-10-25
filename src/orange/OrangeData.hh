@@ -351,7 +351,7 @@ struct BIHTreeData
  * determine the class type and data of the Tracker to instantiate. If *only*
  * simple units are present, then the \c simple_units data structure will just
  * be equal to a range (with the total number of universes present). Use
- * `universe_types` to switch on the type of universe; then `universe_indices`
+ * \c univ_types to switch on the type of universe; then \c universe_indices
  * to index into `simple_units` or `rect_arrays` or ...
  */
 template<Ownership W, MemSpace M>
@@ -372,8 +372,8 @@ struct OrangeParamsData
     OrangeParamsScalars scalars;
 
     // High-level universe definitions
-    UnivItems<UniverseType> universe_types;
-    UnivItems<size_type> universe_indices;
+    UnivItems<UnivType> univ_types;
+    UnivItems<size_type> univ_indices;
     Items<SimpleUnitRecord> simple_units;
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
@@ -400,22 +400,22 @@ struct OrangeParamsData
     Items<Daughter> daughters;
     Items<OrientedBoundingZoneRecord> obz_records;
 
-    UniverseIndexerData<W, M> universe_indexer_data;
+    UniverseIndexerData<W, M> univ_indexer_data;
 
     //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return scalars && !universe_types.empty()
-               && universe_indices.size() == universe_types.size()
+        return scalars && !univ_types.empty()
+               && univ_indices.size() == univ_types.size()
                && !volume_ids.empty()
                && volume_ids.size() == volume_instance_ids.size()
                && (bih_tree_data || !simple_units.empty())
                && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
                    || surface_types.empty())
-               && !volume_records.empty() && universe_indexer_data;
+               && !volume_records.empty() && univ_indexer_data;
     }
 
     //! Assign from another set of data
@@ -424,8 +424,8 @@ struct OrangeParamsData
     {
         scalars = other.scalars;
 
-        universe_types = other.universe_types;
-        universe_indices = other.universe_indices;
+        univ_types = other.univ_types;
+        univ_indices = other.univ_indices;
         simple_units = other.simple_units;
         rect_arrays = other.rect_arrays;
         transforms = other.transforms;
@@ -445,7 +445,7 @@ struct OrangeParamsData
         volume_records = other.volume_records;
         obz_records = other.obz_records;
         daughters = other.daughters;
-        universe_indexer_data = other.universe_indexer_data;
+        univ_indexer_data = other.univ_indexer_data;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
         return *this;
@@ -483,11 +483,11 @@ struct OrangeStateData
     StateItems<LocalSurfaceId> next_surf;
     StateItems<Sense> next_sense;
 
-    // State with dimensions {num_tracks, scalars.univ_level}
+    // State with dimensions {num_tracks, scalars.num_univ_levels}
     Items<Real3> pos;
     Items<Real3> dir;
     Items<LocalVolumeId> vol;
-    Items<UnivId> universe;
+    Items<UnivId> univ;
 
     // Scratch space with dimensions {track}{max_faces}
     Items<SenseValue> temp_sense;
@@ -515,7 +515,7 @@ struct OrangeStateData
             && pos.size() >= this->size()
             && dir.size() == pos.size()
             && vol.size() == pos.size()
-            && universe.size() == pos.size()
+            && univ.size() == pos.size()
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -549,7 +549,7 @@ struct OrangeStateData
         pos = other.pos;
         dir = other.dir;
         vol = other.vol;
-        universe = other.universe;
+        univ = other.univ;
 
         temp_sense = other.temp_sense;
 
@@ -589,7 +589,7 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->pos, num_track_univ);
     resize(&data->dir, num_track_univ);
     resize(&data->vol, num_track_univ);
-    resize(&data->universe, num_track_univ);
+    resize(&data->univ, num_track_univ);
 
     size_type num_track_face = params.scalars.max_faces * num_tracks;
     resize(&data->temp_sense, num_track_face);

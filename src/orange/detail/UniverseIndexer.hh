@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
 
@@ -34,13 +32,13 @@ class UniverseIndexer
 
     struct LocalSurface
     {
-        UnivId universe;
+        UnivId univ;
         LocalSurfaceId surface;
     };
 
     struct LocalVolume
     {
-        UnivId universe;
+        UnivId univ;
         LocalVolumeId volume;
     };
     //!@}

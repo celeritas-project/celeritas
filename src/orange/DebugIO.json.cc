@@ -77,7 +77,7 @@ struct IdToJson
     {
         CELER_EXPECT(orange);
 
-        UnivId u_id = lsa.universe();
+        UnivId u_id = lsa.univ();
 
         return {
             {"pos", lsa.pos()},
@@ -113,7 +113,7 @@ struct IdToJson
 //---------------------------------------------------------------------------//
 void to_json(nlohmann::json& j, OrangeTrackView const& view)
 {
-    IdToJson id_to_json{view.make_universe_indexer(),
+    IdToJson id_to_json{view.make_univ_indexer(),
                         view.scalars().host_geo_params,
                         view.scalars().host_volume_params};
 

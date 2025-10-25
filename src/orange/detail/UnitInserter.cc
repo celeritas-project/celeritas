@@ -419,7 +419,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     simple_units_.push_back(unit);
     auto surf_labels = make_surface_labels(inp);
     auto vol_labels = make_volume_labels(inp);
-    return (*insert_universe_)(UniverseType::simple,
+    return (*insert_universe_)(UnivType::simple,
                                std::move(inp.label),
                                std::move(surf_labels),
                                std::move(vol_labels));

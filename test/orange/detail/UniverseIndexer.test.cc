@@ -66,17 +66,17 @@ TEST_F(UniverseIndexerTest, single)
               indexer.global_volume(UnivId{0}, LocalVolumeId{9}));
 
     auto local_s = indexer.local_surface(ImplSurfaceId{0});
-    EXPECT_EQ(UnivId(0), local_s.universe);
+    EXPECT_EQ(UnivId(0), local_s.univ);
     EXPECT_EQ(LocalSurfaceId(0), local_s.surface);
     local_s = indexer.local_surface(ImplSurfaceId{3});
-    EXPECT_EQ(UnivId(0), local_s.universe);
+    EXPECT_EQ(UnivId(0), local_s.univ);
     EXPECT_EQ(LocalSurfaceId(3), local_s.surface);
 
     auto local_v = indexer.local_volume(ImplVolumeId{0});
-    EXPECT_EQ(UnivId(0), local_v.universe);
+    EXPECT_EQ(UnivId(0), local_v.univ);
     EXPECT_EQ(LocalVolumeId(0), local_v.volume);
     local_v = indexer.local_volume(ImplVolumeId{3});
-    EXPECT_EQ(UnivId(0), local_v.universe);
+    EXPECT_EQ(UnivId(0), local_v.univ);
     EXPECT_EQ(LocalVolumeId(3), local_v.volume);
 }
 
@@ -120,10 +120,10 @@ TEST_F(UniverseIndexerTest, multi)
         for (auto s : range(surfaces_per_uni[u]))
         {
             auto local = indexer.local_surface(ImplSurfaceId{global_surface});
-            EXPECT_EQ(u, local.universe.unchecked_get());
+            EXPECT_EQ(u, local.univ.unchecked_get());
             EXPECT_EQ(s, local.surface.unchecked_get());
             EXPECT_EQ(global_surface,
-                      indexer.global_surface(local.universe, local.surface)
+                      indexer.global_surface(local.univ, local.surface)
                           .unchecked_get());
             ++global_surface;
         }
@@ -134,11 +134,11 @@ TEST_F(UniverseIndexerTest, multi)
         for (auto c : range(cells_per_uni[u]))
         {
             auto local = indexer.local_volume(ImplVolumeId{global_volume});
-            EXPECT_EQ(u, local.universe.unchecked_get());
+            EXPECT_EQ(u, local.univ.unchecked_get());
             EXPECT_EQ(c, local.volume.unchecked_get());
-            EXPECT_EQ(global_volume,
-                      indexer.global_volume(local.universe, local.volume)
-                          .unchecked_get());
+            EXPECT_EQ(
+                global_volume,
+                indexer.global_volume(local.univ, local.volume).unchecked_get());
             ++global_volume;
         }
     }

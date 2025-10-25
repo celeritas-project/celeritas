@@ -164,10 +164,10 @@ enum class TransformType : unsigned char
 /*!
  * Enumeration for type-deleted universe storage.
  *
- * See \c orange/univ/UniverseTypeTraits.hh for how these map to data and
+ * See \c orange/univ/UnivTypeTraits.hh for how these map to data and
  * classes.
  */
-enum class UniverseType : unsigned char
+enum class UnivType : unsigned char
 {
     simple,
     rect_array,
@@ -381,15 +381,6 @@ flip_boundary(BoundaryResult orig)
 CELER_CONSTEXPR_FUNCTION real_type no_intersection()
 {
     return numeric_limits<real_type>::infinity();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return the UnivId of the highest-level (i.e., root) universe.
- */
-CELER_CONSTEXPR_FUNCTION UnivId top_universe_id()
-{
-    return UnivId{0};
 }
 
 //---------------------------------------------------------------------------//

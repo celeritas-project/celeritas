@@ -275,7 +275,7 @@ OrangeGeoTestBase::id_to_label(UnivId uid, LocalSurfaceId surfid) const
     if (!surfid)
         return "[none]";
 
-    detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().univ_indexer_data);
     return params_->surfaces().at(ui.global_surface(uid, surfid)).name;
 }
 
@@ -298,7 +298,7 @@ OrangeGeoTestBase::id_to_label(UnivId uid, LocalVolumeId vol_id) const
     if (!vol_id)
         return "[none]";
 
-    detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().univ_indexer_data);
     return params_->impl_volumes().at(ui.global_volume(uid, vol_id)).name;
 }
 

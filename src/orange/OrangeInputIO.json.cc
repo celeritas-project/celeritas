@@ -8,29 +8,26 @@
 
 #include <algorithm>
 #include <initializer_list>
-#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueIdIO.hh"
+#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/cont/ArrayIO.json.hh"  // IWYU pragma: keep
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Label.hh"
-#include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/io/Logger.hh"
-#include "geocel/BoundingBoxIO.json.hh"
+#include "geocel/BoundingBoxIO.json.hh"  // IWYU pragma: keep
 
 #include "OrangeTypes.hh"
-#include "OrangeTypesIO.json.hh"
-#include "surf/SurfaceTypeTraits.hh"
+#include "OrangeTypesIO.json.hh"  // IWYU pragma: keep
 
 #include "detail/LogicUtils.hh"
 #include "detail/OrangeInputIOImpl.json.hh"

@@ -48,13 +48,13 @@ class UniverseInserter
                      Data* data);
 
     // Append the number of local surfaces and volumes
-    UnivId operator()(UniverseType type,
+    UnivId operator()(UnivType type,
                       Label univ_label,
                       VecLabel surface_labels,
                       VecLabel volume_labels);
 
     // Append the number of local surfaces and volumes
-    UnivId operator()(UniverseType type,
+    UnivId operator()(UnivType type,
                       Label univ_label,
                       VecLabel surface_labels,
                       VecVarLabel volume_labels);
@@ -78,12 +78,12 @@ class UniverseInserter
     SPConstVolumes volume_params_;
 
     // Metadata being constructed
-    VecLabel* universe_labels_;
+    VecLabel* univ_labels_;
     VecLabel* surface_labels_;
     VecLabel* volume_labels_;
 
     // Data being constructed
-    CollectionBuilder<UniverseType, MemSpace::host, UnivId> types_;
+    CollectionBuilder<UnivType, MemSpace::host, UnivId> types_;
     CollectionBuilder<size_type, MemSpace::host, UnivId> indices_;
     CollectionBuilder<size_type> surfaces_;
     CollectionBuilder<size_type> volumes_;
@@ -93,11 +93,11 @@ class UniverseInserter
     CollectionBuilder<VolumeInstanceId, MemSpace::host, ImplVolumeId>
         volume_instance_ids_;
 
-    EnumArray<UniverseType, size_type> num_universe_types_{};
+    EnumArray<UnivType, size_type> num_univ_types_{};
     SurfId::size_type accum_surface_{0};
     VolId::size_type accum_volume_{0};
 
-    UnivId update_counters(UniverseType type,
+    UnivId update_counters(UnivType type,
                            size_type num_surfaces,
                            size_type num_volumes);
 };

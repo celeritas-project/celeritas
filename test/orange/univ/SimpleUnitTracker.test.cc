@@ -157,7 +157,7 @@ LocalState
 SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir, char const* vol)
 {
     LocalState state = this->make_state(pos, dir);
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
     state.volume = vol ? ui.local_volume(this->find_volume(vol)).volume
                        : LocalVolumeId{};
     return state;
@@ -187,7 +187,7 @@ LocalState SimpleUnitTrackerTest::make_state(
     }
 
     LocalState state = this->make_state(pos, dir);
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
     state.volume = ui.local_volume(this->find_volume(vol)).volume;
     // *Intentionally* flip the sense because we're looking for the
     // post-crossing volume. This is normally done by the multi-level
@@ -400,7 +400,7 @@ TEST_F(OneVolumeTest, intersect)
 TEST_F(OneVolumeTest, safety)
 {
     SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
 
     EXPECT_SOFT_EQ(
         inf,
@@ -591,7 +591,7 @@ TEST_F(TwoVolumeTest, intersect)
 TEST_F(TwoVolumeTest, safety)
 {
     SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
     LocalVolumeId outside
         = ui.local_volume(this->find_volume("outside")).volume;
     LocalVolumeId inside = ui.local_volume(this->find_volume("inside")).volume;
@@ -934,7 +934,7 @@ TEST_F(FiveVolumesTest, intersect)
 TEST_F(FiveVolumesTest, safety)
 {
     SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
     LocalVolumeId a = ui.local_volume(this->find_volume("a")).volume;
     LocalVolumeId d = ui.local_volume(this->find_volume("d")).volume;
 
