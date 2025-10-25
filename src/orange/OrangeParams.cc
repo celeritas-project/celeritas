@@ -231,14 +231,14 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
           && host_data.rect_arrays.empty();
 
     // Update scalars *after* loading all units
-    CELER_VALIDATE(host_data.scalars.max_logic_levels
-                       < detail::LogicStack::max_stack_depth(),
-                   << "input geometry has at least one volume with a "
-                      "logic depth of"
-                   << host_data.scalars.max_logic_levels
-                   << " (a volume's CSG tree is too deep); but the logic "
-                      "stack is limited to a depth of "
-                   << detail::LogicStack::max_stack_depth());
+    CELER_VALIDATE(
+        host_data.scalars.max_logic_depth < detail::LogicStack::capacity(),
+        << "input geometry has at least one volume with a "
+           "logic depth of"
+        << host_data.scalars.max_logic_depth
+        << " (a volume's CSG tree is too deep); but the logic "
+           "stack is limited to a depth of "
+        << detail::LogicStack::capacity());
 
     // Save pointers for debug output
     host_data.scalars.host_geo_params = this;

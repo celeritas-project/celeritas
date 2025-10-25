@@ -6,11 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
 
-#include "RectArrayTracker.hh"
-#include "SimpleUnitTracker.hh"
+#include "RectArrayTracker.hh"  // IWYU pragma: keep
+#include "SimpleUnitTracker.hh"  // IWYU pragma: keep
 #include "UnivTypeTraits.hh"
 
 namespace celeritas

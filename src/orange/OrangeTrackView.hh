@@ -209,7 +209,7 @@ class OrangeTrackView
     inline CELER_FUNCTION OrangeTrackView&
     operator=(DetailedInitializer const& init);
 
-    // Iterate over lower universe levels to find the next step
+    // Iterate over universe levels to find the next step
     inline CELER_FUNCTION Propagation
     find_next_step_impl(detail::Intersection isect);
 
@@ -420,7 +420,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
                         this->get_transform(this->get_daughter(lsa)));
     }
 
-    // Save final universe level
+    // Save direction in deepest universe
     this->make_lsa().dir() = localdir;
 
     CELER_ENSURE(!this->has_next_step());
@@ -511,8 +511,9 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
  * Get the volume instance ID at every level.
  *
  * The input span size must be equal to the value of "level" plus one. The
- * top-most volume ("world" or level zero) starts at index zero and moves
- * downward. Note that Geant4 uses the \em reverse nomenclature.
+ * top-most volume ("world" or level zero) starts at index zero, and child
+ * volumes have higher level IDs. Note that Geant4 uses the \em reverse
+ * nomenclature.
  *
  * \todo Implement \c parent_impl_volumes in OrangeData.
  */
@@ -588,7 +589,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
         SimpleUnitTracker t{params_, SimpleUnitId{0}};
         return t.intersect(this->make_local_state(orange_global_univ_level));
     }();
-    // Find intersection for all lower universe levels
+    // Find intersection for all deeper universe levels
     return this->find_next_step_impl(global_isect);
 }
 
@@ -1293,7 +1294,7 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(UnivLevelId ulev_id) c
 
 //---------------------------------------------------------------------------//
 /*!
- * The "global" volume ID at a given univ level.
+ * The global-indexed volume ID at a given univ level.
  *
  * \note It is allowable to call this function when "outside", because the
  * outside in ORANGE is just a special volume.
