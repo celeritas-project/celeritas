@@ -142,7 +142,7 @@ extern template class ParamsDataInterface<OrangeParamsData>;
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Maximum universe depth.
+ * Number of levels in the most deeply nested universe path.
  */
 UnivLevelId::size_type OrangeParams::num_univ_levels() const
 {

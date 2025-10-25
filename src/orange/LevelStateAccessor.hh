@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access the 2D fields (i.e., {track slot, udepth}) of OrangeStateData.
+ * Access the 2D fields (i.e., {track slot, ulev}) of OrangeStateData.
  */
 class LevelStateAccessor
 {

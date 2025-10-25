@@ -34,7 +34,7 @@ using fast_real_type = float;
 //! Integer type for volume CSG tree representation
 using logic_int = size_type;
 
-//! Integer type for volume tree depth
+//! Integer type for canonical volume level
 using vol_level_uint = VolumeLevelId::size_type;
 
 //! Helper class for some template dispatch functions
@@ -82,8 +82,8 @@ using TransformId = OpaqueId<struct TransformRecord>;
 //! Identifier for a relocatable set of volumes
 using UnivId = OpaqueId<struct Universe_>;
 
-//! Universe depth, not necessarily canonical volume level
-using UnivLevelId = OpaqueId<struct UnivDepth_, vol_level_uint>;
+//! universe level, not necessarily canonical volume level
+using UnivLevelId = OpaqueId<struct UnivLevel_, vol_level_uint>;
 
 //// DEPRECATED ALIASES (to be removed in v1.0) ////
 
