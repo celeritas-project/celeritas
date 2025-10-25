@@ -89,6 +89,11 @@ class MultiLevelTest
 {
 };
 
+TEST_F(MultiLevelTest, volume_level)
+{
+    this->impl().test_volume_level();
+}
+
 TEST_F(MultiLevelTest, trace)
 {
     this->impl().test_trace();

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <string_view>
 
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -687,12 +688,10 @@ void MultiLevelGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
-void MultiLevelGeoTest::test_volume_stack() const
+auto MultiLevelGeoTest::get_test_points() -> VecR2
 {
-    using R2 = Array<real_type, 2>;
-
     // Include outer world and center sphere
-    std::vector<R2> points{R2{-5, 0}, R2{0, 0}};
+    VecR2 points{R2{-5, 0}, R2{0, 0}};
 
     // Loop over outer and inner x and y signs
     for (auto signs : range(1 << 4))
@@ -709,8 +708,51 @@ void MultiLevelGeoTest::test_volume_stack() const
         points.push_back(point);
     }
 
+    return points;
+}
+
+//---------------------------------------------------------------------------//
+void MultiLevelGeoTest::test_volume_level() const
+{
+    std::vector<VolumeLevelId::size_type> all_levels;
+    for (R2 xy : this->get_test_points())
+    {
+        auto geo = make_geo_track_view(*test_, {xy[0], xy[1], 0}, {0, 0, 1});
+        VolumeLevelId id;
+        if (!geo.is_outside())
+        {
+            id = geo.volume_level();
+        }
+        all_levels.push_back(id_to_int(id));
+    }
+
+    static unsigned int const expected_all_levels[] = {
+        0u,
+        1u,
+        2u,
+        1u,
+        2u,
+        2u,
+        2u,
+        1u,
+        2u,
+        2u,
+        2u,
+        2u,
+        2u,
+        1u,
+        1u,
+        2u,
+        2u,
+        2u,
+    };
+    EXPECT_VEC_EQ(expected_all_levels, all_levels);
+}
+
+void MultiLevelGeoTest::test_volume_stack() const
+{
     std::vector<std::string> all_stacks;
-    for (R2 xy : points)
+    for (R2 xy : this->get_test_points())
     {
         auto result = test_->volume_stack({xy[0], xy[1], 0});
         all_stacks.emplace_back(to_string(join(result.volume_instances.begin(),

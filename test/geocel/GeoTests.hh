@@ -104,12 +104,17 @@ class LarSphereGeoTest
 class MultiLevelGeoTest
 {
   public:
+    using R2 = Array<real_type, 2>;
+    using VecR2 = std::vector<R2>;
+
     static std::string_view gdml_basename() { return "multi-level"; }
+    static VecR2 get_test_points();
 
     //! Construct with a reference to the GoogleTest
     MultiLevelGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_trace() const;
+    void test_volume_level() const;
     void test_volume_stack() const;
 
   private:
