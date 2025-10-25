@@ -66,7 +66,7 @@ class LdgIterator
     using TraitsT = LdgTraits<T>;
     static_assert(std::is_const_v<T>,
                   "LDG access can only be performed for constant data");
-    static_assert(is_ldg_supported_v<T>,
+    static_assert(is_ldg_supported_v<std::remove_const_t<T>>,
                   "LDG access is limited to certain primitive types");
 
   public:
