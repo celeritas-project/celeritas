@@ -16,44 +16,10 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 //! Sentinel value for an unassigned opaque ID
 template<class T>
 inline constexpr T nullid_value{static_cast<T>(-1)};
-
-//---------------------------------------------------------------------------//
-//! Safely cast from one integer T to another U, avoiding the sentinel value
-template<class T, class U>
-inline CELER_FUNCTION T id_cast_impl(U value) noexcept(!CELERITAS_DEBUG)
-{
-    if constexpr (std::is_signed_v<U>)
-    {
-        CELER_EXPECT(value >= 0);
-    }
-
-    if constexpr (!std::is_same_v<T, U>)
-    {
-        // Check that the cast value is within the integer range [0, N-1)
-        using C = std::common_type_t<T, std::make_unsigned_t<U>>;
-        if constexpr (std::is_signed_v<C>)
-        {
-            CELER_EXPECT(static_cast<C>(value) >= 0);
-        }
-        CELER_EXPECT(static_cast<C>(value) < static_cast<C>(nullid_value<T>));
-    }
-    else
-    {
-        // Check that value is *not* the null value
-        CELER_EXPECT(static_cast<T>(value) != nullid_value<T>);
-    }
-
-    return static_cast<T>(value);
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -99,7 +65,7 @@ class OpaqueId
 
   public:
     //! Default to null state
-    CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(nullid_val_) {}
+    CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(null_) {}
 
     //! Construct explicitly with stored value
     explicit CELER_CONSTEXPR_FUNCTION OpaqueId(size_type index) : value_(index)
@@ -109,7 +75,7 @@ class OpaqueId
     //! Whether this ID is in a valid (assigned) state
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const
     {
-        return value_ != nullid_val_;
+        return value_ != null_;
     }
 
     //! Pre-increment of the ID
@@ -161,29 +127,14 @@ class OpaqueId
     size_type value_;
 
     //! Value indicating the ID is not assigned
-    static constexpr size_type nullid_val_ = detail::nullid_value<size_type>;
+    static constexpr size_type null_ = nullid_value<size_type>;
 };
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-/*!
- * Safely create an OpaqueId from an integer of any type.
- *
- * This asserts that the integer is in the \em valid range of the target ID
- * type, and casts to it.
- *
- * \note The value cannot be the underlying "null" value; i.e.
- * <code> static_cast<FooId>(FooId{}.unchecked_get()) </code> will not work.
- */
 template<class IdT, class U>
-inline CELER_FUNCTION IdT id_cast(U value) noexcept(!CELERITAS_DEBUG)
-{
-    static_assert(std::is_integral_v<U>);
-    static_assert(std::is_integral_v<typename IdT::size_type>);
-
-    return IdT{detail::id_cast_impl<typename IdT::size_type, U>(value)};
-}
+inline CELER_FUNCTION IdT id_cast(U value) noexcept(!CELERITAS_DEBUG);
 
 //---------------------------------------------------------------------------//
 #define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                             \
@@ -259,6 +210,104 @@ operator-(OpaqueId<I, T> id, std::make_signed_t<T> offset)
     return OpaqueId<I, T>{
         static_cast<T>(id.unchecked_get() - static_cast<T>(offset))};
 }
+
+namespace detail
+{
+//---------------------------------------------------------------------------//
+//! Safely cast from one integer T to another U, avoiding the sentinel value
+template<class T, class U>
+inline CELER_FUNCTION T id_cast_impl(U value) noexcept(!CELERITAS_DEBUG)
+{
+    if constexpr (std::is_signed_v<U>)
+    {
+        CELER_EXPECT(value >= 0);
+    }
+
+    if constexpr (!std::is_same_v<T, U>)
+    {
+        // Check that the cast value is within the integer range [0, N-1)
+        using C = std::common_type_t<T, std::make_unsigned_t<U>>;
+        if constexpr (std::is_signed_v<C>)
+        {
+            CELER_EXPECT(static_cast<C>(value) >= 0);
+        }
+        CELER_EXPECT(static_cast<C>(value) < static_cast<C>(nullid_value<T>));
+    }
+    else
+    {
+        // Check that value is *not* the null value
+        CELER_EXPECT(static_cast<T>(value) != nullid_value<T>);
+    }
+
+    return static_cast<T>(value);
+}
+
+//---------------------------------------------------------------------------//
+//! Template matching to determine if T is an OpaqueId
+template<class T>
+struct IsOpaqueId : std::false_type
+{
+};
+
+template<class V, class S>
+struct IsOpaqueId<OpaqueId<V, S>> : std::true_type
+{
+};
+
+template<class V, class S>
+struct IsOpaqueId<OpaqueId<V, S> const> : std::true_type
+{
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
+
+//---------------------------------------------------------------------------//
+// FREE IMPLEMENTATIONS
+//---------------------------------------------------------------------------//
+
+//! True if T is an OpaqueID
+template<class T>
+inline constexpr bool is_opaque_id_v = detail::IsOpaqueId<T>::value;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Safely create an OpaqueId from an integer of any type.
+ *
+ * This asserts that the integer is in the \em valid range of the target ID
+ * type, and casts to it.
+ *
+ * \note The value cannot be the underlying "null" value; i.e.
+ * <code> static_cast<FooId>(FooId{}.unchecked_get()) </code> will not work.
+ */
+template<class IdT, class U>
+inline CELER_FUNCTION IdT id_cast(U value) noexcept(!CELERITAS_DEBUG)
+{
+    static_assert(std::is_integral_v<U>);
+    static_assert(std::is_integral_v<typename IdT::size_type>);
+
+    return IdT{detail::id_cast_impl<typename IdT::size_type, U>(value)};
+}
+
+//---------------------------------------------------------------------------//
+// TRAITS
+//---------------------------------------------------------------------------//
+
+template<class T, class>
+struct LdgTraits;
+
+// Set up cached const global loading for OpaqueId
+template<class I, class T>
+struct LdgTraits<OpaqueId<I, T>, void>
+{
+    using underlying_type = T;
+
+    static CELER_CONSTEXPR_FUNCTION underlying_type const*
+    data(OpaqueId<I, T> const* ptr)
+    {
+        return ptr->data();
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
