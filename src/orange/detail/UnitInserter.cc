@@ -39,10 +39,10 @@ constexpr int invalid_depth = -1;
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the maximum logic depth of a volume definition.
+ * Calculate the maximum CSG logic depth of a volume definition.
  *
- * Return 0 if the definition is invalid so that we can raise an assertion in
- * the caller with more context.
+ * Return a sentinel if the definition is invalid so that we can raise an
+ * assertion in the caller with more context.
  */
 int calc_depth(Span<logic_int const> logic)
 {
@@ -507,7 +507,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     inplace_max<size_type>(&scalars.max_faces, output.faces.size());
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
-    inplace_max<size_type>(&scalars.max_logic_depth, depth);
+    inplace_max<size_type>(&scalars.max_csg_levels, depth);
 
     return output;
 }

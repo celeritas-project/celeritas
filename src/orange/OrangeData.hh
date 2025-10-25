@@ -40,8 +40,8 @@ inline constexpr UnivLevelId orange_global_univ_level{0};
 /*!
  * Scalar values particular to an ORANGE geometry instance.
  *
- * Some of these are currently needed for state sizes (levels, faces,
- * intersections), others are tested during construction (logic depth), and
+ * Some of these are currently needed for state sizes (univ_levels, faces,
+ * intersections), others are tested during construction (csg_levels), and
  * others are only for debugging on host (geo, volume params).
  */
 struct OrangeParamsScalars
@@ -49,7 +49,7 @@ struct OrangeParamsScalars
     size_type num_univ_levels{};
     size_type max_faces{};
     size_type max_intersections{};
-    size_type max_logic_depth{};
+    size_type max_csg_levels{};
 
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
