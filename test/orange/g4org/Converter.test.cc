@@ -191,7 +191,6 @@ TEST_F(ConverterTest, simple_cms)
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, multilevel)
 {
-    verbose_ = true;
     std::string const basename = "multi-level";
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);

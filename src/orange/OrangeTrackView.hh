@@ -477,7 +477,24 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
  */
 CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
 {
-    CELER_NOT_IMPLEMENTED("canonical level");
+    CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(!params_.volume_instance_ids.empty());
+
+    vol_level_uint result = this->univ_level().get();
+    TrackerVisitor visit_tracker{params_};
+
+    // Loop over current universe path (different from canonical path)
+    for (auto ulev : range(this->univ_level() + 1))
+    {
+        // Get the simple unit record for this universe
+        auto lsa = this->make_lsa(ulev);
+        result += visit_tracker(
+            [vol = lsa.vol()](auto&& t) { return t.local_vol_level(vol); },
+            lsa.univ());
+        // A universe is always an additional volume level
+        result += 1;
+    }
+    return VolumeLevelId{result};
 }
 
 //---------------------------------------------------------------------------//
@@ -488,8 +505,6 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
  * top-most volume ("world" or level zero) starts at index zero, and child
  * volumes have higher level IDs. Note that Geant4 uses the \em reverse
  * nomenclature.
- *
- * \todo Implement \c parent_impl_volumes in OrangeData.
  */
 CELER_FUNCTION void
 OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const

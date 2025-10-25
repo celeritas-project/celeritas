@@ -192,6 +192,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     host_data.scalars.tol = input.tol;
     host_data.scalars.num_univ_levels
         = detail::DepthCalculator{input.universes}();
+    host_data.scalars.num_vol_levels = volumes_ ? volumes_->num_volume_levels()
+                                                : 0;
 
     // Insert all universes
     {

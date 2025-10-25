@@ -16,7 +16,6 @@
 #include "orange/detail/BIHIntersectingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
-#include "detail/InfixEvaluator.hh"
 #include "detail/LazySenseCalculator.hh"
 #include "detail/LogicEvaluator.hh"
 #include "detail/SurfaceFunctors.hh"
@@ -72,6 +71,9 @@ class SimpleUnitTracker
 
     // DaughterId of universe embedded in a given volume
     inline CELER_FUNCTION DaughterId daughter(LocalVolumeId vol) const;
+
+    // Canonical volume depth relative to this universe
+    inline CELER_FUNCTION vol_level_uint local_vol_level(LocalVolumeId vol) const;
 
     //// OPERATIONS ////
 
@@ -691,6 +693,23 @@ CELER_FUNCTION DaughterId SimpleUnitTracker::daughter(LocalVolumeId vol) const
 {
     CELER_EXPECT(vol < unit_record_.volumes.size());
     return params_.volume_records[unit_record_.volumes[vol]].daughter_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Canonical volume depth relative to this universe.
+ */
+CELER_FUNCTION auto SimpleUnitTracker::local_vol_level(LocalVolumeId vol) const
+    -> vol_level_uint
+{
+    CELER_EXPECT(unit_record_.local_vol_level.empty()
+                 || vol < unit_record_.volumes.size());
+    if (unit_record_.local_vol_level.empty())
+        return 0;
+
+    OpaqueId<vol_level_uint> depth_ptr = unit_record_.local_vol_level[vol];
+    vol_level_uint local_vol_level = params_.vd_uints[depth_ptr];
+    return local_vol_level;
 }
 
 //---------------------------------------------------------------------------//

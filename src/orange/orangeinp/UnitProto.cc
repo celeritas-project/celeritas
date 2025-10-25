@@ -436,7 +436,7 @@ void UnitProto::build(ProtoBuilder& input) const
             {
                 // Option value is set, but to a "null" ID: parent is
                 // background
-                if (input.next_id() == orange_global_universe)
+                if (input.next_id() == orange_global_univ)
                 {
                     // For global universe, background is actually a PV: it's
                     // the last volume

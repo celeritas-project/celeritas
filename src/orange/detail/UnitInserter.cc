@@ -23,6 +23,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Environment.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "UniverseInserter.hh"
 #include "../OrangeInput.hh"
@@ -260,6 +261,81 @@ std::string to_string(VolumeInput::VariantLabel const& vlabel)
 }
 
 //---------------------------------------------------------------------------//
+std::vector<LocalVolumeId>
+make_local_parent_vec(LocalVolumeId::size_type num_volumes,
+                      UnitInput::MapLocalParent const& local_parent_map)
+{
+    CELER_EXPECT(num_volumes > 0);
+    CELER_EXPECT(!local_parent_map.empty());
+
+    std::vector<LocalVolumeId> local_parents(num_volumes);
+    // Fill local parents
+    for (auto&& [child, parent] : local_parent_map)
+    {
+        CELER_ASSERT(child < num_volumes);
+        CELER_ASSERT(parent < num_volumes);
+        local_parents[child.get()] = parent;
+    }
+
+    return local_parents;
+}
+
+//---------------------------------------------------------------------------//
+std::vector<vol_level_uint>
+make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
+{
+    constexpr vol_level_uint not_visited{static_cast<vol_level_uint>(-1)};
+    std::vector<vol_level_uint> local_vol_level(local_parents.size(),
+                                                not_visited);
+    std::vector<LocalVolumeId> stack;
+
+    // Fill local levels
+    for (auto lv_id : range(id_cast<LocalVolumeId>(local_parents.size())))
+    {
+        if (!local_parents[lv_id.get()])
+        {
+            // Not an embedded volume
+            continue;
+        }
+        stack.push_back(lv_id);
+        while (!stack.empty())
+        {
+            // Guard against cycles, which shouldn't be possible to construct
+            CELER_ASSERT(stack.size() < VolumeLevelId{}.unchecked_get());
+
+            auto child = stack.back();
+            auto parent = local_parents[child.get()];
+            vol_level_uint child_level;
+            if (parent)
+            {
+                child_level = local_vol_level[parent.get()];
+                if (child_level == not_visited)
+                {
+                    // Parent has not yet been visited; go deeper
+                    stack.push_back(parent);
+                    continue;
+                }
+                else
+                {
+                    // Child is one deeper than parent
+                    ++child_level;
+                }
+            }
+            else
+            {
+                // No enclosing local volume: level zero
+                child_level = 0;
+            }
+
+            // Save local level
+            local_vol_level[child.get()] = child_level;
+            stack.pop_back();
+        }
+    }
+    return local_vol_level;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -278,6 +354,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , local_surface_ids_{&orange_data_->local_surface_ids}
     , local_volume_ids_{&orange_data_->local_volume_ids}
     , real_ids_{&orange_data_->real_ids}
+    , vd_uints_{&orange_data_->vd_uints}
     , logic_ints_{&orange_data_->logic_ints}
     , reals_{&orange_data_->reals}
     , surface_types_{&orange_data_->surface_types}
@@ -358,6 +435,24 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
                 connectivity[f.unchecked_get()].insert(LocalVolumeId(i));
             }
         }
+
+        CELER_VALIDATE(LocalVolumeId{i} == orange_exterior_volume
+                           || inp.volumes[i].zorder != ZOrder::exterior,
+                       << "only local volume 0 can be exterior");
+    }
+
+    // Save local parent IDs and local volume level
+    if (!inp.local_parent_map.empty())
+    {
+        auto parents
+            = make_local_parent_vec(inp.volumes.size(), inp.local_parent_map);
+        auto levels = make_local_level_vec(parents);
+        CELER_ASSERT(parents.size() == levels.size());
+
+        unit.local_parent
+            = local_volume_ids_.insert_back(parents.begin(), parents.end());
+        unit.local_vol_level
+            = vd_uints_.insert_back(levels.begin(), levels.end());
     }
 
     // Save volumes

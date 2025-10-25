@@ -82,7 +82,7 @@ using TransformId = OpaqueId<struct TransformRecord>;
 //! Identifier for a relocatable set of volumes
 using UnivId = OpaqueId<struct Universe_>;
 
-//! universe level, not necessarily canonical volume level
+//! Universe level, not necessarily canonical volume level
 using UnivLevelId = OpaqueId<struct UnivLevel_, vol_level_uint>;
 
 //// DEPRECATED ALIASES (to be removed in v1.0) ////
