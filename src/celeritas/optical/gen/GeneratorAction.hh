@@ -26,8 +26,6 @@ class ScintillationParams;
 
 namespace optical
 {
-class MaterialParams;
-
 //---------------------------------------------------------------------------//
 /*!
  * Generate photons from optical distribution data.
@@ -39,34 +37,14 @@ class MaterialParams;
 class GeneratorAction final : public GeneratorBase
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
-    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
-    using SPConstMaterial = std::shared_ptr<MaterialParams const>;
-    //!@}
-
-    //! Generator input data
-    struct Input
-    {
-        SPConstMaterial material;
-        SPConstCherenkov cherenkov;
-        SPConstScintillation scintillation;
-        size_type capacity{};
-
-        explicit operator bool() const
-        {
-            return material && (cherenkov || scintillation) && capacity > 0;
-        }
-    };
-
-  public:
     // Construct and add to core params
     static std::shared_ptr<GeneratorAction>
-    make_and_insert(::celeritas::CoreParams const&, CoreParams const&, Input&&);
+    make_and_insert(::celeritas::CoreParams const&,
+                    CoreParams const&,
+                    size_type capacity);
 
     // Construct with action ID, data IDs, and optical properties
-    GeneratorAction(ActionId, AuxId, GeneratorId, Input&&);
+    GeneratorAction(ActionId, AuxId, GeneratorId, size_type capacity);
 
     //!@{
     //! \name Aux interface
@@ -87,7 +65,8 @@ class GeneratorAction final : public GeneratorBase
   private:
     //// DATA ////
 
-    Input data_;
+    // Distribution buffer capacity
+    size_type capacity_;
 
     //// HELPER FUNCTIONS ////
 
