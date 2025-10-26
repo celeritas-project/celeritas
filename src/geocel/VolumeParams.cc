@@ -19,17 +19,24 @@ namespace
 int calc_num_volume_levels(VolumeParams const& params)
 {
     CELER_EXPECT(params.world());
-    int max_level{0};
+    // VolumeVisitor uses `int` for overflow semantics
+    int found_level{0};
 
     VolumeVisitor visit_vol{params};
     visit_vol(
-        [&max_level](VolumeId, int level) {
+        [&found_level](VolumeId, int level) {
             CELER_ASSERT(level >= 0);
-            max_level = std::max(max_level, level);
+            found_level = std::max(found_level, level);
             return true;
         },
         params.world());
-    return max_level + 1;
+
+    constexpr auto max_num_levels
+        = static_cast<int>(VolumeLevelId{}.unchecked_get()) - 1;
+    CELER_VALIDATE(found_level < max_num_levels,
+                   << "geometry number of levels " << found_level
+                   << " exceeds maximum hardcoded depth " << max_num_levels);
+    return found_level + 1;
 }
 
 //---------------------------------------------------------------------------//

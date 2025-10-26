@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdint>
+
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
@@ -52,7 +54,7 @@ using VolumeId = OpaqueId<struct Volume_, unsigned int>;
 using VolumeInstanceId = OpaqueId<struct VolumeInstance_, unsigned int>;
 
 //! Type-safe depth in the volume graph (zero for world)
-using VolumeLevelId = OpaqueId<struct VolumeLevel_, unsigned int>;
+using VolumeLevelId = OpaqueId<struct VolumeLevel_, std::uint_least8_t>;
 
 //! Identifier for a unique volume in global space (aka touchable)
 using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;

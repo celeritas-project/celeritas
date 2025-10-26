@@ -13,6 +13,7 @@
 #include "geocel/VolumeParams.hh"
 #include "geocel/VolumeToString.hh"
 #include "geocel/VolumeVisitor.hh"
+#include "geocel/inp/Model.hh"
 
 #include "TestMacros.hh"
 #include "VolumeTestBase.hh"
@@ -89,21 +90,12 @@ struct MaxVisitor
  */
 
 //---------------------------------------------------------------------------//
-class NoVolumeTest : public VolumeTestBase
-{
-  protected:
-    std::shared_ptr<VolumeParams> build_volumes() const override
-    {
-        return std::make_shared<VolumeParams>();
-    }
-};
+//! Test geometry may have no volume hierarchy
+using NoVolumeTest = Test;
 
-/*!
- * No volumes, for unit testing
- */
 TEST_F(NoVolumeTest, params)
 {
-    VolumeParams const& params = this->volumes();
+    VolumeParams params;
     EXPECT_TRUE(params.empty());
     EXPECT_EQ(0, params.num_volumes());
     EXPECT_EQ(VolumeId{}, params.world());
@@ -370,6 +362,79 @@ TEST_F(MultiLevelTest, visit)
             "2:boxtri",
         };
         EXPECT_VEC_EQ(expected_names, mpv.get_names());
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Base for tests with a single volume per level but many nested.
+ *
+ * Geometry:
+ *   V0 ->{E0} V1 ... ->{EN-1} VN
+ */
+class DeepVolumeTest : public Test
+{
+  protected:
+    static VolumeParams make_volumes(VolumeId::size_type num_vol);
+};
+
+VolumeParams DeepVolumeTest::make_volumes(VolumeId::size_type num_vol)
+{
+    CELER_EXPECT(num_vol > 0);
+    using namespace inp;
+    Volumes in;
+    for (auto i : range(num_vol - 1))
+    {
+        in.volumes.emplace_back([i]() {
+            Volume v;
+            v.label = "V" + std::to_string(i);
+            v.material = GeoMatId{i};
+            v.children = {VolumeInstanceId{i}};
+            return v;
+        }());
+        in.volume_instances.emplace_back([i]() {
+            VolumeInstance vi;
+            vi.label = "E" + std::to_string(i);
+            vi.volume = VolumeId{i + 1};
+            return vi;
+        }());
+    }
+    in.volumes.emplace_back([num_vol]() {
+        Volume v;
+        v.label = "V" + std::to_string(num_vol + 1);
+        return v;
+    }());
+
+    in.world = VolumeId{0};
+
+    CELER_ENSURE(in.volume_instances.size() == num_vol - 1);
+    CELER_ENSURE(in.volumes.size() == num_vol);
+    return VolumeParams{std::move(in)};
+}
+
+TEST_F(DeepVolumeTest, allowable)
+{
+    VolumeParams const& params = this->make_volumes(254);
+    EXPECT_FALSE(params.empty());
+    EXPECT_EQ(254, params.num_volumes());
+    EXPECT_EQ(253, params.num_volume_instances());
+    EXPECT_EQ(254, params.num_volume_levels());
+
+    auto lastc = params.children(VolumeId{253});
+    EXPECT_EQ(0, lastc.size());
+
+    auto lastp = params.parents(VolumeId{253});
+    ASSERT_EQ(1, lastp.size());
+    EXPECT_EQ(VolumeInstanceId{252}, lastp.front());
+}
+
+TEST_F(DeepVolumeTest, too_deep)
+{
+    for (auto i : range(3))
+    {
+        size_type num_vols = 255 + i;
+        SCOPED_TRACE(std::to_string(num_vols) + " deep");
+        EXPECT_THROW(this->make_volumes(num_vols), RuntimeError);
     }
 }
 
