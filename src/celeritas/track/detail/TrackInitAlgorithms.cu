@@ -100,21 +100,19 @@ size_type remove_if_alive(
                      select_op,
                      stream);
 
-    // Allocate temporary storage
-    void* d_temp_storage = s.malloc_async(temp_storage_bytes);
+    {
+        // Allocate temporary storage
+        DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
 
-    // Run selection
-    DeviceSelect::If(d_temp_storage,
-                     temp_storage_bytes,
-                     data,
-                     num_not_active.data(),
-                     vacancies.size(),
-                     select_op,
-                     stream);
-
-    // Deallocate temporary storage
-    s.free_async(d_temp_storage);
-
+        // Run selection
+        DeviceSelect::If(temp_storage.data(),
+                         temp_storage_bytes,
+                         data,
+                         num_not_active.data(),
+                         vacancies.size(),
+                         select_op,
+                         stream);
+    }
     // *** For testing with existing code for consistency
     // *** Replace with the num_vacancies counter
     auto num = ItemCopier<size_type>{stream_id}(num_not_active.data());
@@ -173,15 +171,17 @@ size_type exclusive_scan_counts(
     DeviceScan::ExclusiveSum(
         nullptr, temp_storage_bytes, data, counts.size(), stream);
 
-    // Allocate temporary storage
-    void* d_temp_storage = s.malloc_async(temp_storage_bytes);
+    {
+        // Allocate temporary storage
+        DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
 
-    // Run exclusive prefix sum
-    DeviceScan::ExclusiveSum(
-        d_temp_storage, temp_storage_bytes, data, counts.size(), stream);
-
-    // Deallocate temporary storage
-    s.free_async(d_temp_storage);
+        // Run exclusive prefix sum
+        DeviceScan::ExclusiveSum(temp_storage.data(),
+                                 temp_storage_bytes,
+                                 data,
+                                 counts.size(),
+                                 stream);
+    }
 
     // Set the counter similar to the following
     // counters.num_secondaries = ItemCopier<size_type>{stream_id}...;
