@@ -729,8 +729,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     // Note that we must use the original start/stop angles rather than
     // normalizing with EnclosedAzi because the start angle determines where
     // the first vertex of the polygon appears.
-    real_type start_angle = params.Start_angle;
-    real_type open_angle = params.Opening_angle;
+    auto start_angle = native_value_to<Turn>(params.Start_angle);
+    auto delta_angle = native_value_to<Turn>(params.Opening_angle);
 
     CELER_VALIDATE(num_sides >= 1, << "must have at least one side");
     CELER_VALIDATE(num_z >= 2, << "must have at least two z planes");
@@ -754,23 +754,22 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         z[i] = scale_(params.Z_values[i]);
     }
 
-    // Define r0: the outer radius a the first z plane, which will be used to
-    // define the polygon and all subsequent scaling
-    real_type r0 = rmax[0];
-
-    // Create counterclockwise polygon on basis of r0;
-    auto make_point = [&r0](real_type theta) {
-        return Real2{r0 * std::cos(theta), r0 * std::sin(theta)};
+    // Make a point on the polygon, inscribed in a unit circle
+    auto make_point = [](Turn t) {
+        Real2 p;
+        celeritas::sincos(t, &p[1], &p[0]);
+        return p;
     };
+
     VecReal2 polygon;
-    real_type step = open_angle / params.numSide;
+    Turn step = delta_angle / params.numSide;
     for (auto i : range(num_sides))
     {
         polygon.push_back(make_point(start_angle + i * step));
     }
     if (azi)
     {
-        polygon.push_back(make_point(start_angle + open_angle));
+        polygon.push_back(make_point(start_angle + delta_angle));
         polygon.push_back({0, 0});
     }
 
@@ -780,23 +779,17 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         return Real3{0, 0, zi};
     });
 
-    // Lambda for creating scaling vectors
-    real_type const inv_r0 = real_type{1} / r0;
-    auto make_scaling = [inv_r0](std::vector<real_type> const& r) {
-        VecReal out(r.size());
-        std::transform(r.begin(), r.end(), out.begin(), [inv_r0](real_type ri) {
-            return ri * inv_r0;
-        });
-        return out;
-    };
-
+    // Make a StackExtrudedPolygon, or difference between two
+    // StackExtrudedPolygons on the basis of the polygon, polyline, and
+    // rmin/rmax values. Because the polygon is inscribed in the unit circle,
+    // the rmin/rmax values can be treated as scaling factors.
     if (!any_positive(rmin))
     {
         // No interior shape
         return StackedExtrudedPolygon::or_solid(std::string{solid.GetName()},
                                                 std::move(polygon),
                                                 std::move(polyline),
-                                                make_scaling(rmax));
+                                                std::move(rmax));
     }
     else
     {
@@ -809,11 +802,11 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         auto outer = StackedExtrudedPolygon::or_solid(base_name + ".exc",
                                                       std::move(polygon),
                                                       std::move(polyline),
-                                                      make_scaling(rmax));
+                                                      std::move(rmax));
         auto inner = StackedExtrudedPolygon::or_solid(base_name + ".int",
                                                       std::move(inner_polygon),
                                                       std::move(inner_polyline),
-                                                      make_scaling(rmin));
+                                                      std::move(rmin));
 
         return make_subtraction(std::move(base_name), outer, inner);
     }
