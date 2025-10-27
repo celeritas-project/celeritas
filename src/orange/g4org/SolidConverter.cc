@@ -723,8 +723,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polyhedra const&>(solid_base);
     auto azi = enclosed_azi_from_poly(solid);
     auto const& params = *solid.GetOriginalParameters();
-    size_type num_sides = params.numSide;
     size_type num_z = params.Num_z_planes;
+    size_type num_sides = params.numSide;
 
     // Note that we must use the original start/stop angles rather than
     // normalizing with EnclosedAzi because the start angle determines where
@@ -744,9 +744,9 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         << "invalid number of sizes for the opening angle");
 
     // Scale input values
-    VecReal rmin(params.Num_z_planes);
-    VecReal rmax(params.Num_z_planes);
-    VecReal z(params.Num_z_planes);
+    VecReal rmin(num_z);
+    VecReal rmax(num_z);
+    VecReal z(num_z);
     for (auto i : range(z.size()))
     {
         rmin[i] = scale_(params.Rmin[i]);
@@ -754,15 +754,16 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         z[i] = scale_(params.Z_values[i]);
     }
 
-    // Make a point on the polygon, inscribed in a unit circle
+    // Make a point on the unit circle
     auto make_point = [](Turn t) {
         Real2 p;
         celeritas::sincos(t, &p[1], &p[0]);
         return p;
     };
 
+    // Make a polygon, inscribed in the unit circle
     VecReal2 polygon;
-    Turn step = delta_angle / params.numSide;
+    Turn step = delta_angle / num_sides;
     for (auto i : range(num_sides))
     {
         polygon.push_back(make_point(start_angle + i * step));
@@ -780,9 +781,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     });
 
     // Make a StackExtrudedPolygon, or difference between two
-    // StackExtrudedPolygons on the basis of the polygon, polyline, and
-    // rmin/rmax values. Because the polygon is inscribed in the unit circle,
-    // the rmin/rmax values can be treated as scaling factors.
+    // StackExtrudedPolygons. Because the polygon is inscribed in the unit
+    // circle, the rmin/rmax values can be treated as scaling factors.
     if (!any_positive(rmin))
     {
         // No interior shape
@@ -793,7 +793,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     }
     else
     {
-        // Make copies, as or_solids expects rvalues
+        // Make copies, since or_solids expects rvalues
         auto inner_polygon = polygon;
         auto inner_polyline = polyline;
 
