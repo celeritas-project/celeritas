@@ -14,6 +14,7 @@
 #include "MaterialView.hh"
 #include "ParticleTrackView.hh"
 #include "PhysicsTrackView.hh"
+#include "SensitiveDetectorView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
 #include "surface/SurfacePhysicsView.hh"
@@ -74,6 +75,9 @@ class CoreTrackView
 
     // Return a surface physics view
     inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
+
+    // Return a sensitive detector view
+    inline CELER_FUNCTION SensitiveDetectorView sensitive_detectors() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -225,6 +229,16 @@ CELER_FUNCTION auto CoreTrackView::surface_physics() const -> SurfacePhysicsView
     return SurfacePhysicsView{params_.surface_physics,
                               states_.surface_physics,
                               this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a sensitive detector view.
+ */
+CELER_FUNCTION auto CoreTrackView::sensitive_detectors() const
+    -> SensitiveDetectorView
+{
+    return SensitiveDetectorView{params_.detectors};
 }
 
 //---------------------------------------------------------------------------//

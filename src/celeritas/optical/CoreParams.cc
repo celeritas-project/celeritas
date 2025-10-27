@@ -50,6 +50,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.surface = get_ref<M>(*p.surface);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.rng = get_ref<M>(*p.rng);
+    ref.detectors = get_ref<M>(*p.detectors);
 
     CELER_ENSURE(ref);
     return ref;

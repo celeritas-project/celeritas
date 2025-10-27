@@ -12,6 +12,7 @@
 #include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
+#include "celeritas/user/SDData.hh"
 
 #include "CoreTrackDataFwd.hh"
 #include "MaterialData.hh"
@@ -53,6 +54,7 @@ struct CoreParamsData
     RngParamsData<W, M> rng;
     SurfaceParamsData<W, M> surface;
     SurfacePhysicsParamsData<W, M> surface_physics;
+    SDParamsData<W, M> detectors;
 
     CoreScalars scalars;
 

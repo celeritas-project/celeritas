@@ -38,6 +38,17 @@ struct PostBoundaryExecutor
  */
 CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
 {
+    auto geo = track.geometry();
+    auto det_params = track.sensitive_detectors();
+    ImplVolumeId iv_id = geo.impl_volume_id();
+
+    DetectorId det_id = det_params.detector_id(iv_id);
+    if (det_id)
+    {
+        std::cout << "Detector hit in volume " << iv_id.get()
+                  << " on detector " << det_id.get() << std::endl;
+    }
+
     // Force-kill tracks for now
     track.sim().status(TrackStatus::killed);
 }
