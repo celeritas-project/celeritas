@@ -91,21 +91,20 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                             IsVacant{},
                             stream);
 
-    // Allocate temporary storage
-    void* d_temp_storage = s.malloc_async(temp_storage_bytes);
+    {
+        // Allocate temporary storage
+        DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
 
-    DeviceSelect::FlaggedIf(d_temp_storage,
-                            temp_storage_bytes,
-                            start,
-                            flags,
-                            result,
-                            num_vacancies.data(),
-                            vacancies.size(),
-                            IsVacant{},
-                            stream);
-
-    // Deallocate temporary storage
-    s.free_async(d_temp_storage);
+        DeviceSelect::FlaggedIf(temp_storage.data(),
+                                temp_storage_bytes,
+                                start,
+                                flags,
+                                result,
+                                num_vacancies.data(),
+                                vacancies.size(),
+                                IsVacant{},
+                                stream);
+    }
 
     // *** For testing with existing code for consistency
     // *** Replace with the appropriate GPU counter
