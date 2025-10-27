@@ -64,7 +64,7 @@ ProtoMap::ProtoMap(ProtoInterface const& global)
     : protos_{build_ordering(global)}
 {
     univ_ids_.reserve(protos_.size());
-    for (auto univ_id : range(UniverseId{this->size()}))
+    for (auto univ_id : range(UnivId{this->size()}))
     {
         ProtoInterface const* p = this->at(univ_id);
         CELER_ASSERT(p);

@@ -65,27 +65,27 @@ TEST_F(ProtoMapTest, deep_and_wide)
 
     ProtoMap pm(a);
     ASSERT_EQ(7, pm.size());
-    EXPECT_EQ("a", pm.at(UniverseId{0})->label());
-    EXPECT_EQ("b", pm.at(UniverseId{1})->label());
-    EXPECT_EQ("c", pm.at(UniverseId{2})->label());
-    EXPECT_EQ("d", pm.at(UniverseId{3})->label());
-    EXPECT_EQ("e", pm.at(UniverseId{4})->label());
-    EXPECT_EQ("f", pm.at(UniverseId{5})->label());
-    EXPECT_EQ("g", pm.at(UniverseId{6})->label());
+    EXPECT_EQ("a", pm.at(UnivId{0})->label());
+    EXPECT_EQ("b", pm.at(UnivId{1})->label());
+    EXPECT_EQ("c", pm.at(UnivId{2})->label());
+    EXPECT_EQ("d", pm.at(UnivId{3})->label());
+    EXPECT_EQ("e", pm.at(UnivId{4})->label());
+    EXPECT_EQ("f", pm.at(UnivId{5})->label());
+    EXPECT_EQ("g", pm.at(UnivId{6})->label());
 
-    EXPECT_EQ(UniverseId{0}, pm.find(&a));
-    EXPECT_EQ(UniverseId{1}, pm.find(&b));
-    EXPECT_EQ(UniverseId{2}, pm.find(&c));
-    EXPECT_EQ(UniverseId{3}, pm.find(&d));
-    EXPECT_EQ(UniverseId{4}, pm.find(&e));
-    EXPECT_EQ(UniverseId{5}, pm.find(&f));
-    EXPECT_EQ(UniverseId{6}, pm.find(&g));
+    EXPECT_EQ(UnivId{0}, pm.find(&a));
+    EXPECT_EQ(UnivId{1}, pm.find(&b));
+    EXPECT_EQ(UnivId{2}, pm.find(&c));
+    EXPECT_EQ(UnivId{3}, pm.find(&d));
+    EXPECT_EQ(UnivId{4}, pm.find(&e));
+    EXPECT_EQ(UnivId{5}, pm.find(&f));
+    EXPECT_EQ(UnivId{6}, pm.find(&g));
 
     if (CELERITAS_DEBUG)
     {
         TestProto const none{"none", {}};
         EXPECT_THROW(pm.find(&none), DebugError);
-        EXPECT_THROW(pm.at(UniverseId{7}), DebugError);
+        EXPECT_THROW(pm.at(UnivId{7}), DebugError);
     }
 }
 
@@ -99,11 +99,11 @@ TEST_F(ProtoMapTest, asymmetric)
 
     ProtoMap pm(a);
     ASSERT_EQ(5, pm.size());
-    EXPECT_EQ("a", pm.at(UniverseId{0})->label());
-    EXPECT_EQ("b", pm.at(UniverseId{1})->label());
-    EXPECT_EQ("c", pm.at(UniverseId{2})->label());
-    EXPECT_EQ("d", pm.at(UniverseId{3})->label());
-    EXPECT_EQ("e", pm.at(UniverseId{4})->label());
+    EXPECT_EQ("a", pm.at(UnivId{0})->label());
+    EXPECT_EQ("b", pm.at(UnivId{1})->label());
+    EXPECT_EQ("c", pm.at(UnivId{2})->label());
+    EXPECT_EQ("d", pm.at(UnivId{3})->label());
+    EXPECT_EQ("e", pm.at(UnivId{4})->label());
 }
 
 //---------------------------------------------------------------------------//

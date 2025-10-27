@@ -50,7 +50,7 @@ class LogicStack
     CELER_FORCEINLINE_FUNCTION LogicStack() {}
 
     //! Greatest number of boolean values allowed on the stack
-    static CELER_CONSTEXPR_FUNCTION size_type max_stack_depth()
+    static CELER_CONSTEXPR_FUNCTION size_type capacity()
     {
         return sizeof(size_type) * 8;
     }
@@ -148,7 +148,7 @@ CELER_FUNCTION auto LogicStack::operator[](size_type index) const -> value_type
  */
 CELER_FUNCTION void LogicStack::push(value_type v)
 {
-    CELER_EXPECT(size() != max_stack_depth());
+    CELER_EXPECT(size() != capacity());
     // Shift stack left and add least significant bit
     data_ = LogicStack::shl(data_) | LogicStack::lsb(v);
     // Size for DBC

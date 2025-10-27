@@ -151,7 +151,7 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v, GeoMatId m)
  * corresponding shape may have additional transforms as well.
  */
 void CsgUnitBuilder::fill_volume(LocalVolumeId v,
-                                 UniverseId u,
+                                 UnivId u,
                                  VariantTransform const& transform)
 {
     CELER_EXPECT(v < unit_->fills.size());
@@ -159,7 +159,7 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v,
     CELER_EXPECT(u);
 
     Daughter new_daughter;
-    new_daughter.universe_id = u;
+    new_daughter.univ_id = u;
     new_daughter.trans_id = this->insert_transform(transform);
     CELER_ASSERT(new_daughter.trans_id < unit_->transforms.size());
 

@@ -133,7 +133,7 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
     CELER_EXPECT(!out.detector.empty());
     CELER_EXPECT(out.energy_deposition.size() == out.detector.size());
     auto const& vi_ids = out.points[StepPoint::pre].volume_instance_ids;
-    auto const vi_depth = out.volume_instance_depth;
+    auto const vi_depth = out.num_volume_levels;
     CELER_EXPECT(vi_ids.size() == out.size() * vi_depth);
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";

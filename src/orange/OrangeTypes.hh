@@ -34,6 +34,9 @@ using fast_real_type = float;
 //! Integer type for volume CSG tree representation
 using logic_int = size_type;
 
+//! Integer type for canonical volume level
+using vol_level_uint = VolumeLevelId::size_type;
+
 //! Helper class for some template dispatch functions
 template<Axis T>
 using AxisTag = std::integral_constant<Axis, T>;
@@ -77,7 +80,16 @@ using RectArrayId = OpaqueId<struct RectArrayRecord>;
 using TransformId = OpaqueId<struct TransformRecord>;
 
 //! Identifier for a relocatable set of volumes
-using UniverseId = OpaqueId<struct Universe_>;
+using UnivId = OpaqueId<struct Universe_>;
+
+//! universe level, not necessarily canonical volume level
+using UnivLevelId = OpaqueId<struct UnivLevel_, vol_level_uint>;
+
+//// DEPRECATED ALIASES (to be removed in v1.0) ////
+
+using LevelId [[deprecated("use UnivLevelId")]] = UnivLevelId;
+
+using UniverseId [[deprecated("use UnivId")]] = UnivId;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -152,10 +164,10 @@ enum class TransformType : unsigned char
 /*!
  * Enumeration for type-deleted universe storage.
  *
- * See \c orange/univ/UniverseTypeTraits.hh for how these map to data and
+ * See \c orange/univ/UnivTypeTraits.hh for how these map to data and
  * classes.
  */
-enum class UniverseType : unsigned char
+enum class UnivType : unsigned char
 {
     simple,
     rect_array,
@@ -278,7 +290,7 @@ enum class ZOrder : size_type
  */
 struct Daughter
 {
-    UniverseId universe_id;
+    UnivId univ_id;
     TransformId trans_id;
 };
 
@@ -369,15 +381,6 @@ flip_boundary(BoundaryResult orig)
 CELER_CONSTEXPR_FUNCTION real_type no_intersection()
 {
     return numeric_limits<real_type>::infinity();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return the UniverseId of the highest-level (i.e., root) universe.
- */
-CELER_CONSTEXPR_FUNCTION UniverseId top_universe_id()
-{
-    return UniverseId{0};
 }
 
 //---------------------------------------------------------------------------//

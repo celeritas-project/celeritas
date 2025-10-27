@@ -42,7 +42,7 @@ class OrangeParams final : public GeoParamsInterface,
     //!@{
     //! \name Type aliases
     using SurfaceMap = LabelIdMultiMap<ImplSurfaceId>;
-    using UniverseMap = LabelIdMultiMap<UniverseId>;
+    using UniverseMap = LabelIdMultiMap<UnivId>;
     using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     //!@}
 
@@ -87,8 +87,8 @@ class OrangeParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
-    // Maximum universe depth (not geometry volume depth!)
-    inline size_type max_depth() const;
+    // Number of levels deep universes can be (not geometry volume level!)
+    inline UnivLevelId::size_type num_univ_levels() const;
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
@@ -142,11 +142,11 @@ extern template class ParamsDataInterface<OrangeParamsData>;
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Maximum universe depth.
+ * Number of levels in the most deeply nested universe path.
  */
-size_type OrangeParams::max_depth() const
+UnivLevelId::size_type OrangeParams::num_univ_levels() const
 {
-    return this->host_ref().scalars.max_depth;
+    return this->host_ref().scalars.num_univ_levels;
 }
 
 //---------------------------------------------------------------------------//

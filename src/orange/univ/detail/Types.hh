@@ -29,6 +29,8 @@ namespace detail
 template<class IdT>
 class OnTface
 {
+    static_assert(is_opaque_id_v<IdT>);
+
   public:
     //! Not on a surface
     constexpr OnTface() = default;

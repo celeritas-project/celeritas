@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "DebugIO.json.hh"
 
-#include "corecel/io/JsonUtils.json.hh"
-#include "corecel/io/LabelIO.json.hh"
-#include "corecel/math/QuantityIO.json.hh"
+#include "corecel/io/JsonUtils.json.hh"  // IWYU pragma: keep
+#include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
+#include "corecel/math/QuantityIO.json.hh"  // IWYU pragma: keep
 #include "geocel/VolumeParams.hh"
 
 #include "LevelStateAccessor.hh"
@@ -64,7 +64,7 @@ struct IdToJson
         return id;
     }
 
-    nlohmann::json operator()(UniverseId const& id) const
+    nlohmann::json operator()(UnivId const& id) const
     {
         if (id && orange)
         {
@@ -77,7 +77,7 @@ struct IdToJson
     {
         CELER_EXPECT(orange);
 
-        UniverseId u_id = lsa.universe();
+        UnivId u_id = lsa.univ();
 
         return {
             {"pos", lsa.pos()},
@@ -113,14 +113,14 @@ struct IdToJson
 //---------------------------------------------------------------------------//
 void to_json(nlohmann::json& j, OrangeTrackView const& view)
 {
-    IdToJson id_to_json{view.make_universe_indexer(),
+    IdToJson id_to_json{view.make_univ_indexer(),
                         view.scalars().host_geo_params,
                         view.scalars().host_volume_params};
 
     nlohmann::json levels = nlohmann::json::array();
-    for (auto lev_id : range(view.level() + 1))
+    for (auto ulev_id : range(view.univ_level() + 1))
     {
-        levels.push_back(id_to_json(view.make_lsa(lev_id)));
+        levels.push_back(id_to_json(view.make_lsa(ulev_id)));
     }
 
     j = {
