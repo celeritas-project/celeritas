@@ -239,6 +239,22 @@ TEST_F(SolidConverterTest, cons)
         R"json({"_type":"solid","enclosed_azi":{"stop":0.8611111111111112,"start":0.027777777777777776},"excluded":{"_type":"cone","halfheight":10.0,"radii":[2.0,8.0]},"interior":{"_type":"cone","halfheight":10.0,"radii":[6.0,14.0]},"label":"aCone"})json");
 }
 
+TEST_F(SolidConverterTest, cuttubs)
+{
+    real_type k = std::sqrt(2) / 2;
+    real_type m = std::sqrt(3) / 3;
+    this->build_and_test(
+        G4CutTubs("Solid Cut Tube #1",
+                  10 * mm,
+                  50 * mm,
+                  80 * mm,
+                  0.15 * pi,
+                  1.75 * pi,
+                  G4ThreeVector(0, k, -k),
+                  G4ThreeVector(m, m, m)),
+        R"json({"_type":"solid","enclosed_azi":{"start":0.075,"stop":0.95},"excluded":{"_type":"cutcylinder","bottom_normal":[0.0,0.7071067811865476,-0.7071067811865476],"halfheight":8.0,"radius":1.0,"top_normal":[0.5773502691896258,0.5773502691896258,0.5773502691896258]},"interior":{"_type":"cutcylinder","bottom_normal":[0.0,0.7071067811865476,-0.7071067811865476],"halfheight":8.0,"radius":5.0,"top_normal":[0.5773502691896258,0.5773502691896258,0.5773502691896258]},"label":"Solid Cut Tube #1"})json");
+}
+
 TEST_F(SolidConverterTest, displaced)
 {
     // Daughter to parent: +x becomes +y

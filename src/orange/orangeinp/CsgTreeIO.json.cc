@@ -140,7 +140,7 @@ void to_json(nlohmann::json& j, CsgUnit const& unit)
             }
             else if (auto* d = std::get_if<Daughter>(&unit.fills[i]))
             {
-                entry["universe"] = d->universe_id.unchecked_get();
+                entry["universe"] = d->univ_id.unchecked_get();
                 entry["transform"] = d->trans_id.unchecked_get();
             }
             result.push_back(entry);

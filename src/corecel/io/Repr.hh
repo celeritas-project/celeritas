@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <set>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -472,6 +473,17 @@ struct ReprTraits<std::vector<T, A>>
     static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_container_type<value_type>(os, "std::vector", name);
+    }
+};
+
+template<class T>
+struct ReprTraits<std::set<T>> : public ContainerReprTraits<std::set<T>>
+{
+    using value_type = std::decay_t<T>;
+
+    static void print_type(std::ostream& os, char const* name = nullptr)
+    {
+        detail::print_container_type<value_type>(os, "std::set", name);
     }
 };
 

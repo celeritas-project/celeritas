@@ -18,11 +18,11 @@
 #include "GeneratorData.hh"
 #include "OffloadData.hh"
 
-#include "detail/GeneratorTraits.hh"
-
 namespace celeritas
 {
 class CoreParams;
+class CherenkovParams;
+class ScintillationParams;
 
 namespace optical
 {
@@ -33,19 +33,16 @@ class MaterialParams;
  * Generate photons from optical distribution data.
  *
  * This samples and initializes optical photons directly in a track slot in a
- * reproducible way.  Multiple threads may generate initializers from a single
+ * reproducible way. Multiple threads may generate initializers from a single
  * distribution.
  */
-template<GeneratorType G>
 class GeneratorAction final : public GeneratorBase
 {
   public:
     //!@{
     //! \name Type aliases
-    using TraitsT = detail::GeneratorTraits<G>;
-    template<Ownership W, MemSpace M>
-    using Data = typename TraitsT::template Data<W, M>;
-    using SPConstParams = std::shared_ptr<typename TraitsT::Params const>;
+    using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
+    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     //!@}
 
@@ -53,12 +50,13 @@ class GeneratorAction final : public GeneratorBase
     struct Input
     {
         SPConstMaterial material;
-        SPConstParams shared;
+        SPConstCherenkov cherenkov;
+        SPConstScintillation scintillation;
         size_type capacity{};
 
         explicit operator bool() const
         {
-            return material && shared && capacity > 0;
+            return material && (cherenkov || scintillation) && capacity > 0;
         }
     };
 
@@ -99,13 +97,6 @@ class GeneratorAction final : public GeneratorBase
     void generate(CoreParams const&, CoreStateHost&) const;
     void generate(CoreParams const&, CoreStateDevice&) const;
 };
-
-//---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
-//---------------------------------------------------------------------------//
-
-extern template class GeneratorAction<GeneratorType::cherenkov>;
-extern template class GeneratorAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

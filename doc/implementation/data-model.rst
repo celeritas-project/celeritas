@@ -76,6 +76,7 @@ Storage
 .. doxygenclass:: celeritas::Collection
 .. doxygenclass:: celeritas::CollectionMirror
 
+.. doxygenclass:: celeritas::ldg
 
 .. _api_containers:
 

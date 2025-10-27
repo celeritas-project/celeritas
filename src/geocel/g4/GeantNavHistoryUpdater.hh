@@ -29,7 +29,7 @@ class GeantVolumeInstanceMapper;
  * zero). An empty input stack, corresponding to "outside" the world, results
  * in a nav history with one level but a \c nullptr physical volume as the top.
  *
- * \note The stack should have the same semantics as \c LevelId, i.e. the
+ * \note The stack should have the same semantics as \c VolumeLevelId, i.e. the
  * initial entry is the "most global" level.
  */
 class GeantNavHistoryUpdater

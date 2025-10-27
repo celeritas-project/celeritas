@@ -3,9 +3,11 @@
 """
 Custom directive for Celeritas breathe usage.
 """
+
 from docutils.parsers.rst import directives
 from breathe.directives import BaseDirective
 from breathe.directives.class_like import DoxygenStructDirective
+
 
 # Custom directive for Celeritas structs
 class CelerStructDirective(DoxygenStructDirective):
@@ -16,12 +18,12 @@ class CelerStructDirective(DoxygenStructDirective):
         struct_name = self.arguments[0]
 
         # Prepend celeritas:: namespace if not already present
-        if not struct_name.startswith('celeritas::'):
-            self.arguments[0] = f'celeritas::{struct_name}'
+        if not struct_name.startswith("celeritas::"):
+            self.arguments[0] = f"celeritas::{struct_name}"
 
         # Set default options
-        self.options['members'] = ""
-        self.options['no-link'] = True
+        self.options["members"] = ""
+        self.options["no-link"] = True
 
         # Call the parent implementation
         return super().run()

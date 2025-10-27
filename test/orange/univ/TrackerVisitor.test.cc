@@ -68,13 +68,13 @@ TEST_F(TrackerVisitorTest, initialize)
 
     auto init_functor = [&local](auto&& t) { return t.initialize(local); };
 
-    auto init_simple = visit_tracker(init_functor, UniverseId{0});
-    auto init_rect = visit_tracker(init_functor, UniverseId{2});
-    auto init_simple2 = visit_tracker(init_functor, UniverseId{3});
+    auto init_simple = visit_tracker(init_functor, UnivId{0});
+    auto init_rect = visit_tracker(init_functor, UnivId{2});
+    auto init_simple2 = visit_tracker(init_functor, UnivId{3});
 
-    EXPECT_EQ("arrfill", this->id_to_label(UniverseId{0}, init_simple.volume));
-    EXPECT_EQ("{0,0,0}", this->id_to_label(UniverseId{2}, init_rect.volume));
-    EXPECT_EQ("Tfill", this->id_to_label(UniverseId{3}, init_simple2.volume));
+    EXPECT_EQ("arrfill", this->id_to_label(UnivId{0}, init_simple.volume));
+    EXPECT_EQ("{0,0,0}", this->id_to_label(UnivId{2}, init_rect.volume));
+    EXPECT_EQ("Tfill", this->id_to_label(UnivId{3}, init_simple2.volume));
 }
 
 //---------------------------------------------------------------------------//
