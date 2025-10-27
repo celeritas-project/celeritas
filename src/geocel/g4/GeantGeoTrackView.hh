@@ -80,7 +80,7 @@ class GeantGeoTrackView
     // Get the physical volume ID in the current cell
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline LevelId level() const;
+    inline VolumeLevelId volume_level() const;
     // Get the volume instance ID for all levels
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
 
@@ -297,34 +297,36 @@ VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 /*!
  * Get the depth in the geometry hierarchy.
  */
-LevelId GeantGeoTrackView::level() const
+VolumeLevelId GeantGeoTrackView::volume_level() const
 {
     auto* touch = touch_handle_();
-    return id_cast<LevelId>(touch->GetHistoryDepth());
+    return id_cast<VolumeLevelId>(touch->GetHistoryDepth());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the volume instance ID at every level.
  *
- * The input span size must be equal to the value of "level" plus one. The
- * top-most level ("world" or level zero) starts at index zero and moves
+ * The input span size must be equal to the value of "volume_level" plus one.
+ * The top-most level ("world" or level zero) starts at index zero and moves
  * downward. Note that Geant4 uses the \em reverse nomenclature.
  */
 void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(levels.size() == this->level().get() + 1);
+    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
+                 == this->volume_level() + 1);
 
     auto* touch = touch_handle_();
-    auto const max_depth = static_cast<size_type>(touch->GetHistoryDepth());
-    for (auto lev : range(levels.size()))
+    auto const num_vol_levels
+        = id_cast<VolumeLevelId>(touch->GetHistoryDepth());
+    for (auto vl_id : range(id_cast<VolumeLevelId>(levels.size())))
     {
         VolumeInstanceId vi_id;
-        if (G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev))
+        if (G4VPhysicalVolume* pv = touch->GetVolume(num_vol_levels - vl_id))
         {
             vi_id = params_.vi_mapper->geant_to_id(*pv);
         }
-        levels[lev] = vi_id;
+        levels[vl_id.get()] = vi_id;
     }
 }
 

@@ -80,7 +80,7 @@ struct VolumeInput
  */
 struct DaughterInput
 {
-    UniverseId universe_id;
+    UnivId univ_id;
     VariantTransform transform;
 };
 

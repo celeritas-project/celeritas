@@ -215,7 +215,7 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
     {
         // Note: the volumes correspond to simple-cms and the detector IDs
         // above
-        dso.volume_instance_depth = 2;
+        dso.num_volume_levels = 2;
         auto const& vi_names = this->volumes()->volume_instance_labels();
         auto wovi = vi_names.find_unique("world_PV");
         auto emvi = vi_names.find_unique("em_calorimeter_pv");
@@ -399,7 +399,7 @@ TEST_F(SimpleCmsTest, touchable_exiting)
     dso.points[StepPoint::pre].dir = dso.points[StepPoint::post].dir
         = {Real3{0, 0, 1}, Real3{0, 0, 1}};
 
-    dso.volume_instance_depth = 2;
+    dso.num_volume_levels = 2;
     auto const& vol_inst = this->volumes()->volume_instance_labels();
     auto wovi = vol_inst.find_unique("world_PV");
     auto sivi = vol_inst.find_unique("si_tracker_pv");

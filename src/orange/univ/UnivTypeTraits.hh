@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/univ/UniverseTypeTraits.hh
+//! \file orange/univ/UnivTypeTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,15 +20,15 @@ class RectArrayTracker;
 /*!
  * Map universe enumeration to surface data and tracker classes.
  */
-template<UniverseType U>
-struct UniverseTypeTraits;
+template<UnivType U>
+struct UnivTypeTraits;
 
-#define ORANGE_UNIV_TRAITS(ENUM_VALUE, CLS)             \
-    template<>                                          \
-    struct UniverseTypeTraits<UniverseType::ENUM_VALUE> \
-    {                                                   \
-        using record_type = CLS##Record;                \
-        using tracker_type = CLS##Tracker;              \
+#define ORANGE_UNIV_TRAITS(ENUM_VALUE, CLS)     \
+    template<>                                  \
+    struct UnivTypeTraits<UnivType::ENUM_VALUE> \
+    {                                           \
+        using record_type = CLS##Record;        \
+        using tracker_type = CLS##Tracker;      \
     }
 
 ORANGE_UNIV_TRAITS(simple, SimpleUnit);
@@ -41,16 +41,14 @@ ORANGE_UNIV_TRAITS(rect_array, RectArray);
  * Expand a macro to a switch statement over all possible universe types.
  *
  * The \c func argument should be a functor that takes a single argument which
- * is a UniverseTypeTraits instance.
+ * is a UnivTypeTraits instance.
  */
 template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-visit_universe_type(F&& func, UniverseType ut)
+CELER_CONSTEXPR_FUNCTION decltype(auto) visit_univ_type(F&& func, UnivType ut)
 {
-#define ORANGE_UT_VISIT_CASE(TYPE)          \
-    case UniverseType::TYPE:                \
-        return celeritas::forward<F>(func)( \
-            UniverseTypeTraits<UniverseType::TYPE>{})
+#define ORANGE_UT_VISIT_CASE(TYPE) \
+    case UnivType::TYPE:           \
+        return celeritas::forward<F>(func)(UnivTypeTraits<UnivType::TYPE>{})
 
     switch (ut)
     {

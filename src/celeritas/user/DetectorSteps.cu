@@ -147,7 +147,7 @@ void copy_steps<MemSpace::device>(
         copy_field(&(output->points[sp].volume_instance_ids),
                    state.scratch.points[sp].volume_instance_ids,
                    num_valid,
-                   state.volume_instance_depth,
+                   state.num_volume_levels,
                    state.stream_id);
     }
 
@@ -160,7 +160,7 @@ void copy_steps<MemSpace::device>(
     DS_ASSIGN(particle);
     DS_ASSIGN(energy_deposition);
 
-    output->volume_instance_depth = state.volume_instance_depth;
+    output->num_volume_levels = state.num_volume_levels;
 
 #undef DS_ASSIGN
 

@@ -491,7 +491,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         // Save host data
         HostVal<VecgeomParamsData> host_data;
         host_data.scalars.host_world = geo.GetWorld();
-        host_data.scalars.max_depth = geo.getMaxDepth();
+        host_data.scalars.num_volume_levels = geo.getMaxDepth();
 
         if (celeritas::device())
         {

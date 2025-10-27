@@ -60,7 +60,7 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
         out, step_index, StepPoint::pre);
     auto post = LevelTouchableUpdater::volume_instances(
         out, step_index, StepPoint::post);
-    for (auto i : range(out.volume_instance_depth))
+    for (auto i : range(out.num_volume_levels))
     {
         if (pre[i] != post[i])
         {

@@ -78,10 +78,10 @@ auto LevelTouchableUpdater::volume_instances(DetectorStepOutput const& out,
                                              StepPoint sp) -> SpanVolInst
 {
     CELER_EXPECT(i < out.size());
-    CELER_EXPECT(out.volume_instance_depth > 0);
+    CELER_EXPECT(out.num_volume_levels > 0);
     CELER_EXPECT(!out.points[sp].volume_instance_ids.empty());
     auto ids = make_span(out.points[sp].volume_instance_ids);
-    auto const depth = out.volume_instance_depth;
+    auto const depth = out.num_volume_levels;
     CELER_EXPECT(ids.size() >= (i + 1) * depth);
     return ids.subspan(i * depth, depth);
 }

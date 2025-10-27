@@ -225,7 +225,7 @@ auto UnitProto::daughters() const -> VecProto
 void UnitProto::build(ProtoBuilder& input) const
 {
     // Bounding box should be finite if and only if this is the global universe
-    CELER_EXPECT((input.next_id() == orange_global_universe)
+    CELER_EXPECT((input.next_id() == orange_global_univ)
                  == !input.bbox(input.next_id()));
 
     ScopedProfiling profile_this{"orange-unitproto"};
@@ -358,7 +358,7 @@ void UnitProto::build(ProtoBuilder& input) const
     auto vol_iter = result.volumes.begin();
 
     // Save attributes for exterior volume
-    if (input.next_id() != orange_global_universe)
+    if (input.next_id() != orange_global_univ)
     {
         vol_iter->zorder = ZOrder::implicit_exterior;
         vol_iter->flags |= VolumeRecord::implicit_vol;
@@ -393,7 +393,7 @@ void UnitProto::build(ProtoBuilder& input) const
         auto&& [iter, inserted] = result.daughter_map.insert({vol_id, {}});
         CELER_ASSERT(inserted);
         // Convert proto pointer to universe ID
-        iter->second.universe_id = input.find_universe_id(d.fill.get());
+        iter->second.univ_id = input.find_universe_id(d.fill.get());
 
         // Save the transform
         auto const* fill = std::get_if<Daughter>(&csg_unit.fills[vol_id.get()]);
@@ -407,7 +407,7 @@ void UnitProto::build(ProtoBuilder& input) const
         // parent-reference-frame bbox
         auto local_bbox = apply_transform(calc_inverse(iter->second.transform),
                                           result.volumes[vol_id.get()].bbox);
-        input.expand_bbox(iter->second.universe_id, bump_bbox(local_bbox));
+        input.expand_bbox(iter->second.univ_id, bump_bbox(local_bbox));
     }
 
     // Save attributes from materials
@@ -545,7 +545,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     }
 
     // Build daughters
-    UniverseId daughter_id{0};
+    UnivId daughter_id{0};
     for (auto const& d : input_.daughters)
     {
         if (d.zorder != ZOrder::media)
