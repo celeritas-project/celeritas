@@ -244,7 +244,7 @@ auto GenericGeoTestInterface::volume_stack(Real3 const& pos)
     -> VolumeStackResult
 {
     CheckedGeoTrackView geo{this->make_geo_track_view_interface()};
-    geo = GeoTrackInitializer{pos, Real3{0, 0, 1}};
+    geo = this->make_initializer(pos, Real3{0, 0, 1});
 
     auto vlev = geo.volume_level();
     if (!vlev)
