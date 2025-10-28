@@ -15,6 +15,8 @@
 //---------------------------------------------------------------------------//
 #include "RanluxppImpl.hh"
 
+#include <algorithm>
+
 #include "corecel/cont/Range.hh"
 #include "corecel/math/NumericLimits.hh"
 
