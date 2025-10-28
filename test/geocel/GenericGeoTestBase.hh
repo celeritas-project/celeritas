@@ -62,11 +62,11 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
 
     //// Geometry-specific functions ////
 
-    // Build and/or access geometry
+    // Build and/or access concrete (derived) geometry
     SPConstGeo const& geometry();
     SPConstGeo const& geometry() const;
 
-    //! Get a host track view
+    // Get a host track view
     WrappedGeoTrack make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});
     //! Get and initialize a single-thread host track view
     WrappedGeoTrack make_geo_track_view(Real3 const& pos_cm, Real3 dir)

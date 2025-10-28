@@ -50,9 +50,6 @@ using DiagnosticDPIntegrator = DiagnosticIntegrator<DormandPrinceIntegrator<E>>;
 constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
                                        && CELERITAS_CORE_GEO
                                               == CELERITAS_CORE_GEO_VECGEOM;
-constexpr bool check_normal
-    = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM);
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -72,8 +69,11 @@ class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
     //! Get a single-thread host track view
     CGeoTrackView make_geo_track_view()
     {
-        return CGeoTrackView{
+        CGeoTrackView result{
             std::make_unique<WrappedGeoTrack>(CGBase::make_geo_track_view())};
+        // TODO: VecGeom does not yet support surface normals
+        result.check_normal(CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM);
+        return result;
     }
 
     //! Get and initialize a single-thread host track view
@@ -751,7 +751,7 @@ TEST_F(TwoBoxesTest, electron_tangent_cross)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 2e-5)
             << "Ending direction at " << geo.dir();
 
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
@@ -807,7 +807,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), real_type{1.5e-5})
             << "Ending direction at " << geo.dir();
 
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
@@ -836,7 +836,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-4)
             << "Ending direction at " << geo.dir();
 
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
@@ -859,7 +859,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         EXPECT_LT(distance(Real3({-5, 5 + dy, 0}), geo.pos()), 1e-5);
         EXPECT_LT(distance(Real3({-1, 0, 0}), geo.dir()), 1e-5);
 
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
         }
@@ -1272,7 +1272,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             EXPECT_SOFT_EQ(29.999999999999996, calc_radius());
             EXPECT_EQ("si_tracker", this->volume_name(geo));
             ASSERT_TRUE(geo.is_on_boundary());
-            if (check_normal)
+            if (geo.check_normal())
             {
                 EXPECT_NORMAL_EQUIV(
                     (Real3{0.810979751655143, 0.58507421956993, 0}),
@@ -1292,7 +1292,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         EXPECT_SOFT_NEAR(
             double{30}, static_cast<double>(integrate.count()), 0.2);
         ASSERT_TRUE(geo.is_on_boundary());
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_VEC_SOFT_EQ(
                 (Real3{-0.819614018634831, -0.572916102459394, 0}),

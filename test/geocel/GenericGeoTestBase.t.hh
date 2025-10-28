@@ -94,6 +94,7 @@ auto GenericGeoTestBase<HP>::make_geo_track_view_interface() -> UPGeoTrack
 }
 
 //---------------------------------------------------------------------------//
+//! Get a host track view
 template<class HP>
 auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
     -> WrappedGeoTrack
