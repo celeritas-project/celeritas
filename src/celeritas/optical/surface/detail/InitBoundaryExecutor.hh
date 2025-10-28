@@ -91,6 +91,14 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         oriented_surface.orientation = SubsurfaceDirection::forward;
     }
 
+    // Revert moving across boundary
+    geo.cross_boundary();
+    if (CELER_UNLIKELY(geo.failed()))
+    {
+        track.apply_errored();
+        return;
+    }
+
     // Enforce surface normal convention, swapping normal if geometry returns
     // one not entering the surface
     Real3 global_normal = geo.normal();
