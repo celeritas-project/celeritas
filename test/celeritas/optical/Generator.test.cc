@@ -97,7 +97,8 @@ class LArSphereGeneratorTest : public LArSphereBase
         for (auto i : range(count))
         {
             result[i].type = types[i % types.size()];
-            result[i].num_photons = sample_num_photons(rng);
+            result[i].num_photons
+                = static_cast<size_type>(sample_num_photons(rng));
             num_photons += result[i].num_photons;
             CELER_ASSERT(result[i]);
         }
