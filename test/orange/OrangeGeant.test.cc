@@ -11,6 +11,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
+#include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/detail/LengthUnits.hh"
@@ -241,6 +242,54 @@ class TwoBoxesTest
 TEST_F(TwoBoxesTest, accessors)
 {
     this->impl().test_accessors();
+}
+
+TEST_F(TwoBoxesTest, recross)
+{
+    constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+    // Starting left of edge (-), headed down right (+,-)
+    CheckedGeoTrackView geo{this->make_geo_track_view_interface()};
+    geo = this->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", this->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Check for surfaces up to a distance of 4 units away
+    auto next = geo.find_next_step(from_cm(4.0));
+    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    // Move to boundary (-; +,-)
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    EXPECT_EQ("inner", this->volume_name(geo));
+
+    // Cross into the new volume, needed for optical physics (+; +,-)
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    EXPECT_EQ("world", this->volume_name(geo));
+
+    // Reflect normal to surface  (+; -,-)
+    geo.set_dir(Real3{-dx, -dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    EXPECT_EQ("world", this->volume_name(geo));
+
+    // Cross back into previous volume (-; -,-)
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    EXPECT_EQ("inner", this->volume_name(geo));
+
+    // Find the next boundary and make sure that nearer distances aren't
+    // accepted
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(10.0, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_TRUE(geo.is_on_boundary());
 }
 
 TEST_F(TwoBoxesTest, track)

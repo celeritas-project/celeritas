@@ -289,6 +289,9 @@ class TransformedBoxGeoTest
 //---------------------------------------------------------------------------//
 /*!
  * Test the two-box geometry.
+ *
+ * Inner box \c inner enclosed in an outer box \c world . The box's half-width
+ * is 5 cm.
  */
 class TwoBoxesGeoTest
 {
