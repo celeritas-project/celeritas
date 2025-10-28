@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
+
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
 
@@ -14,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access the 2D fields (i.e., {track slot, level}) of OrangeStateData.
+ * Access the 2D fields (i.e., {track slot, ulev}) of OrangeStateData.
  */
 class LevelStateAccessor
 {
@@ -22,100 +24,93 @@ class LevelStateAccessor
     //!@{
     //! Type aliases
     using StateRef = NativeRef<OrangeStateData>;
+    using LVolId = LocalVolumeId;
     //!@}
 
   public:
     // Construct from states and indices
-    inline CELER_FUNCTION LevelStateAccessor(StateRef const* states,
+    inline CELER_FUNCTION LevelStateAccessor(OrangeParamsScalars const& scalars,
+                                             StateRef const* states,
                                              TrackSlotId tid,
-                                             LevelId level_id);
+                                             UnivLevelId ulev_id);
 
-    LevelStateAccessor(LevelStateAccessor const&) = default;
-    LevelStateAccessor(LevelStateAccessor&&) = default;
     // Copy data from another LSA
     inline CELER_FUNCTION LevelStateAccessor&
     operator=(LevelStateAccessor const& other);
+
+    // Default construct
+    LevelStateAccessor(LevelStateAccessor const&) = default;
+    LevelStateAccessor(LevelStateAccessor&&) = default;
     ~LevelStateAccessor() = default;
 
     //// ACCESSORS ////
 
-    CELER_FUNCTION LocalVolumeId& vol()
-    {
-        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
-    }
-
-    CELER_FUNCTION Real3& pos()
-    {
-        return states_->pos[OpaqueId<Real3>{index_}];
-    }
-
-    CELER_FUNCTION Real3& dir()
-    {
-        return states_->dir[OpaqueId<Real3>{index_}];
-    }
-
-    CELER_FUNCTION UniverseId& universe()
-    {
-        return states_->universe[OpaqueId<UniverseId>{index_}];
-    }
+    CELER_FIF LVolId& vol() { return this->get(s_.vol); }
+    CELER_FIF Real3& pos() { return this->get(s_.pos); }
+    CELER_FIF Real3& dir() { return this->get(s_.dir); }
+    CELER_FIF UnivId& univ() { return this->get(s_.univ); }
 
     //// CONST ACCESSORS ////
 
-    CELER_FUNCTION LocalVolumeId const& vol() const
-    {
-        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
-    }
-
-    CELER_FUNCTION Real3 const& pos() const
-    {
-        return states_->pos[OpaqueId<Real3>{index_}];
-    }
-
-    CELER_FUNCTION Real3 const& dir() const
-    {
-        return states_->dir[OpaqueId<Real3>{index_}];
-    }
-
-    CELER_FUNCTION UniverseId const& universe() const
-    {
-        return states_->universe[OpaqueId<UniverseId>{index_}];
-    }
+    CELER_FIF LVolId const& vol() const { return this->get(s_.vol); }
+    CELER_FIF Real3 const& pos() const { return this->get(s_.pos); }
+    CELER_FIF Real3 const& dir() const { return this->get(s_.dir); }
+    CELER_FIF UnivId const& univ() const { return this->get(s_.univ); }
 
   private:
-    StateRef const* const states_;
-    size_type const index_;
+    //// TYPES ////
+
+    template<class T>
+    using Items = Collection<T, Ownership::reference, MemSpace::native>;
+
+    //// DATA ////
+
+    StateRef const& s_;
+    size_type index_;
+
+    //// HELPER FUNCTIONS ////
+    template<class T>
+    CELER_FIF T& get(Items<T> const& items)
+    {
+        return items[OpaqueId<T>{index_}];
+    }
+
+    template<class T>
+    CELER_FIF T const& get(Items<T> const& items) const
+    {
+        return items[OpaqueId<T>{index_}];
+    }
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from states and indices
+ * Construct from states and indices.
  */
 CELER_FUNCTION
-LevelStateAccessor::LevelStateAccessor(StateRef const* states,
+LevelStateAccessor::LevelStateAccessor(OrangeParamsScalars const& scalars,
+                                       StateRef const* states,
                                        TrackSlotId tid,
-                                       LevelId level_id)
-    : states_(states), index_(tid.get() * states_->max_depth + level_id.get())
+                                       UnivLevelId ulev_id)
+    : s_(*states), index_(tid.get() * scalars.num_univ_levels + ulev_id.get())
 {
-    CELER_EXPECT(level_id < states->max_depth);
+    CELER_EXPECT(ulev_id < scalars.num_univ_levels);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy data from another LSA
+ * Copy data from another LSA.
  */
-CELER_FUNCTION LevelStateAccessor&
+CELER_FIF LevelStateAccessor&
 LevelStateAccessor::operator=(LevelStateAccessor const& other)
 {
-    if (this == &other)
-    {
-        return *this;
-    }
+    CELER_EXPECT(index_ != other.index_);
+
     this->vol() = other.vol();
     this->pos() = other.pos();
     this->dir() = other.dir();
-    this->universe() = other.universe();
+    this->univ() = other.univ();
 
     return *this;
 }

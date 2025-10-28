@@ -81,14 +81,14 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
             !data_vids.empty())
         {
             auto& scratch_vids = state.scratch.points[sp].volume_instance_ids;
-            for (auto i : range(state.volume_instance_depth))
+            for (auto i : range(state.num_volume_levels))
             {
                 using ViId = ItemId<VolumeInstanceId>;
 
-                ViId dst_vi_id{
-                    dst_id.unchecked_get() * state.volume_instance_depth + i};
-                ViId src_vi_id{
-                    src_id.unchecked_get() * state.volume_instance_depth + i};
+                ViId dst_vi_id{dst_id.unchecked_get() * state.num_volume_levels
+                               + i};
+                ViId src_vi_id{src_id.unchecked_get() * state.num_volume_levels
+                               + i};
                 fast_get(scratch_vids, dst_vi_id)
                     = fast_get(data_vids, src_vi_id);
             }

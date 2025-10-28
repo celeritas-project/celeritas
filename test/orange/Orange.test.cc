@@ -57,8 +57,8 @@ TEST_F(OneVolumeTest, params)
     EXPECT_EQ(0, geo.surfaces().size());
     EXPECT_TRUE(geo.supports_safety());
 
-    EXPECT_EQ("one volume", geo.universes().at(UniverseId{0}).name);
-    EXPECT_EQ(UniverseId{0}, geo.universes().find_unique("one volume"));
+    EXPECT_EQ("one volume", geo.universes().at(UnivId{0}).name);
+    EXPECT_EQ(UnivId{0}, geo.universes().find_unique("one volume"));
 
     EXPECT_EQ("infinite", geo.impl_volumes().at(ImplVolumeId{0}).name);
     EXPECT_EQ(ImplVolumeId{0}, geo.impl_volumes().find_unique("infinite"));

@@ -22,17 +22,21 @@ struct SurfaceInteraction
     //! Interaction result category
     enum class Action
     {
-        absorbed,
-        reflected,
-        refracted
+        absorbed,  //!< Killed on the surface
+        reflected,  //!< Reflected into original material
+        refracted,  //!< Refracted into new material, with change
+        transmitted  //!< Transmitted into new material without change
     };
 
     Action action{Action::absorbed};  //!< Flags for interaction result
     Real3 direction;
     Real3 polarization;
 
-    //! Return an interaction representing an absorbed photon
+    // Return an interaction representing an absorbed photon
     static inline CELER_FUNCTION SurfaceInteraction from_absorption();
+
+    // Return an interaction representing a transmitted photon
+    static inline CELER_FUNCTION SurfaceInteraction from_transmission();
 
     //! Whether data is assigned and valid
     CELER_FUNCTION bool is_valid() const
@@ -55,6 +59,18 @@ CELER_FUNCTION SurfaceInteraction SurfaceInteraction::from_absorption()
 {
     SurfaceInteraction result;
     result.action = Action::absorbed;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a surface interaction for an optical photon transmitted through
+ * the surface without change.
+ */
+CELER_FUNCTION SurfaceInteraction SurfaceInteraction::from_transmission()
+{
+    SurfaceInteraction result;
+    result.action = Action::transmitted;
     return result;
 }
 

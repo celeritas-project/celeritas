@@ -38,17 +38,17 @@ class ProtoMap
     explicit ProtoMap(ProtoInterface const& global);
 
     // Get the proto corresponding to a universe ID
-    inline ProtoInterface const* at(UniverseId) const;
+    inline ProtoInterface const* at(UnivId) const;
 
     // Find the universe ID for a given proto pointer (or raise)
-    inline UniverseId find(ProtoInterface const*) const;
+    inline UnivId find(ProtoInterface const*) const;
 
     //! Get the number of protos to build
-    UniverseId::size_type size() const { return protos_.size(); }
+    UnivId::size_type size() const { return protos_.size(); }
 
   private:
     std::vector<ProtoInterface const*> protos_;
-    std::unordered_map<ProtoInterface const*, UniverseId> univ_ids_;
+    std::unordered_map<ProtoInterface const*, UnivId> univ_ids_;
 };
 
 //---------------------------------------------------------------------------//
@@ -57,7 +57,7 @@ class ProtoMap
 /*!
  * Get the proto corresponding to a universe ID.
  */
-ProtoInterface const* ProtoMap::at(UniverseId univ_id) const
+ProtoInterface const* ProtoMap::at(UnivId univ_id) const
 {
     CELER_EXPECT(univ_id < this->size());
     return protos_[univ_id.unchecked_get()];
@@ -67,7 +67,7 @@ ProtoInterface const* ProtoMap::at(UniverseId univ_id) const
 /*!
  * Find the universe ID for a given proto pointer (or raise).
  */
-UniverseId ProtoMap::find(ProtoInterface const* proto) const
+UnivId ProtoMap::find(ProtoInterface const* proto) const
 {
     CELER_EXPECT(proto);
     auto iter = univ_ids_.find(proto);

@@ -20,6 +20,8 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the maximum number of levels deep in a geometry.
+ *
+ * \todo Replace with VolumeVisitor? Rename UnivDepthCalculator?
  */
 class DepthCalculator
 {
@@ -45,10 +47,10 @@ class DepthCalculator
   private:
     ContainerVisitor<VecVarUniv const&> visit_univ_;
     std::size_t num_univ_{0};
-    std::unordered_map<UniverseId, size_type> depths_;
+    std::unordered_map<UnivId, size_type> levels_;
 
     // Check cache or calculate
-    size_type operator()(UniverseId univ_id);
+    size_type operator()(UnivId univ_id);
 };
 
 //---------------------------------------------------------------------------//

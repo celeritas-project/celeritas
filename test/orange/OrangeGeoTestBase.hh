@@ -102,15 +102,15 @@ class OrangeGeoTestBase : public OrangeTestBase
     ImplSurfaceId find_surface(std::string const& label) const;
 
     // Surface name (or sentinel if no surface)
-    std::string id_to_label(UniverseId uid, LocalSurfaceId surfid) const;
+    std::string id_to_label(UnivId uid, LocalSurfaceId surfid) const;
 
-    // Surface name (or sentinel if no surface) within UniverseId{0}
+    // Surface name (or sentinel if no surface) within UnivId{0}
     std::string id_to_label(LocalSurfaceId surfid) const;
 
     // Cell name (or sentinel if no surface)
-    std::string id_to_label(UniverseId uid, LocalVolumeId vol_id) const;
+    std::string id_to_label(UnivId uid, LocalVolumeId vol_id) const;
 
-    // Cell name (or sentinel if no surface) within UniverseId{0}
+    // Cell name (or sentinel if no surface) within UnivId{0}
     std::string id_to_label(LocalVolumeId vol_id) const;
 
     // Print geometry description

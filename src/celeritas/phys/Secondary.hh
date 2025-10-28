@@ -21,9 +21,9 @@ namespace celeritas
  */
 struct Secondary
 {
-    ParticleId particle_id;  //!< New particle type
-    units::MevEnergy energy;  //!< New kinetic energy
-    Real3 direction;  //!< New direction
+    ParticleId particle_id{};  //!< New particle type
+    units::MevEnergy energy{};  //!< New kinetic energy
+    Real3 direction{};  //!< New direction
 
     //! Whether the secondary survived cutoffs
     explicit CELER_FUNCTION operator bool() const

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file testdetail/JsonComparer.json.cc
+//! \file testdetail/JsonComparer.cc
 //---------------------------------------------------------------------------//
 #include "JsonComparer.hh"
 
@@ -49,7 +49,7 @@ void convert(char const* label,
  */
 struct JsonComparer::Impl
 {
-    JsonComparer::Compare const& soft_eq;
+    JsonComparer::Compare soft_eq;
     JsonComparer::VecFailure* failures{nullptr};
     std::vector<std::string> key_stack;
 

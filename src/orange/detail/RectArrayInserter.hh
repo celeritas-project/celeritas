@@ -37,7 +37,7 @@ class RectArrayInserter
     RectArrayInserter(UniverseInserter* insert_universe, Data* orange_data);
 
     // Create a simple unit and return its ID
-    UniverseId operator()(RectArrayInput const& inp);
+    UnivId operator()(RectArrayInput const& inp);
 
   private:
     Data* orange_data_{nullptr};

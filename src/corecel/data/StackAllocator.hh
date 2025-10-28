@@ -225,12 +225,10 @@ CELER_FUNCTION auto StackAllocator<T>::operator()(size_type count)
     }
 
     // Initialize the data at the newly "allocated" address
-    value_type* result = new (&data_.storage[StorageId{start}]) value_type;
-    for (size_type i = 1; i < count; ++i)
+    value_type* result = &data_.storage[StorageId{start}];
+    for (size_type i = 0; i < count; ++i)
     {
-        // Initialize remaining values
-        CELER_ASSERT(&data_.storage[StorageId{start + i}] == result + i);
-        new (&data_.storage[StorageId{start + i}]) value_type;
+        result[i] = value_type{};
     }
     return result;
 }

@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""\
-Generate file stubs for Celeritas.
-"""
+"""Generate file stubs for Celeritas."""
 
 from datetime import datetime
 import os
@@ -18,32 +16,36 @@ import sys
 CODE_LICENSE = "(Apache-2.0 OR MIT)"
 DOC_LICENSE = "CC-BY-4.0"
 
-def _make_top(comment_prefix,
-              preamble=None, postamble=None, license=CODE_LICENSE):
+
+def _make_top(comment_prefix, preamble=None, postamble=None, license=CODE_LICENSE):
     lines = []
+
     def _append_lines(s):
         if s:
             if isinstance(s, str):
                 lines.append(s)
             else:
                 lines.extend(s)
+
     _append_lines(preamble)
-    lines.extend(comment_prefix + " " + line for line in [
-        "Copyright Celeritas contributors: see top-level COPYRIGHT file for details",
-        "SPDX-License-Identifier: " + license,
-    ])
+    lines.extend(
+        comment_prefix + " " + line
+        for line in [
+            "Copyright Celeritas contributors: see top-level COPYRIGHT file for details",
+            "SPDX-License-Identifier: " + license,
+        ]
+    )
     _append_lines(postamble)
     lines.append("")
     return "\n".join(lines)
 
-_C_SEP = "".join(["//", "-" * 75, "//"]) # //-----...---//
+
+_C_SEP = "".join(["//", "-" * 75, "//"])  # //-----...---//
 CXX_TOP = _make_top(
-    "//",
-    "//{modeline:-^75s}//",
-    [_C_SEP, "//! \\file {dirname}{basename}", _C_SEP]
+    "//", "//{modeline:-^75s}//", [_C_SEP, "//! \\file {dirname}{basename}", _C_SEP]
 )
 
-HEADER_FILE = '''\
+HEADER_FILE = """\
 #pragma once
 
 {namespace_begin}
@@ -81,9 +83,9 @@ class {name}
 
 //---------------------------------------------------------------------------//
 {namespace_end}
-'''
+"""
 
-CODE_FILE = '''\
+CODE_FILE = """\
 #include "{name}.{hext}"
 
 {namespace_begin}
@@ -91,21 +93,21 @@ CODE_FILE = '''\
 
 //---------------------------------------------------------------------------//
 {namespace_end}
-'''
+"""
 
-C_HEADER_FILE = '''\
+C_HEADER_FILE = """\
 #pragma once
 
 //---------------------------------------------------------------------------//
-'''
+"""
 
-C_CODE_FILE = '''\
+C_CODE_FILE = """\
 #include "{name}.{hext}"
 
 //---------------------------------------------------------------------------//
-'''
+"""
 
-TEST_HARNESS_FILE = '''\
+TEST_HARNESS_FILE = """\
 #include "{dirname}{name}.{hext}"
 
 #include "celeritas_test.hh"
@@ -134,9 +136,9 @@ TEST_F({name}Test, host)
 
 //---------------------------------------------------------------------------//
 {namespace_end}
-'''
+"""
 
-TEST_HEADER_FILE = '''
+TEST_HEADER_FILE = """
 #pragma once
 
 #include "corecel/Assert.hh"
@@ -264,9 +266,9 @@ inline void {lowabbr}_test(
 
 //---------------------------------------------------------------------------//
 {namespace_end}
-'''
+"""
 
-TEST_CODE_FILE = '''\
+TEST_CODE_FILE = """\
 #include "{name}.test.hh"
 
 #include "corecel/DeviceRuntimeApi.hh"
@@ -313,20 +315,20 @@ void {lowabbr}_test(
 
 //---------------------------------------------------------------------------//
 {namespace_end}
-'''
+"""
 
 
 CMAKE_TOP = _make_top("#", "#{modeline:-^77s}#")
 
-CMAKELISTS_FILE = '''\
+CMAKELISTS_FILE = """\
 #-----------------------------------------------------------------------------#
 
 
 #-----------------------------------------------------------------------------#
-'''
+"""
 
 
-CMAKE_FILE = '''\
+CMAKE_FILE = """\
 #[=======================================================================[.rst:
 
 {name}
@@ -355,7 +357,7 @@ function(my_command_name)
 endfunction()
 
 #-----------------------------------------------------------------------------#
-'''
+"""
 
 PYTHON_TOP = _make_top("#", "#!/usr/bin/env python")
 
@@ -366,18 +368,16 @@ PYTHON_FILE = '''\
 '''
 
 SHELL_TOP = _make_top(
-    "#",
-    ["#!/bin/sh -ex", "#{modeline:-^77s}#"],
-    "#{:-^77s}#".format("")
+    "#", ["#!/bin/sh -ex", "#{modeline:-^77s}#"], "#{:-^77s}#".format("")
 )
 
-SHELL_FILE = '''\
+SHELL_FILE = """\
 
-'''
+"""
 
 OMN_TOP = _make_top("!")
 
-ORANGE_FILE = '''
+ORANGE_FILE = """
 [GEOMETRY]
 global "global"
 comp         : matid
@@ -406,11 +406,11 @@ shapes mycyl
 [UNIVERSE][CELL world_fill]
 comp galactic
 shapes world_box ~mycyl
-'''
+"""
 
 RST_TOP = _make_top("..", license=DOC_LICENSE)
 
-RST_FILE = '''
+RST_FILE = """
 .. _{name}:
 
 ****************
@@ -438,54 +438,54 @@ These are useful for heavily nested documentation such as API descriptions. ::
     // This code block will be highlighted in the default language, which for
     // Celeritas is C++.
     int i = 0;
-'''
+"""
 
 TEMPLATES = {
-    'hh': HEADER_FILE,
-    'c': C_CODE_FILE,
-    'h': C_HEADER_FILE,
-    'cc': CODE_FILE,
-    'cu': CODE_FILE,
-    'test.cc': TEST_HARNESS_FILE,
-    'test.cu': TEST_CODE_FILE,
-    'test.hh': TEST_HEADER_FILE,
-    'cmake': CMAKE_FILE,
-    'CMakeLists.txt': CMAKELISTS_FILE,
-    'py': PYTHON_FILE,
-    'sh': SHELL_FILE,
-    'org.omn': ORANGE_FILE,
-    'rst': RST_FILE,
+    "hh": HEADER_FILE,
+    "c": C_CODE_FILE,
+    "h": C_HEADER_FILE,
+    "cc": CODE_FILE,
+    "cu": CODE_FILE,
+    "test.cc": TEST_HARNESS_FILE,
+    "test.cu": TEST_CODE_FILE,
+    "test.hh": TEST_HEADER_FILE,
+    "cmake": CMAKE_FILE,
+    "CMakeLists.txt": CMAKELISTS_FILE,
+    "py": PYTHON_FILE,
+    "sh": SHELL_FILE,
+    "org.omn": ORANGE_FILE,
+    "rst": RST_FILE,
 }
 
 LANG = {
-    'h': "C",
-    'c': "C",
-    'hh': "C++",
-    'cc': "C++",
-    'cu': "cuda",
-    'cmake': "cmake",
-    'CMakeLists.txt': "cmake",
-    'py': "python",
-    'sh': "sh",
-    'omn': "omnibus",
-    'rst': "rst",
+    "h": "C",
+    "c": "C",
+    "hh": "C++",
+    "cc": "C++",
+    "cu": "cuda",
+    "cmake": "cmake",
+    "CMakeLists.txt": "cmake",
+    "py": "python",
+    "sh": "sh",
+    "omn": "omnibus",
+    "rst": "rst",
 }
 
 TOPS = {
-    'C': CXX_TOP,
-    'C++': CXX_TOP,
-    'cuda': CXX_TOP,
-    'cmake': CMAKE_TOP,
-    'python': PYTHON_TOP,
-    'sh': SHELL_TOP,
-    'omnibus': OMN_TOP,
-    'rst': RST_TOP,
+    "C": CXX_TOP,
+    "C++": CXX_TOP,
+    "cuda": CXX_TOP,
+    "cmake": CMAKE_TOP,
+    "python": PYTHON_TOP,
+    "sh": SHELL_TOP,
+    "omnibus": OMN_TOP,
+    "rst": RST_TOP,
 }
 
 HEXT = {
-    'C': "h",
-    'C++': "hh",
-    'cuda': "hh",
+    "C": "h",
+    "C++": "hh",
+    "cuda": "hh",
 }
 
 
@@ -501,11 +501,11 @@ def generate(repodir, filename, namespace):
         all_dirs = [""]
 
     if namespace is None:
-        namespace = 'celeritas'
-        if all_dirs[0] in ('app', 'test', 'example'):
-            namespace += '::' + all_dirs[0]
-        if all_dirs[-1] == 'detail':
-            namespace += '::detail'
+        namespace = "celeritas"
+        if all_dirs[0] in ("app", "test", "example"):
+            namespace += "::" + all_dirs[0]
+        if all_dirs[-1] == "detail":
+            namespace += "::detail"
 
     # Construct directory name with src/app/test dropped
     dirname = os.sep.join(all_dirs[1:])
@@ -513,11 +513,11 @@ def generate(repodir, filename, namespace):
         dirname += os.sep
 
     basename = os.path.basename(filename)
-    (name, _, longext) = basename.partition('.')
+    (name, _, longext) = basename.partition(".")
 
     lang = None
     template = None
-    ext = longext.split('.')[-1]
+    ext = longext.split(".")[-1]
     for check_lang in [basename, longext, ext]:
         if not lang:
             lang = LANG.get(check_lang, None)
@@ -533,30 +533,30 @@ def generate(repodir, filename, namespace):
     top = TOPS[lang]
     nsbeg = []
     nsend = []
-    for subns in namespace.split('::'):
-        nsbeg.append(f'namespace {subns}\n{{')
-        nsend.append(f'}}  // namespace {subns}')
+    for subns in namespace.split("::"):
+        nsbeg.append(f"namespace {subns}\n{{")
+        nsend.append(f"}}  // namespace {subns}")
 
-    capabbr = re.sub(r'[^A-Z]+', '', name)
+    capabbr = re.sub(r"[^A-Z]+", "", name)
     variables = {
-        'longext': longext,
-        'ext': ext,
-        'hext': "hh" if lang != "C" else "h",
-        'modeline': f" -*- {lang} -*- ",
-        'name': name,
-        'namespace': namespace,
-        'namespace_begin': "\n".join(nsbeg),
-        'namespace_end': "\n".join(reversed(nsend)),
-        'basename': basename,
-        'dirname': dirname,
-        'capabbr': capabbr,
-        'lowabbr': capabbr.lower(),
-        'corecel_ns': "", # or "celeritas::" or someday(?) "corecel::"
-        'celeritas_ns': "",
+        "longext": longext,
+        "ext": ext,
+        "hext": "hh" if lang != "C" else "h",
+        "modeline": f" -*- {lang} -*- ",
+        "name": name,
+        "namespace": namespace,
+        "namespace_begin": "\n".join(nsbeg),
+        "namespace_end": "\n".join(reversed(nsend)),
+        "basename": basename,
+        "dirname": dirname,
+        "capabbr": capabbr,
+        "lowabbr": capabbr.lower(),
+        "corecel_ns": "",  # or "celeritas::" or someday(?) "corecel::"
+        "celeritas_ns": "",
     }
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write((top + template).format(**variables))
-        if top.startswith('#!'):
+        if top.startswith("#!"):
             # Set executable bits
             mode = os.fstat(f.fileno()).st_mode
             mode |= 0o111
@@ -566,7 +566,7 @@ def generate(repodir, filename, namespace):
 
 def get_main_repo():
     try:
-        out = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
+        out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
     except subprocess.SubprocessError as e:
         return ".."
 
@@ -575,20 +575,16 @@ def get_main_repo():
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("filename", nargs="+", help="file names to generate")
+    parser.add_argument("--repodir", help="root source directory for file naming")
     parser.add_argument(
-        'filename', nargs='+',
-        help='file names to generate')
+        "-o", "--open", action="store_true", help='call "open" on the created files'
+    )
     parser.add_argument(
-        '--repodir',
-        help='root source directory for file naming')
-    parser.add_argument('-o', '--open',
-        action='store_true',
-        help='call "open" on the created files')
-    parser.add_argument(
-        '--namespace', '-n',
-        default=None,
-        help='C++ namespace to generate')
+        "--namespace", "-n", default=None, help="C++ namespace to generate"
+    )
     args = parser.parse_args()
     repodir = args.repodir or get_main_repo()
     generated = []
@@ -601,5 +597,5 @@ def main():
         subprocess.call(["open"] + generated)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

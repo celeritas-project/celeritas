@@ -8,6 +8,7 @@
 
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/optical/Types.hh"
 
@@ -55,6 +56,17 @@ calc_subsurface_direction(Real3 const& geo_dir, Real3 const& normal)
 {
     return static_cast<SubsurfaceDirection>(
         is_entering_surface(geo_dir, normal));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate geometric reflection of an incident vector about a normal.
+ */
+[[nodiscard]] inline CELER_FUNCTION Real3
+geometric_reflected_from(Real3 dir, Real3 const& normal)
+{
+    axpy(-2 * dot_product(dir, normal), normal, &dir);
+    return dir;
 }
 
 //---------------------------------------------------------------------------//

@@ -265,6 +265,8 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/model/*.cc"
   "${PROJECT_SOURCE_DIR}/test/*.hh"
   "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
