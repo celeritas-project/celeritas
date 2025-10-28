@@ -19,7 +19,7 @@ struct Problem;
 
 namespace optical
 {
-struct CoreParams;
+class CoreParams;
 }  // namespace optical
 
 class CoreParams;
