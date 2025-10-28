@@ -226,8 +226,8 @@ enum class SurfaceState : bool
  */
 enum class BoundaryResult : bool
 {
-    reentrant = false,
-    exiting = true
+    moving_off = false,
+    moving_into = true
 };
 
 //---------------------------------------------------------------------------//

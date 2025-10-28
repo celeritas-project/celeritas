@@ -297,6 +297,9 @@ class TransformedBoxGeoTest
 //---------------------------------------------------------------------------//
 /*!
  * Test the two-box geometry.
+ *
+ * Inner box \c inner enclosed in an outer box \c world . The box's half-width
+ * is 5 cm.
  */
 class TwoBoxesGeoTest
 {
@@ -478,12 +481,13 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         // Find the next step (to top edge of Shape1) but then scatter back
         // toward the sphere
         next = geo.find_next_step(from_cm(10.0));
-        if (test->geometry_type() == "ORANGE")
-        {
-            // ORANGE thinks the boundary is reentrant
-            EXPECT_SOFT_EQ(0, to_cm(next.distance));
-            GTEST_SKIP() << "FIXME: ORANGE reentrant boundary is misbehaving";
-        }
+        // if (test->geometry_type() == "ORANGE")
+        // {
+        //     // ORANGE thinks the boundary is reentrant
+        //     EXPECT_SOFT_EQ(0, to_cm(next.distance));
+        //     GTEST_SKIP() << "FIXME: ORANGE reentrant boundary is
+        //     misbehaving";
+        // }
         EXPECT_SOFT_EQ(6, to_cm(next.distance));
         geo.set_dir({-1, 0, 0});
         EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), to_cm(geo.pos()));
@@ -522,8 +526,11 @@ void FourLevelsGeoTest::test_detailed_tracking(GeoTest* test)
         else if (test->geometry_type() == "ORANGE")
         {
             // Should be able to relocate back and forth
+            geo.set_dir({1, 0, 0});
             geo.cross_boundary();
             EXPECT_EQ("Shape1", test->volume_name(geo));
+
+            geo.set_dir({-1, 0, 0});
             geo.cross_boundary();
             EXPECT_EQ("Shape2", test->volume_name(geo));
         }
