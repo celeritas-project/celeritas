@@ -66,7 +66,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
         StringSimplifier simplify_str;
 
         std::vector<std::string> result;
-        for (auto uid : range(UniverseId{protos.size()}))
+        for (auto uid : range(UnivId{protos.size()}))
         {
             result.push_back(
                 simplify_str(std::string(protos.at(uid)->label())));
@@ -74,15 +74,15 @@ class ProtoConstructorTest : public GeantLoadTestBase
         return result;
     }
 
-    Unit build_unit(ProtoMap const& protos, UniverseId id) const
+    Unit build_unit(ProtoMap const& protos, UnivId id) const
     {
         CELER_EXPECT(id < protos.size());
         auto const* proto = dynamic_cast<UnitProto const*>(protos.at(id));
         CELER_ASSERT(proto);
-        return proto->build(tol_,
-                            id == UniverseId{0} ? BBox{}
-                                                : BBox{{-1000, -1000, -1000},
-                                                       {1000, 1000, 1000}});
+        return proto->build(
+            tol_,
+            id == UnivId{0} ? BBox{}
+                            : BBox{{-1000, -1000, -1000}, {1000, 1000, 1000}});
     }
 
     Tolerance<> tol_ = Tol::from_relative(1e-5);
@@ -96,7 +96,7 @@ TEST_F(ProtoConstructorTest, atlas_lar_endcap)
     ASSERT_EQ(1, protos.size());
     {
         SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         EXPECT_JSON_EQ(R"json({"czc": 2, "gq": 25, "p": 50, "pz": 2})json",
                        count_surface_types(u));
@@ -111,7 +111,7 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
     ASSERT_EQ(1, protos.size());
     {
         SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         static char const* const expected_surface_strings[] = {
             "Plane: x=-50",
@@ -201,7 +201,7 @@ TEST_F(ProtoConstructorTest, lar_sphere)
     ASSERT_EQ(1, protos.size());
     {
         SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         static char const* const expected_surface_strings[] = {
             "Sphere: r=1000",
@@ -258,7 +258,7 @@ TEST_F(ProtoConstructorTest, one_box)
     ASSERT_EQ(1, protos.size());
     {
         SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         static char const* const expected_surface_strings[] = {
             "Plane: x=-500",
@@ -308,7 +308,7 @@ TEST_F(ProtoConstructorTest, simple_cms)
     ASSERT_EQ(1, protos.size());
     {
         SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         static char const* const expected_surface_strings[] = {
             "Plane: x=-1000",
@@ -359,7 +359,7 @@ TEST_F(ProtoConstructorTest, testem3)
     ASSERT_EQ(2, protos.size());
     {
         SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         // NOTE: 51 layer X surfaces, 4 surrounding, 6 world, plus whatever
         // "unused" surfaces from deduplication
@@ -389,7 +389,7 @@ TEST_F(ProtoConstructorTest, testem3)
     }
     {
         SCOPED_TRACE("daughter");
-        auto u = this->build_unit(protos, UniverseId{1});
+        auto u = this->build_unit(protos, UnivId{1});
 
         static char const* const expected_surface_strings[] = {
             "Plane: x=-0.17",
@@ -439,7 +439,7 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
 
     ASSERT_EQ(1, protos.size());
     {
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         static char const* const expected_surface_strings[] = {
             "Plane: z=-62.057",
@@ -477,7 +477,7 @@ TEST_F(ProtoConstructorTest, two_boxes)
     ASSERT_EQ(1, protos.size());
     {
         SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         static char const* const expected_surface_strings[] = {
             "Plane: x=-500",
@@ -525,7 +525,7 @@ TEST_F(ProtoConstructorTest, znenv)
     ASSERT_EQ(9, protos.size());
     {
         SCOPED_TRACE("World");
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         // clang-format off
         static char const* const expected_surface_strings[] = {
@@ -558,7 +558,7 @@ TEST_F(ProtoConstructorTest, znenv)
     }
     {
         SCOPED_TRACE("ZNTX");
-        auto u = this->build_unit(protos, UniverseId{1});
+        auto u = this->build_unit(protos, UnivId{1});
 
         static char const* const expected_surface_strings[] = {
             "Plane: y=0",
@@ -572,13 +572,13 @@ TEST_F(ProtoConstructorTest, znenv)
     }
     {
         SCOPED_TRACE("ZN1");
-        auto u = this->build_unit(protos, UniverseId{2});
+        auto u = this->build_unit(protos, UnivId{2});
 
         EXPECT_JSON_EQ(R"json({"py":10})json", count_surface_types(u));
     }
     {
         SCOPED_TRACE("ZNST");
-        auto u = this->build_unit(protos, UniverseId{4});
+        auto u = this->build_unit(protos, UnivId{4});
 
         static char const* const expected_surface_strings[] = {
             "Plane: x=-0.11",
@@ -604,7 +604,7 @@ TEST_F(ProtoConstructorTest, znenv)
     }
     {
         SCOPED_TRACE("ZNG1");
-        auto u = this->build_unit(protos, UniverseId{5});
+        auto u = this->build_unit(protos, UnivId{5});
         static char const* const expected_surface_strings[]
             = {"Cyl z: r=0.01825"};
         static char const* const expected_volume_strings[] = {"F", "-6", "+6"};
@@ -669,7 +669,7 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
     ASSERT_EQ(15, protos.size());
     {
         SCOPED_TRACE("global");
-        auto u = this->build_unit(protos, UniverseId{0});
+        auto u = this->build_unit(protos, UnivId{0});
 
         static char const* const expected_volume_strings[]
             = {"any(-0, +1, -2, +3, -4, +5)", "all(+6, -7, +8, -9, +10, -11)"};
@@ -678,14 +678,14 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
     }
     {
         SCOPED_TRACE("ZN1");
-        auto u = this->build_unit(protos, UniverseId{4});
+        auto u = this->build_unit(protos, UnivId{4});
 
         EXPECT_JSON_EQ(R"json({"px":2,"py":12,"pz":2})json",
                        count_surface_types(u));
     }
     {
         SCOPED_TRACE("ZNG1");
-        auto u = this->build_unit(protos, UniverseId{7});
+        auto u = this->build_unit(protos, UnivId{7});
         static char const* const expected_surface_strings[] = {
             "Plane: x=-0.3",
             "Plane: x=0.3",
@@ -723,7 +723,7 @@ TEST_F(ProtoConstructorTest, znenv_explicit)
     }
     {
         SCOPED_TRACE("ZNF1");
-        auto u = this->build_unit(protos, UniverseId{11});
+        auto u = this->build_unit(protos, UnivId{11});
 
         static char const* const expected_surface_strings[]
             = {"Plane: z=-500", "Plane: z=500", "Cyl z: r=0.1825"};

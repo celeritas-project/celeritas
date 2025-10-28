@@ -46,7 +46,15 @@ struct ScopedProfilingInput
  * action.  It is very similar to the [NVTX
  * `scoped_range`](https://nvidia.github.io/NVTX/doxygen-cpp/#scoped_range).
  *
- * Example: \code
+ * Profiling is off by default but must be enabled (in conjunction with other
+ * tools; see \rstref{the profiling section,profiling} for more details). The
+ * \c CELER_ENABLE_PROFILING environment variable is used to override this
+ * behavior. Profiling is never enabled if CUDA/ROC-TX/Perfetto are
+ * unavailable.
+ *
+ * \par Example:
+ * Profile only the run, not the setup.
+ * \code
  * void do_program()
  * {
  *     do_setup()
@@ -55,7 +63,7 @@ struct ScopedProfilingInput
  * }
  * \endcode
  *
- * Caveats:
+ * \par Caveats:
  * - The Nvidia/CUDA implementation of \c ScopedProfiling only does something
  *   when the application using Celeritas is run through a tool that supports
  *   NVTX, e.g., nsight compute with the --nvtx argument. If this is not the

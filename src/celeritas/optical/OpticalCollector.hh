@@ -11,12 +11,12 @@
 
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/optical/Types.hh"
 #include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "Model.hh"
 #include "gen/OffloadData.hh"
-#include "gen/detail/GeneratorTraits.hh"
 
 namespace celeritas
 {
@@ -34,7 +34,6 @@ class ScintillationParams;
 namespace optical
 {
 class CoreStateBase;
-template<GeneratorType G>
 class GeneratorAction;
 class MaterialParams;
 }  // namespace optical
@@ -146,10 +145,7 @@ class OpticalCollector
     using SPCherenkovOffload = std::shared_ptr<OffloadAction<GT::cherenkov>>;
     using SPScintOffload = std::shared_ptr<OffloadAction<GT::scintillation>>;
     using SPGatherAction = std::shared_ptr<OffloadGatherAction>;
-    using SPCherenkovGen
-        = std::shared_ptr<optical::GeneratorAction<GT::cherenkov>>;
-    using SPScintGen
-        = std::shared_ptr<optical::GeneratorAction<GT::scintillation>>;
+    using SPGenerator = std::shared_ptr<optical::GeneratorAction>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
     //// DATA ////
@@ -158,8 +154,7 @@ class OpticalCollector
     SPGatherAction gather_;
     SPCherenkovOffload cherenkov_offload_;
     SPScintOffload scint_offload_;
-    SPCherenkovGen cherenkov_generate_;
-    SPScintGen scint_generate_;
+    SPGenerator generate_;
     SPLaunchAction launch_;
 };
 

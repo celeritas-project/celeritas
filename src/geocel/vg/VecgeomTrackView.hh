@@ -97,7 +97,7 @@ class VecgeomTrackView
     // Get the ID of the current volume instance
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline CELER_FUNCTION LevelId level() const;
+    inline CELER_FUNCTION VolumeLevelId volume_level() const;
     // Get the volume instance ID for all levels
     inline CELER_FUNCTION void
     volume_instance_id(Span<VolumeInstanceId> levels) const;
@@ -210,8 +210,8 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     : params_(params)
     , state_(states)
     , tid_(tid)
-    , vgstate_(states.vgstate.at(params_.scalars.max_depth, tid))
-    , vgnext_(states.vgnext.at(params_.scalars.max_depth, tid))
+    , vgstate_(states.vgstate.at(params_.scalars.num_volume_levels, tid))
+    , vgnext_(states.vgnext.at(params_.scalars.num_volume_levels, tid))
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
 #if CELERITAS_VECGEOM_SURFACE
@@ -307,19 +307,22 @@ CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
 /*!
  * Get the depth in the geometry hierarchy.
  */
-CELER_FUNCTION LevelId VecgeomTrackView::level() const
+CELER_FUNCTION VolumeLevelId VecgeomTrackView::volume_level() const
 {
-    return id_cast<LevelId>(vgstate_.GetLevel());
+    auto result = id_cast<VolumeLevelId>(vgstate_.GetLevel());
+    CELER_ENSURE(result < params_.scalars.num_volume_levels);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume instance ID for all levels.
+ * Get the volume instance ID at each volume level.
  */
 CELER_FUNCTION void
 VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(levels.size() == this->level().get() + 1);
+    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
+                 == this->volume_level() + 1);
     for (auto lev : range(levels.size()))
     {
         vecgeom::VPlacedVolume const* pv = vgstate_.At(lev);

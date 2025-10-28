@@ -138,6 +138,7 @@ ScintillationOffload::operator()(Generator& rng)
     if (result.num_photons > 0)
     {
         // Assign remaining data
+        result.type = GeneratorType::scintillation;
         result.time = pre_step_.time;
         result.step_length = step_length_;
         result.charge = charge_;

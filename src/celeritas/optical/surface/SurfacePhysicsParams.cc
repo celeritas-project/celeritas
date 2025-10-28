@@ -13,6 +13,7 @@
 
 #include "model/DielectricInteractionModel.hh"
 #include "model/PolishedRoughnessModel.hh"
+#include "model/TrivialInteractionModel.hh"
 
 #include "detail/BuiltinSurfaceModelBuilder.hh"
 
@@ -149,6 +150,8 @@ auto SurfacePhysicsParams::build_models(
             case SurfacePhysicsOrder::interaction:
                 build_model.build<DielectricInteractionModel>(
                     input.interaction.dielectric);
+                build_model.build<TrivialInteractionModel>(
+                    input.interaction.trivial);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();

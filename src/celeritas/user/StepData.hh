@@ -147,7 +147,7 @@ struct StepParamsData
     bool nonzero_energy_deposition{false};
 
     //! Per-state volume instance size if volume_instance_ids selected
-    size_type volume_instance_depth{0};
+    size_type num_volume_levels{0};
 
     //// METHODS ////
 
@@ -165,7 +165,7 @@ struct StepParamsData
         selection = other.selection;
         detector = other.detector;
         nonzero_energy_deposition = other.nonzero_energy_deposition;
-        volume_instance_depth = other.volume_instance_depth;
+        num_volume_levels = other.num_volume_levels;
         return *this;
     }
 };
@@ -354,7 +354,7 @@ struct StepStateData
     StateItems<size_type> valid_id;
 
     // Copy of params max depth for dimensioning volume_instance_ids
-    size_type volume_instance_depth{0};
+    size_type num_volume_levels{0};
 
     //! Unique identifier for "thread-local" data.
     StreamId stream_id;
@@ -385,7 +385,7 @@ struct StepStateData
         data = other.data;
         scratch = other.scratch;
         valid_id = other.valid_id;
-        volume_instance_depth = other.volume_instance_depth;
+        num_volume_levels = other.num_volume_levels;
         stream_id = other.stream_id;
         return *this;
     }
@@ -419,7 +419,7 @@ inline void resize(StepPointStateData<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(volume_id);
     if (selection.volume_instance_ids)
     {
-        size_type const vi_depth = params.volume_instance_depth;
+        size_type const vi_depth = params.num_volume_levels;
         CELER_ASSERT(vi_depth > 0);
         resize(&state->volume_instance_ids, size * vi_depth);
     }
@@ -483,7 +483,7 @@ inline void resize(StepStateData<Ownership::value, M>* state,
     CELER_EXPECT(state->size() == 0);
     CELER_EXPECT(size > 0);
 
-    state->volume_instance_depth = params.volume_instance_depth;
+    state->num_volume_levels = params.num_volume_levels;
     state->stream_id = stream_id;
 
     resize(&state->data, params, size);

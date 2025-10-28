@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-#!/usr/bin/env python3
 """
 A Python script that runs cloc on a given git commit in a source directory,
 processes its CSV output into pandas tables, and concatenates the results with
@@ -93,7 +92,9 @@ def process_csv_output(csv_output):
     if df.iloc[-1, 1] == "SUM":
         df = df.iloc[:-1]
     # Rename and reorder columns
-    df = df.rename(columns=str.capitalize)[["Language", "Files", "Comment", "Code", "Blank"]]
+    df = df.rename(columns=str.capitalize)[
+        ["Language", "Files", "Comment", "Code", "Blank"]
+    ]
     # Coerce all but the first column to integers
     for col in df.columns[1:]:
         df[col] = df[col].astype(int)

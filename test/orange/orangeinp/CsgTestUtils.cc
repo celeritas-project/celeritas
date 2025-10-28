@@ -233,7 +233,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
         {
             std::ostringstream os;
             os << "{u=";
-            if (auto u = d->universe_id)
+            if (auto u = d->univ_id)
             {
                 os << id_to_int(u);
             }

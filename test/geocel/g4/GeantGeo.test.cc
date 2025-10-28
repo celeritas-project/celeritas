@@ -56,7 +56,7 @@ class GeantGeoTest : public GeantGeoTestBase
         static bool const have_printed_ = [] {
             using namespace celeritas::cmake;
             cout << color_code('x') << "Using Geant4 v" << geant4_version
-                 << color_code(' ') << endl;
+                 << " (" << geant4_options << ")" << color_code(' ') << endl;
             return true;
         }();
         EXPECT_TRUE(have_printed_);
@@ -721,9 +721,9 @@ TEST_F(ReplicaTest, level_strings)
     {
         auto geo = this->make_geo_track_view({xz[0], 0.0, xz[1]}, {1, 0, 0});
 
-        auto level = geo.level();
-        CELER_ASSERT(level && level >= LevelId{0});
-        std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
+        auto depth = geo.volume_level();
+        CELER_ASSERT(depth && depth >= VolumeLevelId{0});
+        std::vector<VolumeInstanceId> inst_ids(depth.get() + 1);
         geo.volume_instance_id(make_span(inst_ids));
         std::vector<std::string> names(inst_ids.size());
         for (auto i : range(inst_ids.size()))

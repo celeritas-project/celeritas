@@ -44,7 +44,7 @@ class ProtoBuilder
     //!@{
     //! \name Type aliases
     using Tol = Tolerance<>;
-    using SaveUnivJson = std::function<void(UniverseId, JsonPimpl&&)>;
+    using SaveUnivJson = std::function<void(UnivId, JsonPimpl&&)>;
     //!@}
 
     //! Input options for construction
@@ -67,16 +67,16 @@ class ProtoBuilder
     bool save_json() const { return static_cast<bool>(save_json_); }
 
     // Find a universe ID
-    inline UniverseId find_universe_id(ProtoInterface const*) const;
+    inline UnivId find_universe_id(ProtoInterface const*) const;
 
     // Get the next universe ID
-    inline UniverseId next_id() const;
+    inline UnivId next_id() const;
 
     // Get the bounding box of a universe
-    inline BBox const& bbox(UniverseId) const;
+    inline BBox const& bbox(UnivId) const;
 
     // Expand the bounding box of a universe
-    void expand_bbox(UniverseId, BBox const& local_box);
+    void expand_bbox(UnivId, BBox const& local_box);
 
     // Save debugging data for a universe
     void save_json(JsonPimpl&&) const;
@@ -97,7 +97,7 @@ class ProtoBuilder
 /*!
  * Find a universe ID.
  */
-UniverseId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
+UnivId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
 {
     return protos_.find(p);
 }
@@ -106,16 +106,16 @@ UniverseId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
 /*!
  * Get the next universe ID.
  */
-UniverseId ProtoBuilder::next_id() const
+UnivId ProtoBuilder::next_id() const
 {
-    return id_cast<UniverseId>(inp_->universes.size());
+    return id_cast<UnivId>(inp_->universes.size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the bounding box of a universe.
  */
-BBox const& ProtoBuilder::bbox(UniverseId univ_id) const
+BBox const& ProtoBuilder::bbox(UnivId univ_id) const
 {
     CELER_EXPECT(univ_id < bboxes_.size());
     return bboxes_[univ_id.get()];
