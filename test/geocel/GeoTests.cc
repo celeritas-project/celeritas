@@ -2159,22 +2159,6 @@ void TwoBoxesGeoTest::test_accessors() const
 }
 
 //---------------------------------------------------------------------------//
-void TwoBoxesGeoTest::test_trace() const
-{
-    {
-        auto result = test_->track({0, 0.25, -25}, {0, 0., 1});
-        GenericGeoTrackingResult ref;
-        ref.volumes = {"world", "inner", "world"};
-        ref.volume_instances = {"world_PV", "inner_PV", "world_PV"};
-        ref.distances = {20, 10, 495};
-        ref.halfway_safeties = {10, 4.75, 247.5};
-        ref.bumps = {};
-        auto tol = test_->tracking_tol();
-        EXPECT_REF_NEAR(ref, result, tol);
-    }
-}
-
-//---------------------------------------------------------------------------//
 void TwoBoxesGeoTest::test_detailed_tracking() const
 {
     bool const check_normal = test_->supports_surface_normal();
@@ -2255,6 +2239,22 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
+}
+
+//---------------------------------------------------------------------------//
+void TwoBoxesGeoTest::test_trace() const
+{
+    {
+        auto result = test_->track({0, 0.25, -25}, {0, 0., 1});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"world", "inner", "world"};
+        ref.volume_instances = {"world_PV", "inner_PV", "world_PV"};
+        ref.distances = {20, 10, 495};
+        ref.halfway_safeties = {10, 4.75, 247.5};
+        ref.bumps = {};
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
 }
 
 //---------------------------------------------------------------------------//

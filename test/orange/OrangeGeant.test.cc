@@ -244,7 +244,14 @@ TEST_F(TwoBoxesTest, accessors)
     this->impl().test_accessors();
 }
 
-TEST_F(TwoBoxesTest, recross)
+/*!
+ * Cross into a new volume and then reflect into the old.
+ *
+ * This is how optical physics is performed: we enter the new volume to
+ * determine its characteristics, then apply the optical surface crossing,
+ * which might reflect back into the original.
+ */
+TEST_F(TwoBoxesTest, reentrant)
 {
     constexpr auto dx = real_type{1} / constants::sqrt_two;
 
@@ -288,6 +295,56 @@ TEST_F(TwoBoxesTest, recross)
     // accepted
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(10.0, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_TRUE(geo.is_on_boundary());
+}
+
+/*!
+ * Instead of crossing into a new volume, reflect without exiting.
+ *
+ * This simulates a looping track almost tangent to a geometry boundary.
+ * The end-of-step direction is changed to account for the momentum vector's
+ * end-of-step state, and the boundary isn't actually exited when we call cross
+ * boundary.
+ */
+TEST_F(TwoBoxesTest, tangent)
+{
+    constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+    // Starting left of edge (-), headed down right (+,-)
+    CheckedGeoTrackView geo{this->make_geo_track_view_interface()};
+    geo = this->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", this->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Check for surfaces up to a distance of 4 units away
+    auto next = geo.find_next_step(from_cm(4.0));
+    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    // Move to boundary (-; +,-)
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    EXPECT_EQ("inner", this->volume_name(geo));
+
+    // Reflect normal to surface (-; -,-)
+    geo.set_dir(Real3{-dx, -dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    EXPECT_EQ("inner", this->volume_name(geo));
+
+    // Crossing will *not* change volumes (-; -,-)
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    EXPECT_EQ("inner", this->volume_name(geo));
+
+    // Find the next boundary and make sure that nearer distances aren't
+    // accepted
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     EXPECT_TRUE(geo.is_on_boundary());
 }
