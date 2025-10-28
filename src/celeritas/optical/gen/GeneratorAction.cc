@@ -89,9 +89,9 @@ GeneratorAction::GeneratorAction(ActionId id,
                     "optical-generate",
                     "generate Cherenkov or scintillation photons from optical "
                     "distribution data")
-    , capacity_(capacity)
+    , initial_capacity_(capacity)
 {
-    CELER_EXPECT(capacity_ > 0);
+    CELER_EXPECT(initial_capacity_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -103,11 +103,28 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(id, capacity_);
+        return make_state<MemSpace::host>(id, initial_capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(id, capacity_);
+        return make_state<MemSpace::device>(id, initial_capacity_);
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add user-provided host distribution data.
+ */
+void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
+{
+    if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
+    {
+        return this->insert_impl(*s, data);
+    }
+    else if (auto* s = dynamic_cast<CoreState<MemSpace::device>*>(&state))
+    {
+        return this->insert_impl(*s, data);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -129,6 +146,36 @@ void GeneratorAction::step(CoreParams const& params,
                            CoreStateDevice& state) const
 {
     this->step_impl(params, state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add distributions to the aux state.
+ */
+template<MemSpace M>
+void GeneratorAction::insert_impl(CoreState<M>& state, SpanConstData data) const
+{
+    CELER_EXPECT(state.aux());
+
+    auto& aux_state = get<GeneratorState<M>>(*state.aux(), this->aux_id());
+
+    if (aux_state.counters.buffer_size != 0)
+    {
+        CELER_NOT_IMPLEMENTED("multiple consecutive distribution insertions");
+    }
+
+    if (aux_state.store.size() < data.size())
+    {
+        // Reallocate with enough capacity
+        aux_state.store = CollectionStateStore<GeneratorStateData, M>{
+            state.stream_id(), static_cast<size_type>(data.size())};
+    }
+
+    // Update counters and copy distributions to aux state
+    aux_state.counters.buffer_size = data.size();
+    Copier<GeneratorDistributionData, M> copy_to_aux{aux_state.distributions(),
+                                                     state.stream_id()};
+    copy_to_aux(MemSpace::host, data);
 }
 
 //---------------------------------------------------------------------------//

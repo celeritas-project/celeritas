@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
@@ -26,6 +27,8 @@ class ScintillationParams;
 
 namespace optical
 {
+class CoreStateBase;
+
 //---------------------------------------------------------------------------//
 /*!
  * Generate photons from optical distribution data.
@@ -37,6 +40,12 @@ namespace optical
 class GeneratorAction final : public GeneratorBase
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SpanConstData = Span<GeneratorDistributionData const>;
+    //!@}
+
+  public:
     // Construct and add to core params
     static std::shared_ptr<GeneratorAction>
     make_and_insert(::celeritas::CoreParams const&,
@@ -45,6 +54,9 @@ class GeneratorAction final : public GeneratorBase
 
     // Construct with action ID, data IDs, and optical properties
     GeneratorAction(ActionId, AuxId, GeneratorId, size_type capacity);
+
+    // Add user-provided host distribution data
+    void insert(CoreStateBase&, SpanConstData) const;
 
     //!@{
     //! \name Aux interface
@@ -65,10 +77,13 @@ class GeneratorAction final : public GeneratorBase
   private:
     //// DATA ////
 
-    // Distribution buffer capacity
-    size_type capacity_;
+    // Starting distribution buffer capacity
+    size_type initial_capacity_;
 
     //// HELPER FUNCTIONS ////
+
+    template<MemSpace M>
+    void insert_impl(CoreState<M>& state, SpanConstData data) const;
 
     template<MemSpace M>
     void step_impl(CoreParams const&, CoreState<M>&) const;
