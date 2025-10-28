@@ -302,8 +302,9 @@ class TwoBoxesGeoTest
     TwoBoxesGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_accessors() const;
-    void test_boundary_crossing() const;
     void test_detailed_tracking() const;
+    void test_reentrant() const;
+    void test_tangent() const;
     void test_trace() const;
 
   private:
