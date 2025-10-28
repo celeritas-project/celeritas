@@ -64,10 +64,12 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     EXPECT_EQ(10, Id_t{22} - Id_t{12});
     EXPECT_TRUE(Id_t{22} < Id_t{23});
     EXPECT_EQ(Id_t{24}, Id_t{22} + 2);
+    EXPECT_EQ(Id_t{24}, 2 + Id_t{22});
     EXPECT_EQ(Id_t{24}, Id_t{22} - (-2));
     EXPECT_EQ(Id_t{22}, Id_t{22} + 0);
     EXPECT_EQ(Id_t{22}, Id_t{22} - 0);
     EXPECT_EQ(Id_t{21}, Id_t{22} + (-1));
+    EXPECT_EQ(Id_t{21}, (-1) + Id_t{22});
     EXPECT_EQ(Id_t{21}, Id_t{22} - 1);
     EXPECT_EQ(Id_t{0}, Id_t{1} - 1);
     EXPECT_EQ(Id_t{0}, Id_t{2} + (-2));

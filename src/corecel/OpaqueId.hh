@@ -198,6 +198,14 @@ operator+(OpaqueId<I, T> id, std::make_signed_t<T> offset)
         static_cast<T>(id.unchecked_get() + static_cast<T>(offset))};
 }
 
+//! Increment an opaque ID by an offset
+template<class I, class T>
+CELER_FORCEINLINE_FUNCTION auto
+operator+(T offset, OpaqueId<I, std::make_unsigned_t<T>> id)
+{
+    return id + offset;
+}
+
 //---------------------------------------------------------------------------//
 //! Decrement an opaque ID by an offset
 template<class I, class T>
