@@ -24,10 +24,9 @@ namespace celeritas
 /*!
  * Initialize the state with the given seed.
  */
-CELER_FUNCTION void
-initialize_state(RanluxppRngState& state,
-                 RanluxppUInt seed,
-                 HostCRef<RanluxppRngParamsData> const& params)
+void initialize_state(RanluxppRngState& state,
+                      RanluxppUInt seed,
+                      HostCRef<RanluxppRngParamsData> const& params)
 {
     // Skip 2 ** 96 states
     RanluxppArray9 a_seed = celeritas::detail::compute_power_modulus(
