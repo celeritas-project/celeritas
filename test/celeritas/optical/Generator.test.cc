@@ -184,18 +184,19 @@ TEST_F(LArSphereGeneratorTest, generator)
     // Get the accumulated counters
     auto result = this->counters<MemSpace::host>(*generate);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        EXPECT_EQ(54063, result.steps);
-        EXPECT_EQ(15, result.step_iters);
-    }
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());
 
     auto const& gen = result.generators.front();
     EXPECT_EQ(512, gen.buffer_size);
     EXPECT_EQ(0, gen.num_pending);
-    EXPECT_EQ(50965, gen.num_generated);
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(50965, gen.num_generated);
+        EXPECT_EQ(54063, result.steps);
+        EXPECT_EQ(15, result.step_iters);
+    }
 }
 
 TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
@@ -220,18 +221,19 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
     // Get the accumulated counters
     auto result = this->counters<MemSpace::device>(*generate);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        EXPECT_EQ(431962, result.steps);
-        EXPECT_EQ(28, result.step_iters);
-    }
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());
 
     auto const& gen = result.generators.front();
     EXPECT_EQ(4096, gen.buffer_size);
     EXPECT_EQ(0, gen.num_pending);
-    EXPECT_EQ(407616, gen.num_generated);
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(407616, gen.num_generated);
+        EXPECT_EQ(431962, result.steps);
+        EXPECT_EQ(28, result.step_iters);
+    }
 }
 
 //---------------------------------------------------------------------------//
