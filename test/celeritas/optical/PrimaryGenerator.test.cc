@@ -32,6 +32,10 @@ namespace celeritas
 {
 namespace test
 {
+
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
 //---------------------------------------------------------------------------//
 /*!
  * Temporary helper class for constructing optical aux state data.
@@ -163,8 +167,10 @@ TEST_F(LArSpherePrimaryGeneratorTest, primary_generator)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(68916, result.steps);
-        EXPECT_EQ(18, result.step_iters);
+        constexpr int expected_steps = using_surface_vg ? 65536 : 68916;
+        constexpr int expected_step_iters = using_surface_vg ? 16 : 18;
+        EXPECT_EQ(expected_steps, result.steps);
+        EXPECT_EQ(expected_step_iters, result.step_iters);
     }
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());

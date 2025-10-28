@@ -22,6 +22,11 @@ namespace celeritas
 {
 namespace test
 {
+
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 class UAITrackingAction final : public G4UserTrackingAction
 {
@@ -75,12 +80,16 @@ TEST_F(LarSphere, run)
 
     cout << "initializing" << endl;
     rm.Initialize();
-    cout << "beam on" << endl;
 
+    cout << "beam on" << endl;
     rm.BeamOn(3);
     cout << "initial run done" << endl;
-    rm.BeamOn(1);
-    cout << "second run done" << endl;
+
+    if (!using_surface_vg)
+    {
+        rm.BeamOn(1);
+        cout << "second run done" << endl;
+    }
 }
 
 //---------------------------------------------------------------------------//

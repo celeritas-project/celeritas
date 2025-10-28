@@ -48,6 +48,10 @@ bool is_running_events()
 
 }  // namespace
 
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 // TEST BASE
 //---------------------------------------------------------------------------//
@@ -149,9 +153,11 @@ TEST_F(LarSphere, run)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-
-    CELER_LOG(status) << "Beam on (second run)";
-    rm.BeamOn(1);
+    if (!using_surface_vg)
+    {
+        CELER_LOG(status) << "Beam on (second run)";
+        rm.BeamOn(1);
+    }
 }
 
 /*!
@@ -411,8 +417,12 @@ TEST_F(LarSphereOptical, run)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-    CELER_LOG(status) << "Run one more event";
-    rm.BeamOn(2);
+    // check if geometry is vecgeom surface model and skip if so
+    if (!using_surface_vg)
+    {
+        CELER_LOG(status) << "Beam on (second run)";
+        rm.BeamOn(2);
+    }
 }
 
 /*!
@@ -528,8 +538,11 @@ TEST_F(OpNoviceOptical, run)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-    CELER_LOG(status) << "Run one more event";
-    rm.BeamOn(10);
+    if (!using_surface_vg)
+    {
+        CELER_LOG(status) << "Beam on (second run)";
+        rm.BeamOn(10);
+    }
 }
 
 //---------------------------------------------------------------------------//

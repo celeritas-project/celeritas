@@ -37,6 +37,11 @@ namespace celeritas
 {
 namespace test
 {
+
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
@@ -464,8 +469,10 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(121, result.accum.steps);
-        EXPECT_EQ(5, result.accum.step_iters);
+        constexpr unsigned int expected_steps = using_surface_vg ? 109 : 121;
+        constexpr unsigned int expected_step_iters = using_surface_vg ? 4 : 5;
+        EXPECT_EQ(expected_steps, result.accum.steps);
+        EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());
 
@@ -490,8 +497,10 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_SOFT_NEAR(25770, static_cast<double>(result.accum.steps), 1e-4);
-        EXPECT_EQ(3, result.accum.step_iters);
+        unsigned int expected_steps = using_surface_vg ? 23642 : 25770;
+        unsigned int expected_step_iters = using_surface_vg ? 1 : 3;
+        EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
+        EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());
 
