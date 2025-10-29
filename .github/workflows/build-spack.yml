@@ -347,7 +347,7 @@ jobs:
           }}
         run: |
           . ${SPACK_VIEW}/rc
-          export G4VERSION_NUMBER=${{fromJSON(matrix.geant || '0') * 100}}
+          export G4VERSION_NUMBER=$(echo "${{matrix.geant}}" | awk '{printf "%.0f", $1 * 100}')
           ./scripts/ci/test-examples.sh
 
 # vim: set nowrap tw=100:
