@@ -65,12 +65,10 @@ class LArSphereOffloadTest : public LArSphereBase
     void SetUp() override
     {
         // Set default values
-        input_.optical_params = this->optical_params();
-        input_.cherenkov = this->cherenkov();
-        input_.scintillation = this->scintillation();
         input_.num_track_slots = 4096;
         input_.buffer_capacity = 512;
         input_.auto_flush = 4096;
+        params_ = this->optical_params_input();
     }
 
     SPConstAction build_along_step() override;
@@ -92,6 +90,7 @@ class LArSphereOffloadTest : public LArSphereBase
     units::MevEnergy primary_energy_{10.0};
 
     OpticalCollector::Input input_;
+    optical::CoreParams::Input params_;
     std::shared_ptr<OpticalCollector> collector_;
 };
 
@@ -122,15 +121,13 @@ auto LArSphereOffloadTest::build_along_step() -> SPConstAction
 void LArSphereOffloadTest::build_optical_collector()
 {
     OpticalCollector::Input inp = input_;
+    inp.optical_params
+        = std::make_shared<optical::CoreParams>(std::move(params_));
     collector_
         = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
 
     // Check accessors
     EXPECT_TRUE(collector_->optical_params());
-    EXPECT_EQ(static_cast<bool>(input_.cherenkov),
-              static_cast<bool>(collector_->cherenkov()));
-    EXPECT_EQ(static_cast<bool>(input_.scintillation),
-              static_cast<bool>(collector_->scintillation()));
 }
 
 //---------------------------------------------------------------------------//
@@ -390,7 +387,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 
 TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 {
-    input_.scintillation = nullptr;
+    params_.scintillation = nullptr;
     input_.max_step_iters = 0;
     input_.num_track_slots = 4;
     this->build_optical_collector();
@@ -417,7 +414,7 @@ TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 
 TEST_F(LArSphereOffloadTest, scintillation_distributions)
 {
-    input_.cherenkov = nullptr;
+    params_.cherenkov = nullptr;
     input_.max_step_iters = 0;
     input_.num_track_slots = 4;
     this->build_optical_collector();
