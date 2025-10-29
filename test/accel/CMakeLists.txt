@@ -61,7 +61,7 @@ function(celeritas_add_integration_tests basename suite test)
   endif()
 
   if(Geant4_VERSION VERSION_LESS 11.0 AND basename MATCHES "TrackingManager")
-    set(fail_if_unsupported WILL_FAIL TRUE)
+    set(fail_if_unsupported WILL_FAIL)
   elseif(Geant4_VERSION VERSION_LESS 11.1 AND basename MATCHES "FastSim")
     set(fail_if_unsupported WILL_FAIL)
   else()
