@@ -288,7 +288,7 @@ G4RunManager& IntegrationTestBase::run_manager()
 #if G4VERSION_NUMBER >= 1100
             G4RunManagerFactory::CreateRunManager()
 #else
-            std::shared_ptr<G4RunManager>()
+            std::make_shared<G4RunManager>()
 #endif
         };
         CELER_ASSERT(rm);

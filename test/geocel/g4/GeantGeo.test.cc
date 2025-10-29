@@ -56,7 +56,7 @@ class GeantGeoTest : public GeantGeoTestBase
         static bool const have_printed_ = [] {
             using namespace celeritas::cmake;
             cout << color_code('x') << "Using Geant4 v" << geant4_version
-                 << color_code(' ') << endl;
+                 << " (" << geant4_options << ")" << color_code(' ') << endl;
             return true;
         }();
         EXPECT_TRUE(have_printed_);

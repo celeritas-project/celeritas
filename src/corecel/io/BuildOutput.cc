@@ -88,6 +88,11 @@ void BuildOutput::output(JsonPimpl* j) const
             return deps;
         }();
 
+        if constexpr (CELERITAS_USE_GEANT4)
+        {
+            cfg["geant4"] = std::string(cmake::geant4_options);
+        }
+
         if constexpr (CELERITAS_USE_VECGEOM)
         {
             cfg["vecgeom"] = std::string(cmake::vecgeom_options);
