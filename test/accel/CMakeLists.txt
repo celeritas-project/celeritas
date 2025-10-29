@@ -60,11 +60,20 @@ function(celeritas_add_integration_tests basename suite test)
     )
   endif()
 
+  if(Geant4_VERSION VERSION_LESS 11.0 AND basename MATCHES "TrackingManager")
+    set(_disable_if_unsupported DISABLE)
+  elseif(Geant4_VERSION VERSION_LESS 11.1 AND basename MATCHES "FastSim")
+    set(_disable_if_unsupported DISABLE)
+  else()
+    set(_disable_if_unsupported)
+  endif()
+
   celeritas_g4_add_tests(${_target}
     NAME "${_name}:${suite}.${test}"
     ARGS "--gtest_filter=${suite}.${test}"
     LABELS unit
     ${ARGN}
+    ${_disable_if_unsupported}
   )
 endfunction()
 
