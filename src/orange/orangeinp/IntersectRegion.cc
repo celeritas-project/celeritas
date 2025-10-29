@@ -667,7 +667,7 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
     y_range_ = this->calc_range(polygon, Y);
 
     // Store only non-collinear points. Use an absolute tolerance; otherwise,
-    // for example, an arbitrilarly large regular dodecagon becomes a hexagon
+    // for example, an arbitrarily large regular dodecagon becomes a hexagon
     polygon_ = detail::filter_collinear_points(
         polygon, Tolerance<>::from_default().abs);
 
