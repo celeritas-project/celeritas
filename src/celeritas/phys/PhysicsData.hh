@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/StackAllocatorData.hh"
@@ -229,7 +228,7 @@ struct ParticleScalars
  * The user-configurable constants and multiple scattering options are
  * described in \c PhysicsParams .
  *
- * The \c model_to_action value corresponds to the \c ActionId for the first \c
+ * The \c first_model_action is the \c ActionId for the first \c
  * ModelId . Additionally it implies (by construction in physics_params) the
  * action IDs of several other physics actions.
  */
@@ -240,7 +239,7 @@ struct PhysicsParamsScalars
     //! Highest number of processes for any particle type
     ProcessId::size_type max_particle_processes{};
     //! Offset to create an ActionId from a ModelId
-    ActionId::size_type model_to_action{};
+    ActionId first_model_action{};
     //! Number of physics models
     ModelId::size_type num_models{};
 
@@ -265,7 +264,7 @@ struct PhysicsParamsScalars
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_particle_processes > 0 && model_to_action >= 4
+        return max_particle_processes > 0 && first_model_action >= ActionId{4}
                && num_models > 0 && min_eprime_over_e > 0
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
@@ -276,31 +275,31 @@ struct PhysicsParamsScalars
     //! Stop early due to MSC limitation
     CELER_FORCEINLINE_FUNCTION ActionId msc_action() const
     {
-        return ActionId{model_to_action - 4};
+        return first_model_action - 4;
     }
 
     //! Stop early due to range limitation
     CELER_FORCEINLINE_FUNCTION ActionId range_action() const
     {
-        return ActionId{model_to_action - 3};
+        return first_model_action - 3;
     }
 
     //! Undergo a discrete interaction
     CELER_FORCEINLINE_FUNCTION ActionId discrete_action() const
     {
-        return ActionId{model_to_action - 2};
+        return first_model_action - 2;
     }
 
     //! Indicate a discrete interaction was rejected by the integral method
     CELER_FORCEINLINE_FUNCTION ActionId integral_rejection_action() const
     {
-        return ActionId{model_to_action - 1};
+        return first_model_action - 1;
     }
 
     //! Indicate an interaction failed to allocate memory
     CELER_FORCEINLINE_FUNCTION ActionId failure_action() const
     {
-        return ActionId{model_to_action + num_models};
+        return first_model_action + num_models;
     }
 };
 

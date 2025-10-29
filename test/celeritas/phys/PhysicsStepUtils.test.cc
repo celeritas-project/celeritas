@@ -281,7 +281,7 @@ TEST_F(PhysicsStepUtilsTest,
     PhysicsStepView pstep = this->step_view();
 
     auto const model_offset
-        = this->physics()->host_ref().scalars.model_to_action;
+        = this->physics()->host_ref().scalars.first_model_action;
 
     // Test a variety of energy ranges and multiple material IDs
     {

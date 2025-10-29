@@ -85,7 +85,7 @@ class MockTestBase : virtual public GlobalTestBase, public OnlyCoreTestBase
     //// DATA ////
 
     mutable std::vector<ModelId> interactions_;
-    ActionId::size_type model_to_action_{0};
+    ActionId::size_type first_model_action_{0};
 };
 
 //---------------------------------------------------------------------------//
