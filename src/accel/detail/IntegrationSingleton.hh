@@ -10,6 +10,7 @@
 
 #include "corecel/sys/Stopwatch.hh"
 
+#include "../LocalOpticalOffload.hh"
 #include "../LocalTransporter.hh"
 #include "../SetupOptions.hh"
 #include "../SharedParams.hh"

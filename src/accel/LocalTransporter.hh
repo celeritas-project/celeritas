@@ -17,8 +17,9 @@
 #include "celeritas/Types.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "LocalOffloadInterface.hh"
+
 class G4Track;
-class G4EventManager;
 
 namespace celeritas
 {
@@ -52,7 +53,7 @@ class StepperInterface;
  *
  * \todo Rename \c LocalOffload or something?
  */
-class LocalTransporter
+class LocalTransporter final : public LocalOffloadBase
 {
   public:
     //!@{
@@ -67,23 +68,28 @@ class LocalTransporter
     // Initialized with shared (across threads) params
     LocalTransporter(SetupOptions const& options, SharedParams& params);
 
+    //!@{
+    //! \name LocalOffload interface
+
     // Alternative to construction + move assignment
-    inline void Initialize(SetupOptions const& options, SharedParams& params);
+    inline void
+    Initialize(SetupOptions const& options, SharedParams& params) final;
 
-    // Set the event ID and reseed the Celeritas RNG (remove in v0.6)
-    [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
+    // Reseed the RNG states
+    void Reseed(size_type) final;
 
-    // Set the event ID and reseed the Celeritas RNG at the start of an event
-    void InitializeEvent(int);
+    // Transport all buffered tracks to completion
+    void Flush() final;
+
+    // Clear local data and return to an invalid state
+    void Finalize() final;
+    //!@}
 
     // Offload this track
     void Push(G4Track&);
 
-    // Transport all buffered tracks to completion
-    void Flush();
-
-    // Clear local data and return to an invalid state
-    void Finalize();
+    // Set the event ID and reseed the Celeritas RNG (remove in v0.6)
+    [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
 
     // Get accumulated action times
     MapStrReal GetActionTime() const;
@@ -132,10 +138,6 @@ class LocalTransporter
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
     std::shared_ptr<OpticalCollector const> optical_;
-
-    // Current event ID or manager for obtaining it
-    UniqueEventId event_id_;
-    G4EventManager* event_manager_{nullptr};
 
     size_type auto_flush_{};
     size_type max_step_iters_{};

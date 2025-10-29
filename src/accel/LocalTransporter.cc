@@ -12,16 +12,9 @@
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
-#include <G4EventManager.hh>
-#include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
-#include <G4Threading.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
-
-#ifdef _OPENMP
-#    include <omp.h>
-#endif
 
 #include "corecel/Config.hh"
 
@@ -31,7 +24,6 @@
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
@@ -168,44 +160,12 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     CELER_ASSERT(particles_);
     bbox_ = params.bbox();
 
-    auto thread_id = get_geant_thread_id();
-    CELER_VALIDATE(thread_id >= 0,
-                   << "Geant4 ThreadID (" << thread_id
-                   << ") is invalid (perhaps LocalTransporter is being built "
-                      "on a non-worker thread?)");
-    CELER_VALIDATE(
-        static_cast<size_type>(thread_id) < params.Params()->max_streams(),
-        << "Geant4 ThreadID (" << thread_id
-        << ") is out of range for the reported number of worker threads ("
-        << params.Params()->max_streams() << ")");
-
-    // Check that OpenMP and Geant4 threading models don't collide
-    if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
-        && G4Threading::IsMultithreadedApplication())
-    {
-        auto msg = CELER_LOG(warning);
-        msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
-               "parallelism";
-        if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
-            !nt_str.empty())
-        {
-            msg << "(OMP_NUM_THREADS=" << nt_str
-                << "): CPU threads may be oversubscribed";
-        }
-        else
-        {
-            msg << ": forcing 1 Celeritas thread to Geant4 thread";
-#ifdef _OPENMP
-            omp_set_num_threads(1);
-#else
-            CELER_ASSERT_UNREACHABLE();
-#endif
-        }
-    }
+    // Check the thread ID and MT model
+    this->validate_threading(params.Params()->max_streams());
 
     // Create hit processor on the local thread so that it's deallocated when
     // this object is destroyed
-    StreamId stream_id{static_cast<size_type>(thread_id)};
+    StreamId stream_id{static_cast<size_type>(get_geant_thread_id())};
     if (auto const& hit_manager = params.hit_manager())
     {
         hit_processor_ = hit_manager->make_local_processor(stream_id);
@@ -233,28 +193,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     optical_ = params.optical();
 
     CELER_ENSURE(*this);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set the event ID and reseed the Celeritas RNG at the start of an event.
- */
-void LocalTransporter::InitializeEvent(int id)
-{
-    CELER_EXPECT(*this);
-    CELER_EXPECT(id >= 0);
-
-    event_id_ = id_cast<UniqueEventId>(id);
-    ++run_accum_.events;
-
-    if (!(G4Threading::IsMultithreadedApplication()
-          && G4MTRunManager::SeedOncePerCommunication()))
-    {
-        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
-        // using the Geant4 event ID for reproducibility. This guarantees that
-        // an event can be reproduced given the event ID.
-        step_->reseed(event_id_);
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -325,6 +263,16 @@ void LocalTransporter::Push(G4Track& g4track)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Reseed the RNG states.
+ */
+void LocalTransporter::Reseed(size_type id)
+{
+    CELER_EXPECT(*this);
+    step_->reseed(UniqueEventId{id});
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Transport the buffered tracks and all secondaries produced.
  */
 void LocalTransporter::Flush()
@@ -337,25 +285,8 @@ void LocalTransporter::Flush()
 
     ScopedProfiling profile_this("flush");
 
-    if (event_manager_ || !event_id_)
-    {
-        if (CELER_UNLIKELY(!event_manager_))
-        {
-            // Save the event manager pointer, thereby marking that
-            // *subsequent* events need to have their IDs checked as well
-            event_manager_ = G4EventManager::GetEventManager();
-            CELER_ASSERT(event_manager_);
-        }
-
-        G4Event const* event = event_manager_->GetConstCurrentEvent();
-        CELER_ASSERT(event);
-        if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
-        {
-            // The event ID has changed: reseed it
-            this->InitializeEvent(event->GetEventID());
-        }
-    }
-    CELER_ASSERT(event_id_);
+    this->check_event_id();
+    CELER_ASSERT(this->event_id());
 
     if (celeritas::device())
     {
@@ -363,7 +294,7 @@ void LocalTransporter::Flush()
             << "Transporting " << buffer_.size() << " tracks ("
             << buffer_accum_.energy
             << " MeV cumulative kinetic energy) from event "
-            << event_id_.unchecked_get() << " with Celeritas";
+            << this->event_id().unchecked_get() << " with Celeritas";
     }
     if (buffer_accum_.lost_primaries > 0)
     {
@@ -372,7 +303,7 @@ void LocalTransporter::Flush()
             << " MeV cumulative kinetic energy from "
             << buffer_accum_.lost_primaries
             << " primaries that started outside the geometry in event "
-            << event_id_.unchecked_get();
+            << this->event_id().unchecked_get();
     }
 
     if (dump_primaries_)
@@ -429,8 +360,9 @@ void LocalTransporter::Flush()
         auto num_hits = hit_processor_->exchange_hits();
         if (num_hits > 0)
         {
-            CELER_LOG_LOCAL(debug) << "Reconstituted " << num_hits
-                                   << " hits for event " << event_id_.get();
+            CELER_LOG_LOCAL(debug)
+                << "Reconstituted " << num_hits << " hits for event "
+                << this->event_id().get();
             run_accum_.hits += num_hits;
         }
         hit_processor_->track_processor().end_event();

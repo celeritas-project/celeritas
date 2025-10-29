@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/OpticalSizes.json.hh
+//! \file celeritas/optical/OpticalSizes.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,8 +12,6 @@
 #include "corecel/io/JsonUtils.json.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -40,5 +38,4 @@ void to_json(nlohmann::json& j, OpticalSizes const& inp)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

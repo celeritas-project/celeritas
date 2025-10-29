@@ -18,6 +18,7 @@
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
+#include "OpticalSizes.json.hh"
 #include "PhysicsParams.hh"
 #include "gen/CherenkovParams.hh"
 #include "gen/GeneratorAction.hh"
@@ -26,7 +27,6 @@
 #include "gen/ScintillationParams.hh"
 
 #include "detail/OpticalLaunchAction.hh"
-#include "detail/OpticalSizes.json.hh"
 
 namespace celeritas
 {
@@ -86,13 +86,13 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         inp.optical_params->action_reg(), "optical-actions"));
 
     // Add optical sizes
-    detail::OpticalSizes sizes;
+    OpticalSizes sizes;
     sizes.streams = core.max_streams();
     sizes.generators = sizes.streams * inp.buffer_capacity;
     sizes.tracks = sizes.streams * inp.num_track_slots;
 
     core.output_reg()->insert(
-        OutputInterfaceAdapter<detail::OpticalSizes>::from_rvalue_ref(
+        OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
             OutputInterface::Category::internal,
             "optical-sizes",
             std::move(sizes)));
