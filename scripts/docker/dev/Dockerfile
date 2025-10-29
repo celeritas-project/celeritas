@@ -27,7 +27,7 @@ RUN if [ "$DOCKERFILE_DISTRO" = "ubuntu" ] ; then \
   && apt-get -yqq upgrade \
   && DEBIAN_FRONTEND=noninteractive apt-get -yqq install --no-install-recommends \
      build-essential ca-certificates curl file g++ gcc gfortran git gnupg2 iproute2 locales make mercurial subversion python3 python3-pip python3-setuptools unzip zstd \
-     hiprand-dev rocrand-dev rocthrust-dev hipblas-dev \
+     hiprand-dev rocrand-dev rocthrust-dev hipblas-dev hipcub-dev \
   && locale-gen en_US.UTF-8 \
   && rm -rf /var/lib/apt/lists/* ; \
 elif [ "$DOCKERFILE_DISTRO" = "rocky" ] ; then \
