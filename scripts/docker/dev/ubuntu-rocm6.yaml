@@ -39,6 +39,10 @@ spack:
       externals:
       - spec: rocthrust@6.3.1
         prefix: /opt/rocm
+    hipcub:
+      externals:
+      - spec: hipcub@6.3.1
+        prefix: /opt/rocm
     all:
       target:
       - x86_64_v3
