@@ -143,14 +143,12 @@ TEST_F(FourLevelsVgdmlTest, accessors)
 
 TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 {
-    // Templated test
-    FourLevelsGeoTest::test_consecutive_compute(this);
+    this->impl().test_consecutive_compute();
 }
 
 TEST_F(FourLevelsVgdmlTest, detailed_track)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(FourLevelsVgdmlTest, trace)
@@ -268,8 +266,7 @@ TEST_F(SimpleCmsVgdmlTest, trace)
 
 TEST_F(SimpleCmsVgdmlTest, detailed_track)
 {
-    // Templated test
-    SimpleCmsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
@@ -434,8 +431,7 @@ TEST_F(TwoBoxesVgdmlTest, accessors)
 
 TEST_F(TwoBoxesVgdmlTest, detailed_track)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 //---------------------------------------------------------------------------//

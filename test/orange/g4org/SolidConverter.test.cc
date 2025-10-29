@@ -241,8 +241,6 @@ TEST_F(SolidConverterTest, cons)
 
 TEST_F(SolidConverterTest, cuttubs)
 {
-    real_type k = std::sqrt(2) / 2;
-    real_type m = std::sqrt(3) / 3;
     this->build_and_test(
         G4CutTubs("Solid Cut Tube #1",
                   10 * mm,
@@ -250,9 +248,23 @@ TEST_F(SolidConverterTest, cuttubs)
                   80 * mm,
                   0.15 * pi,
                   1.75 * pi,
-                  G4ThreeVector(0, k, -k),
-                  G4ThreeVector(m, m, m)),
+                  G4ThreeVector(0, 1, -1),
+                  G4ThreeVector(1, 1, 1)),
         R"json({"_type":"solid","enclosed_azi":{"start":0.075,"stop":0.95},"excluded":{"_type":"cutcylinder","bottom_normal":[0.0,0.7071067811865476,-0.7071067811865476],"halfheight":8.0,"radius":1.0,"top_normal":[0.5773502691896258,0.5773502691896258,0.5773502691896258]},"interior":{"_type":"cutcylinder","bottom_normal":[0.0,0.7071067811865476,-0.7071067811865476],"halfheight":8.0,"radius":5.0,"top_normal":[0.5773502691896258,0.5773502691896258,0.5773502691896258]},"label":"Solid Cut Tube #1"})json");
+
+    // Cuttub from CMS run 3
+    this->build_and_test(
+        G4CutTubs("pixfwdInnerDiskZplus_PixelForwardInnerDiskOuterRing_seg_"
+                  "10x7f7110ba4900",
+                  114.85 * mm,
+                  117.35 * mm,
+                  15.5 * mm,
+                  87.03229 * deg,
+                  7.90680999999999 * deg,
+                  G4ThreeVector(
+                      0.48599950039277, 0.00835999140593325, -0.873919101611625),
+                  G4ThreeVector(0, 0, 1)),
+        R"json({"_type":"solid","enclosed_azi":{"start":0.24175636111111112,"stop":0.2637197222222222},"excluded":{"_type":"cutcylinder","bottom_normal":[0.48599950039277023,0.008359991405933253,-0.8739191016116253],"halfheight":1.55,"radius":11.485,"top_normal":[0.0,0.0,1.0]},"interior":{"_type":"cutcylinder","bottom_normal":[0.48599950039277023,0.008359991405933253,-0.8739191016116253],"halfheight":1.55,"radius":11.735,"top_normal":[0.0,0.0,1.0]},"label":"pixfwdInnerDiskZplus_PixelForwardInnerDiskOuterRing_seg_10x7f7110ba4900"})json");
 }
 
 TEST_F(SolidConverterTest, displaced)
@@ -734,47 +746,200 @@ TEST_F(SolidConverterTest, polycone)
 
 TEST_F(SolidConverterTest, polyhedra)
 {
-    static double const z[] = {-0.6, 0.6};
-    static double const rmin[] = {0, 0};
-    static double const rmax[] = {61.85, 61.85};
+    // Generic tests
+    {
+        static double const z[] = {-10, 0, 20, 25};
+        static double const no_rmin[] = {0, 0, 0, 0};
+        static double const rmin[] = {20, 4, 17, 4};
+        static double const rmax[] = {30, 10, 20, 5};
+        auto sqrt_two = real_type{constants::sqrt_two};
 
-    // Flat-top hexagon
-    this->build_and_test(
-        G4Polyhedra(
-            "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
-        R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.5},"label":"HGCalEEAbs"})json",
-        {{6.18, 6.18, 0.05},
-         {0, 0, 0.06},
-         {7.15, 7.15, 0.05},
-         {3.0, 6.01, 0},
-         {6.18, 7.15, 0}});
+        // Full diamond shape, no interior
+        this->build_and_test(
+            G4Polyhedra(
+                "polyhedra", 0 * deg, 360 * deg, 4, std::size(z), z, no_rmin, rmax),
+            R"json({"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,-1.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[4.242640687119285,1.414213562373095,2.82842712474619,0.7071067811865475]})json",
+            {
+                {0, 0, 26.},
+                {0, 0, -11.},
+                {15 * sqrt_two, 15 * sqrt_two, -9.},
 
-    // Triangle
-    static double const z2[] = {10, 50};
-    static double const rmin2[] = {0, 0};
-    static double const rmax2[] = {10, 10};
-    this->build_and_test(
-        G4Polyhedra(
-            "tri", 30 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
-        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.25},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}})json",
-        {
-            {0, 0, 0.9},
-            {0, 0, 1.1},
-            {0, 0, 4.9},
-            {0, 0, 5.1},
-            {0, 1.01, 1.1},
-            {0, -1.01, 1.1},
-        });
-    // Rotate 60 degrees
-    this->build_and_test(
-        G4Polyhedra(
-            "tri", 60 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
-        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.5},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}})json");
-    // Rotate 90 degrees
-    this->build_and_test(
-        G4Polyhedra(
-            "tri", 90 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
-        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.75},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}})json");
+            });
+
+        // Clipped diamond shape, no interior
+        this->build_and_test(
+            G4Polyhedra("polyhedra",
+                        10 * deg,
+                        340 * deg,
+                        4,
+                        std::size(z),
+                        z,
+                        no_rmin,
+                        rmax),
+            R"json({"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,0.17364817766693033],[-0.08715574274765821,0.9961946980917455],[-1.0,0.0],[-0.08715574274765786,-0.9961946980917455],[0.9848077530122081,-0.17364817766692975],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[4.06902511472777,1.3563417049092568,2.7126834098185135,0.6781708524546284]})json",
+            {
+                {-0.1, 0, 26.},
+                {-0.1, 0, -11.},
+                {15 * sqrt_two, 15 * sqrt_two, -9.},
+                {10, 0, -5},
+                {10, 10, -5},
+            });
+
+        // Clipped diamond shape, with interior
+        this->build_and_test(
+            G4Polyhedra(
+                "polyhedra", 10 * deg, 340 * deg, 4, std::size(z), z, rmin, rmax),
+            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,0.17364817766693033],[-0.08715574274765821,0.9961946980917455],[-1.0,0.0],[-0.08715574274765786,-0.9961946980917455],[0.9848077530122081,-0.17364817766692975],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[4.06902511472777,1.3563417049092568,2.7126834098185135,0.6781708524546284]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,0.17364817766693033],[-0.08715574274765821,0.9961946980917455],[-1.0,0.0],[-0.08715574274765786,-0.9961946980917455],[0.9848077530122081,-0.17364817766692975],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[2.7126834098185135,0.5425366819637027,2.3057808983457364,0.5425366819637027]},"label":""}],"label":"polyhedra"})json",
+            {
+                {-0.1, 0, 26.},
+                {-0.1, 0, -11.},
+                {10, 0, -5},
+                {10, 10, -5},
+                {-3.5, 0, 23},
+                {-4.5, 0, 23},
+                {-5.5, 0, 23},
+            });
+
+        // One-sided shape, with interior
+        this->build_and_test(
+            G4Polyhedra(
+                "polyhedra", -10 * deg, 20 * deg, 1, std::size(z), z, rmin, rmax),
+            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,-0.17364817766693033],[0.984807753012208,0.17364817766693033],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[3.046279835657235,1.0154266118857451,2.0308532237714902,0.5077133059428726]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,-0.17364817766693033],[0.984807753012208,0.17364817766693033],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[2.0308532237714902,0.4061706447542981,1.7262252402057667,0.4061706447542981]},"label":""}],"label":"polyhedra"})json",
+            {
+                {-19, 0, -1},
+                {-25, 0, -1},
+                {-31, 0, -1},
+                {-20, 10, -1},
+            });
+
+        // Two-sided shape, with interior
+        this->build_and_test(
+            G4Polyhedra(
+                "polyhedra", 0 * deg, 180 * deg, 2, std::size(z), z, rmin, rmax),
+            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[4.242640687119285,1.414213562373095,2.82842712474619,0.7071067811865475]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[2.82842712474619,0.565685424949238,2.4041630560342617,0.565685424949238]},"label":""}],"label":"polyhedra"})json",
+            {
+                {19, 1, -1},
+                {25, 1, -1},
+                {31, 1, -1},
+                {0, 31, -1},
+                {2, 29, -1},
+            });
+    }
+
+    // HGCal Tests
+    {
+        static double const z[] = {-0.6, 0.6};
+        static double const rmin[] = {0, 0};
+        static double const rmax[] = {61.85, 61.85};
+
+        // Flat-top hexagon
+        this->build_and_test(
+            G4Polyhedra(
+                "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
+            R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,-0.06],"bot_scaling_factor":7.141822829875671,"polygon":[[0.8660254037844385,-0.5000000000000001],[0.8660254037844389,0.49999999999999956],[0.0,1.0],[-0.8660254037844382,0.5000000000000008],[-0.8660254037844389,-0.49999999999999956],[0.0,-1.0]],"top_line_segment_point":[0.0,0.0,0.06],"top_scaling_factor":7.141822829875671},"label":"HGCalEEAbs"})json",
+            {{6.18, 6.18, 0.05},
+             {0, 0, 0.06},
+             {7.15, 7.15, 0.05},
+             {3.0, 6.01, 0},
+             {6.18, 7.15, 0}});
+
+        static double const z2[] = {10, 50};
+        static double const rmin2[] = {0, 0};
+        static double const rmax2[] = {10, 10};
+        this->build_and_test(
+            G4Polyhedra(
+                "tri", 30 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+            R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.9999999999999998,"polygon":[[0.8660254037844387,0.5],[-0.8660254037844385,0.5000000000000001],[0.0,-1.0]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.9999999999999998},"label":"tri"})json",
+            {
+                {0, 0, 0.9},
+                {0, 0, 1.1},
+                {0, 0, 4.9},
+                {0, 0, 5.1},
+                {0, 1.01, 1.1},
+                {0, -1.01, 1.1},
+            });
+        // Rotate 60 degrees
+        this->build_and_test(
+            G4Polyhedra(
+                "tri", 60 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+            R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.9999999999999998,"polygon":[[0.5,0.8660254037844386],[-1.0,0.0],[0.49999999999999956,-0.8660254037844389]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.9999999999999998},"label":"tri"})json");
+        // Rotate 90 degrees
+        this->build_and_test(
+            G4Polyhedra(
+                "tri", 90 * deg, 360 * deg, 3, std::size(z2), z2, rmin2, rmax2),
+            R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.9999999999999998,"polygon":[[0.0,1.0],[-0.8660254037844389,-0.49999999999999956],[0.8660254037844385,-0.5000000000000001]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.9999999999999998},"label":"tri"})json");
+    }
+
+    // CMS TESTS
+    // \TODO: Add support for duplicate z planes in StackedExtrudedPolygon
+    // to support these cases
+    {
+        // The numsides=1 polyhedra from CMS run 4
+        static double const z[] = {3242 * mm,
+                                   3347.8 * mm,
+                                   3347.8 * mm,
+                                   3436.4 * mm,
+                                   3436.4 * mm,
+                                   3770.42 * mm,
+                                   3816.02 * mm,
+                                   4462.99 * mm,
+                                   4493.47 * mm,
+                                   5541 * mm};
+        static double const rmin[] = {1775 * mm,
+                                      1775 * mm,
+                                      1775 * mm,
+                                      1775 * mm,
+                                      1838.8 * mm,
+                                      1838.8 * mm,
+                                      1838.8 * mm,
+                                      2770.7 * mm,
+                                      2813.42 * mm,
+                                      2813.42 * mm};
+        static double const rmax[] = {1866.5 * mm,
+                                      1866.5 * mm,
+                                      1927.4 * mm,
+                                      1927.4 * mm,
+                                      1927.4 * mm,
+                                      1927.4 * mm,
+                                      1987.89 * mm,
+                                      2876.5 * mm,
+                                      2876.5 * mm,
+                                      2876.5 * mm};
+
+        EXPECT_THROW(this->build_and_test(G4Polyhedra("HEC10x7f1fffce6500",
+                                                      350 * deg,
+                                                      20 * deg,
+                                                      1,
+                                                      std::size(z),
+                                                      z,
+                                                      rmin,
+                                                      rmax),
+                                          ""),
+                     RuntimeError);
+
+// This test currently throws both runtime and debug errors
+#if 0
+        static double const z2[] = {-20.75 * mm,
+                                    20.7400000000002 * mm,
+                                    (20.7400000000002 + 1e-12) * mm,
+                                    20.7499999999995 * mm};
+        static double const rmin2[]
+            = {348.6 * mm, 348.6 * mm, 418.6 * mm, 418.6 * mm};
+        static double const rmax2[] = {1984.08417370622 * mm,
+                                       2036.42657691209 * mm,
+                                       2036.42657691209 * mm,
+                                       2036.43919257929 * mm};
+
+        this->build_and_test(G4Polyhedra("HGCalHEAbsorber110x7f1fff5a7880",
+                                          0 * deg,
+                                          360 * deg,
+                                          36, std::size(z2),
+                                          z2,
+                                          rmin2,
+                                          rmax2),
+                             "");
+#endif
+    };
 }
 
 TEST_F(SolidConverterTest, sphere)
@@ -859,7 +1024,7 @@ TEST_F(SolidConverterTest, reflectedsolid)
     G4ReflectedSolid reflz("tri_refl", &tri, G4ScaleZ3D());
     this->build_and_test(
         reflz,
-        R"json({"_type":"transformed","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.25},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json",
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.9999999999999998,"polygon":[[0.8660254037844387,0.5],[-0.8660254037844385,0.5000000000000001],[0.0,-1.0]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.9999999999999998},"label":"tri"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json",
         {
             {0, 0, 1.1},
             {0, 0, 5.1},
@@ -872,7 +1037,7 @@ TEST_F(SolidConverterTest, reflectedsolid)
     G4ReflectedSolid reflx("tri_refl", &tri, G4ScaleX3D());
     this->build_and_test(
         reflx,
-        R"json({"_type":"transformed","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"prism","apothem":0.9999999999999999,"halfheight":2.0,"num_sides":3,"orientation":0.25},"label":"tri"},"transform":{"_type":"translation","data":[0.0,0.0,3.0]}},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json",
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,1.0],"bot_scaling_factor":1.9999999999999998,"polygon":[[0.8660254037844387,0.5],[-0.8660254037844385,0.5000000000000001],[0.0,-1.0]],"top_line_segment_point":[0.0,0.0,5.0],"top_scaling_factor":1.9999999999999998},"label":"tri"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json",
         {
             {0, 0.99, 1.1},
             {0, -0.99, 5.1},

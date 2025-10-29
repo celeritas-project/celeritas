@@ -36,33 +36,6 @@ namespace celeritas
 /*!
  * Navigate through an ORANGE geometry on a single thread.
  *
- * Since the navigation relies on computationally expensive calls and must
- * ensure a consistent state between physical and logical boundaries, there is
- * an ordering followed by Celeritas' internal calls to each track's state.
- * Access (\c pos, \c dir, \c volume/surface/is_outside/is_on_boundary) is
- * valid at any time.
- *
- * The required ordering is:
- *
- * - Initialization, via the assignment operator
- * - Locating the boundary crossing along the current direction, \c
- *   find_next_step
- * - Locating the closest point on the boundary in any direction, \c
- *   find_safety
- * - Movement within a volume, not crossing a boundary: \c move_internal or \c
- *   move_to_boundary
- * - If on a boundary, logically moving to the adjacent volume ("relocation")
- *   with \c cross_boundary
- *
- * At any time, \c set_dir may be called, but then \c find_next_step must again
- * be called before any subsequent \c move or \c cross action above .
- *
- * The main point is that \c find_next_step depends on the current
- * straight-line direction, \c move_to_boundary and \c move_internal (with
- * a step length) depends on that distance, and
- * \c cross_boundary depends on being on the boundary with a knowledge of the
- * post-boundary state.
- *
  * The direction of \c normal is set to always point out of the volume the
  * track is currently in. On the boundary this is determined by the sense
  * of the track rather than its direction.
@@ -80,6 +53,7 @@ class OrangeTrackView
     using Initializer_t = GeoTrackInitializer;
     using LSA = LevelStateAccessor;
     using UniverseIndexer = detail::UniverseIndexer;
+    using real_type = ::celeritas::real_type;
     //!@}
 
   public:
@@ -287,7 +261,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     if (init.parent)
     {
         // Initialize from direction and copy of parent state
-        *this = {init.parent, init.dir};
+        *this = DetailedInitializer{init.parent, init.dir};
         CELER_ENSURE(this->pos() == init.pos);
         return *this;
     }

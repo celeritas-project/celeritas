@@ -10,6 +10,7 @@
 #include "corecel/io/ScopedStreamRedirect.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/Shape.hh"
+#include "orange/orangeinp/StackedExtrudedPolygon.hh"
 #include "orange/orangeinp/Transformed.hh"
 
 #include "CsgTestUtils.hh"
@@ -31,6 +32,10 @@ class CsgObjectTest : public ObjectTestBase
   protected:
     using SPConstObject = std::shared_ptr<ObjectInterface const>;
     using VecObject = std::vector<SPConstObject>;
+
+    using VecReal = std::vector<real_type>;
+    using VecReal2 = std::vector<Real2>;
+    using VecReal3 = std::vector<Real3>;
 
     Tol tolerance() const override { return Tol::from_relative(1e-4); }
 
@@ -309,6 +314,84 @@ TEST_F(CsgObjectTest, subtraction)
     };
     static char const* const expected_trans_strings[]
         = {"3: t=0 -> {}", "4: t=0", "5: t=1 -> {{0,0,1}}", "6: t=0"};
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+    EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
+}
+
+// Test the subtraction of two StackedExtrudedPolygons
+TEST_F(CsgObjectTest, subtraction_sep)
+{
+    VecReal2 polygon1 = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+    VecReal2 polygon2 = polygon1;
+
+    VecReal3 polyline1 = {{0, 0, 0}, {0, 0, 1}, {0, 0, 2}};
+    VecReal3 polyline2 = polyline1;
+
+    VecReal scaling1 = {1, 1, 1};
+    VecReal scaling2 = {2, 2, 2};
+
+    auto inner = std::make_shared<StackedExtrudedPolygon>(
+        "outer", std::move(polygon1), std::move(polyline1), std::move(scaling1));
+    auto outer = std::make_shared<StackedExtrudedPolygon>(
+        "inner", std::move(polygon2), std::move(polyline2), std::move(scaling2));
+
+    auto sub = make_subtraction("hollow_sep", outer, inner);
+
+    ASSERT_TRUE(sub);
+    this->build_volume(*sub);
+    static char const* const expected_volume_strings[] = {
+        "all(any(all(+0, -1, -2, +3, +4, -5), all(+1, -2, +3, +4, -5, -6)), "
+        "!any(all(+0, -1, -7, +8, +9, -10), all(+1, -6, -7, +8, +9, -10)))"};
+    static char const* const expected_md_strings[]
+        = {"",
+           "",
+           "inner@0.0.0.mz,outer@0.0.0.mz",
+           "inner@0.0.0.pz,inner@0.0.1.mz,outer@0.0.0.pz,outer@0.0.1.mz",
+           "",
+           "inner@0.0.0.p0,inner@0.0.1.p0",
+           "",
+           "inner@0.0.0.p1,inner@0.0.1.p1",
+           "inner@0.0.0.p2,inner@0.0.1.p2",
+           "inner@0.0.0.p3,inner@0.0.1.p3",
+           "",
+           "inner@0.0.0",
+           "inner@0.0.1.pz,outer@0.0.1.pz",
+           "",
+           "inner@0.0.1",
+           "inner@0.0",
+           "outer@0.0.0.p0,outer@0.0.1.p0",
+           "",
+           "outer@0.0.0.p1,outer@0.0.1.p1",
+           "outer@0.0.0.p2,outer@0.0.1.p2",
+           "outer@0.0.0.p3,outer@0.0.1.p3",
+           "",
+           "outer@0.0.0",
+           "outer@0.0.1",
+           "outer@0.0",
+           "",
+           "hollow_sep"};
+
+    static char const* const expected_bound_strings[]
+        = {"11: {null, {{-2,-2,0}, {2,2,1}}}",
+           "14: {null, {{-2,-2,1}, {2,2,2}}}",
+           "15: {null, {{-2,-2,0}, {2,2,2}}}",
+           "22: {null, {{-1,-1,0}, {1,1,1}}}",
+           "23: {null, {{-1,-1,1}, {1,1,2}}}",
+           "24: {null, {{-1,-1,0}, {1,1,2}}}",
+           "~25: {null, {{-1,-1,0}, {1,1,2}}}",
+           "26: {null, {{-2,-2,0}, {2,2,2}}}"};
+    static char const* const expected_trans_strings[] = {"11: t=0 -> {}",
+                                                         "14: t=0",
+                                                         "15: t=0",
+                                                         "22: t=0",
+                                                         "23: t=0",
+                                                         "24: t=0",
+                                                         "25: t=0",
+                                                         "26: t=0"};
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));

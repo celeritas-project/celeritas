@@ -157,6 +157,73 @@ TEST_F(StackedExtrudedPolygonTest, skewed_convex_stack)
 
 //---------------------------------------------------------------------------//
 /*
+ * Test the bounding boxes for a convex polygon extruded along three segments,
+ * such that the top segment is entirely outsize the \em xz and \yz bounding
+ * planes of the bottom segment.
+ */
+TEST_F(StackedExtrudedPolygonTest, entirely_outside)
+{
+    VecReal2 polygon{{0.5, -0.5}, {0.5, 0.5}, {-0.5, 0.5}, {-0.5, -0.5}};
+
+    VecReal3 polyline{{0, 0, 0}, {0.75, 0, 1}, {1.5, 0, 2}, {2.25, 0, 3}};
+    VecReal scaling{1, 1, 1, 1};
+
+    this->build_volume(StackedExtrudedPolygon{
+        "pc", std::move(polygon), std::move(polyline), std::move(scaling)});
+
+    static char const* const expected_surface_strings[]
+        = {"Plane: z=0",
+           "Plane: z=1",
+           "Plane: n={0.8,0,-0.6}, d=0.4",
+           "Plane: y=0.5",
+           "Plane: n={0.8,0,-0.6}, d=-0.4",
+           "Plane: y=-0.5",
+           "Plane: z=2",
+           "Plane: z=3"};
+
+    static char const* const expected_volume_strings[]
+        = {"any(all(+0, -1, -2, -3, +4, +5), all(+1, -2, -3, +4, +5, -6), "
+           "all(-2, -3, +4, +5, +6, -9))"};
+
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "pc@0.0.0.mz",
+        "pc@0.0.0.pz,pc@0.0.1.mz",
+        "",
+        "pc@0.0.0.p0,pc@0.0.1.p0,pc@0.0.2.p0",
+        "",
+        "pc@0.0.0.p1,pc@0.0.1.p1,pc@0.0.2.p1",
+        "",
+        "pc@0.0.0.p2,pc@0.0.1.p2,pc@0.0.2.p2",
+        "pc@0.0.0.p3,pc@0.0.1.p3,pc@0.0.2.p3",
+        "pc@0.0.0",
+        "pc@0.0.1.pz,pc@0.0.2.mz",
+        "",
+        "pc@0.0.1",
+        "pc@0.0.2.pz",
+        "",
+        "pc@0.0.2",
+        "pc@0.0",
+    };
+
+    // \TODO: Fix StackedExtrudedPolygon such that these bounding boxes tightly
+    // fit around each segment in z
+    static char const* const expected_bound_strings[]
+        = {"11: {null, {{-0.5,-0.5,0}, {1.25,0.5,1}}}",
+           "14: {null, {{0.25,-0.5,1}, {2,0.5,2}}}",
+           "17: {null, {{1,-0.5,2}, {2.75,0.5,3}}}",
+           "18: {null, {{-0.5,-0.5,0}, {2.75,0.5,3}}}"};
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+}
+
+//---------------------------------------------------------------------------//
+/*
  * Test a polygon with two "levels" of concavity, extruded along a single
  * segment.
  *

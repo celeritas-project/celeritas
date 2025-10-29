@@ -8,17 +8,19 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 #include <gtest/gtest.h>
 
+#include "geocel/GeoParamsInterface.hh"
+#include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
+
+#include "LazyGeantGeoManager.hh"
 
 class G4VPhysicalVolume;
 
 namespace celeritas
 {
-class GeoParamsInterface;
 class VolumeParams;
 
 namespace test
@@ -32,32 +34,34 @@ struct GenericGeoVolumeStackResult;
 /*!
  * Access capabilities from any templated GenericGeo test.
  *
- * The volume/instance offsets are usually used with Geant4, which has volume
- * IDs that may not start with zero if the problem has been reinitaialized.
- * (This is because geant4 uses global static integers for counting.) It can
- * also be used in other circumstances (vecgeom internal construction) where
- * fake volumes/instances are inserted before the "real" volumes/instances.
+ * \todo This is being refactored into GenericGeoTestBase so that we can just
+ * use the GeoTrackInterface and GeoParamsInterface wrappers.
  */
-class GenericGeoTestInterface
+class GenericGeoTestInterface : public LazyGeantGeoManager
 {
   public:
     //!@{
     //! \name Type aliases
     using TrackingResult = GenericGeoTrackingResult;
     using VolumeStackResult = GenericGeoVolumeStackResult;
+    using GeoTrackView = GeoTrackInterface<real_type>;
+    using UPGeoTrack = std::unique_ptr<GeoTrackView>;
     //!@}
 
   public:
-    //! Generate a track
-    virtual TrackingResult track(Real3 const& pos_cm, Real3 const& dir) = 0;
+    //// TESTS ////
 
-    //! Get the safety tolerance (defaults to SoftEq tol) for tracking result
-    virtual GenericGeoTrackingTolerance tracking_tol() const;
+    // Track until exiting the geometry
+    TrackingResult track(Real3 const& pos_cm, Real3 const& dir);
+    // Obtain the "touchable history" at a point
+    VolumeStackResult volume_stack(Real3 const& pos_cm);
 
-    //!@{
-    //! Obtain the "touchable history" at a point
-    virtual VolumeStackResult volume_stack(Real3 const& pos_cm) = 0;
-    //!@}
+    //// BASE INTERFACE ////
+
+    // Default to using test suite name
+    std::string_view gdml_basename() const override;
+
+    //// PURE INTERFACE ////
 
     //! Get the label for this geometry: Geant4, VecGeom, ORANGE
     virtual std::string_view geometry_type() const = 0;
@@ -65,21 +69,45 @@ class GenericGeoTestInterface
     //! Access the geometry interface
     virtual GeoParamsInterface const& geometry_interface() const = 0;
 
-    // Get the basename or unique geometry key
-    virtual std::string_view gdml_basename() const = 0;
+    //! Create a track view (TODO: replace geo test base view)
+    virtual UPGeoTrack make_geo_track_view_interface() = 0;
+
+    //// CONFIGURABLE INTERFACE ////
+
+    // Unit length for "track" testing and other results (defaults to cm)
+    virtual Constant unit_length() const;
+
+    // Maximum number of local track slots
+    virtual size_type num_track_slots() const;
 
     // Whether surface normals work for the current geometry/test
     virtual bool supports_surface_normal() const;
 
+    // Get the safety tolerance (defaults to SoftEq tol) for tracking result
+    virtual GenericGeoTrackingTolerance tracking_tol() const;
+
     // Get the threshold in "unit lengths" for a movement being a "bump"
     virtual real_type bump_tol() const;
 
-    //! Unit length for "track" testing and other results
-    virtual Constant unit_length() const { return lengthunits::centimeter; }
+    //// UTILITIES ////
+
+    // Construct an initializer with correct scaling/normalization
+    GeoTrackInitializer
+    make_initializer(Real3 const& pos_unit, Real3 const& dir) const;
+    //! Get the name of the current volume
+    std::string volume_name(GeoTrackView const& geo) const;
+    //! Get the stack of volume instances
+    std::string unique_volume_name(GeoTrackView const& geo) const;
 
   protected:
     // Virtual interface only
     ~GenericGeoTestInterface() = default;
+
+  private:
+    // Volume params, possibly not from G4
+    VolumeParams const& get_test_volumes() const;
+    // Lazily constructed volumes, possibly from non-G4 model
+    mutable SPConstVolumes volumes_;
 };
 
 //---------------------------------------------------------------------------//
