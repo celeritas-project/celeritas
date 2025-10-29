@@ -201,7 +201,7 @@ operator+(OpaqueId<I, T> id, std::make_signed_t<T> offset)
 //! Increment an opaque ID by an offset
 template<class I, class T>
 CELER_FORCEINLINE_FUNCTION auto
-operator+(T offset, OpaqueId<I, std::make_unsigned_t<T>> id)
+operator+(std::make_signed_t<T> offset, OpaqueId<I, T> id)
 {
     return id + offset;
 }
