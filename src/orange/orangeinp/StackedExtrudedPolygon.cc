@@ -105,8 +105,8 @@ StackedExtrudedPolygon::StackedExtrudedPolygon(std::string&& label,
     // Validate scaling factors
     CELER_VALIDATE(std::all_of(scaling_.begin(),
                                scaling_.end(),
-                               [](auto& s) { return s > 0; }),
-                   << "scaling factor must be positive");
+                               [](auto& s) { return s >= 0; }),
+                   << "scaling factor must be nonnegative");
 }
 
 //---------------------------------------------------------------------------//
@@ -188,11 +188,19 @@ StackedExtrudedPolygon::make_stack(detail::VolumeBuilder& vb,
 {
     std::vector<NodeId> nodes;
     SoftEqual<real_type> soft_equal(vb.tol().rel, vb.tol().abs);
+    SoftZero<real_type> soft_zero(vb.tol().abs);
 
-    // Add to the stack for all polyline segments with non-zero z length
+    // Add to the stack: all polyline segments with non-zero z length and
+    // non-zero radii
     for (auto i : range(polyline_.size() - 1))
     {
-        if (!soft_equal(polyline_[i][Z], polyline_[i + 1][Z]))
+        CELER_VALIDATE(soft_zero(scaling_[0]) == soft_zero(scaling_[1])
+                           || soft_equal(polyline_[i][Z], polyline_[i + 1][Z]),
+                       << "non-zero-length polyline segment cannot have "
+                          "scaling = 0 on exactly one z plane");
+
+        if (!soft_equal(polyline_[i][Z], polyline_[i + 1][Z])
+            && !soft_zero(scaling_[i]))
         {
             // Create the ExtrudedPolygon for this segment
             ExtrudedPolygon shape{polygon,

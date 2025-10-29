@@ -826,6 +826,25 @@ TEST_F(SolidConverterTest, polyhedra)
             });
     }
 
+    // Interior shape with both zero and nonzero inner radii
+    {
+        static double const z[] = {0, 1, 1, 2, 2, 3};
+        static double const rmin[] = {1, 1, 0, 0, 1, 1};
+        static double const rmax[] = {2, 2, 2, 2, 2, 2};
+        auto sqrt_two = real_type{constants::sqrt_two};
+
+        // Full diamond shape, no interior
+        this->build_and_test(
+            G4Polyhedra(
+                "polyhedra", 0 * deg, 360 * deg, 4, std::size(z), z, rmin, rmax),
+            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,-1.0]],"polyline":[[0.0,0.0,0.0],[0.0,0.0,0.10000000149011612],[0.0,0.0,0.10000000149011612],[0.0,0.0,0.20000000298023224],[0.0,0.0,0.20000000298023224],[0.0,0.0,0.30000001192092896]],"scaling":[0.2828427255153656,0.2828427255153656,0.2828427255153656,0.2828427255153656,0.2828427255153656,0.2828427255153656]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,-1.0]],"polyline":[[0.0,0.0,0.0],[0.0,0.0,0.10000000149011612],[0.0,0.0,0.10000000149011612],[0.0,0.0,0.20000000298023224],[0.0,0.0,0.20000000298023224],[0.0,0.0,0.30000001192092896]],"scaling":[0.1414213627576828,0.1414213627576828,0.0,0.0,0.1414213627576828,0.1414213627576828]},"label":""}],"label":"polyhedra"})json",
+            {
+                {0, 0, 0.5},
+                {0, 0, 1.5},
+                {0, 0, 2.5},
+            });
+    }
+
     // HGCal Tests
     {
         static double const z[] = {-0.6, 0.6};
