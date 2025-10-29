@@ -871,10 +871,9 @@ TEST_F(SolidConverterTest, polyhedra)
     }
 
     // CMS TESTS
-    // \TODO: Add support for duplicate z planes in StackedExtrudedPolygon
-    // to support these cases
     {
-        // The numsides=1 polyhedra from CMS run 4
+        // The numsides=1 polyhedra from CMS run 4, which also has zero-height
+        // z segments
         static double const z[] = {3242 * mm,
                                    3347.8 * mm,
                                    3347.8 * mm,
@@ -906,22 +905,22 @@ TEST_F(SolidConverterTest, polyhedra)
                                       2876.5 * mm,
                                       2876.5 * mm};
 
-        EXPECT_THROW(this->build_and_test(G4Polyhedra("HEC10x7f1fffce6500",
-                                                      350 * deg,
-                                                      20 * deg,
-                                                      1,
-                                                      std::size(z),
-                                                      z,
-                                                      rmin,
-                                                      rmax),
-                                          ""),
-                     RuntimeError);
+        this->build_and_test(
+            G4Polyhedra("HEC10x7f1fffce6500",
+                        350 * deg,
+                        20 * deg,
+                        1,
+                        std::size(z),
+                        z,
+                        rmin,
+                        rmax),
+            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[0.9848077297210693,-0.17364825308322906],[0.9848077297210693,0.17364825308322906],[0.0,0.0]],"polyline":[[0.0,0.0,324.20001220703125],[0.0,0.0,334.7799987792969],[0.0,0.0,334.7799987792969],[0.0,0.0,343.6400146484375],[0.0,0.0,343.6400146484375],[0.0,0.0,377.0419921875],[0.0,0.0,381.60198974609375],[0.0,0.0,446.29901123046875],[0.0,0.0,449.34698486328125],[0.0,0.0,554.0999755859375]],"scaling":[189.5293731689453,189.5293731689453,195.71331787109375,195.71331787109375,195.71331787109375,195.71331787109375,201.8556365966797,292.08746337890625,292.08746337890625,292.08746337890625]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[0.9848077297210693,-0.17364825308322906],[0.9848077297210693,0.17364825308322906],[0.0,0.0]],"polyline":[[0.0,0.0,324.20001220703125],[0.0,0.0,334.7799987792969],[0.0,0.0,334.7799987792969],[0.0,0.0,343.6400146484375],[0.0,0.0,343.6400146484375],[0.0,0.0,377.0419921875],[0.0,0.0,381.60198974609375],[0.0,0.0,446.29901123046875],[0.0,0.0,449.34698486328125],[0.0,0.0,554.0999755859375]],"scaling":[180.23822021484375,180.23822021484375,180.23822021484375,180.23822021484375,186.71664428710938,186.71664428710938,186.71664428710938,281.34423828125,285.6821594238281,285.6821594238281]},"label":""}],"label":"HEC10x7f1fffce6500"})json");
 
 // This test currently throws both runtime and debug errors
 #if 0
         static double const z2[] = {-20.75 * mm,
                                     20.7400000000002 * mm,
-                                    (20.7400000000002 + 1e-12) * mm,
+                                    20.7400000000002 * mm,
                                     20.7499999999995 * mm};
         static double const rmin2[]
             = {348.6 * mm, 348.6 * mm, 418.6 * mm, 418.6 * mm};
