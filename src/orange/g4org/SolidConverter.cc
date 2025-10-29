@@ -716,46 +716,100 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
 //! Convert a polyhedron
 auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
 {
+    using VecReal = StackedExtrudedPolygon::VecReal;
+    using VecReal2 = StackedExtrudedPolygon::VecReal2;
+    using VecReal3 = StackedExtrudedPolygon::VecReal3;
+
     auto const& solid = dynamic_cast<G4Polyhedra const&>(solid_base);
+    auto azi = enclosed_azi_from_poly(solid);
     auto const& params = *solid.GetOriginalParameters();
+    size_type num_z = params.Num_z_planes;
+    size_type num_sides = params.numSide;
 
-    // Convert from circumradius to apothem
-    double const radius_factor = cospi(1 / static_cast<double>(params.numSide));
-    CELER_ASSERT(radius_factor > 0);
+    // Note that we must use the original start/stop angles rather than
+    // normalizing with EnclosedAzi because the start angle determines where
+    // the first vertex of the polygon appears.
+    auto start_angle = native_value_to<Turn>(params.Start_angle);
+    auto delta_angle = native_value_to<Turn>(params.Opening_angle);
 
-    std::vector<real_type> zs(params.Num_z_planes);
-    std::vector<real_type> rmin(zs.size());
-    std::vector<real_type> rmax(zs.size());
-    for (auto i : range(zs.size()))
+    CELER_VALIDATE(num_sides >= 1, << "must have at least one side");
+    CELER_VALIDATE(num_z >= 2, << "must have at least two z planes");
+
+    // If there is only 1 side, the "opening angle" must be less than pi. If
+    // there are only two sides, the opening angle must be less than 2pi.
+    CELER_VALIDATE(
+        num_sides > 2
+            || (azi
+                && azi.stop() - azi.start() < Turn{real_type{0.5} * num_sides}),
+        << "invalid number of sizes for the opening angle");
+
+    // Scale input values
+    VecReal rmin(num_z);
+    VecReal rmax(num_z);
+    VecReal z(num_z);
+    for (auto i : range(z.size()))
     {
-        zs[i] = scale_(params.Z_values[i]);
-        rmin[i] = scale_(params.Rmin[i]) * radius_factor;
-        rmax[i] = scale_(params.Rmax[i]) * radius_factor;
+        rmin[i] = scale_(params.Rmin[i]);
+        rmax[i] = scale_(params.Rmax[i]);
+        z[i] = scale_(params.Z_values[i]);
     }
 
+    // Make a point on the unit circle
+    auto make_point = [](Turn t) {
+        Real2 p;
+        celeritas::sincos(t, &p[1], &p[0]);
+        return p;
+    };
+
+    // Make a polygon, inscribed in the unit circle
+    VecReal2 polygon;
+    Turn step = delta_angle / num_sides;
+    for (auto i : range(num_sides))
+    {
+        polygon.push_back(make_point(start_angle + i * step));
+    }
+    if (azi)
+    {
+        polygon.push_back(make_point(start_angle + delta_angle));
+        polygon.push_back({0, 0});
+    }
+
+    // Create polyline
+    VecReal3 polyline(num_z);
+    std::transform(z.begin(), z.end(), polyline.begin(), [](real_type zi) {
+        return Real3{0, 0, zi};
+    });
+
+    // Make a StackExtrudedPolygon, or difference between two
+    // StackExtrudedPolygons. Because the polygon is inscribed in the unit
+    // circle, the rmin/rmax values can be treated as scaling factors.
     if (!any_positive(rmin))
     {
         // No interior shape
-        rmin.clear();
+        return StackedExtrudedPolygon::or_solid(std::string{solid.GetName()},
+                                                std::move(polygon),
+                                                std::move(polyline),
+                                                std::move(rmax));
     }
+    else
+    {
+        // Make copies, since or_solids expects rvalues
+        auto inner_polygon = polygon;
+        auto inner_polyline = polyline;
 
-    // Get orientation from the start/end phi, which still may be a full Turn
-    auto frac_turn = native_value_to<Turn>(solid.GetStartPhi()).value();
+        auto base_name = std::string{solid_base.GetName()};
 
-    double const orientation
-        = std::fmod(params.numSide * frac_turn, real_type{1});
+        auto outer = StackedExtrudedPolygon::or_solid(base_name + ".exc",
+                                                      std::move(polygon),
+                                                      std::move(polyline),
+                                                      std::move(rmax));
+        auto inner = StackedExtrudedPolygon::or_solid(base_name + ".int",
+                                                      std::move(inner_polygon),
+                                                      std::move(inner_polyline),
+                                                      std::move(rmin));
 
-    auto azi = enclosed_azi_from_poly(solid);
-    CELER_VALIDATE(
-        !azi,
-        << R"(azimuthal clipping isn't properly implemented for polyhedra)");
-
-    return PolyPrism::or_solid(
-        std::string{solid.GetName()},
-        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
-        std::move(azi),
-        params.numSide,
-        orientation);
+        return make_subtraction(std::move(base_name), outer, inner);
+    }
 }
 
 //---------------------------------------------------------------------------//
