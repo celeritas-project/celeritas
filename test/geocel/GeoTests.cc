@@ -2315,7 +2315,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     // Find the next boundary and make sure that nearer distances aren't
     // accepted
     next = geo.find_next_step();
-    EXPECT_SOFT_EQ(7.0710678118654755, to_cm(next.distance));
+    EXPECT_SOFT_EQ(10 * dx, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     EXPECT_TRUE(geo.is_on_boundary());
 }
