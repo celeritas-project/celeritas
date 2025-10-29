@@ -292,7 +292,8 @@ jobs:
           fi
           # Only run integration-level tests for old Geant4
           ctest --preset=spack-unit ${{
-            fromJSON(matrix.geant || '0') < 11
+            matrix.geant
+            && fromJSON(matrix.geant) < 11
             && '-R "^accel/"'
             || ''
           }}
