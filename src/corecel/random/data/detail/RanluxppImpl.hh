@@ -72,7 +72,7 @@ inline CELER_FUNCTION RanluxppArray9 to_ranlux(RanluxppArray9 const& lcg,
                                                unsigned int& c_out);
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTIONS
+// INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Compute sum of \p a and \p b and set \p overflow accordingly.
@@ -356,7 +356,7 @@ CELER_FUNCTION RanluxppArray18 multiply_9x9(RanluxppArray9 const& in1,
             // When adding the two products, the maximum value for middle is
             // 2 * 2 ** 64 - 4 * 2 ** 32 + 2, which exceeds a uint64_t.
             unsigned int overflow;
-            RanluxppUInt middle = addOverflow(middle1, middle2, overflow);
+            RanluxppUInt middle = add_overflow(middle1, middle2, overflow);
             // Handling the overflow by a multiplication with 0 or 1 is cheaper
             // than branching with an if statement, which the compiler does not
             // optimize to this equivalent code. Note that we could do entirely
@@ -380,7 +380,7 @@ CELER_FUNCTION RanluxppArray18 multiply_9x9(RanluxppArray9 const& in1,
             RanluxppUInt middle_upper = middle >> 32;
             RanluxppUInt middle_lower = middle << 32;
 
-            lower = addOverflow(lower, middle_lower, overflow);
+            lower = add_overflow(lower, middle_lower, overflow);
             upper += overflow;
 
             // This still can't overflow since the maximum of middle_upper is
