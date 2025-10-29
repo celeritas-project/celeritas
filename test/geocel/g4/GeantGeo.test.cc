@@ -943,14 +943,12 @@ TEST_F(TwoBoxesTest, model)
     EXPECT_REF_EQ(ref, result);
 }
 
-// FIXME: see FourLevelsGeoTest reentrant sphere: optical won't work!
-TEST_F(TwoBoxesTest, DISABLED_reentrant)
+TEST_F(TwoBoxesTest, reentrant)
 {
     this->impl().test_reentrant();
 }
 
-// FIXME: see FourLevelsGeoTest reentrant sphere: field won't work!
-TEST_F(TwoBoxesTest, DISABLED_tangent)
+TEST_F(TwoBoxesTest, tangent)
 {
     this->impl().test_tangent();
 }
