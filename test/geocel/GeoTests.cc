@@ -2309,13 +2309,23 @@ void TwoBoxesGeoTest::test_reentrant() const
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
-    if (test_->geometry_type() == "ORANGE"
-        || test_->geometry_type() == "Geant4")
+    if (test_->geometry_type() == "ORANGE")
     {
-        // FIXME: reentrant fails!
+        // FIXME: reentrant consistently fails!
         EXPECT_EQ("world", test_->volume_name(geo));
         GTEST_SKIP() << "Unexpected failure to cross volume";
     }
+
+    if (test_->geometry_type() == "VecGeom")
+    {
+        // VecGeom 1.2.10 seems to fail reentry *sometimes*: on the CI builds,
+        // spack passes but docker fails (relwithdebinfo and debug)
+        if ("world" == test_->volume_name(geo))
+        {
+            GTEST_SKIP() << "Unexpected failure to cross volume";
+        }
+    }
+
     EXPECT_EQ("inner", test_->volume_name(geo));
 
     // Find the next boundary and make sure that nearer distances aren't
