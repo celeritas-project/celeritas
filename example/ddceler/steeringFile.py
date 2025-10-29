@@ -41,19 +41,22 @@ RUNNER.field.eps_min = 5e-5  # mm
 RUNNER.field.eps_max = 0.001  # mm
 RUNNER.field.min_chord_step = 1e-6  # mm
 
+
 # Physics configuration
 def setupPhysics(kernel):
-  from DDG4 import PhysicsList,Geant4
-  phys = Geant4(kernel).setupPhysics('QGSP_BERT')
-  celer_phys = PhysicsList(kernel, str('DDcelerTMI'))
-  celer_phys.MaxNumTracks = 2048
-  celer_phys.InitCapacity = 245760
-  # Celeritas does not support EmStandard MSC physics above 200 MeV
-  celer_phys.IgnoreProcesses = ["CoulombScat"]
-  phys.adopt(celer_phys)
-  phys.dump()
-  return None
+    from DDG4 import PhysicsList, Geant4
+
+    phys = Geant4(kernel).setupPhysics("QGSP_BERT")
+    celer_phys = PhysicsList(kernel, str("DDcelerTMI"))
+    celer_phys.MaxNumTracks = 2048
+    celer_phys.InitCapacity = 245760
+    # Celeritas does not support EmStandard MSC physics above 200 MeV
+    celer_phys.IgnoreProcesses = ["CoulombScat"]
+    phys.adopt(celer_phys)
+    phys.dump()
+    return None
+
 
 RUNNER.physics.setupUserPhysics(setupPhysics)
 
-RUNNER.part.userParticleHandler=''
+RUNNER.part.userParticleHandler = ""
