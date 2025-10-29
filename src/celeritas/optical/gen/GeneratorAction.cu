@@ -41,17 +41,11 @@ void GeneratorAction::generate(CoreParams const& params,
     size_type num_gen
         = min(state.counters().num_vacancies, aux_state.counters.num_pending);
     {
-        auto cherenkov = params.cherenkov() ? params.cherenkov()->device_ref()
-                                            : DeviceCRef<CherenkovData>{};
-        auto scintillation = params.scintillation()
-                                 ? params.scintillation()->device_ref()
-                                 : DeviceCRef<ScintillationData>{};
-
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
                                           state.ptr(),
-                                          cherenkov,
-                                          scintillation,
+                                          params.device_ref().cherenkov,
+                                          params.device_ref().scintillation,
                                           aux_state.store.ref(),
                                           aux_state.counters.buffer_size,
                                           state.counters()};
