@@ -2294,11 +2294,17 @@ void TwoBoxesGeoTest::test_reentrant() const
     // Cross back into previous volume (-; -,-)
     if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
     {
-        // FIXME: can't cross boundary and return
+        // GeantGTV has an extra check because we know it can't do this :(
         EXPECT_THROW(geo.cross_boundary(), DebugError);
         GTEST_SKIP() << "Consecutive boundary crossing fails for G4";
     }
+    else
+    {
+        // Typical case
+        ASSERT_NO_THROW(geo.cross_boundary());
+    }
     EXPECT_TRUE(geo.is_on_boundary());
+
     if (check_normal)
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
