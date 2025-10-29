@@ -831,7 +831,6 @@ TEST_F(SolidConverterTest, polyhedra)
         static double const z[] = {0, 1, 1, 2, 2, 3};
         static double const rmin[] = {1, 1, 0, 0, 1, 1};
         static double const rmax[] = {2, 2, 2, 2, 2, 2};
-        auto sqrt_two = real_type{constants::sqrt_two};
 
         // Full diamond shape, no interior
         this->build_and_test(
