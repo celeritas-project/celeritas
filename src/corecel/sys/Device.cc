@@ -216,10 +216,25 @@ Device::Device(int id) : id_{id}
     }
 #    endif
 
+    // CUDA 13 moved clockRate and memoryClockRate out of cudaDeviceProperties
+#    if CELERITAS_USE_CUDA
+#        if CUDART_VERSION < 13000
     extra_["clock_rate"] = props.clockRate;
+    extra_["memory_clock_rate"] = props.memoryClockRate;
+#        else
+    int clock_rate;
+    int memory_clock_rate;
+    cudaDeviceGetAttribute(&clock_rate, cudaDevAttrClockRate, id);
+    extra_["clock_rate"] = clock_rate;
+    cudaDeviceGetAttribute(&memory_clock_rate, cudaDevAttrMemoryClockRate, id);
+    extra_["memory_clock_rate"] = memory_clock_rate;
+#        endif
+#    else
+    extra_["clock_rate"] = props.clockRate;
+    extra_["memory_clock_rate"] = props.memoryClockRate;
+#    endif
     extra_["multiprocessor_count"] = props.multiProcessorCount;
     extra_["max_cache_size"] = props.l2CacheSize;
-    extra_["memory_clock_rate"] = props.memoryClockRate;
     extra_["regs_per_block"] = props.regsPerBlock;
     extra_["shared_mem_per_block"] = props.sharedMemPerBlock;
     extra_["total_const_mem"] = props.totalConstMem;

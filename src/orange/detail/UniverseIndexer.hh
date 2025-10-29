@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
 
@@ -34,13 +32,13 @@ class UniverseIndexer
 
     struct LocalSurface
     {
-        UniverseId universe;
+        UnivId univ;
         LocalSurfaceId surface;
     };
 
     struct LocalVolume
     {
-        UniverseId universe;
+        UnivId univ;
         LocalVolumeId volume;
     };
     //!@}
@@ -52,8 +50,8 @@ class UniverseIndexer
 
     // Local-to-global
     inline CELER_FUNCTION ImplSurfaceId
-    global_surface(UniverseId uni, LocalSurfaceId surface) const;
-    inline CELER_FUNCTION ImplVolumeId global_volume(UniverseId uni,
+    global_surface(UnivId uni, LocalSurfaceId surface) const;
+    inline CELER_FUNCTION ImplVolumeId global_volume(UnivId uni,
                                                      LocalVolumeId volume) const;
 
     // Global-to-local
@@ -92,7 +90,7 @@ class UniverseIndexer
     static inline CELER_FUNCTION SpanIter find_local(DataRef offsets,
                                                      size_type id);
     static inline CELER_FUNCTION size_type local_size(DataRef offsets,
-                                                      UniverseId uni);
+                                                      UnivId uni);
 };
 
 //---------------------------------------------------------------------------//
@@ -113,7 +111,7 @@ UniverseIndexer::UniverseIndexer(UniverseIndexerDataRef const& data)
  * Transform local to global surface ID.
  */
 CELER_FUNCTION ImplSurfaceId
-UniverseIndexer::global_surface(UniverseId uni, LocalSurfaceId surf) const
+UniverseIndexer::global_surface(UnivId uni, LocalSurfaceId surf) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(surf < this->local_size(data_.surfaces, uni));
@@ -127,7 +125,7 @@ UniverseIndexer::global_surface(UniverseId uni, LocalSurfaceId surf) const
  * Transform local to global volume ID.
  */
 CELER_FUNCTION ImplVolumeId
-UniverseIndexer::global_volume(UniverseId uni, LocalVolumeId volume) const
+UniverseIndexer::global_volume(UnivId uni, LocalVolumeId volume) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(volume < this->local_size(data_.volumes, uni));
@@ -146,7 +144,7 @@ UniverseIndexer::local_surface(ImplSurfaceId id) const
     CELER_EXPECT(id < this->num_surfaces());
     auto iter = this->find_local(data_.surfaces, id.unchecked_get());
 
-    UniverseId uni(iter - data_.surfaces[AllVals{}].begin());
+    UnivId uni(iter - data_.surfaces[AllVals{}].begin());
     LocalSurfaceId surface((id - *iter).unchecked_get());
     CELER_ENSURE(uni < this->num_universes());
     return {uni, surface};
@@ -162,7 +160,7 @@ UniverseIndexer::local_volume(ImplVolumeId id) const
     CELER_EXPECT(id < this->num_volumes());
     auto iter = this->find_local(data_.volumes, id.unchecked_get());
 
-    UniverseId uni(iter - data_.volumes[AllVals{}].begin());
+    UnivId uni(iter - data_.volumes[AllVals{}].begin());
     LocalVolumeId volume((id - *iter).unchecked_get());
     CELER_ENSURE(uni.get() < this->num_universes());
     return {uni, volume};
@@ -196,7 +194,7 @@ UniverseIndexer::find_local(DataRef offsets, size_type id)
  * Get the number of elements in the given universe.
  */
 CELER_FUNCTION size_type UniverseIndexer::local_size(DataRef offsets,
-                                                     UniverseId uni)
+                                                     UnivId uni)
 {
     CELER_EXPECT(uni && uni.unchecked_get() + 1 < offsets.size());
     return offsets[SizeId{uni.unchecked_get() + 1}]

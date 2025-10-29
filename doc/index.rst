@@ -82,11 +82,11 @@ The first investigation of using GPUs to accelerate Geant4 computing was a
 tangential part of the GeantV project :cite:`geantv-2018`, which had
 the primary goal of using CPU SIMD hardware to accelerate detector
 simulation. Toward the end of that experiment, a follow-up GeantX group
-:cite:`geantx-2019` brought Fermilab and ORNL computational
+:cite:`canal-geantexascale-2020` brought Fermilab and ORNL computational
 physicists together with computing experts from NERSC and Argonne to brainstorm
 pathways to exascale for detector simulation. This essentially informal
 collaboration was funded by ECP, inspired by the success of the ExaSMR
-code :cite:`exasmr-2023` that successfully developed new algorithms for MC
+code :cite:`merzari-exasmr-2023` that successfully developed new algorithms for MC
 neutronics in nuclear reactors. The broad scope of "implementing Geant4 on
 GPU" lead to many useful discussions but ultimately proved intractable as a
 starting point.

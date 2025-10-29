@@ -44,7 +44,8 @@ class LArSphereBase : public GeantTestBase
 
     std::vector<IMC> select_optical_models() const override
     {
-        return {IMC::absorption, IMC::rayleigh};
+        // Disable Rayleigh model due to PR #2038
+        return {IMC::absorption /*, IMC::rayleigh*/};
     }
 };
 

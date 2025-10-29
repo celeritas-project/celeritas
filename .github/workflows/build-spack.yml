@@ -1,9 +1,16 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
+#
 # NOTE: sync spack versions with https://github.com/celeritas-project/spack-gha-buildcache
 # - Spack version
 # - Any required spack patches
 # - Github runner versions
 # - Environment versions at scripts/ci/spack.yaml
+#-----------------------------------------------------------------------------#
+
 name: build-spack
 on:
   workflow_dispatch:
@@ -24,9 +31,9 @@ jobs:
   spack:
     name: >-
       ${{format('{0}{1}{2}{3}{4}',
-                matrix.geometry,
-                matrix.special && '-' || '',
                 matrix.special,
+                matrix.special && '-' || '',
+                matrix.geometry,
                 matrix.geant && '-g4@' || '',
                 matrix.geant)}}
     strategy:
@@ -71,7 +78,7 @@ jobs:
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "vecgeom"
-            special: "clang-tidy"
+            special: "tidy"
             geant: "11.2"
           - build_type: "reldeb"
             geometry: "vecgeom"
@@ -101,7 +108,7 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
-          fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
+          fetch-depth: ${{format('{0}', matrix.special != 'tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
 
       ### ENVIRONMENT ###
@@ -130,9 +137,6 @@ jobs:
                 && (matrix.special != 'static')
                 && (env.CXXSTD == '20')}}; then
             spack -e . add root
-          fi
-          if ${{env.CXXSTD == '20'}}; then
-            spack -e . add covfie
           fi
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
@@ -195,7 +199,7 @@ jobs:
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
           fi
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE -DCELERITAS_USE_covfie=${{env.CXXSTD == '20' && 'ON' || 'OFF'}}
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
 
       ### BUILD ###
 
@@ -207,9 +211,9 @@ jobs:
           restore-keys: |
             ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
             ccache-${{env.CMAKE_PRESET}}
-      - name: Build incremental clang-tidy
-        id: clang-tidy
-        if: ${{matrix.special == 'clang-tidy'}}
+      - name: Build with clang-tidy
+        id: tidy
+        if: ${{matrix.special == 'tidy'}}
         env:
           BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
         run: |
@@ -240,7 +244,7 @@ jobs:
           exit $?
       - name: Build all
         id: build
-        if: ${{matrix.special != 'clang-tidy'}}
+        if: ${{matrix.special != 'tidy'}}
         working-directory: build
         run: |
           ccache -z
@@ -272,7 +276,7 @@ jobs:
         id: unittest
         if: >-
           ${{
-            matrix.special != 'clang-tidy'
+            matrix.special != 'tidy'
             && matrix.special != 'static'
           }}
         continue-on-error: >- # TODO: fix failing tests
@@ -293,7 +297,7 @@ jobs:
         if: >-
           ${{
             !cancelled()
-            && matrix.special != 'clang-tidy'
+            && matrix.special != 'tidy'
             && steps.build.outcome == 'success'
           }}
         continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
@@ -339,7 +343,8 @@ jobs:
             !cancelled()
             && steps.build.outcome == 'success'
             && matrix.special != 'asanlite'
-            && matrix.special != 'clang-tidy'
+            && matrix.special != 'codecov'
+            && matrix.special != 'tidy'
           }}
         env:
           CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
@@ -352,7 +357,7 @@ jobs:
           ${{
             !cancelled()
             && steps.build.outcome == 'success'
-            && matrix.special != 'clang-tidy'
+            && matrix.special != 'tidy'
           }}
         working-directory: build
         run: |
@@ -378,7 +383,7 @@ jobs:
         if: >-
           ${{
             matrix.special != 'asanlite'
-            && matrix.special != 'clang-tidy'
+            && matrix.special != 'tidy'
           }}
         run: |
           . ${SPACK_VIEW}/rc

@@ -36,6 +36,8 @@ struct MieExecutor
  */
 CELER_FUNCTION Interaction MieExecutor::operator()(CoreTrackView const& track)
 {
+    CELER_EXPECT(data);
+
     // Access the current particle track (optical photon)
     auto particle = track.particle();
     // Photon’s current direction
@@ -44,6 +46,7 @@ CELER_FUNCTION Interaction MieExecutor::operator()(CoreTrackView const& track)
     auto rng = track.rng();
     // Look up the Mie parameters for this material
     auto matid = track.material_record().material_id();
+    CELER_ASSERT(matid < data.mie_record.size());
 
     MieInteractor interact{data, particle, direction, matid};
 

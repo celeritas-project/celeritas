@@ -832,6 +832,9 @@ void PolyhedraGeoTest::test_trace() const
         };
 
         auto tol = test_->tracking_tol();
+        // Bump the tolerance by 25% for safety comparisons only: this became
+        // necessarily when polyhedra started using StackedExtrudedPolygons
+        tol.safety *= 1.25;
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }

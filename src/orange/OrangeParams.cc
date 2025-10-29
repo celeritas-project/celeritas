@@ -181,7 +181,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 
     // Save global bounding box
     bbox_ = [&input] {
-        auto& global = input.universes[orange_global_universe.unchecked_get()];
+        auto& global = input.universes[orange_global_univ.unchecked_get()];
         CELER_VALIDATE(std::holds_alternative<UnitInput>(global),
                        << "global universe is not a SimpleUnit");
         return std::get<UnitInput>(global).bbox;
@@ -190,7 +190,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
-    host_data.scalars.max_depth = detail::DepthCalculator{input.universes}();
+    host_data.scalars.num_univ_levels
+        = detail::DepthCalculator{input.universes}();
 
     // Insert all universes
     {
@@ -230,14 +231,12 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
           && host_data.rect_arrays.empty();
 
     // Update scalars *after* loading all units
-    CELER_VALIDATE(host_data.scalars.max_logic_depth
-                       < detail::LogicStack::max_stack_depth(),
-                   << "input geometry has at least one volume with a "
-                      "logic depth of"
-                   << host_data.scalars.max_logic_depth
-                   << " (a volume's CSG tree is too deep); but the logic "
-                      "stack is limited to a depth of "
-                   << detail::LogicStack::max_stack_depth());
+    CELER_VALIDATE(
+        host_data.scalars.max_csg_levels <= detail::LogicStack::capacity(),
+        << "input geometry has at least one volume with a CSG tree depth of"
+        << host_data.scalars.max_csg_levels
+        << ", but the logic stack is limited to a depth of "
+        << detail::LogicStack::capacity());
 
     // Save pointers for debug output
     host_data.scalars.host_geo_params = this;

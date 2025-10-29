@@ -24,15 +24,15 @@ namespace detail
  * Resize with a number of states.
  */
 void VecgeomNavCollection<Ownership::value, MemSpace::host>::resize(
-    int max_depth, size_type size)
+    int depth, size_type size)
 {
-    CELER_EXPECT(max_depth > 0);
+    CELER_EXPECT(depth > 0);
 
     // Add navigation states to collection
     this->nav_state.resize(size);
     for (UPNavState& state : this->nav_state)
     {
-        state = std::unique_ptr<NavState>(NavState::MakeInstance(max_depth));
+        state = std::unique_ptr<NavState>(NavState::MakeInstance(depth));
     }
 }
 
@@ -86,7 +86,7 @@ void VecgeomNavCollection<Ownership::value, MemSpace::device>::resize(
 
     pool.reset(new vecgeom::cxx::NavStatePool(sz, md));
     this->ptr = pool->GetGPUPointer();
-    this->max_depth = md;
+    this->depth = md;
     this->size = sz;
 }
 
@@ -102,7 +102,7 @@ auto VecgeomNavCollection<Ownership::reference, MemSpace::device>::operator=(
 {
     CELER_ASSERT(other);
     pool_view = vecgeom::NavStatePoolView{static_cast<char*>(other.ptr),
-                                          other.max_depth,
+                                          other.depth,
                                           static_cast<int>(other.size)};
     return *this;
 }

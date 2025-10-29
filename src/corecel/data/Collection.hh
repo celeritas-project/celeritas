@@ -185,8 +185,8 @@ using ItemRange = Range<OpaqueId<T, Size>>;
 template<class T1, class T2>
 class ItemMap
 {
-    static_assert(detail::is_opaque_id_v<T1>, "T1 is not OpaqueID");
-    static_assert(detail::is_opaque_id_v<T2>, "T2 is not OpaqueID");
+    static_assert(is_opaque_id_v<T1>, "T1 is not OpaqueID");
+    static_assert(is_opaque_id_v<T2>, "T2 is not OpaqueID");
 
   public:
     //!@{
@@ -282,11 +282,13 @@ struct AllItems
  https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#zero-copy).
  *
  * Accessing a \c const_reference collection in \c device memory will return a
- * wrapper container that accesses the low-level data through the \c __ldg
- * primitive, which can accelerate random access by telling the compiler
+ * wrapper container that accesses the low-level data through the \c
+ celeritas::ldg
+ * wrapper function, which can accelerate random access on GPU by telling the
+ compiler
  * <em>the memory will not be changed during the lifetime of the kernel</em>.
  * Therefore it is important to \em only use const Collections for shared,
- * constant "params" data.
+ * immutable-after-creation "params" data.
  */
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
