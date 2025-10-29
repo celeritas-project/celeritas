@@ -13,6 +13,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/LArSphereBase.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -87,11 +88,13 @@ class LArSphereGeneratorTest : public LArSphereBase
         NormalDistribution<real_type> sample_num_photons(100, 10);
 
         optical::GeneratorDistributionData data;
-        data.step_length = 0.2;
+        data.step_length = from_cm(0.2);
         data.charge = units::ElementaryCharge{-1};
         data.material = OptMatId(0);
-        data.points[StepPoint::pre] = {units::LightSpeed(0.7), Real3{0, 0, 0}};
-        data.points[StepPoint::post] = {units::LightSpeed(0.6), {0, 0, 0.2}};
+        data.points[StepPoint::pre]
+            = {units::LightSpeed(0.7), from_cm(Real3{0, 0, 0})};
+        data.points[StepPoint::post]
+            = {units::LightSpeed(0.6), from_cm(Real3{0, 0, 0.2})};
 
         VecDistribution result(count, data);
         for (auto i : range(count))
