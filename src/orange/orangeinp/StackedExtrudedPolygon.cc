@@ -93,14 +93,14 @@ StackedExtrudedPolygon::StackedExtrudedPolygon(std::string&& label,
     CELER_VALIDATE(polyline_.size() == scaling_.size(),
                    << "polyline and scaling must be the same size");
 
-    // Validate that z coordinates are weakly increasing
+    // Validate that z coordinates are nondecreasing
     CELER_VALIDATE(std::adjacent_find(polyline_.begin(),
                                       polyline_.end(),
                                       [](auto const& a, auto const& b) {
                                           return a[Z] > b[Z];
                                       })
                        == polyline_.end(),
-                   << "z coordinates must be weakly increasing");
+                   << "z coordinates must be nondecreasing");
 
     // Validate scaling factors
     CELER_VALIDATE(std::all_of(scaling_.begin(),
