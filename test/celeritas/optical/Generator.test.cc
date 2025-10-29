@@ -11,7 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/random/distribution/NormalDistribution.hh"
+#include "corecel/random/distribution/PoissonDistribution.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/LArSphereBase.hh"
@@ -85,7 +85,7 @@ class LArSphereGeneratorTest : public LArSphereBase
         std::vector<GT> types{GT::cherenkov, GT::scintillation};
         std::mt19937 rng;
 
-        NormalDistribution<real_type> sample_num_photons(100, 10);
+        PoissonDistribution<real_type> sample_num_photons(100);
 
         optical::GeneratorDistributionData data;
         data.step_length = from_cm(0.2);
@@ -100,8 +100,7 @@ class LArSphereGeneratorTest : public LArSphereBase
         for (auto i : range(count))
         {
             result[i].type = types[i % types.size()];
-            result[i].num_photons
-                = static_cast<size_type>(sample_num_photons(rng));
+            result[i].num_photons = sample_num_photons(rng);
             num_photons += result[i].num_photons;
             CELER_ASSERT(result[i]);
         }
@@ -196,8 +195,8 @@ TEST_F(LArSphereGeneratorTest, generator)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(50965, gen.num_generated);
-        EXPECT_EQ(54063, result.steps);
+        EXPECT_EQ(51226, gen.num_generated);
+        EXPECT_EQ(54319, result.steps);
         EXPECT_EQ(15, result.step_iters);
     }
 }
@@ -233,8 +232,8 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(407616, gen.num_generated);
-        EXPECT_EQ(431962, result.steps);
+        EXPECT_EQ(409643, gen.num_generated);
+        EXPECT_EQ(434165, result.steps);
         EXPECT_EQ(28, result.step_iters);
     }
 }
