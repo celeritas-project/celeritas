@@ -559,18 +559,30 @@ TEST_F(SolidConverterTest, generictrap)
 
 TEST_F(SolidConverterTest, hype)
 {
-    this->build_and_test(G4Hype(/* name = */ "Solid Hype",
-                                /* innerRadius = */ 0,
-                                /* outerRadius = */ 50,
-                                /* innerStereo = */ 0,
-                                /* outerStereo = */ 0.3,
-                                /* halfLenZ = */ 50));
-    this->build_and_test(G4Hype(/* name = */ "Hole Hype",
-                                /* innerRadius = */ 45,
-                                /* outerRadius = */ 50,
-                                /* innerStereo = */ 0.3,
-                                /* outerStereo = */ 0.3,
-                                /* halfLenZ = */ 50));
+    this->build_and_test(
+        G4Hype("Solid Hype",
+               0,
+               /* outerRadius = */ 25,
+               0,
+               /* outerStereo = */ 0.6,
+               /* halfLenZ = */ 50),
+        R"json({"_type":"shape","interior":{"_type":"hyperboloid","halfheight":5.0,"max_radius":4.236871406261812,"min_radius":2.5},"label":"Solid Hype"})json",
+        {
+            {2.4, 0, 0},
+            {3.5, 0, 0},
+            {4.3, 0, 0},
+            {2.4, 0, 4.99},
+            {3.5, 0, 4.99},
+            {4.3, 0, 4.99},
+        });
+    this->build_and_test(
+        G4Hype("Hole Hype",
+               /* innerRadius = */ 45,
+               /* outerRadius = */ 50,
+               /* innerStereo = */ 0.3,
+               /* outerStereo = */ 0.3,
+               /* halfLenZ = */ 50),
+        R"json({"_type":"solid","excluded":{"_type":"hyperboloid","halfheight":5.0,"max_radius":4.758384482475505,"min_radius":4.5},"interior":{"_type":"hyperboloid","halfheight":5.0,"max_radius":5.233758007690429,"min_radius":5.0},"label":"Hole Hype"})json");
 }
 
 TEST_F(SolidConverterTest, intersectionsolid)

@@ -611,10 +611,10 @@ auto SolidConverter::hype(arg_type solid_base) -> result_type
 
     // Calculate radii at z = +/-hh using the stereo angle
     // For a hyperboloid: r(z) = sqrt(r0^2 + (z * tan(stereo))^2)
-    auto calc_radius_at_hh = [&](double r0, double stereo) -> real_type {
+    auto calc_radius_at_hh = [&](double rmin, double stereo) -> real_type {
         double tan_stereo = std::tan(stereo);
         double z = solid.GetZHalfLength();
-        return scale_(std::hypot(r0, z * tan_stereo));
+        return scale_(std::hypot(rmin, z * tan_stereo));
     };
 
     auto outer_mid = scale_(solid.GetOuterRadius());
