@@ -1169,18 +1169,6 @@ bool Hyperboloid::encloses(Hyperboloid const& other) const
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.
- *
- * The hyperboloid surface is defined by the equation:
- *   x^2 + y^2 - r_min^2 * (1 + z^2/t^2) = 0
- * where t^2 = h^2 * r_min^2 / (r_max^2 - r_min^2)
- *
- * Expanding and rearranging:
- *   x^2 + y^2 - (r_min^2/t^2) * z^2 - r_min^2 = 0
- *
- * This is a SimpleQuadric with:
- *   second order: {1, 1, -(r_min^2/t^2)}
- *   first order:  {0, 0, 0}
- *   zeroth order: -r_min^2
  */
 void Hyperboloid::build(IntersectSurfaceBuilder& insert_surface) const
 {
@@ -1188,23 +1176,18 @@ void Hyperboloid::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
 
-    // Calculate t^2 = h^2 * r_min^2 / (r_max^2 - r_min^2)
-    real_type const t_sq = ipow<2>(hh_) * ipow<2>(r_min_)
-                           / (ipow<2>(r_max_) - ipow<2>(r_min_));
+    real_type const t_sq = (ipow<2>(r_max_) - ipow<2>(r_min_)) / ipow<2>(hh_);
 
     // Build the hyperboloid surface
-    insert_surface(SimpleQuadric{Real3{1, 1, -ipow<2>(r_min_) / t_sq},
-                                 Real3{0, 0, 0},
-                                 -ipow<2>(r_min_)});
+    insert_surface(
+        SimpleQuadric{Real3{1, 1, -t_sq}, Real3{0, 0, 0}, -ipow<2>(r_min_)});
 
     // Set exterior bounding box (use maximum radius as the maximum extent)
-    insert_surface(Sense::inside,
-                   BBox{{-r_max_, -r_max_, -hh_}, {r_max_, r_max_, hh_}});
+    insert_surface(Sense::inside, make_radial_bbox(r_max_, hh_));
 
     // Set interior bounding box (use minimum radius inscribed in a square)
-    real_type const r_inner = r_min_ / constants::sqrt_two;
     insert_surface(Sense::outside,
-                   BBox{{-r_inner, -r_inner, -hh_}, {r_inner, r_inner, hh_}});
+                   make_radial_bbox(r_min_ / constants::sqrt_two, hh_));
 }
 
 //---------------------------------------------------------------------------//

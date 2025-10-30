@@ -583,20 +583,21 @@ class GenPrism final : public IntersectRegionInterface
  * A *z*-aligned hyperboloid of revolution centered on the origin.
  *
  * A hyperboloid is defined by rotating a hyperbola around the z-axis. This
- * implementation uses a minimum radius (at z=0) and a maximum radius (at
- * z=hh). The shape is symmetric about z=0, so the bottom radius (at z=-hh)
- * equals the maximum radius.
+ * implementation uses a minimum radius (at \f$ z=0 \f$) and a maximum radius
+ * (at
+ * \f$z=\pm \textrm{hh}\f$).
  *
  * The hyperboloid surface is defined by the equation:
  * \f[
- *   x^2 + y^2 - r_{min}^2 \left(1 + \frac{z^2}{t^2}\right) = 0
+ *   x^2 + y^2 - r_{min}^2 \left(1 + z^2 t^2\right) = 0
  * \f]
  * where \f$ r_{min} \f$ is the minimum radius (at z=0) and
- * \f$ t^2 = h^2 r_{min}^2 / (r_{max}^2 - r_{min}^2) \f$, with \f$ r_{max} \f$
+ * \f$ t^2 = (r_{max}^2 - r_{min}^2) / h^2 \f$, with \f$ r_{max} \f$
  * being the maximum radius and \f$ h \f$ the half-height.
  *
  * The maximum radius must be greater than the minimum radius, ensuring a valid
- * hyperboloid shape. The minimum radius must be positive.
+ * hyperboloid shape. The minimum radius must be positive, as a radius of zero
+ * would produce a two-sheeted cone.
  */
 class Hyperboloid final : public IntersectRegionInterface
 {
