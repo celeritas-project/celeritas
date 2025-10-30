@@ -7,17 +7,31 @@
 #include "TrackInitAlgorithms.hh"
 
 #if CELERITAS_USE_CUDA
+#    include <cub/device/device_partition.cuh>
 #    include <cub/device/device_scan.cuh>
 #    include <cub/device/device_select.cuh>
+#    include <cub/version.cuh>
+#    if CUB_VERSION >= 200800
+#        include <cub/device/device_transform.cuh>
+#    else
+#        include <thrust/transform.h>
+#    endif
 #elif CELERITAS_USE_HIP
+#    include <hipcub/device/device_partition.cuh>
 #    include <hipcub/device/device_scan.hpp>
 #    include <hipcub/device/device_select.hpp>
+#    include <hipcub/hipcub_version.hpp>
+#    if HIPCUB_VERSION >= 400100
+#        include <hipcub/device/device_transform.hpp>
+#    else
+#        include <thrust/transform.h>
+#    endif
 #endif
 #include <thrust/device_ptr.h>
 #include <thrust/execution_policy.h>
 #include <thrust/partition.h>
-// #include <thrust/remove.h>
-// #include <thrust/scan.h>
+#include <thrust/remove.h>
+#include <thrust/scan.h>
 
 #include "corecel/DeviceRuntimeApi.hh"
 
@@ -44,19 +58,19 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Remove all elements in the vacancy vector that were flagged as active
- * tracks.
+ * Create a functor to recognize specific tracks.
  */
 
-// Create a functor to omit the active tracks
 //
+//
+template<class T>
 struct NotEqual
 {
     int compare_;
 
-    NotEqual(int compare) : compare_(compare) {}
+    NotEqual<T>(int compare) : compare_(compare) {}
 
-    CELER_FUNCTION bool operator()(TrackSlotId const& a) const noexcept
+    CELER_FUNCTION bool operator()(T const& a) const noexcept
     {
         return (a.get() != compare_);
     }
@@ -69,11 +83,11 @@ size_type remove_if_alive(
 {
     ScopedProfiling profile_this{"remove-if-alive"};
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
-    Stream& s = device().stream(stream_id);
-    StreamT stream = s.get();
-    // There should be a better way to initialize this function than the hard
-    // coded invalid value
-    NotEqual select_op(-1);
+    StreamT stream = device().stream(stream_id).get();
+
+    // There should be a better way to instantiate this functor than the hard
+    // coded invalid value. Some way to use the null value?
+    NotEqual<TrackSlotId> select_op(-1);
 
     // The first call just computes the number of additional bytes needed for
     // the in-place selection. Calling with nullptr causes this instead of
@@ -86,12 +100,9 @@ size_type remove_if_alive(
     // *** Allocate temporary storage
     // *** For testing with existing code for consistency
     DeviceVector<size_type> num_not_active{1, stream_id};
-    auto data = device_pointer_cast(vacancies.data());
     // *** For testing with existing code for consistency
 
-    // *** First call and memory allocation/deallocation for temp space should
-    // *** probably go in ExtendFromSecondariesAction.cu::begin_run()
-    // *** Put the exclusive sum allocation there, too?
+    auto data = device_pointer_cast(vacancies.data());
     DeviceSelect::If(nullptr,
                      temp_storage_bytes,
                      data,
@@ -153,6 +164,9 @@ size_type exclusive_scan_counts(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"exclusive-scan-counts"};
+    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
+    StreamT stream = device().stream(stream_id).get();
+
     // Exclusive scan:
     // To Do:
     // (1) Store the result in the GPU variable that needs the result
@@ -161,10 +175,6 @@ size_type exclusive_scan_counts(
     // The first call just computes the number of additional bytes needed for
     // the in-place selection. Calling with nullptr causes this instead of
     // invoking the kernel.
-
-    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
-    Stream& s = device().stream(stream_id);
-    StreamT stream = s.get();
 
     size_t temp_storage_bytes = 0;
     auto data = device_pointer_cast(counts.data());
@@ -216,17 +226,97 @@ void partition_initializers(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"partition-initializers"};
+    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
+    StreamT stream = device().stream(stream_id).get();
+
+    DeviceVector<int8_t> flags{count, stream_id};
+    {
+        // cub doesn't have a partition function that allows the user to
+        // specify both an iterator for the values to use for selection and a
+        // function to operate on that iterator. (This should change in the
+        // future.) So, instead we create an iterator by using a functor to
+        // transform the stencil values into the boolean flags that determine
+        // how to partition the indices.
+        auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
+                       + counters.num_initializers - count;
+        // DeviceTransform added in cub 2.8, else fall back to thrust
+#if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
+        CELER_LOG(info) << "Using cub transform";
+        cub::DeviceTransform::Transform(
+            stencil,
+            flags.data(),
+            count,
+            IsNeutral{params.ptr<MemSpace::native>()});
+        // DeviceTransform added in hipcub 4.1, else fall back to thrust
+#elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
+        cub::DeviceTransform::Transform(
+            stencil,
+            flags.data(),
+            count,
+            IsNeutral{params.ptr<MemSpace::native>()});
+#else
+        CELER_LOG(info) << "Using thrust transform";
+        thrust::transform(thrust_execute_on(stream_id),
+                          stencil,
+                          stencil + count,
+                          flags.data(),
+                          IsNeutral{params.ptr<MemSpace::native>()});
+#endif
+    }
+
+    {
+        size_t temp_storage_bytes = 0;
+        // Use initial for the current data (input) and place the partitioned
+        // data (output) back in the init.indices structure
+        // Create a device vector of the same type
+        StateCollection<size_type, Ownership::value, MemSpace::device> initial;
+        initial = init.indices;
+        // Partition the indices based on the track initializer charge
+        auto start = device_pointer_cast(initial.data());
+        auto data = device_pointer_cast(init.indices.data());
+        // Allocate storage for the number of neutral tracks (unused)
+        DeviceVector<size_type> num_neutral{1, stream_id};
+        DevicePartition::Flagged(nullptr,
+                                 temp_storage_bytes,
+                                 start,
+                                 flags.data(),
+                                 data,
+                                 num_neutral.data(),
+                                 count,
+                                 stream);
+
+        // Allocate temporary storage
+        DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
+
+        // Run partition
+        DevicePartition::Flagged(temp_storage.data(),
+                                 temp_storage_bytes,
+                                 start,
+                                 flags.data(),
+                                 data,
+                                 num_neutral.data(),
+                                 count,
+                                 stream);
+
+        auto value = ItemCopier<size_type>{stream_id}(num_neutral.data());
+        CELER_LOG(info) << "Found " << value << " inactive/neutral tracks";
+        for (auto i = 0; i < count; ++i)
+        {
+            value = ItemCopier<size_type>{stream_id}(data.get() + i);
+            CELER_LOG(info) << "Entry " << i << " has index " << value;
+        }
+    }
 
     // Partition the indices based on the track initializer charge
-    auto start = device_pointer_cast(init.indices.data());
-    auto end = start + count;
-    auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
-                   + counters.num_initializers - count;
-    thrust::stable_partition(
-        thrust_execute_on(stream_id),
-        start,
-        end,
-        IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
+    // auto start = device_pointer_cast(init.indices.data());
+    // auto end = start + count;
+    // auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
+    // + counters.num_initializers - count;
+    // thrust::stable_partition(
+    // thrust_execute_on(stream_id),
+    // start,
+    // end,
+    // IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
     CELER_DEVICE_API_CALL(PeekAtLastError());
 }
 
