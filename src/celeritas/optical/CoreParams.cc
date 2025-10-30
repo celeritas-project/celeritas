@@ -23,6 +23,8 @@
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
+#include "gen/CherenkovParams.hh"
+#include "gen/ScintillationParams.hh"
 #include "surface/SurfacePhysicsParams.hh"
 
 namespace celeritas
@@ -50,6 +52,15 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.surface = get_ref<M>(*p.surface);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.rng = get_ref<M>(*p.rng);
+    // TODO: Get detectors ref
+    if (p.cherenkov)
+    {
+        ref.cherenkov = get_ref<M>(*p.cherenkov);
+    }
+    if (p.scintillation)
+    {
+        ref.scintillation = get_ref<M>(*p.scintillation);
+    }
 
     CELER_ENSURE(ref);
     return ref;

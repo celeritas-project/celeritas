@@ -11,7 +11,6 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
@@ -34,6 +33,7 @@ namespace optical
 void GeneratorAction::generate(CoreParams const& params,
                                CoreStateDevice& state) const
 {
+    CELER_EXPECT(params.cherenkov() || params.scintillation());
     CELER_EXPECT(state.aux());
 
     auto& aux_state
@@ -41,17 +41,11 @@ void GeneratorAction::generate(CoreParams const& params,
     size_type num_gen
         = min(state.counters().num_vacancies, aux_state.counters.num_pending);
     {
-        auto cherenkov = data_.cherenkov ? data_.cherenkov->device_ref()
-                                         : DeviceCRef<CherenkovData>{};
-        auto scint = data_.scintillation ? data_.scintillation->device_ref()
-                                         : DeviceCRef<ScintillationData>{};
-
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
                                           state.ptr(),
-                                          data_.material->device_ref(),
-                                          cherenkov,
-                                          scint,
+                                          params.device_ref().cherenkov,
+                                          params.device_ref().scintillation,
                                           aux_state.store.ref(),
                                           aux_state.counters.buffer_size,
                                           state.counters()};

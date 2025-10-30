@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
@@ -26,7 +27,7 @@ class ScintillationParams;
 
 namespace optical
 {
-class MaterialParams;
+class CoreStateBase;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -41,32 +42,21 @@ class GeneratorAction final : public GeneratorBase
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
-    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
-    using SPConstMaterial = std::shared_ptr<MaterialParams const>;
+    using SpanConstData = Span<GeneratorDistributionData const>;
     //!@}
-
-    //! Generator input data
-    struct Input
-    {
-        SPConstMaterial material;
-        SPConstCherenkov cherenkov;
-        SPConstScintillation scintillation;
-        size_type capacity{};
-
-        explicit operator bool() const
-        {
-            return material && (cherenkov || scintillation) && capacity > 0;
-        }
-    };
 
   public:
     // Construct and add to core params
     static std::shared_ptr<GeneratorAction>
-    make_and_insert(::celeritas::CoreParams const&, CoreParams const&, Input&&);
+    make_and_insert(::celeritas::CoreParams const&,
+                    CoreParams const&,
+                    size_type capacity);
 
     // Construct with action ID, data IDs, and optical properties
-    GeneratorAction(ActionId, AuxId, GeneratorId, Input&&);
+    GeneratorAction(ActionId, AuxId, GeneratorId, size_type capacity);
+
+    // Add user-provided host distribution data
+    void insert(CoreStateBase&, SpanConstData) const;
 
     //!@{
     //! \name Aux interface
@@ -87,9 +77,13 @@ class GeneratorAction final : public GeneratorBase
   private:
     //// DATA ////
 
-    Input data_;
+    // Starting distribution buffer capacity
+    size_type initial_capacity_;
 
     //// HELPER FUNCTIONS ////
+
+    template<MemSpace M>
+    void insert_impl(CoreState<M>& state, SpanConstData data) const;
 
     template<MemSpace M>
     void step_impl(CoreParams const&, CoreState<M>&) const;

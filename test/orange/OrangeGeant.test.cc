@@ -11,6 +11,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
+#include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/detail/LengthUnits.hh"
@@ -60,14 +61,12 @@ TEST_F(FourLevelsTest, trace)
 
 TEST_F(FourLevelsTest, consecutive_compute)
 {
-    // Templated test
-    FourLevelsGeoTest::test_consecutive_compute(this);
+    this->impl().test_consecutive_compute();
 }
 
 TEST_F(FourLevelsTest, detailed_track)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 //---------------------------------------------------------------------------//
@@ -245,58 +244,19 @@ TEST_F(TwoBoxesTest, accessors)
     this->impl().test_accessors();
 }
 
-TEST_F(TwoBoxesTest, recross)
+TEST_F(TwoBoxesTest, reentrant)
 {
-    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    this->impl().test_reentrant();
+}
 
-    // Starting left of edge (-), headed down right (+,-)
-    CheckedGeoTrackView geo{this->make_geo_track_view()};
-    geo = GeoTrackInitializer{{5 - dx, dx, 0}, {dx, -dx, 0}};
-    ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ("inner", this->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
-
-    // Check for surfaces up to a distance of 4 units away
-    auto next = geo.find_next_step(from_cm(4.0));
-    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-
-    // Move to boundary (-; +,-)
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-    EXPECT_EQ("inner", this->volume_name(geo));
-
-    // Cross into the new volume, needed for optical physics (+; +,-)
-    geo.cross_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-    EXPECT_EQ("world", this->volume_name(geo));
-
-    // Reflect normal to surface  (+; -,-)
-    geo.set_dir(Real3{-dx, -dx, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-    EXPECT_EQ("world", this->volume_name(geo));
-
-    // Cross back into previous volume (-; -,-)
-    geo.cross_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-    EXPECT_EQ("inner", this->volume_name(geo));
-
-    // Find the next boundary and make sure that nearer distances aren't
-    // accepted
-    next = geo.find_next_step();
-    EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    EXPECT_TRUE(geo.is_on_boundary());
+TEST_F(TwoBoxesTest, tangent)
+{
+    this->impl().test_tangent();
 }
 
 TEST_F(TwoBoxesTest, track)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 //---------------------------------------------------------------------------//
@@ -321,7 +281,7 @@ TEST_F(ZnenvTest, debug)
 {"dir":[1.0,0.0,0.0],"pos":[-1.66,-0.160,0.0],"universe":"ZNSL","volume":{"canonical":"ZNST","impl":"ZNST","instance":"ZNST_PV@0","local":1}},
 {"dir":[1.0,0.0,0.0],"pos":[-0.0600,-0.160,0.0],"universe":"ZNST","volume":{"canonical":"ZNST","impl":"ZNST","instance":null,"local":5}}],
 "surface":null})json",
-            StringSimplifier{3}(to_json_string(geo)));
+            StringSimplifier{3}(to_json_string(geo.track_view())));
     }
     else
     {

@@ -19,6 +19,8 @@ namespace test
 //---------------------------------------------------------------------------//
 using GeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
 
+extern template class GenericGeoTestBase<GeantGeoParams>;
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

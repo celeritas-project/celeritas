@@ -22,7 +22,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class CherenkovParams;
 class GeneratorRegistry;
+class ScintillationParams;
 class SurfaceParams;
 
 namespace optical
@@ -49,6 +51,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
+    using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
+    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -65,6 +69,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstSurface surface;
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;
+        SPConstCherenkov cherenkov;  //!< Optional
+        SPConstScintillation scintillation;  //!< Optional
 
         SPActionRegistry action_reg;
         SPGeneratorRegistry gen_reg;
@@ -107,6 +113,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
     SPConstDetectors const& detectors() const { return detectors_; }
+    SPConstCherenkov const& cherenkov() const { return input_.cherenkov; }
+    SPConstScintillation const& scintillation() const
+    {
+        return input_.scintillation;
+    }
     //!@}
 
     // Access host pointers to core data

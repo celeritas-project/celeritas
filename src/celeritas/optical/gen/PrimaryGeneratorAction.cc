@@ -15,7 +15,6 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/KernelLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/CoreTrackData.hh"
@@ -98,6 +97,30 @@ auto PrimaryGeneratorAction::create_state(MemSpace, StreamId, size_type) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set the number of pending tracks.
+ *
+ * The number of tracks to generate must be set at the beginning of each event
+ * before the optical loop is launched.
+ *
+ * \todo Currently this is only called during testing, but it *must* be done at
+ * the beginning of each event once this action is integrated into the stepping
+ * loop.
+ */
+void PrimaryGeneratorAction::insert(optical::CoreStateBase& state) const
+{
+    if (auto* s = dynamic_cast<CoreStateHost*>(&state))
+    {
+        return this->insert_impl(*s);
+    }
+    else if (auto* s = dynamic_cast<CoreStateDevice*>(&state))
+    {
+        return this->insert_impl(*s);
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Execute the action with host data.
  */
 void PrimaryGeneratorAction::step(CoreParams const& params,
@@ -114,6 +137,20 @@ void PrimaryGeneratorAction::step(CoreParams const& params,
                                   CoreStateDevice& state) const
 {
     this->step_impl(params, state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the number of pending tracks.
+ */
+template<MemSpace M>
+void PrimaryGeneratorAction::insert_impl(optical::CoreState<M>& state) const
+{
+    CELER_EXPECT(state.aux());
+
+    auto& aux_state = this->counters(*state.aux());
+    aux_state.counters.num_pending = data_.num_photons;
+    state.counters().num_pending = data_.num_photons;
 }
 
 //---------------------------------------------------------------------------//

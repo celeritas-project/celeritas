@@ -10,6 +10,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/NonuniformGridData.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
 
 #include "Types.hh"
@@ -38,18 +39,19 @@ struct PhysicsParamsScalars
     OptMatId::size_type num_materials{};
 
     //! Offset to create an ActionId from a ModelId
-    ActionId::size_type model_to_action{};
+    ActionId first_model_action{};
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return num_models > 0 && num_materials > 0 && model_to_action >= 1;
+        return num_models > 0 && num_materials > 0
+               && first_model_action >= ActionId{1};
     }
 
     //! Undergo a discrete interaction
     CELER_FORCEINLINE_FUNCTION ActionId discrete_action() const
     {
-        return ActionId{model_to_action - 1};
+        return first_model_action - 1;
     }
 };
 

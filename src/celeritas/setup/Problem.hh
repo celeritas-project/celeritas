@@ -17,6 +17,11 @@ namespace inp
 struct Problem;
 }  // namespace inp
 
+namespace optical
+{
+class CoreParams;
+}  // namespace optical
+
 class CoreParams;
 class GeantSd;
 class OpticalCollector;
@@ -38,6 +43,8 @@ struct ProblemLoaded
 
     //! Step collector
     std::shared_ptr<StepCollector> step_collector;
+    //! Optical data
+    std::shared_ptr<optical::CoreParams> optical_params;
     //! Optical offload management
     std::shared_ptr<OpticalCollector> optical_collector;
     //! Geant4 SD interface

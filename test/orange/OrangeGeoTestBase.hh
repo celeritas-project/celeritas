@@ -42,7 +42,6 @@ class OrangeGeoTestBase : public OrangeTestBase
     using HostParamsRef = HostCRef<OrangeParamsData>;
     using Params = OrangeParams;
     using SPConstParams = std::shared_ptr<OrangeParams const>;
-    using Initializer_t = GeoTrackInitializer;
     //!@}
 
     //!@{

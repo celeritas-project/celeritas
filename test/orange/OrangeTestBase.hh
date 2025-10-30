@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/OpaqueId.hh"
-#include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GenericGeoTestBase.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeGeoTraits.hh"
@@ -19,17 +18,8 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class OrangeTestBase : public GenericGeoTestBase<OrangeParams>
-{
-  public:
-    std::string surface_name(GeoTrackView const& geo) const override;
-};
+using OrangeTestBase = GenericGeoTestBase<OrangeParams>;
 
-extern template class CheckedGeoTrackView<OrangeTrackView>;
-extern template class GenericGeoTestBase<OrangeParams>;
-
-//---------------------------------------------------------------------------//
-extern template class CheckedGeoTrackView<OrangeTrackView>;
 extern template class GenericGeoTestBase<OrangeParams>;
 
 //---------------------------------------------------------------------------//

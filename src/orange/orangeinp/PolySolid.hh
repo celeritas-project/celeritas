@@ -176,8 +176,8 @@ class PolyCone final : public PolySolidBase
 /*!
  * A series of stacked regular prisms or cone-y prisms.
  *
- * \todo This class is analogous to the PolyCone but does \em not behave like
- * the \c polyhedra object in Geant4 unless there is no azimuthal truncation.
+ * \todo This class is no longer used and is slated for removal. G4Polyhedra
+ * are now constructed using StackedExtrudedPolygon.
  */
 class PolyPrism final : public PolySolidBase
 {

@@ -10,7 +10,6 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/CoreTrackView.hh"
-#include "celeritas/optical/MaterialData.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/Utils.hh"
 
@@ -35,7 +34,6 @@ struct GeneratorExecutor
 
     CRefPtr<CoreParamsData, MemSpace::native> params;
     RefPtr<CoreStateData, MemSpace::native> state;
-    NativeCRef<MaterialParamsData> const material;
     NativeCRef<CherenkovData> const cherenkov;
     NativeCRef<ScintillationData> const scintillation;
     NativeRef<GeneratorStateData> const offload;
@@ -61,7 +59,6 @@ struct GeneratorExecutor
 CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
 {
     CELER_EXPECT(state);
-    CELER_EXPECT(material);
     CELER_EXPECT(offload);
 
     using DistId = ItemId<GeneratorDistributionData>;
@@ -99,7 +96,7 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
 
     // Generate one track from the distribution
     auto rng = track.rng();
-    MaterialView opt_mat{material, dist.material};
+    auto opt_mat = track.material_record(dist.material);
     if (dist.type == GeneratorType::cherenkov)
     {
         CELER_ASSERT(cherenkov);
