@@ -10,7 +10,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
@@ -58,13 +60,35 @@ auto make_soft_equal(IntersectSurfaceBuilder const& sb)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a z-aligned bounding box infinite along z and symmetric in r.
+ * Create a z-aligned bounding box symmetric in r with different top/bottom
+ * exdtents.
  */
-BBox make_xyradial_bbox(real_type r)
+BBox make_radial_bbox(real_type r, EnumArray<Bound, real_type> z)
 {
     CELER_EXPECT(r > 0);
-    constexpr auto inf = numeric_limits<real_type>::infinity();
-    return BBox::from_unchecked({-r, -r, -inf}, {r, r, inf});
+    CELER_EXPECT(z[Bound::lo] < z[Bound::hi]);
+    return BBox::from_unchecked({-r, -r, z[Bound::lo]}, {r, r, z[Bound::hi]});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a z-aligned bounding box symmetric in r and z.
+ */
+BBox make_radial_bbox(real_type r, real_type z)
+{
+    CELER_EXPECT(r > 0);
+    CELER_EXPECT(z > 0);
+
+    return make_radial_bbox(r, {-z, z});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a z-aligned bounding box infinite along z and symmetric in r.
+ */
+CELER_FORCEINLINE_FUNCTION BBox make_radial_bbox(real_type r)
+{
+    return make_radial_bbox(r, numeric_limits<real_type>::infinity());
 }
 
 //---------------------------------------------------------------------------//
@@ -219,7 +243,7 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(cone);
 
     // Set radial extents of exterior bbox
-    insert_surface(Sense::inside, make_xyradial_bbox(std::fmax(lo, hi)));
+    insert_surface(Sense::inside, make_radial_bbox(std::fmax(lo, hi)));
 
     // Calculate the interior bounding box:
     real_type const b = std::fmax(lo, hi);
@@ -236,10 +260,9 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
         zmax = hh_;
         zmin = zmax - z;
     }
-    CELER_ASSERT(zmin < zmax);
-    real_type const rbox = (constants::sqrt_two / 2) * r;
-    BBox const interior_bbox{{-rbox, -rbox, zmin}, {rbox, rbox, zmax}};
 
+    auto interior_bbox
+        = make_radial_bbox((constants::sqrt_two / 2) * r, {zmin, zmax});
     // Check that the corners are actually inside the cone
     CELER_ASSERT(cone.calc_sense(interior_bbox.lower() * real_type(1 - 1e-5))
                  == SignedSense::inside);
@@ -315,8 +338,7 @@ void CutCylinder::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::inside, Plane{bot_normal_, {0, 0, -hh_}});
     insert_surface(Sense::inside, Plane{top_normal_, {0, 0, hh_}});
     insert_surface(Sense::inside, CCylZ{radius_});
-    insert_surface(Sense::inside,
-                   BBox{{-radius_, -radius_, -hh_}, {radius_, radius_, hh_}});
+    insert_surface(Sense::inside, make_radial_bbox(radius_, hh_));
 }
 
 //---------------------------------------------------------------------------//
@@ -1115,8 +1137,6 @@ void GenPrism::output(JsonPimpl* j) const
     save_region_json(j, *this);
 }
 
-// ...existing code...
-
 //---------------------------------------------------------------------------//
 // HYPERBOLOID
 //---------------------------------------------------------------------------//
@@ -1498,10 +1518,8 @@ void Paraboloid::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(SimpleQuadric{Real3{1, 1, 0}, Real3{0, 0, f}, g});
 
     // Set an exterior bbox
-    real_type r_max = std::fmax(r_lo_, r_hi_);
-    Real3 ex_halves{r_max, r_max, hh_};
-    insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
-
+    insert_surface(Sense::inside,
+                   make_radial_bbox(std::fmax(r_lo_, r_hi_), hh_));
     // TODO: interior bbox
 }
 
@@ -1654,13 +1672,8 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     }
 
     // Apothem is interior, circumradius exterior
-    insert_surface(Sense::inside,
-                   make_xyradial_bbox(apothem_ / cos(delta / 2)));
-
-    auto interior_bbox = make_xyradial_bbox(apothem_);
-    interior_bbox.shrink(Bound::lo, Axis::z, -hh_);
-    interior_bbox.shrink(Bound::hi, Axis::z, hh_);
-    insert_surface(Sense::outside, interior_bbox);
+    insert_surface(Sense::inside, make_radial_bbox(apothem_ / cos(delta / 2)));
+    insert_surface(Sense::outside, make_radial_bbox(apothem_, hh_));
 }
 
 //---------------------------------------------------------------------------//
