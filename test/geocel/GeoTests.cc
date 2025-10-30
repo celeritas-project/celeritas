@@ -2379,6 +2379,15 @@ void TwoBoxesGeoTest::test_tangent() const
         EXPECT_EQ("world", test_->volume_name(geo));
         GTEST_SKIP() << "Unexpected boundary crossing";
     }
+    else if (test_->geometry_type() == "VecGeom")
+    {
+        // VecGeom 1.2.10 seems to unexpectedly exit as well. Seems to happen
+        // along the same lines as test_reentrant.
+        if ("world" == test_->volume_name(geo))
+        {
+            GTEST_SKIP() << "Unexpected boundary crossing";
+        }
+    }
     EXPECT_EQ("inner", test_->volume_name(geo));
 
     // Find the next boundary and make sure that nearer distances aren't
