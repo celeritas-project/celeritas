@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/ProtoConstructor.hh"
 
+#include "corecel/Config.hh"
+
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Repr.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -89,7 +91,9 @@ class ProtoConstructorTest : public GeantLoadTestBase
 };
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, atlas_lar_endcap)
+using AtlasLarEndcapTest = ProtoConstructorTest;
+
+TEST_F(AtlasLarEndcapTest, default)
 {
     auto global_proto = this->load("atlas-lar-endcap");
     ProtoMap protos{*global_proto};
@@ -104,7 +108,9 @@ TEST_F(ProtoConstructorTest, atlas_lar_endcap)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, intersection_boxes)
+using IntersectionBoxesTest = ProtoConstructorTest;
+
+TEST_F(IntersectionBoxesTest, default)
 {
     auto global_proto = this->load("intersection-boxes");
     ProtoMap protos{*global_proto};
@@ -193,7 +199,9 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, lar_sphere)
+using LarSphereTest = ProtoConstructorTest;
+
+TEST_F(LarSphereTest, default)
 {
     auto global_proto = this->load("lar-sphere");
     ProtoMap protos{*global_proto};
@@ -251,7 +259,9 @@ TEST_F(ProtoConstructorTest, lar_sphere)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, one_box)
+using OneBoxTest = ProtoConstructorTest;
+
+TEST_F(OneBoxTest, default)
 {
     auto global_proto = this->load("one-box");
     ProtoMap protos{*global_proto};
@@ -296,7 +306,9 @@ TEST_F(ProtoConstructorTest, one_box)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, simple_cms)
+using SimpleCmsTest = ProtoConstructorTest;
+
+TEST_F(SimpleCmsTest, default)
 {
     // NOTE: GDML stores widths for box and cylinder Z; Geant4 uses halfwidths
     auto global_proto = this->load("simple-cms");
@@ -348,7 +360,9 @@ TEST_F(ProtoConstructorTest, simple_cms)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, testem3)
+using Testem3Test = ProtoConstructorTest;
+
+TEST_F(Testem3Test, default)
 {
     auto global_proto = this->load("testem3");
     ProtoMap protos{*global_proto};
@@ -426,8 +440,9 @@ TEST_F(ProtoConstructorTest, testem3)
 }
 
 //---------------------------------------------------------------------------//
-// Deduplication slightly changes plane position and CSG node IDs
-TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
+using TilecalPlugTest = ProtoConstructorTest;
+
+TEST_F(TilecalPlugTest, default)
 {
     auto global_proto = this->load("tilecal-plug");
     ProtoMap protos{*global_proto};
@@ -438,6 +453,12 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(1, protos.size());
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        GTEST_SKIP() << "Deduplication slightly changes surface nodes";
+    }
+
     {
         auto u = this->build_unit(protos, UnivId{0});
 
@@ -470,7 +491,9 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, two_boxes)
+using TwoBoxesTest = ProtoConstructorTest;
+
+TEST_F(TwoBoxesTest, default)
 {
     auto global_proto = this->load("two-boxes");
     ProtoMap protos{*global_proto};
@@ -504,7 +527,9 @@ TEST_F(ProtoConstructorTest, two_boxes)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, znenv)
+using ZnenvTest = ProtoConstructorTest;
+
+TEST_F(ZnenvTest, default)
 {
     auto global_proto = this->load("znenv");
     ProtoMap protos{*global_proto};
@@ -615,8 +640,7 @@ TEST_F(ProtoConstructorTest, znenv)
     }
 }
 
-//---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, znenv_explicit)
+TEST_F(ZnenvTest, explicit_interior)
 {
     Options opts;
     std::istringstream{R"json({
