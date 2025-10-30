@@ -584,8 +584,7 @@ class GenPrism final : public IntersectRegionInterface
  *
  * A hyperboloid is defined by rotating a hyperbola around the z-axis. This
  * implementation uses a minimum radius (at \f$ z=0 \f$) and a maximum radius
- * (at
- * \f$z=\pm \textrm{hh}\f$).
+ * (at \f$z=\pm \textrm{hh}\f$).
  *
  * The hyperboloid surface is defined by the equation:
  * \f[
@@ -602,7 +601,7 @@ class GenPrism final : public IntersectRegionInterface
 class Hyperboloid final : public IntersectRegionInterface
 {
   public:
-    // Construct with minimum radius, maximum radius, and half-height
+    // Construct with radius at midpoint (min) and end (max), and half-height
     Hyperboloid(real_type min_radius,
                 real_type max_radius,
                 real_type halfheight);
@@ -626,7 +625,7 @@ class Hyperboloid final : public IntersectRegionInterface
     //! Maximum radius at |z|=hh
     real_type max_radius() const { return r_max_; }
 
-    //! Half-height along Z
+    //! Half-height along z
     real_type halfheight() const { return hh_; }
 
   private:

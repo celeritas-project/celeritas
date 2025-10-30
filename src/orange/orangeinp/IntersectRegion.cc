@@ -60,8 +60,7 @@ auto make_soft_equal(IntersectSurfaceBuilder const& sb)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a z-aligned bounding box symmetric in r with different top/bottom
- * exdtents.
+ * Create a bounding box: symmetric x/y, different top/bottom extents.
  */
 BBox make_radial_bbox(real_type r, EnumArray<Bound, real_type> z)
 {
@@ -72,7 +71,7 @@ BBox make_radial_bbox(real_type r, EnumArray<Bound, real_type> z)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a z-aligned bounding box symmetric in r and z.
+ * Create a bounding box: symmetric x=y, symmetric z.
  */
 BBox make_radial_bbox(real_type r, real_type z)
 {
@@ -84,7 +83,7 @@ BBox make_radial_bbox(real_type r, real_type z)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a z-aligned bounding box infinite along z and symmetric in r.
+ * Create a bounding box: symmetric x=y, unbounded in z.
  */
 CELER_FORCEINLINE_FUNCTION BBox make_radial_bbox(real_type r)
 {
@@ -1141,7 +1140,7 @@ void GenPrism::output(JsonPimpl* j) const
 // HYPERBOLOID
 //---------------------------------------------------------------------------//
 /*!
- * Construct with minimum radius, maximum radius, and half-height.
+ * Construct with radius at midpoint (min) and end (max), and half-height.
  */
 Hyperboloid::Hyperboloid(real_type min_radius,
                          real_type max_radius,
