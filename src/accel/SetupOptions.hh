@@ -165,6 +165,8 @@ struct SetupOptions
 
     //! Capacity for storing optical photon state
     std::optional<inp::OpticalStateCapacity> optical_capacity;
+    //! Limit on number of optical step iterations before aborting
+    size_type max_optical_step_iters = no_max_steps();
     //!@}
 
     //!@{
