@@ -359,12 +359,6 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         // Find the next step (to top edge of Shape1) but then scatter back
         // toward the sphere
         next = geo.find_next_step(from_cm(10.0));
-        if (test_->geometry_type() == "ORANGE")
-        {
-            // ORANGE thinks the boundary is reentrant
-            EXPECT_SOFT_EQ(0, to_cm(next.distance));
-            GTEST_SKIP() << "FIXME: ORANGE reentrant boundary is misbehaving";
-        }
         EXPECT_SOFT_EQ(6, to_cm(next.distance));
         geo.set_dir({-1, 0, 0});
         EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), to_cm(geo.pos()));
@@ -403,8 +397,10 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         else if (test_->geometry_type() == "ORANGE")
         {
             // Should be able to relocate back and forth
+            geo.set_dir(Real3{1, 0, 0});
             geo.cross_boundary();
             EXPECT_EQ("Shape1", test_->volume_name(geo));
+            geo.set_dir(Real3{-1, 0, 0});
             geo.cross_boundary();
             EXPECT_EQ("Shape2", test_->volume_name(geo));
         }
@@ -2309,13 +2305,6 @@ void TwoBoxesGeoTest::test_reentrant() const
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
-    if (test_->geometry_type() == "ORANGE")
-    {
-        // FIXME: reentrant consistently fails!
-        EXPECT_EQ("world", test_->volume_name(geo));
-        GTEST_SKIP() << "Unexpected failure to cross volume";
-    }
-
     if (test_->geometry_type() == "VecGeom")
     {
         // VecGeom 1.2.10 seems to fail reentry *sometimes*: on the CI builds,
