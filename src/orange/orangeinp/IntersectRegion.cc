@@ -25,7 +25,6 @@
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
-#include "orange/univ/detail/Utils.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
@@ -79,6 +78,26 @@ canonicalize_zero(real_type value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Write an IntersectRegion to json.
+ *
+ * This modified copy of to_json_pimpl uses a static cast to ensure that the
+ * correct to_json specialization is declared in \c ObjectIO.json.hh . If not,
+ * this function will error about an invalid static cast.
+ *
+ * Without this special modification, the `to_json` will match the
+ * IntersectRegion base class specialization which results in an infinite
+ * recursive call.
+ */
+template<class T>
+void save_region_json(JsonPimpl* jp, T const& self)
+{
+    CELER_EXPECT(jp);
+    using FuncT = void (*)(nlohmann::json&, T const&);
+    static_cast<FuncT>(orangeinp::to_json)(jp->obj, self);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -117,7 +136,7 @@ void Box::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Box::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -235,7 +254,7 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Cone::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -306,7 +325,7 @@ void CutCylinder::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void CutCylinder::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -348,7 +367,7 @@ void Cylinder::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Cylinder::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -428,7 +447,7 @@ void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Ellipsoid::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -498,7 +517,7 @@ void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void EllipticalCylinder::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -624,7 +643,7 @@ void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void EllipticalCone::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -730,7 +749,7 @@ void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void ExtrudedPolygon::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1093,7 +1112,7 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void GenPrism::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 // ...existing code...
@@ -1174,7 +1193,7 @@ void Hyperboloid::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Hyperboloid::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1219,7 +1238,7 @@ void InfPlane::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void InfPlane::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1268,7 +1287,7 @@ void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void InfAziWedge::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1335,7 +1354,7 @@ void InfPolarWedge::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void InfPolarWedge::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1411,7 +1430,7 @@ void Involute::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Involute::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1492,7 +1511,7 @@ void Paraboloid::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Paraboloid::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1571,7 +1590,7 @@ void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Parallelepiped::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1650,7 +1669,7 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Prism::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1694,7 +1713,7 @@ void Sphere::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Sphere::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1777,7 +1796,7 @@ void Tet::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Tet::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
