@@ -1799,7 +1799,6 @@ TEST_F(HyperboloidTest, errors)
 TEST_F(HyperboloidTest, standard)
 {
     auto result = this->test(Hyperboloid(1, 2, 3));
-    result.print_expected();
 
     IntersectTestResult ref;
     ref.node = "all(+0, -1, -2)";
