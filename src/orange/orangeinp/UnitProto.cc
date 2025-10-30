@@ -79,6 +79,7 @@ void remove_interior(CsgUnit& unit, std::string_view label)
                    unknowns.begin(), unknowns.end(), ", ", write_node_labels);
     }
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Simplify negated joins for infix evaluation.
@@ -158,6 +159,8 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
     unit.regions = std::move(regions);
     unit.tree = std::move(tree);
 }
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//

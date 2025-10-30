@@ -149,6 +149,11 @@ class UnitProto : public ProtoInterface
     // Write the proto to a JSON object
     void output(JsonPimpl*) const final;
 
+    //// ACCESSORS ////
+
+    //! Get the input, primarily for unit testing
+    Input const& input() const { return input_; }
+
     //// HELPER FUNCTIONS ////
 
     // Construct a standalone unit for testing and external interface
