@@ -263,6 +263,14 @@ void to_json(nlohmann::json& j, GenPrism const& cr)
          SIO_ATTR_PAIR(cr, upper)};
 }
 
+void to_json(nlohmann::json& j, Hyperboloid const& cr)
+{
+    j = {{"_type", "hyperboloid"},
+         SIO_ATTR_PAIR(cr, min_radius),
+         SIO_ATTR_PAIR(cr, max_radius),
+         SIO_ATTR_PAIR(cr, halfheight)};
+}
+
 void to_json(nlohmann::json& j, InfPlane const& pa)
 {
     j = {{"sense", to_cstring(pa.sense())},

@@ -557,6 +557,22 @@ TEST_F(SolidConverterTest, generictrap)
         });
 }
 
+TEST_F(SolidConverterTest, hype)
+{
+    this->build_and_test(G4Hype(/* name = */ "Solid Hype",
+                                /* innerRadius = */ 0,
+                                /* outerRadius = */ 50,
+                                /* innerStereo = */ 0,
+                                /* outerStereo = */ 0.3,
+                                /* halfLenZ = */ 50));
+    this->build_and_test(G4Hype(/* name = */ "Hole Hype",
+                                /* innerRadius = */ 45,
+                                /* outerRadius = */ 50,
+                                /* innerStereo = */ 0.3,
+                                /* outerStereo = */ 0.3,
+                                /* halfLenZ = */ 50));
+}
+
 TEST_F(SolidConverterTest, intersectionsolid)
 {
     G4Box b1("Test Box #1", 20, 30, 40);

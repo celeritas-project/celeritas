@@ -1096,6 +1096,87 @@ void GenPrism::output(JsonPimpl* j) const
     to_json_pimpl(j, *this);
 }
 
+// ...existing code...
+
+//---------------------------------------------------------------------------//
+// HYPERBOLOID
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with minimum radius, maximum radius, and half-height.
+ */
+Hyperboloid::Hyperboloid(real_type min_radius,
+                         real_type max_radius,
+                         real_type halfheight)
+    : r_min_{min_radius}, r_max_{max_radius}, hh_{halfheight}
+{
+    CELER_VALIDATE(r_min_ > 0,
+                   << "nonpositive minimum radius: " << r_min_
+                   << " (use a cone instead)");
+    CELER_VALIDATE(r_max_ > r_min_,
+                   << "maximum radius " << r_max_
+                   << " is not greater than minimum radius " << r_min_);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another hyperboloid.
+ */
+bool Hyperboloid::encloses(Hyperboloid const& other) const
+{
+    return r_min_ >= other.r_min_ && r_max_ >= other.r_max_ && hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ *
+ * The hyperboloid surface is defined by the equation:
+ *   x^2 + y^2 - r_min^2 * (1 + z^2/t^2) = 0
+ * where t^2 = h^2 * r_min^2 / (r_max^2 - r_min^2)
+ *
+ * Expanding and rearranging:
+ *   x^2 + y^2 - (r_min^2/t^2) * z^2 - r_min^2 = 0
+ *
+ * This is a SimpleQuadric with:
+ *   second order: {1, 1, -(r_min^2/t^2)}
+ *   first order:  {0, 0, 0}
+ *   zeroth order: -r_min^2
+ */
+void Hyperboloid::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    // Build the bottom and top planes
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    // Calculate t^2 = h^2 * r_min^2 / (r_max^2 - r_min^2)
+    real_type const t_sq = ipow<2>(hh_) * ipow<2>(r_min_)
+                           / (ipow<2>(r_max_) - ipow<2>(r_min_));
+
+    // Build the hyperboloid surface
+    insert_surface(SimpleQuadric{Real3{1, 1, -ipow<2>(r_min_) / t_sq},
+                                 Real3{0, 0, 0},
+                                 -ipow<2>(r_min_)});
+
+    // Set exterior bounding box (use maximum radius as the maximum extent)
+    insert_surface(Sense::inside,
+                   BBox{{-r_max_, -r_max_, -hh_}, {r_max_, r_max_, hh_}});
+
+    // Set interior bounding box (use minimum radius inscribed in a square)
+    real_type const r_inner = r_min_ / constants::sqrt_two;
+    insert_surface(Sense::outside,
+                   BBox{{-r_inner, -r_inner, -hh_}, {r_inner, r_inner, hh_}});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Hyperboloid::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
 //---------------------------------------------------------------------------//
 // INFPLANE
 //---------------------------------------------------------------------------//
