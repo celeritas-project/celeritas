@@ -81,20 +81,37 @@ void IntersectTestResult::print_expected() const
     IRE_COMPARE(node);
     IRE_COMPARE(surfaces);
 
-    // Special handling for BBox objects
-    // FIXME: don't use exact comparison here, use soft equality
-    if (val1.interior != val2.interior)
-    {
-        result.fail() << "Expected interior: " << repr(val1.interior)
-                      << " but got " << repr(val2.interior);
-    }
+    // Special handling for BBox objects with soft equality
+    // TODO make its own expect-ref-eq
+    auto check_bbox =
+        [&result](char const* name, auto const& expected, auto const& actual) {
+            if (!expected && !actual)
+            {
+                return;  // Both null
+            }
+            if (static_cast<bool>(expected) != static_cast<bool>(actual))
+            {
+                result.fail() << "Expected " << name << ": " << repr(expected)
+                              << " but got " << repr(actual);
+                return;
+            }
 
-    if (val1.exterior != val2.exterior)
-    {
-        result.fail() << "Expected exterior: " << repr(val1.exterior)
-                      << " but got " << repr(val2.exterior);
-    }
+            EqualOr<SoftEqual<>> soft_eq;
+            for (int i = 0; i < 3; ++i)
+            {
+                if (!soft_eq(expected.lower()[i], actual.lower()[i])
+                    || !soft_eq(expected.upper()[i], actual.upper()[i]))
+                {
+                    result.fail()
+                        << "Expected " << name << ": " << repr(expected)
+                        << " but got " << repr(actual);
+                    return;
+                }
+            }
+        };
 
+    check_bbox("interior", val1.interior, val2.interior);
+    check_bbox("exterior", val1.exterior, val2.exterior);
 #undef IRE_COMPARE
     return result;
 }
