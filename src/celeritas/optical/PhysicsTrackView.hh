@@ -231,7 +231,7 @@ CELER_FUNCTION ModelId::size_type PhysicsTrackView::num_models() const
 CELER_FUNCTION ActionId PhysicsTrackView::model_to_action(ModelId mid) const
 {
     CELER_EXPECT(mid < this->num_models());
-    return ActionId{mid.get() + params_.scalars.model_to_action};
+    return mid.get() + params_.scalars.first_model_action;
 }
 
 //---------------------------------------------------------------------------//
@@ -244,8 +244,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId aid) const
         return ModelId{};
 
     // Rely on unsigned rollover if action ID is less than the first model
-    ModelId::size_type result = aid.unchecked_get()
-                                - params_.scalars.model_to_action;
+    ModelId::size_type result = aid - params_.scalars.first_model_action;
 
     if (result >= this->num_models())
         return ModelId{};

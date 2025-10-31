@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/g4/SupportedEmStandardPhysics.hh"
 #include "celeritas/g4/SupportedOpticalPhysics.hh"
@@ -23,6 +24,8 @@ namespace celeritas
 EmPhysicsList::EmPhysicsList(Options const& options)
 {
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
+
+    ScopedStreamRedirect scoped_log(&std::cout);
 
     this->SetVerboseLevel(options.verbose);
     this->SetDefaultCutValue(

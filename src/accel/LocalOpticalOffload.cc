@@ -33,7 +33,6 @@ namespace celeritas
 LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
                                          SharedParams& params)
     : auto_flush_((*options.optical_capacity).primaries)
-    , max_step_iters_(options.max_optical_step_iters)
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local optical offload when Celeritas "
@@ -83,6 +82,7 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
     // Build the optical transporter
     optical::Transporter::Input inp;
     inp.params = params.optical_params();
+    inp.max_step_iters = options.max_optical_step_iters;
     transport_ = std::make_shared<optical::Transporter>(std::move(inp));
 
     CELER_ENSURE(*this);

@@ -1774,6 +1774,43 @@ TEST_F(GenPrismTest, variable_twisted)
 }
 
 //---------------------------------------------------------------------------//
+// HYPERBOLOID
+//---------------------------------------------------------------------------//
+using HyperboloidTest = IntersectRegionTest;
+
+TEST_F(HyperboloidTest, errors)
+{
+    // Negative middle radius
+    EXPECT_THROW(Hyperboloid(-1, 2, 1), RuntimeError);
+    // Zero middle radius
+    EXPECT_THROW(Hyperboloid(0, 2, 1), RuntimeError);
+    // Negative top radius
+    EXPECT_THROW(Hyperboloid(1, -2, 1), RuntimeError);
+    // Top radius not greater than middle radius (equal)
+    EXPECT_THROW(Hyperboloid(2, 2, 1), RuntimeError);
+    // Top radius less than middle radius
+    EXPECT_THROW(Hyperboloid(2, 1, 1), RuntimeError);
+    // Negative half-height
+    EXPECT_THROW(Hyperboloid(1, 2, -1), RuntimeError);
+    // Zero half-height
+    EXPECT_THROW(Hyperboloid(1, 2, 0), RuntimeError);
+}
+
+TEST_F(HyperboloidTest, standard)
+{
+    auto result = this->test(Hyperboloid(1, 2, 3));
+
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces
+        = {"Plane: z=-3", "Plane: z=3", "SQuadric: {1,1,-0.33333} {0,0,0} -1"};
+    ref.interior = {{-0.70710678118655, -0.70710678118655, -3},
+                    {0.70710678118655, 0.70710678118655, 3}};
+    ref.exterior = {{-2, -2, -3}, {2, 2, 3}};
+    EXPECT_REF_EQ(ref, result);
+}
+
+//---------------------------------------------------------------------------//
 // INFPLANE
 //---------------------------------------------------------------------------//
 using InfPlaneTest = IntersectRegionTest;

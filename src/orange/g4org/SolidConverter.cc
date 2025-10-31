@@ -602,12 +602,36 @@ auto SolidConverter::generictrap(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-//! Convert a hyperbola
+//! Convert a hyperboloid
 auto SolidConverter::hype(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Hype const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("hype");
+
+    auto hh = scale_(solid.GetZHalfLength());
+
+    // Calculate radii at z = +/-hh using the stereo angle
+    // For a hyperboloid: r(z) = sqrt(r0^2 + (z * tan(stereo))^2)
+    auto calc_radius_at_hh = [&](double rmin, double stereo) -> real_type {
+        double tan_stereo = std::tan(stereo);
+        double z = solid.GetZHalfLength();
+        return scale_(std::hypot(rmin, z * tan_stereo));
+    };
+
+    auto outer_mid = scale_(solid.GetOuterRadius());
+    auto outer_top
+        = calc_radius_at_hh(solid.GetOuterRadius(), solid.GetOuterStereo());
+
+    std::optional<Hyperboloid> inner;
+    if (solid.GetInnerRadius() > 0)
+    {
+        auto inner_mid = scale_(solid.GetInnerRadius());
+        auto inner_top = calc_radius_at_hh(solid.GetInnerRadius(),
+                                           solid.GetInnerStereo());
+        inner = Hyperboloid{inner_mid, inner_top, hh};
+    }
+
+    return make_solid(
+        solid, Hyperboloid{outer_mid, outer_top, hh}, std::move(inner));
 }
 
 //---------------------------------------------------------------------------//

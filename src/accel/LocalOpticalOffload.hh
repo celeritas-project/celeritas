@@ -92,9 +92,6 @@ class LocalOpticalOffload final : public LocalOffloadBase
 
     // Number of photons to buffer before offloading
     size_type auto_flush_{};
-
-    // Maximum number of stepping loop iterations for a single flush
-    size_type max_step_iters_{};
 };
 
 //---------------------------------------------------------------------------//
