@@ -63,6 +63,9 @@ class LocalOpticalOffload final : public LocalOffloadBase
 
     // Whether the class instance is initialized
     bool Initialized() const final { return static_cast<bool>(state_); }
+
+    // Number of buffered tracks
+    size_type GetBufferSize() const final { return num_photons_; }
     //!@}
 
     // Offload optical distribution data to Celeritas
@@ -75,14 +78,14 @@ class LocalOpticalOffload final : public LocalOffloadBase
     // Thread-local state data
     std::shared_ptr<optical::CoreStateBase> state_;
 
-    // Action for generating optical photons from distribution data
-    std::shared_ptr<optical::GeneratorAction> generate_;
-
     // Transport pending optical tracks
     std::shared_ptr<optical::Transporter> transport_;
 
     // Buffered distributions for offloading
     std::vector<DistributionData> buffer_;
+
+    // Action for generating optical photons from distribution data
+    std::shared_ptr<optical::GeneratorAction const> generate_;
 
     // Accumulated number of buffered photons
     size_type num_photons_{};

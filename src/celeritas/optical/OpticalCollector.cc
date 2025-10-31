@@ -9,16 +9,12 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
-#include "OpticalSizes.json.hh"
 #include "PhysicsParams.hh"
 #include "gen/CherenkovParams.hh"
 #include "gen/GeneratorAction.hh"
@@ -80,22 +76,6 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         scint_offload_ = OffloadAction<GT::scintillation>::make_and_insert(
             core, std::move(oa_inp));
     }
-
-    // Save optical diagnostic information
-    core.output_reg()->insert(std::make_shared<ActionRegistryOutput>(
-        inp.optical_params->action_reg(), "optical-actions"));
-
-    // Add optical sizes
-    OpticalSizes sizes;
-    sizes.streams = core.max_streams();
-    sizes.generators = sizes.streams * inp.buffer_capacity;
-    sizes.tracks = sizes.streams * inp.num_track_slots;
-
-    core.output_reg()->insert(
-        OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
-            OutputInterface::Category::internal,
-            "optical-sizes",
-            std::move(sizes)));
 
     // Save core params
     optical_params_ = std::move(inp.optical_params);

@@ -19,6 +19,7 @@
 #include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -52,26 +53,12 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
     auto const& capacity = *options.optical_capacity;
     buffer_.reserve(capacity.generators);
 
-    // Create optical action to generate Cherenkov or scintillation photons
-    generate_ = optical::GeneratorAction::make_and_insert(
-        *params.Params(), *params.optical_params(), capacity.generators);
-
-    // Save optical diagnostic information
-    params.Params()->output_reg()->insert(
-        std::make_shared<ActionRegistryOutput>(
-            params.optical_params()->action_reg(), "optical-actions"));
-
-    // Add optical sizes
-    OpticalSizes sizes;
-    sizes.streams = params.Params()->max_streams();
-    sizes.generators = capacity.generators;
-    sizes.tracks = capacity.tracks;
-
-    params.Params()->output_reg()->insert(
-        OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
-            OutputInterface::Category::internal,
-            "optical-sizes",
-            std::move(sizes)));
+    // Save a pointer to the generator
+    auto const& gen_reg = *params.optical_params()->gen_reg();
+    CELER_ASSERT(gen_reg.size() == 1);
+    generate_ = std::dynamic_pointer_cast<optical::GeneratorAction const>(
+        gen_reg.at(GeneratorId(0)));
+    CELER_ASSERT(generate_);
 
     // Allocate thread-local state data
     auto memspace = celeritas::device() ? MemSpace::device : MemSpace::host;
@@ -189,7 +176,7 @@ void LocalOpticalOffload::Finalize()
                    << "offloaded photons (" << num_photons_
                    << " in buffer) were not flushed");
 
-    // TODO: Output optical stats
+    //! \todo Output optical stats
 
     // Reset all data
     *this = {};

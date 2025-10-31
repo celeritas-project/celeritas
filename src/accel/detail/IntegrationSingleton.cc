@@ -110,6 +110,19 @@ LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access the thread-local offload interface.
+ */
+LocalOffloadBase& IntegrationSingleton::local_offload()
+{
+    if (this->optical_offload())
+    {
+        return IntegrationSingleton::local_optical_offload();
+    }
+    return IntegrationSingleton::local_transporter();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Assign global setup options after run manager initialization but before run.
  */
 void IntegrationSingleton::setup_options(SetupOptions&& opts)
@@ -134,7 +147,7 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
             << R"(SetOptions called with incomplete input: you must use the UI to update before /run/initialize)";
     }
 
-    CELER_ENSURE(!offloaded_.empty());
+    CELER_ENSURE(!offloaded_.empty() || this->optical_offload());
 }
 
 //---------------------------------------------------------------------------//
@@ -150,19 +163,6 @@ OffloadMode IntegrationSingleton::mode() const
     }
 
     return SharedParams::GetMode();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access the thread-local offload interface.
- */
-LocalOffloadBase* IntegrationSingleton::local_offload()
-{
-    if (this->optical_offload())
-    {
-        return &IntegrationSingleton::local_optical_offload();
-    }
-    return &IntegrationSingleton::local_transporter();
 }
 
 //---------------------------------------------------------------------------//
@@ -261,12 +261,12 @@ bool IntegrationSingleton::initialize_local_transporter()
 
     CELER_TRY_HANDLE(
         {
-            auto* lo = this->local_offload();
-            CELER_VALIDATE(!*lo,
+            auto& lt = this->local_offload();
+            CELER_VALIDATE(!lt,
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
                            << " cannot be initialized more than once");
-            lo->Initialize(options_, params_);
+            lt.Initialize(options_, params_);
         },
         ExceptionConverter("celer.init.local"));
     return true;
@@ -296,8 +296,8 @@ void IntegrationSingleton::finalize_local_transporter()
 
     CELER_TRY_HANDLE(
         {
-            auto* lo = this->local_offload();
-            CELER_VALIDATE(*lo,
+            auto& lt = this->local_offload();
+            CELER_VALIDATE(lt,
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
                            << " cannot be finalized more than once");
@@ -306,7 +306,7 @@ void IntegrationSingleton::finalize_local_transporter()
                 params_.timer()->RecordActionTime(
                     IntegrationSingleton::local_transporter().GetActionTime());
             }
-            lo->Finalize();
+            lt.Finalize();
         },
         ExceptionConverter("celer.finalize.local"));
 }

@@ -57,6 +57,9 @@ class IntegrationSingleton
 
     //// ACCESSORS ////
 
+    // Access the thread-local offload interface
+    LocalOffloadBase& local_offload();
+
     //! Assign setup options before constructing params
     void setup_options(SetupOptions&&);
 
@@ -76,9 +79,6 @@ class IntegrationSingleton
     //!@}
 
     //// HELPERS ////
-
-    // Access the thread-local offload interface
-    LocalOffloadBase* local_offload();
 
     // Construct shared params on master (or single) thread
     void initialize_shared_params();

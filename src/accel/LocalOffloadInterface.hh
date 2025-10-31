@@ -50,6 +50,9 @@ class LocalOffloadInterface
     // Whether the class instance is initialized
     virtual bool Initialized() const = 0;
 
+    // Get the number of buffered tracks
+    virtual size_type GetBufferSize() const = 0;
+
     //! Whether the class instance is initialized
     explicit operator bool() const { return this->Initialized(); }
 

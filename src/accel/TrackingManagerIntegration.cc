@@ -47,7 +47,7 @@ namespace
 void verify_tracking_managers(Span<G4PD const* const> expected,
                               Span<G4PD const* const> actual,
                               SharedParams const& expected_shared,
-                              LocalOffloadBase const* expected_local)
+                              LocalOffloadBase const& expected_local)
 {
     std::set<G4PD const*> not_offloaded{actual.begin(), actual.end()};
     std::vector<G4PD const*> missing;
@@ -88,7 +88,7 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
                     log_tm_failure(p)
                         << R"(does not have the expected shared params)";
                 }
-                if (celer_tm->local_transporter() != expected_local)
+                if (celer_tm->local_transporter() != &expected_local)
                 {
                     log_tm_failure(p)
                         << R"(does not have the expected local transporter)";

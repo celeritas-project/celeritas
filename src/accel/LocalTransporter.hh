@@ -86,6 +86,9 @@ class LocalTransporter final : public LocalOffloadBase
 
     // Whether the class instance is initialized
     bool Initialized() const final { return static_cast<bool>(step_); }
+
+    // Number of buffered tracks
+    size_type GetBufferSize() const final { return buffer_.size(); }
     //!@}
 
     // Offload this track
@@ -96,9 +99,6 @@ class LocalTransporter final : public LocalOffloadBase
 
     // Get accumulated action times
     MapStrReal GetActionTime() const;
-
-    // Number of buffered tracks
-    size_type GetBufferSize() const { return buffer_.size(); }
 
     // Access core state data for user diagnostics
     CoreStateInterface const& GetState() const;
