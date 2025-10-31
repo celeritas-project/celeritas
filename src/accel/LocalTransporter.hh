@@ -83,6 +83,9 @@ class LocalTransporter final : public LocalOffloadBase
 
     // Clear local data and return to an invalid state
     void Finalize() final;
+
+    // Whether the class instance is initialized
+    bool Initialized() const final { return static_cast<bool>(step_); }
     //!@}
 
     // Offload this track
@@ -104,7 +107,7 @@ class LocalTransporter final : public LocalOffloadBase
     CoreStateInterface& GetState();
 
     //! Whether the class instance is initialized
-    explicit operator bool() const { return static_cast<bool>(step_); }
+    explicit operator bool() const { return this->Initialized(); }
 
   private:
     //// TYPES ////

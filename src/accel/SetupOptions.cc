@@ -107,6 +107,11 @@ void ProblemSetup::operator()(inp::Problem& p) const
                               "be an error in v0.7";
     }
 
+    if (so.optical_generator)
+    {
+        p.physics.optical_generator = *so.optical_generator;
+    }
+
     p.tracking.limits = [this] {
         inp::TrackingLimits tl;
         tl.steps = so.max_steps;

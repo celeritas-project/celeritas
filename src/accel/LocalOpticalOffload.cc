@@ -19,7 +19,6 @@
 #include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
-#include "celeritas/optical/gen/GeneratorData.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -38,6 +37,11 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local optical offload when Celeritas "
                       "offloading is disabled");
+    CELER_VALIDATE(options.optical_generator
+                       && std::holds_alternative<inp::OpticalOffloadGenerator>(
+                           *options.optical_generator),
+                   << "invalid optical photon generation mechanism for local "
+                      "optical offload");
 
     // Check the thread ID and MT model
     this->validate_threading(params.Params()->max_streams());

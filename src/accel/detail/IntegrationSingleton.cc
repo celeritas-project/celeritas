@@ -80,8 +80,32 @@ IntegrationSingleton& IntegrationSingleton::instance()
  */
 LocalTransporter& IntegrationSingleton::local_transporter()
 {
-    static G4ThreadLocal LocalTransporter lt;
-    return lt;
+    auto& vo = IntegrationSingleton::variant_offload();
+    if (!vo)
+    {
+        vo = LocalTransporter();
+    }
+    CELER_VALIDATE(std::holds_alternative<LocalTransporter>(*vo),
+                   << "Cannot access LocalTransporter when "
+                      "LocalOpticalOffload is being used");
+    return std::get<LocalTransporter>(*vo);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Static THREAD-LOCAL Celeritas optical state data.
+ */
+LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
+{
+    auto& vo = IntegrationSingleton::variant_offload();
+    if (!vo)
+    {
+        vo = LocalOpticalOffload();
+    }
+    CELER_VALIDATE(std::holds_alternative<LocalOpticalOffload>(*vo),
+                   << "Cannot access LocalOpticalOffload when "
+                      "LocalTransporter is being used");
+    return std::get<LocalOpticalOffload>(*vo);
 }
 
 //---------------------------------------------------------------------------//
@@ -224,12 +248,12 @@ bool IntegrationSingleton::initialize_local_transporter()
 
     CELER_TRY_HANDLE(
         {
-            auto& lt = IntegrationSingleton::local_transporter();
-            CELER_VALIDATE(!lt,
+            auto* lo = this->local_offload();
+            CELER_VALIDATE(!*lo,
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
                            << " cannot be initialized more than once");
-            lt.Initialize(options_, params_);
+            lo->Initialize(options_, params_);
         },
         ExceptionConverter("celer.init.local"));
     return true;
@@ -259,13 +283,17 @@ void IntegrationSingleton::finalize_local_transporter()
 
     CELER_TRY_HANDLE(
         {
-            auto& lt = IntegrationSingleton::local_transporter();
-            CELER_VALIDATE(lt,
+            auto* lo = this->local_offload();
+            CELER_VALIDATE(*lo,
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
                            << " cannot be finalized more than once");
-            params_.timer()->RecordActionTime(lt.GetActionTime());
-            lt.Finalize();
+            if (!this->optical_offload())
+            {
+                params_.timer()->RecordActionTime(
+                    IntegrationSingleton::local_transporter().GetActionTime());
+            }
+            lo->Finalize();
         },
         ExceptionConverter("celer.finalize.local"));
 }
@@ -302,6 +330,40 @@ IntegrationSingleton::IntegrationSingleton()
             this->update_logger();
         },
         ExceptionConverter{"celer.init.singleton"});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Static THREAD-LOCAL Celeritas offload.
+ */
+auto IntegrationSingleton::variant_offload() -> std::optional<VariantOffload>&
+{
+    static G4ThreadLocal std::optional<VariantOffload> lo;
+    return lo;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Pointer to thread-local offload interface.
+ */
+LocalOffloadBase* IntegrationSingleton::local_offload()
+{
+    if (this->optical_offload())
+    {
+        return &IntegrationSingleton::local_optical_offload();
+    }
+    return &IntegrationSingleton::local_transporter();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the local optical offload is used.
+ */
+bool IntegrationSingleton::optical_offload() const
+{
+    return options_.optical_generator
+           && std::holds_alternative<inp::OpticalOffloadGenerator>(
+               *options_.optical_generator);
 }
 
 //---------------------------------------------------------------------------//

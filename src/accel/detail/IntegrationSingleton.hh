@@ -7,6 +7,7 @@
 #pragma once
 
 #include <memory>
+#include <variant>
 
 #include "corecel/sys/Stopwatch.hh"
 
@@ -51,6 +52,9 @@ class IntegrationSingleton
     // Static THREAD-LOCAL Celeritas state data
     static LocalTransporter& local_transporter();
 
+    // Static THREAD-LOCAL Celeritas optical state data
+    static LocalOpticalOffload& local_optical_offload();
+
     //// ACCESSORS ////
 
     //! Assign setup options before constructing params
@@ -92,6 +96,10 @@ class IntegrationSingleton
     real_type stop_timer() { return get_time_(); }
 
   private:
+    //// TYPES ////
+
+    using VariantOffload = std::variant<LocalTransporter, LocalOpticalOffload>;
+
     //// DATA ////
     SetupOptions options_;
     SetupOptions::VecG4PD offloaded_;
@@ -105,6 +113,13 @@ class IntegrationSingleton
 
     // Only this class can construct
     IntegrationSingleton();
+
+    // Thread-local Celeritas state data
+    static std::optional<VariantOffload>& variant_offload();
+    LocalOffloadBase* local_offload();
+
+    // Whether offloading optical distribution data is enabled
+    bool optical_offload() const;
 
     // Set up or update logging if the run manager is enabled
     void update_logger();

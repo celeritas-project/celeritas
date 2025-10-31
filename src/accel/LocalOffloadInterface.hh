@@ -47,6 +47,12 @@ class LocalOffloadInterface
     // Clear local data and return to an invalid state
     virtual void Finalize() = 0;
 
+    // Whether the class instance is initialized
+    virtual bool Initialized() const = 0;
+
+    //! Whether the class instance is initialized
+    explicit operator bool() const { return this->Initialized(); }
+
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes

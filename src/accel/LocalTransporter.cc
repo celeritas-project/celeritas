@@ -156,6 +156,12 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local transporter when Celeritas "
                       "offloading is disabled");
+    CELER_VALIDATE(!options.optical_generator
+                       || std::holds_alternative<inp::OpticalEmGenerator>(
+                           *options.optical_generator),
+                   << "invalid optical photon generation mechanism for local "
+                      "transporter");
+
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
     bbox_ = params.bbox();

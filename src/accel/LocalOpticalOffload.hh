@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/optical/gen/GeneratorData.hh"
 
 #include "LocalOffloadInterface.hh"
 
@@ -20,7 +21,6 @@ namespace optical
 {
 class CoreStateBase;
 class GeneratorAction;
-class GeneratorDistributionData;
 class Transporter;
 }  // namespace optical
 
@@ -60,13 +60,16 @@ class LocalOpticalOffload final : public LocalOffloadBase
 
     // Clear local data and return to an invalid state
     void Finalize() final;
+
+    // Whether the class instance is initialized
+    bool Initialized() const final { return static_cast<bool>(state_); }
     //!@}
 
     // Offload optical distribution data to Celeritas
     void Push(DistributionData const&);
 
     //! Whether the class instance is initialized
-    explicit operator bool() const { return static_cast<bool>(state_); }
+    explicit operator bool() const { return this->Initialized(); }
 
   private:
     // Thread-local state data
