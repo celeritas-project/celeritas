@@ -16,7 +16,6 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
@@ -32,8 +31,9 @@ namespace celeritas
  */
 LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
                                          SharedParams& params)
-    : auto_flush_((*options.optical_capacity).primaries)
 {
+    CELER_EXPECT(options.optical_capacity);
+
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local optical offload when Celeritas "
                       "offloading is disabled");
@@ -52,27 +52,30 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
         params.optical_params()->gen_reg()->at(GeneratorId(0)));
     CELER_ASSERT(generate_);
 
+    // Number of photons to buffer before offloading
+    auto const& capacity = *options.optical_capacity;
+    auto_flush_ = capacity.primaries;
+
     StreamId stream_id{static_cast<size_type>(get_geant_thread_id())};
-    size_type num_track_slots = (*options.optical_capacity).tracks;
 
     // Allocate thread-local state data
     auto memspace = celeritas::device() ? MemSpace::device : MemSpace::host;
     if (memspace == MemSpace::device)
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::device>>(
-            *params.optical_params(), stream_id, num_track_slots);
+            *params.optical_params(), stream_id, capacity.tracks);
     }
     else
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::host>>(
-            *params.optical_params(), stream_id, num_track_slots);
+            *params.optical_params(), stream_id, capacity.tracks);
     }
 
     // Allocate auxiliary data
     if (params.Params()->aux_reg())
     {
         state_->aux() = std::make_shared<AuxStateVec>(
-            *params.Params()->aux_reg(), memspace, stream_id, num_track_slots);
+            *params.Params()->aux_reg(), memspace, stream_id, capacity.tracks);
     }
 
     // Build the optical transporter

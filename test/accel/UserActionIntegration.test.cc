@@ -156,7 +156,8 @@ class LSOOSteppingAction final : public G4UserSteppingAction
         data.time = convert_from_geant(post_step->GetGlobalTime(), clhep_time);
         data.step_length
             = convert_from_geant(step->GetStepLength(), clhep_length);
-        data.charge = units::ElementaryCharge{post_step->GetCharge()};
+        data.charge = units::ElementaryCharge{
+            static_cast<real_type>(post_step->GetCharge())};
         data.material = OptMatId(0);
         data.points[StepPoint::pre]
             = {units::LightSpeed(pre_step->GetBeta()),
