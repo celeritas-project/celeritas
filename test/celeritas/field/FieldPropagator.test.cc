@@ -67,38 +67,29 @@ class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
   public:
     //!@{
     //! \name Type aliases
-    using CGeoTrackView = CheckedGeoTrackView<CoreGeoTestBase::GeoTrackView>;
+    using CGeoTrackView = CheckedGeoTrackView;
     //!@}
 
   protected:
     //! Get a single-thread host track view
     CGeoTrackView make_geo_track_view()
     {
-        return CGeoTrackView{CGBase::make_geo_track_view()};
+        CGeoTrackView result{
+            std::make_unique<WrappedGeoTrack>(CGBase::make_geo_track_view())};
+        // TODO: VecGeom does not yet support surface normals
+        result.check_normal(CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM);
+        return result;
     }
 
     //! Get and initialize a single-thread host track view
-    CGeoTrackView make_geo_track_view(Real3 const& pos, Real3 dir)
+    CGeoTrackView make_geo_track_view(Real3 const& pos, Real3 const& dir)
     {
-        return CGeoTrackView{CGBase::make_geo_track_view(pos, dir)};
+        auto result = this->make_geo_track_view();
+        result = this->make_initializer(pos, dir);
+        return result;
     }
 
     SPConstParticle build_particle() const final;
-
-    std::string
-    surface_name(CoreGeoTestBase::GeoTrackView const& geo) const override
-    {
-        if (!geo.is_on_boundary())
-        {
-            return "---";
-        }
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-        return to_string(
-            this->geometry()->surfaces().at(geo.impl_surface_id()));
-#else
-        return "[unknown]";
-#endif
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -751,9 +742,9 @@ TEST_F(TwoBoxesTest, electron_tangent_cross)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 2e-5)
             << "Ending direction at " << geo.dir();
 
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if (geo.check_normal())
         {
-            EXPECT_EQ("inner_box@py", this->surface_name(geo));
+            EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -807,10 +798,11 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), real_type{1.5e-5})
             << "Ending direction at " << geo.dir();
 
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if (geo.check_normal())
         {
-            EXPECT_EQ("inner_box@py", this->surface_name(geo));
+            EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
+
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
     }
@@ -835,10 +827,11 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-4)
             << "Ending direction at " << geo.dir();
 
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if (geo.check_normal())
         {
-            EXPECT_EQ("inner_box@py", this->surface_name(geo));
+            EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
+
         geo.cross_boundary();
         EXPECT_EQ(this->volume_name(geo), "world");
     }
@@ -857,9 +850,9 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         EXPECT_LT(distance(Real3({-5, 5 + dy, 0}), geo.pos()), 1e-5);
         EXPECT_LT(distance(Real3({-1, 0, 0}), geo.dir()), 1e-5);
 
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if (geo.check_normal())
         {
-            EXPECT_EQ("inner_box@mx", this->surface_name(geo));
+            EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -1246,7 +1239,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         {7.01343313647855e-01, -6.43327996599957e-01, 3.06996164784077e-01});
 
     auto calc_radius
-        = [geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
     EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
 
     // NOTE: vecgeom 2.x-solids puts this position slightly *outside* the beam
@@ -1282,9 +1275,11 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             EXPECT_SOFT_EQ(29.99999999999995, calc_radius());
             EXPECT_EQ("si_tracker", this->volume_name(geo));
             ASSERT_TRUE(geo.is_on_boundary());
-            if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+            if (geo.check_normal())
             {
-                EXPECT_EQ("guide_tube@cz", this->surface_name(geo));
+                EXPECT_NORMAL_EQUIV(
+                    (Real3{0.810979751655143, 0.58507421956993, 0}),
+                    geo.normal());
             }
             geo.cross_boundary();
         }
@@ -1298,10 +1293,14 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_SOFT_NEAR(
             double{30}, static_cast<double>(integrate.count()), 0.2);
+
+        // ASSERT_TRUE(geo.is_on_boundary());
         EXPECT_EQ(geo.is_on_boundary(), !using_surface_vg);
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if (geo.check_normal())
         {
-            EXPECT_EQ("guide_tube@cz", this->surface_name(geo));
+            EXPECT_VEC_SOFT_EQ(
+                (Real3{-0.819614018634831, -0.572916102459394, 0}),
+                geo.normal());
         }
         // EXPECT_SOFT_EQ(30, calc_radius());
         EXPECT_SOFT_NEAR(calc_radius(), 29.9999996, 4e-7);
@@ -1330,7 +1329,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
                                           -5.23221772848529443e-01});
 
     auto calc_radius
-        = [geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
 
     bool successful_reentry = false;
     {
@@ -1362,14 +1361,6 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             // system configurations, VecGeom will end up in the world volume,
             // so we don't test in all cases.
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-
-            // This message comes from the CheckedGeoTrackView
-            static char const* const expected_log_messages[] = {
-                R"(Volume did not change from 3 when crossing boundary at {123.3,-20.82,-40.83})"};
-            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
-                << scoped_log_;
-            static char const* const expected_log_levels[] = {"warning"};
-            EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
         }
         else
         {

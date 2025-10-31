@@ -280,8 +280,8 @@ TEST_F(PhysicsStepUtilsTest,
         this->particle()->host_ref(), par_state.ref(), TrackSlotId{0});
     PhysicsStepView pstep = this->step_view();
 
-    auto const model_offset
-        = this->physics()->host_ref().scalars.model_to_action;
+    auto const first_action
+        = this->physics()->host_ref().scalars.first_model_action;
 
     // Test a variety of energy ranges and multiple material IDs
     {
@@ -299,15 +299,15 @@ TEST_F(PhysicsStepUtilsTest,
 
         auto action = select_discrete_interaction(
             mat_view, particle, phys, pstep, this->rng());
-        EXPECT_EQ(action.unchecked_get(), 0 + model_offset);
+        EXPECT_EQ(action, 0 + first_action);
 
         action = select_discrete_interaction(
             mat_view, particle, phys, pstep, this->rng());
-        EXPECT_EQ(action.unchecked_get(), 2 + model_offset);
+        EXPECT_EQ(action, 2 + first_action);
 
         action = select_discrete_interaction(
             mat_view, particle, phys, pstep, this->rng());
-        EXPECT_EQ(action.unchecked_get(), 2 + model_offset);
+        EXPECT_EQ(action, 2 + first_action);
     }
 
     {
@@ -333,7 +333,7 @@ TEST_F(PhysicsStepUtilsTest,
         {
             auto action_id = select_discrete_interaction(
                 mat_view, particle, phys, pstep, this->rng());
-            models[i] = action_id.unchecked_get() - model_offset;
+            models[i] = action_id - first_action;
         }
 
         static ActionId::size_type const expected_models[]

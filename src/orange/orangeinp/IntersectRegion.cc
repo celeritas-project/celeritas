@@ -666,13 +666,10 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
     x_range_ = this->calc_range(polygon, X);
     y_range_ = this->calc_range(polygon, Y);
 
-    // Store only non-collinear points
-    Real3 const extents{
-        x_range_[1] - x_range_[0], y_range_[1] - y_range_[0], 0};
-    real_type abs_tol = ::celeritas::detail::BumpCalculator(
-        Tolerance<>::from_default())(extents);
-
-    polygon_ = detail::filter_collinear_points(polygon, abs_tol);
+    // Store only non-collinear points. Use an absolute tolerance; otherwise,
+    // for example, an arbitrarily large regular dodecagon becomes a hexagon
+    polygon_ = detail::filter_collinear_points(
+        polygon, Tolerance<>::from_default().abs);
 
     // After removing collinear points, at least 3 points must remain
     CELER_VALIDATE(polygon_.size() >= 3,
