@@ -80,15 +80,15 @@ IntegrationSingleton& IntegrationSingleton::instance()
  */
 LocalTransporter& IntegrationSingleton::local_transporter()
 {
-    auto& vo = IntegrationSingleton::variant_offload();
-    if (!vo)
+    auto& offload = IntegrationSingleton::variant_offload();
+    if (!offload)
     {
-        vo = LocalTransporter();
+        offload = LocalTransporter();
     }
-    CELER_VALIDATE(std::holds_alternative<LocalTransporter>(*vo),
+    CELER_VALIDATE(std::holds_alternative<LocalTransporter>(*offload),
                    << "Cannot access LocalTransporter when "
                       "LocalOpticalOffload is being used");
-    return std::get<LocalTransporter>(*vo);
+    return std::get<LocalTransporter>(*offload);
 }
 
 //---------------------------------------------------------------------------//
@@ -97,15 +97,15 @@ LocalTransporter& IntegrationSingleton::local_transporter()
  */
 LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
 {
-    auto& vo = IntegrationSingleton::variant_offload();
-    if (!vo)
+    auto& offload = IntegrationSingleton::variant_offload();
+    if (!offload)
     {
-        vo = LocalOpticalOffload();
+        offload = LocalOpticalOffload();
     }
-    CELER_VALIDATE(std::holds_alternative<LocalOpticalOffload>(*vo),
+    CELER_VALIDATE(std::holds_alternative<LocalOpticalOffload>(*offload),
                    << "Cannot access LocalOpticalOffload when "
                       "LocalTransporter is being used");
-    return std::get<LocalOpticalOffload>(*vo);
+    return std::get<LocalOpticalOffload>(*offload);
 }
 
 //---------------------------------------------------------------------------//

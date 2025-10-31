@@ -65,6 +65,7 @@ void LocalOffloadBase::check_event_id()
             this->InitializeEvent(event->GetEventID());
         }
     }
+    CELER_ENSURE(event_id_);
 };
 
 //---------------------------------------------------------------------------//

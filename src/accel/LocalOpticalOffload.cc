@@ -46,37 +46,33 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
     // Check the thread ID and MT model
     this->validate_threading(params.Params()->max_streams());
 
-    StreamId stream_id{static_cast<size_type>(get_geant_thread_id())};
-
-    // Currently the device buffer has a fixed capacity
-    auto const& capacity = *options.optical_capacity;
-    buffer_.reserve(capacity.generators);
-
-    // Save a pointer to the generator
-    auto const& gen_reg = *params.optical_params()->gen_reg();
-    CELER_ASSERT(gen_reg.size() == 1);
+    // Save a pointer to the generator action
+    CELER_ASSERT(params.optical_params()->gen_reg()->size() == 1);
     generate_ = std::dynamic_pointer_cast<optical::GeneratorAction const>(
-        gen_reg.at(GeneratorId(0)));
+        params.optical_params()->gen_reg()->at(GeneratorId(0)));
     CELER_ASSERT(generate_);
+
+    StreamId stream_id{static_cast<size_type>(get_geant_thread_id())};
+    size_type num_track_slots = (*options.optical_capacity).tracks;
 
     // Allocate thread-local state data
     auto memspace = celeritas::device() ? MemSpace::device : MemSpace::host;
     if (memspace == MemSpace::device)
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::device>>(
-            *params.optical_params(), stream_id, capacity.tracks);
+            *params.optical_params(), stream_id, num_track_slots);
     }
     else
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::host>>(
-            *params.optical_params(), stream_id, capacity.tracks);
+            *params.optical_params(), stream_id, num_track_slots);
     }
 
     // Allocate auxiliary data
     if (params.Params()->aux_reg())
     {
         state_->aux() = std::make_shared<AuxStateVec>(
-            *params.Params()->aux_reg(), memspace, stream_id, capacity.tracks);
+            *params.Params()->aux_reg(), memspace, stream_id, num_track_slots);
     }
 
     // Build the optical transporter
@@ -90,7 +86,7 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the event ID and reseed the Celeritas RNG at the start of an event.
+ * Initialize with options and shared data.
  */
 void LocalOpticalOffload::Initialize(SetupOptions const& options,
                                      SharedParams& params)
@@ -144,7 +140,6 @@ void LocalOpticalOffload::Flush()
     ScopedProfiling profile_this("flush");
 
     this->check_event_id();
-    CELER_ASSERT(this->event_id());
 
     if (celeritas::device())
     {

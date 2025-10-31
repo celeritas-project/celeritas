@@ -29,7 +29,7 @@ class SharedParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for offloading Geant4 data to Celeritas.
+ * Manage offloading of optical distribution data to Celeritas.
  */
 class LocalOpticalOffload final : public LocalOffloadBase
 {
@@ -52,7 +52,7 @@ class LocalOpticalOffload final : public LocalOffloadBase
     // Initialize with options and shared data
     void Initialize(SetupOptions const&, SharedParams&) final;
 
-    // TODO: Reseed the event
+    // Reseed the RNG states
     void Reseed(size_type) final;
 
     // Transport all buffered tracks to completion

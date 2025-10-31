@@ -292,7 +292,6 @@ void LocalTransporter::Flush()
     ScopedProfiling profile_this("flush");
 
     this->check_event_id();
-    CELER_ASSERT(this->event_id());
 
     if (celeritas::device())
     {
