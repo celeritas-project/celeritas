@@ -28,17 +28,17 @@
 #    endif
 #endif
 #include <thrust/device_ptr.h>
-#include <thrust/execution_policy.h>
-#include <thrust/partition.h>
-#include <thrust/remove.h>
-#include <thrust/scan.h>
+// #include <thrust/execution_policy.h>
+// #include <thrust/partition.h>
+// #include <thrust/remove.h>
+// #include <thrust/scan.h>
 
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
-#include "corecel/math/Algorithms.hh"
+// #include "corecel/math/Algorithms.hh" //Use if revert to LogicalNot()
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
@@ -82,26 +82,25 @@ size_type remove_if_alive(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"remove-if-alive"};
+    // cub functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
-
     // There should be a better way to instantiate this functor than the hard
     // coded invalid value. Some way to use the null value?
     NotEqual<TrackSlotId> select_op(-1);
 
-    // The first call just computes the number of additional bytes needed for
-    // the in-place selection. Calling with nullptr causes this instead of
-    // invoking the kernel.
-    size_t temp_storage_bytes = 0;
+    // To Do:
+    // (1) Store the result in the GPU variable that needs the result
+    // (2) Change to a void function
+
     // *** For testing with existing code for consistency
     // *** Instead, we should place the result in the appropriate GPU variable
-    // *** For testing with existing code for consistency
-
-    // *** Allocate temporary storage
-    // *** For testing with existing code for consistency
     DeviceVector<size_type> num_not_active{1, stream_id};
     // *** For testing with existing code for consistency
 
+    // Calling with nullptr causes the function to return the amount of working
+    // space needed instead of invoking the kernel.
+    size_t temp_storage_bytes = 0;
     auto data = device_pointer_cast(vacancies.data());
     DeviceSelect::If(nullptr,
                      temp_storage_bytes,
@@ -111,41 +110,25 @@ size_type remove_if_alive(
                      select_op,
                      stream);
 
-    {
-        // Allocate temporary storage
-        DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
+    // Allocate temporary storage
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
 
-        // Run selection
-        DeviceSelect::If(temp_storage.data(),
-                         temp_storage_bytes,
-                         data,
-                         num_not_active.data(),
-                         vacancies.size(),
-                         select_op,
-                         stream);
-    }
+    // Run selection
+    DeviceSelect::If(temp_storage.data(),
+                     temp_storage_bytes,
+                     data,
+                     num_not_active.data(),
+                     vacancies.size(),
+                     select_op,
+                     stream);
+
     // *** For testing with existing code for consistency
     // *** Replace with the num_vacancies counter
     auto num = ItemCopier<size_type>{stream_id}(num_not_active.data());
-
     // *** For testing with existing code for consistency
 
     CELER_DEVICE_API_CALL(PeekAtLastError());
-    // New size of the vacancy vector
     return num;
-    // ScopedProfiling profile_this{"remove-if-alive"};
-    // auto start = device_pointer_cast(vacancies.data());
-    // auto end = thrust::remove_if(thrust_execute_on(stream_id),
-    // start,
-    // start + vacancies.size(),
-    // LogicalNot{});
-    // CELER_DEVICE_API_CALL(PeekAtLastError());
-
-    // CELER_LOG(info) << "thrust found and released " << end - start << "
-    // active track slots";
-
-    // // New size of the vacancy vector
-    // return end - start;
 }
 
 //---------------------------------------------------------------------------//
@@ -164,51 +147,32 @@ size_type exclusive_scan_counts(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"exclusive-scan-counts"};
+    // cub functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
 
-    // Exclusive scan:
     // To Do:
     // (1) Store the result in the GPU variable that needs the result
-    // (2) See (1) and change to void function
+    // (2) Change to void function
 
-    // The first call just computes the number of additional bytes needed for
-    // the in-place selection. Calling with nullptr causes this instead of
-    // invoking the kernel.
-
+    // Calling with nullptr causes the function to return the amount of working
+    // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
     auto data = device_pointer_cast(counts.data());
     DeviceScan::ExclusiveSum(
         nullptr, temp_storage_bytes, data, counts.size(), stream);
 
-    {
-        // Allocate temporary storage
-        DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
+    // Allocate temporary storage
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
 
-        // Run exclusive prefix sum
-        DeviceScan::ExclusiveSum(temp_storage.data(),
-                                 temp_storage_bytes,
-                                 data,
-                                 counts.size(),
-                                 stream);
-    }
+    // Run exclusive prefix sum
+    DeviceScan::ExclusiveSum(
+        temp_storage.data(), temp_storage_bytes, data, counts.size(), stream);
 
     // Set the counter similar to the following
-    // counters.num_secondaries = ItemCopier<size_type>{stream_id}...;
+    // counters.num_secondaries = "last value in the counts object;
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return ItemCopier<size_type>{stream_id}(data.get() + counts.size() - 1);
-    // ScopedProfiling profile_this{"exclusive-scan-counts"};
-    // // Exclusive scan:
-    // auto data = device_pointer_cast(counts.data());
-    // auto stop = thrust::exclusive_scan(thrust_execute_on(stream_id),
-    // data,
-    // data + counts.size(),
-    // data,
-    // size_type(0));
-    // CELER_DEVICE_API_CALL(PeekAtLastError());
-
-    // // Copy the last element (accumulated total) back to host
-    // return ItemCopier<size_type>{stream_id}(stop.get() - 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -226,97 +190,77 @@ void partition_initializers(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"partition-initializers"};
+
+    // Understandably, celeritas doesn't like creating zero-byte vectors. Since
+    // cub needs some vectors, trying to allocate these leads to a failed
+    // assertion. So, just return. No need to partition zero tracks.
+    if (count == 0)
+        return;
+
+    // cub functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
 
-    DeviceVector<int8_t> flags{count, stream_id};
-    {
-        // cub doesn't have a partition function that allows the user to
-        // specify both an iterator for the values to use for selection and a
-        // function to operate on that iterator. (This should change in the
-        // future.) So, instead we create an iterator by using a functor to
-        // transform the stencil values into the boolean flags that determine
-        // how to partition the indices.
-        auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
-                       + counters.num_initializers - count;
-        // DeviceTransform added in cub 2.8, else fall back to thrust
+    // cub doesn't have a partition function that allows the user to specify
+    // both an iterator for the values to use for selection and a function to
+    // operate on that iterator. (This should change in the future.) So,
+    // instead we create an iterator by using a functor to transform the
+    // stencil values into boolean flags that determine how to partition
+    // the indices.
+
+    // There initializers array is large. Use stencil to point to the start of
+    // this array that is being used
+    auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
+                   + counters.num_initializers - count;
+    DeviceVector<unsigned char> flags{count, stream_id};
+    // DeviceTransform added in cub 2.8.0, else fall back to thrust
 #if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
-        CELER_LOG(info) << "Using cub transform";
-        cub::DeviceTransform::Transform(
-            stencil,
-            flags.data(),
-            count,
-            IsNeutral{params.ptr<MemSpace::native>()});
-        // DeviceTransform added in hipcub 4.1, else fall back to thrust
+    DeviceTransform::Transform(
+        stencil, flags.data(), count, IsNeutral{params.ptr<MemSpace::native>()});
+    // DeviceTransform added in hipcub 4.1.0, else fall back to thrust
 #elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
-        cub::DeviceTransform::Transform(
-            stencil,
-            flags.data(),
-            count,
-            IsNeutral{params.ptr<MemSpace::native>()});
+    DeviceTransform::Transform(
+        stencil, flags.data(), count, IsNeutral{params.ptr<MemSpace::native>()});
 #else
-        CELER_LOG(info) << "Using thrust transform";
-        thrust::transform(thrust_execute_on(stream_id),
-                          stencil,
-                          stencil + count,
-                          flags.data(),
-                          IsNeutral{params.ptr<MemSpace::native>()});
+    thrust::transform(thrust_execute_on(stream_id),
+                      stencil,
+                      stencil + count,
+                      flags.data(),
+                      IsNeutral{params.ptr<MemSpace::native>()});
 #endif
-    }
+    // cub doesn't support in-place partitioning, so create a new variable,
+    // initial, of the same type and copy the current data in the init.indices
+    // object. Use initial for the input data and overwrite init.indices with
+    // the partitioned data, as expected from an in-place algorithm.
+    StateCollection<size_type, Ownership::value, MemSpace::device> initial;
+    initial = init.indices;
+    // Calling with nullptr causes the function to return the amount of working
+    // space needed instead of invoking the kernel.
+    size_t temp_storage_bytes = 0;
+    auto start = device_pointer_cast(initial.data());
+    auto data = device_pointer_cast(init.indices.data());
+    // Allocate storage for the number of neutral tracks (unused by celeritas)
+    DeviceVector<size_type> num_neutral{1, stream_id};
+    DevicePartition::Flagged(nullptr,
+                             temp_storage_bytes,
+                             start,
+                             flags.data(),
+                             data,
+                             num_neutral.data(),
+                             count,
+                             stream);
 
-    {
-        size_t temp_storage_bytes = 0;
-        // Use initial for the current data (input) and place the partitioned
-        // data (output) back in the init.indices structure
-        // Create a device vector of the same type
-        StateCollection<size_type, Ownership::value, MemSpace::device> initial;
-        initial = init.indices;
-        // Partition the indices based on the track initializer charge
-        auto start = device_pointer_cast(initial.data());
-        auto data = device_pointer_cast(init.indices.data());
-        // Allocate storage for the number of neutral tracks (unused)
-        DeviceVector<size_type> num_neutral{1, stream_id};
-        DevicePartition::Flagged(nullptr,
-                                 temp_storage_bytes,
-                                 start,
-                                 flags.data(),
-                                 data,
-                                 num_neutral.data(),
-                                 count,
-                                 stream);
-
-        // Allocate temporary storage
-        DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
-
-        // Run partition
-        DevicePartition::Flagged(temp_storage.data(),
-                                 temp_storage_bytes,
-                                 start,
-                                 flags.data(),
-                                 data,
-                                 num_neutral.data(),
-                                 count,
-                                 stream);
-
-        auto value = ItemCopier<size_type>{stream_id}(num_neutral.data());
-        CELER_LOG(info) << "Found " << value << " inactive/neutral tracks";
-        for (auto i = 0; i < count; ++i)
-        {
-            value = ItemCopier<size_type>{stream_id}(data.get() + i);
-            CELER_LOG(info) << "Entry " << i << " has index " << value;
-        }
-    }
-
+    // Allocate temporary storage
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     // Partition the indices based on the track initializer charge
-    // auto start = device_pointer_cast(init.indices.data());
-    // auto end = start + count;
-    // auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
-    // + counters.num_initializers - count;
-    // thrust::stable_partition(
-    // thrust_execute_on(stream_id),
-    // start,
-    // end,
-    // IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
+    DevicePartition::Flagged(temp_storage.data(),
+                             temp_storage_bytes,
+                             start,
+                             flags.data(),
+                             data,
+                             num_neutral.data(),
+                             count,
+                             stream);
     CELER_DEVICE_API_CALL(PeekAtLastError());
 }
 
