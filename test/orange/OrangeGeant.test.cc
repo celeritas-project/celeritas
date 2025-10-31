@@ -11,6 +11,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
+#include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/detail/LengthUnits.hh"
@@ -241,6 +242,16 @@ class TwoBoxesTest
 TEST_F(TwoBoxesTest, accessors)
 {
     this->impl().test_accessors();
+}
+
+TEST_F(TwoBoxesTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesTest, tangent)
+{
+    this->impl().test_tangent();
 }
 
 TEST_F(TwoBoxesTest, track)

@@ -2158,23 +2158,6 @@ void TwoBoxesGeoTest::test_accessors() const
     EXPECT_VEC_SOFT_EQ(expected_bbox.upper(), to_cm(bbox.upper()));
 }
 
-//---------------------------------------------------------------------------//
-void TwoBoxesGeoTest::test_trace() const
-{
-    {
-        auto result = test_->track({0, 0.25, -25}, {0, 0., 1});
-        GenericGeoTrackingResult ref;
-        ref.volumes = {"world", "inner", "world"};
-        ref.volume_instances = {"world_PV", "inner_PV", "world_PV"};
-        ref.distances = {20, 10, 495};
-        ref.halfway_safeties = {10, 4.75, 247.5};
-        ref.bumps = {};
-        auto tol = test_->tracking_tol();
-        EXPECT_REF_NEAR(ref, result, tol);
-    }
-}
-
-//---------------------------------------------------------------------------//
 void TwoBoxesGeoTest::test_detailed_tracking() const
 {
     bool const check_normal = test_->supports_surface_normal();
@@ -2255,6 +2238,180 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
+}
+
+/*!
+ * Cross into a new volume and then reflect into the old.
+ *
+ * This is how optical physics is performed: we enter the new volume to
+ * determine its characteristics, then apply the optical surface crossing,
+ * which might reflect back into the original.
+ */
+void TwoBoxesGeoTest::test_reentrant() const
+{
+    bool const check_normal = test_->supports_surface_normal();
+    constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+    // Starting left of edge (-), headed down right (+,-)
+    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Check for surfaces up to a distance of 4 units away
+    auto next = geo.find_next_step(from_cm(4.0));
+    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    // Move to boundary (-; +,-)
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Cross into the new volume, needed for optical physics (+; +,-)
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+    EXPECT_EQ("world", test_->volume_name(geo));
+
+    // Reflect normal to surface  (+; -,-)
+    geo.set_dir(Real3{-dx, -dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+    EXPECT_EQ("world", test_->volume_name(geo));
+
+    // Cross back into previous volume (-; -,-)
+    if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
+    {
+        // GeantGTV has an extra check because we know it can't do this :(
+        EXPECT_THROW(geo.cross_boundary(), DebugError);
+        GTEST_SKIP() << "Consecutive boundary crossing fails for G4";
+    }
+    else
+    {
+        // Typical case
+        ASSERT_NO_THROW(geo.cross_boundary());
+    }
+    EXPECT_TRUE(geo.is_on_boundary());
+
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+    if (test_->geometry_type() == "ORANGE")
+    {
+        // FIXME: reentrant consistently fails!
+        EXPECT_EQ("world", test_->volume_name(geo));
+        GTEST_SKIP() << "Unexpected failure to cross volume";
+    }
+
+    if (test_->geometry_type() == "VecGeom")
+    {
+        // VecGeom 1.2.10 seems to fail reentry *sometimes*: on the CI builds,
+        // spack passes but docker fails (relwithdebinfo and debug)
+        if ("world" == test_->volume_name(geo))
+        {
+            GTEST_SKIP() << "Unexpected failure to cross volume";
+        }
+    }
+
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Find the next boundary and make sure that nearer distances aren't
+    // accepted
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(10 * dx, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_TRUE(geo.is_on_boundary());
+}
+
+/*!
+ * Instead of crossing into a new volume, reflect without exiting.
+ *
+ * This simulates a looping track almost tangent to a geometry boundary.
+ * The end-of-step direction is changed to account for the momentum vector's
+ * end-of-step state, and the boundary isn't actually exited when we call cross
+ * boundary.
+ */
+void TwoBoxesGeoTest::test_tangent() const
+{
+    constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+    // Starting left of edge (-), headed down right (+,-)
+    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Check for surfaces up to a distance of 4 units away
+    auto next = geo.find_next_step(from_cm(4.0));
+    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    // Move to boundary (-; +,-)
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Reflect normal to surface (-; -,-)
+    geo.set_dir(Real3{-dx, -dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Crossing will *not* change volumes (-; -,-)
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    if (test_->geometry_type() == "Geant4")
+    {
+        // FIXME: Geant4 changes volumes :(
+        EXPECT_EQ("world", test_->volume_name(geo));
+        GTEST_SKIP() << "Unexpected boundary crossing";
+    }
+    else if (test_->geometry_type() == "VecGeom")
+    {
+        // VecGeom 1.2.10 seems to unexpectedly exit as well. Seems to happen
+        // along the same lines as test_reentrant.
+        if ("world" == test_->volume_name(geo))
+        {
+            GTEST_SKIP() << "Unexpected boundary crossing";
+        }
+    }
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Find the next boundary and make sure that nearer distances aren't
+    // accepted
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_TRUE(geo.is_on_boundary());
+}
+
+//---------------------------------------------------------------------------//
+void TwoBoxesGeoTest::test_trace() const
+{
+    {
+        auto result = test_->track({0, 0.25, -25}, {0, 0., 1});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"world", "inner", "world"};
+        ref.volume_instances = {"world_PV", "inner_PV", "world_PV"};
+        ref.distances = {20, 10, 495};
+        ref.halfway_safeties = {10, 4.75, 247.5};
+        ref.bumps = {};
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
 }
 
 //---------------------------------------------------------------------------//

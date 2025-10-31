@@ -30,6 +30,7 @@ a CSG intersection of half-spaces. The IntersectRegion interface
 helps construct these objects.
 
 .. doxygenclass:: celeritas::orangeinp::IntersectRegionInterface
+
 .. doxygenclass:: celeritas::orangeinp::Box
 .. doxygenclass:: celeritas::orangeinp::Cone
 .. doxygenclass:: celeritas::orangeinp::CutCylinder
@@ -39,6 +40,7 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::EllipticalCone
 .. doxygenclass:: celeritas::orangeinp::ExtrudedPolygon
 .. doxygenclass:: celeritas::orangeinp::GenPrism
+.. doxygenclass:: celeritas::orangeinp::Hyperboloid
 .. doxygenclass:: celeritas::orangeinp::InfPlane
 .. doxygenclass:: celeritas::orangeinp::InfAziWedge
 .. doxygenclass:: celeritas::orangeinp::InfPolarWedge

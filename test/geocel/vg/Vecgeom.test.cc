@@ -434,6 +434,21 @@ TEST_F(TwoBoxesVgdmlTest, detailed_track)
     this->impl().test_detailed_tracking();
 }
 
+TEST_F(TwoBoxesVgdmlTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesVgdmlTest, tangent)
+{
+    this->impl().test_tangent();
+}
+
+TEST_F(TwoBoxesVgdmlTest, trace)
+{
+    this->impl().test_trace();
+}
+
 //---------------------------------------------------------------------------//
 // G4VG TESTS
 //---------------------------------------------------------------------------//

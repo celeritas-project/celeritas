@@ -925,6 +925,11 @@ TEST_F(TwoBoxesTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(TwoBoxesTest, detailed_tracking)
+{
+    this->impl().test_detailed_tracking();
+}
+
 TEST_F(TwoBoxesTest, model)
 {
     auto result = this->summarize_model();
@@ -938,9 +943,14 @@ TEST_F(TwoBoxesTest, model)
     EXPECT_REF_EQ(ref, result);
 }
 
-TEST_F(TwoBoxesTest, track)
+TEST_F(TwoBoxesTest, reentrant)
 {
-    this->impl().test_detailed_tracking();
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesTest, tangent)
+{
+    this->impl().test_tangent();
 }
 
 TEST_F(TwoBoxesTest, trace)

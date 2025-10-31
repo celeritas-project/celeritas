@@ -224,6 +224,172 @@ TEST_F(StackedExtrudedPolygonTest, entirely_outside)
 
 //---------------------------------------------------------------------------//
 /*
+ * Test a convex polygon extruded along a polyline with zero-length z segments
+ * and different scaling to create a shape with fully horizontal surfaces.
+ * \verbatim
+    __________
+   |__________|
+     |______|
+       |__|
+ * \endverbatim
+ */
+TEST_F(StackedExtrudedPolygonTest, zero_length_z_segs)
+{
+    VecReal2 polygon{{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
+
+    VecReal3 polyline{
+        {0, 0, 0}, {0, 0, 1}, {0, 0, 1}, {0, 0, 2}, {0, 0, 2}, {0, 0, 3}};
+    VecReal scaling{1, 1, 2, 2, 3, 3};
+
+    this->build_volume(StackedExtrudedPolygon{
+        "pc", std::move(polygon), std::move(polyline), std::move(scaling)});
+
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=0",
+        "Plane: z=1",
+        "Plane: x=1",
+        "Plane: y=1",
+        "Plane: x=-1",
+        "Plane: y=-1",
+        "Plane: z=2",
+        "Plane: x=2",
+        "Plane: y=2",
+        "Plane: x=-2",
+        "Plane: y=-2",
+        "Plane: z=3",
+        "Plane: x=3",
+        "Plane: y=3",
+        "Plane: x=-3",
+        "Plane: y=-3",
+    };
+
+    static char const* const expected_volume_strings[] = {
+        R"(any(all(+0, -1, -2, -3, +4, +5), all(+1, -6, -7, -8, +9, +10), all(+6, -11, -12, -13, +14, +15)))"};
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "pc@0.0.0.mz",
+        "pc@0.0.0.pz,pc@0.0.2.mz",
+        "",
+        "pc@0.0.0.p0",
+        "",
+        "pc@0.0.0.p1",
+        "",
+        "pc@0.0.0.p2",
+        "pc@0.0.0.p3",
+        "pc@0.0.0",
+        "pc@0.0.2.pz,pc@0.0.4.mz",
+        "",
+        "pc@0.0.2.p0",
+        "",
+        "pc@0.0.2.p1",
+        "",
+        "pc@0.0.2.p2",
+        "pc@0.0.2.p3",
+        "pc@0.0.2",
+        "pc@0.0.4.pz",
+        "",
+        "pc@0.0.4.p0",
+        "",
+        "pc@0.0.4.p1",
+        "",
+        "pc@0.0.4.p2",
+        "pc@0.0.4.p3",
+        "pc@0.0.4",
+        "pc@0.0",
+    };
+
+    static char const* const expected_bound_strings[]
+        = {"11: {{{-1,-1,0}, {1,1,1}}, {{-1,-1,0}, {1,1,1}}}",
+           "20: {{{-2,-2,1}, {2,2,2}}, {{-2,-2,1}, {2,2,2}}}",
+           "29: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,2}, {3,3,3}}}",
+           "30: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,0}, {3,3,3}}}"};
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Same case as above, but now change the scaling to make a discontinuous shape
+ * \verbatim
+    __________
+   |__________|
+        __
+       |__|
+ * \endverbatim
+ */
+TEST_F(StackedExtrudedPolygonTest, discontinuous)
+{
+    VecReal2 polygon{{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
+
+    VecReal3 polyline{
+        {0, 0, 0}, {0, 0, 1}, {0, 0, 1}, {0, 0, 2}, {0, 0, 2}, {0, 0, 3}};
+    VecReal scaling{1, 1, 0, 0, 3, 3};
+
+    this->build_volume(StackedExtrudedPolygon{
+        "pc", std::move(polygon), std::move(polyline), std::move(scaling)});
+
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=0",
+        "Plane: z=1",
+        "Plane: x=1",
+        "Plane: y=1",
+        "Plane: x=-1",
+        "Plane: y=-1",
+        "Plane: z=2",
+        "Plane: z=3",
+        "Plane: x=3",
+        "Plane: y=3",
+        "Plane: x=-3",
+        "Plane: y=-3",
+    };
+
+    static char const* const expected_volume_strings[]
+        = {"any(all(+0, -1, -2, -3, +4, +5), all(+6, -7, -8, -9, +10, +11))"};
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "pc@0.0.0.mz",
+        "pc@0.0.0.pz",
+        "",
+        "pc@0.0.0.p0",
+        "",
+        "pc@0.0.0.p1",
+        "",
+        "pc@0.0.0.p2",
+        "pc@0.0.0.p3",
+        "pc@0.0.0",
+        "pc@0.0.4.mz",
+        "pc@0.0.4.pz",
+        "",
+        "pc@0.0.4.p0",
+        "",
+        "pc@0.0.4.p1",
+        "",
+        "pc@0.0.4.p2",
+        "pc@0.0.4.p3",
+        "pc@0.0.4",
+        "pc@0.0",
+    };
+
+    static char const* const expected_bound_strings[]
+        = {"11: {{{-1,-1,0}, {1,1,1}}, {{-1,-1,0}, {1,1,1}}}",
+           "21: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,2}, {3,3,3}}}",
+           "22: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,0}, {3,3,3}}}"};
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+}
+
+//---------------------------------------------------------------------------//
+/*
  * Test a polygon with two "levels" of concavity, extruded along a single
  * segment.
  *

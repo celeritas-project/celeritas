@@ -210,7 +210,6 @@ jobs:
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
           restore-keys: |
             ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-            ccache-${{env.CMAKE_PRESET}}
       - name: Build with clang-tidy
         id: tidy
         if: ${{matrix.special == 'tidy'}}
