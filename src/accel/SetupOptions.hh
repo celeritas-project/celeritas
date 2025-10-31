@@ -121,6 +121,10 @@ struct SDSetupOptions
  * The interface for the "along-step factory" (input parameters and output) is
  * described in \c AlongStepFactoryInterface .
  *
+ * Note that the Celeritas core capacity values (\c max_num_tracks, \c
+ * initializer_capacity and \c auto_flush) are per \em stream while the \c
+ * optical_capacity values are per \em process.
+ *
  * \note This class will be replaced in v1.0
  *       by \c celeritas::inp::FrameworkInput .
  */
@@ -219,7 +223,7 @@ struct SetupOptions
     //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
     //! Only offload a subset of particles
-    VecG4PD offload_particles;
+    std::optional<VecG4PD> offload_particles;
     //! Physics grid interpolation options
     inp::Interpolation interpolation{};
     //!@}

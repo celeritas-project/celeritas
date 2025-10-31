@@ -77,6 +77,9 @@ class IntegrationSingleton
 
     //// HELPERS ////
 
+    // Access the thread-local offload interface
+    LocalOffloadBase* local_offload();
+
     // Construct shared params on master (or single) thread
     void initialize_shared_params();
 
@@ -114,9 +117,8 @@ class IntegrationSingleton
     // Only this class can construct
     IntegrationSingleton();
 
-    // Thread-local Celeritas state data
+    // Static thread-local Celeritas state data
     static std::optional<VariantOffload>& variant_offload();
-    LocalOffloadBase* local_offload();
 
     // Whether offloading optical distribution data is enabled
     bool optical_offload() const;

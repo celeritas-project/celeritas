@@ -262,8 +262,12 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     using GIDS = GeantImportDataSelection;
 
     auto includes_muon = [&so]() -> bool {
-        return std::any_of(so.offload_particles.begin(),
-                           so.offload_particles.end(),
+        if (!so.offload_particles)
+        {
+            return false;
+        }
+        return std::any_of(so.offload_particles->begin(),
+                           so.offload_particles->end(),
                            [](G4ParticleDefinition* pd) {
                                return (std::abs(pd->GetPDGEncoding())
                                        == pdg::mu_minus().get());

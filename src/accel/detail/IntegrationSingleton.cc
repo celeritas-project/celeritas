@@ -34,9 +34,9 @@ namespace
  * default list accordingly.
  */
 SetupOptions::VecG4PD
-validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
+validate_and_return_offloaded(std::optional<SetupOptions::VecG4PD> const& user)
 {
-    if (user.empty())
+    if (!user)
     {
         // Celeritas will use default hardcoded list; nothing to do
         return SharedParams::default_offload_particles();
@@ -52,14 +52,14 @@ validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
             });
     };
 
-    for (auto const& pd : user)
+    for (auto const& pd : *user)
     {
         CELER_ASSERT(pd);
         CELER_VALIDATE(find(pd),
                        << "Particle " << StreamablePD{pd}
                        << " is not available in Celeritas");
     }
-    return user;
+    return *user;
 }
 //---------------------------------------------------------------------------//
 };  // namespace
@@ -150,6 +150,19 @@ OffloadMode IntegrationSingleton::mode() const
     }
 
     return SharedParams::GetMode();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the thread-local offload interface.
+ */
+LocalOffloadBase* IntegrationSingleton::local_offload()
+{
+    if (this->optical_offload())
+    {
+        return &IntegrationSingleton::local_optical_offload();
+    }
+    return &IntegrationSingleton::local_transporter();
 }
 
 //---------------------------------------------------------------------------//
@@ -340,19 +353,6 @@ auto IntegrationSingleton::variant_offload() -> std::optional<VariantOffload>&
 {
     static G4ThreadLocal std::optional<VariantOffload> lo;
     return lo;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Pointer to thread-local offload interface.
- */
-LocalOffloadBase* IntegrationSingleton::local_offload()
-{
-    if (this->optical_offload())
-    {
-        return &IntegrationSingleton::local_optical_offload();
-    }
-    return &IntegrationSingleton::local_transporter();
 }
 
 //---------------------------------------------------------------------------//
