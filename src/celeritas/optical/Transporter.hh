@@ -25,6 +25,7 @@ namespace optical
 class CoreParams;
 template<MemSpace M>
 class CoreState;
+class CoreStateBase;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -50,11 +51,8 @@ class Transporter
     // Construct with problem parameters and setup options
     explicit Transporter(Input&&);
 
-    // Transport all pending optical tracks on the host
-    void operator()(CoreStateHost&) const;
-
-    // Transport all pending optical tracks on the device
-    void operator()(CoreStateDevice&) const;
+    // Transport all pending optical tracks
+    void operator()(CoreStateBase&) const;
 
   private:
     //// TYPES ////

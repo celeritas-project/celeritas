@@ -14,6 +14,8 @@
 #include <G4VPhysicalVolume.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
@@ -94,10 +96,7 @@ class GeantGeoTrackView
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE bool failed() const { return false; }
     // Get the normal vector of the current surface
-    inline CELER_FUNCTION Real3 normal() const;
-
-    // Get the Geant4 navigation state
-    inline G4NavigationHistory const* nav_history() const;
+    inline Real3 normal() const;
 
     //// OPERATIONS ////
 
@@ -111,7 +110,7 @@ class GeantGeoTrackView
     inline real_type find_safety();
 
     // Find the safety at the current position up to a maximum step distance
-    inline CELER_FUNCTION real_type find_safety(real_type max_step);
+    inline real_type find_safety(real_type max_step);
 
     // Move to the boundary in preparation for crossing it
     inline void move_to_boundary();
@@ -127,6 +126,11 @@ class GeantGeoTrackView
 
     // Change direction
     inline void set_dir(Real3 const& newdir);
+
+    //// IMPLEMENTATION ////
+
+    // Get the Geant4 navigation state
+    inline G4NavigationHistory const* nav_history() const;
 
   private:
     //// TYPES ////
@@ -210,7 +214,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     if (init.parent)
     {
         // Initialize from direction and copy of parent state
-        *this = {init.parent, init.dir};
+        *this = DetailedInitializer{init.parent, init.dir};
         return *this;
     }
 
@@ -365,7 +369,7 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
  *
  * This vector is in the global coordinate system.
  */
-CELER_FUNCTION auto GeantGeoTrackView::normal() const -> Real3
+auto GeantGeoTrackView::normal() const -> Real3
 {
     CELER_EXPECT(this->is_on_boundary());
 
@@ -377,17 +381,6 @@ CELER_FUNCTION auto GeantGeoTrackView::normal() const -> Real3
     Real3 result{norm[0], norm[1], norm[2]};
     CELER_ENSURE(is_soft_unit_vector(result));
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the navigation state.
- */
-G4NavigationHistory const* GeantGeoTrackView::nav_history() const
-{
-    auto* touch = touch_handle_();
-    CELER_ASSERT(touch);
-    return touch->GetHistory();
 }
 
 //---------------------------------------------------------------------------//
@@ -577,6 +570,17 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
     dir_ = newdir;
     g4dir_ = convert_to_geant(newdir, 1);
     next_step_ = 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the navigation state.
+ */
+G4NavigationHistory const* GeantGeoTrackView::nav_history() const
+{
+    auto* touch = touch_handle_();
+    CELER_ASSERT(touch);
+    return touch->GetHistory();
 }
 
 //---------------------------------------------------------------------------//

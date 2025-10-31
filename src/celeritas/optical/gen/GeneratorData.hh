@@ -110,10 +110,13 @@ struct GeneratorStateData
 
     //// METHODS ////
 
+    //! State size
+    CELER_FUNCTION size_type size() const { return distributions.size(); }
+
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !distributions.empty() && !offsets.empty();
+        return !distributions.empty() && distributions.size() == offsets.size();
     }
 
     //! Assign from another set of data
@@ -151,6 +154,14 @@ template<MemSpace M>
 struct GeneratorState : public GeneratorStateBase
 {
     CollectionStateStore<GeneratorStateData, M> store;
+
+    //! Access valid range of distributions
+    auto distributions()
+    {
+        return this->store.ref()
+            .distributions[ItemRange<GeneratorDistributionData>(
+                ItemId<GeneratorDistributionData>(this->counters.buffer_size))];
+    }
 
     //! True if states have been allocated
     explicit operator bool() const { return static_cast<bool>(store); }

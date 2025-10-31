@@ -1,0 +1,243 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/optical/Generator.test.cc
+//---------------------------------------------------------------------------//
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "corecel/Types.hh"
+#include "corecel/data/AuxStateVec.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/PoissonDistribution.hh"
+#include "corecel/sys/ActionRegistry.hh"
+#include "geocel/UnitUtils.hh"
+#include "celeritas/LArSphereBase.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/ModelImporter.hh"
+#include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/Transporter.hh"
+#include "celeritas/optical/gen/GeneratorAction.hh"
+#include "celeritas/optical/gen/GeneratorData.hh"
+#include "celeritas/optical/gen/OffloadData.hh"
+#include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
+
+#include "celeritas_test.hh"
+
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+// TEST FIXTURES
+//---------------------------------------------------------------------------//
+
+class LArSphereGeneratorTest : public LArSphereBase
+{
+  public:
+    using VecDistribution = std::vector<optical::GeneratorDistributionData>;
+
+  public:
+    void SetUp() override {}
+
+    SPConstAction build_along_step() override
+    {
+        return LArSphereBase::build_along_step();
+    }
+
+    //! Construct the optical and aux state data
+    template<MemSpace M>
+    void build_state(size_type size)
+    {
+        if constexpr (M == MemSpace::device)
+        {
+            device().create_streams(1);
+        }
+
+        state_ = std::make_shared<optical::CoreState<M>>(
+            *this->optical_params(), StreamId{0}, size);
+
+        auto* state = dynamic_cast<optical::CoreState<M>*>(&*state_);
+        CELER_ASSERT(state);
+        state->aux() = std::make_shared<AuxStateVec>(
+            *this->core()->aux_reg(), M, StreamId{0}, size);
+    }
+
+    //! Construct the optical transporter
+    void build_transporter()
+    {
+        optical::Transporter::Input inp;
+        inp.params = this->optical_params();
+        transport_ = std::make_shared<optical::Transporter>(std::move(inp));
+    }
+
+    //! Buffer host distribution data for Cherenkov and scintillation
+    VecDistribution make_distributions(size_type count, size_type& num_photons)
+    {
+        using GT = GeneratorType;
+
+        std::vector<GT> types{GT::cherenkov, GT::scintillation};
+        std::mt19937 rng;
+
+        PoissonDistribution<real_type> sample_num_photons(100);
+
+        optical::GeneratorDistributionData data;
+        data.step_length = from_cm(0.2);
+        data.charge = units::ElementaryCharge{-1};
+        data.material = OptMatId(0);
+        data.points[StepPoint::pre]
+            = {units::LightSpeed(0.7), from_cm(Real3{0, 0, 0})};
+        data.points[StepPoint::post]
+            = {units::LightSpeed(0.6), from_cm(Real3{0, 0, 0.2})};
+
+        VecDistribution result(count, data);
+        for (auto i : range(count))
+        {
+            result[i].type = types[i % types.size()];
+            result[i].num_photons = sample_num_photons(rng);
+            num_photons += result[i].num_photons;
+            CELER_ASSERT(result[i]);
+        }
+        return result;
+    }
+
+    //! Get optical counters
+    template<MemSpace M>
+    OpticalAccumStats counters(optical::GeneratorBase const& gen) const
+    {
+        auto* state = dynamic_cast<optical::CoreState<M>*>(&*state_);
+        CELER_ASSERT(state);
+        OpticalAccumStats result = state->accum();
+        result.generators.push_back(gen.counters(*state->aux()).accum);
+        return result;
+    }
+
+  protected:
+    std::shared_ptr<optical::CoreStateBase> state_;
+    std::shared_ptr<optical::Transporter> transport_;
+};
+
+//---------------------------------------------------------------------------//
+// TESTS
+//---------------------------------------------------------------------------//
+
+TEST_F(LArSphereGeneratorTest, primary_generator)
+{
+    // Create primary generator action
+    inp::OpticalPrimaryGenerator inp;
+    inp.num_events = 1;
+    inp.primaries_per_event = 65536;
+    inp.energy.energy = units::MevEnergy{1e-5};
+    inp.shape = inp::PointDistribution{Real3{0, 0, 0}};
+    auto generate = optical::PrimaryGeneratorAction::make_and_insert(
+        *this->core(), *this->optical_params(), std::move(inp));
+
+    this->build_state<MemSpace::host>(4096);
+    this->build_transporter();
+
+    // Queue primaries for one event
+    generate->insert(*state_);
+
+    // Launch the optical loop
+    (*transport_)(*state_);
+
+    // Get the accumulated counters
+    auto result = this->counters<MemSpace::host>(*generate);
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(68916, result.steps);
+        EXPECT_EQ(18, result.step_iters);
+    }
+    EXPECT_EQ(1, result.flushes);
+    ASSERT_EQ(1, result.generators.size());
+
+    auto const& gen = result.generators.front();
+    EXPECT_EQ(0, gen.buffer_size);
+    EXPECT_EQ(0, gen.num_pending);
+    EXPECT_EQ(65536, gen.num_generated);
+}
+
+TEST_F(LArSphereGeneratorTest, generator)
+{
+    // Create optical action to generate Cherenkov and scintillation photons
+    size_type capacity = 512;
+    auto generate = optical::GeneratorAction::make_and_insert(
+        *this->core(), *this->optical_params(), capacity);
+
+    this->build_state<MemSpace::host>(4096);
+    this->build_transporter();
+
+    // Create host distributions and copy to generator
+    size_type num_photons{0};
+    auto host_data = this->make_distributions(capacity, num_photons);
+    state_->counters().num_pending = num_photons;
+    generate->insert(*state_, make_span(host_data));
+
+    // Launch the optical loop
+    (*transport_)(*state_);
+
+    // Get the accumulated counters
+    auto result = this->counters<MemSpace::host>(*generate);
+
+    EXPECT_EQ(1, result.flushes);
+    ASSERT_EQ(1, result.generators.size());
+
+    auto const& gen = result.generators.front();
+    EXPECT_EQ(512, gen.buffer_size);
+    EXPECT_EQ(0, gen.num_pending);
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(51226, gen.num_generated);
+        EXPECT_EQ(54319, result.steps);
+        EXPECT_EQ(15, result.step_iters);
+    }
+}
+
+TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
+{
+    // Create optical action to generate Cherenkov and scintillation photons
+    size_type capacity = 4096;
+    auto generate = optical::GeneratorAction::make_and_insert(
+        *this->core(), *this->optical_params(), capacity);
+
+    this->build_state<MemSpace::device>(16384);
+    this->build_transporter();
+
+    // Create host distributions and copy to generator
+    size_type num_photons{0};
+    auto host_data = this->make_distributions(capacity, num_photons);
+    state_->counters().num_pending = num_photons;
+    generate->insert(*state_, make_span(host_data));
+
+    // Launch the optical loop
+    (*transport_)(*state_);
+
+    // Get the accumulated counters
+    auto result = this->counters<MemSpace::device>(*generate);
+
+    EXPECT_EQ(1, result.flushes);
+    ASSERT_EQ(1, result.generators.size());
+
+    auto const& gen = result.generators.front();
+    EXPECT_EQ(4096, gen.buffer_size);
+    EXPECT_EQ(0, gen.num_pending);
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(409643, gen.num_generated);
+        EXPECT_EQ(434165, result.steps);
+        EXPECT_EQ(28, result.step_iters);
+    }
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace test
+}  // namespace celeritas

@@ -312,7 +312,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     using MapProcessModel = std::map<ProcessId, std::vector<ModelRange>>;
 
     // Offset from the index in the list of models to a model's ActionId
-    data->scalars.model_to_action = this->model(ModelId{0})->action_id().get();
+    data->scalars.first_model_action = this->model(ModelId{0})->action_id();
 
     // Note: use map to keep ProcessId sorted
     std::vector<MapProcessModel> particle_models(particles.size());

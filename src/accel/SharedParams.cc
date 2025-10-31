@@ -65,6 +65,7 @@
 #include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -325,6 +326,7 @@ SharedParams::SharedParams(SetupOptions const& options)
     auto framework_inp = to_inp(options);
     auto loaded = setup::framework_input(framework_inp);
     params_ = std::move(loaded.problem.core_params);
+    optical_params_ = std::move(loaded.problem.optical_params);
     optical_ = std::move(loaded.problem.optical_collector);
     output_filename_ = loaded.problem.output_file;
     CELER_ASSERT(params_);

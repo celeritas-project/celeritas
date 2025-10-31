@@ -43,7 +43,7 @@ class GeoParamsInterface
     //!@}
 
   public:
-    // Anchor virtual destructor
+    // Anchor virtual destructor in GeoInterface.cc
     virtual ~GeoParamsInterface() = 0;
 
     //! Whether safety distance calculations are accurate and precise
