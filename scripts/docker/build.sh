@@ -46,7 +46,7 @@ case $CONFIG in
   ubuntu-rocm7)
     # ***IMPORTANT***: update hip external version in dev/ubuntu-rocm7!
     DOCKERFILE_DISTRO=ubuntu
-    BASE_TAG=rocm/dev-ubuntu-24.04:7.1.0
+    BASE_TAG=rocm/dev-ubuntu-24.04:7.1
     ;;
   *)
     echo "Invalid configure type: $1"
