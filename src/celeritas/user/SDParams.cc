@@ -9,10 +9,12 @@
 #include <unordered_map>
 
 #include "corecel/data/CollectionBuilder.hh"
-#include "geocel/GeantGeoParams.hh"
+// #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeCollectionBuilder.hh"
-#include "geocel/vg/VecgeomParams.hh"
-#include "orange/OrangeParams.hh"
+// #include "geocel/vg/VecgeomParams.hh"
+// #include "orange/OrangeParams.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 
 namespace celeritas
 {
@@ -23,7 +25,10 @@ namespace celeritas
 SDParams::SDParams(CoreGeoParams const& geo, inp::Detectors detectors)
     : detectors_{std::move(detectors)}
 {
-    CELER_VALIDATE(detectors_, << "empty Detectors list passed to SDParams");
+    if (!detectors_)
+    {
+        CELER_LOG(warning) << "Empty detectors list passed to SDParams";
+    }
 
     // Map labels to volume IDs
     auto const num_impl_volumes = geo.impl_volumes().size();

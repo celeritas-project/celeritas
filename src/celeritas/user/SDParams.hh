@@ -35,9 +35,6 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     //!@}
 
   public:
-    //! Default constructor: no detectors
-    SDParams() = default;
-
     //! Construct from canonical volume IDs
     SDParams(CoreGeoParams const& geo, inp::Detectors detectors);
 

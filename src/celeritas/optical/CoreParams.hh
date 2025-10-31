@@ -112,7 +112,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
-    SPConstDetectors const& detectors() const { return detectors_; }
+    SPConstDetectors const& detectors() const { return input_.detectors; }
     SPConstCherenkov const& cherenkov() const { return input_.cherenkov; }
     SPConstScintillation const& scintillation() const
     {
@@ -137,8 +137,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     // Copy of DeviceRef in device memory
     DeviceVector<DeviceRef> device_ref_vec_;
-
-    SPConstDetectors detectors_;
 };
 
 //---------------------------------------------------------------------------//

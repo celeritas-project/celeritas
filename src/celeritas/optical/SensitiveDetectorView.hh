@@ -32,6 +32,7 @@ CELER_FUNCTION
 SensitiveDetectorView::SensitiveDetectorView(SDParamsRef const& params)
     : params_(params)
 {
+    CELER_EXPECT(params_);
 }
 
 CELER_FUNCTION auto SensitiveDetectorView::detector_id(ImplVolumeId iv_id)

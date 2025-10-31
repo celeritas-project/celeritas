@@ -58,22 +58,7 @@ class SDParamsTest : public OnlyGeoTestBase
     }
 };
 
-TEST_F(SDParamsTest, empty_constructor_test)
-{
-    SDParams params;
-    EXPECT_TRUE(params.empty());
-
-    if (CELERITAS_DEBUG)
-    {
-        auto det_id = DetectorId{0};
-        auto vol_id = ImplVolumeId{0};
-        EXPECT_THROW(params.volume_to_detector_id(vol_id),
-                     celeritas::DebugError);
-        EXPECT_THROW(params.detector_to_volume_id(det_id),
-                     celeritas::DebugError);
-    }
-}
-
+// TODO:: reformat this for empty detectors in model
 TEST_F(SDParamsTest, TEST_IF_CELERITAS_DEBUG(invalid_label_test))
 {
     auto const& geo = *this->geometry();
