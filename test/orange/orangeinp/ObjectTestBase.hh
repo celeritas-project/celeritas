@@ -67,9 +67,13 @@ class ObjectTestBase : public ::celeritas::test::Test
     // Print the unit we've constructed
     void print_expected() const;
 
+    // Print for ORANGE CSG-to-dot
+    void print_csg() const;
+
   private:
     std::shared_ptr<Unit> unit_;
     std::shared_ptr<UnitBuilder> builder_;
+    std::vector<std::string> volume_names_;
 };
 
 //---------------------------------------------------------------------------//

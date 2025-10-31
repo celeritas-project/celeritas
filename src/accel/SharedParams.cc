@@ -62,8 +62,10 @@
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -101,7 +103,7 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
         {
             PDGNumber pdg{pd->GetPDGEncoding()};
             CELER_VALIDATE(
-                pdg, << "unsupported particle type: " << PrintablePD{pd});
+                pdg, << "unsupported particle type: " << StreamablePD{pd});
             pid = particles.find(pdg);
         }
         if (pid)
@@ -121,7 +123,7 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
     }
 
     auto printable_pd
-        = [](G4ParticleDefinition const* p) { return PrintablePD{p}; };
+        = [](G4ParticleDefinition const* p) { return StreamablePD{p}; };
     CELER_VALIDATE(missing.empty(),
                    << "not all particles from TrackingManagerConstructor are "
                       "active in Celeritas: missing "
@@ -154,7 +156,8 @@ std::mutex& updating_mutex()
 /*!
  * Whether celeritas is disabled, set to kill, or to be enabled.
  *
- * This gets the value from environment variables and
+ * Currently the mode is set by querying the environment variables \c
+ * CELER_KILL_OFFLOAD and \c CELER_DISABLE .
  *
  * \todo This will be refactored for 0.7 to take a \c celeritas::inp object and
  * determine values rather than from the environment .
@@ -207,9 +210,12 @@ auto SharedParams::GetMode() -> Mode
 //---------------------------------------------------------------------------//
 /*!
  * Get a list of all supported particles.
+
+ * \note This can only be called after the run manager is constructed.
  */
 auto SharedParams::supported_offload_particles() -> VecG4PD const&
 {
+    CELER_EXPECT(G4RunManager::GetRunManager());
     static VecG4PD const supported_particles = {
         G4Electron::Definition(),
         G4Positron::Definition(),
@@ -226,9 +232,13 @@ auto SharedParams::supported_offload_particles() -> VecG4PD const&
  * Get the list of default particles offloaded in Geant4 applications.
  *
  * If no user-defined list is provided, this defaults to simulating EM showers.
+ *
+ * \note This can only be called after the run manager is constructed.
  */
 auto SharedParams::default_offload_particles() -> VecG4PD const&
 {
+    CELER_EXPECT(G4RunManager::GetRunManager());
+
     static VecG4PD const default_particles = {
         G4Electron::Definition(),
         G4Positron::Definition(),
@@ -316,6 +326,7 @@ SharedParams::SharedParams(SetupOptions const& options)
     auto framework_inp = to_inp(options);
     auto loaded = setup::framework_input(framework_inp);
     params_ = std::move(loaded.problem.core_params);
+    optical_params_ = std::move(loaded.problem.optical_params);
     optical_ = std::move(loaded.problem.optical_collector);
     output_filename_ = loaded.problem.output_file;
     CELER_ASSERT(params_);
@@ -360,7 +371,12 @@ SharedParams::SharedParams(SetupOptions const& options)
         !offload_file.empty())
     {
         std::unique_ptr<EventWriterInterface> writer;
-        if (ends_with(offload_file, ".root"))
+        if (ends_with(offload_file, ".jsonl"))
+        {
+            writer.reset(
+                new JsonEventWriter(offload_file, params_->particle()));
+        }
+        else if (ends_with(offload_file, ".root"))
         {
             writer.reset(new RootEventWriter(
                 std::make_shared<RootFileManager>(offload_file.c_str()),

@@ -15,11 +15,10 @@
 #include <VecGeom/base/Version.h>
 #include <VecGeom/management/ABBoxManager.h>
 
-#if VECGEOM_VERSION < 0x020000 && defined(VECGEOM_USE_SURF)
+#if VECGEOM_VERSION < 0x020000 && CELERITAS_VECGEOM_SURFACE
 #    error \
         "Unsupported: cannot build with VecGeom surface before merge into 2.0"
 #endif
-#define VECGEOM_V2 0x020000
 
 namespace celeritas
 {
@@ -32,7 +31,9 @@ using BvhPrecision = float;
 using BvhPrecision = double;
 #endif
 
-#if VECGEOM_VERSION >= VECGEOM_V2
+using NavIndex_t = ::NavIndex_t;
+
+#if VECGEOM_VERSION >= 0x020000
 using ABBoxManager_t = vecgeom::ABBoxManager<vecgeom::Precision>;
 using CudaBVH_t = vecgeom::cuda::BVH<BvhPrecision>;
 #else

@@ -24,7 +24,6 @@ namespace celeritas
  * Sample from a normal distribution.
  *
  * The normal (Gaussian) distribution is \f[
-  * \f[
   p(x) = \exp\!\left( -\frac{(x - \mu)^{2}}{2\sigma^{2}} \right)
  * \f]
  * with mean \f$\mu\f$ and standard deviation \f$\sigma\f$.

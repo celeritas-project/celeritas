@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/io/Repr.hh"
 
+#include <set>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -68,6 +69,7 @@ TEST(ReprTest, container)
 {
     EXPECT_EQ("{1, 2, 3, 4}", repr_to_string(std::vector<int>{1, 2, 3, 4}));
     EXPECT_EQ("{100l, 200l}", repr_to_string(Array<long, 2>{100, 200}));
+    EXPECT_EQ("{-1, 0, 1}", repr_to_string(std::set<int>{-1, 0, 1}));
 
     unsigned int uints[] = {11, 22};
     EXPECT_EQ("{11u, 22u}", repr_to_string(make_span(uints)));

@@ -1,5 +1,4 @@
-# Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 Add LLDB wrappers for Celeritas types.
@@ -11,9 +10,10 @@ To use from inside ``${SOURCE}/build``::
 
 """
 
+
 class SpanSynthetic:
     def __init__(self, valobj, *args):
-        self.valobj = valobj # type: SBValue
+        self.valobj = valobj  # type: SBValue
 
         valtype = valobj.GetType()
         self._size = 0
@@ -27,10 +27,10 @@ class SpanSynthetic:
             return False
 
         storage = self.valobj.GetChildMemberWithName("s_")
-        size = storage.GetChildMemberWithName('size')
+        size = storage.GetChildMemberWithName("size")
         assert size.IsValid()
         self._size = size.GetValueAsUnsigned(0)
-        self._dataobj = storage.GetChildMemberWithName('data')
+        self._dataobj = storage.GetChildMemberWithName("data")
         assert self._dataobj.IsValid()
         return False
 
@@ -42,7 +42,7 @@ class SpanSynthetic:
 
     def get_child_index(self, name):
         try:
-            return int(name.lstrip('[').rstrip(']'))
+            return int(name.lstrip("[").rstrip("]"))
         except TypeError as e:
             print(f"Failed to get child index {name}: {e}")
             return None
@@ -57,15 +57,13 @@ class SpanSynthetic:
             # Value is bad?
             return None
         return self._dataobj.CreateChildAtOffset(
-            "[{:d}]".format(index),
-            index * self.sizeof_value,
-            self._t
+            "[{:d}]".format(index), index * self.sizeof_value, self._t
         )
 
 
 class ItemRangeSynthetic:
     def __init__(self, valobj, *args):
-        self.valobj = valobj # type: SBValue
+        self.valobj = valobj  # type: SBValue
 
         valtype = valobj.GetType()
         self._value_t = valtype.GetTemplateArgumentType(0)
@@ -90,7 +88,7 @@ class ItemRangeSynthetic:
 
     def get_child_index(self, name):
         # Find the index of the child
-        for (i, (n, _)) in enumerate(self.values_):
+        for i, (n, _) in enumerate(self.values_):
             if n == name:
                 return i
         return None
@@ -104,6 +102,4 @@ class ItemRangeSynthetic:
         # Print the opaque index
         (name, val) = self.values_[index]
         val_int = val.GetValueAsUnsigned()
-        return self.valobj.CreateValueFromExpression(
-            name, f"(unsigned){val_int}"
-        )
+        return self.valobj.CreateValueFromExpression(name, f"(unsigned){val_int}")

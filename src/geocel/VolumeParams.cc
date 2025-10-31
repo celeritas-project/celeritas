@@ -16,20 +16,20 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-LevelId::size_type calc_depth(VolumeParams const& params)
+int calc_num_volume_levels(VolumeParams const& params)
 {
     CELER_EXPECT(params.world());
-    LevelId::size_type result{0};
+    int max_level{0};
 
     VolumeVisitor visit_vol{params};
     visit_vol(
-        [&result](VolumeId, int level) {
+        [&max_level](VolumeId, int level) {
             CELER_ASSERT(level >= 0);
-            result = std::max(result, static_cast<LevelId::size_type>(level));
+            max_level = std::max(max_level, level);
             return true;
         },
         params.world());
-    return result;
+    return max_level + 1;
 }
 
 //---------------------------------------------------------------------------//
@@ -140,7 +140,7 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     // Calculate additional properties
     if (world_)
     {
-        depth_ = calc_depth(*this);
+        num_volume_levels_ = calc_num_volume_levels(*this);
     }
 
     CELER_ENSURE(this->num_volumes() == in.volumes.size());
@@ -151,6 +151,7 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     CELER_ENSURE(parents_.size() == this->num_volumes());
     CELER_ENSURE(children_.size() == this->num_volumes());
     CELER_ENSURE(volumes_.size() == this->num_volume_instances());
+    CELER_ENSURE((this->num_volume_levels() == 0) == this->empty());
 }
 
 //---------------------------------------------------------------------------//

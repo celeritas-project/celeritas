@@ -51,7 +51,7 @@ class ImportDataTrimmer
     void operator()(ImportLivermorePE& data);
     void operator()(ImportLivermoreSubshell& data);
     void operator()(ImportAtomicRelaxation& data);
-    void operator()(ImportMuPairProductionTable& data);
+    void operator()(inp::MuPairProductionEnergyTransferTable& data);
     void operator()(ImportOpticalMaterial& data);
     void operator()(ImportOpticalModel& data);
     void operator()(inp::Particle& data);
@@ -67,6 +67,7 @@ class ImportDataTrimmer
     void operator()(inp::UniformGrid& data);
     void operator()(ImportPhysicsTable& data);
     void operator()(inp::TwodGrid& data);
+    void operator()(inp::DielectricInteraction& data);
     //!@}
 
   private:

@@ -235,7 +235,7 @@ else()
   set(_fieldprop_filter)
 endif()
 
-celeritas_add_test(field/Fields.test.cc
+celeritas_add_device_test(field/Fields
   LINK_LIBRARIES Celeritas::Extcovfie
 )
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
@@ -379,6 +379,7 @@ celeritas_add_test(grid/XsCalculator.test.cc)
 celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc}
   LINK_LIBRARIES ${HepMC3_LIBRARIES})
 celeritas_add_test(io/ImportUnits.test.cc)
+celeritas_add_test(io/JsonEventIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
@@ -386,13 +387,14 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 # Optical
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
+celeritas_add_test(optical/Generator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
-celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4} ${_needs_orange})
+celeritas_add_test(optical/Mie.test.cc)
+celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
-celeritas_add_test(optical/PrimaryGenerator.test.cc GPU ${_needs_geant4} ${_needs_orange})
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/RoughnessCalculator.test.cc)
@@ -402,6 +404,10 @@ celeritas_add_test(optical/Physics.test.cc)
 celeritas_add_test(optical/VolumeSurfaceSelector.test.cc
     LINK_LIBRARIES testcel_geocel)
 celeritas_add_test(optical/SurfacePhysics.test.cc)
+celeritas_add_test(optical/ReflectionFormSampler.test.cc)
+celeritas_add_test(optical/Fresnel.test.cc)
+celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
+celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat

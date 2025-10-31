@@ -51,6 +51,7 @@ void ShapeBase::output(JsonPimpl* j) const
 
 template class Shape<Box>;
 template class Shape<Cone>;
+template class Shape<CutCylinder>;
 template class Shape<Cylinder>;
 template class Shape<Ellipsoid>;
 template class Shape<ExtrudedPolygon>;

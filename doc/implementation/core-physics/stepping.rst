@@ -74,7 +74,7 @@ is called once per step, ordered using :cpp:enum:`celeritas::StepActionOrder`.
 Initialization and execution
 ----------------------------
 
-- The front end constructs the :ref:`api_problem_def` classes and allows user
+- The front end constructs the :ref:`api_physics_def` classes and allows user
   actions and :ref:`api_auxiliary_data` to be set up
 - "Core params", which reference these classes, are constructed; in the
   process, certain required implementation actions (e.g., managing primaries

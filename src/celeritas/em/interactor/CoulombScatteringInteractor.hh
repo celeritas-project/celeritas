@@ -16,6 +16,7 @@
 #include "celeritas/em/distribution/WentzelDistribution.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
@@ -37,9 +38,8 @@ namespace celeritas
  * Production cuts
  * are used to determine the maximum scattering angle off of electrons.
  *
- * \note This performs the same sampling as in Geant4's
- *  G4eCoulombScatteringModel, as documented in section 8.2 of the Geant4
- *  Physics Reference Manual (release 11.1).
+ * This performs the same sampling as in Geant4's \c G4eCoulombScatteringModel,
+ * as documented in \cite{g4prm} (release 11.1, section 8.2).
  *
  * \todo When hadronic EM processes are supported, this should be extended to
  * emit secondary ions.

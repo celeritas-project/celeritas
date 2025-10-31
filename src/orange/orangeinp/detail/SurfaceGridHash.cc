@@ -67,10 +67,9 @@ auto SurfaceGridHash::operator()(SurfaceType type, real_type hash_point) const
 /*!
  * Calculate the hash of a new data point.
  *
- * This combines a hashed value of the unique grid bin with the surfaces by
- * \em replacing the lowest bits with the surface type representation. <em>This
- * is necessary to ensure the same "value" has surfaces that have all the same
- * type.</em>
+ * This combines the grid bin with the surface type by \em replacing the lowest
+ * bits with the surface type representation. <em>This guarantees the same
+ * "value" has surfaces that have all the same type.</em>
  */
 auto SurfaceGridHash::calc_bin(SurfaceType type, real_type hash_point) const
     -> key_type

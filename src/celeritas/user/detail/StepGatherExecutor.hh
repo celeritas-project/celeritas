@@ -157,15 +157,16 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
                         &vid = this->state.data.points[P].volume_instance_ids,
                         tid = track.track_slot_id()] {
                 // Destination size
-                size_type const size = this->params.volume_instance_depth;
+                size_type const size = this->params.num_volume_levels;
                 size_type offset = tid.unchecked_get() * size;
                 auto all_ids = vid[AllItems<VolumeInstanceId>{}];
                 return all_ids.subspan(offset, size);
             }();
 
             // Fill every level from the geometry
-            size_type depth
-                = geo.is_outside() ? 0 : geo.level().unchecked_get() + 1;
+            size_type depth = geo.is_outside()
+                                  ? 0
+                                  : geo.volume_level().unchecked_get() + 1;
             CELER_ASSERT(depth <= dst.size());
             if (depth != 0)
             {

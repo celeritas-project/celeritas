@@ -35,7 +35,6 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
-#include "orange/g4org/Converter.hh"
 
 // Check Geant4-reported and CMake-configured versions, mapping from
 // Geant4's base-10 XXYZ -> to Celeritas base-16 0xXXYYZZ
@@ -78,7 +77,7 @@ void free_and_clear(std::vector<T*>* table)
  *
  * For brevity, this does not print the world volume.
  */
-std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
+std::ostream& operator<<(std::ostream& os, StreamableNavHistory const& pnh)
 {
     CELER_EXPECT(pnh.nav);
     os << '{';
@@ -105,7 +104,7 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
 /*!
  * Print the logical volume name, ID, and address.
  */
-std::ostream& operator<<(std::ostream& os, PrintableLV const& plv)
+std::ostream& operator<<(std::ostream& os, StreamableLV const& plv)
 {
     if (plv.lv)
     {

@@ -34,11 +34,10 @@ namespace celeritas
 /*!
  * Construct from model ID and shared data.
  */
-MuPairProductionModel::MuPairProductionModel(
-    ActionId id,
-    ParticleParams const& particles,
-    SPConstImported data,
-    ImportMuPairProductionTable const& imported)
+MuPairProductionModel::MuPairProductionModel(ActionId id,
+                                             ParticleParams const& particles,
+                                             SPConstImported data,
+                                             Input const& inp_model)
     : StaticConcreteAction(
           id, "pair-prod-muon", "interact by e-/e+ pair production by muons")
     , imported_(data,
@@ -66,10 +65,10 @@ MuPairProductionModel::MuPairProductionModel(
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Build sampling table
-    CELER_VALIDATE(imported,
+    CELER_VALIDATE(inp_model,
                    << "sampling table (required for '" << this->description()
                    << "') is empty");
-    this->build_table(imported, &host_data.table);
+    this->build_table(inp_model.muppet_table, &host_data.table);
 
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<MuPairProductionData>{std::move(host_data)};
@@ -131,7 +130,7 @@ void MuPairProductionModel::step(CoreParams const&, CoreStateDevice&) const
  * Construct sampling table.
  */
 void MuPairProductionModel::build_table(
-    ImportMuPairProductionTable const& imported, HostTable* table) const
+    MuppetTable const& imported, HostVal<MuPairProductionTableData>* table) const
 {
     CELER_EXPECT(imported);
     CELER_EXPECT(table);
@@ -160,10 +159,10 @@ void MuPairProductionModel::build_table(
     log_z.reserve(imported.atomic_number.size());
     for (auto z : imported.atomic_number)
     {
-        log_z.push_back(std::log(z));
+        log_z.push_back(std::log(z.get()));
     }
-    table->logz_grid
-        = make_builder(&table->reals).insert_back(log_z.begin(), log_z.end());
+    table->logz_grid = CollectionBuilder{&table->reals}.insert_back(
+        log_z.begin(), log_z.end());
 
     CELER_ENSURE(*table);
 }

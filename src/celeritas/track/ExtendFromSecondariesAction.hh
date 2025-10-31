@@ -88,7 +88,7 @@ class ExtendFromSecondariesAction final : public CoreStepActionInterface,
     //!@}
 
     //!@{
-    //! \name ExplicitAction interface
+    //! \name StepAction interface
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;

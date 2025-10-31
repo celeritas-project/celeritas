@@ -34,21 +34,11 @@
       }
     },
     {
-      "name": "doc",
-      "inherits": ["base"],
-      "displayName": "CONFIG: build only documentation",
-      "cacheVariables": {
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_DOXYGEN_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"}
-      }
-    },
-    {
       "name": "spack",
       "inherits": ["base", ".spack-base"],
       "displayName": "CONFIG: use full spack toolchain",
       "cacheVariables": {
+        "CELERITAS_USE_covfie": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    null,
@@ -56,10 +46,33 @@
       }
     },
     {
+      "name": ".system",
+      "inherits": ["base"],
+      "displayName": "CONFIG: build with apt-get dependencies",
+      "cacheVariables": {
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": ".vecgeom",
       "description": "CONFIG: options to enable VecGeom on Ubuntu",
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "doc",
+      "inherits": [".system"],
+      "displayName": "FINAL: build only documentation",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_DOXYGEN_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -83,22 +96,30 @@
     },
     {
       "name": "fast",
-      "inherits": ["type-reldeb", "base"],
+      "inherits": ["type-reldeb", ".system"],
       "displayName": "FINAL: fast build using apt-get",
       "cacheVariables": {
-        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"}
       }
     },
     {
       "name": "ultralite",
-      "inherits": ["type-ndebug", "base"],
-      "displayName": "FINAL: ultralite build with no externals",
+      "inherits": ["type-ndebug", ".system"],
+      "displayName": "FINAL: ultralite build with only app tests",
       "cacheVariables": {
         "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "ultralite-codecov",
+      "inherits": ["type-ndebug", ".system", ".gcov"],
+      "displayName": "FINAL: ultralite code coverage with only app tests",
+      "cacheVariables": {
+        "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -107,7 +128,7 @@
       "inherits": ["type-reldeb", "spack"]
     },
     {
-      "name": "reldeb-vecgeom-clang-tidy",
+      "name": "reldeb-vecgeom-tidy",
       "description": "FINAL: VecGeom and clang-tidy checks",
       "inherits": ["type-reldeb", ".vecgeom", "spack"],
       "cacheVariables": {
@@ -132,6 +153,11 @@
       "name": "reldeb-vecgeom",
       "description": "FINAL: release, assertions, VecGeom",
       "inherits": ["type-reldeb", ".vecgeom", "spack"]
+    },
+    {
+      "name": "reldeb-vecgeom-codecov",
+      "description": "FINAL: VecGeom and code coverage",
+      "inherits": ["type-reldeb", ".vecgeom", ".gcov", "spack"]
     },
     {
       "name": "reldeb-vgsurf",

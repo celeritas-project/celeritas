@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "Logger.hh"
 
-#include <algorithm>
-#include <mutex>
 #include <string>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
@@ -21,6 +19,7 @@
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantLogger.hh"
+#include "accel/detail/LoggerImpl.hh"
 
 namespace celeritas
 {
@@ -28,87 +27,10 @@ namespace
 {
 
 //---------------------------------------------------------------------------//
-//! Write a colorful filename to a mysterious Geant4 streamable
-template<class T>
-void write_log(T& os,
-               LogProvenance const& prov,
-               LogLevel lev,
-               std::string const& msg)
-{
-    os << to_color_code(lev) << to_cstring(lev);
-    if (!prov.file.empty())
-    {
-        os << color_code('x') << "@";
-
-        // Write the file name up to the last directory component
-        auto last_slash = std::find(prov.file.rbegin(), prov.file.rend(), '/');
-        if (!prov.file.empty() && last_slash == prov.file.rend())
-        {
-            --last_slash;
-        }
-
-        // Output problem line/file for debugging or high level
-        os << std::string(last_slash.base(), prov.file.end());
-        if (prov.line)
-        {
-            os << ':' << prov.line;
-        }
-    }
-    os << color_code(' ') << ": " << msg << std::endl;
-}
-
-//---------------------------------------------------------------------------//
-//! Write the thread ID on output
-class MtSelfWriter
-{
-  public:
-    explicit MtSelfWriter(int num_threads);
-    void operator()(LogProvenance prov, LogLevel lev, std::string msg);
-
-  private:
-    int num_threads_;
-};
-
-MtSelfWriter::MtSelfWriter(int num_threads) : num_threads_(num_threads)
-{
-    CELER_EXPECT(num_threads_ >= 0);
-}
-
-void MtSelfWriter::operator()(LogProvenance prov, LogLevel lev, std::string msg)
-{
-    auto& cerr = G4cerr;
-
-    int local_thread = G4Threading::G4GetThreadId();
-    if (local_thread >= 0)
-    {
-        // Logging from a worker thread
-        if (CELER_UNLIKELY(local_thread >= num_threads_))
-        {
-            // In tasking or potentially other contexts, the max thread might
-            // not be known. Update it here for better output.
-            static std::mutex thread_update_mutex;
-            std::lock_guard scoped_lock{thread_update_mutex};
-            num_threads_ = std::max(local_thread + 1, num_threads_);
-        }
-
-        cerr << color_code('W') << '[' << local_thread + 1 << '/'
-             << num_threads_ << "] ";
-    }
-    else
-    {
-        // Logging "local" message from the master thread!
-        cerr << color_code('W') << "[M!] ";
-    }
-    cerr << color_code(' ');
-
-    return write_log(cerr, prov, lev, msg);
-}
-
-//---------------------------------------------------------------------------//
 //! Always write the output, and do not tag thread IDs.
 void write_serial(LogProvenance prov, LogLevel lev, std::string msg)
 {
-    return write_log(G4cerr, prov, lev, msg);
+    G4cerr << detail::ColorfulLogMessage{prov, lev, msg} << std::endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -125,9 +47,7 @@ void write_mt_world(LogProvenance prov, LogLevel lev, std::string msg)
     auto& cerr = G4cerr;
     cerr << color_code('W')
          << (G4Threading::IsMasterThread() ? "[M] " : "[W] ")
-         << color_code(' ');
-
-    return write_log(cerr, prov, lev, msg);
+         << detail::ColorfulLogMessage{prov, lev, msg} << std::endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -164,7 +84,7 @@ Logger MakeMTWorldLogger(G4RunManager const& runman)
         if (getenv_flag("CELER_LOG_ALL_LOCAL", false).value)
         {
             // Every thread lets you know it's being called
-            handle = MtSelfWriter{get_geant_num_threads(runman)};
+            handle = detail::MtSelfWriter{get_geant_num_threads(runman)};
         }
         else
         {
@@ -200,7 +120,7 @@ Logger MakeMTSelfLogger(G4RunManager const& runman)
     LogHandler handle{write_serial};
     if (G4Threading::IsMultithreadedApplication())
     {
-        handle = MtSelfWriter{get_geant_num_threads(runman)};
+        handle = detail::MtSelfWriter{get_geant_num_threads(runman)};
     }
     return Logger::from_handle_env(std::move(handle), "CELER_LOG_LOCAL");
 }

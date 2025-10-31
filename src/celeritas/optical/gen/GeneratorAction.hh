@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
@@ -18,57 +19,44 @@
 #include "GeneratorData.hh"
 #include "OffloadData.hh"
 
-#include "detail/GeneratorTraits.hh"
-
 namespace celeritas
 {
 class CoreParams;
+class CherenkovParams;
+class ScintillationParams;
 
 namespace optical
 {
-class MaterialParams;
+class CoreStateBase;
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate photons from optical distribution data.
  *
  * This samples and initializes optical photons directly in a track slot in a
- * reproducible way.  Multiple threads may generate initializers from a single
+ * reproducible way. Multiple threads may generate initializers from a single
  * distribution.
  */
-template<GeneratorType G>
 class GeneratorAction final : public GeneratorBase
 {
   public:
     //!@{
     //! \name Type aliases
-    using TraitsT = detail::GeneratorTraits<G>;
-    template<Ownership W, MemSpace M>
-    using Data = typename TraitsT::template Data<W, M>;
-    using SPConstParams = std::shared_ptr<typename TraitsT::Params const>;
-    using SPConstMaterial = std::shared_ptr<MaterialParams const>;
+    using SpanConstData = Span<GeneratorDistributionData const>;
     //!@}
-
-    //! Generator input data
-    struct Input
-    {
-        SPConstMaterial material;
-        SPConstParams shared;
-        size_type capacity{};
-
-        explicit operator bool() const
-        {
-            return material && shared && capacity > 0;
-        }
-    };
 
   public:
     // Construct and add to core params
     static std::shared_ptr<GeneratorAction>
-    make_and_insert(::celeritas::CoreParams const&, CoreParams const&, Input&&);
+    make_and_insert(::celeritas::CoreParams const&,
+                    CoreParams const&,
+                    size_type capacity);
 
     // Construct with action ID, data IDs, and optical properties
-    GeneratorAction(ActionId, AuxId, GeneratorId, Input&&);
+    GeneratorAction(ActionId, AuxId, GeneratorId, size_type capacity);
+
+    // Add user-provided host distribution data
+    void insert(CoreStateBase&, SpanConstData) const;
 
     //!@{
     //! \name Aux interface
@@ -89,9 +77,13 @@ class GeneratorAction final : public GeneratorBase
   private:
     //// DATA ////
 
-    Input data_;
+    // Starting distribution buffer capacity
+    size_type initial_capacity_;
 
     //// HELPER FUNCTIONS ////
+
+    template<MemSpace M>
+    void insert_impl(CoreState<M>& state, SpanConstData data) const;
 
     template<MemSpace M>
     void step_impl(CoreParams const&, CoreState<M>&) const;
@@ -99,13 +91,6 @@ class GeneratorAction final : public GeneratorBase
     void generate(CoreParams const&, CoreStateHost&) const;
     void generate(CoreParams const&, CoreStateDevice&) const;
 };
-
-//---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
-//---------------------------------------------------------------------------//
-
-extern template class GeneratorAction<GeneratorType::cherenkov>;
-extern template class GeneratorAction<GeneratorType::scintillation>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

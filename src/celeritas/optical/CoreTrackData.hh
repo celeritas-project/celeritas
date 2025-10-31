@@ -21,6 +21,8 @@
 #include "SimData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"
+#include "gen/CherenkovData.hh"
+#include "gen/ScintillationData.hh"
 #include "surface/SurfacePhysicsData.hh"
 
 namespace celeritas
@@ -55,6 +57,8 @@ struct CoreParamsData
     SurfaceParamsData<W, M> surface;
     SurfacePhysicsParamsData<W, M> surface_physics;
     SDParamsData<W, M> detectors;
+    CherenkovData<W, M> cherenkov;
+    ScintillationData<W, M> scintillation;
 
     CoreScalars scalars;
 
@@ -77,6 +81,8 @@ struct CoreParamsData
         surface = other.surface;
         surface_physics = other.surface_physics;
         scalars = other.scalars;
+        cherenkov = other.cherenkov;
+        scintillation = other.scintillation;
         return *this;
     }
 };

@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
@@ -32,43 +32,14 @@ struct CsgUnit;
 /*!
  * Construct a general CSG universe, aka a "unit".
  *
- * A "unit" is a region of space (specified by the "boundary" object) that is
- * divided up into multiple smaller regions:
- * - A "material" (aka "media" in SCALE) is a single homogeneous CSG object
+ * A "unit" is a region of space (with an outer boundary specified by the \c
+ * BoundaryInput::interior object) that is divided up into multiple smaller
+ * regions:
+ * - A "material" (aka \em media in SCALE) is a single homogeneous CSG object
  *   filled with a particular material ID. This is equivalent to a leaf
  *   "physical volume" in a GDML/Geant4 volume hierarchy.
- * - A "daughter" (aka "hole" in SCALE) is another unit that is transformed and
- *   placed into this universe.
- *
- * Regarding boundary conditions: "Input" is for how the unit is *defined*:
- *
- *  ========== ==========================================================
- *   Input      Description
- *  ========== ==========================================================
- *   Implicit   Boundary implicitly truncates interior (KENO)
- *   Explicit   Interior CSG definition includes boundary (RTK)
- *  ========== ==========================================================
- *
- * Additionally, whether the universe is the top-level \em global universe (see
- * the \c ExteriorBoundary type) affects the construction.
- *
- *  ========== ==========================================================
- *   ExtBound   Description
- *  ========== ==========================================================
- *   Daughter   Boundary is already truncated by higher-level unit
- *   Global     Boundary must explicitly be represented as a volume
- *  ========== ==========================================================
- *
- * These result in different z ordering for the exterior:
- *
- *  ===== ===== ================== ========================================
- *   Inp   ExB   Resulting zorder   Description
- *  ===== ===== ================== ========================================
- *   I     N     implicit_exterior  Higher-level universe truncates
- *   X     N     implicit_exterior  Higher-level universe truncates
- *   I     Y     exterior           Global unit that truncates other regions
- *   X     Y     media              Global unit with well-connected exterior
- *  ===== ===== ================== ========================================
+ * - A "daughter" (aka \em hole in SCALE) is another unit that is transformed
+ *   and placed into this universe.
  */
 class UnitProto : public ProtoInterface
 {
@@ -133,7 +104,16 @@ class UnitProto : public ProtoInterface
         std::vector<DaughterInput> daughters;
         BoundaryInput boundary;
         Label label;
-        UnitSimplification simplification{UnitSimplification::none};
+
+        //!@{
+        //! \name Construction options
+
+        //! For non-global units, assume inside the boundary
+        bool remove_interior{true};
+        //! Use DeMorgan's law to remove negated joins
+        bool remove_negated_join{false};
+
+        //!@}
 
         // True if fully defined
         explicit inline operator bool() const;

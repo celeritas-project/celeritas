@@ -32,6 +32,7 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::IntersectRegionInterface
 .. doxygenclass:: celeritas::orangeinp::Box
 .. doxygenclass:: celeritas::orangeinp::Cone
+.. doxygenclass:: celeritas::orangeinp::CutCylinder
 .. doxygenclass:: celeritas::orangeinp::Cylinder
 .. doxygenclass:: celeritas::orangeinp::Ellipsoid
 .. doxygenclass:: celeritas::orangeinp::EllipticalCylinder
@@ -79,16 +80,29 @@ AnyObjects, AllObjects, and NegatedObject
    are implemented as templates of a JoinObjects class.
 
 Objects are typically constructed and used as shared pointers so that they can
-be reused in multiple locations.
+be reused in multiple locations. :numref:`fig-orangeinp-types` summarizes these types.
+
+.. _fig-orangeinp-types:
+
+.. figure:: /_static/mermaid/orangeinp-types.*
+   :align: center
+   :width: 80%
+
+   Examples of objects and "intersect regions" used by ORANGE input
+   preprocessing.
+
 
 .. highlight:: cpp
 
+.. doxygenclass:: celeritas::orangeinp::EnclosedAzi
+.. doxygenclass:: celeritas::orangeinp::EnclosedPolar
 .. doxygenclass:: celeritas::orangeinp::Shape
 .. doxygenclass:: celeritas::orangeinp::Solid
 .. doxygenclass:: celeritas::orangeinp::Truncated
 
 .. highlight:: none
 
+.. doxygenclass:: celeritas::orangeinp::PolySegments
 .. doxygenclass:: celeritas::orangeinp::PolyCone
 .. doxygenclass:: celeritas::orangeinp::PolyPrism
 .. doxygenclass:: celeritas::orangeinp::RevolvedPolygon
@@ -105,57 +119,6 @@ be reused in multiple locations.
 .. doxygenfunction:: celeritas::orangeinp::make_rdv
 
 
-.. mermaid::
-
-   classDiagram
-     Object <|-- Transformed
-     Object <|-- Shape
-     Object <|-- NegatedObject
-     Object <|-- JoinObjects
-     ShapeBase <|-- Shape
-     class Object {
-       +string_view label()*
-       +NodeId build(VolumeBuilder&)*
-     }
-     <<Interface>> Object
-     class Transformed {
-       -SPConstObject obj
-       -VariantTransform transform
-     }
-     Transformed *-- Object
-
-     class ShapeBase {
-       #IntersectRegion const& interior()*
-     }
-     <<Abstract>> ShapeBase
-
-     class Shape {
-       -string label;
-       -IntersectRegion region;
-     }
-     Shape *-- IntersectRegion
-
-     class IntersectRegion {
-       +void build(IntersectSurfaceBuilder&)*
-     }
-     <<Interface>> IntersectRegion
-     IntersectRegion <|-- Box
-     IntersectRegion <|-- Sphere
-
-     class Box {
-       -Real3 halfwidths
-     }
-     class Sphere {
-       -real_type radius
-     }
-
-     Shape <|.. BoxShape
-     Shape <|.. SphereShape
-
-     BoxShape *-- Box
-     SphereShape *-- Sphere
-
-.. stop weird vim formatting here... |--|
 
 CSG unit
 ^^^^^^^^
@@ -210,8 +173,3 @@ each become a CSG unit. This decomposition is currently tuned so that:
   used multiple times and have daughter volumes.
 
 .. _Geant4 documentation: https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/index.html
-
-Runtime interface
------------------
-
-.. doxygenclass:: celeritas::OrangeTrackView

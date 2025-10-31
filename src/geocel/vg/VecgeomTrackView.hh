@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/base/Config.h>
-#include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Version.h>
+// NOTE: must include Global before most other vecgeom/veccore includes
+#include <VecGeom/base/Global.h>
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/volumes/LogicalVolume.h>
@@ -17,6 +17,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -27,7 +28,7 @@
 
 #include "detail/VecgeomCompatibility.hh"
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    include "detail/SurfNavigator.hh"
 #elif VECGEOM_VERSION >= 0x020000
 #    include <VecGeom/navigation/BVHNavigator.h>
@@ -59,7 +60,7 @@ class VecgeomTrackView
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
     using StateRef = NativeRef<VecgeomStateData>;
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     using Navigator = celeritas::detail::SurfNavigator;
 #elif VECGEOM_VERSION >= 0x020000
     using Navigator = vecgeom::BVHNavigator;
@@ -67,6 +68,7 @@ class VecgeomTrackView
     using Navigator = celeritas::detail::BVHNavigator;
 #endif
     using ImplVolInstanceId = VecgeomPlacedVolumeId;
+    using real_type = vecgeom::Precision;
     //!@}
 
   public:
@@ -97,7 +99,7 @@ class VecgeomTrackView
     // Get the ID of the current volume instance
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline CELER_FUNCTION LevelId level() const;
+    inline CELER_FUNCTION VolumeLevelId volume_level() const;
     // Get the volume instance ID for all levels
     inline CELER_FUNCTION void
     volume_instance_id(Span<VolumeInstanceId> levels) const;
@@ -167,7 +169,7 @@ class VecgeomTrackView
     NavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     long& next_surface_;
 #endif
     //!@}
@@ -192,7 +194,7 @@ class VecgeomTrackView
     // Get a reference to the current volume
     inline CELER_FUNCTION LogicalVolume const& logical_volume() const;
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     static CELER_CONSTEXPR_FUNCTION long null_surface() { return -1; }
 #endif
 };
@@ -210,11 +212,11 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     : params_(params)
     , state_(states)
     , tid_(tid)
-    , vgstate_(states.vgstate.at(params_.scalars.max_depth, tid))
-    , vgnext_(states.vgnext.at(params_.scalars.max_depth, tid))
+    , vgstate_(states.vgstate.at(params_.scalars.num_volume_levels, tid))
+    , vgnext_(states.vgnext.at(params_.scalars.num_volume_levels, tid))
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     , next_surface_{states.next_surface[tid]}
 #endif
 {
@@ -259,14 +261,14 @@ VecgeomTrackView::operator=(Initializer_t const& init)
 
     // Initialize the state from a position
     pos_ = init.pos;
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     next_surface_ = null_surface();
 #endif
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
     constexpr bool contains_point = true;
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     auto world = vecgeom::NavigationState::WorldId();
 #else
     auto const* world = &this->world();
@@ -307,19 +309,22 @@ CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
 /*!
  * Get the depth in the geometry hierarchy.
  */
-CELER_FUNCTION LevelId VecgeomTrackView::level() const
+CELER_FUNCTION VolumeLevelId VecgeomTrackView::volume_level() const
 {
-    return id_cast<LevelId>(vgstate_.GetLevel());
+    auto result = id_cast<VolumeLevelId>(vgstate_.GetLevel());
+    CELER_ENSURE(result < params_.scalars.num_volume_levels);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume instance ID for all levels.
+ * Get the volume instance ID at each volume level.
  */
 CELER_FUNCTION void
 VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(levels.size() == this->level().get() + 1);
+    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
+                 == this->volume_level() + 1);
     for (auto lev : range(levels.size()))
     {
         vecgeom::VPlacedVolume const* pv = vgstate_.At(lev);
@@ -345,7 +350,7 @@ CELER_FORCEINLINE_FUNCTION ImplVolumeId VecgeomTrackView::impl_volume_id() const
  */
 CELER_FUNCTION ImplSurfaceId VecgeomTrackView::impl_surface_id() const
 {
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     if (this->is_on_boundary())
     {
         return id_cast<ImplSurfaceId>(next_surface_);
@@ -362,7 +367,7 @@ CELER_FUNCTION ImplSurfaceId VecgeomTrackView::impl_surface_id() const
  */
 CELER_FUNCTION ImplSurfaceId VecgeomTrackView::next_impl_surface_id() const
 {
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     if (!this->is_on_boundary())
     {
         return id_cast<ImplSurfaceId>(next_surface_);
@@ -444,7 +449,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     // Use the navigator to find internal distance
     next_surface_ = null_surface();
 #endif
@@ -454,7 +459,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
                                                      max_step,
                                                      vgstate_,
                                                      vgnext_
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
                                                      ,
                                                      next_surface_
 #endif
@@ -549,7 +554,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
         if (!vgstate_.IsOutside())
         {
             // In surf model, relocation does not work from [OUTSIDE]

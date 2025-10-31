@@ -1,13 +1,24 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
+#
 # NOTE: sync spack versions with https://github.com/celeritas-project/spack-gha-buildcache
 # - Spack version
 # - Any required spack patches
 # - Github runner versions
 # - Environment versions at scripts/ci/spack.yaml
+#-----------------------------------------------------------------------------#
+
 name: build-spack
 on:
   workflow_dispatch:
   workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+
 
 concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
@@ -20,9 +31,9 @@ jobs:
   spack:
     name: >-
       ${{format('{0}{1}{2}{3}{4}',
-                matrix.geometry,
-                matrix.special && '-' || '',
                 matrix.special,
+                matrix.special && '-' || '',
+                matrix.geometry,
                 matrix.geant && '-g4@' || '',
                 matrix.geant)}}
     strategy:
@@ -67,8 +78,12 @@ jobs:
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "vecgeom"
-            special: "clang-tidy"
+            special: "tidy"
             geant: "11.2"
+          - build_type: "reldeb"
+            geometry: "vecgeom"
+            special: "codecov"
+            geant: "11.3"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '500' || '300'}}Mi"
@@ -83,6 +98,8 @@ jobs:
       CC: "clang-18"
       CXX: "clang++-18"
       CLANG_TIDY: "clang-tidy-18"
+      LLVM_COV: "llvm-cov-18"
+      GCOV: "${{github.workspace}}/scripts/ci/llvm-gcov.sh"
       CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
                  && 17 || 20}}
     runs-on: ubuntu-24.04
@@ -91,7 +108,7 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
-          fetch-depth: ${{format('{0}', matrix.special != 'clang-tidy' && 383 || 0)}}
+          fetch-depth: ${{format('{0}', matrix.special != 'tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
 
       ### ENVIRONMENT ###
@@ -121,9 +138,6 @@ jobs:
                 && (env.CXXSTD == '20')}}; then
             spack -e . add root
           fi
-          if ${{env.CXXSTD == '20'}}; then
-            spack -e . add covfie
-          fi
           if ${{matrix.geant != ''}}; then
             spack -e . add geant4@${{matrix.geant}}
           fi
@@ -144,9 +158,16 @@ jobs:
           restore-keys: |
             lock-${{hashFiles('spack.yaml')}}
       - name: Concretize
+        id: concretize
         run: |
-          spack -e . -v concretize
+          spack -e . -v concretize || (
+            ERR=$?
+            spack arch
+            cat spack.yaml
+            exit $ERR
+          )
       - name: Install dependencies
+        id: installdeps
         run: |
           spack -e . env depfile -o Makefile
           make -Orecurse -j $(($(nproc) + 1)) SPACK_INSTALL_FLAGS=--no-check-signature
@@ -178,7 +199,7 @@ jobs:
             . ${SPACK_VIEW}/rc
             test -n "${G4LEDATA}"
           fi
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE -DCELERITAS_USE_covfie=${{env.CXXSTD == '20' && 'ON' || 'OFF'}}
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
 
       ### BUILD ###
 
@@ -189,10 +210,9 @@ jobs:
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
           restore-keys: |
             ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-            ccache-${{env.CMAKE_PRESET}}
-      - name: Build incremental clang-tidy
-        id: clang-tidy
-        if: ${{matrix.special == 'clang-tidy'}}
+      - name: Build with clang-tidy
+        id: tidy
+        if: ${{matrix.special == 'tidy'}}
         env:
           BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
         run: |
@@ -223,13 +243,13 @@ jobs:
           exit $?
       - name: Build all
         id: build
-        if: ${{matrix.special != 'clang-tidy'}}
+        if: ${{matrix.special != 'tidy'}}
         working-directory: build
         run: |
           ccache -z
           ninja -v -k0
       - name: Show ccache stats
-        if: ${{!cancelled()}}
+        if: ${{!cancelled() && steps.installdeps.outcome == 'success'}}
         run: |
           ccache -s
       - name: Save ccache
@@ -255,7 +275,7 @@ jobs:
         id: unittest
         if: >-
           ${{
-            matrix.special != 'clang-tidy'
+            matrix.special != 'tidy'
             && matrix.special != 'static'
           }}
         continue-on-error: >- # TODO: fix failing tests
@@ -276,7 +296,7 @@ jobs:
         if: >-
           ${{
             !cancelled()
-            && matrix.special != 'clang-tidy'
+            && matrix.special != 'tidy'
             && steps.build.outcome == 'success'
           }}
         continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
@@ -299,6 +319,19 @@ jobs:
           path: "test-output/**/*.xml"
           if-no-files-found: error
           retention-days: 1
+      - name: Generate and upload coverage report
+        uses: ./.github/actions/generate-coverage
+        if: >-
+          ${{
+            matrix.special == 'codecov'
+            && !cancelled()
+            && steps.unittest.outcome == 'success'
+            && steps.apptest.outcome == 'success'
+          }}
+        with:
+          codecov_token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: true
+          gcov_executable: ${{env.GCOV}}
 
       ### INSTALL ###
 
@@ -309,7 +342,8 @@ jobs:
             !cancelled()
             && steps.build.outcome == 'success'
             && matrix.special != 'asanlite'
-            && matrix.special != 'clang-tidy'
+            && matrix.special != 'codecov'
+            && matrix.special != 'tidy'
           }}
         env:
           CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
@@ -322,7 +356,7 @@ jobs:
           ${{
             !cancelled()
             && steps.build.outcome == 'success'
-            && matrix.special != 'clang-tidy'
+            && matrix.special != 'tidy'
           }}
         working-directory: build
         run: |
@@ -335,7 +369,7 @@ jobs:
           }}
         working-directory: install
         run: |
-          for exe in orange-update celer-export-geant \
+          for exe in orange-update celer-geo celer-export-geant \
             celer-sim celer-g4; do
             test -x "bin/${exe}"
           done
@@ -348,7 +382,7 @@ jobs:
         if: >-
           ${{
             matrix.special != 'asanlite'
-            && matrix.special != 'clang-tidy'
+            && matrix.special != 'tidy'
           }}
         run: |
           . ${SPACK_VIEW}/rc

@@ -93,20 +93,20 @@ StackedExtrudedPolygon::StackedExtrudedPolygon(std::string&& label,
     CELER_VALIDATE(polyline_.size() == scaling_.size(),
                    << "polyline and scaling must be the same size");
 
-    // Validate that z coordinates are strictly increasing
+    // Validate that z coordinates are nondecreasing
     CELER_VALIDATE(std::adjacent_find(polyline_.begin(),
                                       polyline_.end(),
                                       [](auto const& a, auto const& b) {
-                                          return a[Z] >= b[Z];
+                                          return a[Z] > b[Z];
                                       })
                        == polyline_.end(),
-                   << "z coordinates must be strictly increasing");
+                   << "z coordinates must be nondecreasing");
 
     // Validate scaling factors
     CELER_VALIDATE(std::all_of(scaling_.begin(),
                                scaling_.end(),
-                               [](auto& s) { return s > 0; }),
-                   << "scaling factor must be positive");
+                               [](auto& s) { return s >= 0; }),
+                   << "scaling factor must be nonnegative");
 }
 
 //---------------------------------------------------------------------------//
@@ -187,18 +187,30 @@ StackedExtrudedPolygon::make_stack(detail::VolumeBuilder& vb,
                                    StackedExtrudedPolygon::SubRegionIndex si) const
 {
     std::vector<NodeId> nodes;
-    nodes.resize(polyline_.size() - 1);
+    SoftEqual<real_type> soft_equal(vb.tol().rel, vb.tol().abs);
+    SoftZero<real_type> soft_zero(vb.tol().abs);
 
+    // Add to the stack: all polyline segments with non-zero z length and
+    // non-zero radii
     for (auto i : range(polyline_.size() - 1))
     {
-        // Create the ExtrudedPolygon for this segment
-        ExtrudedPolygon shape{polygon,
-                              {polyline_[i], scaling_[i]},
-                              {polyline_[i + 1], scaling_[i + 1]}};
+        CELER_VALIDATE(soft_zero(scaling_[i]) == soft_zero(scaling_[i + 1])
+                           || soft_equal(polyline_[i][Z], polyline_[i + 1][Z]),
+                       << "non-zero-length polyline segment cannot have "
+                          "scaling = 0 on exactly one z plane");
 
-        // Build this segment with unique label
-        nodes[i] = build_intersect_region(
-            vb, label_, this->make_segment_ext(si, i), shape);
+        if (!soft_equal(polyline_[i][Z], polyline_[i + 1][Z])
+            && !soft_zero(scaling_[i]))
+        {
+            // Create the ExtrudedPolygon for this segment
+            ExtrudedPolygon shape{polygon,
+                                  {polyline_[i], scaling_[i]},
+                                  {polyline_[i + 1], scaling_[i + 1]}};
+
+            // Build this segment with unique label
+            nodes.push_back(build_intersect_region(
+                vb, label_, this->make_segment_ext(si, i), shape));
+        }
     }
 
     // Create a union of all segments

@@ -90,13 +90,24 @@ struct WavelengthShiftingOptions
 
     //! True if the process is activated
     explicit operator bool() const { return enable; }
+
+    //! Return instance with WLS deactivated
+    static WavelengthShiftingOptions deactivated()
+    {
+        WavelengthShiftingOptions result;
+        result.enable = false;
+        return result;
+    }
 };
 
 //! Equality operator, mainly for test harness
 constexpr bool operator==(WavelengthShiftingOptions const& a,
                           WavelengthShiftingOptions const& b)
 {
-    return a.enable == b.enable && a.time_profile == b.time_profile;
+    if (!a.enable && !b.enable)
+        return true;
+
+    return a.time_profile == b.time_profile;
 }
 
 //---------------------------------------------------------------------------//
@@ -174,8 +185,8 @@ struct GeantOpticalPhysicsOptions
         GeantOpticalPhysicsOptions opts;
         opts.cherenkov.enable = false;
         opts.scintillation.enable = false;
-        opts.wavelength_shifting.enable = false;
-        opts.wavelength_shifting2.enable = false;
+        opts.wavelength_shifting = WavelengthShiftingOptions::deactivated();
+        opts.wavelength_shifting2 = WavelengthShiftingOptions::deactivated();
         opts.boundary.enable = false;
         opts.absorption = false;
         opts.rayleigh_scattering = false;

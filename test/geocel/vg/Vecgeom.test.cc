@@ -143,14 +143,12 @@ TEST_F(FourLevelsVgdmlTest, accessors)
 
 TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 {
-    // Templated test
-    FourLevelsGeoTest::test_consecutive_compute(this);
+    this->impl().test_consecutive_compute();
 }
 
 TEST_F(FourLevelsVgdmlTest, detailed_track)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(FourLevelsVgdmlTest, trace)
@@ -257,7 +255,7 @@ using SimpleCmsVgdmlTest
 TEST_F(SimpleCmsVgdmlTest, accessors)
 {
     auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ(2, geom.num_volume_levels());
     EXPECT_EQ(7, geom.impl_volumes().size());
 }
 
@@ -268,8 +266,7 @@ TEST_F(SimpleCmsVgdmlTest, trace)
 
 TEST_F(SimpleCmsVgdmlTest, detailed_track)
 {
-    // Templated test
-    SimpleCmsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
@@ -382,7 +379,7 @@ TEST_F(SolidsVgdmlTest, accessors)
     }
 
     auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ(2, geom.num_volume_levels());
 
     if (vecgeom_version < Version(1, 2, 2))
     {
@@ -434,8 +431,22 @@ TEST_F(TwoBoxesVgdmlTest, accessors)
 
 TEST_F(TwoBoxesVgdmlTest, detailed_track)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
+}
+
+TEST_F(TwoBoxesVgdmlTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesVgdmlTest, tangent)
+{
+    this->impl().test_tangent();
+}
+
+TEST_F(TwoBoxesVgdmlTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//

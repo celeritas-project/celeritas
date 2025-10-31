@@ -17,6 +17,7 @@
 #include "geocel/LazyGeantGeoManager.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/user/SDParams.hh"
 
 #include "Test.hh"
@@ -53,7 +54,6 @@ struct Primary;
 
 namespace optical
 {
-class CoreParams;
 class MaterialParams;
 class PhysicsParams;
 class SurfacePhysicsParams;
@@ -166,6 +166,8 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstOpticalSurfacePhysics const& optical_surface_physics() const;
     inline SPConstScintillation const& scintillation() const;
     //!@}
+
+    optical::CoreParams::Input optical_params_input();
 
     SPConstPrimariesAction const& primaries_action();
     void

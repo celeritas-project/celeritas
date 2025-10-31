@@ -6,9 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/Types.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
@@ -26,6 +28,45 @@ inline CELER_FUNCTION bool
 is_entering_surface(Real3 const& dir, Real3 const& normal)
 {
     return dot_product(dir, normal) < 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the next track surface position in the given direction.
+ *
+ * Type-safe operation to ensure direction is only added in track-local frames.
+ * Uses unsigned underflow when moving reverse (dir = -1) while on a
+ * pre-surface (pos = 0) to wrap to an invalid position value.
+ */
+CELER_FORCEINLINE_FUNCTION SurfaceTrackPosition
+next_subsurface_position(SurfaceTrackPosition pos, SubsurfaceDirection dir)
+{
+    CELER_EXPECT(pos);
+    return SurfaceTrackPosition{
+        pos.unchecked_get()
+        + static_cast<SurfaceTrackPosition::size_type>(to_signed_offset(dir))};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate subsurface direction from a track's geometry direction.
+ */
+inline CELER_FUNCTION SubsurfaceDirection
+calc_subsurface_direction(Real3 const& geo_dir, Real3 const& normal)
+{
+    return static_cast<SubsurfaceDirection>(
+        is_entering_surface(geo_dir, normal));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate geometric reflection of an incident vector about a normal.
+ */
+[[nodiscard]] inline CELER_FUNCTION Real3
+geometric_reflected_from(Real3 dir, Real3 const& normal)
+{
+    axpy(-2 * dot_product(dir, normal), normal, &dir);
+    return dir;
 }
 
 //---------------------------------------------------------------------------//

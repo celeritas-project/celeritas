@@ -15,7 +15,7 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 set(_harness_sources
   AssertionHelper.cc
   Test.cc
-  testdetail/JsonComparer.json.cc
+  testdetail/JsonComparer.cc
   testdetail/NonMasterResultPrinter.cc
   testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
@@ -40,7 +40,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     "$<$<COMPILE_LANGUAGE:CXX>:-Wno-array-bounds;-Wno-stringop-overflow;-Wno-uninitialized>"
   )
 endif()
-
 
 #-----------------------------------------------------------------------------#
 # TEST OPTIONS

@@ -140,6 +140,7 @@ CherenkovOffload::operator()(Generator& rng)
                                                       * step_length_)(rng);
     if (data.num_photons > 0)
     {
+        data.type = GeneratorType::cherenkov;
         data.time = pre_step_.time;
         data.step_length = step_length_;
         data.charge = charge_;

@@ -9,11 +9,11 @@
 #include <utility>
 
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/Label.hh"
 
 #include "ObjectIO.json.hh"
 
-#include "detail/CsgUnitBuilder.hh"
-#include "detail/VolumeBuilder.hh"
+#include "detail/VolumeBuilder.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {

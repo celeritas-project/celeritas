@@ -61,26 +61,26 @@ void move_back(std::vector<Label>& dst, UniverseInserter::VecVarLabel&& src)
  * Push back initial zeros on construction.
  */
 UniverseInserter::UniverseInserter(SPConstVolumes volume_params,
-                                   VecLabel* universe_labels,
+                                   VecLabel* univ_labels,
                                    VecLabel* surface_labels,
                                    VecLabel* volume_labels,
                                    Data* data)
     : volume_params_{std::move(volume_params)}
-    , universe_labels_{universe_labels}
+    , univ_labels_{univ_labels}
     , surface_labels_{surface_labels}
     , volume_labels_{volume_labels}
-    , types_(&data->universe_types)
-    , indices_(&data->universe_indices)
-    , surfaces_{&data->universe_indexer_data.surfaces}
-    , volumes_{&data->universe_indexer_data.volumes}
+    , types_(&data->univ_types)
+    , indices_(&data->univ_indices)
+    , surfaces_{&data->univ_indexer_data.surfaces}
+    , volumes_{&data->univ_indexer_data.volumes}
     , volume_ids_{&data->volume_ids}
     , volume_instance_ids_{&data->volume_instance_ids}
 {
-    CELER_EXPECT(universe_labels_ && surface_labels_ && volume_labels_ && data);
+    CELER_EXPECT(univ_labels_ && surface_labels_ && volume_labels_ && data);
     CELER_EXPECT(types_.size() == 0);
     CELER_EXPECT(surfaces_.size() == 0);
 
-    std::fill(num_universe_types_.begin(), num_universe_types_.end(), 0u);
+    std::fill(num_univ_types_.begin(), num_univ_types_.end(), 0u);
 
     // Add initial zero offset for universe indexer
     surfaces_.push_back(accum_surface_);
@@ -91,19 +91,19 @@ UniverseInserter::UniverseInserter(SPConstVolumes volume_params,
 /*!
  * Accumulate the number of local surfaces and volumes.
  */
-UniverseId UniverseInserter::operator()(UniverseType type,
-                                        Label univ_label,
-                                        VecLabel surface_labels,
-                                        VecLabel volume_labels)
+UnivId UniverseInserter::operator()(UnivType type,
+                                    Label univ_label,
+                                    VecLabel surface_labels,
+                                    VecLabel volume_labels)
 {
-    CELER_EXPECT(type != UniverseType::size_);
+    CELER_EXPECT(type != UnivType::size_);
     CELER_EXPECT(!volume_labels.empty());
 
-    UniverseId result = this->update_counters(
+    UnivId result = this->update_counters(
         type, surface_labels.size(), volume_labels.size());
 
     // Append metadata
-    universe_labels_->push_back(std::move(univ_label));
+    univ_labels_->push_back(std::move(univ_label));
     move_back(*surface_labels_, std::move(surface_labels));
     move_back(*volume_labels_, std::move(volume_labels));
 
@@ -114,12 +114,12 @@ UniverseId UniverseInserter::operator()(UniverseType type,
 /*!
  * Accumulate the number of local surfaces and volumes.
  */
-UniverseId UniverseInserter::operator()(UniverseType type,
-                                        Label univ_label,
-                                        VecLabel surface_labels,
-                                        VecVarLabel volume_labels)
+UnivId UniverseInserter::operator()(UnivType type,
+                                    Label univ_label,
+                                    VecLabel surface_labels,
+                                    VecVarLabel volume_labels)
 {
-    CELER_EXPECT(type != UniverseType::size_);
+    CELER_EXPECT(type != UnivType::size_);
     CELER_EXPECT(!volume_labels.empty());
     CELER_EXPECT(
         volume_params_
@@ -128,7 +128,7 @@ UniverseId UniverseInserter::operator()(UniverseType type,
                 return std::holds_alternative<Label>(varlabel);
             }));
 
-    UniverseId result = this->update_counters(
+    UnivId result = this->update_counters(
         type, surface_labels.size(), volume_labels.size());
 
     if (volume_params_)
@@ -171,22 +171,22 @@ UniverseId UniverseInserter::operator()(UniverseType type,
     }
 
     // Append metadata
-    universe_labels_->push_back(std::move(univ_label));
+    univ_labels_->push_back(std::move(univ_label));
     move_back(*surface_labels_, std::move(surface_labels));
     move_back(*volume_labels_, std::move(volume_labels));
 
     return result;
 }
 
-UniverseId UniverseInserter::update_counters(UniverseType type,
-                                             size_type num_surfaces,
-                                             size_type num_volumes)
+UnivId UniverseInserter::update_counters(UnivType type,
+                                         size_type num_surfaces,
+                                         size_type num_volumes)
 {
-    UniverseId result = this->next_univ_id();
+    UnivId result = this->next_univ_id();
 
     // Add universe type and index
     types_.push_back(type);
-    indices_.push_back(num_universe_types_[type]++);
+    indices_.push_back(num_univ_types_[type]++);
 
     // Accumulate and append surface/volumes to universe indexer
     accum_surface_ += num_surfaces;
@@ -194,8 +194,8 @@ UniverseId UniverseInserter::update_counters(UniverseType type,
     surfaces_.push_back(accum_surface_);
     volumes_.push_back(accum_volume_);
 
-    CELER_ENSURE(std::accumulate(num_universe_types_.begin(),
-                                 num_universe_types_.end(),
+    CELER_ENSURE(std::accumulate(num_univ_types_.begin(),
+                                 num_univ_types_.end(),
                                  size_type(0))
                  == types_.size());
     CELER_ENSURE(surfaces_.size() == types_.size() + 1);

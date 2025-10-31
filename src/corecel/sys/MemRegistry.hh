@@ -73,9 +73,6 @@ class MemRegistry
     // Get the entry for an ID
     inline MemUsageEntry const& get(MemUsageId id) const;
 
-    //! Number of memory entries deep
-    size_type depth() const { return stack_.size(); }
-
     //// MUTATORS ////
 
     // Create a new entry and push it onto the stack, returning the new ID

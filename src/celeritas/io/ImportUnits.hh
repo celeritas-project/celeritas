@@ -38,14 +38,6 @@ enum class ImportUnits
     len_time_sq_per_mass,  //!< Inverse pressure [len-time^2/mass]
     inv_mev,  //!< Inverse energy [1/MeV]
     size_,
-    // Deprecated aliases
-    none = unitless,  //!< Deprecated
-    mev_per_cm = mev_per_len,  //!< Deprecated
-    cm = len,  //!< Deprecated
-    cm_inv = len_inv,  //!< Deprecated
-    cm_mev_inv = len_mev_inv,  //!< Deprecated
-    mev_2_per_cm = mev_sq_per_len,  //!< Deprecated
-    cm_2 = len_sq,  //!< Deprecated
 };
 
 //---------------------------------------------------------------------------//

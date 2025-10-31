@@ -126,8 +126,6 @@ auto build_physics(inp::Problem const& p,
                    CoreParams::Input const& params,
                    ImportData const& imported)
 {
-    CELER_ASSUME(p.physics.em);
-
     PhysicsParams::Input input;
     input.particles = params.particle;
     input.materials = params.material;
@@ -167,7 +165,7 @@ auto build_physics(inp::Problem const& p,
         = imported.em_params.msc_muhad_step_algorithm;
 
     // Build processes
-    input.processes = build_physics_processes(*p.physics.em, params, imported);
+    input.processes = build_physics_processes(p.physics.em, params, imported);
 
     return std::make_shared<PhysicsParams>(std::move(input));
 }
@@ -287,8 +285,12 @@ auto build_along_step(inp::Field const& var_field,
 /*!
  * Construct optical parameters.
  */
-auto build_optical_params(CoreParams const& core, ImportData const& imported)
+auto build_optical_params(inp::OpticalPhysics const& optical,
+                          CoreParams const& core,
+                          ImportData const& imported)
 {
+    CELER_EXPECT(optical);
+
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
                       "materials are present");
@@ -324,7 +326,18 @@ auto build_optical_params(CoreParams const& core, ImportData const& imported)
 
     // Construct optical surface physics models
     params.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
-        params.action_reg.get(), imported.optical_physics.surfaces);
+        params.action_reg.get(), optical.surfaces);
+
+    // Add photon generating processes
+    if (optical.cherenkov)
+    {
+        params.cherenkov = std::make_shared<CherenkovParams>(*params.material);
+    }
+    if (optical.scintillation)
+    {
+        params.scintillation
+            = ScintillationParams::from_import(imported, core.particle());
+    }
 
     //! \todo Get sensitive detectors
 
@@ -337,29 +350,20 @@ auto build_optical_params(CoreParams const& core, ImportData const& imported)
 /*!
  * Construct optical tracking offload.
  */
-auto build_optical_offload(inp::Problem const& p,
-                           CoreParams const& params,
-                           ImportData const& imported)
+auto build_optical_offload(
+    inp::Problem const& p,
+    CoreParams const& params,
+    std::shared_ptr<optical::CoreParams> const& optical_params)
 {
+    CELER_EXPECT(std::holds_alternative<inp::OpticalEmGenerator>(
+        p.physics.optical_generator));
+
+    CELER_VALIDATE(optical_params->cherenkov()
+                       || optical_params->scintillation(),
+                   << "failed to construct optical offload procesess");
+
     OpticalCollector::Input oc_inp;
-    oc_inp.optical_params = build_optical_params(params, imported);
-
-    CELER_ASSERT(p.physics.optical);
-    inp::OpticalPhysics const& opt = *p.physics.optical;
-
-    // Add photon generating processes
-    if (opt.cherenkov)
-    {
-        oc_inp.cherenkov = std::make_shared<CherenkovParams>(
-            *oc_inp.optical_params->material());
-    }
-    if (opt.scintillation)
-    {
-        oc_inp.scintillation
-            = ScintillationParams::from_import(imported, params.particle());
-        CELER_VALIDATE(oc_inp.scintillation,
-                       << "failed to construct scintillation process");
-    }
+    oc_inp.optical_params = optical_params;
 
     // Map from optical capacity
     CELER_ASSERT(p.control.optical_capacity);
@@ -470,7 +474,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     // Construct simulation params
     params.sim = std::make_shared<SimParams>([&] {
         auto input = SimParams::Input::from_import(
-            imported, params.particle, p.tracking.limits.field_substeps);
+            imported, params.particle, p.tracking.limits);
         return input;
     }());
 
@@ -634,18 +638,39 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.control.optical_capacity)
     {
-        CELER_VALIDATE(p.physics.optical,
-                       << "optical physics options are required to construct "
-                          "an optical tracking loop");
-
         if (core_params->surface()->empty())
         {
             CELER_LOG(warning) << "Problem contains optical physics without "
-                                  "any surface definitions";
+                                  "any geometry surface definitions: default "
+                                  "physics will be used for all surfaces";
         }
+        CELER_ASSERT(p.physics.optical);
 
-        result.optical_collector
-            = build_optical_offload(p, *core_params, imported);
+        result.optical_params
+            = build_optical_params(p.physics.optical, *core_params, imported);
+
+        std::visit(Overload{
+                       [&](inp::OpticalEmGenerator) {
+                           // Generate optical photons from Cherenkov or
+                           // scintillation
+                           result.optical_collector = build_optical_offload(
+                               p, *core_params, result.optical_params);
+                       },
+                       [](inp::OpticalOffloadGenerator) {},
+                       [](inp::OpticalPrimaryGenerator) {
+                           //! \todo Enable optical primary generator
+                           CELER_NOT_IMPLEMENTED("optical primary generator");
+                       },
+                   },
+                   p.physics.optical_generator);
+    }
+    else
+    {
+        CELER_VALIDATE(imported.optical_models.empty(),
+                       << "optical physics models were imported but no "
+                          "optical capacity was set. Either define optical "
+                          "tracking loop parameters, or ignore optical "
+                          "physics");
     }
 
     if (result.root_manager)

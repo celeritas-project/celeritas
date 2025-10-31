@@ -27,7 +27,6 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
@@ -150,14 +149,8 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
     celeritas::global_volumes(volume_);
     surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
 
-    if (mi.detectors)
-    {
-        detector_ = std::make_shared<SDParams>(*core_geo, mi.detectors);
-    }
-    else
-    {
-        detector_ = std::make_shared<SDParams>();
-    }
+    detector_ = std::make_shared<SDParams>(*core_geo, mi.detectors);
+    std::cout << "Detector size " << mi.detectors.detectors.size() << std::endl;
 
     return core_geo;
 }
@@ -187,7 +180,7 @@ auto GlobalTestBase::build_optical_action_reg() const -> SPActionRegistry
 }
 
 //---------------------------------------------------------------------------//
-auto GlobalTestBase::build_optical_params() -> SPOpticalParams
+optical::CoreParams::Input GlobalTestBase::optical_params_input()
 {
     optical::CoreParams::Input inp;
     inp.geometry = this->geometry();
@@ -199,10 +192,17 @@ auto GlobalTestBase::build_optical_params() -> SPOpticalParams
     inp.physics = this->optical_physics();
     inp.surface_physics = this->optical_surface_physics();
     inp.detectors = this->detector();
+    inp.cherenkov = this->cherenkov();
+    inp.scintillation = this->scintillation();
 
     CELER_ENSURE(inp);
+    return inp;
+}
 
-    return std::make_shared<optical::CoreParams>(std::move(inp));
+//---------------------------------------------------------------------------//
+auto GlobalTestBase::build_optical_params() -> SPOpticalParams
+{
+    return std::make_shared<optical::CoreParams>(this->optical_params_input());
 }
 
 //---------------------------------------------------------------------------//
@@ -217,10 +217,6 @@ auto GlobalTestBase::build_core() -> SPConstCore
     if (!volume_)
     {
         volume_ = std::make_shared<VolumeParams>();
-    }
-    if (!detector_)
-    {
-        detector_ = std::make_shared<SDParams>();
     }
 
     inp.cutoff = this->cutoff();

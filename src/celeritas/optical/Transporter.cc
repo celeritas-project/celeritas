@@ -12,6 +12,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "CoreParams.hh"
@@ -37,18 +38,17 @@ Transporter::Transporter(Input&& inp)
 /*!
  * Transport all pending optical tracks on the host.
  */
-void Transporter::operator()(CoreStateHost& state) const
+void Transporter::operator()(CoreStateBase& state) const
 {
-    this->transport_impl(state);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Transport all pending optical tracks on the device.
- */
-void Transporter::operator()(CoreStateDevice& state) const
-{
-    this->transport_impl(state);
+    if (auto* s = dynamic_cast<CoreStateHost*>(&state))
+    {
+        return this->transport_impl(*s);
+    }
+    else if (auto* s = dynamic_cast<CoreStateDevice*>(&state))
+    {
+        return this->transport_impl(*s);
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -68,9 +68,11 @@ void Transporter::transport_impl(CoreState<M>& state) const
     // Loop while photons are yet to be tracked
     while (counters.num_pending > 0 || counters.num_alive > 0)
     {
+        ScopedProfiling profile_this{"optical-step"};
         // Loop through actions
         for (auto const& action : actions_->step())
         {
+            ScopedProfiling profile_this{action->label()};
             action->step(*params_, state);
         }
 

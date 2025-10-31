@@ -58,7 +58,7 @@ RayleighInteractor::RayleighInteractor(ParticleTrackView const& particle,
 {
     CELER_EXPECT(is_soft_unit_vector(inc_dir_));
     CELER_EXPECT(is_soft_unit_vector(inc_pol_));
-    CELER_EXPECT(soft_zero(dot_product(inc_dir_, inc_pol_)));
+    CELER_EXPECT(is_soft_orthogonal(inc_dir_, inc_pol_));
 }
 
 //---------------------------------------------------------------------------//
@@ -73,9 +73,6 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
     Real3& new_pol = result.polarization;
 
     IsotropicDistribution sample_direction{};
-    // Note that the test for orthogonality should use relative tolerance, not
-    // absolute
-    SoftZero const soft_zero{SoftEqual{}.rel()};
     do
     {
         do
@@ -87,7 +84,7 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
 
             // Reject rare case of polarization and new direction being
             // coincident leading to loss of orthogonality
-        } while (CELER_UNLIKELY(!soft_zero(dot_product(new_pol, new_dir))));
+        } while (CELER_UNLIKELY(!is_soft_orthogonal(new_pol, new_dir)));
 
         if (!BernoulliDistribution{0.5}(rng))
         {
@@ -102,7 +99,7 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
 
     CELER_ENSURE(is_soft_unit_vector(new_dir));
     CELER_ENSURE(is_soft_unit_vector(new_pol));
-    CELER_ENSURE(soft_zero(dot_product(new_pol, new_dir)));
+    CELER_ENSURE(is_soft_orthogonal(new_pol, new_dir));
 
     return result;
 }

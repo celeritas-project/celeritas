@@ -35,10 +35,11 @@ struct VecgeomScalars
 {
     template<MemSpace M>
     using PlacedVolumeT = typename detail::VecgeomTraits<M>::PlacedVolume;
+    using vol_level_uint = VolumeLevelId::size_type;
 
     PlacedVolumeT<MemSpace::host> const* host_world{nullptr};
     PlacedVolumeT<MemSpace::device> const* device_world{nullptr};
-    LevelId::size_type max_depth = 0;
+    vol_level_uint num_volume_levels{0};
 
     template<MemSpace M>
     CELER_FUNCTION PlacedVolumeT<M> const* world() const
@@ -59,7 +60,7 @@ struct VecgeomScalars
     //! Whether the scalars are valid (device may be null)
     explicit CELER_FUNCTION operator bool() const
     {
-        return host_world != nullptr && max_depth > 0;
+        return host_world != nullptr && num_volume_levels > 0;
     }
 };
 
@@ -123,7 +124,7 @@ struct VecgeomStateData
     // Collections
     Items<Real3> pos;
     Items<Real3> dir;
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     Items<long> next_surface;
 #endif
 
@@ -137,7 +138,7 @@ struct VecgeomStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return this->size() > 0 && dir.size() == this->size()
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
                && next_surface.size() == this->size()
 #endif
                && vgstate && vgnext;
@@ -156,7 +157,7 @@ struct VecgeomStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
         next_surface = other.next_surface;
 #endif
         vgstate = other.vgstate;
@@ -180,11 +181,11 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 
     resize(&data->pos, size);
     resize(&data->dir, size);
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     resize(&data->next_surface, size);
 #endif
-    data->vgstate.resize(params.scalars.max_depth, size);
-    data->vgnext.resize(params.scalars.max_depth, size);
+    data->vgstate.resize(params.scalars.num_volume_levels, size);
+    data->vgnext.resize(params.scalars.num_volume_levels, size);
 
     CELER_ENSURE(data);
 }

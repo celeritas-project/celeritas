@@ -10,6 +10,7 @@
 #include <string>
 
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/rasterize/Image.hh"
 
@@ -49,16 +50,20 @@ class Runner
     explicit Runner(ModelSetup const& input);
 
     // Perform a raytrace
-    SPImage operator()(TraceSetup const&, ImageInput const&);
+    SPImage trace(TraceSetup const&, ImageInput const&);
 
     // Perform a raytrace using the last image but a new geometry
-    SPImage operator()(TraceSetup const&);
+    SPImage trace(TraceSetup const&);
 
     //! Access timers
     MapTimers const& timers() const { return timers_; }
 
     //! Access volumes
     std::vector<std::string> get_volumes(Geometry) const&;
+
+    //! Load a geometry
+    template<Geometry G>
+    std::shared_ptr<GeoParams_t<G> const> load_geometry();
 
   private:
     //// TYPES ////
@@ -73,16 +78,13 @@ class Runner
     //// DATA ////
 
     ModelSetup input_;
+    TracingSession tracing_;
     GeoArray<SPConstGeometry> geo_cache_;
     SPImageParams last_image_;
     std::string imager_name_;
     MapTimers timers_;
 
     //// HELPER FUNCTIONS ////
-
-    // Load a geometry
-    template<Geometry G>
-    std::shared_ptr<GeoParams_t<G> const> load_geometry();
 
     // Create a tracer
     SPImager make_imager(Geometry);

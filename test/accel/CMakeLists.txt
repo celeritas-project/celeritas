@@ -43,44 +43,67 @@ celeritas_add_test(RZMapMagneticField.test.cc)
 #-----------------------------------------------------------------------------#
 # INTEGRATION TESTS
 #-----------------------------------------------------------------------------#
-set(_integration_tests
-  UserActionIntegration
-  TrackingManagerIntegration
-)
-foreach(_basename IN LISTS _integration_tests)
-  # Create the executable
-  set(_target "${CELERITASTEST_DIR}_${_basename}")
-  set(_name "${CELERITASTEST_DIR}/${_basename}")
 
-  add_executable(${_target} "${_basename}.test.cc")
-  set_property(TARGET ${_target}
-    PROPERTY OUTPUT_NAME "${_basename}"
-  )
-  celeritas_target_link_libraries(${_target}
-    ${CELERITASTEST_LINK_LIBRARIES}
-    ${_g4_libs}
-    testcel_harness
-  )
+function(celeritas_add_integration_tests basename suite test)
+  set(_target "${CELERITASTEST_DIR}_${basename}")
+  set(_name "${CELERITASTEST_DIR}/${basename}")
 
-  # Add every combination of test for the LAr sphere
-  foreach(_suite LarSphere)
-    foreach(_test run)
-      celeritas_g4_add_tests(${_target}
-        NAME "${_name}:${_suite}.${_test}"
-        ARGS "--gtest_filter=${_suite}.${_test}"
-        LABELS unit
-      )
-    endforeach()
-  endforeach()
+  if(NOT TARGET "${_target}")
+    add_executable(${_target} "${basename}.test.cc")
+    set_property(TARGET ${_target}
+      PROPERTY OUTPUT_NAME "${basename}"
+    )
+    celeritas_target_link_libraries(${_target}
+      ${CELERITASTEST_LINK_LIBRARIES}
+      ${_g4_libs}
+      testcel_harness
+    )
+  endif()
 
-  # Do TestEm3 only with celeritas cpu serial
-  celeritas_g4_add_one_test(
-    "${_name}:TestEm3.run:cpu:serial"
-    ${_target}
-    "--gtest_filter=TestEm3.run"
-    ""
-    cpu serial
+  celeritas_g4_add_tests(${_target}
+    NAME "${_name}:${suite}.${test}"
+    ARGS "--gtest_filter=${suite}.${test}"
+    LABELS unit
+    ${ARGN}
   )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration)
+  # Add every combination of test for LArSphere.run
+  celeritas_add_integration_tests(${_basename} LarSphere run)
+
+  # Do TestEm3 only with celeritas cpu/gpu and serial run manager
+  celeritas_add_integration_tests(${_basename} TestEm3 run
+    OFFLOAD cpu gpu
+    RMTYPE serial
+  )
+  # Test OpNovice
+  celeritas_add_integration_tests(
+    ${_basename} OpNoviceOptical run
+    OFFLOAD cpu gpu g4
+    RMTYPE ${_optical_rm_type})
 endforeach()
+
+# Test that the UI integration works (and ignores if Celeritas is disabled)
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LarSphere run_ui
+  OFFLOAD cpu g4
+  RMTYPE serial mt
+)
+
+set(_optical_rm_type "serial")
+if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
+  list(APPEND _optical_rm_type "mt")
+endif()
+
+# Test with optical physics, except that currently trying to use Geant4
+# navigation for the optical tracks wreaks havoc
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LarSphereOptical run
+  OFFLOAD cpu gpu g4
+  RMTYPE ${_optical_rm_type}
+)
 
 #-----------------------------------------------------------------------------#

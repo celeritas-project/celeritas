@@ -95,12 +95,12 @@ auto PhysicsParams::model(ModelId mid) const -> SPConstModel
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the action identifierss for all optical models.
+ * Get the action identifiers for all optical models.
  */
 auto PhysicsParams::model_actions() const -> ActionIdRange
 {
-    auto offset = host_ref().scalars.model_to_action;
-    return {ActionId{offset}, ActionId{offset + this->num_models()}};
+    auto offset = host_ref().scalars.first_model_action;
+    return {offset, offset + this->num_models()};
 }
 
 //---------------------------------------------------------------------------//

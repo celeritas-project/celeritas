@@ -9,7 +9,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 
 class G4VSolid;
@@ -76,6 +75,7 @@ class SolidConverter
     result_type generictrap(arg_type);
     result_type hype(arg_type);
     result_type intersectionsolid(arg_type);
+    result_type multiunion(arg_type);
     result_type orb(arg_type);
     result_type para(arg_type);
     result_type paraboloid(arg_type);

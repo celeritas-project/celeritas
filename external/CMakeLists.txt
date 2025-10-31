@@ -47,13 +47,18 @@ endif()
 
 if(CELERITAS_BUILTIN_covfie)
   celer_fetch_external(
-    covfie 0.14.0
+    covfie 0.15.3
     "https://github.com/acts-project/covfie/archive/refs/tags/v@VERSION@.tar.gz"
-    b4d8afa712c6fc0e2bc6474367d65fad652864b18d0255c5f2c18fd4c6943993
+    72da1147c44731caf9163f3931de78d7605a44f056f22a2f6ea024ad02a1ba71
   )
   set(COVFIE_PLATFORM_CPU ON)
   set(COVFIE_PLATFORM_CUDA ${CELERITAS_USE_CUDA})
   set(COVFIE_PLATFORM_HIP ${CELERITAS_USE_HIP})
+  set(COVFIE_PLATFORM_SYCL OFF)
+  set(COVFIE_BUILD_BENCHMARKS OFF)
+  set(COVFIE_BUILD_EXAMPLES OFF)
+  set(COVFIE_BUILD_TESTS OFF)
+  set(COVFIE_FAIL_ON_WARNINGS OFF)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -62,9 +67,9 @@ endif()
 
 if(CELERITAS_BUILTIN_GTest)
   celer_fetch_external(
-    GTest 1.15.2
+    GTest 1.17.0
     "https://github.com/google/googletest/archive/refs/tags/v@VERSION@.tar.gz"
-    7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926
+    65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c
   )
 
   set(BUILD_GMOCK OFF) # For compatibility
@@ -79,9 +84,9 @@ endif()
 
 if(CELERITAS_BUILTIN_nlohmann_json)
   celer_fetch_external(
-    nlohmann_json 3.11.3
-    "https://github.com/nlohmann/json/archive/v@VERSION@.tar.gz"
-    0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
+    nlohmann_json 3.12.0
+    "https://github.com/nlohmann/json/releases/download/v@VERSION@/json.tar.xz"
+    42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
   )
 
   set(JSON_Install ON)
@@ -108,9 +113,9 @@ endif()
 
 if(CELERITAS_BUILTIN_G4VG)
   celer_fetch_external(
-    G4VG 1.0.4
+    G4VG 1.0.5
     "https://github.com/celeritas-project/g4vg/releases/download/v@VERSION@/g4vg-@VERSION@.tar.gz"
-    ac38878aedaf9fe628f498290cf4fa6cdd21980b7b83663ce8ef3c8f3ff31cb2
+    fa44d071aaf95de596f7b22d2062830acd7e154a3bc9d67ad5a306eff64630d2
   )
   foreach(_var BUILD_TESTS DEBUG)
     set(G4VG_${_var} ${CELERITAS_${_var}})

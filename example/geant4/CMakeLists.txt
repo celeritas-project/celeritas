@@ -3,11 +3,10 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.18...4.1)
 project(CeleritasAccelExample VERSION 0.0.1 LANGUAGES CXX)
-cmake_policy(VERSION 3.12...3.30)
 
-find_package(Celeritas 0.6 REQUIRED)
+find_package(Celeritas 0.7 REQUIRED)
 find_package(Geant4 REQUIRED)
 
 if(NOT CELERITAS_USE_Geant4)

@@ -96,7 +96,7 @@ int get_geant_thread_id()
 /*!
  * Print a particle definition name and PDG.
  */
-std::ostream& operator<<(std::ostream& os, PrintablePD const& ppd)
+std::ostream& operator<<(std::ostream& os, StreamablePD const& ppd)
 {
     if (ppd.pd)
     {
