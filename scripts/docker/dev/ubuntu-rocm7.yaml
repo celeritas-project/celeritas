@@ -1,14 +1,13 @@
 spack:
   specs:
-    - adios2
     - cli11
-    - "covfie@0.14:"
+    # - "covfie@0.14:" #TODO: uncomment when upgrading spack
     - cmake
     - "geant4@11.0"
     - git
     - "googletest@1.10:"
     - hepmc3
-    - mpi
+      #- mpi #TODO: uncomment when upgrading
     - ninja
     - nlohmann-json
     - "python@3.6:"
