@@ -292,9 +292,8 @@ make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
     // Fill local levels
     for (auto lv_id : range(id_cast<LocalVolumeId>(local_parents.size())))
     {
-        if (!local_parents[lv_id.get()])
+        if (local_vol_level[lv_id.get()] != not_visited)
         {
-            // Not an embedded volume
             continue;
         }
         stack.push_back(lv_id);
@@ -305,7 +304,7 @@ make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
 
             auto child = stack.back();
             auto parent = local_parents[child.get()];
-            vol_level_uint child_level;
+            vol_level_uint child_level{not_visited};
             if (parent)
             {
                 child_level = local_vol_level[parent.get()];
@@ -328,6 +327,7 @@ make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
             }
 
             // Save local level
+            CELER_ASSERT(child_level != not_visited);
             local_vol_level[child.get()] = child_level;
             stack.pop_back();
         }
