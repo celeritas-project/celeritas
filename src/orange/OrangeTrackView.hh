@@ -480,6 +480,7 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(!params_.volume_instance_ids.empty());
 
+    // Start with the number of universes deep since each is a volume embedding
     vol_level_uint result = this->univ_level().get();
     TrackerVisitor visit_tracker{params_};
 
@@ -491,9 +492,8 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
         result += visit_tracker(
             [vol = lsa.vol()](auto&& t) { return t.local_vol_level(vol); },
             lsa.univ());
-        // A universe is always an additional volume level
-        result += 1;
     }
+
     return VolumeLevelId{result};
 }
 
