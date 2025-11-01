@@ -220,7 +220,9 @@ TEST_F(ConverterTest, multilevel)
         EXPECT_EQ(7, unit.surfaces.size());
 
         static char const* const expected_local_parent_map[] = {
-            "FIXME",
+            "boxsph1@0->[BG]@box",
+            "boxsph2@0->[BG]@box",
+            "boxtri@0->[BG]@box",
         };
         EXPECT_VEC_EQ(expected_local_parent_map, this->local_parent_map(unit));
     }
@@ -233,9 +235,11 @@ TEST_F(ConverterTest, multilevel)
         EXPECT_EQ(7, unit.surfaces.size());
 
         static char const* const expected_local_parent_map[] = {
-            "FIXME",
+            "boxsph1@1->[BG]@box_refl",
+            "boxsph2@1->[BG]@box_refl",
+            "boxtri@1->[BG]@box_refl",
         };
-        EXPECT_VEC_EQ(empty_map, this->local_parent_map(unit));
+        EXPECT_VEC_EQ(expected_local_parent_map, this->local_parent_map(unit));
     }
 }
 

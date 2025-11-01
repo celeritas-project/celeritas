@@ -332,6 +332,7 @@ make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
             stack.pop_back();
         }
     }
+
     return local_vol_level;
 }
 

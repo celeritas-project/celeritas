@@ -437,25 +437,10 @@ void UnitProto::build(ProtoBuilder& input) const
             else
             {
                 // Option value is set, but to a "null" ID: parent is
-                // background
-                if (input.next_id() == orange_global_univ)
-                {
-                    // For global universe, background is actually a PV: it's
-                    // the last volume
-                    parent_id
-                        = id_cast<LocalVolumeId>(result.volumes.size() - 1);
-                }
-                else
-                {
-                    // Background is a *volume* not an *instance*
-                    parent_id = {};
-                }
+                // background volume
+                parent_id = id_cast<LocalVolumeId>(result.volumes.size() - 1);
             }
-            if (parent_id)
-            {
-                CELER_ASSERT(parent_id < result.volumes.size());
-                result.local_parent_map.emplace(child_id, parent_id);
-            }
+            result.local_parent_map.emplace(child_id, parent_id);
         }
         ++vol_iter;
     }

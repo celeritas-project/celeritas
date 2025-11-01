@@ -132,8 +132,6 @@ TEST_F(MultiLevelTest, manual_local_depths)
     ImplVolumeId global_vol{0};
     for (auto uid : range(UnivId{universe_labels.size()}))
     {
-        cout << "Universe " << uid.get() << ": " << universe_labels.at(uid)
-             << endl;
         auto num_local_vols = visit_tracker(
             [](auto const& t) { return t.num_volumes(); }, uid);
 
