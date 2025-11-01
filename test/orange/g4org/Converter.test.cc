@@ -219,8 +219,10 @@ TEST_F(ConverterTest, multilevel)
         EXPECT_EQ(5, unit.volumes.size());
         EXPECT_EQ(7, unit.surfaces.size());
 
-        std::vector<char const*> const empty_map;
-        EXPECT_VEC_EQ(empty_map, this->local_parent_map(unit));
+        static char const* const expected_local_parent_map[] = {
+            "FIXME",
+        };
+        EXPECT_VEC_EQ(expected_local_parent_map, this->local_parent_map(unit));
     }
     ASSERT_TRUE(std::holds_alternative<UnitInput>(result.universes[2]));
     {
@@ -230,7 +232,9 @@ TEST_F(ConverterTest, multilevel)
         EXPECT_EQ(5, unit.volumes.size());
         EXPECT_EQ(7, unit.surfaces.size());
 
-        std::vector<char const*> const empty_map;
+        static char const* const expected_local_parent_map[] = {
+            "FIXME",
+        };
         EXPECT_VEC_EQ(empty_map, this->local_parent_map(unit));
     }
 }

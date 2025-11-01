@@ -13,19 +13,18 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
-#include "corecel/OpaqueIdIO.hh"
+#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/io/JsonUtils.json.hh"
-#include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/JsonUtils.json.hh"  // IWYU pragma: keep
+#include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/VolumeToString.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
+#include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "CsgObject.hh"
