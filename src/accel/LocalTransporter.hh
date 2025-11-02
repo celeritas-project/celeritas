@@ -19,6 +19,7 @@
 
 #include "LocalOffloadInterface.hh"
 
+class G4EventManager;
 class G4Track;
 
 namespace celeritas
@@ -53,7 +54,7 @@ class StepperInterface;
  *
  * \todo Rename \c LocalOffload or something?
  */
-class LocalTransporter final : public LocalOffloadBase
+class LocalTransporter final : public LocalOffloadInterface
 {
   public:
     //!@{
@@ -75,8 +76,8 @@ class LocalTransporter final : public LocalOffloadBase
     inline void
     Initialize(SetupOptions const& options, SharedParams& params) final;
 
-    // Reseed the RNG states
-    void Reseed(size_type) final;
+    // Set the event ID and reseed the Celeritas RNG at the start of an event
+    void InitializeEvent(int) final;
 
     // Transport all buffered tracks to completion
     void Flush() final;
@@ -141,6 +142,10 @@ class LocalTransporter final : public LocalOffloadBase
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
     std::shared_ptr<OpticalCollector const> optical_;
+
+    // Current event ID or manager for obtaining it
+    UniqueEventId event_id_;
+    G4EventManager* event_manager_{nullptr};
 
     size_type auto_flush_{};
     size_type max_step_iters_{};

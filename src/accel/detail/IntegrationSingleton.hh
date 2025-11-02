@@ -7,7 +7,6 @@
 #pragma once
 
 #include <memory>
-#include <variant>
 
 #include "corecel/sys/Stopwatch.hh"
 
@@ -58,7 +57,7 @@ class IntegrationSingleton
     //// ACCESSORS ////
 
     // Access the thread-local offload interface
-    LocalOffloadBase& local_offload();
+    LocalOffloadInterface& local_offload();
 
     //! Assign setup options before constructing params
     void setup_options(SetupOptions&&);
@@ -101,7 +100,7 @@ class IntegrationSingleton
   private:
     //// TYPES ////
 
-    using VariantOffload = std::variant<LocalTransporter, LocalOpticalOffload>;
+    using UPOffload = std::unique_ptr<LocalOffloadInterface>;
 
     //// DATA ////
     SetupOptions options_;
@@ -118,7 +117,7 @@ class IntegrationSingleton
     IntegrationSingleton();
 
     // Static thread-local Celeritas state data
-    static std::optional<VariantOffload>& variant_offload();
+    static UPOffload& offload();
 
     // Whether offloading optical distribution data is enabled
     bool optical_offload() const;

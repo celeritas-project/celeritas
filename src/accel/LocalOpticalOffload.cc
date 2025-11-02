@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "LocalOpticalOffload.hh"
 
+#include <G4EventManager.hh>
+#include <G4MTRunManager.hh>
+
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -33,6 +36,7 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
                                          SharedParams& params)
 {
     CELER_EXPECT(options.optical_capacity);
+    CELER_EXPECT(params.optical_params());
 
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local optical offload when Celeritas "
@@ -44,7 +48,7 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
                       "optical offload");
 
     // Check the thread ID and MT model
-    this->validate_threading(params.Params()->max_streams());
+    validate_geant_threading(params.Params()->max_streams());
 
     // Save a pointer to the generator action
     CELER_ASSERT(params.optical_params()->gen_reg()->size() == 1);
@@ -56,7 +60,7 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
     auto const& capacity = *options.optical_capacity;
     auto_flush_ = capacity.primaries;
 
-    StreamId stream_id{static_cast<size_type>(get_geant_thread_id())};
+    auto stream_id = id_cast<StreamId>(get_geant_thread_id());
 
     // Allocate thread-local state data
     auto memspace = celeritas::device() ? MemSpace::device : MemSpace::host;
@@ -99,12 +103,23 @@ void LocalOpticalOffload::Initialize(SetupOptions const& options,
 
 //---------------------------------------------------------------------------//
 /*!
- * Reseed the RNG states.
+ * Set the event ID and reseed the Celeritas RNG at the start of an event.
  */
-void LocalOpticalOffload::Reseed(size_type id)
+void LocalOpticalOffload::InitializeEvent(int id)
 {
     CELER_EXPECT(*this);
-    state_->reseed(transport_->params()->rng(), UniqueEventId{id});
+    CELER_EXPECT(id >= 0);
+
+    event_id_ = id_cast<UniqueEventId>(id);
+
+    if (!(G4Threading::IsMultithreadedApplication()
+          && G4MTRunManager::SeedOncePerCommunication()))
+    {
+        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
+        // using the Geant4 event ID for reproducibility. This guarantees that
+        // an event can be reproduced given the event ID.
+        state_->reseed(transport_->params()->rng(), id_cast<UniqueEventId>(id));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -142,13 +157,32 @@ void LocalOpticalOffload::Flush()
 
     ScopedProfiling profile_this("flush");
 
-    this->check_event_id();
+    //! \todo Duplicated in \c LocalTransporter
+    if (event_manager_ || !event_id_)
+    {
+        if (CELER_UNLIKELY(!event_manager_))
+        {
+            // Save the event manager pointer, thereby marking that
+            // *subsequent* events need to have their IDs checked as well
+            event_manager_ = G4EventManager::GetEventManager();
+            CELER_ASSERT(event_manager_);
+        }
+
+        G4Event const* event = event_manager_->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
+        {
+            // The event ID has changed: reseed it
+            this->InitializeEvent(event->GetEventID());
+        }
+    }
+    CELER_ASSERT(event_id_);
 
     if (celeritas::device())
     {
         CELER_LOG_LOCAL(debug)
             << "Transporting " << num_photons_ << " photons from event "
-            << this->event_id().unchecked_get() << " with Celeritas";
+            << event_id_.unchecked_get() << " with Celeritas";
     }
 
     // Copy the buffered distributions to device

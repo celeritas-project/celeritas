@@ -12,6 +12,8 @@
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4EventManager.hh>
+#include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
@@ -167,11 +169,11 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     bbox_ = params.bbox();
 
     // Check the thread ID and MT model
-    this->validate_threading(params.Params()->max_streams());
+    validate_geant_threading(params.Params()->max_streams());
 
     // Create hit processor on the local thread so that it's deallocated when
     // this object is destroyed
-    StreamId stream_id{static_cast<size_type>(get_geant_thread_id())};
+    auto stream_id = id_cast<StreamId>(get_geant_thread_id());
     if (auto const& hit_manager = params.hit_manager())
     {
         hit_processor_ = hit_manager->make_local_processor(stream_id);
@@ -199,6 +201,28 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     optical_ = params.optical();
 
     CELER_ENSURE(*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the event ID and reseed the Celeritas RNG at the start of an event.
+ */
+void LocalTransporter::InitializeEvent(int id)
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(id >= 0);
+
+    event_id_ = id_cast<UniqueEventId>(id);
+    ++run_accum_.events;
+
+    if (!(G4Threading::IsMultithreadedApplication()
+          && G4MTRunManager::SeedOncePerCommunication()))
+    {
+        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
+        // using the Geant4 event ID for reproducibility. This guarantees that
+        // an event can be reproduced given the event ID.
+        step_->reseed(event_id_);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -269,16 +293,6 @@ void LocalTransporter::Push(G4Track& g4track)
 
 //---------------------------------------------------------------------------//
 /*!
- * Reseed the RNG states.
- */
-void LocalTransporter::Reseed(size_type id)
-{
-    CELER_EXPECT(*this);
-    step_->reseed(UniqueEventId{id});
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Transport the buffered tracks and all secondaries produced.
  */
 void LocalTransporter::Flush()
@@ -291,7 +305,25 @@ void LocalTransporter::Flush()
 
     ScopedProfiling profile_this("flush");
 
-    this->check_event_id();
+    if (event_manager_ || !event_id_)
+    {
+        if (CELER_UNLIKELY(!event_manager_))
+        {
+            // Save the event manager pointer, thereby marking that
+            // *subsequent* events need to have their IDs checked as well
+            event_manager_ = G4EventManager::GetEventManager();
+            CELER_ASSERT(event_manager_);
+        }
+
+        G4Event const* event = event_manager_->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
+        {
+            // The event ID has changed: reseed it
+            this->InitializeEvent(event->GetEventID());
+        }
+    }
+    CELER_ASSERT(event_id_);
 
     if (celeritas::device())
     {
@@ -299,7 +331,7 @@ void LocalTransporter::Flush()
             << "Transporting " << buffer_.size() << " tracks ("
             << buffer_accum_.energy
             << " MeV cumulative kinetic energy) from event "
-            << this->event_id().unchecked_get() << " with Celeritas";
+            << event_id_.unchecked_get() << " with Celeritas";
     }
     if (buffer_accum_.lost_primaries > 0)
     {
@@ -308,7 +340,7 @@ void LocalTransporter::Flush()
             << " MeV cumulative kinetic energy from "
             << buffer_accum_.lost_primaries
             << " primaries that started outside the geometry in event "
-            << this->event_id().unchecked_get();
+            << event_id_.unchecked_get();
     }
 
     if (dump_primaries_)
@@ -365,9 +397,8 @@ void LocalTransporter::Flush()
         auto num_hits = hit_processor_->exchange_hits();
         if (num_hits > 0)
         {
-            CELER_LOG_LOCAL(debug)
-                << "Reconstituted " << num_hits << " hits for event "
-                << this->event_id().get();
+            CELER_LOG_LOCAL(debug) << "Reconstituted " << num_hits
+                                   << " hits for event " << event_id_.get();
             run_accum_.hits += num_hits;
         }
         hit_processor_->track_processor().end_event();

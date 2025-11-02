@@ -15,6 +15,8 @@
 
 #include "LocalOffloadInterface.hh"
 
+class G4EventManager;
+
 namespace celeritas
 {
 namespace optical
@@ -31,7 +33,7 @@ class SharedParams;
 /*!
  * Manage offloading of optical distribution data to Celeritas.
  */
-class LocalOpticalOffload final : public LocalOffloadBase
+class LocalOpticalOffload final : public LocalOffloadInterface
 {
   public:
     //!@{
@@ -52,8 +54,8 @@ class LocalOpticalOffload final : public LocalOffloadBase
     // Initialize with options and shared data
     void Initialize(SetupOptions const&, SharedParams&) final;
 
-    // Reseed the RNG states
-    void Reseed(size_type) final;
+    // Set the event ID and reseed the Celeritas RNG at the start of an event
+    void InitializeEvent(int) final;
 
     // Transport all buffered tracks to completion
     void Flush() final;
@@ -92,6 +94,10 @@ class LocalOpticalOffload final : public LocalOffloadBase
 
     // Number of photons to buffer before offloading
     size_type auto_flush_{};
+
+    // Current event ID or manager for obtaining it
+    UniqueEventId event_id_;
+    G4EventManager* event_manager_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

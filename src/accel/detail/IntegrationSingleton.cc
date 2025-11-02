@@ -80,15 +80,16 @@ IntegrationSingleton& IntegrationSingleton::instance()
  */
 LocalTransporter& IntegrationSingleton::local_transporter()
 {
-    auto& offload = IntegrationSingleton::variant_offload();
+    auto& offload = IntegrationSingleton::offload();
     if (!offload)
     {
-        offload = LocalTransporter();
+        offload = std::make_unique<LocalTransporter>();
     }
-    CELER_VALIDATE(std::holds_alternative<LocalTransporter>(*offload),
+    auto* lt = dynamic_cast<LocalTransporter*>(offload.get());
+    CELER_VALIDATE(lt,
                    << "Cannot access LocalTransporter when "
                       "LocalOpticalOffload is being used");
-    return std::get<LocalTransporter>(*offload);
+    return *lt;
 }
 
 //---------------------------------------------------------------------------//
@@ -97,22 +98,23 @@ LocalTransporter& IntegrationSingleton::local_transporter()
  */
 LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
 {
-    auto& offload = IntegrationSingleton::variant_offload();
+    auto& offload = IntegrationSingleton::offload();
     if (!offload)
     {
-        offload = LocalOpticalOffload();
+        offload = std::make_unique<LocalOpticalOffload>();
     }
-    CELER_VALIDATE(std::holds_alternative<LocalOpticalOffload>(*offload),
+    auto* lt = dynamic_cast<LocalOpticalOffload*>(offload.get());
+    CELER_VALIDATE(lt,
                    << "Cannot access LocalOpticalOffload when "
                       "LocalTransporter is being used");
-    return std::get<LocalOpticalOffload>(*offload);
+    return *lt;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Access the thread-local offload interface.
  */
-LocalOffloadBase& IntegrationSingleton::local_offload()
+LocalOffloadInterface& IntegrationSingleton::local_offload()
 {
     if (this->optical_offload())
     {
@@ -349,10 +351,10 @@ IntegrationSingleton::IntegrationSingleton()
 /*!
  * Static THREAD-LOCAL Celeritas offload.
  */
-auto IntegrationSingleton::variant_offload() -> std::optional<VariantOffload>&
+auto IntegrationSingleton::offload() -> UPOffload&
 {
-    static G4ThreadLocal std::optional<VariantOffload> lo;
-    return lo;
+    static G4ThreadLocal UPOffload offload;
+    return offload;
 }
 
 //---------------------------------------------------------------------------//

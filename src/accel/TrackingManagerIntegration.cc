@@ -47,7 +47,7 @@ namespace
 void verify_tracking_managers(Span<G4PD const* const> expected,
                               Span<G4PD const* const> actual,
                               SharedParams const& expected_shared,
-                              LocalOffloadBase const& expected_local)
+                              LocalOffloadInterface const& expected_local)
 {
     std::set<G4PD const*> not_offloaded{actual.begin(), actual.end()};
     std::vector<G4PD const*> missing;

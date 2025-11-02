@@ -6,13 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <string>
-
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
-
-class G4EventManager;
 
 namespace celeritas
 {
@@ -38,9 +33,6 @@ class LocalOffloadInterface
     // Set the event ID and reseed the Celeritas RNG at the start of an event
     virtual void InitializeEvent(int) = 0;
 
-    // Reseed the RNG states
-    virtual void Reseed(size_type) = 0;
-
     // Transport all buffered tracks to completion
     virtual void Flush() = 0;
 
@@ -62,31 +54,6 @@ class LocalOffloadInterface
     LocalOffloadInterface() = default;
     CELER_DEFAULT_COPY_MOVE(LocalOffloadInterface);
     //!@}
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Manage common functionality for offloading EM tracks and optical data.
- */
-class LocalOffloadBase : public LocalOffloadInterface
-{
-  public:
-    // Set the event ID and reseed the Celeritas RNG at the start of an event
-    void InitializeEvent(int) final;
-
-    // Ensure the event ID is correctly set
-    void check_event_id();
-
-    // Validate the thread ID and threading model
-    void validate_threading(size_type num_streams) const;
-
-    //! Get the current event ID
-    UniqueEventId event_id() const { return event_id_; }
-
-  private:
-    // Current event ID or manager for obtaining it
-    UniqueEventId event_id_;
-    G4EventManager* event_manager_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
