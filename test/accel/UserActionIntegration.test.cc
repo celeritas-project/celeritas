@@ -213,7 +213,7 @@ auto LarSphereOpticalOffload::make_primary_input() const -> PrimaryInput
 
     result.shape = inp::PointDistribution{from_cm({0.1, 0.1, 0})};
     result.primaries_per_event = 1;
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{2}};
+    result.energy = inp::MonoenergeticDistribution{MevEnergy{1}};
     return result;
 }
 

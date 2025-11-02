@@ -27,6 +27,8 @@ class SharedParams;
 class LocalOffloadInterface
 {
   public:
+    virtual ~LocalOffloadInterface() = default;
+
     // Initialize with options and core shared data
     virtual void Initialize(SetupOptions const&, SharedParams&) = 0;
 
