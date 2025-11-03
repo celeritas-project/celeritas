@@ -466,11 +466,6 @@ TEST_F(TestMultiEm3InstanceCaloTest, step_host)
 
 TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
 {
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        GTEST_SKIP() << "ORANGE currently does not return physical volume IDs";
-    }
-
     auto result = this->run<MemSpace::device>(1024, 32);
 
     auto iter = std::find(result.instance.begin(),
