@@ -208,19 +208,24 @@ void partition_initializers(
     // stencil values into boolean flags that determine how to partition
     // the indices.
 
-    // There initializers array is large. Use stencil to point to the start of
-    // this array that is being used
+    // The initializers array is large. Use stencil to point to the start where
+    // this array is being used
     auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
                    + counters.num_initializers - count;
     DeviceVector<unsigned char> flags{count, stream_id};
-    // DeviceTransform added in cub 2.8.0, else fall back to thrust
+    // DeviceTransform added in cub 2.8/hipcub 4.1, else fall back to thrust
 #if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
-    DeviceTransform::Transform(
-        stencil, flags.data(), count, IsNeutral{params.ptr<MemSpace::native>()});
-    // DeviceTransform added in hipcub 4.1.0, else fall back to thrust
+    DeviceTransform::Transform(stencil,
+                               flags.data(),
+                               count,
+                               IsNeutral{params.ptr<MemSpace::native>()},
+                               stream);
 #elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
-    DeviceTransform::Transform(
-        stencil, flags.data(), count, IsNeutral{params.ptr<MemSpace::native>()});
+    DeviceTransform::Transform(stencil,
+                               flags.data(),
+                               count,
+                               IsNeutral{params.ptr<MemSpace::native>()},
+                               stream);
 #else
     thrust::transform(thrust_execute_on(stream_id),
                       stencil,
