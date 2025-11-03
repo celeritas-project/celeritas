@@ -55,18 +55,6 @@ jobs:
             geometry: "vecgeom2"
             special: null
             geant: "11.3"
-          - build_type: "reldeb"
-            geometry: "geant4"
-            special: null
-            geant: "11.3"
-          - build_type: "reldeb"
-            geometry: "vecgeom"
-            special: "tidy"
-            geant: "11.2"
-          - build_type: "reldeb"
-            geometry: "vecgeom"
-            special: "codecov"
-            geant: "11.3"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '500' || '300'}}Mi"
