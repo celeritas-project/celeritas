@@ -88,6 +88,11 @@ endif()
 if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
   set(_props DISABLED true)
 endif()
+if(Geant4_VERSION VERSION_LESS "10.7")
+  # Don't bother: only for old framework support; and printf in the code fouls
+  # the JSON parsing
+  set(_props DISABLED true)
+endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
   # FIXME: geant4 navigator doesn't work with field navigator
   set(_props DISABLED true)

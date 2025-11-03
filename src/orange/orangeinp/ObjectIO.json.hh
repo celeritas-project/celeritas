@@ -9,6 +9,7 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 
+#include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "CsgTypes.hh"
@@ -80,25 +81,26 @@ void to_json(nlohmann::json& j, EnclosedAzi const&);
 void to_json(nlohmann::json& j, EnclosedPolar const&);
 
 // Write intersect regions to JSON
-void to_json(nlohmann::json& j, IntersectRegionInterface const& cr);
-void to_json(nlohmann::json& j, Box const& cr);
-void to_json(nlohmann::json& j, Cone const& cr);
-void to_json(nlohmann::json& j, CutCylinder const& cr);
-void to_json(nlohmann::json& j, Cylinder const& cr);
-void to_json(nlohmann::json& j, Ellipsoid const& cr);
-void to_json(nlohmann::json& j, EllipticalCone const& cr);
-void to_json(nlohmann::json& j, EllipticalCylinder const& cr);
-void to_json(nlohmann::json& j, ExtrudedPolygon const& cr);
-void to_json(nlohmann::json& j, GenPrism const& cr);
-void to_json(nlohmann::json& j, InfPlane const& pa);
-void to_json(nlohmann::json& j, InfAziWedge const& cr);
-void to_json(nlohmann::json& j, InfPolarWedge const& cr);
-void to_json(nlohmann::json& j, Involute const& cr);
-void to_json(nlohmann::json& j, Paraboloid const& cr);
-void to_json(nlohmann::json& j, Parallelepiped const& cr);
-void to_json(nlohmann::json& j, Prism const& cr);
-void to_json(nlohmann::json& j, Sphere const& cr);
-void to_json(nlohmann::json& j, Tet const& cr);
+void to_json(nlohmann::json& j, IntersectRegionInterface const&);
+void to_json(nlohmann::json& j, Box const&);
+void to_json(nlohmann::json& j, Cone const&);
+void to_json(nlohmann::json& j, CutCylinder const&);
+void to_json(nlohmann::json& j, Cylinder const&);
+void to_json(nlohmann::json& j, Ellipsoid const&);
+void to_json(nlohmann::json& j, EllipticalCone const&);
+void to_json(nlohmann::json& j, EllipticalCylinder const&);
+void to_json(nlohmann::json& j, ExtrudedPolygon const&);
+void to_json(nlohmann::json& j, GenPrism const&);
+void to_json(nlohmann::json& j, Hyperboloid const&);
+void to_json(nlohmann::json& j, InfPlane const& a);
+void to_json(nlohmann::json& j, InfAziWedge const&);
+void to_json(nlohmann::json& j, InfPolarWedge const&);
+void to_json(nlohmann::json& j, Involute const&);
+void to_json(nlohmann::json& j, Paraboloid const&);
+void to_json(nlohmann::json& j, Parallelepiped const&);
+void to_json(nlohmann::json& j, Prism const&);
+void to_json(nlohmann::json& j, Sphere const&);
+void to_json(nlohmann::json& j, Tet const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
