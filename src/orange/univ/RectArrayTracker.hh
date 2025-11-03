@@ -72,6 +72,12 @@ class RectArrayTracker
         CELER_ASSERT_UNREACHABLE();
     }
 
+    // Canonical parent volume placement in the local universe, if any
+    inline CELER_FUNCTION LocalVolumeId local_parent(LocalVolumeId) const
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
     ////// OPERATIONS ////
 
     // Find the local volume from a position

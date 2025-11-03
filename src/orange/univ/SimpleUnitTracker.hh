@@ -75,6 +75,9 @@ class SimpleUnitTracker
     // Canonical volume depth relative to this universe
     inline CELER_FUNCTION vol_level_uint local_vol_level(LocalVolumeId vol) const;
 
+    // Canonical parent volume placement in the local universe, if any
+    inline CELER_FUNCTION LocalVolumeId local_parent(LocalVolumeId vol) const;
+
     //// OPERATIONS ////
 
     // Find the local volume from a position
@@ -710,6 +713,25 @@ CELER_FUNCTION auto SimpleUnitTracker::local_vol_level(LocalVolumeId vol) const
     OpaqueId<vol_level_uint> depth_ptr = unit_record_.local_vol_level[vol];
     vol_level_uint local_vol_level = params_.vd_uints[depth_ptr];
     return local_vol_level;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Canonical parent volume placement in the local universe, if any.
+ *
+ * If the local parent volume is null, then the parent is the placement of the
+ * current ORANGE universe as a daughter.
+ */
+CELER_FUNCTION LocalVolumeId
+SimpleUnitTracker::local_parent(LocalVolumeId vol) const
+{
+    CELER_EXPECT(unit_record_.local_parent.empty()
+                 || vol < unit_record_.volumes.size());
+    if (unit_record_.local_parent.empty())
+        return {};
+
+    OpaqueId<LocalVolumeId> lv_ptr = unit_record_.local_parent[vol];
+    return params_.local_volume_ids[lv_ptr];
 }
 
 //---------------------------------------------------------------------------//

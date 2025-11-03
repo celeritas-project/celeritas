@@ -512,10 +512,44 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->univ_level() < levels.size());
 
-    // To guard against errors and enable unit tests, we first make sure we're
-    // not going off the end. (If we are at the global level without correct
-    // instance information, then this will just return a null ID.)
-    CELER_NOT_IMPLEMENTED("canonical volume instance");
+    // Start writing backward from end of levels array
+    CELER_ASSERT(levels.size() > 0);
+    unsigned rdst = levels.size();
+
+    // Loop over universes, local to global
+    UnivLevelId const ulev{this->univ_level()};
+    auto ui = this->make_univ_indexer();
+    TrackerVisitor visit_tracker{params_};
+
+    for (auto neg_ulev : range(ulev.unchecked_get() + 1))
+    {
+        auto lsa = this->make_lsa(ulev - neg_ulev);
+        auto const univ = lsa.univ();
+
+        // Initialize local volume from state
+        LocalVolumeId lv_id = lsa.vol();
+        // Loop over all local volumes that have local parents
+        do
+        {
+            ImplVolumeId impl_id = ui.global_volume(univ, lv_id);
+            if (auto vol_inst = params_.volume_instance_ids[impl_id])
+            {
+                // Save volume instance ID at this canonical level
+                CELER_ASSERT(rdst != 0);
+                levels[--rdst] = vol_inst;
+                // Update to parent level
+                lv_id = visit_tracker(
+                    [lv_id](auto&& t) { return t.local_parent(lv_id); }, univ);
+            }
+            else
+            {
+                // No volume instance at this level
+                break;
+            }
+        } while (lv_id);
+    }
+    // Input should have been resized to exactly match number of nested level
+    CELER_ENSURE(rdst == 0);
 }
 
 //---------------------------------------------------------------------------//

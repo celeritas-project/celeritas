@@ -82,7 +82,7 @@ TEST_F(LarSphereTest, trace)
     this->impl().test_trace();
 }
 
-TEST_F(LarSphereTest, DISABLED_volume_stack)
+TEST_F(LarSphereTest, volume_stack)
 {
     this->impl().test_volume_stack();
 }
@@ -171,6 +171,12 @@ TEST_F(MultiLevelTest, volume_level)
     this->impl().test_volume_level();
 }
 
+// Test that the reconstructed volume instance hierarchy is correct
+TEST_F(MultiLevelTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
 TEST_F(MultiLevelTest, trace)
 {
     this->impl().test_trace();
@@ -236,7 +242,7 @@ TEST_F(ReplicaTest, trace)
     this->impl().test_trace();
 }
 
-TEST_F(ReplicaTest, DISABLED_volume_stack)
+TEST_F(ReplicaTest, volume_stack)
 {
     this->impl().test_volume_stack();
 }
