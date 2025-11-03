@@ -201,21 +201,10 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 
-  set(_ltu_tests)
-  if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    # ORANGE does not yet support touchable-based mapping
-    set(_ltu_tests DISABLE)
-  endif()
-
   celeritas_add_test(ext/detail/LevelTouchableUpdater.test.cc
-    LINK_LIBRARIES testcel_celeritas_g4
-    FILTER ${_ltu_tests})
-  if(CELERITAS_REAL_TYPE STREQUAL "double")
-    # This test requires Geant4 *geometry* which is incompatible
-    # with single-precision
-    celeritas_add_test(ext/detail/NaviTouchableUpdater.test.cc
-      LINK_LIBRARIES testcel_celeritas_g4 testcel_geocel)
-  endif()
+    LINK_LIBRARIES testcel_celeritas_g4)
+  celeritas_add_test(ext/detail/NaviTouchableUpdater.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4 testcel_geocel)
 endif()
 #-----------------------------------------------------------------------------#
 # Field
