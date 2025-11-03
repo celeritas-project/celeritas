@@ -56,7 +56,7 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
         params.optical_params()->gen_reg()->at(GeneratorId(0)));
     CELER_ASSERT(generate_);
 
-    // Number of photons to buffer before offloading
+    // Number of optical photons to buffer before offloading
     auto const& capacity = *options.optical_capacity;
     auto_flush_ = capacity.primaries;
 
@@ -144,7 +144,7 @@ void LocalOpticalOffload::Push(optical::GeneratorDistributionData const& data)
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport the buffered tracks and all secondaries produced.
+ * Generate and transport optical photons from the buffered distribution data.
  */
 void LocalOpticalOffload::Flush()
 {
@@ -181,8 +181,9 @@ void LocalOpticalOffload::Flush()
     if (celeritas::device())
     {
         CELER_LOG_LOCAL(debug)
-            << "Transporting " << num_photons_ << " photons from event "
-            << event_id_.unchecked_get() << " with Celeritas";
+            << "Transporting " << num_photons_
+            << " optical photons from event " << event_id_.unchecked_get()
+            << " with Celeritas";
     }
 
     // Copy the buffered distributions to device
