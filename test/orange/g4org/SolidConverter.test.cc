@@ -557,6 +557,34 @@ TEST_F(SolidConverterTest, generictrap)
         });
 }
 
+TEST_F(SolidConverterTest, hype)
+{
+    this->build_and_test(
+        G4Hype("Solid Hype",
+               0,
+               /* outerRadius = */ 25,
+               0,
+               /* outerStereo = */ 0.6,
+               /* halfLenZ = */ 50),
+        R"json({"_type":"shape","interior":{"_type":"hyperboloid","halfheight":5.0,"max_radius":4.236871406261812,"min_radius":2.5},"label":"Solid Hype"})json",
+        {
+            {2.4, 0, 0},
+            {3.5, 0, 0},
+            {4.3, 0, 0},
+            {2.4, 0, 4.99},
+            {3.5, 0, 4.99},
+            {4.3, 0, 4.99},
+        });
+    this->build_and_test(
+        G4Hype("Hole Hype",
+               /* innerRadius = */ 45,
+               /* outerRadius = */ 50,
+               /* innerStereo = */ 0.3,
+               /* outerStereo = */ 0.3,
+               /* halfLenZ = */ 50),
+        R"json({"_type":"solid","excluded":{"_type":"hyperboloid","halfheight":5.0,"max_radius":4.758384482475505,"min_radius":4.5},"interior":{"_type":"hyperboloid","halfheight":5.0,"max_radius":5.233758007690429,"min_radius":5.0},"label":"Hole Hype"})json");
+}
+
 TEST_F(SolidConverterTest, intersectionsolid)
 {
     G4Box b1("Test Box #1", 20, 30, 40);
@@ -756,8 +784,14 @@ TEST_F(SolidConverterTest, polyhedra)
 
         // Full diamond shape, no interior
         this->build_and_test(
-            G4Polyhedra(
-                "polyhedra", 0 * deg, 360 * deg, 4, std::size(z), z, no_rmin, rmax),
+            G4Polyhedra("full-diamond",
+                        0 * deg,
+                        360 * deg,
+                        4,
+                        std::size(z),
+                        z,
+                        no_rmin,
+                        rmax),
             R"json({"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,-1.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[4.242640687119285,1.414213562373095,2.82842712474619,0.7071067811865475]})json",
             {
                 {0, 0, 26.},
@@ -768,7 +802,7 @@ TEST_F(SolidConverterTest, polyhedra)
 
         // Clipped diamond shape, no interior
         this->build_and_test(
-            G4Polyhedra("polyhedra",
+            G4Polyhedra("clipped-diamond",
                         10 * deg,
                         340 * deg,
                         4,
@@ -788,8 +822,8 @@ TEST_F(SolidConverterTest, polyhedra)
         // Clipped diamond shape, with interior
         this->build_and_test(
             G4Polyhedra(
-                "polyhedra", 10 * deg, 340 * deg, 4, std::size(z), z, rmin, rmax),
-            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,0.17364817766693033],[-0.08715574274765821,0.9961946980917455],[-1.0,0.0],[-0.08715574274765786,-0.9961946980917455],[0.9848077530122081,-0.17364817766692975],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[4.06902511472777,1.3563417049092568,2.7126834098185135,0.6781708524546284]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,0.17364817766693033],[-0.08715574274765821,0.9961946980917455],[-1.0,0.0],[-0.08715574274765786,-0.9961946980917455],[0.9848077530122081,-0.17364817766692975],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[2.7126834098185135,0.5425366819637027,2.3057808983457364,0.5425366819637027]},"label":""}],"label":"polyhedra"})json",
+                "fragment", 10 * deg, 340 * deg, 4, std::size(z), z, rmin, rmax),
+            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,0.17364817766693033],[-0.08715574274765821,0.9961946980917455],[-1.0,0.0],[-0.08715574274765786,-0.9961946980917455],[0.9848077530122081,-0.17364817766692975],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[4.06902511472777,1.3563417049092568,2.7126834098185135,0.6781708524546284]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,0.17364817766693033],[-0.08715574274765821,0.9961946980917455],[-1.0,0.0],[-0.08715574274765786,-0.9961946980917455],[0.9848077530122081,-0.17364817766692975],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[2.7126834098185135,0.5425366819637027,2.3057808983457364,0.5425366819637027]},"label":""}],"label":"fragment"})json",
             {
                 {-0.1, 0, 26.},
                 {-0.1, 0, -11.},
@@ -803,8 +837,8 @@ TEST_F(SolidConverterTest, polyhedra)
         // One-sided shape, with interior
         this->build_and_test(
             G4Polyhedra(
-                "polyhedra", -10 * deg, 20 * deg, 1, std::size(z), z, rmin, rmax),
-            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,-0.17364817766693033],[0.984807753012208,0.17364817766693033],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[3.046279835657235,1.0154266118857451,2.0308532237714902,0.5077133059428726]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,-0.17364817766693033],[0.984807753012208,0.17364817766693033],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[2.0308532237714902,0.4061706447542981,1.7262252402057667,0.4061706447542981]},"label":""}],"label":"polyhedra"})json",
+                "oneside", -10 * deg, 20 * deg, 1, std::size(z), z, rmin, rmax),
+            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,-0.17364817766693033],[0.984807753012208,0.17364817766693033],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[3.046279835657235,1.0154266118857451,2.0308532237714902,0.5077133059428726]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[0.984807753012208,-0.17364817766693033],[0.984807753012208,0.17364817766693033],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[2.0308532237714902,0.4061706447542981,1.7262252402057667,0.4061706447542981]},"label":""}],"label":"oneside"})json",
             {
                 {-19, 0, -1},
                 {-25, 0, -1},
@@ -815,8 +849,8 @@ TEST_F(SolidConverterTest, polyhedra)
         // Two-sided shape, with interior
         this->build_and_test(
             G4Polyhedra(
-                "polyhedra", 0 * deg, 180 * deg, 2, std::size(z), z, rmin, rmax),
-            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[4.242640687119285,1.414213562373095,2.82842712474619,0.7071067811865475]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[2.82842712474619,0.565685424949238,2.4041630560342617,0.565685424949238]},"label":""}],"label":"polyhedra"})json",
+                "twoside", 0 * deg, 180 * deg, 2, std::size(z), z, rmin, rmax),
+            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[4.242640687119285,1.414213562373095,2.82842712474619,0.7071067811865475]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,0.0]],"polyline":[[0.0,0.0,-1.0],[0.0,0.0,0.0],[0.0,0.0,2.0],[0.0,0.0,2.5]],"scaling":[2.82842712474619,0.565685424949238,2.4041630560342617,0.565685424949238]},"label":""}],"label":"twoside"})json",
             {
                 {19, 1, -1},
                 {25, 1, -1},
@@ -834,9 +868,15 @@ TEST_F(SolidConverterTest, polyhedra)
 
         // Full diamond shape, no interior
         this->build_and_test(
-            G4Polyhedra(
-                "polyhedra", 0 * deg, 360 * deg, 4, std::size(z), z, rmin, rmax),
-            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,-1.0]],"polyline":[[0.0,0.0,0.0],[0.0,0.0,0.1],[0.0,0.0,0.1],[0.0,0.0,0.2],[0.0,0.0,0.2],[0.0,0.0,0.30000000000000004]],"scaling":[0.282842712474619,0.282842712474619,0.282842712474619,0.282842712474619,0.282842712474619,0.282842712474619]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,-1.0]],"polyline":[[0.0,0.0,0.0],[0.0,0.0,0.1],[0.0,0.0,0.1],[0.0,0.0,0.2],[0.0,0.0,0.2],[0.0,0.0,0.30000000000000004]],"scaling":[0.1414213562373095,0.1414213562373095,0.0,0.0,0.1414213562373095,0.1414213562373095]},"label":""}],"label":"polyhedra"})json",
+            G4Polyhedra("full-diamond-znz",
+                        0 * deg,
+                        360 * deg,
+                        4,
+                        std::size(z),
+                        z,
+                        rmin,
+                        rmax),
+            R"json({"_type":"all","daughters":[{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,-1.0]],"polyline":[[0.0,0.0,0.0],[0.0,0.0,0.1],[0.0,0.0,0.1],[0.0,0.0,0.2],[0.0,0.0,0.2],[0.0,0.0,0.30000000000000004]],"scaling":[0.282842712474619,0.282842712474619,0.282842712474619,0.282842712474619,0.282842712474619,0.282842712474619]},{"_type":"negated","daughter":{"_type":"stackedextrudedpolygon","polygon":[[1.0,0.0],[0.0,1.0],[-1.0,0.0],[0.0,-1.0]],"polyline":[[0.0,0.0,0.0],[0.0,0.0,0.1],[0.0,0.0,0.1],[0.0,0.0,0.2],[0.0,0.0,0.2],[0.0,0.0,0.30000000000000004]],"scaling":[0.1414213562373095,0.1414213562373095,0.0,0.0,0.1414213562373095,0.1414213562373095]},"label":""}],"label":"full-diamond-znz"})json",
             {
                 {0, 0, 0.5},
                 {0, 0, 1.5},
