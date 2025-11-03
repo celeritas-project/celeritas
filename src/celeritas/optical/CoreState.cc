@@ -7,7 +7,6 @@
 #include "CoreState.hh"
 
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 
