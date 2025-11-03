@@ -107,7 +107,16 @@ class LSOOSteppingAction final : public G4UserSteppingAction
 
         auto& local = detail::IntegrationSingleton::local_optical_offload();
         if (!local)
+        {
+            // Offloading is disabled
             return;
+        }
+
+        if (step->GetStepLength() == 0)
+        {
+            // Skip "no-process"-defined steps
+            return;
+        }
 
         auto* pm = step->GetTrack()->GetDefinition()->GetProcessManager();
         CELER_ASSERT(pm);
@@ -134,19 +143,6 @@ class LSOOSteppingAction final : public G4UserSteppingAction
         auto* pre_step = step->GetPreStepPoint();
         auto* post_step = step->GetPostStepPoint();
         CELER_ASSERT(pre_step && post_step);
-
-        if (step->GetStepLength() == 0)
-        {
-            // TODO: Why are some steps of zero length generating photons?
-            CELER_LOG(warning)
-                << "Skipping " << num_cherenkov << " Cherenkov photons and "
-                << num_scintillation << " scintillation photons for "
-                << step->GetTrack()->GetDefinition()->GetParticleName()
-                << " with step length=" << step->GetStepLength() << " and "
-                << post_step->GetProcessDefinedStep()->GetProcessName()
-                << "-defined step";
-            return;
-        }
 
         // Create distribution and push to Celeritas
         // TODO: Get optical material ID
