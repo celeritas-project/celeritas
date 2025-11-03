@@ -480,14 +480,14 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(!params_.volume_instance_ids.empty());
 
-    // Start with the number of universes deep since each is a volume embedding
-    vol_level_uint result = this->univ_level().get();
+    vol_level_uint result = 0;
     TrackerVisitor visit_tracker{params_};
 
     // Loop over current universe path (different from canonical path)
     for (auto ulev : range(this->univ_level() + 1))
     {
-        // Get the simple unit record for this universe
+        // Add the local volume level: placement in the parent universe is
+        // handled by the local volume at that level, not the universe depth
         auto lsa = this->make_lsa(ulev);
         result += visit_tracker(
             [vol = lsa.vol()](auto&& t) { return t.local_vol_level(vol); },

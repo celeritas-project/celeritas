@@ -87,6 +87,9 @@ class UnitProto : public ProtoInterface
         ZOrder zorder{ZOrder::media};  //!< Overlap control
         VariantLabel label;  //!< Placement name
 
+        //! Mark this daughter as being inside another local volume
+        LocalParent local_parent;
+
         // True if fully defined
         explicit inline operator bool() const;
 

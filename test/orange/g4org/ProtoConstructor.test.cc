@@ -323,12 +323,12 @@ TEST_F(MultilevelTest, full_inline)
     auto parents = this->get_all_local_parents(protos);
 
     std::vector<std::string> const expected_parents[] = {
-        {"topsph1,<null>",
-         "topbox4,<null>",
+        {"topsph1,bg@world=",
+         "topbox4,bg@world=",
          "boxsph1@1,topbox4",
          "boxsph2@1,topbox4",
          "boxtri@1,topbox4"},
-        {"boxsph1@0,<null>", "boxsph2@0,<null>", "boxtri@0,<null>"},
+        {"boxsph1@0,bg@box=", "boxsph2@0,bg@box=", "boxtri@0,bg@box="},
     };
     EXPECT_VEC_EQ(expected_parents, parents);
 }

@@ -24,6 +24,7 @@
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -358,6 +359,29 @@ void UnitProto::build(ProtoBuilder& input) const
     // nodes for the region, because we can't know which ones have the
     // user-supplied volume names
     auto vol_iter = result.volumes.begin();
+    // Local volume ID of the first local 'material' placement: after exterior,
+    // daughters
+    auto const first_lv = id_cast<LocalVolumeId>(1 + input_.daughters.size());
+    auto add_local_parent = [&result, &vol_iter, first_lv](LocalParent lp) {
+        if (!lp)
+        {
+            return;
+        }
+        LocalVolumeId parent_id;
+        auto child_id
+            = id_cast<LocalVolumeId>(vol_iter - result.volumes.begin());
+        if (MaterialInputId parent_mi_id = *lp)
+        {
+            parent_id = first_lv + parent_mi_id.get();
+        }
+        else
+        {
+            // Option value is set, but to a "null" ID: parent is
+            // background volume
+            parent_id = id_cast<LocalVolumeId>(result.volumes.size() - 1);
+        }
+        result.local_parent_map.emplace(child_id, parent_id);
+    };
 
     // Save attributes for exterior volume
     if (input.next_id() != orange_global_univ)
@@ -387,6 +411,9 @@ void UnitProto::build(ProtoBuilder& input) const
                                     std::string{this->label()}};
         }
         vol_iter->zorder = d.zorder;
+        // Add local parent if applicable
+        add_local_parent(d.local_parent);
+
         /* TODO: the "embedded_universe" flag is *also* set by the unit
          * builder. Move that here. */
         ++vol_iter;
@@ -423,25 +450,9 @@ void UnitProto::build(ProtoBuilder& input) const
             vol_iter->label = Label{std::string(m.interior->label())};
         }
         vol_iter->zorder = ZOrder::media;
-        if (m.local_parent)
-        {
-            LocalVolumeId parent_id;
-            auto child_id
-                = id_cast<LocalVolumeId>(vol_iter - result.volumes.begin());
-            if (MaterialInputId parent_mi_id = *m.local_parent)
-            {
-                // Offset by 1 for exterior volume + daughters
-                parent_id = LocalVolumeId{1 + input_.daughters.size()
-                                          + parent_mi_id.get()};
-            }
-            else
-            {
-                // Option value is set, but to a "null" ID: parent is
-                // background volume
-                parent_id = id_cast<LocalVolumeId>(result.volumes.size() - 1);
-            }
-            result.local_parent_map.emplace(child_id, parent_id);
-        }
+        // Add local parent if applicable
+        add_local_parent(m.local_parent);
+
         ++vol_iter;
     }
 

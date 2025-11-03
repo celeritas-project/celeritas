@@ -71,7 +71,7 @@ struct OrangeParamsScalars
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single volume definition.
+ * Data for a single local implementation volume definition.
  *
  * Surface IDs are local to the unit.
  *

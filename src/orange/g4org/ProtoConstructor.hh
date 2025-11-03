@@ -80,9 +80,10 @@ class ProtoConstructor
     bool can_inline_transform(VariantTransform const&) const;
 
     // Place a physical volume into the given unconstructed proto
-    MaterialInputId place_pv(VariantTransform const& parent_transform,
-                             PhysicalVolume const& pv,
-                             UnitProto::Input* proto);
+    void place_pv(VariantTransform const& parent_transform,
+                  PhysicalVolume const& pv,
+                  MaterialInputId local_parent,
+                  UnitProto::Input* proto);
 
     SPConstObject make_explicit_background(LogicalVolume const& lv,
                                            VariantTransform const& transform);

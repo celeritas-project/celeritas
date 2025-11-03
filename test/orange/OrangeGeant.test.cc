@@ -119,8 +119,8 @@ TEST_F(MultiLevelTest, univ_depths)
     EXPECT_VEC_EQ(expected_local_volumes, local_volumes);
 }
 
-// Check the explicit "local volume level" for each impl volume
-TEST_F(MultiLevelTest, manual_local_depths)
+// Check the explicit "local volume level" and "parent" for each impl volume
+TEST_F(MultiLevelTest, manual_volumes)
 {
     // VolumeToString to_string(*this->volumes());
     auto const& universe_labels = this->geometry()->universes();
@@ -128,6 +128,7 @@ TEST_F(MultiLevelTest, manual_local_depths)
     TrackerVisitor visit_tracker{this->geometry()->host_ref()};
 
     std::vector<std::vector<int>> local_level;
+    std::vector<std::vector<int>> local_parent;
     std::vector<std::vector<std::string>> volume_names;
     ImplVolumeId global_vol{0};
     for (auto uid : range(UnivId{universe_labels.size()}))
@@ -136,24 +137,31 @@ TEST_F(MultiLevelTest, manual_local_depths)
             [](auto const& t) { return t.num_volumes(); }, uid);
 
         std::vector<int> cur_local_depth;
+        std::vector<int> cur_local_parent;
         std::vector<std::string> cur_volume_names;
         for (auto lv_id : range(LocalVolumeId{num_local_vols}))
         {
             cur_local_depth.push_back(visit_tracker(
                 [lv_id](auto const& t) { return t.local_vol_level(lv_id); },
                 uid));
+            cur_local_parent.push_back(id_to_int(visit_tracker(
+                [lv_id](auto const& t) { return t.local_parent(lv_id); }, uid)));
             cur_volume_names.push_back(impl_volumes.at(global_vol++).name);
         }
         local_level.emplace_back(std::move(cur_local_depth));
+        local_parent.emplace_back(std::move(cur_local_parent));
         volume_names.emplace_back(std::move(cur_volume_names));
     }
     static std::vector<int> const expected_local_level[]
-        = {{0, 0, 0, 0, 0, 1, 0}, {0, 1, 1, 1, 0}, {0, 1, 1, 1, 0}};
+        = {{0, 1, 1, 1, 1, 1, 0}, {0, 1, 1, 1, 0}, {0, 1, 1, 1, 0}};
+    static std::vector<int> const expected_local_parent[]
+        = {{-1, 6, 6, 6, 6, 6, -1}, {-1, 4, 4, 4, -1}, {-1, 4, 4, 4, -1}};
     static std::vector<std::string> const expected_volume_names[]
         = {{"[EXTERIOR]", "box", "box", "box", "box_refl", "sph", "world"},
            {"[EXTERIOR]", "sph", "sph", "tri", "box"},
            {"[EXTERIOR]", "sph_refl", "sph_refl", "tri_refl", "box_refl"}};
     EXPECT_VEC_EQ(expected_local_level, local_level);
+    EXPECT_VEC_EQ(expected_local_parent, local_parent);
     EXPECT_VEC_EQ(expected_volume_names, volume_names);
 }
 

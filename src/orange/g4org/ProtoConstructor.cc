@@ -47,7 +47,7 @@ GeoMatId background_fill(GeoMatId mat)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a proto-universe from a physical volume.
+ * Construct a proto-universe from a logical volume.
  *
  * We can use logical volume for the structure, but we need to associate the
  * world physical volume ID.
@@ -71,18 +71,14 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 
     // Add children
     std::vector<MaterialInputId> local_children;
+    MaterialInputId local_parent;
     for (PhysicalVolume const& child_pv : lv.children)
     {
-        auto child = this->place_pv(NoTransformation{}, child_pv, &input);
-        if (child)
-        {
-            local_children.push_back(child);
-        }
+        this->place_pv(NoTransformation{}, child_pv, local_parent, &input);
     }
 
     // Heuristic: if LV has fewer than N daughters in the input, use an
     // explicit background cell
-    MaterialInputId local_parent;
     if (lv.children.size() <= fill_daughter_threshold())
     {
         // Create explicit "fill" impl volume for this logical volume. The
@@ -122,13 +118,6 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         }
     }
 
-    for (auto minp_id : local_children)
-    {
-        CELER_ASSERT(minp_id < input.materials.size());
-        CELER_ASSERT(!input.materials[minp_id.get()].local_parent);
-        input.materials[minp_id.get()].local_parent = local_parent;
-    }
-
     --depth_;
     CELER_ENSURE(input);
     return std::make_shared<orangeinp::UnitProto>(std::move(input));
@@ -162,9 +151,10 @@ bool ProtoConstructor::can_inline_transform(VariantTransform const& vt) const
  * It will return a "local child ID" if it generates a material input, or a
  * null ID if it spawns a daughter proto.
  */
-auto ProtoConstructor::place_pv(VariantTransform const& parent_transform,
+void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                                 PhysicalVolume const& pv,
-                                UnitProto::Input* proto) -> MaterialInputId
+                                MaterialInputId local_parent,
+                                UnitProto::Input* proto)
 {
     CELER_EXPECT(proto);
     ++depth_;
@@ -186,15 +176,15 @@ auto ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     }
 
     // Track relationship between this volume instance and embedded children
-    MaterialInputId local_parent;
+    MaterialInputId new_mat;
     auto add_material = [&](SPConstObject const& obj) {
-        CELER_EXPECT(!local_parent);
         CELER_EXPECT(obj);
-        local_parent = id_cast<MaterialInputId>(proto->materials.size());
+        new_mat = id_cast<MaterialInputId>(proto->materials.size());
         UnitProto::MaterialInput mat;
         mat.interior = obj;
         mat.fill = pv.lv->material_id;
         mat.label = pv.id;
+        mat.local_parent = local_parent;
         proto->materials.push_back(std::move(mat));
     };
 
@@ -207,7 +197,8 @@ auto ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " -> "
-                      << "material " << local_parent.get() << " at "
+                      << "material " << new_mat << " locally inside "
+                      << local_parent << " at "
                       << StreamableVariant{pv.transform} << std::endl;
         }
     }
@@ -221,22 +212,17 @@ auto ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
         if (CELER_UNLIKELY(opts_.verbose_structure))
         {
-            std::clog << std::string(depth_, ' ') << " -> "
-                      << "inlined child to material " << local_parent << " at "
+            std::clog << std::string(depth_, ' ') << " -> inlined child to "
+                      << "material " << new_mat << " locally inside "
+                      << local_parent << " at "
                       << StreamableVariant{pv.transform} << "; subtracting "
                       << pv.lv->children.size() << " children" << std::endl;
         }
 
-        // Now build its children
+        // Now build its children, noting place_pv incorporates child transform
         for (auto const& child_pv : pv.lv->children)
         {
-            // Note: place_pv incorporates child's transform
-            auto child = this->place_pv(transform, child_pv, proto);
-            if (child)
-            {
-                CELER_ASSERT(child < proto->materials.size());
-                proto->materials[child.get()].local_parent = local_parent;
-            }
+            this->place_pv(transform, child_pv, new_mat, proto);
         }
     }
     else
@@ -250,7 +236,8 @@ auto ProtoConstructor::place_pv(VariantTransform const& parent_transform,
             std::clog << std::string(depth_, ' ') << " -> "
                       << "placing " << (inserted ? "new" : "existing")
                       << " universe '"
-                      << volumes_.volume_labels().at(pv.lv->id) << "' at "
+                      << volumes_.volume_labels().at(pv.lv->id)
+                      << "' locally inside " << local_parent << " at "
                       << StreamableVariant{pv.transform} << std::endl;
         }
 
@@ -266,6 +253,7 @@ auto ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         daughter.transform = transform;
         daughter.zorder = ZOrder::media;
         daughter.label = pv.id;
+        daughter.local_parent = local_parent;
         proto->daughters.push_back(std::move(daughter));
 
         if (CELER_UNLIKELY(opts_.verbose_structure))
@@ -278,8 +266,7 @@ auto ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     }
 
     --depth_;
-    CELER_ENSURE(!local_parent || local_parent < proto->materials.size());
-    return local_parent;
+    CELER_ENSURE(!new_mat || new_mat < proto->materials.size());
 }
 
 //---------------------------------------------------------------------------//

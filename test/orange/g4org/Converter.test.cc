@@ -207,6 +207,10 @@ TEST_F(ConverterTest, multilevel)
         EXPECT_EQ(17, unit.surfaces.size());
 
         static char const* const expected_local_parent_map[] = {
+            "topbox1->world_PV",
+            "topbox2->world_PV",
+            "topbox3->world_PV",
+            "topbox4->world_PV",
             "topsph1->world_PV",
         };
         EXPECT_VEC_EQ(expected_local_parent_map, this->local_parent_map(unit));
@@ -247,6 +251,7 @@ TEST_F(ConverterTest, multilevel)
 TEST_F(ConverterTest, testem3)
 {
     std::string const basename = "testem3";
+    verbose_ = true;
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
     auto result = convert(this->geo(), *this->volumes()).input;
@@ -262,8 +267,34 @@ TEST_F(ConverterTest, testem3)
         EXPECT_VEC_SOFT_EQ((Real3{-24, -24, -24}), to_cm(unit->bbox.lower()));
         EXPECT_VEC_SOFT_EQ((Real3{24, 24, 24}), to_cm(unit->bbox.upper()));
 
-        static char const* const expected_local_parent_map[]
-            = {"Calorimeter->world_PV"};
+        static char const* const expected_local_parent_map[] = {
+            "Layer@0->Calorimeter",  "Layer@1->Calorimeter",
+            "Layer@2->Calorimeter",  "Layer@3->Calorimeter",
+            "Layer@4->Calorimeter",  "Layer@5->Calorimeter",
+            "Layer@6->Calorimeter",  "Layer@7->Calorimeter",
+            "Layer@8->Calorimeter",  "Layer@9->Calorimeter",
+            "Layer@10->Calorimeter", "Layer@11->Calorimeter",
+            "Layer@12->Calorimeter", "Layer@13->Calorimeter",
+            "Layer@14->Calorimeter", "Layer@15->Calorimeter",
+            "Layer@16->Calorimeter", "Layer@17->Calorimeter",
+            "Layer@18->Calorimeter", "Layer@19->Calorimeter",
+            "Layer@20->Calorimeter", "Layer@21->Calorimeter",
+            "Layer@22->Calorimeter", "Layer@23->Calorimeter",
+            "Layer@24->Calorimeter", "Layer@25->Calorimeter",
+            "Layer@26->Calorimeter", "Layer@27->Calorimeter",
+            "Layer@28->Calorimeter", "Layer@29->Calorimeter",
+            "Layer@30->Calorimeter", "Layer@31->Calorimeter",
+            "Layer@32->Calorimeter", "Layer@33->Calorimeter",
+            "Layer@34->Calorimeter", "Layer@35->Calorimeter",
+            "Layer@36->Calorimeter", "Layer@37->Calorimeter",
+            "Layer@38->Calorimeter", "Layer@39->Calorimeter",
+            "Layer@40->Calorimeter", "Layer@41->Calorimeter",
+            "Layer@42->Calorimeter", "Layer@43->Calorimeter",
+            "Layer@44->Calorimeter", "Layer@45->Calorimeter",
+            "Layer@46->Calorimeter", "Layer@47->Calorimeter",
+            "Layer@48->Calorimeter", "Layer@49->Calorimeter",
+            "Calorimeter->world_PV",
+        };
         EXPECT_VEC_EQ(expected_local_parent_map, this->local_parent_map(*unit));
     }
     else
