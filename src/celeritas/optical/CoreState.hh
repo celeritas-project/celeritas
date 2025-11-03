@@ -58,6 +58,7 @@ class CoreStateInterface : public AuxStateInterface
 
   protected:
     CoreStateInterface() = default;
+
     CELER_DEFAULT_COPY_MOVE(CoreStateInterface);
 };
 
@@ -96,6 +97,9 @@ class CoreStateBase : public CoreStateInterface
 
   protected:
     CoreStateBase() = default;
+
+    // Anchor vtable
+    ~CoreStateBase() override;
 
   private:
     // Counters for track initialization and activity
@@ -136,6 +140,9 @@ class CoreState final : public CoreStateBase
     CoreState(CoreParams const& params,
               StreamId stream_id,
               size_type num_track_slots);
+
+    // Default destructor
+    ~CoreState() final;
 
     //! Thread/stream ID
     StreamId stream_id() const final { return this->ref().stream_id; }

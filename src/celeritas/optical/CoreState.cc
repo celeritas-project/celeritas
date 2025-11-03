@@ -17,8 +17,12 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-//! Support polymorphic deletion
+//! Support polymorphic deletion, anchoring to avoid bugs
 CoreStateInterface::~CoreStateInterface() = default;
+
+//---------------------------------------------------------------------------//
+//! Default destructor, anchoring to avoid bugs
+CoreStateBase::~CoreStateBase() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -57,6 +61,11 @@ CoreState<M>::CoreState(CoreParams const& params,
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
 }
+
+//---------------------------------------------------------------------------//
+// Default destructor
+template<MemSpace M>
+CoreState<M>::~CoreState() = default;
 
 //---------------------------------------------------------------------------//
 /*!
