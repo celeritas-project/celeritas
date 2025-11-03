@@ -341,7 +341,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     this->univ_level(ulev_id);
 
     // Reset surface/boundary information
-    this->boundary(BoundaryResult::moving_off);
+    this->boundary(BoundaryResult::exiting);
     this->clear_surface();
     this->clear_next();
 
@@ -552,7 +552,7 @@ CELER_FUNCTION Real3 OrangeTrackView::normal() const
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 {
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::moving_into))
+    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::entering))
     {
         // On a boundary, headed back in: next step is zero
         return {0, true};
@@ -578,7 +578,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 {
     CELER_EXPECT(max_step > 0);
 
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::moving_into))
+    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::entering))
     {
         // On a boundary, headed back in: next step is zero
         return {0, true};
@@ -603,7 +603,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
-    CELER_EXPECT(this->boundary() != BoundaryResult::moving_into);
+    CELER_EXPECT(this->boundary() != BoundaryResult::entering);
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->has_next_surface());
 
@@ -615,7 +615,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
         axpy(dist, lsa.dir(), &lsa.pos());
     }
 
-    this->boundary(BoundaryResult::moving_into);
+    this->boundary(BoundaryResult::entering);
     this->surface(this->next_surface_univ_level(), this->next_surf());
     this->clear_next();
 
@@ -690,7 +690,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::moving_off))
+    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::exiting))
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
@@ -700,7 +700,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     // Cross surface by flipping the sense
     states_.sense[track_slot_] = flip_sense(this->sense());
-    this->boundary(BoundaryResult::moving_off);
+    this->boundary(BoundaryResult::exiting);
 
     // Create local state from post-crossing level and updated sense
     UnivLevelId ulev_id{this->surface_univ_level()};

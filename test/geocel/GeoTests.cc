@@ -435,6 +435,32 @@ void FourLevelsGeoTest::test_detailed_tracking() const
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
         EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+        // Test relocation without direction change on surface
+        if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
+        {
+            // TODO: Geant4 does not allow crossing to new volume and returning
+            // to old
+            EXPECT_THROW(geo.cross_boundary(), DebugError);
+        }
+        else if (test_->geometry_type() == "ORANGE")
+        {
+            // No crossing if direction not changed
+            geo.cross_boundary();
+            EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+            constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+            // No crossing if direction on boundary is not reentrant
+            geo.set_dir(Real3{dx, dx, 0});
+            geo.cross_boundary();
+            EXPECT_EQ("Shape1", test_->volume_name(geo));
+        }
+        else
+        {
+            // Vecgeom doesn't correctly cross back and forth, but it doesn't
+            // throw on debug...
+        }
     }
 }
 
