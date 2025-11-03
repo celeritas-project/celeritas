@@ -99,87 +99,7 @@ TEST_F(LarSphere, run)
 //---------------------------------------------------------------------------//
 class LSOOSteppingAction final : public G4UserSteppingAction
 {
-    void UserSteppingAction(G4Step const* step) final
-    {
-        CELER_EXPECT(step);
-
-        constexpr double clhep_time{1 / units::nanosecond};
-
-        auto& local = detail::IntegrationSingleton::local_optical_offload();
-        if (!local)
-        {
-            // Offloading is disabled
-            return;
-        }
-
-        if (step->GetStepLength() == 0)
-        {
-            // Skip "no-process"-defined steps
-            return;
-        }
-
-        auto* pm = step->GetTrack()->GetDefinition()->GetProcessManager();
-        CELER_ASSERT(pm);
-
-        // Determine how many Cherenkov and scintillation photons to generate
-        size_type num_cherenkov{0};
-        size_type num_scintillation{0};
-        if (auto const* p
-            = dynamic_cast<G4Cerenkov const*>(pm->GetProcess("Cerenkov")))
-        {
-            num_cherenkov = p->GetNumPhotons();
-        }
-        if (auto const* p = dynamic_cast<G4Scintillation const*>(
-                pm->GetProcess("Scintillation")))
-        {
-            num_scintillation = p->GetNumPhotons();
-        }
-
-        if (num_cherenkov == 0 && num_scintillation == 0)
-        {
-            return;
-        }
-
-        auto* pre_step = step->GetPreStepPoint();
-        auto* post_step = step->GetPostStepPoint();
-        CELER_ASSERT(pre_step && post_step);
-
-        // Create distribution and push to Celeritas
-        // TODO: Get optical material ID
-        // TODO: Does the post-step speed account for only continuous energy
-        // loss or continuous+discrete?
-        optical::GeneratorDistributionData data;
-        data.time = convert_from_geant(post_step->GetGlobalTime(), clhep_time);
-        data.step_length
-            = convert_from_geant(step->GetStepLength(), clhep_length);
-        data.charge = units::ElementaryCharge{
-            static_cast<real_type>(post_step->GetCharge())};
-        data.material = OptMatId(0);
-        data.points[StepPoint::pre]
-            = {units::LightSpeed(pre_step->GetBeta()),
-               convert_from_geant(pre_step->GetPosition(), clhep_length)};
-        data.points[StepPoint::post]
-            = {units::LightSpeed(post_step->GetBeta()),
-               convert_from_geant(post_step->GetPosition(), clhep_length)};
-
-        if (num_cherenkov > 0)
-        {
-            data.type = GeneratorType::cherenkov;
-            data.num_photons = num_cherenkov;
-            CELER_ASSERT(data);
-            local.Push(data);
-        }
-        if (num_scintillation > 0)
-        {
-            data.type = GeneratorType::scintillation;
-            data.num_photons = num_scintillation;
-            CELER_ASSERT(data);
-            local.Push(data);
-        }
-        CELER_LOG(debug) << "Generating " << num_cherenkov
-                         << " Cherenkov photons and " << num_scintillation
-                         << " scintillation photons";
-    }
+    void UserSteppingAction(G4Step const* step) final;
 };
 
 //---------------------------------------------------------------------------//
@@ -260,6 +180,91 @@ auto LarSphereOpticalOffload::make_setup_options() -> SetupOptions
     result.offload_particles = SetupOptions::VecG4PD{};
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Stepping action for pushing optical distributions to Celeritas.
+ */
+void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
+{
+    CELER_EXPECT(step);
+
+    constexpr double clhep_time{1 / units::nanosecond};
+
+    auto& local = detail::IntegrationSingleton::local_optical_offload();
+    if (!local)
+    {
+        // Offloading is disabled
+        return;
+    }
+
+    if (step->GetStepLength() == 0)
+    {
+        // Skip "no-process"-defined steps
+        return;
+    }
+
+    auto* pm = step->GetTrack()->GetDefinition()->GetProcessManager();
+    CELER_ASSERT(pm);
+
+    // Determine how many Cherenkov and scintillation photons to generate
+    size_type num_cherenkov{0};
+    size_type num_scintillation{0};
+    if (auto const* p = dynamic_cast<G4Cerenkov const*>(pm->GetProcess("Cerenk"
+                                                                       "ov")))
+    {
+        num_cherenkov = p->GetNumPhotons();
+    }
+    if (auto const* p = dynamic_cast<G4Scintillation const*>(
+            pm->GetProcess("Scintillation")))
+    {
+        num_scintillation = p->GetNumPhotons();
+    }
+
+    if (num_cherenkov == 0 && num_scintillation == 0)
+    {
+        return;
+    }
+
+    auto* pre_step = step->GetPreStepPoint();
+    auto* post_step = step->GetPostStepPoint();
+    CELER_ASSERT(pre_step && post_step);
+
+    // Create distribution and push to Celeritas
+    // TODO: Get optical material ID
+    // TODO: Does the post-step speed account for only continuous energy
+    // loss or continuous+discrete?
+    optical::GeneratorDistributionData data;
+    data.time = convert_from_geant(post_step->GetGlobalTime(), clhep_time);
+    data.step_length = convert_from_geant(step->GetStepLength(), clhep_length);
+    data.charge = units::ElementaryCharge{
+        static_cast<real_type>(post_step->GetCharge())};
+    data.material = OptMatId(0);
+    data.points[StepPoint::pre]
+        = {units::LightSpeed(pre_step->GetBeta()),
+           convert_from_geant(pre_step->GetPosition(), clhep_length)};
+    data.points[StepPoint::post]
+        = {units::LightSpeed(post_step->GetBeta()),
+           convert_from_geant(post_step->GetPosition(), clhep_length)};
+
+    if (num_cherenkov > 0)
+    {
+        data.type = GeneratorType::cherenkov;
+        data.num_photons = num_cherenkov;
+        CELER_ASSERT(data);
+        local.Push(data);
+    }
+    if (num_scintillation > 0)
+    {
+        data.type = GeneratorType::scintillation;
+        data.num_photons = num_scintillation;
+        CELER_ASSERT(data);
+        local.Push(data);
+    }
+    CELER_LOG(debug) << "Generating " << num_cherenkov
+                     << " Cherenkov photons and " << num_scintillation
+                     << " scintillation photons";
 }
 
 //---------------------------------------------------------------------------//

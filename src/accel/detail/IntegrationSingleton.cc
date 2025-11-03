@@ -80,7 +80,7 @@ IntegrationSingleton& IntegrationSingleton::instance()
  */
 LocalTransporter& IntegrationSingleton::local_transporter()
 {
-    auto& offload = IntegrationSingleton::offload();
+    auto& offload = IntegrationSingleton::local_offload_ptr();
     if (!offload)
     {
         offload = std::make_unique<LocalTransporter>();
@@ -98,7 +98,7 @@ LocalTransporter& IntegrationSingleton::local_transporter()
  */
 LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
 {
-    auto& offload = IntegrationSingleton::offload();
+    auto& offload = IntegrationSingleton::local_offload_ptr();
     if (!offload)
     {
         offload = std::make_unique<LocalOpticalOffload>();
@@ -351,7 +351,7 @@ IntegrationSingleton::IntegrationSingleton()
 /*!
  * Static THREAD-LOCAL Celeritas offload.
  */
-auto IntegrationSingleton::offload() -> UPOffload&
+auto IntegrationSingleton::local_offload_ptr() -> UPOffload&
 {
     static G4ThreadLocal UPOffload offload;
     return offload;

@@ -117,7 +117,7 @@ class IntegrationSingleton
     IntegrationSingleton();
 
     // Static thread-local Celeritas state data
-    static UPOffload& offload();
+    static UPOffload& local_offload_ptr();
 
     // Whether offloading optical distribution data is enabled
     bool optical_offload() const;
