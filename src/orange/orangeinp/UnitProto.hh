@@ -141,7 +141,6 @@ class UnitProto : public ProtoInterface
         // True if fully defined
         explicit inline operator bool() const;
     };
-    //!@}
 
   public:
     // Construct with required input data
