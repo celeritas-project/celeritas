@@ -153,6 +153,12 @@ template<MemSpace M>
 void ExtendFromPrimariesAction::insert_impl(
     CoreState<M>& state, Span<Primary const> host_primaries) const
 {
+    // TODO: when we add multiple "generators" to the core loop, this will need
+    // to be set before calling any generator and incremented by each generator
+    // (including this one)
+    state.counters().num_generated = 0;
+    state.counters().num_pending = host_primaries.size();
+
     auto& pstate = get<PrimaryStateData<M>>(state.aux(), aux_id_);
     if (pstate.count != 0)
     {
