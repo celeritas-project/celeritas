@@ -30,6 +30,8 @@
 
 #if CELERITAS_VECGEOM_SURFACE
 #    include "detail/SurfNavigator.hh"
+#elif CELERITAS_VECGEOM_VERSION < 0x020000
+#    include "detail/BVHNavigator.hh"
 #else
 #    include "detail/SolidsNavigator.hh"
 #endif
@@ -60,6 +62,8 @@ class VecgeomTrackView
     using StateRef = NativeRef<VecgeomStateData>;
 #if CELERITAS_VECGEOM_SURFACE
     using Navigator = celeritas::detail::SurfNavigator;
+#elif CELERITAS_VECGEOM_VERSION < 0x020000
+    using Navigator = celeritas::detail::BVHNavigator;
 #else
     using Navigator = celeritas::detail::SolidsNavigator;
 #endif
