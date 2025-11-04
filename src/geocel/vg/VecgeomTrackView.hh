@@ -564,11 +564,11 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
                                             next_surface_,
                                             vgnext_);
         }
-#else
-        //// Some navigators require an lvalue temp_pos
-        // auto temp_pos = detail::to_vector(this->pos_);
-        // Navigator::RelocateToNextVolume(
-        //     temp_pos, detail::to_vector(this->dir_), vgnext_);
+#elif CELERITAS_VECGEOM_VERSION < 0x020000
+        // Some navigators require an lvalue temp_pos
+        auto temp_pos = detail::to_vector(this->pos_);
+        Navigator::RelocateToNextVolume(
+            temp_pos, detail::to_vector(this->dir_), vgnext_);
 #endif
     }
 
