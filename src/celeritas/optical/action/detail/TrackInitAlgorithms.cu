@@ -65,18 +65,17 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 
     ScopedProfiling profile_this{"copy-if-vacant"};
 
+    // cub functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
-    Stream& s = device().stream(stream_id);
-    StreamT stream = s.get();
+    StreamT stream = device().stream(stream_id).get();
 
-    // The first call just computes the number of additional bytes needed for
-    // the in-place selection. Calling with nullptr causes this instead of
-    // invoking the kernel.
-    size_t temp_storage_bytes = 0;
     // *** For testing with existing code for consistency
     DeviceVector<size_type> num_vacancies{1, stream_id};
     // *** For testing with existing code for consistency
 
+    // Calling with nullptr causes the function to return the amount of working
+    // space needed instead of invoking the kernel.
+    size_t temp_storage_bytes = 0;
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
     auto flags = device_pointer_cast(status.data());
@@ -114,18 +113,6 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     CELER_DEVICE_API_CALL(PeekAtLastError());
     // Number of vacancies
     return num;
-    // auto start = thrust::make_transform_iterator(
-    // thrust::make_counting_iterator<size_type>(0), TransformType{});
-    // auto result = device_pointer_cast(vacancies.data());
-    // auto end = thrust::copy_if(thrust_execute_on(stream_id),
-    // start,
-    // start + vacancies.size(),
-    // device_pointer_cast(status.data()),
-    // result,
-    // IsVacant{});
-    // CELER_DEVICE_API_CALL(PeekAtLastError());
-
-    // return end - result;
 }
 
 //---------------------------------------------------------------------------//
