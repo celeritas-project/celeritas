@@ -1259,13 +1259,15 @@ void ReplicaGeoTest::test_volume_stack() const
         // Geant4 gets stuck here (it's close to a boundary)
         auto result = test_->volume_stack({-342.5, 0.1, 593.22740159234});
         GenericGeoVolumeStackResult ref;
-        ref.volume_instances = {"world_PV", "fSecondArmPhys"};
-        if (test_->geometry_type() == "Geant4"
-            || (test_->geometry_type() == "VecGeom"
-                && CELERITAS_VECGEOM_SURFACE))
+        ref.volume_instances
+            = {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
+        if ((test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+            || (test_->geometry_type() == "ORANGE"
+                && (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)))
         {
-            ref.volume_instances.insert(ref.volume_instances.end(),
-                                        {"EMcalorimeter", "cell_param@42"});
+            // Slightly different answers
+            ref.volume_instances.pop_back();
+            ref.volume_instances.pop_back();
         }
         EXPECT_REF_EQ(ref, result);
     }
