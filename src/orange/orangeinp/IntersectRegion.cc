@@ -10,7 +10,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
@@ -25,7 +27,6 @@
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
-#include "orange/univ/detail/Utils.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
@@ -59,13 +60,34 @@ auto make_soft_equal(IntersectSurfaceBuilder const& sb)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a z-aligned bounding box infinite along z and symmetric in r.
+ * Create a bounding box: symmetric x/y, different top/bottom extents.
  */
-BBox make_xyradial_bbox(real_type r)
+BBox make_radial_bbox(real_type r, EnumArray<Bound, real_type> z)
 {
     CELER_EXPECT(r > 0);
-    constexpr auto inf = numeric_limits<real_type>::infinity();
-    return BBox::from_unchecked({-r, -r, -inf}, {r, r, inf});
+    CELER_EXPECT(z[Bound::lo] < z[Bound::hi]);
+    return BBox::from_unchecked({-r, -r, z[Bound::lo]}, {r, r, z[Bound::hi]});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a bounding box: symmetric x=y, symmetric z.
+ */
+BBox make_radial_bbox(real_type r, real_type z)
+{
+    CELER_EXPECT(r > 0);
+    CELER_EXPECT(z > 0);
+
+    return make_radial_bbox(r, {-z, z});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a bounding box: symmetric x=y, unbounded in z.
+ */
+CELER_FORCEINLINE_FUNCTION BBox make_radial_bbox(real_type r)
+{
+    return make_radial_bbox(r, numeric_limits<real_type>::infinity());
 }
 
 //---------------------------------------------------------------------------//
@@ -76,6 +98,26 @@ BBox make_xyradial_bbox(real_type r)
 canonicalize_zero(real_type value)
 {
     return value == 0 ? 0 : value;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write an IntersectRegion to json.
+ *
+ * This modified copy of to_json_pimpl uses a static cast to ensure that the
+ * correct to_json specialization is declared in \c ObjectIO.json.hh . If not,
+ * this function will error about an invalid static cast.
+ *
+ * Without this special modification, the `to_json` will match the
+ * IntersectRegion base class specialization which results in an infinite
+ * recursive call.
+ */
+template<class T>
+void save_region_json(JsonPimpl* jp, T const& self)
+{
+    CELER_EXPECT(jp);
+    using FuncT = void (*)(nlohmann::json&, T const&);
+    static_cast<FuncT>(orangeinp::to_json)(jp->obj, self);
 }
 
 //---------------------------------------------------------------------------//
@@ -117,7 +159,7 @@ void Box::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Box::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -200,7 +242,7 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(cone);
 
     // Set radial extents of exterior bbox
-    insert_surface(Sense::inside, make_xyradial_bbox(std::fmax(lo, hi)));
+    insert_surface(Sense::inside, make_radial_bbox(std::fmax(lo, hi)));
 
     // Calculate the interior bounding box:
     real_type const b = std::fmax(lo, hi);
@@ -217,10 +259,9 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
         zmax = hh_;
         zmin = zmax - z;
     }
-    CELER_ASSERT(zmin < zmax);
-    real_type const rbox = (constants::sqrt_two / 2) * r;
-    BBox const interior_bbox{{-rbox, -rbox, zmin}, {rbox, rbox, zmax}};
 
+    auto interior_bbox
+        = make_radial_bbox((constants::sqrt_two / 2) * r, {zmin, zmax});
     // Check that the corners are actually inside the cone
     CELER_ASSERT(cone.calc_sense(interior_bbox.lower() * real_type(1 - 1e-5))
                  == SignedSense::inside);
@@ -235,7 +276,7 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Cone::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -296,8 +337,7 @@ void CutCylinder::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::inside, Plane{bot_normal_, {0, 0, -hh_}});
     insert_surface(Sense::inside, Plane{top_normal_, {0, 0, hh_}});
     insert_surface(Sense::inside, CCylZ{radius_});
-    insert_surface(Sense::inside,
-                   BBox{{-radius_, -radius_, -hh_}, {radius_, radius_, hh_}});
+    insert_surface(Sense::inside, make_radial_bbox(radius_, hh_));
 }
 
 //---------------------------------------------------------------------------//
@@ -306,7 +346,7 @@ void CutCylinder::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void CutCylinder::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -348,7 +388,7 @@ void Cylinder::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Cylinder::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -428,7 +468,7 @@ void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Ellipsoid::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -498,7 +538,7 @@ void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void EllipticalCylinder::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -624,7 +664,7 @@ void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void EllipticalCone::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -730,7 +770,7 @@ void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void ExtrudedPolygon::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1093,7 +1133,69 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void GenPrism::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// HYPERBOLOID
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with radius at midpoint (min) and end (max), and half-height.
+ */
+Hyperboloid::Hyperboloid(real_type min_radius,
+                         real_type max_radius,
+                         real_type halfheight)
+    : r_min_{min_radius}, r_max_{max_radius}, hh_{halfheight}
+{
+    CELER_VALIDATE(r_min_ > 0,
+                   << "nonpositive minimum radius: " << r_min_
+                   << " (use a cone instead)");
+    CELER_VALIDATE(r_max_ > r_min_,
+                   << "maximum radius " << r_max_
+                   << " is not greater than minimum radius " << r_min_);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another hyperboloid.
+ */
+bool Hyperboloid::encloses(Hyperboloid const& other) const
+{
+    return r_min_ >= other.r_min_ && r_max_ >= other.r_max_ && hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Hyperboloid::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    // Build the bottom and top planes
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    real_type const t_sq = (ipow<2>(r_max_) - ipow<2>(r_min_)) / ipow<2>(hh_);
+
+    // Build the hyperboloid surface
+    insert_surface(
+        SimpleQuadric{Real3{1, 1, -t_sq}, Real3{0, 0, 0}, -ipow<2>(r_min_)});
+
+    // Set exterior bounding box (use maximum radius as the maximum extent)
+    insert_surface(Sense::inside, make_radial_bbox(r_max_, hh_));
+
+    // Set interior bounding box (use minimum radius inscribed in a square)
+    insert_surface(Sense::outside,
+                   make_radial_bbox(r_min_ / constants::sqrt_two, hh_));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Hyperboloid::output(JsonPimpl* j) const
+{
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1138,7 +1240,7 @@ void InfPlane::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void InfPlane::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1187,7 +1289,7 @@ void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void InfAziWedge::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1254,7 +1356,7 @@ void InfPolarWedge::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void InfPolarWedge::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1330,7 +1432,7 @@ void Involute::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Involute::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1398,10 +1500,8 @@ void Paraboloid::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(SimpleQuadric{Real3{1, 1, 0}, Real3{0, 0, f}, g});
 
     // Set an exterior bbox
-    real_type r_max = std::fmax(r_lo_, r_hi_);
-    Real3 ex_halves{r_max, r_max, hh_};
-    insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
-
+    insert_surface(Sense::inside,
+                   make_radial_bbox(std::fmax(r_lo_, r_hi_), hh_));
     // TODO: interior bbox
 }
 
@@ -1411,7 +1511,7 @@ void Paraboloid::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Paraboloid::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1490,7 +1590,7 @@ void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Parallelepiped::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1554,13 +1654,8 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     }
 
     // Apothem is interior, circumradius exterior
-    insert_surface(Sense::inside,
-                   make_xyradial_bbox(apothem_ / cos(delta / 2)));
-
-    auto interior_bbox = make_xyradial_bbox(apothem_);
-    interior_bbox.shrink(Bound::lo, Axis::z, -hh_);
-    interior_bbox.shrink(Bound::hi, Axis::z, hh_);
-    insert_surface(Sense::outside, interior_bbox);
+    insert_surface(Sense::inside, make_radial_bbox(apothem_ / cos(delta / 2)));
+    insert_surface(Sense::outside, make_radial_bbox(apothem_, hh_));
 }
 
 //---------------------------------------------------------------------------//
@@ -1569,7 +1664,7 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Prism::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1613,7 +1708,7 @@ void Sphere::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Sphere::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1696,7 +1791,7 @@ void Tet::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Tet::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//

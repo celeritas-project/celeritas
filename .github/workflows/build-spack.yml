@@ -280,8 +280,7 @@ jobs:
           }}
         continue-on-error: >- # TODO: fix failing tests
           ${{
-            fromJSON(matrix.geant || '0') < 11
-            || matrix.geometry == 'vgsurf'
+               matrix.geometry == 'vgsurf'
             || matrix.geometry == 'vecgeom2'
           }}
         run: |
@@ -290,7 +289,13 @@ jobs:
             # Note this is ignored for non-primary geometry implementations
             export CELER_TEST_STRICT=1
           fi
-          ctest --preset=spack-unit
+          # Only run integration-level tests for old Geant4
+          ctest --preset=spack-unit ${{
+            matrix.geant
+            && fromJSON(matrix.geant) < 11
+            && '-R "^accel/"'
+            || ''
+          }}
       - name: Run app tests
         id: apptest
         if: >-
@@ -299,7 +304,6 @@ jobs:
             && matrix.special != 'tidy'
             && steps.build.outcome == 'success'
           }}
-        continue-on-error: ${{matrix.geant == '10.6'}} # TODO: rogue output from G4DeexPrecoParameters
         run: |
           ctest --preset=spack-app
       - name: Upload test results
@@ -309,8 +313,6 @@ jobs:
             always()
             && (steps.unittest.outcome == 'success'
                 || steps.unittest.outcome == 'failure')
-            && (!matrix.geant
-                || fromJSON(matrix.geant) >= 11)
             && !(matrix.geometry == 'vgsurf'
                  || matrix.geometry == 'vecgeom2')
           }}
@@ -378,7 +380,7 @@ jobs:
         env:
           CELER_DISABLE_G4_EXAMPLES: >-
             ${{(!matrix.geant) && '1' || ''}}
-        # TODO: ASAN requires flags downstream
+        # Special clang features require downstream flags that don't propagate
         if: >-
           ${{
             matrix.special != 'asanlite'
