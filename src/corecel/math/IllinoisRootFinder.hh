@@ -74,10 +74,12 @@ IllinoisRootFinder<F>::IllinoisRootFinder(F&& func, real_type tol)
 //---------------------------------------------------------------------------//
 /*!
  * Solve for a root between the two points.
+ *
+ * TODO: rewrite as enum array of size 2
  */
 template<class F>
-CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type left,
-                                                           real_type right)
+CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type xl,
+                                                           real_type xr)
 {
     //! Enum defining side of approximated root to true root
     enum class Side
@@ -88,10 +90,10 @@ CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type left,
     };
 
     // Initialize Iteration parameters
-    real_type f_left = func_(left);
-    real_type f_right = func_(right);
-    real_type f_root = 1;
-    real_type root = 0;
+    real_type fl = func_(xl);
+    real_type fr = func_(xr);
+    real_type fx = 1;
+    real_type x = 0;
     Side side = Side::init;
     int remaining_iters = max_iters_;
 
@@ -99,34 +101,34 @@ CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type left,
     do
     {
         // Estimate root and update value
-        root = (left * f_right - right * f_left) / (f_right - f_left);
-        f_root = func_(root);
+        x = (xl * fr - xr * fl) / (fr - fl);
+        fx = func_(x);
 
         // Update the bound which produces the same sign as the root
-        if (signum(f_left) == signum(f_root))
+        if (signum(fl) == signum(fx))
         {
-            left = root;
-            f_left = f_root;
+            xl = x;
+            fl = fx;
             if (side == Side::left)
             {
-                f_right *= real_type(0.5);
+                fr *= real_type(0.5);
             }
             side = Side::left;
         }
         else
         {
-            right = root;
-            f_right = f_root;
+            xr = x;
+            fr = fx;
             if (side == Side::right)
             {
-                f_left *= real_type(0.5);
+                fl *= real_type(0.5);
             }
             side = Side::right;
         }
-    } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
+    } while (std::fabs(fx) > tol_ && --remaining_iters > 0);
 
     CELER_ENSURE(remaining_iters > 0);
-    return root;
+    return x;
 }
 
 //---------------------------------------------------------------------------//

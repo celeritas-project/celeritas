@@ -108,10 +108,10 @@ struct hash<celeritas::Span<T, Extent>>
         else
         {
             std::size_t result{};
-            celeritas::Hasher hash{&result};
+            celeritas::Hasher hash_impl{&result};
             for (auto const& v : s)
             {
-                hash(std::hash<std::remove_cv_t<T>>{}(v));
+                hash_impl(std::hash<std::remove_cv_t<T>>{}(v));
             }
             return result;
         }
