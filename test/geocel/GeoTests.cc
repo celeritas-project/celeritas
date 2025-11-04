@@ -2402,7 +2402,7 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
     }
 
     // Make sure we're not intersecting by accident
-    next = geo.find_next_step(10);
+    next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(10.0, to_cm(next.distance));
     EXPECT_FALSE(next.boundary);
     EXPECT_TRUE(geo.is_on_boundary());
