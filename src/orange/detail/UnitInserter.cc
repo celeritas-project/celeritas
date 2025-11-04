@@ -393,7 +393,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
     std::vector<FastBBox> bboxes;
     BIHBuilder::SetLocalVolId implicit_vol_ids;
-    for (auto i : range(inp.volumes.size()))
+    for (auto i : range<LocalVolumeId::size_type>(inp.volumes.size()))
     {
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
