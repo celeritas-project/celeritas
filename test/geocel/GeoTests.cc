@@ -2373,7 +2373,7 @@ void TwoBoxesGeoTest::test_reentrant() const
 
     if (test_->geometry_type() == "VecGeom")
     {
-        // VecGeom 1.2.10 seems to fail reentry *sometimes*: on the CI builds,
+        // VecGeom 1.2.11 seems to fail reentry *sometimes*: on the CI builds,
         // spack passes but docker fails (relwithdebinfo and debug)
         if ("world" == test_->volume_name(geo))
         {

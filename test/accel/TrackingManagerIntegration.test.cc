@@ -153,11 +153,13 @@ TEST_F(LarSphere, run)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-    if (!using_surface_vg)
+    if (using_surface_vg)
     {
-        CELER_LOG(status) << "Beam on (second run)";
-        rm.BeamOn(1);
+        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
     }
+
+    CELER_LOG(status) << "Beam on (second run)";
+    rm.BeamOn(1);
 }
 
 /*!
@@ -417,12 +419,13 @@ TEST_F(LarSphereOptical, run)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-    // check if geometry is vecgeom surface model and skip if so
-    if (!using_surface_vg)
+    if (using_surface_vg)
     {
-        CELER_LOG(status) << "Beam on (second run)";
-        rm.BeamOn(2);
+        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
     }
+
+    CELER_LOG(status) << "Beam on (second run)";
+    rm.BeamOn(2);
 }
 
 /*!
@@ -538,11 +541,13 @@ TEST_F(OpNoviceOptical, run)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-    if (!using_surface_vg)
+    if (using_surface_vg)
     {
-        CELER_LOG(status) << "Beam on (second run)";
-        rm.BeamOn(10);
+        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
     }
+
+    CELER_LOG(status) << "Beam on (second run)";
+    rm.BeamOn(10);
 }
 
 //---------------------------------------------------------------------------//

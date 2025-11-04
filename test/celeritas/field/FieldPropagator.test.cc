@@ -833,7 +833,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         }
 
         geo.cross_boundary();
-        EXPECT_EQ(this->volume_name(geo), "world");
+        EXPECT_EQ("world", this->volume_name(geo));
     }
     {
         SCOPED_TRACE("Barely (correctly) misses y");
@@ -1294,8 +1294,12 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         EXPECT_SOFT_NEAR(
             double{30}, static_cast<double>(integrate.count()), 0.2);
 
-        // ASSERT_TRUE(geo.is_on_boundary());
-        EXPECT_EQ(geo.is_on_boundary(), !using_surface_vg);
+        if (using_surface_vg)
+        {
+            GTEST_SKIP() << "FIXME: VecGeom surface model fails a boundary requirement.";
+        }
+        ASSERT_TRUE(geo.is_on_boundary());
+
         if (geo.check_normal())
         {
             EXPECT_VEC_SOFT_EQ(
@@ -1305,10 +1309,10 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         // EXPECT_SOFT_EQ(30, calc_radius());
         EXPECT_SOFT_NEAR(calc_radius(), 29.9999996, 4e-7);
         geo.cross_boundary();
-        EXPECT_EQ(this->volume_name(geo),
-                  using_surface_vg ? "vacuum_tube" : "si_tracker");
-        std::cerr << " using surface=" << using_surface_vg
-                  << " solid:" << using_solids_vg << std::endl;
+        EXPECT_EQ(using_surface_vg ? "vacuum_tube" : "si_tracker",
+                  this->volume_name(geo))
+            << " vecgeom_version=" << std::hex << CELERITAS_VECGEOM_VERSION
+            << std::dec;
     }
 }
 
@@ -1397,7 +1401,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             EXPECT_EQ(result.distance, 1);
             EXPECT_FALSE(result.boundary);
             EXPECT_TRUE(geo.is_on_boundary());
-            EXPECT_EQ(this->volume_name(geo), "em_calorimeter");
+            EXPECT_EQ("em_calorimeter", this->volume_name(geo));
             EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
         }
         else

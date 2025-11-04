@@ -24,7 +24,6 @@ namespace celeritas
 {
 namespace detail
 {
-using namespace vecgeom;
 //---------------------------------------------------------------------------//
 /*!
  * Pointers to device data, obtained from a kernel launch or from runtime.
@@ -40,7 +39,6 @@ class SolidsNavigator
     using Vector3D = vecgeom::Vector3D<vecgeom::Precision>;
     using VPlacedVolumePtr_t = vecgeom::VPlacedVolume const*;
 
-    // static constexpr Precision kBoundaryPush = 10 * vecgeom::kTolerance;
     //-----------------------------------------------------------------------//
     // Locate a point in the geometry hierarchy
     CELER_FUNCTION static VPlacedVolumePtr_t
@@ -124,7 +122,7 @@ class SolidsNavigator
         if (pvol->GetDaughters().size() > 0)
         {
             auto* navigator = pvol->GetLogicalVolume()->GetNavigator();
-            VPlacedVolume const* hitcandidate = nullptr;  // not used
+            vecgeom::VPlacedVolume const* hitcandidate = nullptr;  // not used
             navigator->CheckDaughterIntersections(pvol->GetLogicalVolume(),
                                                   localpoint,
                                                   localdir,
@@ -158,7 +156,7 @@ class SolidsNavigator
         // Otherwise it is a geometry step and track will reach the boundary
         next.SetBoundaryState(true);
 
-        step = vecCore::math::Max(step, kTolerance);
+        step = vecCore::math::Max(step, vecgeom::kTolerance);
         step = vecCore::math::Min(step, step_limit);
 
         return step;
@@ -195,14 +193,9 @@ class SolidsNavigator
 
         // try to use a point in next volume
         // Push the point inside the next volume.
-        Vector3D pushed = glpos + 10. * vecgeom::kTolerance * gldir;
+        static constexpr Precision kBoundaryPush = 10 * vecgeom::kTolerance;
+        Vector3D pushed = glpos + kBoundaryPush * gldir;
         LocatePointIn(next.Top(), pushed, next, false, nullptr);
-
-        // // alternative: use FindNextBoundaryAndStep
-        // auto* navigator =
-        // curr.Top()->GetLogicalVolume()->GetNavigator();
-        // navigator->ComputeStepAndPropagatedState(glpos, gldir, curr,
-        // next);
 
         if (curr.Top() != nullptr)
         {
