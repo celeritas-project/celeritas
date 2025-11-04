@@ -153,13 +153,8 @@ template<MemSpace M>
 void ExtendFromPrimariesAction::insert_impl(
     CoreState<M>& state, Span<Primary const> host_primaries) const
 {
-    // TODO: when we add multiple "generators" to the core loop, this will need
-    // to be set before calling any generator and incremented by each generator
-    // (including this one)
-    state.counters().num_generated = 0;
-    state.counters().num_pending = host_primaries.size();
-
     auto& pstate = get<PrimaryStateData<M>>(state.aux(), aux_id_);
+    CELER_ASSERT(pstate.count == state.counters().num_pending);
     if (pstate.count != 0)
     {
         /*!
@@ -176,6 +171,7 @@ void ExtendFromPrimariesAction::insert_impl(
         resize(&pstate.storage, host_primaries.size());
     }
     pstate.count = host_primaries.size();
+    state.counters().num_pending = host_primaries.size();
 
     Copier<Primary, M> copy_to_temp{pstate.primaries(), state.stream_id()};
     copy_to_temp(MemSpace::host, host_primaries);
@@ -195,8 +191,12 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
     state.counters().num_initializers += primaries.count;
     this->process_primaries(params, state, primaries);
 
+    // TODO: when we add multiple "generators" to the core loop, this will
+    // change to an *increment* for each generator (including this one) and
+    // *reset* to zero before any generator is called.
+    state.counters().num_generated = primaries.count;
+
     // Mark that the primaries have been processed
-    state.counters().num_generated += primaries.count;
     state.counters().num_pending = 0;
     primaries.count = 0;
 }
