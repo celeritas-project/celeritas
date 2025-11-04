@@ -12,10 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayOperators.hh"
-#include "corecel/math/BisectionRootFinder.hh"
 #include "corecel/math/IllinoisRootFinder.hh"
-#include "corecel/math/RegulaFalsiRootFinder.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "InvolutePoint.hh"
