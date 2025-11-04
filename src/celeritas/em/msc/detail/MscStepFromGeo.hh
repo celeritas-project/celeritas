@@ -112,13 +112,13 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
             // Cross section was assumed to be constant over the step:
             // z = lambda * (1 - exp(-g / lambda))
             // => g = -lambda * log(1 - g / lambda)
-            real_type tstep = -lambda_ * std::log1p(-gstep / lambda_);
-            if (tstep < params_.min_step_transform)
+            real_type result = -lambda_ * std::log1p(-gstep / lambda_);
+            if (result < params_.min_step_transform)
             {
                 // Very small step: did not transform path length
                 return gstep;
             }
-            return tstep;
+            return result;
         }
 
         real_type w = 1 + 1 / (alpha_ * lambda_);
