@@ -694,7 +694,6 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
-        // this->boundary(BoundaryResult::exiting);
         return;
     }
 
