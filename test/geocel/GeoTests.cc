@@ -368,8 +368,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         // Check the distance to the sphere boundary again, then scatter
         // into the sphere (this may be a "bump": 1e-13 for surface VG, Geant4;
         // 1e-8 for volume VG; BUT exactly zero for ORANGE thanks to
-        // "
-        // eentrant" logic)
+        // "reentrant" logic)
         next = geo.find_next_step(from_cm(20.0));
         EXPECT_LE(next.distance, to_cm(1e-8));
         ASSERT_TRUE(next.boundary);
@@ -389,11 +388,14 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_EQ("Shape2", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
-        if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
+        if (test_->geometry_type() == "Geant4")
         {
             // TODO: Geant4 does not allow crossing to new volume and returning
             // to old
-            EXPECT_THROW(geo.cross_boundary(), DebugError);
+            if (CELERITAS_DEBUG)
+            {
+                EXPECT_THROW(geo.cross_boundary(), DebugError);
+            }
         }
         else
         {
@@ -432,9 +434,12 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_EQ("Shape1", test_->volume_name(geo));
 
         // Test relocation without direction change on surface
-        if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
+        if (test_->geometry_type() == "Geant4")
         {
-            EXPECT_THROW(geo.cross_boundary(), DebugError);
+            if (CELERITAS_DEBUG)
+            {
+                EXPECT_THROW(geo.cross_boundary(), DebugError);
+            }
         }
         else
         {
