@@ -56,7 +56,7 @@ esac
 
 ${DOCKER} pull ${BASE_TAG}
 ${DOCKER} tag ${BASE_TAG} base-${CONFIG}
- 
+
 # ${DOCKER} build -t dev-${CONFIG} \
 #   --build-arg CONFIG=${CONFIG} \
 #   --build-arg SPACK_VERSION=${SPACK_VERSION} \
