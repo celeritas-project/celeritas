@@ -38,18 +38,17 @@ Transporter::Transporter(Input&& inp)
 /*!
  * Transport all pending optical tracks on the host.
  */
-void Transporter::operator()(CoreStateHost& state) const
+void Transporter::operator()(CoreStateBase& state) const
 {
-    this->transport_impl(state);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Transport all pending optical tracks on the device.
- */
-void Transporter::operator()(CoreStateDevice& state) const
-{
-    this->transport_impl(state);
+    if (auto* s = dynamic_cast<CoreStateHost*>(&state))
+    {
+        return this->transport_impl(*s);
+    }
+    else if (auto* s = dynamic_cast<CoreStateDevice*>(&state))
+    {
+        return this->transport_impl(*s);
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

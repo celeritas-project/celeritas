@@ -30,6 +30,7 @@ a CSG intersection of half-spaces. The IntersectRegion interface
 helps construct these objects.
 
 .. doxygenclass:: celeritas::orangeinp::IntersectRegionInterface
+
 .. doxygenclass:: celeritas::orangeinp::Box
 .. doxygenclass:: celeritas::orangeinp::Cone
 .. doxygenclass:: celeritas::orangeinp::CutCylinder
@@ -39,6 +40,7 @@ helps construct these objects.
 .. doxygenclass:: celeritas::orangeinp::EllipticalCone
 .. doxygenclass:: celeritas::orangeinp::ExtrudedPolygon
 .. doxygenclass:: celeritas::orangeinp::GenPrism
+.. doxygenclass:: celeritas::orangeinp::Hyperboloid
 .. doxygenclass:: celeritas::orangeinp::InfPlane
 .. doxygenclass:: celeritas::orangeinp::InfAziWedge
 .. doxygenclass:: celeritas::orangeinp::InfPolarWedge
@@ -173,8 +175,3 @@ each become a CSG unit. This decomposition is currently tuned so that:
   used multiple times and have daughter volumes.
 
 .. _Geant4 documentation: https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/index.html
-
-Runtime interface
------------------
-
-.. doxygenclass:: celeritas::OrangeTrackView

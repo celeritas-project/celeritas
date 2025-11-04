@@ -126,6 +126,28 @@ using OpticalPrimaryGenerator = PrimaryGenerator;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Generate optical photons from EM particles in Celeritas.
+ */
+struct OpticalEmGenerator
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate optical photons from offloaded distribution data.
+ */
+struct OpticalOffloadGenerator
+{
+};
+
+//---------------------------------------------------------------------------//
+//! Mechanism for generating optical photons
+using OpticalGenerator = std::variant<OpticalEmGenerator,
+                                      OpticalOffloadGenerator,
+                                      OpticalPrimaryGenerator>;
+
+//---------------------------------------------------------------------------//
+/*!
  * Sample random events from an input file.
  *
  * \todo move num_events to StandaloneInput

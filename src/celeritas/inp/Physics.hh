@@ -15,6 +15,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
+#include "Events.hh"
 #include "PhysicsProcess.hh"
 #include "ProcessBuilder.hh"
 #include "SurfacePhysics.hh"
@@ -104,6 +105,7 @@ struct OpticalPhysics
  * \todo Move particle data from \c celeritas::ImportParticle
  * \todo Add function for injecting user processes for
  *       \c celeritas::PhysicsParams
+ * \todo Move \c OpticalGenerator to \c OpticalGenPhysics or elsewhere
  *
  * \todo How to better group these, especially when adding
  * hadronic/photonuclear/decay/...?
@@ -115,6 +117,8 @@ struct Physics
 
     //! Physics for optical photons
     OpticalPhysics optical;
+    //! Optical photon generation mechanism
+    OpticalGenerator optical_generator;
 };
 
 //---------------------------------------------------------------------------//

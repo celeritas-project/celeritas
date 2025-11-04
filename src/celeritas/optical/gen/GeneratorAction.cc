@@ -19,7 +19,6 @@
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/CoreTrackData.hh"
-#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
@@ -62,14 +61,13 @@ auto make_state(StreamId stream, size_type size)
 std::shared_ptr<GeneratorAction>
 GeneratorAction::make_and_insert(::celeritas::CoreParams const& core_params,
                                  CoreParams const& params,
-                                 Input&& input)
+                                 size_type capacity)
 {
-    CELER_EXPECT(input);
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *core_params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
     auto result = std::make_shared<GeneratorAction>(
-        actions.next_id(), aux.next_id(), gen.next_id(), std::move(input));
+        actions.next_id(), aux.next_id(), gen.next_id(), capacity);
 
     actions.insert(result);
     aux.insert(result);
@@ -84,16 +82,16 @@ GeneratorAction::make_and_insert(::celeritas::CoreParams const& core_params,
 GeneratorAction::GeneratorAction(ActionId id,
                                  AuxId aux_id,
                                  GeneratorId gen_id,
-                                 Input&& inp)
+                                 size_type capacity)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
                     "optical-generate",
                     "generate Cherenkov or scintillation photons from optical "
                     "distribution data")
-    , data_(std::move(inp))
+    , initial_capacity_(capacity)
 {
-    CELER_EXPECT(data_);
+    CELER_EXPECT(initial_capacity_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -105,11 +103,28 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(id, data_.capacity);
+        return make_state<MemSpace::host>(id, initial_capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(id, data_.capacity);
+        return make_state<MemSpace::device>(id, initial_capacity_);
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add user-provided host distribution data.
+ */
+void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
+{
+    if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
+    {
+        return this->insert_impl(*s, data);
+    }
+    else if (auto* s = dynamic_cast<CoreState<MemSpace::device>*>(&state))
+    {
+        return this->insert_impl(*s, data);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -131,6 +146,36 @@ void GeneratorAction::step(CoreParams const& params,
                            CoreStateDevice& state) const
 {
     this->step_impl(params, state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add distributions to the aux state.
+ */
+template<MemSpace M>
+void GeneratorAction::insert_impl(CoreState<M>& state, SpanConstData data) const
+{
+    CELER_EXPECT(state.aux());
+
+    auto& aux_state = get<GeneratorState<M>>(*state.aux(), this->aux_id());
+
+    if (aux_state.counters.buffer_size != 0)
+    {
+        CELER_NOT_IMPLEMENTED("multiple consecutive distribution insertions");
+    }
+
+    if (aux_state.store.size() < data.size())
+    {
+        // Reallocate with enough capacity
+        aux_state.store = CollectionStateStore<GeneratorStateData, M>{
+            state.stream_id(), static_cast<size_type>(data.size())};
+    }
+
+    // Update counters and copy distributions to aux state
+    aux_state.counters.buffer_size = data.size();
+    Copier<GeneratorDistributionData, M> copy_to_aux{aux_state.distributions(),
+                                                     state.stream_id()};
+    copy_to_aux(MemSpace::host, data);
 }
 
 //---------------------------------------------------------------------------//
@@ -184,6 +229,7 @@ void GeneratorAction::step_impl(CoreParams const& params,
 void GeneratorAction::generate(CoreParams const& params,
                                CoreStateHost& state) const
 {
+    CELER_EXPECT(params.cherenkov() || params.scintillation());
     CELER_EXPECT(state.aux());
 
     auto& aux_state
@@ -191,17 +237,11 @@ void GeneratorAction::generate(CoreParams const& params,
     size_type num_gen
         = min(state.counters().num_vacancies, aux_state.counters.num_pending);
     {
-        auto cherenkov = data_.cherenkov ? data_.cherenkov->host_ref()
-                                         : HostCRef<CherenkovData>{};
-        auto scint = data_.scintillation ? data_.scintillation->host_ref()
-                                         : HostCRef<ScintillationData>{};
-
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
                                           state.ptr(),
-                                          data_.material->host_ref(),
-                                          cherenkov,
-                                          scint,
+                                          params.host_ref().cherenkov,
+                                          params.host_ref().scintillation,
                                           aux_state.store.ref(),
                                           aux_state.counters.buffer_size,
                                           state.counters()};

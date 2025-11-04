@@ -11,6 +11,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
+#include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/detail/LengthUnits.hh"
@@ -60,14 +61,12 @@ TEST_F(FourLevelsTest, trace)
 
 TEST_F(FourLevelsTest, consecutive_compute)
 {
-    // Templated test
-    FourLevelsGeoTest::test_consecutive_compute(this);
+    this->impl().test_consecutive_compute();
 }
 
 TEST_F(FourLevelsTest, detailed_track)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 //---------------------------------------------------------------------------//
@@ -245,10 +244,24 @@ TEST_F(TwoBoxesTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(TwoBoxesTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesTest, reentrant_undo)
+{
+    this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesTest, tangent)
+{
+    this->impl().test_tangent();
+}
+
 TEST_F(TwoBoxesTest, track)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 //---------------------------------------------------------------------------//
@@ -273,7 +286,7 @@ TEST_F(ZnenvTest, debug)
 {"dir":[1.0,0.0,0.0],"pos":[-1.66,-0.160,0.0],"universe":"ZNSL","volume":{"canonical":"ZNST","impl":"ZNST","instance":"ZNST_PV@0","local":1}},
 {"dir":[1.0,0.0,0.0],"pos":[-0.0600,-0.160,0.0],"universe":"ZNST","volume":{"canonical":"ZNST","impl":"ZNST","instance":null,"local":5}}],
 "surface":null})json",
-            StringSimplifier{3}(to_json_string(geo)));
+            StringSimplifier{3}(to_json_string(geo.track_view())));
     }
     else
     {

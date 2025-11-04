@@ -22,6 +22,8 @@
 #include "geocel/GenericGeoResults.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/GeoTests.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/g4/GeantGeoData.hh"
@@ -56,7 +58,7 @@ class GeantGeoTest : public GeantGeoTestBase
         static bool const have_printed_ = [] {
             using namespace celeritas::cmake;
             cout << color_code('x') << "Using Geant4 v" << geant4_version
-                 << color_code(' ') << endl;
+                 << " (" << geant4_options << ")" << color_code(' ') << endl;
             return true;
         }();
         EXPECT_TRUE(have_printed_);
@@ -79,6 +81,9 @@ class GeantGeoTest : public GeantGeoTestBase
     }
 
     virtual SpanStringView expected_log_levels() const { return {}; }
+
+    ScopedGeantExceptionHandler exception_handler;
+    ScopedGeantLogger logger{celeritas::world_logger()};
 };
 
 //---------------------------------------------------------------------------//
@@ -285,14 +290,12 @@ TEST_F(FourLevelsTest, trace)
 
 TEST_F(FourLevelsTest, consecutive_compute)
 {
-    // Templated test
-    FourLevelsGeoTest::test_consecutive_compute(this);
+    this->impl().test_consecutive_compute();
 }
 
 TEST_F(FourLevelsTest, detailed_track)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(FourLevelsTest, safety)
@@ -784,8 +787,7 @@ TEST_F(SimpleCmsTest, trace)
 
 TEST_F(SimpleCmsTest, detailed_track)
 {
-    // Templated test
-    SimpleCmsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 //---------------------------------------------------------------------------//
@@ -923,6 +925,11 @@ TEST_F(TwoBoxesTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(TwoBoxesTest, detailed_tracking)
+{
+    this->impl().test_detailed_tracking();
+}
+
 TEST_F(TwoBoxesTest, model)
 {
     auto result = this->summarize_model();
@@ -936,10 +943,19 @@ TEST_F(TwoBoxesTest, model)
     EXPECT_REF_EQ(ref, result);
 }
 
-TEST_F(TwoBoxesTest, track)
+TEST_F(TwoBoxesTest, reentrant)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesTest, reentrant_undo)
+{
+    this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesTest, tangent)
+{
+    this->impl().test_tangent();
 }
 
 TEST_F(TwoBoxesTest, trace)

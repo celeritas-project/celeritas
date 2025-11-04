@@ -15,6 +15,7 @@
 #include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
+#include "CoreParams.hh"
 #include "Model.hh"
 #include "gen/OffloadData.hh"
 
@@ -24,8 +25,8 @@ namespace celeritas
 class ActionRegistry;
 class AuxStateVec;
 class CherenkovParams;
-class CoreParams;
 class CoreStateInterface;
+class CoreParams;
 template<GeneratorType G>
 class OffloadAction;
 class OffloadGatherAction;
@@ -35,7 +36,6 @@ namespace optical
 {
 class CoreStateBase;
 class GeneratorAction;
-class MaterialParams;
 }  // namespace optical
 
 namespace detail
@@ -68,9 +68,6 @@ class OpticalCollector
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
-    using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
-    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using OpticalBufferSize = GeneratorCounters<size_type>;
     using SPConstOpticalParams = std::shared_ptr<optical::CoreParams const>;
     //!@}
@@ -79,10 +76,6 @@ class OpticalCollector
     {
         //! Optical params
         std::shared_ptr<optical::CoreParams> optical_params;
-
-        //! Optical photon generating processes
-        SPConstCherenkov cherenkov;
-        SPConstScintillation scintillation;
 
         //! Number track slots in the optical loop
         size_type num_track_slots{};
@@ -99,7 +92,9 @@ class OpticalCollector
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return optical_params && (scintillation || cherenkov)
+            return optical_params
+                   && (optical_params->scintillation()
+                       || optical_params->cherenkov())
                    && num_track_slots > 0 && buffer_capacity > 0
                    && auto_flush > 0;
         }
@@ -120,12 +115,6 @@ class OpticalCollector
     // Access optical state
     optical::CoreStateBase const&
     optical_state(CoreStateInterface const& core) const;
-
-    // Access Cherenkov params (may be null)
-    SPConstCherenkov cherenkov() const;
-
-    // Access scintillation params (may be null)
-    SPConstScintillation scintillation() const;
 
     //// GENERATOR MANAGEMENT ////
 
