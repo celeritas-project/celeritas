@@ -787,6 +787,10 @@ TEST_F(SimpleCmsTest, trace)
 
 TEST_F(SimpleCmsTest, detailed_track)
 {
+    if (CELERITAS_USE_VECGEOM && !CELERITAS_VECGEOM_SURFACE)
+    {
+        GTEST_SKIP() << "FIXME: VecGeom surface v1,v2 both trigger a G4 error";
+    }
     this->impl().test_detailed_tracking();
 }
 

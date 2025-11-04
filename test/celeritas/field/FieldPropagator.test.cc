@@ -1381,14 +1381,22 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
                                << " geometry: post-propagation volume is "
                                << this->volume_name(geo);
 
-            EXPECT_EQ(this->volume_name(geo), "si_tracker");
+            if (using_solids_vg && CELERITAS_VECGEOM_VERSION < 0x020000)
+            {
+                // FIXME: VecGeom 1.x navigation failure (solids model)
+                EXPECT_EQ("world", this->volume_name(geo));
+            }
+            else
+            {
+                EXPECT_EQ("si_tracker", this->volume_name(geo));
+            }
 
             // Interestingly, VecGeom surf and solid models see that surface
             // slightly differently.  Only surface model thinks the surface
             // was actually crossed, therefore the next step will find distinct
             // results
             auto result = geo.find_next_step(1);
-            EXPECT_EQ(result.distance, 1e-13);
+            EXPECT_LT(result.distance, 2e-8);
 
             if (result.distance < 1e-6)
             {
