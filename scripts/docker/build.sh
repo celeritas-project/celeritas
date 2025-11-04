@@ -56,13 +56,13 @@ esac
 
 ${DOCKER} pull ${BASE_TAG}
 ${DOCKER} tag ${BASE_TAG} base-${CONFIG}
-
-${DOCKER} build -t dev-${CONFIG} \
-  --build-arg CONFIG=${CONFIG} \
-  --build-arg SPACK_VERSION=${SPACK_VERSION} \
-  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
-  ${BUILDARGS} \
-  dev
+ 
+# ${DOCKER} build -t dev-${CONFIG} \
+#   --build-arg CONFIG=${CONFIG} \
+#   --build-arg SPACK_VERSION=${SPACK_VERSION} \
+#   --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
+#   ${BUILDARGS} \
+#   dev
 
 ${DOCKER} build -t ci-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
@@ -71,6 +71,6 @@ ${DOCKER} build -t ci-${CONFIG} \
   ci
 
 DATE=$(date '+%Y-%m-%d')
-${DOCKER} tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
+# ${DOCKER} tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
 ${DOCKER} tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
 ${DOCKER} push celeritas/ci-${CONFIG}:${DATE}
