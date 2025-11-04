@@ -394,20 +394,14 @@ void FourLevelsGeoTest::test_detailed_tracking() const
             // to old
             EXPECT_THROW(geo.cross_boundary(), DebugError);
         }
-        else if (test_->geometry_type() == "ORANGE")
+        else
         {
-            // Should be able to relocate back and forth
             geo.set_dir(Real3{1, 0, 0});
             geo.cross_boundary();
             EXPECT_EQ("Shape1", test_->volume_name(geo));
             geo.set_dir(Real3{-1, 0, 0});
             geo.cross_boundary();
             EXPECT_EQ("Shape2", test_->volume_name(geo));
-        }
-        else
-        {
-            // Vecgeom doesn't correctly cross back and forth, but it doesn't
-            // throw on debug...
         }
 
         // Now move just barely inside the sphere
@@ -439,11 +433,9 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         // Test relocation without direction change on surface
         if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
         {
-            // TODO: Geant4 does not allow crossing to new volume and returning
-            // to old
             EXPECT_THROW(geo.cross_boundary(), DebugError);
         }
-        else if (test_->geometry_type() == "ORANGE")
+        else
         {
             // No crossing if direction not changed
             geo.cross_boundary();
@@ -455,11 +447,6 @@ void FourLevelsGeoTest::test_detailed_tracking() const
             geo.set_dir(Real3{dx, dx, 0});
             geo.cross_boundary();
             EXPECT_EQ("Shape1", test_->volume_name(geo));
-        }
-        else
-        {
-            // Vecgeom doesn't correctly cross back and forth, but it doesn't
-            // throw on debug...
         }
     }
 }
