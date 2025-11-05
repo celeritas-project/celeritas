@@ -90,7 +90,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                   IsVacant{},
                                                   stream);
 
-    // HIP is particular about return codes from hipcub functions and
+    // HIP is particular about return codes from hipCUB functions and
     // using these return codes, so check for an error from either call
     // and proceed accordingly
     if (cub_error_code)
@@ -109,7 +109,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                              IsVacant{},
                                              stream);
 
-    // HIP is particular about return codes from hipcub functions and
+    // HIP is particular about return codes from hipCUB functions and
     // using these return codes, so check for an error from either call
     // and proceed accordingly
     if (cub_error_code)
