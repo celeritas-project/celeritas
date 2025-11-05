@@ -90,18 +90,24 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                   IsVacant{},
                                                   stream);
 
+    // HIP is particular about return codes from hipcub functions and
+    // using these return codes, so check for an error from either call
+    // and proceed accordingly
+    if (cub_error_code)
+        CELER_DEVICE_API_CALL(PeekAtLastError());
+
     // Allocate temporary storage
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
 
-    cub_error_code |= DeviceSelect::FlaggedIf(temp_storage.data(),
-                                              temp_storage_bytes,
-                                              start,
-                                              flags,
-                                              result,
-                                              num_vacancies.data(),
-                                              vacancies.size(),
-                                              IsVacant{},
-                                              stream);
+    cub_error_code = DeviceSelect::FlaggedIf(temp_storage.data(),
+                                             temp_storage_bytes,
+                                             start,
+                                             flags,
+                                             result,
+                                             num_vacancies.data(),
+                                             vacancies.size(),
+                                             IsVacant{},
+                                             stream);
 
     // HIP is particular about return codes from hipcub functions and
     // using these return codes, so check for an error from either call
