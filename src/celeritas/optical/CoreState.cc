@@ -7,7 +7,6 @@
 #include "CoreState.hh"
 
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -20,8 +19,12 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-//! Support polymorphic deletion
+//! Support polymorphic deletion, anchoring to avoid bugs
 CoreStateInterface::~CoreStateInterface() = default;
+
+//---------------------------------------------------------------------------//
+//! Default destructor, anchoring to avoid bugs
+CoreStateBase::~CoreStateBase() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -60,6 +63,11 @@ CoreState<M>::CoreState(CoreParams const& params,
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
 }
+
+//---------------------------------------------------------------------------//
+// Default destructor
+template<MemSpace M>
+CoreState<M>::~CoreState() = default;
 
 //---------------------------------------------------------------------------//
 /*!

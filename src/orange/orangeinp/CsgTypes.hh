@@ -212,12 +212,12 @@ struct hash<celeritas::orangeinp::Joined>
         noexcept(!CELERITAS_DEBUG)
     {
         result_type result;
-        celeritas::Hasher hash{&result};
-        hash(static_cast<std::size_t>(val.op));
-        hash(val.nodes.size());
+        celeritas::Hasher hash_impl{&result};
+        hash_impl(static_cast<std::size_t>(val.op));
+        hash_impl(val.nodes.size());
         for (auto& v : val.nodes)
         {
-            hash(std::hash<celeritas::orangeinp::NodeId>{}(v));
+            hash_impl(std::hash<celeritas::orangeinp::NodeId>{}(v));
         }
         return result;
     }

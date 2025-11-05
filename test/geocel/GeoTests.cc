@@ -359,12 +359,6 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         // Find the next step (to top edge of Shape1) but then scatter back
         // toward the sphere
         next = geo.find_next_step(from_cm(10.0));
-        if (test_->geometry_type() == "ORANGE")
-        {
-            // ORANGE thinks the boundary is reentrant
-            EXPECT_SOFT_EQ(0, to_cm(next.distance));
-            GTEST_SKIP() << "FIXME: ORANGE reentrant boundary is misbehaving";
-        }
         EXPECT_SOFT_EQ(6, to_cm(next.distance));
         geo.set_dir({-1, 0, 0});
         EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), to_cm(geo.pos()));
@@ -394,25 +388,33 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_EQ("Shape2", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
-        if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
+        if (test_->geometry_type() == "Geant4")
         {
             // TODO: Geant4 does not allow crossing to new volume and returning
             // to old
-            EXPECT_THROW(geo.cross_boundary(), DebugError);
-        }
-        else if (test_->geometry_type() == "ORANGE")
-        {
-            // Should be able to relocate back and forth
-            geo.cross_boundary();
-            EXPECT_EQ("Shape1", test_->volume_name(geo));
-            geo.cross_boundary();
-            EXPECT_EQ("Shape2", test_->volume_name(geo));
+            if (CELERITAS_DEBUG)
+            {
+                EXPECT_THROW(geo.cross_boundary(), DebugError);
+            }
         }
         else
         {
-            // Vecgeom doesn't correctly cross back and forth, but it doesn't
-            // throw on debug...
+            geo.set_dir(Real3{1, 0, 0});
+            geo.cross_boundary();
+            if (test_->geometry_type() == "VecGeom")
+            {
+                // FIXME: boundary crossing doesn't change volume like it
+                // should
+                EXPECT_EQ("Shape2", test_->volume_name(geo));
+            }
+            else
+            {
+                EXPECT_EQ("Shape1", test_->volume_name(geo));
+            }
+            geo.set_dir(Real3{-1, 0, 0});
+            geo.cross_boundary();
         }
+        EXPECT_EQ("Shape2", test_->volume_name(geo));
 
         // Now move just barely inside the sphere
         next = geo.find_next_step(from_cm(1e-6));
@@ -439,6 +441,28 @@ void FourLevelsGeoTest::test_detailed_tracking() const
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
         EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+        // Test relocation without direction change on surface
+        if (test_->geometry_type() == "Geant4")
+        {
+            if (CELERITAS_DEBUG)
+            {
+                EXPECT_THROW(geo.cross_boundary(), DebugError);
+            }
+        }
+        else
+        {
+            // No crossing if direction not changed
+            geo.cross_boundary();
+            EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+            constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+            // No crossing if direction on boundary is not reentrant
+            geo.set_dir(Real3{dx, dx, 0});
+            geo.cross_boundary();
+            EXPECT_EQ("Shape1", test_->volume_name(geo));
+        }
     }
 }
 
@@ -2309,13 +2333,6 @@ void TwoBoxesGeoTest::test_reentrant() const
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
-    if (test_->geometry_type() == "ORANGE")
-    {
-        // FIXME: reentrant consistently fails!
-        EXPECT_EQ("world", test_->volume_name(geo));
-        GTEST_SKIP() << "Unexpected failure to cross volume";
-    }
-
     if (test_->geometry_type() == "VecGeom")
     {
         // VecGeom 1.2.10 seems to fail reentry *sometimes*: on the CI builds,
@@ -2333,6 +2350,61 @@ void TwoBoxesGeoTest::test_reentrant() const
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(10 * dx, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
+    EXPECT_TRUE(geo.is_on_boundary());
+}
+
+/*!
+ * Emulate an edge case with field propagation plus MSC.
+ *
+ * - Propagation moves to the boundary
+ * - Field momentum update points the direction back inside
+ * - MSC update points the direction back out
+ */
+void TwoBoxesGeoTest::test_reentrant_undo() const
+{
+    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    bool const check_normal = test_->supports_surface_normal();
+
+    // Starting left of edge (-), headed down right (+,-)
+    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Check for surfaces up to a distance of 4 units away
+    auto next = geo.find_next_step(from_cm(4.0));
+    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    // Propagate: move to boundary (-; +,-)
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Momentum update: point back inward (-; -,-)
+    geo.set_dir(Real3{-dx, -dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Scatter: point back out (-; +,-)
+    geo.set_dir(Real3{dx, -dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Crossing *will* change volumes (+; +,-)
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("world", test_->volume_name(geo));
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+
+    // Make sure we're not intersecting by accident
+    next = geo.find_next_step(from_cm(10.0));
+    EXPECT_SOFT_EQ(10.0, to_cm(next.distance));
+    EXPECT_FALSE(next.boundary);
     EXPECT_TRUE(geo.is_on_boundary());
 }
 
