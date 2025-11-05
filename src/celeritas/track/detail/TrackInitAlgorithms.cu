@@ -31,8 +31,6 @@
 #endif
 #include <thrust/device_ptr.h>
 
-#include "corecel/DeviceRuntimeApi.hh"
-
 #include "corecel/Macros.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
