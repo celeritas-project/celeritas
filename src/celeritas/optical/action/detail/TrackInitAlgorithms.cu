@@ -80,30 +80,34 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
         thrust::make_counting_iterator<size_type>(0), TransformType{});
     auto flags = device_pointer_cast(status.data());
     auto result = device_pointer_cast(vacancies.data());
-    DeviceSelect::FlaggedIf(nullptr,
-                            temp_storage_bytes,
-                            start,
-                            flags,
-                            result,
-                            num_vacancies.data(),
-                            vacancies.size(),
-                            IsVacant{},
-                            stream);
+    auto cub_error_code = DeviceSelect::FlaggedIf(nullptr,
+                                                  temp_storage_bytes,
+                                                  start,
+                                                  flags,
+                                                  result,
+                                                  num_vacancies.data(),
+                                                  vacancies.size(),
+                                                  IsVacant{},
+                                                  stream);
 
-    {
-        // Allocate temporary storage
-        DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
+    // Allocate temporary storage
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
 
-        DeviceSelect::FlaggedIf(temp_storage.data(),
-                                temp_storage_bytes,
-                                start,
-                                flags,
-                                result,
-                                num_vacancies.data(),
-                                vacancies.size(),
-                                IsVacant{},
-                                stream);
-    }
+    cub_error_code |= DeviceSelect::FlaggedIf(temp_storage.data(),
+                                              temp_storage_bytes,
+                                              start,
+                                              flags,
+                                              result,
+                                              num_vacancies.data(),
+                                              vacancies.size(),
+                                              IsVacant{},
+                                              stream);
+
+    // HIP is particular about return codes from hipcub functions and
+    // using these return codes, so check for an error from either call
+    // and proceed accordingly
+    if (cub_error_code)
+        CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // *** For testing with existing code for consistency
     // *** Replace with the appropriate GPU counter
