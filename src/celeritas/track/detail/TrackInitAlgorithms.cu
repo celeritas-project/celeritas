@@ -18,7 +18,7 @@
 #        include <thrust/transform.h>
 #    endif
 #elif CELERITAS_USE_HIP
-#    include <hipcub/device/device_partition.cuh>
+#    include <hipcub/device/device_partition.hpp>
 #    include <hipcub/device/device_scan.hpp>
 #    include <hipcub/device/device_select.hpp>
 #    include <hipcub/hipcub_version.hpp>
