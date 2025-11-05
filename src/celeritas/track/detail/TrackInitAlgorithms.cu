@@ -14,6 +14,7 @@
 #    if CUB_VERSION >= 200800
 #        include <cub/device/device_transform.cuh>
 #    else
+#        include <thrust/execution_policy.h>
 #        include <thrust/transform.h>
 #    endif
 #elif CELERITAS_USE_HIP
@@ -24,14 +25,11 @@
 #    if HIPCUB_VERSION >= 400100
 #        include <hipcub/device/device_transform.hpp>
 #    else
+#        include <thrust/execution_policy.h>
 #        include <thrust/transform.h>
 #    endif
 #endif
 #include <thrust/device_ptr.h>
-// #include <thrust/execution_policy.h>
-// #include <thrust/partition.h>
-// #include <thrust/remove.h>
-// #include <thrust/scan.h>
 
 #include "corecel/DeviceRuntimeApi.hh"
 
