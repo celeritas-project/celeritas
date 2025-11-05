@@ -28,7 +28,7 @@ using TrackStatusRef = StateCollection<TrackStatus, Ownership::reference, M>;
 //! Whether the track slot is vacant
 struct IsVacant
 {
-    CELER_FUNCTION bool operator()(TrackStatus status) const
+    CELER_FUNCTION bool operator()(TrackStatus const& status) const
     {
         return status != TrackStatus::alive;
     }
