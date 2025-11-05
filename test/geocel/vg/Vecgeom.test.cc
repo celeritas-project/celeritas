@@ -439,6 +439,11 @@ TEST_F(TwoBoxesVgdmlTest, reentrant)
     this->impl().test_reentrant();
 }
 
+TEST_F(TwoBoxesVgdmlTest, reentrant_undo)
+{
+    this->impl().test_reentrant_undo();
+}
+
 TEST_F(TwoBoxesVgdmlTest, tangent)
 {
     this->impl().test_tangent();

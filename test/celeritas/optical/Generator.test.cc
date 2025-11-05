@@ -10,23 +10,17 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/PoissonDistribution.hh"
-#include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/LArSphereBase.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/ModelImporter.hh"
-#include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/CoreParams.hh"  // IWYU pragma: keep
+#include "celeritas/optical/CoreState.hh"  // IWYU pragma: keep
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/optical/gen/OffloadData.hh"
 #include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
-#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "celeritas_test.hh"
 
@@ -60,13 +54,12 @@ class LArSphereGeneratorTest : public LArSphereBase
             device().create_streams(1);
         }
 
-        state_ = std::make_shared<optical::CoreState<M>>(
+        auto state = std::make_shared<optical::CoreState<M>>(
             *this->optical_params(), StreamId{0}, size);
-
-        auto* state = dynamic_cast<optical::CoreState<M>*>(&*state_);
-        CELER_ASSERT(state);
         state->aux() = std::make_shared<AuxStateVec>(
             *this->core()->aux_reg(), M, StreamId{0}, size);
+
+        state_ = state;
     }
 
     //! Construct the optical transporter
@@ -108,13 +101,10 @@ class LArSphereGeneratorTest : public LArSphereBase
     }
 
     //! Get optical counters
-    template<MemSpace M>
     OpticalAccumStats counters(optical::GeneratorBase const& gen) const
     {
-        auto* state = dynamic_cast<optical::CoreState<M>*>(&*state_);
-        CELER_ASSERT(state);
-        OpticalAccumStats result = state->accum();
-        result.generators.push_back(gen.counters(*state->aux()).accum);
+        OpticalAccumStats result = state_->accum();
+        result.generators.push_back(gen.counters(*state_->aux()).accum);
         return result;
     }
 
@@ -148,7 +138,7 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     (*transport_)(*state_);
 
     // Get the accumulated counters
-    auto result = this->counters<MemSpace::host>(*generate);
+    auto result = this->counters(*generate);
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
@@ -184,7 +174,7 @@ TEST_F(LArSphereGeneratorTest, generator)
     (*transport_)(*state_);
 
     // Get the accumulated counters
-    auto result = this->counters<MemSpace::host>(*generate);
+    auto result = this->counters(*generate);
 
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());
@@ -221,7 +211,7 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
     (*transport_)(*state_);
 
     // Get the accumulated counters
-    auto result = this->counters<MemSpace::device>(*generate);
+    auto result = this->counters(*generate);
 
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());

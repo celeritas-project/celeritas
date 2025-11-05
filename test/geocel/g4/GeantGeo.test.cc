@@ -948,6 +948,11 @@ TEST_F(TwoBoxesTest, reentrant)
     this->impl().test_reentrant();
 }
 
+TEST_F(TwoBoxesTest, reentrant_undo)
+{
+    this->impl().test_reentrant_undo();
+}
+
 TEST_F(TwoBoxesTest, tangent)
 {
     this->impl().test_tangent();
