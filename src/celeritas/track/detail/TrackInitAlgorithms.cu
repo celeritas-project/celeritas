@@ -56,9 +56,6 @@ namespace detail
 /*!
  * Create a functor to recognize specific tracks.
  */
-
-//
-//
 template<class T>
 struct NotEqual
 {
@@ -72,6 +69,11 @@ struct NotEqual
     }
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Remove all elements in the vacancy vector that were flagged as active
+ * tracks.
+ */
 size_type remove_if_alive(
     StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&
         vacancies,
