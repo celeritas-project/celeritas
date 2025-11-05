@@ -112,8 +112,15 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     DeviceVector<unsigned char> flags{status.size(), stream_id};
     auto data = device_pointer_cast(vacancies.data());
 #    if CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
-    DeviceTransform::Transform(
-        start, flags.data(), status.size(), IsVacant{}, stream);
+    {
+        auto cub_error_code = DeviceTransform::Transform(
+            start, flags.data(), status.size(), IsVacant{}, stream);
+        // HIP is particular about return codes from hipCUB functions and
+        // using these return codes, so check for an error from the call
+        // and proceed accordingly
+        if (cub_error_code)
+            CELER_DEVICE_API_CALL(PeekAtLastError());
+    }
 #    else
     thrust::transform(thrust_execute_on(stream_id),
                       start,
@@ -130,7 +137,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                 stream);
 
     // HIP is particular about return codes from hipCUB functions and
-    // using these return codes, so check for an error from either call
+    // using these return codes, so check for an error from the call
     // and proceed accordingly
     if (cub_error_code)
         CELER_DEVICE_API_CALL(PeekAtLastError());
@@ -147,7 +154,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                            stream);
 
     // HIP is particular about return codes from hipCUB functions and
-    // using these return codes, so check for an error from either call
+    // using these return codes, so check for an error from the call
     // and proceed accordingly
     if (cub_error_code)
         CELER_DEVICE_API_CALL(PeekAtLastError());
