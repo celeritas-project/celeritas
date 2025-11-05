@@ -1574,11 +1574,11 @@ TEST_F(CmseTest, coarse)
     {
         if (CELERITAS_VECGEOM_VERSION < 0x020000)
         {
-            expected_num_boundary = {130, 101, 60, 39};
-            expected_num_step = {10001, 6462, 3236, 1302};
-            expected_num_intercept = {30322, 19551, 16170, 9868};
-            expected_num_integration = {80462, 58282, 41914, 25942};
-            EXPECT_EQ(scoped_log_.messages().size(), 253);
+            expected_num_boundary = {134, 101, 60, 40};
+            expected_num_step = {10001, 6462, 3236, 1303};
+            expected_num_intercept = {30419, 19551, 16170, 9956};
+            expected_num_integration = {80659, 58282, 41914, 26114};
+            EXPECT_EQ(scoped_log_.messages().size(), 1);
         }
         else
         {
