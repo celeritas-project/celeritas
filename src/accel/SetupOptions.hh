@@ -121,8 +121,22 @@ struct SDSetupOptions
  * The interface for the "along-step factory" (input parameters and output) is
  * described in \c AlongStepFactoryInterface .
  *
+ * If \c offload_particles is false, the default offload particles will be
+ * used. If it's an empty vector, no particle types will be offloaded to
+ * Celeritas. This differs from the \c CELER_DISABLE which disables Celeritas
+ * offloading entirely and from the \c CELER_KILL_OFFLOAD option which both
+ * disables Celeritas offloading and immediately kills the \c offload_particles
+ * in Geant4. The only expected use case for an empty \c offload_particles
+ * vector is when offloading optical distribution data to Celeritas through the
+ * \c LocalOpticalOffload.
+ *
+ * Note that the Celeritas core capacity values (\c max_num_tracks, \c
+ * initializer_capacity and \c auto_flush) are per \em stream while the \c
+ * optical_capacity values are per \em process.
+ *
  * \note This class will be replaced in v1.0
  *       by \c celeritas::inp::FrameworkInput .
+ * \todo Improve and clarify the settings for optical distribution offloading.
  */
 struct SetupOptions
 {
@@ -165,6 +179,8 @@ struct SetupOptions
 
     //! Capacity for storing optical photon state
     std::optional<inp::OpticalStateCapacity> optical_capacity;
+    //! Optical photon generation mechanism
+    std::optional<inp::OpticalGenerator> optical_generator;
     //! Limit on number of optical step iterations before aborting
     size_type max_optical_step_iters = no_max_steps();
     //!@}
@@ -217,7 +233,7 @@ struct SetupOptions
     //! Do not use Celeritas physics for the given Geant4 process names
     VecString ignore_processes;
     //! Only offload a subset of particles
-    VecG4PD offload_particles;
+    std::optional<VecG4PD> offload_particles;
     //! Physics grid interpolation options
     inp::Interpolation interpolation{};
     //!@}

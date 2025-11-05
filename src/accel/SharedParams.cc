@@ -283,9 +283,9 @@ SharedParams::SharedParams(SetupOptions const& options)
     if (mode_ == Mode::enabled || mode_ == Mode::kill_offload)
     {
         // Set up offloaded particles based on user input
-        auto const& user_offload = options.offload_particles;
-        offload_particles_ = user_offload.empty() ? default_offload_particles()
-                                                  : user_offload;
+        offload_particles_ = options.offload_particles
+                                 ? *options.offload_particles
+                                 : default_offload_particles();
     }
 
     if (mode_ != Mode::enabled)

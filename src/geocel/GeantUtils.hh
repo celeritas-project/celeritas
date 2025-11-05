@@ -9,6 +9,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 
 class G4ParticleDefinition;
 class G4RunManager;
@@ -30,6 +31,10 @@ int get_geant_num_threads();
 //---------------------------------------------------------------------------//
 // Get the current thread ID (zero if serial)
 int get_geant_thread_id();
+
+//---------------------------------------------------------------------------//
+// Validate the thread ID and threading model
+void validate_geant_threading(size_type num_streams);
 
 //---------------------------------------------------------------------------//
 //! Wrap around a G4ParticleDefinition to get a descriptive output.
@@ -58,6 +63,11 @@ inline int get_geant_num_threads()
 }
 
 inline int get_geant_thread_id()
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline void validate_geant_threading(size_type)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

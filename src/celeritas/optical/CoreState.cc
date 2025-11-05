@@ -8,7 +8,9 @@
 
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/random/RngReseed.hh"
 
 #include "CoreParams.hh"
 
@@ -115,6 +117,24 @@ void CoreState<M>::reset()
 
     // Mark all the track slots as empty
     fill_sequence(&this->ref().init.vacancies, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reseed RNGs at the start of an event for reproducibility.
+ *
+ * This reinitializes the RNG states using a single seed and unique subsequence
+ * for each thread. It ensures that given an event identification, the random
+ * number sequence for the event (and thus the event's behavior) can be
+ * reproduced.
+ */
+template<MemSpace M>
+void CoreState<M>::reseed(std::shared_ptr<RngParams const> rng,
+                          UniqueEventId event_id)
+{
+    CELER_EXPECT(rng);
+    ScopedProfiling profile_this{"reseed"};
+    reseed_rng(get_ref<M>(*rng), this->ref().rng, this->stream_id(), event_id);
 }
 
 //---------------------------------------------------------------------------//

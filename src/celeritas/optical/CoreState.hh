@@ -11,6 +11,7 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
@@ -49,6 +50,9 @@ class CoreStateInterface : public AuxStateInterface
     //! Access track initialization counters
     virtual CoreStateCounters const& counters() const = 0;
 
+    //! Reseed the RNGs at the start of an event for reproducibility
+    virtual void reseed(std::shared_ptr<RngParams const>, UniqueEventId) = 0;
+
     //! Number of track slots
     virtual size_type size() const = 0;
 
@@ -64,7 +68,7 @@ class CoreStateInterface : public AuxStateInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Manage the optical state counters and aux data.
+ * Manage the optical state counters and auxiliary data.
  */
 class CoreStateBase : public CoreStateInterface
 {
@@ -166,6 +170,9 @@ class CoreState final : public CoreStateBase
 
     // Reset the data for a new step
     void reset();
+
+    // Reseed the RNGs at the start of an event for reproducibility
+    void reseed(std::shared_ptr<RngParams const>, UniqueEventId) final;
 
     // Inject primaries to be turned into TrackInitializers
     void insert_primaries(Span<TrackInitializer const> host_primaries) final;
