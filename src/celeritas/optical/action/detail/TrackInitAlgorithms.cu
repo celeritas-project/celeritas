@@ -115,9 +115,8 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     {
         auto cub_error_code = DeviceTransform::Transform(
             start, flags.data(), status.size(), IsVacant{}, stream);
-        // HIP is particular about return codes from hipCUB functions and
-        // using these return codes, so check for an error from the call
-        // and proceed accordingly
+        // HIP is particular about checking return codes from hipCUB functions,
+        // so check for an error from the call and proceed accordingly
         if (cub_error_code)
             CELER_DEVICE_API_CALL(PeekAtLastError());
     }
@@ -136,9 +135,8 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                 vacancies.size(),
                                                 stream);
 
-    // HIP is particular about return codes from hipCUB functions and
-    // using these return codes, so check for an error from the call
-    // and proceed accordingly
+    // HIP is particular about checking return codes from hipCUB functions, so
+    // check for an error from the call and proceed accordingly
     if (cub_error_code)
         CELER_DEVICE_API_CALL(PeekAtLastError());
 
@@ -153,9 +151,8 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                            vacancies.size(),
                                            stream);
 
-    // HIP is particular about return codes from hipCUB functions and
-    // using these return codes, so check for an error from the call
-    // and proceed accordingly
+    // HIP is particular about checking return codes from hipCUB functions, so
+    // check for an error from the call and proceed accordingly
     if (cub_error_code)
         CELER_DEVICE_API_CALL(PeekAtLastError());
 #endif
