@@ -86,7 +86,7 @@ be reused in multiple locations. :numref:`fig-orangeinp-types` summarizes these 
 
 .. _fig-orangeinp-types:
 
-.. figure:: /_static/mermaid/orangeinp-types.*
+.. figure:: /_static/dot/orangeinp-types.*
    :align: center
    :width: 80%
 
