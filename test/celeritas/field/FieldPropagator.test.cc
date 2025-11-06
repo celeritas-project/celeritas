@@ -1296,7 +1296,8 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 
         if (using_surface_vg)
         {
-            GTEST_SKIP() << "FIXME: VecGeom surface model fails a boundary requirement.";
+            GTEST_SKIP() << "FIXME: VecGeom surface model fails a boundary "
+                            "requirement.";
         }
         ASSERT_TRUE(geo.is_on_boundary());
 
