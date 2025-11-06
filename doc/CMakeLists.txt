@@ -185,7 +185,7 @@ endfunction()
 _set_jsonbool(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
 _set_jsonbool(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 _set_jsonbool(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
-_set_jsonbool(CELERITAS_USE_MMDC ${DOT_EXECUTABLE})
+_set_jsonbool(CELERITAS_USE_DOT ${DOXYGEN_DOT_EXECUTABLE})
 
 if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
   set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
@@ -291,14 +291,14 @@ set(_output_base "${CMAKE_CURRENT_SOURCE_DIR}/_static/dot")
 
 macro(_celer_build_dot inp)
   get_filename_component(basename "${inp}" NAME_WE)
-  if(DOT_EXECUTABLE)
+  if(DOXYGEN_DOT_EXECUTABLE)
     # Generate PNG and PDF for HTML, PDF respectively
     foreach(_fmt pdf png)
       set(_output "${_output_base}/${basename}.${_fmt}")
       add_custom_command(
         OUTPUT "${_output}"
         COMMAND
-          "${DOT_EXECUTABLE}" "-T${_fmt}" "-o${_output}" "${inp}"
+          "${DOXYGEN_DOT_EXECUTABLE}" "-T${_fmt}" "-o${_output}" "${inp}"
         COMMENT "Generating dot graph: ${basename}.${_fmt}"
         DEPENDS "${inp}"
         VERBATIM
