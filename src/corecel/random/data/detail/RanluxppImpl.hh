@@ -430,13 +430,14 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
     RanluxppArray9 result;
 
     RanluxppArray9 r = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    // Assign r = t0
-    std::copy_n(mul.begin(), 9, r.begin());
+    for (auto i : celeritas::range(0, 9))
+    {
+        r[i] = mul[i];
+    }
 
     // Make a subspan of the last 9 elements of mul
     auto mul_end = celeritas::make_span(mul).subspan<9, 9>();
     CELER_ASSERT(mul_end.size() == 9);
-    CELER_ASSERT(std::equal(mul_end.begin(), mul_end.end(), mul.begin() + 9));
 
     int64_t c = compute_remainder(mul_end, celeritas::make_span(r));
 
@@ -641,8 +642,8 @@ CELER_FUNCTION RanluxppNumber to_ranlux(RanluxppArray9 const& lcg)
     for (int i : celeritas::range(1, 9))
     {
         RanluxppUInt ranlux_i = result.number[i];
-        ranlux_i = add_overflow(ranlux_i, carry, carry);
-        ranlux_i = add_carry(ranlux_i, c1, carry);
+        add_overflow(ranlux_i, carry, carry);
+        add_carry(ranlux_i, c1, carry);
     }
 
     result.carry = carry;
