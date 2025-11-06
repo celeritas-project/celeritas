@@ -10,7 +10,7 @@ dd4hep_add_plugin(DDcelerRunAction
     )
 
 # When VecGeom is enabled, add accel_final with --no-as-needed
-if(CELERITAS_USE_VecGeom)
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
     foreach(_target DDcelerTMI DDcelerRunAction)
         target_link_libraries(${_target} PRIVATE
             "-Wl,--push-state,--no-as-needed" Celeritas::accel_final "-Wl,--pop-state"
