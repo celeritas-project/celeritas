@@ -14,11 +14,7 @@
 #include <VecGeom/navigation/GlobalLocator.h>
 #include <VecGeom/navigation/VNavigator.h>
 
-#if VECGEOM_VERSION < 0x020000 && defined(VECGEOM_USE_SURF)
-#    error \
-        "Surface model is unsupported in this navigator. Use the SurfNavigator instead."
-#endif
-#define VECGEOM_V2 0x020000
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {
