@@ -281,10 +281,14 @@ jobs:
             # Note this is ignored for non-primary geometry implementations
             export CELER_TEST_STRICT=1
           fi
+          # Increase timeout for code coverage
           # Only run integration-level tests for old Geant4
           ctest --preset=spack-unit ${{
-            matrix.geant
-            && fromJSON(matrix.geant) < 11
+            matrix.special == 'codecov'
+            && '--timeout 60'
+            || ''
+          }} ${{
+            matrix.geant && fromJSON(matrix.geant) < 11
             && '-R "^accel/"'
             || ''
           }}
