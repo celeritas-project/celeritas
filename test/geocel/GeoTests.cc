@@ -407,22 +407,21 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         else
         {
             geo.set_dir(Real3{1, 0, 0});
+            if (test_->geometry_type() == "VecGeom"
+                && CELERITAS_VECGEOM_SURFACE)
+            {
+                // Assertion failure in NavStateTuple::PushDaughterImpl:
+                // trying to push into a daughter but there are none
+                // (pv ID 1)
+                GTEST_SKIP() << "FIXME: vecgeom surface breaks";
+            }
+
             geo.cross_boundary();
             if (test_->geometry_type() == "VecGeom")
             {
                 // FIXME: boundary crossing doesn't change volume like it
                 // should
-                if (!CELERITAS_VECGEOM_SURFACE)
-                {
-                    // Volume implementation: doesn't leave old volume
-                    EXPECT_EQ("Shape2", test_->volume_name(geo));
-                }
-                else
-                {
-                    // Surface implementation: gets completely lost
-                    EXPECT_EQ("World", test_->volume_name(geo));
-                    GTEST_SKIP() << "FIXME: vecgeom surface gets totally lost";
-                }
+                EXPECT_EQ("Shape2", test_->volume_name(geo));
             }
             else
             {
