@@ -11,30 +11,38 @@
 #    include <cub/device/device_scan.cuh>
 #    include <cub/device/device_select.cuh>
 #    include <cub/version.cuh>
-#    if CUB_VERSION >= 200800
-#        include <cub/device/device_transform.cuh>
-#    else
-#        include <thrust/execution_policy.h>
-#        include <thrust/transform.h>
-#    endif
 #elif CELERITAS_USE_HIP
 #    include <hipcub/device/device_partition.hpp>
 #    include <hipcub/device/device_scan.hpp>
 #    include <hipcub/device/device_select.hpp>
 #    include <hipcub/hipcub_version.hpp>
-#    if HIPCUB_VERSION >= 400100
-#        include <hipcub/device/device_transform.hpp>
-#    else
-#        include <thrust/execution_policy.h>
-#        include <thrust/transform.h>
-#    endif
 #endif
+// DeviceTransform is unavailable in older versions of cub/hipcub, so fall back
+// to using thrust::transform instead
+#if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
+#    define CELER_CUB_HAS_TRANSFORM 1
+#else
+#    define CELER_CUB_HAS_TRANSFORM 0
+#endif
+#if CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
+#    define CELER_HIPCUB_HAS_TRANSFORM 1
+#else
+#    define CELER_HIPCUB_HAS_TRANSFORM 0
+#endif
+#if CELER_CUB_HAS_TRANSFORM
+#    include <cub/device/device_transform.cuh>
+#elif CELER_HIPCUB_HAS_TRANSFORM
+#    include <hipcub/device/device_transform.hpp>
+#else
+#    include <thrust/execution_policy.h>
+#    include <thrust/transform.h>
+#endif
+
 #include <thrust/device_ptr.h>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
-// #include "corecel/math/Algorithms.hh" //Use if revert to LogicalNot()
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
@@ -42,10 +50,8 @@
 
 #include "../Utils.hh"
 
-#if CELERITAS_USE_CUDA
-using namespace cub;
-#elif CELERITAS_USE_HIP
-using namespace hipcub;
+#if CELERITAS_USE_HIP
+namespace cub = hipcub;
 #endif
 
 namespace celeritas
@@ -54,18 +60,13 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a functor to recognize specific tracks.
+ * Whether the track slot is being used
  */
-template<class T>
-struct NotEqual
+struct NotNull
 {
-    int compare_;
-
-    NotEqual<T>(int compare) : compare_(compare) {}
-
-    CELER_FUNCTION bool operator()(T const& a) const noexcept
+    CELER_FUNCTION bool operator()(TrackSlotId a) const noexcept
     {
-        return (a.get() != compare_);
+        return a.get() != TrackSlotId{}.unchecked_get();
     }
 };
 
@@ -83,33 +84,22 @@ size_type remove_if_alive(
     // cub functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
-    // There should be a better way to instantiate this functor than the hard
-    // coded invalid value. Some way to use the null value?
-    NotEqual<TrackSlotId> select_op(-1);
 
-    // To Do:
-    // (1) Store the result in the GPU variable that needs the result
-    // (2) Change to a void function
-
-    // *** For testing with existing code for consistency
-    // *** Instead, we should place the result in the appropriate GPU variable
     DeviceVector<size_type> num_not_active{1, stream_id};
-    // *** For testing with existing code for consistency
 
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
     auto data = device_pointer_cast(vacancies.data());
-    auto cub_error_code = DeviceSelect::If(nullptr,
-                                           temp_storage_bytes,
-                                           data,
-                                           num_not_active.data(),
-                                           vacancies.size(),
-                                           select_op,
-                                           stream);
+    // HIP defines hipCUB functions as [[nodiscard]], so assign the return code
+    auto cub_error_code = cub::DeviceSelect::If(nullptr,
+                                                temp_storage_bytes,
+                                                data,
+                                                num_not_active.data(),
+                                                vacancies.size(),
+                                                NotNull{},
+                                                stream);
 
-    // HIP is particular about checking return codes from hipCUB functions, so
-    // check for an error from the call and proceed accordingly
     if (cub_error_code)
         CELER_DEVICE_API_CALL(PeekAtLastError());
 
@@ -117,23 +107,18 @@ size_type remove_if_alive(
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
 
     // Run selection
-    cub_error_code = DeviceSelect::If(temp_storage.data(),
-                                      temp_storage_bytes,
-                                      data,
-                                      num_not_active.data(),
-                                      vacancies.size(),
-                                      select_op,
-                                      stream);
+    cub_error_code = cub::DeviceSelect::If(temp_storage.data(),
+                                           temp_storage_bytes,
+                                           data,
+                                           num_not_active.data(),
+                                           vacancies.size(),
+                                           NotNull{},
+                                           stream);
 
-    // HIP is particular about checking return codes from hipCUB functions, so
-    // check for an error from the call and proceed accordingly
     if (cub_error_code)
         CELER_DEVICE_API_CALL(PeekAtLastError());
 
-    // *** For testing with existing code for consistency
-    // *** Replace with the num_vacancies counter
     auto num = ItemCopier<size_type>{stream_id}(num_not_active.data());
-    // *** For testing with existing code for consistency
 
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return num;
@@ -159,19 +144,14 @@ size_type exclusive_scan_counts(
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
 
-    // To Do:
-    // (1) Store the result in the GPU variable that needs the result
-    // (2) Change to void function
-
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
     auto data = device_pointer_cast(counts.data());
-    auto cub_error_code = DeviceScan::ExclusiveSum(
+    // HIP defines hipCUB functions as [[nodiscard]], so assign the return code
+    auto cub_error_code = cub::DeviceScan::ExclusiveSum(
         nullptr, temp_storage_bytes, data, counts.size(), stream);
 
-    // HIP is particular about checking return codes from hipCUB functions, so
-    // check for an error from the call and proceed accordingly
     if (cub_error_code)
         CELER_DEVICE_API_CALL(PeekAtLastError());
 
@@ -179,11 +159,9 @@ size_type exclusive_scan_counts(
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
 
     // Run exclusive prefix sum
-    cub_error_code = DeviceScan::ExclusiveSum(
+    cub_error_code = cub::DeviceScan::ExclusiveSum(
         temp_storage.data(), temp_storage_bytes, data, counts.size(), stream);
 
-    // HIP is particular about checking return codes from hipCUB functions, so
-    // check for an error from the call and proceed accordingly
     if (cub_error_code)
         CELER_DEVICE_API_CALL(PeekAtLastError());
 
@@ -207,13 +185,9 @@ void partition_initializers(
     size_type count,
     StreamId stream_id)
 {
-    ScopedProfiling profile_this{"partition-initializers"};
+    CELER_EXPECT(count != 0);
 
-    // Understandably, celeritas doesn't like creating zero-byte vectors. Since
-    // cub needs some vectors, trying to allocate these leads to a failed
-    // assertion. So, just return. No need to partition zero tracks.
-    if (count == 0)
-        return;
+    ScopedProfiling profile_this{"partition-initializers"};
 
     // cub functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
@@ -231,23 +205,16 @@ void partition_initializers(
     auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
                    + counters.num_initializers - count;
     DeviceVector<unsigned char> flags{count, stream_id};
-    // DeviceTransform added in cub 2.8/hipcub 4.1, else fall back to thrust
-#if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
-    DeviceTransform::Transform(stencil,
-                               flags.data(),
-                               count,
-                               IsNeutral{params.ptr<MemSpace::native>()},
-                               stream);
-#elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
+#if CELER_CUB_HAS_TRANSFORM || CELER_HIPCUB_HAS_TRANSFORM
+    // HIP defines hipCUB functions as [[nodiscard]], so assign the return code
     {
-        auto cub_error_code = DeviceTransform::Transform(
+        auto cub_error_code = cub::DeviceTransform::Transform(
             stencil,
             flags.data(),
             count,
             IsNeutral{params.ptr<MemSpace::native>()},
             stream);
-        // HIP is particular about checking return codes from hipCUB functions,
-        // so check for an error from the call and proceed accordingly
+
         if (cub_error_code)
             CELER_DEVICE_API_CALL(PeekAtLastError());
     }
@@ -271,7 +238,22 @@ void partition_initializers(
     auto data = device_pointer_cast(init.indices.data());
     // Allocate storage for the number of neutral tracks (unused by celeritas)
     DeviceVector<size_type> num_neutral{1, stream_id};
-    auto cub_error_code = DevicePartition::Flagged(nullptr,
+    auto cub_error_code = cub::DevicePartition::Flagged(nullptr,
+                                                        temp_storage_bytes,
+                                                        start,
+                                                        flags.data(),
+                                                        data,
+                                                        num_neutral.data(),
+                                                        count,
+                                                        stream);
+
+    if (cub_error_code)
+        CELER_DEVICE_API_CALL(PeekAtLastError());
+
+    // Allocate temporary storage
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
+    // Partition the indices based on the track initializer charge
+    cub_error_code = cub::DevicePartition::Flagged(temp_storage.data(),
                                                    temp_storage_bytes,
                                                    start,
                                                    flags.data(),
@@ -280,25 +262,6 @@ void partition_initializers(
                                                    count,
                                                    stream);
 
-    // HIP is particular about checking return codes from hipCUB functions, so
-    // check for an error from the call and proceed accordingly
-    if (cub_error_code)
-        CELER_DEVICE_API_CALL(PeekAtLastError());
-
-    // Allocate temporary storage
-    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
-    // Partition the indices based on the track initializer charge
-    cub_error_code = DevicePartition::Flagged(temp_storage.data(),
-                                              temp_storage_bytes,
-                                              start,
-                                              flags.data(),
-                                              data,
-                                              num_neutral.data(),
-                                              count,
-                                              stream);
-
-    // HIP is particular about checking return codes from hipCUB functions, so
-    // check for an error from the call and proceed accordingly
     if (cub_error_code)
         CELER_DEVICE_API_CALL(PeekAtLastError());
 
