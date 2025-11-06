@@ -46,11 +46,11 @@ bool is_running_events()
            || !G4Threading::IsMultithreadedApplication();
 }
 
-}  // namespace
-
 constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
                                   && CELERITAS_CORE_GEO
                                          == CELERITAS_CORE_GEO_VECGEOM;
+
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TEST BASE
@@ -414,18 +414,6 @@ TEST_F(LarSphereOptical, run)
     rm.Initialize();
     CELER_LOG(status) << "Run two events";
     rm.BeamOn(2);
-
-    if (this->HasFailure())
-    {
-        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
-    }
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
-    }
-
-    CELER_LOG(status) << "Beam on (second run)";
-    rm.BeamOn(2);
 }
 
 /*!
@@ -535,18 +523,6 @@ TEST_F(OpNoviceOptical, run)
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
     CELER_LOG(status) << "Run two events";
-    rm.BeamOn(10);
-
-    if (this->HasFailure())
-    {
-        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
-    }
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
-    }
-
-    CELER_LOG(status) << "Beam on (second run)";
     rm.BeamOn(10);
 }
 

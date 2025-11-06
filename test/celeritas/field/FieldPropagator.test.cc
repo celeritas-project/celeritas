@@ -1064,37 +1064,49 @@ TEST_F(TwoBoxesTest,
         }
     }
 
-    if (using_solids_vg)
+    std::vector<int> expected_boundary = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
+    std::vector<double> expected_distances = {
+        0.0078534718906499,
+        0.0028235332722979,
+        0.0044879852658442,
+        0.0028259738005751,
+        1e-05,
+        1e-05,
+        9.9999658622419e-09,
+        1e-08,
+        9.9981633254417e-12,
+        1e-11,
+    };
+    std::vector<int> expected_substeps = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
+    std::vector<std::string> expected_volumes = {
+        "world",
+        "inner",
+        "world",
+        "inner",
+        "world",
+        "world",
+        "world",
+        "world",
+        "world",
+        "world",
+    };
+
+    if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
-        GTEST_SKIP() << "FIXME: VecGeom solids model diverges for tracks 1, 3";
+        expected_boundary[1] = 0;
+        expected_substeps[1] = 1;
+        expected_distances[1] = 0.00785398163397448;
+        expected_volumes[1] = "world";
+
+        expected_boundary[3] = 0;
+        expected_substeps[3] = 1;
+        expected_distances[3] = 0.00448798950512828;
+        expected_volumes[3] = "world";
     }
-    static int const expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
+
     EXPECT_VEC_EQ(expected_boundary, boundary);
-    static double const expected_distances[] = {0.0078534718906499,
-                                                0.0028235332722979,
-                                                0.0044879852658442,
-                                                0.0028259738005751,
-                                                1e-05,
-                                                1e-05,
-                                                9.9999658622419e-09,
-                                                1e-08,
-                                                9.9981633254417e-12,
-                                                1e-11};
     EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps);
-
-    static int const expected_substeps[] = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
-
     EXPECT_VEC_EQ(expected_substeps, substeps);
-    static char const* expected_volumes[] = {"world",
-                                             "inner",
-                                             "world",
-                                             "inner",
-                                             "world",
-                                             "world",
-                                             "world",
-                                             "world",
-                                             "world",
-                                             "world"};
     EXPECT_VEC_EQ(expected_volumes, volumes);
 }
 
@@ -1272,7 +1284,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         }
         else
         {
-            EXPECT_SOFT_EQ(29.99999999999995, calc_radius());
+            EXPECT_SOFT_EQ(29.999999999999996, calc_radius());
             EXPECT_EQ("si_tracker", this->volume_name(geo));
             ASSERT_TRUE(geo.is_on_boundary());
             if (geo.check_normal())
@@ -1307,8 +1319,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
                 (Real3{-0.819614018634831, -0.572916102459394, 0}),
                 geo.normal());
         }
-        // EXPECT_SOFT_EQ(30, calc_radius());
-        EXPECT_SOFT_NEAR(calc_radius(), 29.9999996, 4e-7);
+        EXPECT_SOFT_EQ(30, calc_radius());
         geo.cross_boundary();
         EXPECT_EQ(using_surface_vg ? "vacuum_tube" : "si_tracker",
                   this->volume_name(geo))

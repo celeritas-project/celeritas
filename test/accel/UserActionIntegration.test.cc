@@ -91,16 +91,18 @@ TEST_F(LarSphere, run)
 
     cout << "initializing" << endl;
     rm.Initialize();
-
     cout << "beam on" << endl;
+
     rm.BeamOn(3);
     cout << "initial run done" << endl;
 
-    if (!using_surface_vg)
+    if (using_surface_vg)
     {
-        rm.BeamOn(1);
-        cout << "second run done" << endl;
+        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
     }
+
+    rm.BeamOn(1);
+    cout << "second run done" << endl;
 }
 
 //---------------------------------------------------------------------------//
