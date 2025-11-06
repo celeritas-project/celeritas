@@ -258,12 +258,12 @@ void from_json(nlohmann::json const& j, UnitInput& value)
 
     for (char const* key : {"parent_volumes", "parent_cells"})
     {
-        auto iter = j.find(key);
-        if (iter == j.end())
+        auto parent_iter = j.find(key);
+        if (parent_iter == j.end())
         {
             continue;
         }
-        auto const& parent_vols = iter->get<std::vector<size_type>>();
+        auto const& parent_vols = parent_iter->get<std::vector<size_type>>();
 
         auto const& daughters = j.at("daughters").get<std::vector<size_type>>();
         CELER_VALIDATE(parent_vols.size() == daughters.size(),

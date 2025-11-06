@@ -43,6 +43,7 @@ RUN if [ "$DOCKERFILE_DISTRO" = "ubuntu" ] ; then \
     gcc \
     ssh \
     vim \
+     hiprand-dev rocrand-dev rocthrust-dev hipblas-dev hipcub-dev \
   && rm -rf /var/lib/apt/lists/* ; \
 elif [ "$DOCKERFILE_DISTRO" = "rocky" ] ; then \
   /bin/sh -c dnf update -y  \

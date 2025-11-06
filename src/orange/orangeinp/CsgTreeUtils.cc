@@ -69,14 +69,14 @@ replace_and_simplify(CsgTree* tree, NodeId repl_key, Node repl_value)
         // Replace literals and simplify
         for (auto n : range(CsgTree::false_node_id() + 1, NodeId{tree->size()}))
         {
-            auto repl_value = state[n.get()];
-            if ((repl_value == NodeReplacer::known_true
-                 || repl_value == NodeReplacer::known_false)
+            auto updated = state[n.get()];
+            if ((updated == NodeReplacer::known_true
+                 || updated == NodeReplacer::known_false)
                 && std::holds_alternative<Surface>((*tree)[n]))
             {
                 max_node = std::max(max_node, n);
                 tree->exchange(n,
-                               repl_value == NodeReplacer::known_true
+                               updated == NodeReplacer::known_true
                                    ? Node{True{}}
                                    : Node{False{}});
             }
