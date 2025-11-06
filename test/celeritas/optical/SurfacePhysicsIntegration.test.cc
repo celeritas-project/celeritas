@@ -15,6 +15,7 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/KernelLauncher.hh"
 #include "geocel/SurfaceParams.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -208,7 +209,7 @@ class TestGeneratorAction final : public GeneratorBase
         , num_photons_(input.num_photons)
     {
         data_ = TrackInitializer{units::MevEnergy{3e-6},
-                                 Real3{0, 50, 0},
+                                 from_cm(Real3{0, 50, 0}),
                                  Real3{0, 1, 0},
                                  Real3{0, 0, 1},
                                  0,
@@ -221,7 +222,7 @@ class TestGeneratorAction final : public GeneratorBase
         real_type cos_theta = std::cos(angle);
 
         data_.direction = Real3{sin_theta, cos_theta, 0};
-        data_.position = Real3{0, 50, 0} - data_.direction;
+        data_.position = from_cm(Real3{0, 50, 0}) - data_.direction;
     }
 
     void insert(CoreStateBase& state) const
