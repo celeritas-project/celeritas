@@ -206,10 +206,27 @@ void LocalOpticalOffload::Finalize()
     CELER_EXPECT(*this);
 
     CELER_VALIDATE(buffer_.empty(),
-                   << "offloaded photons (" << num_photons_
-                   << " in buffer) were not flushed");
+                   << "offloaded photons (" << num_photons_ << " in buffer of "
+                   << buffer_.size() << " distributions) were not flushed");
 
-    //! \todo Output optical stats
+    auto const& accum = state_->accum();
+    CELER_ASSERT(state_->aux());
+    auto const& gen = generate_->counters(*state_->aux());
+    CELER_LOG_LOCAL(info)
+        << "Finalizing Celeritas after " << accum.steps
+        << " optical steps (over " << accum.step_iters << " step iterations)"
+        << " from " << gen.accum.num_generated
+        << " optical photons generated from " << gen.accum.buffer_size
+        << " distributions";
+
+    if (!gen.counters.empty())
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Not all optical photons were tracked "
+               "at the end of the stepping loop: "
+            << gen.counters.num_pending << " queued photons from "
+            << gen.counters.buffer_size << " distributions";
+    }
 
     // Reset all data
     *this = {};
