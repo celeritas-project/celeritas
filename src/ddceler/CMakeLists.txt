@@ -9,6 +9,15 @@ dd4hep_add_plugin(DDcelerRunAction
     USES    DD4hep::DDG4 DD4hep::DDCore Celeritas::accel Celeritas::celeritas Celeritas::corecel
     )
 
+# When VecGeom is enabled, add accel_final with --no-as-needed
+if(CELERITAS_USE_VecGeom)
+    foreach(_target DDcelerTMI DDcelerRunAction)
+        target_link_libraries(${_target} PRIVATE
+            "-Wl,--push-state,--no-as-needed" Celeritas::accel_final "-Wl,--pop-state"
+        )
+    endforeach()
+endif()
+
 # Ensure plugins link against build directory libraries, not installed ones
 # Must come after dd4hep_add_plugin which sets its own RPATH
 # Use RPATH instead of RUNPATH for higher priority in library search
