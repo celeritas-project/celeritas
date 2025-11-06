@@ -32,22 +32,27 @@ template<Ownership W, MemSpace M>
 struct RanluxppRngParamsData
 {
     //// DATA ////
-    RanluxppArray9 kA_2048;
-    int kMaxPos;
-    RanluxppUInt seed = 314159265;
+    RanluxppUInt seed = 0;
+    int max_position = 0;
+    RanluxppArray9 state_2048;
+    RanluxppArray9 seed_state;
 
     //// FUNCTIONS ////
     //! Whether the data is assigned.
-    explicit CELER_FUNCTION operator bool() const { return !kA_2048.empty(); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !state_2048.empty() && !seed_state.empty();
+    }
 
     //! Assign from another set of data.
     template<Ownership W2, MemSpace M2>
     RanluxppRngParamsData& operator=(RanluxppRngParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        kA_2048 = other.kA_2048;
-        kMaxPos = other.kMaxPos;
         seed = other.seed;
+        max_position = other.max_position;
+        state_2048 = other.state_2048;
+        seed_state = other.seed_state;
         return *this;
     }
 };
@@ -59,9 +64,14 @@ struct RanluxppRngParamsData
 struct RanluxppRngState
 {
     //// DATA ////
-    RanluxppArray9 state;
-    unsigned int carry;
+    RanluxppNumber value;
     int position;
+};
+
+struct RanluxppInitializer
+{
+    //! Thread-local id
+    RanluxppUInt thread_local_id;
 };
 
 //---------------------------------------------------------------------------//
@@ -95,18 +105,6 @@ struct RanluxppRngStateData
         return *this;
     }
 };
-
-//---------------------------------------------------------------------------//
-// Initialize a single Ranluxpp state
-void initialize_state(RanluxppRngState& state,
-                      RanluxppUInt seed,
-                      HostCRef<RanluxppRngParamsData> const& params);
-
-//---------------------------------------------------------------------------//
-// Initialize Ranluxpp states with well-distributed random data
-void initialize_ranluxpp(Span<RanluxppRngState> state,
-                         HostCRef<RanluxppRngParamsData> const& params,
-                         StreamId stream);
 
 //---------------------------------------------------------------------------//
 // Resize and seed the RNG states

@@ -65,11 +65,11 @@ compute_power_modulus(RanluxppArray9 base, RanluxppUInt n);
 
 // Convert RANLUX numbers to an LCG state
 [[nodiscard]] inline CELER_FUNCTION RanluxppArray9
-to_lcg(RanluxppArray9 const& ranlux, unsigned int c);
+to_lcg(RanluxppNumber const& ranlux);
 
 // Convert an LCG state to RANLUX numbers
-inline CELER_FUNCTION RanluxppArray9 to_ranlux(RanluxppArray9 const& lcg,
-                                               unsigned int& c_out);
+[[nodiscard]] inline CELER_FUNCTION RanluxppNumber
+to_ranlux(RanluxppArray9 const& lcg);
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTION DEFINITIONS
@@ -559,29 +559,31 @@ CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
  *
  * Computes \f$ m = 2^{576} - 2^{240} + 1 \f$.
  *
- * \param[in]  ranlux  The RANLUX numbers as 576 bits
- * \param[in]  c       The carry bit of the RANLUX state
- * \param[out] lcg     The 576 bits of the LCG state, smaller than m
+ * \param[in] ranluxpp_carry_state  A struct containing the state and carry
+ *                                  numbers
+ * \return     The 576 bits of the LCG state, smaller than m
  */
-CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppArray9 const& ranlux,
-                                     unsigned int c)
+CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppNumber const& ranlux)
 {
     RanluxppArray9 result;
+
+    RanluxppArray9 const& number = ranlux.number;
+    unsigned int c = ranlux.carry;
 
     // Subtract the final 240 bits.
     unsigned int carry = 0;
     for (int i : celeritas::range(9))
     {
-        RanluxppUInt ranlux_i = ranlux[i];
+        RanluxppUInt ranlux_i = number[i];
         RanluxppUInt lcg_i = sub_overflow(ranlux_i, carry, carry);
 
         RanluxppUInt bits = 0;
         if (i < 4)
         {
-            bits += ranlux[i + 5] >> 16;
+            bits += number[i + 5] >> 16;
             if (i < 3)
             {
-                bits += ranlux[i + 6] << 48;
+                bits += number[i + 6] << 48;
             }
         }
         lcg_i = sub_carry(lcg_i, bits, carry);
@@ -604,15 +606,14 @@ CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppArray9 const& ranlux,
  * \f$ m = 2^{576} - 2^{240} + 1 \f$
  *
  * \param[in]  lcg     The 576 bits of the LCG state, must be smaller than m
- * \param[out] ranlux  The RANLUX numbers as 576 bits
- * \param[out] c       The carry bit of the RANLUX state
+ * \result  A struct containing the ranlux numbers (as 576 bits) and the carry
+ *          bit
  */
-CELER_FUNCTION RanluxppArray9 to_ranlux(RanluxppArray9 const& lcg,
-                                        unsigned int& c_out)
+CELER_FUNCTION RanluxppNumber to_ranlux(RanluxppArray9 const& lcg)
 {
-    RanluxppArray9 result = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    RanluxppNumber result{{0, 0, 0, 0, 0, 0, 0, 0, 0}, 0};
     int64_t c = compute_remainder(celeritas::make_span(lcg),
-                                  celeritas::make_span(result));
+                                  celeritas::make_span(result.number));
 
     // ranlux = t1 + t2 + c
     unsigned int carry = 0;
@@ -631,20 +632,20 @@ CELER_FUNCTION RanluxppArray9 to_ranlux(RanluxppArray9 const& lcg,
             }
         }
         tmp_i = add_carry(tmp_i, bits, carry);
-        result[i] = tmp_i;
+        result.number[i] = tmp_i;
     }
 
     // If c = -1, we need to add it to all components.
     int64_t c1 = c >> 1;
-    result[0] = add_overflow(result[0], c, carry);
+    result.number[0] = add_overflow(result.number[0], c, carry);
     for (int i : celeritas::range(1, 9))
     {
-        RanluxppUInt ranlux_i = result[i];
+        RanluxppUInt ranlux_i = result.number[i];
         ranlux_i = add_overflow(ranlux_i, carry, carry);
         ranlux_i = add_carry(ranlux_i, c1, carry);
     }
 
-    c_out = carry;
+    result.carry = carry;
 
     return result;
 }

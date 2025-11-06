@@ -20,21 +20,29 @@ namespace celeritas
 RanluxppRngParams::RanluxppRngParams(RanluxppUInt seed)
 {
     HostVal<RanluxppRngParamsData> host_data;
-    host_data.seed = seed;
-    host_data.kA_2048 = this->getKa();
-    host_data.kMaxPos = 9 * 64;
-    CELER_ASSERT(host_data);
 
+    // Save basic data
+    host_data.seed = seed;
+    host_data.max_position = 9 * 64;
+    host_data.state_2048 = this->get_a_2048();
+
+    // Compute a_seed, skipping 2 ** 96 states
+    host_data.seed_state = celeritas::detail::compute_power_modulus(
+        host_data.state_2048, RanluxppUInt(1) << 48);
+    host_data.seed_state = celeritas::detail::compute_power_modulus(
+        host_data.seed_state, RanluxppUInt(1) << 48);
+
+    CELER_ASSERT(host_data);
     data_ = CollectionMirror<RanluxppRngParamsData>(std::move(host_data));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the Ka polynomial.
+ * Get the a polynomial.
  */
-RanluxppArray9 const& RanluxppRngParams::getKa() const
+RanluxppArray9 const& RanluxppRngParams::get_a_2048() const
 {
-    static RanluxppArray9 const k_array = {
+    static RanluxppArray9 const array_2048 = {
         0xed7faa90747aaad9,
         0x4cec2c78af55c101,
         0xe64dcb31c48228ec,
@@ -45,7 +53,7 @@ RanluxppArray9 const& RanluxppRngParams::getKa() const
         0x492edfcc0cc8e753,
         0xb48c187cf5b22097,
     };
-    return k_array;
+    return array_2048;
 }
 
 //---------------------------------------------------------------------------//

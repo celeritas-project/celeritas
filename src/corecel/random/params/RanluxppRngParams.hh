@@ -40,7 +40,7 @@ class RanluxppRngParams final
     CollectionMirror<RanluxppRngParamsData> data_;
 
     // Return the kA value
-    RanluxppArray9 const& getKa() const;
+    RanluxppArray9 const& get_a_2048() const;
 };
 
 //---------------------------------------------------------------------------//

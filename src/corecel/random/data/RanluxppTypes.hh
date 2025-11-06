@@ -29,4 +29,12 @@ using RanluxppArray9 = Array<RanluxppUInt, 9>;
 using RanluxppArray18 = Array<RanluxppUInt, 18>;
 
 //---------------------------------------------------------------------------//
+//! Defines a Ranluxpp number (576-bit number plus carry bit)
+struct RanluxppNumber
+{
+    RanluxppArray9 number;
+    unsigned int carry;
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

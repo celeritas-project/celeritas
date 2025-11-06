@@ -283,6 +283,7 @@ macro(celeritas_polysource filename_we)
 endmacro()
 
 celeritas_polysource(random/data/detail/CuHipRngStateInit)
+celeritas_polysource(random/data/detail/RanluxppRngStateInit)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
