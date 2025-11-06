@@ -289,7 +289,7 @@ CELER_FUNCTION RanluxppArray18 multiply_9x9(RanluxppArray9 const& in1,
 
 #if defined(__clang__) || defined(__INTEL_COMPILER) || defined(__CUDA_ARCH__)
 #    pragma unroll
-#elif defined(__GNUC__) && __GNUC__ >= 8
+#elif defined(__GNUC__) && __GNUC__ >= 8 && !defined(__CUDA_ARCH__)
 // This pragma was introduced in GCC version 8.
 #    pragma GCC unroll 18
 #endif
@@ -303,7 +303,7 @@ CELER_FUNCTION RanluxppArray18 multiply_9x9(RanluxppArray9 const& in1,
 
 #if defined(__clang__) || defined(__INTEL_COMPILER) || defined(__CUDA_ARCH__)
 #    pragma unroll
-#elif defined(__GNUC__) && __GNUC__ >= 8
+#elif defined(__GNUC__) && __GNUC__ >= 8 && !defined(__CUDA_ARCH__)
 // This pragma was introduced in GCC version 8.
 #    pragma GCC unroll 9
 #endif
