@@ -10,8 +10,10 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/random/Histogram.hh"
 #include "corecel/sys/ActionGroups.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/KernelLauncher.hh"
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/GeantTestBase.hh"
@@ -20,9 +22,18 @@
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/TrackInitializer.hh"
+#include "celeritas/optical/Transporter.hh"
+#include "celeritas/optical/action/ActionLauncher.hh"
+#include "celeritas/optical/gen/GeneratorBase.hh"
+#include "celeritas/optical/gen/GeneratorData.hh"
+#include "celeritas/optical/gen/OffloadData.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/TrackFunctors.hh"
+#include "celeritas/track/Utils.hh"
 
 #include "celeritas_test.hh"
 
@@ -30,23 +41,66 @@ namespace celeritas
 {
 namespace optical
 {
-
-using ActionGroupsT = ActionGroups<CoreParams, CoreState>;
-using SPActionGroups = std::shared_ptr<ActionGroupsT>;
-
 namespace test
 {
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 
-template<class T>
+struct CollectResults
+{
+    size_type num_absorbed{0};
+    size_type num_failed{0};
+    size_type num_reflected{0};
+    size_type num_refracted{0};
+
+    void reset()
+    {
+        num_absorbed = 0;
+        num_failed = 0;
+        num_reflected = 0;
+        num_refracted = 0;
+    }
+
+    void operator()(CoreTrackView const& track)
+    {
+        if (track.sim().status() == TrackStatus::alive)
+        {
+            auto vol = track.geometry().volume_instance_id();
+            if (vol == VolumeInstanceId{1})
+            {
+                num_reflected++;
+                return;
+            }
+            else if (vol == VolumeInstanceId{2})
+            {
+                num_refracted++;
+                return;
+            }
+        }
+        else if (track.sim().status() == TrackStatus::killed)
+        {
+            num_absorbed++;
+            return;
+        }
+
+        num_failed++;
+    }
+};
+
+struct SurfaceTestResults
+{
+    std::vector<size_type> num_absorbed;
+    std::vector<size_type> num_reflected;
+    std::vector<size_type> num_refracted;
+};
+
 class CollectResultsAction final : public OpticalStepActionInterface,
                                    public ConcreteAction
 {
   public:
-    explicit CollectResultsAction(ActionId aid, T& apply)
+    explicit CollectResultsAction(ActionId aid, CollectResults& results)
         : ConcreteAction(aid, "collect-results", "collect test results")
-        , apply_(apply)
+        , results_(results)
     {
     }
 
@@ -56,16 +110,10 @@ class CollectResultsAction final : public OpticalStepActionInterface,
         {
             CoreTrackView track(params.host_ref(), state.ref(), tid);
             auto sim = track.sim();
-            if ((AppliesValid{}(track)
-                 && sim.post_step_action()
-                        == track.surface_physics().scalars().post_boundary_action)
-                || (sim.status() == TrackStatus::killed
-                    && sim.post_step_action()
-                           == track.surface_physics()
-                                  .scalars()
-                                  .surface_stepping_action))
+            if (this->is_post_boundary(track)
+                || this->is_absorbed_on_boundary(track))
             {
-                apply_(track);
+                results_(track);
                 sim.status(TrackStatus::killed);
             }
         }
@@ -79,87 +127,156 @@ class CollectResultsAction final : public OpticalStepActionInterface,
     StepActionOrder order() const final { return StepActionOrder::post; }
 
   private:
-    T& apply_;
+    inline bool is_post_boundary(CoreTrackView const& track) const
+    {
+        return AppliesValid{}(track)
+               && track.sim().post_step_action()
+                      == track.surface_physics().scalars().post_boundary_action;
+    }
+
+    inline bool is_absorbed_on_boundary(CoreTrackView const& track) const
+    {
+        return track.sim().status() == TrackStatus::killed
+               && track.sim().post_step_action()
+                      == track.surface_physics().scalars().surface_stepping_action;
+    }
+
+    CollectResults& results_;
 };
 
-class Stepper
+class TestGeneratorAction final : public GeneratorBase
 {
   public:
-    using CoreStateHost = CoreState<MemSpace::host>;
-
-    Stepper(CoreParams const& params)
-        : params_(params)
-        , actions_(std::make_shared<ActionGroupsT>(*params.action_reg()))
+    struct Executor
     {
+        CRefPtr<CoreParamsData, MemSpace::native> params;
+        RefPtr<CoreStateData, MemSpace::native> state;
+        TrackInitializer init;
+        CoreStateCounters counters;
+
+        inline CELER_FUNCTION void operator()(TrackSlotId tid) const
+        {
+            CELER_EXPECT(params);
+            CELER_EXPECT(state);
+            CoreTrackView vacancy{
+                *params, *state, [&] {
+                    TrackSlotId idx{index_before(counters.num_vacancies,
+                                                 ThreadId(tid.get()))};
+                    return state->init.vacancies[idx];
+                }()};
+
+            vacancy = init;
+        }
+
+        CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+        {
+            return (*this)(TrackSlotId{tid.unchecked_get()});
+        }
+    };
+
+    struct Input
+    {
+        size_type num_photons;
+    };
+
+    static std::shared_ptr<TestGeneratorAction>
+    make_and_insert(::celeritas::CoreParams const& core_params,
+                    CoreParams const& params,
+                    Input&& input)
+    {
+        CELER_EXPECT(input.num_photons > 0);
+        ActionRegistry& actions = *params.action_reg();
+        AuxParamsRegistry& aux = *core_params.aux_reg();
+        GeneratorRegistry& gen = *params.gen_reg();
+        auto result = std::make_shared<TestGeneratorAction>(
+            actions.next_id(), aux.next_id(), gen.next_id(), std::move(input));
+        actions.insert(result);
+        aux.insert(result);
+        gen.insert(result);
+        return result;
     }
 
-    void step(CoreStateHost& state)
+    TestGeneratorAction(ActionId id,
+                        AuxId aux_id,
+                        GeneratorId gen_id,
+                        Input input)
+        : GeneratorBase(id,
+                        aux_id,
+                        gen_id,
+                        "test-generate",
+                        "generate test optical photon primaries")
+        , num_photons_(input.num_photons)
     {
-        for (auto const& action : actions_->step())
+        data_ = TrackInitializer{units::MevEnergy{3e-6},
+                                 Real3{0, 50, 0},
+                                 Real3{0, 1, 0},
+                                 Real3{0, 0, 1},
+                                 0,
+                                 ImplVolumeId{0}};
+    }
+
+    void set_incident_angle(real_type angle)
+    {
+        real_type sin_theta = std::sin(angle);
+        real_type cos_theta = std::cos(angle);
+
+        data_.direction = Real3{sin_theta, cos_theta, 0};
+        data_.position = Real3{0, 50, 0} - data_.direction;
+    }
+
+    void insert(CoreStateBase& state) const
+    {
+        if (auto* s = dynamic_cast<CoreStateHost*>(&state))
         {
-            action->step(params_, state);
+            CELER_EXPECT(s->aux());
+            auto& aux_state = this->counters(*s->aux());
+            aux_state.counters.num_pending = num_photons_;
+            s->counters().num_pending = num_photons_;
+        }
+        else
+        {
+            CELER_NOT_IMPLEMENTED("TestGeneratorAction on device");
         }
     }
 
-    void run(CoreStateHost& state)
+    UPState create_state(MemSpace, StreamId, size_type) const final
     {
-        while (state.counters().num_alive > 0)
-        {
-            this->step(state);
-        }
+        return std::make_unique<GeneratorStateBase>();
     }
 
-    void print_steps() const
+    void step(CoreParams const& params, CoreStateHost& state) const final
     {
-        for (auto const& action : actions_->step())
+        CELER_EXPECT(state.aux());
+
+        auto const& aux_state = this->counters(*state.aux());
+        size_type num_gen = min(state.counters().num_vacancies,
+                                aux_state.counters.num_pending);
+
+        if (num_gen > 0)
         {
-            CELER_LOG(info)
-                << action->label() << ": " << action->action_id().get();
+            Executor execute{params.ptr<MemSpace::native>(),
+                             state.ptr(),
+                             data_,
+                             state.counters()};
+            launch_action(num_gen, execute);
         }
+
+        this->update_counters(state);
+    }
+
+    void step(CoreParams const&, CoreStateDevice&) const final
+    {
+        CELER_NOT_IMPLEMENTED("TestGeneratorAction on device");
     }
 
   private:
-    CoreParams const& params_;
-    SPActionGroups actions_;
-};
-
-class OpticalAux : public AuxParamsInterface
-{
-  public:
-    using SPConstParams = std::shared_ptr<CoreParams const>;
-
-  public:
-    OpticalAux(SPConstParams params, AuxId id) : params_(params), aux_id_(id)
-    {
-        CELER_EXPECT(params_);
-        CELER_EXPECT(aux_id_);
-    }
-
-    AuxId aux_id() const final { return aux_id_; }
-    std::string_view label() const final { return "optical-aux"; }
-    UPState create_state(MemSpace m, StreamId id, size_type size) const final
-    {
-        if (m == MemSpace::host)
-        {
-            return std::make_unique<optical::CoreState<MemSpace::host>>(
-                *params_, id, size);
-        }
-        else if (m == MemSpace::device)
-        {
-            return std::make_unique<optical::CoreState<MemSpace::device>>(
-                *params_, id, size);
-        }
-        CELER_ASSERT_UNREACHABLE();
-    }
-
-  private:
-    SPConstParams params_;
-    AuxId aux_id_;
+    size_type num_photons_;
+    TrackInitializer data_;
 };
 
 class SurfacePhysicsIntegrationTest : public GeantTestBase
 {
-  protected:
+  public:
     std::string_view gdml_basename() const override { return "optical-box"; }
 
     GeantPhysicsOptions build_geant_options() const override
@@ -182,342 +299,309 @@ class SurfacePhysicsIntegrationTest : public GeantTestBase
         return {IMC::absorption};
     }
 
-    void SetUp() override
-    {
-        // Construct and register optical auxiliary params
-        auto& aux_reg = *this->core()->aux_reg();
-        optical_ = std::make_shared<OpticalAux>(this->optical_params(),
-                                                aux_reg.next_id());
-        aux_reg.insert(optical_);
+    void SetUp() override {}
 
-        // Allocate auxiliary state data, including optical core state
-        size_type num_track_slots = 64;
-        aux_ = std::make_shared<AuxStateVec>(
-            aux_reg, MemSpace::host, StreamId{0}, num_track_slots);
-        CELER_ASSERT(aux_);
-
-        // Store a pointer to the aux state vector in the optical state
-        auto& state = get<CoreState<MemSpace::host>>(*aux_, optical_->aux_id());
-        state.aux() = aux_;
-    }
+    virtual void setup_surface_models(inp::SurfacePhysics&) const = 0;
 
     SPConstOpticalSurfacePhysics build_optical_surface_physics() override
     {
         inp::SurfacePhysics input;
 
-        PhysSurfaceId phys_surface{0};
-        auto add_surfaces
-            = [&](std::vector<TrivialInteractionMode> const& modes) {
-                  CELER_EXPECT(!modes.empty());
-                  input.materials.push_back(
-                      std::vector<OptMatId>(modes.size() - 1, OptMatId{0}));
-                  for (auto m : modes)
-                  {
-                      input.roughness.polished.emplace(phys_surface,
-                                                       inp::NoRoughness{});
-                      input.reflectivity.fresnel.emplace(
-                          phys_surface, inp::FresnelReflection{});
-                      input.interaction.trivial.emplace(phys_surface, m);
-                      ++phys_surface;
-                  }
-              };
-
-        // center-top surface
-
-        add_surfaces({
-            TrivialInteractionMode::transmit,
-            this->get_interaction_mode(),
-            TrivialInteractionMode::transmit,
-            TrivialInteractionMode::transmit,
-        });
+        this->setup_surface_models(input);
 
         // Default surface
 
-        add_surfaces({TrivialInteractionMode::absorb});
+        size_type phys_surface{0};
+        for (auto const& mats : input.materials)
+        {
+            phys_surface += mats.size() + 1;
+        }
+
+        input.materials.push_back({});
+        input.roughness.polished.emplace(PhysSurfaceId{phys_surface},
+                                         inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(PhysSurfaceId{phys_surface},
+                                           inp::FresnelReflection{});
+        input.interaction.trivial.emplace(PhysSurfaceId{phys_surface},
+                                          TrivialInteractionMode::absorb);
 
         return std::make_shared<SurfacePhysicsParams>(
             this->optical_action_reg().get(), input);
     }
 
-    void init_tracks(CoreState<MemSpace::host>& state,
-                     std::vector<TrackInitializer> const& inits) const
+    void build_state(size_type num_tracks)
     {
-        for (auto tid : range(TrackSlotId(inits.size())))
-        {
-            CoreTrackView track(
-                this->optical_params()->host_ref(), state.ref(), tid);
-            track = inits[tid.get()];
-        }
-
-        {
-            auto& counters = state.counters();
-            counters.num_pending = 0;
-            counters.num_vacancies -= inits.size();
-            counters.num_active = inits.size();
-            counters.num_alive = inits.size();
-        }
+        auto state = std::make_shared<CoreState<MemSpace::host>>(
+            *this->optical_params(), StreamId{0}, num_tracks);
+        state->aux() = std::make_shared<AuxStateVec>(
+            *this->core()->aux_reg(), MemSpace::host, StreamId{0}, num_tracks);
+        state_ = state;
     }
 
-    virtual TrivialInteractionMode get_interaction_mode() const
-    {
-        return TrivialInteractionMode::absorb;
-    }
-
-    template<class T>
-    void create_collector(T& collector) const
+    void make_collector()
     {
         auto& reg = *this->optical_params()->action_reg();
-        reg.insert(std::make_shared<CollectResultsAction<T>>(reg.next_id(),
-                                                             collector));
+        auto collector
+            = std::make_shared<CollectResultsAction>(reg.next_id(), collect_);
+        reg.insert(collector);
     }
 
-    void run()
+    void build_transporter()
     {
-        auto& state = get<CoreState<MemSpace::host>>(*aux_, optical_->aux_id());
+        Transporter::Input inp;
+        inp.params = this->optical_params();
+        transport_ = std::make_shared<Transporter>(std::move(inp));
+    }
 
-        std::vector<TrackInitializer> inits;
-        std::vector<real_type> points{-40, -30, -20, -10, 0, 10, 20, 30, 40};
-        for (auto x : points)
+    SurfaceTestResults run(std::vector<real_type> const& angles)
+    {
+        TestGeneratorAction::Input inp;
+        inp.num_photons = 100;
+        auto generate = TestGeneratorAction::make_and_insert(
+            *this->core(), *this->optical_params(), std::move(inp));
+
+        this->make_collector();
+        this->build_state(128);
+        this->build_transporter();
+
+        SurfaceTestResults results;
+        for (auto angle : angles)
         {
-            inits.push_back({units::MevEnergy{3e-6},
-                             Real3{0, 0, 0},
-                             make_unit_vector(Real3{x, 50, 0}),
-                             Real3{0, 0, 1},
-                             0,
-                             ImplVolumeId{0}});
+            collect_.reset();
+
+            generate->set_incident_angle(angle * M_PI / 180.0);
+
+            generate->insert(*state_);
+
+            (*transport_)(*state_);
+
+            EXPECT_EQ(0, collect_.num_failed);
+            results.num_absorbed.push_back(collect_.num_absorbed);
+            results.num_reflected.push_back(collect_.num_reflected);
+            results.num_refracted.push_back(collect_.num_refracted);
         }
 
-        this->init_tracks(state, inits);
-
-        Stepper stepper{*this->optical_params()};
-        stepper.run(state);
+        return results;
     }
 
-    std::shared_ptr<OpticalAux> optical_;
+  protected:
+    std::shared_ptr<CoreState<MemSpace::host>> state_;
     std::shared_ptr<AuxStateVec> aux_;
+    std::shared_ptr<Transporter> transport_;
+    CollectResults collect_;
 };
 
 class SurfacePhysicsIntegrationBackscatterTest
     : public SurfacePhysicsIntegrationTest
 {
   public:
-    struct Collector
+    void setup_surface_models(inp::SurfacePhysics& input) const final
     {
-        size_type num_back_scattered{0};
+        PhysSurfaceId phys_surface{0};
 
-        void operator()(CoreTrackView const& track)
-        {
-            // CELER_LOG(info) << "Track finished boundary crossing...";
-            // CELER_LOG(info) << "Track position: " << track.geometry().pos();
-            // CELER_LOG(info) << "Track direction: " <<
-            // track.geometry().dir(); CELER_LOG(info) << "Track volume inst: "
-            // << track.geometry().volume_instance_id().get(); CELER_LOG(info)
-            // << "Track post step: " << track.sim().post_step_action().get();
-            // CELER_LOG(info) << "Track status: " <<
-            // to_cstring(track.sim().status()); CELER_LOG(info) << "Track is
-            // surface crossing: " <<
-            // track.surface_physics().is_crossing_boundary();
+        // center-top surface
 
-            EXPECT_EQ(TrackStatus::alive, track.sim().status());
-            EXPECT_EQ(1, track.geometry().volume_instance_id().get());
-            EXPECT_FALSE(track.surface_physics().is_crossing_boundary());
-
-            num_back_scattered++;
-        }
-    };
-
-    TrivialInteractionMode get_interaction_mode() const final
-    {
-        return TrivialInteractionMode::backscatter;
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.trivial.emplace(phys_surface,
+                                          TrivialInteractionMode::backscatter);
     }
 };
-
-TEST_F(SurfacePhysicsIntegrationBackscatterTest, backscatter)
-{
-    Collector collect{};
-    this->create_collector(collect);
-
-    this->run();
-
-    EXPECT_EQ(9, collect.num_back_scattered);
-}
 
 class SurfacePhysicsIntegrationAbsorbTest : public SurfacePhysicsIntegrationTest
 {
   public:
-    struct Collector
+    void setup_surface_models(inp::SurfacePhysics& input) const final
     {
-        size_type num_absorbed{0};
+        PhysSurfaceId phys_surface{0};
 
-        void operator()(CoreTrackView const& track)
-        {
-            EXPECT_EQ(TrackStatus::killed, track.sim().status());
-            num_absorbed++;
-        }
-    };
+        // center-top surface
 
-    TrivialInteractionMode get_interaction_mode() const final
-    {
-        return TrivialInteractionMode::absorb;
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.trivial.emplace(phys_surface,
+                                          TrivialInteractionMode::absorb);
     }
 };
-
-TEST_F(SurfacePhysicsIntegrationAbsorbTest, absorb)
-{
-    Collector collect{};
-    this->create_collector(collect);
-
-    this->run();
-
-    EXPECT_EQ(9, collect.num_absorbed);
-}
 
 class SurfacePhysicsIntegrationTransmitTest
     : public SurfacePhysicsIntegrationTest
 {
   public:
-    struct Collector
+    void setup_surface_models(inp::SurfacePhysics& input) const final
     {
-        size_type num_transmitted{0};
+        PhysSurfaceId phys_surface{0};
 
-        void operator()(CoreTrackView const& track)
-        {
-            EXPECT_EQ(TrackStatus::alive, track.sim().status());
-            EXPECT_EQ(2, track.geometry().volume_instance_id().get());
-            EXPECT_FALSE(track.surface_physics().is_crossing_boundary());
-            num_transmitted++;
-        }
-    };
+        // center-top surface
 
-    TrivialInteractionMode get_interaction_mode() const final
-    {
-        return TrivialInteractionMode::transmit;
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.trivial.emplace(phys_surface,
+                                          TrivialInteractionMode::transmit);
     }
 };
 
-TEST_F(SurfacePhysicsIntegrationTransmitTest, transmit)
+class SurfacePhysicsIntegrationFresnelTest
+    : public SurfacePhysicsIntegrationTest
 {
-    Collector collect{};
-    this->create_collector(collect);
+  public:
+    void setup_surface_models(inp::SurfacePhysics& input) const final
+    {
+        PhysSurfaceId phys_surface{0};
 
-    this->run();
+        // center-top surface
 
-    EXPECT_EQ(9, collect.num_transmitted);
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.dielectric.emplace(
+            phys_surface,
+            inp::DielectricInteraction::from_dielectric(
+                inp::ReflectionForm::from_spike()));
+    }
+};
+
+TEST_F(SurfacePhysicsIntegrationBackscatterTest, backscatter)
+{
+    std::vector<real_type> angles{0, 30, 60};
+    auto result = this->run(angles);
+
+    SurfaceTestResults expected;
+    expected.num_reflected = {100, 100, 100};
+    expected.num_refracted = {0, 0, 0};
+    expected.num_absorbed = {0, 0, 0};
+
+    EXPECT_EQ(expected.num_reflected, result.num_reflected);
+    EXPECT_EQ(expected.num_refracted, result.num_refracted);
+    EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
 }
 
-TEST_F(SurfacePhysicsIntegrationTest, setup)
+TEST_F(SurfacePhysicsIntegrationAbsorbTest, absorb)
 {
-    // {
-    //     auto& reg = *this->optical_params()->action_reg();
-    //     reg.insert(std::make_shared<CollectResultsAction<BackScatterCollector>>(reg.next_id(),
-    //     BackScatterCollector{}));
-    // }
+    std::vector<real_type> angles{0, 30, 60};
+    auto result = this->run(angles);
 
-    {
-        auto const& volume = *this->core()->volume();
-        for (auto vol : range(VolumeId{volume.num_volumes()}))
-        {
-            CELER_LOG(info) << "Vol " << vol.get() << ": "
-                            << volume.volume_labels().at(vol);
-        }
+    SurfaceTestResults expected;
+    expected.num_refracted = {0, 0, 0};
+    expected.num_reflected = {0, 0, 0};
+    expected.num_absorbed = {100, 100, 100};
 
-        for (auto vi : range(VolumeInstanceId{volume.num_volume_instances()}))
-        {
-            CELER_LOG(info) << "VolInst " << vi.get() << ": "
-                            << volume.volume_instance_labels().at(vi);
-        }
+    EXPECT_EQ(expected.num_reflected, result.num_reflected);
+    EXPECT_EQ(expected.num_refracted, result.num_refracted);
+    EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
+}
 
-        auto const& surface = *this->optical_params()->surface();
-        for (auto s : range(SurfaceId{surface.num_surfaces()}))
-        {
-            CELER_LOG(info)
-                << "Surface " << s.get() << ": " << surface.labels().at(s);
-        }
-    }
+TEST_F(SurfacePhysicsIntegrationTransmitTest, transmit)
+{
+    std::vector<real_type> angles{0, 30, 60};
+    auto result = this->run(angles);
 
-    auto& state = get<CoreState<MemSpace::host>>(*aux_, optical_->aux_id());
+    SurfaceTestResults expected;
+    expected.num_refracted = {100, 100, 100};
+    expected.num_reflected = {0, 0, 0};
+    expected.num_absorbed = {0, 0, 0};
 
-    std::vector<TrackInitializer> inits;
-    // {
-    //     {units::MevEnergy{3e-6},
-    //      Real3{0, 0, 0},
-    //      Real3{0, 1, 0},
-    //      Real3{1, 0, 0},
-    //      0,
-    //      ImplVolumeId{0}},
-    // };
+    EXPECT_EQ(expected.num_reflected, result.num_reflected);
+    EXPECT_EQ(expected.num_refracted, result.num_refracted);
+    EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
+}
 
-    std::vector<real_type> points{-40, -30, -20, -10, 0, 10, 20, 30, 40};
-    for (auto x : points)
-    {
-        inits.push_back({units::MevEnergy{3e-6},
-                         Real3{0, 0, 0},
-                         make_unit_vector(Real3{x, 50, 0}),
-                         Real3{0, 0, 1},
-                         0,
-                         ImplVolumeId{0}});
-    }
+TEST_F(SurfacePhysicsIntegrationFresnelTest, fresnel)
+{
+    std::vector<real_type> angles{
+        0,
+        10,
+        20,
+        30,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        60,
+        70,
+        80,
+    };
 
-    for (auto tid : range(TrackSlotId(inits.size())))
-    {
-        CoreTrackView track(
-            this->optical_params()->host_ref(), state.ref(), tid);
-        track = inits[tid.get()];
-    }
+    auto result = this->run(angles);
 
-    {
-        auto& counters = state.counters();
-        counters.num_pending = 0;
-        counters.num_vacancies -= inits.size();
-        counters.num_active = inits.size();
-        counters.num_alive = inits.size();
-    }
+    static unsigned int const expected_num_absorbed[] = {
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+    };
+    static unsigned int const expected_num_reflected[] = {
+        2u,
+        0u,
+        3u,
+        4u,
+        15u,
+        11u,
+        9u,
+        17u,
+        18u,
+        34u,
+        27u,
+        42u,
+        60u,
+        100u,
+        100u,
+        100u,
+        100u,
+        100u,
+    };
+    static unsigned int const expected_num_refracted[] = {
+        98u,
+        100u,
+        97u,
+        96u,
+        85u,
+        89u,
+        91u,
+        83u,
+        82u,
+        66u,
+        73u,
+        58u,
+        40u,
+        0u,
+        0u,
+        0u,
+        0u,
+        0u,
+    };
 
-    Stepper stepper{*this->optical_params()};
-    stepper.run(state);
-
-    // CELER_LOG(info) << " ----- DEBUG ----- ";
-
-    // CoreTrackView track(
-    //     this->optical_params()->host_ref(), state.ref(), TrackSlotId{0});
-    // EXPECT_EQ(TrackSlotId{0}, track.track_slot_id());
-
-    // CELER_LOG(info) << "Track position: " << track.geometry().pos();
-    // CELER_LOG(info) << "Track volume inst: " <<
-    // track.geometry().volume_instance_id().get();
-
-    // auto actions =
-    // std::make_shared<ActionGroupsT>(*this->optical_params()->action_reg());
-    // for (auto const& action : actions->step())
-    // {
-    //     CELER_LOG(info) << action->label() << ": " <<
-    //     action->action_id().get(); action->step(*this->optical_params(),
-    //     state);
-    // }
-
-    // CELER_LOG(info) << "Track position: " << track.geometry().pos();
-    // CELER_LOG(info) << "Track direction: " << track.geometry().dir();
-    // CELER_LOG(info) << "Track volume inst: " <<
-    // track.geometry().volume_instance_id().get(); CELER_LOG(info) << "Track
-    // post step: " << track.sim().post_step_action().get(); CELER_LOG(info) <<
-    // "Track status: " << to_cstring(track.sim().status()); CELER_LOG(info) <<
-    // "Geo normal: " << track.geometry().normal(); CELER_LOG(info) << "Track
-    // is surface crossing: " << track.surface_physics().is_crossing_boundary()
-    // << "\n";
-
-    // for (auto const& action : actions->step())
-    // {
-    //     action->step(*this->optical_params(), state);
-    // }
-
-    // CELER_LOG(info) << "Track position: " << track.geometry().pos();
-    // CELER_LOG(info) << "Track direction: " << track.geometry().dir();
-    // CELER_LOG(info) << "Track volume inst: " <<
-    // track.geometry().volume_instance_id().get(); CELER_LOG(info) << "Track
-    // post step: " << track.sim().post_step_action().get(); CELER_LOG(info) <<
-    // "Track status: " << to_cstring(track.sim().status()); CELER_LOG(info) <<
-    // "Track is surface crossing: " <<
-    // track.surface_physics().is_crossing_boundary();
+    EXPECT_VEC_EQ(expected_num_absorbed, result.num_absorbed);
+    EXPECT_VEC_EQ(expected_num_reflected, result.num_reflected);
+    EXPECT_VEC_EQ(expected_num_refracted, result.num_refracted);
 }
 
 //---------------------------------------------------------------------------//

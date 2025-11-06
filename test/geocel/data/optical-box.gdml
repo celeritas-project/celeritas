@@ -47,7 +47,7 @@
     </volume>
     <volume name="top_box">
       <solidref ref="voxel_box"/>
-      <materialref ref="Water"/>
+      <materialref ref="Vacuum"/>
     </volume>
     <volume name="world">
       <solidref ref="world_box"/>
