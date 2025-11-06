@@ -12,7 +12,7 @@
 #pragma once
 
 #include <VecGeom/base/Config.h>
-#if !VECGEOM_USE_SURF
+#ifndef VECGEOM_USE_SURF
 #    error "VecGeom surface capability required to include this file"
 #endif
 
