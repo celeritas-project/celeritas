@@ -38,15 +38,9 @@ void resize(RanluxppRngStateData<Ownership::value, M>* state,
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
+    // Move params to device
     RanluxppRngParamsData<Ownership::value, M> p;
     p = params;
-
-    // Copy params to device
-    // NativeCRef<RanluxppRngParamsData> device_params_data = params;
-    /*
-    RanluxppRngParamsData<Ownership::value, M> device_params_data;
-    device_params_data = params;
-    */
 
     // Resize the state collection and initialize the state for each stream on
     // device

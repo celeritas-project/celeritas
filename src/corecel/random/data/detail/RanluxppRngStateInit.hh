@@ -21,14 +21,14 @@ namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the given track slot
+ * Initialize the given track slot.
  */
 struct RanluxppRngSeedExecutor
 {
     NativeCRef<RanluxppRngParamsData> const params;
     NativeRef<RanluxppRngStateData> const state;
 
-    //! Initialize the given track slot
+    //! Initialize the given track slot.
     inline CELER_FUNCTION void operator()(TrackSlotId tid) const
     {
         CELER_EXPECT(tid < state.size());
@@ -36,7 +36,7 @@ struct RanluxppRngSeedExecutor
         rng = {tid.unchecked_get()};
     }
 
-    //! Initialize from the given thread
+    //! Initialize from the given thread.
     CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
     {
         return (*this)(TrackSlotId{tid.unchecked_get()});
@@ -56,7 +56,7 @@ void ranlux_state_init(HostCRef<RanluxppRngParamsData> const& params,
 #if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the RNG states on device
+ * Initialize the RNG states on device.
  */
 inline void ranlux_state_init(DeviceCRef<RanluxppRngParamsData> const&,
                               DeviceRef<RanluxppRngStateData> const&,

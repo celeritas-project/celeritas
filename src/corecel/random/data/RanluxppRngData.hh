@@ -64,13 +64,15 @@ struct RanluxppRngParamsData
 struct RanluxppRngState
 {
     //// DATA ////
+    //! Ranluxpp state number and carry bit
     RanluxppNumber value;
+    //! Current position in the state.
     int position;
 };
 
 struct RanluxppInitializer
 {
-    //! Thread-local id
+    //! Thread-local id.
     RanluxppUInt thread_local_id;
 };
 
@@ -90,13 +92,13 @@ struct RanluxppRngStateData
     StateItems<RanluxppRngState> state;
 
     //// METHODS ////
-    //! True if assigned
+    //! True if assigned.
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
 
-    //! State size
+    //! State size.
     CELER_FUNCTION size_type size() const { return state.size(); }
 
-    //! Assign from another set of states
+    //! Assign from another set of states.
     template<Ownership W2, MemSpace M2>
     RanluxppRngStateData& operator=(RanluxppRngStateData<W2, M2>& other)
     {

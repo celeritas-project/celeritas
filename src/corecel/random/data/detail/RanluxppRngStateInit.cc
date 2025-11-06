@@ -15,7 +15,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the RNG states from seeds provided by host
+ * Initialize the RNG states from user defined seed on host.
  */
 void ranlux_state_init(HostCRef<RanluxppRngParamsData> const& params,
                        HostRef<RanluxppRngStateData> const& state,
