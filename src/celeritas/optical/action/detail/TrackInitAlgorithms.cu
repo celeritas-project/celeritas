@@ -125,7 +125,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 #    else
     thrust::transform(thrust_execute_on(stream_id),
                       start,
-                      start + count,
+                      start + start.size(),
                       flags.data(),
                       IsVacant{});
 #    endif
