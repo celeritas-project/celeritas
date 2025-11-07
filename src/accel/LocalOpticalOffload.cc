@@ -35,29 +35,33 @@ namespace celeritas
 LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
                                          SharedParams& params)
 {
-    CELER_EXPECT(options.optical_capacity);
-    CELER_EXPECT(params.optical_params());
-
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local optical offload when Celeritas "
                       "offloading is disabled");
-    CELER_VALIDATE(options.optical_generator
+    CELER_VALIDATE(options.optical
                        && std::holds_alternative<inp::OpticalOffloadGenerator>(
-                           *options.optical_generator),
+                           options.optical->generator),
                    << "invalid optical photon generation mechanism for local "
                       "optical offload");
 
     // Check the thread ID and MT model
     validate_geant_threading(params.Params()->max_streams());
 
+    // Save a pointer to the optical transporter
+    transport_ = params.optical_transporter();
+    CELER_ASSERT(transport_);
+
+    CELER_ASSERT(transport_->params());
+    auto const& optical_params = *transport_->params();
+
     // Save a pointer to the generator action
-    CELER_ASSERT(params.optical_params()->gen_reg()->size() == 1);
+    CELER_ASSERT(optical_params.gen_reg()->size() == 1);
     generate_ = std::dynamic_pointer_cast<optical::GeneratorAction const>(
-        params.optical_params()->gen_reg()->at(GeneratorId(0)));
+        optical_params.gen_reg()->at(GeneratorId(0)));
     CELER_ASSERT(generate_);
 
     // Number of optical photons to buffer before offloading
-    auto const& capacity = *options.optical_capacity;
+    auto const& capacity = options.optical->capacity;
     auto_flush_ = capacity.primaries;
 
     auto stream_id = id_cast<StreamId>(get_geant_thread_id());
@@ -67,12 +71,12 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
     if (memspace == MemSpace::device)
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::device>>(
-            *params.optical_params(), stream_id, capacity.tracks);
+            optical_params, stream_id, capacity.tracks);
     }
     else
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::host>>(
-            *params.optical_params(), stream_id, capacity.tracks);
+            optical_params, stream_id, capacity.tracks);
     }
 
     // Allocate auxiliary data
@@ -81,12 +85,6 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
         state_->aux() = std::make_shared<AuxStateVec>(
             *params.Params()->aux_reg(), memspace, stream_id, capacity.tracks);
     }
-
-    // Build the optical transporter
-    optical::Transporter::Input inp;
-    inp.params = params.optical_params();
-    inp.max_step_iters = options.max_optical_step_iters;
-    transport_ = std::make_shared<optical::Transporter>(std::move(inp));
 
     CELER_ENSURE(*this);
 }
