@@ -6,12 +6,20 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
+// CUDA has included cub since CUDA 11, but ROCm does not include hipCUB by
+// default, so test for the availability of hipCUB and use thrust instead if
+// it's unavailable. And some further checks for newer cub/hipCUB functions.
+#if CELER_USE_HIP && !CELERITAS_HAVE_HIPCUB
+#    define CELER_USE_THRUST 1
+#else
+#    define CELER_USE_THRUST 0
+#endif
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_partition.cuh>
 #    include <cub/device/device_scan.cuh>
 #    include <cub/device/device_select.cuh>
 #    include <cub/version.cuh>
-#elif CELERITAS_USE_HIP
+#elif CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
 #    include <hipcub/device/device_partition.hpp>
 #    include <hipcub/device/device_scan.hpp>
 #    include <hipcub/device/device_select.hpp>
@@ -37,8 +45,12 @@
 #    include <thrust/execution_policy.h>
 #    include <thrust/transform.h>
 #endif
-
 #include <thrust/device_ptr.h>
+#if CELER_USE_THRUST
+#    include <thrust/partition.h>
+#    include <thrust/remove.h>
+#    include <thrust/scan.h>
+#endif
 
 #include "corecel/Macros.hh"
 #include "corecel/data/DeviceVector.hh"
@@ -81,6 +93,17 @@ size_type remove_if_alive(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"remove-if-alive"};
+#if CELER_USE_THRUST
+    auto start = device_pointer_cast(vacancies.data());
+    auto end = thrust::remove_if(thrust_execute_on(stream_id),
+                                 start,
+                                 start + vacancies.size(),
+                                 LogicalNot{});
+    CELER_DEVICE_API_CALL(PeekAtLastError());
+
+    // New size of the vacancy vector
+    return end - start;
+#else
     // cub functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
@@ -91,7 +114,7 @@ size_type remove_if_alive(
     // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
     auto data = device_pointer_cast(vacancies.data());
-    // HIP defines hipCUB functions as [[nodiscard]], so assign the return code
+    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     auto cub_error_code = cub::DeviceSelect::If(nullptr,
                                                 temp_storage_bytes,
                                                 data,
@@ -99,13 +122,8 @@ size_type remove_if_alive(
                                                 vacancies.size(),
                                                 NotNull{},
                                                 stream);
-
-    if (cub_error_code)
-        CELER_DEVICE_API_CALL(PeekAtLastError());
-
     // Allocate temporary storage
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
-
     // Run selection
     cub_error_code = cub::DeviceSelect::If(temp_storage.data(),
                                            temp_storage_bytes,
@@ -115,13 +133,11 @@ size_type remove_if_alive(
                                            NotNull{},
                                            stream);
 
-    if (cub_error_code)
-        CELER_DEVICE_API_CALL(PeekAtLastError());
-
     auto num = ItemCopier<size_type>{stream_id}(num_not_active.data());
 
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return num;
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -140,6 +156,19 @@ size_type exclusive_scan_counts(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"exclusive-scan-counts"};
+#if CELER_USE_THRUST
+    // Exclusive scan:
+    auto data = device_pointer_cast(counts.data());
+    auto stop = thrust::exclusive_scan(thrust_execute_on(stream_id),
+                                       data,
+                                       data + counts.size(),
+                                       data,
+                                       size_type(0));
+    CELER_DEVICE_API_CALL(PeekAtLastError());
+
+    // Copy the last element (accumulated total) back to host
+    return ItemCopier<size_type>{stream_id}(stop.get() - 1);
+#else
     // cub functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
@@ -148,27 +177,19 @@ size_type exclusive_scan_counts(
     // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
     auto data = device_pointer_cast(counts.data());
-    // HIP defines hipCUB functions as [[nodiscard]], so assign the return code
+    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     auto cub_error_code = cub::DeviceScan::ExclusiveSum(
         nullptr, temp_storage_bytes, data, counts.size(), stream);
-
-    if (cub_error_code)
-        CELER_DEVICE_API_CALL(PeekAtLastError());
-
     // Allocate temporary storage
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
-
     // Run exclusive prefix sum
     cub_error_code = cub::DeviceScan::ExclusiveSum(
         temp_storage.data(), temp_storage_bytes, data, counts.size(), stream);
-
-    if (cub_error_code)
-        CELER_DEVICE_API_CALL(PeekAtLastError());
-
     // Set the counter similar to the following
     // counters.num_secondaries = "last value in the counts object;
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return ItemCopier<size_type>{stream_id}(data.get() + counts.size() - 1);
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -188,7 +209,19 @@ void partition_initializers(
     CELER_EXPECT(count != 0);
 
     ScopedProfiling profile_this{"partition-initializers"};
-
+#if CELER_USE_THRUST
+    // Partition the indices based on the track initializer charge
+    auto start = device_pointer_cast(init.indices.data());
+    auto end = start + count;
+    auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
+                   + counters.num_initializers - count;
+    thrust::stable_partition(
+        thrust_execute_on(stream_id),
+        start,
+        end,
+        IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
+    CELER_DEVICE_API_CALL(PeekAtLastError());
+#else
     // cub functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
@@ -205,8 +238,8 @@ void partition_initializers(
     auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
                    + counters.num_initializers - count;
     DeviceVector<unsigned char> flags{count, stream_id};
-#if CELER_CUB_HAS_TRANSFORM || CELER_HIPCUB_HAS_TRANSFORM
-    // HIP defines hipCUB functions as [[nodiscard]], so assign the return code
+#    if CELER_CUB_HAS_TRANSFORM || CELER_HIPCUB_HAS_TRANSFORM
+    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     {
         auto cub_error_code = cub::DeviceTransform::Transform(
             stencil,
@@ -214,17 +247,14 @@ void partition_initializers(
             count,
             IsNeutral{params.ptr<MemSpace::native>()},
             stream);
-
-        if (cub_error_code)
-            CELER_DEVICE_API_CALL(PeekAtLastError());
     }
-#else
+#    else
     thrust::transform(thrust_execute_on(stream_id),
                       stencil,
                       stencil + count,
                       flags.data(),
                       IsNeutral{params.ptr<MemSpace::native>()});
-#endif
+#    endif
     // cub doesn't support in-place partitioning, so create a new variable,
     // initial, of the same type and copy the current data in the init.indices
     // object. Use initial for the input data and overwrite init.indices with
@@ -246,10 +276,6 @@ void partition_initializers(
                                                         num_neutral.data(),
                                                         count,
                                                         stream);
-
-    if (cub_error_code)
-        CELER_DEVICE_API_CALL(PeekAtLastError());
-
     // Allocate temporary storage
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     // Partition the indices based on the track initializer charge
@@ -261,11 +287,8 @@ void partition_initializers(
                                                    num_neutral.data(),
                                                    count,
                                                    stream);
-
-    if (cub_error_code)
-        CELER_DEVICE_API_CALL(PeekAtLastError());
-
     CELER_DEVICE_API_CALL(PeekAtLastError());
+#endif
 }
 
 //---------------------------------------------------------------------------//
