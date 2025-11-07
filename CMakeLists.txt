@@ -8,9 +8,6 @@ cmake_minimum_required(VERSION 3.18...4.1)
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
-set(CMAKE_USER_MAKE_RULES_OVERRIDE
-  "${CMAKE_CURRENT_LIST_DIR}/cmake/CeleritasMakeRulesOverride.cmake")
-
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
