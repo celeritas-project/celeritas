@@ -62,7 +62,7 @@
 
 #include "../Utils.hh"
 
-#if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
+#if CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
 namespace cub = hipcub;
 #endif
 
