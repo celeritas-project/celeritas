@@ -21,8 +21,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Perform Bisection iterations given a root function \em func and
- * tolerance \em tol .
+ * Find a local root using the bisection algorithm.
  *
  * Using a \em left and \em right bound a Bisection approximates the \em
  * root as: \f[ root = 0.5 * (left + right) \f]

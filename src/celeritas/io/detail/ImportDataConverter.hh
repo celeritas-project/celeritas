@@ -19,10 +19,14 @@ struct ImportModelMaterial;
 struct ImportMscModel;
 struct ImportOpticalMaterial;
 struct ImportOpticalModel;
-struct ImportParticle;
 struct ImportPhysicsTable;
 struct ImportProcess;
 struct ImportGeoMaterial;
+
+namespace inp
+{
+struct Particle;
+}  // namespace inp
 
 namespace detail
 {
@@ -48,7 +52,7 @@ class ImportDataConverter
     void operator()(ImportModel* data);
     void operator()(ImportModelMaterial* data);
     void operator()(ImportMscModel* data);
-    void operator()(ImportParticle* data);
+    void operator()(inp::Particle* data);
     void operator()(ImportPhysicsTable* data);
     void operator()(ImportProcess* data);
     //!@}

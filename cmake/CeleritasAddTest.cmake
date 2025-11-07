@@ -54,7 +54,7 @@ Add a CUDA/HIP/C++ GoogleTest test::
       [ADD_DEPENDENCIES target1 [target2 ...]]
       [ARGS arg1 [arg2 ...]]
       [ENVIRONMENT VAR=value [VAR2=value2 ...]]
-      [FILTER test1 [test2 ...]]
+      [FILTER test1 [test2 ...] [DISABLE_FILTER_REGEX regex]]
       [INPUTS file1 [file2 ...]]
       [SOURCES file1 [...]]
       [DISABLE]
@@ -99,7 +99,12 @@ Add a CUDA/HIP/C++ GoogleTest test::
 
     ``DISABLE``
       Omit this test from the list of tests to run through CTest, but still
-      build it to reduce the chance of code rot.
+      build it to reduce the chance of code rot and inform the user what's not
+      being run.
+
+    ``DISABLE_FILTER_REGEX``
+      When filtering using FILTER, disable all tests with filter args that match
+      the regular expression.
 
     ``REUSE_EXE``
       Assume the executable was already built from a previous celeritas_add_test
@@ -233,7 +238,7 @@ endfunction()
 function(celeritas_add_test SOURCE_FILE)
   cmake_parse_arguments(PARSE
     "DISABLE;REUSE_EXE;GPU"
-    "TIMEOUT;DEPTEST;SUFFIX;ADDED_TESTS;NT"
+    "TIMEOUT;DEPTEST;SUFFIX;ADDED_TESTS;NT;DISABLE_FILTER_REGEX"
     "LINK_LIBRARIES;ADD_DEPENDENCIES;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
     ${ARGN}
   )
@@ -388,6 +393,9 @@ function(celeritas_add_test SOURCE_FILE)
   if(NOT PARSE_FILTER)
     # Set to a non-empty but false value
     set(PARSE_FILTER "OFF")
+    if(PARSE_DISABLE_FILTER_REGEX)
+      message(SEND_ERROR "Incompatible option: PARSE_DISABLE_FILTER_REGEX requires FILTER option")
+    endif()
   endif()
 
   foreach(_filter IN LISTS PARSE_FILTER)
@@ -421,6 +429,15 @@ function(celeritas_add_test SOURCE_FILE)
 
       add_test(NAME "${_TEST_NAME}" COMMAND ${_test_cmd} ${_test_args})
       list(APPEND _ADDED_TESTS "${_TEST_NAME}")
+
+      if(_filter AND PARSE_DISABLE_FILTER_REGEX)
+        if(_filter MATCHES "${PARSE_DISABLE_FILTER_REGEX}")
+          set_property(TEST ${_TEST_NAME}
+            PROPERTY DISABLED true
+          )
+          continue()
+        endif()
+      endif()
 
       if(PARSE_DEPTEST)
         # Add dependency on another test

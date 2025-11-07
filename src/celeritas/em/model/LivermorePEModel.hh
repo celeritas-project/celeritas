@@ -6,17 +6,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
-
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
 {
-struct ImportLivermorePE;
 class MaterialParams;
 class ParticleParams;
 
@@ -28,9 +26,9 @@ class LivermorePEModel final : public Model, public StaticConcreteAction
 {
   public:
     //!@{
-    using ReadData = std::function<ImportLivermorePE(AtomicNumber)>;
     using HostRef = HostCRef<LivermorePEData>;
     using DeviceRef = DeviceCRef<LivermorePEData>;
+    using Input = inp::LivermorePhotoModel;
     //!@}
 
   public:
@@ -38,7 +36,7 @@ class LivermorePEModel final : public Model, public StaticConcreteAction
     LivermorePEModel(ActionId id,
                      ParticleParams const& particles,
                      MaterialParams const& materials,
-                     ReadData load_data);
+                     Input const& input);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

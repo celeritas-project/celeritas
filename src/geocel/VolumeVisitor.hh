@@ -59,7 +59,7 @@ class VolumeAccessorInterface
  * <code>bool(*)(Ref, int)</code>
  * where the return value indicates whether the volume's children should be
  * visited, \c Ref is either VolumeRef or \c VolumeInstanceRef , and the
- * integer is the depth of the volume being visited (the top element has depth
+ * integer is the level of the volume being visited (the top element has level
  * zero).
  *
  * By default this will visit all unique instances, i.e. every path in the
@@ -92,7 +92,7 @@ class VolumeVisitor
     struct QueuedVolume
     {
         VolumeInstanceRef vi;
-        int depth;
+        int level;
     };
 
     //// DATA ////
@@ -102,13 +102,13 @@ class VolumeVisitor
 
     //// HELPERS ////
 
-    inline void add_children(VolumeInstanceRef vol, int depth);
-    inline void add_children(VolumeRef vol, int depth);
+    inline void add_children(VolumeInstanceRef vol, int level);
+    inline void add_children(VolumeRef vol, int level);
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Visit the first volume/instance encountered, once, depth-first.
+ * Visit the first volume/instance encountered, once, level-first.
  *
  * \tparam T VolumeRef or VolumeInstanceRef
  * \tparam F Visitor function \c void(*)(Vol)
@@ -117,7 +117,7 @@ template<class T, class F>
 class VisitVolumeOnce
 {
   public:
-    //! Construct with volume/depth visitor
+    //! Construct with volume/level visitor
     VisitVolumeOnce(F&& visit) : visit_impl_(std::forward<F>(visit)) {}
 
     //! Visit a single volume
@@ -150,7 +150,7 @@ auto make_visit_volume_once(F&& visit)
 /*!
  * Visit all volume instance paths, depth-first.
  *
- * Future work: we could keep and return full paths instead of just the depth
+ * Future work: we could keep and return full paths instead of just the level
  * if we wanted.
  */
 template<class VA>
@@ -167,9 +167,9 @@ void VolumeVisitor<VA>::operator()(F&& visit, VolumeInstanceRef top)
         QueuedVolume qv = queue_.back();
         queue_.pop_back();
 
-        if (visit(qv.vi, qv.depth))
+        if (visit(qv.vi, qv.level))
         {
-            this->add_children(qv.vi, qv.depth);
+            this->add_children(qv.vi, qv.level);
         }
     }
 }
@@ -178,17 +178,17 @@ void VolumeVisitor<VA>::operator()(F&& visit, VolumeInstanceRef top)
 /*!
  * Visit all volume instance paths, depth-first.
  *
- * Future work: we could keep and return full paths instead of just the depth
+ * Future work: we could keep and return full paths instead of just the level
  * if we wanted.
  */
 template<class VA>
 template<class F>
 void VolumeVisitor<VA>::operator()(F&& visit, VolumeRef top)
 {
-    auto visit_impl = [this, &visit](VolumeRef v, int depth) {
-        if (visit(v, depth))
+    auto visit_impl = [this, &visit](VolumeRef v, int level) {
+        if (visit(v, level))
         {
-            this->add_children(v, depth);
+            this->add_children(v, level);
         }
     };
 
@@ -202,7 +202,7 @@ void VolumeVisitor<VA>::operator()(F&& visit, VolumeRef top)
         QueuedVolume qv = queue_.back();
         queue_.pop_back();
 
-        visit_impl(accessor_.volume(qv.vi), qv.depth);
+        visit_impl(accessor_.volume(qv.vi), qv.level);
     }
 }
 
@@ -210,22 +210,22 @@ void VolumeVisitor<VA>::operator()(F&& visit, VolumeRef top)
 /*!
  * Add child instances from the current volume to the queue.
  *
- * \arg depth Depth of the given volume
+ * \arg level Level of the given volume (zero for root)
  */
 template<class VA>
-void VolumeVisitor<VA>::add_children(VolumeInstanceRef vi, int depth)
+void VolumeVisitor<VA>::add_children(VolumeInstanceRef vi, int level)
 {
-    return this->add_children(accessor_.volume(vi), depth);
+    return this->add_children(accessor_.volume(vi), level);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Add child instances from the current to the queue.
  *
- * \arg depth Depth of the given volume
+ * \arg level Depth of the given volume
  */
 template<class VA>
-void VolumeVisitor<VA>::add_children(VolumeRef vol, int depth)
+void VolumeVisitor<VA>::add_children(VolumeRef vol, int level)
 {
     auto&& children = accessor_.children(vol);
     // Append children in *reverse* order since we pop back
@@ -233,7 +233,7 @@ void VolumeVisitor<VA>::add_children(VolumeRef vol, int depth)
     for (auto iter = std::reverse_iterator(children.end()); iter != rend;
          ++iter)
     {
-        queue_.push_back({*iter, depth + 1});
+        queue_.push_back({*iter, level + 1});
     }
 }
 

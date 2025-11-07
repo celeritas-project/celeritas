@@ -171,7 +171,7 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
     photon.polarization = make_orthogonal(
         rotate(from_spherical(-std::sqrt(sin_theta_sq), phi), dir_),
         photon.direction);
-    CELER_ASSERT(soft_zero(dot_product(photon.polarization, photon.direction)));
+    CELER_ASSERT(is_soft_orthogonal(photon.polarization, photon.direction));
 
     // Sample fraction along the step
     UniformRealDistribution<> sample_step_fraction;

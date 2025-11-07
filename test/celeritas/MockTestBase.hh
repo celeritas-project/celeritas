@@ -11,9 +11,9 @@
 
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/Physics.hh"  // IWYU pragma: keep
 
-#include "GlobalGeoTestBase.hh"
+#include "GlobalTestBase.hh"
 #include "OnlyCoreTestBase.hh"
 
 namespace celeritas
@@ -44,7 +44,7 @@ namespace test
  *
  * Cutoff values are all zero.
  */
-class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
+class MockTestBase : virtual public GlobalTestBase, public OnlyCoreTestBase
 {
   public:
     //!@{
@@ -66,10 +66,7 @@ class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
     }
 
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "three-spheres";
-    }
+    std::string_view gdml_basename() const override { return "three-spheres"; }
 
     SPConstMaterial build_material() override;
     SPConstGeoMaterial build_geomaterial() override;
@@ -88,7 +85,7 @@ class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
     //// DATA ////
 
     mutable std::vector<ModelId> interactions_;
-    ActionId::size_type model_to_action_{0};
+    ActionId first_model_action_{0};
 };
 
 //---------------------------------------------------------------------------//

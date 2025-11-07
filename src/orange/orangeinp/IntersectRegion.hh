@@ -7,16 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/grid/GridTypes.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/surf/ConeAligned.hh"
-
-#include "CsgTypes.hh"
 
 namespace celeritas
 {
@@ -107,6 +105,10 @@ class Box final : public IntersectRegionInterface
  *
  * This intersect region, along with the Cylinder, is a base component of the
  * G4Polycone (PCON).
+ *
+ * \note The Cone is allowed to be "degenerate" in the sense of
+ * having nearly equal lower and upper radii. It will construct a cylinder with
+ * an average of the two radii.
  */
 class Cone final : public IntersectRegionInterface
 {
@@ -138,6 +140,55 @@ class Cone final : public IntersectRegionInterface
   private:
     Real2 radii_;
     real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A *z*-aligned cylinder centered on the origin, with top/bottom cuts.
+ *
+ * The shape is defined with a radius, half-height, and the outward-facing
+ * normals of the cutting planes, passing through \f$(0, 0, \pm
+ * \mathrm{hh})\f$.
+ */
+class CutCylinder final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radius, half-height, and bottom/top cut plane normals
+    CutCylinder(real_type radius,
+                real_type halfheight,
+                Real3 const& bottom_normal,
+                Real3 const& top_normal);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another cut cylinder
+    bool encloses(CutCylinder const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radius
+    real_type radius() const { return radius_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+    //! Outward-facing normal of the bottom cuting plane
+    Real3 const& bottom_normal() const { return bot_normal_; }
+
+    //! Outward-facing normal of the top cuting plane
+    Real3 const& top_normal() const { return top_normal_; }
+
+  private:
+    real_type radius_;
+    real_type hh_;
+    Real3 bot_normal_;
+    Real3 top_normal_;
 };
 
 //---------------------------------------------------------------------------//
@@ -178,9 +229,20 @@ class Cylinder final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * An axis-alligned ellipsoid centered at the origin.
+ * An axis-aligned ellipsoid centered at the origin.
  *
- * The ellipsoid is constructed with the three radial lengths.
+ * The ellipsoid is constructed with the three radial lengths. For a length
+ * scale \em L , the quadric it creates has second-order terms that are \f$
+ * O(1) \f$ and a zeroth order term that's \f$ O(L^2) \f$. Translations on that
+ * length scale will preserve the accuracy of the quadratic solution.
+ *
+ * There are many scalings of the quadric equation that produce unitary
+ * second-order terms if the ellipsoid's radii are identical: \f[
+  \frac{k}{r_x^2} x^2 +  \frac{k}{r_y^2} y^2 +  \frac{k}{r_z^2} z^2 = k
+ * \f]
+ * but we make the ad hoc decision to choose \f$ k = \min r_i \max r_i \f$
+ * to avoid irrational normalization constants, which makes unit tests and
+ * output easier to read.
  */
 class Ellipsoid final : public IntersectRegionInterface
 {
@@ -204,6 +266,9 @@ class Ellipsoid final : public IntersectRegionInterface
     //! Radius along each axis
     Real3 const& radii() const { return radii_; }
 
+    //! Get the radius along a single axis
+    real_type radius(Axis ax) const { return radii_[to_int(ax)]; }
+
   private:
     Real3 radii_;
 };
@@ -213,7 +278,12 @@ class Ellipsoid final : public IntersectRegionInterface
  * A *z*-aligned cylinder with an elliptical cross section.
  *
  * The elliptical cylinder is defined with a two radii and a half-height,
- * such that the centroid of the bounding box is origin.
+ * such that the centroid of the bounding box is origin. The quadric
+ * coefficient of the cylindrical component, \f[
+  x^2 / r_x^2 + y^2 / r_y^2 = 1 \,
+  \f]
+ * are scaled based on the radii of the cylinder, reducing to
+ * \f$ x^2 + y^2 = R^2 \f$ when the radii are equal.
  */
 class EllipticalCylinder final : public IntersectRegionInterface
 {
@@ -240,6 +310,9 @@ class EllipticalCylinder final : public IntersectRegionInterface
     //! Half-height along Z
     real_type halfheight() const { return hh_; }
 
+    // Get the radius along the x/y axis
+    real_type radius(Axis ax) const;
+
   private:
     Real2 radii_;
     real_type hh_;
@@ -247,44 +320,38 @@ class EllipticalCylinder final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A finite *z*-aligned cone with an elliptical cross section.
+ * A finite \em z-aligned cone with an elliptical cross section.
  *
  * The elliptical cone is defined in an analogous fashion to the regular
- * (i.e., circular) cone. A half-height (hh) defines the z-extents, such
+ * (i.e., circular) cone. A half-height (hh) defines the \em z extents, such
  * that the centroid of the outer bounding box is the origin. The lower radii
- * are the x- and y-radii at the plane z = -hh. The upper radii are the x- and
- * y-radii at the plane z = hh. There are several restrictions on these radii:
+ * are the \em x  and \em y radii at the plane \f$ z = -\mathrm{hh} \f$.
+ * The upper radii are the \em x and \em y radii at the plane
+ * \f$ z = \mathrm{hh} \f$. There are several restrictions on these radii:
  *
- * 1) Either the lower or upper radii may be (0, 0); this is the only permitted
- *    way for the elliptical cone to include the vertex.
- * 2) The aspect ratio of the elliptical cross sections is constant. Thus, the
- *    aspect ratio at z = -hh must equal the aspect ratio at z = hh.
- * 3) Degenerate elliptical cones with lower_radii == upper_radii (i.e.,
- *    elliptical cylinders) are not permitted.
- * 4) Degenerate elliptical cones where lower or upper radii are equal to
- *    (0, x) or (x, 0), where x is non-zero, are not permitted.
+ * - Either the lower or upper radii may be \f$(0, 0)\f$; this is the only
+ *   permitted way for the elliptical cone to include the vertex.
+ * - The aspect ratio of the elliptical cross sections is constant. Thus, the
+ *   upper radii must be a constant scalar times the upper radii.
+ * - Degenerate elliptical cones (lower_radii == upper_radii, i.e.,
+ *   elliptical cylinders) are not permitted.
+ * - Degenerate elliptical cones where lower or upper radii are equal to
+ *   \f$(0, x)\f$ or \f$(x, 0)\f$, where \em x is non-zero, are not permitted.
  *
- * The elliptical surface can be expressed as:
- *
+ * The elliptical surface can be expressed as
  * \f[
    (x/r_x)^2 + (y/r_y)^2 = (v-z)^2,
  * \f]
+ * where \em v is the location of the vertex.
  *
- * which can be converted to SimpleQuadric form:
- * \verbatim
-   (1/r_x)^2 x^2  + (1/r_y)^2 y^2 + (-1) z^2 + (2v) z + (-v^2) = 0.
-      |                |              |         |          |
-      a                b              c         d          e
- * \endverbatim
- *
- * where v is the location of the vertex. The r_x, r_y, and v can be calculated
- * from the lower and upper radii as given by \c G4EllipticalCone:
+ * The \f$ r_x \f$, \f$r_y \f$, and \f$v\f$ can be calculated from the lower
+ * and upper radii as given by \c G4EllipticalCone:
  * \verbatim
    r_x = (lower_radii[X] - upper_radii[X])/(2 hh),
    r_y = (lower_radii[Y] - upper_radii[Y])/(2 hh),
-     v = hh (lower_radii[X] + upper_radii[X])/(lower_radii[X] -
- upper_radii[X]).
- * \endverbatim
+     v = hh (lower_radii[X] + upper_radii[X])
+         / (lower_radii[X] - upper_radii[X]).
+   \endverbatim
  */
 class EllipticalCone final : public IntersectRegionInterface
 {
@@ -316,6 +383,9 @@ class EllipticalCone final : public IntersectRegionInterface
     //! Half-height along Z
     real_type halfheight() const { return hh_; }
 
+    // Get the bottom/top radius along the x/y axis
+    real_type radius(Bound b, Axis ax) const;
+
   private:
     Real2 lower_radii_;
     Real2 upper_radii_;
@@ -326,11 +396,12 @@ class EllipticalCone final : public IntersectRegionInterface
 /*!
  * Region formed by extruding + scaling a convex polygon along a line segment.
  *
- * The convex polygon is supplied as a set of points on the XY plane in
+ * The convex polygon is supplied as a set of points on the \em xy plane in
  * counterclockwise order. The line segment and scaling factors are specified
  * by providing a line segment point and scaling factor for the top and bottom
  * polygon faces of the region. The line segment point of the top face must
- * have a z value greater than that of the bottom face. Along the line segment,
+ * have a \em z value greater than that of the bottom face. Along the line
+ * segment,
  * the size of the polygon is linearly scaled in accordance with scaling
  * factors.
  *
@@ -410,7 +481,7 @@ class ExtrudedPolygon final : public IntersectRegionInterface
     //// HELPER FUNCTIONS ////
 
     // Calculate the min/max x or y values of the extruded region
-    Range calc_range(VecReal2 const& polygon, size_type dir);
+    Range calc_range(VecReal2 const& polygon, size_type dim);
 };
 
 //---------------------------------------------------------------------------//
@@ -477,7 +548,7 @@ class GenPrism final : public IntersectRegionInterface
     //// ACCESSORS ////
 
     //! Half-height along Z
-    real_type halfheight() const { return hz_; }
+    real_type halfheight() const { return hh_; }
 
     //! Polygon on -z face
     VecReal2 const& lower() const { return lo_; }
@@ -499,10 +570,68 @@ class GenPrism final : public IntersectRegionInterface
         hi
     };
 
-    real_type hz_;  //!< half-height
-    VecReal2 lo_;  //!< corners of the -z face
-    VecReal2 hi_;  //!< corners of the +z face
+    real_type hh_;  //!< half-height
+    VecReal2 lo_;  //!< corners of the -z face (CCW)
+    VecReal2 hi_;  //!< corners of the +z face (CCW)
     Degenerate degen_{Degenerate::none};  //!< no plane on this z axis
+    real_type length_scale_{};
+};
+// ...existing code...
+
+//---------------------------------------------------------------------------//
+/*!
+ * A *z*-aligned hyperboloid of revolution centered on the origin.
+ *
+ * A hyperboloid is defined by rotating a hyperbola around the z-axis. This
+ * implementation uses a minimum radius (at \f$ z=0 \f$) and a maximum radius
+ * (at \f$z=\pm \textrm{hh}\f$).
+ *
+ * The hyperboloid surface is defined by the equation:
+ * \f[
+ *   x^2 + y^2 - r_{min}^2 \left(1 + z^2 t^2\right) = 0
+ * \f]
+ * where \f$ r_{min} \f$ is the minimum radius (at z=0) and
+ * \f$ t^2 = (r_{max}^2 - r_{min}^2) / h^2 \f$, with \f$ r_{max} \f$
+ * being the maximum radius and \f$ h \f$ the half-height.
+ *
+ * The maximum radius must be greater than the minimum radius, ensuring a valid
+ * hyperboloid shape. The minimum radius must be positive, as a radius of zero
+ * would produce a two-sheeted cone.
+ */
+class Hyperboloid final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radius at midpoint (min) and end (max), and half-height
+    Hyperboloid(real_type min_radius,
+                real_type max_radius,
+                real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another hyperboloid
+    bool encloses(Hyperboloid const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Minimum radius at z=0
+    real_type min_radius() const { return r_min_; }
+
+    //! Maximum radius at |z|=hh
+    real_type max_radius() const { return r_max_; }
+
+    //! Half-height along z
+    real_type halfheight() const { return hh_; }
+
+  private:
+    real_type r_min_;  //!< Minimum radius at z=0
+    real_type r_max_;  //!< Maximum radius at |z|=hh
+    real_type hh_;  //!< Half-height along z
 };
 
 //---------------------------------------------------------------------------//
@@ -663,6 +792,64 @@ class Involute final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * A finite *z*-aligned parabolid.
+ *
+ * The paraboloid is defined in an analogous fashion to the cone. A half-height
+ * (hh) defines the z-extents, such that the centroid of the outer bounding box
+ * is the origin. The lower and upper radii correspond to the radii at
+ * \f$ z = \pm h \f$. Either the lower or upper radii may be 0, i.e.,
+ * the solid may include the vertex. Degenerate cases where the lower and upper
+ * radii are equal are not permitted: a cylinder should be used instead.
+ *
+ * A paraboloid with these properties is expressed in SimpleQuadric form as:
+ * \f[
+    x^2 + y^2 + \frac{(R_{\mathrm{lo}}^2 - R_{\mathrm{hi}}^2)}{h} z
+    - \frac{R_{\mathrm{lo}}^2 + R_{\mathrm{hi}}^2}{2} = 0,
+ * \f]
+ * where \f$R_{\mathrm{lo}}\f$ and \f$R_\mathrm{hi}\f$ correspond to the lower
+ * and upper radii, respectively, and \f$h\f$ is the full height. Note that the
+ * scaling is such that as \f$ R_{\mathrm{lo}} \to R_{\mathrm{hi}} \f$ this
+ * approaches the cylindrical equation \f$ x^2 + y^2 = R^2 \f$.
+ *
+ */
+class Paraboloid final : public IntersectRegionInterface
+{
+  public:
+    // Construct with lower/upper radii and the half-height
+    Paraboloid(real_type lower_radius,
+               real_type upper_radius,
+               real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another paraboloid
+    bool encloses(Paraboloid const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radius at z=-hh
+    real_type lower_radius() const { return r_lo_; }
+
+    //! Radius at z=hh
+    real_type upper_radius() const { return r_hi_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+  private:
+    real_type r_lo_;
+    real_type r_hi_;
+    real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * A general parallelepiped centered on the origin.
  *
  * A parallelepiped is a shape having 3 pairs of parallel faces out of
@@ -787,54 +974,6 @@ class Prism final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A region formed by revolving a SpecialTrapezoid around the z-axis.
- *
- * The trapezoid being revolved always has a flat top and bottom along the \em
- * z axis and never crosses the \em z axis. These special constraints ensure
- * that the revolved trapezoid's sides never touch both sheets of a cone, which
- * as a quadric is always double-sheeted about the cone's vanishing point. As a
- * convention, all \em r values must be non-negative. An example of the
- * revolution process is shown below.
- * \verbatim
-                              |
-     ........            ^    |     .           ________
-     .       .            .   |    .           /        |
-     .         .           . . . .           /          |
-     .           .            |            /            |
-     ...............          |          /______________|
-                              |         supplied special trapezoid
-                           z axis
- * \endverbatim
- */
-class RevolvedSpecialTrapezoid final : public IntersectRegionInterface
-{
-  public:
-    // Construct from a special trapezoid
-    RevolvedSpecialTrapezoid(SpecialTrapezoid&& trap);
-
-    // Build surfaces
-    void build(IntersectSurfaceBuilder&) const final;
-
-    // Output to JSON
-    void output(JsonPimpl*) const final;
-
-    //// ACCESSORS ////
-
-    //! Return the special trapezoid
-    SpecialTrapezoid const& trap() const { return trap_; }
-
-  private:
-    //// DATA ////
-    SpecialTrapezoid trap_;
-
-    //// HELPER FUNCTIONS ////
-
-    // Create a cone from two (r, z) points
-    ConeZ make_cone(Real2 p0, Real2 p1) const;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * A sphere centered on the origin.
  *
  * \note Be aware there's also a sphere *surface* at orange/surf/Sphere.hh in a
@@ -864,6 +1003,55 @@ class Sphere final : public IntersectRegionInterface
 
   private:
     real_type radius_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A tetrahedron defined by four vertices.
+ *
+ * A tetrahedron is a polyhedron with four triangular faces. The four vertices
+ * should not be coplanar, and they should be ordered such that when viewed
+ * from outside the tetrahedron, each triangular face has vertices in
+ * counterclockwise order (following the right-hand rule for outward normals).
+ *
+ * The tetrahedron is constructed by defining four planes, one for each face.
+ * Each plane is determined by three vertices. Face \em i uses all the vertices
+ * except for the one at index \em i .
+ */
+class Tet final : public IntersectRegionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using ArrReal3 = Array<Real3, 4>;
+    //!@}
+
+  public:
+    // Construct from an array of four vertices
+    explicit Tet(ArrReal3 const&);
+
+    //! Construct from four vertices
+    Tet(Real3 const& v0, Real3 const& v1, Real3 const& v2, Real3 const& v3)
+        : Tet(ArrReal3{v0, v1, v2, v3})
+    {
+    }
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    // Get a vertex by index
+    Real3 const& vertex(size_type i) const;
+
+    //! Get all vertices
+    ArrReal3 const& vertices() const { return v_; }
+
+  private:
+    ArrReal3 v_;  //!< Four vertices defining the tetrahedron
 };
 
 //---------------------------------------------------------------------------//

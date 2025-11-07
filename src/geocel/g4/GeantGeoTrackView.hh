@@ -7,7 +7,6 @@
 #pragma once
 
 #include <algorithm>
-#include <type_traits>
 #include <G4LogicalVolume.hh>
 #include <G4Navigator.hh>
 #include <G4TouchableHandle.hh>
@@ -15,10 +14,12 @@
 #include <G4VPhysicalVolume.hh>
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
+#include "geocel/detail/GeantVolumeInstanceMapper.hh"
 
 #include "Convert.hh"
 #include "GeantGeoData.hh"
@@ -76,14 +77,17 @@ class GeantGeoTrackView
     CELER_FORCEINLINE Real3 const& dir() const { return dir_; }
     //!@}
 
-    // Get the volume ID in the lowest level volume.
-    inline ImplVolumeId impl_volume_id() const;
+    // Get the canonical volume ID in the current impl volume
+    inline VolumeId volume_id() const;
     // Get the physical volume ID in the current cell
     inline VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline LevelId level() const;
+    inline VolumeLevelId volume_level() const;
     // Get the volume instance ID for all levels
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
+
+    // Get the implementation volume ID
+    inline ImplVolumeId impl_volume_id() const;
 
     // Whether the track is outside the valid geometry region
     inline bool is_outside() const;
@@ -92,10 +96,7 @@ class GeantGeoTrackView
     //! Whether the last operation resulted in an error
     CELER_FORCEINLINE bool failed() const { return false; }
     // Get the normal vector of the current surface
-    inline CELER_FUNCTION Real3 normal() const;
-
-    // Get the Geant4 navigation state
-    inline G4NavigationHistory const* nav_history() const;
+    inline Real3 normal() const;
 
     //// OPERATIONS ////
 
@@ -109,7 +110,7 @@ class GeantGeoTrackView
     inline real_type find_safety();
 
     // Find the safety at the current position up to a maximum step distance
-    inline CELER_FUNCTION real_type find_safety(real_type max_step);
+    inline real_type find_safety(real_type max_step);
 
     // Move to the boundary in preparation for crossing it
     inline void move_to_boundary();
@@ -125,6 +126,11 @@ class GeantGeoTrackView
 
     // Change direction
     inline void set_dir(Real3 const& newdir);
+
+    //// IMPLEMENTATION ////
+
+    // Get the Geant4 navigation state
+    inline G4NavigationHistory const* nav_history() const;
 
   private:
     //// TYPES ////
@@ -159,6 +165,7 @@ class GeantGeoTrackView
     G4ThreeVector g4pos_;
     G4ThreeVector g4dir_;  // [mm]
     real_type g4safety_;  // [mm]
+    bool just_crossed_boundary_{false};
 
     //// HELPER FUNCTIONS ////
 
@@ -207,7 +214,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     if (init.parent)
     {
         // Initialize from direction and copy of parent state
-        *this = {init.parent, init.dir};
+        *this = DetailedInitializer{init.parent, init.dir};
         return *this;
     }
 
@@ -268,13 +275,14 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume ID in the current cell.
+ * Get the canonical volume ID in the current implementation volume.
+ *
+ * \note See GeantGeoParams::volume_id : for now, identical to ImplVolumeId
  */
-ImplVolumeId GeantGeoTrackView::impl_volume_id() const
+VolumeId GeantGeoTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return id_cast<ImplVolumeId>(this->volume()->GetInstanceID()
-                                 - params_.lv_offset);
+    return id_cast<VolumeId>(this->impl_volume_id().get());
 }
 
 //---------------------------------------------------------------------------//
@@ -285,45 +293,56 @@ VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
     G4VPhysicalVolume* pv = touch_handle_()->GetVolume(0);
-    if (!pv)
-        return {};
-    return id_cast<VolumeInstanceId>(pv->GetInstanceID() - params_.pv_offset);
+    CELER_ASSERT(pv);
+    return params_.vi_mapper->geant_to_id(*pv);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the depth in the geometry hierarchy.
  */
-LevelId GeantGeoTrackView::level() const
+VolumeLevelId GeantGeoTrackView::volume_level() const
 {
     auto* touch = touch_handle_();
-    return id_cast<LevelId>(touch->GetHistoryDepth());
+    return id_cast<VolumeLevelId>(touch->GetHistoryDepth());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the volume instance ID at every level.
  *
- * The input span size must be equal to the value of "level" plus one. The
- * top-most level ("world" or level zero) starts at index zero and moves
+ * The input span size must be equal to the value of "volume_level" plus one.
+ * The top-most level ("world" or level zero) starts at index zero and moves
  * downward. Note that Geant4 uses the \em reverse nomenclature.
  */
 void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(levels.size() == this->level().get() + 1);
+    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
+                 == this->volume_level() + 1);
 
     auto* touch = touch_handle_();
-    auto const max_depth = static_cast<size_type>(touch->GetHistoryDepth());
-    for (auto lev : range(levels.size()))
+    auto const num_vol_levels
+        = id_cast<VolumeLevelId>(touch->GetHistoryDepth());
+    for (auto vl_id : range(id_cast<VolumeLevelId>(levels.size())))
     {
         VolumeInstanceId vi_id;
-        if (G4VPhysicalVolume* pv = touch->GetVolume(max_depth - lev))
+        if (G4VPhysicalVolume* pv = touch->GetVolume(num_vol_levels - vl_id))
         {
-            vi_id = id_cast<VolumeInstanceId>(pv->GetInstanceID()
-                                              - params_.pv_offset);
+            vi_id = params_.vi_mapper->geant_to_id(*pv);
         }
-        levels[lev] = vi_id;
+        levels[vl_id.get()] = vi_id;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume ID in the current cell.
+ */
+ImplVolumeId GeantGeoTrackView::impl_volume_id() const
+{
+    CELER_EXPECT(!this->is_outside());
+    return id_cast<ImplVolumeId>(this->volume()->GetInstanceID()
+                                 - params_.lv_offset);
 }
 
 //---------------------------------------------------------------------------//
@@ -346,22 +365,22 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the surface normal of the boundary the track is currently on.
+ * Get the exit surface normal of the boundary the track has just crossed.
+ *
+ * This vector is in the global coordinate system.
  */
-CELER_FUNCTION auto GeantGeoTrackView::normal() const -> Real3
+auto GeantGeoTrackView::normal() const -> Real3
 {
-    CELER_NOT_IMPLEMENTED("GeantGeoTrackView::normal");
-}
+    CELER_EXPECT(this->is_on_boundary());
 
-//---------------------------------------------------------------------------//
-/*!
- * Get the navigation state.
- */
-G4NavigationHistory const* GeantGeoTrackView::nav_history() const
-{
-    auto* touch = touch_handle_();
-    CELER_ASSERT(touch);
-    return touch->GetHistory();
+    bool valid{false};
+    G4ThreeVector norm = navi_.GetGlobalExitNormal(g4pos_, &valid);
+    CELER_ASSERT(valid);
+
+    // TODO: convert_from_geant uses celeritas::real_type, not double
+    Real3 result{norm[0], norm[1], norm[2]};
+    CELER_ENSURE(is_soft_unit_vector(result));
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -471,6 +490,7 @@ void GeantGeoTrackView::move_to_boundary()
     safety_radius_ = 0;
     g4safety_ = 0;
     navi_.SetGeometricallyLimitedStep();
+    just_crossed_boundary_ = false;
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -479,17 +499,20 @@ void GeantGeoTrackView::move_to_boundary()
 /*!
  * Cross from one side of the current surface to the other.
  *
- * The position *must* be on the boundary following a move-to-boundary.
+ * The position \em must be on the boundary following a move-to-boundary. Two
+ * consecutive "cross boundary" calls are NOT ALLOWED!
  */
 void GeantGeoTrackView::cross_boundary()
 {
     CELER_EXPECT(this->is_on_boundary());
+    CELER_EXPECT(!just_crossed_boundary_);
 
     navi_.LocateGlobalPointAndUpdateTouchableHandle(
         g4pos_,
         g4dir_,
         touch_handle_,
         /* relative_search = */ true);
+    just_crossed_boundary_ = true;
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -547,6 +570,17 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
     dir_ = newdir;
     g4dir_ = convert_to_geant(newdir, 1);
     next_step_ = 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the navigation state.
+ */
+G4NavigationHistory const* GeantGeoTrackView::nav_history() const
+{
+    auto* touch = touch_handle_();
+    CELER_ASSERT(touch);
+    return touch->GetHistory();
 }
 
 //---------------------------------------------------------------------------//

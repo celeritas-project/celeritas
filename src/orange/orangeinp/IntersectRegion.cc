@@ -10,19 +10,23 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/Involute.hh"
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
-#include "orange/univ/detail/Utils.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
@@ -35,6 +39,15 @@ namespace orangeinp
 {
 namespace
 {
+
+//! Convenience enumeration for implementations in this file
+enum
+{
+    X = 0,
+    Y = 1,
+    Z = 2
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Create a SoftEqual instance using the surface builder tolerance.
@@ -47,22 +60,65 @@ auto make_soft_equal(IntersectSurfaceBuilder const& sb)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a z-aligned bounding box infinite along z and symmetric in r.
+ * Create a bounding box: symmetric x/y, different top/bottom extents.
  */
-BBox make_xyradial_bbox(real_type r)
+BBox make_radial_bbox(real_type r, EnumArray<Bound, real_type> z)
 {
     CELER_EXPECT(r > 0);
-    constexpr auto inf = numeric_limits<real_type>::infinity();
-    return BBox::from_unchecked({-r, -r, -inf}, {r, r, inf});
+    CELER_EXPECT(z[Bound::lo] < z[Bound::hi]);
+    return BBox::from_unchecked({-r, -r, z[Bound::lo]}, {r, r, z[Bound::hi]});
 }
 
-//! Convenience enumeration for implementations in this file
-enum
+//---------------------------------------------------------------------------//
+/*!
+ * Create a bounding box: symmetric x=y, symmetric z.
+ */
+BBox make_radial_bbox(real_type r, real_type z)
 {
-    X = 0,
-    Y = 1,
-    Z = 2
-};
+    CELER_EXPECT(r > 0);
+    CELER_EXPECT(z > 0);
+
+    return make_radial_bbox(r, {-z, z});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a bounding box: symmetric x=y, unbounded in z.
+ */
+CELER_FORCEINLINE_FUNCTION BBox make_radial_bbox(real_type r)
+{
+    return make_radial_bbox(r, numeric_limits<real_type>::infinity());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Replace signed zeros with positive zero.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION real_type
+canonicalize_zero(real_type value)
+{
+    return value == 0 ? 0 : value;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write an IntersectRegion to json.
+ *
+ * This modified copy of to_json_pimpl uses a static cast to ensure that the
+ * correct to_json specialization is declared in \c ObjectIO.json.hh . If not,
+ * this function will error about an invalid static cast.
+ *
+ * Without this special modification, the `to_json` will match the
+ * IntersectRegion base class specialization which results in an infinite
+ * recursive call.
+ */
+template<class T>
+void save_region_json(JsonPimpl* jp, T const& self)
+{
+    CELER_EXPECT(jp);
+    using FuncT = void (*)(nlohmann::json&, T const&);
+    static_cast<FuncT>(orangeinp::to_json)(jp->obj, self);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -103,7 +159,7 @@ void Box::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Box::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -119,6 +175,7 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
     {
         CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
     }
+    CELER_VALIDATE(radii_[0] > 0 || radii_[1] > 0, << "degenerate zero radii");
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
 }
 
@@ -185,7 +242,7 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(cone);
 
     // Set radial extents of exterior bbox
-    insert_surface(Sense::inside, make_xyradial_bbox(std::fmax(lo, hi)));
+    insert_surface(Sense::inside, make_radial_bbox(std::fmax(lo, hi)));
 
     // Calculate the interior bounding box:
     real_type const b = std::fmax(lo, hi);
@@ -202,10 +259,9 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
         zmax = hh_;
         zmin = zmax - z;
     }
-    CELER_ASSERT(zmin < zmax);
-    real_type const rbox = (constants::sqrt_two / 2) * r;
-    BBox const interior_bbox{{-rbox, -rbox, zmin}, {rbox, rbox, zmax}};
 
+    auto interior_bbox
+        = make_radial_bbox((constants::sqrt_two / 2) * r, {zmin, zmax});
     // Check that the corners are actually inside the cone
     CELER_ASSERT(cone.calc_sense(interior_bbox.lower() * real_type(1 - 1e-5))
                  == SignedSense::inside);
@@ -220,7 +276,77 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Cone::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// CUTCYLINDER
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with radius, half-height, and bottom/top cutting plane normals
+ */
+CutCylinder::CutCylinder(real_type radius,
+                         real_type halfheight,
+                         Real3 const& bottom_normal,
+                         Real3 const& top_normal)
+    : radius_{radius}
+    , hh_{halfheight}
+    , bot_normal_{bottom_normal}
+    , top_normal_{top_normal}
+{
+    CELER_VALIDATE(radius_ > 0, << "nonpositive radius: " << radius_);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
+    CELER_VALIDATE(bot_normal_[Z] < 0,
+                   << "bottom cutting plane normal is not pointing down: "
+                   << bot_normal_[Z]);
+    CELER_VALIDATE(top_normal_[Z] > 0,
+                   << "top cutting plane normal is not pointing up: "
+                   << top_normal_[Z]);
+    CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
+                   << "bottom cutting plane normal is not a unit vector");
+    CELER_VALIDATE(is_soft_unit_vector(top_normal_),
+                   << "top cutting plane normal is not a unit vector");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another cut cylinder
+ */
+bool CutCylinder::encloses(CutCylinder const& other) const
+{
+    // Check that cylinders have the same cut planes. Since the normal vectors
+    // have unit magnitude, a check for collinearity is sufficient. When
+    // cylinders have different cut planes, testing for enclosure becomes
+    // challenging.
+    if (!is_soft_collinear(bot_normal_, other.bottom_normal())
+        || !is_soft_collinear(top_normal_, other.top_normal()))
+    {
+        CELER_NOT_IMPLEMENTED(
+            "enclosure checks for cut cylinders with different cut planes");
+    }
+
+    return radius_ >= other.radius_ && hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void CutCylinder::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::inside, Plane{bot_normal_, {0, 0, -hh_}});
+    insert_surface(Sense::inside, Plane{top_normal_, {0, 0, hh_}});
+    insert_surface(Sense::inside, CCylZ{radius_});
+    insert_surface(Sense::inside, make_radial_bbox(radius_, hh_));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void CutCylinder::output(JsonPimpl* j) const
+{
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -262,7 +388,7 @@ void Cylinder::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Cylinder::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -275,9 +401,9 @@ Ellipsoid::Ellipsoid(Real3 const& radii) : radii_{radii}
 {
     for (auto ax : range(Axis::size_))
     {
-        CELER_VALIDATE(radii_[to_int(ax)] > 0,
+        CELER_VALIDATE(this->radius(ax) > 0,
                        << "nonpositive radius " << to_char(ax)
-                       << " axis: " << radii_[to_int(ax)]);
+                       << " axis: " << this->radius(ax));
     }
 }
 
@@ -289,7 +415,7 @@ bool Ellipsoid::encloses(Ellipsoid const& other) const
 {
     for (auto ax : range(Axis::size_))
     {
-        if (this->radii_[to_int(ax)] < other.radii_[to_int(ax)])
+        if (this->radius(ax) < other.radius(ax))
         {
             return false;
         }
@@ -303,25 +429,22 @@ bool Ellipsoid::encloses(Ellipsoid const& other) const
  */
 void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    // Second-order coefficients are product of the other two squared radii;
-    // Zeroth-order coefficient is the product of all three squared radii
-    Real3 rsq;
-    for (auto ax : range(to_int(Axis::size_)))
-    {
-        rsq[ax] = ipow<2>(radii_[ax]);
-    }
+    // Sort the radii by increasing magnitude: mag[0] is shortest axis
+    Array<Axis, 3> mag{Axis::x, Axis::y, Axis::z};
+    std::sort(mag.begin(), mag.end(), [this](Axis i, Axis j) {
+        return this->radius(i) < this->radius(j);
+    });
 
-    Real3 abc{1, 1, 1};
+    Real3 abc;
     real_type g = -1;
-    for (auto ax : range(to_int(Axis::size_)))
+    for (auto ax : range(Axis::size_))
     {
-        g *= rsq[ax];
-        for (auto nax : range(to_int(Axis::size_)))
+        abc[to_int(ax)] = this->radius(mag[0]) * this->radius(mag[2])
+                          / ipow<2>(this->radius(ax));
+
+        if (ax != mag[1])
         {
-            if (ax != nax)
-            {
-                abc[ax] *= rsq[nax];
-            }
+            g *= this->radius(ax);
         }
     }
 
@@ -345,7 +468,7 @@ void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Ellipsoid::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -383,6 +506,9 @@ bool EllipticalCylinder::encloses(EllipticalCylinder const& other) const
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.
+ *
+ * This should reproduce a circular cylinder in the limit of rx = ry, and keep
+ * the second-order terms close to unity to preserve solver accuracy.
  */
 void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
 {
@@ -391,23 +517,18 @@ void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
 
     // Insert elliptical cylinder surface last, as a simple quadric with
     // equation:
-    // r_y^2 x^2 + r_x^2 y^2 - r_x^2 r_y^2 = 0
-    real_type rx_sq = ipow<2>(radii_[to_int(Axis::x)]);
-    real_type ry_sq = ipow<2>(radii_[to_int(Axis::y)]);
-    real_type g = -rx_sq * ry_sq;
-
-    Real3 abc{ry_sq, rx_sq, 0};
-    insert_surface(SimpleQuadric{abc, Real3{0, 0, 0}, g});
+    // x^2 / r_x^2 + y^2 / r_y^2  = 1
+    auto const rx = this->radius(Axis::x);
+    auto const ry = this->radius(Axis::y);
+    insert_surface(SimpleQuadric{{ry / rx, rx / ry, 0}, {0, 0, 0}, -rx * ry});
 
     // Set exterior bbox
-    Real3 ex_halves{radii_[to_int(Axis::x)], radii_[to_int(Axis::y)], hh_};
+    Real3 ex_halves{rx, ry, hh_};
     insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
 
     // Set an interior bbox (inscribed cuboid)
     auto inv_sqrt_two = 1 / constants::sqrt_two;
-    Real3 in_halves{radii_[to_int(Axis::x)] * inv_sqrt_two,
-                    radii_[to_int(Axis::y)] * inv_sqrt_two,
-                    hh_};
+    Real3 in_halves{rx * inv_sqrt_two, ry * inv_sqrt_two, hh_};
     insert_surface(Sense::outside, BBox{-in_halves, in_halves});
 }
 
@@ -417,7 +538,17 @@ void EllipticalCylinder::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void EllipticalCylinder::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the radius along a single axis.
+ */
+real_type EllipticalCylinder::radius(Axis ax) const
+{
+    CELER_EXPECT(ax < Axis::z);
+    return radii_[to_int(ax)];
 }
 
 //---------------------------------------------------------------------------//
@@ -505,22 +636,22 @@ void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
 
-    constexpr auto X = to_int(Axis::x);
-    constexpr auto Y = to_int(Axis::y);
+    auto const lox = this->radius(Bound::lo, Axis::x);
+    auto const loy = this->radius(Bound::lo, Axis::y);
+    auto const hix = this->radius(Bound::hi, Axis::x);
+    auto const hiy = this->radius(Bound::hi, Axis::y);
 
-    real_type a = ipow<2>((2 * hh_) / (lower_radii_[X] - upper_radii_[X]));
+    real_type a = ipow<2>((2 * hh_) / (lox - hix));
+    real_type b = ipow<2>((2 * hh_) / (loy - hiy));
 
-    real_type b = ipow<2>((2 * hh_) / (lower_radii_[Y] - upper_radii_[Y]));
-
-    real_type v = hh_ * (lower_radii_[X] + upper_radii_[X])
-                  / (lower_radii_[X] - upper_radii_[X]);
+    real_type v = hh_ * (lox + hix) / (lox - hix);
 
     insert_surface(
         SimpleQuadric{Real3{a, b, -1}, Real3{0, 0, 2 * v}, -ipow<2>(v)});
 
     // Set an exterior bbox
-    real_type x_max = std::fmax(lower_radii_[X], upper_radii_[X]);
-    real_type y_max = std::fmax(lower_radii_[Y], upper_radii_[Y]);
+    real_type x_max = std::fmax(lox, hix);
+    real_type y_max = std::fmax(loy, hiy);
     Real3 ex_halves{x_max, y_max, hh_};
     insert_surface(Sense::inside, BBox{-ex_halves, ex_halves});
 
@@ -533,7 +664,18 @@ void EllipticalCone::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void EllipticalCone::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the radius along a single axis.
+ */
+real_type EllipticalCone::radius(Bound b, Axis ax) const
+{
+    CELER_EXPECT(b < Bound::size_);
+    CELER_EXPECT(ax < Axis::z);
+    return (b == Bound::lo ? lower_radii_ : upper_radii_)[to_int(ax)];
 }
 
 //---------------------------------------------------------------------------//
@@ -564,13 +706,10 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
     x_range_ = this->calc_range(polygon, X);
     y_range_ = this->calc_range(polygon, Y);
 
-    // Store only non-collinear points
-    Real3 const extents{
-        x_range_[1] - x_range_[0], y_range_[1] - y_range_[0], 0};
-    real_type abs_tol = ::celeritas::detail::BumpCalculator(
-        Tolerance<>::from_default())(extents);
-
-    polygon_ = detail::filter_collinear_points(polygon, abs_tol);
+    // Store only non-collinear points. Use an absolute tolerance; otherwise,
+    // for example, an arbitrarily large regular dodecagon becomes a hexagon
+    polygon_ = detail::filter_collinear_points(
+        polygon, Tolerance<>::from_default().abs);
 
     // After removing collinear points, at least 3 points must remain
     CELER_VALIDATE(polygon_.size() >= 3,
@@ -614,7 +753,8 @@ void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
         auto p2 = scaling_factors_[top] * Real3{p_a[X], p_a[Y], 0}
                   + line_segment_[top];
 
-        insert_surface(Sense::inside, Plane{p0, p1, p2});
+        insert_surface(Sense::inside,
+                       Plane{detail::normal_from_triangle(p0, p1, p2), p0});
     }
 
     // Establish bbox
@@ -630,7 +770,7 @@ void ExtrudedPolygon::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void ExtrudedPolygon::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -641,25 +781,25 @@ void ExtrudedPolygon::output(JsonPimpl* j) const
  * account the translation and scaling of the polygon as it is extruded along
  * the line segment.
  */
-auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
+auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dim)
     -> Range
 {
-    CELER_EXPECT(dir == X || dir == Y);
+    CELER_EXPECT(dim == X || dim == Y);
 
     constexpr auto bot = Bound::lo;
     constexpr auto top = Bound::hi;
 
     // Find extrema of unextruded polygon
-    auto [poly_min, poly_max] = detail::find_extrema(polygon, dir);
+    auto [poly_min, poly_max] = detail::find_extrema(make_span(polygon), dim);
 
     // Find the extrema taking into account the extrusion process
     Range range;
-    range[0]
-        = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dir],
-                   poly_min * scaling_factors_[top] + line_segment_[top][dir]);
-    range[1]
-        = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dir],
-                   poly_max * scaling_factors_[top] + line_segment_[top][dir]);
+    range[X]
+        = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dim],
+                   poly_min * scaling_factors_[top] + line_segment_[top][dim]);
+    range[Y]
+        = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dim],
+                   poly_max * scaling_factors_[top] + line_segment_[top][dim]);
 
     return range;
 }
@@ -672,17 +812,20 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dir)
  */
 GenPrism GenPrism::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 {
-    CELER_VALIDATE(lo[0] > 0, << "nonpositive lower x half-edge: " << lo[0]);
-    CELER_VALIDATE(hi[0] > 0, << "nonpositive upper x half-edge: " << hi[0]);
-    CELER_VALIDATE(lo[1] > 0, << "nonpositive lower y half-edge: " << lo[1]);
-    CELER_VALIDATE(hi[1] > 0, << "nonpositive upper y half-edge: " << hi[1]);
+    CELER_VALIDATE(lo[X] >= 0, << "nonpositive lower x half-edge: " << lo[X]);
+    CELER_VALIDATE(hi[X] >= 0, << "nonpositive upper x half-edge: " << hi[X]);
+    CELER_VALIDATE(lo[Y] >= 0, << "nonpositive lower y half-edge: " << lo[Y]);
+    CELER_VALIDATE(hi[Y] >= 0, << "nonpositive upper y half-edge: " << hi[Y]);
     CELER_VALIDATE(halfz > 0, << "nonpositive half-height: " << halfz);
+
+    CELER_VALIDATE(lo[X] > 0 || hi[X] > 0, << "degenerate x width");
+    CELER_VALIDATE(lo[Y] > 0 || hi[Y] > 0, << "degenerate y width");
 
     // Construct points like prism: lower right is first
     VecReal2 lower
-        = {{lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}, {-lo[0], -lo[1]}};
+        = {{lo[X], -lo[Y]}, {lo[X], lo[Y]}, {-lo[X], lo[Y]}, {-lo[X], -lo[Y]}};
     VecReal2 upper
-        = {{hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}, {-hi[0], -hi[1]}};
+        = {{hi[X], -hi[Y]}, {hi[X], hi[Y]}, {-hi[X], hi[Y]}, {-hi[X], -hi[Y]}};
 
     return GenPrism{halfz, std::move(lower), std::move(upper)};
 }
@@ -709,11 +852,11 @@ GenPrism GenPrism::from_trap(
                    << " [turns]: must be in the range [0, 0.25)");
 
     // Calculate offset of faces from z axis
-    auto [dxdz_hz, dydz_hz] = [&]() -> std::pair<real_type, real_type> {
+    auto [dxdz_hz, dydz_hz] = [&]() {
         real_type cos_phi{}, sin_phi{};
         sincos(phi, &sin_phi, &cos_phi);
         real_type const tan_theta = tan(theta);
-        return {hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
+        return std::pair{hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
     }();
 
     // Construct points on faces
@@ -751,9 +894,9 @@ GenPrism GenPrism::from_trap(
  * Construct from half Z height and 1-4 vertices for top and bottom planes.
  */
 GenPrism::GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
-    : hz_{halfz}, lo_{lo}, hi_{hi}
+    : hh_{halfz}, lo_{lo}, hi_{hi}
 {
-    CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
     CELER_VALIDATE(lo_.size() >= 3,
                    << "insufficient number of vertices (" << lo_.size()
                    << ") for -z polygon");
@@ -811,6 +954,21 @@ GenPrism::GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
             << native_value_to<Turn>(std::acos(twist_angle_cosine)).value()
             << " turns)");
     }
+
+    // Save length scale
+    length_scale_ = hh_;
+    for (auto const* v : {&lo_, &hi_})
+    {
+        for (auto const& pt : *v)
+        {
+            for (auto dim : {X, Y})
+            {
+                length_scale_ = std::fmax(length_scale_, std::fabs(pt[dim]));
+            }
+        }
+    }
+
+    CELER_ENSURE(length_scale_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -826,15 +984,15 @@ real_type GenPrism::calc_twist_cosine(size_type i) const
 {
     CELER_EXPECT(i < lo_.size());
 
-    auto j = (i + 1) % lo_.size();
-    if (lo_[i] == lo_[j] || hi_[i] == hi_[j])
+    auto ri = (i + 1) % lo_.size();
+    if (lo_[i] == lo_[ri] || hi_[i] == hi_[ri])
     {
         // Degenerate face: top or bottom is a single point
         return 1;
     }
 
-    auto lo = make_unit_vector(lo_[j] - lo_[i]);
-    auto hi = make_unit_vector(hi_[j] - hi_[i]);
+    auto lo = make_unit_vector(lo_[ri] - lo_[i]);
+    auto hi = make_unit_vector(hi_[ri] - hi_[i]);
 
     return dot_product(lo, hi);
 }
@@ -848,74 +1006,107 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
     // Build the bottom and top planes
     if (degen_ != Degenerate::lo)
     {
-        insert_surface(Sense::outside, PlaneZ{-hz_});
+        insert_surface(Sense::outside, PlaneZ{-hh_});
     }
     if (degen_ != Degenerate::hi)
     {
-        insert_surface(Sense::inside, PlaneZ{hz_});
+        insert_surface(Sense::inside, PlaneZ{hh_});
     }
 
-    /*! \todo Use plane normal equality from SoftSurfaceEqual, or maybe soft
-     * equivalence on twist angle cosine?
-     */
-    SoftEqual soft_equal{insert_surface.tol().rel};
+    SoftZero soft_zero([this, &tol = insert_surface.tol()] {
+        return std::fmax(tol.abs, length_scale_ * tol.rel);
+    }());
 
-    // Build the side planes
-    for (auto i : range(lo_.size()))
+    // Build the side planes, iterating over the "left" index looking inward to
+    // the plane
+    for (auto li : range(lo_.size()))
     {
-        auto j = (i + 1) % lo_.size();
+        // Next CCW point along the faces
+        auto const ri = (li + 1) % lo_.size();
 
-        Real3 const ilo{lo_[i][X], lo_[i][Y], -hz_};
-        Real3 const jlo{lo_[j][X], lo_[j][Y], -hz_};
-        Real3 const jhi{hi_[j][X], hi_[j][Y], hz_};
-        Real3 const ihi{hi_[i][X], hi_[i][Y], hz_};
+        // Viewed from outside the shape (+z pointing up, -r into the page),
+        // the points on the following polygon are from the lower left
+        // counterclockwise to the upper left
+        Real3 const ll{lo_[li][X], lo_[li][Y], -hh_};
+        Real3 const lr{lo_[ri][X], lo_[ri][Y], -hh_};
+        Real3 const ur{hi_[ri][X], hi_[ri][Y], hh_};
+        Real3 const ul{hi_[li][X], hi_[li][Y], hh_};
 
-        // Calculate outward normal by taking the cross product of the edges
-        auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
-        auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
+        // Calculate outward normals at lower left and upper right
+        auto ll_normal = detail::normal_from_triangle(ll, lr, ul);
+        auto ur_normal = detail::normal_from_triangle(ur, ul, lr);
 
-        if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1})
-            || ihi == jhi)
+        if (hi_[li] == hi_[ri])
         {
-            // Insert a planar face
-            insert_surface(
-                Sense::inside, Plane{lo_normal, ilo}, "p" + std::to_string(i));
+            // Triangle (top degenerate): use low normal
+            insert_surface(Sense::inside,
+                           Plane{ll_normal, ll},
+                           "p" + std::to_string(li) + "-");
         }
-        else if (ilo == jlo)
+        else if (lo_[li] == lo_[ri])
         {
-            // Insert a degenerate planar face
-            insert_surface(
-                Sense::inside, Plane{hi_normal, ihi}, "p" + std::to_string(i));
+            // Triangle (bottom degenerate): use high normal
+            insert_surface(Sense::inside,
+                           Plane{ur_normal, ur},
+                           "p" + std::to_string(li) + "+");
+        }
+        else if (soft_zero([&] {
+                     // Nonplanarity is the distance between the upper right
+                     // point and the ll plane
+                     auto diag = ur - ll;
+                     return std::fmax(std::fabs(dot_product(ll_normal, diag)),
+                                      std::fabs(dot_product(ur_normal, diag)));
+                 }()))
+        {
+            // Insert a planar face using the average normal and centroid
+            Real3 centroid = ll;
+            for (auto* p : {&lr, &ur, &ul})
+            {
+                centroid += *p;
+            }
+            centroid /= 4;
+            Real3 normal = make_unit_vector((ll_normal + ur_normal) / 2);
+            insert_surface(Sense::inside,
+                           Plane{normal, centroid},
+                           "p" + std::to_string(li));
         }
         else
         {
-            // Insert a "twisted" face
-            // x,y-'slopes' of i,j vertical edges in terms of z
-            auto aux = 0.5 / hz_;
-            auto txi = aux * (ihi[X] - ilo[X]);
-            auto tyi = aux * (ihi[Y] - ilo[Y]);
-            auto txj = aux * (jhi[X] - jlo[X]);
-            auto tyj = aux * (jhi[Y] - jlo[Y]);
+            // Insert a twisted (hyperbolic paraboloid) face
+            // Horizontal slopes of l/r vertical edges
+            auto txl = (ul[X] - ll[X]) / (2 * hh_);
+            auto tyl = (ul[Y] - ll[Y]) / (2 * hh_);
+            auto txr = (ur[X] - lr[X]) / (2 * hh_);
+            auto tyr = (ur[Y] - lr[Y]) / (2 * hh_);
 
-            // half-way coordinates of i,j vertical edges
-            auto mxi = 0.5 * (ilo[X] + ihi[X]);
-            auto myi = 0.5 * (ilo[Y] + ihi[Y]);
-            auto mxj = 0.5 * (jlo[X] + jhi[X]);
-            auto myj = 0.5 * (jlo[Y] + jhi[Y]);
+            // Midpoints of ll,rl vertical edges
+            auto mxl = (ll[X] + ul[X]) / 2;
+            auto myl = (ll[Y] + ul[Y]) / 2;
+            auto mxr = (lr[X] + ur[X]) / 2;
+            auto myr = (lr[Y] + ur[Y]) / 2;
 
-            // coefficients for the quadric
-            real_type czz = txj * tyi - txi * tyj;
-            real_type eyz = txi - txj;
-            real_type fzx = tyj - tyi;
-            real_type gx = myj - myi;
-            real_type hy = mxi - mxj;
-            real_type iz = txj * myi - txi * myj + tyi * mxj - tyj * mxi;
-            real_type js = mxj * myi - mxi * myj;
+            // 2D cross product of twist vectors
+            real_type czz = canonicalize_zero(txr * tyl - txl * tyr);
+            // Differences in slope between left and right edges
+            real_type eyz = txl - txr;
+            real_type fzx = tyr - tyl;
+            // Tilt of the edges (linear component)
+            Real3 ghi = {myr - myl,
+                         mxl - mxr,
+                         canonicalize_zero(txr * myl - txl * myr + tyl * mxr
+                                           - tyr * mxl)};
+            // Cross product of midpoint ("displacement")
+            real_type js = canonicalize_zero(mxr * myl - mxl * myr);
+
+            // Normalize based on linear components to represent as a plane
+            // with a perturbation
+            auto const k = 1 / norm(ghi);
 
             insert_surface(
                 Sense::inside,
-                GeneralQuadric{{0, 0, czz}, {0, eyz, fzx}, {gx, hy, iz}, js},
-                "t" + std::to_string(i));
+                GeneralQuadric{
+                    {0, 0, k * czz}, {0, k * eyz, k * fzx}, k * ghi, k * js},
+                "t" + std::to_string(li));
         }
     }
 
@@ -931,8 +1122,8 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
             }
         }
     }
-    exterior_bbox.grow(Bound::lo, Axis::z, -hz_);
-    exterior_bbox.grow(Bound::hi, Axis::z, hz_);
+    exterior_bbox.grow(Bound::lo, Axis::z, -hh_);
+    exterior_bbox.grow(Bound::hi, Axis::z, hh_);
     insert_surface(Sense::inside, exterior_bbox);
 }
 
@@ -942,7 +1133,69 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void GenPrism::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// HYPERBOLOID
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with radius at midpoint (min) and end (max), and half-height.
+ */
+Hyperboloid::Hyperboloid(real_type min_radius,
+                         real_type max_radius,
+                         real_type halfheight)
+    : r_min_{min_radius}, r_max_{max_radius}, hh_{halfheight}
+{
+    CELER_VALIDATE(r_min_ > 0,
+                   << "nonpositive minimum radius: " << r_min_
+                   << " (use a cone instead)");
+    CELER_VALIDATE(r_max_ > r_min_,
+                   << "maximum radius " << r_max_
+                   << " is not greater than minimum radius " << r_min_);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another hyperboloid.
+ */
+bool Hyperboloid::encloses(Hyperboloid const& other) const
+{
+    return r_min_ >= other.r_min_ && r_max_ >= other.r_max_ && hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Hyperboloid::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    // Build the bottom and top planes
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    real_type const t_sq = (ipow<2>(r_max_) - ipow<2>(r_min_)) / ipow<2>(hh_);
+
+    // Build the hyperboloid surface
+    insert_surface(
+        SimpleQuadric{Real3{1, 1, -t_sq}, Real3{0, 0, 0}, -ipow<2>(r_min_)});
+
+    // Set exterior bounding box (use maximum radius as the maximum extent)
+    insert_surface(Sense::inside, make_radial_bbox(r_max_, hh_));
+
+    // Set interior bounding box (use minimum radius inscribed in a square)
+    insert_surface(Sense::outside,
+                   make_radial_bbox(r_min_ / constants::sqrt_two, hh_));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Hyperboloid::output(JsonPimpl* j) const
+{
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -987,7 +1240,7 @@ void InfPlane::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void InfPlane::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1036,7 +1289,7 @@ void InfAziWedge::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void InfAziWedge::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1103,7 +1356,7 @@ void InfPolarWedge::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void InfPolarWedge::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1179,7 +1432,86 @@ void Involute::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Involute::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// PARABOLOID
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with lower/upper radii and the half-height.
+ */
+Paraboloid::Paraboloid(real_type lower_radius,
+                       real_type upper_radius,
+                       real_type halfheight)
+    : r_lo_{lower_radius}, r_hi_{upper_radius}, hh_{halfheight}
+{
+    // Check for negative radii
+    CELER_VALIDATE(r_lo_ >= 0, << "negative lower radius: " << r_lo_);
+    CELER_VALIDATE(r_hi_ >= 0, << "negative upper radius: " << r_hi_);
+
+    // Check for cylinders (this throws when both radii are zero)
+    CELER_VALIDATE(!soft_equal(r_lo_, r_hi_),
+                   << "equal and lower and upper radii (use cylinder "
+                      "instead)");
+
+    // Check positivity of half-height
+    CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another paraboloid.
+ */
+bool Paraboloid::encloses(Paraboloid const& other) const
+{
+    if (this->hh_ < other.halfheight())
+    {
+        // Other paraboloid is taller
+        return false;
+    }
+
+    // Calculate the radius^2 of this object at a given z value
+    auto r_sq = [this](real_type z) {
+        return (ipow<2>(r_hi_) - ipow<2>(r_lo_)) * z / (2 * hh_)
+               + (ipow<2>(r_lo_) + ipow<2>(r_hi_)) / 2;
+    };
+
+    // Return true if this paraboloid is wider at the +/-hh of other
+    return r_sq(-other.halfheight()) >= ipow<2>(other.lower_radius())
+           && r_sq(other.halfheight()) >= ipow<2>(other.upper_radius());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Paraboloid::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    // Insert z surfaces first
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    // Insert quadric surface. Note that the scaling is such that as
+    // hh -> infinity and rlo == rhi,
+    // this becomes the cylinder x^2 + y^2 == R^2.
+    real_type f = (ipow<2>(r_lo_) - ipow<2>(r_hi_)) / (2 * hh_);
+    real_type g = -(ipow<2>(r_lo_) + ipow<2>(r_hi_)) / 2;
+    insert_surface(SimpleQuadric{Real3{1, 1, 0}, Real3{0, 0, f}, g});
+
+    // Set an exterior bbox
+    insert_surface(Sense::inside,
+                   make_radial_bbox(std::fmax(r_lo_, r_hi_), hh_));
+    // TODO: interior bbox
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Paraboloid::output(JsonPimpl* j) const
+{
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1258,7 +1590,7 @@ void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Parallelepiped::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1322,13 +1654,8 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     }
 
     // Apothem is interior, circumradius exterior
-    insert_surface(Sense::inside,
-                   make_xyradial_bbox(apothem_ / cos(delta / 2)));
-
-    auto interior_bbox = make_xyradial_bbox(apothem_);
-    interior_bbox.shrink(Bound::lo, Axis::z, -hh_);
-    interior_bbox.shrink(Bound::hi, Axis::z, hh_);
-    insert_surface(Sense::outside, interior_bbox);
+    insert_surface(Sense::inside, make_radial_bbox(apothem_ / cos(delta / 2)));
+    insert_surface(Sense::outside, make_radial_bbox(apothem_, hh_));
 }
 
 //---------------------------------------------------------------------------//
@@ -1337,7 +1664,7 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Prism::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1353,109 +1680,6 @@ bool Prism::encloses(Prism const& other) const
             "identical");
     }
     return apothem_ >= other.apothem() && hh_ >= other.halfheight();
-}
-
-//---------------------------------------------------------------------------//
-// RevolvedSpecialTrapezoid
-//---------------------------------------------------------------------------//
-/*!
- * Construct from a special trapezoid.
- */
-RevolvedSpecialTrapezoid::RevolvedSpecialTrapezoid(SpecialTrapezoid&& trap)
-    : trap_(std::move(trap))
-{
-    CELER_VALIDATE(
-        trap_.bot().r[Bound::lo] >= 0 && trap_.top().r[Bound::lo] >= 0,
-        << "r values must be positive");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build surfaces.
- *
- * Surface are constructed by revolving each segment around the z axis. Thus:
- * - segments parallel to z become z-aligned cylinders,
- * - segments perpendicular to z become z-orthogonal planes,
- * - other segments become z-aligned cones.
- *
- * If segment is coincident with the z axis, no surface is created, as it
- * would enclose zero volume.
- */
-void RevolvedSpecialTrapezoid::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    auto const& bot = trap_.bot();
-    auto const& top = trap_.top();
-    constexpr auto left = Bound::lo;
-    constexpr auto right = Bound::hi;
-
-    // Create both z planes first, even if one end is pointy, for short
-    // circuiting
-    insert_surface(Sense::outside, PlaneZ{bot.z});
-    insert_surface(Sense::inside, PlaneZ{top.z});
-
-    SoftClose soft_close(insert_surface.tol().abs);
-
-    // Lambda for creating a cylindrical/conical surface, or no surface
-    auto make_vertical_surface
-        = [&](real_type r_bot, real_type r_top, Sense sense) {
-              if (!soft_close(r_bot, r_top))
-              {
-                  // Conical surface
-                  insert_surface(
-                      sense, this->make_cone({r_bot, bot.z}, {r_top, top.z}));
-              }
-              else if (!soft_close(real_type{0}, r_bot))
-              {
-                  // Cylindrical surface
-                  insert_surface(sense, CCylZ(r_bot));
-              }
-              else
-              {
-                  // r_top = r_bottom = 0: do not create a surface
-              }
-          };
-
-    // Create two vericle surfaces
-    make_vertical_surface(bot.r[left], top.r[left], Sense::outside);
-    make_vertical_surface(bot.r[right], top.r[right], Sense::inside);
-
-    // Establish bbox
-    auto r_max = std::max(bot.r[right], top.r[right]);
-    insert_surface(
-        Sense::inside,
-        BBox::from_unchecked({-r_max, -r_max, bot.z}, {r_max, r_max, top.z}));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void RevolvedSpecialTrapezoid::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a cone from two (r, z) points.
- *
- * The cone is created by revolving the line segment between the points
- * around the z axis.
- */
-ConeZ RevolvedSpecialTrapezoid::make_cone(Real2 p0, Real2 p1) const
-{
-    constexpr size_type R = 0;
-    constexpr size_type Z = 1;
-
-    auto delta_r = p1[R] - p0[R];
-    auto delta_z = p1[Z] - p0[Z];
-    auto tangent = delta_r / delta_z;
-    auto intercept = p0[Z] - p0[R] * delta_z / delta_r;
-
-    // The tangent value given to ConeZ must be positive. However, since
-    // ConeZ creates a double-sheeted cone, the negative cone will be
-    // properly produced as well.
-    return ConeZ{Real3{0, 0, intercept}, tangent};
 }
 
 //---------------------------------------------------------------------------//
@@ -1484,7 +1708,7 @@ void Sphere::build(IntersectSurfaceBuilder& insert_surface) const
  */
 void Sphere::output(JsonPimpl* j) const
 {
-    to_json_pimpl(j, *this);
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -1494,6 +1718,90 @@ void Sphere::output(JsonPimpl* j) const
 bool Sphere::encloses(Sphere const& other) const
 {
     return radius_ >= other.radius();
+}
+
+//---------------------------------------------------------------------------//
+// TET
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from four vertices.
+ */
+Tet::Tet(ArrReal3 const& vertices) : v_{vertices}
+{
+    // Check that vertices are not coplanar by computing volume
+    SquareMatrixReal3 delta;
+    for (auto i : range(size_type(3)))
+    {
+        delta[i] = v_[i + 1] - v_[0];
+    }
+
+    // The determinant is dot(a, cross(b, c))
+    real_type volume = determinant(delta) / 6;
+    CELER_VALIDATE(volume != 0,
+                   << "vertices are degenerate: "
+                   << join(v_.begin(), v_.end(), ", "));
+
+    // If volume is negative, vertices are in wrong order (left-handed)
+    // Swap two vertices to make right-handed
+    if (volume < 0)
+    {
+        std::swap(v_[0], v_[1]);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Tet::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    constexpr size_type face_vertices[4][3] = {
+        {0, 2, 1},  // bottom
+        {0, 1, 3},  // front
+        {1, 2, 3},  // right
+        {2, 0, 3}  // left
+    };
+
+    for (auto i : range(size_type(4)))
+    {
+        auto const& indices = face_vertices[i];
+        insert_surface(
+            Sense::inside,
+            Plane{detail::normal_from_triangle(
+                      v_[indices[0]], v_[indices[1]], v_[indices[2]]),
+                  v_[indices[0]]},
+            "t" + std::to_string(i));
+    }
+
+    // Construct exterior bounding box
+    BBox exterior_bbox;
+    for (auto const& vertex : v_)
+    {
+        for (auto ax : {Axis::x, Axis::y, Axis::z})
+        {
+            exterior_bbox.grow(ax, vertex[to_int(ax)]);
+        }
+    }
+    insert_surface(Sense::inside, exterior_bbox);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Tet::output(JsonPimpl* j) const
+{
+    save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a vertex by index.
+ */
+Real3 const& Tet::vertex(size_type i) const
+{
+    CELER_EXPECT(i < 4);
+    return v_[i];
 }
 
 //---------------------------------------------------------------------------//

@@ -30,7 +30,7 @@ class ProtoBuilder;
 /*!
  * Construct a universe as part of an ORANGE geometry.
  *
- * Each Proto (for proto-universe) will result in a unique UniverseId and can
+ * Each Proto (for proto-universe) will result in a unique UnivId and can
  * be placed into multiple other universes. Each universe has:
  * - a label for descriptive output,
  * - an "interior" CSG object that describes its boundary, so that it can be

@@ -39,7 +39,7 @@ size_type DepthCalculator::operator()(UnitInput const& u)
     size_type max_daughter{0};
     for (auto&& [vol, daughter] : u.daughter_map)
     {
-        max_daughter = std::max(max_daughter, (*this)(daughter.universe_id));
+        max_daughter = std::max(max_daughter, (*this)(daughter.univ_id));
     }
 
     // Add one for the current universe
@@ -56,7 +56,7 @@ size_type DepthCalculator::operator()(RectArrayInput const& u)
     size_type max_daughter{0};
     for (auto&& daughter : u.daughters)
     {
-        max_daughter = std::max(max_daughter, (*this)(daughter.universe_id));
+        max_daughter = std::max(max_daughter, (*this)(daughter.univ_id));
     }
 
     // Add one for the current universe
@@ -67,11 +67,11 @@ size_type DepthCalculator::operator()(RectArrayInput const& u)
 /*!
  * Check cache or calculate.
  */
-size_type DepthCalculator::operator()(UniverseId univ_id)
+size_type DepthCalculator::operator()(UnivId univ_id)
 {
     CELER_EXPECT(univ_id < num_univ_);
     // Check for cached value
-    auto&& [iter, inserted] = depths_.insert({univ_id, {}});
+    auto&& [iter, inserted] = levels_.insert({univ_id, {}});
     if (inserted)
     {
         // Visit and save value

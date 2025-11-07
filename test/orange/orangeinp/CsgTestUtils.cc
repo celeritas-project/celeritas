@@ -14,6 +14,7 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
@@ -31,6 +32,7 @@
 #include "Test.hh"
 
 using namespace celeritas::orangeinp::detail;
+using namespace celeritas::test;
 
 namespace celeritas
 {
@@ -52,7 +54,7 @@ std::vector<int> to_vec_int(std::vector<NodeId> const& nodes)
     std::vector<int> result;
     for (auto nid : nodes)
     {
-        result.push_back(nid ? nid.unchecked_get() : -1);
+        result.push_back(id_to_int(nid));
     }
     return result;
 }
@@ -60,6 +62,9 @@ std::vector<int> to_vec_int(std::vector<NodeId> const& nodes)
 //---------------------------------------------------------------------------//
 std::vector<std::string> surface_strings(CsgUnit const& u)
 {
+    // Simplify floats to 5 digits of precision
+    ::celeritas::test::StringSimplifier simplify_string(5);
+
     // Loop through CSG tree's encountered surfaces
     std::vector<std::string> result;
     for (auto nid : range(NodeId{u.tree.size()}))
@@ -68,13 +73,11 @@ std::vector<std::string> surface_strings(CsgUnit const& u)
         {
             auto lsid = surf_node->id;
             CELER_ASSERT(lsid < u.surfaces.size());
-            result.push_back(std::visit(
-                [](auto&& surf) {
-                    std::ostringstream os;
-                    os << std::setprecision(5) << surf;
-                    return os.str();
-                },
-                u.surfaces[lsid.get()]));
+            std::ostringstream os;
+            os << std::setprecision(6);
+            std::visit([&os](auto&& surf) { os << surf; },
+                       u.surfaces[lsid.get()]);
+            result.push_back(simplify_string(std::move(os).str()));
         }
     }
     return result;
@@ -108,6 +111,7 @@ std::string tree_string(CsgUnit const& u)
 //---------------------------------------------------------------------------//
 std::vector<std::string> md_strings(CsgUnit const& u)
 {
+    // NOTE: string simplifier removes pointer addresses from G4-derived names
     std::vector<std::string> result;
     ::celeritas::test::StringSimplifier simplify;
     for (auto const& md_set : u.metadata)
@@ -140,7 +144,7 @@ std::vector<std::string> bound_strings(CsgUnit const& u)
         {
             os << "~";
         }
-        os << node.unchecked_get() << ": {";
+        os << id_to_int(node) << ": {";
         auto print_bb = [&os](BBox const& bb) {
             if (!bb)
             {
@@ -172,10 +176,10 @@ std::vector<std::string> transform_strings(CsgUnit const& u)
     for (auto&& [node, reg] : u.regions)
     {
         std::ostringstream os;
-        os << node.unchecked_get() << ": t=";
+        os << id_to_int(node) << ": t=";
         if (auto t = reg.trans_id)
         {
-            os << t.unchecked_get();
+            os << id_to_int(t);
             if (t < u.transforms.size())
             {
                 if (printed_transform.insert(t).second)
@@ -206,7 +210,7 @@ std::vector<int> volume_nodes(CsgUnit const& u)
     std::vector<int> result;
     for (auto nid : u.tree.volumes())
     {
-        result.push_back(nid ? nid.unchecked_get() : -1);
+        result.push_back(id_to_int(nid));
     }
     return result;
 }
@@ -223,15 +227,15 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
         }
         else if (auto* mid = std::get_if<GeoMatId>(&f))
         {
-            result.push_back("m" + std::to_string(mid->unchecked_get()));
+            result.push_back("m" + std::to_string(id_to_int(*mid)));
         }
         else if (auto* d = std::get_if<Daughter>(&f))
         {
             std::ostringstream os;
             os << "{u=";
-            if (auto u = d->universe_id)
+            if (auto u = d->univ_id)
             {
-                os << u.unchecked_get();
+                os << id_to_int(u);
             }
             else
             {
@@ -240,7 +244,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
             os << ", t=";
             if (auto t = d->trans_id)
             {
-                os << t.unchecked_get();
+                os << id_to_int(t);
             }
             else
             {
@@ -264,6 +268,41 @@ std::vector<real_type> flattened(BoundingZone const& bz)
     }
     result.push_back(bz.negated ? -1 : 1);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Count the number of surface types used in the CSG unit's tree.
+ *
+ * Note that this uses only the deduplicated surfaces, because the actual
+ * surface count is much more sensitive to floating point errors.
+ */
+std::string count_surface_types(detail::CsgUnit const& u)
+{
+    EnumArray<SurfaceType, size_type> counts = {};
+    for (auto nid : range(NodeId{u.tree.size()}))
+    {
+        if (auto* surf_node = std::get_if<Surface>(&u.tree[nid]))
+        {
+            auto lsid = surf_node->id;
+            CELER_ASSERT(lsid < u.surfaces.size());
+
+            std::visit(
+                [&counts](auto&& surf) { ++counts[surf.surface_type()]; },
+                u.surfaces[lsid.get()]);
+        }
+    }
+
+    nlohmann::json j;
+    for (auto st : range(SurfaceType::size_))
+    {
+        if (counts[st] > 0)
+        {
+            j[std::string{to_cstring(st)}] = counts[st];
+        }
+    }
+
+    return j.dump();
 }
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,7 @@
 #include "DebugIO.json.hh"
 
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -31,16 +32,6 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-//! Return an opaque ID as an integer value
-template<class I, class T>
-constexpr int to_int(OpaqueId<I, T> id)
-{
-    if (id)
-        return id.unchecked_get();
-    return -1;
-}
-
-//---------------------------------------------------------------------------//
 //! Pass through "transform" as an identity operation
 template<class T>
 T const& passthrough(T const& inp)
@@ -61,7 +52,7 @@ struct Labeled
 };
 
 //---------------------------------------------------------------------------//
-struct FromId
+struct IdToJson
 {
     CoreParams const* params{nullptr};
 
@@ -69,15 +60,11 @@ struct FromId
     template<class T, class S>
     nlohmann::json operator()(OpaqueId<T, S> id) const
     {
-        if (!id)
+        if (this->params && id)
         {
-            return "<invalid>";
+            return this->convert_impl(id);
         }
-        if (!this->params)
-        {
-            return to_int(id);
-        }
-        return this->convert_impl(id);
+        return id;
     }
 
     //! Transform to an action label if inside the stepping loop
@@ -112,25 +99,27 @@ struct FromId
 //---------------------------------------------------------------------------//
 // Helper macros for writing data to JSON
 
-#define ASSIGN_TRANSFORMED(NAME, TRANSFORM) j[#NAME] = TRANSFORM(view.NAME())
-#define ASSIGN_TRANSFORMED_IF(NAME, TRANSFORM, COND) \
-    if (auto&& temp = view.NAME(); COND(temp))       \
-    {                                                \
-        j[#NAME] = TRANSFORM(temp);                  \
+#define DIO_ASSIGN(NAME, TRANSFORM) j[#NAME] = TRANSFORM(view.NAME())
+#define DIO_ASSIGN_IF(NAME, TRANSFORM, COND)   \
+    if (auto&& temp = view.NAME(); COND(temp)) \
+    {                                          \
+        j[#NAME] = TRANSFORM(temp);            \
     }
 
 //---------------------------------------------------------------------------//
 // Create JSON from geometry view, using host metadata if possible
-void to_json_impl(nlohmann::json& j, GeoTrackView const& view, FromId from_id)
+void to_json_impl(nlohmann::json& j,
+                  GeoTrackView const& view,
+                  IdToJson id_to_json)
 {
-    ASSIGN_TRANSFORMED(pos, Labeled{NativeTraits::Length::label()});
-    ASSIGN_TRANSFORMED(dir, passthrough);
-    ASSIGN_TRANSFORMED(is_outside, passthrough);
-    ASSIGN_TRANSFORMED(is_on_boundary, passthrough);
+    DIO_ASSIGN(pos, Labeled{NativeTraits::Length::label()});
+    DIO_ASSIGN(dir, passthrough);
+    DIO_ASSIGN(is_outside, passthrough);
+    DIO_ASSIGN(is_on_boundary, passthrough);
 
     if (!view.is_outside())
     {
-        j["volume_id"] = from_id(view.impl_volume_id());
+        j["volume_id"] = id_to_json(view.impl_volume_id());
     }
 }
 
@@ -139,11 +128,11 @@ void to_json_impl(nlohmann::json& j, GeoTrackView const& view, FromId from_id)
 void to_json_impl(nlohmann::json& j,
                   GeoMaterialView const& view,
                   GeoTrackView const& geo,
-                  FromId from_id)
+                  IdToJson id_to_json)
 {
     if (!geo.is_outside())
     {
-        j = from_id(view.material_id(geo.impl_volume_id()));
+        j = id_to_json(view.material_id(geo.impl_volume_id()));
     }
     else
     {
@@ -155,32 +144,34 @@ void to_json_impl(nlohmann::json& j,
 // Create JSON from particle view, using host metadata if possible
 void to_json_impl(nlohmann::json& j,
                   ParticleTrackView const& view,
-                  FromId from_id)
+                  IdToJson id_to_json)
 {
-    ASSIGN_TRANSFORMED(particle_id, from_id);
-    ASSIGN_TRANSFORMED(energy, passthrough);
+    DIO_ASSIGN(particle_id, id_to_json);
+    DIO_ASSIGN(energy, passthrough);
 }
 
 //---------------------------------------------------------------------------//
 // Create JSON from sim view, using host metadata if possible
-void to_json_impl(nlohmann::json& j, SimTrackView const& view, FromId from_id)
+void to_json_impl(nlohmann::json& j,
+                  SimTrackView const& view,
+                  IdToJson id_to_json)
 {
-    ASSIGN_TRANSFORMED(status, to_cstring);
+    DIO_ASSIGN(status, to_cstring);
     if (view.status() != TrackStatus::inactive)
     {
-        ASSIGN_TRANSFORMED(track_id, to_int);
-        ASSIGN_TRANSFORMED(parent_id, to_int);
-        ASSIGN_TRANSFORMED(event_id, to_int);
-        ASSIGN_TRANSFORMED(num_steps, passthrough);
-        ASSIGN_TRANSFORMED(event_id, to_int);
-        ASSIGN_TRANSFORMED(time, Labeled{NativeTraits::Time::label()});
-        ASSIGN_TRANSFORMED(step_length, Labeled{NativeTraits::Length::label()});
+        DIO_ASSIGN(track_id, passthrough);
+        DIO_ASSIGN(parent_id, passthrough);
+        DIO_ASSIGN(event_id, passthrough);
+        DIO_ASSIGN(num_steps, passthrough);
+        DIO_ASSIGN(event_id, passthrough);
+        DIO_ASSIGN(time, Labeled{NativeTraits::Time::label()});
+        DIO_ASSIGN(step_length, Labeled{NativeTraits::Length::label()});
 
-        ASSIGN_TRANSFORMED_IF(num_looping_steps, passthrough, bool);
+        DIO_ASSIGN_IF(num_looping_steps, passthrough, bool);
     }
 
-    ASSIGN_TRANSFORMED_IF(post_step_action, from_id, bool);
-    ASSIGN_TRANSFORMED_IF(along_step_action, from_id, bool);
+    DIO_ASSIGN_IF(post_step_action, id_to_json, bool);
+    DIO_ASSIGN_IF(along_step_action, id_to_json, bool);
 }
 
 //---------------------------------------------------------------------------//
@@ -189,11 +180,11 @@ void to_json_impl(nlohmann::json& j, SimTrackView const& view, FromId from_id)
 //---------------------------------------------------------------------------//
 void to_json(nlohmann::json& j, CoreTrackView const& view)
 {
-    ASSIGN_TRANSFORMED(thread_id, to_int);
-    ASSIGN_TRANSFORMED(track_slot_id, to_int);
+    DIO_ASSIGN(thread_id, passthrough);
+    DIO_ASSIGN(track_slot_id, passthrough);
 
-    FromId from_id{view.core_scalars().host_core_params.get()};
-    to_json_impl(j["sim"], view.sim(), from_id);
+    IdToJson id_to_json{view.core_scalars().host_core_params.get()};
+    to_json_impl(j["sim"], view.sim(), id_to_json);
 
     if (view.sim().status() == TrackStatus::inactive)
     {
@@ -201,9 +192,9 @@ void to_json(nlohmann::json& j, CoreTrackView const& view)
         return;
     }
 
-    to_json_impl(j["geo"], view.geometry(), from_id);
-    to_json_impl(j["mat"], view.geo_material(), view.geometry(), from_id);
-    to_json_impl(j["particle"], view.particle(), from_id);
+    to_json_impl(j["geo"], view.geometry(), id_to_json);
+    to_json_impl(j["mat"], view.geo_material(), view.geometry(), id_to_json);
+    to_json_impl(j["particle"], view.particle(), id_to_json);
 }
 
 //---------------------------------------------------------------------------//

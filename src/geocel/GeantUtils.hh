@@ -9,6 +9,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 
 class G4ParticleDefinition;
 class G4RunManager;
@@ -32,14 +33,18 @@ int get_geant_num_threads();
 int get_geant_thread_id();
 
 //---------------------------------------------------------------------------//
+// Validate the thread ID and threading model
+void validate_geant_threading(size_type num_streams);
+
+//---------------------------------------------------------------------------//
 //! Wrap around a G4ParticleDefinition to get a descriptive output.
-struct PrintablePD
+struct StreamablePD
 {
     G4ParticleDefinition const* pd{nullptr};
 };
 
 // Print the particle definition name and PDG
-std::ostream& operator<<(std::ostream& os, PrintablePD const& pd);
+std::ostream& operator<<(std::ostream& os, StreamablePD const& pd);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -62,7 +67,12 @@ inline int get_geant_thread_id()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline std::ostream& operator<<(std::ostream&, PrintablePD const&)
+inline void validate_geant_threading(size_type)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline std::ostream& operator<<(std::ostream&, StreamablePD const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

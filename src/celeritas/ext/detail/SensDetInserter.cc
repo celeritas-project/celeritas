@@ -10,13 +10,28 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with references to the inserted data.
+ */
+SensDetInserter::SensDetInserter(SetLV const& skip_volumes,
+                                 MapIdLv* found,
+                                 VecLV* missing)
+    : skip_volumes_{skip_volumes}, found_{found}, missing_{missing}
+{
+    CELER_EXPECT(found_);
+    CELER_EXPECT(missing_);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Save a sensitive detector.
@@ -27,13 +42,11 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv,
     CELER_EXPECT(lv);
     CELER_EXPECT(sd);
 
-    if (ImplVolumeId id = insert_impl(lv))
+    if (VolumeId id = this->insert_impl(lv))
     {
         CELER_LOG(debug) << "Mapped sensitive detector \"" << sd->GetName()
-                         << "\" on logical volume " << PrintableLV{lv}
-                         << " to " << cmake::core_geo << " volume \""
-                         << geo_.impl_volumes().at(id)
-                         << "\" (ID=" << id.unchecked_get() << ')';
+                         << "\" on logical volume " << StreamableLV{lv}
+                         << " to volume ID " << id.get();
     }
 }
 
@@ -45,32 +58,27 @@ void SensDetInserter::operator()(G4LogicalVolume const* lv)
 {
     CELER_EXPECT(lv);
 
-    if (ImplVolumeId id = insert_impl(lv))
+    if (VolumeId id = this->insert_impl(lv))
     {
         CELER_LOG(debug) << "Mapped unspecified detector on logical volume "
-                         << PrintableLV{lv} << " to " << cmake::core_geo
-                         << " volume \"" << geo_.impl_volumes().at(id)
-                         << "\" (ID=" << id.unchecked_get() << ')';
+                         << StreamableLV{lv} << " to volume ID " << id.get();
     }
 }
 
 //---------------------------------------------------------------------------//
-ImplVolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
+VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
 {
     if (skip_volumes_.count(lv))
     {
         CELER_LOG(debug)
             << "Skipping automatic SD callback for logical volume \""
-            << PrintableLV{lv} << "\" due to user option";
+            << StreamableLV{lv} << "\" due to user option";
         return {};
     }
 
-    auto id = lv ? g4_to_celer_(*lv) : ImplVolumeId{};
+    VolumeId id = to_vol_id_(lv);
     if (!id)
     {
-        CELER_LOG(error) << "Failed to find " << cmake::core_geo
-                         << " volume corresponding to Geant4 volume "
-                         << PrintableLV{lv};
         missing_->push_back(lv);
         return {};
     }
@@ -82,20 +90,21 @@ ImplVolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
     {
         if (iter->second != lv)
         {
-            CELER_LOG(warning)
-                << "Celeritas volume \"" << geo_.impl_volumes().at(id)
+            // This shouldn't be possible now
+            CELER_LOG(error)
+                << "Canonical volume " << id.get()
                 << "\" is mapped to two different volumes with "
                    "sensitive detectors: "
-                << PrintableLV{lv} << " and " << PrintableLV{iter->second};
+                << StreamableLV{lv} << " and " << StreamableLV{iter->second};
         }
         else
         {
             CELER_LOG(debug)
-                << "Ignored duplicate logical volume " << PrintableLV{lv};
+                << "Ignored duplicate logical volume " << StreamableLV{lv};
         }
     }
 
-    return inserted ? id : ImplVolumeId{};
+    return inserted ? id : VolumeId{};
 }
 
 //---------------------------------------------------------------------------//

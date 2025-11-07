@@ -35,21 +35,21 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-constexpr int invalid_max_depth = -1;
+constexpr int invalid_depth = -1;
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the maximum logic depth of a volume definition.
+ * Calculate the maximum CSG logic depth of a volume definition.
  *
- * Return 0 if the definition is invalid so that we can raise an assertion in
- * the caller with more context.
+ * Return a sentinel if the definition is invalid so that we can raise an
+ * assertion in the caller with more context.
  */
-int calc_max_depth(Span<logic_int const> logic)
+int calc_depth(Span<logic_int const> logic)
 {
     CELER_EXPECT(!logic.empty());
 
     // Calculate max depth
-    int max_depth = 1;
+    int depth = 1;
     int cur_depth = 0;
 
     for (auto id : logic)
@@ -60,17 +60,17 @@ int calc_max_depth(Span<logic_int const> logic)
         }
         else if (id == logic::land || id == logic::lor)
         {
-            max_depth = std::max(cur_depth, max_depth);
+            depth = std::max(cur_depth, depth);
             --cur_depth;
         }
     }
     if (cur_depth != 1)
     {
         // Input definition is invalid; return a sentinel value
-        max_depth = invalid_max_depth;
+        depth = invalid_depth;
     }
-    CELER_ENSURE(max_depth > 0 || max_depth == invalid_max_depth);
-    return max_depth;
+    CELER_ENSURE(depth > 0 || depth == invalid_depth);
+    return depth;
 }
 
 //---------------------------------------------------------------------------//
@@ -146,18 +146,35 @@ std::vector<Label> make_surface_labels(UnitInput& inp)
 
 //---------------------------------------------------------------------------//
 //! Construct volume labels from the input volumes
-std::vector<Label> make_volume_labels(UnitInput const& inp)
+auto make_volume_labels(UnitInput const& inp)
 {
-    std::vector<Label> result;
+    UniverseInserter::VecVarLabel result;
     for (auto const& v : inp.volumes)
     {
-        Label vl = v.label;
-        if (vl.ext.empty())
-        {
-            vl.ext = inp.label.name;
-        }
-        result.push_back(std::move(vl));
+        // Convert a <Label, VolInstId> -> <Label, VolInstId, VolId>
+        // using a default extension
+        result.emplace_back(
+            std::visit(return_as<UniverseInserter::VariantLabel>(Overload{
+                           [](auto&& obj) { return obj; },
+                           [&inp](Label const& label) {
+                               Label result = label;
+                               // Add the unit's name as an extension if blank
+                               if (result.ext.empty())
+                               {
+                                   result.ext = inp.label.name;
+                               }
+                               return result;
+                           },
+                       }),
+                       v.label));
     }
+
+    if (auto const& bg = inp.background)
+    {
+        CELER_ASSERT(bg.volume < result.size());
+        result[bg.volume.get()] = bg.label;
+    }
+
     return result;
 }
 
@@ -231,6 +248,18 @@ ForceMax const& forced_scalar_max()
 }
 
 //---------------------------------------------------------------------------//
+std::string to_string(VolumeInput::VariantLabel const& vlabel)
+{
+    return std::visit(Overload{[](Label const& lab) { return to_string(lab); },
+                               [](VolumeInstanceId const& id) -> std::string {
+                                   if (!id)
+                                       return "<null>";
+                                   return "vi " + std::to_string(id.get());
+                               }},
+                      vlabel);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -239,7 +268,7 @@ ForceMax const& forced_scalar_max()
  */
 UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     : orange_data_(orange_data)
-    , build_bih_tree_{&orange_data_->bih_tree_data}
+    , build_bih_tree_{&orange_data_->bih_tree_data, BIHBuilder::Input{2}}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
     , build_surfaces_{&orange_data_->surface_types,
                       &orange_data_->real_ids,
@@ -270,7 +299,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
 /*!
  * Create a simple unit and return its ID.
  */
-UniverseId UnitInserter::operator()(UnitInput&& inp)
+UnivId UnitInserter::operator()(UnitInput&& inp)
 {
     CELER_VALIDATE(inp,
                    << "simple unit '" << inp.label
@@ -353,7 +382,8 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
                            invalid.end(),
                            ", ",
                            [&inp, &bboxes](std::ostream& os, size_type i) {
-                               os << i << "='" << inp.volumes[i].label
+                               os << i << "='"
+                                  << to_string(inp.volumes[i].label)
                                   << "': " << bboxes[i];
                            }));
     }
@@ -389,7 +419,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     simple_units_.push_back(unit);
     auto surf_labels = make_surface_labels(inp);
     auto vol_labels = make_volume_labels(inp);
-    return (*insert_universe_)(UniverseType::simple,
+    return (*insert_universe_)(UnivType::simple,
                                std::move(inp.label),
                                std::move(surf_labels),
                                std::move(vol_labels));
@@ -456,7 +486,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         CELER_LOG(warning) << "Max intersections (" << output.max_intersections
                            << ") and/or faces (" << output.faces.size()
                            << ") exceed limits of '" << mfi_hack_envname
-                           << " in volume '" << v.label
+                           << " in volume '" << to_string(v.label)
                            << "': replacing with unreachable volume";
 
         output.faces = {};
@@ -468,8 +498,8 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     }
 
     // Calculate the maximum stack depth of the volume definition
-    int max_depth = calc_max_depth(input_logic);
-    CELER_VALIDATE(max_depth > 0,
+    int depth = calc_depth(input_logic);
+    CELER_VALIDATE(depth > 0,
                    << "invalid logic definition: operators do not balance");
 
     // Update global max faces/intersections/logic
@@ -477,7 +507,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     inplace_max<size_type>(&scalars.max_faces, output.faces.size());
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
-    inplace_max<size_type>(&scalars.max_logic_depth, max_depth);
+    inplace_max<size_type>(&scalars.max_csg_levels, depth);
 
     return output;
 }
@@ -520,7 +550,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
                                     DaughterInput const& daughter_input)
 {
     Daughter daughter;
-    daughter.universe_id = daughter_input.universe_id;
+    daughter.univ_id = daughter_input.univ_id;
     daughter.trans_id = insert_transform_(daughter_input.transform);
 
     vol_record->daughter_id = daughters_.push_back(daughter);

@@ -6,48 +6,51 @@
 //---------------------------------------------------------------------------//
 #include "EmStandardPhysics.hh"
 
-#include <memory>
-#include <CLHEP/Units/SystemOfUnits.h>
-#include <G4ComptonScattering.hh>
-#include <G4CoulombScattering.hh>
-#include <G4Electron.hh>
 #include <G4EmParameters.hh>
-#include <G4Gamma.hh>
-#include <G4GammaConversion.hh>
-#include <G4GammaGeneralProcess.hh>
-#include <G4GoudsmitSaundersonMscModel.hh>
-#include <G4LivermorePhotoElectricModel.hh>
-#include <G4LossTableManager.hh>
-#include <G4MollerBhabhaModel.hh>
-#include <G4MuBremsstrahlung.hh>
-#include <G4MuIonisation.hh>
-#include <G4MuMultipleScattering.hh>
-#include <G4MuPairProduction.hh>
-#include <G4MuonMinus.hh>
-#include <G4MuonPlus.hh>
-#include <G4PairProductionRelModel.hh>
-#include <G4PhotoElectricEffect.hh>
+#include <G4NuclearStopping.hh>
+#include <G4ParticleDefinition.hh>
 #include <G4PhysicsListHelper.hh>
-#include <G4Positron.hh>
-#include <G4ProcessManager.hh>
-#include <G4ProcessType.hh>
-#include <G4Proton.hh>
-#include <G4RayleighScattering.hh>
-#include <G4UrbanMscModel.hh>
 #include <G4Version.hh>
-#include <G4WentzelVIModel.hh>
-#include <G4eCoulombScatteringModel.hh>
-#include <G4eIonisation.hh>
-#include <G4eMultipleScattering.hh>
-#include <G4eplusAnnihilation.hh>
+#include <G4hMultipleScattering.hh>
+#include <G4ionIonisation.hh>
+#if G4VERSION_NUMBER >= 1070
+#    include <G4EmBuilder.hh>
+#else
+#    include <G4Alpha.hh>
+#    include <G4AntiLambda.hh>
+#    include <G4AntiNeutrinoE.hh>
+#    include <G4AntiNeutrinoMu.hh>
+#    include <G4AntiNeutron.hh>
+#    include <G4AntiProton.hh>
+#    include <G4ChargedGeantino.hh>
+#    include <G4CoulombScattering.hh>
+#    include <G4Deuteron.hh>
+#    include <G4EmParticleList.hh>
+#    include <G4Geantino.hh>
+#    include <G4GenericIon.hh>
+#    include <G4He3.hh>
+#    include <G4KaonMinus.hh>
+#    include <G4KaonPlus.hh>
+#    include <G4Lambda.hh>
+#    include <G4MuIonisation.hh>
+#    include <G4MuMultipleScattering.hh>
+#    include <G4MuonMinus.hh>
+#    include <G4MuonPlus.hh>
+#    include <G4NeutrinoE.hh>
+#    include <G4NeutrinoMu.hh>
+#    include <G4Neutron.hh>
+#    include <G4PionMinus.hh>
+#    include <G4PionPlus.hh>
+#    include <G4PionZero.hh>
+#    include <G4Proton.hh>
+#    include <G4Triton.hh>
+#    include <G4WentzelVIModel.hh>
+#    include <G4hBremsstrahlung.hh>
+#    include <G4hIonisation.hh>
+#    include <G4hPairProduction.hh>
+#endif
 
-#include "corecel/Assert.hh"
-#include "corecel/io/EnumStringMapper.hh"
-#include "corecel/io/Logger.hh"
-#include "celeritas/Quantities.hh"
-
-#include "GeantBremsstrahlungProcess.hh"
-#include "../GeantPhysicsOptions.hh"
+#include "G4GenericIon.hh"
 
 namespace celeritas
 {
@@ -55,485 +58,205 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Safely switch from MscStepLimitAlgorithm to G4MscStepLimitType.
- */
-G4MscStepLimitType
-from_msc_step_algorithm(MscStepLimitAlgorithm const& msc_step_algorithm)
-{
-    switch (msc_step_algorithm)
-    {
-        case MscStepLimitAlgorithm::minimal:
-            return G4MscStepLimitType::fMinimal;
-        case MscStepLimitAlgorithm::safety:
-            return G4MscStepLimitType::fUseSafety;
-        case MscStepLimitAlgorithm::safety_plus:
-            return G4MscStepLimitType::fUseSafetyPlus;
-        case MscStepLimitAlgorithm::distance_to_boundary:
-            return G4MscStepLimitType::fUseDistanceToBoundary;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Safely switch from NuclearFormFactorType to G4NuclearFormfactorType.
- */
-G4NuclearFormfactorType
-from_form_factor_type(NuclearFormFactorType const& form_factor)
-{
-    switch (form_factor)
-    {
-        case NuclearFormFactorType::none:
-            return G4NuclearFormfactorType::fNoneNF;
-        case NuclearFormFactorType::exponential:
-            return G4NuclearFormfactorType::fExponentialNF;
-        case NuclearFormFactorType::gaussian:
-            return G4NuclearFormfactorType::fGaussianNF;
-        case NuclearFormFactorType::flat:
-            return G4NuclearFormfactorType::fFlatNF;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with physics options.
- */
-EmStandardPhysics::EmStandardPhysics(Options const& options)
-    : options_(options)
-{
-    // Set EM options using limits from G4EmParameters
-    auto& em_parameters = *G4EmParameters::Instance();
-    CELER_VALIDATE(options_.em_bins_per_decade >= 5,
-                   << "number of EM bins per decade="
-                   << options.em_bins_per_decade << " (must be at least 5)");
-
-    em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
-    em_parameters.SetLossFluctuations(options.eloss_fluctuation);
-    em_parameters.SetMinEnergy(value_as<Options::MevEnergy>(options.min_energy)
-                               * CLHEP::MeV);
-    em_parameters.SetMaxEnergy(value_as<Options::MevEnergy>(options.max_energy)
-                               * CLHEP::MeV);
-    em_parameters.SetLPM(options.lpm);
-    em_parameters.SetFluo(options.relaxation != RelaxationSelection::none);
-    em_parameters.SetAuger(options.relaxation == RelaxationSelection::all);
-    em_parameters.SetIntegral(options.integral_approach);
-    em_parameters.SetLinearLossLimit(options.linear_loss_limit);
-    em_parameters.SetNuclearFormfactorType(
-        from_form_factor_type(options.form_factor));
-    em_parameters.SetMscStepLimitType(
-        from_msc_step_algorithm(options.msc_step_algorithm));
-    em_parameters.SetMscMuHadStepLimitType(
-        from_msc_step_algorithm(options.msc_muhad_step_algorithm));
-    em_parameters.SetLateralDisplacement(options.msc_displaced);
-    em_parameters.SetMuHadLateralDisplacement(options.msc_muhad_displaced);
-    em_parameters.SetMscRangeFactor(options.msc_range_factor);
-    em_parameters.SetMscMuHadRangeFactor(options.msc_muhad_range_factor);
-#if G4VERSION_NUMBER >= 1060
-    using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
-
-    // Customizable MSC safety factor/lambda limit were added in
-    // emutils-V10-05-18
-    em_parameters.SetMscSafetyFactor(options.msc_safety_factor);
-    em_parameters.SetMscLambdaLimit(
-        native_value_to<ClhepLen>(options.msc_lambda_limit).value());
-#endif
-    em_parameters.SetMscThetaLimit(options.msc_theta_limit);
-    em_parameters.SetLowestElectronEnergy(
-        value_as<Options::MevEnergy>(options.lowest_electron_energy)
-        * CLHEP::MeV);
-    em_parameters.SetLowestMuHadEnergy(
-        value_as<Options::MevEnergy>(options.lowest_muhad_energy) * CLHEP::MeV);
-    em_parameters.SetApplyCuts(options.apply_cuts);
-    em_parameters.SetVerbose(options.verbose);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build list of available particles.
- *
- * The minimal E.M. set can be built by using
- * \c G4EmBuilder::ConstructMinimalEmSet();
- * and includes gamma, e+, e-, mu+, mu-, pi+, pi-, K+, K-, p, pbar, deuteron,
- * triton, He3, alpha, and generic ion, along with Geant4's pseudo-particles
- * geantino and charged geantino.
- *
- * Currently only instantiating e+, e-, gamma, mu-, mu+, and proton (the latter
- * is needed for msc)
+ * Build list of particles.
  */
 void EmStandardPhysics::ConstructParticle()
 {
-    G4Gamma::GammaDefinition();
-    G4Electron::ElectronDefinition();
-    G4Positron::PositronDefinition();
-    if (options_.muon)
-    {
-        G4MuonMinus::MuonMinus();
-        G4MuonPlus::MuonPlus();
-    }
-    if (options_.msc != MscModelSelection::none || options_.coulomb_scattering)
-    {
-        G4Proton::ProtonDefinition();
-    }
+    SupportedEmStandardPhysics::ConstructParticle();
+    this->construct_particle();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Build list of available processes and models.
+ * Build processes and models.
  */
 void EmStandardPhysics::ConstructProcess()
 {
-    // Add E.M. processes for photons, electrons, and positrons
-    this->add_gamma_processes();
-    this->add_e_processes(G4Electron::Electron());
-    this->add_e_processes(G4Positron::Positron());
-    if (options_.muon)
-    {
-        this->add_mu_processes(G4MuonMinus::MuonMinus());
-        this->add_mu_processes(G4MuonPlus::MuonPlus());
-    }
-}
-
-//---------------------------------------------------------------------------//
-// PRIVATE
-//---------------------------------------------------------------------------//
-/*!
- * Add EM processes for photons.
- *
- * | Processes            | Model classes                 |
- * | -------------------- | ----------------------------- |
- * | Compton scattering   | G4KleinNishinaCompton         |
- * | Photoelectric effect | G4LivermorePhotoElectricModel |
- * | Rayleigh scattering  | G4LivermoreRayleighModel      |
- * | Gamma conversion     | G4PairProductionRelModel      |
- *
- * If the \c gamma_general option is enabled, we create a single unified
- * \c G4GammaGeneralProcess process, which embeds these other processes and
- * calculates a combined total cross section. It's faster in Geant4 but
- * shouldn't result in different answers.
- */
-void EmStandardPhysics::add_gamma_processes()
-{
-    auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
-    auto* gamma = G4Gamma::Gamma();
-
-    // Option to create GammaGeneral for performance/robustness
-    std::unique_ptr<G4GammaGeneralProcess> ggproc;
-    if (options_.gamma_general)
-    {
-        ggproc = std::make_unique<G4GammaGeneralProcess>();
-    }
-
-    auto add_process = [&ggproc, physics_list, gamma](G4VEmProcess* p) {
-        if (ggproc)
-        {
-            ggproc->AddEmProcess(p);
-        }
-        else
-        {
-            physics_list->RegisterProcess(p, gamma);
-        }
-    };
-
-    if (options_.compton_scattering)
-    {
-        // Compton Scattering: G4KleinNishinaCompton
-        auto compton_scattering = std::make_unique<G4ComptonScattering>();
-        add_process(compton_scattering.release());
-        CELER_LOG(debug) << "Using Compton scattering with "
-                            "G4KleinNishinaCompton";
-    }
-
-    if (options_.photoelectric)
-    {
-        // Photoelectric effect: G4LivermorePhotoElectricModel
-        auto pe = std::make_unique<G4PhotoElectricEffect>();
-        pe->SetEmModel(new G4LivermorePhotoElectricModel());
-        add_process(pe.release());
-        CELER_LOG(debug) << "Using photoelectric effect with "
-                            "G4LivermorePhotoElectricModel";
-    }
-
-    if (options_.rayleigh_scattering)
-    {
-        // Rayleigh: G4LivermoreRayleighModel
-        auto rayl = std::make_unique<G4RayleighScattering>();
-        add_process(rayl.release());
-        CELER_LOG(debug) << "Using Rayleigh scattering with "
-                            "G4LivermoreRayleighModel";
-    }
-
-    if (options_.gamma_conversion)
-    {
-        // Gamma conversion: G4PairProductionRelModel
-        auto gamma_conversion = std::make_unique<G4GammaConversion>();
-        gamma_conversion->SetEmModel(new G4PairProductionRelModel());
-        add_process(gamma_conversion.release());
-        CELER_LOG(debug) << "Using gamma conversion with "
-                            "G4PairProductionRelModel";
-    }
-
-    if (ggproc)
-    {
-        CELER_LOG(debug) << "Registered G4GammaGeneralProcess";
-        G4LossTableManager::Instance()->SetGammaGeneralProcess(ggproc.get());
-        physics_list->RegisterProcess(ggproc.release(), gamma);
-    }
+    SupportedEmStandardPhysics::ConstructProcess();
+    this->construct_process();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add EM processes for electrons and positrons.
+ * Set up minimal EM particle list.
  *
- * | Processes                    | Model classes                |
- * | ---------------------------- | ---------------------------- |
- * | Pair annihilation            | G4eeToTwoGammaModel          |
- * | Ionization                   | G4MollerBhabhaModel          |
- * | Bremsstrahlung (low E)       | G4SeltzerBergerModel         |
- * | Bremsstrahlung (high E)      | G4eBremsstrahlungRelModel    |
- * | Coulomb scattering           | G4eCoulombScatteringModel    |
- * | Multiple scattering (low E)  | G4UrbanMscModel              |
- * | Multiple scattering (low E)  | G4GoudsmitSaundersonMscModel |
- * | Multiple scattering (high E) | G4WentzelVIModel             |
- *
- * \note
- * - Coulomb scattering and multiple scattering (high E) are currently
- *   disabled.
+ * This is required to support Geant4 versions less than 10.7.0 which do not
+ * have the G4EmBuilder.
  */
-void EmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
+void EmStandardPhysics::construct_particle()
 {
-    auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
+#if G4VERSION_NUMBER >= 1070
+    G4EmBuilder::ConstructMinimalEmSet();
+#else
+    // Pseudo-particles
+    G4Geantino::GeantinoDefinition();
+    G4ChargedGeantino::ChargedGeantinoDefinition();
+    G4NeutrinoMu::NeutrinoMu();
+    G4AntiNeutrinoMu::AntiNeutrinoMu();
+    G4NeutrinoE::NeutrinoE();
+    G4AntiNeutrinoE::AntiNeutrinoE();
 
-    if (options_.annihilation && p == G4Positron::Positron())
-    {
-        // e+e- annihilation: G4eeToTwoGammaModel
-        physics_list->RegisterProcess(new G4eplusAnnihilation(), p);
+    // Leptons
+    G4MuonPlus::MuonPlus();
+    G4MuonMinus::MuonMinus();
 
-        CELER_LOG(debug) << "Using pair annihilation with "
-                            "G4eplusAnnihilation";
-    }
+    // Mesons
+    G4PionPlus::PionPlus();
+    G4PionMinus::PionMinus();
+    G4PionZero::PionZero();
+    G4KaonPlus::KaonPlus();
+    G4KaonMinus::KaonMinus();
 
-    if (options_.ionization)
-    {
-        // e-e+ ionization: G4MollerBhabhaModel
-        auto ionization = std::make_unique<G4eIonisation>();
-        ionization->SetEmModel(new G4MollerBhabhaModel());
-        physics_list->RegisterProcess(ionization.release(), p);
+    // Barions
+    G4Proton::Proton();
+    G4AntiProton::AntiProton();
+    G4Neutron::Neutron();
+    G4AntiNeutron::AntiNeutron();
+    G4Lambda::Lambda();
+    G4AntiLambda::AntiLambda();
 
-        CELER_LOG(debug) << "Using ionization with G4MollerBhabhaModel";
-    }
-
-    if (options_.brems != BremsModelSelection::none)
-    {
-        physics_list->RegisterProcess(
-            new GeantBremsstrahlungProcess(
-                options_.brems,
-                value_as<Options::MevEnergy>(options_.seltzer_berger_limit)),
-            p);
-
-        if (!options_.ionization)
-        {
-            // If ionization is turned off, activate the along-step "do it" for
-            // bremsstrahlung *after* the process has been registered and set
-            // the order to be the same as the default post-step order. See \c
-            // G4PhysicsListHelper and the ordering parameter table for more
-            // information on which "do its" are activated for each process and
-            // the default process ordering.
-            auto* process_manager = p->GetProcessManager();
-            CELER_ASSERT(process_manager);
-            auto* bremsstrahlung = dynamic_cast<GeantBremsstrahlungProcess*>(
-                process_manager->GetProcess("eBrem"));
-            CELER_ASSERT(bremsstrahlung);
-            auto order = process_manager->GetProcessOrdering(
-                bremsstrahlung, G4ProcessVectorDoItIndex::idxPostStep);
-            process_manager->SetProcessOrdering(
-                bremsstrahlung, G4ProcessVectorDoItIndex::idxAlongStep, order);
-
-            // Let this process be a candidate for range limiting the step
-            bremsstrahlung->SetIonisation(true);
-        }
-
-        auto msg = CELER_LOG(debug);
-        msg << "Using Bremsstrahlung with ";
-        switch (options_.brems)
-        {
-            case BremsModelSelection::seltzer_berger:
-                msg << "G4SeltzerBergerModel";
-                break;
-            case BremsModelSelection::relativistic:
-                msg << "G4eBremsstrahlungRelModel";
-                break;
-            case BremsModelSelection::all:
-                msg << "G4SeltzerBergerModel and G4eBremsstrahlungRelModel";
-                break;
-            default:
-                CELER_ASSERT_UNREACHABLE();
-        }
-    }
-
-    using MMS = MscModelSelection;
-
-    // Energy limit between MSC models when multiple models are used
-    double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
-    bool set_energy_limit = options_.msc == MMS::urban_wentzelvi;
-
-    if (options_.coulomb_scattering)
-    {
-        // Coulomb scattering: G4eCoulombScatteringModel
-        if (options_.msc == MMS::urban)
-        {
-            CELER_LOG(warning)
-                << "Urban multiple scattering is used for all "
-                   "energies: disabling G4eCoulombScatteringModel";
-        }
-        else
-        {
-            auto process = std::make_unique<G4CoulombScattering>();
-            auto model = std::make_unique<G4eCoulombScatteringModel>();
-            if (set_energy_limit)
-            {
-                process->SetMinKinEnergy(msc_energy_limit);
-                model->SetLowEnergyLimit(msc_energy_limit);
-                model->SetActivationLowEnergyLimit(msc_energy_limit);
-            }
-            if (options_.msc == MMS::none)
-            {
-                G4EmParameters::Instance()->SetMscThetaLimit(0);
-            }
-
-            CELER_LOG(debug) << "Using single Coulomb scattering with "
-                                "G4eCoulombScatteringModel from "
-                             << model->LowEnergyLimit() << " MeV to "
-                             << model->HighEnergyLimit() << " MeV";
-
-            process->SetEmModel(model.release());
-            physics_list->RegisterProcess(process.release(), p);
-        }
-    }
-
-    if (options_.msc != MMS::none)
-    {
-        auto process = std::make_unique<G4eMultipleScattering>();
-
-        if (options_.msc == MMS::urban || options_.msc == MMS::urban_wentzelvi)
-        {
-            // Multiple scattering: Urban
-            auto model = std::make_unique<G4UrbanMscModel>();
-            if (set_energy_limit)
-            {
-                model->SetHighEnergyLimit(msc_energy_limit);
-            }
-
-            CELER_LOG(debug) << "Using multiple scattering with "
-                                "G4UrbanMscModel from "
-                             << model->LowEnergyLimit() << " MeV to "
-                             << model->HighEnergyLimit() << " MeV";
-
-            process->SetEmModel(model.release());
-        }
-
-        if (options_.msc == MMS::wentzelvi
-            || options_.msc == MMS::urban_wentzelvi)
-        {
-            // Multiple scattering: WentzelVI
-            auto model = std::make_unique<G4WentzelVIModel>();
-            if (set_energy_limit)
-            {
-                model->SetLowEnergyLimit(msc_energy_limit);
-            }
-            CELER_LOG(debug) << "Using multiple scattering with "
-                                "G4WentzelVIModel from "
-                             << model->LowEnergyLimit() << " MeV to "
-                             << model->HighEnergyLimit() << " MeV";
-
-            process->SetEmModel(model.release());
-        }
-
-        physics_list->RegisterProcess(process.release(), p);
-    }
+    // Ions
+    G4Deuteron::Deuteron();
+    G4Triton::Triton();
+    G4He3::He3();
+    G4Alpha::Alpha();
+    G4GenericIon::GenericIon();
+#endif
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add EM processes for muons.
+ * Build processes and models.
  *
- * | Processes                    | Model classes                |
- * | ---------------------------- | ---------------------------- |
- * | Pair production              | G4MuPairProductionModel      |
- * | Ionization (low E, mu-)      | G4ICRU73QOModel              |
- * | Ionization (low E, mu+)      | G4BraggModel                 |
- * | Ionization (high E)          | G4MuBetheBlochModel          |
- * | Bremsstrahlung               | G4MuBremsstrahlungModel      |
- * | Coulomb scattering           | G4eCoulombScatteringModel    |
- * | Multiple scattering          | G4WentzelVIModel             |
- *
- * \note Currently all muon processes are disabled by default
- *
- * \note Prior to version 11.1.0, Geant4 used the \c G4BetheBlochModel for muon
- * ionization between 200 keV and 1 GeV and the \c G4MuBetheBlochModel above 1
- * GeV. Since version 11.1.0, the \c G4MuBetheBlochModel is used for all
- * energies above 200 keV.
- *
- * \todo Implement energy loss fluctuation models for muon ionization.
+ * This is required to support Geant4 versions less than 10.7.0 which do not
+ * have the G4EmBuilder. This constructs the muon and hadron physics as in the
+ * \c G4EmStandardPhysics::ConstructProcess() method of Geant4 version 10.6.0.
  */
-void EmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
+void EmStandardPhysics::construct_process()
 {
-    auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
+    auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
+#if G4VERSION_NUMBER >= 1070
+    G4ParticleDefinition* particle = G4GenericIon::GenericIon();
 
-    if (options_.muon.pair_production)
+    auto niel_energy_limit = G4EmParameters::Instance()->MaxNIELEnergy();
+    G4NuclearStopping* nuclear_stopping = nullptr;
+    if (niel_energy_limit > 0)
     {
-        physics_list->RegisterProcess(new G4MuPairProduction(), p);
-        CELER_LOG(debug) << "Using muon pair production with "
-                            "G4MuPairProductionModel";
+        // Nuclear stopping is enabled if the energy limit is above zero
+        nuclear_stopping = new G4NuclearStopping();
+        nuclear_stopping->SetMaxKinEnergy(niel_energy_limit);
+    }
+    G4hMultipleScattering* ion_msc = new G4hMultipleScattering("ionmsc");
+    G4ionIonisation* ion_ionization = new G4ionIonisation();
+
+    ph.RegisterProcess(ion_msc, particle);
+    ph.RegisterProcess(ion_ionization, particle);
+    if (nuclear_stopping)
+    {
+        ph.RegisterProcess(nuclear_stopping, particle);
     }
 
-    if (options_.muon.ionization)
-    {
-        physics_list->RegisterProcess(new G4MuIonisation(), p);
-        CELER_LOG(debug) << "Using muon ionization with G4ICRU73QOModel, "
-                            "G4BraggModel, and G4MuBetheBlochModel";
-    }
+    G4EmBuilder::ConstructCharged(ion_msc, nuclear_stopping);
+#else
+    // Muon and hadron bremsstrahlung and pair production
+    G4MuBremsstrahlung* mu_brems = new G4MuBremsstrahlung();
+    G4MuPairProduction* mu_pair = new G4MuPairProduction();
+    G4hBremsstrahlung* pi_brems = new G4hBremsstrahlung();
+    G4hPairProduction* pi_pair = new G4hPairProduction();
+    G4hBremsstrahlung* ka_brems = new G4hBremsstrahlung();
+    G4hPairProduction* ka_pair = new G4hPairProduction();
+    G4hBremsstrahlung* prot_brems = new G4hBremsstrahlung();
+    G4hPairProduction* prot_pair = new G4hPairProduction();
 
-    if (options_.muon.bremsstrahlung)
-    {
-        physics_list->RegisterProcess(new G4MuBremsstrahlung(), p);
-        CELER_LOG(debug) << "Using muon bremsstrahlung with "
-                            "G4MuBremsstrahlungModel";
-    }
+    // Muon & hadron multiple scattering
+    G4MuMultipleScattering* mu_msc = new G4MuMultipleScattering();
+    mu_msc->SetEmModel(new G4WentzelVIModel());
+    G4CoulombScattering* mu_coulomb = new G4CoulombScattering();
 
-    if (options_.muon.coulomb)
-    {
-        physics_list->RegisterProcess(new G4CoulombScattering(), p);
-        CELER_LOG(debug) << "Using muon Coulomb scattering with "
-                            "G4eCoulombScatteringModel";
-    }
+    G4hMultipleScattering* pi_msc = new G4hMultipleScattering();
+    pi_msc->SetEmModel(new G4WentzelVIModel());
+    G4CoulombScattering* pi_coulomb = new G4CoulombScattering();
 
-    if (options_.muon.msc != MscModelSelection::none)
+    G4hMultipleScattering* ka_msc = new G4hMultipleScattering();
+    ka_msc->SetEmModel(new G4WentzelVIModel());
+    G4CoulombScattering* ka_coulomb = new G4CoulombScattering();
+
+    G4hMultipleScattering* ion_msc = new G4hMultipleScattering("ionmsc");
+
+    // Add standard muon and hadron EM Processes
+    G4EmParticleList particle_list;
+    G4ParticleTable* table = G4ParticleTable::GetParticleTable();
+    for (auto const& name : particle_list.PartNames())
     {
-        auto process = std::make_unique<G4MuMultipleScattering>();
-        if (options_.muon.msc == MscModelSelection::wentzelvi)
+        G4ParticleDefinition* particle = table->FindParticle(name);
+        if (!particle)
         {
-            process->SetEmModel(new G4WentzelVIModel());
-            CELER_LOG(debug) << "Using muon multiple scattering with "
-                                "G4WentzelVIModel";
+            continue;
         }
-        else if (options_.muon.msc == MscModelSelection::urban)
+        else if (name == "mu+" || name == "mu-")
         {
-            process->SetEmModel(new G4UrbanMscModel());
-            CELER_LOG(debug) << "Using muon multiple scattering with "
-                                "G4UrbanMscModel";
+            ph.RegisterProcess(mu_msc, particle);
+            ph.RegisterProcess(new G4MuIonisation(), particle);
+            ph.RegisterProcess(mu_brems, particle);
+            ph.RegisterProcess(mu_pair, particle);
+            ph.RegisterProcess(mu_coulomb, particle);
         }
-        else
+        else if (name == "alpha" || name == "He3")
         {
-            CELER_VALIDATE(false,
-                           << "unsupported muon multiple scattering model "
-                              "selection '"
-                           << options_.muon.msc << "'");
+            ph.RegisterProcess(new G4hMultipleScattering(), particle);
+            ph.RegisterProcess(new G4ionIonisation(), particle);
         }
-        physics_list->RegisterProcess(process.release(), p);
+        else if (name == "GenericIon")
+        {
+            ph.RegisterProcess(ion_msc, particle);
+            ph.RegisterProcess(new G4ionIonisation(), particle);
+        }
+        else if (name == "pi+" || name == "pi-")
+        {
+            ph.RegisterProcess(pi_msc, particle);
+            ph.RegisterProcess(new G4hIonisation(), particle);
+            ph.RegisterProcess(pi_brems, particle);
+            ph.RegisterProcess(pi_pair, particle);
+            ph.RegisterProcess(pi_coulomb, particle);
+        }
+        else if (name == "kaon+" || name == "kaon-")
+        {
+            ph.RegisterProcess(ka_msc, particle);
+            ph.RegisterProcess(new G4hIonisation(), particle);
+            ph.RegisterProcess(ka_brems, particle);
+            ph.RegisterProcess(ka_pair, particle);
+            ph.RegisterProcess(ka_coulomb, particle);
+        }
+        else if (name == "proton" || name == "anti_proton")
+        {
+            G4hMultipleScattering* prot_msc = new G4hMultipleScattering();
+            prot_msc->SetEmModel(new G4WentzelVIModel());
+
+            ph.RegisterProcess(prot_msc, particle);
+            ph.RegisterProcess(new G4hIonisation(), particle);
+            ph.RegisterProcess(prot_brems, particle);
+            ph.RegisterProcess(prot_pair, particle);
+            ph.RegisterProcess(new G4CoulombScattering(), particle);
+        }
+        else if (name == "B+" || name == "B-" || name == "D+" || name == "D-"
+                 || name == "Ds+" || name == "Ds-" || name == "anti_He3"
+                 || name == "anti_alpha" || name == "anti_deuteron"
+                 || name == "anti_lambda_c+" || name == "anti_omega-"
+                 || name == "anti_sigma_c+" || name == "anti_sigma_c++"
+                 || name == "anti_sigma+" || name == "anti_sigma-"
+                 || name == "anti_triton" || name == "anti_xi_c+"
+                 || name == "anti_xi-" || name == "deuteron"
+                 || name == "lambda_c+" || name == "omega-"
+                 || name == "sigma_c+" || name == "sigma_c++"
+                 || name == "sigma+" || name == "sigma-" || name == "tau+"
+                 || name == "tau-" || name == "triton" || name == "xi_c+"
+                 || name == "xi-")
+        {
+            ph.RegisterProcess(ion_msc, particle);
+            ph.RegisterProcess(new G4hIonisation(), particle);
+        }
     }
+#endif
 }
 
 //---------------------------------------------------------------------------//

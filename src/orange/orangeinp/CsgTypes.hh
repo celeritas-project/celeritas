@@ -72,16 +72,6 @@ struct Joined
 //! Generic node
 using Node = std::variant<True, False, Aliased, Negated, Surface, Joined>;
 
-/*!
- * Optional transformations to apply when building a CsgUnit.
- */
-enum class UnitSimplification : size_type
-{
-    none = 0,  //!< No simplification
-    infix_logic,  //!< CsgTree suitable for infix logic evaluation
-    size_
-};
-
 //---------------------------------------------------------------------------//
 // Equality operators
 //---------------------------------------------------------------------------//
@@ -147,67 +137,6 @@ inline constexpr bool is_boolean_node(Node const& n)
 {
     return std::holds_alternative<True>(n) || std::holds_alternative<False>(n);
 }
-
-//---------------------------------------------------------------------------//
-// INTERFACE TYPES
-//---------------------------------------------------------------------------//
-/*!
- * Polygon bound by top/bottom z segments, one of which may be a single point.
- *
- * Thus, valid polygons are:
- *
- * 1) quadrilaterals with two segments parallel to the z axis,
- * 2) triangles with one segment parallel to the z axis.
- */
-class SpecialTrapezoid
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using VecReal2 = std::vector<Real2>;
-
-    struct ZSegment
-    {
-        EnumArray<Bound, real_type> r;
-        real_type z;
-    };
-
-    enum class Variety
-    {
-        quad,
-        pointy_top,
-        pointy_bot
-    };
-    //!@}
-
-  public:
-    // Construct from bottom/top z segments
-    SpecialTrapezoid(ZSegment&& bot, ZSegment&& top);
-
-    /// ACCESSORS ///
-
-    //! Get the bottom z segment
-    ZSegment const& bot() const { return bot_; }
-
-    //! Get the top z segment
-    ZSegment const& top() const { return top_; }
-
-    //! Get the variety
-    Variety variety() const { return variety_; }
-
-    //! Get the absolute tolerance for soft equality
-    real_type abs_tol() const { return abs_tol_; }
-
-    // Get the unique points in counterclockwise order, from the upper right
-    VecReal2 unique_points() const;
-
-  private:
-    //// DATA ////
-    ZSegment bot_;
-    ZSegment top_;
-    Variety variety_;
-    real_type abs_tol_;
-};
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
@@ -283,12 +212,12 @@ struct hash<celeritas::orangeinp::Joined>
         noexcept(!CELERITAS_DEBUG)
     {
         result_type result;
-        celeritas::Hasher hash{&result};
-        hash(static_cast<std::size_t>(val.op));
-        hash(val.nodes.size());
+        celeritas::Hasher hash_impl{&result};
+        hash_impl(static_cast<std::size_t>(val.op));
+        hash_impl(val.nodes.size());
         for (auto& v : val.nodes)
         {
-            hash(std::hash<celeritas::orangeinp::NodeId>{}(v));
+            hash_impl(std::hash<celeritas::orangeinp::NodeId>{}(v));
         }
         return result;
     }

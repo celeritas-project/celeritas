@@ -148,13 +148,12 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
         // Kill secondaries with energies below the production cut
         for (auto& secondary : result.secondaries)
         {
-            secondary.weight = sim.weight();
             if (cutoff.apply(secondary))
             {
                 // Secondary is an electron, positron or gamma with energy
                 // below the production cut -- deposit the energy locally
                 // and clear the secondary
-                deposition += secondary.energy.value() * secondary.weight;
+                deposition += secondary.energy.value() * sim.weight();
                 auto sec_par = track.particle_record(secondary.particle_id);
                 if (sec_par.is_antiparticle())
                 {

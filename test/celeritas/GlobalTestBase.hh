@@ -14,8 +14,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
+#include "geocel/LazyGeantGeoManager.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/optical/CoreParams.hh"
 
 #include "Test.hh"
 
@@ -51,9 +53,9 @@ struct Primary;
 
 namespace optical
 {
-class CoreParams;
 class MaterialParams;
 class PhysicsParams;
+class SurfacePhysicsParams;
 }  // namespace optical
 
 namespace test
@@ -62,14 +64,13 @@ namespace test
 /*!
  * Lazily construct core parameters, individually or together.
  *
- * \note Inherit from this class (or \c GlobalGeoTestBase) using \c
- * virtual \c public so that tests can create mixins (see e.g. \c
- * SimpleStepperTest).
+ * \note Inherit from this class using \c virtual \c public so that tests can
+ * create mixins (see e.g. \c SimpleStepperTest).
  *
  * \todo Replace the construction with modifiers to \c celeritas::inp data
  * structures, and build the core geometry with \c celeritas::setup.
  */
-class GlobalTestBase : public Test
+class GlobalTestBase : public Test, public LazyGeantGeoManager
 {
   public:
     //!@{
@@ -101,6 +102,8 @@ class GlobalTestBase : public Test
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
     using SPOpticalParams = SP<optical::CoreParams>;
     using SPConstOpticalPhysics = SP<optical::PhysicsParams const>;
+    using SPConstOpticalSurfacePhysics
+        = SP<optical::SurfacePhysicsParams const>;
     using SPConstScintillation = SP<ScintillationParams const>;
 
     using SPConstPrimariesAction = SP<ExtendFromPrimariesAction const>;
@@ -136,6 +139,7 @@ class GlobalTestBase : public Test
     inline SPConstOpticalMaterial const& optical_material();
     inline SPOpticalParams const& optical_params();
     inline SPConstOpticalPhysics const& optical_physics();
+    inline SPConstOpticalSurfacePhysics const& optical_surface_physics();
     inline SPConstScintillation const& scintillation();
 
     inline SPConstCoreGeo const& geometry() const;
@@ -157,8 +161,11 @@ class GlobalTestBase : public Test
     inline SPConstOpticalMaterial const& optical_material() const;
     inline SPOpticalParams const& optical_params() const;
     inline SPConstOpticalPhysics const& optical_physics() const;
+    inline SPConstOpticalSurfacePhysics const& optical_surface_physics() const;
     inline SPConstScintillation const& scintillation() const;
     //!@}
+
+    optical::CoreParams::Input optical_params_input();
 
     SPConstPrimariesAction const& primaries_action();
     void
@@ -172,8 +179,11 @@ class GlobalTestBase : public Test
     void write_output();
 
   protected:
-    [[nodiscard]] virtual SPConstCoreGeo build_geometry() = 0;
+    // GDML basename must be supplied
+    using LazyGeantGeoManager::gdml_basename;
+
     [[nodiscard]] virtual SPConstMaterial build_material() = 0;
+    [[nodiscard]] virtual SPConstCoreGeo build_geometry();
     [[nodiscard]] virtual SPConstGeoMaterial build_geomaterial() = 0;
     [[nodiscard]] virtual SPConstParticle build_particle() = 0;
     [[nodiscard]] virtual SPConstCutoff build_cutoff() = 0;
@@ -185,15 +195,23 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstCherenkov build_cherenkov() = 0;
     [[nodiscard]] virtual SPConstOpticalMaterial build_optical_material() = 0;
     [[nodiscard]] virtual SPConstOpticalPhysics build_optical_physics() = 0;
+    [[nodiscard]] virtual SPConstOpticalSurfacePhysics
+    build_optical_surface_physics()
+        = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
 
     // Do not insert StatusChecker
     void disable_status_checker();
 
-    // Build surface and volume; called during build_core
-    void setup_model();
+    // Access surface and volume; called during build_core
     SPConstSurface const& surface() const { return surface_; }
     SPConstVolume const& volume() const { return volume_; }
+
+    // Implement LazyGeantGeoManager
+    SPConstGeoI build_geo_from_geant(SPConstGeantGeo const&) const final;
+
+    // Implement LazyGeantGeoManager, allowed when ORANGE without Geant4
+    SPConstGeoI build_geo_from_gdml(std::string const& filename) const final;
 
   private:
     SPConstRng build_rng() const;
@@ -229,6 +247,7 @@ class GlobalTestBase : public Test
     SPConstOpticalMaterial optical_material_;
     SPOpticalParams optical_params_;
     SPConstOpticalPhysics optical_physics_;
+    SPConstOpticalSurfacePhysics optical_surface_physics_;
     SPConstScintillation scintillation_;
 
     SPConstPrimariesAction primaries_action_;
@@ -273,6 +292,7 @@ DEF_GTB_ACCESSORS(SPActionRegistry, optical_action_reg)
 DEF_GTB_ACCESSORS(SPConstOpticalMaterial, optical_material)
 DEF_GTB_ACCESSORS(SPOpticalParams, optical_params)
 DEF_GTB_ACCESSORS(SPConstOpticalPhysics, optical_physics)
+DEF_GTB_ACCESSORS(SPConstOpticalSurfacePhysics, optical_surface_physics)
 DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
 auto GlobalTestBase::wentzel() -> SPConstWentzelOKVI const&
 {

@@ -15,8 +15,10 @@
 #include "celeritas/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
+#include "Events.hh"
 #include "PhysicsProcess.hh"
 #include "ProcessBuilder.hh"
+#include "SurfacePhysics.hh"
 
 namespace celeritas
 {
@@ -34,9 +36,14 @@ namespace inp
 struct EmPhysics
 {
     //! Bremsstrahlung process
-    std::optional<BremsProcess> brems{std::in_place};
+    BremsstrahlungProcess brems;
     //! Electron+positron pair production process
-    std::optional<PairProductionProcess> pair_production{std::in_place};
+    PairProductionProcess pair_production;
+    //! Photoelectric effect
+    PhotoelectricProcess photoelectric;
+
+    //! Atomic relaxation
+    AtomicRelaxation atomic_relaxation;
 
     //!@{
     //! \name Energy loss and slowing down
@@ -50,47 +57,43 @@ struct EmPhysics
     //
     //!@}
 
-    //!
+    //! Add custom user processes
     ProcessBuilderMap user_processes;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Optical physics processes and options.
+ * Optical physics processes, options, and surface definitions.
+ *
+ * \todo Move cherenkov/scintillation to a OpticalGenPhysics class.
  */
 struct OpticalPhysics
 {
     //!@{
-    /*! \name Optical photon generation
+    /*! \name Optical photon generation from EM particles
      *
-     *  \todo Replace with a mapping of volume to \c ScintillationPhysics or \c
-     *  CherenkovPhysics
+     *  \todo Replace with physics input data
      */
 
     //! Generate Cherenkov photons
-    bool cherenkov{true};
+    bool cherenkov{false};
 
     //! Generate scintillation photons
-    bool scintillation{true};
+    bool scintillation{false};
     //!@}
-};
 
-//---------------------------------------------------------------------------//
-/*!
- * Hadronic physics processes and options.
- *
- * This can be used to enable or set up Geant4 hadronic physics.
- */
-struct HadronicPhysics
-{
-};
+    //!@{
+    //! \name Optical surface physics and properties
+    SurfacePhysics surfaces;
+    //!@}
 
-//---------------------------------------------------------------------------//
-/*!
- * Decay processes and options.
- */
-struct DecayPhysics
-{
+    //! \todo Move optical bulk models here
+
+    //! Whether optical physics is enabled
+    explicit operator bool() const
+    {
+        return cherenkov || scintillation || surfaces;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -102,20 +105,20 @@ struct DecayPhysics
  * \todo Move particle data from \c celeritas::ImportParticle
  * \todo Add function for injecting user processes for
  *       \c celeritas::PhysicsParams
+ * \todo Move \c OpticalGenerator to \c OpticalGenPhysics or elsewhere
+ *
+ * \todo How to better group these, especially when adding
+ * hadronic/photonuclear/decay/...?
  */
 struct Physics
 {
-    //! Enable electromagnetic physics
-    std::optional<EmPhysics> em{std::in_place};
+    //! Physics that applies to offloaded EM particles
+    EmPhysics em;
 
-    //! Enable optical photon physics
-    std::optional<OpticalPhysics> optical;
-
-    //! Enable hadronic physics
-    std::optional<HadronicPhysics> hadronic;
-
-    //! Enable decay physics
-    std::optional<DecayPhysics> decay;
+    //! Physics for optical photons
+    OpticalPhysics optical;
+    //! Optical photon generation mechanism
+    OpticalGenerator optical_generator;
 };
 
 //---------------------------------------------------------------------------//

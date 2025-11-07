@@ -10,9 +10,9 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "../OrangeTypes.hh"
-#include "../surf/VariantSurface.hh"
-#include "../transform/VariantTransform.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/surf/VariantSurface.hh"
+#include "orange/transform/VariantTransform.hh"
 
 namespace celeritas
 {

@@ -13,7 +13,6 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "geocel/BoundingBox.hh"
 
 #include "OrangeTypes.hh"
 #include "SenseUtils.hh"
@@ -22,6 +21,8 @@
 
 namespace celeritas
 {
+class OrangeParams;
+class VolumeParams;
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
@@ -29,30 +30,39 @@ namespace celeritas
 //! Local ID of exterior volume for unit-type universes
 inline constexpr LocalVolumeId orange_exterior_volume{0};
 
-//! ID of the top-level (global/world, level=0) universe (scene)
-inline constexpr UniverseId orange_global_universe{0};
+//! ID of the top (root/global/world, level=0) universe (scene)
+inline constexpr UnivId orange_global_univ{0};
+
+//! ID of the global universe
+inline constexpr UnivLevelId orange_global_univ_level{0};
 
 //---------------------------------------------------------------------------//
 /*!
  * Scalar values particular to an ORANGE geometry instance.
+ *
+ * Some of these are currently needed for state sizes (univ_levels, faces,
+ * intersections), others are tested during construction (csg_levels), and
+ * others are only for debugging on host (geo, volume params).
  */
 struct OrangeParamsScalars
 {
-    // Maximum universe depth, i.e., depth of the universe tree DAG: its value
-    // is 1 for a non-nested geometry. It may not correspond to the depth of a
-    // Geant4 geometry since we may "inline" certain logical volumes.
-    size_type max_depth{};
+    size_type num_univ_levels{};
     size_type max_faces{};
     size_type max_intersections{};
-    size_type max_logic_depth{};
+    size_type max_csg_levels{};
 
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
 
+    // Raw pointers to externally owned memory for debug output
+    OrangeParams const* host_geo_params{nullptr};
+    VolumeParams const* host_volume_params{nullptr};
+
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_depth > 0 && max_faces > 0 && max_intersections > 0 && tol;
+        return num_univ_levels > 0 && max_faces > 0 && max_intersections > 0
+               && tol;
     }
 };
 
@@ -101,16 +111,15 @@ struct VolumeRecord
  * beginning of the data used by the surface. Since the surface type tells us
  * the number of real values needed for that surface, we implicitly get a Span
  * of real values with a single indirection.
- *
- * \todo Change "types" and "data offsets" to be `ItemMap` taking local
- * surface
  */
 struct SurfacesRecord
 {
-    using RealId = OpaqueId<real_type>;
+    using SurfaceTypeId = ItemId<SurfaceType>;
+    using RealId = ItemId<real_type>;  // Pointer to a real
+    using RealIdId = ItemId<RealId>;  // Pointer to pointer to real
 
-    ItemRange<SurfaceType> types;
-    ItemRange<RealId> data_offsets;
+    ItemMap<LocalSurfaceId, SurfaceTypeId> types;
+    ItemMap<LocalSurfaceId, RealIdId> data_offsets;
 
     //! Number of surfaces stored
     CELER_FUNCTION size_type size() const { return types.size(); }
@@ -212,10 +221,11 @@ struct TransformRecord
 struct SimpleUnitRecord
 {
     using VolumeRecordId = OpaqueId<VolumeRecord>;
+    using ConnectivityRecordId = OpaqueId<ConnectivityRecord>;
 
     // Surface data
     SurfacesRecord surfaces;
-    ItemRange<ConnectivityRecord> connectivity;  // Index by LocalSurfaceId
+    ItemMap<LocalSurfaceId, ConnectivityRecordId> connectivity;
 
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
@@ -267,6 +277,10 @@ struct RectArrayRecord
  *
  * Each collection should be of length num_universes + 1. The first entry is
  * zero and the last item should be the total number of surfaces or volumes.
+ *
+ * \todo These should be indexed into by UnivId, not the default
+ * OpaqueId<size_type>.
+ * \todo move to detail/UniverseIndexerData
  */
 template<Ownership W, MemSpace M>
 struct UniverseIndexerData
@@ -296,7 +310,7 @@ struct UniverseIndexerData
 /*!
  * Persistent data used by all BIH trees.
  *
- * \todo move to orange/BihTreeData
+ * \todo move to detail/BihTreeData
  */
 template<Ownership W, MemSpace M>
 struct BIHTreeData
@@ -341,7 +355,7 @@ struct BIHTreeData
  * determine the class type and data of the Tracker to instantiate. If *only*
  * simple units are present, then the \c simple_units data structure will just
  * be equal to a range (with the total number of universes present). Use
- * `universe_types` to switch on the type of universe; then `universe_indices`
+ * \c univ_types to switch on the type of universe; then \c universe_indices
  * to index into `simple_units` or `rect_arrays` or ...
  */
 template<Ownership W, MemSpace M>
@@ -352,7 +366,7 @@ struct OrangeParamsData
     template<class T>
     using ImplVolumeItems = Collection<T, W, M, ImplVolumeId>;
     template<class T>
-    using UnivItems = Collection<T, W, M, UniverseId>;
+    using UnivItems = Collection<T, W, M, UnivId>;
 
     using RealId = SurfacesRecord::RealId;
 
@@ -362,11 +376,17 @@ struct OrangeParamsData
     OrangeParamsScalars scalars;
 
     // High-level universe definitions
-    UnivItems<UniverseType> universe_types;
-    UnivItems<size_type> universe_indices;
+    UnivItems<UnivType> univ_types;
+    UnivItems<size_type> univ_indices;
     Items<SimpleUnitRecord> simple_units;
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
+
+    // Optional map of ORANGE internal volume ID -> Celeritas volume ID
+    ImplVolumeItems<VolumeId> volume_ids;
+    ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
+    // TODO: for reconstructing hierarchy:
+    // ImplVolumeItems<ImplVolumeId> parent_impl_volumes;
 
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;
@@ -384,20 +404,22 @@ struct OrangeParamsData
     Items<Daughter> daughters;
     Items<OrientedBoundingZoneRecord> obz_records;
 
-    UniverseIndexerData<W, M> universe_indexer_data;
+    UniverseIndexerData<W, M> univ_indexer_data;
 
     //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return scalars && !universe_types.empty()
-               && universe_indices.size() == universe_types.size()
+        return scalars && !univ_types.empty()
+               && univ_indices.size() == univ_types.size()
+               && !volume_ids.empty()
+               && volume_ids.size() == volume_instance_ids.size()
                && (bih_tree_data || !simple_units.empty())
                && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
                    || surface_types.empty())
-               && !volume_records.empty() && universe_indexer_data;
+               && !volume_records.empty() && univ_indexer_data;
     }
 
     //! Assign from another set of data
@@ -406,11 +428,14 @@ struct OrangeParamsData
     {
         scalars = other.scalars;
 
-        universe_types = other.universe_types;
-        universe_indices = other.universe_indices;
+        univ_types = other.univ_types;
+        univ_indices = other.univ_indices;
         simple_units = other.simple_units;
         rect_arrays = other.rect_arrays;
         transforms = other.transforms;
+
+        volume_ids = other.volume_ids;
+        volume_instance_ids = other.volume_instance_ids;
 
         bih_tree_data = other.bih_tree_data;
 
@@ -424,7 +449,7 @@ struct OrangeParamsData
         volume_records = other.volume_records;
         obz_records = other.obz_records;
         daughters = other.daughters;
-        universe_indexer_data = other.universe_indexer_data;
+        univ_indexer_data = other.univ_indexer_data;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
         return *this;
@@ -449,29 +474,24 @@ struct OrangeStateData
 
     //// DATA ////
 
-    // Note: this is duplicated from the associated OrangeParamsData .
-    // It defines the stride into the preceding pseudo-2D Collections (pos,
-    // dir, ..., etc.)
-    size_type max_depth{0};
-
     // State with dimensions {num_tracks}
-    StateItems<LevelId> level;
-    StateItems<LevelId> surface_level;
+    StateItems<UnivLevelId> univ_level;
+    StateItems<UnivLevelId> surface_univ_level;
     StateItems<LocalSurfaceId> surf;
     StateItems<Sense> sense;
     StateItems<BoundaryResult> boundary;
 
     // "Local" state, needed for Shift {num_tracks}
-    StateItems<LevelId> next_level;
+    StateItems<UnivLevelId> next_univ_level;
     StateItems<real_type> next_step;
     StateItems<LocalSurfaceId> next_surf;
     StateItems<Sense> next_sense;
 
-    // State with dimensions {num_tracks, max_depth}
+    // State with dimensions {num_tracks, scalars.num_univ_levels}
     Items<Real3> pos;
     Items<Real3> dir;
     Items<LocalVolumeId> vol;
-    Items<UniverseId> universe;
+    Items<UnivId> univ;
 
     // Scratch space with dimensions {track}{max_faces}
     Items<SenseValue> temp_sense;
@@ -487,20 +507,19 @@ struct OrangeStateData
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return max_depth > 0
-            && !level.empty()
-            && surface_level.size() == this->size()
+        return !univ_level.empty()
+            && surface_univ_level.size() == this->size()
             && surf.size() == this->size()
             && sense.size() == this->size()
             && boundary.size() == this->size()
-            && next_level.size() == this->size()
+            && next_univ_level.size() == this->size()
             && next_step.size() == this->size()
             && next_surf.size() == this->size()
             && next_sense.size() == this->size()
-            && pos.size() == max_depth * this->size()
-            && dir.size() == max_depth  * this->size()
-            && vol.size() == max_depth  * this->size()
-            && universe.size() == max_depth  * this->size()
+            && pos.size() >= this->size()
+            && dir.size() == pos.size()
+            && vol.size() == pos.size()
+            && univ.size() == pos.size()
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -509,22 +528,24 @@ struct OrangeStateData
     }
 
     //! State size
-    CELER_FUNCTION TrackSlotId::size_type size() const { return level.size(); }
+    CELER_FUNCTION TrackSlotId::size_type size() const
+    {
+        return univ_level.size();
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     OrangeStateData& operator=(OrangeStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        max_depth = other.max_depth;
 
-        level = other.level;
-        surface_level = other.surface_level;
+        univ_level = other.univ_level;
+        surface_univ_level = other.surface_univ_level;
         surf = other.surf;
         sense = other.sense;
         boundary = other.boundary;
 
-        next_level = other.next_level;
+        next_univ_level = other.next_univ_level;
         next_step = other.next_step;
         next_surf = other.next_surf;
         next_sense = other.next_sense;
@@ -532,7 +553,7 @@ struct OrangeStateData
         pos = other.pos;
         dir = other.dir;
         vol = other.vol;
-        universe = other.universe;
+        univ = other.univ;
 
         temp_sense = other.temp_sense;
 
@@ -557,32 +578,30 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     CELER_EXPECT(data);
     CELER_EXPECT(num_tracks > 0);
 
-    data->max_depth = params.scalars.max_depth;
-
-    resize(&data->level, num_tracks);
-    resize(&data->surface_level, num_tracks);
+    resize(&data->univ_level, num_tracks);
+    resize(&data->surface_univ_level, num_tracks);
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
     resize(&data->boundary, num_tracks);
 
-    resize(&data->next_level, num_tracks);
+    resize(&data->next_univ_level, num_tracks);
     resize(&data->next_step, num_tracks);
     resize(&data->next_surf, num_tracks);
     resize(&data->next_sense, num_tracks);
 
-    size_type level_states = params.scalars.max_depth * num_tracks;
-    resize(&data->pos, level_states);
-    resize(&data->dir, level_states);
-    resize(&data->vol, level_states);
-    resize(&data->universe, level_states);
+    size_type num_track_univ = params.scalars.num_univ_levels * num_tracks;
+    resize(&data->pos, num_track_univ);
+    resize(&data->dir, num_track_univ);
+    resize(&data->vol, num_track_univ);
+    resize(&data->univ, num_track_univ);
 
-    size_type face_states = params.scalars.max_faces * num_tracks;
-    resize(&data->temp_sense, face_states);
+    size_type num_track_face = params.scalars.max_faces * num_tracks;
+    resize(&data->temp_sense, num_track_face);
 
-    size_type isect_states = params.scalars.max_intersections * num_tracks;
-    resize(&data->temp_face, isect_states);
-    resize(&data->temp_distance, isect_states);
-    resize(&data->temp_isect, isect_states);
+    size_type num_track_isect = params.scalars.max_intersections * num_tracks;
+    resize(&data->temp_face, num_track_isect);
+    resize(&data->temp_distance, num_track_isect);
+    resize(&data->temp_isect, num_track_isect);
 
     CELER_ENSURE(*data);
 }

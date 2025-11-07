@@ -608,7 +608,7 @@ PhysicsTrackView::make_element_selector(UniformTableId table_id,
  * ID of the particle's at-rest process.
  *
  * If the particle can have a discrete interaction at rest, this returns the \c
- * ParticleProcessId of that process. Otherwise, it returns an invalid ID.
+ * ParticleProcessId of that process. Otherwise, it returns a null ID.
  */
 CELER_FUNCTION ParticleProcessId PhysicsTrackView::at_rest_process() const
 {
@@ -625,8 +625,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId action) const
         return ModelId{};
 
     // Rely on unsigned rollover if action ID is less than the first model
-    ModelId::size_type result = action.unchecked_get()
-                                - params_.scalars.model_to_action;
+    ModelId::size_type result = action - params_.scalars.first_model_action;
     if (result >= params_.scalars.num_models)
         return ModelId{};
 
@@ -640,7 +639,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId action) const
 CELER_FUNCTION ActionId PhysicsTrackView::model_to_action(ModelId model) const
 {
     CELER_ASSERT(model < params_.scalars.num_models);
-    return ActionId{model.unchecked_get() + params_.scalars.model_to_action};
+    return params_.scalars.first_model_action + model.unchecked_get();
 }
 
 //---------------------------------------------------------------------------//

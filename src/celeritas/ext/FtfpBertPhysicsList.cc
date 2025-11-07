@@ -16,11 +16,12 @@
 #include <G4StoppingPhysics.hh>
 #include <G4ios.hh>
 
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/g4/SupportedEmStandardPhysics.hh"
+#include "celeritas/g4/SupportedOpticalPhysics.hh"
 
 #include "detail/EmStandardPhysics.hh"
-#include "detail/MuHadEmStandardPhysics.hh"
-#include "detail/OpticalPhysics.hh"
 #include "detail/PhysicsListUtils.hh"
 
 namespace celeritas
@@ -33,22 +34,22 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
 {
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
+    ScopedStreamRedirect scoped_log(&std::cout);
+
     int verbosity = options.verbose;
     this->SetVerboseLevel(verbosity);
     this->SetDefaultCutValue(
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
-    // Celeritas-supported EM physics
+    // Add celeritas EM physics plus additional mu/hadron
     detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
 
-    // Celeritas-supported Optical Physics
     if (options.optical)
     {
-        detail::emplace_physics<detail::OpticalPhysics>(*this, options.optical);
+        // Celeritas-supported Optical Physics
+        detail::emplace_physics<SupportedOpticalPhysics>(*this,
+                                                         options.optical);
     }
-
-    // Muon and hadrom EM standard physics not supported in Celeritas
-    detail::emplace_physics<detail::MuHadEmStandardPhysics>(*this, verbosity);
 
     // TODO: Add a physics constructor equivalent to G4EmExtraPhysics
 

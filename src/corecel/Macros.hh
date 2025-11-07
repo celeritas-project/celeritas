@@ -70,6 +70,9 @@
  */
 #define CELER_FORCEINLINE_FUNCTION CELER_FUNCTION CELER_FORCEINLINE
 
+// For use in detail code only for thin wrapper functions
+#define CELER_FIF CELER_FORCEINLINE_FUNCTION
+
 /*!
  * \def CELER_CONSTEXPR_FUNCTION
  *
@@ -77,6 +80,9 @@
  * NVCC, can be evaluated at compile time, and should be forcibly inlined.
  */
 #define CELER_CONSTEXPR_FUNCTION constexpr CELER_FORCEINLINE_FUNCTION
+
+// For use in detail code only for thin wrapper functions
+#define CELER_CEF CELER_CONSTEXPR_FUNCTION
 
 /*!
  * \def CELER_UNLIKELY(condition)

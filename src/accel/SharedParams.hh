@@ -26,6 +26,11 @@ namespace detail
 class OffloadWriter;
 }  // namespace detail
 
+namespace optical
+{
+class CoreParams;
+}  // namespace optical
+
 class CoreParams;
 class CoreStateInterface;
 class GeantGeoParams;
@@ -64,7 +69,7 @@ class SharedParams
     //! \name Type aliases
     using SPParams = std::shared_ptr<CoreParams>;
     using SPConstParams = std::shared_ptr<CoreParams const>;
-    using VecG4ParticleDef = std::vector<G4ParticleDefinition*>;
+    using VecG4PD = std::vector<G4ParticleDefinition*>;
     using Mode = OffloadMode;
     //!@}
 
@@ -85,6 +90,11 @@ class SharedParams
     [[deprecated]]
     static bool KillOffloadTracks();
 
+    // Get list of all supported particles in Celeritas
+    static VecG4PD const& supported_offload_particles();
+
+    // Get list of enabled particles for offloading by default
+    static VecG4PD const& default_offload_particles();
     //!@}
     //!@{
     //! \name Construction
@@ -114,8 +124,8 @@ class SharedParams
     // Access constructed Celeritas data
     inline SPConstParams Params() const;
 
-    // Get a vector of particles supported by Celeritas offloading
-    inline VecG4ParticleDef const& OffloadParticles() const;
+    // Get a vector of particles to be used by Celeritas offloading
+    inline VecG4PD const& OffloadParticles() const;
 
     //! Whether the class has been constructed
     explicit operator bool() const { return mode_ != Mode::uninitialized; }
@@ -130,6 +140,7 @@ class SharedParams
     using SPTimeOutput = std::shared_ptr<TimeOutput>;
     using SPState = std::shared_ptr<CoreStateInterface>;
     using SPOptical = std::shared_ptr<OpticalCollector>;
+    using SPOpticalParams = std::shared_ptr<optical::CoreParams>;
     using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
     using BBox = BoundingBox<double>;
 
@@ -138,6 +149,9 @@ class SharedParams
 
     // Optical properties (only if using optical physics)
     inline SPOptical const& optical() const;
+
+    // Optical params (only if using optical physics)
+    inline SPOpticalParams const& optical_params() const;
 
     // Hit manager, to be used only by LocalTransporter
     inline SPGeantSd const& hit_manager() const;
@@ -169,9 +183,10 @@ class SharedParams
     SPConstGeantGeoParams geant_geo_;
     std::shared_ptr<CoreParams> params_;
     std::shared_ptr<OpticalCollector> optical_;
+    SPOpticalParams optical_params_;
     std::shared_ptr<GeantSd> geant_sd_;
     std::shared_ptr<StepCollector> step_collector_;
-    VecG4ParticleDef particles_;
+    VecG4PD offload_particles_;
     std::string output_filename_;
     SPOffloadWriter offload_writer_;
     std::vector<std::shared_ptr<CoreStateInterface>> states_;
@@ -222,12 +237,22 @@ auto SharedParams::Params() const -> SPConstParams
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a vector of particles supported by Celeritas offloading.
+ * Get a vector of particles to be used by Celeritas offloading.
  */
-auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
+auto SharedParams::OffloadParticles() const -> VecG4PD const&
 {
     CELER_EXPECT(*this);
-    return particles_;
+    return offload_particles_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Optical params: null if Celeritas optical physics is disabled.
+ */
+auto SharedParams::optical_params() const -> SPOpticalParams const&
+{
+    CELER_EXPECT(*this);
+    return optical_params_;
 }
 
 //---------------------------------------------------------------------------//

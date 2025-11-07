@@ -8,6 +8,7 @@
 "universes": [
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -2.0,
@@ -111,8 +112,8 @@
 ],
 "volume_labels": [
 "[EXTERIOR]@outer",
-"inner@outer",
-"inner@outer",
+"i0",
+"i1",
 "bobby",
 "johnny"
 ],
@@ -234,6 +235,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -2.0,
@@ -302,7 +304,7 @@
 ],
 "volume_labels": [
 "[EXTERIOR]@inner",
-"most_inner@inner",
+"p",
 "a",
 "b",
 "c"
@@ -404,6 +406,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 0.0,

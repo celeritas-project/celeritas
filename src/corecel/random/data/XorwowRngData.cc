@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 namespace celeritas
 {
@@ -68,6 +69,8 @@ void resize(XorwowRngStateData<Ownership::value, M>* state,
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params);
+
+    ScopedProfiling profile_this{"init-rng"};
 
     // Create seeds for device in host memory
     HostVal<XorwowRngStateData> host_state;

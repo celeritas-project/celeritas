@@ -88,7 +88,7 @@ struct DetectorStepOutput
     PinnedVec<Energy> energy_deposition;
 
     // 2D size for volume instances
-    size_type volume_instance_depth{0};
+    size_type num_volume_levels{0};
 
     //// METHODS ////
 

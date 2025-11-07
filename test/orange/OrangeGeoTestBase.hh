@@ -31,7 +31,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test base for loading geometry.
+ * Test base for loading geometry with manual ORANGE input.
  */
 class OrangeGeoTestBase : public OrangeTestBase
 {
@@ -42,7 +42,6 @@ class OrangeGeoTestBase : public OrangeTestBase
     using HostParamsRef = HostCRef<OrangeParamsData>;
     using Params = OrangeParams;
     using SPConstParams = std::shared_ptr<OrangeParams const>;
-    using Initializer_t = GeoTrackInitializer;
     //!@}
 
     //!@{
@@ -102,15 +101,15 @@ class OrangeGeoTestBase : public OrangeTestBase
     ImplSurfaceId find_surface(std::string const& label) const;
 
     // Surface name (or sentinel if no surface)
-    std::string id_to_label(UniverseId uid, LocalSurfaceId surfid) const;
+    std::string id_to_label(UnivId uid, LocalSurfaceId surfid) const;
 
-    // Surface name (or sentinel if no surface) within UniverseId{0}
+    // Surface name (or sentinel if no surface) within UnivId{0}
     std::string id_to_label(LocalSurfaceId surfid) const;
 
     // Cell name (or sentinel if no surface)
-    std::string id_to_label(UniverseId uid, LocalVolumeId vol_id) const;
+    std::string id_to_label(UnivId uid, LocalVolumeId vol_id) const;
 
-    // Cell name (or sentinel if no surface) within UniverseId{0}
+    // Cell name (or sentinel if no surface) within UnivId{0}
     std::string id_to_label(LocalVolumeId vol_id) const;
 
     // Print geometry description
@@ -122,7 +121,7 @@ class OrangeGeoTestBase : public OrangeTestBase
     //// GenericGeoTestBase ////
 
     // Return the geometry that was created (via gdml or input)
-    SPConstGeo build_geometry() override;
+    SPConstGeo build_geometry() const override;
 
   private:
     //// TYPES ////

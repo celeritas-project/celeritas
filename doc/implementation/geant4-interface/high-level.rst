@@ -12,8 +12,6 @@ sets up the UI commands (see :cpp:class:`celeritas::SetupOptionsMessenger`),
 MPI (if configured), and Celeritas logging.
 
 .. doxygenclass:: celeritas::IntegrationBase
-   :members:
-   :no-link:
 
 Tracking manager
 ----------------
@@ -39,7 +37,6 @@ It is currently *not* recommended to offload tracks on a per-region basis, since
 tracks exiting that region remain in Celeritas and on GPU.
 
 .. doxygenclass:: celeritas::FastSimulationModel
-
 .. doxygenclass:: celeritas::FastSimulationIntegration
    :members:
 
@@ -52,7 +49,6 @@ class to integrate Celeritas by manually intercepting tracks with a
 
 .. doxygenclass:: celeritas::UserActionIntegration
    :members:
-
 
 The :cpp:class:`celeritas::SimpleOffload` class is a slightly lower level
 interface for
@@ -68,5 +64,3 @@ provided.
    Use the :cpp:class:`celeritas::TrackingManagerIntegration` class.
 
 .. doxygenclass:: celeritas::SimpleOffload
-   :members:
-   :no-link:

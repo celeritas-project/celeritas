@@ -128,8 +128,8 @@ endforeach()
 
 # Save VecGeom options as always-on macros to simplify testing
 set(CELERITAS_VECGEOM_CONFIG)
-if(DEFINED VecGeom_USE_SURF)
-  set(VecGeom_SURFACE ${VecGeom_USE_SURF})
+if(CELERITAS_VecGeom_SURFACE)
+  set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
 endif()
 set(_vecgeom_opts)
 foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
@@ -156,6 +156,16 @@ if(NOT VecGeom_VECTOR STREQUAL "empty")
 endif()
 list(JOIN _vecgeom_opts "," _vecgeom_opts)
 celeritas_append_cmake_string("vecgeom_options" "${_vecgeom_opts}")
+
+# Save Geant4 options for verbose output: start with optional TLS model
+set(_g4_opts ${Geant4_TLS_MODEL})
+foreach(_opt multithreaded shared static smartstack gdml usolids)
+  if(Geant4_${_opt}_FOUND)
+    list(APPEND _g4_opts "${_opt}")
+  endif()
+endforeach()
+list(JOIN _g4_opts "," _g4_opts)
+celeritas_append_cmake_string("geant4_options" "${_g4_opts}")
 
 # Convert lists to newline-separated strings
 foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG DEPENDENCY_VERSIONS)

@@ -8,7 +8,6 @@
 
 #include <cctype>
 #include <memory>
-#include <mutex>
 #include <regex>
 #include <G4String.hh>
 #include <G4Threading.hh>

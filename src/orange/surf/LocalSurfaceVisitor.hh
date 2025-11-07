@@ -68,12 +68,6 @@ class LocalSurfaceVisitor
     // Construct a surface from a data offset
     template<class T>
     inline CELER_FUNCTION T make_surface(LocalSurfaceId data_offset) const;
-
-    // TODO: change surfaces record to use ItemMap, move this to Collection.hh
-    template<class T, class U>
-    static inline CELER_FUNCTION T get_item(Items<T> const& items,
-                                            ItemRange<T> const& range,
-                                            ItemId<U> item);
 };
 
 //---------------------------------------------------------------------------//
@@ -120,7 +114,7 @@ LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
             using S = typename decltype(s_traits)::type;
             return func(this->make_surface<S>(id));
         },
-        this->get_item(params_.surface_types, surfaces_.types, id));
+        params_.surface_types[surfaces_.types[id]]);
 }
 #endif
 
@@ -134,30 +128,15 @@ template<class T>
 CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
 {
     using Reals = decltype(params_.reals);
-    using ItemIdT = typename Reals::ItemIdT;
-    using ItemRangeT = typename Reals::ItemRangeT;
-    ItemIdT offset
-        = this->get_item(params_.real_ids, surfaces_.data_offsets, id);
+    using RealIdT = typename Reals::ItemIdT;
+    using RealRangeT = typename Reals::ItemRangeT;
+    RealIdT offset = params_.real_ids[surfaces_.data_offsets[id]];
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());
-    auto storage_span = params_.reals[ItemRangeT{offset, offset + size}];
+    auto storage_span = params_.reals[RealRangeT{offset, offset + size}];
     // Convert to a statically sized span using the first() member template
     // function, then construct a surface, for LdgSpan to work correctly.
     return T{storage_span.template first<size>()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a pointer to the item offset using the given range in a given
- * collection.
- */
-template<class T, class U>
-CELER_FORCEINLINE_FUNCTION T LocalSurfaceVisitor::get_item(
-    Items<T> const& items, ItemRange<T> const& offsets, ItemId<U> item)
-{
-    CELER_EXPECT(*offsets.end() <= items.size());
-    CELER_EXPECT(item < offsets.size());
-    return items[offsets][item.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

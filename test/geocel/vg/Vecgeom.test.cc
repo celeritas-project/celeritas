@@ -10,18 +10,15 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
-#include "geocel/GeantGdmlLoader.hh"
-#include "geocel/GeantGeoParams.hh"
-#include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantImportVolumeResult.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoParamsOutput.hh"
@@ -32,7 +29,6 @@
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
 
-#include "PersistentSP.hh"
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -68,11 +64,15 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
     virtual SpanStringView expected_log_levels() const { return {}; }
 
     //! Get the safety tolerance: lower for surface geo
-    real_type safety_tol() const override
+    GenericGeoTrackingTolerance tracking_tol() const override
     {
+        auto result = VecgeomTestBase::tracking_tol();
+
         if (CELERITAS_VECGEOM_SURFACE)
-            return 5e-5;
-        return VecgeomTestBase::safety_tol();
+        {
+            result.safety = 5e-5;
+        }
+        return result;
     }
 };
 
@@ -80,12 +80,18 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
 class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
 {
   public:
-    SPConstGeo build_geometry() final
+    SPConstGeo build_geometry() const final
     {
+        using namespace celeritas::cmake;
+        cout << color_code('x') << "VecGeom v" << vecgeom_version << " ("
+             << vecgeom_options << ") using VGDML" << color_code(' ') << endl;
+
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
-        auto result = VecgeomParams::from_gdml_vg(this->test_data_path(
-            "geocel", this->geometry_basename() + std::string{".gdml"}));
+        std::string filename{this->gdml_basename()};
+        filename += ".gdml";
+        auto result = VecgeomParams::from_gdml_vg(
+            this->test_data_path("geocel", filename));
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -98,24 +104,17 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
   public:
     using GeantVolResult = GeantImportVolumeResult;
 
-    //! Helper function: build via Geant4 GDML reader
-    SPConstGeo build_geometry() final
+    //! Construct via persistent geant_geo; see LazyGeantGeoManager
+    SPConstGeo build_geometry() const final
     {
-        static PersistentSP<GeantGeoParams> pgg{"geant4 geometry"};
+        using namespace celeritas::cmake;
+        cout << color_code('x') << "VecGeom v" << vecgeom_version << " ("
+             << vecgeom_options << ") using G4VG v" << g4vg_version
+             << " and Geant4 v" << geant4_version << color_code(' ') << endl;
 
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
-
-        auto filename = this->test_data_path(
-            "geocel", this->geometry_basename() + std::string{".gdml"});
-        if (filename != pgg.key())
-        {
-            pgg.clear();
-            auto new_geo = GeantGeoParams::from_gdml(filename);
-            pgg.set(std::string{filename}, std::move(new_geo));
-        }
-        CELER_ASSERT(pgg.value());
-        auto result = VecgeomParams::from_geant(pgg.value());
+        auto result = VecgeomTestBaseImpl::build_geometry();
         EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
             << scoped_log_;
         return result;
@@ -125,12 +124,6 @@ class VecgeomGeantTestBase : public VecgeomTestBaseImpl
     GeantVolResult get_import_geant_volumes()
     {
         return GeantVolResult::from_import(*this->geometry());
-    }
-
-    //! Test conversion for Geant4 geometry
-    GeantVolResult get_direct_geant_volumes()
-    {
-        return GeantVolResult::from_pointers(*this->geometry());
     }
 
     SpanStringView expected_log_levels() const override { return {}; }
@@ -145,59 +138,17 @@ using FourLevelsVgdmlTest
 
 TEST_F(FourLevelsVgdmlTest, accessors)
 {
-    // TODO: VGDML leaves pointer in the world PV name before appending _PV
-    // suffix
-
-    // this->impl().test_accessors();
-
-    static char const* const expected_vol_labels[] = {
-        "Shape2",
-        "Shape1",
-        "Envelope",
-        "World",
-    };
-    EXPECT_VEC_EQ(expected_vol_labels, this->get_volume_labels());
-
-    static char const* const expected_vol_inst_labels[] = {
-        "Shape2",
-        "Shape1",
-        "env1",
-        "env2",
-        "env3",
-        "env4",
-        "env5",
-        "env6",
-        "env7",
-        "env8",
-        "World0xdeadbeef_PV",
-    };
-    EXPECT_VEC_EQ(expected_vol_inst_labels, this->get_volume_instance_labels());
+    this->impl().test_accessors();
 }
 
 TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 {
-    auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
-    ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ("Shape2", this->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
-
-    auto next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
-
-    next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
-
-    // Find safety from a freshly initialized state
-    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
+    this->impl().test_consecutive_compute();
 }
 
 TEST_F(FourLevelsVgdmlTest, detailed_track)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(FourLevelsVgdmlTest, trace)
@@ -224,6 +175,8 @@ TEST_F(FourLevelsVgdmlTest, safety)
         }
     }
 
+    auto const safety_tol = this->tracking_tol().safety;
+
     static double const expected_safeties[] = {
         2.9,
         0.9,
@@ -237,11 +190,11 @@ TEST_F(FourLevelsVgdmlTest, safety)
         1.1,
         3.1,
     };
-    EXPECT_VEC_NEAR(expected_safeties, safeties, safety_tol());
+    EXPECT_VEC_NEAR(expected_safeties, safeties, safety_tol);
 
     static double const expected_lim_safeties[]
         = {1.5, 0.9, 0.1, 1.5, 1.5, 1.5, 1.3626933041054, 1.5, 0.1, 1.1, 1.5};
-    EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, safety_tol());
+    EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, safety_tol);
 }
 
 TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
@@ -284,9 +237,9 @@ TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 using MultiLevelVgdmlTest
     = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelVgdmlTest, DISABLED_model)
+TEST_F(MultiLevelVgdmlTest, volume_stack)
 {
-    TestImpl(this).test_model();
+    this->impl().test_volume_stack();
 }
 
 TEST_F(MultiLevelVgdmlTest, trace)
@@ -302,7 +255,7 @@ using SimpleCmsVgdmlTest
 TEST_F(SimpleCmsVgdmlTest, accessors)
 {
     auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ(2, geom.num_volume_levels());
     EXPECT_EQ(7, geom.impl_volumes().size());
 }
 
@@ -313,8 +266,7 @@ TEST_F(SimpleCmsVgdmlTest, trace)
 
 TEST_F(SimpleCmsVgdmlTest, detailed_track)
 {
-    // Templated test
-    SimpleCmsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
@@ -427,7 +379,7 @@ TEST_F(SolidsVgdmlTest, accessors)
     }
 
     auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
+    EXPECT_EQ(2, geom.num_volume_levels());
 
     if (vecgeom_version < Version(1, 2, 2))
     {
@@ -477,10 +429,29 @@ TEST_F(TwoBoxesVgdmlTest, accessors)
     this->impl().test_accessors();
 }
 
-TEST_F(TwoBoxesVgdmlTest, track)
+TEST_F(TwoBoxesVgdmlTest, detailed_track)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
+}
+
+TEST_F(TwoBoxesVgdmlTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesVgdmlTest, reentrant_undo)
+{
+    this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesVgdmlTest, tangent)
+{
+    this->impl().test_tangent();
+}
+
+TEST_F(TwoBoxesVgdmlTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
@@ -570,13 +541,27 @@ TEST_F(FourLevelsTest, levels)
 }
 
 //---------------------------------------------------------------------------//
+using LarSphereTest
+    = GenericGeoParameterizedTest<VecgeomGeantTestBase, LarSphereGeoTest>;
+
+TEST_F(LarSphereTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(LarSphereTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+//---------------------------------------------------------------------------//
 
 using MultiLevelTest
     = GenericGeoParameterizedTest<VecgeomGeantTestBase, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelTest, DISABLED_model)
+TEST_F(MultiLevelTest, volume_stack)
 {
-    this->impl().test_model();
+    this->impl().test_volume_stack();
 }
 
 TEST_F(MultiLevelTest, trace)
@@ -598,11 +583,19 @@ TEST_F(PolyhedraTest, trace)
 class ReplicaTest
     : public GenericGeoParameterizedTest<VecgeomGeantTestBase, ReplicaGeoTest>
 {
-    real_type safety_tol() const final
+    //! Get the safety tolerance: lower for surface geo
+    GenericGeoTrackingTolerance tracking_tol() const override
     {
+        auto result = VecgeomTestBase::tracking_tol();
+
+        // ~1e-12 discrepancy for some traces (when avx2 is enabled?)
+        result.distance *= 10;
+
         if (CELERITAS_VECGEOM_SURFACE)
-            return 1e-5;
-        return 1e-10;
+        {
+            result.safety = 5e-5;
+        }
+        return result;
     }
 };
 
@@ -622,11 +615,37 @@ class SolidsTest
     : public GenericGeoParameterizedTest<VecgeomGeantTestBase, SolidsGeoTest>
 {
   public:
+    static void SetUpTestSuite()
+    {
+        if (vecgeom_version <= Version(1, 1, 17))
+        {
+            FAIL() << "VecGeom " << vecgeom_version
+                   << " crashes when trying to load unknown solids";
+        }
+
+        if (vecgeom_version < Version(1, 2, 2))
+        {
+            ADD_FAILURE()
+                << "VecGeom " << vecgeom_version
+                << " is missing features: upgrade to 1.2.2 to pass this test";
+        }
+    }
+
     // trd_refl is in the GDML *and* generated by ReflFactory
     SpanStringView expected_log_levels() const final
     {
         static std::string_view const levels[] = {"error"};
         return make_span(levels);
+    }
+
+    // VecGeom volume 1.2.10 boolean tracking disagrees ~1e-7 from Geant4
+    GenericGeoTrackingTolerance tracking_tol() const override
+    {
+        auto result = VecgeomTestBase::tracking_tol();
+
+        result.distance = 1e-7;
+        result.safety = 1e-7;
+        return result;
     }
 };
 
@@ -639,18 +658,6 @@ TEST_F(SolidsTest, DISABLED_dump)
 
 TEST_F(SolidsTest, accessors)
 {
-    if (vecgeom_version <= Version(1, 1, 17))
-    {
-        FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
-    }
-
-    if (vecgeom_version < Version(1, 2, 2))
-    {
-        ADD_FAILURE()
-            << "VecGeom " << vecgeom_version
-            << " is missing features: upgrade to 1.2.2 to pass this test";
-    }
-
     TestImpl(this).test_accessors();
 }
 
@@ -685,17 +692,6 @@ TEST_F(SolidsTest, geant_volumes)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_labels.size())
             << repr(result.missing_labels);
-    }
-    {
-        auto result = this->get_direct_geant_volumes();
-        static int const expected_volumes[] = {
-            0,  1,  2,  3,  4,  5,  6,  7,  -2, 8,  9,  14, 15,
-            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29,
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-
-        static char const* const expected_missing[] = {"trd3"};
-        EXPECT_VEC_EQ(expected_missing, result.missing_labels);
     }
 }
 
@@ -756,21 +752,46 @@ TEST_F(ZnenvTest, trace)
 // UTILITIES
 //---------------------------------------------------------------------------//
 
-#define ArbitraryVgdmlTest DISABLED_ArbitraryVgdmlTest
-class ArbitraryVgdmlTest : public VecgeomTestBase
+class ArbitraryVecgeomTest : public VecgeomTestBase
 {
   public:
-    SPConstGeo build_geometry() final
+    void SetUp() override
     {
-        auto filename = celeritas::getenv("GDML");
+        filename_ = celeritas::getenv("GDML");
         CELER_VALIDATE(
-            !filename.empty(),
-            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryVgdmlTest*' --gtest_also_run_disabled_tests)");
-        return VecgeomParams::from_gdml_vg(filename);
+            !filename_.empty(),
+            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*)"
+            << ::testing::UnitTest::GetInstance()
+                       ->current_test_info()
+                       ->test_suite_name()
+            << "*' --gtest_also_run_disabled_tests)");
+    }
+
+    // Basename used as key for cached geo
+    std::string_view gdml_basename() const final
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+    // Filename loaded from user
+    std::string filename() const { return filename_; }
+
+  private:
+    std::string filename_;
+};
+
+//---------------------------------------------------------------------------//
+
+class ArbitraryVgdmlTest : public ArbitraryVecgeomTest
+{
+  public:
+    SPConstGeo build_geometry() const final
+    {
+        return VecgeomParams::from_gdml_vg(this->filename());
     }
 };
 
-TEST_F(ArbitraryVgdmlTest, dump)
+TEST_F(ArbitraryVgdmlTest, DISABLED_dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
@@ -779,31 +800,23 @@ TEST_F(ArbitraryVgdmlTest, dump)
 
 //---------------------------------------------------------------------------//
 
-#define ArbitraryTest DISABLED_ArbitraryGeantTest
-class ArbitraryGeantTest : public VecgeomTestBase
+class ArbitraryGeantTest : public ArbitraryVecgeomTest
 {
   public:
-    SPConstGeo build_geometry() final
+    SPConstGeo build_geometry() const final
     {
-        auto filename = celeritas::getenv("GDML");
-        CELER_VALIDATE(
-            !filename.empty(),
-            << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*ArbitraryGeantTest*' --gtest_also_run_disabled_tests)");
-        return VecgeomParams::from_gdml_g4(filename);
+        return VecgeomParams::from_gdml_g4(this->filename());
     }
-    static G4VPhysicalVolume* world_volume_;
 };
 
-G4VPhysicalVolume* ArbitraryGeantTest::world_volume_{nullptr};
-
-TEST_F(ArbitraryGeantTest, conversion)
+TEST_F(ArbitraryGeantTest, DISABLED_convert)
 {
     auto result = GeantImportVolumeResult::from_import(*this->geometry());
     result.print_expected();
     EXPECT_EQ(0, result.missing_labels.size());
 }
 
-TEST_F(ArbitraryGeantTest, dump)
+TEST_F(ArbitraryGeantTest, DISABLED_dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();

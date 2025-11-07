@@ -16,7 +16,6 @@
 
 #include "detail/BoundingZone.hh"
 #include "detail/BuildIntersectRegion.hh"
-#include "detail/CsgUnitBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
 namespace celeritas
@@ -245,7 +244,10 @@ Solid<T>::Solid(std::string&& label,
 //---------------------------------------------------------------------------//
 
 template class Solid<Cone>;
+template class Solid<CutCylinder>;
 template class Solid<Cylinder>;
+template class Solid<Ellipsoid>;
+template class Solid<Hyperboloid>;
 template class Solid<Prism>;
 template class Solid<Sphere>;
 

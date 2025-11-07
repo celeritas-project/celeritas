@@ -7,16 +7,23 @@
 #include "UnitProto.hh"
 
 #include <algorithm>
+#include <map>
 #include <numeric>
+#include <set>
 #include <utility>
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
 
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/VolumeToString.hh"
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/transform/VariantTransform.hh"
@@ -39,13 +46,129 @@ namespace celeritas
 {
 namespace orangeinp
 {
+namespace
+{
+using detail::CsgUnit;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Simplify a CSG tree by replaing 'exterior' with 'false'.
+ *
+ * This is allowed (and required, to avoid coincident surfaces) for non-global
+ * universes because higher levels truncate lower ones.
+ */
+void remove_interior(CsgUnit& unit, std::string_view label)
+{
+    CELER_EXPECT(!unit.tree.volumes().empty());
+    NodeId ext_node
+        = unit.tree.volumes()[orange_exterior_volume.unchecked_get()];
+    auto unknowns = replace_and_simplify(&unit.tree, ext_node, False{});
+    if (!unknowns.empty())
+    {
+        auto write_node_labels
+            = [&md = unit.metadata](std::ostream& os, NodeId nid) {
+                  CELER_ASSERT(nid < md.size());
+                  auto const& labels = md[nid.get()];
+                  os << '{' << join(labels.begin(), labels.end(), ", ") << '}';
+              };
+        CELER_LOG(warning)
+            << "While building '" << label
+            << "', encountered surfaces that could not be logically "
+               "eliminated from the boundary: "
+            << join_stream(
+                   unknowns.begin(), unknowns.end(), ", ", write_node_labels);
+    }
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Simplify negated joins for infix evaluation.
+ *
+ * Apply DeMorgan simplification to use the \c CsgUnit in infix evaluation.
+ * \c NodeId indexing in the \c CsgTree are invalidated after calling this,
+ * \c CsgUnit data is updated to point to the simplified tree \c NodeId but any
+ * previously cached \c NodeId is invalid.
+ */
+void remove_negated_join(CsgUnit& unit, std::string_view label)
+{
+    // Apply demorgan simplification
+    auto&& [tree, nodes] = transform_negated_joins(unit.tree);
+    CELER_ASSERT(unit.tree.size() == nodes.size());
+    CELER_ASSERT(tree.volumes().size() == unit.tree.volumes().size());
+
+    // CsgUnit attributes with updated node IDs
+    std::vector<std::set<CsgUnit::Metadata>> metadata(tree.size());
+    std::map<NodeId, CsgUnit::Region> regions;
+
+    // Map metadata
+    for (auto old_id : range(id_cast<NodeId>(unit.tree.size())))
+    {
+        auto& old_md = unit.metadata[old_id.get()];
+        if (auto new_id = nodes[old_id.get()])
+        {
+            CELER_ASSERT(new_id < metadata.size());
+
+            // Update metadata
+            auto& new_md = metadata[new_id.get()];
+            if (CELER_UNLIKELY(!new_md.empty()))
+            {
+                // Node was merged with another node
+                CELER_LOG(warning)
+                    << "Merged CSG node "
+                    << join(new_md.begin(), new_md.end(), "','") << " into "
+                    << join(old_md.begin(), old_md.end(), "','");
+                new_md.insert(old_md.begin(), old_md.end());
+                old_md.clear();
+            }
+            else
+            {
+                new_md = std::move(old_md);
+            }
+
+            // Update region
+            if (auto iter = unit.regions.find(new_id);
+                iter != unit.regions.end())
+            {
+                regions.insert(unit.regions.extract(iter));
+            }
+        }
+        else
+        {
+            // Node was removed from the tree
+            auto region = unit.regions.find(old_id);
+            if (CELER_UNLIKELY(region != unit.regions.end() || !old_md.empty()))
+            {
+                auto msg = CELER_LOG(warning);
+                msg << "Simplification removed node " << old_id.get();
+                if (!old_md.empty())
+                {
+                    msg << "='" << join(old_md.begin(), old_md.end(), "','")
+                        << "'";
+                }
+                if (region != unit.regions.end())
+                {
+                    msg << " (which has a region)";
+                }
+                msg << " from '" << label << "'";
+            }
+        }
+    }
+
+    // Update the unit
+    unit.metadata = std::move(metadata);
+    unit.regions = std::move(regions);
+    unit.tree = std::move(tree);
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with required input data.
  */
 UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
 {
-    CELER_VALIDATE(input_, << "no fill, daughters, or volumes are defined");
+    CELER_VALIDATE(input_,
+                   << "no fill, daughters, or volumes are defined in '"
+                   << this->label() << "'");
     CELER_VALIDATE(std::all_of(input_.materials.begin(),
                                input_.materials.begin(),
                                Identity{}),
@@ -66,7 +189,7 @@ UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
  */
 std::string_view UnitProto::label() const
 {
-    return input_.label;
+    return input_.label.name;
 }
 
 //---------------------------------------------------------------------------//
@@ -102,8 +225,10 @@ auto UnitProto::daughters() const -> VecProto
 void UnitProto::build(ProtoBuilder& input) const
 {
     // Bounding box should be finite if and only if this is the global universe
-    CELER_EXPECT((input.next_id() == orange_global_universe)
+    CELER_EXPECT((input.next_id() == orange_global_univ)
                  == !input.bbox(input.next_id()));
+
+    ScopedProfiling profile_this{"orange-unitproto"};
 
     // Build CSG unit
     auto csg_unit = this->build(input.tol(), input.bbox(input.next_id()));
@@ -233,7 +358,7 @@ void UnitProto::build(ProtoBuilder& input) const
     auto vol_iter = result.volumes.begin();
 
     // Save attributes for exterior volume
-    if (input.next_id() != orange_global_universe)
+    if (input.next_id() != orange_global_univ)
     {
         vol_iter->zorder = ZOrder::implicit_exterior;
         vol_iter->flags |= VolumeRecord::implicit_vol;
@@ -242,7 +367,7 @@ void UnitProto::build(ProtoBuilder& input) const
     {
         vol_iter->zorder = input_.boundary.zorder;
     }
-    vol_iter->label = {"[EXTERIOR]", input_.label};
+    vol_iter->label = Label{"[EXTERIOR]", input_.label.name};
     ++vol_iter;
 
     BoundingBoxBumper<real_type> bump_bbox{input.tol()};
@@ -251,9 +376,14 @@ void UnitProto::build(ProtoBuilder& input) const
         LocalVolumeId const vol_id{
             static_cast<size_type>(vol_iter - result.volumes.begin())};
 
-        // Save daughter volume attributes
-        vol_iter->label
-            = Label{std::string{d.fill->label()}, std::string{this->label()}};
+        // Save daughter attributes
+        vol_iter->label = d.label;
+        if (vol_iter->label == VariantLabel{})
+        {
+            // Choose default label for the volume
+            vol_iter->label = Label{std::string{d.fill->label()},
+                                    std::string{this->label()}};
+        }
         vol_iter->zorder = d.zorder;
         /* TODO: the "embedded_universe" flag is *also* set by the unit
          * builder. Move that here. */
@@ -263,7 +393,7 @@ void UnitProto::build(ProtoBuilder& input) const
         auto&& [iter, inserted] = result.daughter_map.insert({vol_id, {}});
         CELER_ASSERT(inserted);
         // Convert proto pointer to universe ID
-        iter->second.universe_id = input.find_universe_id(d.fill.get());
+        iter->second.univ_id = input.find_universe_id(d.fill.get());
 
         // Save the transform
         auto const* fill = std::get_if<Daughter>(&csg_unit.fills[vol_id.get()]);
@@ -277,33 +407,34 @@ void UnitProto::build(ProtoBuilder& input) const
         // parent-reference-frame bbox
         auto local_bbox = apply_transform(calc_inverse(iter->second.transform),
                                           result.volumes[vol_id.get()].bbox);
-        input.expand_bbox(iter->second.universe_id, bump_bbox(local_bbox));
+        input.expand_bbox(iter->second.univ_id, bump_bbox(local_bbox));
     }
 
     // Save attributes from materials
     for (auto const& m : input_.materials)
     {
         CELER_ASSERT(vol_iter != result.volumes.end());
-        vol_iter->label = !m.label.empty()
-                              ? m.label
-                              : Label{std::string(m.interior->label())};
+        vol_iter->label = m.label;
+        if (vol_iter->label == decltype(m.label){})
+        {
+            // Default: empty label
+            vol_iter->label = Label{std::string(m.interior->label())};
+        }
         vol_iter->zorder = ZOrder::media;
         ++vol_iter;
     }
 
-    if (input_.background)
+    if (auto const& b = input_.background)
     {
         CELER_ASSERT(vol_iter != result.volumes.end());
-        vol_iter->label = !input_.background.label.empty()
-                              ? input_.background.label
-                              : Label{input_.label, "bg"};
+        vol_iter->label = b.label;
         ++vol_iter;
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
 
     if (input.save_json())
     {
-        // Write debug information
+        // Write CSG debug output
         JsonPimpl jp;
         jp.obj = csg_unit;
         jp.obj["remapped_surfaces"] = [&sorted_local_surfaces] {
@@ -324,7 +455,9 @@ void UnitProto::build(ProtoBuilder& input) const
         CELER_ASSERT(unit_volumes.size() <= result.volumes.size());
         for (auto vol_idx : range(unit_volumes.size()))
         {
-            jv[vol_idx]["label"] = result.volumes[vol_idx].label;
+            jv[vol_idx]["label"]
+                = std::visit([](auto&& obj) -> nlohmann::json { return obj; },
+                             result.volumes[vol_idx].label);
         }
 
         // Save our universe label
@@ -374,6 +507,8 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
                      << ": " << input_.daughters.size() << " daughters and "
                      << input_.materials.size() << " materials...";
 
+    ScopedProfiling profile_this{"orange-csg"};
+
     detail::CsgUnit result;
     detail::CsgUnitBuilder unit_builder(
         &result, tol, is_global_universe ? BBox::from_infinite() : bbox);
@@ -385,6 +520,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     };
 
     // Build exterior volume and optional background fill
+    // (Exterior volume *must* be built first so that its volume ID is zero).
     if (input_.boundary.zorder != ZOrder::media && !input_.background)
     {
         CELER_NOT_IMPLEMENTED("implicit exterior without background fill");
@@ -399,15 +535,17 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
         auto region_iter = result.regions.find(interior_node);
         CELER_ASSERT(region_iter != result.regions.end());
         auto const& bz = region_iter->second.bounds;
-        CELER_VALIDATE(!bz.negated && is_finite(bz.exterior),
-                       << "global boundary must be finite: cannot determine "
-                          "extents of interior '"
-                       << input_.boundary.interior->label() << "' in '"
-                       << this->label() << '\'');
+        CELER_VALIDATE(
+            !bz.negated && is_finite(bz.exterior),
+            << "global boundary must be finite: cannot determine "
+               "extents of interior '"
+            << input_.boundary.interior->label() << "' in '" << this->label()
+            << "': " << (bz.negated ? "negated interior" : "exterior")
+            << " bounds are " << (bz.negated ? bz.interior : bz.exterior));
     }
 
     // Build daughters
-    UniverseId daughter_id{0};
+    UnivId daughter_id{0};
     for (auto const& d : input_.daughters)
     {
         if (d.zorder != ZOrder::media)
@@ -431,37 +569,15 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     // Build background fill (optional)
     result.background = input_.background.fill;
 
-    if (!is_global_universe)
+    if (!is_global_universe && input_.remove_interior)
     {
-        // Replace "exterior" with "False" (i.e. interior with true)
-        NodeId ext_node = result.tree.volumes()[ext_vol.unchecked_get()];
-        auto unknowns = replace_and_simplify(&result.tree, ext_node, False{});
-        if (!unknowns.empty())
-        {
-            auto write_node_labels = [&md = result.metadata](std::ostream& os,
-                                                             NodeId nid) {
-                CELER_ASSERT(nid < md.size());
-                auto const& labels = md[nid.get()];
-                os << '{' << join(labels.begin(), labels.end(), ", ") << '}';
-            };
-            CELER_LOG(warning)
-                << "While building '" << this->label()
-                << "', encountered surfaces that could not be logically "
-                   "eliminated from the boundary: "
-                << join_stream(unknowns.begin(),
-                               unknowns.end(),
-                               ", ",
-                               write_node_labels);
-        }
+        // Assume that the enclosing universe provides our boundary conditions
+        remove_interior(result, this->label());
+    }
 
-        if (input_.simplification == UnitSimplification::infix_logic)
-        {
-            unit_builder.simplifiy_joins();
-        }
-
-        /*! \todo We can sometimes eliminate CSG surfaces and nodes that aren't
-         * used by the actual volumes>
-         */
+    if (input_.remove_negated_join)
+    {
+        remove_negated_join(result, this->label());
     }
 
     return result;
@@ -473,29 +589,30 @@ void UnitProto::output(JsonPimpl* j) const
     using json = nlohmann::json;
 
     auto obj = json::object({{"label", input_.label}});
+    VolumeToString to_string;
 
     if (auto& bg = input_.background)
     {
         obj["background"] = {
             {"fill", bg.fill.unchecked_get()},
-            {"label", bg.label},
+            {"label", std::visit(to_string, bg.label)},
         };
     }
 
-    obj["materials"] = [&ms = input_.materials] {
+    obj["materials"] = [&ms = input_.materials, to_string] {
         auto result = json::array();
         for (auto const& m : ms)
         {
             result.push_back({
                 {"interior", m.interior},
                 {"fill", m.fill.get()},
-                {"label", m.label},
+                {"label", std::visit(to_string, m.label)},
             });
         }
         return result;
     }();
 
-    obj["daughters"] = [&ds = input_.daughters] {
+    obj["daughters"] = [&ds = input_.daughters, to_string] {
         auto result = json::array();
         for (auto const& d : ds)
         {
@@ -503,6 +620,7 @@ void UnitProto::output(JsonPimpl* j) const
                 {"fill", d.fill->label()},
                 {"transform", d.transform},
                 {"zorder", to_cstring(d.zorder)},
+                {"label", std::visit(to_string, d.label)},
             });
         }
         return result;

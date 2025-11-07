@@ -21,13 +21,13 @@ RUN if [ "$DOCKERFILE_DISTRO" = "ubuntu" ] ; then \
  apt-get -yqq update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl libnuma-dev gnupg \
   && curl -sL https://repo.radeon.com/rocm/rocm.gpg.key | apt-key add - \
-  && printf "deb [arch=amd64] https://repo.radeon.com/rocm/apt/6.3.1/ noble main" | tee --append /etc/apt/sources.list.d/rocm.list \
-  && printf "deb [arch=amd64] https://repo.radeon.com/amdgpu/6.3.1/ubuntu noble main" | tee /etc/apt/sources.list.d/amdgpu.list \
+  && printf "deb [arch=amd64] https://repo.radeon.com/rocm/apt/7.1/ noble main" | tee --append /etc/apt/sources.list.d/rocm.list \
+  && printf "deb [arch=amd64] https://repo.radeon.com/amdgpu/latest/ubuntu noble main" | tee /etc/apt/sources.list.d/amdgpu.list \
   && apt-get update \
   && apt-get -yqq upgrade \
   && DEBIAN_FRONTEND=noninteractive apt-get -yqq install --no-install-recommends \
      build-essential ca-certificates curl file g++ gcc gfortran git gnupg2 iproute2 locales make mercurial subversion python3 python3-pip python3-setuptools unzip zstd \
-     hiprand-dev rocrand-dev rocthrust-dev hipblas-dev \
+     hiprand-dev rocrand-dev rocthrust-dev hipblas-dev hipcub-dev \
   && locale-gen en_US.UTF-8 \
   && rm -rf /var/lib/apt/lists/* ; \
 elif [ "$DOCKERFILE_DISTRO" = "rocky" ] ; then \

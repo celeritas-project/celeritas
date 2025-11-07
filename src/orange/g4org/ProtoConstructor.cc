@@ -8,8 +8,9 @@
 
 #include <iostream>
 
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/io/StreamableVariant.hh"
-#include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Transformed.hh"
@@ -31,31 +32,47 @@ bool is_union(ProtoConstructor::SPConstObject const& obj)
 }
 
 //---------------------------------------------------------------------------//
+// It's possible to have Geant4 geometry with no materials defined:
+// in this case, the background/material will be 'false' unless we use a
+// bogus material ID
+GeoMatId background_fill(GeoMatId mat)
+{
+    if (mat)
+        return mat;
+    return GeoMatId{0};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a proto-universe from a logical volume.
+ * Construct a proto-universe from a physical volume.
+ *
+ * We can use logical volume for the structure, but we need to associate the
+ * world physical volume ID.
  */
 auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 {
-    auto const& label = this->get_label(lv);
+    auto const& label = volumes_.volume_labels().at(lv.id);
 
-    ProtoInput input;
+    UnitProto::Input input;
     input.boundary.interior = lv.solid;
-    input.label = label.name;
+    input.label = label;
+    input.remove_interior = opts_.remove_interior;
+    input.remove_negated_join = opts_.remove_negated_join;
 
-    if (CELER_UNLIKELY(verbose_))
+    if (CELER_UNLIKELY(opts_.verbose_structure))
     {
-        std::clog << std::string(depth_, ' ') << "* New proto: " << label
-                  << " with shape " << to_string(*lv.solid) << std::endl;
+        std::clog << std::string(depth_, ' ') << "* New proto: '" << label
+                  << "' with shape " << to_string(*lv.solid) << std::endl;
     }
 
-    // Add children first
-    for (PhysicalVolume const& pv : lv.children)
+    // Add children
+    for (PhysicalVolume const& child_pv : lv.children)
     {
         ++depth_;
-        this->place_pv(NoTransformation{}, pv, &input);
+        this->place_pv(NoTransformation{}, child_pv, &input);
         --depth_;
     }
 
@@ -63,29 +80,38 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
     // explicit background cell
     if (lv.children.size() <= fill_daughter_threshold())
     {
-        if (CELER_UNLIKELY(verbose_))
-        {
-            std::clog << std::string(depth_, ' ') << " - explicit background"
-                      << std::endl;
-        }
-        // Create explicit "fill" for this logical volume
+        // Create explicit "fill" impl volume for this logical volume. The
+        // special "empty volume instance" label indicates to the
+        // find_bg_volume function in Converter.cc that this needs to be set
+        // as an LV rather than a PV.
         orangeinp::UnitProto::MaterialInput background;
         background.interior
             = this->make_explicit_background(lv, NoTransformation{});
-        background.label = label;
-        background.fill = lv.material_id;
+        background.label = VolumeInstanceId{};
+        background.fill = background_fill(lv.material_id);
         input.boundary.zorder = ZOrder::media;
         input.materials.push_back(std::move(background));
+
+        if (CELER_UNLIKELY(opts_.verbose_structure))
+        {
+            std::clog << std::string(depth_, ' ') << " - explicit background "
+                      << " for proto '" << label << "'" << std::endl;
+        }
     }
     else
     {
-        if (CELER_UNLIKELY(verbose_))
+        // Children are *implicitly* subtracted from the parent. Since this
+        // universal fill corresponds to a *volume* rather than an *instance*,
+        // we indicate this fill with a null volume instance ID.
+        input.background.fill = background_fill(lv.material_id);
+        input.background.label = VolumeInstanceId{};
+        CELER_ASSERT(input.background);
+
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " - implicit background"
-                      << std::endl;
+                      << " for proto '" << label << "'" << std::endl;
         }
-        input.background.fill = lv.material_id;
-        input.background.label = label;
     }
 
     CELER_ENSURE(input);
@@ -93,26 +119,36 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 }
 
 //---------------------------------------------------------------------------//
-Label const& ProtoConstructor::get_label(LogicalVolume const& lv)
+/*!
+ * Whether we should inline a volume based on its pv's transform.
+ */
+bool ProtoConstructor::can_inline_transform(VariantTransform const& vt) const
 {
-    CELER_EXPECT(lv.id);
-    return geo_.impl_volumes().at(lv.id);
-}
-
-//---------------------------------------------------------------------------//
-Label const& ProtoConstructor::get_label(PhysicalVolume const& pv)
-{
-    CELER_EXPECT(pv.id);
-    return geo_.volume_instances().at(pv.id);
+    switch (opts_.inline_singletons)
+    {
+        case InlineSingletons::none:
+            return false;
+        case InlineSingletons::untransformed:
+            return std::holds_alternative<NoTransformation>(vt);
+        case InlineSingletons::unrotated:
+            return !std::holds_alternative<Transformation>(vt);
+        case InlineSingletons::all:
+            return true;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Place this physical volume into the proto.
+ * Place this physical volume into a proto being constructed.
+ *
+ * It will return a "local child ID" if it generates a material input, but not
+ * if it spawns a daughter proto.
  */
 void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                                 PhysicalVolume const& pv,
-                                ProtoInput* proto)
+                                UnitProto::Input* proto)
 {
     CELER_EXPECT(proto);
 
@@ -122,66 +158,56 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     // that's subtracted from an inlined LV
     auto transform = apply_transform(parent_transform, pv.transform);
 
-    auto const& label = this->get_label(pv);
-
-    if (CELER_UNLIKELY(verbose_))
+    if (CELER_UNLIKELY(opts_.verbose_structure))
     {
-        std::clog << std::string(depth_, ' ') << "- Add pv " << label
-                  << " use_count=" << pv.lv.use_count()
+        std::clog << std::string(depth_, ' ') << "- Add pv '"
+                  << volumes_.volume_instance_labels().at(pv.id)
+                  << "' use_count=" << pv.lv.use_count()
                   << ", num_children=" << pv.lv->children.size() << ", at "
-                  << StreamableVariant{transform} << " to " << proto->label
-                  << std::endl;
+                  << StreamableVariant{transform} << " to '" << proto->label
+                  << "'" << std::endl;
     }
 
-    auto add_material = [this, proto, &lv = *pv.lv](SPConstObject&& obj) {
+    // Track relationship between this volume instance and embedded children
+    auto add_material = [&](SPConstObject const& obj) {
         CELER_EXPECT(obj);
         UnitProto::MaterialInput mat;
-        mat.interior = std::move(obj);
-        mat.fill = lv.material_id;
-        mat.label = this->get_label(lv);
+        mat.interior = obj;
+        mat.fill = pv.lv->material_id;
+        mat.label = pv.id;
         proto->materials.push_back(std::move(mat));
     };
 
-    if (pv.lv->children.empty())
+    if (pv.lv->children.empty() && opts_.inline_childless)
     {
         // No children! This LV is just a material.
-        if (CELER_UNLIKELY(verbose_))
+        add_material(
+            Transformed::or_object(pv.lv->solid, std::move(transform)));
+
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " -> "
                       << "material at " << StreamableVariant{pv.transform}
                       << std::endl;
-            std::clog << std::string(depth_, ' ') << "    "
-                      << to_string(*pv.lv->solid) << std::endl;
         }
-
-        add_material(
-            Transformed::or_object(pv.lv->solid, std::move(transform)));
     }
-    else if ((pv.lv.use_count() == 1
-              && std::holds_alternative<NoTransformation>(pv.transform))
-             || is_union(pv.lv->solid))
+    else if ((pv.lv.use_count() == 1 && this->can_inline_transform(pv.transform))
+             || (opts_.inline_unions && is_union(pv.lv->solid)))
     {
         // Child can be inlined into the parent because it's used only once
         // *and* it doesn't have a rotation relative to the parent
-        // OR: it must be inlined if it's a union (see  #1260)
-        if (CELER_UNLIKELY(verbose_))
-        {
-            std::clog << std::string(depth_, ' ') << " -> "
-                      << "inline the child at "
-                      << StreamableVariant{pv.transform} << std::endl;
-        }
-
-        // Subtract *its* children from this shape
-        if (CELER_UNLIKELY(verbose_))
-        {
-            std::clog << std::string(depth_, ' ') << " :  subtracted "
-                      << pv.lv->children.size() << " children from "
-                      << to_string(*pv.lv->solid) << std::endl;
-        }
-
+        // OR: it must be inlined if it's a union (see #1260)
         add_material(this->make_explicit_background(*pv.lv, transform));
 
-        // Now build its daghters
+        if (CELER_UNLIKELY(opts_.verbose_structure))
+        {
+            std::clog << std::string(depth_, ' ') << " -> "
+                      << "inlined child to material at "
+                      << StreamableVariant{pv.transform} << "; subtracting "
+                      << pv.lv->children.size() << " children" << std::endl;
+        }
+
+        // Now build its children
         ++depth_;
         for (auto const& child_pv : pv.lv->children)
         {
@@ -194,25 +220,34 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     {
         // LV is referenced more than once *AND* has children *AND* has a
         // transform *BUT* is not a union
-        if (CELER_UNLIKELY(verbose_))
+        auto [iter, inserted] = protos_.emplace(pv.lv.get(), nullptr);
+
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " -> "
-                      << "new universe at " << StreamableVariant{pv.transform}
-                      << std::endl;
+                      << "placing " << (inserted ? "new" : "existing")
+                      << " universe '"
+                      << volumes_.volume_labels().at(pv.lv->id) << "' at "
+                      << StreamableVariant{pv.transform} << std::endl;
         }
 
-        auto [iter, inserted] = protos_.insert({pv.lv.get(), nullptr});
         if (inserted)
         {
             ++depth_;
-            // Construct pv proto
+            // Construct volume as a proto
             iter->second = (*this)(*pv.lv);
             --depth_;
         }
         CELER_ASSERT(iter->second);
-        proto->daughters.push_back({iter->second, transform, ZOrder::media});
 
-        if (CELER_UNLIKELY(verbose_))
+        UnitProto::DaughterInput daughter;
+        daughter.fill = iter->second;
+        daughter.transform = transform;
+        daughter.zorder = ZOrder::media;
+        daughter.label = pv.id;
+        proto->daughters.push_back(std::move(daughter));
+
+        if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " :  "
                       << "daughter shape is "
@@ -254,13 +289,14 @@ auto ProtoConstructor::make_explicit_background(
     }
     else
     {
-        interior = std::make_shared<AnyObjects>(
-            this->get_label(lv).name + ".children", std::move(children));
+        auto const& name = volumes_.volume_labels().at(lv.id).name;
+        interior = std::make_shared<AnyObjects>(name + ".children",
+                                                std::move(children));
     }
 
+    auto const& name = volumes_.volume_labels().at(lv.id).name;
     return Transformed::or_object(
-        orangeinp::make_subtraction(
-            std::string{this->get_label(lv).name}, lv.solid, interior),
+        orangeinp::make_subtraction(std::string{name}, lv.solid, interior),
         transform);
 }
 

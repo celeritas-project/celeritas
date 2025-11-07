@@ -17,6 +17,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/Types.hh"
+#include "geocel/VolumeParams.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
@@ -172,7 +173,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
 void OrangeGeoTestBase::build_geometry(UnitInput input)
 {
     CELER_EXPECT(input);
-    params_ = std::make_unique<Params>(to_input(std::move(input)));
+    params_ = std::make_unique<Params>(to_input(std::move(input)), nullptr);
     // Base class will construct geometry from this call via build_geometry
     ASSERT_TRUE(this->geometry());
 }
@@ -222,7 +223,7 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     // Loop over all surfaces and apply
     for (auto id : range(LocalSurfaceId{this->params().surfaces().size()}))
     {
-        os << " - " << this->id_to_label(UniverseId{0}, id) << "(" << id.get()
+        os << " - " << this->id_to_label(UnivId{0}, id) << "(" << id.get()
            << "): ";
         visit([&os](auto const& surf) { os << surf; }, id);
         os << '\n';
@@ -269,22 +270,22 @@ ImplVolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
  * Surface name (or sentinel if no surface).
  */
 std::string
-OrangeGeoTestBase::id_to_label(UniverseId uid, LocalSurfaceId surfid) const
+OrangeGeoTestBase::id_to_label(UnivId uid, LocalSurfaceId surfid) const
 {
     if (!surfid)
         return "[none]";
 
-    detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().univ_indexer_data);
     return params_->surfaces().at(ui.global_surface(uid, surfid)).name;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Surface name (or sentinel if no surface) within UniverseId{0}.
+ * Surface name (or sentinel if no surface) within UnivId{0}.
  */
 std::string OrangeGeoTestBase::id_to_label(LocalSurfaceId surfid) const
 {
-    return this->id_to_label(UniverseId{0}, surfid);
+    return this->id_to_label(UnivId{0}, surfid);
 }
 
 //---------------------------------------------------------------------------//
@@ -292,29 +293,29 @@ std::string OrangeGeoTestBase::id_to_label(LocalSurfaceId surfid) const
  * Volume name (or sentinel if no volume).
  */
 std::string
-OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId vol_id) const
+OrangeGeoTestBase::id_to_label(UnivId uid, LocalVolumeId vol_id) const
 {
     if (!vol_id)
         return "[none]";
 
-    detail::UniverseIndexer ui(this->params().host_ref().universe_indexer_data);
+    detail::UniverseIndexer ui(this->params().host_ref().univ_indexer_data);
     return params_->impl_volumes().at(ui.global_volume(uid, vol_id)).name;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Volume name (or sentinel if no volume) within UniverseId{0}.
+ * Volume name (or sentinel if no volume) within UnivId{0}.
  */
 std::string OrangeGeoTestBase::id_to_label(LocalVolumeId vol_id) const
 {
-    return this->id_to_label(UniverseId{0}, vol_id);
+    return this->id_to_label(UnivId{0}, vol_id);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Return the geometry that was created.
  */
-auto OrangeGeoTestBase::build_geometry() -> SPConstGeo
+auto OrangeGeoTestBase::build_geometry() const -> SPConstGeo
 {
     CELER_EXPECT(params_);
     return params_;

@@ -8,19 +8,20 @@
 
 #include <unordered_set>
 #include <utility>
-#include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/Logger.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "geocel/GeantGeoUtils.hh"
+#include "geocel/VolumeCollectionBuilder.hh"
+#include "geocel/VolumeIdBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/ext/GeantVolumeMapper.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
+#include "celeritas/inp/Field.hh"
 
 #include "UniformFieldData.hh"
 
@@ -29,41 +30,27 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::unordered_set<ImplVolumeId>
-make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
+std::unordered_set<VolumeId> make_volume_ids(inp::UniformField const& inp)
 {
-    using SetVolume = std::unordered_set<ImplVolumeId>;
+    using SetVolume = std::unordered_set<VolumeId>;
 
-    return std::visit(
-        Overload{[&](inp::UniformField::SetVolume const& s) {
-                     SetVolume result;
-                     GeantVolumeMapper find_volume(geo);
-                     for (auto const* lv : s)
-                     {
-                         CELER_ASSERT(lv);
-                         auto vol = find_volume(*lv);
-                         CELER_VALIDATE(vol < geo.impl_volumes().size(),
-                                        << "failed to find volume while "
-                                           "constructing a uniform field");
-                         result.insert(vol);
-                     }
-                     return result;
-                 },
-                 [&](inp::UniformField::SetString const& s) {
-                     SetVolume result;
-                     for (auto const& name : s)
-                     {
-                         auto vols = geo.impl_volumes().find_all(name);
-                         CELER_VALIDATE(!vols.empty(),
-                                        << "failed to find volume '" << name
-                                        << "' while constructing a uniform "
-                                           "field");
-                         result.insert(vols.begin(), vols.end());
-                     }
-                     return result;
-                 },
-                 [](std::monostate) { return SetVolume{}; }},
-        inp.volumes);
+    VolumeIdBuilder to_vol_id;
+    SetVolume result;
+
+    std::visit(Overload{
+                   [](std::monostate) { /* no volumes provided */ },
+                   [&](auto const& set_labels) {
+                       for (auto&& lv_or_str : set_labels)
+                       {
+                           result.insert(to_vol_id(lv_or_str));
+                       }
+                   },
+               },
+               inp.volumes);
+    CELER_VALIDATE(std::all_of(result.begin(), result.end(), Identity{}),
+                   << "failed to find one or more volumes while "
+                      "constructing a uniform field");
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -98,20 +85,14 @@ UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
 
     // If logical volumes are specified, flag whether or not the field should
     // be present in each volume
-    auto volumes = make_volume_ids(geo, inp);
+    auto volumes = make_volume_ids(inp);
     if (!volumes.empty())
     {
-        std::vector<char> has_field(geo.impl_volumes().size(), 0);
-        for (auto vol : volumes)
-        {
-            CELER_VALIDATE(vol < geo.impl_volumes().size(),
-                           << "invalid volume ID "
-                           << (vol ? vol.unchecked_get() : -1)
-                           << " encountered while setting up uniform field");
-            has_field[vol.unchecked_get()] = 1;
-        }
-        make_builder(&host_data.has_field)
-            .insert_back(has_field.begin(), has_field.end());
+        // Convert from canonical to implementation volumes
+        host_data.has_field
+            = build_volume_collection<char>(geo, [&volumes](VolumeId vid) {
+                  return static_cast<bool>(volumes.count(vid));
+              });
     }
 
     // Move to mirrored data, copying to device

@@ -158,7 +158,7 @@ CELER_FUNCTION MatterState MaterialView::matter_state() const
 /*!
  * Get the index in the optical properties for this material.
  *
- * This will return an invalid ID if the material has no optical properties
+ * This will return a null ID if the material has no optical properties
  * attached.
  */
 CELER_FUNCTION OptMatId MaterialView::optical_material_id() const
@@ -183,6 +183,8 @@ CELER_FUNCTION ElementComponentId::size_type MaterialView::num_elements() const
 //---------------------------------------------------------------------------//
 /*!
  * Get element properties from a material-specific index.
+ *
+ * \todo Rename element
  */
 CELER_FUNCTION ElementView MaterialView::element_record(ElementComponentId id) const
 {

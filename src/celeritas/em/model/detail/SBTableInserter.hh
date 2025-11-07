@@ -9,7 +9,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/grid/TwodGridBuilder.hh"
-#include "celeritas/io/ImportSBTable.hh"
+#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
@@ -25,6 +25,7 @@ class SBTableInserter
     //!@{
     //! \name Type aliases
     using Data = HostVal<SeltzerBergerTableData>;
+    using GridInput = inp::TwodGrid;
     //!@}
 
   public:
@@ -32,7 +33,7 @@ class SBTableInserter
     explicit inline SBTableInserter(Data* data);
 
     // Construct differential cross section table for a single element
-    inline void operator()(ImportSBTable const& inp);
+    inline void operator()(GridInput const& inp);
 
   private:
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
@@ -65,7 +66,7 @@ SBTableInserter::SBTableInserter(Data* data)
  * Here, x is the log of scaled incident energy (E / MeV), y is the scaled
  * exiting energy (E_gamma / E_inc), and values are the cross sections.
  */
-void SBTableInserter::operator()(ImportSBTable const& inp)
+void SBTableInserter::operator()(GridInput const& inp)
 {
     CELER_EXPECT(inp);
 

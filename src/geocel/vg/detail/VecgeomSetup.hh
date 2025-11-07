@@ -10,7 +10,7 @@
 
 #include "VecgeomVersion.hh"
 
-#if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)
+#if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
 
@@ -38,7 +38,11 @@ struct CudaPointers
 CudaPointers<detail::CudaBVH_t const> bvh_pointers_device();
 
 //---------------------------------------------------------------------------//
-#if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)
+// Get pointers to the global nav index after setup, for consistency checking
+CudaPointers<unsigned int const> navindex_pointers_device();
+
+//---------------------------------------------------------------------------//
+#if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
 // Set up surface tracking
 void setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&);
 
@@ -55,7 +59,12 @@ inline CudaPointers<detail::CudaBVH_t const> bvh_pointers_device()
     CELER_ASSERT_UNREACHABLE();
 }
 
-#    if defined(VECGEOM_USE_SURF) && !defined(__NVCC__)
+inline CudaPointers<detail::NavIndex_t const> navindex_pointers_device()
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+#    if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
 inline void
 setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&)
 {

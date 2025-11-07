@@ -67,6 +67,7 @@ struct GeneratorStepData
  */
 struct GeneratorDistributionData
 {
+    GeneratorType type{GeneratorType::size_};  //!< Cherenkov or scintillation
     size_type num_photons{};  //!< Sampled number of photons to generate
     real_type time{};  //!< Pre-step time
     real_type step_length{};
@@ -77,7 +78,8 @@ struct GeneratorDistributionData
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return num_photons > 0 && step_length > 0 && material;
+        return type != GeneratorType::size_ && num_photons > 0
+               && step_length > 0 && material;
     }
 };
 
@@ -108,10 +110,13 @@ struct GeneratorStateData
 
     //// METHODS ////
 
+    //! State size
+    CELER_FUNCTION size_type size() const { return distributions.size(); }
+
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !distributions.empty() && !offsets.empty();
+        return !distributions.empty() && distributions.size() == offsets.size();
     }
 
     //! Assign from another set of data
@@ -150,6 +155,14 @@ struct GeneratorState : public GeneratorStateBase
 {
     CollectionStateStore<GeneratorStateData, M> store;
 
+    //! Access valid range of distributions
+    auto distributions()
+    {
+        return this->store.ref()
+            .distributions[ItemRange<GeneratorDistributionData>(
+                ItemId<GeneratorDistributionData>(this->counters.buffer_size))];
+    }
+
     //! True if states have been allocated
     explicit operator bool() const { return static_cast<bool>(store); }
 };
@@ -158,9 +171,8 @@ struct GeneratorState : public GeneratorStateBase
 /*!
  * Resize optical buffere.
  */
-template<template<Ownership, MemSpace> class P, MemSpace M>
+template<MemSpace M>
 void resize(GeneratorStateData<Ownership::value, M>* state,
-            HostCRef<P> const&,
             StreamId,
             size_type size)
 {

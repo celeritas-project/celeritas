@@ -61,8 +61,10 @@ auto GeantGeoNavCollection<Ownership::reference, MemSpace::host>::operator=(
     GeantGeoNavCollection<Ownership::value, MemSpace::host>& other)
     -> GeantGeoNavCollection&
 {
+    CELER_EXPECT(other);
     this->touch_handles = make_span(other.touch_handles);
     this->navigators = make_span(other.navigators);
+    CELER_ENSURE(*this);
     return *this;
 }
 
@@ -75,6 +77,7 @@ auto GeantGeoNavCollection<Ownership::reference, MemSpace::host>::touch_handle(
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(tid < this->size());
+    CELER_ENSURE(this->touch_handles[tid.unchecked_get()]);
     return *this->touch_handles[tid.unchecked_get()];
 }
 
@@ -87,6 +90,7 @@ auto GeantGeoNavCollection<Ownership::reference, MemSpace::host>::navigator(
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(tid < this->size());
+    CELER_ENSURE(this->navigators[tid.unchecked_get()]);
     return *this->navigators[tid.unchecked_get()];
 }
 

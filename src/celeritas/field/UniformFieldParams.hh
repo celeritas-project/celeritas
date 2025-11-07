@@ -8,14 +8,16 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoFwd.hh"
-#include "celeritas/inp/Field.hh"
 
 #include "UniformFieldData.hh"
 
 namespace celeritas
 {
+namespace inp
+{
+struct UniformField;
+}
 //---------------------------------------------------------------------------//
 /*!
  * Construct and store data for a uniform magnetic field.

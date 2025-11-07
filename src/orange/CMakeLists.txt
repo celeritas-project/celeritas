@@ -13,11 +13,14 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   BoundingBoxUtils.cc
+  Debug.cc
+  DebugIO.json.cc
   MatrixUtils.cc
   OrangeInputIO.json.cc
   OrangeParams.cc
   OrangeParamsOutput.cc
   OrangeTypes.cc
+  OrangeTypesIO.json.cc
   SafetyImager.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
@@ -40,6 +43,7 @@ list(APPEND SOURCES
   orangeinp/ObjectIO.json.cc
   orangeinp/PolySolid.cc
   orangeinp/ProtoInterface.cc
+  orangeinp/RevolvedPolygon.cc
   orangeinp/Shape.cc
   orangeinp/Solid.cc
   orangeinp/StackedExtrudedPolygon.cc
@@ -87,14 +91,19 @@ list(APPEND SOURCES
 
 
 if(CELERITAS_USE_Geant4)
-  set(_cg4org_sources
+  list(APPEND SOURCES
     g4org/Converter.cc
+    g4org/ProtoConstructor.cc
+    g4org/OptionsIO.json.cc
+  )
+
+  # Only the following sources require Geant4 linkage
+  set(_cg4org_sources
     g4org/LogicalVolumeConverter.cc
     g4org/PhysicalVolumeConverter.cc
-    g4org/ProtoConstructor.cc
     g4org/SolidConverter.cc
   )
-  celeritas_get_g4libs(_cg4org_libs geometry materials)
+  celeritas_get_g4libs(_cg4org_libs geometry)
   list(APPEND _cg4org_libs Celeritas::corecel Celeritas::geocel)
 
   celeritas_add_object_library(geocel_g4org ${_cg4org_sources})

@@ -10,24 +10,32 @@
 
 namespace celeritas
 {
+struct ImportData;
+
 //---------------------------------------------------------------------------//
 /*!
- * Configure Celeritas problems from input data.
+ * Configure a Celeritas problem from input data.
  *
  * This implementation detail is how \c celeritas::inp data is used to
  * construct all the main Celeritas objects.
+ *
+ * \todo This will change to load data into a Problem, not ImportData.
+ * Currently we need to fill tables and base what gets loaded on the existing
+ * processes.
  */
 namespace setup
 {
 //---------------------------------------------------------------------------//
-// Load from a file
-void import(inp::FileImport const& file, inp::Problem& problem);
-// Load from Geant4 in memory
-void import(inp::GeantImport const& file, inp::Problem& problem);
-// Load from Geant4 data files
-void import(inp::GeantDataImport const& file, inp::Problem& problem);
-// Update from another file
-void import(inp::UpdateImport const& file, inp::Problem& problem);
+// Load from a ROOT file
+void physics_from(inp::PhysicsFromFile const&, ImportData& data);
+
+//---------------------------------------------------------------------------//
+// Load from Geant4 data files, filling in model data
+void physics_from(inp::PhysicsFromGeant const&, ImportData& data);
+
+//---------------------------------------------------------------------------//
+// Load from Geant4 data files, filling in model data
+void physics_from(inp::PhysicsFromGeantFiles const&, ImportData& data);
 
 //---------------------------------------------------------------------------//
 }  // namespace setup

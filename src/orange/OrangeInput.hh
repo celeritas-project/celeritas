@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeInput.hh
+//! \todo Move to inp/Orange.hh ?
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -46,9 +47,10 @@ struct OrientedBoundingZoneInput
 struct VolumeInput
 {
     using Flags = VolumeRecord::Flags;
+    using VariantLabel = std::variant<Label, VolumeInstanceId>;
 
-    //! Volume label
-    Label label{};
+    //! Volume label or instance ID
+    VariantLabel label{};
 
     //! Sorted list of surface IDs in this volume
     std::vector<LocalSurfaceId> faces{};
@@ -78,8 +80,33 @@ struct VolumeInput
  */
 struct DaughterInput
 {
-    UniverseId universe_id;
+    UnivId univ_id;
     VariantTransform transform;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Extra metadata for the "background" volume.
+ *
+ * Unlike a regular volume, the "background" represents a \em volume rather
+ * than a volume \em instance. Note that this can be an \em explicit volume
+ * (i.e., made of booleans) or \em implicit (i.e., have the lowest "Z order").
+ *
+ * This is something of a hack: the background volume in a \c
+ * orangeinp::UnitProto is annotated by setting the label to \c
+ * VolumeInstanceId{} in \c g4org::ProtoConstructor; then converted from a
+ * proto to a \c UnitInput by the \c InputBuilder, and finally in \c
+ * g4org::Converter the empty volume instance IDs are replaced by (1) the
+ * world \c VolumeInstanceId for the top-level background volume, or (2) the
+ * \c VolumeId corresponding to the unit's label.
+ */
+struct BackgroundInput
+{
+    VolumeId label;
+    LocalVolumeId volume;
+
+    //! Whether the background metadata is used
+    explicit operator bool() const { return static_cast<bool>(volume); }
 };
 
 //---------------------------------------------------------------------------//
@@ -96,6 +123,8 @@ struct UnitInput
     std::vector<VolumeInput> volumes;
     BBox bbox;  //!< Outer bounding box
     MapVolumeDaughter daughter_map;
+
+    BackgroundInput background;
 
     // Unit metadata
     std::vector<Label> surface_labels;

@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "Runner.hh"
 
+#include <fstream>
+
 #include "corecel/Config.hh"
 
 #include "corecel/io/StringUtils.hh"
@@ -30,11 +32,11 @@ namespace app
 /*!
  * Construct with model setup.
  */
-Runner::Runner(ModelSetup const& input) : input_{input}
+Runner::Runner(ModelSetup const& input)
+    : input_{input}, tracing_{input_.perfetto_file}
 {
     // Initialize GPU
     activate_device();
-
     if (input_.cuda_heap_size)
     {
         set_cuda_heap_size(input_.cuda_heap_size);
@@ -47,9 +49,16 @@ Runner::Runner(ModelSetup const& input) : input_{input}
     if (CELERITAS_USE_GEANT4 && ends_with(input_.geometry_file, ".gdml"))
     {
         // Retain the Geant4 world for possible reuse across geometries
-        CELER_EXPECT(celeritas::geant_geo().expired());
+        CELER_EXPECT(celeritas::global_geant_geo().expired());
         this->load_geometry<Geometry::geant4>();
-        CELER_EXPECT(!celeritas::geant_geo().expired());
+        CELER_EXPECT(!celeritas::global_geant_geo().expired());
+    }
+    else
+    {
+        // GCOVR_EXCL_BR_SOURCE
+        CELER_VALIDATE(std::ifstream{input_.geometry_file}.is_open(),
+                       << "input model filename '" << input_.geometry_file
+                       << "' does not exist");
     }
 }
 
@@ -57,13 +66,13 @@ Runner::Runner(ModelSetup const& input) : input_{input}
 /*!
  * Perform a raytrace.
  */
-auto Runner::operator()(TraceSetup const& trace, ImageInput const& image_inp)
+auto Runner::trace(TraceSetup const& setup, ImageInput const& image_inp)
     -> SPImage
 {
     // Create image params
     last_image_ = std::make_shared<ImageParams>(image_inp);
 
-    return (*this)(trace);
+    return this->trace(setup);
 }
 
 //---------------------------------------------------------------------------//
@@ -72,16 +81,16 @@ auto Runner::operator()(TraceSetup const& trace, ImageInput const& image_inp)
  *
  * The memory space in Celeritas is the same as the execution space.
  */
-auto Runner::operator()(TraceSetup const& trace) -> SPImage
+auto Runner::trace(TraceSetup const& setup) -> SPImage
 {
     CELER_VALIDATE(last_image_,
                    << "first trace input did not specify an image");
 
     // Load geometry
-    SPImager imager = this->make_imager(trace.geometry);
+    SPImager imager = this->make_imager(setup.geometry);
 
     // Create image
-    SPImage image = this->make_traced_image(trace.memspace, *imager);
+    SPImage image = this->make_traced_image(setup.memspace, *imager);
     return image;
 }
 //---------------------------------------------------------------------------//

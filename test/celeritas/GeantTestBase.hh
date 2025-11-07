@@ -43,7 +43,7 @@ class GeantTestBase : public ImportedDataTestBase
 
     SPConstTrackInit build_init() override;
     SPConstAction build_along_step() override;
-    SPConstGeoI build_fresh_geometry(std::string_view) override;
+    SPConstGeantGeo build_geant_geo(std::string const&) const override;
 
     // Access lazily loaded static geant4 data
     ImportData const& imported_data() const final;
@@ -55,15 +55,15 @@ class GeantTestBase : public ImportedDataTestBase
     struct ImportSetup;
 
     // Lazily load static geant4 data
-    ImportSetup const& load() const;
+    ImportSetup const& load(std::string const& filename = {}) const;
 };
 
 //---------------------------------------------------------------------------//
 //! Print the current configuration
-struct PrintableBuildConf
+struct StreamableBuildConf
 {
 };
-std::ostream& operator<<(std::ostream& os, PrintableBuildConf const&);
+std::ostream& operator<<(std::ostream& os, StreamableBuildConf const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

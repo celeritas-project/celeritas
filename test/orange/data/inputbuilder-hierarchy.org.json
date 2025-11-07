@@ -8,6 +8,7 @@
 "universes": [
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -100.0,
@@ -122,10 +123,10 @@
 ],
 "volume_labels": [
 "[EXTERIOR]@global",
-"d1@global",
-"d2@global",
-"filled_daughter@global",
-"leafy@global",
+"d",
+"e",
+"fd",
+"l",
 "leaf1",
 "interior"
 ],
@@ -258,6 +259,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -1.0,
@@ -301,6 +303,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -1.0,
@@ -344,6 +347,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -10.0,
@@ -428,8 +432,8 @@
 ],
 "volume_labels": [
 "[EXTERIOR]@filled_daughter",
-"d1@filled_daughter",
-"d2@filled_daughter",
+"d",
+"e",
 "leaf1",
 "leaf2",
 "filled_daughter@bg"
@@ -529,6 +533,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -1.0,
@@ -610,6 +615,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -1.0,
@@ -653,6 +659,7 @@
 },
 {
 "_type": "unit",
+"background": null,
 "bbox": [
 [
 -1.0,

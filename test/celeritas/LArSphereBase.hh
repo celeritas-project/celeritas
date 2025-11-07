@@ -25,18 +25,13 @@ namespace test
 class LArSphereBase : public GeantTestBase
 {
   protected:
-    std::string_view geometry_basename() const override
-    {
-        return "lar-sphere";
-    }
+    std::string_view gdml_basename() const override { return "lar-sphere"; }
 
     GeantPhysicsOptions build_geant_options() const override
     {
         auto result = GeantTestBase::build_geant_options();
-        result.optical.absorption = true;
-        result.optical.rayleigh_scattering = true;
-        result.optical.wavelength_shifting.enable = true;
-        result.optical.wavelength_shifting2.enable = true;
+        result.optical = {};
+        CELER_ENSURE(result.optical);
         return result;
     }
 
@@ -49,7 +44,8 @@ class LArSphereBase : public GeantTestBase
 
     std::vector<IMC> select_optical_models() const override
     {
-        return {IMC::absorption, IMC::rayleigh};
+        // Disable Rayleigh model due to PR #2038
+        return {IMC::absorption /*, IMC::rayleigh*/};
     }
 };
 

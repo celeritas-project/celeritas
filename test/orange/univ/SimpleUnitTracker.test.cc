@@ -157,7 +157,7 @@ LocalState
 SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir, char const* vol)
 {
     LocalState state = this->make_state(pos, dir);
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
     state.volume = vol ? ui.local_volume(this->find_volume(vol)).volume
                        : LocalVolumeId{};
     return state;
@@ -187,7 +187,7 @@ LocalState SimpleUnitTrackerTest::make_state(
     }
 
     LocalState state = this->make_state(pos, dir);
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
     state.volume = ui.local_volume(this->find_volume(vol)).volume;
     // *Intentionally* flip the sense because we're looking for the
     // post-crossing volume. This is normally done by the multi-level
@@ -276,7 +276,10 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        auto lsa = LevelStateAccessor(&result_ref, TrackSlotId{i}, LevelId{0});
+        auto lsa = LevelStateAccessor(this->host_params().scalars,
+                                      &result_ref,
+                                      TrackSlotId{i},
+                                      UnivLevelId{0});
         lsa.pos() = sample_box(rng);
         lsa.dir() = sample_isotropic(rng);
     }
@@ -284,7 +287,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     // Clear other data
     fill(LocalVolumeId{}, &result.vol);
     fill(LocalSurfaceId{}, &result.surf);
-    fill(LevelId{}, &result.level);
+    fill(UnivLevelId{}, &result.univ_level);
 
     CELER_ENSURE(result);
     return result;
@@ -300,14 +303,15 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
 {
     CELER_EXPECT(host);
     CELER_EXPECT(wall_time > 0);
-    CELER_EXPECT(this->geometry()->max_depth() == 1);
+    CELER_EXPECT(this->geometry()->num_univ_levels() == 1);
     std::vector<size_type> counts(this->num_volumes());
     size_type error_count{};
 
     for (auto i : range(host.size()))
     {
         auto tid = TrackSlotId{i};
-        LevelStateAccessor lsa(&host, tid, LevelId{0});
+        LevelStateAccessor lsa(
+            this->host_params().scalars, &host, tid, UnivLevelId{0});
         auto vol = lsa.vol();
 
         if (vol < counts.size())
@@ -396,7 +400,7 @@ TEST_F(OneVolumeTest, intersect)
 TEST_F(OneVolumeTest, safety)
 {
     SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
 
     EXPECT_SOFT_EQ(
         inf,
@@ -587,7 +591,7 @@ TEST_F(TwoVolumeTest, intersect)
 TEST_F(TwoVolumeTest, safety)
 {
     SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
     LocalVolumeId outside
         = ui.local_volume(this->find_volume("outside")).volume;
     LocalVolumeId inside = ui.local_volume(this->find_volume("inside")).volume;
@@ -930,7 +934,7 @@ TEST_F(FiveVolumesTest, intersect)
 TEST_F(FiveVolumesTest, safety)
 {
     SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
-    detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
     LocalVolumeId a = ui.local_volume(this->find_volume("a")).volume;
     LocalVolumeId d = ui.local_volume(this->find_volume("d")).volume;
 

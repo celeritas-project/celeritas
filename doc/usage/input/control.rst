@@ -4,27 +4,13 @@
 .. _inp_control:
 
 Control
-=======
+========
 
 These options manage trade-offs between performance and memory usage, and other
 parameters that affect the simulation results without changing the physics.
 
-.. doxygenstruct:: celeritas::inp::Control
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::DeviceDebug
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::StateCapacity
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::CoreStateCapacity
-   :members:
-   :no-link:
-
-.. doxygenstruct:: celeritas::inp::OpticalStateCapacity
-   :members:
-   :no-link:
+.. celerstruct:: inp::Control
+.. celerstruct:: inp::DeviceDebug
+.. celerstruct:: inp::StateCapacity
+.. celerstruct:: inp::CoreStateCapacity
+.. celerstruct:: inp::OpticalStateCapacity

@@ -22,7 +22,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class CherenkovParams;
 class GeneratorRegistry;
+class ScintillationParams;
 class SurfaceParams;
 
 namespace optical
@@ -30,6 +32,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 class MaterialParams;
 class PhysicsParams;
+class SurfacePhysicsParams;
 //---------------------------------------------------------------------------//
 /*!
  * Shared parameters for the optical photon loop.
@@ -44,10 +47,12 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
+    using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
-    using VecLabel = std::vector<Label>;
+    using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
+    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -62,8 +67,10 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstSurface surface;
-
-        std::optional<VecLabel> detector_labels;
+        SPConstSurfacePhysics surface_physics;
+        SPConstDetectors detectors;
+        SPConstCherenkov cherenkov;  //!< Optional
+        SPConstScintillation scintillation;  //!< Optional
 
         SPActionRegistry action_reg;
         SPGeneratorRegistry gen_reg;
@@ -74,8 +81,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && surface && action_reg
-                   && gen_reg && max_streams;
+            return geometry && material && rng && surface && surface_physics
+                   && action_reg && gen_reg && max_streams;
         }
     };
 
@@ -99,9 +106,18 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
     SPConstSurface const& surface() const { return input_.surface; }
+    SPConstSurfacePhysics const& surface_physics() const
+    {
+        return input_.surface_physics;
+    }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
     SPConstDetectors const& detectors() const { return detectors_; }
+    SPConstCherenkov const& cherenkov() const { return input_.cherenkov; }
+    SPConstScintillation const& scintillation() const
+    {
+        return input_.scintillation;
+    }
     //!@}
 
     // Access host pointers to core data

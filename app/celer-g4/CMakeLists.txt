@@ -9,12 +9,10 @@ if(CELERITAS_USE_Geant4)
     ActionInitialization.cc
     DetectorConstruction.cc
     EventAction.cc
-    ExceptionHandler.cc
     GeantDiagnostics.cc
     GlobalSetup.cc
     HepMC3PrimaryGeneratorAction.cc
     LogHandlers.cc
-    PGPrimaryGeneratorAction.cc
     RunAction.cc
     RunInput.cc
     RunInputIO.json.cc
@@ -69,6 +67,7 @@ else()
 endif()
 
 set(_env
+  ${CELER_PYTHONENV}
   ${CELER_G4ENV}
   "CELER_LOG_LOCAL=debug"
   "CELER_DISABLE_PARALLEL=1"
@@ -87,6 +86,11 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
+  set(_props DISABLED true)
+endif()
+if(Geant4_VERSION VERSION_LESS "10.7")
+  # Don't bother: only for old framework support; and printf in the code fouls
+  # the JSON parsing
   set(_props DISABLED true)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")

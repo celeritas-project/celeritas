@@ -8,28 +8,24 @@
 
 #include <csignal>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
-#include <G4Threading.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
-
-#ifdef _OPENMP
-#    include <omp.h>
-#endif
 
 #include "corecel/Config.hh"
 
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
@@ -45,7 +41,10 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/io/EventWriter.hh"
+#include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
+#include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
@@ -67,6 +66,22 @@ bool nonfatal_flush()
     return result;
 }
 
+bool not_release_build()
+{
+    std::string_view build_props{cmake::build_type};
+    // Instead of searching for `release`, which may not be present in some
+    // build systems, see if we have debug or relwithdebinfo.
+    if (build_props.find("debug") != std::string_view::npos)
+    {
+        return true;
+    }
+    if (build_props.find("relwithdebinfo") != std::string_view::npos)
+    {
+        return true;
+    }
+    return false;
+}
+
 //---------------------------------------------------------------------------//
 //! Trace the number of active, alive, dead, and queued tracks
 class TrackCounters
@@ -74,7 +89,7 @@ class TrackCounters
   public:
     TrackCounters()
     {
-        if (use_profiling())
+        if (ScopedProfiling::enabled())
         {
             std::string stream_id = std::to_string(get_geant_thread_id());
             active_counter_ = std::string("active-" + stream_id);
@@ -143,48 +158,22 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local transporter when Celeritas "
                       "offloading is disabled");
+    CELER_VALIDATE(!options.optical_generator
+                       || std::holds_alternative<inp::OpticalEmGenerator>(
+                           *options.optical_generator),
+                   << "invalid optical photon generation mechanism for local "
+                      "transporter");
+
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
     bbox_ = params.bbox();
 
-    auto thread_id = get_geant_thread_id();
-    CELER_VALIDATE(thread_id >= 0,
-                   << "Geant4 ThreadID (" << thread_id
-                   << ") is invalid (perhaps LocalTransporter is being built "
-                      "on a non-worker thread?)");
-    CELER_VALIDATE(
-        static_cast<size_type>(thread_id) < params.Params()->max_streams(),
-        << "Geant4 ThreadID (" << thread_id
-        << ") is out of range for the reported number of worker threads ("
-        << params.Params()->max_streams() << ")");
-
-    // Check that OpenMP and Geant4 threading models don't collide
-    if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
-        && G4Threading::IsMultithreadedApplication())
-    {
-        auto msg = CELER_LOG(warning);
-        msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
-               "parallelism";
-        if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
-            !nt_str.empty())
-        {
-            msg << "(OMP_NUM_THREADS=" << nt_str
-                << "): CPU threads may be oversubscribed";
-        }
-        else
-        {
-            msg << ": forcing 1 Celeritas thread to Geant4 thread";
-#ifdef _OPENMP
-            omp_set_num_threads(1);
-#else
-            CELER_ASSERT_UNREACHABLE();
-#endif
-        }
-    }
+    // Check the thread ID and MT model
+    validate_geant_threading(params.Params()->max_streams());
 
     // Create hit processor on the local thread so that it's deallocated when
     // this object is destroyed
-    StreamId stream_id{static_cast<size_type>(thread_id)};
+    auto stream_id = id_cast<StreamId>(get_geant_thread_id());
     if (auto const& hit_manager = params.hit_manager())
     {
         hit_processor_ = hit_manager->make_local_processor(stream_id);
@@ -207,6 +196,9 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
 
     // Save state for reductions at the end
     params.set_state(stream_id.get(), step_->sp_state());
+
+    // Save optical pointers if available, for diagnostics
+    optical_ = params.optical();
 
     CELER_ENSURE(*this);
 }
@@ -241,16 +233,19 @@ void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
+    ScopedProfiling profile_this{"push"};
+
     if (Real3 pos = convert_from_geant(g4track.GetPosition(), 1);
         !is_inside(bbox_, pos))
     {
         // Primary may have been created by a particle generator outside the
         // geometry
-        double energy = g4track.GetKineticEnergy() / CLHEP::MeV;
-        CELER_LOG(debug)
-            << "Discarding track outside world: " << energy << " MeV from "
-            << g4track.GetDefinition()->GetParticleName() << " at " << pos
-            << " along "
+        double energy
+            = convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV);
+        CELER_LOG_LOCAL(error)
+            << "Discarding track outside world bounds: " << energy
+            << " MeV from " << g4track.GetDefinition()->GetParticleName()
+            << " at " << pos << " along "
             << convert_from_geant(g4track.GetMomentumDirection(), 1);
 
         buffer_accum_.lost_energy += energy;
@@ -282,13 +277,6 @@ void LocalTransporter::Push(G4Track& g4track)
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
     track.time = convert_from_geant(g4track.GetGlobalTime(), clhep_time);
     track.weight = g4track.GetWeight();
-    if (CELER_UNLIKELY(g4track.GetWeight() != 1.0))
-    {
-        //! \todo Non-unit weights: see issue #1268
-        CELER_LOG(error) << "incoming track (PDG " << pdg.get()
-                         << ", track ID " << g4track.GetTrackID()
-                         << ") has non-unit weight " << g4track.GetWeight();
-    }
 
     /*!
      * \todo Eliminate event ID from primary.
@@ -299,10 +287,6 @@ void LocalTransporter::Push(G4Track& g4track)
     buffer_accum_.energy += track.energy.value();
     if (buffer_.size() >= auto_flush_)
     {
-        /*!
-         * \todo Maybe only run one iteration? But then make sure that Flush
-         * still transports active tracks to completion.
-         */
         this->Flush();
     }
 }
@@ -318,6 +302,8 @@ void LocalTransporter::Flush()
     {
         return;
     }
+
+    ScopedProfiling profile_this("flush");
 
     if (event_manager_ || !event_id_)
     {
@@ -361,6 +347,12 @@ void LocalTransporter::Flush()
     {
         // Write offload particles if user requested
         (*dump_primaries_)(buffer_);
+    }
+
+    if (run_accum_.steps == 0)
+    {
+        CELER_LOG_LOCAL(status)
+            << R"(Executing the first Celeritas stepping loop)";
     }
 
     /*!
@@ -427,16 +419,41 @@ void LocalTransporter::Finalize()
                    << "offloaded tracks (" << buffer_.size()
                    << " in buffer) were not flushed");
 
-    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << run_accum_.steps
-                          << " steps from " << run_accum_.primaries
-                          << " offloaded tracks over " << run_accum_.events
-                          << " events, generating " << run_accum_.hits
-                          << " hits";
+    std::size_t num_optical_steps{0};
+    {
+        auto msg = CELER_LOG_LOCAL(info);
+        msg << "Finalizing Celeritas after " << run_accum_.steps << " steps";
+        if (optical_)
+        {
+            auto const& state = optical_->optical_state(this->GetState());
+            auto const& accum = state.accum();
+            num_optical_steps = state.accum().steps;
+            msg << " and " << num_optical_steps << " optical steps (over "
+                << accum.step_iters << " step iterations)";
+        }
+        msg << " from " << run_accum_.primaries << " offloaded tracks over "
+            << run_accum_.events << " events, generating " << run_accum_.hits
+            << " hits";
+    }
     if (run_accum_.lost_primaries > 0)
     {
         CELER_LOG_LOCAL(warning)
             << "Lost a total of " << run_accum_.lost_primaries
             << " primaries that started outside the world";
+    }
+    static bool have_warned_slow{false};
+    if (!have_warned_slow && (run_accum_.steps + num_optical_steps > 1000000)
+        && (CELERITAS_DEBUG || not_release_build()))
+    {
+        static std::mutex mu;
+        std::lock_guard scoped_lock{mu};
+        if (!have_warned_slow)
+        {
+            CELER_LOG(warning) << "Performance is degraded due to "
+                                  "non-optimized build options: "
+                               << BuildOutput{};
+            have_warned_slow = true;
+        }
     }
 
     if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
@@ -451,8 +468,8 @@ void LocalTransporter::Finalize()
 #endif
     }
 
-    // Flush any remaining track counters on the worker thread
-    flush_tracing();
+    // Flush any remaining performance counters on the worker thread
+    TracingSession::flush();
 
     // Reset all data
     *this = {};

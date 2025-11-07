@@ -7,13 +7,11 @@
 #include "corecel/data/LdgIterator.hh"
 
 #include <algorithm>
-#include <iterator>
 #include <numeric>
 #include <type_traits>
 #include <vector>
 
 #include "corecel/OpaqueId.hh"
-#include "corecel/Types.hh"
 
 #include "celeritas_test.hh"
 
@@ -23,11 +21,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class LdgIteratorTest : public ::celeritas::test::Test
-{
-  protected:
-    void SetUp() override {}
-};
+using LdgIteratorTest = Test;
 
 TEST_F(LdgIteratorTest, arithmetic_t)
 {
@@ -61,7 +55,7 @@ TEST_F(LdgIteratorTest, arithmetic_t)
     EXPECT_EQ(ldg_start, ldg_end);
     ldg_end -= n;
     EXPECT_EQ(ldg_end, ldg_start_copy);
-    ldg_start.swap(ldg_end);
+    std::swap(ldg_start, ldg_end);
     EXPECT_EQ(ldg_start, ldg_start_copy);
     EXPECT_EQ(ldg_end, ldg_start + n);
     EXPECT_EQ(ldg_end, n + ldg_start);
@@ -105,7 +99,7 @@ TEST_F(LdgIteratorTest, opaqueid_t)
     EXPECT_EQ(ldg_start, ldg_end);
     ldg_end -= n;
     EXPECT_EQ(ldg_end, ldg_start_copy);
-    ldg_start.swap(ldg_end);
+    std::swap(ldg_start, ldg_end);
     EXPECT_EQ(ldg_start, ldg_start_copy);
     EXPECT_EQ(ldg_end, ldg_start + n);
     EXPECT_EQ(ldg_end, n + ldg_start);
@@ -148,7 +142,7 @@ TEST_F(LdgIteratorTest, byte_t)
     EXPECT_EQ(ldg_start, ldg_end);
     ldg_end -= n;
     EXPECT_EQ(ldg_end, ldg_start_copy);
-    ldg_start.swap(ldg_end);
+    std::swap(ldg_start, ldg_end);
     EXPECT_EQ(ldg_start, ldg_start_copy);
     EXPECT_EQ(ldg_end, ldg_start + n);
     EXPECT_EQ(ldg_end, n + ldg_start);
@@ -161,6 +155,35 @@ TEST_F(LdgIteratorTest, byte_t)
     EXPECT_EQ(nullptr, ldg_nullptr);
     EXPECT_FALSE(ldg_nullptr);
 }
+
+TEST_F(LdgIteratorTest, enum_class)
+{
+    enum class Color
+    {
+        r,
+        g,
+        b
+    };
+    static Color colors[] = {Color::r, Color::b, Color::g};
+
+    LdgIterator start(std::begin(colors));
+    LdgIterator end(std::end(colors));
+
+    EXPECT_EQ(3, end - start);
+    EXPECT_EQ(Color::r, *start);
+    EXPECT_EQ(Color::g, *(end - 1));
+}
+
+#ifdef CELERITAS_SHOULD_NOT_COMPILE
+// Note that this will fail to compile due to the invalid type
+TEST_F(LdgIteratorTest, invalid_type)
+{
+    std::pair<int, int> ints;
+
+    LdgIterator start{&ints};
+    EXPECT_EQ(&ints, &(*start));
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace test

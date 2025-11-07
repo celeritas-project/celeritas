@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "VolumeParams.hh"
 
+#include "corecel/io/Logger.hh"
+
 #include "VolumeVisitor.hh"
 #include "inp/Model.hh"
 
@@ -14,23 +16,63 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-LevelId::size_type calc_depth(VolumeParams const& params)
+int calc_num_volume_levels(VolumeParams const& params)
 {
     CELER_EXPECT(params.world());
-    LevelId::size_type result{0};
+    int max_level{0};
 
     VolumeVisitor visit_vol{params};
     visit_vol(
-        [&result](VolumeId, int level) {
+        [&max_level](VolumeId, int level) {
             CELER_ASSERT(level >= 0);
-            result = std::max(result, static_cast<LevelId::size_type>(level));
+            max_level = std::max(max_level, level);
             return true;
         },
         params.world());
-    return result;
+    return max_level + 1;
 }
 
+//---------------------------------------------------------------------------//
+//! Volumes corresponding to global tracking model
+std::weak_ptr<VolumeParams const> g_volumes_;
+
+//---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set global geometry instance.
+ *
+ * This allows many parts of the codebase to independently access Geant4
+ * metadata. It should be called during initialization of any Celeritas front
+ * end that integrates with Geant4. We can't use shared pointers here because
+ * of global initialization order issues (the low-level Geant4 objects may be
+ * cleared before a static celeritas::VolumeParams is destroyed).
+ *
+ * \note This should be done only during setup on the main thread.
+ */
+void global_volumes(std::shared_ptr<VolumeParams const> const& gv)
+{
+    CELER_LOG(debug) << (!gv                    ? "Clearing"
+                         : g_volumes_.expired() ? "Setting"
+                                                : "Updating")
+                     << " celeritas::volumes";
+    g_volumes_ = gv;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the global canonical volume metadata.
+ *
+ * This can be used by geometry-related helper functions throughout
+ * the code base.
+ *
+ * \return Weak pointer to the global VolumeParams wrapper, which may be null.
+ */
+std::weak_ptr<VolumeParams const> const& global_volumes()
+{
+    return g_volumes_;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,6 +93,8 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     v_labels_ = VolumeMap("volume", extract_labels(in.volumes));
     vi_labels_
         = VolInstMap("volume_instance", extract_labels(in.volume_instances));
+
+    // TODO: warn about duplicate labels (see LabelIdMultiMap::duplicates)
 
     // Unzip volume properties
     materials_.resize(this->num_volumes());
@@ -96,7 +140,7 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     // Calculate additional properties
     if (world_)
     {
-        depth_ = calc_depth(*this);
+        num_volume_levels_ = calc_num_volume_levels(*this);
     }
 
     CELER_ENSURE(this->num_volumes() == in.volumes.size());
@@ -107,6 +151,7 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     CELER_ENSURE(parents_.size() == this->num_volumes());
     CELER_ENSURE(children_.size() == this->num_volumes());
     CELER_ENSURE(volumes_.size() == this->num_volume_instances());
+    CELER_ENSURE((this->num_volume_levels() == 0) == this->empty());
 }
 
 //---------------------------------------------------------------------------//

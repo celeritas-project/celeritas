@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomTestBase.hh"
 
-#include "geocel/CheckedGeoTrackView.t.hh"
 #include "geocel/GenericGeoTestBase.t.hh"
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"
@@ -17,7 +16,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-template class CheckedGeoTrackView<VecgeomTrackView>;
 template class GenericGeoTestBase<VecgeomParams>;
 
 //---------------------------------------------------------------------------//

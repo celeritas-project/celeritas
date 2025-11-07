@@ -6,12 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/field/LinearPropagator.hh"
 
+#include <string_view>
+
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"
-#include "celeritas/AllGeoTypedTestBase.hh"
+#include "celeritas/CoreGeoTestBase.hh"
 
 #include "celeritas_test.hh"
 
@@ -23,36 +25,19 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-template<class HP>
-class LinearPropagatorTest : public AllGeoTypedTestBase<HP>
+class LinearPropagatorTest : public CoreGeoTestBase
 {
   protected:
-    using SPConstGeo = typename GenericGeoTestBase<HP>::SPConstGeo;
-    using GeoTrackView = typename GenericGeoTestBase<HP>::GeoTrackView;
-
-    void SetUp() override
-    {
-        if (CELERITAS_UNITS != CELERITAS_UNITS_CGS
-            && this->geo_name() == "ORANGE")
-        {
-            GTEST_SKIP() << "ORANGE currently requires CGS [cm]";
-        }
-    }
-
-    std::string geometry_basename() const final { return "simple-cms"; }
+    std::string_view gdml_basename() const final { return "simple-cms"; }
 };
-
-TYPED_TEST_SUITE(LinearPropagatorTest,
-                 AllGeoTestingTypes,
-                 AllGeoTestingTypeNames);
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //----------------------------------------------------------------------------//
 
-TYPED_TEST(LinearPropagatorTest, rvalue_type)
+TEST_F(LinearPropagatorTest, rvalue_type)
 {
-    using GeoTrackView = typename TestFixture::GeoTrackView;
+    using GeoTrackView = WrappedGeoTrack;
     {
         LinearPropagator propagate(
             this->make_geo_track_view({0, 0, 0}, {0, 0, 1}));
@@ -66,9 +51,9 @@ TYPED_TEST(LinearPropagatorTest, rvalue_type)
                        to_cm(this->make_geo_track_view().pos()));
 }
 
-TYPED_TEST(LinearPropagatorTest, simple_cms)
+TEST_F(LinearPropagatorTest, simple_cms)
 {
-    using GeoTrackView = typename TestFixture::GeoTrackView;
+    using GeoTrackView = WrappedGeoTrack;
     // Initialize
     auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", this->volume_name(geo));

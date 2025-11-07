@@ -40,6 +40,9 @@ namespace detail
  * universe. (TODO: add bounds and transforms only for finite regions)
  *
  * TODO (?) map nodes to set of object pointers, for detailed provenance?
+ *
+ * The CsgUnit is created in \c UnitProto::build to convert input Objects into
+ * this CSG unit.
  */
 struct CsgUnit
 {
