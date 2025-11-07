@@ -56,7 +56,7 @@
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
 
-#if CELERITAS_USE_HIP
+#if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
 namespace cub = hipcub;
 #endif
 
