@@ -7,9 +7,8 @@ logo: _includes/full-logo.png
 plugins:
 - jekyll-remote-theme
 include:
+- _images # special sphinx output directoory
 - _includes
 - _layouts
 - _sources
 - _static
-- _static/mermaid
-- _static/dot
