@@ -233,12 +233,11 @@ foreach(_var
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 
-# Only process top two levels (mostly no detail)
+# Only process top two levels (avoid most detail)
 file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.hh"
   "${PROJECT_SOURCE_DIR}/src/*/*.cc"
   "${PROJECT_SOURCE_DIR}/src/*/*/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/*/*/*.cc"
   "${PROJECT_SOURCE_DIR}/src/corecel/random/data/*.hh"
   "${PROJECT_SOURCE_DIR}/src/corecel/random/engine/*.hh"
   "${PROJECT_SOURCE_DIR}/src/corecel/random/distribution/*.hh"
@@ -247,28 +246,20 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/model/*.cc"
   "${PROJECT_SOURCE_DIR}/test/*.hh"
-  "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
 # IMPORTANT: the target name and USE_STAMP_FILE generate a dependency used by
 # the downstream sphinx docs when Breathe is available
