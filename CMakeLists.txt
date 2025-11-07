@@ -345,9 +345,12 @@ elseif(CELERITAS_USE_HIP)
     set(CELERITAS_HAVE_ROCTX ON)
   endif()
   find_file(HIPCUB hipcub_version.hpp)
-  message(WARNING "Search for hipCUB resulted in ***"HIPCUB"***")
+  message(WARNING "Search for hipCUB resulted in ***\"HIPCUB\"***")
   if(NOT HIPCUB STREQUAL "HIPCUB-NOTFOUND")
+    message(STATUS "hipCUB found")
     set(CELERITAS_HAVE_HIPCUB ON)
+  else
+    message(STATUS "hipCUB not found")
   endif()
 endif()
 
