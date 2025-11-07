@@ -313,6 +313,8 @@ TEST_F(RanluxppRngEngineTest, jump)
 
 TEST_F(RanluxppRngEngineTest, TEST_IF_CELER_DEVICE(device))
 {
+    celeritas::device().create_streams(1);
+
     // Create and initialize states
     DeviceStore rng_store(params_->host_ref(), StreamId{0}, 1024);
 

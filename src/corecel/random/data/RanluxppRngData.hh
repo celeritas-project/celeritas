@@ -11,8 +11,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <algorithm>
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"

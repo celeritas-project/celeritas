@@ -22,6 +22,7 @@ void ranlux_state_init(DeviceCRef<RanluxppRngParamsData> const& params,
                        DeviceRef<RanluxppRngStateData> const& state,
                        StreamId stream)
 {
+    CELER_EXPECT(stream);
     detail::RanluxppRngSeedExecutor execute_thread{params, state};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "rng-reseed");
