@@ -349,7 +349,7 @@ elseif(CELERITAS_USE_HIP)
   if(NOT HIPCUB STREQUAL "HIPCUB-NOTFOUND")
     message(STATUS "hipCUB found")
     set(CELERITAS_HAVE_HIPCUB ON)
-  else
+  else()
     message(STATUS "hipCUB not found")
   endif()
 endif()
