@@ -47,7 +47,7 @@ namespace celeritas
  * \f]
  *
  * where \em t is the normal angle of the tangent to the circle of involute
- * with radius \em r_b from a starting angle of \em a (\f$r/h\f$ for a finite
+ * with radius \f$ r_b \f$ from a starting angle of \f$a = r/h\f$ for a finite
  * cone.
  */
 class Involute
