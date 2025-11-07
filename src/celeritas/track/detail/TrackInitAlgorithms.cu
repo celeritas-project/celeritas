@@ -9,7 +9,7 @@
 // CUDA has included cub since CUDA 11, but ROCm does not include hipCUB by
 // default, so test for the availability of hipCUB and use thrust instead if
 // it's unavailable. And some further checks for newer cub/hipCUB functions.
-#if CELER_USE_HIP && !CELERITAS_HAVE_HIPCUB
+#if CELER_USE_HIP && !defined(CELERITAS_HAVE_HIPCUB)
 #    define CELER_USE_THRUST 1
 #else
 #    define CELER_USE_THRUST 0
