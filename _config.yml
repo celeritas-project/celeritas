@@ -12,3 +12,4 @@ include:
 - _sources
 - _static
 - _static/mermaid
+- _static/dot
