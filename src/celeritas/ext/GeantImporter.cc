@@ -222,6 +222,19 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
         ImportScintComponent comp;
         get(&comp.yield_frac, "YIELD", ImportUnits::inv_mev);
 
+        inp::Grid grid;
+        auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
+        if (get_property(&grid, name, {ImportUnits::mev, ImportUnits::unitless}))
+        {
+            comp.energy = std::move(grid.x);
+            comp.intensity = std::move(grid.y);
+            any_found = true;
+        }
+        else
+        {
+            CELER_LOG(debug) << "No grid found for " << name;
+        }
+
         // Custom-defined properties not available in G4MaterialPropertyIndex
         for (auto&& [prop, label] : {
                  std::pair{&comp.lambda_mean, "LAMBDAMEAN"},
