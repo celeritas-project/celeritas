@@ -303,8 +303,11 @@ make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
                                                 not_visited);
     std::vector<LocalVolumeId> stack;
 
-    // Fill local levels
-    for (auto lv_id : range(id_cast<LocalVolumeId>(local_parents.size())))
+    // Traverse all local levels with DFS, excluding unreachable "exterior"
+    // We loop over all volumes because we don't know a priori which one is the
+    // "top" volume in the universe (could be background, could be explicit)
+    for (auto lv_id : range(orange_exterior_volume + 1,
+                            id_cast<LocalVolumeId>(local_parents.size())))
     {
         if (local_vol_level[lv_id.get()] != not_visited)
         {

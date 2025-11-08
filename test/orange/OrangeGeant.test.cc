@@ -166,7 +166,7 @@ TEST_F(MultiLevelTest, manual_volumes)
         volume_names.emplace_back(std::move(cur_volume_names));
     }
     static std::vector<int> const expected_local_level[]
-        = {{0, 1, 1, 1, 1, 1, 0}, {0, 1, 1, 1, 0}, {0, 1, 1, 1, 0}};
+        = {{-1, 1, 1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}};
     static std::vector<int> const expected_local_parent[]
         = {{-1, 6, 6, 6, 6, 6, -1}, {-1, 4, 4, 4, -1}, {-1, 4, 4, 4, -1}};
     static std::vector<std::string> const expected_volume_names[]
