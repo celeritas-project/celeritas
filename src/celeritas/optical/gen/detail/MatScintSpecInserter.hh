@@ -8,9 +8,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
+#include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "../ScintillationData.hh"
@@ -40,10 +43,11 @@ class MatScintSpecInserter
 
   private:
     using MatId = OptMatId;
-
+    Data* data_;
     CollectionBuilder<MatScintSpectrum, MemSpace::host, MatId> materials_;
     DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<ScintRecord> scint_records_;
+    CollectionBuilder<NonuniformGridRecord> energy_cdfs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -53,9 +57,11 @@ class MatScintSpecInserter
  * Construct with defaults.
  */
 MatScintSpecInserter::MatScintSpecInserter(Data* data)
-    : materials_{&data->materials}
+    : data_{data}
+    , materials_{&data->materials}
     , reals_{&data->reals}
     , scint_records_{&data->scint_records}
+    , energy_cdfs_(&data->energy_cdfs)
 {
     CELER_EXPECT(data);
 }
@@ -92,15 +98,34 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
         CELER_VALIDATE(comp.yield_frac > 0,
                        << "invalid yield=" << comp.yield_frac);
 
+        NonuniformGridInserter insert_energy_cdf(&data_->reals,
+                                                 &data_->energy_cdfs);
+
         ScintRecord scint;
-        scint.lambda_mean = comp.lambda_mean;
-        scint.lambda_sigma = comp.lambda_sigma;
         scint.rise_time = comp.rise_time;
         scint.fall_time = comp.fall_time;
         scint_records_.push_back(scint);
 
         yield_pdf.push_back(comp.yield_frac);
         total_yield += comp.yield_frac;
+        if (!comp.energy.empty())
+        {
+            inp::Grid grid;
+            grid.x = comp.energy;
+            grid.y.resize(grid.x.size());
+            SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
+
+            integrate_emission(make_span(comp.energy),
+                               make_span(comp.intensity),
+                               make_span(grid.y));
+            normalize_cdf(make_span(grid.y));
+            scint.energy_cdf = insert_energy_cdf(grid);
+        }
+        else
+        {
+            scint.lambda_mean = comp.lambda_mean;
+            scint.lambda_sigma = comp.lambda_sigma;
+        }
     }
 
     // Normalize yield PDF by total yield
@@ -111,7 +136,8 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
 
     MatScintSpectrum spectrum;
     spectrum.yield_per_energy = mat.yield_per_energy;
-    spectrum.components = {begin_components, scint_records_.size_id()};
+    spectrum.components
+        = ItemRange<ScintRecord>{begin_components, scint_records_.size_id()};
     spectrum.yield_pdf = reals_.insert_back(yield_pdf.begin(), yield_pdf.end());
 
     CELER_ENSURE(spectrum.components.size() == mat.components.size());
