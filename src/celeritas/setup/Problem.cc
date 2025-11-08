@@ -376,6 +376,10 @@ auto build_optical_offload(
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
     oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
+    if (p.control.device_debug)
+    {
+        oc_inp.action_times = p.control.device_debug->sync_stream;
+    }
 
     CELER_ENSURE(oc_inp);
 

@@ -481,11 +481,11 @@ void LocalTransporter::Finalize()
 /*!
  * Get the accumulated action times.
  */
-auto LocalTransporter::GetActionTime() const -> MapStrReal
+auto LocalTransporter::GetActionTime() const -> MapStrDbl
 {
     CELER_EXPECT(*this);
 
-    MapStrReal result;
+    MapStrDbl result;
     auto const& action_seq = step_->actions();
     if (action_seq.action_times())
     {

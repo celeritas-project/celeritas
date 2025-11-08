@@ -82,6 +82,8 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
             *params.Params()->aux_reg(), memspace, stream_id, capacity.tracks);
     }
 
+    //! \todo Action times
+
     // Build the optical transporter
     optical::Transporter::Input inp;
     inp.params = params.optical_params();
@@ -195,6 +197,16 @@ void LocalOpticalOffload::Flush()
 
     // Generate optical photons and transport to completion
     (*transport_)(*state_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated action times.
+ */
+auto LocalOpticalOffload::GetActionTime() const -> MapStrDbl
+{
+    CELER_EXPECT(*this);
+    return transport_->action_times(*state_->aux());
 }
 
 //---------------------------------------------------------------------------//

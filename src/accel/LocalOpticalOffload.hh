@@ -68,6 +68,9 @@ class LocalOpticalOffload final : public LocalOffloadInterface
 
     // Number of buffered tracks
     size_type GetBufferSize() const final { return num_photons_; }
+
+    // Get accumulated action times
+    MapStrDbl GetActionTime() const final;
     //!@}
 
     // Offload optical distribution data to Celeritas
