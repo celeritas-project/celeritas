@@ -72,10 +72,10 @@ class SimpleUnitTracker
     // DaughterId of universe embedded in a given volume
     inline CELER_FUNCTION DaughterId daughter(LocalVolumeId vol) const;
 
-    // Canonical volume depth relative to this universe
+    // Volume level relative to the "top" canonical volume in the universe
     inline CELER_FUNCTION vol_level_uint local_vol_level(LocalVolumeId vol) const;
 
-    // Canonical parent volume placement in the local universe, if any
+    // Local volume ID of the parent canonical volume, if any
     inline CELER_FUNCTION LocalVolumeId local_parent(LocalVolumeId vol) const;
 
     //// OPERATIONS ////
@@ -700,7 +700,11 @@ CELER_FUNCTION DaughterId SimpleUnitTracker::daughter(LocalVolumeId vol) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Canonical volume depth relative to this universe.
+ * Volume level relative to the "top" canonical volume in the universe.
+ *
+ * When representing a Geant4 geometry, this will be zero for the top-level
+ * volume, one if it's a volume instance that's been "inlined" into this
+ * universe as a volume, two if it's a volume inlined inside that one, etc.
  */
 CELER_FUNCTION auto SimpleUnitTracker::local_vol_level(LocalVolumeId vol) const
     -> vol_level_uint
@@ -710,17 +714,19 @@ CELER_FUNCTION auto SimpleUnitTracker::local_vol_level(LocalVolumeId vol) const
     if (unit_record_.local_vol_level.empty())
         return 0;
 
-    OpaqueId<vol_level_uint> depth_ptr = unit_record_.local_vol_level[vol];
-    vol_level_uint local_vol_level = params_.vd_uints[depth_ptr];
+    OpaqueId<vol_level_uint> level_ptr = unit_record_.local_vol_level[vol];
+    vol_level_uint local_vol_level = params_.vl_uints[level_ptr];
     return local_vol_level;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Canonical parent volume placement in the local universe, if any.
+ * Local volume ID of the parent canonical volume, if any.
  *
- * If the local parent volume is null, then the parent is the placement of the
- * current ORANGE universe as a daughter.
+ * This gives the within-universe implementation volume ID of the canonical
+ * volume that "encloses" (i.e., has a level one less than) the given local
+ * volume. If the local parent volume is null, then the parent is the placement
+ * of the current ORANGE universe as a daughter.
  */
 CELER_FUNCTION LocalVolumeId
 SimpleUnitTracker::local_parent(LocalVolumeId vol) const

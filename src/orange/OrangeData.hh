@@ -405,10 +405,9 @@ struct OrangeParamsData
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
 
-    // Map of ORANGE internal volume ID -> canonical IDs and structure
+    // Mappings used to reconstruct canonical volumes and hierarchy
     ImplVolumeItems<VolumeId> volume_ids;
     ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
-    ImplVolumeItems<ImplVolumeId> parent_impl_volumes;
 
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;
@@ -417,7 +416,7 @@ struct OrangeParamsData
     Items<LocalSurfaceId> local_surface_ids;
     Items<LocalVolumeId> local_volume_ids;
     Items<RealId> real_ids;
-    Items<vol_level_uint> vd_uints;
+    Items<vol_level_uint> vl_uints;
     Items<logic_int> logic_ints;
     Items<real_type> reals;
     Items<FastReal3> fast_real3s;
@@ -459,14 +458,13 @@ struct OrangeParamsData
 
         volume_ids = other.volume_ids;
         volume_instance_ids = other.volume_instance_ids;
-        parent_impl_volumes = other.parent_impl_volumes;
 
         bih_tree_data = other.bih_tree_data;
 
         local_surface_ids = other.local_surface_ids;
         local_volume_ids = other.local_volume_ids;
         real_ids = other.real_ids;
-        vd_uints = other.vd_uints;
+        vl_uints = other.vl_uints;
         logic_ints = other.logic_ints;
         reals = other.reals;
         surface_types = other.surface_types;

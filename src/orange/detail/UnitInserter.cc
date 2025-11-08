@@ -23,6 +23,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Environment.hh"
+#include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "UniverseInserter.hh"
@@ -261,6 +262,13 @@ std::string to_string(VolumeInput::VariantLabel const& vlabel)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create a vector (indexed by local volume ID) of local canonical parents.
+ *
+ * This simply expands a sparse map into a full vector. The indices are all
+ * local implementation volume IDs, even though the relationship they describe
+ * is the "canonical" volume structure.
+ */
 std::vector<LocalVolumeId>
 make_local_parent_vec(LocalVolumeId::size_type num_volumes,
                       UnitInput::MapLocalParent const& local_parent_map)
@@ -281,6 +289,12 @@ make_local_parent_vec(LocalVolumeId::size_type num_volumes,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Determine relative canonical volume levels of each local volume.
+ *
+ * Use a depth-first search to fill an array, indexed by local volumes, of
+ * the volume relative to the top (most enclosing/closest to "world").
+ */
 std::vector<vol_level_uint>
 make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
 {
@@ -355,7 +369,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , local_surface_ids_{&orange_data_->local_surface_ids}
     , local_volume_ids_{&orange_data_->local_volume_ids}
     , real_ids_{&orange_data_->real_ids}
-    , vd_uints_{&orange_data_->vd_uints}
+    , vl_uints_{&orange_data_->vl_uints}
     , logic_ints_{&orange_data_->logic_ints}
     , reals_{&orange_data_->reals}
     , surface_types_{&orange_data_->surface_types}
@@ -453,7 +467,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
         unit.local_parent
             = local_volume_ids_.insert_back(parents.begin(), parents.end());
         unit.local_vol_level
-            = vd_uints_.insert_back(levels.begin(), levels.end());
+            = vl_uints_.insert_back(levels.begin(), levels.end());
     }
 
     // Save volumes

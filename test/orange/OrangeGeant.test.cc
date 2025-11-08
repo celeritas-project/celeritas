@@ -29,6 +29,19 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//! Avoid relying on integer size assumptions and overflow
+int vluint_to_int(vol_level_uint vl)
+{
+    if (vl == static_cast<vol_level_uint>(-1))
+        return -1;
+
+    return vl;
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 
 class GeantOrangeTest : public OrangeTestBase
@@ -95,7 +108,7 @@ class MultiLevelTest
 
 // Test the stack/volume points to see what universe and local volume they
 // translate to
-TEST_F(MultiLevelTest, univ_depths)
+TEST_F(MultiLevelTest, univ_levels)
 {
     std::vector<int> univ_levels;
     std::vector<int> univ_ids;
@@ -136,19 +149,19 @@ TEST_F(MultiLevelTest, manual_volumes)
         auto num_local_vols = visit_tracker(
             [](auto const& t) { return t.num_volumes(); }, uid);
 
-        std::vector<int> cur_local_depth;
+        std::vector<int> cur_local_level;
         std::vector<int> cur_local_parent;
         std::vector<std::string> cur_volume_names;
         for (auto lv_id : range(LocalVolumeId{num_local_vols}))
         {
-            cur_local_depth.push_back(visit_tracker(
+            cur_local_level.push_back(vluint_to_int(visit_tracker(
                 [lv_id](auto const& t) { return t.local_vol_level(lv_id); },
-                uid));
+                uid)));
             cur_local_parent.push_back(id_to_int(visit_tracker(
                 [lv_id](auto const& t) { return t.local_parent(lv_id); }, uid)));
             cur_volume_names.push_back(impl_volumes.at(global_vol++).name);
         }
-        local_level.emplace_back(std::move(cur_local_depth));
+        local_level.emplace_back(std::move(cur_local_level));
         local_parent.emplace_back(std::move(cur_local_parent));
         volume_names.emplace_back(std::move(cur_volume_names));
     }
@@ -165,7 +178,7 @@ TEST_F(MultiLevelTest, manual_volumes)
     EXPECT_VEC_EQ(expected_volume_names, volume_names);
 }
 
-// Test that the reconstructed total depths are correct
+// Test that the reconstructed total levels are correct
 TEST_F(MultiLevelTest, volume_level)
 {
     this->impl().test_volume_level();

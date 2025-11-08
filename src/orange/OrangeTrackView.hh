@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
 
@@ -513,17 +516,20 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
     CELER_EXPECT(this->univ_level() < levels.size());
 
     // Start writing backward from end of levels array
-    CELER_ASSERT(levels.size() > 0);
-    unsigned rdst = levels.size();
+    CELER_ASSERT(levels.size() > 0
+                 && levels.size()
+                        <= NumericLimits<VolumeLevelId::size_type>::max());
+    VolumeLevelId::size_type level_idx = levels.size();
 
     // Loop over universes, local to global
-    UnivLevelId const ulev{this->univ_level()};
     auto ui = this->make_univ_indexer();
     TrackerVisitor visit_tracker{params_};
 
-    for (auto neg_ulev : range(ulev.unchecked_get() + 1))
+    using UnivLevelInt = std::make_signed_t<UnivLevelId::size_type>;
+    for (auto ulev_idx :
+         range<UnivLevelInt>(this->univ_level().get() + 1).step(-1))
     {
-        auto lsa = this->make_lsa(ulev - neg_ulev);
+        auto lsa = this->make_lsa(id_cast<UnivLevelId>(ulev_idx));
         auto const univ = lsa.univ();
 
         // Initialize local volume from state
@@ -535,8 +541,8 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
             if (auto vol_inst = params_.volume_instance_ids[impl_id])
             {
                 // Save volume instance ID at this canonical level
-                CELER_ASSERT(rdst != 0);
-                levels[--rdst] = vol_inst;
+                CELER_ASSERT(level_idx != 0);
+                levels[--level_idx] = vol_inst;
                 // Update to parent level
                 lv_id = visit_tracker(
                     [lv_id](auto&& t) { return t.local_parent(lv_id); }, univ);
@@ -548,8 +554,8 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
             }
         } while (lv_id);
     }
-    // Input should have been resized to exactly match number of nested level
-    CELER_ENSURE(rdst == 0);
+    // Input should have been resized to exactly match number of nested levels
+    CELER_ENSURE(level_idx == 0);
 }
 
 //---------------------------------------------------------------------------//

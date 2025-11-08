@@ -6,22 +6,18 @@
 //---------------------------------------------------------------------------//
 #include "GeoTests.hh"
 
-#include <cmath>
 #include <string_view>
 
 #include "corecel/OpaqueIdUtils.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
-#include "geocel/VolumeParams.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
