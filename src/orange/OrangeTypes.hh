@@ -217,17 +217,19 @@ enum class SurfaceState : bool
 
 //---------------------------------------------------------------------------//
 /*!
- * When crossing a boundary, whether the track exits the current volume.
+ * When crossing a boundary, whether the track is entering or exiting the
+ * current boundary.
  *
- * This is necessary due to changes in direction on the boundary due to
- * magnetic field and/or multiple scattering. We could extend this later to a
- * flag set of "volume changed" (internal non-reflective crossing), "direction
- * changed" (reflecting/periodic), "position changed" (bump/periodic).
+ * After moving to a boundary, the track is considered `entering` the boundary.
+ * Changing direction while on a boundary will change whether the track is
+ * `entering` or `exiting` relative to the surface normal. When
+ * `cross_boundary` is called, the track is only relocated to the new volume if
+ * it is `entering` the boundary, after which it is considered `exiting`.
  */
 enum class BoundaryResult : bool
 {
-    reentrant = false,
-    exiting = true
+    entering,
+    exiting
 };
 
 //---------------------------------------------------------------------------//

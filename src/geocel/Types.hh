@@ -127,16 +127,15 @@ struct Propagation
 CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer() = default;
 
 //! Construct with an invalid parent ID
-CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 pos, Real3 dir)
-    : GeoTrackInitializer(pos, dir, {})
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d)
+    : GeoTrackInitializer(p, d, {})
 {
 }
 
 //! Construct with position, direction, and parent ID
-CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 pos,
-                                                        Real3 dir,
-                                                        TrackSlotId parent)
-    : pos(pos), dir(dir), parent(parent)
+CELER_FUNCTION
+GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d, TrackSlotId p_id)
+    : pos(p), dir(d), parent(p_id)
 {
 }
 

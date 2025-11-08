@@ -15,13 +15,8 @@
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
-#include <G4Threading.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
-
-#ifdef _OPENMP
-#    include <omp.h>
-#endif
 
 #include "corecel/Config.hh"
 
@@ -31,7 +26,6 @@
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
@@ -164,48 +158,22 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local transporter when Celeritas "
                       "offloading is disabled");
+    CELER_VALIDATE(!options.optical_generator
+                       || std::holds_alternative<inp::OpticalEmGenerator>(
+                           *options.optical_generator),
+                   << "invalid optical photon generation mechanism for local "
+                      "transporter");
+
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
     bbox_ = params.bbox();
 
-    auto thread_id = get_geant_thread_id();
-    CELER_VALIDATE(thread_id >= 0,
-                   << "Geant4 ThreadID (" << thread_id
-                   << ") is invalid (perhaps LocalTransporter is being built "
-                      "on a non-worker thread?)");
-    CELER_VALIDATE(
-        static_cast<size_type>(thread_id) < params.Params()->max_streams(),
-        << "Geant4 ThreadID (" << thread_id
-        << ") is out of range for the reported number of worker threads ("
-        << params.Params()->max_streams() << ")");
-
-    // Check that OpenMP and Geant4 threading models don't collide
-    if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
-        && G4Threading::IsMultithreadedApplication())
-    {
-        auto msg = CELER_LOG(warning);
-        msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
-               "parallelism";
-        if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
-            !nt_str.empty())
-        {
-            msg << "(OMP_NUM_THREADS=" << nt_str
-                << "): CPU threads may be oversubscribed";
-        }
-        else
-        {
-            msg << ": forcing 1 Celeritas thread to Geant4 thread";
-#ifdef _OPENMP
-            omp_set_num_threads(1);
-#else
-            CELER_ASSERT_UNREACHABLE();
-#endif
-        }
-    }
+    // Check the thread ID and MT model
+    validate_geant_threading(params.Params()->max_streams());
 
     // Create hit processor on the local thread so that it's deallocated when
     // this object is destroyed
-    StreamId stream_id{static_cast<size_type>(thread_id)};
+    auto stream_id = id_cast<StreamId>(get_geant_thread_id());
     if (auto const& hit_manager = params.hit_manager())
     {
         hit_processor_ = hit_manager->make_local_processor(stream_id);

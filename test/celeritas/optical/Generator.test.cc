@@ -54,12 +54,10 @@ class LArSphereGeneratorTest : public LArSphereBase
             device().create_streams(1);
         }
 
-        auto state = std::make_shared<optical::CoreState<M>>(
+        state_ = std::make_shared<optical::CoreState<M>>(
             *this->optical_params(), StreamId{0}, size);
-        state->aux() = std::make_shared<AuxStateVec>(
+        state_->aux() = std::make_shared<AuxStateVec>(
             *this->core()->aux_reg(), M, StreamId{0}, size);
-
-        state_ = state;
     }
 
     //! Construct the optical transporter

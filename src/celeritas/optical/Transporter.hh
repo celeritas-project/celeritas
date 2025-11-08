@@ -54,6 +54,9 @@ class Transporter
     // Transport all pending optical tracks
     void operator()(CoreStateBase&) const;
 
+    //! Access the shared params
+    SPConstParams const& params() const { return params_; }
+
   private:
     //// TYPES ////
 
