@@ -9,6 +9,8 @@
 // CUDA has included cub since CUDA 11, but ROCm does not include hipCUB by
 // default, so test for the availability of hipCUB and use thrust instead if
 // it's unavailable. And some further checks for newer cub/hipCUB functions.
+#define XSTR(x) STR(x)
+#define STR(x) #x
 #if CELER_USE_HIP
 #    if CELERITAS_HAVE_HIPCUB
 #        define CELER_USE_THRUST 0
@@ -16,6 +18,10 @@
 #        define CELER_USE_THRUST 1
 #    endif
 #endif
+#pragma message "The value of CELER_USE_HIP: " XSTR(CELER_USE_HIP)
+#pragma message \
+    "The value of CELERITAS_HAVE_HIPCUB: " XSTR(CELERITAS_HAVE_HIPCUB)
+#pragma message "The value of CELER_USE_THRUST: " XSTR(CELER_USE_THRUST)
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_select.cuh>
 #    include <cub/version.cuh>
