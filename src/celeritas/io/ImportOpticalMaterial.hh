@@ -30,11 +30,17 @@ struct ImportScintComponent
     double rise_time{};  //!< Rise time [time]
     double fall_time{};  //!< Decay time [time]
 
+    std::vector<real_type> energy;
+    std::vector<real_type> intensity;
+
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return yield_frac > 0 && lambda_mean > 0 && lambda_sigma > 0
-               && rise_time >= 0 && fall_time > 0;
+        bool const has_gauss = (lambda_mean > 0 && lambda_sigma > 0);
+        bool const has_grid
+            = (!energy.empty() && energy.size() == intensity.size());
+        return yield_frac > 0 && rise_time >= 0 && fall_time > 0
+               && (has_gauss || has_grid);
     }
 };
 
