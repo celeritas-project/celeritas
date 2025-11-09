@@ -15,7 +15,7 @@
 namespace celeritas
 {
 class ActionRegistry;
-class ActionTimesState;
+struct ActionTimesState;
 
 //---------------------------------------------------------------------------//
 /*!
