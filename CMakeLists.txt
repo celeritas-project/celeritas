@@ -340,11 +340,11 @@ elseif(CELERITAS_USE_HIP)
       OFF
     )
   endif()
-  find_library(ROCTX_LIBRARY roctx64)
+  # Include the default ROCm installation path in the search
+  find_library(ROCTX_LIBRARY roctx64 PATHS /opt/rocm/lib)
   if(ROCTX_LIBRARY)
     set(CELERITAS_HAVE_ROCTX ON)
   endif()
-  # NOTE: may need to handle installs in a non-default directory
   find_file(HIPCUB hipcub_version.hpp PATHS /opt/rocm/include/hipcub)
   if(NOT HIPCUB STREQUAL "HIPCUB-NOTFOUND")
     set(CELERITAS_HAVE_HIPCUB ON)
