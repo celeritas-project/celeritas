@@ -498,6 +498,17 @@ auto LocalTransporter::GetActionTime() const -> MapStrDbl
         {
             result[std::string{action_ptrs[i]->label()}] = time[i];
         }
+
+        if (optical_)
+        {
+            // Save optical loop action times
+            auto optical_times = optical_->action_times(step_->state().aux());
+            for (auto&& [label, time] : optical_times)
+            {
+                // Prefix label to distinguish from core actions
+                result["optical::" + label] = time;
+            }
+        }
     }
     return result;
 }
