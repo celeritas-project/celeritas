@@ -14,6 +14,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -79,6 +80,7 @@
 #include "celeritas/track/StatusChecker.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
+#include "celeritas/user/ActionTimes.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/SlotDiagnostic.hh"
@@ -693,6 +695,15 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                     optical::Transporter::Input inp;
                     inp.params = optical_params;
                     inp.max_step_iters = p.tracking.limits.optical_step_iters;
+                    if (p.control.device_debug
+                        && p.control.device_debug->sync_stream)
+                    {
+                        // Create aux data to accumulate optical action times
+                        AuxParamsRegistry& aux = *core_params->aux_reg();
+                        inp.action_times = std::make_shared<ActionTimes>(
+                            aux.next_id(), optical_params->action_reg());
+                        aux.insert(inp.action_times);
+                    }
                     result.optical_transporter
                         = std::make_shared<optical::Transporter>(
                             std::move(inp));
