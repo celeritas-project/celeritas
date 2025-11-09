@@ -311,12 +311,12 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
 
-    result.optical_capacity = [] {
-        inp::OpticalStateCapacity cap;
-        cap.tracks = 32768;
-        cap.generators = 32768 * 8;
-        cap.primaries = cap.generators;
-        return cap;
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = 32768 * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        return opt;
     }();
 
     return result;
@@ -341,7 +341,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
         EXPECT_EQ(is_running_events(), static_cast<bool>(local_transporter));
         EXPECT_TRUE(shared_params) << "Celeritas was not enabled";
 
-        auto const& optical_collector = shared_params.optical();
+        auto const& optical_collector = shared_params.optical_collector();
         EXPECT_TRUE(optical_collector) << "optical offloading was not enabled";
         if (local_transporter && optical_collector)
         {
@@ -458,7 +458,7 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
         EXPECT_EQ(is_running_events(), static_cast<bool>(local_transporter));
         EXPECT_TRUE(shared_params) << "Celeritas was not enabled";
 
-        auto const& optical_collector = shared_params.optical();
+        auto const& optical_collector = shared_params.optical_collector();
         EXPECT_TRUE(optical_collector) << "optical offloading was not enabled";
         if (local_transporter && optical_collector)
         {
