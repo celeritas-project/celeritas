@@ -6,15 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
-// CUDA has included cub since CUDA 11, but ROCm does not include hipCUB by
+// CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
 // default, so test for the availability of hipCUB and use thrust instead if
-// it's unavailable. And some further checks for newer cub/hipCUB functions.
-#if CELER_USE_HIP
-#    if CELERITAS_HAVE_HIPCUB
-#        define CELER_USE_THRUST 0
-#    else
-#        define CELER_USE_THRUST 1
-#    endif
+// it's unavailable. And some further checks for newer CUB/hipCUB functions.
+#if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
+#    define CELERITAS_USE_THRUST 1
+#else
+#    define CELERITAS_USE_THRUST 0
 #endif
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_select.cuh>
@@ -23,28 +21,28 @@
 #    include <hipcub/device/device_select.hpp>
 #    include <hipcub/hipcub_version.hpp>
 #endif
-// DeviceTransform is unavailable in older versions of cub/hipcub, so fall back
+// DeviceTransform is unavailable in older versions of CUB/hipCUB, so fall back
 // to using thrust::transform instead
 #if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
-#    define CELER_CUB_HAS_TRANSFORM 1
+#    define CELERITAS_CUB_HAS_TRANSFORM 1
 #else
-#    define CELER_CUB_HAS_TRANSFORM 0
+#    define CELERITAS_CUB_HAS_TRANSFORM 0
 #endif
 #if CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
-#    define CELER_HIPCUB_HAS_TRANSFORM 1
+#    define CELERITAS_HIPCUB_HAS_TRANSFORM 1
 #else
-#    define CELER_HIPCUB_HAS_TRANSFORM 0
+#    define CELERITAS_HIPCUB_HAS_TRANSFORM 0
 #endif
-#if CELER_CUB_HAS_TRANSFORM
+#if CELERITAS_CUB_HAS_TRANSFORM
 #    include <cub/device/device_transform.cuh>
-#elif CELER_HIPCUB_HAS_TRANSFORM
+#elif CELERITAS_HIPCUB_HAS_TRANSFORM
 #    include <hipcub/device/device_transform.hpp>
 #else
 #    include <thrust/execution_policy.h>
 #    include <thrust/transform.h>
 #endif
 #include <thrust/device_ptr.h>
-#if CELER_USE_THRUST
+#if CELERITAS_USE_THRUST
 #    include <thrust/copy.h>
 #    include <thrust/iterator/counting_iterator.h>
 #    include <thrust/iterator/transform_iterator.h>
@@ -68,7 +66,7 @@ namespace optical
 {
 namespace detail
 {
-#if CELER_USE_THRUST
+#if CELERITAS_USE_THRUST
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -96,7 +94,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     CELER_EXPECT(status.size() == vacancies.size());
 
     ScopedProfiling profile_this{"copy-if-vacant"};
-#if CELER_USE_THRUST
+#if CELERITAS_USE_THRUST
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
     auto result = device_pointer_cast(vacancies.data());
@@ -110,7 +108,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 
     return end - result;
 #else
-    // cub functions expect a cudaStream_t pointer for the stream
+    // CUB functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
 
@@ -118,7 +116,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 
     auto start = device_pointer_cast(status.data());
     DeviceVector<unsigned char> flags{status.size(), stream_id};
-#    if CELER_CUB_HAS_TRANSFORM || CELER_HIPCUB_HAS_TRANSFORM
+#    if CELERITAS_CUB_HAS_TRANSFORM || CELERITAS_HIPCUB_HAS_TRANSFORM
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     {
         auto cub_error_code = cub::DeviceTransform::Transform(
