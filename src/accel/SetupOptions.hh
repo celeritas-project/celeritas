@@ -17,6 +17,7 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/Tracking.hh"
 
 class G4LogicalVolume;
 class G4ParticleDefinition;
@@ -116,6 +117,20 @@ struct SDSetupOptions
 
 //---------------------------------------------------------------------------//
 /*!
+ * Control options for initializing optical photon transport in Celeritas.
+ */
+struct OpticalSetupOptions
+{
+    //! Capacity for storing optical photon state
+    inp::OpticalStateCapacity capacity;
+    //! Optical photon generation mechanism
+    inp::OpticalGenerator generator;
+    //! Limit on number of optical step iterations before aborting
+    size_type max_step_iters{inp::TrackingLimits::unlimited};
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Control options for initializing Celeritas.
  *
  * The interface for the "along-step factory" (input parameters and output) is
@@ -132,7 +147,7 @@ struct SDSetupOptions
  *
  * Note that the Celeritas core capacity values (\c max_num_tracks, \c
  * initializer_capacity and \c auto_flush) are per \em stream while the \c
- * optical_capacity values are per \em process.
+ * capacity values in \c OpticalSetupOptions are per \em process.
  *
  * \note This class will be replaced in v1.0
  *       by \c celeritas::inp::FrameworkInput .
@@ -177,12 +192,7 @@ struct SetupOptions
     //!@{
     //! \name Optical photon options
 
-    //! Capacity for storing optical photon state
-    std::optional<inp::OpticalStateCapacity> optical_capacity;
-    //! Optical photon generation mechanism
-    std::optional<inp::OpticalGenerator> optical_generator;
-    //! Limit on number of optical step iterations before aborting
-    size_type max_optical_step_iters = no_max_steps();
+    std::optional<OpticalSetupOptions> optical;
     //!@}
 
     //!@{
