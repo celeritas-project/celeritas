@@ -165,16 +165,17 @@ auto LarSphereOpticalOffload::make_setup_options() -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
 
-    result.optical_capacity = [] {
-        inp::OpticalStateCapacity cap;
-        cap.tracks = 32768;
-        cap.generators = cap.tracks * 8;
-        cap.primaries = cap.tracks * 16;
-        return cap;
-    }();
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = opt.capacity.tracks * 8;
+        opt.capacity.primaries = opt.capacity.tracks * 16;
 
-    // Enable optical distribution offloading
-    result.optical_generator = inp::OpticalOffloadGenerator{};
+        // Enable optical distribution offloading
+        opt.generator = inp::OpticalOffloadGenerator{};
+
+        return opt;
+    }();
 
     // Don't offload any particles
     result.offload_particles = SetupOptions::VecG4PD{};

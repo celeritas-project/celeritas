@@ -77,17 +77,17 @@ class LocalOpticalOffload final : public LocalOffloadInterface
     explicit operator bool() const { return this->Initialized(); }
 
   private:
-    // Thread-local state data
-    std::shared_ptr<optical::CoreStateBase> state_;
-
     // Transport pending optical tracks
     std::shared_ptr<optical::Transporter> transport_;
 
-    // Buffered distributions for offloading
-    std::vector<DistributionData> buffer_;
-
     // Action for generating optical photons from distribution data
     std::shared_ptr<optical::GeneratorAction const> generate_;
+
+    // Thread-local state data
+    std::shared_ptr<optical::CoreStateBase> state_;
+
+    // Buffered distributions for offloading
+    std::vector<DistributionData> buffer_;
 
     // Accumulated number of buffered photons
     size_type num_photons_{};

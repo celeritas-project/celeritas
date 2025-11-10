@@ -363,9 +363,9 @@ auto IntegrationSingleton::local_offload_ptr() -> UPOffload&
  */
 bool IntegrationSingleton::optical_offload() const
 {
-    return options_.optical_generator
+    return options_.optical
            && std::holds_alternative<inp::OpticalOffloadGenerator>(
-               *options_.optical_generator);
+               options_.optical->generator);
 }
 
 //---------------------------------------------------------------------------//

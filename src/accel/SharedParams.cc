@@ -326,10 +326,28 @@ SharedParams::SharedParams(SetupOptions const& options)
     auto framework_inp = to_inp(options);
     auto loaded = setup::framework_input(framework_inp);
     params_ = std::move(loaded.problem.core_params);
-    optical_params_ = std::move(loaded.problem.optical_params);
-    optical_ = std::move(loaded.problem.optical_collector);
-    output_filename_ = loaded.problem.output_file;
     CELER_ASSERT(params_);
+    output_filename_ = loaded.problem.output_file;
+
+    if (auto const& opt = options.optical)
+    {
+        if (std::holds_alternative<inp::OpticalOffloadGenerator>(opt->generator))
+        {
+            optical_transporter_
+                = std::move(loaded.problem.optical_transporter);
+            CELER_ASSERT(optical_transporter_);
+        }
+        else if (std::holds_alternative<inp::OpticalEmGenerator>(opt->generator))
+        {
+            optical_collector_ = std::move(loaded.problem.optical_collector);
+            CELER_ASSERT(optical_collector_);
+        }
+        else
+        {
+            CELER_VALIDATE(false,
+                           << "invalid optical photon generation mechanism");
+        }
+    }
 
     // Load geant4 geometry adapter and save as "global"
     CELER_ASSERT(loaded.geo);

@@ -65,6 +65,7 @@
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
@@ -648,13 +649,13 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         }
         CELER_ASSERT(p.physics.optical);
 
-        result.optical_params
+        auto optical_params
             = build_optical_params(p.physics.optical, *core_params, imported);
 
         // Save optical diagnostic information
         core_params->output_reg()->insert(
             std::make_shared<ActionRegistryOutput>(
-                result.optical_params->action_reg(), "optical-actions"));
+                optical_params->action_reg(), "optical-actions"));
 
         auto const& capacity = *p.control.optical_capacity;
 
@@ -670,26 +671,34 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                 "optical-sizes",
                 std::move(sizes)));
 
-        std::visit(Overload{
-                       [&](inp::OpticalEmGenerator) {
-                           // Generate Cherenkov or scintillation optical
-                           // photons from Celeritas tracks
-                           result.optical_collector = build_optical_offload(
-                               p, *core_params, result.optical_params);
-                       },
-                       [&](inp::OpticalOffloadGenerator) {
-                           // Generate Cherenkov or scintillation photons
-                           optical::GeneratorAction::make_and_insert(
-                               *core_params,
-                               *result.optical_params,
-                               capacity.generators);
-                       },
-                       [](inp::OpticalPrimaryGenerator) {
-                           //! \todo Enable optical primary generator
-                           CELER_NOT_IMPLEMENTED("optical primary generator");
-                       },
-                   },
-                   p.physics.optical_generator);
+        std::visit(
+            Overload{
+                [&](inp::OpticalEmGenerator) {
+                    // Generate Cherenkov or scintillation optical
+                    // photons from Celeritas tracks
+                    result.optical_collector = build_optical_offload(
+                        p, *core_params, optical_params);
+                },
+                [&](inp::OpticalOffloadGenerator) {
+                    // Generate Cherenkov or scintillation photons
+                    optical::GeneratorAction::make_and_insert(
+                        *core_params, *optical_params, capacity.generators);
+
+                    // Build the optical transporter \em after all optical
+                    // actions have been added to the registry
+                    optical::Transporter::Input inp;
+                    inp.params = optical_params;
+                    inp.max_step_iters = p.tracking.limits.optical_step_iters;
+                    result.optical_transporter
+                        = std::make_shared<optical::Transporter>(
+                            std::move(inp));
+                },
+                [](inp::OpticalPrimaryGenerator) {
+                    //! \todo Enable optical primary generator
+                    CELER_NOT_IMPLEMENTED("optical primary generator");
+                },
+            },
+            p.physics.optical_generator);
     }
     else
     {
