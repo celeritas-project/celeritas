@@ -24,12 +24,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    DirectGeneratorExecutor ...;
-   \endcode
+ * Directly initialize photons.
  */
 struct DirectGeneratorExecutor
 {
@@ -38,6 +33,7 @@ struct DirectGeneratorExecutor
     NativeRef<DirectGeneratorStateData> const data;
     CoreStateCounters counters;
 
+    // Initialize optical photons
     inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
     CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
     {
@@ -49,21 +45,25 @@ struct DirectGeneratorExecutor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize optical photons.
  */
 CELER_FUNCTION void DirectGeneratorExecutor::operator()(TrackSlotId tid) const
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);
 
+    // Create view to new track to be initialized
     CoreTrackView vacancy(*params, *state, [&] {
         TrackSlotId idx{
             index_before(counters.num_vacancies, ThreadId(tid.get()))};
         return state->init.vacancies[idx];
     }());
 
+    // Get initializer from the back
     TrackInitializer const& init = data.initializers[ItemId<TrackInitializer>(
         index_before(counters.num_pending, ThreadId(tid.get())))];
 
+    // Initialize track
     vacancy = init;
 }
 
