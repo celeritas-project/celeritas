@@ -311,13 +311,13 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
 
-    result.optical.emplace([] {
-        inp::OpticalStateCapacity cap;
-        cap.tracks = 32768;
-        cap.generators = 32768 * 8;
-        cap.primaries = cap.generators;
-        return cap;
-    }());
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = 32768 * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        return opt;
+    }();
 
     return result;
 }
