@@ -552,12 +552,12 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options()
 {
     auto result = Base::make_setup_options();
     result.sd.enabled = false;
-    result.optical_capacity = [] {
-        inp::OpticalStateCapacity cap;
-        cap.tracks = 32768;
-        cap.generators = 32768 * 8;
-        cap.primaries = cap.generators;
-        return cap;
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = 32768 * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        return opt;
     }();
     return result;
 }
