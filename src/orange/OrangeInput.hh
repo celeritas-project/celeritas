@@ -42,7 +42,7 @@ struct OrientedBoundingZoneInput
 
 //---------------------------------------------------------------------------//
 /*!
- * Input definition for a single volume.
+ * Input definition for a single ORANGE implementation volume.
  */
 struct VolumeInput
 {
@@ -66,7 +66,7 @@ struct VolumeInput
     //! Masking priority
     ZOrder zorder{};
 
-    //! Whether the volume definition is valid
+    //! Whether the input definition is valid
     explicit operator bool() const
     {
         return (!logic.empty() || (flags & Flags::implicit_vol))
@@ -76,7 +76,7 @@ struct VolumeInput
 
 //---------------------------------------------------------------------------//
 /*!
- * Input definition a daughter universe embedded in a parent cell.
+ * Input definition a daughter universe embedded in a parent volume.
  */
 struct DaughterInput
 {
@@ -86,7 +86,7 @@ struct DaughterInput
 
 //---------------------------------------------------------------------------//
 /*!
- * Extra metadata for the "background" volume.
+ * Extra metadata for a unit's "background" volume.
  *
  * Unlike a regular volume, the "background" represents a \em volume rather
  * than a volume \em instance. Note that this can be an \em explicit volume
@@ -149,7 +149,7 @@ struct RectArrayInput
     // Grid boundaries in x, y, and z
     Array<std::vector<double>, 3> grid;
 
-    // Daughters in each cell [x][y][z]
+    // Daughters in each volume [x][y][z]
     std::vector<DaughterInput> daughters;
 
     // Unit metadata

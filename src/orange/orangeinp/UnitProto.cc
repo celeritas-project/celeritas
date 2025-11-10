@@ -406,7 +406,7 @@ void UnitProto::build(ProtoBuilder& input) const
         vol_iter->label = d.label;
         if (vol_iter->label == VariantLabel{})
         {
-            // Choose default label for the volume
+            // Choose default label for the impl volume
             vol_iter->label = Label{std::string{d.fill->label()},
                                     std::string{this->label()}};
         }

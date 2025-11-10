@@ -31,7 +31,11 @@ namespace celeritas
  * The simple unit tracker is based on a set of non-overlapping volumes
  * comprised of surfaces. It is a faster but less "user-friendly" version of
  * the masked unit tracker because it requires all volumes to be exactly
- * defined by their connected surfaces. It does *not* check for overlaps.
+ * defined by their connected surfaces. It does \em not check for overlaps.
+ *
+ * All IDs inside the simple unit tracker are \em local and
+ * implementation-specific,  with the exception that daughter IDs are *global*
+ * (but also implementation-specific).
  */
 class SimpleUnitTracker
 {
@@ -375,7 +379,7 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance-to-intercept for the next surface.
+ * Calculate distance-to-intercept for the next local surface.
  *
  * The algorithm is:
  * - If the volume is the "background" then search externally for the next
@@ -388,7 +392,7 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  *   *only* intersections that are valid (either finite *or* less than the
  *   user-supplied maximum). The buffer contains the distances, the face
  *   indices, and an index used for sorting (if the volume has internal
- *   surfaes).
+ *   surfaces).
  * - If no intersecting surfaces are found, return immediately. (Rely on the
  *   caller to set the "maximum distance" if we're not searching to infinity.)
  * - If the volume has no special cases, find the closest surface by calling \c

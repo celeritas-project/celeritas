@@ -71,11 +71,12 @@ struct OrangeParamsScalars
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single local implementation volume definition.
+ * Data for a single implementation volume definition inside a unit.
  *
  * Surface IDs are local to the unit.
  *
  * \sa VolumeView
+ * \todo Rename UnitVolumeRecord?
  */
 struct VolumeRecord
 {
