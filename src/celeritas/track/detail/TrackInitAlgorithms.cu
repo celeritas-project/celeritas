@@ -11,8 +11,6 @@
 // it's unavailable. And some further checks for newer CUB/hipCUB functions.
 #if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
 #    define CELERITAS_USE_THRUST 1
-#else
-#    define CELERITAS_USE_THRUST 0
 #endif
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_partition.cuh>
@@ -29,13 +27,8 @@
 // to using thrust::transform instead
 #if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
 #    define CELERITAS_CUB_HAS_TRANSFORM 1
-#else
-#    define CELERITAS_CUB_HAS_TRANSFORM 0
-#endif
-#if CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
+#elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
 #    define CELERITAS_HIPCUB_HAS_TRANSFORM 1
-#else
-#    define CELERITAS_HIPCUB_HAS_TRANSFORM 0
 #endif
 #if CELERITAS_CUB_HAS_TRANSFORM
 #    include <cub/device/device_transform.cuh>
@@ -62,7 +55,7 @@
 
 #include "../Utils.hh"
 
-#if CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
+#if CELERITAS_HAVE_HIPCUB
 namespace cub = hipcub;
 #endif
 
@@ -122,6 +115,7 @@ size_type remove_if_alive(
                                                 vacancies.size(),
                                                 NotNull{},
                                                 stream);
+    CELER_DISCARD(cub_error_code);
     // Allocate temporary storage
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     // Run selection
@@ -132,7 +126,7 @@ size_type remove_if_alive(
                                            vacancies.size(),
                                            NotNull{},
                                            stream);
-
+    CELER_DISCARD(cub_error_code);
     auto num = ItemCopier<size_type>{stream_id}(num_not_active.data());
 
     CELER_DEVICE_API_CALL(PeekAtLastError());
@@ -181,12 +175,14 @@ size_type exclusive_scan_counts(
     auto cub_error_code = cub::DeviceScan::ExclusiveSum(
         nullptr, temp_storage_bytes, data, counts.size(), stream);
     // Allocate temporary storage
+    CELER_DISCARD(cub_error_code);
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     // Run exclusive prefix sum
     cub_error_code = cub::DeviceScan::ExclusiveSum(
         temp_storage.data(), temp_storage_bytes, data, counts.size(), stream);
     // Set the counter similar to the following
     // counters.num_secondaries = "last value in the counts object;
+    CELER_DISCARD(cub_error_code);
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return ItemCopier<size_type>{stream_id}(data.get() + counts.size() - 1);
 #endif
@@ -247,6 +243,7 @@ void partition_initializers(
             count,
             IsNeutral{params.ptr<MemSpace::native>()},
             stream);
+        CELER_DISCARD(cub_error_code);
     }
 #    else
     thrust::transform(thrust_execute_on(stream_id),
@@ -276,6 +273,7 @@ void partition_initializers(
                                                         num_neutral.data(),
                                                         count,
                                                         stream);
+    CELER_DISCARD(cub_error_code);
     // Allocate temporary storage
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     // Partition the indices based on the track initializer charge
@@ -287,6 +285,7 @@ void partition_initializers(
                                                    num_neutral.data(),
                                                    count,
                                                    stream);
+    CELER_DISCARD(cub_error_code);
     CELER_DEVICE_API_CALL(PeekAtLastError());
 #endif
 }

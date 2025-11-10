@@ -11,8 +11,6 @@
 // it's unavailable. And some further checks for newer CUB/hipCUB functions.
 #if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
 #    define CELERITAS_USE_THRUST 1
-#else
-#    define CELERITAS_USE_THRUST 0
 #endif
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_select.cuh>
@@ -25,13 +23,8 @@
 // to using thrust::transform instead
 #if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
 #    define CELERITAS_CUB_HAS_TRANSFORM 1
-#else
-#    define CELERITAS_CUB_HAS_TRANSFORM 0
-#endif
-#if CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
+#elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
 #    define CELERITAS_HIPCUB_HAS_TRANSFORM 1
-#else
-#    define CELERITAS_HIPCUB_HAS_TRANSFORM 0
 #endif
 #if CELERITAS_CUB_HAS_TRANSFORM
 #    include <cub/device/device_transform.cuh>
@@ -56,7 +49,7 @@
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
 
-#if CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
+#if CELERITAS_HAVE_HIPCUB
 namespace cub = hipcub;
 #endif
 
@@ -121,6 +114,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     {
         auto cub_error_code = cub::DeviceTransform::Transform(
             start, flags.data(), status.size(), IsVacant{}, stream);
+        CELER_DISCARD(cub_error_code);
     }
 #    else
     thrust::transform(thrust_execute_on(stream_id),
@@ -140,6 +134,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                      num_vacancies.data(),
                                                      vacancies.size(),
                                                      stream);
+    CELER_DISCARD(cub_error_code);
     // Allocate temporary storage
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     cub_error_code = cub::DeviceSelect::Flagged(temp_storage.data(),
@@ -150,6 +145,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                 vacancies.size(),
                                                 stream);
 
+    CELER_DISCARD(cub_error_code);
     auto num = ItemCopier<size_type>{stream_id}(num_vacancies.data());
     CELER_DEVICE_API_CALL(PeekAtLastError());
     // Number of vacancies
