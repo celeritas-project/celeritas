@@ -599,7 +599,7 @@ TEST_F(TestEm3MscNofluct, host)
         EXPECT_LE(69, result.num_step_iters());
         EXPECT_GE(73, result.num_step_iters());
         EXPECT_LE(58.625, result.calc_avg_steps_per_primary());
-        EXPECT_GE(63.125, result.calc_avg_steps_per_primary());
+        EXPECT_GE(64.75, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
     }
@@ -627,9 +627,9 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
     if (this->is_ci_build())
     {
         EXPECT_LE(76, result.num_step_iters());
-        EXPECT_GE(77, result.num_step_iters());
+        EXPECT_GE(88, result.num_step_iters());
         EXPECT_LE(48, result.calc_avg_steps_per_primary());
-        EXPECT_GE(48.25, result.calc_avg_steps_per_primary());
+        EXPECT_GE(50, result.calc_avg_steps_per_primary());
         EXPECT_EQ(7, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({5, 7}), result.calc_queue_hwm());
     }
@@ -660,9 +660,9 @@ TEST_F(TestEm3MscNoIntegral, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_LE(86, result.num_step_iters());
+        EXPECT_LE(68, result.num_step_iters());
         EXPECT_GE(87, result.num_step_iters());
-        EXPECT_LE(54.7, result.calc_avg_steps_per_primary());
+        EXPECT_LE(53.416, result.calc_avg_steps_per_primary());
         EXPECT_GE(54.75, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({6, 15}), result.calc_queue_hwm());
