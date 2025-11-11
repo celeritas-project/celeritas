@@ -24,7 +24,8 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Find positive, real, non-zero roots for quartic functions using the
- * Ferrari-Cardano method.
+ * Ferrari-Cardano method\citet{polyanin-ferrari-2007,
+ * https://doi.org/10.1201/9781420010510}.
  *
  * The quartic equation
   * \f[
