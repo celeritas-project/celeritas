@@ -225,16 +225,18 @@ struct TransformRecord
  * If using a HEP geometry implementation and this unit represents multiple
  * parent/child levels of the geometry hierarchy (via "inlining" during
  * construction; see \c g4org::ProtoConstructor):
- * - Local parent is a map of local to local volume IDs: the value is another
- *   volume that structurally "encloses" the key
- * - Local level is the structural depth of the local volume in this unit.
- *   A local volume associated with the most-global canonical volume in this
- *   unit has value 0, a child volume "inlined" into this unit has
- *   value 1, etc.  For volumes that have no physical instance ID (i.e.,
- *   background or simulated background, which are instances inside the parent
- *   universe, or the exterior volume) the depth is the null ID.
  *
- * If this unit does not have any inlined children, those two local mapping
+ * - Local parent is a map of local-to-local impl volume IDs: the \em value is
+ *   an "implementation" placement of the canonical volume that is the
+ *   \em parent enclosing the canonical volume placed at the local impl volume
+ *   \em key
+ * - Local level for each local impl volume is the difference between the
+ *   corresponding canonical volume's depth and the highest canonical volume in
+ *   in this unit. The (singular) local volume associated with the most-global
+ *   canonical volume in this unit has value 0, a child volume "inlined" into
+ *   this unit has value 1, etc.
+ *
+ * If this unit does not represent a Geant4/HEP volume hierarchy, those two
  * arrays will be empty.
  */
 struct SimpleUnitRecord

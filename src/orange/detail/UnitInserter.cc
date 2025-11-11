@@ -292,7 +292,7 @@ make_local_parent_vec(LocalVolumeId::size_type num_volumes,
 /*!
  * Determine relative canonical volume levels of each local volume.
  *
- * Use a depth-first search to fill an array, indexed by local volumes, of
+ * Use a depth-first search to fill an array, indexed by local impl volumes, of
  * the volume relative to the top (most enclosing/closest to "world").
  */
 std::vector<vol_level_uint>

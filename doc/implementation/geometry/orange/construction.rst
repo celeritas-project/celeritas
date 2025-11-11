@@ -58,6 +58,8 @@ Solid
 PolySolid
    A union of transformed solids along the *z* axis, which can also be hollowed
    and sliced azimuthally.
+RevolvedPolygon
+   A convex or concave polygon, revolved around the *z* axis, which can be sliced azimuthally.
 StackedExtrudedPolygon
    A convex or concave polygon, extruded along a polyline, with scaling applied
    at each polyline point.

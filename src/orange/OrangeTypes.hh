@@ -64,7 +64,7 @@ using FastReal3 = Array<float, 3>;
 //! Local identifier for a surface within a universe
 using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
 
-//! Local identifier for a geometry volume within a universe
+//! Local identifier for an ImplVolume within a universe
 using LocalVolumeId = OpaqueId<struct LocalVolume_>;
 
 //! Identifier for an OrientedBoundingZone
@@ -80,7 +80,7 @@ using RectArrayId = OpaqueId<struct RectArrayRecord>;
 using TransformId = OpaqueId<struct TransformRecord>;
 
 //! Identifier for a relocatable set of volumes
-using UnivId = OpaqueId<struct Universe_>;
+using UnivId = OpaqueId<struct Univ_>;
 
 //! Universe level, not necessarily canonical volume level
 using UnivLevelId = OpaqueId<struct UnivLevel_, vol_level_uint>;

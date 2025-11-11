@@ -359,8 +359,8 @@ void UnitProto::build(ProtoBuilder& input) const
     // nodes for the region, because we can't know which ones have the
     // user-supplied volume names
     auto vol_iter = result.volumes.begin();
-    // Local volume ID of the first local 'material' placement: after exterior,
-    // daughters
+    // Local impl volume ID of the first local 'material' placement:
+    // offset to account for exterior and daughters
     auto const first_lv = id_cast<LocalVolumeId>(1 + input_.daughters.size());
     auto add_local_parent = [&result, &vol_iter, first_lv](LocalParent lp) {
         if (!lp)
