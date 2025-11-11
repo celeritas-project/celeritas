@@ -40,8 +40,10 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     {
         // Create aux data to accumulate optical action times
         AuxParamsRegistry& aux = *core.aux_reg();
-        action_times_ = std::make_shared<ActionTimes>(
-            aux.next_id(), inp.optical_params->action_reg());
+        action_times_
+            = std::make_shared<ActionTimes>(aux.next_id(),
+                                            inp.optical_params->action_reg(),
+                                            "optial-action-times");
         aux.insert(action_times_);
     }
 

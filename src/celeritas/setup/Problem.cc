@@ -701,7 +701,9 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                         // Create aux data to accumulate optical action times
                         AuxParamsRegistry& aux = *core_params->aux_reg();
                         inp.action_times = std::make_shared<ActionTimes>(
-                            aux.next_id(), optical_params->action_reg());
+                            aux.next_id(),
+                            optical_params->action_reg(),
+                            "optical-action-times");
                         aux.insert(inp.action_times);
                     }
                     result.optical_transporter

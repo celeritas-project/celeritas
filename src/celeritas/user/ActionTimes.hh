@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
 #include <unordered_map>
 
 #include "corecel/Types.hh"
@@ -40,11 +41,14 @@ class ActionTimes : public AuxParamsInterface
     // Construct from aux ID and action registry
     ActionTimes(AuxId, SPActionRegistry const&);
 
+    // Construct with label
+    ActionTimes(AuxId, SPActionRegistry const&, std::string label);
+
     //!@{
     //! \name Aux interface
 
     //! Short name for the aux data
-    std::string_view label() const final { return "action-times"; }
+    std::string_view label() const final { return label_; }
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
     // Build core state data for a stream
@@ -63,6 +67,7 @@ class ActionTimes : public AuxParamsInterface
   private:
     AuxId aux_id_;
     std::weak_ptr<ActionRegistry> action_reg_;
+    std::string label_;
 };
 
 //---------------------------------------------------------------------------//

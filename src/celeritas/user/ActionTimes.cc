@@ -15,7 +15,18 @@ namespace celeritas
  * Construct from ID and actions.
  */
 ActionTimes::ActionTimes(AuxId aux_id, SPActionRegistry const& action_reg)
-    : aux_id_(aux_id), action_reg_(action_reg)
+    : ActionTimes(aux_id, action_reg, "action-times")
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with label.
+ */
+ActionTimes::ActionTimes(AuxId aux_id,
+                         SPActionRegistry const& action_reg,
+                         std::string label)
+    : aux_id_(aux_id), action_reg_(action_reg), label_(std::move(label))
 {
     CELER_EXPECT(aux_id_);
     CELER_EXPECT(action_reg);
