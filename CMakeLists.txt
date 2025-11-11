@@ -513,10 +513,15 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 if(CELERITAS_BUILD_DOCS)
+  set(_prev_dot "${DOXYGEN_DOT_EXECUTABLE}")
   if(NOT Doxygen_FOUND)
-    find_package(Doxygen)
+    find_package(Doxygen COMPONENTS doxygen dot)
   endif()
-  if(NOT Doxygen_FOUND)
+  if(NOT DEFINED Doxygen_doxygen_FOUND)
+    # Backward compatibility or caller package doesn't specify components
+    set(Doxygen_doxygen_FOUND ${Doxygen_FOUND})
+  endif()
+  if(NOT Doxygen_doxygen_FOUND)
     celeritas_error_incompatible_option(
       "Doxygen is required for building documentation but was not found"
       CELERITAS_BUILD_DOCS
@@ -537,12 +542,14 @@ if(CELERITAS_BUILD_DOCS)
     endif()
   endif()
 
-  set(_prev_mmdc "${MMDC_EXECUTABLE}")
-  find_program(MMDC_EXECUTABLE mmdc)
-  if(MMDC_EXECUTABLE AND NOT _prev_mmdc)
-    message(STATUS "Found mmdc: ${MMDC_EXECUTABLE}")
-  elseif(_prev_mmdc STREQUAL "")
-    message(STATUS "Could NOT find mermaid generator `mmdc`")
+  if(NOT DOXYGEN_DOT_EXECUTABLE)
+    find_program(DOXYGEN_DOT_EXECUTABLE dot)
+  endif()
+  if(DOXYGEN_DOT_EXECUTABLE AND NOT _prev_dot)
+    message(STATUS "Found dot: ${DOXYGEN_DOT_EXECUTABLE}")
+  elseif(_prev_dot STREQUAL "")
+    # Note: use string comparison, not boolean, to avoid matching old "NOTFOUND"
+    message(STATUS "Could NOT find graphviz generator `dot`")
   endif()
 
   include(ExternalProject)
