@@ -222,12 +222,12 @@ auto UnitProto::daughters() const -> VecProto
  * Construction is done from highest masking precedence to lowest (reverse
  * zorder): exterior, then holes, then arrays, then media.
  */
-void UnitProto::build(ProtoBuilder& input) const
+void UnitProto::build(ProtoBuilder& pb) const
 {
     ScopedProfiling profile_this{"orange-unitproto"};
 
     // Build CSG unit
-    auto csg_unit = this->build(input.tol(), input.bbox(input.current_uid()));
+    auto csg_unit = this->build(pb.tol(), pb.bbox(pb.current_uid()));
     CELER_ASSERT(csg_unit);
 
     // Get the list of all surfaces actually used
@@ -354,7 +354,7 @@ void UnitProto::build(ProtoBuilder& input) const
     auto vol_iter = result.volumes.begin();
 
     // Save attributes for exterior volume
-    if (input.current_uid() != orange_global_univ)
+    if (pb.current_uid() != orange_global_univ)
     {
         vol_iter->zorder = ZOrder::implicit_exterior;
         vol_iter->flags |= VolumeRecord::implicit_vol;
@@ -366,7 +366,7 @@ void UnitProto::build(ProtoBuilder& input) const
     vol_iter->label = Label{"[EXTERIOR]", input_.label.name};
     ++vol_iter;
 
-    BoundingBoxBumper<real_type> bump_bbox{input.tol()};
+    BoundingBoxBumper<real_type> bump_bbox{pb.tol()};
     for (auto const& d : input_.daughters)
     {
         LocalVolumeId const vol_id{
@@ -389,7 +389,7 @@ void UnitProto::build(ProtoBuilder& input) const
         auto&& [iter, inserted] = result.daughter_map.insert({vol_id, {}});
         CELER_ASSERT(inserted);
         // Convert proto pointer to universe ID
-        iter->second.univ_id = input.find_universe_id(d.fill.get());
+        iter->second.univ_id = pb.find_universe_id(d.fill.get());
 
         // Save the transform
         auto const* fill = std::get_if<Daughter>(&csg_unit.fills[vol_id.get()]);
@@ -403,7 +403,7 @@ void UnitProto::build(ProtoBuilder& input) const
         // parent-reference-frame bbox
         auto local_bbox = apply_transform(calc_inverse(iter->second.transform),
                                           result.volumes[vol_id.get()].bbox);
-        input.expand_bbox(iter->second.univ_id, bump_bbox(local_bbox));
+        pb.expand_bbox(iter->second.univ_id, bump_bbox(local_bbox));
     }
 
     // Save attributes from materials
@@ -428,7 +428,7 @@ void UnitProto::build(ProtoBuilder& input) const
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
 
-    if (input.save_json())
+    if (pb.save_json())
     {
         // Write CSG debug output
         JsonPimpl jp;
@@ -469,16 +469,16 @@ void UnitProto::build(ProtoBuilder& input) const
                 std::size_t daughter_index = iter->get<int>();
                 CELER_ASSERT(daughter_index < input_.daughters.size());
                 auto const& daughter = input_.daughters[daughter_index];
-                auto univ_id = input.find_universe_id(daughter.fill.get());
+                auto univ_id = pb.find_universe_id(daughter.fill.get());
                 *iter = univ_id.unchecked_get();
             }
         }
 
-        input.save_json(std::move(jp));
+        pb.save_json(std::move(jp));
     }
 
     //! \todo Save material IDs as well
-    input.insert(std::move(result));
+    pb.insert(std::move(result));
 }
 
 //---------------------------------------------------------------------------//
