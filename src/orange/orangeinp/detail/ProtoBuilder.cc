@@ -28,12 +28,13 @@ ProtoBuilder::ProtoBuilder(OrangeInput* inp,
     , protos_{protos}
     , save_json_{opts.save_json}
     , bboxes_{protos_.size()}
+    , current_uid_{0}
 {
     CELER_EXPECT(inp_);
     CELER_EXPECT(opts.tol);
 
     inp_->tol = opts.tol;
-    inp_->universes.reserve(protos_.size());
+    inp_->universes.resize(protos_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -59,9 +60,8 @@ void ProtoBuilder::expand_bbox(UnivId univ_id, BBox const& local_bbox)
 void ProtoBuilder::save_json(JsonPimpl&& jp) const
 {
     CELER_EXPECT(this->save_json());
-    CELER_EXPECT(inp_->universes.size() < protos_.size());
 
-    save_json_(UnivId(inp_->universes.size()), std::move(jp));
+    save_json_(current_uid_, std::move(jp));
 }
 
 //---------------------------------------------------------------------------//
@@ -72,9 +72,8 @@ void ProtoBuilder::save_json(JsonPimpl&& jp) const
  */
 void ProtoBuilder::insert(VariantUniverseInput&& unit)
 {
-    CELER_EXPECT(inp_->universes.size() < protos_.size());
-
-    inp_->universes.emplace_back(std::move(unit));
+    inp_->universes[current_uid_.get()] = std::move(unit);
+    ++current_uid_;
 }
 
 //---------------------------------------------------------------------------//

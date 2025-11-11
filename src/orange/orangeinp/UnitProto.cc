@@ -224,14 +224,10 @@ auto UnitProto::daughters() const -> VecProto
  */
 void UnitProto::build(ProtoBuilder& input) const
 {
-    // Bounding box should be finite if and only if this is the global universe
-    CELER_EXPECT((input.next_id() == orange_global_univ)
-                 == !input.bbox(input.next_id()));
-
     ScopedProfiling profile_this{"orange-unitproto"};
 
     // Build CSG unit
-    auto csg_unit = this->build(input.tol(), input.bbox(input.next_id()));
+    auto csg_unit = this->build(input.tol(), input.bbox(input.current_uid()));
     CELER_ASSERT(csg_unit);
 
     // Get the list of all surfaces actually used
@@ -358,7 +354,7 @@ void UnitProto::build(ProtoBuilder& input) const
     auto vol_iter = result.volumes.begin();
 
     // Save attributes for exterior volume
-    if (input.next_id() != orange_global_univ)
+    if (input.current_uid() != orange_global_univ)
     {
         vol_iter->zorder = ZOrder::implicit_exterior;
         vol_iter->flags |= VolumeRecord::implicit_vol;

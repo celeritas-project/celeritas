@@ -26,10 +26,6 @@ namespace detail
 /*!
  * Manage data about the universe construction.
  *
- * On construction this builds a breadth-first ordered list of protos:
- * the input "global" universe will always be at the front of the list, and
- * universes may only depend on a universe with a larger ID.
- *
  * This is passed to \c ProtoInterface::build. It acts like a two-way map
  * between universe IDs and pointers to Proto interfaces. It \em must not
  * exceed the lifetime of any of the protos.
@@ -84,11 +80,23 @@ class ProtoBuilder
     // Construct a universe (to be called *once* per proto)
     void insert(VariantUniverseInput&& unit);
 
+    // The the UniverseId of the universe currently being built
+    UnivId current_uid() const { return current_uid_; }
+
+    // Whether or not the current universe is the gloable universe
+    bool is_global_universe() const
+    {
+        return current_uid_ == orange_global_univ;
+    }
+
   private:
     OrangeInput* inp_;
     ProtoMap const& protos_;
     SaveUnivJson save_json_;
     std::vector<BBox> bboxes_;
+
+    // State variables
+    UnivId current_uid_;
 };
 
 //---------------------------------------------------------------------------//
@@ -100,15 +108,6 @@ class ProtoBuilder
 UnivId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
 {
     return protos_.find(p);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the next universe ID.
- */
-UnivId ProtoBuilder::next_id() const
-{
-    return id_cast<UnivId>(inp_->universes.size());
 }
 
 //---------------------------------------------------------------------------//
