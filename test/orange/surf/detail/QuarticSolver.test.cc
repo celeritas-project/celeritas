@@ -32,11 +32,10 @@ class QuarticSolverTest : public ::celeritas::test::Test
     QuarticSolverTest() {}
 
     template<class MQS = MyQuarticSolver>
-    Intersections get_roots(Coeffs4 const& abcd, real_type const& e = 0)
+    Intersections get_roots(Coeffs5 const& abcde)
     {
-        auto [a, b, c, d] = abcd;
-        MQS solve_quartic(a, b, c, d);
-        return solve_quartic(e);
+        MQS solve_quartic;  // Default tolerance
+        return solve_quartic(abcde);
     }
 
     Intersections fill_inf(std::initializer_list<real_type> const& up_to_four)
@@ -65,15 +64,15 @@ class QuarticSolverTest : public ::celeritas::test::Test
     void expect_surface_roots_from_coeffs(
         std::initializer_list<real_type> const& expected, Coeffs4 const& abcd)
     {
-        auto x = this->get_roots(abcd);
+        auto [a, b, c, d] = abcd;
+        auto x = this->get_roots({a, b, c, d, 0});
         this->expect_softeq_list(fill_inf(expected), x);
     }
 
     void expect_nonsurface_roots_from_coeffs(
         std::initializer_list<real_type> const& expected, Coeffs5 const& abcde)
     {
-        auto [a, b, c, d, e] = abcde;
-        auto x = this->get_roots(Coeffs4(a, b, c, d), e);
+        auto x = this->get_roots(abcde);
         this->expect_softeq_list(fill_inf(expected), x);
     }
 };

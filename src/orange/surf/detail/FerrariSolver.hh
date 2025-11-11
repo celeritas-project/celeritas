@@ -50,36 +50,29 @@ class FerrariSolver
     //! \name Type aliases
     using Intersections = Array<real_type, 4>;
     using Real2 = Array<real_type, 2>;
+    using Real5 = Array<real_type, 5>;
     //!@}
 
-    // General case solve
-    static inline CELER_FUNCTION Intersections
-    solve_general(real_type a,
-                  real_type b,
-                  real_type c,
-                  real_type d,
-                  real_type e,
-                  SurfaceState on_surface);
+    // Solve with manually specified surface state
+    static inline CELER_FUNCTION Intersections solve_general(
+        Real5 abcde,
+        SurfaceState on_surface,
+        real_type tolerance = Tolerance<real_type>::sqrt_quadratic());
 
   public:
-    // Construct w/ a, b, c, d
+    // Construct w/ given tolerance. Uses quadratic tolerance by default.
     inline CELER_FUNCTION
-    FerrariSolver(real_type a, real_type b, real_type c, real_type d);
+    FerrariSolver(real_type tolerance = Tolerance<real_type>::sqrt_quadratic());
 
-    // Solver fully general case
-    inline CELER_FUNCTION Intersections operator()(real_type e) const;
+    // Solver for fully general case
+    inline CELER_FUNCTION Intersections operator()(Real5 abcde) const;
 
   private:
     //// DATA ////
-    real_type a_inv_;  // 1/a
-    real_type ba_;  // b/a
-    real_type ca_;  // c/a
-    real_type da_;  // d/a
-
-    //// UTIL ////
     // Soft zero for biquadratic and degenerate cubic detection
     static inline SoftZero<real_type> const soft_zero_;
 
+    //// UTIL ////
     // Try to place real at given index in list, return next free index
     static inline CELER_FUNCTION int
     place_root(Intersections& roots, real_type new_root, int free_index);
@@ -104,63 +97,58 @@ class FerrariSolver
  * Find all positive roots for quartic surfaces using Ferrari-Cardano method.
  *
  * This method allows the user to manually specify if the particle starts on
- * the surface.
+ * the surface, and use 0 instead of e for accuracy.
  */
-CELER_FUNCTION auto FerrariSolver::solve_general(real_type a,
-                                                 real_type b,
-                                                 real_type c,
-                                                 real_type d,
-                                                 real_type e,
-                                                 SurfaceState on_surface)
+CELER_FUNCTION auto FerrariSolver::solve_general(Real5 abcde,
+                                                 SurfaceState on_surface,
+                                                 real_type tolerance)
     -> Intersections
 {
-    FerrariSolver solve(a, b, c, d);
+    FerrariSolver solve(tolerance);
+    auto selected_abcde = abcde;
     if (on_surface == SurfaceState::on)
     {
-        return solve(0);
+        auto [a, b, c, d, e] = abcde;
+        selected_abcde = {a, b, c, d, 0};
     }
-    else
-    {
-        return solve(e);
-    }
+    return solve(selected_abcde);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a solver instance with first four coefficients a, b, c, and d.
- *
- * The solver stores the normalized values of (b/a), (c/a), (d/a), and factor
- * (1/a) to normalize e if necessary.
+ * Construct a solver instance with a specified tolerance for degenerate cases,
+ * such as the particle starting on the surface.
  */
 CELER_FUNCTION
-FerrariSolver::FerrariSolver(real_type a, real_type b, real_type c, real_type d)
-    : a_inv_(1 / a), ba_(b * a_inv_), ca_(c * a_inv_), da_(d * a_inv_)
+FerrariSolver::FerrariSolver(real_type tolerance)
 {
+    SoftZero soft_zero_{tolerance};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Find all positive roots of the polynomial with stored abcd and given e.
+ * Find all positive roots of the polynomial with given a, b, c, d, e.
  *
- * As the stored coefficients have already been normalized, the polynomial
- * takes the form:
+ * The polynomial takes the form:
  * \f[
-   x^4 + (b/a)x^3 + (c/a)x^2 + (d/a)x + (e/a) = 0.
+   ax^4 + bx^3 + cx^2 + dx + e = 0.
  *\f]
- * Where a, b, c, and d were the initialized coefficients and e is given as an
- * operator parameter.
- * Replaces negative or complex roots with no_intersection().
+ * Where the given array abcde corresponds to {a, b, c, d, e}.
+ * Replaces negative or complex roots with sentry value no_intersection().
  */
-CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
+CELER_FUNCTION auto FerrariSolver::operator()(Real5 abcde) const
     -> Intersections
 {
+    // Normalize coefficients
+    auto [a, b, c, d, e] = abcde;
+    real_type ba = b / a, ca = c / a, da = d / a, ea = e / a;
     constexpr real_type half{0.5};
-    real_type qb = real_type{0.25} * ba_;
+    real_type qb = real_type{0.25} * ba;
 
     // Incomplete quartic
-    real_type p = PolyEvaluator{-half * ca_, 0, 3}(qb);
-    real_type q = PolyEvaluator{half * da_, -ca_, 0, 4}(qb);
-    real_type r = PolyEvaluator{-e * a_inv_, da_, -ca_, 0, 3}(qb);
+    real_type p = PolyEvaluator{-half * ca, 0, 3}(qb);
+    real_type q = PolyEvaluator{half * da, -ca, 0, 4}(qb);
+    real_type r = PolyEvaluator{-ea, da, -ca, 0, 3}(qb);
 
     // Edge case: equation is biquadratic
     if (soft_zero_(q))
@@ -211,14 +199,6 @@ CELER_FUNCTION auto FerrariSolver::operator()(real_type e) const
                              no_intersection());
     }
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Soft zero for detecting edge cases.
- *
- * Currently defined to follow analogous quadratic solver tolerance.
- */
-static SoftZero const soft_zero_{Tolerance<real_type>::sqrt_quadratic()};
 
 //---------------------------------------------------------------------------//
 /*!
