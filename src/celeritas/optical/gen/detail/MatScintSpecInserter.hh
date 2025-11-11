@@ -83,12 +83,6 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
     auto const begin_components = scint_records_.size_id();
     for (ImportScintComponent const& comp : mat.components)
     {
-        CELER_VALIDATE(comp.lambda_mean > 0,
-                       << "invalid lambda_mean=" << comp.lambda_mean
-                       << " for scintillation component (should be positive)");
-        CELER_VALIDATE(comp.lambda_sigma > 0,
-                       << "invalid lambda_sigma=" << comp.lambda_sigma
-                       << " (should be positive)");
         CELER_VALIDATE(comp.rise_time >= 0,
                        << "invalid rise_time=" << comp.rise_time
                        << " (should be nonnegative)");
@@ -104,10 +98,7 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
         ScintRecord scint;
         scint.rise_time = comp.rise_time;
         scint.fall_time = comp.fall_time;
-        scint_records_.push_back(scint);
 
-        yield_pdf.push_back(comp.yield_frac);
-        total_yield += comp.yield_frac;
         if (!comp.energy.empty())
         {
             inp::Grid grid;
@@ -123,9 +114,19 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
         }
         else
         {
+            CELER_VALIDATE(comp.lambda_mean > 0,
+                           << "invalid lambda_mean=" << comp.lambda_mean
+                           << " for scintillation component (should be "
+                              "positive)");
+            CELER_VALIDATE(comp.lambda_sigma > 0,
+                           << "invalid lambda_sigma=" << comp.lambda_sigma
+                           << " (should be positive)");
             scint.lambda_mean = comp.lambda_mean;
             scint.lambda_sigma = comp.lambda_sigma;
         }
+        scint_records_.push_back(scint);
+        yield_pdf.push_back(comp.yield_frac);
+        total_yield += comp.yield_frac;
     }
 
     // Normalize yield PDF by total yield
@@ -136,8 +137,7 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
 
     MatScintSpectrum spectrum;
     spectrum.yield_per_energy = mat.yield_per_energy;
-    spectrum.components
-        = ItemRange<ScintRecord>{begin_components, scint_records_.size_id()};
+    spectrum.components = {begin_components, scint_records_.size_id()};
     spectrum.yield_pdf = reals_.insert_back(yield_pdf.begin(), yield_pdf.end());
 
     CELER_ENSURE(spectrum.components.size() == mat.components.size());
