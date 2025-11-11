@@ -116,7 +116,23 @@
         "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL",   "value": "OFF"}
+      },
+      "environment": {
+        "CMAKE_PREFIX_PATH": "/Users/seth/Code/vecgeom/install:/opt/spack/opt/spack/tahoe/geant4/11.3.2/7oydgus:/opt/spack/opt/spack/tahoe/googletest/1.17.0/c332ssk:/opt/spack/opt/spack/tahoe/cli11/2.5.0/pmtt6hb:/opt/spack/opt/spack/tahoe/nlohmann-json/3.12.0/dkrlqn3:/opt/spack/opt/spack/tahoe/covfie/0.15.3/tlzukkw:/opt/spack/opt/spack/tahoe/zlib-ng/2.2.4/qbbzbte"
+      }
+    },
+    {
+      "name": "vglocal-solid",
+      "displayName": "With local vecgeom, surfaces disabled",
+      "inherits": [".ccache", ".base", ".debug", "default"],
+      "cacheVariables": {
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL",   "value": "OFF"}
       },
       "environment": {
         "CMAKE_PREFIX_PATH": "/Users/seth/Code/vecgeom/install:/opt/spack/opt/spack/tahoe/geant4/11.3.2/7oydgus:/opt/spack/opt/spack/tahoe/googletest/1.17.0/c332ssk:/opt/spack/opt/spack/tahoe/cli11/2.5.0/pmtt6hb:/opt/spack/opt/spack/tahoe/nlohmann-json/3.12.0/dkrlqn3:/opt/spack/opt/spack/tahoe/covfie/0.15.3/tlzukkw:/opt/spack/opt/spack/tahoe/zlib-ng/2.2.4/qbbzbte"

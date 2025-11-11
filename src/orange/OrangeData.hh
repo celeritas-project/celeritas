@@ -51,6 +51,9 @@ struct OrangeParamsScalars
     size_type max_intersections{};
     size_type max_csg_levels{};
 
+    // Canonical volume depth: maximum stacked volume instances
+    vol_level_uint num_vol_levels{};
+
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
 
@@ -68,11 +71,12 @@ struct OrangeParamsScalars
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single volume definition.
+ * Data for a single implementation volume definition inside a unit.
  *
  * Surface IDs are local to the unit.
  *
  * \sa VolumeView
+ * \todo Rename UnitVolumeRecord?
  */
 struct VolumeRecord
 {
@@ -217,11 +221,30 @@ struct TransformRecord
 //---------------------------------------------------------------------------//
 /*!
  * Scalar data for a single "unit" of volumes defined by surfaces.
+ *
+ * If using a HEP geometry implementation and this unit represents multiple
+ * parent/child levels of the geometry hierarchy (via "inlining" during
+ * construction; see \c g4org::ProtoConstructor):
+ *
+ * - Local parent is a map of local-to-local impl volume IDs: the \em value is
+ *   an "implementation" placement of the canonical volume that is the
+ *   \em parent enclosing the canonical volume placed at the local impl volume
+ *   \em key
+ * - Local level for each local impl volume is the difference between the
+ *   corresponding canonical volume's depth and the highest canonical volume in
+ *   in this unit. The (singular) local volume associated with the most-global
+ *   canonical volume in this unit has value 0, a child volume "inlined" into
+ *   this unit has value 1, etc.
+ *
+ * If this unit does not represent a Geant4/HEP volume hierarchy, those two
+ * arrays will be empty.
  */
 struct SimpleUnitRecord
 {
-    using VolumeRecordId = OpaqueId<VolumeRecord>;
-    using ConnectivityRecordId = OpaqueId<ConnectivityRecord>;
+    using VolumeRecordId = ItemId<VolumeRecord>;
+    using ConnectivityRecordId = ItemId<ConnectivityRecord>;
+    using LocalVolumeIdId = ItemId<LocalVolumeId>;
+    using VolDepthUint = ItemId<vol_level_uint>;
 
     // Surface data
     SurfacesRecord surfaces;
@@ -229,6 +252,9 @@ struct SimpleUnitRecord
 
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
+    // For volume instance mapping
+    ItemMap<LocalVolumeId, LocalVolumeIdId> local_parent;
+    ItemMap<LocalVolumeId, VolDepthUint> local_vol_level;
 
     // Bounding Interval Hierarchy tree parameters
     detail::BIHTree bih_tree;
@@ -302,7 +328,7 @@ struct UniverseIndexerData
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return !surfaces.empty() && !volumes.empty();
+        return !surfaces.empty() && volumes.size() == surfaces.size();
     }
 };
 
@@ -382,11 +408,9 @@ struct OrangeParamsData
     Items<RectArrayRecord> rect_arrays;
     Items<TransformRecord> transforms;
 
-    // Optional map of ORANGE internal volume ID -> Celeritas volume ID
+    // Mappings used to reconstruct canonical volumes and hierarchy
     ImplVolumeItems<VolumeId> volume_ids;
     ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
-    // TODO: for reconstructing hierarchy:
-    // ImplVolumeItems<ImplVolumeId> parent_impl_volumes;
 
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;
@@ -395,6 +419,7 @@ struct OrangeParamsData
     Items<LocalSurfaceId> local_surface_ids;
     Items<LocalVolumeId> local_volume_ids;
     Items<RealId> real_ids;
+    Items<vol_level_uint> vl_uints;
     Items<logic_int> logic_ints;
     Items<real_type> reals;
     Items<FastReal3> fast_real3s;
@@ -442,6 +467,7 @@ struct OrangeParamsData
         local_surface_ids = other.local_surface_ids;
         local_volume_ids = other.local_volume_ids;
         real_ids = other.real_ids;
+        vl_uints = other.vl_uints;
         logic_ints = other.logic_ints;
         reals = other.reals;
         surface_types = other.surface_types;
@@ -468,9 +494,9 @@ struct OrangeStateData
     //// TYPES ////
 
     template<class T>
-    using StateItems = celeritas::StateCollection<T, W, M>;
+    using StateItems = StateCollection<T, W, M>;
     template<class T>
-    using Items = celeritas::Collection<T, W, M>;
+    using Items = Collection<T, W, M>;
 
     //// DATA ////
 

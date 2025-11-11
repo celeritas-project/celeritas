@@ -12,6 +12,10 @@
 #pragma once
 
 #include <VecGeom/base/Config.h>
+#ifndef VECGEOM_USE_SURF
+#    error "VecGeom surface capability required to include this file"
+#endif
+
 #include <VecGeom/base/Global.h>
 #include <VecGeom/base/Vector3D.h>
 #include <VecGeom/navigation/NavigationState.h>

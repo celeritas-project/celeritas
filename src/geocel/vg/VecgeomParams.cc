@@ -691,6 +691,12 @@ inp::Model VecgeomParams::make_model_input() const
  */
 void VecgeomParams::build_surface_tracking()
 {
+    static int initialization_count{0};
+    CELER_VALIDATE(initialization_count == 0,
+                   << "VecGeom surface geometry currently crashes if "
+                      "recreated during an execution (you may call BeamOn "
+                      "only once)");
+
     VG_SURF_CALL(auto& brep_helper = vgbrep::BrepHelper<real_type>::Instance());
     VG_SURF_CALL(brep_helper.SetVerbosity(vecgeom_verbosity()));
 
@@ -704,6 +710,9 @@ void VecgeomParams::build_surface_tracking()
         {
             VG_SURF_CALL(brep_helper.PrintSurfData());
         }
+        // Prevent us from accidentally rebuilding and getting a segfault
+        // See https://its.cern.ch/jira/projects/VECGEOM/issues/VECGEOM-634
+        ++initialization_count;
     }
 
     if (celeritas::device())

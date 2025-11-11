@@ -66,6 +66,18 @@ class RectArrayTracker
     // DaughterId of universe embedded in a given volume
     inline CELER_FUNCTION DaughterId daughter(LocalVolumeId vol) const;
 
+    // Conversion of G4 to RectArray not yet implemented
+    CELER_FUNCTION vol_level_uint local_vol_level(LocalVolumeId) const
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+    // Canonical parent volume placement in the local universe, if any
+    inline CELER_FUNCTION LocalVolumeId local_parent(LocalVolumeId) const
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
     ////// OPERATIONS ////
 
     // Find the local volume from a position
