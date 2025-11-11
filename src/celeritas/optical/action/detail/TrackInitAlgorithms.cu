@@ -41,10 +41,10 @@
 #    include <thrust/transform.h>
 #endif
 #include <thrust/device_ptr.h>
+#include <thrust/iterator/counting_iterator.h>
+#include <thrust/iterator/transform_iterator.h>
 #if CELERITAS_USE_THRUST
 #    include <thrust/copy.h>
-#    include <thrust/iterator/counting_iterator.h>
-#    include <thrust/iterator/transform_iterator.h>
 #endif
 
 #include "corecel/Macros.hh"
