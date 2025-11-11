@@ -135,7 +135,9 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         return pbopts;
     }());
     for (auto univ_id : range(UnivId{protos.size()}))
+    // for (auto i : range<int>(protos.size()).step(-1))
     {
+        // UnivId univ_id{static_cast<size_type>(i)};
         trace_counter("orange-build-universe", univ_id.get());
         protos.at(univ_id)->build(builder);
     }
