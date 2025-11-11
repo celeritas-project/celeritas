@@ -117,7 +117,7 @@ size_type remove_if_alive(
                                                 stream);
     CELER_DISCARD(cub_error_code);
     // Allocate temporary storage
-    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
+    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
     // Run selection
     cub_error_code = cub::DeviceSelect::If(temp_storage.data(),
                                            temp_storage_bytes,
@@ -176,7 +176,7 @@ size_type exclusive_scan_counts(
         nullptr, temp_storage_bytes, data, counts.size(), stream);
     // Allocate temporary storage
     CELER_DISCARD(cub_error_code);
-    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
+    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
     // Run exclusive prefix sum
     cub_error_code = cub::DeviceScan::ExclusiveSum(
         temp_storage.data(), temp_storage_bytes, data, counts.size(), stream);
@@ -275,7 +275,7 @@ void partition_initializers(
                                                         stream);
     CELER_DISCARD(cub_error_code);
     // Allocate temporary storage
-    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
+    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
     // Partition the indices based on the track initializer charge
     cub_error_code = cub::DevicePartition::Flagged(temp_storage.data(),
                                                    temp_storage_bytes,
