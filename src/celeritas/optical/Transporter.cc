@@ -120,11 +120,11 @@ void Transporter::transport_impl(CoreState<M>& state) const
 /*!
  * Get the accumulated action times.
  */
-auto Transporter::action_times(AuxStateVec const& aux) const -> MapStrDbl
+auto Transporter::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
 {
     if (data_.action_times)
     {
-        return data_.action_times->action_times(aux);
+        return data_.action_times->get_action_times(aux);
     }
     return {};
 }

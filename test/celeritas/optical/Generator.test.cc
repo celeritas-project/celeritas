@@ -199,7 +199,7 @@ TEST_F(LArSphereGeneratorTest, generator)
 
     // Check accumulated action times
     std::set<std::string> labels;
-    auto action_times = transport_->action_times(*state_->aux());
+    auto action_times = transport_->get_action_times(*state_->aux());
     for (auto const& [label, time] : action_times)
     {
         labels.insert(label);

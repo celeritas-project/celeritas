@@ -210,7 +210,7 @@ void LocalOpticalOffload::Flush()
 auto LocalOpticalOffload::GetActionTime() const -> MapStrDbl
 {
     CELER_EXPECT(*this);
-    return transport_->action_times(*state_->aux());
+    return transport_->get_action_times(*state_->aux());
 }
 
 //---------------------------------------------------------------------------//

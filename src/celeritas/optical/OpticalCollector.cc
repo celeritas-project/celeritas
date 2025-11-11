@@ -159,11 +159,12 @@ auto OpticalCollector::buffer_counts(AuxStateVec const& aux) const
 /*!
  * Get the accumulated action times.
  */
-auto OpticalCollector::action_times(AuxStateVec const& aux) const -> MapStrDbl
+auto OpticalCollector::get_action_times(AuxStateVec const& aux) const
+    -> MapStrDbl
 {
     if (action_times_)
     {
-        return action_times_->action_times(aux);
+        return action_times_->get_action_times(aux);
     }
     return {};
 }

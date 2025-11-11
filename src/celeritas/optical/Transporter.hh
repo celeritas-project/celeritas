@@ -65,7 +65,7 @@ class Transporter
     SPConstParams const& params() const { return data_.params; }
 
     // Get the accumulated action times
-    MapStrDbl action_times(AuxStateVec const&) const;
+    MapStrDbl get_action_times(AuxStateVec const&) const;
 
   private:
     //// TYPES ////

@@ -20,6 +20,12 @@ struct ActionTimesState;
 //---------------------------------------------------------------------------//
 /*!
  * Manage state data for accumulating action times.
+ *
+ * This class allocates thread-local state data that can be used to accumulate
+ * the time of each step action on each stream over the run. Because the class
+ * that invokes the sequence of step actions should be shared across threads,
+ * the action times are stored as auxiliary data rather than locally in that
+ * class.
  */
 class ActionTimes : public AuxParamsInterface
 {
@@ -32,7 +38,7 @@ class ActionTimes : public AuxParamsInterface
 
   public:
     // Construct from aux ID and action registry
-    explicit ActionTimes(AuxId, SPActionRegistry const&);
+    ActionTimes(AuxId, SPActionRegistry const&);
 
     //!@{
     //! \name Aux interface
@@ -52,16 +58,19 @@ class ActionTimes : public AuxParamsInterface
     ActionTimesState& state(AuxStateVec&) const;
 
     // Create a map of action label tp accumulated time
-    MapStrDbl action_times(AuxStateVec const&) const;
+    MapStrDbl get_action_times(AuxStateVec const&) const;
 
   private:
     AuxId aux_id_;
-    SPActionRegistry action_reg_;
+    std::weak_ptr<ActionRegistry> action_reg_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Accumulated action times on each thread.
+ *
+ * \todo Always report CPU times and add a second map for device runs that uses
+ * the CUDA event API to record GPU times.
  */
 struct ActionTimesState : public AuxStateInterface
 {

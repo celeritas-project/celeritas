@@ -502,7 +502,8 @@ auto LocalTransporter::GetActionTime() const -> MapStrDbl
         if (optical_)
         {
             // Save optical loop action times
-            auto optical_times = optical_->action_times(step_->state().aux());
+            auto optical_times
+                = optical_->get_action_times(step_->state().aux());
             for (auto&& [label, time] : optical_times)
             {
                 // Prefix label to distinguish from core actions

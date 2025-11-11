@@ -133,7 +133,7 @@ class OpticalCollector
     OpticalBufferSize buffer_counts(AuxStateVec const& aux) const;
 
     // Get the accumulated action times
-    MapStrDbl action_times(AuxStateVec const&) const;
+    MapStrDbl get_action_times(AuxStateVec const&) const;
 
   private:
     //// TYPES ////

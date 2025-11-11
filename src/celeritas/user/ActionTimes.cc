@@ -18,7 +18,7 @@ ActionTimes::ActionTimes(AuxId aux_id, SPActionRegistry const& action_reg)
     : aux_id_(aux_id), action_reg_(action_reg)
 {
     CELER_EXPECT(aux_id_);
-    CELER_EXPECT(action_reg_);
+    CELER_EXPECT(action_reg);
 }
 
 //---------------------------------------------------------------------------//
@@ -36,7 +36,7 @@ auto ActionTimes::create_state(MemSpace, StreamId, size_type) const -> UPState
  */
 ActionTimesState const& ActionTimes::state(AuxStateVec const& aux) const
 {
-    return dynamic_cast<ActionTimesState const&>(aux.at(aux_id_));
+    return get<ActionTimesState>(aux, aux_id_);
 }
 
 //---------------------------------------------------------------------------//
@@ -45,19 +45,20 @@ ActionTimesState const& ActionTimes::state(AuxStateVec const& aux) const
  */
 ActionTimesState& ActionTimes::state(AuxStateVec& aux) const
 {
-    return dynamic_cast<ActionTimesState&>(aux.at(aux_id_));
+    return get<ActionTimesState>(aux, aux_id_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create a map of action label tp accumulated time.
  */
-auto ActionTimes::action_times(AuxStateVec const& aux) const -> MapStrDbl
+auto ActionTimes::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
 {
     MapStrDbl result;
+    auto sp_action_reg = action_reg_.lock();
     for (auto&& [id, time] : this->state(aux).accum_time)
     {
-        result[std::string{action_reg_->id_to_label(id)}] = time;
+        result[std::string{sp_action_reg->id_to_label(id)}] = time;
     }
     return result;
 }
