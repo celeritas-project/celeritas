@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
+#include "celeritas_test_config.h"
+
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Quantities.hh"
@@ -34,7 +36,8 @@ class GammaNuclearTest : public InteractorHostTestBase
         using namespace units;
 
         // Load gamma-nuclear cross section data
-        std::string path = this->test_data_path("celeritas", "gamma-nucl/");
+        std::string path = celeritas_source_dir;
+        path += "/test/celeritas/data/gamma-nucl/";
         GammaNuclearXsReader read_data(path.c_str());
 
         // Set up the default particle: 100 MeV gamma along +z direction
