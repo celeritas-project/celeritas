@@ -121,6 +121,16 @@ auto Converter::operator()(GeantGeoParams const& geo,
         unit.volumes[bg_vol_id.get()].label = world.id;
         // Do *not* set the 'background' field for it, since it truly
         // represents a volume instance
+
+        // Replace any null targets with the world PV
+        for (auto& [src, tgt] : unit.local_parent_map)
+        {
+            CELER_ASSERT(src);
+            if (!tgt)
+            {
+                tgt = bg_vol_id;
+            }
+        }
     }
     // Replace other backgrounds, annotating with the corresponding volume
     // (note it's not a volume instance!)

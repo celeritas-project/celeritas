@@ -15,7 +15,7 @@ optical tracking loop as a flowchart.
 
 .. _fig-optical-flow:
 
-.. figure:: /_static/mermaid/optical-flow.*
+.. figure:: /_static/dot/optical-flow.*
    :align: center
    :width: 80%
 

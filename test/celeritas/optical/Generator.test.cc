@@ -30,6 +30,15 @@ namespace celeritas
 {
 namespace test
 {
+
+// Reference results:
+// - Double precision
+// - Not vecgeom surface
+constexpr bool reference_configuration
+    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM
+           || !CELERITAS_VECGEOM_SURFACE));
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
@@ -147,7 +156,7 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     // Get the accumulated counters
     auto result = this->counters(*generate);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
         EXPECT_EQ(68916, result.steps);
         EXPECT_EQ(18, result.step_iters);
@@ -190,7 +199,7 @@ TEST_F(LArSphereGeneratorTest, generator)
     EXPECT_EQ(512, gen.buffer_size);
     EXPECT_EQ(0, gen.num_pending);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
         EXPECT_EQ(54319, result.steps);
@@ -249,7 +258,7 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
     EXPECT_EQ(4096, gen.buffer_size);
     EXPECT_EQ(0, gen.num_pending);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
         EXPECT_EQ(409643, gen.num_generated);
         EXPECT_EQ(434165, result.steps);

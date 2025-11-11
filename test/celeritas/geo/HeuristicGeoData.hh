@@ -22,6 +22,11 @@ namespace celeritas
 {
 namespace test
 {
+
+constexpr bool using_vecgeom_solid = !CELERITAS_VECGEOM_SURFACE
+                                     && CELERITAS_CORE_GEO
+                                            == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 // DATA
 //---------------------------------------------------------------------------//
@@ -33,7 +38,8 @@ struct HeuristicGeoScalars
     real_type log_min_step{-16.11809565095832};  // 1 nm (1e-7)
     real_type log_max_step{2.302585092994046};  // 10 cm (1e2)
 
-    static constexpr real_type safety_tol = 0.01;
+    static constexpr real_type safety_tol = using_vecgeom_solid ? 1e-6 : 1.e-9;
+
     // High limit prevents truncation to safety distance
     real_type geom_limit = 5e-8 * units::millimeter;
 

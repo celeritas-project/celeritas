@@ -21,7 +21,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return whether a volume has an internal surface crossing.
+ * Return whether an impl volume has an internal surface crossing.
  *
  * In a "simple" volume with no internal surface crossings, any intersection
  * with any surface guarantees that a track will exit the volume at that
