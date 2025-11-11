@@ -445,7 +445,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             data->hardwired.ids.eplusgg = model_id;
             data->hardwired.eplusgg = m->host_ref();
         }
-        else if (auto const* m = dynamic_cast<GammaNuclearModel const*>(&model))
+        else if (dynamic_cast<GammaNuclearModel const*>(&model))
         {
             data->hardwired.ids.gamma_nuclear = process_id;
             data->hardwired.ids.bertini_qgs = model_id;
