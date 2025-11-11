@@ -79,8 +79,8 @@ class QuarticSolverTest : public ::celeritas::test::Test
 
 //---------------------------------------------------------------------------//
 
-using TestTypes = ::testing::Types<FerrariSolver>;
-TYPED_TEST_SUITE(QuarticSolverTest, TestTypes);
+using QuarticSolvers = ::testing::Types<FerrariSolver>;
+TYPED_TEST_SUITE(QuarticSolverTest, QuarticSolvers, );
 
 /*
  * Test cases with all non-zero roots, i.e., the ray does not start on or close
