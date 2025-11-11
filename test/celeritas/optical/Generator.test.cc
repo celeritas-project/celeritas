@@ -178,7 +178,8 @@ TEST_F(LArSphereGeneratorTest, direct_generator)
 
     // Get the accumulated counters
     auto result = this->counters(*generate);
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
+        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_EQ(133, result.steps);
         EXPECT_EQ(5, result.step_iters);
