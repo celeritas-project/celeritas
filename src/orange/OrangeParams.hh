@@ -107,7 +107,8 @@ class OrangeParams final : public GeoParamsInterface,
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
-    // Get the volume instance ID corresponding to an implementation volume
+    // Get the (canonical) volume instance ID corresponding to an
+    // implementation volume
     inline VolumeInstanceId volume_instance_id(ImplVolumeId) const;
 
     //// DATA ACCESS ////
