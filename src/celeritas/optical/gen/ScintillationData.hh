@@ -34,8 +34,9 @@ struct ScintRecord
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return lambda_mean > 0 && lambda_sigma > 0 && rise_time >= 0
-               && fall_time > 0 && energy_cdf;
+        bool const has_gauss = (lambda_mean > 0 && lambda_sigma > 0);
+        bool const has_grid = static_cast<bool>(energy_cdf);
+        return (has_gauss || has_grid) && rise_time >= 0 && fall_time > 0;
     }
 };
 
