@@ -28,7 +28,7 @@ namespace detail
  * https://doi.org/10.1201/9781420010510}.
  *
  * The quartic equation
-  * \f[
+ * \f[
    a x^4 + b x^3 + c x^2 + d x + e = 0
  * \f]
  * has four solutions mathematically, but we only require solutions which are
@@ -144,7 +144,7 @@ FerrariSolver::FerrariSolver(real_type a, real_type b, real_type c, real_type d)
  *
  * As the stored coefficients have already been normalized, the polynomial
  * takes the form:
-  * \f[
+ * \f[
    x^4 + (b/a)x^3 + (c/a)x^2 + (d/a)x + (e/a) = 0.
  *\f]
  * Where a, b, c, and d were the initialized coefficients and e is given as an
@@ -287,7 +287,7 @@ FerrariSolver::calc_biquadratic_roots(real_type qb, real_type p, real_type r)
  * Solve for the dominant root of a cubic function.
  *
  * Specifically, the cubic function
-  * \f[
+ * \f[
    a x^3 + b x^2 + c x + d
  * \f]
  * where a is assumed to already be 1, and is not provided to the
@@ -332,7 +332,7 @@ CELER_FUNCTION real_type FerrariSolver::dominant_root_normalized_cubic(
  * Solve for the real roots of a quadratic function.
  *
  * Specifically, the quadratic function
-  * \f[
+ * \f[
    a x^2 + (hb*2) x + c
  * \f]
  * where a is assumed to already be 1 and not provided.
