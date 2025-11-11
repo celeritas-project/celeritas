@@ -41,10 +41,10 @@
 #    include <thrust/transform.h>
 #endif
 #include <thrust/device_ptr.h>
-#include <thrust/iterator/counting_iterator.h>
-#include <thrust/iterator/transform_iterator.h>
 #if CELERITAS_USE_THRUST
 #    include <thrust/copy.h>
+#    include <thrust/iterator/counting_iterator.h>
+#    include <thrust/iterator/transform_iterator.h>
 #endif
 
 #include "corecel/Macros.hh"
@@ -112,12 +112,12 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 
     DeviceVector<size_type> num_vacancies{1, stream_id};
 
+    auto start = thrust::make_transform_iterator(
+        thrust::make_counting_iterator<size_type>(0), TransformType{});
 #    if CELERITAS_CUB_HAS_FLAGGEDIF
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
-    auto start = thrust::make_transform_iterator(
-        thrust::make_counting_iterator<size_type>(0), TransformType{});
     auto flags = device_pointer_cast(status.data());
     auto results = device_pointer_cast(vacancies.data());
     cub::DeviceSelect::FlaggedIf(nullptr,
@@ -160,8 +160,6 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
-    auto start = thrust::make_transform_iterator(
-        thrust::make_counting_iterator<size_type>(0), TransformType{});
     auto results = device_pointer_cast(vacancies.data());
     auto cub_error_code = cub::DeviceSelect::Flagged(nullptr,
                                                      temp_storage_bytes,
