@@ -11,8 +11,13 @@ available under the name "rocthrust" but we can't handle that.
 
 #]=======================================================================]
 
-find_package(Thrust QUIET CONFIG)
+set(CMAKE_MESSAGE_LOG_LEVEL TRACE)
+
+message("Before find_package: Thrust_DIR=${Thrust_DIR}")
+find_package(Thrust CONFIG NAMES thrust CONFIGS thrust-config.cmake)
+message("after config find: Thrust_DIR=${Thrust_DIR}")
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Thrust CONFIG_MODE)
+message("After find_package: Thrust_DIR=${Thrust_DIR}")
 
 #-----------------------------------------------------------------------------#

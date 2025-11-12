@@ -17,9 +17,6 @@ include(CeleritasOptionUtils)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 
-message(STATUS " CUDAHOSTCXX=$ENV{CUDAHOSTCXX}")
-message(STATUS " CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER}")
-
 #----------------------------------------------------------------------------#
 # PACKAGE OPTIONS
 #----------------------------------------------------------------------------#
@@ -27,7 +24,6 @@ message(STATUS " CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER}")
 # NOTE: languages must be *first* because their settings affect the
 # find_package calls.
 celeritas_optional_language(CUDA)
-message(STATUS " CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER}")
 if(NOT CELERITAS_USE_CUDA)
   celeritas_optional_language(HIP)
 endif()
