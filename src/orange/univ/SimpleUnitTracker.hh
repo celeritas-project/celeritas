@@ -15,6 +15,7 @@
 #include "orange/detail/BIHEnclosingVolFinder.hh"
 #include "orange/detail/BIHIntersectingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
+#include "orange/univ/detail/LogicEvaluator.hh"
 
 #include "detail/LazySenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"
@@ -188,7 +189,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
         VolumeView vol = this->make_local_volume(id);
         auto calc_senses = detail::LazySenseCalculator(
             this->make_surface_visitor(), vol, state.pos, on_surface);
-        return detail::InfixEvaluator(vol.logic())(calc_senses);
+        return detail::LogicEvaluator(vol.logic())(calc_senses);
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
 
@@ -230,7 +231,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
         auto calc_senses = detail::LazySenseCalculator(
             this->make_surface_visitor(), vol, state.pos, face);
 
-        if (detail::InfixEvaluator(vol.logic())(calc_senses))
+        if (detail::LogicEvaluator(vol.logic())(calc_senses))
         {
             // Inside: find and save the local surface ID, and end the search
             on_surface = get_surface(vol, face);
@@ -561,7 +562,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
     // Calculate local senses, taking current face into account
     // Current senses should put us inside the volume
-    detail::InfixEvaluator is_inside(vol.logic());
+    detail::LogicEvaluator is_inside(vol.logic());
     CELER_ASSERT(is_inside(calc_sense) != (target_sense == Sense::inside));
 
     // previous isect distance for move delta
