@@ -38,6 +38,8 @@ class InputBuilder
     {
         //! Manually specify a tracking/construction tolerance
         Tolerance<> tol;
+        //! Logic expression notation
+        logic::LogicNotation logic_notation{};
         //! Write unfolded universe structure to a JSON file
         std::string objects_output_file;
         //! Write transformed and simplified CSG trees to a JSON file

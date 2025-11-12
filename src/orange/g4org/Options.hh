@@ -52,6 +52,8 @@ struct Options
     double unit_length{celeritas::lengthunits::millimeter};
     //! Construction and tracking tolerance (native units)
     Tolerance<> tol;
+    //! Logic expression notation
+    logic::LogicNotation logic_notation{};
 
     //!@}
     //!@{

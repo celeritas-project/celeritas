@@ -180,6 +180,9 @@ struct OrangeInput
     //! Relative and absolute error for construction and transport
     Tolerance<> tol;
 
+    //! Logic expression notation
+    logic::LogicNotation logic_notation{};
+
     //! Whether the unit definition is valid
     explicit operator bool() const { return !universes.empty() && tol; }
 };

@@ -13,6 +13,7 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
+#include "corecel/Assert.hh"
 #include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
@@ -302,10 +303,11 @@ void UnitProto::build(ProtoBuilder& input) const
     {
         NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
-
+        CELER_ASSERT(input.logic_notation() == orange_tracking_logic);
         // Construct logic and faces with remapped surfaces
         auto&& [faces, logic] = detail::build_logic(
-            detail::InfixBuildLogicPolicy{csg_unit.tree, sorted_local_surfaces},
+            detail::PostfixBuildLogicPolicy{csg_unit.tree,
+                                            sorted_local_surfaces},
             node_id);
         vi.faces = std::move(faces);
         vi.logic = std::move(logic);

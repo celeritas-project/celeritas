@@ -36,6 +36,9 @@ inline constexpr UnivId orange_global_univ{0};
 //! ID of the global universe
 inline constexpr UnivLevelId orange_global_univ_level{0};
 
+//! Logic notation used for boolean expressions
+inline constexpr auto orange_tracking_logic = logic::LogicNotation::postfix;
+
 //---------------------------------------------------------------------------//
 /*!
  * Scalar values particular to an ORANGE geometry instance.

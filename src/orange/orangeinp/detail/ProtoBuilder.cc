@@ -33,6 +33,7 @@ ProtoBuilder::ProtoBuilder(OrangeInput* inp,
     CELER_EXPECT(opts.tol);
 
     inp_->tol = opts.tol;
+    inp_->logic_notation = opts.logic_notation;
     inp_->universes.reserve(protos_.size());
 }
 

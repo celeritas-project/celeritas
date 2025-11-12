@@ -127,6 +127,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     detail::ProtoBuilder builder(&result, protos, [&] {
         detail::ProtoBuilder::Options pbopts;
         pbopts.tol = opts_.tol;
+        pbopts.logic_notation = opts_.logic_notation;
         if (!opts_.csg_output_file.empty())
         {
             csg_outp = JsonCsgOutput{protos.size()};
