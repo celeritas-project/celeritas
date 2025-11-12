@@ -66,12 +66,12 @@ ln_presets() {
   dst="CMakeUserPresets.json"
 
   # Return early if it exists
-  if [ -e "$dst" ]; then
-    if [ -L "$dst" ]; then
-      log debug "CMake preset already exists: $dst (symlink)"
-    else
-      log debug "CMake preset already exists: $dst"
-    fi
+  if [ -L "$dst" ]; then
+    src=$(readlink "$dst" 2>/dev/null || printf "<unknown>")
+    log debug "CMake preset already exists: $dst -> $src"
+    return
+  elif [ -e "$dst" ]; then
+    log debug "CMake preset already exists: $dst"
     return
   fi
 
@@ -133,7 +133,8 @@ install_precommit_if_git() {
 
 #-----------------------------------------------------------------------------#
 
-# Run everything from the parent directory of this script (i.e. the Celeritas source dir)
+# Run everything from the parent directory of this script (i.e. the Celeritas
+# source dir)
 cd "$(dirname "$0")"/..
 
 # Determine system name, failing on an empty string
