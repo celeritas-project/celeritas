@@ -24,10 +24,10 @@ log() {
   level=$1
   message=$2
 
-  case "$level" in
+  case "${level}" in
     debug)
       color="2;37;40"
-      printf "\033[%sm%s\033[0m\n" "$color" "$message" >&2
+      printf "\033[%sm%s\033[0m\n" "${color}" "${message}" >&2
       return
       ;;
     info) color="32;40"; level="INFO" ;;
@@ -36,23 +36,23 @@ log() {
     *) color="37;40" ;;
   esac
 
-  printf "\033[%sm%s:\033[0m %s\n" "$color" "$level" "$message" >&2
+  printf "\033[%sm%s:\033[0m %s\n" "${color}" "${level}" "${message}" >&2
 }
 
 # Get the hostname, trying to account for being on a compute node or cluster
 fancy_hostname() {
-  sys=$LMOD_SYSTEM_NAME
-  if [ -z "$sys" ]; then
+  sys=${LMOD_SYSTEM_NAME}
+  if [ -z "${sys}" ]; then
     sys=$(uname -n)
     # Trim login/compute from head of string
-    case "$sys" in
+    case "${sys}" in
       login[0-9]*.*|compute[0-9]*.*) sys=${sys#*.} ;;
     esac
     # Trim all but the first component
     sys=${sys%%.*}
   fi
   log debug "Determined system name: ${sys} (override with LMOD_SYSTEM_NAME)"
-  printf '%s\n' "$sys"
+  printf '%s\n' "${sys}"
 }
 
 # Link the presets file
@@ -61,38 +61,38 @@ ln_presets() {
   dst="CMakeUserPresets.json"
 
   # Return early if it exists
-  if [ -L "$dst" ]; then
-    src=$(readlink "$dst" 2>/dev/null || printf "<unknown>")
-    log debug "CMake preset already exists: $dst -> $src"
+  if [ -L "${dst}" ]; then
+    src=$(readlink "${dst}" 2>/dev/null || printf "<unknown>")
+    log debug "CMake preset already exists: ${dst} -> ${src}"
     return
-  elif [ -e "$dst" ]; then
-    log debug "CMake preset already exists: $dst"
+  elif [ -e "${dst}" ]; then
+    log debug "CMake preset already exists: ${dst}"
     return
   fi
 
   # Create preset if it doesn't exist
-  if [ ! -f "$src" ]; then
-    log info "Creating user presets at $src . Please update this file for future configurations."
-    cp "scripts/cmake-presets/_dev_.json" "$src"
-    git add "$src" || log error "Could not stage presets"
+  if [ ! -f "${src}" ]; then
+    log info "Creating user presets at ${src} . Please update this file for future configurations."
+    cp "scripts/cmake-presets/_dev_.json" "${src}"
+    git add "${src}" || log error "Could not stage presets"
   fi
-  log info "Linking presets to $dst"
-  ln -s "$src" "$dst"
+  log info "Linking presets to ${dst}"
+  ln -s "${src}" "${dst}"
 }
 
 # Check if ccache is full and warn user
 check_ccache_usage() {
   cache_stats=$(ccache --print-stats 2>/dev/null || printf '')
-  current_kb=$(printf '%s\n' "$cache_stats" | grep "^cache_size_kibibyte" | cut -f2)
-  max_kb=$(printf '%s\n' "$cache_stats" | grep "^max_cache_size_kibibyte" | cut -f2)
+  current_kb=$(printf '%s\n' "${cache_stats}" | grep "^cache_size_kibibyte" | cut -f2)
+  max_kb=$(printf '%s\n' "${cache_stats}" | grep "^max_cache_size_kibibyte" | cut -f2)
 
   # Ensure numeric
-  case $current_kb in (""|*[!0-9]*) current_kb= ;; esac
-  case $max_kb in (""|*[!0-9]*) max_kb= ;; esac
+  case ${current_kb} in (""|*[!0-9]*) current_kb= ;; esac
+  case ${max_kb} in (""|*[!0-9]*) max_kb= ;; esac
 
-  if [ -n "$current_kb" ] && [ -n "$max_kb" ] && [ "$max_kb" -gt 0 ]; then
+  if [ -n "${current_kb}" ] && [ -n "${max_kb}" ] && [ "${max_kb}" -gt 0 ]; then
     usage_percent=$((current_kb * 100 / max_kb))
-    if [ "$usage_percent" -gt 90 ]; then
+    if [ "${usage_percent}" -gt 90 ]; then
       current_gb=$((current_kb / 1024 / 1024))
       max_gb=$((max_kb / 1024 / 1024))
       log warning "ccache is ${usage_percent}% full (${current_gb}/${max_gb} GiB)"
@@ -106,7 +106,7 @@ setup_ccache() {
   if CCACHE_PROGRAM="$(command -v ccache 2>/dev/null)"; then
     log info "Using ccache: ${CCACHE_PROGRAM}"
     check_ccache_usage
-    [ -n "$CCACHE_PROGRAM" ] && export CCACHE_PROGRAM
+    [ -n "${CCACHE_PROGRAM}" ] && export CCACHE_PROGRAM
   fi
 }
 
@@ -119,7 +119,7 @@ install_precommit_if_git() {
     return 1
   fi
 
-  if [ ! -f "$git_dir/hooks/pre-commit" ]; then
+  if [ ! -f "${git_dir}/hooks/pre-commit" ]; then
     log info "Pre-commit hook not found, installing commit hooks"
     ./scripts/dev/install-commit-hooks.sh
   fi
@@ -134,7 +134,7 @@ cd "$(dirname "$0")"/..
 
 # Determine system name, failing on an empty string
 SYSTEM_NAME=$(fancy_hostname)
-if [ -z "$SYSTEM_NAME" ]; then
+if [ -z "${SYSTEM_NAME}" ]; then
   log warning "Could not determine SYSTEM_NAME from LMOD_SYSTEM_NAME or HOSTNAME"
   log error "Empty SYSTEM_NAME, needed to load environment and presets"
   exit 1
@@ -146,9 +146,9 @@ OLD_PRE_COMMIT="$(command -v pre-commit 2>/dev/null || printf '')"
 
 # Load environment paths
 _env_script="scripts/env/${SYSTEM_NAME}.sh"
-if [ -f "$_env_script" ]; then
+if [ -f "${_env_script}" ]; then
   log info "Sourcing environment script at ${_env_script}"
-  . "$_env_script"
+  . "${_env_script}"
 else
   log debug "No environment script exists at ${_env_script}"
 fi
@@ -157,7 +157,7 @@ NEW_CMAKE="$(command -v cmake 2>/dev/null || printf 'cmake unavailable')"
 NEW_PRE_COMMIT="$(command -v pre-commit 2>/dev/null || printf '')"
 
 # Link preset file
-ln_presets "$SYSTEM_NAME"
+ln_presets "${SYSTEM_NAME}"
 
 # Search for and probe ccache
 setup_ccache
@@ -181,11 +181,11 @@ shift
 
 # Configure, build, and test
 log info "Configuring with verbosity"
-cmake --preset="$CMAKE_PRESET" --log-level=VERBOSE "$@"
+cmake --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
 log info "Building"
-if cmake --build --preset="$CMAKE_PRESET"; then
+if cmake --build --preset="${CMAKE_PRESET}"; then
   log info "Testing"
-  if ctest --preset="$CMAKE_PRESET" --timeout 15; then
+  if ctest --preset="${CMAKE_PRESET}" --timeout 15; then
     log info "Celeritas was successfully built and tested for development!"
   else
     log warning "Celeritas built but some tests failed"
@@ -193,13 +193,13 @@ if cmake --build --preset="$CMAKE_PRESET"; then
   fi
 
   install_precommit_if_git
-  if [ "$NEW_PRE_COMMIT" != "$OLD_PRE_COMMIT" ]; then
-    log warning "Local environment script uses a different pre-commit than your \$PATH:"
+  if [ "${NEW_PRE_COMMIT}" != "${OLD_PRE_COMMIT}" ]; then
+    log warning "Local environment script uses a different pre-commit than your \${PATH}:"
     log info "Recommend adding '. ${PWD}/${_env_script}' to your shell rc"
   fi
 
-  if [ "$NEW_CMAKE" != "$OLD_CMAKE" ]; then
-    log warning "Local environment script uses a different CMake than your \$PATH:"
+  if [ "${NEW_CMAKE}" != "${OLD_CMAKE}" ]; then
+    log warning "Local environment script uses a different CMake than your \${PATH}:"
     log info "Recommend adding '. ${PWD}/${_env_script}' to your shell rc"
   fi
 else
