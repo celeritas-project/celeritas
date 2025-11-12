@@ -43,6 +43,8 @@
 #    include <thrust/partition.h>
 #    include <thrust/remove.h>
 #    include <thrust/scan.h>
+#else
+#    include <thrust/iterator/counting_iterator.h>
 #endif
 
 #include "corecel/Macros.hh"
@@ -71,7 +73,7 @@ struct NotNull
 {
     CELER_FUNCTION bool operator()(TrackSlotId a) const noexcept
     {
-        return a.get() != TrackSlotId{}.unchecked_get();
+        return static_cast<bool>(a);
     }
 };
 
@@ -252,16 +254,12 @@ void partition_initializers(
                       flags.data(),
                       IsNeutral{params.ptr<MemSpace::native>()});
 #    endif
-    // CUB doesn't support in-place partitioning, so create a new variable,
-    // initial, of the same type and copy the current data in the init.indices
-    // object. Use initial for the input data and overwrite init.indices with
-    // the partitioned data, as expected from an in-place algorithm.
-    StateCollection<size_type, Ownership::value, MemSpace::device> initial;
-    initial = init.indices;
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
-    auto start = device_pointer_cast(initial.data());
+    // CUB doesn't support in-place partitioning, so use a counting iterator
+    // because the indices are always sequential from zero
+    auto start = thrust::make_counting_iterator<size_type>(0);
     auto data = device_pointer_cast(init.indices.data());
     // Allocate storage for the number of neutral tracks (unused by celeritas)
     DeviceVector<size_type> num_neutral{1, stream_id};
