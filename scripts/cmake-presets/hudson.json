@@ -36,7 +36,7 @@
       "displayName": "Build with basic optimizations and debug assertions",
       "inherits": [".base", ".reldeb"],
       "cacheVariables": {
-        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"}
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -60,7 +60,7 @@
       "displayName": "Build with debug assertions and ORANGE geometry",
       "inherits": [".base", ".debug"],
       "cacheVariables": {
-        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     }
