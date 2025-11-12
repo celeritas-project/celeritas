@@ -11,12 +11,14 @@
 #include <sstream>
 
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
 #include "orange/OrangeInputIO.json.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/detail/LogicUtils.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/InputBuilder.hh"
 #include "orange/orangeinp/Shape.hh"
@@ -986,6 +988,66 @@ TEST_F(InputBuilderTest, involute_fuel)
     }());
 
     this->run_test(*involute);
+}
+
+TEST_F(UnitProtoTest, infix_logic)
+{
+    UnitProto global{[] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 10.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+
+        auto inner = make_sph("inner", 5.0);
+
+        append_material(inp,
+                        make_rdv("shell",
+                                 {{Sense::inside, inp.boundary.interior},
+                                  {Sense::outside, inner}}),
+                        1);
+        append_material(inp, std::move(inner), 2);
+        return inp;
+    }()};
+
+    auto build_input = [this, &global](logic::LogicNotation notation) {
+        InputBuilder build_input([&] {
+            InputBuilder::Options opts;
+            opts.tol = this->tol_;
+            opts.logic_notation = notation;
+            return opts;
+        }());
+        return build_input(global);
+    };
+
+    OrangeInput postfix_input = build_input(logic::LogicNotation::postfix);
+    OrangeInput infix_input = build_input(logic::LogicNotation::infix);
+
+    ASSERT_EQ(logic::LogicNotation::postfix, postfix_input.logic_notation);
+    ASSERT_EQ(logic::LogicNotation::infix, infix_input.logic_notation);
+    ASSERT_EQ(postfix_input.universes.size(), infix_input.universes.size());
+
+    auto const& postfix_unit
+        = std::get<UnitInput>(postfix_input.universes.front());
+    auto const& infix_unit = std::get<UnitInput>(infix_input.universes.front());
+
+    ASSERT_EQ(postfix_unit.volumes.size(), infix_unit.volumes.size());
+
+    for (size_type i = 0; i != postfix_unit.volumes.size(); ++i)
+    {
+        auto const& postfix_logic = postfix_unit.volumes[i].logic;
+        auto const& infix_logic = infix_unit.volumes[i].logic;
+        if (postfix_logic.empty())
+        {
+            EXPECT_TRUE(infix_logic.empty());
+            continue;
+        }
+
+        auto expected
+            = ::celeritas::detail::convert_to_infix(make_span(postfix_logic));
+        EXPECT_EQ(::celeritas::detail::logic_to_string(expected),
+                  ::celeritas::detail::logic_to_string(infix_logic))
+            << "volume " << i;
+    }
 }
 
 //---------------------------------------------------------------------------//

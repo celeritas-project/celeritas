@@ -303,9 +303,12 @@ void UnitProto::build(ProtoBuilder& input) const
     {
         NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
-        CELER_ASSERT(input.logic_notation() == orange_tracking_logic);
         // Construct logic and faces with remapped surfaces
         auto&& [faces, logic] = detail::build_logic(
+            // always use postfix logic for unit input, post-processing to
+            // convert to selected notation
+            // TODO: remove post-processing and directly build in selected
+            // notation
             detail::PostfixBuildLogicPolicy{csg_unit.tree,
                                             sorted_local_surfaces},
             node_id);

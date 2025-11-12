@@ -7,15 +7,19 @@
 #include "InputBuilder.hh"
 
 #include <fstream>
+#include <variant>
 #include <nlohmann/json.hpp>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/detail/LogicUtils.hh"
 
 #include "ProtoInterface.hh"
 
@@ -91,6 +95,38 @@ class JsonCsgOutput
 };
 
 //---------------------------------------------------------------------------//
+void convert_logic_to_selected_notation(OrangeInput* input)
+{
+    CELER_EXPECT(input);
+    if (input->logic_notation == logic::LogicNotation::postfix)
+    {
+        return;
+    }
+
+    CELER_EXPECT(input->logic_notation == logic::LogicNotation::infix);
+
+    auto convert_unit = [](UnitInput& unit) {
+        for (auto& vol : unit.volumes)
+        {
+            if (vol.logic.empty())
+            {
+                continue;
+            }
+            vol.logic
+                = ::celeritas::detail::convert_to_infix(make_span(vol.logic));
+        }
+    };
+
+    for (auto& univ : input->universes)
+    {
+        if (auto* unit = std::get_if<UnitInput>(&univ))
+        {
+            convert_unit(*unit);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -145,6 +181,8 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     {
         csg_outp.write(opts_.csg_output_file);
     }
+
+    convert_logic_to_selected_notation(&result);
 
     CELER_ENSURE(result);
     return result;
