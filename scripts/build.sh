@@ -43,7 +43,7 @@ log() {
 fancy_hostname() {
   sys=${LMOD_SYSTEM_NAME}
   if [ -z "${sys}" ]; then
-    sys=$(uname -n)
+    sys="$(uname -n)"
     # Trim login/compute from head of string
     case "${sys}" in
       login[0-9]*.*|compute[0-9]*.*) sys=${sys#*.} ;;
@@ -62,7 +62,7 @@ ln_presets() {
 
   # Return early if it exists
   if [ -L "${dst}" ]; then
-    src=$(readlink "${dst}" 2>/dev/null || printf "<unknown>")
+    src="$(readlink "${dst}" 2>/dev/null || printf "<unknown>")"
     log debug "CMake preset already exists: ${dst} -> ${src}"
     return
   elif [ -e "${dst}" ]; then
@@ -145,12 +145,12 @@ OLD_CMAKE="$(command -v cmake 2>/dev/null || printf '')"
 OLD_PRE_COMMIT="$(command -v pre-commit 2>/dev/null || printf '')"
 
 # Load environment paths
-_env_script="scripts/env/${SYSTEM_NAME}.sh"
-if [ -f "${_env_script}" ]; then
-  log info "Sourcing environment script at ${_env_script}"
-  . "${_env_script}"
+ENV_SCRIPT="scripts/env/${SYSTEM_NAME}.sh"
+if [ -f "${ENV_SCRIPT}" ]; then
+  log info "Sourcing environment script at ${ENV_SCRIPT}"
+  . "${ENV_SCRIPT}"
 else
-  log debug "No environment script exists at ${_env_script}"
+  log debug "No environment script exists at ${ENV_SCRIPT}"
 fi
 
 NEW_CMAKE="$(command -v cmake 2>/dev/null || printf 'cmake unavailable')"
@@ -194,13 +194,13 @@ if cmake --build --preset="${CMAKE_PRESET}"; then
 
   install_precommit_if_git
   if [ "${NEW_PRE_COMMIT}" != "${OLD_PRE_COMMIT}" ]; then
-    log warning "Local environment script uses a different pre-commit than your \${PATH}:"
-    log info "Recommend adding '. ${PWD}/${_env_script}' to your shell rc"
+    log warning "Local environment script uses a different pre-commit than your \$PATH:"
+    log info "Recommend adding '. ${PWD}/${ENV_SCRIPT}' to your shell rc"
   fi
 
   if [ "${NEW_CMAKE}" != "${OLD_CMAKE}" ]; then
-    log warning "Local environment script uses a different CMake than your \${PATH}:"
-    log info "Recommend adding '. ${PWD}/${_env_script}' to your shell rc"
+    log warning "Local environment script uses a different CMake than your \$PATH:"
+    log info "Recommend adding '. ${PWD}/${ENV_SCRIPT}' to your shell rc"
   fi
 else
   log error "build failed: check configuration and build errors above"
