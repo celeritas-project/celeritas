@@ -43,6 +43,8 @@
 #    include <thrust/partition.h>
 #    include <thrust/remove.h>
 #    include <thrust/scan.h>
+
+#    include "corecel/math/Algorithms.hh"  // For LogicalNot()
 #else
 #    include <thrust/iterator/counting_iterator.h>
 #endif
