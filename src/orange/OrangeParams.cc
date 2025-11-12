@@ -190,6 +190,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
+    host_data.scalars.logic_notation = input.logic_notation;
+    CELER_ASSERT(host_data.scalars.logic_notation == orange_tracking_logic);
     host_data.scalars.num_univ_levels
         = detail::DepthCalculator{input.universes}();
     host_data.scalars.num_vol_levels = volumes_ ? volumes_->num_volume_levels()
