@@ -40,6 +40,15 @@ jobs:
             image: "ubuntu-rocm" # VecGeom not installed on HIP
           - buildtype: "debug"
             image: "ubuntu-rocm" # Debug builds don't work with HIP
+        include:
+          - geometry: "vecgeom"
+            buildtype: "reldeb"
+            image: "rocky-cuda"
+          - buildtype: "reldeb"
+            geometry: "vecgeom"
+            special: "codecov"
+            geant: "11.3"
+            image: "rocky-cuda"
 
     env:
       CELER_TEST_STRICT: 0 # TODO: enable with Geant4 v11.3
