@@ -17,8 +17,10 @@
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror",
         "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_COMPILER": "/usr/bin/c++",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings",
+        "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/c++",
         "CMAKE_CUDA_ARCHITECTURES": "90",
         "CMAKE_INSTALL_PREFIX": "/scratch/$env{USER}/install/celeritas-${presetName}",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
@@ -29,7 +31,6 @@
       "displayName": "Build with optimizations without debug assertions",
       "inherits": [".base", ".ndebug"]
     },
-    ,
     {
       "name": "reldeb",
       "displayName": "Build with basic optimizations and debug assertions",
@@ -59,37 +60,35 @@
       "displayName": "Build with debug assertions and ORANGE geometry",
       "inherits": [".base", ".debug"],
       "cacheVariables": {
-        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"}
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "base",
-      "configurePreset": "base",
-      "jobs": 32,
+      "name": ".base",
+      "configurePreset": ".base",
+      "jobs": 48,
       "nativeToolOptions": ["-k0"]
     },
-    {"name": "release", "configurePreset": "release", "inherits": "base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
-    {"name": "release-orange", "configurePreset": "release-orange", "inherits": "base"},
-    {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": "base"},
-    {"name": "debug-orange", "configurePreset": "debug", "inherits": "base"}
+    {"name": "release", "configurePreset": "release", "inherits": ".base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": ".base"},
+    {"name": "release-orange", "configurePreset": "release-orange", "inherits": ".base"},
+    {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": ".base"},
+    {"name": "debug-orange", "configurePreset": "debug-orange", "inherits": ".base"}
   ],
   "testPresets": [
     {
-      "name": "base",
-      "configurePreset": "base",
+      "name": ".base",
+      "configurePreset": ".base",
       "output": {"outputOnFailure": true},
       "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
     },
-    {"name": "release", "configurePreset": "release", "inherits": "base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
-    {"name": "debug", "configurePreset": "debug", "inherits": "base"},
-    {"name": "release-orange", "configurePreset": "release-orange", "inherits": "base"},
-    {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": "base"},
-    {"name": "clhep", "configurePreset": "clhep", "inherits": "base"},
-    {"name": "float", "configurePreset": "float", "inherits": "base"}
+    {"name": "release", "configurePreset": "release", "inherits": ".base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": ".base"},
+    {"name": "release-orange", "configurePreset": "release-orange", "inherits": ".base"},
+    {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": ".base"},
+    {"name": "debug-orange", "configurePreset": "debug-orange", "inherits": ".base"}
   ]
 }

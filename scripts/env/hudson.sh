@@ -3,14 +3,18 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
+if ! command -v module >/dev/null 2>&1; then
+  printf "warning: 'module' command not available\n" >&2
+  . /usr/share/lmod/lmod/init/sh
+fi
 
 module load nvhpc-byo-compiler/25.7
+env | grep LD
 
 export SPACK_ROOT=/auto/projects/celeritas/spack
 export CXX=/usr/bin/c++
-export CUDAHOSTCXX=$CXX
 
-if ! command -v spack 2>/dev/null; then
+if ! command -v spack >/dev/null 2>&1; then
   . $SPACK_ROOT/share/spack/setup-env.sh
 fi
 
