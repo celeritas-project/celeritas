@@ -48,11 +48,8 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_PAIR(data.scalars, max_intersections),
         OPO_PAIR(data.scalars, max_csg_levels),
         OPO_PAIR(data.scalars, tol),
-        {
-            "logic",
-            logic::to_cstring(data.scalars.logic_notation),
-        },
     };
+    logic::to_json(obj["scalars"]["logic"], data.scalars.logic_notation);
 
     // Save sizes
     obj["sizes"] = {
