@@ -253,18 +253,22 @@ Solid(std::string&&, T&&, Us...) -> Solid<T>;
 //---------------------------------------------------------------------------//
 
 using ConeSolid = Solid<Cone>;
+using CutCylinderSolid = Solid<CutCylinder>;
 using CylinderSolid = Solid<Cylinder>;
+using EllipsoidSolid = Solid<Ellipsoid>;
+using HyperboloidSolid = Solid<Hyperboloid>;
 using PrismSolid = Solid<Prism>;
 using SphereSolid = Solid<Sphere>;
-using EllipsoidSolid = Solid<Ellipsoid>;
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
 extern template class Solid<Cone>;
+extern template class Solid<CutCylinder>;
 extern template class Solid<Cylinder>;
-// TODO: hyperboloid
+extern template class Solid<Ellipsoid>;
+extern template class Solid<Hyperboloid>;
 extern template class Solid<Prism>;
 extern template class Solid<Sphere>;
 

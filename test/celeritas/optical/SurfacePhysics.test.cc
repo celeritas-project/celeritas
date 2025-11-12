@@ -173,6 +173,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
                 {PSI{6}, {ReflectionForm::from_lobe(), false}},
                 {PSI{7}, {ReflectionForm::from_spike(), false}},
             },
+            {},
         };
 
         return std::make_shared<SurfacePhysicsParams const>(

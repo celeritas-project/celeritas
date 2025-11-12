@@ -288,7 +288,7 @@ G4RunManager& IntegrationTestBase::run_manager()
 #if G4VERSION_NUMBER >= 1100
             G4RunManagerFactory::CreateRunManager()
 #else
-            std::shared_ptr<G4RunManager>()
+            std::make_shared<G4RunManager>()
 #endif
         };
         CELER_ASSERT(rm);
@@ -552,12 +552,12 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options()
 {
     auto result = Base::make_setup_options();
     result.sd.enabled = false;
-    result.optical_capacity = [] {
-        inp::OpticalStateCapacity cap;
-        cap.tracks = 32768;
-        cap.generators = 32768 * 8;
-        cap.primaries = cap.generators;
-        return cap;
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = 32768 * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        return opt;
     }();
     return result;
 }

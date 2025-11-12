@@ -8,9 +8,6 @@ cmake_minimum_required(VERSION 3.18...4.1)
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
-set(CMAKE_USER_MAKE_RULES_OVERRIDE
-  "${CMAKE_CURRENT_LIST_DIR}/cmake/CeleritasMakeRulesOverride.cmake")
-
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -409,7 +406,7 @@ endif()
 
 if(CELERITAS_USE_Python)
   if(NOT Python_FOUND)
-    find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
+    find_package(Python 3.9 REQUIRED COMPONENTS Interpreter)
   endif()
 endif()
 
@@ -516,10 +513,15 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 if(CELERITAS_BUILD_DOCS)
+  set(_prev_dot "${DOXYGEN_DOT_EXECUTABLE}")
   if(NOT Doxygen_FOUND)
-    find_package(Doxygen)
+    find_package(Doxygen COMPONENTS doxygen dot)
   endif()
-  if(NOT Doxygen_FOUND)
+  if(NOT DEFINED Doxygen_doxygen_FOUND)
+    # Backward compatibility or caller package doesn't specify components
+    set(Doxygen_doxygen_FOUND ${Doxygen_FOUND})
+  endif()
+  if(NOT Doxygen_doxygen_FOUND)
     celeritas_error_incompatible_option(
       "Doxygen is required for building documentation but was not found"
       CELERITAS_BUILD_DOCS
@@ -535,12 +537,21 @@ if(CELERITAS_BUILD_DOCS)
     celeritas_check_python_module(CELERITAS_USE_Breathe "breathe")
     celeritas_check_python_module(CELERITAS_USE_Furo "furo")
     celeritas_check_python_module(CELERITAS_USE_SphinxBibtex "sphinxcontrib.bibtex")
-    celeritas_check_python_module(CELERITAS_USE_SphinxMermaid "sphinxcontrib.mermaid")
     if(CELERITAS_USE_Breathe)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
-    find_program(MMDC_EXECUTABLE mmdc)
   endif()
+
+  if(NOT DOXYGEN_DOT_EXECUTABLE)
+    find_program(DOXYGEN_DOT_EXECUTABLE dot)
+  endif()
+  if(DOXYGEN_DOT_EXECUTABLE AND NOT _prev_dot)
+    message(STATUS "Found dot: ${DOXYGEN_DOT_EXECUTABLE}")
+  elseif(_prev_dot STREQUAL "")
+    # Note: use string comparison, not boolean, to avoid matching old "NOTFOUND"
+    message(STATUS "Could NOT find graphviz generator `dot`")
+  endif()
+
   include(ExternalProject)
 endif()
 

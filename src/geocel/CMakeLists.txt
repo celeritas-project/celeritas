@@ -13,7 +13,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   BoundingBoxIO.json.cc
-  GeoParamsInterface.cc
+  GeoInterface.cc
   GeoParamsOutput.cc
   SurfaceParams.cc
   VolumeParams.cc

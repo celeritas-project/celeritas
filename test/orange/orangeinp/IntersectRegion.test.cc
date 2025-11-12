@@ -210,6 +210,7 @@ TEST_F(ConeTest, errors)
 {
     EXPECT_THROW(Cone({-1, 1}, 1), RuntimeError);
     EXPECT_THROW(Cone({0.5, 1}, 0), RuntimeError);
+    EXPECT_THROW(Cone({0, 0}, 1), RuntimeError);
 }
 
 TEST_F(ConeTest, encloses)
@@ -349,6 +350,56 @@ TEST_F(ConeTest, transformed)
                        result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1.4142135623731, 1.4142135623731, 4}),
                        result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+// CUTCYLINDER
+//---------------------------------------------------------------------------//
+using CutCylinderTest = IntersectRegionTest;
+
+TEST_F(CutCylinderTest, errors)
+{
+    real_type k = std::sqrt(2) / 2;
+
+    EXPECT_THROW(CutCylinder(0.0, 1.0, {k, 0, -k}, {k, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, -1.0, {k, 0, -k}, {k, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {k, 0, k}, {0, 0, k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0, -k}, {0, 0, -k}), RuntimeError);
+    EXPECT_THROW(CutCylinder(1.0, 1.0, {0, 0.5, -0.5}, {0, k, -k}),
+                 RuntimeError);
+}
+
+TEST_F(CutCylinderTest, encloses)
+{
+    real_type k = std::sqrt(2) / 2;
+    CutCylinder cyl1(1.0, 1.0, {k, 0, -k}, {k, 0, k});
+
+    EXPECT_TRUE(cyl1.encloses(CutCylinder(0.9, 0.9, {k, 0, -k}, {k, 0, k})));
+    EXPECT_FALSE(cyl1.encloses(CutCylinder(0.9, 1.9, {k, 0, -k}, {k, 0, k})));
+    EXPECT_FALSE(cyl1.encloses(CutCylinder(1.9, 0.9, {k, 0, -k}, {k, 0, k})));
+
+    EXPECT_THROW(cyl1.encloses(CutCylinder(0.9, 0.9, {k, 0, -k}, {0, k, k})),
+                 RuntimeError);
+    EXPECT_THROW(cyl1.encloses(CutCylinder(0.9, 0.9, {0, k, -k}, {k, 0, k})),
+                 RuntimeError);
+}
+
+TEST_F(CutCylinderTest, standard)
+{
+    real_type k = std::sqrt(2) / 2;
+
+    auto result = this->test(CutCylinder(0.75, 0.9, {0, k, -k}, {-k, 0, k}));
+
+    static char const expected_node[] = "all(-0, +1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: n={0,0.70711,-0.70711}, d=0.63640",
+           "Plane: n={0.70711,0,-0.70711}, d=-0.63640",
+           "Cyl z: r=0.75"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-0.75, -0.75, -0.9}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.75, 0.75, 0.9}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//
@@ -1720,6 +1771,43 @@ TEST_F(GenPrismTest, variable_twisted)
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     }
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+}
+
+//---------------------------------------------------------------------------//
+// HYPERBOLOID
+//---------------------------------------------------------------------------//
+using HyperboloidTest = IntersectRegionTest;
+
+TEST_F(HyperboloidTest, errors)
+{
+    // Negative middle radius
+    EXPECT_THROW(Hyperboloid(-1, 2, 1), RuntimeError);
+    // Zero middle radius
+    EXPECT_THROW(Hyperboloid(0, 2, 1), RuntimeError);
+    // Negative top radius
+    EXPECT_THROW(Hyperboloid(1, -2, 1), RuntimeError);
+    // Top radius not greater than middle radius (equal)
+    EXPECT_THROW(Hyperboloid(2, 2, 1), RuntimeError);
+    // Top radius less than middle radius
+    EXPECT_THROW(Hyperboloid(2, 1, 1), RuntimeError);
+    // Negative half-height
+    EXPECT_THROW(Hyperboloid(1, 2, -1), RuntimeError);
+    // Zero half-height
+    EXPECT_THROW(Hyperboloid(1, 2, 0), RuntimeError);
+}
+
+TEST_F(HyperboloidTest, standard)
+{
+    auto result = this->test(Hyperboloid(1, 2, 3));
+
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces
+        = {"Plane: z=-3", "Plane: z=3", "SQuadric: {1,1,-0.33333} {0,0,0} -1"};
+    ref.interior = {{-0.70710678118655, -0.70710678118655, -3},
+                    {0.70710678118655, 0.70710678118655, 3}};
+    ref.exterior = {{-2, -2, -3}, {2, 2, 3}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//

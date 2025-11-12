@@ -26,52 +26,11 @@ namespace optical
  * The function F must take a \c CoreTrackView and return a \c Interaction
  */
 template<class F>
-struct InteractionApplierBaseImpl
+struct InteractionApplier
 {
     F sample_interaction;
 
     CELER_FUNCTION void operator()(CoreTrackView const&);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * This class is partially specialized with a second template argument to
- * extract any launch bounds from the functor class.
- *
- * \todo Generalize this with the core interaction applier
- */
-template<class F, typename = void>
-struct InteractionApplier : public InteractionApplierBaseImpl<F>
-{
-    CELER_FUNCTION InteractionApplier(F&& f)
-        : InteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {
-    }
-};
-
-template<class F>
-struct InteractionApplier<F, std::enable_if_t<kernel_max_blocks_min_warps<F>>>
-    : public InteractionApplierBaseImpl<F>
-{
-    static constexpr int max_block_size = F::max_block_size;
-    static constexpr int min_warps_per_eu = F::min_warps_per_eu;
-
-    CELER_FUNCTION InteractionApplier(F&& f)
-        : InteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {
-    }
-};
-
-template<class F>
-struct InteractionApplier<F, std::enable_if_t<kernel_max_blocks<F>>>
-    : public InteractionApplierBaseImpl<F>
-{
-    static constexpr int max_block_size = F::max_block_size;
-
-    CELER_FUNCTION InteractionApplier(F&& f)
-        : InteractionApplierBaseImpl<F>{celeritas::forward<F>(f)}
-    {
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -91,7 +50,7 @@ CELER_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
  */
 template<class F>
 CELER_FUNCTION void
-InteractionApplierBaseImpl<F>::operator()(CoreTrackView const& track)
+InteractionApplier<F>::operator()(CoreTrackView const& track)
 {
     Interaction result = this->sample_interaction(track);
 
@@ -104,7 +63,7 @@ InteractionApplierBaseImpl<F>::operator()(CoreTrackView const& track)
         // Mark particle as killed
         track.sim().status(TrackStatus::killed);
     }
-    else
+    else if (result.action == Interaction::Action::scattered)
     {
         // Update direction and polarization
         track.geometry().set_dir(result.direction);

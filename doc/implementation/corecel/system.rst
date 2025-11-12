@@ -79,6 +79,7 @@ device and host, described in :ref:`profiling`.
 
 
 .. doxygenclass:: celeritas::ScopedProfiling
+.. doxygenclass:: celeritas::TracingSession
 
 
 .. _api_io:

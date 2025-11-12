@@ -13,7 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"
-#include "celeritas/AllGeoTypedTestBase.hh"
+#include "celeritas/CoreGeoTestBase.hh"
 
 #include "celeritas_test.hh"
 
@@ -25,35 +25,19 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-template<class HP>
-class LinearPropagatorTest : public AllGeoTypedTestBase<HP>
+class LinearPropagatorTest : public CoreGeoTestBase
 {
   protected:
-    void SetUp() override
-    {
-        using namespace std::literals;
-
-        if (CELERITAS_UNITS != CELERITAS_UNITS_CGS
-            && GeoTraits<HP>::name == "ORANGE"sv)
-        {
-            GTEST_SKIP() << "ORANGE currently requires CGS [cm]";
-        }
-    }
-
     std::string_view gdml_basename() const final { return "simple-cms"; }
 };
-
-TYPED_TEST_SUITE(LinearPropagatorTest,
-                 AllGeoTestingTypes,
-                 AllGeoTestingTypeNames);
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //----------------------------------------------------------------------------//
 
-TYPED_TEST(LinearPropagatorTest, rvalue_type)
+TEST_F(LinearPropagatorTest, rvalue_type)
 {
-    using GeoTrackView = typename TestFixture::GeoTrackView;
+    using GeoTrackView = WrappedGeoTrack;
     {
         LinearPropagator propagate(
             this->make_geo_track_view({0, 0, 0}, {0, 0, 1}));
@@ -67,9 +51,9 @@ TYPED_TEST(LinearPropagatorTest, rvalue_type)
                        to_cm(this->make_geo_track_view().pos()));
 }
 
-TYPED_TEST(LinearPropagatorTest, simple_cms)
+TEST_F(LinearPropagatorTest, simple_cms)
 {
-    using GeoTrackView = typename TestFixture::GeoTrackView;
+    using GeoTrackView = WrappedGeoTrack;
     // Initialize
     auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", this->volume_name(geo));

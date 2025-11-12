@@ -88,7 +88,7 @@ def update_test_file_batch(file_path, failures):
     # Process failures in reverse line order to avoid line number shifts
     for failure in reversed(failures):
         assert failure["file_path"] == file_path
-        line_number = failure["line_number"] - 1 # Convert to 0-based index
+        line_number = failure["line_number"] - 1  # Convert to 0-based index
         line_slc = slice(line_number - 2, line_number + 2)
         actual_json = failure["actual_json"]
 

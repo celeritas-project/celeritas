@@ -13,19 +13,19 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
-#include "corecel/OpaqueIdIO.hh"
+#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/io/JsonUtils.json.hh"
-#include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/JsonUtils.json.hh"  // IWYU pragma: keep
+#include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/VolumeToString.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "CsgObject.hh"
@@ -79,6 +79,7 @@ void remove_interior(CsgUnit& unit, std::string_view label)
                    unknowns.begin(), unknowns.end(), ", ", write_node_labels);
     }
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Simplify negated joins for infix evaluation.
@@ -158,6 +159,8 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
     unit.regions = std::move(regions);
     unit.tree = std::move(tree);
 }
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -225,7 +228,7 @@ auto UnitProto::daughters() const -> VecProto
 void UnitProto::build(ProtoBuilder& input) const
 {
     // Bounding box should be finite if and only if this is the global universe
-    CELER_EXPECT((input.next_id() == orange_global_universe)
+    CELER_EXPECT((input.next_id() == orange_global_univ)
                  == !input.bbox(input.next_id()));
 
     ScopedProfiling profile_this{"orange-unitproto"};
@@ -355,9 +358,32 @@ void UnitProto::build(ProtoBuilder& input) const
     // nodes for the region, because we can't know which ones have the
     // user-supplied volume names
     auto vol_iter = result.volumes.begin();
+    // Local impl volume ID of the first local 'material' placement:
+    // offset to account for exterior and daughters
+    auto const first_lv = id_cast<LocalVolumeId>(1 + input_.daughters.size());
+    auto add_local_parent = [&result, &vol_iter, first_lv](LocalParent lp) {
+        if (!lp)
+        {
+            return;
+        }
+        LocalVolumeId parent_id;
+        auto child_id
+            = id_cast<LocalVolumeId>(vol_iter - result.volumes.begin());
+        if (MaterialInputId parent_mi_id = *lp)
+        {
+            parent_id = first_lv + parent_mi_id.get();
+        }
+        else
+        {
+            // Option value is set, but to a "null" ID: parent is
+            // background volume
+            parent_id = id_cast<LocalVolumeId>(result.volumes.size() - 1);
+        }
+        result.local_parent_map.emplace(child_id, parent_id);
+    };
 
     // Save attributes for exterior volume
-    if (input.next_id() != orange_global_universe)
+    if (input.next_id() != orange_global_univ)
     {
         vol_iter->zorder = ZOrder::implicit_exterior;
         vol_iter->flags |= VolumeRecord::implicit_vol;
@@ -379,11 +405,14 @@ void UnitProto::build(ProtoBuilder& input) const
         vol_iter->label = d.label;
         if (vol_iter->label == VariantLabel{})
         {
-            // Choose default label for the volume
+            // Choose default label for the impl volume
             vol_iter->label = Label{std::string{d.fill->label()},
                                     std::string{this->label()}};
         }
         vol_iter->zorder = d.zorder;
+        // Add local parent if applicable
+        add_local_parent(d.local_parent);
+
         /* TODO: the "embedded_universe" flag is *also* set by the unit
          * builder. Move that here. */
         ++vol_iter;
@@ -392,7 +421,7 @@ void UnitProto::build(ProtoBuilder& input) const
         auto&& [iter, inserted] = result.daughter_map.insert({vol_id, {}});
         CELER_ASSERT(inserted);
         // Convert proto pointer to universe ID
-        iter->second.universe_id = input.find_universe_id(d.fill.get());
+        iter->second.univ_id = input.find_universe_id(d.fill.get());
 
         // Save the transform
         auto const* fill = std::get_if<Daughter>(&csg_unit.fills[vol_id.get()]);
@@ -406,7 +435,7 @@ void UnitProto::build(ProtoBuilder& input) const
         // parent-reference-frame bbox
         auto local_bbox = apply_transform(calc_inverse(iter->second.transform),
                                           result.volumes[vol_id.get()].bbox);
-        input.expand_bbox(iter->second.universe_id, bump_bbox(local_bbox));
+        input.expand_bbox(iter->second.univ_id, bump_bbox(local_bbox));
     }
 
     // Save attributes from materials
@@ -420,6 +449,9 @@ void UnitProto::build(ProtoBuilder& input) const
             vol_iter->label = Label{std::string(m.interior->label())};
         }
         vol_iter->zorder = ZOrder::media;
+        // Add local parent if applicable
+        add_local_parent(m.local_parent);
+
         ++vol_iter;
     }
 
@@ -433,7 +465,7 @@ void UnitProto::build(ProtoBuilder& input) const
 
     if (input.save_json())
     {
-        // Write debug information
+        // Write CSG debug output
         JsonPimpl jp;
         jp.obj = csg_unit;
         jp.obj["remapped_surfaces"] = [&sorted_local_surfaces] {
@@ -544,7 +576,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     }
 
     // Build daughters
-    UniverseId daughter_id{0};
+    UnivId daughter_id{0};
     for (auto const& d : input_.daughters)
     {
         if (d.zorder != ZOrder::media)

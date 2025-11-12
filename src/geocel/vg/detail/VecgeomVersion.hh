@@ -20,6 +20,11 @@
         "Unsupported: cannot build with VecGeom surface before merge into 2.0"
 #endif
 
+#ifndef VECGEOM_PRECISION_NAMESPACE
+// VecGeom <= 2.0.0-rc.7 puts navindex, precision in global namespace
+#    define VECGEOM_PRECISION_NAMESPACE
+#endif
+
 namespace celeritas
 {
 namespace detail
@@ -31,7 +36,7 @@ using BvhPrecision = float;
 using BvhPrecision = double;
 #endif
 
-using NavIndex_t = ::NavIndex_t;
+using NavIndex_t = VECGEOM_PRECISION_NAMESPACE::NavIndex_t;
 
 #if VECGEOM_VERSION >= 0x020000
 using ABBoxManager_t = vecgeom::ABBoxManager<vecgeom::Precision>;

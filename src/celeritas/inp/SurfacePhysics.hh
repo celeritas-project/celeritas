@@ -244,8 +244,14 @@ struct InteractionModels
     //! Composite reflection distributions at a dielectric interface
     std::map<PhysSurfaceId, DielectricInteraction> dielectric;
 
+    //! Trivial interactions independent of other surface physics
+    std::map<PhysSurfaceId, optical::TrivialInteractionMode> trivial;
+
     // Whether any models are present
-    explicit operator bool() const { return !dielectric.empty(); }
+    explicit operator bool() const
+    {
+        return !dielectric.empty() || !trivial.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//

@@ -127,10 +127,7 @@ TEST_F(SimpleCmsTest, no_change)
     static char const* const expected_vnames[]
         = {"em_calorimeter", "had_calorimeter"};
     EXPECT_VEC_EQ(expected_vnames, vnames);
-    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-    }
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 
     EXPECT_JSON_EQ(
         R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3]})json",
@@ -157,10 +154,7 @@ TEST_F(SimpleCmsTest, delete_one)
     EXPECT_VEC_EQ(expected_pnames, pnames);
 
     // Check log
-    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-    }
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 
     EXPECT_JSON_EQ(
         R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter"],"sd_name":["em_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector"],"vol_id":[2]})json",
@@ -212,10 +206,7 @@ TEST_F(SimpleCmsTest, add_one)
     static char const* const expected_vnames[]
         = {"si_tracker", "em_calorimeter", "had_calorimeter"};
     EXPECT_VEC_EQ(expected_vnames, vnames);
-    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-    }
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     EXPECT_JSON_EQ(
         R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["si_tracker","em_calorimeter","had_calorimeter"],"sd_name":[null,"em_calorimeter","had_calorimeter"],"sd_type":[null,"celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[1,2,3]})json",
         this->get_diagnostics(man));
@@ -227,10 +218,7 @@ TEST_F(SimpleCmsTest, no_detector)
     sd_setup_.skip_volumes
         = find_geant_volumes({"em_calorimeter", "had_calorimeter"});
     EXPECT_THROW(this->make_hit_manager(), celeritas::RuntimeError);
-    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
-    {
-        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-    }
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
 TEST_F(SimpleCmsTest, detached_detector)

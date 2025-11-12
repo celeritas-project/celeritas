@@ -122,7 +122,7 @@ CELER_FUNCTION size_type NonuniformGrid<T>::find(value_type value) const
         offset_.begin() + 1,
         offset_.end() - 1,
         value,
-        [&v = storage_](T value, ItemId<T> i) { return value < v[i]; });
+        [&v = storage_](T lhs, ItemId<T> rhs_id) { return lhs < v[rhs_id]; });
 
     if (value < storage_[*iter])
     {

@@ -8,14 +8,11 @@
 
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
-#include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 
-#include "OrangeInputIO.json.hh"
+#include "OrangeInputIO.json.hh"  // IWYU pragma: keep
 #include "OrangeParams.hh"  // IWYU pragma: keep
-#include "OrangeTypesIO.json.hh"
+#include "OrangeTypesIO.json.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -45,17 +42,17 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 
     // Save param scalars
     obj["scalars"] = {
-        OPO_PAIR(data.scalars, max_depth),
+        OPO_PAIR(data.scalars, num_univ_levels),
         OPO_PAIR(data.scalars, max_faces),
         OPO_PAIR(data.scalars, max_intersections),
-        OPO_PAIR(data.scalars, max_logic_depth),
+        OPO_PAIR(data.scalars, max_csg_levels),
         OPO_PAIR(data.scalars, tol),
     };
 
     // Save sizes
     obj["sizes"] = {
-        OPO_SIZE_PAIR(data, universe_types),
-        OPO_SIZE_PAIR(data, universe_indices),
+        OPO_SIZE_PAIR(data, univ_types),
+        OPO_SIZE_PAIR(data, univ_indices),
         OPO_SIZE_PAIR(data, simple_units),
         OPO_SIZE_PAIR(data, rect_arrays),
         OPO_SIZE_PAIR(data, transforms),
@@ -81,7 +78,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
             OPO_SIZE_PAIR(bihdata, leaf_nodes),
         });
     }();
-    obj["sizes"]["universe_indexer"] = [&uidata = data.universe_indexer_data] {
+    obj["sizes"]["universe_indexer"] = [&uidata = data.univ_indexer_data] {
         auto ui = json::object({
             OPO_SIZE_PAIR(uidata, surfaces),
             OPO_SIZE_PAIR(uidata, volumes),

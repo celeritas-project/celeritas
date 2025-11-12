@@ -51,6 +51,7 @@ struct SpanTraits
 template<class T>
 struct SpanTraits<LdgValue<T>>
 {
+    static_assert(std::is_const_v<T>);
     using element_type = typename LdgValue<T>::value_type;  // Always const!
     using pointer = std::add_pointer_t<element_type const>;
     using const_pointer = pointer;

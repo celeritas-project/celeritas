@@ -6,14 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <variant>
-
 #include "corecel/cont/VariantUtils.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "SurfaceTypeTraits.hh"
 
-#include "detail/AllSurfaces.hh"
+#include "detail/AllSurfaces.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {

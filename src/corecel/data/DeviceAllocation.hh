@@ -81,6 +81,12 @@ class DeviceAllocation
     // Copy data to host
     void copy_to_host(SpanBytes bytes) const;
 
+    // Raw pointer to device data (dangerous!)
+    void* data() { return data_.get(); }
+
+    // Raw pointer to device data (dangerous!)
+    void const* data() const { return data_.get(); }
+
   private:
     struct DeviceFreeDeleter
     {

@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../ConeAligned.hh"  // IWYU pragma: export
-#include "../CylAligned.hh"  // IWYU pragma: export
-#include "../CylCentered.hh"  // IWYU pragma: export
-#include "../GeneralQuadric.hh"  // IWYU pragma: export
-#include "../Involute.hh"  // IWYU pragma: export
-#include "../Plane.hh"  // IWYU pragma: export
-#include "../PlaneAligned.hh"  // IWYU pragma: export
-#include "../SimpleQuadric.hh"  // IWYU pragma: export
-#include "../Sphere.hh"  // IWYU pragma: export
-#include "../SphereCentered.hh"  // IWYU pragma: export
+#include "orange/surf/ConeAligned.hh"  // IWYU pragma: export
+#include "orange/surf/CylAligned.hh"  // IWYU pragma: export
+#include "orange/surf/CylCentered.hh"  // IWYU pragma: export
+#include "orange/surf/GeneralQuadric.hh"  // IWYU pragma: export
+#include "orange/surf/Involute.hh"  // IWYU pragma: export
+#include "orange/surf/Plane.hh"  // IWYU pragma: export
+#include "orange/surf/PlaneAligned.hh"  // IWYU pragma: export
+#include "orange/surf/SimpleQuadric.hh"  // IWYU pragma: export
+#include "orange/surf/Sphere.hh"  // IWYU pragma: export
+#include "orange/surf/SphereCentered.hh"  // IWYU pragma: export

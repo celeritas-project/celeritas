@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/base/Config.h>
-#include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Version.h>
+// NOTE: must include Global before most other vecgeom/veccore includes
+#include <VecGeom/base/Global.h>
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/volumes/LogicalVolume.h>
@@ -17,6 +17,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -29,10 +30,10 @@
 
 #if CELERITAS_VECGEOM_SURFACE
 #    include "detail/SurfNavigator.hh"
-#elif VECGEOM_VERSION >= 0x020000
-#    include <VecGeom/navigation/BVHNavigator.h>
-#else
+#elif CELERITAS_VECGEOM_VERSION < 0x020000
 #    include "detail/BVHNavigator.hh"
+#else
+#    include "detail/SolidsNavigator.hh"
 #endif
 
 namespace celeritas
@@ -61,12 +62,13 @@ class VecgeomTrackView
     using StateRef = NativeRef<VecgeomStateData>;
 #if CELERITAS_VECGEOM_SURFACE
     using Navigator = celeritas::detail::SurfNavigator;
-#elif VECGEOM_VERSION >= 0x020000
-    using Navigator = vecgeom::BVHNavigator;
-#else
+#elif CELERITAS_VECGEOM_VERSION < 0x020000
     using Navigator = celeritas::detail::BVHNavigator;
+#else
+    using Navigator = celeritas::detail::SolidsNavigator;
 #endif
     using ImplVolInstanceId = VecgeomPlacedVolumeId;
+    using real_type = vecgeom::Precision;
     //!@}
 
   public:
@@ -97,7 +99,7 @@ class VecgeomTrackView
     // Get the ID of the current volume instance
     inline CELER_FUNCTION VolumeInstanceId volume_instance_id() const;
     // Get the depth in the geometry hierarchy
-    inline CELER_FUNCTION LevelId level() const;
+    inline CELER_FUNCTION VolumeLevelId volume_level() const;
     // Get the volume instance ID for all levels
     inline CELER_FUNCTION void
     volume_instance_id(Span<VolumeInstanceId> levels) const;
@@ -210,8 +212,8 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     : params_(params)
     , state_(states)
     , tid_(tid)
-    , vgstate_(states.vgstate.at(params_.scalars.max_depth, tid))
-    , vgnext_(states.vgnext.at(params_.scalars.max_depth, tid))
+    , vgstate_(states.vgstate.at(params_.scalars.num_volume_levels, tid))
+    , vgnext_(states.vgnext.at(params_.scalars.num_volume_levels, tid))
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
 #if CELERITAS_VECGEOM_SURFACE
@@ -307,19 +309,22 @@ CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
 /*!
  * Get the depth in the geometry hierarchy.
  */
-CELER_FUNCTION LevelId VecgeomTrackView::level() const
+CELER_FUNCTION VolumeLevelId VecgeomTrackView::volume_level() const
 {
-    return id_cast<LevelId>(vgstate_.GetLevel());
+    auto result = id_cast<VolumeLevelId>(vgstate_.GetLevel());
+    CELER_ENSURE(result < params_.scalars.num_volume_levels);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume instance ID for all levels.
+ * Get the volume instance ID at each volume level.
  */
 CELER_FUNCTION void
 VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(levels.size() == this->level().get() + 1);
+    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
+                 == this->volume_level() + 1);
     for (auto lev : range(levels.size()))
     {
         vecgeom::VPlacedVolume const* pv = vgstate_.At(lev);
@@ -559,7 +564,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
                                             next_surface_,
                                             vgnext_);
         }
-#else
+#elif CELERITAS_VECGEOM_VERSION < 0x020000
         // Some navigators require an lvalue temp_pos
         auto temp_pos = detail::to_vector(this->pos_);
         Navigator::RelocateToNextVolume(

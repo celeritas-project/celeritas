@@ -51,7 +51,7 @@ struct VecgeomNavCollection<Ownership::value, MemSpace::host>
     std::vector<UPNavState> nav_state;
 
     // Resize with a number of states
-    void resize(int max_depth, size_type size);
+    void resize(int depth, size_type size);
     // Whether the collection is assigned
     explicit operator bool() const { return !nav_state.empty(); }
 };
@@ -115,11 +115,11 @@ struct VecgeomNavCollection<Ownership::value, MemSpace::device>
 
     UPNavStatePool pool;
     void* ptr = nullptr;
-    int max_depth = 0;
+    int depth = 0;
     size_type size = 0;
 
     // Resize based on geometry params and state size
-    void resize(int max_depth, size_type size);
+    void resize(int depth, size_type size);
     //! True if the collection is assigned/valid
     explicit CELER_FUNCTION operator bool() const { return ptr; }
 };
@@ -129,7 +129,7 @@ struct VecgeomNavCollection<Ownership::value, MemSpace::device>
  * Reference on-device memory owned by VecgeomNavCollection<value, device>.
  *
  * The NavStatePool underpinning the storage returns a void pointer that must
- * be manually manipulated to get a single state pointer. The max_depth
+ * be manually manipulated to get a single state pointer. The depth
  * argument must be the same as the given to VecgeomGeoParams.
  */
 template<>
@@ -151,7 +151,7 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
         = default;
 
     // Get the navigation state for the given track slot
-    inline CELER_FUNCTION NavState& at(int max_depth, TrackSlotId tid) const;
+    inline CELER_FUNCTION NavState& at(int depth, TrackSlotId tid) const;
 
     //! True if the collection is assigned/valid
     explicit CELER_FUNCTION operator bool() const
@@ -164,16 +164,16 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
 /*!
  * Get the navigation state at the given track slot.
  *
- * The max_depth_param is used for error checking against the allocated
- * max_depth.
+ * The depth_param is used for error checking against the allocated
+ * depth.
  */
 CELER_FUNCTION auto
 VecgeomNavCollection<Ownership::reference, MemSpace::device>::at(
-    int max_depth_param, TrackSlotId tid) const -> NavState&
+    int depth_param, TrackSlotId tid) const -> NavState&
 {
     CELER_EXPECT(this->pool_view.IsValid());
     CELER_EXPECT(tid < this->pool_view.Capacity());
-    CELER_EXPECT(max_depth_param == this->pool_view.Depth());
+    CELER_EXPECT(depth_param == this->pool_view.Depth());
 
     return *const_cast<NavState*>((this->pool_view)[tid.get()]);
 }

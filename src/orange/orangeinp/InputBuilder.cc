@@ -33,7 +33,7 @@ void write_objects(detail::ProtoMap const& map, std::string const& filename)
 {
     ScopedProfiling profile_this{"orangeinp-dump-objects"};
     auto result = nlohmann::json(std::vector<std::nullptr_t>(map.size()));
-    for (auto univ_id : range(UniverseId{map.size()}))
+    for (auto univ_id : range(UnivId{map.size()}))
     {
         JsonPimpl j;
         map.at(univ_id)->output(&j);
@@ -57,14 +57,14 @@ class JsonCsgOutput
     JsonCsgOutput() = default;
 
     //! Construct with the number of universes
-    explicit JsonCsgOutput(UniverseId::size_type size)
+    explicit JsonCsgOutput(UnivId::size_type size)
     {
         CELER_EXPECT(size > 0);
         output_ = nlohmann::json(std::vector<std::nullptr_t>(size));
     }
 
     //! Save JSON
-    void operator()(UniverseId univ_id, JsonPimpl&& jpo)
+    void operator()(UnivId univ_id, JsonPimpl&& jpo)
     {
         CELER_EXPECT(univ_id < output_.size());
         output_[univ_id.unchecked_get()] = std::move(jpo.obj);
@@ -115,7 +115,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 
     // Construct the hierarchy of protos
     detail::ProtoMap const protos{global};
-    CELER_ASSERT(protos.find(&global) == orange_global_universe);
+    CELER_ASSERT(protos.find(&global) == orange_global_univ);
     if (!opts_.objects_output_file.empty())
     {
         write_objects(protos, opts_.objects_output_file);
@@ -134,7 +134,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         }
         return pbopts;
     }());
-    for (auto univ_id : range(UniverseId{protos.size()}))
+    for (auto univ_id : range(UnivId{protos.size()}))
     {
         trace_counter("orange-build-universe", univ_id.get());
         protos.at(univ_id)->build(builder);

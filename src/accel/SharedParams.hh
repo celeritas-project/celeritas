@@ -26,6 +26,11 @@ namespace detail
 class OffloadWriter;
 }  // namespace detail
 
+namespace optical
+{
+class Transporter;
+}  // namespace optical
+
 class CoreParams;
 class CoreStateInterface;
 class GeantGeoParams;
@@ -134,7 +139,8 @@ class SharedParams
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPTimeOutput = std::shared_ptr<TimeOutput>;
     using SPState = std::shared_ptr<CoreStateInterface>;
-    using SPOptical = std::shared_ptr<OpticalCollector>;
+    using SPOpticalCollector = std::shared_ptr<OpticalCollector>;
+    using SPOpticalTransporter = std::shared_ptr<optical::Transporter>;
     using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
     using BBox = BoundingBox<double>;
 
@@ -142,7 +148,10 @@ class SharedParams
     Mode mode() const { return mode_; }
 
     // Optical properties (only if using optical physics)
-    inline SPOptical const& optical() const;
+    inline SPOpticalCollector const& optical_collector() const;
+
+    // Optical params (only if using optical physics)
+    inline SPOpticalTransporter const& optical_transporter() const;
 
     // Hit manager, to be used only by LocalTransporter
     inline SPGeantSd const& hit_manager() const;
@@ -173,7 +182,8 @@ class SharedParams
     Mode mode_{Mode::uninitialized};
     SPConstGeantGeoParams geant_geo_;
     std::shared_ptr<CoreParams> params_;
-    std::shared_ptr<OpticalCollector> optical_;
+    SPOpticalCollector optical_collector_;
+    SPOpticalTransporter optical_transporter_;
     std::shared_ptr<GeantSd> geant_sd_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4PD offload_particles_;
@@ -237,12 +247,22 @@ auto SharedParams::OffloadParticles() const -> VecG4PD const&
 
 //---------------------------------------------------------------------------//
 /*!
- * Optical data: null if Celeritas optical physics is disabled.
+ * Optical transporter: null if Celeritas optical physics is disabled.
  */
-auto SharedParams::optical() const -> SPOptical const&
+auto SharedParams::optical_transporter() const -> SPOpticalTransporter const&
 {
     CELER_EXPECT(*this);
-    return optical_;
+    return optical_transporter_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Optical data: null if Celeritas optical physics is disabled.
+ */
+auto SharedParams::optical_collector() const -> SPOpticalCollector const&
+{
+    CELER_EXPECT(*this);
+    return optical_collector_;
 }
 
 //---------------------------------------------------------------------------//

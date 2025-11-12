@@ -1,4 +1,10 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
+#-----------------------------------------------------------------------------#
+
 name: build-fast
 on:
   workflow_dispatch:

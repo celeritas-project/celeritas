@@ -45,7 +45,7 @@ ProtoBuilder::ProtoBuilder(OrangeInput* inp,
  * "holed" (placed) in different volumes with different bounds, so long as the
  * enclosures are within the extents of the child universe.
  */
-void ProtoBuilder::expand_bbox(UniverseId univ_id, BBox const& local_bbox)
+void ProtoBuilder::expand_bbox(UnivId univ_id, BBox const& local_bbox)
 {
     CELER_EXPECT(univ_id < bboxes_.size());
     BBox& target = bboxes_[univ_id.get()];
@@ -61,7 +61,7 @@ void ProtoBuilder::save_json(JsonPimpl&& jp) const
     CELER_EXPECT(this->save_json());
     CELER_EXPECT(inp_->universes.size() < protos_.size());
 
-    save_json_(UniverseId(inp_->universes.size()), std::move(jp));
+    save_json_(UnivId(inp_->universes.size()), std::move(jp));
 }
 
 //---------------------------------------------------------------------------//

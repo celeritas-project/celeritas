@@ -9,14 +9,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
-#include "CoreParams.hh"
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "PhysicsParams.hh"
@@ -27,7 +23,6 @@
 #include "gen/ScintillationParams.hh"
 
 #include "detail/OpticalLaunchAction.hh"
-#include "detail/OpticalSizes.json.hh"
 
 namespace celeritas
 {
@@ -53,64 +48,34 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     // Create core action to gather pre-step data for populating distributions
     gather_ = OffloadGatherAction::make_and_insert(core);
 
-    if (inp.cherenkov)
-    {
-        // Create optical action to generate Cherenkov primaries
-        optical::GeneratorAction<GT::cherenkov>::Input ga_inp;
-        ga_inp.material = inp.optical_params->material();
-        ga_inp.shared = inp.cherenkov;
-        ga_inp.capacity = inp.buffer_capacity;
-        cherenkov_generate_
-            = optical::GeneratorAction<GT::cherenkov>::make_and_insert(
-                core, *inp.optical_params, std::move(ga_inp));
+    // Create optical action to generate Cherenkov or scintillation photons
+    generate_ = optical::GeneratorAction::make_and_insert(
+        core, *inp.optical_params, inp.buffer_capacity);
 
+    if (inp.optical_params->cherenkov())
+    {
         // Create core action to generate Cherenkov optical distributions
         OffloadAction<GT::cherenkov>::Input oa_inp;
         oa_inp.step_id = gather_->aux_id();
-        oa_inp.gen_id = cherenkov_generate_->aux_id();
+        oa_inp.gen_id = generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();
-        oa_inp.shared = inp.cherenkov;
+        oa_inp.shared = inp.optical_params->cherenkov();
         cherenkov_offload_ = OffloadAction<GT::cherenkov>::make_and_insert(
             core, std::move(oa_inp));
     }
-    if (inp.scintillation)
+    if (inp.optical_params->scintillation())
     {
-        // Create action to generate scintillation primaries
-        optical::GeneratorAction<GT::scintillation>::Input ga_inp;
-        ga_inp.material = inp.optical_params->material();
-        ga_inp.shared = inp.scintillation;
-        ga_inp.capacity = inp.buffer_capacity;
-        scint_generate_
-            = optical::GeneratorAction<GT::scintillation>::make_and_insert(
-                core, *inp.optical_params, std::move(ga_inp));
-
         // Create action to generate scintillation optical distributions
         OffloadAction<GT::scintillation>::Input oa_inp;
         oa_inp.step_id = gather_->aux_id();
-        oa_inp.gen_id = scint_generate_->aux_id();
+        oa_inp.gen_id = generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();
-        oa_inp.shared = inp.scintillation;
+        oa_inp.shared = inp.optical_params->scintillation();
         scint_offload_ = OffloadAction<GT::scintillation>::make_and_insert(
             core, std::move(oa_inp));
     }
-
-    // Save optical diagnostic information
-    core.output_reg()->insert(std::make_shared<ActionRegistryOutput>(
-        inp.optical_params->action_reg(), "optical-actions"));
-
-    // Add optical sizes
-    detail::OpticalSizes sizes;
-    sizes.streams = core.max_streams();
-    sizes.generators = sizes.streams * inp.buffer_capacity;
-    sizes.tracks = sizes.streams * inp.num_track_slots;
-
-    core.output_reg()->insert(
-        OutputInterfaceAdapter<detail::OpticalSizes>::from_rvalue_ref(
-            OutputInterface::Category::internal,
-            "optical-sizes",
-            std::move(sizes)));
 
     // Save core params
     optical_params_ = std::move(inp.optical_params);
@@ -129,28 +94,6 @@ OpticalCollector::optical_state(CoreStateInterface const& core) const
     auto& state = dynamic_cast<optical::CoreStateBase const&>(
         core.aux().at(launch_->aux_id()));
     return state;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access Cherenkov params (may be null).
- */
-auto OpticalCollector::cherenkov() const -> SPConstCherenkov
-{
-    if (!cherenkov_offload_)
-        return nullptr;
-    return cherenkov_offload_->params();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access scintillation params (may be null).
- */
-auto OpticalCollector::scintillation() const -> SPConstScintillation
-{
-    if (!scint_offload_)
-        return nullptr;
-    return scint_offload_->params();
 }
 
 //---------------------------------------------------------------------------//

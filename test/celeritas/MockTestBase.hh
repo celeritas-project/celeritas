@@ -11,7 +11,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/Physics.hh"  // IWYU pragma: keep
 
 #include "GlobalTestBase.hh"
 #include "OnlyCoreTestBase.hh"
@@ -85,7 +85,7 @@ class MockTestBase : virtual public GlobalTestBase, public OnlyCoreTestBase
     //// DATA ////
 
     mutable std::vector<ModelId> interactions_;
-    ActionId::size_type model_to_action_{0};
+    ActionId first_model_action_{0};
 };
 
 //---------------------------------------------------------------------------//

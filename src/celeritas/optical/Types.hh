@@ -38,6 +38,7 @@ enum class GeneratorType
 {
     cherenkov,
     scintillation,
+    size_
 };
 
 namespace optical
@@ -67,6 +68,14 @@ enum class ReflectionMode
     backscatter,
     diffuse_lobe,
     size_ = diffuse_lobe,
+};
+
+//! Trivial interaction modes
+enum class TrivialInteractionMode
+{
+    absorb,  //!< absorb on surface
+    transmit,  //!< transmit with no change
+    backscatter,  //!< back scatter
 };
 
 //---------------------------------------------------------------------------//
