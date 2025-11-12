@@ -41,9 +41,9 @@ log() {
 
 # Get the hostname, trying to account for being on a compute node or cluster
 fancy_hostname() {
-  sys=${LMOD_SYSTEM_NAME}
+  sys=$LMOD_SYSTEM_NAME
   if [ -z "$sys" ]; then
-    sys=${HOSTNAME}
+    sys=$(uname -n)
     # Trim login/compute from head of string
     case "$sys" in
       login[0-9]*.*|compute[0-9]*.*) sys=${sys#*.} ;;
