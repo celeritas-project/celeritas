@@ -19,11 +19,6 @@
 
 set -e
 
-die() {
-  log error "$1"
-  exit 1
-}
-
 # Print a colorful message to stderr
 log() {
   level=$1
@@ -79,7 +74,7 @@ ln_presets() {
   if [ ! -f "$src" ]; then
     log info "Creating user presets at $src . Please update this file for future configurations."
     cp "scripts/cmake-presets/_dev_.json" "$src"
-    git add "$src" || die "Could not stage presets"
+    git add "$src" || log error "Could not stage presets"
   fi
   log info "Linking presets to $dst"
   ln -s "$src" "$dst"
@@ -141,7 +136,7 @@ cd "$(dirname "$0")"/..
 SYSTEM_NAME=$(fancy_hostname)
 if [ -z "$SYSTEM_NAME" ]; then
   log warning "Could not determine SYSTEM_NAME from LMOD_SYSTEM_NAME or HOSTNAME"
-  log error "Empty SYSTEM_NAME"
+  log error "Empty SYSTEM_NAME, needed to load environment and presets"
   exit 1
 fi
 
