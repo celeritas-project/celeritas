@@ -379,10 +379,17 @@ auto build_optical_offload(
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
     oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
-    if (p.control.device_debug)
-    {
-        oc_inp.action_times = p.control.device_debug->sync_stream;
-    }
+    oc_inp.action_times = [&p] {
+        if (!celeritas::device())
+        {
+            return true;
+        }
+        if (p.control.device_debug)
+        {
+            return p.control.device_debug->sync_stream;
+        }
+        return false;
+    }();
 
     CELER_ENSURE(oc_inp);
 
@@ -695,16 +702,15 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                     optical::Transporter::Input inp;
                     inp.params = optical_params;
                     inp.max_step_iters = p.tracking.limits.optical_step_iters;
-                    if (p.control.device_debug
-                        && p.control.device_debug->sync_stream)
+                    if (!celeritas::device()
+                        || (p.control.device_debug
+                            && p.control.device_debug->sync_stream))
                     {
                         // Create aux data to accumulate optical action times
-                        AuxParamsRegistry& aux = *core_params->aux_reg();
-                        inp.action_times = std::make_shared<ActionTimes>(
-                            aux.next_id(),
+                        inp.action_times = ActionTimes::make_and_insert(
                             optical_params->action_reg(),
+                            core_params->aux_reg(),
                             "optical-action-times");
-                        aux.insert(inp.action_times);
                     }
                     result.optical_transporter
                         = std::make_shared<optical::Transporter>(

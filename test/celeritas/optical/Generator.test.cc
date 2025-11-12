@@ -74,15 +74,13 @@ class LArSphereGeneratorTest : public LArSphereBase
     //! Construct the optical transporter
     void build_transporter()
     {
-        // Create aux data for accumulating action times
-        auto& aux = *this->core()->aux_reg();
-        auto action_times = std::make_shared<ActionTimes>(
-            aux.next_id(), this->optical_params()->action_reg());
-        aux.insert(action_times);
-
+        // Create transporter with aux data for accumulating action times
         optical::Transporter::Input inp;
         inp.params = this->optical_params();
-        inp.action_times = std::move(action_times);
+        inp.action_times = ActionTimes::make_and_insert(
+            this->optical_params()->action_reg(),
+            this->core()->aux_reg(),
+            "optical-action-times");
         transport_ = std::make_shared<optical::Transporter>(std::move(inp));
     }
 

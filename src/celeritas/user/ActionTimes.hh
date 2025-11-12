@@ -17,6 +17,7 @@ namespace celeritas
 {
 class ActionRegistry;
 struct ActionTimesState;
+class AuxParamsRegistry;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -34,14 +35,18 @@ class ActionTimes : public AuxParamsInterface
     //!@{
     //! \name Type aliases
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPAuxParamsRegistry = std::shared_ptr<AuxParamsRegistry>;
     using MapStrDbl = std::unordered_map<std::string, double>;
     //!@}
 
   public:
-    // Construct from aux ID and action registry
-    ActionTimes(AuxId, SPActionRegistry const&);
+    // Construct and add to the aux registry
+    static std::shared_ptr<ActionTimes>
+    make_and_insert(SPActionRegistry const&,
+                    SPAuxParamsRegistry const&,
+                    std::string label);
 
-    // Construct with label
+    // Construct from ID, actions and label
     ActionTimes(AuxId, SPActionRegistry const&, std::string label);
 
     //!@{

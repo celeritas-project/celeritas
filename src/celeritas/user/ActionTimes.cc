@@ -6,22 +6,29 @@
 //---------------------------------------------------------------------------//
 #include "ActionTimes.hh"
 
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from ID and actions.
+ * Construct and add to the aux registry.
  */
-ActionTimes::ActionTimes(AuxId aux_id, SPActionRegistry const& action_reg)
-    : ActionTimes(aux_id, action_reg, "action-times")
+std::shared_ptr<ActionTimes>
+ActionTimes::make_and_insert(SPActionRegistry const& actions,
+                             SPAuxParamsRegistry const& aux,
+                             std::string label)
 {
+    auto result = std::make_shared<ActionTimes>(
+        aux->next_id(), actions, std::move(label));
+    aux->insert(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with label.
+ * Construct from ID, actions and label.
  */
 ActionTimes::ActionTimes(AuxId aux_id,
                          SPActionRegistry const& action_reg,
