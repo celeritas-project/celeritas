@@ -459,6 +459,8 @@ function(cuda_rdc_add_library target)
     CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
     EXPORT_PROPERTIES "CUDA_RUNTIME_LIBRARY;CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
   )
+  # Ensure middle library and its dependents see the `-lcudart` library path
+  target_link_libraries(${target} PUBLIC CUDA::toolkit)
 
   ## STATIC ##
 
