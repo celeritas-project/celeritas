@@ -170,7 +170,7 @@
  *
  * DeviceSelect::FlaggedIf is unavailable in earlier versions of CUB and
  * doesn't work with hipCUB versions 3.4.0 through 4.1.0 when using celeritas
- * OpaqueID data types, so use a transform and DeviceSelect::Flagged instead.
+ * OpaqueId data types, so use a transform and DeviceSelect::Flagged instead.
  *
  * \note These are unneeded and undefined if this isn't a HIP or CUDA source
  * file. This check is necessary because the version header file needs to be
