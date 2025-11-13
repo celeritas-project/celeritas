@@ -19,6 +19,7 @@ jobs:
     - uses: actions/checkout@v5
     - name: Build and test dd4hep integration
       run: |
+        source /etc/profile 
         eic-info
         cmake -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
         cmake --build build -j 8
