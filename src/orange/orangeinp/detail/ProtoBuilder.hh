@@ -52,8 +52,6 @@ class ProtoBuilder
     {
         //! Manually specify a tracking/construction tolerance
         Tolerance<> tol;
-        //! Logic expression notation
-        LogicNotation logic_notation;
         //! Save metadata during construction for each universe
         SaveUnivJson save_json;
     };

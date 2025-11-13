@@ -95,38 +95,6 @@ class JsonCsgOutput
 };
 
 //---------------------------------------------------------------------------//
-void convert_logic_to_selected_notation(OrangeInput* input)
-{
-    CELER_EXPECT(input);
-    if (input->logic_notation == LogicNotation::postfix)
-    {
-        return;
-    }
-
-    CELER_EXPECT(input->logic_notation == LogicNotation::infix);
-
-    auto convert_unit = [](UnitInput& unit) {
-        for (auto& vol : unit.volumes)
-        {
-            if (vol.logic.empty())
-            {
-                continue;
-            }
-            vol.logic
-                = ::celeritas::detail::convert_to_infix(make_span(vol.logic));
-        }
-    };
-
-    for (auto& univ : input->universes)
-    {
-        if (auto* unit = std::get_if<UnitInput>(&univ))
-        {
-            convert_unit(*unit);
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -159,11 +127,11 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 
     // Build surfaces and metadata
     OrangeInput result;
+    result.logic_notation = opts_.logic_notation;
     JsonCsgOutput csg_outp;
     detail::ProtoBuilder builder(&result, protos, [&] {
         detail::ProtoBuilder::Options pbopts;
         pbopts.tol = opts_.tol;
-        pbopts.logic_notation = opts_.logic_notation;
         if (!opts_.csg_output_file.empty())
         {
             csg_outp = JsonCsgOutput{protos.size()};
@@ -181,8 +149,6 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     {
         csg_outp.write(opts_.csg_output_file);
     }
-
-    convert_logic_to_selected_notation(&result);
 
     CELER_ENSURE(result);
     return result;

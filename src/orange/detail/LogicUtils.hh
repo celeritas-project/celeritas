@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Join.hh"
+#include "orange/OrangeInput.hh"
 
 #include "../OrangeTypes.hh"
 
@@ -57,6 +58,13 @@ std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix);
  * Build a logic definition from a C string.
  */
 std::vector<logic_int> string_to_logic(std::string const& s);
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert logic expressions in an OrangeInput to the selected notation.
+ * Assumes that the input was build with postfix notation.
+ */
+void convert_logic_to_selected_notation(OrangeInput& input);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

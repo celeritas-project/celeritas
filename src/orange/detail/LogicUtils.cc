@@ -218,5 +218,37 @@ std::vector<logic_int> string_to_logic(std::string const& s)
 }
 
 //---------------------------------------------------------------------------//
+void convert_logic_to_selected_notation(OrangeInput& input)
+{
+    CELER_EXPECT(input);
+    if (input.logic_notation == LogicNotation::postfix)
+    {
+        return;
+    }
+
+    CELER_EXPECT(input.logic_notation == LogicNotation::infix);
+
+    auto convert_unit = [](UnitInput& unit) {
+        for (auto& vol : unit.volumes)
+        {
+            if (vol.logic.empty())
+            {
+                continue;
+            }
+            vol.logic
+                = ::celeritas::detail::convert_to_infix(make_span(vol.logic));
+        }
+    };
+
+    for (auto& univ : input.universes)
+    {
+        if (auto* unit = std::get_if<UnitInput>(&univ))
+        {
+            convert_unit(*unit);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
