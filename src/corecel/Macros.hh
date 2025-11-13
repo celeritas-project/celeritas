@@ -154,6 +154,60 @@
 #endif
 
 /*!
+ * \def CELER_USE_THRUST
+ * \def CELER_CUB_HAS_TRANSFORM
+ * \def CELER_CUB_HAS_FLAGGEDIF
+ * \def CELER_HIPCUB_HAS_TRANSFORM
+ *
+ * Determine if CUB or hipCUB is available, anf if so, check the version.
+ *
+ * CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
+ * default, so test for the availability of hipCUB and use thrust instead if
+ * it's unavailable.
+ *
+ * DeviceTransform is unavailable in earlier versions of CUB/hipCUB, so the
+ * code uses thrust::transform in that case.
+ *
+ * DeviceSelect::FlaggedIf is unavailable in earlier versions of CUB and
+ * doesn't work with hipCUB versions 3.4.0 through 4.1.0 when using celeritas
+ * OpaqueID data types, so use a transform and DeviceSelect::Flagged instead.
+ *
+ * \note These are unneeded and undefined if this isn't a HIP or CUDA source
+ * file. This check is necessary because the version header file needs to be
+ * included.
+ */
+#if CELER_DEVICE_SOURCE
+#    if CELERITAS_USE_CUDA
+#        include <cub/version.cuh>
+#    elif CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
+#        include <hipcub/hipcub_version.hpp>
+#    endif
+#    if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
+#        define CELER_USE_THRUST 1
+#    endif
+#    if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
+#        define CELER_CUB_HAS_TRANSFORM 1
+#        define CELER_CUB_HAS_FLAGGEDIF 1
+#    elif CELERITAS_USE_CUDA && CUB_VERSION >= 200500
+#        define CELER_CUB_HAS_FLAGGEDIF 1
+#    elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
+#        define CELER_HIPCUB_HAS_TRANSFORM 1
+#    endif
+#endif
+
+/*!
+ * \def CELER_DEVICE_SOURCE
+ *
+ * Defined and true if building a HIP or CUDA source file. This is a generic
+ * replacement for \c __CUDACC__ .
+ */
+#if defined(__CUDACC__) || defined(__HIP__)
+#    define CELER_DEVICE_SOURCE 1
+#elif defined(__DOXYGEN__)
+#    define CELER_DEVICE_SOURCE 0
+#endif
+
+/*!
  * \def CELER_DEVICE_COMPILE
  *
  * Defined and true if building device code in HIP or CUDA. This is a generic

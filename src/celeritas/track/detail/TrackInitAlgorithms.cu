@@ -6,48 +6,33 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
-// CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
-// default, so test for the availability of hipCUB and use thrust instead if
-// it's unavailable. And some further checks for newer CUB/hipCUB functions.
-#if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
-#    define CELERITAS_USE_THRUST 1
-#endif
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_partition.cuh>
 #    include <cub/device/device_scan.cuh>
 #    include <cub/device/device_select.cuh>
-#    include <cub/version.cuh>
-#elif CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
+#    include <thrust/iterator/counting_iterator.h>
+#elif CELERITAS_HAVE_HIPCUB
 #    include <hipcub/device/device_partition.hpp>
 #    include <hipcub/device/device_scan.hpp>
 #    include <hipcub/device/device_select.hpp>
-#    include <hipcub/hipcub_version.hpp>
-#endif
-// DeviceTransform is unavailable in older versions of CUB/hipCUB, so fall back
-// to using thrust::transform instead
-#if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
-#    define CELERITAS_CUB_HAS_TRANSFORM 1
-#elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
-#    define CELERITAS_HIPCUB_HAS_TRANSFORM 1
-#endif
-#if CELERITAS_CUB_HAS_TRANSFORM
-#    include <cub/device/device_transform.cuh>
-#elif CELERITAS_HIPCUB_HAS_TRANSFORM
-#    include <hipcub/device/device_transform.hpp>
+#    include <thrust/iterator/counting_iterator.h>
 #else
 #    include <thrust/execution_policy.h>
-#    include <thrust/transform.h>
-#endif
-#include <thrust/device_ptr.h>
-#if CELERITAS_USE_THRUST
 #    include <thrust/partition.h>
 #    include <thrust/remove.h>
 #    include <thrust/scan.h>
 
 #    include "corecel/math/Algorithms.hh"  // For LogicalNot()
-#else
-#    include <thrust/iterator/counting_iterator.h>
 #endif
+#if CELER_CUB_HAS_TRANSFORM
+#    include <cub/device/device_transform.cuh>
+#elif CELER_HIPCUB_HAS_TRANSFORM
+#    include <hipcub/device/device_transform.hpp>
+#elif !CELER_USE_THRUST
+#    include <thrust/execution_policy.h>
+#    include <thrust/transform.h>
+#endif
+#include <thrust/device_ptr.h>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/DeviceVector.hh"
@@ -67,6 +52,7 @@ namespace celeritas
 {
 namespace detail
 {
+#if !CELER_USE_THRUST
 //---------------------------------------------------------------------------//
 /*!
  * Whether the track slot is being used
@@ -78,6 +64,7 @@ struct NotNull
         return static_cast<bool>(a);
     }
 };
+#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -90,7 +77,7 @@ size_type remove_if_alive(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"remove-if-alive"};
-#if CELERITAS_USE_THRUST
+#if CELER_USE_THRUST
     auto start = device_pointer_cast(vacancies.data());
     auto end = thrust::remove_if(thrust_execute_on(stream_id),
                                  start,
@@ -101,7 +88,7 @@ size_type remove_if_alive(
     // New size of the vacancy vector
     return end - start;
 #else
-    // CUB functions expect a cudaStream_t pointer for the stream
+    // CUDA/HIP functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
 
@@ -131,10 +118,12 @@ size_type remove_if_alive(
                                            NotNull{},
                                            stream);
     CELER_DISCARD(cub_error_code);
-    auto num = ItemCopier<size_type>{stream_id}(num_not_active.data());
-
     CELER_DEVICE_API_CALL(PeekAtLastError());
-    return num;
+
+    auto result = ItemCopier<size_type>{stream_id}(num_not_active.data());
+
+    CELER_DEVICE_API_CALL(StreamSynchronize(stream));
+    return result;
 #endif
 }
 
@@ -154,7 +143,7 @@ size_type exclusive_scan_counts(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"exclusive-scan-counts"};
-#if CELERITAS_USE_THRUST
+#if CELER_USE_THRUST
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
     auto stop = thrust::exclusive_scan(thrust_execute_on(stream_id),
@@ -165,9 +154,15 @@ size_type exclusive_scan_counts(
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Copy the last element (accumulated total) back to host
-    return ItemCopier<size_type>{stream_id}(stop.get() - 1);
+    auto result = ItemCopier<size_type>{stream_id}(stop.get() - 1);
+
+    // CUDA/HIP functions expect a cudaStream_t pointer for the stream
+    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
+    StreamT stream = device().stream(stream_id).get();
+    CELER_DEVICE_API_CALL(StreamSynchronize(stream));
+    return result;
 #else
-    // CUB functions expect a cudaStream_t pointer for the stream
+    // CUDA/HIP functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
 
@@ -188,7 +183,13 @@ size_type exclusive_scan_counts(
     // counters.num_secondaries = "last value in the counts object;
     CELER_DISCARD(cub_error_code);
     CELER_DEVICE_API_CALL(PeekAtLastError());
-    return ItemCopier<size_type>{stream_id}(data.get() + counts.size() - 1);
+
+    // Copy the last element (accumulated total) back to host
+    auto result
+        = ItemCopier<size_type>{stream_id}(data.get() + counts.size() - 1);
+
+    CELER_DEVICE_API_CALL(StreamSynchronize(stream));
+    return result;
 #endif
 }
 
@@ -209,7 +210,7 @@ void partition_initializers(
     CELER_EXPECT(count != 0);
 
     ScopedProfiling profile_this{"partition-initializers"};
-#if CELERITAS_USE_THRUST
+#if CELER_USE_THRUST
     // Partition the indices based on the track initializer charge
     auto start = device_pointer_cast(init.indices.data());
     auto end = start + count;
@@ -222,7 +223,7 @@ void partition_initializers(
         IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
     CELER_DEVICE_API_CALL(PeekAtLastError());
 #else
-    // CUB functions expect a cudaStream_t pointer for the stream
+    // CUDA/HIP functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
 
@@ -238,7 +239,7 @@ void partition_initializers(
     auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
                    + counters.num_initializers - count;
     DeviceVector<unsigned char> flags{count, stream_id};
-#    if CELERITAS_CUB_HAS_TRANSFORM || CELERITAS_HIPCUB_HAS_TRANSFORM
+#    if CELER_CUB_HAS_TRANSFORM || CELER_HIPCUB_HAS_TRANSFORM
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     {
         auto cub_error_code = cub::DeviceTransform::Transform(

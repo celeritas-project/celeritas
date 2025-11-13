@@ -6,46 +6,25 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
-// CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
-// default, so test for the availability of hipCUB and use thrust instead if
-// it's unavailable. And some further checks for newer CUB/hipCUB functions.
-#if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
-#    define CELERITAS_USE_THRUST 1
-#endif
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_select.cuh>
-#    include <cub/version.cuh>
-#elif CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
+#elif CELERITAS_HAVE_HIPCUB
 #    include <hipcub/device/device_select.hpp>
-#    include <hipcub/hipcub_version.hpp>
-#endif
-// DeviceTransform is unavailable in older versions of CUB/hipCUB, so fall back
-// to using thrust::transform instead
-// DeviceSelect::FlaggedIf is unavailable in older versions of CUB and doesn't
-// work with hipCUB versions 4.10 or older with the celeritas data types, so
-// fall back to using DeviceSelect::Flagged instead
-#if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
-#    define CELERITAS_CUB_HAS_TRANSFORM 1
-#    define CELERITAS_CUB_HAS_FLAGGEDIF 1
-#elif CELERITAS_USE_CUDA && CUB_VERSION >= 200500
-#    define CELERITAS_CUB_HAS_FLAGGEDIF 1
-#elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
-#    define CELERITAS_HIPCUB_HAS_TRANSFORM 1
-#endif
-#if CELERITAS_CUB_HAS_TRANSFORM
-#    include <cub/device/device_transform.cuh>
-#elif CELERITAS_HIPCUB_HAS_TRANSFORM
-#    include <hipcub/device/device_transform.hpp>
 #else
+#    include <thrust/copy.h>
+#    include <thrust/execution_policy.h>
+#endif
+#if CELER_CUB_HAS_TRANSFORM
+#    include <cub/device/device_transform.cuh>
+#elif CELER_HIPCUB_HAS_TRANSFORM
+#    include <hipcub/device/device_transform.hpp>
+#elif !CELER_USE_THRUST
 #    include <thrust/execution_policy.h>
 #    include <thrust/transform.h>
 #endif
 #include <thrust/device_ptr.h>
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/transform_iterator.h>
-#if CELERITAS_USE_THRUST
-#    include <thrust/copy.h>
-#endif
 
 #include "corecel/Macros.hh"
 #include "corecel/data/DeviceVector.hh"
@@ -92,7 +71,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     CELER_EXPECT(status.size() == vacancies.size());
 
     ScopedProfiling profile_this{"copy-if-vacant"};
-#ifdef CELERITAS_USE_THRUST
+#ifdef CELER_USE_THRUST
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
     auto result = device_pointer_cast(vacancies.data());
@@ -106,7 +85,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 
     return end - result;
 #else
-    // CUB functions expect a cudaStream_t pointer for the stream
+    // CUDA/HIP functions expect a cudaStream_t pointer for the stream
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
     StreamT stream = device().stream(stream_id).get();
 
@@ -114,7 +93,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
-#    if CELERITAS_CUB_HAS_FLAGGEDIF
+#    if CELER_CUB_HAS_FLAGGEDIF
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
@@ -143,7 +122,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 #    else
     auto data = device_pointer_cast(status.data());
     DeviceVector<unsigned char> flags{status.size(), stream_id};
-#        if CELERITAS_CUB_HAS_TRANSFORM || CELERITAS_HIPCUB_HAS_TRANSFORM
+#        if CELER_CUB_HAS_TRANSFORM || CELER_HIPCUB_HAS_TRANSFORM
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     {
         auto cub_error_code = cub::DeviceTransform::Transform(
@@ -182,10 +161,12 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                 stream);
     CELER_DISCARD(cub_error_code);
 #    endif
-    auto num = ItemCopier<size_type>{stream_id}(num_vacancies.data());
     CELER_DEVICE_API_CALL(PeekAtLastError());
-    // Number of vacancies
-    return num;
+
+    auto result = ItemCopier<size_type>{stream_id}(num_vacancies.data());
+
+    CELER_DEVICE_API_CALL(StreamSynchronize(stream));
+    return result;
 #endif
 }
 
