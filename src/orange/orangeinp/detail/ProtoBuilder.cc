@@ -73,7 +73,11 @@ void ProtoBuilder::save_json(JsonPimpl&& jp) const
 void ProtoBuilder::insert(VariantUniverseInput&& unit)
 {
     inp_->universes[current_uid_.get()] = std::move(unit);
-    --current_uid_;
+
+    if (!this->is_global_universe())
+    {
+        --current_uid_;
+    }
 }
 
 //---------------------------------------------------------------------------//
