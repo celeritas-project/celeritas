@@ -196,18 +196,6 @@
 #endif
 
 /*!
- * \def CELER_DEVICE_SOURCE
- *
- * Defined and true if building a HIP or CUDA source file. This is a generic
- * replacement for \c __CUDACC__ .
- */
-#if defined(__CUDACC__) || defined(__HIP__)
-#    define CELER_DEVICE_SOURCE 1
-#elif defined(__DOXYGEN__)
-#    define CELER_DEVICE_SOURCE 0
-#endif
-
-/*!
  * \def CELER_DEVICE_COMPILE
  *
  * Defined and true if building device code in HIP or CUDA. This is a generic
