@@ -7,6 +7,9 @@
 export SPACK_ROOT=/auto/projects/celeritas/spack
 export CXX=/usr/bin/c++
 
+# Reduce I/O metadata overhead by avoiding language translation lookups
+export LC_ALL=C
+
 if ! command -v spack >/dev/null 2>&1; then
   . $SPACK_ROOT/share/spack/setup-env.sh
 fi
