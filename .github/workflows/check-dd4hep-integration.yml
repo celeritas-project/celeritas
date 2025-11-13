@@ -19,7 +19,7 @@ jobs:
     - uses: cvmfs-contrib/github-action-cvmfs@v5
     - uses: eic/run-cvmfs-osg-eic-shell@main
       with:
-        platform-release: "eic_xl:nightly"
+        platform-release: "eic_ci:nightly"
         network_types: "none"
         run: |
           eic-info
