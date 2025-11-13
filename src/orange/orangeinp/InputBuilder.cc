@@ -134,6 +134,8 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         }
         return pbopts;
     }());
+
+    // Build protos in reverse order, i.e., starting with child protos
     for (auto i : range<int>(protos.size()).step(-1))
     {
         UnivId univ_id{static_cast<size_type>(i)};

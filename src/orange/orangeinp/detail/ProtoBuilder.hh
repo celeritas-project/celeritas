@@ -24,15 +24,11 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Manage data about the universe construction.
+ * Manage data and state during the universe construction.
  *
- * This is passed to \c ProtoInterface::build. It acts like a two-way map
- * between universe IDs and pointers to Proto interfaces. It \em must not
- * exceed the lifetime of any of the protos.
- *
- * The bounding box for a universe starts as "null" and is expanded by the
- * universes that use it: this allows, for example, different masked components
- * of an array to be used in multiple universes.
+ * This is a helper class passed to UnitProto::build which manages data for the
+ * UnitProto -> OrangeInput build process. It also maintains the universe ID
+ * of the current universe being constructed.
  */
 class ProtoBuilder
 {
@@ -83,7 +79,7 @@ class ProtoBuilder
     // The the UniverseId of the universe currently being built
     UnivId current_uid() const { return current_uid_; }
 
-    // Whether or not the current universe is the gloable universe
+    // Whether or not the current universe is the global universe
     bool is_global_universe() const
     {
         return current_uid_ == orange_global_univ;
