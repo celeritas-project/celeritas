@@ -197,8 +197,6 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     host_data.scalars.num_vol_levels = volumes_ ? volumes_->num_volume_levels()
                                                 : 0;
 
-    CELER_ASSERT(host_data.scalars.logic_notation == orange_tracking_logic);
-
     detail::convert_logic_to_selected_notation(input);
 
     // Insert all universes

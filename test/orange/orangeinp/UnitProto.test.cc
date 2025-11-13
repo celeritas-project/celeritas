@@ -12,11 +12,14 @@
 
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
+#include "orange/OrangeData.hh"
 #include "orange/OrangeInputIO.json.hh"
+#include "orange/OrangeParams.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/LogicUtils.hh"
 #include "orange/orangeinp/CsgObject.hh"
@@ -1032,10 +1035,22 @@ TEST_F(UnitProtoTest, infix_logic)
 
     ASSERT_EQ(postfix_unit.volumes.size(), infix_unit.volumes.size());
 
-    for (size_type i = 0; i != postfix_unit.volumes.size(); ++i)
+    OrangeParams postfix_params(std::move(postfix_input));
+    OrangeParams infix_params(std::move(infix_input));
+
+    auto postfix_params_ref = postfix_params.host_ref();
+    auto infix_params_ref = infix_params.host_ref();
+
+    for (size_type i = 0; i != postfix_params_ref.volume_records.size(); ++i)
     {
-        auto const& postfix_logic = postfix_unit.volumes[i].logic;
-        auto const& infix_logic = infix_unit.volumes[i].logic;
+        auto const& postfix_volume
+            = postfix_params_ref.volume_records[ItemId<VolumeRecord>{i}];
+        auto const& infix_volume
+            = infix_params_ref.volume_records[ItemId<VolumeRecord>{i}];
+        auto const& postfix_logic
+            = postfix_params_ref.logic_ints[postfix_volume.logic];
+        auto const& infix_logic
+            = infix_params_ref.logic_ints[infix_volume.logic];
         if (postfix_logic.empty())
         {
             EXPECT_TRUE(infix_logic.empty());
@@ -1045,7 +1060,8 @@ TEST_F(UnitProtoTest, infix_logic)
         auto expected
             = ::celeritas::detail::convert_to_infix(make_span(postfix_logic));
         EXPECT_EQ(::celeritas::detail::logic_to_string(expected),
-                  ::celeritas::detail::logic_to_string(infix_logic))
+                  ::celeritas::detail::logic_to_string(
+                      {infix_logic.begin(), infix_logic.end()}))
             << "volume " << i;
     }
 }
