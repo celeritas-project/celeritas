@@ -193,6 +193,11 @@
 #    elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
 #        define CELER_HIPCUB_HAS_TRANSFORM 1
 #    endif
+#elif defined(__DOXYGEN__)
+#    define CELER_USE_THRUST 0
+#    define CELER_CUB_HAS_TRANSFORM 0
+#    define CELER_CUB_HAS_FLAGGEDIF 0
+#    define CELER_HIPCUB_HAS_TRANSFORM 0
 #endif
 
 /*!
