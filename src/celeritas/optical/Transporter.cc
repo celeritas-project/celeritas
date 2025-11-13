@@ -66,7 +66,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
     auto const& counters = state.counters();
 
     // Store a pointer to aux data for timing results
-    ActionTimesState::MapIdDbl* accum_time = nullptr;
+    std::vector<double>* accum_time = nullptr;
     if (data_.action_times)
     {
         accum_time = &data_.action_times->state(*state.aux()).accum_time;
@@ -88,7 +88,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
                 {
                     device().stream(state.stream_id()).sync();
                 }
-                (*accum_time)[action->action_id()] += get_time();
+                (*accum_time)[action->action_id().get()] += get_time();
             }
         }
 

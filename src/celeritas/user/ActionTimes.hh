@@ -8,6 +8,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/data/AuxInterface.hh"
@@ -79,14 +80,12 @@ class ActionTimes : public AuxParamsInterface
 /*!
  * Accumulated action times on each thread.
  *
- * \todo Always report CPU times and add a second map for device runs that uses
- * the CUDA event API to record GPU times.
+ * \todo Always report CPU times and add a second vector for device runs that
+ * uses the CUDA event API to record GPU times.
  */
 struct ActionTimesState : public AuxStateInterface
 {
-    using MapIdDbl = std::unordered_map<ActionId, double>;
-
-    MapIdDbl accum_time;
+    std::vector<double> accum_time;
 };
 
 //---------------------------------------------------------------------------//

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "ActionTimes.hh"
 
+#include "corecel/cont/Range.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/sys/ActionRegistry.hh"
 
@@ -45,7 +46,10 @@ ActionTimes::ActionTimes(AuxId aux_id,
  */
 auto ActionTimes::create_state(MemSpace, StreamId, size_type) const -> UPState
 {
-    return std::make_unique<ActionTimesState>();
+    auto result = std::make_unique<ActionTimesState>();
+    auto reg = action_reg_.lock();
+    result->accum_time.resize(reg->num_actions());
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -73,10 +77,14 @@ ActionTimesState& ActionTimes::state(AuxStateVec& aux) const
 auto ActionTimes::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
 {
     MapStrDbl result;
-    auto sp_action_reg = action_reg_.lock();
-    for (auto&& [id, time] : this->state(aux).accum_time)
+    auto reg = action_reg_.lock();
+    auto const& times = this->state(aux).accum_time;
+    for (auto i : range(times.size()))
     {
-        result[std::string{sp_action_reg->id_to_label(id)}] = time;
+        if (times[i] > 0)
+        {
+            result[std::string{reg->id_to_label(ActionId(i))}] = times[i];
+        }
     }
     return result;
 }
