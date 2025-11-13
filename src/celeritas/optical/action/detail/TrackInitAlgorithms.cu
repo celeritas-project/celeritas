@@ -85,7 +85,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 
     return end - result;
 #else
-    auto stream = device().stream(stream_id);
+    auto& stream = device().stream(stream_id);
     DeviceVector<size_type> num_vacancies{1, stream_id};
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});

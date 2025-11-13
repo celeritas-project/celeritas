@@ -88,7 +88,7 @@ size_type remove_if_alive(
     // New size of the vacancy vector
     return end - start;
 #else
-    auto stream = device().stream(stream_id);
+    auto& stream = device().stream(stream_id);
     DeviceVector<size_type> num_not_active{1, stream_id};
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel.
@@ -139,7 +139,7 @@ size_type exclusive_scan_counts(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"exclusive-scan-counts"};
-    auto stream = device().stream(stream_id);
+    auto& stream = device().stream(stream_id);
 #if CELER_USE_THRUST
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
@@ -216,7 +216,7 @@ void partition_initializers(
         IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
     CELER_DEVICE_API_CALL(PeekAtLastError());
 #else
-    auto stream = device().stream(stream_id);
+    auto& stream = device().stream(stream_id);
     // CUB doesn't have a partition function that allows the user to specify
     // both an iterator for the values to use for selection and a function to
     // operate on that iterator. (This should change in the future.) So,
