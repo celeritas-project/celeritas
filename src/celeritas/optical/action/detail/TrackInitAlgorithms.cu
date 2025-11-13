@@ -85,12 +85,8 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 
     return end - result;
 #else
-    // CUDA/HIP functions expect a cudaStream_t pointer for the stream
-    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
-    StreamT stream = device().stream(stream_id).get();
-
+    auto stream = device().stream(stream_id);
     DeviceVector<size_type> num_vacancies{1, stream_id};
-
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
 #    if CELER_CUB_HAS_FLAGGEDIF
@@ -107,7 +103,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                  num_vacancies.data(),
                                  vacancies.size(),
                                  IsVacant{},
-                                 stream);
+                                 stream.get());
     // Allocate temporary storage
     DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
     cub::DeviceSelect::FlaggedIf(temp_storage.data(),
@@ -118,7 +114,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                  num_vacancies.data(),
                                  vacancies.size(),
                                  IsVacant{},
-                                 stream);
+                                 stream.get());
 #    else
     auto data = device_pointer_cast(status.data());
     DeviceVector<unsigned char> flags{status.size(), stream_id};
@@ -126,7 +122,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     {
         auto cub_error_code = cub::DeviceTransform::Transform(
-            data, flags.data(), status.size(), IsVacant{}, stream);
+            data, flags.data(), status.size(), IsVacant{}, stream.get();
         CELER_DISCARD(cub_error_code);
     }
 #        else
@@ -147,7 +143,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                      results,
                                                      num_vacancies.data(),
                                                      vacancies.size(),
-                                                     stream);
+                                                     stream.get());
     CELER_DISCARD(cub_error_code);
     // Allocate temporary storage
     DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
@@ -158,14 +154,14 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                 results,
                                                 num_vacancies.data(),
                                                 vacancies.size(),
-                                                stream);
+                                                stream.get());
     CELER_DISCARD(cub_error_code);
 #    endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     auto result = ItemCopier<size_type>{stream_id}(num_vacancies.data());
 
-    CELER_DEVICE_API_CALL(StreamSynchronize(stream));
+    stream.sync();
     return result;
 #endif
 }
