@@ -5,10 +5,12 @@
 //! \file celeritas/optical/Generator.test.cc
 //---------------------------------------------------------------------------//
 #include <memory>
+#include <set>
 #include <utility>
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/random/distribution/PoissonDistribution.hh"
 #include "geocel/UnitUtils.hh"
@@ -72,8 +74,13 @@ class LArSphereGeneratorTest : public LArSphereBase
     //! Construct the optical transporter
     void build_transporter()
     {
+        // Create transporter with aux data for accumulating action times
         optical::Transporter::Input inp;
         inp.params = this->optical_params();
+        inp.action_times = ActionTimes::make_and_insert(
+            this->optical_params()->action_reg(),
+            this->core()->aux_reg(),
+            "optical-action-times");
         transport_ = std::make_shared<optical::Transporter>(std::move(inp));
     }
 
@@ -135,8 +142,8 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     auto generate = optical::PrimaryGeneratorAction::make_and_insert(
         *this->core(), *this->optical_params(), std::move(inp));
 
-    this->build_state<MemSpace::host>(4096);
     this->build_transporter();
+    this->build_state<MemSpace::host>(4096);
 
     // Queue primaries for one event
     generate->insert(*state_);
@@ -168,8 +175,8 @@ TEST_F(LArSphereGeneratorTest, generator)
     auto generate = optical::GeneratorAction::make_and_insert(
         *this->core(), *this->optical_params(), capacity);
 
-    this->build_state<MemSpace::host>(4096);
     this->build_transporter();
+    this->build_state<MemSpace::host>(4096);
 
     // Create host distributions and copy to generator
     size_type num_photons{0};
@@ -196,6 +203,28 @@ TEST_F(LArSphereGeneratorTest, generator)
         EXPECT_EQ(54319, result.steps);
         EXPECT_EQ(15, result.step_iters);
     }
+
+    // Check accumulated action times
+    std::set<std::string> labels;
+    auto action_times = transport_->get_action_times(*state_->aux());
+    for (auto const& [label, time] : action_times)
+    {
+        labels.insert(label);
+        EXPECT_GT(time, 0);
+    }
+    static std::string const expected_labels[] = {
+        "absorption",
+        "along-step",
+        "locate-vacancies",
+        "optical-boundary-init",
+        "optical-boundary-post",
+        "optical-discrete-select",
+        "optical-generate",
+        "optical-surface-stepping",
+        "pre-step",
+        "tracking-cut",
+    };
+    EXPECT_VEC_EQ(expected_labels, labels);
 }
 
 TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
@@ -205,8 +234,8 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
     auto generate = optical::GeneratorAction::make_and_insert(
         *this->core(), *this->optical_params(), capacity);
 
-    this->build_state<MemSpace::device>(16384);
     this->build_transporter();
+    this->build_state<MemSpace::device>(16384);
 
     // Create host distributions and copy to generator
     size_type num_photons{0};

@@ -14,6 +14,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -79,6 +80,7 @@
 #include "celeritas/track/StatusChecker.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
+#include "celeritas/user/ActionTimes.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/SlotDiagnostic.hh"
@@ -377,6 +379,17 @@ auto build_optical_offload(
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
     oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
+    oc_inp.action_times = [&p] {
+        if (!celeritas::device())
+        {
+            return true;
+        }
+        if (p.control.device_debug)
+        {
+            return p.control.device_debug->sync_stream;
+        }
+        return false;
+    }();
 
     CELER_ENSURE(oc_inp);
 
@@ -689,6 +702,16 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                     optical::Transporter::Input inp;
                     inp.params = optical_params;
                     inp.max_step_iters = p.tracking.limits.optical_step_iters;
+                    if (!celeritas::device()
+                        || (p.control.device_debug
+                            && p.control.device_debug->sync_stream))
+                    {
+                        // Create aux data to accumulate optical action times
+                        inp.action_times = ActionTimes::make_and_insert(
+                            optical_params->action_reg(),
+                            core_params->aux_reg(),
+                            "optical-action-times");
+                    }
                     result.optical_transporter
                         = std::make_shared<optical::Transporter>(
                             std::move(inp));
