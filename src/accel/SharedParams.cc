@@ -349,6 +349,10 @@ SharedParams::SharedParams(SetupOptions const& options)
         }
     }
 
+    // Save action sequence
+    actions_ = std::move(loaded.problem.actions);
+    CELER_ASSERT(actions_);
+
     // Load geant4 geometry adapter and save as "global"
     CELER_ASSERT(loaded.geo);
     geant_geo_ = std::move(loaded.geo);

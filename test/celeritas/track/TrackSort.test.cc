@@ -50,6 +50,8 @@ class TrackSortTestBase : virtual public GlobalTestBase
         result.params = this->core();
         result.stream_id = StreamId{0};
         result.num_track_slots = tracks;
+        result.actions = std::make_shared<ActionSequence>(
+            *this->action_reg(), ActionSequence::Options{});
 
         if constexpr (M == MemSpace::device)
         {

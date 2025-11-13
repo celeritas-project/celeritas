@@ -184,6 +184,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     step_inp.params = this->core();
     step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_track_slots;
+    step_inp.actions = std::make_shared<ActionSequence>(
+        *this->action_reg(), ActionSequence::Options{});
     Stepper<M> step(step_inp);
     LogContextException log_context{this->output_reg().get()};
 

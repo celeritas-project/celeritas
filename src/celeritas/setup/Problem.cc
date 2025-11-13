@@ -46,6 +46,7 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Diagnostics.hh"
@@ -652,6 +653,11 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
             *core_params, std::move(step_interfaces));
     }
 
+    // Whether to accumulate timing results for actions
+    bool action_times
+        = (!celeritas::device()
+           || (p.control.device_debug && p.control.device_debug->sync_stream));
+
     if (p.control.optical_capacity)
     {
         if (core_params->surface()->empty())
@@ -702,9 +708,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                     optical::Transporter::Input inp;
                     inp.params = optical_params;
                     inp.max_step_iters = p.tracking.limits.optical_step_iters;
-                    if (!celeritas::device()
-                        || (p.control.device_debug
-                            && p.control.device_debug->sync_stream))
+                    if (action_times)
                     {
                         // Create aux data to accumulate optical action times
                         inp.action_times = ActionTimes::make_and_insert(
@@ -731,6 +735,19 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                           "tracking loop parameters, or ignore optical "
                           "physics");
     }
+
+    // Construct the action sequence
+    result.actions = [&] {
+        ActionSequence::Options opt;
+        auto const& action_reg = core_params->action_reg();
+        if (action_times)
+        {
+            // Create aux data to accumulate action times
+            opt.action_times = ActionTimes::make_and_insert(
+                action_reg, core_params->aux_reg(), "action-times");
+        }
+        return std::make_shared<ActionSequence>(*action_reg, std::move(opt));
+    }();
 
     if (result.root_manager)
     {
