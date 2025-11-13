@@ -53,7 +53,7 @@ class ProtoBuilder
         //! Manually specify a tracking/construction tolerance
         Tolerance<> tol;
         //! Logic expression notation
-        logic::LogicNotation logic_notation;
+        LogicNotation logic_notation;
         //! Save metadata during construction for each universe
         SaveUnivJson save_json;
     };
@@ -65,7 +65,7 @@ class ProtoBuilder
     //! Get the tolerance to use when constructing geometry
     Tol const& tol() const { return inp_->tol; }
 
-    logic::LogicNotation const& logic_notation() const
+    LogicNotation const& logic_notation() const
     {
         return inp_->logic_notation;
     }

@@ -264,7 +264,9 @@ enum OperatorToken : logic_int
     ltrue,  //!< Push 'true'
     lend
 };
+}  // namespace logic
 
+//---------------------------------------------------------------------------//
 //! Defines the notation for logic expressions
 enum class LogicNotation
 {
@@ -272,7 +274,6 @@ enum class LogicNotation
     infix,
     size_
 };
-}  // namespace logic
 
 //---------------------------------------------------------------------------//
 /*!
@@ -428,9 +429,10 @@ inline constexpr char to_char(OperatorToken tok)
 {
     return is_operator_token(tok) ? "()|&~*"[tok - lbegin] : '\a';
 }
+}  // namespace logic
+
 // Get a string corresponding to a logic notation
 char const* to_cstring(LogicNotation);
-}  // namespace logic
 
 // Get a string corresponding to a z ordering
 char const* to_cstring(ZOrder);

@@ -1009,7 +1009,7 @@ TEST_F(UnitProtoTest, infix_logic)
         return inp;
     }()};
 
-    auto build_input = [this, &global](logic::LogicNotation notation) {
+    auto build_input = [this, &global](LogicNotation notation) {
         InputBuilder build_input([&] {
             InputBuilder::Options opts;
             opts.tol = this->tol_;
@@ -1019,11 +1019,11 @@ TEST_F(UnitProtoTest, infix_logic)
         return build_input(global);
     };
 
-    OrangeInput postfix_input = build_input(logic::LogicNotation::postfix);
-    OrangeInput infix_input = build_input(logic::LogicNotation::infix);
+    OrangeInput postfix_input = build_input(LogicNotation::postfix);
+    OrangeInput infix_input = build_input(LogicNotation::infix);
 
-    ASSERT_EQ(logic::LogicNotation::postfix, postfix_input.logic_notation);
-    ASSERT_EQ(logic::LogicNotation::infix, infix_input.logic_notation);
+    ASSERT_EQ(LogicNotation::postfix, postfix_input.logic_notation);
+    ASSERT_EQ(LogicNotation::infix, infix_input.logic_notation);
     ASSERT_EQ(postfix_input.universes.size(), infix_input.universes.size());
 
     auto const& postfix_unit

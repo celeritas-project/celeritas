@@ -189,7 +189,8 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
         VolumeView vol = this->make_local_volume(id);
         auto calc_senses = detail::LazySenseCalculator(
             this->make_surface_visitor(), vol, state.pos, on_surface);
-        CELER_ASSUME(params_.scalars.logic_notation == orange_tracking_logic);
+        static_assert(LogicNotation::postfix == orange_tracking_logic,
+                      "Logic notation mismatch");
         return detail::LogicEvaluator(vol.logic())(calc_senses);
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
@@ -232,7 +233,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
         auto calc_senses = detail::LazySenseCalculator(
             this->make_surface_visitor(), vol, state.pos, face);
 
-        CELER_ASSUME(params_.scalars.logic_notation == orange_tracking_logic);
+        static_assert(LogicNotation::postfix == orange_tracking_logic,
+                      "Logic notation mismatch");
         if (detail::LogicEvaluator(vol.logic())(calc_senses))
         {
             // Inside: find and save the local surface ID, and end the search
@@ -564,7 +566,8 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
     // Calculate local senses, taking current face into account
     // Current senses should put us inside the volume
-    CELER_ASSUME(params_.scalars.logic_notation == orange_tracking_logic);
+    static_assert(LogicNotation::postfix == orange_tracking_logic,
+                  "Logic notation mismatch");
     detail::LogicEvaluator is_inside(vol.logic());
     CELER_ASSERT(is_inside(calc_sense) != (target_sense == Sense::inside));
 

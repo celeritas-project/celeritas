@@ -53,7 +53,7 @@ struct Options
     //! Construction and tracking tolerance (native units)
     Tolerance<> tol;
     //! Logic expression notation
-    logic::LogicNotation logic_notation{};
+    LogicNotation logic_notation{};
 
     //!@}
     //!@{

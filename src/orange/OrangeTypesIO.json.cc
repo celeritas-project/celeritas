@@ -48,8 +48,6 @@ void to_json(nlohmann::json& j, Tolerance<T> const& value)
 
 template void to_json(nlohmann::json&, Tolerance<real_type> const&);
 
-namespace logic
-{
 //---------------------------------------------------------------------------//
 /*!
  * Read logic notation.
@@ -72,5 +70,4 @@ void to_json(nlohmann::json& j, LogicNotation const& value)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace logic
 }  // namespace celeritas

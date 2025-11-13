@@ -157,8 +157,6 @@ char const* to_cstring(TransformType value)
     return to_cstring_impl(value);
 }
 
-namespace logic
-{
 //---------------------------------------------------------------------------//
 /*!
  * Get a string corresponding to a logic notation
@@ -171,7 +169,6 @@ char const* to_cstring(LogicNotation value)
     };
     return to_cstring_impl(value);
 }
-}  // namespace logic
 
 //---------------------------------------------------------------------------//
 /*!

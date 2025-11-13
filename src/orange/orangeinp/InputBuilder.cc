@@ -98,12 +98,12 @@ class JsonCsgOutput
 void convert_logic_to_selected_notation(OrangeInput* input)
 {
     CELER_EXPECT(input);
-    if (input->logic_notation == logic::LogicNotation::postfix)
+    if (input->logic_notation == LogicNotation::postfix)
     {
         return;
     }
 
-    CELER_EXPECT(input->logic_notation == logic::LogicNotation::infix);
+    CELER_EXPECT(input->logic_notation == LogicNotation::infix);
 
     auto convert_unit = [](UnitInput& unit) {
         for (auto& vol : unit.volumes)
