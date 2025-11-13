@@ -227,7 +227,8 @@ void UnitProto::build(ProtoBuilder& pb) const
     ScopedProfiling profile_this{"orange-unitproto"};
 
     // Build CSG unit
-    auto csg_unit = this->build(pb.tol(), pb.bbox(pb.current_uid()));
+    auto csg_unit = this->build(
+        pb.tol(), BBox::from_infinite(), pb.is_global_universe());
     CELER_ASSERT(csg_unit);
 
     // Get the list of all surfaces actually used
@@ -252,7 +253,6 @@ void UnitProto::build(ProtoBuilder& pb) const
             // "interior" bounding zone; we want its outer boundary.
             result.bbox = bz.exterior;
         }
-        CELER_ENSURE(is_finite(result.bbox));
     }
 
     // Save surfaces
@@ -493,14 +493,14 @@ void UnitProto::build(ProtoBuilder& pb) const
  * to be deleted (assumed inside, implicit from the parent universe's boundary)
  * or preserved.
  */
-auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
+auto UnitProto::build(Tol const& tol,
+                      BBox const& bbox,
+                      bool is_global_universe) const -> Unit
 {
     CELER_EXPECT(tol);
-    CELER_EXPECT(!bbox || is_finite(bbox));
 
-    bool const is_global_universe = !static_cast<bool>(bbox);
-    CELER_LOG(debug) << "Building '" << this->label() << "' inside " << bbox
-                     << ": " << input_.daughters.size() << " daughters and "
+    CELER_LOG(debug) << "Building '" << this->label() << ": "
+                     << input_.daughters.size() << " daughters and "
                      << input_.materials.size() << " materials...";
 
     ScopedProfiling profile_this{"orange-csg"};
