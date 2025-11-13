@@ -20,12 +20,17 @@ jobs:
     - name: Build and test dd4hep integration
       shell: bash
       run: |
+        source /etc/profile
+
+        set +e
+        
         eic-info
         cmake -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
         cmake --build build -j 8
         cmake --install build
         export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
 
+        
         # Run both simulations in parallel with separate log files
         echo "Starting Celeritas simulation..."
         ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_celeritas.root > celeritas.log 2>&1 &
@@ -40,6 +45,8 @@ jobs:
         CELER_EXIT=$?
         wait $GEANT4_PID
         GEANT4_EXIT=$?
+
+        set -e
     
         # Display logs
         echo "=== Celeritas Log ==="
