@@ -3,37 +3,35 @@ name: Check dd4hep integration
 on:
   workflow_dispatch:
   workflow_call:
-
+  
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
-
+  
 jobs:
   check-dd4hep-integration:
+    container: ghcr.io/eic/eic_ci:nightly
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v5
-    - uses: cvmfs-contrib/github-action-cvmfs@v5
-    - uses: eic/run-cvmfs-osg-eic-shell@main
-      with:
-        platform-release: "eic_ci:nightly"
-        network_types: "none"
-        run: |
-          eic-info
-          cmake -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
-          cmake --build build -j 8
-          cmake --install build
-          export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
-
-          # Run with Celeritas enabled
-          ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_celeritas.root
-
-          # Run with Celeritas disabled (Geant4 only)
-          CELER_DISABLE=1 ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_geant4.root
-
-          # Compare benchmarks and generate plots
-          root -l -b -q '$PWD/example/ddceler/compare_benchmarks.cc("output_geant4.root", "output_celeritas.root")'
-
+    - name: Build and test dd4hep integration
+      run: |
+        eic-info
+        cmake -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
+        cmake --build build -j 8
+        cmake --install build
+        export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
+        # Run with Celeritas enabled
+        ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_celeritas.root
+        # Run with Celeritas disabled (Geant4 only)
+        CELER_DISABLE=1 ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_geant4.root
+        # Compare benchmarks and generate plots
+        if [ -f output_geant4.root ] && [ -f output_celeritas.root ]; then
+          root -l -b -q "${PWD}/example/ddceler/compare_benchmarks.cc(\"output_geant4.root\", \"output_celeritas.root\")"
+        else
+          echo "Error: Output files not found"
+          exit 1
+        fi
     - name: Upload comparison plots
       uses: actions/upload-artifact@v4
       if: always()
