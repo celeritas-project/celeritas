@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+#include <unordered_map>
+
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 
@@ -27,6 +30,12 @@ class SharedParams;
 class LocalOffloadInterface
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using MapStrDbl = std::unordered_map<std::string, double>;
+    //!@}
+
+  public:
     virtual ~LocalOffloadInterface() = default;
 
     // Initialize with options and core shared data
@@ -46,6 +55,9 @@ class LocalOffloadInterface
 
     // Get the number of buffered tracks
     virtual size_type GetBufferSize() const = 0;
+
+    // Get accumulated action times
+    virtual MapStrDbl GetActionTime() const = 0;
 
     //! Whether the class instance is initialized
     explicit operator bool() const { return this->Initialized(); }

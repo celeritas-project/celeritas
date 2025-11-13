@@ -171,6 +171,7 @@ void OpticalLaunchAction::begin_run_impl(CoreState<M>& core_state)
             optical::Transporter::Input inp;
             inp.params = data_.optical_params;
             inp.max_step_iters = data_.max_step_iters;
+            inp.action_times = data_.action_times;
             transport_ = std::make_shared<optical::Transporter>(std::move(inp));
         }
     }

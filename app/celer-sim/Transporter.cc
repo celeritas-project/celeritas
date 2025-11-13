@@ -268,6 +268,17 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
         {
             (*result)[std::string{action_ptrs[i]->label()}] += times[i];
         }
+
+        if (optical_)
+        {
+            // Save optical loop action times
+            auto optical_times = optical_->get_action_times(step.state().aux());
+            for (auto&& [label, time] : optical_times)
+            {
+                // Prefix label to distinguish from core actions
+                (*result)["optical::" + label] += time;
+            }
+        }
     }
 }
 

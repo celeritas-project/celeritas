@@ -205,6 +205,16 @@ void LocalOpticalOffload::Flush()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the accumulated action times.
+ */
+auto LocalOpticalOffload::GetActionTime() const -> MapStrDbl
+{
+    CELER_EXPECT(*this);
+    return transport_->get_action_times(*state_->aux());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Clear local data.
  */
 void LocalOpticalOffload::Finalize()

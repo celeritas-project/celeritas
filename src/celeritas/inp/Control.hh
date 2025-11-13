@@ -103,7 +103,7 @@ struct OpticalStateCapacity : StateCapacity
 struct DeviceDebug
 {
     //! Synchronize the stream after every kernel launch
-    std::optional<bool> sync_stream;
+    bool sync_stream{false};
 };
 
 //---------------------------------------------------------------------------//
