@@ -18,6 +18,7 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - name: Build and test dd4hep integration
+      shell: bash
       run: |
         source /etc/profile 
         eic-info
