@@ -58,12 +58,12 @@ class SDParamsTest : public OnlyGeoTestBase
     }
 };
 
-// TODO:: reformat this for empty detectors in model
-TEST_F(SDParamsTest, TEST_IF_CELERITAS_DEBUG(invalid_label_test))
+TEST_F(SDParamsTest, TEST_IF_CELERITAS_DEBUG(no_label_test))
 {
     auto const& geo = *this->geometry();
     inp::Detectors detectors;
-    EXPECT_THROW(SDParams(geo, detectors), celeritas::RuntimeError);
+    SDParams params(geo, detectors);
+    EXPECT_EQ(0, params.size());
 }
 
 TEST_F(SDParamsTest, detector_test)
