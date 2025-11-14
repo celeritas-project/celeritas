@@ -60,7 +60,6 @@ class GammaNuclearProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ReadData load_data_;
-    ParticleId gamma_id_;
 };
 
 //---------------------------------------------------------------------------//

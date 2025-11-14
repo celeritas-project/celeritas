@@ -22,12 +22,10 @@ GammaNuclearProcess::GammaNuclearProcess(SPConstParticles particles,
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , load_data_(std::move(load_data))
-    , gamma_id_(particles_->find(pdg::gamma()))
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
     CELER_EXPECT(load_data_);
-    CELER_ENSURE(gamma_id_);
 }
 
 //---------------------------------------------------------------------------//
