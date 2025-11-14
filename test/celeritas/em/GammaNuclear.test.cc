@@ -83,7 +83,6 @@ TEST_F(GammaNuclearTest, micro_xs)
     ElementId el_id{2};
 
     // Check the size of the element cross section data (G4PARTICLEXS4.1)
-    //    GammaNuclearRef shared = model_->host_ref();
     HostCRef<GammaNuclearData> shared = model_->host_ref();
     NonuniformGridRecord grid = shared.micro_xs[el_id];
     EXPECT_EQ(grid.grid.size(), 260);
