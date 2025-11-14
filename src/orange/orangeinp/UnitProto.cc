@@ -13,7 +13,6 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Assert.hh"
 #include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
@@ -306,9 +305,7 @@ void UnitProto::build(ProtoBuilder& input) const
         // Construct logic and faces with remapped surfaces
         auto&& [faces, logic] = detail::build_logic(
             // always use postfix logic for unit input, post-processing to
-            // convert to selected notation
-            // TODO: remove post-processing and directly build in selected
-            // notation
+            // convert to tracking notation
             detail::PostfixBuildLogicPolicy{csg_unit.tree,
                                             sorted_local_surfaces},
             node_id);

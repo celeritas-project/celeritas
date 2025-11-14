@@ -538,13 +538,13 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
         }
     }
 
-    if (auto iter = j.find("logic_notation"); iter != j.end())
+    if (auto iter = j.find("logic"); iter != j.end())
     {
-        iter->get_to(value.logic_notation);
+        iter->get_to(value.logic);
     }
     else
     {
-        value.logic_notation = LogicNotation::postfix;
+        value.logic = LogicNotation::postfix;
     }
 
     if (auto iter = j.find("tol"); iter != j.end())
@@ -572,7 +572,7 @@ void to_json(nlohmann::json& j, OrangeInput const& value)
         {{"_format", "ORANGE"},
          {"_version", 0},
          {"universes", variants_to_json(value.universes)}});
-    j["logic"] = value.logic_notation;
+    j["logic"] = value.logic;
     if (value.tol)
     {
         j["tol"] = value.tol;

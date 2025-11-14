@@ -37,7 +37,10 @@ inline constexpr UnivId orange_global_univ{0};
 inline constexpr UnivLevelId orange_global_univ_level{0};
 
 //! Logic notation used for boolean expressions
-inline constexpr auto orange_tracking_logic = LogicNotation::postfix;
+inline constexpr auto orange_tracking_logic()
+{
+    return LogicNotation::postfix;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -61,7 +64,7 @@ struct OrangeParamsScalars
     Tolerance<> tol;
 
     // Logic expression notation
-    LogicNotation logic_notation{};
+    LogicNotation logic{};
 
     // Raw pointers to externally owned memory for debug output
     OrangeParams const* host_geo_params{nullptr};

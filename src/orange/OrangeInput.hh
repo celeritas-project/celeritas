@@ -181,13 +181,12 @@ struct OrangeInput
     Tolerance<> tol;
 
     //! Logic expression notation
-    LogicNotation logic_notation{LogicNotation::postfix};
+    LogicNotation logic{LogicNotation::postfix};
 
     //! Whether the unit definition is valid
     explicit operator bool() const
     {
-        return !universes.empty() && tol
-               && logic_notation != LogicNotation::size_;
+        return !universes.empty() && tol && logic != LogicNotation::size_;
     }
 };
 

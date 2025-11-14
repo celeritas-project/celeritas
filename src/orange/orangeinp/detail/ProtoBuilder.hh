@@ -63,11 +63,6 @@ class ProtoBuilder
     //! Get the tolerance to use when constructing geometry
     Tol const& tol() const { return inp_->tol; }
 
-    LogicNotation const& logic_notation() const
-    {
-        return inp_->logic_notation;
-    }
-
     //! Whether output should be saved for each
     bool save_json() const { return static_cast<bool>(save_json_); }
 

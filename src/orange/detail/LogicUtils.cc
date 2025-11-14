@@ -224,7 +224,7 @@ std::vector<logic_int> string_to_logic(std::string const& s)
 void convert_logic(OrangeInput& input, LogicNotation to)
 {
     CELER_EXPECT(input);
-    if (input.logic_notation == to)
+    if (input.logic == to)
     {
         return;
     }
