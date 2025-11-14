@@ -171,7 +171,7 @@ class PostfixStack
     void push_close_paren()
     {
         CELER_EXPECT(!operators_.empty());
-        while (!operators_.empty() && operators_.back() != logic::lopen)
+        while (operators_.back() != logic::lopen)
         {
             postfix_.push_back(operators_.back());
             operators_.pop_back();
