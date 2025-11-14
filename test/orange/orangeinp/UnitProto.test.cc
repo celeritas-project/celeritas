@@ -11,17 +11,12 @@
 #include <sstream>
 
 #include "corecel/cont/ArrayIO.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
-#include "orange/OrangeData.hh"
 #include "orange/OrangeInputIO.json.hh"
-#include "orange/OrangeParams.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/detail/LogicUtils.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/InputBuilder.hh"
 #include "orange/orangeinp/Shape.hh"
