@@ -45,9 +45,11 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
     DetectorId det_id = det_params.detector_id(iv_id);
     if (det_id)
     {
+        auto energy = track.particle().energy();
         // TODO print energy when killing at SD
         std::cout << "Detector hit in volume " << iv_id.get()
-                  << " on detector " << det_id.get() << std::endl;
+                  << " on detector " << det_id.get() << " with energy "
+                  << energy.value() << std::endl;
         track.sim().status(TrackStatus::killed);
     }
 
