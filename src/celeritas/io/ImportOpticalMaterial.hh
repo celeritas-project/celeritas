@@ -22,25 +22,30 @@ namespace celeritas
  * Fast/intermediate/slow/etc scintillation components can be used for both
  * particle- and material-dependent spectra, as well as material-only spectra.
  */
+struct ImportGaussianScintComponent
+{
+    double lambda_mean{};  //!< Mean wavelength [len]
+    double lambda_sigma{};  //!< Standard deviation of wavelength [len]
+    explicit operator bool() const
+    {
+        return (lambda_mean > 0 && lambda_sigma > 0);
+    }
+};
+
 struct ImportScintComponent
 {
     double yield_frac{};  //!< Fraction of total scintillation yield
-    double lambda_mean{};  //!< Mean wavelength [len]
-    double lambda_sigma{};  //!< Standard deviation of wavelength [len]
     double rise_time{};  //!< Rise time [time]
     double fall_time{};  //!< Decay time [time]
 
-    std::vector<real_type> energy;
-    std::vector<real_type> intensity;
+    ImportGaussianScintComponent gauss;
+    inp::Grid spectrum;  //! Energy vs Intensity grid
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        bool const has_gauss = (lambda_mean > 0 && lambda_sigma > 0);
-        bool const has_grid
-            = (!energy.empty() && energy.size() == intensity.size());
         return yield_frac > 0 && rise_time >= 0 && fall_time > 0
-               && (has_gauss || has_grid);
+               && (spectrum || gauss);
     }
 };
 
