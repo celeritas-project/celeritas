@@ -61,10 +61,9 @@ std::vector<logic_int> string_to_logic(std::string const& s);
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert logic expressions in an OrangeInput to the selected notation.
- * Assumes that the input was build with postfix notation.
+ * Convert logic expressions in an OrangeInput to the desired notation.
  */
-void convert_logic_to_selected_notation(OrangeInput& input);
+void convert_logic(OrangeInput& input, LogicNotation to);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

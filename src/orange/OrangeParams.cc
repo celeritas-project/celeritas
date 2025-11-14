@@ -197,7 +197,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     host_data.scalars.num_vol_levels = volumes_ ? volumes_->num_volume_levels()
                                                 : 0;
 
-    detail::convert_logic_to_selected_notation(input);
+    detail::convert_logic(input, LogicNotation::postfix);
 
     // Insert all universes
     {

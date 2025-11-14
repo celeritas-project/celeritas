@@ -99,7 +99,6 @@ auto Converter::operator()(GeantGeoParams const& geo,
     InputBuilder build_input([&opts = opts_] {
         InputBuilder::Options ibo;
         ibo.tol = opts.tol;
-        ibo.logic_notation = opts.logic_notation;
         ibo.objects_output_file = opts.objects_output_file;
         ibo.csg_output_file = opts.csg_output_file;
         CELER_ENSURE(ibo);

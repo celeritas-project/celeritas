@@ -218,15 +218,23 @@ std::vector<logic_int> string_to_logic(std::string const& s)
 }
 
 //---------------------------------------------------------------------------//
-void convert_logic_to_selected_notation(OrangeInput& input)
+/*!
+ * Convert logic expressions in an OrangeInput to the desired notation.
+ */
+void convert_logic(OrangeInput& input, LogicNotation to)
 {
     CELER_EXPECT(input);
-    if (input.logic_notation == LogicNotation::postfix)
+    if (input.logic_notation == to)
     {
         return;
     }
+    else if (to == LogicNotation::postfix)
+    {
+        CELER_NOT_IMPLEMENTED(
+            "Conversion from postfix to infix only is supported");
+    }
 
-    CELER_EXPECT(input.logic_notation == LogicNotation::infix);
+    CELER_ASSERT(to == LogicNotation::infix);
 
     auto convert_unit = [](UnitInput& unit) {
         for (auto& vol : unit.volumes)
@@ -235,8 +243,7 @@ void convert_logic_to_selected_notation(OrangeInput& input)
             {
                 continue;
             }
-            vol.logic
-                = ::celeritas::detail::convert_to_infix(make_span(vol.logic));
+            vol.logic = convert_to_infix(make_span(vol.logic));
         }
     };
 

@@ -19,7 +19,6 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/detail/LogicUtils.hh"
 
 #include "ProtoInterface.hh"
 
@@ -127,7 +126,6 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 
     // Build surfaces and metadata
     OrangeInput result;
-    result.logic_notation = opts_.logic_notation;
     JsonCsgOutput csg_outp;
     detail::ProtoBuilder builder(&result, protos, [&] {
         detail::ProtoBuilder::Options pbopts;

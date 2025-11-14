@@ -8,7 +8,6 @@
 
 #include <string>
 
-#include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
@@ -39,8 +38,6 @@ class InputBuilder
     {
         //! Manually specify a tracking/construction tolerance
         Tolerance<> tol;
-        //! Logic expression notation
-        LogicNotation logic_notation{orange_tracking_logic};
         //! Write unfolded universe structure to a JSON file
         std::string objects_output_file;
         //! Write transformed and simplified CSG trees to a JSON file
