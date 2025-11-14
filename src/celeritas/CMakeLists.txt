@@ -146,6 +146,7 @@ list(APPEND SOURCES
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc
+  user/ActionTimes.cc
   user/DetectorSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc

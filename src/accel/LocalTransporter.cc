@@ -481,11 +481,11 @@ void LocalTransporter::Finalize()
 /*!
  * Get the accumulated action times.
  */
-auto LocalTransporter::GetActionTime() const -> MapStrReal
+auto LocalTransporter::GetActionTime() const -> MapStrDbl
 {
     CELER_EXPECT(*this);
 
-    MapStrReal result;
+    MapStrDbl result;
     auto const& action_seq = step_->actions();
     if (action_seq.action_times())
     {
@@ -497,6 +497,18 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
         for (auto i : range(action_ptrs.size()))
         {
             result[std::string{action_ptrs[i]->label()}] = time[i];
+        }
+
+        if (optical_)
+        {
+            // Save optical loop action times
+            auto optical_times
+                = optical_->get_action_times(step_->state().aux());
+            for (auto&& [label, time] : optical_times)
+            {
+                // Prefix label to distinguish from core actions
+                result["optical::" + label] = time;
+            }
         }
     }
     return result;
