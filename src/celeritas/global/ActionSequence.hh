@@ -73,6 +73,7 @@ class ActionSequence
   private:
     ActionGroupsT actions_;
     Options options_;
+    size_type num_actions_;
     std::shared_ptr<StatusChecker const> status_checker_;
 };
 

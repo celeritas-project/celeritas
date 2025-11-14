@@ -35,7 +35,9 @@ namespace celeritas
  * Construct from an action registry and sequence options.
  */
 ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
-    : actions_{reg}, options_{std::move(options)}
+    : actions_{reg}
+    , options_{std::move(options)}
+    , num_actions_(reg.num_actions())
 {
     // Get status checker if available
     for (auto const& brun_sp : actions_.begin_run())
@@ -58,6 +60,9 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
 template<MemSpace M>
 void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 {
+    CELER_VALIDATE(params.action_reg()->num_actions() == num_actions_,
+                   << "Number of actions changed since setup completed");
+
     for (auto const& sp_action : actions_.begin_run())
     {
         ScopedProfiling profile_this{sp_action->label()};
@@ -75,7 +80,7 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
     // Save a pointer to aux data and the stream for synchronizing after each
     // step for timing
     // NOTE: instead of synchronizing the stream we could add device timers to
-    // reduce the performance
+    // reduce the performance impact
     Stream* stream = nullptr;
     std::vector<double>* accum_time = nullptr;
     if (options_.action_times)
