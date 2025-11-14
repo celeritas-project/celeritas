@@ -7,7 +7,6 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "geocel/UnitUtils.hh"
@@ -77,7 +76,7 @@ class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
     real_type step_length_{2.5};  // [cm]
 };
 
-class MaterialScintillationTest : public ScintillationTestBase
+class MaterialScintillationGaussianTest : public ScintillationTestBase
 {
   public:
     //! Create scintillation params
@@ -103,12 +102,56 @@ class MaterialScintillationTest : public ScintillationTestBase
 
         // Note second component has zero rise time
         std::vector<ImportScintComponent> comps;
-        comps.push_back({0.5, 100 * nm, 5 * nm, 10 * ns, 6 * ns});
-        comps.push_back({0.3, 200 * nm, 10 * nm, 0, 1500 * ns});
-        comps.push_back({0.2, 400 * nm, 20 * nm, 10 * ns, 3000 * ns});
-        comps.push_back({.energy = {1.0, 2.0, 10.0},
-                         .intensity{0.5, 0.3, 0.2},
-                         .yield_frac = 0.1,
+        comps.push_back(
+            {.yield_frac = 0.5,
+             .gauss = {.lambda_mean = 100 * nm, .lambda_sigma = 5 * nm},
+             .rise_time = 10 * ns,
+             .fall_time = 6 * ns});
+        comps.push_back(
+            {.yield_frac = 0.3,
+             .gauss = {.lambda_mean = 200 * nm, .lambda_sigma = 10 * nm},
+             .rise_time = 0,
+             .fall_time = 1500 * ns});
+
+        comps.push_back(
+            {.yield_frac = 0.2,
+             .gauss = {.lambda_mean = 400 * nm, .lambda_sigma = 20 * nm},
+             .rise_time = 10 * ns,
+             .fall_time = 3000 * ns});
+
+        return comps;
+    }
+};
+
+class MaterialScintillationTabularTest : public ScintillationTestBase
+{
+  public:
+    //! Create scintillation params
+    SPParams build_scintillation_params() override
+    {
+        ScintillationParams::Input inp;
+        inp.resolution_scale.push_back(1);
+
+        // One material, three components
+        ImportMaterialScintSpectrum mat_spec;
+        mat_spec.yield_per_energy = 5;
+        mat_spec.components = this->build_material_components();
+        inp.materials.push_back(std::move(mat_spec));
+
+        return std::make_shared<ScintillationParams>(std::move(inp));
+    }
+
+    //! Create material components
+    std::vector<ImportScintComponent> build_material_components()
+    {
+        static constexpr real_type nm{units::meter * 1e-9};
+        static constexpr real_type ns{units::nanosecond};
+
+        // Note these components are in tabular form
+        std::vector<ImportScintComponent> comps;
+        comps.push_back({.spectrum.x = {1.0, 2.0, 3.0},
+                         .spectrum.y = {0.5, 0.3, 0.2},
+                         .yield_frac = 0.2,
                          .rise_time = 10 * ns,
                          .fall_time = 1500 * ns});
 
@@ -150,8 +193,8 @@ class ParticleScintillationTest : public ScintillationTestBase
         std::vector<ImportScintComponent> vec_comps;
         ImportScintComponent comp;
         comp.yield_frac = 1;
-        comp.lambda_mean = from_cm(1e-5);
-        comp.lambda_sigma = from_cm(1e-6);
+        comp.gauss.lambda_mean = from_cm(1e-5);
+        comp.gauss.lambda_sigma = from_cm(1e-6);
         comp.rise_time = native_value_from(TimeSecond(15e-9));
         comp.fall_time = native_value_from(TimeSecond(5e-9));
         vec_comps.push_back(std::move(comp));
@@ -163,7 +206,7 @@ class ParticleScintillationTest : public ScintillationTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MaterialScintillationTest, data)
+TEST_F(MaterialScintillationGaussianTest, data)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -174,7 +217,7 @@ TEST_F(MaterialScintillationTest, data)
     auto const& mat_record = data.materials[opt_mat_];
     EXPECT_REAL_EQ(5, mat_record.yield_per_energy);
     EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
-    EXPECT_EQ(4, data.scint_records.size());
+    EXPECT_EQ(3, data.scint_records.size());
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
         rise_times, fall_times;
@@ -199,8 +242,8 @@ TEST_F(MaterialScintillationTest, data)
     for (auto const& comp : this->build_material_components())
     {
         expected_yield_fracs.push_back(comp.yield_frac / norm);
-        expected_lambda_means.push_back(comp.lambda_mean);
-        expected_lambda_sigmas.push_back(comp.lambda_sigma);
+        expected_lambda_means.push_back(comp.gauss.lambda_mean);
+        expected_lambda_sigmas.push_back(comp.gauss.lambda_sigma);
         expected_rise_times.push_back(comp.rise_time);
         expected_fall_times.push_back(comp.fall_time);
     }
@@ -213,7 +256,7 @@ TEST_F(MaterialScintillationTest, data)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MaterialScintillationTest, pre_generator)
+TEST_F(MaterialScintillationGaussianTest, pre_generator)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -254,7 +297,7 @@ TEST_F(MaterialScintillationTest, pre_generator)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MaterialScintillationTest, basic)
+TEST_F(MaterialScintillationGaussianTest, basic)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -326,17 +369,16 @@ TEST_F(MaterialScintillationTest, basic)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_SOFT_EQ(1.7130667911438017e-05, avg_lambda);
-        EXPECT_SOFT_EQ(1.1045883017290305e-06, avg_time);
-        EXPECT_SOFT_EQ(0.001650827909823906, avg_cosine);
-        EXPECT_EQ(7392, rng.exchange_count());
+        EXPECT_SOFT_EQ(1.8023146707476483e-05, avg_lambda);
+        EXPECT_SOFT_EQ(8.6510374107600554e-07, avg_time);
+        EXPECT_SOFT_EQ(-0.0078894853694884293, avg_cosine);
+        EXPECT_EQ(7602, rng.exchange_count());
 
         static double const expected_energy[] = {
             6.1650902874689e-06,
-            //  6.1852526228383e-06,
-            3.09262631141916e-06,
-            2.90386661737022e-06,
-            1.3143562065461e-05,
+            6.1852526228383e-06,
+            6.6524813707218e-06,
+            1.2141478183957e-05,
             1.221301636759e-05,
             5.8200972038835e-06,
             1.2759813899478e-05,
@@ -344,9 +386,9 @@ TEST_F(MaterialScintillationTest, basic)
         };
         static double const expected_time[] = {
             3.3128806993047e-06,
-            3.88908387038037e-07,
-            2.58766627916718e-06,
-            1.24462163097751e-08,
+            1.9448090540859e-07,
+            1.1174848154165e-06,
+            1.2460198181058e-08,
             3.5306344404732e-08,
             3.19537294006e-07,
             7.2757167500751e-09,
@@ -355,8 +397,8 @@ TEST_F(MaterialScintillationTest, basic)
         static double const expected_cos_theta[] = {
             0.99292265109602,
             -0.4059411008841,
-            0.362719077120532,
-            0.594559830476551,
+            -0.57615133521653,
+            -0.65226965599904,
             -0.08402168914221,
             -0.087934351005127,
             0.88014805759581,
@@ -365,8 +407,8 @@ TEST_F(MaterialScintillationTest, basic)
         static double const expected_polarization_x[] = {
             -0.48061717648891,
             0.37029605368662,
-            -0.232163459864644,
-            -0.134219523949386,
+            0.78751570900663,
+            -0.39528947901676,
             0.019773814327391,
             0.95928367243846,
             -0.68599121517934,
@@ -387,7 +429,7 @@ TEST_F(ParticleScintillationTest, basic)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MaterialScintillationTest, stress_test)
+TEST_F(MaterialScintillationGaussianTest, stress_test)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -424,7 +466,7 @@ TEST_F(MaterialScintillationTest, stress_test)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_NEAR(
-            18.464537973043029,
+            18.724841238983931,
             rng.exchange_count() / static_cast<real_type>(num_photons),
             1e-2);
     }
@@ -437,48 +479,14 @@ TEST_F(MaterialScintillationTest, stress_test)
     {
         ScintRecord const& component
             = data.scint_records[mat_record.components[comp_idx]];
-        if (component.lambda_mean > 0)
-        {
-            real_type yield = data.reals[mat_record.yield_pdf[comp_idx]];
-            expected_lambda += component.lambda_mean * yield;
-            expected_error += component.lambda_sigma * yield;
-        }
-        //  else if (component.energy_cdf)
-        //  {
-        //      NonuniformGridCalculator calc_cdf(
-        //          data.energy_cdfs[component.energy_cdf], data.reals);
-        //      auto const& grid = calc_cdf.grid();
-        //      real_type mean_e{0};
-        //      real_type var_e{0};
-        //      for (auto e : grid.values())
-        //      {
-        //          real_type e_mev = e * 1e-6;
-        //          real_type z = (e - grid.front()) / (grid.back() -
-        //          grid.front()); real_type w = 0.5 * (1 + std::erf((z - 0.5)
-        //          * 2)); mean_e += e_mev * w; var_e += w * (e_mev - mean_e) *
-        //          (e_mev - mean_e);
-        //      }
-        //      mean_e /= grid.size();
-        //      real_type lambda_mean = optical::detail::energy_to_wavelength(
-        //          units::MevEnergy{mean_e});
-        //      real_type yield = data.reals[mat_record.yield_pdf[comp_idx]];
-        //      CELER_LOG(info) << "[c]yield is : " << yield;
-        //      CELER_LOG(info) << "[c]mean is : " << lambda_mean;
-        //
-        //      CELER_LOG(info)
-        //          << "[c]Expected lambda before : " << expected_lambda;
-        //      expected_lambda += lambda_mean * yield;
-        //      CELER_LOG(info) << "[c]Expected lambda after : " <<
-        //      expected_lambda; CELER_LOG(info) << "[c]Expected sigma before "
-        //      << expected_error; expected_error += var_e * yield;
-        //
-        //      CELER_LOG(info) << "[c]Expected sigma after" << expected_error;
-        //  }
+        real_type yield = data.reals[mat_record.yield_pdf[comp_idx]];
+        expected_lambda += component.lambda_mean * yield;
+        expected_error += component.lambda_sigma * yield;
     }
     EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, expected_error);
 }
 
-TEST_F(MaterialScintillationTest, uses_nonuniform_grid_calculator)
+TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -495,7 +503,7 @@ TEST_F(MaterialScintillationTest, uses_nonuniform_grid_calculator)
             auto const& cdf_grid = calc_cdf.grid();
 
             EXPECT_SOFT_EQ(1, cdf_grid.front());
-            EXPECT_SOFT_EQ(10, cdf_grid.back());
+            EXPECT_SOFT_EQ(3, cdf_grid.back());
 
             // Invert a representative CDF value
             auto calc_energy = calc_cdf.make_inverse();
@@ -504,7 +512,7 @@ TEST_F(MaterialScintillationTest, uses_nonuniform_grid_calculator)
 
             EXPECT_LE(cdf_grid.front(), energy);
             EXPECT_LE(energy, cdf_grid.back());
-            EXPECT_EQ(1.8128620257806829, energy);
+            EXPECT_EQ(1.2201501319822683, energy);
         }
     }
 }
