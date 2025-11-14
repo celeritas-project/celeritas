@@ -53,6 +53,11 @@ inline std::string logic_to_string(std::vector<logic_int> const& logic)
  */
 std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix);
 
+/*!
+ * Convert an infix logic expression to a postfix expression.
+ */
+std::vector<logic_int> convert_to_postfix(Span<logic_int const> infix);
+
 //---------------------------------------------------------------------------//
 /*!
  * Build a logic definition from a C string.
