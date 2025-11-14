@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
@@ -37,7 +38,7 @@ inline constexpr UnivId orange_global_univ{0};
 inline constexpr UnivLevelId orange_global_univ_level{0};
 
 //! Logic notation used for boolean expressions
-inline constexpr auto orange_tracking_logic()
+CELER_FUNCTION inline constexpr auto orange_tracking_logic()
 {
     return LogicNotation::postfix;
 }
