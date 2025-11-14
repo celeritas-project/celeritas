@@ -41,7 +41,7 @@ TEST(NotationConverter, basic)
         auto infix_expr = postfix_to_infix(postfix);
         EXPECT_EQ(logic_to_string(infix_expr), infix);
         auto postfix_expr = infix_to_postfix(infix_expr);
-        EXPECT_EQ(postfix_expr, string_to_logic(postfix.data()));
+        EXPECT_EQ(logic_to_string(postfix_expr), postfix);
     };
 
     round_trip("0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & ~",
