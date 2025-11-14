@@ -11,6 +11,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
@@ -98,31 +99,30 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
         ScintRecord scint;
         scint.rise_time = comp.rise_time;
         scint.fall_time = comp.fall_time;
-
-        if (!comp.energy.empty())
+        if (comp.spectrum)
         {
             inp::Grid grid;
-            grid.x = comp.energy;
+            grid.x = comp.spectrum.x;
             grid.y.resize(grid.x.size());
             SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
 
-            integrate_emission(make_span(comp.energy),
-                               make_span(comp.intensity),
+            integrate_emission(make_span(comp.spectrum.x),
+                               make_span(comp.spectrum.y),
                                make_span(grid.y));
             normalize_cdf(make_span(grid.y));
             scint.energy_cdf = insert_energy_cdf(grid);
         }
         else
         {
-            CELER_VALIDATE(comp.lambda_mean > 0,
-                           << "invalid lambda_mean=" << comp.lambda_mean
+            CELER_VALIDATE(comp.gauss.lambda_mean > 0,
+                           << "invalid lambda_mean=" << comp.gauss.lambda_mean
                            << " for scintillation component (should be "
                               "positive)");
-            CELER_VALIDATE(comp.lambda_sigma > 0,
-                           << "invalid lambda_sigma=" << comp.lambda_sigma
+            CELER_VALIDATE(comp.gauss.lambda_sigma > 0,
+                           << "invalid lambda_sigma=" << comp.gauss.lambda_sigma
                            << " (should be positive)");
-            scint.lambda_mean = comp.lambda_mean;
-            scint.lambda_sigma = comp.lambda_sigma;
+            scint.lambda_mean = comp.gauss.lambda_mean;
+            scint.lambda_sigma = comp.gauss.lambda_sigma;
         }
         scint_records_.push_back(scint);
         yield_pdf.push_back(comp.yield_frac);
