@@ -122,7 +122,7 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     {
         auto cub_error_code = cub::DeviceTransform::Transform(
-            data, flags.data(), status.size(), IsVacant{}, stream.get();
+            data, flags.data(), status.size(), IsVacant{}, stream.get());
         CELER_DISCARD(cub_error_code);
     }
 #        else
