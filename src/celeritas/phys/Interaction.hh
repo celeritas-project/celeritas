@@ -34,9 +34,9 @@ struct Interaction
     {
         scattered,  //!< Still alive, state has changed
         absorbed,  //!< Absorbed or transformed to another particle type
+        onloaded,  //!< Transfer interaction to the host
         unchanged,  //!< No state change, no secondaries
         failed,  //!< Ran out of memory during sampling
-        onloaded,  //!< Transfer interaction to the host
     };
 
     units::MevEnergy energy;  //!< Post-interaction energy
