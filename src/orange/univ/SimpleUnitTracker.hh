@@ -15,10 +15,10 @@
 #include "orange/detail/BIHEnclosingVolFinder.hh"
 #include "orange/detail/BIHIntersectingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
-#include "orange/univ/detail/InfixEvaluator.hh"
-#include "orange/univ/detail/LogicEvaluator.hh"
 
+#include "detail/InfixEvaluator.hh"
 #include "detail/LazySenseCalculator.hh"
+#include "detail/LogicEvaluator.hh"
 #include "detail/SurfaceFunctors.hh"
 #include "detail/Types.hh"
 #include "detail/Utils.hh"
