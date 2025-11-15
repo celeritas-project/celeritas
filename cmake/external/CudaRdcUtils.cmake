@@ -528,13 +528,11 @@ function(cuda_rdc_add_library target)
     EXPORT_PROPERTIES "CUDA_RUNTIME_LIBRARY;CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
   )
 
-  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    if(CUDA_RDC_LINKER_SUPPORTS_ALLOW_SHLIB_UNDEFINED)
-      target_link_options(${target} PRIVATE LINKER:--allow-shlib-undefined)
-    endif()
-    if(CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)
-      target_link_options(${target} PRIVATE LINKER:-z,undefs)
-    endif()
+  if(CUDA_RDC_LINKER_SUPPORTS_ALLOW_SHLIB_UNDEFINED)
+    target_link_options(${target} PRIVATE LINKER:--allow-shlib-undefined)
+  endif()
+  if(CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)
+    target_link_options(${target} PRIVATE LINKER:-z,undefs)
   endif()
 
   ## STATIC ##
