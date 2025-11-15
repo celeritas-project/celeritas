@@ -139,6 +139,8 @@ class BadGeometryTest : public InvalidOrangeTestBase
         result.params = this->core();
         result.stream_id = StreamId{0};
         result.num_track_slots = 1;
+        result.actions = std::make_shared<ActionSequence>(
+            *this->action_reg(), ActionSequence::Options{});
         return result;
     }
 

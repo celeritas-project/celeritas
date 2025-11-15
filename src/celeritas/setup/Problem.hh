@@ -22,6 +22,7 @@ namespace optical
 class Transporter;
 }  // namespace optical
 
+class ActionSequence;
 class CoreParams;
 class GeantSd;
 class OpticalCollector;
@@ -51,6 +52,8 @@ struct ProblemLoaded
     std::shared_ptr<GeantSd> geant_sd;
     //! ROOT file manager
     std::shared_ptr<RootFileManager> root_manager;
+    //! Action sequence
+    std::shared_ptr<ActionSequence> actions;
 
     //!@}
 

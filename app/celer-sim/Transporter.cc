@@ -74,7 +74,7 @@ Transporter<M>::Transporter(TransporterInput inp)
     StepperInput step_input;
     step_input.params = inp.params;
     step_input.stream_id = inp.stream_id;
-    step_input.action_times = inp.action_times;
+    step_input.actions = inp.actions;
     stepper_ = std::make_shared<Stepper<M>>(std::move(step_input));
 }
 
@@ -248,8 +248,6 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 //---------------------------------------------------------------------------//
 /*!
  * Merge times across all threads.
- *
- * \todo Action times are to be refactored as aux data.
  */
 template<MemSpace M>
 void Transporter<M>::accum_action_times(MapStrDouble* result) const
@@ -258,26 +256,21 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
     // synchronization is enabled
     auto const& step = *stepper_;
     auto const& action_seq = step.actions();
-    if (action_seq.action_times())
+
+    auto times = action_seq.get_action_times(step.state().aux());
+    for (auto&& [label, time] : times)
     {
-        auto const& action_ptrs = action_seq.actions().step();
-        auto const& times = action_seq.accum_time();
+        (*result)[label] += time;
+    }
 
-        CELER_ASSERT(action_ptrs.size() == times.size());
-        for (auto i : range(action_ptrs.size()))
+    if (optical_)
+    {
+        // Save optical loop action times
+        auto optical_times = optical_->get_action_times(step.state().aux());
+        for (auto&& [label, time] : optical_times)
         {
-            (*result)[std::string{action_ptrs[i]->label()}] += times[i];
-        }
-
-        if (optical_)
-        {
-            // Save optical loop action times
-            auto optical_times = optical_->get_action_times(step.state().aux());
-            for (auto&& [label, time] : optical_times)
-            {
-                // Prefix label to distinguish from core actions
-                (*result)["optical::" + label] += time;
-            }
+            // Prefix label to distinguish from core actions
+            (*result)["optical::" + label] += time;
         }
     }
 }

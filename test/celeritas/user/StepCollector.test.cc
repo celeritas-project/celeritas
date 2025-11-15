@@ -205,6 +205,8 @@ TEST_F(KnSimpleLoopTestBase, multiple_interfaces)
         step_inp.params = this->core();
         step_inp.stream_id = StreamId{0};
         step_inp.num_track_slots = 2;
+        step_inp.actions = std::make_shared<ActionSequence>(
+            *this->action_reg(), ActionSequence::Options{});
 
         Stepper<MemSpace::host> step(step_inp);
 

@@ -333,17 +333,18 @@ if(CELERITAS_USE_CUDA)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   # NOTE: known broken up to 5.6; unknown after
-  if(CELERITAS_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
+  if(CELERITAS_DEVICE_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
     celeritas_error_incompatible_option(
       "HIP cannot build debug code (unhandled SGPR spill to memory)"
-      CELERITAS_DEBUG
+      CELERITAS_DEVICE_DEBUG
       OFF
     )
   endif()
-  find_library(ROCTX_LIBRARY roctx64)
-  if(ROCTX_LIBRARY)
-    set(CELERITAS_HAVE_ROCTX ON)
-  endif()
+  # Include the default ROCm installation path in the search
+  find_library(ROCTX_LIBRARY roctx64 PATHS /opt/rocm/lib)
+  celeritas_set_onoff(CELERITAS_HAVE_ROCTX ${ROCTX_LIBRARY})
+  find_file(HIPCUB hipcub_version.hpp PATHS /opt/rocm/include/hipcub)
+  celeritas_set_onoff(CELERITAS_HAVE_HIPCUB ${HIPCUB})
 endif()
 
 if(CELERITAS_USE_CUDA)
