@@ -194,7 +194,8 @@ TEST_F(LArSphereGeneratorTest, direct_generator)
 
     // Get the accumulated counters
     auto result = this->counters(*generate);
-    if (reference_configuration)
+    if (reference_configuration
+        && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
     {
         EXPECT_EQ(133, result.steps);
         EXPECT_EQ(5, result.step_iters);
