@@ -22,7 +22,7 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Predicate for sorting charged from neutral tracks with a stencil
+//! Predicate for separating charged from neutral tracks with a stencil
 struct IsNeutralStencil
 {
     using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;

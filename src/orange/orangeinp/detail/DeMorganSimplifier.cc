@@ -261,7 +261,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         }
     }
 
-    // set the volumes in the simplified tree by checking the translation map
+    // Set the volumes in the simplified tree by checking the translation map
     for (auto volume : tree_.volumes())
     {
         // Volumes should be kept, so we must have an equivalent node in the

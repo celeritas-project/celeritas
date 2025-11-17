@@ -19,8 +19,14 @@
 #    include <G4Backtrace.hh>
 #endif
 
+#ifdef _OPENMP
+#    include <omp.h>
+#endif
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 
 namespace celeritas
 {
@@ -90,6 +96,48 @@ int get_geant_thread_id()
         return G4Threading::G4GetThreadId();
     }
     return 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Validate the thread ID and threading model.
+ */
+void validate_geant_threading(size_type num_streams)
+{
+    auto thread_id = get_geant_thread_id();
+    CELER_VALIDATE(thread_id >= 0,
+                   << "Geant4 ThreadID (" << thread_id
+                   << ") is invalid (perhaps local offload is being built "
+                      "on a non-worker thread?)");
+    CELER_VALIDATE(static_cast<size_type>(thread_id) < num_streams,
+                   << "Geant4 ThreadID (" << thread_id
+                   << ") is out of range for the reported number of worker "
+                      "threads ("
+                   << num_streams << ")");
+
+    // Check that OpenMP and Geant4 threading models don't collide
+    if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
+        && G4Threading::IsMultithreadedApplication())
+    {
+        auto msg = CELER_LOG(warning);
+        msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
+               "parallelism";
+        if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
+            !nt_str.empty())
+        {
+            msg << "(OMP_NUM_THREADS=" << nt_str
+                << "): CPU threads may be oversubscribed";
+        }
+        else
+        {
+            msg << ": forcing 1 Celeritas thread to Geant4 thread";
+#ifdef _OPENMP
+            omp_set_num_threads(1);
+#else
+            CELER_ASSERT_UNREACHABLE();
+#endif
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

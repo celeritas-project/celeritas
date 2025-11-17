@@ -24,8 +24,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: 84476f6f35ee367a3c8c4247edcde66441cee5e6 # ci @ 12 May 2025
-
+  SPACK_REF: 760ccc43172ac3bf0d9a07b156f7b1f44c743677 # ci @ 11 Oct 2025
 
 jobs:
   spack:
@@ -114,7 +113,7 @@ jobs:
       ### ENVIRONMENT ###
 
       - name: Check out Spack
-        uses: sethrj/setup-spack@200141be54665bd75af4dbb131d08d24ea606a9c
+        uses: spack/setup-spack@b01309596568e0f36df3e38124601ed3327871ed
         with:
           repository: celeritas-project/spack
           ref: ${{env.SPACK_REF}}
@@ -126,11 +125,9 @@ jobs:
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
             scripts/ci/spack.yaml > spack.yaml
           if ${{matrix.geometry == 'vecgeom'}}; then
-            spack -e . add vecgeom@1.2.10:1+gdml
-          elif ${{matrix.geometry == 'vecgeom2'}}; then
-            spack -e . add vecgeom@2.0.0-surfacedev.2~surface+gdml
+            spack -e . add vecgeom@1.2.11:1+gdml
           elif ${{matrix.geometry == 'vgsurf'}}; then
-            spack -e . add vecgeom@2.0.0-surfacedev.2+surface+gdml
+            spack -e . add vecgeom@2.0.0-rc.7+surface+gdml
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
@@ -145,7 +142,7 @@ jobs:
                  || matrix.geometry == 'vecgeom2'
                  || matrix.geometry == 'vgsurf')
                 && matrix.geant != ''}}; then
-            spack -e . add g4vg@1.0.4
+            spack -e . add g4vg@1.0.5
           fi
           spack -vd -e . compiler find --mixed-toolchain
           # Add the spack ref so that updating spack will reconcretize
@@ -278,21 +275,20 @@ jobs:
             matrix.special != 'tidy'
             && matrix.special != 'static'
           }}
-        continue-on-error: >- # TODO: fix failing tests
-          ${{
-               matrix.geometry == 'vgsurf'
-            || matrix.geometry == 'vecgeom2'
-          }}
         run: |
           if ${{matrix.geant == '11.3'
                 && matrix.geometry != 'vecgeom2'}}; then
             # Note this is ignored for non-primary geometry implementations
             export CELER_TEST_STRICT=1
           fi
+          # Increase timeout for code coverage
           # Only run integration-level tests for old Geant4
           ctest --preset=spack-unit ${{
-            matrix.geant
-            && fromJSON(matrix.geant) < 11
+            matrix.special == 'codecov'
+            && '--timeout 60'
+            || ''
+          }} ${{
+            matrix.geant && fromJSON(matrix.geant) < 11
             && '-R "^accel/"'
             || ''
           }}
@@ -313,8 +309,6 @@ jobs:
             always()
             && (steps.unittest.outcome == 'success'
                 || steps.unittest.outcome == 'failure')
-            && !(matrix.geometry == 'vgsurf'
-                 || matrix.geometry == 'vecgeom2')
           }}
         with:
           name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}

@@ -51,7 +51,7 @@ using VolumeId = OpaqueId<struct Volume_, unsigned int>;
 //! Identifier for an instance of a geometry volume (aka physical/placed)
 using VolumeInstanceId = OpaqueId<struct VolumeInstance_, unsigned int>;
 
-//! Type-safe depth in the volume graph (zero for world)
+//! Type-safe depth in the canonical volume graph (zero for world)
 using VolumeLevelId = OpaqueId<struct VolumeLevel_, unsigned int>;
 
 //! Identifier for a unique volume in global space (aka touchable)
@@ -62,7 +62,7 @@ using VolumeUniqueInstanceId = OpaqueId<struct VolumeInstance_, ull_int>;
 //! \name Geometry-specific implementation details
 
 //! Implementation detail surface (for surface-based geometries)
-using ImplSurfaceId = OpaqueId<struct Surface_>;
+using ImplSurfaceId = OpaqueId<struct ImplSurface_>;
 
 //! Implementation detail: "global" volume index internal to a geometry
 using ImplVolumeId = OpaqueId<struct ImplVolumeId_>;
@@ -127,16 +127,15 @@ struct Propagation
 CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer() = default;
 
 //! Construct with an invalid parent ID
-CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 pos, Real3 dir)
-    : GeoTrackInitializer(pos, dir, {})
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d)
+    : GeoTrackInitializer(p, d, {})
 {
 }
 
 //! Construct with position, direction, and parent ID
-CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 pos,
-                                                        Real3 dir,
-                                                        TrackSlotId parent)
-    : pos(pos), dir(dir), parent(parent)
+CELER_FUNCTION
+GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d, TrackSlotId p_id)
+    : pos(p), dir(d), parent(p_id)
 {
 }
 

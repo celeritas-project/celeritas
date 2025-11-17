@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access data about a single volume.
+ * Access data about a single implementation volume.
  *
  * A volume is a CSG tree of surfaces. The sorted, unique surface IDs
  * comprising the volume are "faces" and can be indexed as part of this volume
@@ -129,7 +129,7 @@ CELER_FUNCTION LocalSurfaceId VolumeView::get_surface(FaceId id) const
  *   the face ID, which is just the index of the surface ID in the list of
  *   local faces.
  * - If the given surface is not present in the volume, the result will be
- * false.
+ *   false.
  *
  * This is an O(log(num_faces)) operation.
  */

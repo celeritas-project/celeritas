@@ -61,7 +61,7 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
     // empty slots in the track vector and the number of track initializers
     size_type num_new_tracks
         = std::min(counters.num_vacancies, counters.num_initializers);
-    if (num_new_tracks > 0 || core_state.warming_up())
+    if (num_new_tracks > 0)
     {
         if (core_params.init()->track_order() == TrackOrder::init_charge)
         {

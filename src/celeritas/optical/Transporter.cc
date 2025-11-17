@@ -13,6 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/Stopwatch.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "CoreParams.hh"
@@ -26,12 +27,11 @@ namespace optical
 /*!
  * Construct with problem parameters.
  */
-Transporter::Transporter(Input&& inp)
-    : params_(std::move(inp.params)), max_step_iters_(inp.max_step_iters)
+Transporter::Transporter(Input&& inp) : data_(std::move(inp))
 {
-    CELER_EXPECT(params_);
+    CELER_EXPECT(data_.params);
 
-    actions_ = std::make_shared<ActionGroupsT>(*params_->action_reg());
+    actions_ = std::make_shared<ActionGroupsT>(*this->params()->action_reg());
 }
 
 //---------------------------------------------------------------------------//
@@ -65,6 +65,13 @@ void Transporter::transport_impl(CoreState<M>& state) const
 
     auto const& counters = state.counters();
 
+    // Store a pointer to aux data for timing results
+    std::vector<double>* accum_time = nullptr;
+    if (data_.action_times)
+    {
+        accum_time = &data_.action_times->state(*state.aux()).accum_time;
+    }
+
     // Loop while photons are yet to be tracked
     while (counters.num_pending > 0 || counters.num_alive > 0)
     {
@@ -73,14 +80,23 @@ void Transporter::transport_impl(CoreState<M>& state) const
         for (auto const& action : actions_->step())
         {
             ScopedProfiling profile_this{action->label()};
-            action->step(*params_, state);
+            Stopwatch get_time;
+            action->step(*this->params(), state);
+            if (accum_time)
+            {
+                if (M == MemSpace::device)
+                {
+                    device().stream(state.stream_id()).sync();
+                }
+                (*accum_time)[action->action_id().get()] += get_time();
+            }
         }
 
         num_steps += counters.num_active;
-        if (CELER_UNLIKELY(++num_step_iters == max_step_iters_))
+        if (CELER_UNLIKELY(++num_step_iters == data_.max_step_iters))
         {
             CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << max_step_iters_
+                << "Exceeded step count of " << data_.max_step_iters
                 << ": aborting optical transport loop with "
                 << counters.num_generated << " generated tracks, "
                 << counters.num_active << " active tracks, "
@@ -88,7 +104,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
                 << counters.num_vacancies << " vacancies, and "
                 << counters.num_pending << " queued";
 
-            params_->gen_reg()->reset(*state.aux());
+            this->params()->gen_reg()->reset(*state.aux());
             state.reset();
             break;
         }
@@ -98,6 +114,19 @@ void Transporter::transport_impl(CoreState<M>& state) const
     state.accum().steps += num_steps;
     state.accum().step_iters += num_step_iters;
     ++state.accum().flushes;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated action times.
+ */
+auto Transporter::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
+{
+    if (data_.action_times)
+    {
+        return data_.action_times->get_action_times(aux);
+    }
+    return {};
 }
 
 //---------------------------------------------------------------------------//

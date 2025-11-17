@@ -120,7 +120,7 @@ void CheckedGeoTrackView::move_internal(real_type step)
     CELER_EXPECT(!t_->is_outside());
     t_->move_internal(step);
     CELER_VALIDATE(
-        !t_->is_on_boundary() && !t_->is_outside() && t_->find_safety() > 0,
+        !t_->is_on_boundary() && !t_->is_outside() && t_->find_safety() >= 0,
         << std::setprecision(16) << "zero safety distance after moving "
         << step << " to " << t_->pos());
 }

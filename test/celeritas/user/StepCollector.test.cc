@@ -205,6 +205,8 @@ TEST_F(KnSimpleLoopTestBase, multiple_interfaces)
         step_inp.params = this->core();
         step_inp.stream_id = StreamId{0};
         step_inp.num_track_slots = 2;
+        step_inp.actions = std::make_shared<ActionSequence>(
+            *this->action_reg(), ActionSequence::Options{});
 
         Stepper<MemSpace::host> step(step_inp);
 
@@ -456,11 +458,6 @@ TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
 
 TEST_F(TestMultiEm3InstanceCaloTest, step_host)
 {
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        GTEST_SKIP() << "ORANGE currently does not return physical volume IDs";
-    }
-
     auto result = this->run<MemSpace::host>(128, 256);
 
     auto iter = std::find(result.instance.begin(),
@@ -471,11 +468,6 @@ TEST_F(TestMultiEm3InstanceCaloTest, step_host)
 
 TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
 {
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        GTEST_SKIP() << "ORANGE currently does not return physical volume IDs";
-    }
-
     auto result = this->run<MemSpace::device>(1024, 32);
 
     auto iter = std::find(result.instance.begin(),

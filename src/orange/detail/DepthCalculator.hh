@@ -21,6 +21,8 @@ namespace detail
 /*!
  * Calculate the maximum number of levels deep in a geometry.
  *
+ * This is at least 1, and at most num_universes.
+ *
  * \todo Replace with VolumeVisitor? Rename UnivDepthCalculator?
  */
 class DepthCalculator

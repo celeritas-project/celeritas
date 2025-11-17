@@ -1,14 +1,13 @@
 spack:
   specs:
-    - adios2
     - cli11
-    - "covfie@0.14:"
+    # - "covfie@0.14:" #TODO: uncomment when upgrading spack
     - cmake
     - "geant4@11.0"
     - git
     - "googletest@1.10:"
     - hepmc3
-    - mpi
+      #- mpi #TODO: uncomment when upgrading
     - ninja
     - nlohmann-json
     - "python@3.6:"
@@ -16,7 +15,7 @@ spack:
     unify: true
   compilers:
     - compiler:
-        spec: rocmcc@=6.3.1
+        spec: rocmcc@=7.1.0
         paths:
           cc: /opt/rocm/llvm/bin/clang
           cxx: /opt/rocm/llvm/bin/clang++
@@ -29,15 +28,19 @@ spack:
   packages:
     rocrand:
       externals:
-      - spec: rocrand@6.3.1
+      - spec: rocrand@7.1.0
         prefix: /opt/rocm
     hiprand:
       externals:
-      - spec: hiprand@6.3.1
+      - spec: hiprand@7.1.0
         prefix: /opt/rocm
     rocthrust:
       externals:
-      - spec: rocthrust@6.3.1
+      - spec: rocthrust@7.1.0
+        prefix: /opt/rocm
+    hipcub:
+      externals:
+      - spec: hipcub@7.1.0
         prefix: /opt/rocm
     all:
       target:
@@ -45,7 +48,7 @@ spack:
       # MI250x, see https://llvm.org/docs/AMDGPUUsage.html
       #variants: +rocm amdgpu_target=gfx90a cxxstd=17
       variants: cxxstd=17
-      compiler: ["rocmcc@6.3.1"]
+      compiler: ["rocmcc@7.1.0"]
     root:
       variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=17
   config:

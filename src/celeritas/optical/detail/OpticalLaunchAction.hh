@@ -15,6 +15,7 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/user/ActionTimes.hh"
 
 #include "../Model.hh"
 
@@ -46,6 +47,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
   public:
     //!@{
     //! \name Type aliases
+    using SPActionTimes = std::shared_ptr<ActionTimes>;
     using SPOpticalParams = std::shared_ptr<optical::CoreParams>;
     //!@}
 
@@ -55,6 +57,7 @@ class OpticalLaunchAction : public AuxParamsInterface,
         size_type num_track_slots{};
         size_type max_step_iters{numeric_limits<size_type>::max()};
         size_type auto_flush{};
+        SPActionTimes action_times;
 
         //! True if all input is assigned and valid
         explicit operator bool() const
