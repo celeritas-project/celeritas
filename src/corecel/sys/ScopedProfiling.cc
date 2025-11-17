@@ -28,7 +28,7 @@ namespace celeritas
  */
 bool ScopedProfiling::enabled()
 {
-    static bool const result = [] {
+    static bool const enabled_ = [] {
         auto result = celeritas::getenv_flag("CELER_ENABLE_PROFILING", false);
         if (result.value)
         {
@@ -64,7 +64,7 @@ bool ScopedProfiling::enabled()
             << " performance profiling";
         return result.value;
     }();
-    return result;
+    return enabled_;
 }
 
 #if CELERITAS_USE_PERFETTO

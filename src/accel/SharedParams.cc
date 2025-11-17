@@ -65,6 +65,7 @@
 #include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -282,9 +283,9 @@ SharedParams::SharedParams(SetupOptions const& options)
     if (mode_ == Mode::enabled || mode_ == Mode::kill_offload)
     {
         // Set up offloaded particles based on user input
-        auto const& user_offload = options.offload_particles;
-        offload_particles_ = user_offload.empty() ? default_offload_particles()
-                                                  : user_offload;
+        offload_particles_ = options.offload_particles
+                                 ? *options.offload_particles
+                                 : default_offload_particles();
     }
 
     if (mode_ != Mode::enabled)
@@ -325,9 +326,32 @@ SharedParams::SharedParams(SetupOptions const& options)
     auto framework_inp = to_inp(options);
     auto loaded = setup::framework_input(framework_inp);
     params_ = std::move(loaded.problem.core_params);
-    optical_ = std::move(loaded.problem.optical_collector);
-    output_filename_ = loaded.problem.output_file;
     CELER_ASSERT(params_);
+    output_filename_ = loaded.problem.output_file;
+
+    if (auto const& opt = options.optical)
+    {
+        if (std::holds_alternative<inp::OpticalOffloadGenerator>(opt->generator))
+        {
+            optical_transporter_
+                = std::move(loaded.problem.optical_transporter);
+            CELER_ASSERT(optical_transporter_);
+        }
+        else if (std::holds_alternative<inp::OpticalEmGenerator>(opt->generator))
+        {
+            optical_collector_ = std::move(loaded.problem.optical_collector);
+            CELER_ASSERT(optical_collector_);
+        }
+        else
+        {
+            CELER_VALIDATE(false,
+                           << "invalid optical photon generation mechanism");
+        }
+    }
+
+    // Save action sequence
+    actions_ = std::move(loaded.problem.actions);
+    CELER_ASSERT(actions_);
 
     // Load geant4 geometry adapter and save as "global"
     CELER_ASSERT(loaded.geo);

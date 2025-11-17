@@ -8,9 +8,6 @@ cmake_minimum_required(VERSION 3.18...4.1)
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
-set(CMAKE_USER_MAKE_RULES_OVERRIDE
-  "${CMAKE_CURRENT_LIST_DIR}/cmake/CeleritasMakeRulesOverride.cmake")
-
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -337,17 +334,18 @@ if(CELERITAS_USE_CUDA)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   # NOTE: known broken up to 5.6; unknown after
-  if(CELERITAS_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
+  if(CELERITAS_DEVICE_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
     celeritas_error_incompatible_option(
       "HIP cannot build debug code (unhandled SGPR spill to memory)"
-      CELERITAS_DEBUG
+      CELERITAS_DEVICE_DEBUG
       OFF
     )
   endif()
-  find_library(ROCTX_LIBRARY roctx64)
-  if(ROCTX_LIBRARY)
-    set(CELERITAS_HAVE_ROCTX ON)
-  endif()
+  # Include the default ROCm installation path in the search
+  find_library(ROCTX_LIBRARY roctx64 PATHS /opt/rocm/lib)
+  celeritas_set_onoff(CELERITAS_HAVE_ROCTX ${ROCTX_LIBRARY})
+  find_file(HIPCUB hipcub_version.hpp PATHS /opt/rocm/include/hipcub)
+  celeritas_set_onoff(CELERITAS_HAVE_HIPCUB ${HIPCUB})
 endif()
 
 if(CELERITAS_USE_CUDA)
@@ -525,10 +523,15 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 if(CELERITAS_BUILD_DOCS)
+  set(_prev_dot "${DOXYGEN_DOT_EXECUTABLE}")
   if(NOT Doxygen_FOUND)
-    find_package(Doxygen)
+    find_package(Doxygen COMPONENTS doxygen dot)
   endif()
-  if(NOT Doxygen_FOUND)
+  if(NOT DEFINED Doxygen_doxygen_FOUND)
+    # Backward compatibility or caller package doesn't specify components
+    set(Doxygen_doxygen_FOUND ${Doxygen_FOUND})
+  endif()
+  if(NOT Doxygen_doxygen_FOUND)
     celeritas_error_incompatible_option(
       "Doxygen is required for building documentation but was not found"
       CELERITAS_BUILD_DOCS
@@ -549,12 +552,14 @@ if(CELERITAS_BUILD_DOCS)
     endif()
   endif()
 
-  set(_prev_mmdc "${MMDC_EXECUTABLE}")
-  find_program(MMDC_EXECUTABLE mmdc)
-  if(MMDC_EXECUTABLE AND NOT _prev_mmdc)
-    message(STATUS "Found mmdc: ${MMDC_EXECUTABLE}")
-  elseif(_prev_mmdc STREQUAL "")
-    message(STATUS "Could NOT find mermaid generator `mmdc`")
+  if(NOT DOXYGEN_DOT_EXECUTABLE)
+    find_program(DOXYGEN_DOT_EXECUTABLE dot)
+  endif()
+  if(DOXYGEN_DOT_EXECUTABLE AND NOT _prev_dot)
+    message(STATUS "Found dot: ${DOXYGEN_DOT_EXECUTABLE}")
+  elseif(_prev_dot STREQUAL "")
+    # Note: use string comparison, not boolean, to avoid matching old "NOTFOUND"
+    message(STATUS "Could NOT find graphviz generator `dot`")
   endif()
 
   include(ExternalProject)

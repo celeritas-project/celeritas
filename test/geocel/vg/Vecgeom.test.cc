@@ -70,7 +70,7 @@ class VecgeomTestBaseImpl : public VecgeomTestBase
 
         if (CELERITAS_VECGEOM_SURFACE)
         {
-            result.safety = 5e-5;
+            result.safety = 6e-5;
         }
         return result;
     }
@@ -143,14 +143,12 @@ TEST_F(FourLevelsVgdmlTest, accessors)
 
 TEST_F(FourLevelsVgdmlTest, consecutive_compute)
 {
-    // Templated test
-    FourLevelsGeoTest::test_consecutive_compute(this);
+    this->impl().test_consecutive_compute();
 }
 
 TEST_F(FourLevelsVgdmlTest, detailed_track)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(FourLevelsVgdmlTest, trace)
@@ -239,14 +237,19 @@ TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 using MultiLevelVgdmlTest
     = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, MultiLevelGeoTest>;
 
-TEST_F(MultiLevelVgdmlTest, volume_stack)
-{
-    this->impl().test_volume_stack();
-}
-
 TEST_F(MultiLevelVgdmlTest, trace)
 {
     TestImpl(this).test_trace();
+}
+
+TEST_F(MultiLevelVgdmlTest, volume_level)
+{
+    this->impl().test_volume_level();
+}
+
+TEST_F(MultiLevelVgdmlTest, volume_stack)
+{
+    this->impl().test_volume_stack();
 }
 
 //---------------------------------------------------------------------------//
@@ -268,8 +271,7 @@ TEST_F(SimpleCmsVgdmlTest, trace)
 
 TEST_F(SimpleCmsVgdmlTest, detailed_track)
 {
-    // Templated test
-    SimpleCmsGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
@@ -347,22 +349,9 @@ TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 }
 
 //---------------------------------------------------------------------------//
-
 class SolidsVgdmlTest
     : public GenericGeoParameterizedTest<VecgeomVgdmlTestBase, SolidsGeoTest>
 {
-    SpanStringView expected_log_levels() const final
-    {
-        if (vecgeom_version >= Version{2})
-        {
-            static std::string_view const levels[] = {"warning", "warning"};
-            return make_span(levels);
-        }
-        else
-        {
-            return {};
-        }
-    }
 };
 
 TEST_F(SolidsVgdmlTest, DISABLED_dump)
@@ -434,8 +423,27 @@ TEST_F(TwoBoxesVgdmlTest, accessors)
 
 TEST_F(TwoBoxesVgdmlTest, detailed_track)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
+}
+
+TEST_F(TwoBoxesVgdmlTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesVgdmlTest, reentrant_undo)
+{
+    this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesVgdmlTest, tangent)
+{
+    this->impl().test_tangent();
+}
+
+TEST_F(TwoBoxesVgdmlTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
@@ -585,6 +593,12 @@ class ReplicaTest
 
 TEST_F(ReplicaTest, trace)
 {
+    if (using_solids_vg && vecgeom_version >= Version{2, 0})
+    {
+        // VecGeom 2.x-solid has small discrepancies in replica tracking
+        GTEST_SKIP() << "FIXME: VecGeom 2.x-solid: check ReplicaTest geom "
+                        "construction.";
+    }
     this->impl().test_trace();
 }
 

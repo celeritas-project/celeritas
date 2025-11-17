@@ -1,16 +1,25 @@
-//------------------------------- -*- C++ -*- -------------------------------//
+//------------------------------ -*- cuda -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/GeoParamsInterface.cc
+//! \file celeritas/em/model/GammaNuclearModel.cu
 //---------------------------------------------------------------------------//
-#include "GeoParamsInterface.hh"
+#include "GammaNuclearModel.hh"
+
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Default virtual destructor
-GeoParamsInterface::~GeoParamsInterface() = default;
+/*!
+ * Interact with device data.
+ */
+void GammaNuclearModel::step(CoreParams const& params,
+                             CoreStateDevice& state) const
+{
+    CELER_NOT_IMPLEMENTED("Gamma-nuclear interaction");
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

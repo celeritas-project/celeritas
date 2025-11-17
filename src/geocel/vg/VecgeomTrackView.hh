@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/base/Config.h>
-#include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Version.h>
+// NOTE: must include Global before most other vecgeom/veccore includes
+#include <VecGeom/base/Global.h>
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/volumes/LogicalVolume.h>
@@ -17,6 +17,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -29,10 +30,10 @@
 
 #if CELERITAS_VECGEOM_SURFACE
 #    include "detail/SurfNavigator.hh"
-#elif VECGEOM_VERSION >= 0x020000
-#    include <VecGeom/navigation/BVHNavigator.h>
-#else
+#elif CELERITAS_VECGEOM_VERSION < 0x020000
 #    include "detail/BVHNavigator.hh"
+#else
+#    include "detail/SolidsNavigator.hh"
 #endif
 
 namespace celeritas
@@ -61,12 +62,13 @@ class VecgeomTrackView
     using StateRef = NativeRef<VecgeomStateData>;
 #if CELERITAS_VECGEOM_SURFACE
     using Navigator = celeritas::detail::SurfNavigator;
-#elif VECGEOM_VERSION >= 0x020000
-    using Navigator = vecgeom::BVHNavigator;
-#else
+#elif CELERITAS_VECGEOM_VERSION < 0x020000
     using Navigator = celeritas::detail::BVHNavigator;
+#else
+    using Navigator = celeritas::detail::SolidsNavigator;
 #endif
     using ImplVolInstanceId = VecgeomPlacedVolumeId;
+    using real_type = vecgeom::Precision;
     //!@}
 
   public:
@@ -562,7 +564,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
                                             next_surface_,
                                             vgnext_);
         }
-#else
+#elif CELERITAS_VECGEOM_VERSION < 0x020000
         // Some navigators require an lvalue temp_pos
         auto temp_pos = detail::to_vector(this->pos_);
         Navigator::RelocateToNextVolume(

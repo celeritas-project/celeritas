@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
 
@@ -36,33 +39,6 @@ namespace celeritas
 /*!
  * Navigate through an ORANGE geometry on a single thread.
  *
- * Since the navigation relies on computationally expensive calls and must
- * ensure a consistent state between physical and logical boundaries, there is
- * an ordering followed by Celeritas' internal calls to each track's state.
- * Access (\c pos, \c dir, \c volume/surface/is_outside/is_on_boundary) is
- * valid at any time.
- *
- * The required ordering is:
- *
- * - Initialization, via the assignment operator
- * - Locating the boundary crossing along the current direction, \c
- *   find_next_step
- * - Locating the closest point on the boundary in any direction, \c
- *   find_safety
- * - Movement within a volume, not crossing a boundary: \c move_internal or \c
- *   move_to_boundary
- * - If on a boundary, logically moving to the adjacent volume ("relocation")
- *   with \c cross_boundary
- *
- * At any time, \c set_dir may be called, but then \c find_next_step must again
- * be called before any subsequent \c move or \c cross action above .
- *
- * The main point is that \c find_next_step depends on the current
- * straight-line direction, \c move_to_boundary and \c move_internal (with
- * a step length) depends on that distance, and
- * \c cross_boundary depends on being on the boundary with a knowledge of the
- * post-boundary state.
- *
  * The direction of \c normal is set to always point out of the volume the
  * track is currently in. On the boundary this is determined by the sense
  * of the track rather than its direction.
@@ -80,6 +56,7 @@ class OrangeTrackView
     using Initializer_t = GeoTrackInitializer;
     using LSA = LevelStateAccessor;
     using UniverseIndexer = detail::UniverseIndexer;
+    using real_type = ::celeritas::real_type;
     //!@}
 
   public:
@@ -287,7 +264,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     if (init.parent)
     {
         // Initialize from direction and copy of parent state
-        *this = {init.parent, init.dir};
+        *this = DetailedInitializer{init.parent, init.dir};
         CELER_ENSURE(this->pos() == init.pos);
         return *this;
     }
@@ -503,7 +480,24 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
  */
 CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
 {
-    CELER_NOT_IMPLEMENTED("canonical level");
+    CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(!params_.volume_instance_ids.empty());
+
+    vol_level_uint result = 0;
+    TrackerVisitor visit_tracker{params_};
+
+    // Loop over current universe path (different from canonical path)
+    for (auto ulev : range(this->univ_level() + 1))
+    {
+        // Add the local volume level: placement in the parent universe is
+        // handled by the local volume at that level, not the universe depth
+        auto lsa = this->make_lsa(ulev);
+        result += visit_tracker(
+            [vol = lsa.vol()](auto&& t) { return t.local_vol_level(vol); },
+            lsa.univ());
+    }
+
+    return VolumeLevelId{result};
 }
 
 //---------------------------------------------------------------------------//
@@ -514,8 +508,6 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
  * top-most volume ("world" or level zero) starts at index zero, and child
  * volumes have higher level IDs. Note that Geant4 uses the \em reverse
  * nomenclature.
- *
- * \todo Implement \c parent_impl_volumes in OrangeData.
  */
 CELER_FUNCTION void
 OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
@@ -523,10 +515,47 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->univ_level() < levels.size());
 
-    // To guard against errors and enable unit tests, we first make sure we're
-    // not going off the end. (If we are at the global level without correct
-    // instance information, then this will just return a null ID.)
-    CELER_NOT_IMPLEMENTED("canonical volume instance");
+    // Start writing backward from end of levels array
+    CELER_ASSERT(levels.size() > 0
+                 && levels.size()
+                        <= NumericLimits<VolumeLevelId::size_type>::max());
+    VolumeLevelId::size_type level_idx = levels.size();
+
+    // Loop over universes, local to global
+    auto ui = this->make_univ_indexer();
+    TrackerVisitor visit_tracker{params_};
+
+    using UnivLevelInt = std::make_signed_t<UnivLevelId::size_type>;
+    for (auto ulev_idx :
+         range<UnivLevelInt>(this->univ_level().get() + 1).step(-1))
+    {
+        auto lsa = this->make_lsa(id_cast<UnivLevelId>(ulev_idx));
+        auto const univ = lsa.univ();
+
+        // Initialize local volume from state
+        LocalVolumeId lv_id = lsa.vol();
+        // Loop over all local volumes that have local parents
+        do
+        {
+            ImplVolumeId impl_id = ui.global_volume(univ, lv_id);
+            if (auto vol_inst = params_.volume_instance_ids[impl_id])
+            {
+                // Save volume instance ID at this canonical level
+                CELER_ASSERT(level_idx != 0);
+                levels[--level_idx] = vol_inst;
+                // Update to parent level
+                lv_id = visit_tracker(
+                    [lv_id](auto&& t) { return t.local_parent(lv_id); }, univ);
+            }
+            else
+            {
+                // No volume instance at this level
+                break;
+            }
+        } while (lv_id);
+    }
+    // Input should have been resized to exactly match number of nested levels
+    CELER_ENSURE(level_idx == 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -578,7 +607,7 @@ CELER_FUNCTION Real3 OrangeTrackView::normal() const
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 {
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::reentrant))
+    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::entering))
     {
         // On a boundary, headed back in: next step is zero
         return {0, true};
@@ -604,7 +633,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 {
     CELER_EXPECT(max_step > 0);
 
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::reentrant))
+    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::entering))
     {
         // On a boundary, headed back in: next step is zero
         return {0, true};
@@ -629,7 +658,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
-    CELER_EXPECT(this->boundary() != BoundaryResult::reentrant);
+    CELER_EXPECT(this->boundary() != BoundaryResult::entering);
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->has_next_surface());
 
@@ -641,6 +670,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
         axpy(dist, lsa.dir(), &lsa.pos());
     }
 
+    this->boundary(BoundaryResult::entering);
     this->surface(this->next_surface_univ_level(), this->next_surf());
     this->clear_next();
 
@@ -715,11 +745,10 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::reentrant))
+    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::exiting))
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
-        this->boundary(BoundaryResult::exiting);
         return;
     }
 

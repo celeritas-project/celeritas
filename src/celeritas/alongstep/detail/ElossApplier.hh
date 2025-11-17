@@ -58,8 +58,8 @@ CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
     if (deposited > zero_quantity())
     {
         // Deposit energy loss
-        auto step = track.physics_step();
-        step.deposit_energy(deposited);
+        auto phys_step = track.physics_step();
+        phys_step.deposit_energy(deposited);
         particle.subtract_energy(deposited);
     }
 

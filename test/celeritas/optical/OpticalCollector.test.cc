@@ -37,6 +37,11 @@ namespace celeritas
 {
 namespace test
 {
+
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
@@ -65,12 +70,10 @@ class LArSphereOffloadTest : public LArSphereBase
     void SetUp() override
     {
         // Set default values
-        input_.optical_params = this->optical_params();
-        input_.cherenkov = this->cherenkov();
-        input_.scintillation = this->scintillation();
         input_.num_track_slots = 4096;
         input_.buffer_capacity = 512;
         input_.auto_flush = 4096;
+        params_ = this->optical_params_input();
     }
 
     SPConstAction build_along_step() override;
@@ -92,6 +95,7 @@ class LArSphereOffloadTest : public LArSphereBase
     units::MevEnergy primary_energy_{10.0};
 
     OpticalCollector::Input input_;
+    optical::CoreParams::Input params_;
     std::shared_ptr<OpticalCollector> collector_;
 };
 
@@ -122,15 +126,13 @@ auto LArSphereOffloadTest::build_along_step() -> SPConstAction
 void LArSphereOffloadTest::build_optical_collector()
 {
     OpticalCollector::Input inp = input_;
+    inp.optical_params
+        = std::make_shared<optical::CoreParams>(std::move(params_));
     collector_
         = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
 
     // Check accessors
     EXPECT_TRUE(collector_->optical_params());
-    EXPECT_EQ(static_cast<bool>(input_.cherenkov),
-              static_cast<bool>(collector_->cherenkov()));
-    EXPECT_EQ(static_cast<bool>(input_.scintillation),
-              static_cast<bool>(collector_->scintillation()));
 }
 
 //---------------------------------------------------------------------------//
@@ -182,6 +184,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     step_inp.params = this->core();
     step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_track_slots;
+    step_inp.actions = std::make_shared<ActionSequence>(
+        *this->action_reg(), ActionSequence::Options{});
     Stepper<M> step(step_inp);
     LogContextException log_context{this->output_reg().get()};
 
@@ -390,7 +394,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 
 TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 {
-    input_.scintillation = nullptr;
+    params_.scintillation = nullptr;
     input_.max_step_iters = 0;
     input_.num_track_slots = 4;
     this->build_optical_collector();
@@ -417,7 +421,7 @@ TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 
 TEST_F(LArSphereOffloadTest, scintillation_distributions)
 {
-    input_.cherenkov = nullptr;
+    params_.cherenkov = nullptr;
     input_.max_step_iters = 0;
     input_.num_track_slots = 4;
     this->build_optical_collector();
@@ -464,8 +468,10 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(121, result.accum.steps);
-        EXPECT_EQ(5, result.accum.step_iters);
+        constexpr unsigned int expected_steps = using_surface_vg ? 109 : 121;
+        constexpr unsigned int expected_step_iters = using_surface_vg ? 4 : 5;
+        EXPECT_EQ(expected_steps, result.accum.steps);
+        EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());
 
@@ -490,8 +496,10 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_SOFT_NEAR(25770, static_cast<double>(result.accum.steps), 1e-4);
-        EXPECT_EQ(3, result.accum.step_iters);
+        unsigned int expected_steps = using_surface_vg ? 23642 : 25770;
+        unsigned int expected_step_iters = using_surface_vg ? 1 : 3;
+        EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
+        EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());
 
@@ -527,7 +535,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(60, result.accum.step_iters);
+        constexpr int ref_steps = using_surface_vg ? 55 : 60;
+        EXPECT_EQ(ref_steps, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());
 

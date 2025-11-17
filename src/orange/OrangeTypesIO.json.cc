@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "OrangeTypesIO.json.hh"
 
+#include "corecel/io/StringEnumMapper.hh"
+#include "orange/OrangeTypes.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -44,6 +47,27 @@ void to_json(nlohmann::json& j, Tolerance<T> const& value)
 }
 
 template void to_json(nlohmann::json&, Tolerance<real_type> const&);
+
+//---------------------------------------------------------------------------//
+/*!
+ * Read logic notation.
+ */
+void from_json(nlohmann::json const& j, LogicNotation& value)
+{
+    static auto const from_string
+        = StringEnumMapper<LogicNotation>::from_cstring_func(to_cstring,
+                                                             "logic");
+    value = from_string(j.get<std::string>());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write logic notation.
+ */
+void to_json(nlohmann::json& j, LogicNotation const& value)
+{
+    j = std::string{to_cstring(value)};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
