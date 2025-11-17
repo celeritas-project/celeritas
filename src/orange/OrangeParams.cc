@@ -24,6 +24,7 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
+#include "orange/detail/LogicUtils.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
@@ -190,10 +191,13 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
+    host_data.scalars.logic = input.logic;
     host_data.scalars.num_univ_levels
         = detail::DepthCalculator{input.universes}();
     host_data.scalars.num_vol_levels = volumes_ ? volumes_->num_volume_levels()
                                                 : 0;
+
+    detail::convert_logic(input, orange_tracking_logic());
 
     // Insert all universes
     {

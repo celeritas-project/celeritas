@@ -29,6 +29,8 @@ class AuxParamsRegistry;
  * that invokes the sequence of step actions should be shared across threads,
  * the action times are stored as auxiliary data rather than locally in that
  * class.
+ *
+ * \todo Add an end-gather action to merge across states?
  */
 class ActionTimes : public AuxParamsInterface
 {

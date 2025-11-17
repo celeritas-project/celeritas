@@ -9,6 +9,7 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/io/JsonPimpl.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "OrangeInputIO.json.hh"  // IWYU pragma: keep
 #include "OrangeParams.hh"  // IWYU pragma: keep
@@ -47,6 +48,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_PAIR(data.scalars, max_intersections),
         OPO_PAIR(data.scalars, max_csg_levels),
         OPO_PAIR(data.scalars, tol),
+        OPO_PAIR(data.scalars, logic),
     };
 
     // Save sizes

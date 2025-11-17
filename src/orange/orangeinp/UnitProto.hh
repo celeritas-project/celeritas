@@ -13,6 +13,7 @@
 
 #include "corecel/OpaqueId.hh"
 #include "geocel/Types.hh"
+#include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -134,7 +135,8 @@ class UnitProto : public ProtoInterface
         //! For non-global units, assume inside the boundary
         bool remove_interior{true};
         //! Use DeMorgan's law to remove negated joins
-        bool remove_negated_join{false};
+        bool remove_negated_join{orange_tracking_logic()
+                                 == LogicNotation::infix};
 
         //!@}
 

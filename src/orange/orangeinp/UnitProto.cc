@@ -302,9 +302,10 @@ void UnitProto::build(ProtoBuilder& input) const
     {
         NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
-
         // Construct logic and faces with remapped surfaces
         auto&& [faces, logic] = detail::build_logic(
+            // always use postfix logic for unit input, post-processing to
+            // convert to tracking notation
             detail::PostfixBuildLogicPolicy{csg_unit.tree,
                                             sorted_local_surfaces},
             node_id);
@@ -607,7 +608,8 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
         remove_interior(result, this->label());
     }
 
-    if (input_.remove_negated_join)
+    if (orange_tracking_logic() == LogicNotation::infix
+        || input_.remove_negated_join)
     {
         remove_negated_join(result, this->label());
     }
