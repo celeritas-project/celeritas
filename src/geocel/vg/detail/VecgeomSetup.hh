@@ -7,8 +7,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-
-#include "VecgeomTypes.hh"
+#include "geocel/vg/VecgeomTypes.hh"
 
 #if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
 #    include <VecGeom/surfaces/BrepHelper.h>
@@ -21,7 +20,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 #if VECGEOM_VERSION >= 0x020000
-using CudaBVH_t = vecgeom::cuda::BVH<BvhPrecision>;
+using CudaBVH_t = vecgeom::cuda::BVH<vgbvh_real_type>;
 #else
 using CudaBVH_t = vecgeom::cuda::BVH;
 #endif

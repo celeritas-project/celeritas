@@ -237,7 +237,7 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
 
 //---------------------------------------------------------------------------//
 vecgeom::VPlacedVolume const&
-get_placed_volume(vecgeom::GeoManager const& geo, VecgeomPlacedVolumeId ivi_id)
+get_placed_volume(vecgeom::GeoManager const& geo, VgPlacedVolumeId ivi_id)
 {
     CELER_EXPECT(ivi_id);
 
@@ -583,7 +583,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         bbox_ = [&world] {
             // Calculate bounding box
             auto bbox_mgr = ABBoxManager_t::Instance();
-            vecgeom::Vector3D<real_type> lower, upper;
+            VgReal3 lower, upper;
             bbox_mgr.ComputeABBox(&world, &lower, &upper);
             return BBox{detail::to_array(lower), detail::to_array(upper)};
         }();
