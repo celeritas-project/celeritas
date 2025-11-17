@@ -144,8 +144,17 @@ struct TriviallyCopyable : std::is_trivially_copyable<T>
 {
 };
 
+//! True if a type can be copied from host/device without UB
 template<class T>
 constexpr inline bool TriviallyCopyable_v = TriviallyCopyable<T>::value;
+
+//! True if an object (functor) is compatible with kernel launchers
+template<class F>
+constexpr inline bool Launchable_v
+    = (TriviallyCopyable_v<F> || CELERITAS_USE_HIP
+       || CELER_COMPILER == CELER_COMPILER_CLANG)
+      && !std::is_pointer_v<F> && !std::is_reference_v<F>;
+
 //!@}
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
