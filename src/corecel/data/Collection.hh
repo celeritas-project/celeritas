@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -294,9 +296,9 @@ template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
     // rocrand states have nontrivial destructors
-    static_assert(std::is_trivially_copyable<T>::value || CELERITAS_USE_HIP,
+    static_assert(TriviallyCopyable_v<T>,
                   "Collection element is not trivially copyable");
-    static_assert(std::is_trivially_destructible<T>::value || CELERITAS_USE_HIP,
+    static_assert(TriviallyCopyable_v<T>,
                   "Collection element is not trivially destructible");
 
     using CollectionTraitsT = detail::CollectionTraits<T, W, M>;

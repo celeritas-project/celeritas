@@ -8,6 +8,7 @@
 
 #include <type_traits>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -47,7 +48,7 @@ class DeviceVector
 #if !CELERITAS_USE_HIP
     // rocrand states have nontrivial destructors, and some HIP integer types
     // are not trivially copyable
-    static_assert(std::is_trivially_copyable<T>::value,
+    static_assert(TriviallyCopyable_v<T>,
                   "DeviceVector element is not trivially copyable");
 
     static_assert(std::is_trivially_destructible<T>::value,
