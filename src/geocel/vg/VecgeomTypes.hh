@@ -55,22 +55,6 @@ using vgbvh_real_type = double;
 using VgPlacedVolumeId = OpaqueId<struct VecgeomPlacedVolume_,
                                   std::make_unsigned_t<VgPlacedVolumeInt>>;
 
-enum class VgBoundary : bool
-{
-    off,
-    on
-};
-
-CELER_CONSTEXPR_FUNCTION bool to_bool(VgBoundary b)
-{
-    return static_cast<bool>(b);
-}
-
-CELER_CONSTEXPR_FUNCTION VgBoundary to_vgboundary(bool b)
-{
-    return static_cast<VgBoundary>(b);
-}
-
 //---------------------------------------------------------------------------//
 // VOLUME/VECTOR TYPES
 //---------------------------------------------------------------------------//
