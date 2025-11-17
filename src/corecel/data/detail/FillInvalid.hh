@@ -21,40 +21,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<class T, class Enable = void>
-struct TrivialInvalidValueTraits
-{
-    static_assert(std::is_trivial<T>::value,
-                  "Cannot legally memset non-trivial types");
-    static T value()
-    {
-        T result;
-        std::memset(&result, 0xd0, sizeof(T));  // 4*b"\xf0\x9f\xa6\xa4".decode()
-        return result;
-    }
-};
-
-//---------------------------------------------------------------------------//
-template<class T>
-struct TrivialInvalidValueTraits<
-    T,
-    typename std::enable_if<std::is_arithmetic<T>::value>::type>
-{
-    static constexpr T value() { return std::numeric_limits<T>::max() / 2; }
-};
-
-template<class T, size_type N>
-struct TrivialInvalidValueTraits<Array<T, N>, void>
-{
-    static Array<T, N> value()
-    {
-        Array<T, N> result;
-        result.fill(TrivialInvalidValueTraits<T>::value());
-        return result;
-    }
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Return an 'invalid' value.
  *
