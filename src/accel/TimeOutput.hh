@@ -30,7 +30,7 @@ class TimeOutput final : public OutputInterface
   public:
     //!@{
     //! \name Type aliases
-    using MapStrReal = std::unordered_map<std::string, real_type>;
+    using MapStrDbl = std::unordered_map<std::string, double>;
     //!@}
 
   public:
@@ -49,24 +49,24 @@ class TimeOutput final : public OutputInterface
     //!@}
 
     // Record the accumulated action times
-    void RecordActionTime(MapStrReal&& time);
+    void RecordActionTime(MapStrDbl&& time);
 
     // Record the time for the event
-    void RecordEventTime(real_type time);
+    void RecordEventTime(double time);
 
     // Record the Celeritas setup time
-    void RecordSetupTime(real_type time);
+    void RecordSetupTime(double time);
 
     // Record the total time for the run
-    void RecordTotalTime(real_type time);
+    void RecordTotalTime(double time);
 
   private:
-    using VecReal = std::vector<real_type>;
+    using VecDbl = std::vector<double>;
 
-    std::vector<MapStrReal> action_time_;
-    std::vector<VecReal> event_time_;
-    real_type setup_time_;
-    real_type total_time_;
+    std::vector<MapStrDbl> action_time_;
+    std::vector<VecDbl> event_time_;
+    double setup_time_;
+    double total_time_;
 };
 
 //---------------------------------------------------------------------------//

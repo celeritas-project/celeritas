@@ -105,6 +105,9 @@ CELER_FUNCTION bool LogicEvaluator::operator()(F&& eval_sense) const
     return stack.top();
 }
 
+//! Alias explicitly naming the notation used
+using PostfixEvaluator = LogicEvaluator;
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

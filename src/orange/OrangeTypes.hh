@@ -64,7 +64,7 @@ using FastReal3 = Array<float, 3>;
 //! Local identifier for a surface within a universe
 using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
 
-//! Local identifier for a geometry volume within a universe
+//! Local identifier for an ImplVolume within a universe
 using LocalVolumeId = OpaqueId<struct LocalVolume_>;
 
 //! Identifier for an OrientedBoundingZone
@@ -80,9 +80,9 @@ using RectArrayId = OpaqueId<struct RectArrayRecord>;
 using TransformId = OpaqueId<struct TransformRecord>;
 
 //! Identifier for a relocatable set of volumes
-using UnivId = OpaqueId<struct Universe_>;
+using UnivId = OpaqueId<struct Univ_>;
 
-//! universe level, not necessarily canonical volume level
+//! Universe level, not necessarily canonical volume level
 using UnivLevelId = OpaqueId<struct UnivLevel_, vol_level_uint>;
 
 //// DEPRECATED ALIASES (to be removed in v1.0) ////
@@ -267,6 +267,15 @@ enum OperatorToken : logic_int
 }  // namespace logic
 
 //---------------------------------------------------------------------------//
+//! Defines the notation for logic expressions
+enum class LogicNotation
+{
+    postfix,
+    infix,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Masking priority.
  *
@@ -421,6 +430,9 @@ inline constexpr char to_char(OperatorToken tok)
     return is_operator_token(tok) ? "()|&~*"[tok - lbegin] : '\a';
 }
 }  // namespace logic
+
+// Get a string corresponding to a logic notation
+char const* to_cstring(LogicNotation);
 
 // Get a string corresponding to a z ordering
 char const* to_cstring(ZOrder);

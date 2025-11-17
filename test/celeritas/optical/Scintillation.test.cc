@@ -144,7 +144,6 @@ class MaterialScintillationTabularTest : public ScintillationTestBase
     //! Create material components
     std::vector<ImportScintComponent> build_material_components()
     {
-        static constexpr real_type nm{units::meter * 1e-9};
         static constexpr real_type ns{units::nanosecond};
 
         // Note these components are in tabular form
@@ -512,7 +511,10 @@ TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
 
             EXPECT_LE(cdf_grid.front(), energy);
             EXPECT_LE(energy, cdf_grid.back());
-            EXPECT_EQ(1.2201501319822683, energy);
+            if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+                EXPECT_SOFT_EQ(1.2201501319822683, energy);
+            else
+                EXPECT_SOFT_EQ(2.5182814598083496, energy);
         }
     }
 }

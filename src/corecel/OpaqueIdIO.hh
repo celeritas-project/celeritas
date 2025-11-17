@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/OpaqueIdIO.hh
+//! \todo guard for GPU and move into OpaqueId.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

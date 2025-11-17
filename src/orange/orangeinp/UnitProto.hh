@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
 #include <string_view>
 #include <variant>
 #include <vector>
 
+#include "corecel/OpaqueId.hh"
 #include "geocel/Types.hh"
+#include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -40,6 +43,19 @@ struct CsgUnit;
  *   "physical volume" in a GDML/Geant4 volume hierarchy.
  * - A "daughter" (aka \em hole in SCALE) is another unit that is transformed
  *   and placed into this universe.
+ *
+ * Additional metadata about the structure can be provided when converting
+ * Geant4 geometry. When building, labels are volume instance IDs: each
+ * material and daughter is a volume placement, and the background input uses
+ * an empty instance ID as a sentinel indicating a background volume is
+ * present. (Note the "background" is structurally a \em volume, not \em
+ * instance, since it is locally the top level of the geometry.)
+ * In addition to the labels, a special \c local_parent field denotes a
+ * structural relationship between one input object and another. These will be
+ * always set when building from Geant4 but never set when building from SCALE.
+ * The value is a null ID when the parent canonical volume is rendered as the
+ * background, or the index in the list of \c materials when the parent volume
+ * is \em inlined into this unit.
  */
 class UnitProto : public ProtoInterface
 {
@@ -49,6 +65,9 @@ class UnitProto : public ProtoInterface
     using Unit = detail::CsgUnit;
     using Tol = Tolerance<>;
     using VariantLabel = std::variant<Label, VolumeInstanceId>;
+    using MaterialInputId = OpaqueId<struct MaterialInput>;
+    using LocalParent = std::optional<MaterialInputId>;
+    //!@}
 
     //! Optional "background" inside of exterior, outside of all mat/daughter
     struct BackgroundInput
@@ -66,6 +85,8 @@ class UnitProto : public ProtoInterface
         SPConstObject interior;
         GeoMatId fill;
         VariantLabel label;
+        //! Mark this material as being structurally inside another local one
+        LocalParent local_parent;
 
         // True if fully defined
         explicit inline operator bool() const;
@@ -78,6 +99,9 @@ class UnitProto : public ProtoInterface
         VariantTransform transform;  //!< Daughter-to-parent
         ZOrder zorder{ZOrder::media};  //!< Overlap control
         VariantLabel label;  //!< Placement name
+
+        //! Mark this daughter as being inside another local volume
+        LocalParent local_parent;
 
         // True if fully defined
         explicit inline operator bool() const;
@@ -111,14 +135,14 @@ class UnitProto : public ProtoInterface
         //! For non-global units, assume inside the boundary
         bool remove_interior{true};
         //! Use DeMorgan's law to remove negated joins
-        bool remove_negated_join{false};
+        bool remove_negated_join{orange_tracking_logic()
+                                 == LogicNotation::infix};
 
         //!@}
 
         // True if fully defined
         explicit inline operator bool() const;
     };
-    //!@}
 
   public:
     // Construct with required input data
@@ -140,6 +164,11 @@ class UnitProto : public ProtoInterface
 
     // Write the proto to a JSON object
     void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Get the input, primarily for unit testing
+    Input const& input() const { return input_; }
 
     //// HELPER FUNCTIONS ////
 
