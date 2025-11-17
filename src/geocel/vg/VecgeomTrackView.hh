@@ -184,7 +184,6 @@ class VecgeomTrackView
 
     // Temporary data
     real_type next_step_{0};
-    VgBoundary temp_next_boundary_;  // Used only if surface model
 
     //// HELPER FUNCTIONS ////
 
@@ -223,16 +222,10 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     , state_(states)
     , tid_(tid)
 #if CELER_VGNAV == CELER_VGNAV_PATH
-    // Nav path holds direct references to state with unused "last state" as
-    // well
+    // Nav path holds direct references to state with unused "last state"
     , vgstate_{states.state[tid]}
     , vgnext_{states.next_state[tid]}
-#elif CELERITAS_VECGEOM_SURFACE
-    // Surface state uses temporary 'next' boundary to avoid redundancy
-    , vgstate_{states.state[tid], states.boundary[tid]}
-    , vgnext_{states.next_state[tid], temp_next_boundary_}
 #else
-    // Solid model without nav path
     , vgstate_{states.state[tid], states.boundary[tid]}
     , vgnext_{states.next_state[tid], states.next_boundary[tid]}
 #endif
@@ -242,10 +235,6 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
         next_surf_ = &states.next_surf[tid];
-    }
-    else
-    {
-        CELER_DISCARD(temp_next_boundary_);
     }
 }
 

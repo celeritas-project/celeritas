@@ -131,7 +131,7 @@ struct VecgeomStateData
     VgStateItems state;
     StateItems<VgBoundary> boundary;  // Empty if VGNAV=path
     VgStateItems next_state;  // TODO: prev_state
-    StateItems<VgBoundary> next_boundary;  // Empty if VGNAV=path or surface
+    StateItems<VgBoundary> next_boundary;  // Empty if VGNAV=path
 
     // Surface state
     StateItems<VgSurfaceInt> next_surf;  // Empty unless using surface model
@@ -147,9 +147,7 @@ struct VecgeomStateData
             && state.size() == pos.size()
             && boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
             && next_state.size() == pos.size()
-            && next_boundary.size() == (
-                CELER_VGNAV != CELER_VGNAV_PATH
-                && !CELERITAS_VECGEOM_SURFACE ? pos.size() : 0)
+            && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
             && next_surf.size() == (CELERITAS_VECGEOM_SURFACE ? pos.size() : 0);
         // clang-format on
     }
@@ -196,7 +194,7 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
         resize(&data->boundary, size);
     }
     resize(&data->next_state, size);
-    if constexpr (CELER_VGNAV != CELER_VGNAV_PATH && !CELERITAS_VECGEOM_SURFACE)
+    if constexpr (CELER_VGNAV != CELER_VGNAV_PATH)
     {
         // Path navigator stores the boundary, and surface model uses next_surf
         resize(&data->next_boundary, size);
