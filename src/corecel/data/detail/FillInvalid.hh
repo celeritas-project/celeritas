@@ -14,7 +14,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/random/ElementSelector.hh"
 
 namespace celeritas
 {
