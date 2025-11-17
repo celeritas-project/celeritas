@@ -19,11 +19,13 @@
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
+#include "celeritas/em/process/GammaNuclearProcess.hh"
 #include "celeritas/em/process/MuBremsstrahlungProcess.hh"
 #include "celeritas/em/process/MuIonizationProcess.hh"
 #include "celeritas/em/process/MuPairProductionProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
+#include "celeritas/io/GammaNuclearXsReader.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/neutron/process/NeutronElasticProcess.hh"
@@ -112,6 +114,7 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         {IPC::coulomb_scat, &ProcessBuilder::build_coulomb},
         {IPC::e_brems, &ProcessBuilder::build_ebrems},
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
+        {IPC::gamma_nuclear, &ProcessBuilder::build_gamma_nuclear},
         {IPC::mu_brems, &ProcessBuilder::build_mubrems},
         {IPC::mu_ioni, &ProcessBuilder::build_muioni},
         {IPC::mu_pair_prod, &ProcessBuilder::build_mupairprod},
@@ -153,6 +156,13 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
                                                    this->imported(),
                                                    data_.seltzer_berger,
                                                    options);
+}
+
+//---------------------------------------------------------------------------//
+auto ProcessBuilder::build_gamma_nuclear() -> SPProcess
+{
+    return std::make_shared<GammaNuclearProcess>(
+        this->particle(), this->material(), GammaNuclearXsReader());
 }
 
 //---------------------------------------------------------------------------//

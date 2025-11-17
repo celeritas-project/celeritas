@@ -114,6 +114,7 @@ class ProcessBuilder
     auto build_coulomb() -> SPProcess;
     auto build_ebrems() -> SPProcess;
     auto build_eioni() -> SPProcess;
+    auto build_gamma_nuclear() -> SPProcess;
     auto build_mubrems() -> SPProcess;
     auto build_muioni() -> SPProcess;
     auto build_mupairprod() -> SPProcess;

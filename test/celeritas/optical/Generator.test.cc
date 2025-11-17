@@ -19,6 +19,7 @@
 #include "celeritas/optical/CoreParams.hh"  // IWYU pragma: keep
 #include "celeritas/optical/CoreState.hh"  // IWYU pragma: keep
 #include "celeritas/optical/Transporter.hh"
+#include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/optical/gen/OffloadData.hh"
@@ -166,6 +167,46 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     EXPECT_EQ(0, gen.buffer_size);
     EXPECT_EQ(0, gen.num_pending);
     EXPECT_EQ(65536, gen.num_generated);
+}
+
+TEST_F(LArSphereGeneratorTest, direct_generator)
+{
+    // Create direct generator action
+    std::vector<optical::TrackInitializer> inits(
+        128,
+        optical::TrackInitializer{units::MevEnergy{1e-5},
+                                  Real3{0, 0, 0},
+                                  Real3{1, 0, 0},
+                                  Real3{0, 1, 0},
+                                  0,
+                                  ImplVolumeId{0}});
+    auto generate = optical::DirectGeneratorAction::make_and_insert(
+        *this->core(), *this->optical_params());
+
+    this->build_transporter();
+    this->build_state<MemSpace::host>(32);
+
+    // Queue primaries
+    generate->insert(*state_, make_span(inits));
+
+    // Launch the optical loop
+    (*transport_)(*state_);
+
+    // Get the accumulated counters
+    auto result = this->counters(*generate);
+    if (reference_configuration
+        && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
+    {
+        EXPECT_EQ(133, result.steps);
+        EXPECT_EQ(5, result.step_iters);
+    }
+    EXPECT_EQ(1, result.flushes);
+    ASSERT_EQ(1, result.generators.size());
+
+    auto const& gen = result.generators.front();
+    EXPECT_EQ(128, gen.buffer_size);
+    EXPECT_EQ(0, gen.num_pending);
+    EXPECT_EQ(128, gen.num_generated);
 }
 
 TEST_F(LArSphereGeneratorTest, generator)
