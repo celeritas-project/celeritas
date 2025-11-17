@@ -183,8 +183,8 @@ TEST_F(LArSphereGeneratorTest, direct_generator)
     auto generate = optical::DirectGeneratorAction::make_and_insert(
         *this->core(), *this->optical_params());
 
-    this->build_state<MemSpace::host>(32);
     this->build_transporter();
+    this->build_state<MemSpace::host>(32);
 
     // Queue primaries
     generate->insert(*state_, make_span(inits));
