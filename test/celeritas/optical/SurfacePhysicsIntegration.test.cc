@@ -196,18 +196,20 @@ class SurfacePhysicsIntegrationTest : public GeantTestBase
 
         // Default surface
 
-        size_type phys_surface{0};
-        for (auto const& mats : input.materials)
-        {
-            phys_surface += mats.size() + 1;
-        }
+        PhysSurfaceId phys_surface = [&] {
+            size_type num_surfaces = 0;
+            for (auto const& mats : input.materials)
+            {
+                num_surfaces += mats.size() + 1;
+            }
+            return PhysSurfaceId(num_surfaces);
+        }();
 
         input.materials.push_back({});
-        input.roughness.polished.emplace(PhysSurfaceId{phys_surface},
-                                         inp::NoRoughness{});
-        input.reflectivity.fresnel.emplace(PhysSurfaceId{phys_surface},
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
                                            inp::FresnelReflection{});
-        input.interaction.trivial.emplace(PhysSurfaceId{phys_surface},
+        input.interaction.trivial.emplace(phys_surface,
                                           TrivialInteractionMode::absorb);
 
         return std::make_shared<SurfacePhysicsParams>(
