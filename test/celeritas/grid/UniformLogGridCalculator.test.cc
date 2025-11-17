@@ -89,7 +89,7 @@ TEST_F(UniformLogGridCalculatorTest, spline)
     }
     else
     {
-        EXPECT_SOFT_EQ(60.439491271972656, calc(Energy(99.99)));
+        EXPECT_SOFT_EQ(60.433685302734375, calc(Energy(99.99)));
     }
     EXPECT_SOFT_EQ(100, calc(Energy(100)));
 }

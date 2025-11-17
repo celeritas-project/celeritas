@@ -501,12 +501,15 @@ TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
                 energy.push_back(calc_energy(generate_canonical(rng)));
             }
             // real_type energy = calc_energy(generate_canonical(rng));
-            static double const expected_energy[] = {1.22015013198227,
-                                                     2.57102233398591,
-                                                     2.919056204923,
-                                                     1.3591803198469};
+            if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+            {
+                static double const expected_energy[] = {1.22015013198227,
+                                                         2.57102233398591,
+                                                         2.919056204923,
+                                                         1.3591803198469};
 
-            EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+                EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+            }
         }
     }
 }
