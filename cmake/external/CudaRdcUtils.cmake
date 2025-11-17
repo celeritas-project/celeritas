@@ -137,7 +137,7 @@ relocatable device code and most importantly linking against those libraries.
 
 #]=======================================================================]
 
-set(_CUDA_RDC_VERSION 12)
+set(_CUDA_RDC_VERSION 13)
 if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
   # A newer version has already been loaded
   message(VERBOSE "Ignoring CUDA_RDC_VERSION ${_CUDA_RDC_VERSION}: "
@@ -202,6 +202,69 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 else()
   set(CMAKE_CXX_LINK_LIBRARY_USING_no_as_needed_SUPPORTED FALSE)
 endif()
+
+# Check if the compiler/linker supports -Wl,-z,undefs flag
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  include(CheckLinkerFlag)
+  check_linker_flag(CXX "LINKER:-z,undefs" CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)
+  if(CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)
+    message(VERBOSE "Linker supports \"-z undefs\" flag")
+  else()
+    message(VERBOSE "Linker does not support \"-z undefs\" flag")
+  endif()
+  check_linker_flag(CXX "LINKER:--allow-shlib-undefined" CUDA_RDC_LINKER_SUPPORTS_ALLOW_SHLIB_UNDEFINED)
+  if(CUDA_RDC_LINKER_SUPPORTS_ALLOW_SHLIB_UNDEFINED)
+    message(VERBOSE "Linker supports \"--allow-shlib-undefined\" flag")
+  else()
+    message(VERBOSE "Linker does not support \"--allow-shlib-undefined\" flag")
+  endif()
+endif()
+
+# On Linux, sanitize global shared linker flags to avoid enforcing no-undefined, which
+# conflicts with CUDA RDC split libraries (middle). This keeps builds compatible
+# when toolchains or parent projects inject these flags.
+
+# Helper macro to sanitize a linker flags variable
+# Remove common forms of no-undefined
+macro(_cuda_rdc_sanitize_linker_flags _var_name)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if(DEFINED ${_var_name} AND NOT ${_var_name} STREQUAL "")
+      # Store original value in a backup variable for potential restoration
+      set(_CUDA_RDC_ORIG_${_var_name} "${${_var_name}}")
+      set(_filtered_flags "${${_var_name}}")
+      # Remove common forms of no-undefined
+      string(REGEX REPLACE "(^|[ \t])-Wl,--no-undefined([ \t]|$)" " " _filtered_flags "${_filtered_flags}")
+      string(REGEX REPLACE "(^|[ \t])--no-undefined([ \t]|$)" " " _filtered_flags "${_filtered_flags}")
+      string(REGEX REPLACE "(^|[ \t])-Wl,-z,defs([ \t]|$)" " " _filtered_flags "${_filtered_flags}")
+      string(REGEX REPLACE "(^|[ \t])-z[ ,]defs([ \t]|$)" " " _filtered_flags "${_filtered_flags}")
+      # Also tolerate the misspelled form sometimes used (no-defined)
+      string(REGEX REPLACE "(^|[ \t])-Wl,--no-defined([ \t]|$)" " " _filtered_flags "${_filtered_flags}")
+      string(REGEX REPLACE "(^|[ \t])--no-defined([ \t]|$)" " " _filtered_flags "${_filtered_flags}")
+      # Normalize whitespace
+      string(REGEX REPLACE "[ \t]+" " " _filtered_flags "${_filtered_flags}")
+      string(STRIP "${_filtered_flags}" _filtered_flags)
+      if(NOT _filtered_flags STREQUAL "${_CUDA_RDC_ORIG_${_var_name}}")
+        # Update cache so the change persists if the flag was provided via cache/toolchain
+        set(${_var_name} "${_filtered_flags}" CACHE STRING "Linker flags updated by cuda_rdc function" FORCE)
+        message(WARNING "Sanitized ${_var_name}: '${_CUDA_RDC_ORIG_${_var_name}}' -> '${_filtered_flags}'")
+      endif()
+    endif()
+  endif()
+endmacro()
+
+# Function to sanitize all relevant shared linker flags
+function(cuda_rdc_sanitize_shared_linker_flags)
+  # Sanitize base shared linker flags
+  _cuda_rdc_sanitize_linker_flags(CMAKE_SHARED_LINKER_FLAGS)
+
+  # Sanitize current build type flags if defined
+  if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE STREQUAL "")
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" _build_type_upper)
+    _cuda_rdc_sanitize_linker_flags(CMAKE_SHARED_LINKER_FLAGS_${_build_type_upper})
+  endif()
+endfunction()
+
+
 
 ##############################################################################
 # Separate the OPTIONS out from the sources
@@ -442,6 +505,11 @@ function(cuda_rdc_add_library target)
 
   ## MIDDLE (main library) ##
 
+  # Remove no-undefined from shared linker flags
+  if(NOT CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)
+    cuda_rdc_sanitize_shared_linker_flags()
+  endif()
+
   add_library(${target} ${_lib_requested_type}
     $<TARGET_OBJECTS:${target}_objects>
   )
@@ -459,6 +527,13 @@ function(cuda_rdc_add_library target)
     CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
     EXPORT_PROPERTIES "CUDA_RUNTIME_LIBRARY;CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
   )
+
+  if(CUDA_RDC_LINKER_SUPPORTS_ALLOW_SHLIB_UNDEFINED)
+    target_link_options(${target} PRIVATE LINKER:--allow-shlib-undefined)
+  endif()
+  if(CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)
+    target_link_options(${target} PRIVATE LINKER:-z,undefs)
+  endif()
 
   ## STATIC ##
 
@@ -1096,6 +1171,7 @@ function(cuda_rdc_target_link_libraries target)
         # and the current one is Shared.
         if(${_need_to_use_shared_runtime})
           set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+          target_link_libraries(${target} PRIVATE CUDA::cudart)
         endif()
       endif()
     endif()

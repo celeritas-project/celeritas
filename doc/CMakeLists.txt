@@ -185,7 +185,7 @@ endfunction()
 _set_jsonbool(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
 _set_jsonbool(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
 _set_jsonbool(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
-_set_jsonbool(CELERITAS_USE_MMDC ${MMDC_EXECUTABLE})
+_set_jsonbool(CELERITAS_USE_DOT ${DOXYGEN_DOT_EXECUTABLE})
 
 if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
   set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
@@ -233,12 +233,11 @@ foreach(_var
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 
-# Only process top two levels (mostly no detail)
+# Only process top two levels (avoid most detail)
 file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.hh"
   "${PROJECT_SOURCE_DIR}/src/*/*.cc"
   "${PROJECT_SOURCE_DIR}/src/*/*/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/*/*/*.cc"
   "${PROJECT_SOURCE_DIR}/src/corecel/random/data/*.hh"
   "${PROJECT_SOURCE_DIR}/src/corecel/random/engine/*.hh"
   "${PROJECT_SOURCE_DIR}/src/corecel/random/distribution/*.hh"
@@ -247,28 +246,20 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/gen/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/model/*.hh"
-  "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/model/*.cc"
   "${PROJECT_SOURCE_DIR}/test/*.hh"
-  "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
 # IMPORTANT: the target name and USE_STAMP_FILE generate a dependency used by
 # the downstream sphinx docs when Breathe is available
@@ -282,29 +273,28 @@ doxygen_add_docs(doxygen_xml
 #-----------------------------------------------------------------------------#
 # MMD PROCESSING
 
-# Note that *all* mermaid files must be present at the same time to prevent
+# Note that *all* dot files must be present at the same time to prevent
 # errors when doing separate HTML/PDF builds: the doctrees directory caches the
 # file listing and will fail if only one image type is generated
-set(_mermaid_output)
-set(_png_fallback "${CMAKE_CURRENT_SOURCE_DIR}/_static/mermaid-not-found.png")
-set(_output_base "${CMAKE_CURRENT_SOURCE_DIR}/_static/mermaid")
+set(_dot_output)
+set(_png_fallback "${CMAKE_CURRENT_SOURCE_DIR}/_static/dot-not-found.png")
+set(_output_base "${CMAKE_CURRENT_SOURCE_DIR}/_static/dot")
 
-macro(_celer_build_mermaid inp)
+macro(_celer_build_dot inp)
   get_filename_component(basename "${inp}" NAME_WE)
-  if(MMDC_EXECUTABLE)
-    # Generate SVG and PDF for HTML, PDF respectively
-    foreach(_fmt pdf svg)
+  if(DOXYGEN_DOT_EXECUTABLE)
+    # Generate PNG and PDF for HTML, PDF respectively
+    foreach(_fmt pdf png)
       set(_output "${_output_base}/${basename}.${_fmt}")
       add_custom_command(
         OUTPUT "${_output}"
         COMMAND
-          "${MMDC_EXECUTABLE}" -i "${inp}" -o "${_output}"
-           --backgroundColor white
-        COMMENT "Generating Mermaid: ${basename}.${_fmt}"
+          "${DOXYGEN_DOT_EXECUTABLE}" "-T${_fmt}" "-o${_output}" "${inp}"
+        COMMENT "Generating dot graph: ${basename}.${_fmt}"
         DEPENDS "${inp}"
         VERBATIM
       )
-      list(APPEND _mermaid_output "${_output}")
+      list(APPEND _dot_output "${_output}")
     endforeach()
   else()
     # Fallback: copy placeholder and use for both HTML and PDF
@@ -313,17 +303,17 @@ macro(_celer_build_mermaid inp)
       OUTPUT "${_output}"
       COMMAND
       "${CMAKE_COMMAND}" -E copy "${_png_fallback}" "${_output}"
-      COMMENT "Copying fallback Mermaid PNG: ${basename}.png"
+      COMMENT "Copying fallback graph PNG: ${basename}.png"
       DEPENDS "${inp}"
       VERBATIM
     )
-    list(APPEND _mermaid_output "${_output}")
+    list(APPEND _dot_output "${_output}")
   endif()
 endmacro()
 
-file(GLOB _mermaid_input "${CMAKE_CURRENT_SOURCE_DIR}/_input/*.mmd")
-foreach(_inp IN LISTS _mermaid_input)
-  _celer_build_mermaid("${_inp}")
+file(GLOB _dot_input "${CMAKE_CURRENT_SOURCE_DIR}/_input/*.dot")
+foreach(_inp IN LISTS _dot_input)
+  _celer_build_dot("${_inp}")
 endforeach()
 
 #-----------------------------------------------------------------------------#
@@ -331,7 +321,7 @@ endforeach()
 
 if(Sphinx_FOUND)
   file(GLOB_RECURSE _sphinx_deps "${CMAKE_CURRENT_SOURCE_DIR}/*.rst")
-  list(APPEND _sphinx_deps ${_mermaid_output})
+  list(APPEND _sphinx_deps ${_dot_output})
 else()
   set(_sphinx_deps)
 endif()

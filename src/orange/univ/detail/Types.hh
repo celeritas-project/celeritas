@@ -153,12 +153,18 @@ struct TempNextFace
 /*!
  * Access to the local state.
  *
- * All variables (IDs, position, direction) are *local* to the given tracker.
- * Since this is passed by \em value, it is *not* expected to be modified,
+ * All variables (IDs, position, direction) are \em local to the given tracker.
+ * Since this is passed by \em value, it is \em not expected to be modified,
  * except for the temporary storage references.
  *
  * The temporary vectors should be sufficient to store all the senses and
  * intersections in any volume.
+ *
+ * \todo To enable cooperative multithreading in GPU contexts, we could rename
+ * this to `LocalStateBase`, define `struct DeviceLocalState : LocalStateBase`,
+ * and alias `LocalState = DeviceLocalState`. The device local state might
+ * include, for example, a warp-local mask of active threads passed from the
+ * core track view.
  */
 struct LocalState
 {

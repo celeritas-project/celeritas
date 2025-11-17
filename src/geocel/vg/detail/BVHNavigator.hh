@@ -23,10 +23,6 @@
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
 
-#if VECGEOM_VERSION >= 0x020000
-#    error "Use the built-in VecGeom BVH navigator since it is available"
-#endif
-
 #include "corecel/Macros.hh"
 
 namespace celeritas

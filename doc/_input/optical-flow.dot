@@ -1,0 +1,40 @@
+digraph G {
+  graph [rankdir=TB];
+  node [shape=box];
+
+  // Nodes with custom labels
+  "gun"            [label="Gun or external"];
+  "geant4-direct"  [label="Direct Geant4 offload", penwidth=2, style=dashed];
+  "geant4-scint"   [label="Geant4 scintillation",  penwidth=2, style=dashed];
+  "geant4-ceren"   [label="Geant4 cherenkov",      penwidth=2, style=dashed];
+  "photons"        [label="Optical tracking loop"];
+
+  // Subgraph: Main celeritas loop
+  subgraph cluster_main_celeritas_loop {
+    label="Main celeritas loop";
+    "offload-gather";
+    "scintillation-offload";
+    "cherenkov-offload";
+  }
+
+  // Subgraph: Optical photon generation
+  subgraph cluster_photon_gen {
+    label="Optical photon generation";
+    "scintillation-gen";
+    "cherenkov-gen";
+  }
+
+  // Edges
+  "offload-gather"     -> "scintillation-offload" [label="pre-step"];
+  "offload-gather"     -> "cherenkov-offload"     [label="pre-step"];
+
+  "scintillation-offload" -> "scintillation-gen"  [label="generator dist"];
+  "cherenkov-offload"     -> "cherenkov-gen"      [label="generator dist"];
+  "geant4-scint"          -> "scintillation-gen"  [label="generator dist"];
+  "geant4-ceren"          -> "cherenkov-gen"      [label="generator dist"];
+
+  "gun"               -> "photons" [label="inits"];
+  "geant4-direct"     -> "photons" [label="inits"];
+  "scintillation-gen" -> "photons" [label="inits"];
+  "cherenkov-gen"     -> "photons" [label="inits"];
+}

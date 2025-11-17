@@ -31,6 +31,7 @@ namespace optical
 class Transporter;
 }  // namespace optical
 
+class ActionSequence;
 class CoreParams;
 class CoreStateInterface;
 class GeantGeoParams;
@@ -134,6 +135,7 @@ class SharedParams
     //!@{
     //! \name Internal use only
 
+    using SPActionSequence = std::shared_ptr<ActionSequence>;
     using SPGeantSd = std::shared_ptr<GeantSd>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
@@ -152,6 +154,9 @@ class SharedParams
 
     // Optical params (only if using optical physics)
     inline SPOpticalTransporter const& optical_transporter() const;
+
+    // Action sequence
+    inline SPActionSequence const& actions() const;
 
     // Hit manager, to be used only by LocalTransporter
     inline SPGeantSd const& hit_manager() const;
@@ -184,6 +189,7 @@ class SharedParams
     std::shared_ptr<CoreParams> params_;
     SPOpticalCollector optical_collector_;
     SPOpticalTransporter optical_transporter_;
+    SPActionSequence actions_;
     std::shared_ptr<GeantSd> geant_sd_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4PD offload_particles_;
@@ -275,6 +281,16 @@ auto SharedParams::hit_manager() const -> SPGeantSd const&
 {
     CELER_EXPECT(*this);
     return geant_sd_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Action sequence for the stepper.
+ */
+auto SharedParams::actions() const -> SPActionSequence const&
+{
+    CELER_EXPECT(*this);
+    return actions_;
 }
 
 //---------------------------------------------------------------------------//

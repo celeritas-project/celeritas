@@ -303,11 +303,7 @@ void IntegrationSingleton::finalize_local_transporter()
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
                            << " cannot be finalized more than once");
-            if (!this->optical_offload())
-            {
-                params_.timer()->RecordActionTime(
-                    IntegrationSingleton::local_transporter().GetActionTime());
-            }
+            params_.timer()->RecordActionTime(lt.GetActionTime());
             lt.Finalize();
         },
         ExceptionConverter("celer.finalize.local"));

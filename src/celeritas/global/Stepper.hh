@@ -17,7 +17,9 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/track/TrackInitData.hh"
+#include "celeritas/user/ActionTimes.hh"
 
+#include "ActionSequence.hh"
 #include "CoreState.hh"
 #include "CoreTrackData.hh"
 
@@ -27,8 +29,6 @@ namespace celeritas
 class CoreParams;
 struct Primary;
 class ExtendFromPrimariesAction;
-
-class ActionSequence;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -43,12 +43,12 @@ class ActionSequence;
 struct StepperInput
 {
     std::shared_ptr<CoreParams const> params;
+    std::shared_ptr<ActionSequence> actions;
     StreamId stream_id{};
     size_type num_track_slots{};
-    bool action_times{false};
 
     //! True if defined
-    explicit operator bool() const { return params && stream_id; }
+    explicit operator bool() const { return params && actions && stream_id; }
 };
 
 //---------------------------------------------------------------------------//
@@ -82,7 +82,6 @@ class StepperInterface
     //!@{
     //! \name Type aliases
     using Input = StepperInput;
-    using ActionSequenceT = ActionSequence;
     using SpanConstPrimary = Span<Primary const>;
     using result_type = StepperResult;
     using SPState = std::shared_ptr<CoreStateInterface>;
@@ -108,7 +107,7 @@ class StepperInterface
     virtual void reseed(UniqueEventId event_id) = 0;
 
     //! Get action sequence for timing diagnostics
-    virtual ActionSequenceT const& actions() const = 0;
+    virtual ActionSequence const& actions() const = 0;
 
     //! Get the core state interface
     virtual CoreStateInterface const& state() const = 0;
@@ -172,7 +171,7 @@ class Stepper final : public StepperInterface
     void reseed(UniqueEventId event_id) final;
 
     //! Get action sequence for timing diagnostics
-    ActionSequenceT const& actions() const final { return *actions_; }
+    ActionSequence const& actions() const final { return *actions_; }
 
     //! Access core data, primarily for debugging
     StateRef const& state_ref() const { return state_->ref(); }
@@ -189,12 +188,12 @@ class Stepper final : public StepperInterface
   private:
     // Params data
     std::shared_ptr<CoreParams const> params_;
+    // Call sequence
+    std::shared_ptr<ActionSequence> actions_;
     // Primary initialization
     std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
     std::shared_ptr<CoreState<M>> state_;
-    // Call sequence
-    std::shared_ptr<ActionSequenceT> actions_;
 };
 
 //---------------------------------------------------------------------------//

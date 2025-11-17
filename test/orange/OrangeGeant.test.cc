@@ -8,23 +8,40 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
-#include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
+#include "geocel/Types.hh"
+#include "geocel/VolumeToString.hh"
 #include "geocel/detail/LengthUnits.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "orange/Debug.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "OrangeTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//! Avoid relying on integer size assumptions and overflow
+int vluint_to_int(vol_level_uint vl)
+{
+    if (vl == static_cast<vol_level_uint>(-1))
+        return -1;
+
+    return vl;
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 
 class GeantOrangeTest : public OrangeTestBase
@@ -78,7 +95,7 @@ TEST_F(LarSphereTest, trace)
     this->impl().test_trace();
 }
 
-TEST_F(LarSphereTest, DISABLED_volume_stack)
+TEST_F(LarSphereTest, volume_stack)
 {
     this->impl().test_volume_stack();
 }
@@ -88,6 +105,90 @@ class MultiLevelTest
     : public GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>
 {
 };
+
+// Test the stack/volume points to see what universe and local volume they
+// translate to
+TEST_F(MultiLevelTest, univ_levels)
+{
+    std::vector<int> univ_levels;
+    std::vector<int> univ_ids;
+    std::vector<int> local_volumes;
+    for (auto xy : this->impl().get_test_points())
+    {
+        auto geo = this->make_geo_track_view().track_view();
+        geo = this->make_initializer({xy[0], xy[1], 0}, {0, 0, 1});
+        univ_levels.push_back(id_to_int(geo.univ_level()));
+        auto lsa = geo.make_lsa();
+        local_volumes.push_back(id_to_int(lsa.vol()));
+        univ_ids.push_back(id_to_int(lsa.univ()));
+    }
+    // clang-format off
+    static int const expected_univ_levels[] = {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,};
+    static int const expected_univ_id[] = {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1,};
+    static int const expected_local_volumes[] = {6, 5, 1, 4, 3, 2, 1, 4, 3, 2, 3, 2, 1, 4, 4, 2, 1, 3,};
+    // clang-format on
+    EXPECT_VEC_EQ(expected_univ_levels, univ_levels);
+    EXPECT_VEC_EQ(expected_univ_id, univ_ids);
+    EXPECT_VEC_EQ(expected_local_volumes, local_volumes);
+}
+
+// Check the explicit "local volume level" and "parent" for each impl volume
+TEST_F(MultiLevelTest, manual_volumes)
+{
+    // VolumeToString to_string(*this->volumes());
+    auto const& universe_labels = this->geometry()->universes();
+    auto const& impl_volumes = this->geometry()->impl_volumes();
+    TrackerVisitor visit_tracker{this->geometry()->host_ref()};
+
+    std::vector<std::vector<int>> local_level;
+    std::vector<std::vector<int>> local_parent;
+    std::vector<std::vector<std::string>> volume_names;
+    ImplVolumeId global_vol{0};
+    for (auto uid : range(UnivId{universe_labels.size()}))
+    {
+        auto num_local_vols = visit_tracker(
+            [](auto const& t) { return t.num_volumes(); }, uid);
+
+        std::vector<int> cur_local_level;
+        std::vector<int> cur_local_parent;
+        std::vector<std::string> cur_volume_names;
+        for (auto lv_id : range(LocalVolumeId{num_local_vols}))
+        {
+            cur_local_level.push_back(vluint_to_int(visit_tracker(
+                [lv_id](auto const& t) { return t.local_vol_level(lv_id); },
+                uid)));
+            cur_local_parent.push_back(id_to_int(visit_tracker(
+                [lv_id](auto const& t) { return t.local_parent(lv_id); }, uid)));
+            cur_volume_names.push_back(impl_volumes.at(global_vol++).name);
+        }
+        local_level.emplace_back(std::move(cur_local_level));
+        local_parent.emplace_back(std::move(cur_local_parent));
+        volume_names.emplace_back(std::move(cur_volume_names));
+    }
+    static std::vector<int> const expected_local_level[]
+        = {{-1, 1, 1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}};
+    static std::vector<int> const expected_local_parent[]
+        = {{-1, 6, 6, 6, 6, 6, -1}, {-1, 4, 4, 4, -1}, {-1, 4, 4, 4, -1}};
+    static std::vector<std::string> const expected_volume_names[]
+        = {{"[EXTERIOR]", "box", "box", "box", "box_refl", "sph", "world"},
+           {"[EXTERIOR]", "sph", "sph", "tri", "box"},
+           {"[EXTERIOR]", "sph_refl", "sph_refl", "tri_refl", "box_refl"}};
+    EXPECT_VEC_EQ(expected_local_level, local_level);
+    EXPECT_VEC_EQ(expected_local_parent, local_parent);
+    EXPECT_VEC_EQ(expected_volume_names, volume_names);
+}
+
+// Test that the reconstructed total levels are correct
+TEST_F(MultiLevelTest, volume_level)
+{
+    this->impl().test_volume_level();
+}
+
+// Test that the reconstructed volume instance hierarchy is correct
+TEST_F(MultiLevelTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
 
 TEST_F(MultiLevelTest, trace)
 {
@@ -154,7 +255,7 @@ TEST_F(ReplicaTest, trace)
     this->impl().test_trace();
 }
 
-TEST_F(ReplicaTest, DISABLED_volume_stack)
+TEST_F(ReplicaTest, volume_stack)
 {
     this->impl().test_volume_stack();
 }
