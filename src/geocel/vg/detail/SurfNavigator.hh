@@ -31,6 +31,9 @@
 #include "corecel/Macros.hh"
 #include "geocel/vg/VecgeomTypes.hh"
 
+#include "ScopedVgNavState.hh"
+#include "VgNavStateWrapper.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -40,7 +43,7 @@ class SurfNavigator
 {
   public:
     using SurfData = vgbrep::SurfData<vg_real_type>;
-    using NavState = VgNavState;
+    using NavState = detail::VgNavStateWrapper;
 
     static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
 

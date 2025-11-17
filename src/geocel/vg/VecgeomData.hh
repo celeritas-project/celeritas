@@ -17,7 +17,9 @@
 
 #include "VecgeomTypes.hh"
 
-#include "detail/VecgeomNavCollection.hh"
+#if CELER_VGNAV == CELER_VGNAV_PATH
+#    include "detail/VecgeomNavCollection.hh"
+#endif
 
 namespace celeritas
 {
@@ -113,30 +115,43 @@ struct VecgeomStateData
 
     template<class T>
     using StateItems = StateCollection<T, W, M>;
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    using VgStateItems = detail::VecgeomNavCollection<W, M>;
+#else
+    using VgStateItems = StateItems<VgNavStateImpl>;
+#endif
 
     //// DATA ////
 
-    // Collections
+    // Physical state
     StateItems<Real3> pos;
     StateItems<Real3> dir;
-#if CELERITAS_VECGEOM_SURFACE
-    StateItems<VgSurfaceInt> next_surface;
-#endif
 
-    // Wrapper for NavStatePool, vector, or void*
-    detail::VecgeomNavCollection<W, M> vgstate;
-    detail::VecgeomNavCollection<W, M> vgnext;
+    // Logical volumetric state
+    VgStateItems state;
+    StateItems<VgBoundary> boundary;  // Empty if VGNAV=path
+    VgStateItems next_state;  // TODO: prev_state
+    StateItems<VgBoundary> next_boundary;  // Empty if VGNAV=path or surface
+
+    // Surface state
+    StateItems<VgSurfaceInt> next_surf;  // Empty unless using surface model
 
     //// METHODS ////
 
     //! True if sizes are consistent and states are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return this->size() > 0 && dir.size() == this->size()
-#if CELERITAS_VECGEOM_SURFACE
-               && next_surface.size() == this->size()
-#endif
-               && vgstate && vgnext;
+        // clang-format off
+        return pos.size() > 0
+            && dir.size() == pos.size()
+            && state.size() == pos.size()
+            && boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
+            && next_state.size() == pos.size()
+            && next_boundary.size() == (
+                CELER_VGNAV != CELER_VGNAV_PATH
+                && !CELERITAS_VECGEOM_SURFACE ? pos.size() : 0)
+            && next_surf.size() == (CELERITAS_VECGEOM_SURFACE ? pos.size() : 0);
+        // clang-format on
     }
 
     //! State size
@@ -149,11 +164,11 @@ struct VecgeomStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
-#if CELERITAS_VECGEOM_SURFACE
-        next_surface = other.next_surface;
-#endif
-        vgstate = other.vgstate;
-        vgnext = other.vgnext;
+        state = other.state;
+        boundary = other.boundary;
+        next_state = other.next_state;
+        next_boundary = other.next_boundary;
+        next_surf = other.next_surf;
         return *this;
     }
 };
@@ -173,11 +188,23 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 
     resize(&data->pos, size);
     resize(&data->dir, size);
-#if CELERITAS_VECGEOM_SURFACE
-    resize(&data->next_surface, size);
-#endif
-    data->vgstate.resize(params.scalars.num_volume_levels, size);
-    data->vgnext.resize(params.scalars.num_volume_levels, size);
+    resize(&data->state, size);
+    if constexpr (CELER_VGNAV != CELER_VGNAV_PATH)
+    {
+        // Unless using the 'path' navigator, boundary data is stored
+        // independently
+        resize(&data->boundary, size);
+    }
+    resize(&data->next_state, size);
+    if constexpr (CELER_VGNAV != CELER_VGNAV_PATH && !CELERITAS_VECGEOM_SURFACE)
+    {
+        // Path navigator stores the boundary, and surface model uses next_surf
+        resize(&data->next_boundary, size);
+    }
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
+    {
+        resize(&data->next_surf, size);
+    }
 
     CELER_ENSURE(data);
 }

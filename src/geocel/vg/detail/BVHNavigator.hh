@@ -24,8 +24,14 @@
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
 
+#if CELER_VGNAV == CELER_VGNAV_PATH
+#    include <VecGeom/navigation/NavStatePath.h>
+#endif
+
 #include "corecel/Macros.hh"
 #include "geocel/vg/VecgeomTypes.hh"
+
+#include "VgNavStateWrapper.hh"
 
 namespace celeritas
 {
@@ -36,7 +42,11 @@ class BVHNavigator
 {
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-    using NavState = VgNavState;
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    using NavState = vecgeom::NavStatePath;
+#else
+    using NavState = detail::VgNavStateWrapper;
+#endif
 
     static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
 

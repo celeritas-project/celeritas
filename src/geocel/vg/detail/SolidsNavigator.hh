@@ -18,6 +18,9 @@
 #include "corecel/Types.hh"
 #include "geocel/vg/VecgeomTypes.hh"
 
+#include "ScopedVgNavState.hh"
+#include "VgNavStateWrapper.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -34,7 +37,12 @@ class SolidsNavigator
 {
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-    using NavState = VgNavState;
+
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    using NavState = vecgeom::NavStatePath;
+#else
+    using NavState = detail::VgNavStateWrapper;
+#endif
 
     //-----------------------------------------------------------------------//
     // Locate a point in the geometry hierarchy
@@ -45,17 +53,19 @@ class SolidsNavigator
                   bool top,
                   VgPlacedVol const* exclude = nullptr)
     {
+        ScopedVgNavState temp_nav{nav};
         if (exclude)
         {
             // Exclude the volume from the search
             vecgeom::GlobalLocator::LocateGlobalPointExclVolume(
-                vol, exclude, point, nav, top);
+                vol, exclude, point, temp_nav, top);
         }
         else
         {
             // TODO: eliminate this branch by always using Excl
             // Locate the point in the volume hierarchy
-            vecgeom::GlobalLocator::LocateGlobalPoint(vol, point, nav, top);
+            vecgeom::GlobalLocator::LocateGlobalPoint(
+                vol, point, temp_nav, top);
         }
     }
 
@@ -70,10 +80,10 @@ class SolidsNavigator
         auto* curr_volume = in_state.Top()->GetLogicalVolume();
 
         // simple dispatch implementation
+        ScopedVgNavState temp_out_state{out_state};
         auto* navigator = curr_volume->GetNavigator();
         real_type step = navigator->ComputeStepAndPropagatedState(
-            glpos, gldir, step_limit, in_state, out_state);
-        out_state.SetLastExited({});
+            glpos, gldir, step_limit, in_state, temp_out_state);
 
         return step;
     }
