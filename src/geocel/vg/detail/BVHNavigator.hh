@@ -47,7 +47,7 @@ class BVHNavigator
     {
         if (top)
         {
-            assert(vol != nullptr);
+            CELER_ASSERT(vol != nullptr);
             if (!vol->UnplacedContains(point))
                 return;
         }
@@ -309,10 +309,10 @@ class BVHNavigator
                 {
                     out_state.Pop();
                 }
-                assert(!out_state.Top()
-                            ->GetLogicalVolume()
-                            ->GetUnplacedVolume()
-                            ->IsAssembly());
+                CELER_ASSERT(!out_state.Top()
+                                  ->GetLogicalVolume()
+                                  ->GetUnplacedVolume()
+                                  ->IsAssembly());
             }
         }
 
@@ -446,10 +446,10 @@ class BVHNavigator
             {
                 state.Pop();
             }
-            assert(!state.Top()
-                        ->GetLogicalVolume()
-                        ->GetUnplacedVolume()
-                        ->IsAssembly());
+            CELER_ASSERT(!state.Top()
+                              ->GetLogicalVolume()
+                              ->GetUnplacedVolume()
+                              ->IsAssembly());
         }
     }
 };
