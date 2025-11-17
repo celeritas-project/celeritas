@@ -14,6 +14,7 @@
 
 #include <cstddef>
 #include <string>
+#include <type_traits>
 
 #include "corecel/Config.hh"
 
@@ -118,6 +119,18 @@ using RefPtr = ObserverPtr<S<Ownership::reference, M>, M>;
 
 //!@}
 
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Type trait utilities, used for VecGeom or elsewhere.
+
+//! Switch between host or device type based on memspace
+template<MemSpace M, class HT, class DT>
+using MemSpaceCond_t
+    = std::conditional_t<M == MemSpace::host,
+                         HT,
+                         std::conditional_t<M == MemSpace::device, DT, void>>;
+
+//!@}
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
