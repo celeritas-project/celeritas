@@ -102,22 +102,9 @@ class MaterialScintillationGaussianTest : public ScintillationTestBase
 
         // Note second component has zero rise time
         std::vector<ImportScintComponent> comps;
-        comps.push_back(
-            {.yield_frac = 0.5,
-             .gauss = {.lambda_mean = 100 * nm, .lambda_sigma = 5 * nm},
-             .rise_time = 10 * ns,
-             .fall_time = 6 * ns});
-        comps.push_back(
-            {.yield_frac = 0.3,
-             .gauss = {.lambda_mean = 200 * nm, .lambda_sigma = 10 * nm},
-             .rise_time = 0,
-             .fall_time = 1500 * ns});
-
-        comps.push_back(
-            {.yield_frac = 0.2,
-             .gauss = {.lambda_mean = 400 * nm, .lambda_sigma = 20 * nm},
-             .rise_time = 10 * ns,
-             .fall_time = 3000 * ns});
+        comps.push_back({0.5, 10 * ns, 6 * ns, {100 * nm, 5 * nm}});
+        comps.push_back({0.3, 0, 1500 * ns, {200 * nm, 10 * nm}});
+        comps.push_back({0.2, 10 * ns, 3000 * ns, {400 * nm, 20 * nm}});
 
         return comps;
     }
@@ -148,11 +135,8 @@ class MaterialScintillationTabularTest : public ScintillationTestBase
 
         // Note these components are in tabular form
         std::vector<ImportScintComponent> comps;
-        comps.push_back({.spectrum.x = {1.0, 2.0, 3.0},
-                         .spectrum.y = {0.5, 0.3, 0.2},
-                         .yield_frac = 0.2,
-                         .rise_time = 10 * ns,
-                         .fall_time = 1500 * ns});
+        comps.push_back(
+            {0.2, 10 * ns, 1500 * ns, {}, {{1.0, 2.0, 3.0}, {0.5, 0.3, 0.2}}});
 
         return comps;
     }
@@ -261,8 +245,9 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
     auto const& data = params->host_ref();
     EXPECT_FALSE(data.scintillation_by_particle());
 
-    // The particle's energy is necessary for the particle track view but is
-    // irrelevant for the test since what matters is the energy deposition
+    // The particle's energy is necessary for the particle track view but
+    // is irrelevant for the test since what matters is the energy
+    // deposition
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
@@ -506,15 +491,22 @@ TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
 
             // Invert a representative CDF value
             auto calc_energy = calc_cdf.make_inverse();
-            Rng rng;
-            real_type energy = calc_energy(generate_canonical(rng));
+            EXPECT_SOFT_EQ(cdf_grid.front(), calc_energy(0));
+            EXPECT_SOFT_EQ(cdf_grid.back(), calc_energy(1));
 
-            EXPECT_LE(cdf_grid.front(), energy);
-            EXPECT_LE(energy, cdf_grid.back());
-            if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-                EXPECT_SOFT_EQ(1.2201501319822683, energy);
-            else
-                EXPECT_SOFT_EQ(2.5182814598083496, energy);
+            std::vector<real_type> energy;
+            Rng rng;
+            for ([[maybe_unused]] auto i : range(4))
+            {
+                energy.push_back(calc_energy(generate_canonical(rng)));
+            }
+            // real_type energy = calc_energy(generate_canonical(rng));
+            static double const expected_energy[] = {1.22015013198227,
+                                                     2.57102233398591,
+                                                     2.919056204923,
+                                                     1.3591803198469};
+
+            EXPECT_VEC_SOFT_EQ(expected_energy, energy);
         }
     }
 }
