@@ -106,6 +106,19 @@ among the core team.
 .. _team lists: https://github.com/orgs/celeritas-project/teams
 
 
+Code "owners"
+-------------
+
+As discussed in the :ref:`contributing` section, the collective project has
+collective responsibility for all the code. However, certain members are more
+familiar with a given subject (e.g., random number generators, optical physics)
+and/or its implementation in Celeritas. This expertise is recognized in the
+`CODEOWNERS`_  file, which automatically requests the responsible authority for
+a review for certain subdirectories.
+
+.. _CODEOWNERS: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+
 .. _code_review:
 
 Code review
@@ -290,8 +303,7 @@ history and provide easy bisecting because all commits pass all tests.
 Squashing eliminates the potential of broken commits and relieves developers of
 the burden of worrying about clean commit messages within a branch.
 
-Since there are few enough merge requests these days, only :ref:`maintainers
-<roles>` may commit a merge. When merging, check that the commit title matches
+When merging, check that the commit title matches
 the issue title (it may be inconsistent if the branch has only a single
 commit), and that the "co-author" tags at the bottom of the commit message
 accurately reflect contributions (co-authorship may be erroneously attributed

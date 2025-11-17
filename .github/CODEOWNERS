@@ -1,5 +1,6 @@
 #-----------------------------------------------------------------------------#
 # CELERITAS PROJECT CODEOWNERS
+# See discussion in /doc/development/administration.rst .
 # Note that later lines take precedence over earlier ones.
 #-----------------------------------------------------------------------------#
 
