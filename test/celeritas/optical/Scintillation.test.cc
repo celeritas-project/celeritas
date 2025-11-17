@@ -102,9 +102,9 @@ class MaterialScintillationGaussianTest : public ScintillationTestBase
 
         // Note second component has zero rise time
         std::vector<ImportScintComponent> comps;
-        comps.push_back({0.5, 10 * ns, 6 * ns, {100 * nm, 5 * nm}});
-        comps.push_back({0.3, 0, 1500 * ns, {200 * nm, 10 * nm}});
-        comps.push_back({0.2, 10 * ns, 3000 * ns, {400 * nm, 20 * nm}});
+        comps.push_back({0.5, 10 * ns, 6 * ns, {100 * nm, 5 * nm}, {}});
+        comps.push_back({0.3, 0, 1500 * ns, {200 * nm, 10 * nm}, {}});
+        comps.push_back({0.2, 10 * ns, 3000 * ns, {400 * nm, 20 * nm}, {}});
 
         return comps;
     }
