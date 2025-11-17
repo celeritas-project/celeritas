@@ -189,9 +189,7 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.physics = this->optical_physics();
     inp.surface_physics = this->optical_surface_physics();
     inp.cherenkov = this->cherenkov();
-    CELER_LOG(info) << "Getting scintillation for optical params input";
     inp.scintillation = this->scintillation();
-    CELER_LOG(info) << "Got scintillation for optical params input";
 
     CELER_ENSURE(inp);
     return inp;

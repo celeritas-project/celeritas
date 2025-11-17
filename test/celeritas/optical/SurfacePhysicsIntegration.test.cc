@@ -10,25 +10,20 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/random/Histogram.hh"
 #include "corecel/sys/ActionGroups.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/KernelLauncher.hh"
-#include "geocel/SurfaceParams.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/VolumeParams.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/CoreTrackView.hh"
-#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
-#include "celeritas/optical/gen/GeneratorBase.hh"
-#include "celeritas/optical/gen/GeneratorData.hh"
+#include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/OffloadData.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
@@ -46,7 +41,9 @@ namespace test
 {
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
-
+/*!
+ * Counters for photon status after a run at a single angle.
+ */
 struct CollectResults
 {
     size_type num_absorbed{0};
@@ -54,6 +51,7 @@ struct CollectResults
     size_type num_reflected{0};
     size_type num_refracted{0};
 
+    //! Clear counters
     void reset()
     {
         num_absorbed = 0;
@@ -62,6 +60,7 @@ struct CollectResults
         num_refracted = 0;
     }
 
+    //! Score track
     void operator()(CoreTrackView const& track)
     {
         if (track.sim().status() == TrackStatus::alive)
@@ -88,13 +87,11 @@ struct CollectResults
     }
 };
 
-struct SurfaceTestResults
-{
-    std::vector<size_type> num_absorbed;
-    std::vector<size_type> num_reflected;
-    std::vector<size_type> num_refracted;
-};
-
+//---------------------------------------------------------------------------//
+/*!
+ * Hook into the stepping loop to score and kill optical tracks that finish
+ * doing a surface crossing.
+ */
 class CollectResultsAction final : public OpticalStepActionInterface,
                                    public ConcreteAction
 {
@@ -128,6 +125,7 @@ class CollectResultsAction final : public OpticalStepActionInterface,
     StepActionOrder order() const final { return StepActionOrder::post; }
 
   private:
+    //! Whether the track finished a boundary crossing
     inline bool is_post_boundary(CoreTrackView const& track) const
     {
         return AppliesValid{}(track)
@@ -135,6 +133,7 @@ class CollectResultsAction final : public OpticalStepActionInterface,
                       == track.surface_physics().scalars().post_boundary_action;
     }
 
+    //! Whether the track was absorbed during a boundary crossing
     inline bool is_absorbed_on_boundary(CoreTrackView const& track) const
     {
         return track.sim().status() == TrackStatus::killed
@@ -145,135 +144,20 @@ class CollectResultsAction final : public OpticalStepActionInterface,
     CollectResults& results_;
 };
 
-class TestGeneratorAction final : public GeneratorBase
+//---------------------------------------------------------------------------//
+/*!
+ * Counter results for a series of runs at different angles.
+ */
+struct SurfaceTestResults
 {
-  public:
-    struct Executor
-    {
-        CRefPtr<CoreParamsData, MemSpace::native> params;
-        RefPtr<CoreStateData, MemSpace::native> state;
-        TrackInitializer init;
-        CoreStateCounters counters;
-
-        inline CELER_FUNCTION void operator()(TrackSlotId tid) const
-        {
-            CELER_EXPECT(params);
-            CELER_EXPECT(state);
-            CoreTrackView vacancy{
-                *params, *state, [&] {
-                    TrackSlotId idx{index_before(counters.num_vacancies,
-                                                 ThreadId(tid.get()))};
-                    return state->init.vacancies[idx];
-                }()};
-
-            vacancy = init;
-        }
-
-        CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
-        {
-            return (*this)(TrackSlotId{tid.unchecked_get()});
-        }
-    };
-
-    struct Input
-    {
-        size_type num_photons;
-    };
-
-    static std::shared_ptr<TestGeneratorAction>
-    make_and_insert(::celeritas::CoreParams const& core_params,
-                    CoreParams const& params,
-                    Input&& input)
-    {
-        CELER_EXPECT(input.num_photons > 0);
-        ActionRegistry& actions = *params.action_reg();
-        AuxParamsRegistry& aux = *core_params.aux_reg();
-        GeneratorRegistry& gen = *params.gen_reg();
-        auto result = std::make_shared<TestGeneratorAction>(
-            actions.next_id(), aux.next_id(), gen.next_id(), std::move(input));
-        actions.insert(result);
-        aux.insert(result);
-        gen.insert(result);
-        return result;
-    }
-
-    TestGeneratorAction(ActionId id,
-                        AuxId aux_id,
-                        GeneratorId gen_id,
-                        Input input)
-        : GeneratorBase(id,
-                        aux_id,
-                        gen_id,
-                        "test-generate",
-                        "generate test optical photon primaries")
-        , num_photons_(input.num_photons)
-    {
-        data_ = TrackInitializer{units::MevEnergy{3e-6},
-                                 from_cm(Real3{0, 50, 0}),
-                                 Real3{0, 1, 0},
-                                 Real3{0, 0, 1},
-                                 0,
-                                 ImplVolumeId{0}};
-    }
-
-    void set_incident_angle(real_type angle)
-    {
-        real_type sin_theta = std::sin(angle);
-        real_type cos_theta = std::cos(angle);
-
-        data_.direction = Real3{sin_theta, cos_theta, 0};
-        data_.position = from_cm(Real3{0, 50, 0}) - data_.direction;
-    }
-
-    void insert(CoreStateBase& state) const
-    {
-        if (auto* s = dynamic_cast<CoreStateHost*>(&state))
-        {
-            CELER_EXPECT(s->aux());
-            auto& aux_state = this->counters(*s->aux());
-            aux_state.counters.num_pending = num_photons_;
-            s->counters().num_pending = num_photons_;
-        }
-        else
-        {
-            CELER_NOT_IMPLEMENTED("TestGeneratorAction on device");
-        }
-    }
-
-    UPState create_state(MemSpace, StreamId, size_type) const final
-    {
-        return std::make_unique<GeneratorStateBase>();
-    }
-
-    void step(CoreParams const& params, CoreStateHost& state) const final
-    {
-        CELER_EXPECT(state.aux());
-
-        auto const& aux_state = this->counters(*state.aux());
-        size_type num_gen = min(state.counters().num_vacancies,
-                                aux_state.counters.num_pending);
-
-        if (num_gen > 0)
-        {
-            Executor execute{params.ptr<MemSpace::native>(),
-                             state.ptr(),
-                             data_,
-                             state.counters()};
-            launch_action(num_gen, execute);
-        }
-
-        this->update_counters(state);
-    }
-
-    void step(CoreParams const&, CoreStateDevice&) const final
-    {
-        CELER_NOT_IMPLEMENTED("TestGeneratorAction on device");
-    }
-
-  private:
-    size_type num_photons_;
-    TrackInitializer data_;
+    std::vector<size_type> num_absorbed;
+    std::vector<size_type> num_reflected;
+    std::vector<size_type> num_refracted;
 };
+
+//---------------------------------------------------------------------------//
+// TEST CHASSIS
+//---------------------------------------------------------------------------//
 
 class SurfacePhysicsIntegrationTest : public GeantTestBase
 {
@@ -354,25 +238,35 @@ class SurfacePhysicsIntegrationTest : public GeantTestBase
         transport_ = std::make_shared<Transporter>(std::move(inp));
     }
 
+    //! Run over a set of angles and collect the results
     SurfaceTestResults run(std::vector<real_type> const& angles)
     {
-        TestGeneratorAction::Input inp;
-        inp.num_photons = 100;
-        auto generate = TestGeneratorAction::make_and_insert(
-            *this->core(), *this->optical_params(), std::move(inp));
+        auto generate = DirectGeneratorAction::make_and_insert(
+            *this->core(), *this->optical_params());
 
         this->make_collector();
-        this->build_state(128);
         this->build_transporter();
+        this->build_state(128);
 
         SurfaceTestResults results;
-        for (auto angle : angles)
+        for (auto deg_angle : angles)
         {
             collect_.reset();
 
-            generate->set_incident_angle(angle * M_PI / 180.0);
+            auto angle = deg_angle * M_PI / 180.0;
+            real_type sin_theta = std::sin(angle);
+            real_type cos_theta = std::cos(angle);
 
-            generate->insert(*state_);
+            std::vector<TrackInitializer> inits(
+                100,
+                TrackInitializer{units::MevEnergy{3e-6},
+                                 from_cm(Real3{0, 49, 0}),
+                                 Real3{sin_theta, cos_theta, 0},
+                                 Real3{0, 0, 1},
+                                 0,
+                                 ImplVolumeId{0}});
+
+            generate->insert(*state_, make_span(inits));
 
             (*transport_)(*state_);
 
@@ -392,6 +286,7 @@ class SurfacePhysicsIntegrationTest : public GeantTestBase
     CollectResults collect_;
 };
 
+//---------------------------------------------------------------------------//
 class SurfacePhysicsIntegrationBackscatterTest
     : public SurfacePhysicsIntegrationTest
 {
@@ -406,11 +301,15 @@ class SurfacePhysicsIntegrationBackscatterTest
         input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
         input.reflectivity.fresnel.emplace(phys_surface,
                                            inp::FresnelReflection{});
+
+        // Only back-scattering
+
         input.interaction.trivial.emplace(phys_surface,
                                           TrivialInteractionMode::backscatter);
     }
 };
 
+//---------------------------------------------------------------------------//
 class SurfacePhysicsIntegrationAbsorbTest : public SurfacePhysicsIntegrationTest
 {
   public:
@@ -424,11 +323,15 @@ class SurfacePhysicsIntegrationAbsorbTest : public SurfacePhysicsIntegrationTest
         input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
         input.reflectivity.fresnel.emplace(phys_surface,
                                            inp::FresnelReflection{});
+
+        // Only absorption
+
         input.interaction.trivial.emplace(phys_surface,
                                           TrivialInteractionMode::absorb);
     }
 };
 
+//---------------------------------------------------------------------------//
 class SurfacePhysicsIntegrationTransmitTest
     : public SurfacePhysicsIntegrationTest
 {
@@ -443,11 +346,15 @@ class SurfacePhysicsIntegrationTransmitTest
         input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
         input.reflectivity.fresnel.emplace(phys_surface,
                                            inp::FresnelReflection{});
+
+        // Only transmission
+
         input.interaction.trivial.emplace(phys_surface,
                                           TrivialInteractionMode::transmit);
     }
 };
 
+//---------------------------------------------------------------------------//
 class SurfacePhysicsIntegrationFresnelTest
     : public SurfacePhysicsIntegrationTest
 {
@@ -462,6 +369,9 @@ class SurfacePhysicsIntegrationFresnelTest
         input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
         input.reflectivity.fresnel.emplace(phys_surface,
                                            inp::FresnelReflection{});
+
+        // Fresnel refraction / reflection
+
         input.interaction.dielectric.emplace(
             phys_surface,
             inp::DielectricInteraction::from_dielectric(
@@ -469,6 +379,10 @@ class SurfacePhysicsIntegrationFresnelTest
     }
 };
 
+//---------------------------------------------------------------------------//
+// TESTS
+//---------------------------------------------------------------------------//
+// Only back-scattering
 TEST_F(SurfacePhysicsIntegrationBackscatterTest, backscatter)
 {
     std::vector<real_type> angles{0, 30, 60};
@@ -484,6 +398,8 @@ TEST_F(SurfacePhysicsIntegrationBackscatterTest, backscatter)
     EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
 }
 
+//---------------------------------------------------------------------------//
+// Only absorption
 TEST_F(SurfacePhysicsIntegrationAbsorbTest, absorb)
 {
     std::vector<real_type> angles{0, 30, 60};
@@ -499,6 +415,8 @@ TEST_F(SurfacePhysicsIntegrationAbsorbTest, absorb)
     EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
 }
 
+//---------------------------------------------------------------------------//
+// Only transmission
 TEST_F(SurfacePhysicsIntegrationTransmitTest, transmit)
 {
     std::vector<real_type> angles{0, 30, 60};
@@ -514,6 +432,8 @@ TEST_F(SurfacePhysicsIntegrationTransmitTest, transmit)
     EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
 }
 
+//---------------------------------------------------------------------------//
+// Fresnel reflection / refraction
 TEST_F(SurfacePhysicsIntegrationFresnelTest, fresnel)
 {
     std::vector<real_type> angles{
