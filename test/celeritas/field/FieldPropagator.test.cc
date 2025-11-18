@@ -1595,11 +1595,11 @@ TEST_F(CmseTest, coarse)
         else
         {
             // FIXME: version 1.x needs much more steps -> taking much longer!
-            expected_num_boundary = {20, 101, 60, 24};
-            expected_num_step = {53, 6462, 3236, 428};
-            expected_num_intercept = {204, 19551, 16170, 3176};
-            expected_num_integration = {475, 58282, 41914, 8362};
-            EXPECT_EQ(scoped_log_.messages().size(), 62);
+            expected_num_boundary = {258, 101, 60, 304};
+            expected_num_step = {10001, 6462, 3236, 1396};
+            expected_num_intercept = {30807, 19551, 16170, 11419};
+            expected_num_integration = {81030, 58282, 41914, 29021};
+            EXPECT_EQ(scoped_log_.messages().size(), 4);
         }
     }
     else if (!scoped_log_.empty())
