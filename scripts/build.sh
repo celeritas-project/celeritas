@@ -197,12 +197,12 @@ if cmake --build --preset="${CMAKE_PRESET}"; then
   install_precommit_if_git
   if [ "${NEW_PRE_COMMIT}" != "${OLD_PRE_COMMIT}" ]; then
     log warning "Local environment script uses a different pre-commit than your \$PATH:"
-    log info "Recommend adding '. ${PWD}/${ENV_SCRIPT}' to your shell rc"
+    log info "Recommend adding '. ${GIT_WORK_TREE}/${ENV_SCRIPT}' to your shell rc"
   fi
 
   if [ "${NEW_CMAKE}" != "${OLD_CMAKE}" ]; then
     log warning "Local environment script uses a different CMake than your \$PATH:"
-    log info "Recommend adding '. ${PWD}/${ENV_SCRIPT}' to your shell rc"
+    log info "Recommend adding '. ${GIT_WORK_TREE}/${ENV_SCRIPT}' to your shell rc"
   fi
 else
   log error "build failed: check configuration and build errors above"

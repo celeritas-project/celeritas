@@ -10,6 +10,12 @@ export CXX=/usr/bin/c++
 # Reduce I/O metadata overhead by avoiding language translation lookups
 export LC_ALL=C
 
+if ! test -r $SPACK_ROOT; then
+  printf "Error: spack directory %s is not readable:
+       contact excl-help@ornl.gov for access\n" "${SPACK_ROOT}" >&2
+  exit 1
+fi
+
 if ! command -v spack >/dev/null 2>&1; then
   . $SPACK_ROOT/share/spack/setup-env.sh
 fi
