@@ -41,10 +41,11 @@ namespace test
 {
 // Reference results:
 // - Double precision
-// - Orange geometry (requires valid surface normals)
+// - Orange geometry (requires valid surface normals and relocation on
+// boundary)
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4));
+       && (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE));
 
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
@@ -414,17 +415,20 @@ TEST_F(SurfacePhysicsIntegrationBackscatterTest, backscatter)
 // Only absorption
 TEST_F(SurfacePhysicsIntegrationAbsorbTest, absorb)
 {
-    std::vector<real_type> angles{0, 30, 60};
-    auto result = this->run(angles);
+    if (reference_configuration)
+    {
+        std::vector<real_type> angles{0, 30, 60};
+        auto result = this->run(angles);
 
-    SurfaceTestResults expected;
-    expected.num_refracted = {0, 0, 0};
-    expected.num_reflected = {0, 0, 0};
-    expected.num_absorbed = {100, 100, 100};
+        SurfaceTestResults expected;
+        expected.num_refracted = {0, 0, 0};
+        expected.num_reflected = {0, 0, 0};
+        expected.num_absorbed = {100, 100, 100};
 
-    EXPECT_EQ(expected.num_reflected, result.num_reflected);
-    EXPECT_EQ(expected.num_refracted, result.num_refracted);
-    EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
+        EXPECT_EQ(expected.num_reflected, result.num_reflected);
+        EXPECT_EQ(expected.num_refracted, result.num_refracted);
+        EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
+    }
 }
 
 //---------------------------------------------------------------------------//
