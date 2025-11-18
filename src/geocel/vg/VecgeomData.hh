@@ -19,6 +19,10 @@
 
 #if CELER_VGNAV == CELER_VGNAV_PATH
 #    include "detail/VecgeomNavCollection.hh"
+#elif CELER_VGNAV == CELER_VGNAV_TUPLE
+#    include <VecGeom/navigation/NavStateTuple.h>
+#else
+#    include <VecGeom/navigation/NavStateIndex.h>
 #endif
 
 namespace celeritas
@@ -174,6 +178,8 @@ struct VecgeomStateData
 //---------------------------------------------------------------------------//
 /*!
  * Resize geometry states.
+ *
+ * \todo Add stream ID
  */
 template<MemSpace M>
 void resize(VecgeomStateData<Ownership::value, M>* data,
