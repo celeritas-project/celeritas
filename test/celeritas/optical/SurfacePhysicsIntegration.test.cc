@@ -255,7 +255,7 @@ class SurfacePhysicsIntegrationTest : public GeantTestBase
         {
             collect_.reset();
 
-            auto angle = deg_angle * M_PI / 180.0;
+            auto angle = deg_angle * constants::pi / 180;
             real_type sin_theta = std::sin(angle);
             real_type cos_theta = std::cos(angle);
 
