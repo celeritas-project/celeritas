@@ -52,7 +52,10 @@ class BVHNavigator
         {
             CELER_ASSERT(vol != nullptr);
             if (!vol->UnplacedContains(point))
+            {
+                path.Clear();
                 return;
+            }
         }
 
         path.Push(vol);
