@@ -13,17 +13,19 @@
 
 # Administration
 /.github/CODEOWNERS @celeritas-project/code-lead @celeritas-project/core-advisor
-/scripts/users.json @celeritas-project/code-lead
+/scripts/release/users.json @celeritas-project/code-lead
 /doc/development/administration.rst @celeritas-project/code-lead @celeritas-project/core-advisor
 
 # CI Infrastructure
 /.github/ @sethrj @pcanal
 /cmake/ @sethrj @pcanal
 /scripts/ci/ @sethrj @pcanal
+/scripts/docker/interactive @esseivaju
+/scripts/**/perlmutter.* @esseivaju
 
 # Core capabilities
 /src/corecel/ @sethrj
-/src/corecel/random/ @davidsgr
+/src/corecel/random/ @davidsgr @amandalund
 /src/corecel/sys/ @esseivaju
 
 # Physics
@@ -31,6 +33,7 @@
 /src/celeritas/field/ @sethrj @whokion
 /src/celeritas/neutron/ @whokion
 /src/celeritas/optical/ @amandalund @hhollenb @Rashika-Gupta @whokion
+/src/celeritas/phys/ @sethrj @amandalund
 /src/celeritas/track/ @amandalund @esseivaju @LSchwiebert
 
 # Geometry
