@@ -183,7 +183,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     StepperInput inp;
     inp.params = params.Params();
     inp.stream_id = stream_id;
-    inp.action_times = options.action_times;
+    inp.actions = params.actions();
 
     if (celeritas::device())
     {
@@ -481,22 +481,20 @@ void LocalTransporter::Finalize()
 /*!
  * Get the accumulated action times.
  */
-auto LocalTransporter::GetActionTime() const -> MapStrReal
+auto LocalTransporter::GetActionTime() const -> MapStrDbl
 {
     CELER_EXPECT(*this);
 
-    MapStrReal result;
     auto const& action_seq = step_->actions();
-    if (action_seq.action_times())
+    MapStrDbl result = action_seq.get_action_times(step_->state().aux());
+    if (optical_)
     {
-        // Save kernel timing if synchronization is enabled
-        auto const& action_ptrs = action_seq.actions().step();
-        auto const& time = action_seq.accum_time();
-
-        CELER_ASSERT(action_ptrs.size() == time.size());
-        for (auto i : range(action_ptrs.size()))
+        // Save optical loop action times
+        auto optical_times = optical_->get_action_times(step_->state().aux());
+        for (auto&& [label, time] : optical_times)
         {
-            result[std::string{action_ptrs[i]->label()}] = time[i];
+            // Prefix label to distinguish from core actions
+            result["optical::" + label] = time;
         }
     }
     return result;

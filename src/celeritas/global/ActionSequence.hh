@@ -8,9 +8,9 @@
 
 #include <memory>
 #include <type_traits>
-#include <vector>
 
 #include "corecel/Types.hh"
+#include "celeritas/user/ActionTimes.hh"
 
 #include "ActionGroups.hh"
 #include "ActionInterface.hh"
@@ -28,9 +28,8 @@ class StatusChecker;
  * TODO accessors here are used by diagnostic output from celer-sim etc.;
  * perhaps make this public or add a diagnostic output for it?
  *
- * \todo Refactor action times as "aux data" and as an end-gather action so
- * that this class can merge across states. Currently there's one sequence per
- * stepper which isn't right.
+ * \note This class must be constructed \em after all actions have been added
+ * to the action registry.
  */
 class ActionSequence
 {
@@ -38,14 +37,15 @@ class ActionSequence
     //!@{
     //! \name Type aliases
     using ActionGroupsT = ActionGroups<CoreParams, CoreState>;
-    using VecDouble = std::vector<double>;
+    using SPActionTimes = std::shared_ptr<ActionTimes>;
+    using MapStrDbl = ActionTimes::MapStrDbl;
     //!@}
 
   public:
     //! Construction/execution options
     struct Options
     {
-        bool action_times{false};  //!< Call DeviceSynchronize and add timer
+        SPActionTimes action_times;  //!< Call DeviceSynchronize and add timer
     };
 
   public:
@@ -62,21 +62,18 @@ class ActionSequence
     template<MemSpace M>
     void step(CoreParams const&, CoreState<M>& state);
 
-    //// ACCESSORS ////
+    // Get the accumulated action times
+    MapStrDbl get_action_times(AuxStateVec const&) const;
 
-    //! Whether synchronization is taking place
-    bool action_times() const { return options_.action_times; }
+    //// ACCESSORS ////
 
     //! Get the ordered vector of actions in the sequence
     ActionGroupsT const& actions() const { return actions_; }
 
-    //! Get the corresponding accumulated time, if 'sync' or host called
-    VecDouble const& accum_time() const { return accum_time_; }
-
   private:
     ActionGroupsT actions_;
     Options options_;
-    VecDouble accum_time_;
+    size_type num_actions_;
     std::shared_ptr<StatusChecker const> status_checker_;
 };
 

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
@@ -36,6 +37,12 @@ inline constexpr UnivId orange_global_univ{0};
 //! ID of the global universe
 inline constexpr UnivLevelId orange_global_univ_level{0};
 
+//! Logic notation used for boolean expressions
+CELER_FUNCTION inline constexpr auto orange_tracking_logic()
+{
+    return LogicNotation::postfix;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Scalar values particular to an ORANGE geometry instance.
@@ -56,6 +63,9 @@ struct OrangeParamsScalars
 
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
+
+    // Logic expression notation
+    LogicNotation logic{};
 
     // Raw pointers to externally owned memory for debug output
     OrangeParams const* host_geo_params{nullptr};

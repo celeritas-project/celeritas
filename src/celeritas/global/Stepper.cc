@@ -19,7 +19,6 @@
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-#include "ActionSequence.hh"
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
@@ -63,12 +62,11 @@ StepperInterface::~StepperInterface() = default;
  */
 template<MemSpace M>
 Stepper<M>::Stepper(Input input)
-    : params_(std::move(input.params)), actions_{[&] {
-        ActionSequenceT::Options opts;
-        opts.action_times = input.action_times;
-        return std::make_shared<ActionSequenceT>(*params_->action_reg(), opts);
-    }()}
+    : params_(std::move(input.params)), actions_(std::move(input.actions))
 {
+    CELER_EXPECT(params_);
+    CELER_EXPECT(actions_);
+
     // Save primary action: TODO this is a hack and should be refactored so
     // that we pass generators into the stepper and eliminate the call
     // signature with primaries

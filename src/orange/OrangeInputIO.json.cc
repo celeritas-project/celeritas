@@ -538,6 +538,15 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
         }
     }
 
+    if (auto iter = j.find("logic"); iter != j.end())
+    {
+        iter->get_to(value.logic);
+    }
+    else
+    {
+        value.logic = LogicNotation::postfix;
+    }
+
     if (auto iter = j.find("tol"); iter != j.end())
     {
         iter->get_to(value.tol);
@@ -559,11 +568,11 @@ void to_json(nlohmann::json& j, OrangeInput const& value)
 {
     CELER_EXPECT(value);
 
-    j = nlohmann::json::object({
-        {"_format", "ORANGE"},
-        {"_version", 0},
-        {"universes", variants_to_json(value.universes)},
-    });
+    j = nlohmann::json::object(
+        {{"_format", "ORANGE"},
+         {"_version", 0},
+         {"universes", variants_to_json(value.universes)}});
+    j["logic"] = value.logic;
     if (value.tol)
     {
         j["tol"] = value.tol;

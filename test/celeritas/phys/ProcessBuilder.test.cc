@@ -14,6 +14,7 @@
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
+#include "celeritas/em/process/GammaNuclearProcess.hh"
 #include "celeritas/em/process/MuBremsstrahlungProcess.hh"
 #include "celeritas/em/process/MuIonizationProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
@@ -100,7 +101,7 @@ class ProcessBuilderTest : public Test
         return result;
     }
 
-    static bool has_neutron_data()
+    static bool has_particle_xs_data()
     {
         static bool const result = has_env("G4PARTICLEXSDATA");
         return result;
@@ -272,6 +273,46 @@ TEST_F(ProcessBuilderTest, gamma_conversion)
             {
                 EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
+        }
+    }
+}
+
+TEST_F(ProcessBuilderTest, gamma_nuclear)
+{
+    if (!this->has_particle_xs_data())
+    {
+        GTEST_SKIP() << "Missing G4PARTICLEXSDATA";
+    }
+
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material());
+
+    // Create process
+    auto process = build_process(IPC::gamma_nuclear);
+    EXPECT_PROCESS_TYPE(GammaNuclearProcess, process.get());
+
+    // Test model
+    auto models = process->build_models(ActionIdIter{});
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("gamma-nuclear", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(1, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
+    {
+        // Test step limits
+        {
+            applic.material = mat_id;
+            EXPECT_FALSE(process->macro_xs(applic));
+            EXPECT_FALSE(process->energy_loss(applic));
+        }
+
+        // Test micro xs
+        for (auto const& model : models)
+        {
+            EXPECT_TRUE(model->micro_xs(applic).empty());
         }
     }
 }
@@ -452,7 +493,7 @@ TEST_F(ProcessBuilderTest, coulomb)
 
 TEST_F(ProcessBuilderTest, neutron_elastic)
 {
-    if (!this->has_neutron_data())
+    if (!this->has_particle_xs_data())
     {
         GTEST_SKIP() << "Missing G4PARTICLEXSDATA";
     }

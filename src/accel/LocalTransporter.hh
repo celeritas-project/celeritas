@@ -7,8 +7,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -57,12 +55,6 @@ class StepperInterface;
 class LocalTransporter final : public LocalOffloadInterface
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using MapStrReal = std::unordered_map<std::string, real_type>;
-    //!@}
-
-  public:
     // Construct in an invalid state
     LocalTransporter() = default;
 
@@ -90,6 +82,9 @@ class LocalTransporter final : public LocalOffloadInterface
 
     // Number of buffered tracks
     size_type GetBufferSize() const final { return buffer_.size(); }
+
+    // Get accumulated action times
+    MapStrDbl GetActionTime() const final;
     //!@}
 
     // Offload this track
@@ -97,9 +92,6 @@ class LocalTransporter final : public LocalOffloadInterface
 
     // Set the event ID and reseed the Celeritas RNG (remove in v0.6)
     [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
-
-    // Get accumulated action times
-    MapStrReal GetActionTime() const;
 
     // Access core state data for user diagnostics
     CoreStateInterface const& GetState() const;
