@@ -29,6 +29,8 @@
 
 namespace vecgeom
 {
+VECGEOM_HOST_FORWARD_DECLARE(class LogicalVolume;);
+VECGEOM_DEVICE_FORWARD_DECLARE(class LogicalVolume;);
 VECGEOM_HOST_FORWARD_DECLARE(template<class T> class Vector3D;);
 VECGEOM_DEVICE_FORWARD_DECLARE(template<class T> class Vector3D;);
 }  // namespace vecgeom
