@@ -69,14 +69,11 @@ class SolidsNavigator
     {
         auto* curr_volume = in_state.Top()->GetLogicalVolume();
 
-        //.. This faster method provides the next step, but not the next volume
-        // real_type step = navigator->ComputeStep(glpos, gldir, step_limit,
-        // curr, next);
-
         // simple dispatch implementation
         auto* navigator = curr_volume->GetNavigator();
         real_type step = navigator->ComputeStepAndPropagatedState(
             glpos, gldir, step_limit, in_state, out_state);
+        out_state.SetLastExited({});
 
         return step;
     }
@@ -127,7 +124,6 @@ class SolidsNavigator
         }
     }
 
-    //---------------------------------------------------------------------------//
     CELER_FUNCTION static void
     RelocatePoint(VgReal3 const& localpoint, NavState& path)
     {
