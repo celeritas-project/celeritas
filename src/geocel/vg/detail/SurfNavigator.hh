@@ -39,9 +39,8 @@ namespace detail
 class SurfNavigator
 {
   public:
-    using VgReal3 = VgVector3<vg_real_type, MemSpace::native>;
     using SurfData = vgbrep::SurfData<vg_real_type>;
-    using Nav = VgNavState;
+    using NavState = VgNavState;
 
     static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
 
@@ -55,7 +54,7 @@ class SurfNavigator
     CELER_FUNCTION static VgPlacedVolumeInt
     LocatePointIn(VgPlacedVolumeInt pvol_id,
                   VgReal3 const& point,
-                  Nav& nav,
+                  NavState& nav,
                   bool top,
                   VgPlacedVolumeInt* exclude = nullptr)
     {
@@ -68,7 +67,7 @@ class SurfNavigator
     /// @param state Path where to compute safety
     /// @return Isotropic safe distance
     CELER_FUNCTION static vg_real_type
-    ComputeSafety(VgReal3 const& globalpoint, Nav const& state)
+    ComputeSafety(VgReal3 const& globalpoint, NavState const& state)
     {
         auto safety
             = vgbrep::protonav::BVHSurfNavigator<vg_real_type>::ComputeSafety(
@@ -87,8 +86,8 @@ class SurfNavigator
     ComputeStepAndNextVolume(VgReal3 const& globalpoint,
                              VgReal3 const& globaldir,
                              vg_real_type step_limit,
-                             Nav const& in_state,
-                             Nav& out_state,
+                             NavState const& in_state,
+                             NavState& out_state,
                              VgSurfaceInt& hitsurf)
     {
         if (step_limit <= 0)
@@ -117,8 +116,8 @@ class SurfNavigator
                                   VgReal3 const& globaldir,
                                   vg_real_type step_limit,
                                   VgSurfaceInt& hit_surf,
-                                  Nav const& in_state,
-                                  Nav& out_state)
+                                  NavState const& in_state,
+                                  NavState& out_state)
     {
         return ComputeStepAndNextVolume(
             globalpoint, globaldir, step_limit, in_state, out_state, hit_surf);
@@ -130,7 +129,7 @@ class SurfNavigator
     CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& globalpoint,
                                                     VgReal3 const& globaldir,
                                                     VgSurfaceInt hitsurf_index,
-                                                    Nav& out_state)
+                                                    NavState& out_state)
     {
         CELER_EXPECT(!out_state.IsOutside());
         vgbrep::CrossedSurface crossed_surf;

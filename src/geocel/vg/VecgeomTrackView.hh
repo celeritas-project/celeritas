@@ -267,13 +267,13 @@ VecgeomTrackView::operator=(Initializer_t const& init)
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
-    constexpr bool contains_point = true;
 #if CELERITAS_VECGEOM_SURFACE
     auto world = vecgeom::NavigationState::WorldId();
 #else
     auto const* world = &this->world();
 #endif
     // LocatePointIn sets `vgstate_`
+    constexpr bool contains_point = true;
     Navigator::LocatePointIn(
         world, detail::to_vector(pos_), vgstate_, contains_point);
     return *this;

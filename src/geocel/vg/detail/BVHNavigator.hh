@@ -18,6 +18,8 @@
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
 
+#include "corecel/math/Algorithms.hh"
+
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
@@ -34,14 +36,15 @@ class BVHNavigator
 {
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-    using Nav = VgNavState;
+    using NavState = VgNavState;
 
     static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
 
+    //! Update path (which must be reset in advance)
     CELER_FUNCTION static void
     LocatePointIn(VgPlacedVol const* vol,
                   VgReal3 const& point,
-                  Nav& path,
+                  NavState& path,
                   bool top,
                   VgPlacedVol const* exclude = nullptr)
     {
@@ -80,7 +83,7 @@ class BVHNavigator
     }
 
     CELER_FUNCTION static void
-    RelocatePoint(VgReal3 const& localpoint, Nav& path)
+    RelocatePoint(VgReal3 const& localpoint, NavState& path)
     {
         VgPlacedVol const* currentmother = path.Top();
         VgReal3 transformed = localpoint;
@@ -110,8 +113,8 @@ class BVHNavigator
     ComputeStepAndHit(VgReal3 const& localpoint,
                       VgReal3 const& localdir,
                       vg_real_type step_limit,
-                      Nav const& in_state,
-                      Nav& out_state,
+                      NavState const& in_state,
+                      NavState& out_state,
                       VgPlacedVol const*& hitcandidate)
     {
         if (step_limit <= 0)
@@ -177,7 +180,7 @@ class BVHNavigator
     CELER_FUNCTION static double ApproachNextVolume(VgReal3 const& localpoint,
                                                     VgReal3 const& localdir,
                                                     vg_real_type step_limit,
-                                                    Nav const& in_state)
+                                                    NavState const& in_state)
     {
         vg_real_type step = step_limit;
         VgPlacedVol const* pvol = in_state.Top();
@@ -215,7 +218,7 @@ class BVHNavigator
     // Computes the isotropic safety from the globalpoint.
     CELER_FUNCTION static double
     ComputeSafety(VgReal3 const& globalpoint,
-                  Nav const& state,
+                  NavState const& state,
                   vg_real_type safety
                   = std::numeric_limits<vg_real_type>::infinity())
     {
@@ -245,8 +248,8 @@ class BVHNavigator
     ComputeStepAndPropagatedState(VgReal3 const& globalpoint,
                                   VgReal3 const& globaldir,
                                   vg_real_type step_limit,
-                                  Nav const& in_state,
-                                  Nav& out_state,
+                                  NavState const& in_state,
+                                  NavState& out_state,
                                   vg_real_type push = 0)
     {
         // If we are on the boundary, push a bit more
@@ -330,8 +333,8 @@ class BVHNavigator
     ComputeStepAndNextVolume(VgReal3 const& globalpoint,
                              VgReal3 const& globaldir,
                              vg_real_type step_limit,
-                             Nav const& in_state,
-                             Nav& out_state,
+                             NavState const& in_state,
+                             NavState& out_state,
                              vg_real_type push = 0)
     {
         // If we are on the boundary, push a bit more
@@ -403,7 +406,7 @@ class BVHNavigator
     ComputeStepToApproachNextVolume(VgReal3 const& globalpoint,
                                     VgReal3 const& globaldir,
                                     vg_real_type step_limit,
-                                    Nav const& in_state)
+                                    NavState const& in_state)
     {
         // calculate local point/dir from global point/dir
         VgReal3 localpoint;
@@ -425,7 +428,7 @@ class BVHNavigator
     // recursively locates the pushed point in the containing volume.
     CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& globalpoint,
                                                     VgReal3 const& globaldir,
-                                                    Nav& state)
+                                                    NavState& state)
     {
         // Push the point inside the next volume.
         VgReal3 pushed = globalpoint + kBoundaryPush * globaldir;

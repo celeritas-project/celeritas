@@ -34,15 +34,14 @@ class SolidsNavigator
 {
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-    using VgReal3 = VgVector3<vg_real_type, MemSpace::native>;
-    using Nav = VgNavState;
+    using NavState = VgNavState;
 
     //-----------------------------------------------------------------------//
     // Locate a point in the geometry hierarchy
     CELER_FUNCTION static void
     LocatePointIn(VgPlacedVol const* vol,
                   VgReal3 const& point,
-                  Nav& nav,
+                  NavState& nav,
                   bool top,
                   VgPlacedVol const* exclude = nullptr)
     {
@@ -65,8 +64,8 @@ class SolidsNavigator
     ComputeStepAndNextVolume(VgReal3 const& glpos,
                              VgReal3 const& gldir,
                              vg_real_type step_limit,
-                             Nav const& in_state,
-                             Nav& out_state)
+                             NavState const& in_state,
+                             NavState& out_state)
     {
         auto* curr_volume = in_state.Top()->GetLogicalVolume();
 
@@ -86,7 +85,7 @@ class SolidsNavigator
     // Computes the isotropic safety from the globalpoint
     CELER_FUNCTION static double
     ComputeSafety(VgReal3 const& glpos,
-                  Nav const& curr,
+                  NavState const& curr,
                   vg_real_type safety
                   = std::numeric_limits<vg_real_type>::infinity())
     {
@@ -102,8 +101,8 @@ class SolidsNavigator
     // Relocate a state that was returned from ComputeStepAndNextVolume
     CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& glpos,
                                                     VgReal3 const& gldir,
-                                                    Nav& curr,
-                                                    Nav& next)
+                                                    NavState& curr,
+                                                    NavState& next)
     {
         VgPlacedVol const* pvol = curr.Top();
         curr.Pop();
@@ -130,7 +129,7 @@ class SolidsNavigator
 
     //---------------------------------------------------------------------------//
     CELER_FUNCTION static void
-    RelocatePoint(VgReal3 const& localpoint, Nav& path)
+    RelocatePoint(VgReal3 const& localpoint, NavState& path)
     {
         VgPlacedVol const* currentmother = path.Top();
         VgReal3 transformed = localpoint;
