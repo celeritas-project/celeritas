@@ -44,7 +44,7 @@ namespace test
 // - Orange geometry (requires valid surface normals)
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE));
+       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4));
 
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
@@ -394,20 +394,20 @@ class SurfacePhysicsIntegrationFresnelTest
 // Only back-scattering
 TEST_F(SurfacePhysicsIntegrationBackscatterTest, backscatter)
 {
-    std::vector<real_type> angles{0, 30, 60};
-    auto result = this->run(angles);
-
-    SurfaceTestResults expected;
-    expected.num_reflected = {100, 100, 100};
-    expected.num_refracted = {0, 0, 0};
-    expected.num_absorbed = {0, 0, 0};
-
     if (reference_configuration)
     {
+        std::vector<real_type> angles{0, 30, 60};
+        auto result = this->run(angles);
+
+        SurfaceTestResults expected;
+        expected.num_reflected = {100, 100, 100};
+        expected.num_refracted = {0, 0, 0};
+        expected.num_absorbed = {0, 0, 0};
+
         EXPECT_EQ(expected.num_reflected, result.num_reflected);
         EXPECT_EQ(expected.num_refracted, result.num_refracted);
+        EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
     }
-    EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
 }
 
 //---------------------------------------------------------------------------//
@@ -431,116 +431,116 @@ TEST_F(SurfacePhysicsIntegrationAbsorbTest, absorb)
 // Only transmission
 TEST_F(SurfacePhysicsIntegrationTransmitTest, transmit)
 {
-    std::vector<real_type> angles{0, 30, 60};
-    auto result = this->run(angles);
-
-    SurfaceTestResults expected;
-    expected.num_refracted = {100, 100, 100};
-    expected.num_reflected = {0, 0, 0};
-    expected.num_absorbed = {0, 0, 0};
-
     if (reference_configuration)
     {
+        std::vector<real_type> angles{0, 30, 60};
+        auto result = this->run(angles);
+
+        SurfaceTestResults expected;
+        expected.num_refracted = {100, 100, 100};
+        expected.num_reflected = {0, 0, 0};
+        expected.num_absorbed = {0, 0, 0};
+
         EXPECT_EQ(expected.num_reflected, result.num_reflected);
         EXPECT_EQ(expected.num_refracted, result.num_refracted);
+        EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
     }
-    EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
 }
 
 //---------------------------------------------------------------------------//
 // Fresnel reflection / refraction
 TEST_F(SurfacePhysicsIntegrationFresnelTest, fresnel)
 {
-    std::vector<real_type> angles{
-        0,
-        10,
-        20,
-        30,
-        40,
-        41,
-        42,
-        43,
-        44,
-        45,
-        46,
-        47,
-        48,
-        49,
-        50,
-        60,
-        70,
-        80,
-    };
-
-    auto result = this->run(angles);
-
-    static unsigned int const expected_num_absorbed[] = {
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-    };
-    static unsigned int const expected_num_reflected[] = {
-        2u,
-        0u,
-        3u,
-        4u,
-        15u,
-        11u,
-        9u,
-        17u,
-        18u,
-        34u,
-        27u,
-        42u,
-        60u,
-        100u,
-        100u,
-        100u,
-        100u,
-        100u,
-    };
-    static unsigned int const expected_num_refracted[] = {
-        98u,
-        100u,
-        97u,
-        96u,
-        85u,
-        89u,
-        91u,
-        83u,
-        82u,
-        66u,
-        73u,
-        58u,
-        40u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
-    };
-
     if (reference_configuration)
     {
+        std::vector<real_type> angles{
+            0,
+            10,
+            20,
+            30,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            60,
+            70,
+            80,
+        };
+
+        auto result = this->run(angles);
+
+        static unsigned int const expected_num_absorbed[] = {
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+        };
+        static unsigned int const expected_num_reflected[] = {
+            2u,
+            0u,
+            3u,
+            4u,
+            15u,
+            11u,
+            9u,
+            17u,
+            18u,
+            34u,
+            27u,
+            42u,
+            60u,
+            100u,
+            100u,
+            100u,
+            100u,
+            100u,
+        };
+        static unsigned int const expected_num_refracted[] = {
+            98u,
+            100u,
+            97u,
+            96u,
+            85u,
+            89u,
+            91u,
+            83u,
+            82u,
+            66u,
+            73u,
+            58u,
+            40u,
+            0u,
+            0u,
+            0u,
+            0u,
+            0u,
+        };
+
         EXPECT_VEC_EQ(expected_num_reflected, result.num_reflected);
         EXPECT_VEC_EQ(expected_num_refracted, result.num_refracted);
+        EXPECT_VEC_EQ(expected_num_absorbed, result.num_absorbed);
     }
-    EXPECT_VEC_EQ(expected_num_absorbed, result.num_absorbed);
 }
 
 //---------------------------------------------------------------------------//

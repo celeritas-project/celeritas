@@ -201,6 +201,7 @@ SurfacePhysicsTrackView::update_traversal_direction(Real3 const& dir)
     CELER_EXPECT(is_soft_unit_vector(dir));
     this->traversal().dir(
         calc_subsurface_direction(dir, states_.global_normal[track_id_]));
+    CELER_ENSURE(is_entering_surface(dir, this->global_normal()));
 }
 
 //---------------------------------------------------------------------------//
