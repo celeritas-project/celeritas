@@ -39,6 +39,13 @@ namespace optical
 {
 namespace test
 {
+// Reference results:
+// - Double precision
+// - Orange geometry (requires valid surface normals)
+constexpr bool reference_configuration
+    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+       && (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE));
+
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 /*!
@@ -395,8 +402,11 @@ TEST_F(SurfacePhysicsIntegrationBackscatterTest, backscatter)
     expected.num_refracted = {0, 0, 0};
     expected.num_absorbed = {0, 0, 0};
 
-    EXPECT_EQ(expected.num_reflected, result.num_reflected);
-    EXPECT_EQ(expected.num_refracted, result.num_refracted);
+    if (reference_configuration)
+    {
+        EXPECT_EQ(expected.num_reflected, result.num_reflected);
+        EXPECT_EQ(expected.num_refracted, result.num_refracted);
+    }
     EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
 }
 
@@ -429,8 +439,11 @@ TEST_F(SurfacePhysicsIntegrationTransmitTest, transmit)
     expected.num_reflected = {0, 0, 0};
     expected.num_absorbed = {0, 0, 0};
 
-    EXPECT_EQ(expected.num_reflected, result.num_reflected);
-    EXPECT_EQ(expected.num_refracted, result.num_refracted);
+    if (reference_configuration)
+    {
+        EXPECT_EQ(expected.num_reflected, result.num_reflected);
+        EXPECT_EQ(expected.num_refracted, result.num_refracted);
+    }
     EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
 }
 
@@ -522,9 +535,12 @@ TEST_F(SurfacePhysicsIntegrationFresnelTest, fresnel)
         0u,
     };
 
+    if (reference_configuration)
+    {
+        EXPECT_VEC_EQ(expected_num_reflected, result.num_reflected);
+        EXPECT_VEC_EQ(expected_num_refracted, result.num_refracted);
+    }
     EXPECT_VEC_EQ(expected_num_absorbed, result.num_absorbed);
-    EXPECT_VEC_EQ(expected_num_reflected, result.num_reflected);
-    EXPECT_VEC_EQ(expected_num_refracted, result.num_refracted);
 }
 
 //---------------------------------------------------------------------------//
