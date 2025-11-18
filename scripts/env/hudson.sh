@@ -17,11 +17,33 @@ fi
 for _d in build install ccache; do
   # Create build/install in higher-performance local-but-persistent dir
   _scratch="/scratch/$USER/$_d"
-  if ! test -d $_scratch; then
-    mkdir -p $_scratch
-    chmod 700 $_scratch
+  if ! test -d "${_scratch}"; then
+    printf "Creating scratch directory at %s\n" "${_scratch}" >&2
+    mkdir -p "${_scratch}"
+    chmod 700 "${_scratch}"
   fi
 done
+
+_clangd="$GIT_WORK_TREE/.clangd"
+if [ -n "$GIT_WORK_TREE" ] && [ ! -e "${_clangd}" ]; then
+  # Create clangd compatible with the system and build config
+  printf "Creating clangd config: %s\n" "${_scratch}" >&2
+  cat > "${_clangd}" << EOF
+CompileFlags:
+  CompilationDatabase: /scratch/s3j/build/celeritas-reldeb
+  Add:
+    [
+      -isystem,
+      /usr/include/c++/13,
+      -isystem,
+      /usr/local/include,
+      -isystem,
+      /usr/include,
+      -isystem,
+      /usr/include/x86_64-linux-gnu/c++/13,
+    ]
+EOF
+fi
 
 CELERITAS_ENV=${SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view
 export PATH=${CELERITAS_ENV}/bin:${PATH}
