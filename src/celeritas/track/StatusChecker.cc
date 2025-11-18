@@ -106,12 +106,12 @@ void StatusChecker::step(ActionId prev_action,
                          CoreParams const& params,
                          CoreState<M>& state) const
 {
+    CELER_EXPECT(data_);
     CELER_EXPECT(this->data_);
     CELER_EXPECT(prev_action);
     CELER_EXPECT(params.action_reg()->num_actions()
                  == this->ref<M>().orders.size());
 
-    // Access aux state via AuxParamsData helper
     auto& aux_state = this->ref<M>(state.aux());
 
     // Update action before launching kernel
@@ -120,9 +120,9 @@ void StatusChecker::step(ActionId prev_action,
     aux_state.order = this->host_ref().orders[prev_action];
 
     CELER_ASSERT(aux_state.order != StepActionOrder::size_);
-    this->launch_impl(params, state, aux_state);
+    this->step_impl(params, state, aux_state);
 
-    // Save status and limiting action IDs
+    // Save the status and limiting action IDs
     auto const& sim_state = state.ref().sim;
     copy_in_memspace(sim_state.status, &aux_state.status);
     copy_in_memspace(sim_state.post_step_action, &aux_state.post_step_action);
@@ -135,17 +135,22 @@ void StatusChecker::step(ActionId prev_action,
  */
 void StatusChecker::begin_run_impl(CoreParams const& params)
 {
-    if (!this->data_)
+    if (!data_)
     {
         static std::mutex initialize_mutex;
         std::lock_guard<std::mutex> scoped_lock{initialize_mutex};
-        if (!this->data_)
+
+        if (!data_)
         {
             auto const& reg = *params.action_reg();
+
             HostVal<StatusCheckParamsData> host_val;
             auto build_orders = CollectionBuilder{&host_val.orders};
+
+            // Loop over all action IDs
             for (auto aidx : range(reg.num_actions()))
             {
+                // See if it's a step action
                 auto const& base = reg.action(ActionId{aidx});
                 if (auto const* expl
                     = dynamic_cast<CoreStepActionInterface const*>(base.get()))
@@ -158,20 +163,22 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
                 }
             }
             CELER_ASSERT(build_orders.size() == reg.num_actions());
-            this->data_ = CollectionMirror{std::move(host_val)};
+
+            // Construct host/device data
+            data_ = CollectionMirror{std::move(host_val)};
         }
     }
-    CELER_ENSURE(this->data_);
+
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute with with the last action's ID and the state.
  */
-void StatusChecker::launch_impl(
-    CoreParams const& params,
-    CoreState<MemSpace::host>& state,
-    StatusStateRef<MemSpace::host> const& aux_state) const
+void StatusChecker::step_impl(CoreParams const& params,
+                              CoreState<MemSpace::host>& state,
+                              StatusStateRef<MemSpace::host> const& aux_state) const
 {
     launch_core(this->label(),
                 params,
@@ -184,9 +191,9 @@ void StatusChecker::launch_impl(
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void StatusChecker::launch_impl(CoreParams const&,
-                                CoreState<MemSpace::device>&,
-                                StatusStateRef<MemSpace::device> const&) const
+void StatusChecker::step_impl(CoreParams const&,
+                              CoreState<MemSpace::device>&,
+                              StatusStateRef<MemSpace::device> const&) const
 
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");

@@ -9,8 +9,9 @@
 #include <string_view>
 
 #include "corecel/Types.hh"
-#include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxParamsData.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -36,8 +37,8 @@ class CoreState;
  * ActionSequence itself, called after every action.
  */
 class StatusChecker final
-    : public AuxParamsData<StatusCheckParamsData, StatusCheckStateData>,
-      public CoreBeginRunActionInterface
+    : public CoreBeginRunActionInterface,
+      public AuxParamsData<StatusCheckParamsData, StatusCheckStateData>
 {
   public:
     // Construct and add to core params
@@ -74,6 +75,15 @@ class StatusChecker final
     void begin_run(CoreParams const&, CoreStateDevice&) final;
     //!@}
 
+    //!@{
+    //! \name Data interface
+
+    //! Access data on host
+    HostRef const& host_ref() const final { return data_.host_ref(); }
+    //! Access data on device
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
+    //!@}
+
     // Execute *manually* with the last action's ID and the state
     template<MemSpace M>
     void
@@ -87,17 +97,18 @@ class StatusChecker final
 
     ActionId action_id_;
     AuxId aux_id_;
+    CollectionMirror<StatusCheckParamsData> data_;
 
     //// HELPER FUNCTIONS ////
 
     void begin_run_impl(CoreParams const&);
 
-    void launch_impl(CoreParams const&,
-                     CoreState<MemSpace::host>&,
-                     StatusStateRef<MemSpace::host> const&) const;
-    void launch_impl(CoreParams const&,
-                     CoreState<MemSpace::device>&,
-                     StatusStateRef<MemSpace::device> const&) const;
+    void step_impl(CoreParams const&,
+                   CoreState<MemSpace::host>&,
+                   StatusStateRef<MemSpace::host> const&) const;
+    void step_impl(CoreParams const&,
+                   CoreState<MemSpace::device>&,
+                   StatusStateRef<MemSpace::device> const&) const;
 };
 
 //---------------------------------------------------------------------------//
