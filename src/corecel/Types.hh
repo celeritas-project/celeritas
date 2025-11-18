@@ -14,6 +14,7 @@
 
 #include <cstddef>
 #include <string>
+#include <type_traits>
 
 #include "corecel/Config.hh"
 
@@ -29,7 +30,7 @@ using size_type = unsigned int;
 using size_type = std::size_t;
 #endif
 
-#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE || defined(__DOXYGEN__)
 //! Numerical type for real numbers
 using real_type = double;
 #elif CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
@@ -79,6 +80,8 @@ enum class UnitSystem
 };
 
 //---------------------------------------------------------------------------//
+// TEMPLATE ALIASES
+//---------------------------------------------------------------------------//
 //!@{
 //! \name Convenience typedefs for params and states.
 
@@ -118,6 +121,34 @@ using RefPtr = ObserverPtr<S<Ownership::reference, M>, M>;
 
 //!@}
 
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Type trait utilities, used for VecGeom or elsewhere.
+
+/*!
+ * Traits class marking compatibility with Collection and Copier.
+ *
+ * This should usually apply only to trivially copyable objects, but there are
+ * \em rare exceptions for external libraries that we know from source
+ * inspection are essentially trivial.
+ */
+template<class T>
+struct TriviallyCopyable : std::is_trivially_copyable<T>
+{
+};
+
+//! True if a type can be copied from host/device without UB
+template<class T>
+constexpr inline bool TriviallyCopyable_v = TriviallyCopyable<T>::value;
+
+//! True if an object (functor) is compatible with kernel launchers
+template<class F>
+constexpr inline bool Launchable_v
+    = (TriviallyCopyable_v<F> || CELERITAS_USE_HIP
+       || CELER_COMPILER == CELER_COMPILER_CLANG)
+      && !std::is_pointer_v<F> && !std::is_reference_v<F>;
+
+//!@}
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
