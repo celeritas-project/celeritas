@@ -54,9 +54,9 @@ struct InvalidValueTraits
         }
         else if constexpr (TriviallyCopyable_v<T>)
         {
-            // The type is marked by a developer as being "trivially copyable"
-            // when it's technically not: examples are with the HIP RNG and
-            // VecGeom nav state. Avoid breaking copy constructors.
+            // The type is specialized by a developer as being "trivially
+            // copyable" when it's technically not: examples are with the HIP
+            // RNG and VecGeom nav state. Avoid breaking copy constructors.
             return T{};
         }
         else
