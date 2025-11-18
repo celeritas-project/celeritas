@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/data/AuxInterface.hh"
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 
@@ -72,7 +74,8 @@ TEST_F(UserTest, state_host)
         "mock2", registry.next_id(), 234, VecInt{1, 2});
     registry.insert(mock2);
 
-    // Create a state vector
+    // Create a state vector (in practice, this is created and owned by the
+    // CoreState)
     AuxStateVec states{registry, MemSpace::host, StreamId{1}, 128};
     EXPECT_EQ(2, states.size());
 
@@ -88,10 +91,16 @@ TEST_F(UserTest, state_host)
         EXPECT_EQ(128, data.size());
         EXPECT_EQ(128, data.local_state.size());
         EXPECT_EQ(123, data.counts.size());
+
+        // Use the params helper to get the device reference more easily
+        // (it should be a pointer to the exact same data)
+        auto& sref = mock->ref<MemSpace::host>(states);
+        EXPECT_EQ(&data, &sref);
     }
     {
         // Check the second state
         auto* sptr = dynamic_cast<StateT*>(&states.at(AuxId{1}));
+
         ASSERT_TRUE(sptr);
         EXPECT_TRUE(*sptr);
         EXPECT_EQ(128, sptr->size());
@@ -100,11 +109,20 @@ TEST_F(UserTest, state_host)
         EXPECT_EQ(StreamId{1}, data.stream);
         EXPECT_EQ(128, data.local_state.size());
         EXPECT_EQ(234, data.counts.size());
+
+        // Use the params helper to get the device reference more easily
+        // (it should be a pointer to the exact same data)
+        auto& sref = mock2->ref<MemSpace::host>(states);
+        EXPECT_EQ(&data, &sref);
     }
     {
         // Check 'get'
         auto& s = get<StateT>(states, AuxId{1});
         EXPECT_EQ(128, s.size());
+    }
+    {
+        // Getting the wrong type/memspace should be an error
+        EXPECT_THROW(mock2->ref<MemSpace::device>(states), RuntimeError);
     }
 }
 

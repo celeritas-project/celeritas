@@ -8,8 +8,10 @@
 
 #include <vector>
 
+#include "corecel/Types.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateData.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
@@ -32,6 +34,9 @@ class AuxMockParams : public AuxParamsInterface,
     using VecInt = std::vector<int>;
     template<MemSpace M>
     using StateT = AuxStateData<AuxMockStateData, M>;
+
+    template<MemSpace M>
+    using StateRefT = AuxMockStateData<Ownership::reference, M>;
     //!@}
 
   public:
@@ -58,6 +63,23 @@ class AuxMockParams : public AuxParamsInterface,
     //! Access data on device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
     //!@}
+
+    //! Get the *state* ref (const)
+    template<MemSpace M>
+    StateRefT<M> const& ref(AuxStateVec const& v) const
+    {
+        return celeritas::get<StateT<M>>(v, aux_id_).ref();
+    }
+
+    //! Get the *state* ref (mutable)
+    template<MemSpace M>
+    StateRefT<M>& ref(AuxStateVec& v)
+    {
+        return celeritas::get<StateT<M>>(v, aux_id_).ref();
+    }
+
+    //! Access host/device *params* ref
+    using ParamsDataInterface::ref;
 
   private:
     std::string label_;
