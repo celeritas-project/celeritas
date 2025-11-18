@@ -28,12 +28,12 @@
     },
     {
       "name": "release",
-      "displayName": "Build with optimizations without debug assertions",
+      "displayName": "Build with full optimizations (VecGeom)",
       "inherits": [".base", ".ndebug"]
     },
     {
       "name": "reldeb",
-      "displayName": "Build with basic optimizations and debug assertions",
+      "displayName": "Build with optimizations, but enable host debugging (VecGeom)",
       "inherits": [".base", ".reldeb"],
       "cacheVariables": {
         "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"}
@@ -41,7 +41,7 @@
     },
     {
       "name": "release-orange",
-      "displayName": "Build with optimizations and disable VecGeom and debug assertions",
+      "displayName": "Build with full optimizations (ORANGE)",
       "inherits": ["release"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
@@ -49,7 +49,7 @@
     },
     {
       "name": "reldeb-orange",
-      "displayName": "Build with debug assertions and disable VecGeom",
+      "displayName": "Build with optimizations, but enable host debugging (ORANGE)",
       "inherits": ["reldeb"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
@@ -57,7 +57,7 @@
     },
     {
       "name": "debug-orange",
-      "displayName": "Build with debug assertions and ORANGE geometry",
+      "displayName": "Build without optimization, enabling full host debugging (ORANGE)",
       "inherits": [".base", ".debug"],
       "cacheVariables": {
         "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"},
