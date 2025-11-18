@@ -36,11 +36,9 @@ class RanluxppRngParams final
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
+    /// DATA ///
     // Host/device storage and reference
     CollectionMirror<RanluxppRngParamsData> data_;
-
-    // Return the kA value
-    RanluxppArray9 const& get_a_2048() const;
 };
 
 //---------------------------------------------------------------------------//
