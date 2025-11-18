@@ -76,6 +76,8 @@ class SolidsNavigator
         auto* navigator = curr_volume->GetNavigator();
         real_type step = navigator->ComputeStepAndPropagatedState(
             glpos, gldir, step_limit, curr, next);
+        curr.SetLastExited({});
+        next.SetLastExited({});
 
         return step;
     }
