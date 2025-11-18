@@ -8,7 +8,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/AuxMockData.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
+#include "corecel/data/AuxStateData.hh"
 #include "corecel/data/AuxStateVec.hh"
 
 #include "AuxMockParams.hh"
@@ -64,7 +66,7 @@ TEST_F(UserTest, params)
 
 TEST_F(UserTest, state_host)
 {
-    using StateT = AuxMockParams::StateT<MemSpace::host>;
+    using StateT = AuxStateData<AuxMockStateData, MemSpace::host>;
 
     AuxParamsRegistry registry;
     auto mock = std::make_shared<AuxMockParams>(

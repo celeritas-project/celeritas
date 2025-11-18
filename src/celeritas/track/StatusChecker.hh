@@ -10,8 +10,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/AuxInterface.hh"
-#include "corecel/data/CollectionMirror.hh"
-#include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/AuxParamsData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -36,9 +35,9 @@ class CoreState;
  * \em not a CoreStepAction. It's meant to be used inside the \c
  * ActionSequence itself, called after every action.
  */
-class StatusChecker final : public AuxParamsInterface,
-                            public CoreBeginRunActionInterface,
-                            public ParamsDataInterface<StatusCheckParamsData>
+class StatusChecker final
+    : public AuxParamsData<StatusCheckParamsData, StatusCheckStateData>,
+      public CoreBeginRunActionInterface
 {
   public:
     // Construct and add to core params
@@ -62,8 +61,6 @@ class StatusChecker final : public AuxParamsInterface,
 
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
-    // Build state data for a stream
-    UPState create_state(MemSpace m, StreamId id, size_type size) const final;
     //!@}
 
     //!@{
@@ -75,15 +72,6 @@ class StatusChecker final : public AuxParamsInterface,
     void begin_run(CoreParams const&, CoreStateHost&) final;
     // Set device data at the beginning of a run
     void begin_run(CoreParams const&, CoreStateDevice&) final;
-    //!@}
-
-    //!@{
-    //! \name Data interface
-
-    //! Access data on host
-    HostRef const& host_ref() const final { return data_.host_ref(); }
-    //! Access data on device
-    DeviceRef const& device_ref() const final { return data_.device_ref(); }
     //!@}
 
     // Execute *manually* with the last action's ID and the state
@@ -99,7 +87,6 @@ class StatusChecker final : public AuxParamsInterface,
 
     ActionId action_id_;
     AuxId aux_id_;
-    CollectionMirror<StatusCheckParamsData> data_;
 
     //// HELPER FUNCTIONS ////
 

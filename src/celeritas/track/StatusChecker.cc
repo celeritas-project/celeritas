@@ -79,16 +79,6 @@ std::string_view StatusChecker::description() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Build state data for a stream.
- */
-auto StatusChecker::create_state(MemSpace m, StreamId id, size_type size) const
-    -> UPState
-{
-    return make_aux_state<StatusCheckStateData>(*this, m, id, size);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set host data at the beginning of a run.
  */
 void StatusChecker::begin_run(CoreParams const& params, CoreStateHost&)
@@ -116,13 +106,13 @@ void StatusChecker::step(ActionId prev_action,
                          CoreParams const& params,
                          CoreState<M>& state) const
 {
-    CELER_EXPECT(data_);
+    CELER_EXPECT(this->data_);
     CELER_EXPECT(prev_action);
     CELER_EXPECT(params.action_reg()->num_actions()
                  == this->ref<M>().orders.size());
 
-    using StateT = AuxStateData<StatusCheckStateData, M>;
-    auto& aux_state = get<StateT>(state.aux(), aux_id_).ref();
+    // Access aux state via AuxParamsData helper
+    auto& aux_state = this->ref<M>(state.aux());
 
     // Update action before launching kernel
     CELER_ASSERT(prev_action < this->host_ref().orders.size());
@@ -132,7 +122,7 @@ void StatusChecker::step(ActionId prev_action,
     CELER_ASSERT(aux_state.order != StepActionOrder::size_);
     this->launch_impl(params, state, aux_state);
 
-    // Save the status and limiting action IDs
+    // Save status and limiting action IDs
     auto const& sim_state = state.ref().sim;
     copy_in_memspace(sim_state.status, &aux_state.status);
     copy_in_memspace(sim_state.post_step_action, &aux_state.post_step_action);
@@ -145,22 +135,17 @@ void StatusChecker::step(ActionId prev_action,
  */
 void StatusChecker::begin_run_impl(CoreParams const& params)
 {
-    if (!data_)
+    if (!this->data_)
     {
         static std::mutex initialize_mutex;
         std::lock_guard<std::mutex> scoped_lock{initialize_mutex};
-
-        if (!data_)
+        if (!this->data_)
         {
             auto const& reg = *params.action_reg();
-
             HostVal<StatusCheckParamsData> host_val;
             auto build_orders = CollectionBuilder{&host_val.orders};
-
-            // Loop over all action IDs
             for (auto aidx : range(reg.num_actions()))
             {
-                // See if it's a step action
                 auto const& base = reg.action(ActionId{aidx});
                 if (auto const* expl
                     = dynamic_cast<CoreStepActionInterface const*>(base.get()))
@@ -173,13 +158,10 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
                 }
             }
             CELER_ASSERT(build_orders.size() == reg.num_actions());
-
-            // Construct host/device data
-            data_ = CollectionMirror{std::move(host_val)};
+            this->data_ = CollectionMirror{std::move(host_val)};
         }
     }
-
-    CELER_ENSURE(data_);
+    CELER_ENSURE(this->data_);
 }
 
 //---------------------------------------------------------------------------//

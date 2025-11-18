@@ -15,7 +15,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for storing Collection classes on host or device.
+ * Helper class for storing collection groups of state data.
  *
  * This can be used for unit tests (MemSpace is host) as well as production
  * code. States generally shouldn't be copied between host and device, so the
@@ -36,6 +36,8 @@ namespace celeritas
         *particle_params, num_tracks);
     state_data.particle = pstates.ref();
    \endcode
+ *
+ * \todo Rename StateDataStore
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 class CollectionStateStore

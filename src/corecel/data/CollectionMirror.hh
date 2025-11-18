@@ -45,6 +45,8 @@ namespace celeritas
  *     CollectionMirror<FooData> data_;
  * };
  * \endcode
+ *
+ * \todo Rename ParamsDataMirror
  */
 template<template<Ownership, MemSpace> class P>
 class CollectionMirror final : public ParamsDataInterface<P>

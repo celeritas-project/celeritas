@@ -8,10 +8,8 @@
 
 #include <vector>
 
-#include "corecel/Types.hh"
 #include "corecel/data/AuxInterface.hh"
-#include "corecel/data/AuxStateData.hh"
-#include "corecel/data/AuxStateVec.hh"
+#include "corecel/data/AuxParamsData.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
@@ -25,18 +23,12 @@ namespace test
 /*!
  * Mock class for shared host data that has associated thread-local data.
  */
-class AuxMockParams : public AuxParamsInterface,
-                      public ParamsDataInterface<AuxMockParamsData>
+class AuxMockParams : public AuxParamsData<AuxMockParamsData, AuxMockStateData>
 {
   public:
     //!@{
     //! \name Type aliases
     using VecInt = std::vector<int>;
-    template<MemSpace M>
-    using StateT = AuxStateData<AuxMockStateData, M>;
-
-    template<MemSpace M>
-    using StateRefT = AuxMockStateData<Ownership::reference, M>;
     //!@}
 
   public:
@@ -47,13 +39,11 @@ class AuxMockParams : public AuxParamsInterface,
                   VecInt const& integers);
 
     //!@{
-    //! \name User interface
+    //! \name Aux interface
     //! Short name for the data
     std::string_view label() const final { return label_; }
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
-    // Build state data for a stream
-    UPState create_state(MemSpace, StreamId, size_type) const final;
     //!@}
 
     //!@{
@@ -64,22 +54,8 @@ class AuxMockParams : public AuxParamsInterface,
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
     //!@}
 
-    //! Get the *state* ref (const)
-    template<MemSpace M>
-    StateRefT<M> const& ref(AuxStateVec const& v) const
-    {
-        return celeritas::get<StateT<M>>(v, aux_id_).ref();
-    }
-
-    //! Get the *state* ref (mutable)
-    template<MemSpace M>
-    StateRefT<M>& ref(AuxStateVec& v)
-    {
-        return celeritas::get<StateT<M>>(v, aux_id_).ref();
-    }
-
-    //! Access host/device *params* ref
-    using ParamsDataInterface::ref;
+    //! Access host/device params/state ref
+    using AuxParamsData::ref;
 
   private:
     std::string label_;
