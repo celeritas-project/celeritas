@@ -13,7 +13,6 @@
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
-#include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 
@@ -31,6 +30,8 @@ namespace vecgeom
 {
 VECGEOM_HOST_FORWARD_DECLARE(class LogicalVolume;);
 VECGEOM_DEVICE_FORWARD_DECLARE(class LogicalVolume;);
+VECGEOM_HOST_FORWARD_DECLARE(class VPlacedVolume;);
+VECGEOM_DEVICE_FORWARD_DECLARE(class VPlacedVolume;);
 VECGEOM_HOST_FORWARD_DECLARE(template<class T> class Vector3D;);
 VECGEOM_DEVICE_FORWARD_DECLARE(template<class T> class Vector3D;);
 }  // namespace vecgeom
