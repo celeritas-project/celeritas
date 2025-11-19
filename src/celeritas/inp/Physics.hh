@@ -63,6 +63,52 @@ struct EmPhysics
 
 //---------------------------------------------------------------------------//
 /*!
+ * Muon-catalyzed fusion physics options and data import.
+ *
+ * Minimum requirements for muon-catalyzed fusion:
+ * - Muon energy CDF data, required for sampling the outgoing muCF muon, and
+ * - Mean cycle rate data for dd, dt, and tt muonic molecules.
+ *
+ * Muonic atom transfer and muonic atom spin flip are secondary effects.
+ */
+struct MucfPhysics
+{
+    template<class T>
+    using Vec = std::vector<T>;
+
+    Grid muon_energy_cdf;  //!< CDF for outgoing muCF muon
+    Vec<CycleRateData> cycle_rates;  //!< Mean cycle rates for muonic molecules
+    Vec<AtomTransferRateData> atom_transfer;  //!< Muon atom transfer rates
+    Vec<AtomSpinFlipRateData> atom_spin_flip;  //!< Muon atom spin flip rates
+
+    //! Whether muon-catalyzed fusion physics is enabled
+    explicit operator bool() const
+    {
+        return muon_energy_cdf && !cycle_rates.empty();
+    }
+
+    /*!
+     * Construct hardcoded muon-catalyzed fusion physics data.
+     *
+     * \note
+     * This will be replaced by importing the data from output files.
+     * The grid data are large, so we may want to have a separate header to
+     * store them in the meantime, otherwise this function will be thousands of
+     * lines long.
+     */
+    static MucfPhysics from_default()
+    {
+        MucfPhysics result;
+
+        //! \todo Initialize hardcoded muon_energy_cdf grid
+        //! \todo Initialize hardcoded cycle_rate data for dt, dd, tt
+
+        return result;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Optical physics processes, options, and surface definitions.
  *
  * \todo Move cherenkov/scintillation to a OpticalGenPhysics class.
@@ -114,6 +160,9 @@ struct Physics
 {
     //! Physics that applies to offloaded EM particles
     EmPhysics em;
+
+    //! Muon-catalyzed fusion physics
+    MucfPhysics mucf;
 
     //! Physics for optical photons
     OpticalPhysics optical;

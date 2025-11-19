@@ -91,5 +91,65 @@ using MuPairProductionProcess = PairProductionProcess;
 //!@}
 
 //---------------------------------------------------------------------------//
+/*!
+ * Muon-catalyzed fusion mean cycle rate data.
+ *
+ * Mean cycle rates are as a function of temperature, with each grid assigned
+ * to a muonic molecule and its spin (e.g. \f$ (dt)_\mu, F = 0 \f$).
+ */
+struct CycleRateData
+{
+    MuonicMolecule molecule;
+    Grid grid;
+    std::string spin_label;
+
+    //! True if data is assigned
+    explicit operator bool() const
+    {
+        return molecule < MuonicMolecule::size_ && grid && !spin_label.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Muon-catalyzed fusion mean atom transfer data.
+ *
+ * Atom transfer is not a direct process, encompassing multiple steps:
+ * initial_atom --> isotope1 --> isotope2 --> final_atom
+ *
+ * The transfer rates are as a function of temperature, with a separate grid
+ * for each combination of the 4 steps below
+ * (e.g. protium --> deuterium --> tritium --> tritium).
+ *
+ * \note These grids are host-only, with only the final exchange rate (a
+ * \c real_type ) for each combination being needed in the stepping loop. This
+ * is because these rates are material dependent, and thus can be cached at
+ * model construction.
+ */
+struct AtomTransferRateData
+{
+    //! \todo Implement
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Muon-catalyzed fusion mean atom spin flip data.
+ *
+ * Spin flip rates are as a function of temperature, with each grid/table
+ * representing an atom pair combination and its spin (e.g. deuterium-tritium,
+ * spin 1). Ordering is important, thus same spin deuterium-tritium and
+ * tritium-deuterium have different tables.
+ *
+ * \note These grids are host-only, with only the final spin flip rate per
+ * state (which is just a \c real_type ) for each combination being needed in
+ * the stepping loop. This is because these rates are material dependent, and
+ * thus can be cached at model construction.
+ */
+struct AtomSpinFlipRateData
+{
+    //! \todo Implement
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace inp
 }  // namespace celeritas
