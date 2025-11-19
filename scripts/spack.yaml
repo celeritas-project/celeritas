@@ -17,7 +17,7 @@ spack:
     - "python@3.6:"
     - py-breathe
     - py-furo
-    - py-pre-commit
+    - "py-pre-commit ^py-identify@2.6:"
     - py-sphinx
     - py-sphinxcontrib-bibtex
     - py-sphinxcontrib-mermaid
