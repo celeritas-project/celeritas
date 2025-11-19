@@ -114,8 +114,15 @@ class VgNavStateWrapper
     CELER_FIF
     void CopyTo(VgNavStateWrapper* other) const { *other = *this; }
 
+    CELER_FIF bool HasSamePathAsOther(VgNavStateWrapper const& other) const
+    {
+        return s_ == other.s_;
+    }
+
     CELER_FIF
     void SetLastExited() {}
+
+    CELER_FIF
     VPlacedVolume const* GetLastExited() { return nullptr; }
 
   private:

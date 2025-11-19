@@ -1,9 +1,10 @@
 //------------------------------- -*- C++ -*- -------------------------------//
 // SPDX-FileCopyrightText: 2020 CERN
+// SPDX-FileCopyrightText: 2025 Celeritas contributors
 // SPDX-License-Identifier: Apache-2.0
 //---------------------------------------------------------------------------//
 /*!
- * \file BVHNavigator.hh
+ * \file geocel/vg/detail/BVHNavigator.hh
  * \brief Bounding Volume Hierarchy navigator directly derived from AdePT
  *
  * Original source:
