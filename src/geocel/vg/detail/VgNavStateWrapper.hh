@@ -114,6 +114,10 @@ class VgNavStateWrapper
     CELER_FIF
     void CopyTo(VgNavStateWrapper* other) const { *other = *this; }
 
+    CELER_FIF
+    void SetLastExited() {}
+    VPlacedVolume const* GetLastExited() { return nullptr; }
+
   private:
     VgNavStateImpl& s_;
     VgBoundary& b_;

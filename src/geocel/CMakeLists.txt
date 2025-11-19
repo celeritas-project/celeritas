@@ -78,6 +78,7 @@ if(CELERITAS_USE_VecGeom)
     vg/RaytraceImager.cc
     vg/SafetyImager.cc
   )
+  message("VecGeom_NAV=${VecGeom_NAV}")
   if(VecGeom_NAV STREQUAL "path")
     list(APPEND SOURCES
       vg/detail/VecgeomNavCollection.cc

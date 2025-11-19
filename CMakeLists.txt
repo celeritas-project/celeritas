@@ -460,7 +460,7 @@ if(CELERITAS_USE_VecGeom)
 
   # Save VecGeom_NAV variable for diagnostics
   if(VecGeom_VERSION VERSION_LESS 2.0)
-    if(VECGEOM_USE_NAVINDEX)
+    if(VecGeom_USE_NAVINDEX)
       set(VecGeom_NAV "index")
     else()
       set(VecGeom_NAV "path")
