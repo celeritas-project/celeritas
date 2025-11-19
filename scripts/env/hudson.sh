@@ -33,7 +33,7 @@ done
 _clangd="$GIT_WORK_TREE/.clangd"
 if [ -n "$GIT_WORK_TREE" ] && [ ! -e "${_clangd}" ]; then
   # Create clangd compatible with the system and build config
-  printf "Creating clangd config: %s\n" "${_scratch}" >&2
+  printf "Creating clangd config: %s\n" "${_clangd}" >&2
   cat > "${_clangd}" << EOF
 CompileFlags:
   CompilationDatabase: /scratch/s3j/build/celeritas-reldeb
