@@ -1009,7 +1009,6 @@ auto import_processes(GeantImporter::DataSelection selected,
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
         }
-        //  CELER_LOG(debug)<<"Adding mie";
         else if (import_optical_model
                  && dynamic_cast<G4OpMieHG const*>(&process))
         {
