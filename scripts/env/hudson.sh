@@ -17,7 +17,9 @@ if ! test -r $SPACK_ROOT; then
 fi
 
 if ! command -v spack >/dev/null 2>&1; then
-  . $SPACK_ROOT/share/spack/setup-env.sh
+  _spack_setup="$SPACK_ROOT/share/spack/setup-env.sh"
+  printf "Loading spack setup from %s\n" "${_spack_setup}" >&2
+  . "${_spack_setup}"
 fi
 
 for _d in build install ccache; do
