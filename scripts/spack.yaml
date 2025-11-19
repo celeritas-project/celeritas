@@ -8,7 +8,7 @@ spack:
     - "geant4@11"
     - git
     - "googletest@1.10:"
-    - py-pre-commit
+    - "py-pre-commit ^py-identify@2.6:"
     - "python@3.9:"
     # ... plus *recommended* options
     - "covfie@0.13:"
