@@ -100,8 +100,8 @@ CudaPointers<CudaBVH_t const> bvh_pointers_device()
     CELER_DEVICE_API_CALL(
         MemcpyFromSymbol(&result.symbol,
 #if VECGEOM_VERSION >= 0x020000
-                         vecgeom::cuda::dBVH<BvhPrecision>,
-                         sizeof(vecgeom::cuda::dBVH<BvhPrecision>),
+                         vecgeom::cuda::dBVH<vgbvh_real_type>,
+                         sizeof(vecgeom::cuda::dBVH<vgbvh_real_type>),
 #else
                          vecgeom::cuda::dBVH,
                          sizeof(vecgeom::cuda::dBVH),

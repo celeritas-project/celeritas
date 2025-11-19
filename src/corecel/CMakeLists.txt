@@ -127,10 +127,11 @@ foreach(_dep Geant4 VecGeom HepMC3)
 endforeach()
 
 # Save VecGeom options as always-on macros to simplify testing
-set(CELERITAS_VECGEOM_CONFIG)
-if(CELERITAS_VecGeom_SURFACE)
+if(DEFINED CELERITAS_VecGeom_SURFACE)
+  # Override/pretend VecGeom has this option
   set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
 endif()
+set(CELERITAS_VECGEOM_CONFIG)
 set(_vecgeom_opts)
 foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
   if(NOT DEFINED VecGeom_${_opt})

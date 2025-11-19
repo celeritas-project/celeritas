@@ -258,19 +258,19 @@ void from_json(nlohmann::json const& j, UnitInput& value)
 
     for (char const* key : {"parent_volumes", "parent_cells"})
     {
-        auto iter = j.find(key);
-        if (iter == j.end())
+        auto parent_iter = j.find(key);
+        if (parent_iter == j.end())
         {
             continue;
         }
-        auto const& parent_vols = iter->get<std::vector<size_type>>();
+        auto const& parent_vols = parent_iter->get<std::vector<size_type>>();
 
         auto const& daughters = j.at("daughters").get<std::vector<size_type>>();
         CELER_VALIDATE(parent_vols.size() == daughters.size(),
                        << "fields '" << key
                        << "' and 'daughters' have different lengths");
 
-        std::vector<VariantTransform> transforms;  // SCALE ORANGE v0
+        std::vector<VariantTransform> transforms;
         if (auto iter = j.find("transforms"); iter != j.end())
         {
             for (auto const& t : *iter)
@@ -280,6 +280,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         }
         else if (auto iter = j.find("translations"); iter != j.end())
         {
+            // SCALE serialized translations
             auto translations = iter->get<std::vector<real_type>>();
             CELER_VALIDATE(3 * parent_vols.size() == translations.size(),
                            << "field 'translations' is not 3x length of '"
@@ -304,6 +305,23 @@ void from_json(nlohmann::json const& j, UnitInput& value)
             daughter.transform = std::move(transforms[i]);
             value.daughter_map.emplace(LocalVolumeId{parent_vols[i]},
                                        std::move(daughter));
+        }
+    }
+
+    if (auto iter = j.find("local_parent_map"); iter != j.end())
+    {
+        for (auto const& obj : *iter)
+        {
+            auto vals = obj.get<Array<LocalVolumeId, 2>>();
+            CELER_VALIDATE(vals[0] && vals[1],
+                           << "null ID in local parent map");
+            auto [lp_iter, inserted]
+                = value.local_parent_map.emplace(vals[0], vals[1]);
+            CELER_VALIDATE(inserted,
+                           << "duplicate local parent: local volume "
+                           << vals[0] << " cannot be inside both "
+                           << lp_iter->first.unchecked_get() << " and "
+                           << vals[1]);
         }
     }
 
@@ -349,20 +367,30 @@ void to_json(nlohmann::json& j, UnitInput const& value)
 
     if (!value.daughter_map.empty())
     {
-        std::vector<size_type> parent_cells;
+        std::vector<size_type> parent_volumes;
         auto daughters = nlohmann::json::array();
         auto transforms = nlohmann::json::array();
 
         for (auto const& [local_vol, daughter_inp] : value.daughter_map)
         {
-            parent_cells.push_back(local_vol.unchecked_get());
+            parent_volumes.push_back(local_vol.unchecked_get());
             daughters.push_back(daughter_inp.univ_id.unchecked_get());
             transforms.push_back(
                 detail::export_transform(daughter_inp.transform));
         }
-        j["parent_cells"] = std::move(parent_cells);
+        j["parent_cells"] = std::move(parent_volumes);
         j["daughters"] = std::move(daughters);
         j["transforms"] = std::move(transforms);
+    }
+
+    if (!value.local_parent_map.empty())
+    {
+        auto parents = nlohmann::json::array();
+        for (auto const& [child, parent] : value.local_parent_map)
+        {
+            parents.push_back(Array{child, parent});
+        }
+        j["local_parent_map"] = std::move(parents);
     }
 
     CELER_JSON_SAVE_WHEN(j, value, background, value.background);
@@ -510,6 +538,15 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
         }
     }
 
+    if (auto iter = j.find("logic"); iter != j.end())
+    {
+        iter->get_to(value.logic);
+    }
+    else
+    {
+        value.logic = LogicNotation::postfix;
+    }
+
     if (auto iter = j.find("tol"); iter != j.end())
     {
         iter->get_to(value.tol);
@@ -531,11 +568,11 @@ void to_json(nlohmann::json& j, OrangeInput const& value)
 {
     CELER_EXPECT(value);
 
-    j = nlohmann::json::object({
-        {"_format", "ORANGE"},
-        {"_version", 0},
-        {"universes", variants_to_json(value.universes)},
-    });
+    j = nlohmann::json::object(
+        {{"_format", "ORANGE"},
+         {"_version", 0},
+         {"universes", variants_to_json(value.universes)}});
+    j["logic"] = value.logic;
     if (value.tol)
     {
         j["tol"] = value.tol;

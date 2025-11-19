@@ -41,7 +41,7 @@ struct SurfaceInteraction
     //! Whether data is assigned and valid
     CELER_FUNCTION bool is_valid() const
     {
-        return action == Action::absorbed
+        return action == Action::absorbed || action == Action::transmitted
                || (is_soft_unit_vector(direction)
                    && is_soft_unit_vector(polarization)
                    && is_soft_orthogonal(direction, polarization));

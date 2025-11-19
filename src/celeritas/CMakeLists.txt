@@ -49,6 +49,7 @@ list(APPEND SOURCES
   em/process/EIonizationProcess.cc
   em/process/EPlusAnnihilationProcess.cc
   em/process/GammaConversionProcess.cc
+  em/process/GammaNuclearProcess.cc
   em/process/MuIonizationProcess.cc
   em/process/MuBremsstrahlungProcess.cc
   em/process/MuPairProductionProcess.cc
@@ -80,6 +81,7 @@ list(APPEND SOURCES
   grid/UniformGridInserter.cc
   grid/XsGridInserter.cc
   io/AtomicRelaxationReader.cc
+  io/GammaNuclearXsReader.cc
   io/ImportData.cc
   io/ImportDataTrimmer.cc
   io/ImportMaterial.cc
@@ -146,6 +148,7 @@ list(APPEND SOURCES
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc
+  user/ActionTimes.cc
   user/DetectorSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc
@@ -334,6 +337,7 @@ celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
 celeritas_polysource(em/model/EPlusGGModel)
+celeritas_polysource(em/model/GammaNuclearModel)
 celeritas_polysource(em/model/ICRU73QOModel)
 celeritas_polysource(em/model/KleinNishinaModel)
 celeritas_polysource(em/model/LivermorePEModel)
@@ -363,6 +367,7 @@ celeritas_polysource(optical/gen/GeneratorAction)
 celeritas_polysource(optical/gen/OffloadAction)
 celeritas_polysource(optical/gen/OffloadGatherAction)
 celeritas_polysource(optical/gen/PrimaryGeneratorAction)
+celeritas_polysource(optical/gen/DirectGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)

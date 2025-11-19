@@ -7,9 +7,10 @@
 #include "CoreState.hh"
 
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/random/RngReseed.hh"
 
 #include "CoreParams.hh"
 
@@ -18,8 +19,12 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-//! Support polymorphic deletion
+//! Support polymorphic deletion, anchoring to avoid bugs
 CoreStateInterface::~CoreStateInterface() = default;
+
+//---------------------------------------------------------------------------//
+//! Default destructor, anchoring to avoid bugs
+CoreStateBase::~CoreStateBase() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -58,6 +63,11 @@ CoreState<M>::CoreState(CoreParams const& params,
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
 }
+
+//---------------------------------------------------------------------------//
+// Default destructor
+template<MemSpace M>
+CoreState<M>::~CoreState() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -107,6 +117,24 @@ void CoreState<M>::reset()
 
     // Mark all the track slots as empty
     fill_sequence(&this->ref().init.vacancies, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reseed RNGs at the start of an event for reproducibility.
+ *
+ * This reinitializes the RNG states using a single seed and unique subsequence
+ * for each thread. It ensures that given an event identification, the random
+ * number sequence for the event (and thus the event's behavior) can be
+ * reproduced.
+ */
+template<MemSpace M>
+void CoreState<M>::reseed(std::shared_ptr<RngParams const> rng,
+                          UniqueEventId event_id)
+{
+    CELER_EXPECT(rng);
+    ScopedProfiling profile_this{"reseed"};
+    reseed_rng(get_ref<M>(*rng), this->ref().rng, this->stream_id(), event_id);
 }
 
 //---------------------------------------------------------------------------//

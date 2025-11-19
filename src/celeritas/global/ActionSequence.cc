@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "corecel/DeviceRuntimeApi.hh"
 
@@ -34,11 +35,10 @@ namespace celeritas
  * Construct from an action registry and sequence options.
  */
 ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
-    : actions_{reg}, options_{std::move(options)}
+    : actions_{reg}
+    , options_{std::move(options)}
+    , num_actions_(reg.num_actions())
 {
-    // Initialize timing
-    accum_time_.resize(actions_.step().size());
-
     // Get status checker if available
     for (auto const& brun_sp : actions_.begin_run())
     {
@@ -51,8 +51,6 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
             break;
         }
     }
-
-    CELER_ENSURE(actions_.step().size() == accum_time_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -62,6 +60,9 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
 template<MemSpace M>
 void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 {
+    CELER_VALIDATE(params.action_reg()->num_actions() == num_actions_,
+                   << "Number of actions changed since setup completed");
+
     for (auto const& sp_action : actions_.begin_run())
     {
         ScopedProfiling profile_this{sp_action->label()};
@@ -76,13 +77,19 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 template<MemSpace M>
 void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
 {
-    // Save the stream for synchronizing after each step for timing
-    // NOTE: instead of synchronizing the stream we could add
-    // device timers to reduce the performance
+    // Save a pointer to aux data and the stream for synchronizing after each
+    // step for timing
+    // NOTE: instead of synchronizing the stream we could add device timers to
+    // reduce the performance impact
     Stream* stream = nullptr;
-    if (M == MemSpace::device && options_.action_times)
+    std::vector<double>* accum_time = nullptr;
+    if (options_.action_times)
     {
-        stream = &device().stream(state.stream_id());
+        accum_time = &options_.action_times->state(state.aux()).accum_time;
+        if (M == MemSpace::device)
+        {
+            stream = &device().stream(state.stream_id());
+        }
     }
 
     // When running a single track slot on host, we can preemptively skip
@@ -113,7 +120,7 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
                 {
                     stream->sync();
                 }
-                accum_time_[i] += get_time();
+                (*accum_time)[action.action_id().get()] += get_time();
                 if (CELER_UNLIKELY(status_checker_))
                 {
                     status_checker_->step(action.action_id(), params, state);
@@ -137,6 +144,19 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
             }
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated action times.
+ */
+auto ActionSequence::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
+{
+    if (options_.action_times)
+    {
+        return options_.action_times->get_action_times(aux);
+    }
+    return {};
 }
 
 //---------------------------------------------------------------------------//

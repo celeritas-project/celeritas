@@ -37,6 +37,11 @@ namespace celeritas
 {
 namespace test
 {
+
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
@@ -179,6 +184,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     step_inp.params = this->core();
     step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_track_slots;
+    step_inp.actions = std::make_shared<ActionSequence>(
+        *this->action_reg(), ActionSequence::Options{});
     Stepper<M> step(step_inp);
     LogContextException log_context{this->output_reg().get()};
 
@@ -524,7 +531,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(60, result.accum.step_iters);
+        constexpr int ref_steps = using_surface_vg ? 55 : 60;
+        EXPECT_EQ(ref_steps, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());
 

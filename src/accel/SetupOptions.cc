@@ -100,7 +100,6 @@ void ProblemSetup::operator()(inp::Problem& p) const
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         return c;
     }();
-    p.control.optical_capacity = so.optical_capacity;
     if (so.max_num_events)
     {
         CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
@@ -114,6 +113,13 @@ void ProblemSetup::operator()(inp::Problem& p) const
         tl.field_substeps = so.max_field_substeps;
         return tl;
     }();
+
+    if (so.optical)
+    {
+        p.control.optical_capacity = so.optical->capacity;
+        p.physics.optical_generator = so.optical->generator;
+        p.tracking.limits.optical_step_iters = so.optical->max_step_iters;
+    }
 
     if (so.track_order != TrackOrder::size_)
     {
@@ -257,8 +263,12 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     using GIDS = GeantImportDataSelection;
 
     auto includes_muon = [&so]() -> bool {
-        return std::any_of(so.offload_particles.begin(),
-                           so.offload_particles.end(),
+        if (!so.offload_particles)
+        {
+            return false;
+        }
+        return std::any_of(so.offload_particles->begin(),
+                           so.offload_particles->end(),
                            [](G4ParticleDefinition* pd) {
                                return (std::abs(pd->GetPDGEncoding())
                                        == pdg::mu_minus().get());

@@ -61,7 +61,7 @@ find_ppid(MaterialView const& material,
 
     // Sample the process from the pre-calculated per-process cross section
     ParticleProcessId ppid = celeritas::make_selector(
-        [&pstep](ParticleProcessId ppid) { return pstep.per_process_xs(ppid); },
+        [&pstep](ParticleProcessId i) { return pstep.per_process_xs(i); },
         ParticleProcessId{physics.num_particle_processes()},
         pstep.macro_xs())(rng);
     CELER_ASSERT(ppid);

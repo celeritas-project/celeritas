@@ -25,7 +25,10 @@ run manager.
     [ARGS arg [...]]     # passed to command line
     [LABELS label [...]] # tagged in CTestFile
     [DISABLE]            # display but don't run
+    [WILL_FAIL]          # expect the test to exit with a failure
   )
+
+  Note that DISABLE silently overrides WILL_FAIL.
 
 #]=======================================================================]
 
@@ -103,7 +106,7 @@ function(celeritas_g4_add_one_test test_name target args labels offload rmtype)
 endfunction()
 
 function(celeritas_g4_add_tests target)
-  cmake_parse_arguments(PARSE "DISABLE" "NAME" "ARGS;LABELS;RMTYPE;OFFLOAD" ${ARGN})
+  cmake_parse_arguments(PARSE "DISABLE;WILL_FAIL" "NAME" "ARGS;LABELS;RMTYPE;OFFLOAD" ${ARGN})
   if(PARSE_UNPARSED_ARGUMENTS)
     message(SEND_ERROR "Unknown keywords given to celeritas_g4_add_tests(): "
             "\"${PARSE_UNPARSED_ARGUMENTS}\"")
@@ -129,6 +132,8 @@ function(celeritas_g4_add_tests target)
       endif()
       if(_disable)
         set(_args DISABLED TRUE)
+      elseif(PARSE_WILL_FAIL)
+        set(_args WILL_FAIL TRUE)
       else()
         set(_args)
       endif()

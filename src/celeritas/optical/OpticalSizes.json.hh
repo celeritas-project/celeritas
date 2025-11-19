@@ -2,34 +2,40 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/vg/detail/VecgeomTraits.hh
+//! \file celeritas/optical/OpticalSizes.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/volumes/PlacedVolume.h>
+#include <nlohmann/json.hpp>
 
 #include "corecel/Types.hh"
+#include "corecel/io/JsonUtils.json.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-template<MemSpace M>
-struct VecgeomTraits;
-
-template<>
-struct VecgeomTraits<MemSpace::host>
+/*!
+ * Save state size/capacity counters.
+ *
+ * These should be *integrated* across streams, *per process*.
+ */
+struct OpticalSizes
 {
-    using PlacedVolume = vecgeom::cxx::VPlacedVolume;
-};
-
-template<>
-struct VecgeomTraits<MemSpace::device>
-{
-    using PlacedVolume = vecgeom::cuda::VPlacedVolume;
+    size_type generators{};
+    size_type tracks{};
+    size_type streams{};
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+
+void to_json(nlohmann::json& j, OpticalSizes const& inp)
+{
+    j = {
+        CELER_JSON_PAIR(inp, generators),
+        CELER_JSON_PAIR(inp, tracks),
+        CELER_JSON_PAIR(inp, streams),
+    };
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
