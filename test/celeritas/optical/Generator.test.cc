@@ -136,9 +136,9 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
 {
     // Create primary generator action
     inp::OpticalPrimaryGenerator inp;
-    inp.num_events = 1;
-    inp.primaries_per_event = 65536;
-    inp.energy.energy = units::MevEnergy{1e-5};
+    inp.primaries = 65536;
+    inp.energy = inp::MonoenergeticDistribution{units::MevEnergy{1e-5}};
+    inp.angle = inp::IsotropicDistribution{};
     inp.shape = inp::PointDistribution{Real3{0, 0, 0}};
     auto generate = optical::PrimaryGeneratorAction::make_and_insert(
         *this->core(), *this->optical_params(), std::move(inp));
@@ -146,7 +146,7 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     this->build_transporter();
     this->build_state<MemSpace::host>(4096);
 
-    // Queue primaries for one event
+    // Queue primaries
     generate->insert(*state_);
 
     // Launch the optical loop
@@ -159,6 +159,44 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     {
         EXPECT_EQ(68916, result.steps);
         EXPECT_EQ(18, result.step_iters);
+    }
+    EXPECT_EQ(1, result.flushes);
+    ASSERT_EQ(1, result.generators.size());
+
+    auto const& gen = result.generators.front();
+    EXPECT_EQ(0, gen.buffer_size);
+    EXPECT_EQ(0, gen.num_pending);
+    EXPECT_EQ(65536, gen.num_generated);
+}
+
+TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_primary_generator))
+{
+    // Create primary generator action
+    inp::OpticalPrimaryGenerator inp;
+    inp.primaries = 65536;
+    inp.energy = inp::GaussianDistribution{1e-5, 1e-6};
+    inp.angle = inp::MonodirectionalDistribution{Real3{1, 0, 0}};
+    inp.shape
+        = inp::UniformBoxDistribution{Real3{-10, -10, -10}, Real3{10, 10, 10}};
+    auto generate = optical::PrimaryGeneratorAction::make_and_insert(
+        *this->core(), *this->optical_params(), std::move(inp));
+
+    this->build_transporter();
+    this->build_state<MemSpace::device>(16384);
+
+    // Queue primaries
+    generate->insert(*state_);
+
+    // Launch the optical loop
+    (*transport_)(*state_);
+
+    // Get the accumulated counters
+    auto result = this->counters(*generate);
+
+    if (reference_configuration)
+    {
+        EXPECT_EQ(69164, result.steps);
+        EXPECT_EQ(6, result.step_iters);
     }
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());

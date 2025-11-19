@@ -16,8 +16,8 @@
 #include "celeritas/phys/GeneratorInterface.hh"
 
 #include "GeneratorBase.hh"
-#include "GeneratorData.hh"
 #include "OffloadData.hh"
+#include "PrimaryGeneratorData.hh"
 
 namespace celeritas
 {
@@ -33,6 +33,8 @@ class CoreStateBase;
  *
  * This reproducibly samples and initializes optical photons directly in track
  * slots.
+ *
+ * \todo Integrate this action into a standalone stepping loop.
  */
 class PrimaryGeneratorAction final : public GeneratorBase
 {

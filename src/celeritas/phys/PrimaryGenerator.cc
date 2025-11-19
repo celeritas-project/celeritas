@@ -12,6 +12,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/random/distribution/DeltaDistribution.hh"
+#include "corecel/random/distribution/NormalDistribution.hh"
 #include "geocel/random/IsotropicDistribution.hh"
 #include "geocel/random/UniformBoxDistribution.hh"
 #include "celeritas/Units.hh"
@@ -29,13 +30,21 @@ namespace
 /*!
  * Return a distribution for sampling the energy.
  */
-PrimaryGenerator::EnergySampler
-make_energy_sampler(inp::EnergyDistribution const& i)
+auto make_energy_sampler(inp::EnergyDistribution const& i)
 {
-    CELER_VALIDATE(i.energy > zero_quantity(),
-                   << "invalid primary generator energy " << i.energy.value());
-
-    return DeltaDistribution<real_type>(i.energy.value());
+    CELER_ASSUME(!i.valueless_by_exception());
+    return std::visit(
+        return_as<PrimaryGenerator::EnergySampler>(Overload{
+            [](inp::MonoenergeticDistribution const& me) {
+                CELER_VALIDATE(me.energy > zero_quantity(),
+                               << "invalid primary generator energy "
+                               << me.energy.value());
+                return DeltaDistribution<real_type>{me.energy.value()};
+            },
+            [](inp::GaussianDistribution const& ge) {
+                return NormalDistribution{ge.mean, ge.stddev};
+            }}),
+        i);
 }
 
 //---------------------------------------------------------------------------//

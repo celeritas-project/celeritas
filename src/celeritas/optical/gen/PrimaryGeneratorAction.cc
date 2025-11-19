@@ -9,6 +9,7 @@
 #include <variant>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
@@ -29,6 +30,84 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Return a distribution for sampling the energy.
+ */
+EnergySampler make_energy_sampler(inp::EnergyDistribution const& i)
+{
+    CELER_ASSUME(!i.valueless_by_exception());
+
+    EnergySampler result;
+    std::visit(Overload{[&](inp::MonoenergeticDistribution const& me) {
+                            CELER_VALIDATE(me.energy > zero_quantity(),
+                                           << "invalid primary generator "
+                                              "energy "
+                                           << me.energy.value());
+                            result.type = EnergyDistribution::monoenergetic;
+                            new (&result.data.monoenergetic)
+                                inp::MonoenergeticDistribution(me);
+                        },
+                        [&](inp::GaussianDistribution const& ge) {
+                            result.type = EnergyDistribution::gaussian;
+                            new (&result.data.gaussian)
+                                inp::GaussianDistribution(ge);
+                        }},
+               i);
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a distribution for sampling the direction.
+ */
+DirectionSampler make_direction_sampler(inp::AngleDistribution const& i)
+{
+    CELER_ASSUME(!i.valueless_by_exception());
+
+    DirectionSampler result;
+    std::visit(Overload{[&](inp::MonodirectionalDistribution const& ma) {
+                            CELER_VALIDATE(is_soft_unit_vector(ma.dir),
+                                           << "primary generator angle is not "
+                                              "a unit vector");
+                            result.type = AngleDistribution::monodirectional;
+                            new (&result.data.monodirectional)
+                                inp::MonodirectionalDistribution(ma);
+                        },
+                        [&](inp::IsotropicDistribution const& ia) {
+                            result.type = AngleDistribution::isotropic;
+                            new (&result.data.isotropic)
+                                inp::IsotropicDistribution(ia);
+                        }},
+               i);
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct the position sampler.
+ */
+PositionSampler make_position_sampler(inp::ShapeDistribution const& i)
+{
+    CELER_ASSUME(!i.valueless_by_exception());
+
+    PositionSampler result;
+    std::visit(Overload{[&](inp::PointDistribution const& ps) {
+                            result.type = ShapeDistribution::point;
+                            new (&result.data.point) inp::PointDistribution(ps);
+                        },
+                        [&](inp::UniformBoxDistribution const& ubs) {
+                            result.type = ShapeDistribution::uniform_box;
+                            new (&result.data.uniform_box)
+                                inp::UniformBoxDistribution(ubs);
+                        }},
+               i);
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct and add to core params.
  */
 std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
@@ -36,7 +115,7 @@ std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
     CoreParams const& params,
     Input&& input)
 {
-    CELER_EXPECT(input.num_events > 0 && input.primaries_per_event > 0);
+    CELER_EXPECT(input);
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *core_params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
@@ -52,8 +131,6 @@ std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
 //---------------------------------------------------------------------------//
 /*!
  * Construct with IDs and distribution.
- *
- * \todo Support multiple events and distribution types
  */
 PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
                                                AuxId aux_id,
@@ -64,24 +141,11 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
                     gen_id,
                     "primary-generate",
                     "generate optical photon primaries")
+    , data_{inp.primaries,
+            make_energy_sampler(inp.energy),
+            make_direction_sampler(inp.angle),
+            make_position_sampler(inp.shape)}
 {
-    CELER_VALIDATE(inp.num_events == 1,
-                   << "multiple events are not supported for optical primary "
-                      "generation");
-    CELER_VALIDATE(inp.energy.energy > zero_quantity(),
-                   << "expected nonzero energy in optical primary generator");
-    CELER_VALIDATE(std::holds_alternative<inp::PointDistribution>(inp.shape),
-                   << "unsupported distribution type for optical primary "
-                      "generator position");
-    CELER_VALIDATE(
-        std::holds_alternative<inp::IsotropicDistribution>(inp.angle),
-        << "unsupported distribution type for optical primary "
-           "generator direction");
-
-    data_.energy = inp.energy.energy;
-    data_.position = std::get<inp::PointDistribution>(inp.shape).pos;
-    data_.num_photons = inp.primaries_per_event;
-
     CELER_ENSURE(data_);
 }
 
@@ -98,13 +162,6 @@ auto PrimaryGeneratorAction::create_state(MemSpace, StreamId, size_type) const
 //---------------------------------------------------------------------------//
 /*!
  * Set the number of pending tracks.
- *
- * The number of tracks to generate must be set at the beginning of each event
- * before the optical loop is launched.
- *
- * \todo Currently this is only called during testing, but it *must* be done at
- * the beginning of each event once this action is integrated into the stepping
- * loop.
  */
 void PrimaryGeneratorAction::insert(optical::CoreStateBase& state) const
 {

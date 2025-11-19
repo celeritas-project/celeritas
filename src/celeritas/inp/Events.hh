@@ -65,45 +65,46 @@ struct MonoenergeticDistribution
     MevEnergy energy;
 };
 
+//! Generate primaries with Gaussian-distributed energy
+struct GaussianDistribution
+{
+    real_type mean;
+    real_type stddev;
+};
+
 //! Choose an energy distribution for the primary generator
-using EnergyDistribution = MonoenergeticDistribution;
+using EnergyDistribution
+    = std::variant<MonoenergeticDistribution, GaussianDistribution>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate from a hardcoded distribution of primary particles.
- *
- * \todo move num_events to StandaloneInput
  */
 struct PrimaryGenerator
 {
-    //! Number of events to generate
-    size_type num_events{};
-    //! Number of primaries per event
-    size_type primaries_per_event{};
-
     //! Distribution for sampling spatial component (position)
     ShapeDistribution shape;
     //! Distribution for sampling angular component (direction)
     AngleDistribution angle;
     //! Distribution for sampling source energy
     EnergyDistribution energy;
-
-    //! True if there's at least one primary
-    explicit operator bool() const
-    {
-        return num_events > 0 && primaries_per_event > 0;
-    }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate particles in the core stepping loop.
  *
+ * \todo move num_events to StandaloneInput
  * \todo Allow programmatic setting from particle ID as well:
  * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
  */
 struct CorePrimaryGenerator : PrimaryGenerator
 {
+    //! Number of events to generate
+    size_type num_events{};
+    //! Number of primaries per event
+    size_type primaries_per_event{};
+
     //! Random number seed
     unsigned int seed{};
     //! Sample evenly from this vector of particle types
@@ -112,17 +113,22 @@ struct CorePrimaryGenerator : PrimaryGenerator
     //! True if there's at least one primary
     explicit operator bool() const
     {
-        return PrimaryGenerator::operator bool() && !pdg.empty();
+        return num_events > 0 && primaries_per_event > 0 && !pdg.empty();
     }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical photon primary particles.
- *
- * \todo Time? Polarization?
  */
-using OpticalPrimaryGenerator = PrimaryGenerator;
+struct OpticalPrimaryGenerator : PrimaryGenerator
+{
+    //! Total number of primaries
+    size_type primaries{};
+
+    //! True if there's at least one primary
+    explicit operator bool() const { return primaries > 0; }
+};
 
 //---------------------------------------------------------------------------//
 /*!

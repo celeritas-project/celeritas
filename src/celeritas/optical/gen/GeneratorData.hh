@@ -24,26 +24,6 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Data for sampling optical photons from user-configurable distributions.
- *
- * \todo For now this is hardcoded to generate a point source of monoenergetic,
- * isotropic photons. Make this configurable.
- */
-struct PrimaryDistributionData
-{
-    size_type num_photons{};
-    units::MevEnergy energy;
-    Real3 position{};
-
-    //! Check whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return num_photons > 0 && energy > zero_quantity();
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Pre- and post-step data for sampling optical photons.
  */
 struct GeneratorStepData
