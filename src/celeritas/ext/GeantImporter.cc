@@ -29,6 +29,7 @@
 #include <G4MscStepLimitType.hh>
 #include <G4MuPairProduction.hh>
 #include <G4MuPairProductionModel.hh>
+#include <G4MuonMinusAtomicCapture.hh>
 #include <G4Navigator.hh>
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
@@ -992,6 +993,13 @@ auto import_processes(GeantImporter::DataSelection selected,
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
         }
+        else if (dynamic_cast<G4MuonMinusAtomicCapture const*>(&process))
+        {
+            // G4MuonMinusAtomicCapture is a G4VRestProcess and does not
+            // require import data. Simply construct mucf physics inp object.
+            CELER_LOG(debug) << "Initializing default muCF data";
+            imported.mucf_physics = inp::MucfPhysics::from_default();
+        }
         else if (import_optical_model
                  && dynamic_cast<G4OpAbsorption const*>(&process))
         {
@@ -1009,7 +1017,6 @@ auto import_processes(GeantImporter::DataSelection selected,
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
         }
-        //  CELER_LOG(debug)<<"Adding mie";
         else if (import_optical_model
                  && dynamic_cast<G4OpMieHG const*>(&process))
         {

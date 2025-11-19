@@ -285,6 +285,26 @@ class TestEm3 : public GeantImporterTest
 };
 
 //---------------------------------------------------------------------------//
+class MuCFBox : public GeantImporterTest
+{
+  protected:
+    void SetUp() override
+    {
+        selection_.particles = DataSelection::em;
+        selection_.processes = DataSelection::em | DataSelection::hadron;
+    }
+
+    std::string_view gdml_basename() const override { return "mucf-box"sv; }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        GeantPhysicsOptions opts;
+        opts.mucf_physics = true;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
 class OneSteelSphere : public GeantImporterTest
 {
   protected:
@@ -2119,6 +2139,13 @@ TEST_F(OpticalSurfaces, surfaces)
 
 #undef OS_IS_MAPPED
 }
+
+//---------------------------------------------------------------------------//
+TEST_F(MuCFBox, run)
+{
+    this->imported_data();  // Just check we can import without error
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
