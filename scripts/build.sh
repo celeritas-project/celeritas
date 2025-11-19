@@ -128,11 +128,11 @@ install_precommit_if_git() {
 
 #-----------------------------------------------------------------------------#
 
-# Run everything from the parent directory of this script:
-# this is the Celeritas source dir aka the git work tree
-cd "$(dirname "$0")"/..
-# Save for env scripts etc., even if this is not a git checkout
-export CELER_SOURCE_DIR="$(pwd)"
+# Determine the source directory from the build script
+export CELER_SOURCE_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
+
+# Run everything from the Celeritas work tree
+cd ${CELER_SOURCE_DIR}
 
 # Determine system name, failing on an empty string
 SYSTEM_NAME=$(fancy_hostname)

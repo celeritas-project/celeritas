@@ -18,8 +18,17 @@ fi
 
 if ! command -v spack >/dev/null 2>&1; then
   _spack_setup="$SPACK_ROOT/share/spack/setup-env.sh"
-  printf "Loading spack setup from %s\n" "${_spack_setup}" >&2
-  . "${_spack_setup}"
+  case "$0" in
+    /bin/*)
+      # Presumably sourcing from user shell to set up environment: load spack
+      printf "Loading spack setup from %s\n" "${_spack_setup}" >&2
+      . "${_spack_setup}"
+      ;;
+    *)
+      # Spack isn't available but we're loading from the build script so we don't really need it
+      printf "Warning: spack is not available; source %s if desired\n" "${_spack_setup}" >&2
+      ;;
+  esac
 fi
 
 for _d in build install ccache; do
