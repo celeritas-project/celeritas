@@ -1,4 +1,6 @@
+//---------------------------------------------------------------------------//
 // SPDX-FileCopyrightText: 2023 CERN
+// SPDX-FileCopyrightText: 2024 Celeritas
 // SPDX-License-Identifier: Apache-2.0
 //---------------------------------------------------------------------------//
 /*!
@@ -12,6 +14,7 @@
 #pragma once
 
 #include <VecGeom/base/Config.h>
+
 #ifndef VECGEOM_USE_SURF
 #    error "VecGeom surface capability required to include this file"
 #endif
@@ -24,7 +27,9 @@
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
+
 #include "corecel/Macros.hh"
+#include "geocel/vg/VecgeomTypes.hh"
 
 namespace celeritas
 {
@@ -34,13 +39,10 @@ namespace detail
 class SurfNavigator
 {
   public:
-    using Precision = vecgeom::Precision;
-    using Vector3D = vecgeom::Vector3D<vecgeom::Precision>;
-    using SurfData = vgbrep::SurfData<Precision>;
-    using Real_b = typename SurfData::Real_b;
-    using VPlacedVolumePtr_t = vecgeom::VPlacedVolume const*;
+    using SurfData = vgbrep::SurfData<vg_real_type>;
+    using NavState = VgNavState;
 
-    static constexpr Precision kBoundaryPush = 10 * vecgeom::kTolerance;
+    static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
 
     /// @brief Locates the point in the geometry volume tree
     /// @param pvol_id Placed volume id to be checked first
@@ -49,26 +51,26 @@ class SurfNavigator
     /// @param top Check first if pvol contains the point
     /// @param exclude Placed volume id to exclude from the search
     /// @return Index of the placed volume that contains the point
-    CELER_FUNCTION static int LocatePointIn(int pvol_id,
-                                            Vector3D const& point,
-                                            vecgeom::NavigationState& path,
-                                            bool top,
-                                            int* exclude = nullptr)
+    CELER_FUNCTION static VgPlacedVolumeInt
+    LocatePointIn(VgPlacedVolumeInt pvol_id,
+                  VgReal3 const& point,
+                  NavState& nav,
+                  bool top,
+                  VgPlacedVolumeInt* exclude = nullptr)
     {
-        return vgbrep::protonav::BVHSurfNavigator<Precision>::LocatePointIn(
-            pvol_id, point, path, top, exclude);
+        return vgbrep::protonav::BVHSurfNavigator<vg_real_type>::LocatePointIn(
+            pvol_id, point, nav, top, exclude);
     }
 
     /// @brief Computes the isotropic safety from the globalpoint.
     /// @param globalpoint Point in global coordinates
     /// @param state Path where to compute safety
     /// @return Isotropic safe distance
-    CELER_FUNCTION static Precision
-    ComputeSafety(Vector3D const& globalpoint,
-                  vecgeom::NavigationState const& state)
+    CELER_FUNCTION static vg_real_type
+    ComputeSafety(VgReal3 const& globalpoint, NavState const& state)
     {
         auto safety
-            = vgbrep::protonav::BVHSurfNavigator<Precision>::ComputeSafety(
+            = vgbrep::protonav::BVHSurfNavigator<vg_real_type>::ComputeSafety(
                 globalpoint, state);
         return safety;
     }
@@ -80,13 +82,13 @@ class SurfNavigator
     //
     // The surface model does automatic relocation, so this function does it as
     // well.
-    CELER_FUNCTION static Precision
-    ComputeStepAndNextVolume(Vector3D const& globalpoint,
-                             Vector3D const& globaldir,
-                             Precision step_limit,
-                             vecgeom::NavigationState const& in_state,
-                             vecgeom::NavigationState& out_state,
-                             long& hitsurf)
+    CELER_FUNCTION static vg_real_type
+    ComputeStepAndNextVolume(VgReal3 const& globalpoint,
+                             VgReal3 const& globaldir,
+                             vg_real_type step_limit,
+                             NavState const& in_state,
+                             NavState& out_state,
+                             VgSurfaceInt& hitsurf)
     {
         if (step_limit <= 0)
         {
@@ -96,12 +98,12 @@ class SurfNavigator
         }
 
         auto step = vgbrep::protonav::BVHSurfNavigator<
-            Precision>::ComputeStepAndNextSurface(globalpoint,
-                                                  globaldir,
-                                                  in_state,
-                                                  out_state,
-                                                  hitsurf,
-                                                  step_limit);
+            vg_real_type>::ComputeStepAndNextSurface(globalpoint,
+                                                     globaldir,
+                                                     in_state,
+                                                     out_state,
+                                                     hitsurf,
+                                                     step_limit);
         return step;
     }
 
@@ -109,33 +111,32 @@ class SurfNavigator
     // volume) into globaldir, taking step_limit into account. If a volume is
     // hit, the function calls out_state.SetBoundaryState(true) and relocates
     // the state to the next volume.
-    CELER_FUNCTION static Precision
-    ComputeStepAndPropagatedState(Vector3D const& globalpoint,
-                                  Vector3D const& globaldir,
-                                  Precision step_limit,
-                                  long& hit_surf,
-                                  vecgeom::NavigationState const& in,
-                                  vecgeom::NavigationState& out)
+    CELER_FUNCTION static vg_real_type
+    ComputeStepAndPropagatedState(VgReal3 const& globalpoint,
+                                  VgReal3 const& globaldir,
+                                  vg_real_type step_limit,
+                                  VgSurfaceInt& hit_surf,
+                                  NavState const& in_state,
+                                  NavState& out_state)
     {
         return ComputeStepAndNextVolume(
-            globalpoint, globaldir, step_limit, in, out, hit_surf);
+            globalpoint, globaldir, step_limit, in_state, out_state, hit_surf);
     }
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: the
     // surface model does this computation within ComputeStepAndNextVolume, so
     // the relocation does nothing
-    CELER_FUNCTION static void
-    RelocateToNextVolume(Vector3D const& globalpoint,
-                         Vector3D const& globaldir,
-                         long hitsurf_index,
-                         vecgeom::NavigationState& out_state)
+    CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& globalpoint,
+                                                    VgReal3 const& globaldir,
+                                                    VgSurfaceInt hitsurf_index,
+                                                    NavState& out_state)
     {
         CELER_EXPECT(!out_state.IsOutside());
         vgbrep::CrossedSurface crossed_surf;
-        vgbrep::protonav::BVHSurfNavigator<Precision>::RelocateToNextVolume(
+        vgbrep::protonav::BVHSurfNavigator<vg_real_type>::RelocateToNextVolume(
             globalpoint,
             globaldir,
-            Precision(0),
+            vg_real_type(0),
             hitsurf_index,
             out_state,
             crossed_surf);

@@ -9,8 +9,10 @@
 #include <VecGeom/base/Vector3D.h>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "geocel/vg/VecgeomTypes.hh"
 
 namespace celeritas
 {
@@ -21,8 +23,8 @@ namespace detail
  * Create a Vector3D from a length-3 span.
  */
 template<class T>
-CELER_FUNCTION inline auto to_vector(Span<T, 3> s)
-    -> vecgeom::Vector3D<std::remove_cv_t<T>>
+inline CELER_FUNCTION auto to_vector(Span<T, 3> s)
+    -> VgVector3<std::remove_cv_t<T>, MemSpace::native>
 {
     return {s[0], s[1], s[2]};
 }
@@ -32,8 +34,8 @@ CELER_FUNCTION inline auto to_vector(Span<T, 3> s)
  * Create a Vector3D from a length-3 array.
  */
 template<class T>
-CELER_FUNCTION inline auto to_vector(Array<T, 3> const& arr)
-    -> vecgeom::Vector3D<T>
+inline CELER_FUNCTION auto to_vector(Array<T, 3> const& arr)
+    -> VgVector3<T, MemSpace::native>
 {
     return to_vector(celeritas::make_span<T, 3>(arr));
 }
@@ -43,10 +45,10 @@ CELER_FUNCTION inline auto to_vector(Array<T, 3> const& arr)
  * Create a length-3 array from a VecGeom vector.
  */
 template<class T>
-CELER_FUNCTION inline auto to_array(vecgeom::Vector3D<T> const& arr)
+inline CELER_FUNCTION auto to_array(vecgeom::Vector3D<T> const& vgv)
     -> Array<T, 3>
 {
-    return {arr[0], arr[1], arr[2]};
+    return {vgv[0], vgv[1], vgv[2]};
 }
 
 //---------------------------------------------------------------------------//

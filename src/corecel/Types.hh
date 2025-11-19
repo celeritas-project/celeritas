@@ -125,6 +125,13 @@ using RefPtr = ObserverPtr<S<Ownership::reference, M>, M>;
 //!@{
 //! \name Type trait utilities, used for VecGeom or elsewhere.
 
+//! Switch between host or device type based on memspace
+template<MemSpace M, class HT, class DT>
+using MemSpaceCond_t
+    = std::conditional_t<M == MemSpace::host,
+                         HT,
+                         std::conditional_t<M == MemSpace::device, DT, void>>;
+
 /*!
  * Traits class marking compatibility with Collection and Copier.
  *

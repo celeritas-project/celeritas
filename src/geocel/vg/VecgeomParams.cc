@@ -57,7 +57,6 @@
 
 #include "detail/VecgeomCompatibility.hh"
 #include "detail/VecgeomSetup.hh"
-#include "detail/VecgeomVersion.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
               "Celeritas and VecGeom real types do not match");
@@ -89,6 +88,18 @@ namespace
         } while (0)
 #endif
 
+//---------------------------------------------------------------------------//
+// HELPER TYPES
+//---------------------------------------------------------------------------//
+
+#if VECGEOM_VERSION >= 0x020000
+using ABBoxManager_t = vecgeom::ABBoxManager<vecgeom::Precision>;
+#else
+using ABBoxManager_t = vecgeom::ABBoxManager;
+#endif
+
+//---------------------------------------------------------------------------//
+// HELPER CLASSES
 //---------------------------------------------------------------------------//
 class VecgeomVolumeAccessor final
     : public VolumeAccessorInterface<vecgeom::LogicalVolume const*,
@@ -226,7 +237,7 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
 
 //---------------------------------------------------------------------------//
 vecgeom::VPlacedVolume const&
-get_placed_volume(vecgeom::GeoManager const& geo, VecgeomPlacedVolumeId ivi_id)
+get_placed_volume(vecgeom::GeoManager const& geo, VgPlacedVolumeId ivi_id)
 {
     CELER_EXPECT(ivi_id);
 
@@ -571,8 +582,8 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         // Save world bbox
         bbox_ = [&world] {
             // Calculate bounding box
-            auto bbox_mgr = detail::ABBoxManager_t::Instance();
-            vecgeom::Vector3D<real_type> lower, upper;
+            auto bbox_mgr = ABBoxManager_t::Instance();
+            VgReal3 lower, upper;
             bbox_mgr.ComputeABBox(&world, &lower, &upper);
             return BBox{detail::to_array(lower), detail::to_array(upper)};
         }();
@@ -744,7 +755,7 @@ void VecgeomParams::build_volume_tracking()
 
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
-        detail::ABBoxManager_t::Instance().InitABBoxesForCompleteGeometry();
+        ABBoxManager_t::Instance().InitABBoxesForCompleteGeometry();
     }
 
     // Init the bounding volume hierarchy structure
