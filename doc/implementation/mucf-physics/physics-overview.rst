@@ -46,7 +46,7 @@ In the cases where the muon sticks to an outgoing nucleus, e.g. generating a
 :math:`(\alpha)_\mu`, the catalysis is halted. This happens at a fraction of a
 percent to a few percent level, and the number that represents the fraction of
 times this happens, with respect to the case where the muon is free, is called
-the sticking factor. 
+the sticking factor.
 
 A single muon can repeat this fusion cycle somewhat between 100 to 400 times.
 The total number of fusion cycles produced by a single muon defines how much
