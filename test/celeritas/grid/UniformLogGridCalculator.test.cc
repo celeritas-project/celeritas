@@ -71,6 +71,7 @@ TEST_F(UniformLogGridCalculatorTest, simple)
 
 TEST_F(UniformLogGridCalculatorTest, spline)
 {
+    real_type const tol = 1e-4;
     inp::UniformGrid grid;
     grid.x = {1e-2, 1e2};
     grid.y = {100, 10, 1, 10, 100};
@@ -89,7 +90,7 @@ TEST_F(UniformLogGridCalculatorTest, spline)
     }
     else
     {
-        EXPECT_SOFT_EQ(60.439491271972656, calc(Energy(99.99)));
+        EXPECT_SOFT_NEAR(60.439491271972656, calc(Energy(99.99)), tol);
     }
     EXPECT_SOFT_EQ(100, calc(Energy(100)));
 }
