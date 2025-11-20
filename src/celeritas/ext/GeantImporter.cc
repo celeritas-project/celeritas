@@ -195,6 +195,33 @@ auto& optical_particles_map()
 }
 
 //---------------------------------------------------------------------------//
+//! Custom-defined scintillation properties approximating to Gaussian
+//! distribution
+ImportGaussianScintComponent
+load_gauss_scint(std::string const& prefix,
+                 detail::GeantMaterialPropertyGetter& get_property,
+                 int comp_idx)
+{
+    ImportGaussianScintComponent gauss;
+    bool found_mean = false;
+
+    for (auto&& [prop, label] : {std::pair{&gauss.lambda_mean, "LAMBDAMEAN"},
+                                 std::pair{&gauss.lambda_sigma, "LAMBDASIGMA"}})
+    {
+        if (get_property(
+                prop, "CELER_" + prefix + label, comp_idx, ImportUnits::len))
+        {
+            found_mean = true;
+        }
+    }
+    if (!found_mean)
+    {
+        return {};
+    }
+    return gauss;
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Populate an \c ImportScintComponent .
  * To retrieve a material-only component simply do not use particle name.
@@ -226,100 +253,61 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
         get(&comp.rise_time, "RISETIME", ImportUnits::time);
         get(&comp.fall_time, "TIMECONSTANT", ImportUnits::time);
 
-        using ScintOption
-            = std::variant<ImportGaussianScintComponent, inp::Grid>;
-        ScintOption scint_data{ImportGaussianScintComponent{}};
-
         auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
         inp::Grid grid;
+
+        using ScintSpectrumComponent
+            = std::variant<std::monostate, ImportGaussianScintComponent, inp::Grid>;
+        ScintSpectrumComponent spectrum_component;
+
+        if (auto gauss
+            = load_gauss_scint("CELER_" + prefix, get_property, comp_idx))
+        {
+            CELER_VALIDATE(
+                std::holds_alternative<std::monostate>(spectrum_component),
+                << "conflicting scintillation spectrum definitions "
+                   "for "
+                << prefix);
+            spectrum_component = std::move(gauss);
+        }
+        if (auto gauss = load_gauss_scint(prefix, get_property, comp_idx))
+        {
+            CELER_VALIDATE(
+                std::holds_alternative<std::monostate>(spectrum_component),
+                << "conflicting/redundant scintillation properties "
+                   "for "
+                << prefix);
+            CELER_LOG(warning) << "Deprecated property prefix " << prefix
+                               << "LAMBDA: use CELER_" << prefix;
+            spectrum_component = std::move(gauss);
+        }
         if (get_property(&grid, name, {ImportUnits::mev, ImportUnits::unitless}))
         {
-            scint_data = std::move(grid);
-            any_found = true;
+            // If an explicit energy/intensity grid is provided, use it
+            spectrum_component = std::move(grid);
         }
-        else
-        {
-            auto& gauss = std::get<ImportGaussianScintComponent>(scint_data);
-            // Custom-defined properties not available in//
-            // G4MaterialPropertyIndex
-            for (auto&& [prop, label] : {
-                     std::pair{&gauss.lambda_mean, "LAMBDAMEAN"},
-                     std::pair{&gauss.lambda_sigma, "LAMBDASIGMA"},
-                 })
-            {
-                if (get_property(prop,
-                                 "CELER_" + prefix + label,
-                                 comp_idx,
-                                 ImportUnits::len))
-                {
-                    any_found = true;
-                }
-                else if (get(prop, label, ImportUnits::len))
-                {
-                    CELER_LOG(warning)
-                        << "Deprecated property name " << prefix << label
-                        << ": use CELER_" << prefix << label;
-                }
-            }
-            if (gauss.lambda_mean == 0)
-            {
-                // Geant4 uses a tabulated distribution for the scintillation
-                // wavelength, while Celeritas samples from a Gaussian
-                // distribution with user-provided mean and standard deviation.
-                // If these custom-defined properties aren't found, try getting
-                // the Geant4-defined property and estimating the distribution
-                // parameters from the tabulated values.
-                inp::Grid grid;
-                auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
-                if (get_property(
-                        &grid, name, {ImportUnits::len, ImportUnits::unitless}))
-                {
-                    auto const& grid_cref = grid;
-                    auto moments = MomentCalculator{}(make_span(grid_cref.x),
-                                                      make_span(grid_cref.y));
-                    gauss.lambda_mean = moments.mean;
-                    gauss.lambda_sigma = std::sqrt(moments.variance);
 
-                    if (gauss.lambda_sigma == 0)
-                    {
-                        // This case is triggered when Geant4 provides only two
-                        // points for a scintillation component. We
-                        // approximate the distribution as a Gaussian
-                        // distribution centered at the midpoint.
-                        double emin = grid.x.front();
-                        double emax = grid.x.back();
-                        gauss.lambda_mean = (emax + emin) / 2;
-                        gauss.lambda_sigma
-                            = (emax - emin)
-                              / 2.3548200450309493;  // sigma =
-                                                     // FWHM/(2*sqrt(2*ln(2))
-                        CELER_LOG(warning)
-                            << "Scintillation component " << comp_idx
-                            << " has only two points: approximating spectrum "
-                               "as a Gaussian ";
-                    }
-                    CELER_LOG(info)
-                        << "Estimated custom properties CELER_" << prefix
-                        << "LAMBDAMEAN" << comp_idx << "=" << gauss.lambda_mean
-                        << " and CELER_" << prefix << "LAMBDASIGMA" << comp_idx
-                        << "=" << gauss.lambda_sigma
-                        << " from Geant4-defined property " << name;
-                }
-            }
-        }
-        if (any_found)
+        if (auto* g
+            = std::get_if<ImportGaussianScintComponent>(&spectrum_component))
         {
-            if (auto* g = std::get_if<ImportGaussianScintComponent>(&scint_data))
-                comp.gauss = *g;
-            else if (auto* gr = std::get_if<inp::Grid>(&scint_data))
-                comp.spectrum = *gr;
+            comp.gauss = *g;
+        }
+        else if (auto* gr = std::get_if<inp::Grid>(&spectrum_component))
+        {
+            comp.spectrum = *gr;
+        }
+
+        bool has_spectrum
+            = !std::holds_alternative<std::monostate>(spectrum_component);
+        if (any_found || has_spectrum)
             // Note that the user may be missing some properties: in that
             // case (if Geant4 didn't warn/error/die already) then we will
             // rely on the downstream code to validate.
+            // Additionally, this check prevents adding components with only
+            // default (zero) values and no spectrum, which would otherwise
+            // trigger validation errors.
             components.push_back(std::move(comp));
-        }
     }
-
     return components;
 }
 

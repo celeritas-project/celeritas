@@ -17,10 +17,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Store basic properties for different scintillation component types.
- *
- * Fast/intermediate/slow/etc scintillation components can be used for both
- * particle- and material-dependent spectra, as well as material-only spectra.
+ * Store scintillation spectrum
+ * use Gaussian approximation as a fallbacks
  */
 struct ImportGaussianScintComponent
 {
@@ -32,6 +30,12 @@ struct ImportGaussianScintComponent
     }
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Store basic properties for different scintillation component types
+ * Fast/intermediate/slow/etc scintillation components can be used for both
+ * particle- and material-dependent spectra, as well as material-only spectra.
+ */
 struct ImportScintComponent
 {
     double yield_frac{};  //!< Fraction of total scintillation yield
@@ -39,7 +43,7 @@ struct ImportScintComponent
     double fall_time{};  //!< Decay time [time]
 
     ImportGaussianScintComponent gauss;
-    inp::Grid spectrum;  //! Energy vs Intensity grid
+    inp::Grid spectrum;  //! Energy[MeV] vs Intensity grid
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
