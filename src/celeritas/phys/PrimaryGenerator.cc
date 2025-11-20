@@ -33,18 +33,19 @@ namespace
 auto make_energy_sampler(inp::EnergyDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
-    return std::visit(
-        return_as<PrimaryGenerator::EnergySampler>(Overload{
-            [](inp::MonoenergeticDistribution const& me) {
-                CELER_VALIDATE(me.energy > zero_quantity(),
-                               << "invalid primary generator energy "
-                               << me.energy.value());
-                return DeltaDistribution<real_type>{me.energy.value()};
-            },
-            [](inp::GaussianDistribution const& ge) {
-                return NormalDistribution{ge.mean, ge.stddev};
-            }}),
-        i);
+    return std::visit(return_as<PrimaryGenerator::EnergySampler>(Overload{
+                          [](inp::MonoenergeticDistribution const& me) {
+                              CELER_VALIDATE(me.energy > zero_quantity(),
+                                             << "invalid primary generator "
+                                                "energy "
+                                             << me.energy.value());
+                              return DeltaDistribution{
+                                  static_cast<real_type>(me.energy.value())};
+                          },
+                          [](inp::GaussianDistribution const& ge) {
+                              return NormalDistribution{ge.mean, ge.stddev};
+                          }}),
+                      i);
 }
 
 //---------------------------------------------------------------------------//

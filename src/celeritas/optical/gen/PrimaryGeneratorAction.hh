@@ -35,6 +35,9 @@ class CoreStateBase;
  * slots.
  *
  * \todo Integrate this action into a standalone stepping loop.
+ * \todo Add infrastructure to improve and generalize the on-device
+ * distribution sampling (see
+ * https://github.com/celeritas-project/celeritas/issues/2123).
  */
 class PrimaryGeneratorAction final : public GeneratorBase
 {

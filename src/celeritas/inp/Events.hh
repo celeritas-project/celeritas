@@ -68,8 +68,8 @@ struct MonoenergeticDistribution
 //! Generate primaries with Gaussian-distributed energy
 struct GaussianDistribution
 {
-    real_type mean;
-    real_type stddev;
+    real_type mean{0};
+    real_type stddev{1};
 };
 
 //! Choose an energy distribution for the primary generator
@@ -120,6 +120,8 @@ struct CorePrimaryGenerator : PrimaryGenerator
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical photon primary particles.
+ *
+ * \note The sampled optical photon primaries are unpolarized.
  */
 struct OpticalPrimaryGenerator : PrimaryGenerator
 {
