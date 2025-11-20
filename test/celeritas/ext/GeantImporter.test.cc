@@ -285,7 +285,7 @@ class TestEm3 : public GeantImporterTest
 };
 
 //---------------------------------------------------------------------------//
-class MuCFBox : public GeantImporterTest
+class MucfBox : public GeantImporterTest
 {
   protected:
     void SetUp() override
@@ -298,6 +298,7 @@ class MuCFBox : public GeantImporterTest
 
     GeantPhysicsOptions build_geant_options() const override
     {
+        //! \todo Enable muon EM and decay physics once fully supported
         GeantPhysicsOptions opts;
         opts.mucf_physics = true;
         return opts;
@@ -2141,7 +2142,7 @@ TEST_F(OpticalSurfaces, surfaces)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MuCFBox, run)
+TEST_F(MucfBox, run)
 {
     auto const& mucf = this->imported_data().mucf_physics;
     EXPECT_TRUE(mucf);

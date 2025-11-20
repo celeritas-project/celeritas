@@ -995,8 +995,8 @@ auto import_processes(GeantImporter::DataSelection selected,
         }
         else if (dynamic_cast<G4MuonMinusAtomicCapture const*>(&process))
         {
-            // G4MuonMinusAtomicCapture is a G4VRestProcess and does not
-            // require import data. Simply construct mucf physics inp object.
+            // G4MuonMinusAtomicCapture is a G4ProcessType::fHadronic
+            // It is also a G4VRestProcess and does not require import data
             CELER_LOG(debug) << "Initializing default muCF data for particle "
                              << particle.GetParticleName() << " ("
                              << particle.GetPDGEncoding() << ')';

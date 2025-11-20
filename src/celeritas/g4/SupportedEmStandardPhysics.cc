@@ -497,6 +497,7 @@ void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 
     if (options_.mucf_physics && p == G4MuonMinus::Definition())
     {
+        // This is a G4VRestProcess with G4ProcessType::fHadronic
         auto* pm = p->GetProcessManager();
         pm->AddRestProcess(new G4MuonMinusAtomicCapture());
         CELER_LOG(debug) << "Using muon atomic capture with "
