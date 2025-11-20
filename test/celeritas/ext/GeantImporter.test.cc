@@ -2143,7 +2143,29 @@ TEST_F(OpticalSurfaces, surfaces)
 //---------------------------------------------------------------------------//
 TEST_F(MuCFBox, run)
 {
-    this->imported_data();  // Just check we can import without error
+    auto const& mucf = this->imported_data().mucf_physics;
+    EXPECT_TRUE(mucf);
+
+    static double const expected_muon_energy_cdf_y[] = {1, 1};
+    EXPECT_EQ(2, mucf.muon_energy_cdf.x.size());
+    EXPECT_VEC_EQ(expected_muon_energy_cdf_y, mucf.muon_energy_cdf.y);
+
+    auto const& cycle_f0 = mucf.cycle_rates[0];
+    static double const expected_cycle_rate_f0_y[] = {2, 2};
+    EXPECT_EQ(cycle_f0.molecule, MuonicMolecule::deuterium_tritium);
+    EXPECT_EQ("F=0", cycle_f0.spin_label);
+    EXPECT_EQ(2, cycle_f0.grid.x.size());
+    EXPECT_VEC_EQ(expected_cycle_rate_f0_y, cycle_f0.grid.y);
+
+    auto const& cycle_f1 = mucf.cycle_rates[1];
+    static double const expected_cycle_rate_f1_y[] = {3, 3};
+    EXPECT_EQ(cycle_f1.molecule, MuonicMolecule::deuterium_tritium);
+    EXPECT_EQ("F=1", cycle_f1.spin_label);
+    EXPECT_EQ(2, cycle_f1.grid.x.size());
+    EXPECT_VEC_EQ(expected_cycle_rate_f1_y, cycle_f1.grid.y);
+
+    EXPECT_TRUE(mucf.atom_transfer.empty());
+    EXPECT_TRUE(mucf.atom_spin_flip.empty());
 }
 
 //---------------------------------------------------------------------------//

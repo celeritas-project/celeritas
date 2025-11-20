@@ -100,8 +100,26 @@ struct MucfPhysics
     {
         MucfPhysics result;
 
-        //! \todo Initialize hardcoded muon_energy_cdf grid
-        //! \todo Initialize hardcoded cycle_rate data for dt, dd, tt
+        //! \todo Initialize hardcoded CDF data
+        //! \todo Initialize hardcoded cycle rate data
+        //! \todo Initialize hardcoded atom transfer data
+        //! \todo Initialize hardcoded spin flip data
+
+        // Temporary test dummy data
+        {
+            result.muon_energy_cdf = Grid::from_constant(1.0);
+
+            CycleRateData dt_cycle;
+            dt_cycle.molecule = MuonicMolecule::deuterium_tritium;
+
+            dt_cycle.spin_label = "F=0";
+            dt_cycle.grid = Grid::from_constant(2.0);
+            result.cycle_rates.push_back(dt_cycle);
+
+            dt_cycle.spin_label = "F=1";
+            dt_cycle.grid = Grid::from_constant(3.0);
+            result.cycle_rates.push_back(dt_cycle);
+        }
 
         return result;
     }
