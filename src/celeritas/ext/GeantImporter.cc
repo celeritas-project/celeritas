@@ -997,7 +997,9 @@ auto import_processes(GeantImporter::DataSelection selected,
         {
             // G4MuonMinusAtomicCapture is a G4VRestProcess and does not
             // require import data. Simply construct mucf physics inp object.
-            CELER_LOG(debug) << "Initializing default muCF data";
+            CELER_LOG(debug) << "Initializing default muCF data for particle "
+                             << particle.GetParticleName() << " ("
+                             << particle.GetPDGEncoding() << ')';
             imported.mucf_physics = inp::MucfPhysics::from_default();
         }
         else if (import_optical_model

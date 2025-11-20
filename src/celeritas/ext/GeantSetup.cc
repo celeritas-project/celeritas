@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <utility>
+#include <G4HadronicParameters.hh>
 #include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4VPhysicalVolume.hh>
@@ -124,6 +125,11 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         CELER_LOG(status) << "Building Geant4 physics tables";
         ScopedMem record_mem("GeantSetup.initialize");
         ScopedTimeLog scoped_time;
+
+        // Suppress Geant4 messages when hadronic process types are enabled
+        // This is triggered by the G4MuonMinusAtomicCapture process
+        auto* had_params = G4HadronicParameters::Instance();
+        had_params->SetVerboseLevel(0);
 
         run_manager_->Initialize();
         run_manager_->RunInitialization();
