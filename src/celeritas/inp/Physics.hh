@@ -69,7 +69,8 @@ struct EmPhysics
  * - Muon energy CDF data, required for sampling the outgoing muCF muon, and
  * - Mean cycle rate data for dd, dt, and tt muonic molecules.
  *
- * Muonic atom transfer and muonic atom spin flip are secondary effects.
+ * Muonic atom transfer and muonic atom spin flip are secondary effects and not
+ * required for muCF to function.
  */
 struct MucfPhysics
 {
@@ -105,7 +106,7 @@ struct MucfPhysics
         //! \todo Initialize hardcoded atom transfer data
         //! \todo Initialize hardcoded spin flip data
 
-        // Temporary test dummy data
+        // Temporary test dummy data to verify correct import
         {
             result.muon_energy_cdf = Grid::from_constant(1.0);
 
