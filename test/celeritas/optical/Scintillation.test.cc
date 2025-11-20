@@ -500,7 +500,6 @@ TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
             {
                 energy.push_back(calc_energy(generate_canonical(rng)));
             }
-            // real_type energy = calc_energy(generate_canonical(rng));
             if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
             {
                 static double const expected_energy[] = {1.22015013198227,

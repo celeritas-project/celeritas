@@ -129,7 +129,7 @@ struct ScintillationData
     //! Material-dependent scintillation spectrum data [OptMatId]
     OptMatItems<MatScintSpectrum> materials;
 
-    // Cumulative probability of emission as a function of energy
+    // Cumulative probability of emission as a function of energy [MeV]
     Items<NonuniformGridRecord> energy_cdfs;
     //! Index between \c ScintParticleId and \c ParticleId
     ParticleItems<ScintParticleId> pid_to_scintpid;

@@ -81,7 +81,6 @@ class ScintillationGenerator
 
     GeneratorDistributionData const& dist_;
     NativeCRef<ScintillationData> const& shared_;
-    // NonuniformGridCalculator calc_cdf_;
 
     UniformRealDist sample_cost_;
     UniformRealDist sample_phi_;
@@ -177,6 +176,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     }
     else
     {
+        // If the scintillation spectrum is provided use grid-based sampling
         NonuniformGridCalculator calc_cdf(
             shared_.energy_cdfs[component.energy_cdf], shared_.reals);
 

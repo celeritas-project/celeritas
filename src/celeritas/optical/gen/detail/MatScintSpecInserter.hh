@@ -11,7 +11,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
-#include "corecel/io/Logger.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
@@ -44,10 +44,14 @@ class MatScintSpecInserter
 
   private:
     using MatId = OptMatId;
-    Data* data_;
+
+    // Index and inserter types for nonuniform grids (use opaque ID for grids)
+    //    using GridInserter = NonuniformGridInserter<GridId>;
     CollectionBuilder<MatScintSpectrum, MemSpace::host, MatId> materials_;
     DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<ScintRecord> scint_records_;
+    using GridId = OpaqueId<NonuniformGridRecord>;
+    NonuniformGridInserter<GridId> insert_energy_cdf_;
     CollectionBuilder<NonuniformGridRecord> energy_cdfs_;
 };
 
@@ -58,9 +62,9 @@ class MatScintSpecInserter
  * Construct with defaults.
  */
 MatScintSpecInserter::MatScintSpecInserter(Data* data)
-    : data_{data}
-    , materials_{&data->materials}
+    : materials_{&data->materials}
     , reals_{&data->reals}
+    , insert_energy_cdf_(&data->reals, &data->energy_cdfs)
     , scint_records_{&data->scint_records}
     , energy_cdfs_(&data->energy_cdfs)
 {
@@ -93,14 +97,15 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
         CELER_VALIDATE(comp.yield_frac > 0,
                        << "invalid yield=" << comp.yield_frac);
 
-        NonuniformGridInserter insert_energy_cdf(&data_->reals,
-                                                 &data_->energy_cdfs);
-
         ScintRecord scint;
         scint.rise_time = comp.rise_time;
         scint.fall_time = comp.fall_time;
         if (comp.spectrum)
         {
+            CELER_VALIDATE(is_monotonic_increasing(make_span(comp.spectrum.x)),
+                           << "scintillation spectrum energy grid values are "
+                              "not "
+                              "monotonically increasing");
             inp::Grid grid;
             grid.x = comp.spectrum.x;
             grid.y.resize(grid.x.size());
@@ -110,7 +115,7 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
                                make_span(comp.spectrum.y),
                                make_span(grid.y));
             normalize_cdf(make_span(grid.y));
-            scint.energy_cdf = insert_energy_cdf(grid);
+            scint.energy_cdf = insert_energy_cdf_(grid);
         }
         else
         {
