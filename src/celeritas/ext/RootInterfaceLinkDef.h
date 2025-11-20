@@ -51,6 +51,10 @@
 #pragma link C++ class celeritas::inp::Grid+;
 #pragma link C++ class celeritas::inp::GridReflection+;
 #pragma link C++ class celeritas::inp::Interpolation+;
+#pragma link C++ class celeritas::inp::MucfPhysics+;
+#pragma link C++ class celeritas::inp::CycleRateData+;
+#pragma link C++ class celeritas::inp::AtomTransferRateData+;
+#pragma link C++ class celeritas::inp::AtomSpinFlipRateData+;
 #pragma link C++ class celeritas::inp::MuPairProductionEnergyTransferTable+;
 #pragma link C++ class celeritas::inp::NoRoughness+;
 #pragma link C++ class celeritas::inp::OpticalPhysics+;
@@ -84,6 +88,7 @@
 #pragma link C++ class celeritas::EventHitData+;
 
 // OpaqueIds
+#pragma link C++ class celeritas::MuonicMolecule+;
 #pragma link C++ class celeritas::OptMatId+;
 #pragma link C++ class celeritas::PhysSurfaceId+;
 #pragma link C++ class celeritas::SurfaceId+;
