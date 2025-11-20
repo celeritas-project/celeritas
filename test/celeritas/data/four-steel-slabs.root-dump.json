@@ -566,5 +566,8 @@
         "trivial" : []
       }
     }
+  },
+  "mucf_physics" : {
+    "_typename" : "celeritas::inp::MucfPhysics"
   }
 }
