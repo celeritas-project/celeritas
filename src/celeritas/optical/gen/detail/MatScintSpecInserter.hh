@@ -64,8 +64,8 @@ class MatScintSpecInserter
 MatScintSpecInserter::MatScintSpecInserter(Data* data)
     : materials_{&data->materials}
     , reals_{&data->reals}
-    , insert_energy_cdf_(&data->reals, &data->energy_cdfs)
     , scint_records_{&data->scint_records}
+    , insert_energy_cdf_(&data->reals, &data->energy_cdfs)
     , energy_cdfs_(&data->energy_cdfs)
 {
     CELER_EXPECT(data);
