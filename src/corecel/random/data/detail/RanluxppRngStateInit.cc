@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "RanluxppRngStateInit.hh"
 
-#include "corecel/Assert.hh"
 #include "corecel/sys/KernelLauncher.hh"
 
 namespace celeritas

@@ -11,6 +11,8 @@
 //---------------------------------------------------------------------------//
 #include "RanluxppRngParams.hh"
 
+#include "corecel/random/data/detail/RanluxppImpl.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

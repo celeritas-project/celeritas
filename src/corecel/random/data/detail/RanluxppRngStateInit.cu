@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {

@@ -11,9 +11,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstdint>
-#include <string>
-
 #include "corecel/Assert.hh"
 #include "corecel/random/data/RanluxppRngData.hh"
 #include "corecel/random/data/detail/RanluxppImpl.hh"
