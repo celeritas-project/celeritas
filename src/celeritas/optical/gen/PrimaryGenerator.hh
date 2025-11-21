@@ -53,6 +53,10 @@ PrimaryGenerator::PrimaryGenerator(PrimaryDistributionData const& data)
 //---------------------------------------------------------------------------//
 /*!
  * Sample an optical photon from the energy, angular and spatial distributions.
+ *
+ * \todo There are a couple places in the code where we resample the
+ * polarization if orthogonality fails: possibly add a helper function to
+ * reduce duplication
  */
 template<class Generator>
 CELER_FUNCTION optical::TrackInitializer
@@ -62,10 +66,13 @@ PrimaryGenerator::operator()(Generator& rng)
     result.energy = data_.sample_energy(rng);
     result.position = data_.sample_position(rng);
     result.direction = data_.sample_direction(rng);
-    result.polarization = ExitingDirectionSampler{0, result.direction}(rng);
+    do
+    {
+        result.polarization = ExitingDirectionSampler{0, result.direction}(rng);
+    } while (CELER_UNLIKELY(
+        !is_soft_orthogonal(result.polarization, result.direction)));
 
     CELER_ENSURE(result.energy > zero_quantity());
-    CELER_ENSURE(is_soft_orthogonal(result.polarization, result.direction));
     return result;
 }
 
