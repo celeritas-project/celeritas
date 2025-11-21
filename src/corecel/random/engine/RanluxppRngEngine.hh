@@ -21,11 +21,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Implements the RANLUX random number generator engine with modifications.
+ * Implements the RANLUX++ random number generator engine with modifications.
  *
- * This implementation is based directly on the Ranlux++ library described in
- * \citet{hahnfeld-ranlux-2021, https://doi.org/10.1051/epjconf/202125103008},
- * which implements the RANLUX generator \citep{james-ranluxfortran-1994,
+ * This implementation of RANLUX++
+ * \citep{sibidanov-revisionsubtractwithborrow-2017,
+ * https://doi.org/10.1016/j.cpc.2017.09.005} is based directly on the
+ * implementation of
+ * \citet{hahnfeld-ranlux-2021, https://doi.org/10.1051/epjconf/202125103008}.
+ * The RANLUX++ algorithm
+ * is an optimization of the RANLUX generator \citep{james-ranluxfortran-1994,
  * https://doi.org/10.1016/0010-4655(94)90233-X}, based on work by Luscher's
  * modification \citep{luscher-portablehighquality-1994,
  * http://arxiv.org/abs/hep-lat/9309020} of Marsaglia and Zaman's RCARRY
@@ -39,8 +43,6 @@ namespace celeritas
  * A given state is used to extract 12 samples, and the lower 32
  * bits of each is used as entropy. Two of those are concatenated to form a
  * 64-bit sample.
- *
- * \note The choice for the state size is historical and should be revisited.
  *
  * \todo The decision to discard the high bits rather than the low bits from
  * each word is likely undesirable at least for the last number in the state,
