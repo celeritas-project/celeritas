@@ -2153,6 +2153,7 @@ TEST_F(MucfBox, run)
 
     auto const& cycle_f0 = mucf.cycle_rates[0];
     static double const expected_cycle_rate_f0_y[] = {2, 2};
+    EXPECT_TRUE(cycle_f0);
     EXPECT_EQ(cycle_f0.molecule, MuonicMolecule::deuterium_tritium);
     EXPECT_EQ("F=0", cycle_f0.spin_label);
     EXPECT_EQ(2, cycle_f0.grid.x.size());
@@ -2160,6 +2161,7 @@ TEST_F(MucfBox, run)
 
     auto const& cycle_f1 = mucf.cycle_rates[1];
     static double const expected_cycle_rate_f1_y[] = {3, 3};
+    EXPECT_TRUE(cycle_f1);
     EXPECT_EQ(cycle_f1.molecule, MuonicMolecule::deuterium_tritium);
     EXPECT_EQ("F=1", cycle_f1.spin_label);
     EXPECT_EQ(2, cycle_f1.grid.x.size());
