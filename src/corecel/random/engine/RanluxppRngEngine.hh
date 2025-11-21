@@ -13,7 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/random/data/RanluxppRngData.hh"
-#include "corecel/random/data/detail/RanluxppImpl.hh"
+#include "corecel/random/engine/detail/RanluxppImpl.hh"
 #include "corecel/sys/ThreadId.hh"
 
 namespace celeritas

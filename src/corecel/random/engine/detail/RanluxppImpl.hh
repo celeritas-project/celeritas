@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 //---------------------------------------------------------------------------//
 /*!
- * \file corecel/random/data/detail/RanluxppImpl.hh
+ * \file corecel/random/engine/detail/RanluxppImpl.hh
  *
  * Original source:
  * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/ranluxpp/helpers.h
