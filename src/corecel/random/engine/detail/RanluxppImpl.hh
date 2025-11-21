@@ -15,7 +15,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/random/data/RanluxppTypes.hh"
 
 namespace celeritas
@@ -429,7 +431,7 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
 {
     RanluxppArray9 result;
 
-    RanluxppArray9 r = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    RanluxppArray9 r;
     for (auto i : celeritas::range(0, 9))
     {
         r[i] = mul[i];
@@ -612,7 +614,7 @@ CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppNumber const& ranlux)
  */
 CELER_FUNCTION RanluxppNumber to_ranlux(RanluxppArray9 const& lcg)
 {
-    RanluxppNumber result{{0, 0, 0, 0, 0, 0, 0, 0, 0}, 0};
+    RanluxppNumber result;
     int64_t c = compute_remainder(celeritas::make_span(lcg),
                                   celeritas::make_span(result.number));
 
