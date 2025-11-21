@@ -63,7 +63,7 @@ class VecgeomParams final : public GeoParamsInterface,
     //! \name Type aliases
     using VecLv = std::vector<G4LogicalVolume const*>;
     using VecPv = std::vector<G4VPhysicalVolume const*>;
-    using ImplVolInstanceId = VecgeomPlacedVolumeId;
+    using ImplVolInstanceId = VgPlacedVolumeId;
     using ImplVolInstanceMap = LabelIdMultiMap<ImplVolInstanceId>;
     //!@}
 

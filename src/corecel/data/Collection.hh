@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -30,8 +32,12 @@ class DedupeCollectionBuilder;
  * The \c Collection manages data allocation and transfer between CPU and GPU.
  * Its primary design goal is facilitating construction of deeply hierarchical
  * data on host at setup time and seamlessly copying to device.
- * The templated \c T must be trivially copyable: either a fundamental data
- * type or a struct of such types.
+ * The templated \c T must be trivially copyable and destructable: either a
+ * fundamental data type or a struct of such types.  (Some classes in external
+ * libraries, such as rocrand's state types and VecGeom's NavTuple types, are
+ * \em essentially trivial, but implement null-op destructors or optimized copy
+ * constructors, so we allow specialization through the
+ * celeritas::TriviallyCopyable class.
  *
  * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
  * a contiguous subset of items are accessed with \c ItemRange<T>, and the
@@ -293,11 +299,8 @@ struct AllItems
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
-    // rocrand states have nontrivial destructors
-    static_assert(std::is_trivially_copyable<T>::value || CELERITAS_USE_HIP,
+    static_assert(TriviallyCopyable_v<T>,
                   "Collection element is not trivially copyable");
-    static_assert(std::is_trivially_destructible<T>::value || CELERITAS_USE_HIP,
-                  "Collection element is not trivially destructible");
 
     using CollectionTraitsT = detail::CollectionTraits<T, W, M>;
     using const_value_type = typename CollectionTraitsT::const_type;

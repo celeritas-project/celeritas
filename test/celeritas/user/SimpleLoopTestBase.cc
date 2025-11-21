@@ -36,6 +36,8 @@ void SimpleLoopTestBase::run_impl(size_type num_tracks, size_type num_steps)
     step_inp.params = this->core();
     step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_tracks;
+    step_inp.actions = std::make_shared<ActionSequence>(
+        *this->action_reg(), ActionSequence::Options{});
 
     if constexpr (M == MemSpace::device)
     {

@@ -19,9 +19,10 @@ struct Problem;
 
 namespace optical
 {
-class CoreParams;
+class Transporter;
 }  // namespace optical
 
+class ActionSequence;
 class CoreParams;
 class GeantSd;
 class OpticalCollector;
@@ -43,14 +44,16 @@ struct ProblemLoaded
 
     //! Step collector
     std::shared_ptr<StepCollector> step_collector;
-    //! Optical data
-    std::shared_ptr<optical::CoreParams> optical_params;
-    //! Optical offload management
+    //! Optical-only offload management
+    std::shared_ptr<optical::Transporter> optical_transporter;
+    //! Combined EM and optical offload management
     std::shared_ptr<OpticalCollector> optical_collector;
     //! Geant4 SD interface
     std::shared_ptr<GeantSd> geant_sd;
     //! ROOT file manager
     std::shared_ptr<RootFileManager> root_manager;
+    //! Action sequence
+    std::shared_ptr<ActionSequence> actions;
 
     //!@}
 

@@ -303,11 +303,7 @@ void IntegrationSingleton::finalize_local_transporter()
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
                            << " cannot be finalized more than once");
-            if (!this->optical_offload())
-            {
-                params_.timer()->RecordActionTime(
-                    IntegrationSingleton::local_transporter().GetActionTime());
-            }
+            params_.timer()->RecordActionTime(lt.GetActionTime());
             lt.Finalize();
         },
         ExceptionConverter("celer.finalize.local"));
@@ -363,9 +359,9 @@ auto IntegrationSingleton::local_offload_ptr() -> UPOffload&
  */
 bool IntegrationSingleton::optical_offload() const
 {
-    return options_.optical_generator
+    return options_.optical
            && std::holds_alternative<inp::OpticalOffloadGenerator>(
-               *options_.optical_generator);
+               options_.optical->generator);
 }
 
 //---------------------------------------------------------------------------//

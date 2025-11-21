@@ -6,20 +6,26 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/ProtoConstructor.hh"
 
+#include "corecel/Config.hh"
+
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Repr.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeToString.hh"
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 #include "orange/orangeinp/CsgTestUtils.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/orangeinp/detail/ProtoMap.hh"
 
 #include "GeantLoadTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas::orangeinp::test;
 using celeritas::orangeinp::UnitProto;
 using celeritas::orangeinp::detail::ProtoMap;
+using celeritas::test::id_to_int;
 using celeritas::test::StringSimplifier;
 
 namespace celeritas
@@ -74,6 +80,47 @@ class ProtoConstructorTest : public GeantLoadTestBase
         return result;
     }
 
+    auto get_all_local_parents(ProtoMap const& protos) const
+    {
+        VolumeToString to_string{*this->volumes()};
+        std::vector<std::vector<std::string>> result;
+        for (auto id : range(UnivId{protos.size()}))
+        {
+            std::vector<std::string> local_parents;
+            if (auto const* unit = dynamic_cast<UnitProto const*>(protos.at(id)))
+            {
+                auto const& local_mats = unit->input().materials;
+                for (auto const& mat : unit->input().materials)
+                {
+                    if (mat.local_parent)
+                    {
+                        // Optional opaque ID is given
+                        std::string s = std::visit(to_string, mat.label);
+                        s += ',';
+                        if (auto lp_id = *mat.local_parent)
+                        {
+                            CELER_ASSERT(lp_id < local_mats.size());
+                            auto const& parent_mat = local_mats[lp_id.get()];
+                            s += std::visit(to_string, parent_mat.label);
+                        }
+                        else
+                        {
+                            auto bg = unit->input().background.label;
+                            s += "bg@";
+                            s += unit->label();
+                            s += '=';
+                            s += std::visit(to_string, bg);
+                        }
+
+                        local_parents.emplace_back(std::move(s));
+                    }
+                }
+            }
+            result.push_back(std::move(local_parents));
+        }
+        return result;
+    }
+
     Unit build_unit(ProtoMap const& protos, UnivId id) const
     {
         CELER_EXPECT(id < protos.size());
@@ -89,7 +136,9 @@ class ProtoConstructorTest : public GeantLoadTestBase
 };
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, atlas_lar_endcap)
+using AtlasLarEndcapTest = ProtoConstructorTest;
+
+TEST_F(AtlasLarEndcapTest, default)
 {
     auto global_proto = this->load("atlas-lar-endcap");
     ProtoMap protos{*global_proto};
@@ -104,7 +153,9 @@ TEST_F(ProtoConstructorTest, atlas_lar_endcap)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, intersection_boxes)
+using IntersectionBoxesTest = ProtoConstructorTest;
+
+TEST_F(IntersectionBoxesTest, default)
 {
     auto global_proto = this->load("intersection-boxes");
     ProtoMap protos{*global_proto};
@@ -193,7 +244,9 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, lar_sphere)
+using LarSphereTest = ProtoConstructorTest;
+
+TEST_F(LarSphereTest, default)
 {
     auto global_proto = this->load("lar-sphere");
     ProtoMap protos{*global_proto};
@@ -250,8 +303,79 @@ TEST_F(ProtoConstructorTest, lar_sphere)
     }
 }
 
+//----------------------------m-----------------------------------------------//
+using MultilevelTest = ProtoConstructorTest;
+
+TEST_F(MultilevelTest, full_inline)
+{
+    Options opts;
+    std::istringstream{R"json({
+"_format": "g4org-options",
+"explicit_interior_threshold": 1000,
+"inline_childless": true,
+"inline_singletons": "all",
+"inline_unions": true,
+"verbose_structure": false
+})json"} >> opts;
+
+    auto global_proto = this->load("multi-level", opts);
+    ProtoMap protos{*global_proto};
+    auto parents = this->get_all_local_parents(protos);
+
+    std::vector<std::string> const expected_parents[] = {
+        {"topsph1,bg@world=",
+         "topbox4,bg@world=",
+         "boxsph1@1,topbox4",
+         "boxsph2@1,topbox4",
+         "boxtri@1,topbox4"},
+        {"boxsph1@0,bg@box=", "boxsph2@0,bg@box=", "boxtri@0,bg@box="},
+    };
+    EXPECT_VEC_EQ(expected_parents, parents);
+}
+
+TEST_F(MultilevelTest, default)
+{
+    auto global_proto = this->load("multi-level");
+    ProtoMap protos{*global_proto};
+    auto parents = this->get_all_local_parents(protos);
+    std::vector<std::string> const expected_parents[] = {
+        {"topsph1,bg@world=<null>"},
+        {"boxsph1@0,bg@box=<null>",
+         "boxsph2@0,bg@box=<null>",
+         "boxtri@0,bg@box=<null>"},
+        {"boxsph1@1,bg@box_refl=<null>",
+         "boxsph2@1,bg@box_refl=<null>",
+         "boxtri@1,bg@box_refl=<null>"},
+    };
+    EXPECT_VEC_EQ(expected_parents, parents);
+}
+
+TEST_F(MultilevelTest, each_volume)
+{
+    Options opts;
+    std::istringstream{R"json({
+"_format": "g4org-options",
+"explicit_interior_threshold": 0,
+"inline_childless": false,
+"inline_singletons": "none",
+"inline_unions": false,
+"remove_interior": false,
+"remove_negated_join": true,
+"verbose_structure": false
+})json"} >> opts;
+
+    auto global_proto = this->load("multi-level", opts);
+    ProtoMap protos{*global_proto};
+    auto parents = this->get_all_local_parents(protos);
+    std::vector<std::string> const expected_parents[]
+        = {{}, {}, {}, {}, {}, {}, {}};
+    EXPECT_VEC_EQ(expected_parents, parents);
+}
+
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, one_box)
+using OneBoxTest = ProtoConstructorTest;
+
+TEST_F(OneBoxTest, default)
 {
     auto global_proto = this->load("one-box");
     ProtoMap protos{*global_proto};
@@ -296,7 +420,9 @@ TEST_F(ProtoConstructorTest, one_box)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, simple_cms)
+using SimpleCmsTest = ProtoConstructorTest;
+
+TEST_F(SimpleCmsTest, default)
 {
     // NOTE: GDML stores widths for box and cylinder Z; Geant4 uses halfwidths
     auto global_proto = this->load("simple-cms");
@@ -348,7 +474,9 @@ TEST_F(ProtoConstructorTest, simple_cms)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, testem3)
+using Testem3Test = ProtoConstructorTest;
+
+TEST_F(Testem3Test, default)
 {
     auto global_proto = this->load("testem3");
     ProtoMap protos{*global_proto};
@@ -426,8 +554,9 @@ TEST_F(ProtoConstructorTest, testem3)
 }
 
 //---------------------------------------------------------------------------//
-// Deduplication slightly changes plane position and CSG node IDs
-TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
+using TilecalPlugTest = ProtoConstructorTest;
+
+TEST_F(TilecalPlugTest, default)
 {
     auto global_proto = this->load("tilecal-plug");
     ProtoMap protos{*global_proto};
@@ -438,6 +567,12 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(1, protos.size());
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        GTEST_SKIP() << "Deduplication slightly changes surface nodes";
+    }
+
     {
         auto u = this->build_unit(protos, UnivId{0});
 
@@ -470,7 +605,9 @@ TEST_F(ProtoConstructorTest, TEST_IF_CELERITAS_DOUBLE(tilecal_plug))
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, two_boxes)
+using TwoBoxesTest = ProtoConstructorTest;
+
+TEST_F(TwoBoxesTest, default)
 {
     auto global_proto = this->load("two-boxes");
     ProtoMap protos{*global_proto};
@@ -504,7 +641,9 @@ TEST_F(ProtoConstructorTest, two_boxes)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, znenv)
+using ZnenvTest = ProtoConstructorTest;
+
+TEST_F(ZnenvTest, default)
 {
     auto global_proto = this->load("znenv");
     ProtoMap protos{*global_proto};
@@ -615,8 +754,7 @@ TEST_F(ProtoConstructorTest, znenv)
     }
 }
 
-//---------------------------------------------------------------------------//
-TEST_F(ProtoConstructorTest, znenv_explicit)
+TEST_F(ZnenvTest, explicit_interior)
 {
     Options opts;
     std::istringstream{R"json({

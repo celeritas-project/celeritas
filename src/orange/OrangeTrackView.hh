@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
 
@@ -477,7 +480,24 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
  */
 CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
 {
-    CELER_NOT_IMPLEMENTED("canonical level");
+    CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(!params_.volume_instance_ids.empty());
+
+    vol_level_uint result = 0;
+    TrackerVisitor visit_tracker{params_};
+
+    // Loop over current universe path (different from canonical path)
+    for (auto ulev : range(this->univ_level() + 1))
+    {
+        // Add the local volume level: placement in the parent universe is
+        // handled by the local volume at that level, not the universe depth
+        auto lsa = this->make_lsa(ulev);
+        result += visit_tracker(
+            [vol = lsa.vol()](auto&& t) { return t.local_vol_level(vol); },
+            lsa.univ());
+    }
+
+    return VolumeLevelId{result};
 }
 
 //---------------------------------------------------------------------------//
@@ -488,8 +508,6 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
  * top-most volume ("world" or level zero) starts at index zero, and child
  * volumes have higher level IDs. Note that Geant4 uses the \em reverse
  * nomenclature.
- *
- * \todo Implement \c parent_impl_volumes in OrangeData.
  */
 CELER_FUNCTION void
 OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
@@ -497,10 +515,47 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->univ_level() < levels.size());
 
-    // To guard against errors and enable unit tests, we first make sure we're
-    // not going off the end. (If we are at the global level without correct
-    // instance information, then this will just return a null ID.)
-    CELER_NOT_IMPLEMENTED("canonical volume instance");
+    // Start writing backward from end of levels array
+    CELER_ASSERT(levels.size() > 0
+                 && levels.size()
+                        <= NumericLimits<VolumeLevelId::size_type>::max());
+    VolumeLevelId::size_type level_idx = levels.size();
+
+    // Loop over universes, local to global
+    auto ui = this->make_univ_indexer();
+    TrackerVisitor visit_tracker{params_};
+
+    using UnivLevelInt = std::make_signed_t<UnivLevelId::size_type>;
+    for (auto ulev_idx :
+         range<UnivLevelInt>(this->univ_level().get() + 1).step(-1))
+    {
+        auto lsa = this->make_lsa(id_cast<UnivLevelId>(ulev_idx));
+        auto const univ = lsa.univ();
+
+        // Initialize local volume from state
+        LocalVolumeId lv_id = lsa.vol();
+        // Loop over all local volumes that have local parents
+        do
+        {
+            ImplVolumeId impl_id = ui.global_volume(univ, lv_id);
+            if (auto vol_inst = params_.volume_instance_ids[impl_id])
+            {
+                // Save volume instance ID at this canonical level
+                CELER_ASSERT(level_idx != 0);
+                levels[--level_idx] = vol_inst;
+                // Update to parent level
+                lv_id = visit_tracker(
+                    [lv_id](auto&& t) { return t.local_parent(lv_id); }, univ);
+            }
+            else
+            {
+                // No volume instance at this level
+                break;
+            }
+        } while (lv_id);
+    }
+    // Input should have been resized to exactly match number of nested levels
+    CELER_ENSURE(level_idx == 0);
 }
 
 //---------------------------------------------------------------------------//

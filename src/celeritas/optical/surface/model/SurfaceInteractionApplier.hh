@@ -48,6 +48,8 @@ SurfaceInteractionApplier<F>::operator()(CoreTrackView const& track) const
     // Sample interaction
     SurfaceInteraction result = this->sample_interaction(track);
 
+    CELER_ASSERT(result.is_valid());
+
     if (result.action == SurfaceInteraction::Action::absorbed)
     {
         // Mark particle as killed

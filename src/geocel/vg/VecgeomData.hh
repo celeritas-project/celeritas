@@ -15,34 +15,29 @@
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
 
+#include "VecgeomTypes.hh"
+
 #include "detail/VecgeomNavCollection.hh"
-#include "detail/VecgeomTraits.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// TYPES
-//---------------------------------------------------------------------------//
 
-//! VecGeom::VPlacedVolume::id is unsigned int
-using VecgeomPlacedVolumeId
-    = OpaqueId<struct VecgeomPlacedVolume_, unsigned int>;
+inline constexpr VgSurfaceInt vg_null_surface{-1};
 
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
 struct VecgeomScalars
 {
-    template<MemSpace M>
-    using PlacedVolumeT = typename detail::VecgeomTraits<M>::PlacedVolume;
     using vol_level_uint = VolumeLevelId::size_type;
 
-    PlacedVolumeT<MemSpace::host> const* host_world{nullptr};
-    PlacedVolumeT<MemSpace::device> const* device_world{nullptr};
+    VgPlacedVolume<MemSpace::host> const* host_world{nullptr};
+    VgPlacedVolume<MemSpace::device> const* device_world{nullptr};
     vol_level_uint num_volume_levels{0};
 
     template<MemSpace M>
-    CELER_FUNCTION PlacedVolumeT<M> const* world() const
+    CELER_FUNCTION VgPlacedVolume<M> const* world() const
     {
         if constexpr (M == MemSpace::host)
         {
@@ -76,7 +71,7 @@ struct VecgeomScalars
 template<Ownership W, MemSpace M>
 struct VecgeomParamsData
 {
-    using ImplVolInstanceId = VecgeomPlacedVolumeId;
+    using ImplVolInstanceId = VgPlacedVolumeId;
 
     //! Values that don't require host/device copying
     VecgeomScalars scalars;
@@ -117,15 +112,15 @@ struct VecgeomStateData
     //// TYPES ////
 
     template<class T>
-    using Items = celeritas::StateCollection<T, W, M>;
+    using StateItems = StateCollection<T, W, M>;
 
     //// DATA ////
 
     // Collections
-    Items<Real3> pos;
-    Items<Real3> dir;
+    StateItems<Real3> pos;
+    StateItems<Real3> dir;
 #if CELERITAS_VECGEOM_SURFACE
-    Items<long> next_surface;
+    StateItems<VgSurfaceInt> next_surface;
 #endif
 
     // Wrapper for NavStatePool, vector, or void*
@@ -151,9 +146,6 @@ struct VecgeomStateData
     template<Ownership W2, MemSpace M2>
     VecgeomStateData& operator=(VecgeomStateData<W2, M2>& other)
     {
-        static_assert(M2 == M && W == Ownership::reference,
-                      "Only supported assignment is from the same memspace to "
-                      "a reference");
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;

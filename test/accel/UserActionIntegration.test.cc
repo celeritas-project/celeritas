@@ -29,6 +29,11 @@ namespace celeritas
 {
 namespace test
 {
+
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
+
 //---------------------------------------------------------------------------//
 class UAITrackingAction final : public G4UserTrackingAction
 {
@@ -90,6 +95,12 @@ TEST_F(LarSphere, run)
 
     rm.BeamOn(3);
     cout << "initial run done" << endl;
+
+    if (using_surface_vg)
+    {
+        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
+    }
+
     rm.BeamOn(1);
     cout << "second run done" << endl;
 }
@@ -165,16 +176,17 @@ auto LarSphereOpticalOffload::make_setup_options() -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
 
-    result.optical_capacity = [] {
-        inp::OpticalStateCapacity cap;
-        cap.tracks = 32768;
-        cap.generators = cap.tracks * 8;
-        cap.primaries = cap.tracks * 16;
-        return cap;
-    }();
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = opt.capacity.tracks * 8;
+        opt.capacity.primaries = opt.capacity.tracks * 16;
 
-    // Enable optical distribution offloading
-    result.optical_generator = inp::OpticalOffloadGenerator{};
+        // Enable optical distribution offloading
+        opt.generator = inp::OpticalOffloadGenerator{};
+
+        return opt;
+    }();
 
     // Don't offload any particles
     result.offload_particles = SetupOptions::VecG4PD{};

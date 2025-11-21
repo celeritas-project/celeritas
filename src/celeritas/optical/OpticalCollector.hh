@@ -14,6 +14,7 @@
 #include "celeritas/optical/Types.hh"
 #include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
+#include "celeritas/user/ActionTimes.hh"
 
 #include "CoreParams.hh"
 #include "Model.hh"
@@ -70,6 +71,7 @@ class OpticalCollector
     //! \name Type aliases
     using OpticalBufferSize = GeneratorCounters<size_type>;
     using SPConstOpticalParams = std::shared_ptr<optical::CoreParams const>;
+    using MapStrDbl = ActionTimes::MapStrDbl;
     //!@}
 
     struct Input
@@ -88,6 +90,9 @@ class OpticalCollector
 
         //! Maximum step iterations before aborting optical loop
         size_type max_step_iters{numeric_limits<size_type>::max()};
+
+        //! Whether to synchronize and record accumulated action times
+        bool action_times{false};
 
         //! True if all input is assigned and valid
         explicit operator bool() const
@@ -127,6 +132,9 @@ class OpticalCollector
     // Get queued buffer sizes
     OpticalBufferSize buffer_counts(AuxStateVec const& aux) const;
 
+    // Get the accumulated action times
+    MapStrDbl get_action_times(AuxStateVec const&) const;
+
   private:
     //// TYPES ////
 
@@ -136,6 +144,7 @@ class OpticalCollector
     using SPGatherAction = std::shared_ptr<OffloadGatherAction>;
     using SPGenerator = std::shared_ptr<optical::GeneratorAction>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
+    using SPActionTimes = std::shared_ptr<ActionTimes>;
 
     //// DATA ////
 
@@ -145,6 +154,7 @@ class OpticalCollector
     SPScintOffload scint_offload_;
     SPGenerator generate_;
     SPLaunchAction launch_;
+    SPActionTimes action_times_;
 };
 
 //---------------------------------------------------------------------------//

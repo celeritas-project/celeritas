@@ -22,6 +22,11 @@ namespace celeritas
 {
 namespace test
 {
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_VERSION
+                                  && CELERITAS_VECGEOM_SURFACE;
+constexpr bool using_solids_vg = CELERITAS_VECGEOM_VERSION
+                                 && !CELERITAS_VECGEOM_SURFACE;
+
 //---------------------------------------------------------------------------//
 //! Default constructor
 template<class HP>
