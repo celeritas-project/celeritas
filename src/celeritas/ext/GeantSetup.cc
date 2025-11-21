@@ -24,6 +24,7 @@
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #endif
+
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
