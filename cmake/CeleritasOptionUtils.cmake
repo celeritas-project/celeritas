@@ -289,25 +289,21 @@ function(celeritas_check_python_module varname module)
     # We've already checked for this module
     set(_found "${${_cache_name}}")
   else()
-    message(STATUS "Check Python module ${module}")
-    set(_cmd
-      "${CMAKE_COMMAND}" -E env "PYTHONPATH=${CELERITAS_PYTHONPATH}"
-      "${Python_EXECUTABLE}" -c "import ${module}"
-    )
     execute_process(COMMAND
-      ${_cmd}
+      "${CMAKE_COMMAND}" -E env "PYTHONPATH=${CELERITAS_PYTHONPATH}"
+        "${Python_EXECUTABLE}" -c
+        "import ${module}; print(getattr(${module}, '__file__', 'builtin'))"
+      OUTPUT_VARIABLE _found
+      OUTPUT_STRIP_TRAILING_WHITESPACE
       RESULT_VARIABLE _result
       ERROR_QUIET # hide error message if module unavailable
     )
-    # Note: use JSON-compatible T/F representation
-    if(_result)
-      set(_msg "not found")
-      set(_found false)
+    if(NOT _result)
+      message(STATUS "Found Python module ${module}: ${_found}")
     else()
-      set(_msg "found")
-      set(_found true)
+      set(_found "${module}-NOTFOUND")
+      message(STATUS "Looked for Python module ${module}: NOTFOUND")
     endif()
-    message(STATUS "Check Python module ${module} -- ${_msg}")
     set(${_cache_name} "${_found}" CACHE INTERNAL
       "Whether Python module ${module} is available")
   endif()

@@ -167,14 +167,21 @@ function(celeritas_build_latex input output)
 endfunction()
 
 #-----------------------------------------------------------------------------#
+# USER DOXYGEN
+function(_set_jsonbool varname)
+  if(ARGC GREATER 1 AND ARGV1)
+    set(${varname} true PARENT_SCOPE)
+  else()
+    set(${varname} false PARENT_SCOPE)
+  endif()
+endfunction()
 
 # Define a configure file with version and configuration info
-# NOTE: the resulting JSON file should be syntactically correct because
-# of how celeritas_check_python_module is implemented
-set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
-set(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
-set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
-set(CELERITAS_USE_SPHINXMERMAID ${CELERITAS_USE_SphinxMermaid})
+_set_jsonbool(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
+_set_jsonbool(CELERITAS_USE_FURO ${CELERITAS_USE_Furo})
+_set_jsonbool(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
+_set_jsonbool(CELERITAS_USE_SPHINXMERMAID ${CELERITAS_USE_SphinxMermaid})
+
 if(Celeritas_VERSION STREQUAL Celeritas_VERSION_STRING)
   set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}")
 elseif("${Celeritas_VERSION_STRING}" MATCHES
