@@ -32,11 +32,8 @@ using UPVgPathState = std::unique_ptr<vecgeom::NavStatePath>;
 /*!
  * Collection-like container for managing VecGeom navigation states.
  *
- * Since reference and value all behave differently for host and device, we
- * only *declare* the class, and provide specializations for each type. The
- * specializations are also explicitly declared before their definitions, since
- * many of the definitions may not be available depending on which compiler or
- * which compilation phase is active.
+ * This is now used explicitly for a host-only collection of "path" navigation
+ * states.
  */
 template<Ownership W, MemSpace M>
 struct VecgeomNavCollection
@@ -99,7 +96,7 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
     //! Number of elements
     size_type size() const { return nav_state.size(); }
 
-    //! True if the collection is assigned/valiid
+    //! True if the collection is assigned/valid
     explicit operator bool() const { return !nav_state.empty(); }
 };
 
@@ -107,6 +104,7 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
 // Resize with a number of states
 void resize(VecgeomNavCollection<Ownership::value, MemSpace::host>* nav,
             size_type size);
+
 inline void
 resize(VecgeomNavCollection<Ownership::value, MemSpace::device>*, size_type)
 {
