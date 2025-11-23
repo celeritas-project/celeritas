@@ -282,7 +282,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
         *next_surf_ = null_surface();
     }
 
-    // Set up current state and locate daughter volume.
+    // Set up current state and locate daughter volume
     vgstate_.Clear();
 #if CELERITAS_VECGEOM_SURFACE
     auto world = vecgeom::NavigationState::WorldId();

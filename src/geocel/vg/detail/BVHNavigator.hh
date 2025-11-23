@@ -64,7 +64,6 @@ class BVHNavigator
             CELER_ASSERT(vol != nullptr);
             if (!vol->UnplacedContains(point))
             {
-                path.Clear();
                 return;
             }
         }
@@ -72,7 +71,6 @@ class BVHNavigator
         path.Push(vol);
 
         VgReal3 currentpoint(point);
-        VgReal3 daughterlocalpoint;
 
         while (vol->GetDaughters().size() > 0)
         {
@@ -80,7 +78,9 @@ class BVHNavigator
                 = vecgeom::BVHManager::GetBVH(vol->GetLogicalVolume()->id());
             CELER_ASSERT(bvh);
 
-            // Note: vol is updated by this call
+            // Note: vol *and* daughterlocalpoint are updated by this call
+            VgReal3 daughterlocalpoint;
+            vol = nullptr;
             if (!bvh->LevelLocate(
                     exclude, currentpoint, vol, daughterlocalpoint))
             {

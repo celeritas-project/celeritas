@@ -83,11 +83,29 @@ class VgNavStateWrapper
     CELER_FIF
     VgNavStateImpl const& GetState() const { return s_; }
 
+    //! Debug print
     CELER_FIF
-    void Push(VPlacedVolume const* v) { VgNavState::PushImpl(s_, v); }
+    void Print() const { VgNavState{*this}.Print(); }
 
     CELER_FIF
-    void Pop() { VgNavState::PopImpl(s_); }
+    void Push(VPlacedVolume const* v)
+    {
+#if VECGEOM_VERSION < 0x200000
+        // VG1 returns value; VG2 modifies in place :(
+        s_ =
+#endif
+            VgNavState::PushImpl(s_, v);
+    }
+
+    CELER_FIF
+    void Pop()
+    {
+#if VECGEOM_VERSION < 0x200000
+        // VG1 returns value; VG2 modifies in place :(
+        s_ =
+#endif
+            VgNavState::PopImpl(s_);
+    }
 
     CELER_FIF
     VPlacedVolume const* Top() const { return VgNavState::TopImpl(s_); }
@@ -146,17 +164,20 @@ CELER_FIF
 vecgeom::VPlacedVolume const* VgNavStateWrapper::At(int level) const
 {
     CELER_EXPECT(level >= 0);
+    // This value is 1 for navtuple (V2) or index (V1 only), but 2 for navindex
+    // (V2)
+    constexpr int parent_offset = CELER_VGNAV == CELER_VGNAV_TUPLE ? 1
+                                  : VECGEOM_VERSION < 0x200000     ? 1
+                                                                   : 2;
 #if CELER_VGNAV == CELER_VGNAV_TUPLE
-    auto nav_ind = VgNavState::GetNavTupleImpl(s_, level).Top();
-    return nav_ind != outside_nav_index
-               ? VgNavState::ToPlacedVolume(VgNavState::NavInd(nav_ind + 1))
-               : nullptr;
+    auto index = VgNavState::GetNavTupleImpl(s_, level).Top();
 #else
-    auto parent = VgNavState::GetNavIndexImpl(s_, level);
-    return parent != outside_nav_index
-               ? VgNavState::ToPlacedVolume(VgNavState::NavInd(parent + 2))
-               : nullptr;
+    auto index = VgNavState::GetNavIndexImpl(s_, level);
 #endif
+    return index != outside_nav_index
+               ? VgNavState::ToPlacedVolume(
+                     VgNavState::NavInd(index + parent_offset))
+               : nullptr;
 }
 
 CELER_FIF
