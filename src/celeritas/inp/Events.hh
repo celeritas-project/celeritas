@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/inp/Distributions.hh"
 #include "geocel/Types.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -20,18 +21,16 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
-//! Generate at a single point
-struct PointDistribution
-{
-    Real3 pos{0, 0, 0};  // [length]
-};
+//! Generate at a single energy value
+using MonoenergeticDistribution = DeltaDistribution<double>;
 
-//! Sample uniformly in a box
-struct UniformBoxDistribution
-{
-    Real3 lower{0, 0, 0};  // [length]
-    Real3 upper{0, 0, 0};  // [length]
-};
+//! Choose an energy distribution for the primary generator
+using EnergyDistribution
+    = std::variant<MonoenergeticDistribution, NormalDistribution>;
+
+//---------------------------------------------------------------------------//
+//! Generate at a single point
+using PointDistribution = DeltaDistribution<Array<double, 3>>;
 
 // TODO: cylinder shape
 // TODO: shape with volume rejection
@@ -41,40 +40,12 @@ using ShapeDistribution
     = std::variant<PointDistribution, UniformBoxDistribution>;
 
 //---------------------------------------------------------------------------//
-//! Generate angles isotropically
-struct IsotropicDistribution
-{
-};
-
 //! Generate angles in a single direction
-struct MonodirectionalDistribution
-{
-    Real3 dir{0, 0, 1};
-};
+using MonodirectionalDistribution = DeltaDistribution<Array<double, 3>>;
 
 //! Choose an angular distribution for the primary generator
 using AngleDistribution
-    = std::variant<IsotropicDistribution, MonodirectionalDistribution>;
-
-//---------------------------------------------------------------------------//
-//! Generate primaries at a single energy value
-struct MonoenergeticDistribution
-{
-    using MevEnergy = Quantity<units::Mev, double>;
-
-    MevEnergy energy;
-};
-
-//! Generate primaries with Gaussian-distributed energy
-struct GaussianDistribution
-{
-    real_type mean{0};
-    real_type stddev{1};
-};
-
-//! Choose an energy distribution for the primary generator
-using EnergyDistribution
-    = std::variant<MonoenergeticDistribution, GaussianDistribution>;
+    = std::variant<MonodirectionalDistribution, IsotropicDistribution>;
 
 //---------------------------------------------------------------------------//
 /*!

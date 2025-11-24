@@ -13,6 +13,7 @@
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/random/distribution/DistributionInserter.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/KernelLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -28,84 +29,6 @@ namespace celeritas
 {
 namespace optical
 {
-//---------------------------------------------------------------------------//
-/*!
- * Return a distribution for sampling the energy.
- */
-EnergySampler make_energy_sampler(inp::EnergyDistribution const& i)
-{
-    CELER_ASSUME(!i.valueless_by_exception());
-
-    EnergySampler result;
-    std::visit(Overload{[&](inp::MonoenergeticDistribution const& me) {
-                            CELER_VALIDATE(me.energy > zero_quantity(),
-                                           << "invalid primary generator "
-                                              "energy "
-                                           << me.energy.value());
-                            result.type = EnergyDistribution::monoenergetic;
-                            new (&result.data.monoenergetic)
-                                inp::MonoenergeticDistribution(me);
-                        },
-                        [&](inp::GaussianDistribution const& ge) {
-                            result.type = EnergyDistribution::gaussian;
-                            new (&result.data.gaussian)
-                                inp::GaussianDistribution(ge);
-                        }},
-               i);
-    CELER_ENSURE(result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a distribution for sampling the direction.
- */
-DirectionSampler make_direction_sampler(inp::AngleDistribution const& i)
-{
-    CELER_ASSUME(!i.valueless_by_exception());
-
-    DirectionSampler result;
-    std::visit(Overload{[&](inp::MonodirectionalDistribution const& ma) {
-                            CELER_VALIDATE(is_soft_unit_vector(ma.dir),
-                                           << "primary generator angle is not "
-                                              "a unit vector");
-                            result.type = AngleDistribution::monodirectional;
-                            new (&result.data.monodirectional)
-                                inp::MonodirectionalDistribution(ma);
-                        },
-                        [&](inp::IsotropicDistribution const& ia) {
-                            result.type = AngleDistribution::isotropic;
-                            new (&result.data.isotropic)
-                                inp::IsotropicDistribution(ia);
-                        }},
-               i);
-    CELER_ENSURE(result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct the position sampler.
- */
-PositionSampler make_position_sampler(inp::ShapeDistribution const& i)
-{
-    CELER_ASSUME(!i.valueless_by_exception());
-
-    PositionSampler result;
-    std::visit(Overload{[&](inp::PointDistribution const& ps) {
-                            result.type = ShapeDistribution::point;
-                            new (&result.data.point) inp::PointDistribution(ps);
-                        },
-                        [&](inp::UniformBoxDistribution const& ubs) {
-                            result.type = ShapeDistribution::uniform_box;
-                            new (&result.data.uniform_box)
-                                inp::UniformBoxDistribution(ubs);
-                        }},
-               i);
-    CELER_ENSURE(result);
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -141,12 +64,19 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
                     gen_id,
                     "primary-generate",
                     "generate optical photon primaries")
-    , data_{inp.primaries,
-            make_energy_sampler(inp.energy),
-            make_direction_sampler(inp.angle),
-            make_position_sampler(inp.shape)}
 {
+    HostVal<DistributionParamsData> host_params;
+    DistributionInserter insert(host_params);
+
+    data_.num_photons = inp.primaries;
+    data_.energy = std::visit(insert, inp.energy);
+    data_.angle = std::visit(insert, inp.angle);
+    data_.shape = std::visit(insert, inp.shape);
+
+    params_ = CollectionMirror<DistributionParamsData>{std::move(host_params)};
+
     CELER_ENSURE(data_);
+    CELER_ENSURE(params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -246,8 +176,11 @@ void PrimaryGeneratorAction::generate(CoreParams const& params,
         = min(state.counters().num_vacancies, aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
-    detail::PrimaryGeneratorExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), data_, state.counters()};
+    detail::PrimaryGeneratorExecutor execute{params.ptr<MemSpace::native>(),
+                                             state.ptr(),
+                                             data_,
+                                             params_.host_ref(),
+                                             state.counters()};
     launch_action(num_gen, execute);
 }
 

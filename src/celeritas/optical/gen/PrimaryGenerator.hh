@@ -11,8 +11,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/random/data/DistributionData.hh"
+#include "corecel/random/distribution/DistributionTypeTraits.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 
+#include "PrimaryGeneratorData.hh"
 #include "../TrackInitializer.hh"
 
 namespace celeritas
@@ -27,13 +30,16 @@ class PrimaryGenerator
 {
   public:
     // Construct from distribution data
-    inline CELER_FUNCTION PrimaryGenerator(PrimaryDistributionData const& data);
+    inline CELER_FUNCTION
+    PrimaryGenerator(NativeCRef<DistributionParamsData> const& params,
+                     PrimaryDistributionData const& data);
 
     // Sample an optical photon from the distributions
     template<class Generator>
     inline CELER_FUNCTION optical::TrackInitializer operator()(Generator& rng);
 
   private:
+    NativeCRef<DistributionParamsData> const& params_;
     PrimaryDistributionData const& data_;
 };
 
@@ -44,9 +50,12 @@ class PrimaryGenerator
  * Construct from optical materials and distribution parameters.
  */
 CELER_FUNCTION
-PrimaryGenerator::PrimaryGenerator(PrimaryDistributionData const& data)
-    : data_(data)
+PrimaryGenerator::PrimaryGenerator(
+    NativeCRef<DistributionParamsData> const& params,
+    PrimaryDistributionData const& data)
+    : params_(params), data_(data)
 {
+    CELER_EXPECT(params_);
     CELER_EXPECT(data_);
 }
 
@@ -62,10 +71,13 @@ template<class Generator>
 CELER_FUNCTION optical::TrackInitializer
 PrimaryGenerator::operator()(Generator& rng)
 {
+    DistributionVisitor visit{params_};
+
     optical::TrackInitializer result;
-    result.energy = data_.sample_energy(rng);
-    result.position = data_.sample_position(rng);
-    result.direction = data_.sample_direction(rng);
+    result.energy = units::MevEnergy{
+        visit([&rng](auto&& d) { return d(rng); }, data_.energy)};
+    result.position = visit([&rng](auto&& d) { return d(rng); }, data_.shape);
+    result.direction = visit([&rng](auto&& d) { return d(rng); }, data_.angle);
     do
     {
         result.polarization = ExitingDirectionSampler{0, result.direction}(rng);

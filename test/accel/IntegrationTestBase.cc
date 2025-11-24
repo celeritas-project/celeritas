@@ -401,11 +401,9 @@ auto LarSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
-
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{10}};
+    result.energy = inp::MonoenergeticDistribution{10};
     result.shape = inp::PointDistribution{from_cm({99, 0.1, 0})};
     result.angle = inp::IsotropicDistribution{};
     result.num_events = 4;  // Overridden with BeamOn
@@ -473,11 +471,9 @@ auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
-
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{100}};
+    result.energy = inp::MonoenergeticDistribution{100};
     result.shape = inp::PointDistribution{from_cm({-22, 0, 0})};
     result.angle = inp::MonodirectionalDistribution{Real3{1, 0, 0}};
     result.num_events = 2;
@@ -523,11 +519,9 @@ auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
-
     PrimaryInput result;
     result.pdg = {pdg::positron()};
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{0.5}};
+    result.energy = inp::MonoenergeticDistribution{0.5};
     result.shape = inp::PointDistribution{from_cm({0., 0., 0.})};
     result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};
     result.num_events = 12;  // Overridden with BeamOn

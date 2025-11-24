@@ -218,6 +218,7 @@ list(APPEND SOURCES
   math/TridiagonalSolver.cc
   random/data/CuHipRngData.cc
   random/data/XorwowRngData.cc
+  random/distribution/DistributionInserter.cc
   random/params/CuHipRngParams.cc
   random/params/XorwowRngParams.cc
   sys/ActionInterface.cc

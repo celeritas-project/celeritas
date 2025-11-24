@@ -11,6 +11,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/random/data/DistributionData.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
@@ -33,11 +35,6 @@ class CoreStateBase;
  *
  * This reproducibly samples and initializes optical photons directly in track
  * slots.
- *
- * \todo Integrate this action into a standalone stepping loop.
- * \todo Add infrastructure to improve and generalize the on-device
- * distribution sampling (see
- * https://github.com/celeritas-project/celeritas/issues/2123).
  */
 class PrimaryGeneratorAction final : public GeneratorBase
 {
@@ -78,6 +75,7 @@ class PrimaryGeneratorAction final : public GeneratorBase
     //// DATA ////
 
     PrimaryDistributionData data_;
+    CollectionMirror<DistributionParamsData> params_;
 
     //// HELPER FUNCTIONS ////
 

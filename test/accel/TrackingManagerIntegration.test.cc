@@ -302,12 +302,11 @@ auto LarSphereOptical::make_physics_input() const -> PhysicsInput
 
 auto LarSphereOptical::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
     auto result = LarSphereIntegrationMixin::make_primary_input();
 
     result.shape = inp::PointDistribution{from_cm({0.1, 0.1, 0})};
     result.primaries_per_event = 1;
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{2}};
+    result.energy = inp::MonoenergeticDistribution{2};
     return result;
 }
 

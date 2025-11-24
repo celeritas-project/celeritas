@@ -137,7 +137,7 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     // Create primary generator action
     inp::OpticalPrimaryGenerator inp;
     inp.primaries = 65536;
-    inp.energy = inp::MonoenergeticDistribution{units::MevEnergy{1e-5}};
+    inp.energy = inp::MonoenergeticDistribution{1e-5};
     inp.angle = inp::IsotropicDistribution{};
     inp.shape = inp::PointDistribution{Real3{0, 0, 0}};
     auto generate = optical::PrimaryGeneratorAction::make_and_insert(
@@ -174,7 +174,7 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_primary_generator))
     // Create primary generator action
     inp::OpticalPrimaryGenerator inp;
     inp.primaries = 65536;
-    inp.energy = inp::GaussianDistribution{1e-5, 1e-6};
+    inp.energy = inp::NormalDistribution{1e-5, 1e-6};
     inp.angle = inp::MonodirectionalDistribution{Real3{1, 0, 0}};
     inp.shape
         = inp::UniformBoxDistribution{Real3{-10, -10, -10}, Real3{10, 10, 10}};
