@@ -485,7 +485,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     {
         // Our accessor uses the next_surf_ state, but the temporary used for
         // vgnext_ should reflect the same result
-        CELER_ASSERT(this->is_next_boundary() == vgnext_.IsOnBoundary());
+        CELER_ASSERT((*next_surf_ != null_surface()) == vgnext_.IsOnBoundary());
     }
 
     next_step_ = max(next_step_, this->extra_push());
