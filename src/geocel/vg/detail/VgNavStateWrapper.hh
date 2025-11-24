@@ -90,7 +90,7 @@ class VgNavStateWrapper
     CELER_FIF
     void Push(VPlacedVolume const* v)
     {
-#if VECGEOM_VERSION < 0x200000
+#if VECGEOM_VERSION < 0x020000
         // VG1 returns value; VG2 modifies in place :(
         s_ =
 #endif
@@ -100,7 +100,7 @@ class VgNavStateWrapper
     CELER_FIF
     void Pop()
     {
-#if VECGEOM_VERSION < 0x200000
+#if VECGEOM_VERSION < 0x020000
         // VG1 returns value; VG2 modifies in place :(
         s_ =
 #endif
@@ -167,7 +167,7 @@ vecgeom::VPlacedVolume const* VgNavStateWrapper::At(int level) const
     // This value is 1 for navtuple (V2) or index (V1 only), but 2 for navindex
     // (V2)
     constexpr int parent_offset = CELER_VGNAV == CELER_VGNAV_TUPLE ? 1
-                                  : VECGEOM_VERSION < 0x200000     ? 1
+                                  : VECGEOM_VERSION < 0x020000     ? 1
                                                                    : 2;
 #if CELER_VGNAV == CELER_VGNAV_TUPLE
     auto index = VgNavState::GetNavTupleImpl(s_, level).Top();
