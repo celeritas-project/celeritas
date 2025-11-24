@@ -8,7 +8,7 @@
 
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/DeltaDistribution.hh"
-#include "geocel/random/IsotropicDistribution.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"

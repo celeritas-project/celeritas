@@ -53,7 +53,9 @@ struct ThreedDistributionTypeTraits;
         using RecordT = NAME##DistributionRecord;                           \
     }
 
-CELER_DISTRIB_TRAITS(delta_threed, DeltaThreed, DeltaDistribution<Real3>);
+CELER_DISTRIB_TRAITS(delta_threed,
+                     DeltaThreed,
+                     DeltaDistribution<DeltaThreedDistributionRecord::Real3>);
 CELER_DISTRIB_TRAITS(isotropic, Isotropic, IsotropicDistribution<real_type>);
 CELER_DISTRIB_TRAITS(uniform_box, UniformBox, UniformBoxDistribution<real_type>);
 

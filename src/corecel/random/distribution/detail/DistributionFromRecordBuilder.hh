@@ -8,13 +8,13 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/random/data/DistributionData.hh"
-#include "geocel/Types.hh"
-#include "geocel/random/IsotropicDistribution.hh"
-#include "geocel/random/UniformBoxDistribution.hh"
 
 #include "../DeltaDistribution.hh"
+#include "../IsotropicDistribution.hh"
 #include "../NormalDistribution.hh"
+#include "../UniformBoxDistribution.hh"
 
 namespace celeritas
 {
@@ -26,6 +26,8 @@ namespace detail
  */
 struct DistributionFromRecordBuilder
 {
+    using Real3 = Array<real_type, 3>;
+
     CELER_FUNCTION DeltaDistribution<real_type>
     operator()(DeltaOnedDistributionRecord const& record) const
     {

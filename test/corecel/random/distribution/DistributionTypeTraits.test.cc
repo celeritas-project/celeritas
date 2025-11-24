@@ -15,9 +15,9 @@
 #include "corecel/random/data/DistributionData.hh"
 #include "corecel/random/distribution/DeltaDistribution.hh"
 #include "corecel/random/distribution/DistributionInserter.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
-#include "geocel/random/IsotropicDistribution.hh"
-#include "geocel/random/UniformBoxDistribution.hh"
+#include "corecel/random/distribution/UniformBoxDistribution.hh"
 
 #include "celeritas_test.hh"
 
@@ -144,7 +144,7 @@ TEST(DistributionTypeTraitsTest, threed_params)
     std::mt19937 rng;
     int num_samples = 4;
 
-    std::vector<Real3> result;
+    std::vector<Array<real_type, 3>> result;
     for (auto id : ids)
     {
         for (int i = 0; i < num_samples; ++i)
