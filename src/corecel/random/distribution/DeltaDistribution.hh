@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/random/data/DistributionData.hh"
 
 namespace celeritas
 {
@@ -26,6 +27,19 @@ class DeltaDistribution
   public:
     // Constructor
     explicit CELER_FUNCTION DeltaDistribution(value_type value) : value_(value)
+    {
+    }
+
+    // Construct with record
+    explicit CELER_FUNCTION
+    DeltaDistribution(DeltaOnedDistributionRecord const& record)
+        : value_(record.value)
+    {
+    }
+
+    explicit CELER_FUNCTION
+    DeltaDistribution(DeltaThreedDistributionRecord const& record)
+        : value_(record.value)
     {
     }
 

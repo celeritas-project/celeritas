@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/data/DistributionData.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -28,11 +29,18 @@ class IsotropicDistribution
     //! \name Type aliases
     using real_type = RealType;
     using result_type = Array<real_type, 3>;
+    using RecordT = IsotropicDistributionRecord;
     //!@}
 
   public:
     // Constructor
     inline CELER_FUNCTION IsotropicDistribution();
+
+    // Construct from record
+    explicit CELER_FUNCTION IsotropicDistribution(RecordT const&)
+        : IsotropicDistribution()
+    {
+    }
 
     // Sample a random unit vector
     template<class Generator>

@@ -28,35 +28,18 @@ struct DistributionFromRecordBuilder
 {
     using Real3 = Array<real_type, 3>;
 
-    CELER_FUNCTION DeltaDistribution<real_type>
-    operator()(DeltaOnedDistributionRecord const& record) const
-    {
-        return DeltaDistribution<real_type>{record.value};
+#define CELER_DISTRIB_BUILD(CLS, NAME)                                    \
+    CELER_FUNCTION CLS operator()(NAME##DistributionRecord const& record) \
+        const                                                             \
+    {                                                                     \
+        return CLS{record};                                               \
     }
-
-    CELER_FUNCTION DeltaDistribution<Real3>
-    operator()(DeltaThreedDistributionRecord const& record) const
-    {
-        return DeltaDistribution<Real3>{record.value};
-    }
-
-    CELER_FUNCTION NormalDistribution<real_type>
-    operator()(NormalDistributionRecord const& record) const
-    {
-        return NormalDistribution<real_type>{record.mean, record.stddev};
-    }
-
-    CELER_FUNCTION IsotropicDistribution<real_type>
-    operator()(IsotropicDistributionRecord const&) const
-    {
-        return IsotropicDistribution<real_type>{};
-    }
-
-    CELER_FUNCTION UniformBoxDistribution<real_type>
-    operator()(UniformBoxDistributionRecord const& record) const
-    {
-        return UniformBoxDistribution<real_type>{record.lower, record.upper};
-    }
+    CELER_DISTRIB_BUILD(DeltaDistribution<real_type>, DeltaOned);
+    CELER_DISTRIB_BUILD(NormalDistribution<real_type>, Normal);
+    CELER_DISTRIB_BUILD(DeltaDistribution<Real3>, DeltaThreed);
+    CELER_DISTRIB_BUILD(IsotropicDistribution<real_type>, Isotropic);
+    CELER_DISTRIB_BUILD(UniformBoxDistribution<real_type>, UniformBox);
+#undef CELER_DISTRIB_TRAITS
 };
 
 //---------------------------------------------------------------------------//
