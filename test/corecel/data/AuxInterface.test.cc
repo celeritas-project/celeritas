@@ -122,8 +122,10 @@ TEST_F(UserTest, state_host)
         auto& s = get<StateT>(states, AuxId{1});
         EXPECT_EQ(128, s.size());
     }
+    if (CELERITAS_DEBUG)
     {
-        // Getting the wrong type/memspace should be an error
+        // Getting the wrong type/memspace should be a validation error (but
+        // it's checked only when CELERITAS_DEBUG)
         EXPECT_THROW(mock2->ref<MemSpace::device>(states), RuntimeError);
     }
 }
