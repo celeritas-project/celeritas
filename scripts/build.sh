@@ -128,9 +128,11 @@ install_precommit_if_git() {
 
 #-----------------------------------------------------------------------------#
 
-# Run everything from the parent directory of this script (i.e. the Celeritas
-# source dir)
-cd "$(dirname "$0")"/..
+# Determine the source directory from the build script
+export CELER_SOURCE_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
+
+# Run everything from the Celeritas work tree
+cd ${CELER_SOURCE_DIR}
 
 # Determine system name, failing on an empty string
 SYSTEM_NAME=$(fancy_hostname)
@@ -195,12 +197,12 @@ if cmake --build --preset="${CMAKE_PRESET}"; then
   install_precommit_if_git
   if [ "${NEW_PRE_COMMIT}" != "${OLD_PRE_COMMIT}" ]; then
     log warning "Local environment script uses a different pre-commit than your \$PATH:"
-    log info "Recommend adding '. ${PWD}/${ENV_SCRIPT}' to your shell rc"
+    log info "Recommend adding '. ${CELER_SOURCE_DIR}/${ENV_SCRIPT}' to your shell rc"
   fi
 
   if [ "${NEW_CMAKE}" != "${OLD_CMAKE}" ]; then
     log warning "Local environment script uses a different CMake than your \$PATH:"
-    log info "Recommend adding '. ${PWD}/${ENV_SCRIPT}' to your shell rc"
+    log info "Recommend adding '. ${CELER_SOURCE_DIR}/${ENV_SCRIPT}' to your shell rc"
   fi
 else
   log error "build failed: check configuration and build errors above"

@@ -107,8 +107,16 @@ void ImportDataConverter::operator()(ImportOpticalMaterial* data)
 
     for (auto& comp : data->scintillation.material.components)
     {
-        comp.lambda_mean *= len_;
-        comp.lambda_sigma *= len_;
+        if (comp.spectrum)
+        {
+            continue;
+        }
+        else
+        {
+            comp.gauss.lambda_mean *= len_;
+            comp.gauss.lambda_sigma *= len_;
+        }
+
         comp.rise_time *= time_;
         comp.fall_time *= time_;
     }
@@ -116,8 +124,15 @@ void ImportDataConverter::operator()(ImportOpticalMaterial* data)
     {
         for (auto& comp : iter.second.components)
         {
-            comp.lambda_mean *= len_;
-            comp.lambda_sigma *= len_;
+            if (comp.spectrum)
+            {
+                continue;
+            }
+            else
+            {
+                comp.gauss.lambda_mean *= len_;
+                comp.gauss.lambda_sigma *= len_;
+            }
             comp.rise_time *= time_;
             comp.fall_time *= time_;
         }
