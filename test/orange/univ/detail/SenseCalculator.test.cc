@@ -172,7 +172,7 @@ TEST_F(SenseCalculatorTest, five_volumes)
     this->build_geometry("five-volumes.org.json");
     // this->describe(std::cout);
 
-    std::vector<SenseValue> storage;
+    std::vector<Sense> storage;
 
     auto calc_senses = [&](VolumeView vol, Real3 pos, OnFace face = {}) {
         LazySenseCalculator calc_senses = this->construct_sense_calculator(
