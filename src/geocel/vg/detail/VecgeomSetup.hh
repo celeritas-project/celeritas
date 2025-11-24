@@ -7,17 +7,24 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-
-#include "VecgeomVersion.hh"
+#include "geocel/vg/VecgeomTypes.hh"
 
 #if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
+#include <VecGeom/base/BVH.h>
 
 namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+#if VECGEOM_VERSION >= 0x020000
+using CudaBVH_t = vecgeom::cuda::BVH<vgbvh_real_type>;
+#else
+using CudaBVH_t = vecgeom::cuda::BVH;
+#endif
+
 //---------------------------------------------------------------------------//
 /*!
  * Pointers to device data, obtained from a kernel launch or from runtime.
@@ -54,12 +61,12 @@ void teardown_surface_tracking_device();
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #ifndef VECGEOM_ENABLE_CUDA
-inline CudaPointers<detail::CudaBVH_t const> bvh_pointers_device()
+inline CudaPointers<CudaBVH_t const> bvh_pointers_device()
 {
     CELER_ASSERT_UNREACHABLE();
 }
 
-inline CudaPointers<detail::NavIndex_t const> navindex_pointers_device()
+inline CudaPointers<unsigned int const> navindex_pointers_device()
 {
     CELER_ASSERT_UNREACHABLE();
 }

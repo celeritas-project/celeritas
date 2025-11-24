@@ -45,11 +45,10 @@ namespace celeritas
 template<class F>
 class ActionLauncher : public KernelLauncher<F>
 {
-    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP
-                   || CELER_COMPILER == CELER_COMPILER_CLANG)
-                      && !std::is_pointer_v<F> && !std::is_reference_v<F>,
-                  "Launched action must be a trivially copyable function "
-                  "object");
+    static_assert(
+        Launchable_v<F>,
+        R"(Launched action must be a trivially copyable function object)");
+
     using StepActionT = CoreStepActionInterface;
 
   public:
