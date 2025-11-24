@@ -70,9 +70,6 @@ celeritas_add_test(BoundingBox.test.cc
 celeritas_add_test(Surface.test.cc)
 celeritas_add_test(Volume.test.cc)
 
-celeritas_add_test(random/IsotropicDistribution.test.cc)
-celeritas_add_test(random/UniformBoxDistribution.test.cc)
-
 #-----------------------------------------------------------------------------#
 # VecGeom
 

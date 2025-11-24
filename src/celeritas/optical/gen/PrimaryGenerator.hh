@@ -11,7 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "geocel/random/IsotropicDistribution.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 
 #include "../TrackInitializer.hh"
 
