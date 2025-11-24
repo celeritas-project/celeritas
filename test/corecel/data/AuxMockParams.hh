@@ -40,6 +40,7 @@ class AuxMockParams : public AuxParamsData<AuxMockParamsData, AuxMockStateData>
 
     //!@{
     //! \name Aux interface
+
     //! Short name for the data
     std::string_view label() const final { return label_; }
     //! Index of this class instance in its registry
@@ -48,6 +49,7 @@ class AuxMockParams : public AuxParamsData<AuxMockParamsData, AuxMockStateData>
 
     //!@{
     //! \name Data interface
+
     //! Access data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
     //! Access data on device
