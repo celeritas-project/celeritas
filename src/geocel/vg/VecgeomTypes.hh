@@ -79,8 +79,8 @@ struct TriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
 //---------------------------------------------------------------------------//
 
 //! VecGeom::VPlacedVolume::id is unsigned int
-using VgPlacedVolumeId = OpaqueId<struct VecgeomPlacedVolume_,
-                                  std::make_unsigned_t<VgPlacedVolumeInt>>;
+using VgVolumeInstanceId = OpaqueId<struct VecgeomPlacedVolume_,
+                                    std::make_unsigned_t<VgPlacedVolumeInt>>;
 
 enum class VgBoundary : bool
 {
@@ -120,14 +120,16 @@ using VgReal3 = VgVector3<vg_real_type, MemSpace::native>;
 // NAVIGATION TYPES
 //---------------------------------------------------------------------------//
 
+using VgNavIndex = VECGEOM_PRECISION_NAMESPACE::NavIndex_t;
+
 //! Low-level (POD compatible) VecGeom navigation state
 #if CELER_VGNAV == CELER_VGNAV_INDEX || defined(__DOXYGEN__)
-using VgNavStateImpl = VECGEOM_PRECISION_NAMESPACE::NavIndex_t;
+using VgNavStateImpl = VgNavIndex;
 #elif CELER_VGNAV == CELER_VGNAV_TUPLE
 using VgNavStateImpl = vecgeom::NavTuple<VECGEOM_NAVTUPLE_MAXDEPTH>;
 #elif CELER_VGNAV == CELER_VGNAV_PATH
 // Only used clangd parsing of VgNavStateWrapper
-using VgNavStateImpl = VECGEOM_PRECISION_NAMESPACE::NavIndex_t;
+using VgNavStateImpl = VgNavIndex;
 #endif
 
 //! High level VecGeom navigation state

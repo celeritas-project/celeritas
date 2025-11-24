@@ -72,7 +72,7 @@ class VecgeomTrackView
 #else
     using Navigator = celeritas::detail::SolidsNavigator;
 #endif
-    using ImplVolInstanceId = VgPlacedVolumeId;
+    using ImplVolInstanceId = VgVolumeInstanceId;
     using real_type = vg_real_type;
     //!@}
 

@@ -42,7 +42,6 @@ class VgNavStateWrapper
     // VgNavStateImpl, but it is *only* used if VECEGOM_USE_NAVINDEX is defined
     using VgNavState = vecgeom::NavStateIndex;
 #endif
-    static constexpr NavIndex_t outside_nav_index = 0;
 
     // Constructor takes reference to low-level state and boundary
     CELER_CONSTEXPR_FUNCTION
@@ -174,7 +173,7 @@ vecgeom::VPlacedVolume const* VgNavStateWrapper::At(int level) const
 #else
     auto index = VgNavState::GetNavIndexImpl(s_, level);
 #endif
-    return index != outside_nav_index
+    return index != vg_outside_nav_index
                ? VgNavState::ToPlacedVolume(
                      VgNavState::NavInd(index + parent_offset))
                : nullptr;
@@ -192,7 +191,7 @@ void VgNavStateWrapper::Clear()
 #if CELER_VGNAV == CELER_VGNAV_TUPLE
     s_.Clear();
 #else
-    s_ = outside_nav_index;
+    s_ = vg_outside_nav_index;
 #endif
     this->SetBoundaryState(false);
 }
@@ -201,9 +200,9 @@ CELER_FIF
 bool VgNavStateWrapper::IsOutside() const
 {
 #if CELER_VGNAV == CELER_VGNAV_TUPLE
-    return (s_.Top() == outside_nav_index);
+    return (s_.Top() == vg_outside_nav_index);
 #else
-    return s_ == outside_nav_index;
+    return s_ == vg_outside_nav_index;
 #endif
 }
 

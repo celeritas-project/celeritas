@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <VecGeom/base/Version.h>
+
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
@@ -30,6 +32,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 inline constexpr VgSurfaceInt vg_null_surface{-1};
+inline constexpr VgNavIndex vg_outside_nav_index{0};
+inline constexpr VgNavIndex vg_world_id{VECGEOM_VERSION < 0x020000         ? 1
+                                        : CELER_VGNAV == CELER_VGNAV_INDEX ? 3
+                                        : CELER_VGNAV == CELER_VGNAV_TUPLE
+                                            ? 2
+                                            : -1};
 
 //---------------------------------------------------------------------------//
 // PARAMS
@@ -77,7 +85,7 @@ struct VecgeomScalars
 template<Ownership W, MemSpace M>
 struct VecgeomParamsData
 {
-    using ImplVolInstanceId = VgPlacedVolumeId;
+    using ImplVolInstanceId = VgVolumeInstanceId;
 
     //! Values that don't require host/device copying
     VecgeomScalars scalars;
