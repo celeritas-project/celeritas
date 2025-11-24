@@ -409,7 +409,7 @@ CELER_FUNCTION auto
 SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
     -> Intersection
 {
-    CELER_EXPECT(state.volume && !state.temp_sense.empty());
+    CELER_EXPECT(state.volume);
 
     // Resize temporaries based on volume properties
     VolumeView vol = this->make_local_volume(state.volume);
