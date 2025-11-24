@@ -27,12 +27,12 @@
 
 #if CELER_VGNAV == CELER_VGNAV_PATH
 #    include <VecGeom/navigation/NavStatePath.h>
+#else
+#    include "VgNavStateWrapper.hh"
 #endif
 
 #include "corecel/Macros.hh"
 #include "geocel/vg/VecgeomTypes.hh"
-
-#include "VgNavStateWrapper.hh"
 
 namespace celeritas
 {
@@ -470,6 +470,7 @@ class BVHNavigator
         }
     }
 };
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
