@@ -48,7 +48,7 @@ namespace test
 
 namespace
 {
-auto const vecgeom_version
+auto const vecgeom_version_num
     = celeritas::Version::from_string(cmake::vecgeom_version);
 
 }  // namespace
@@ -83,7 +83,7 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
     SPConstGeo build_geometry() const final
     {
         using namespace celeritas::cmake;
-        cout << color_code('x') << "VecGeom v" << vecgeom_version << " ("
+        cout << color_code('x') << "VecGeom " << vecgeom_version << " ("
              << vecgeom_options << ") using VGDML" << color_code(' ') << endl;
 
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
@@ -365,7 +365,7 @@ TEST_F(SolidsVgdmlTest, DISABLED_dump)
 
 TEST_F(SolidsVgdmlTest, accessors)
 {
-    if (vecgeom_version <= Version(1, 1, 17))
+    if (vecgeom_version_num <= Version(1, 1, 17))
     {
         FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
     }
@@ -373,10 +373,10 @@ TEST_F(SolidsVgdmlTest, accessors)
     auto const& geom = *this->geometry();
     EXPECT_EQ(2, geom.num_volume_levels());
 
-    if (vecgeom_version < Version(1, 2, 2))
+    if (vecgeom_version_num < Version(1, 2, 2))
     {
         ADD_FAILURE()
-            << "VecGeom " << vecgeom_version
+            << "VecGeom " << vecgeom_version_num
             << " is missing features: upgrade to 1.2.2 to pass this test";
     }
 
@@ -593,7 +593,7 @@ class ReplicaTest
 
 TEST_F(ReplicaTest, trace)
 {
-    if (using_solids_vg && vecgeom_version >= Version{2, 0})
+    if (using_solids_vg && vecgeom_version_num >= Version{2, 0})
     {
         // VecGeom 2.x-solid has small discrepancies in replica tracking
         GTEST_SKIP() << "FIXME: VecGeom 2.x-solid: check ReplicaTest geom "
@@ -615,16 +615,16 @@ class SolidsTest
   public:
     static void SetUpTestSuite()
     {
-        if (vecgeom_version <= Version(1, 1, 17))
+        if (vecgeom_version_num <= Version(1, 1, 17))
         {
-            FAIL() << "VecGeom " << vecgeom_version
+            FAIL() << "VecGeom " << vecgeom_version_num
                    << " crashes when trying to load unknown solids";
         }
 
-        if (vecgeom_version < Version(1, 2, 2))
+        if (vecgeom_version_num < Version(1, 2, 2))
         {
             ADD_FAILURE()
-                << "VecGeom " << vecgeom_version
+                << "VecGeom " << vecgeom_version_num
                 << " is missing features: upgrade to 1.2.2 to pass this test";
         }
     }
