@@ -176,7 +176,7 @@ CELER_FUNCTION void RanluxppRngEngine::skip(RanluxppUInt n)
     n -= left;
     // Need to advance and possibly skip multiple blocks (each block is 576
     // random bits, or 12 48-bit samples)
-    int nPerState = params_.max_position / offset_;
+    constexpr int nPerState = ParamsRef::max_position / offset_;
     int skip = n / nPerState;
 
     RanluxppArray9 a_skip = celeritas::detail::compute_power_modulus(
@@ -206,12 +206,12 @@ CELER_FUNCTION RanluxppUInt RanluxppRngEngine::next_random_bits()
 
     int idx = state_->position / 64;
     int offset = state_->position % 64;
-    int numBits = 64 - offset;
+    int num_bits = 64 - offset;
 
     RanluxppUInt bits = state_->value.number[idx] >> offset;
-    if (numBits < offset_)
+    if (num_bits < offset_)
     {
-        bits |= state_->value.number[idx + 1] << numBits;
+        bits |= state_->value.number[idx + 1] << num_bits;
     }
     bits &= ((RanluxppUInt(1) << offset_) - 1);
 

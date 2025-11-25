@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/random/data/RanluxppTypes.hh"
+#include "corecel/random/engine/detail/RanluxppImpl.hh"
 
 namespace celeritas
 {
@@ -27,20 +28,28 @@ struct RanluxppRngParamsData
     RanluxppUInt seed = 0;
 
     //! Stores the maximum position in the state
-    static constexpr int max_position = 9 * 64;
+    static constexpr int max_position = sizeof(RanluxppArray9) * 8;
 
     //! Stores \f$a^2048 mod m\f$ for Ranluxpp values of \f$a\f$ and \f$m\f$.
-    RanluxppArray9 state_2048;
+    static constexpr RanluxppArray9 state_2048 = {
+        0xed7faa90747aaad9ull,
+        0x4cec2c78af55c101ull,
+        0xe64dcb31c48228ecull,
+        0x6d8a15a13bee7cb0ull,
+        0x20b2ca60cb78c509ull,
+        0x256c3d3c662ea36cull,
+        0xff74e54107684ed2ull,
+        0x492edfcc0cc8e753ull,
+        0xb48c187cf5b22097ull,
+    };
 
     //! Stores \f$a^(2048 * (2^96)) mod m\f$
+    //! \todo Make this constexpr
     RanluxppArray9 seed_state;
 
     //// FUNCTIONS ////
     //! Whether the data is assigned.
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return !state_2048.empty() && !seed_state.empty();
-    }
+    explicit CELER_CONSTEXPR_FUNCTION operator bool() const { return true; }
 
     //! Assign from another set of data.
     template<Ownership W2, MemSpace M2>
@@ -48,7 +57,6 @@ struct RanluxppRngParamsData
     {
         CELER_EXPECT(other);
         seed = other.seed;
-        state_2048 = other.state_2048;
         seed_state = other.seed_state;
         return *this;
     }
@@ -63,6 +71,7 @@ struct RanluxppRngState
     //// DATA ////
     //! Ranluxpp state number and carry bit
     RanluxppNumber value;
+
     //! Current position in the state.
     int position;
 };
