@@ -104,7 +104,7 @@ void GenericGeoTrackingResult::print_expected() const
         cout << CELER_REF_ATTR(bumps);
     }
 
-    cout << "auto tol = test_->;\n"
+    cout << "auto tol = test_->tracking_tol();\n"
             "EXPECT_REF_NEAR(ref, result, tol);\n"
             "/*** END CODE ***/\n";
 }

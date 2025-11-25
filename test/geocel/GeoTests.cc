@@ -142,90 +142,96 @@ void CmsEeBackDeeGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void CmseGeoTest::test_trace() const
 {
-    // Surface VecGeom needs lower safety tolerance
-    real_type const safety_tol = test_->tracking_tol().safety;
-
-    // clang-format off
     {
         SCOPED_TRACE("Center +z");
         auto result = test_->track({0, 0, -4000}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"CMStoZDC", "BEAM3",
-            "BEAM2", "BEAM1", "BEAM", "BEAM", "BEAM1", "BEAM2", "BEAM3",
-            "CMStoZDC", "CMSE", "ZDC", "CMSE", "ZDCtoFP420", "CMSE"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1300, 1096.95, 549.15,
-            403.9, 650, 650, 403.9, 549.15, 1096.95, 11200, 9.9999999999992,
-            180, 910, 24000, 6000};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        // clang-format off
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"CMStoZDC", "BEAM3", "BEAM2", "BEAM1", "BEAM", "BEAM",
+            "BEAM1", "BEAM2", "BEAM3", "CMStoZDC", "CMSE", "ZDC", "CMSE",
+            "ZDCtoFP420", "CMSE",};
+        ref.volume_instances = {"CMStoZDC@1", "BEAM3@1", "BEAM2@1", "BEAM1@1",
+            "BEAM@1", "BEAM@0", "BEAM1@0", "BEAM2@0", "BEAM3@0", "CMStoZDC@0",
+            "CMSE", "ZDC@0", "CMSE", "ZDCtoFP420@0", "CMSE",};
+        ref.distances = {1300, 1096.95, 549.15, 403.9, 650, 650, 403.9, 549.15,
+            1096.95, 11200, 10, 180, 910, 24000, 6000,};
+        ref.dot_normal = {}; // All normals are along track dir
+        ref.halfway_safeties = {100, 2.15, 10.302730220674, 13.023518051921,
+            6.95, 6.95, 13.023518051922, 10.302730220675, 2.15, 100, 5, 8, 100,
+            100, 100,};
         if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
             // Surface vecgeom underestimates some safety near internal
             // boundaries
-            static real_type const expected_hw_safety[] = {100, 2.15,
+            ref.halfway_safeties = {100, 2.15,
                 9.62498950958252, 13.023518051922, 6.95, 6.95, 13.023518051922,
                 9.62498950958252, 2.15, 100, 5, 8, 100, 100, 100};
-            EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
-                            safety_tol);
         }
-        else
-        {
-            static real_type const expected_hw_safety[] = {100, 2.15,
-                10.3027302206744, 13.023518051922, 6.95, 6.95, 13.023518051922,
-                10.3027302206745, 2.15, 100, 5, 8, 100, 100, 100};
-            EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
-                            safety_tol);
-        }
+        // clang-format on
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Offset +z");
         auto result = test_->track({30, 30, -4000}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"CMStoZDC", "OQUA",
-            "VCAL", "OQUA", "CMSE", "TotemT1", "CMSE", "MUON", "CALO",
-            "Tracker", "CALO", "MUON", "CMSE", "TotemT1", "CMSE", "OQUA",
-            "VCAL", "OQUA", "CMStoZDC", "CMSE", "ZDCtoFP420", "CMSE"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1300, 1419.95, 165.1,
-            28.95, 36, 300.1, 94.858988388759, 100.94101161124, 260.9, 586.4,
-            260.9, 100.94101161124, 94.858988388759, 300.1, 36, 28.95, 165.1,
-            1419.95, 11200, 1100, 24000, 6000};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {57.573593128807,
-            40.276406871193, 29.931406871193, 14.475, 18, 28.702447147997,
-            29.363145173005, 32.665765921596, 34.260814069425, 39.926406871193,
-            34.260814069425, 32.665765921596, 29.363145173005, 28.702447147997,
-            18, 14.475, 29.931406871193, 40.276406871193, 57.573593128807,
-            57.573593128807, 57.573593128807, 57.573593128807};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
+        // clang-format off
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"CMStoZDC", "OQUA", "VCAL", "OQUA", "CMSE", "TotemT1",
+            "CMSE", "MUON", "CALO", "Tracker", "CALO", "MUON", "CMSE",
+            "TotemT1", "CMSE", "OQUA", "VCAL", "OQUA", "CMStoZDC", "CMSE",
+            "ZDCtoFP420", "CMSE",};
+        ref.volume_instances = {"CMStoZDC@1", "OQUA@1", "VCAL@1", "OQUA@1",
+            "CMSE", "TotemT1@1", "CMSE", "MUON", "CALO", "Tracker", "CALO",
+            "MUON", "CMSE", "TotemT1@0", "CMSE", "OQUA@0", "VCAL@0", "OQUA@0",
+            "CMStoZDC@0", "CMSE", "ZDCtoFP420@0", "CMSE",};
+        ref.distances = {1300, 1419.95, 165.1, 28.95, 36, 300.1,
+            94.858988388759, 100.94101161124, 260.9, 586.4, 260.9,
+            100.94101161124, 94.858988388759, 300.1, 36, 28.95, 165.1, 1419.95,
+            11200, 1100, 24000, 6000,};
+        ref.dot_normal = {1, 1, 1, 1, 1, 1, 0.98776296532907, 1, 1, 1, 1,
+            0.98776296532907, 1, 1, 1, 1, 1, 1, 1, 1, 1,};
+        ref.halfway_safeties = {57.573593128807, 40.276406871193,
+            29.931406871193, 14.475, 18, 28.702447147997, 29.363145173005,
+            32.665765921596, 34.260814069425, 39.926406871193, 34.260814069425,
+            32.665765921596, 29.363145173005, 28.702447147997, 18, 14.475,
+            29.931406871193, 40.276406871193, 57.573593128807, 57.573593128807,
+            57.573593128807, 57.573593128807,};
+        // clang-format on
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Across muon");
         auto result = test_->track({-1000, 0, -48.5}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"OCMS", "MUON", "CALO",
-            "Tracker", "CMSE", "BEAM", "CMSE", "Tracker", "CALO", "MUON",
-            "OCMS"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {170, 535, 171.7, 120.8,
-            0.15673306650246, 4.6865338669951, 0.15673306650246, 120.8, 171.7,
-            535, 920};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {85, 267.5, 85.85,
-            60.4, 0.078366388350241, 2.343262600759, 0.078366388350241,
-            60.4, 85.85, 267.5, 460};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
+        // clang-format off
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"OCMS", "MUON", "CALO", "Tracker", "CMSE", "BEAM",
+            "CMSE", "Tracker", "CALO", "MUON", "OCMS",};
+        ref.volume_instances = {"OCMS_PV", "MUON", "CALO", "Tracker", "CMSE",
+            "BEAM@1", "CMSE", "Tracker", "CALO", "MUON", "OCMS_PV",};
+        ref.distances = {170, 535, 171.7, 120.8, 0.15673306650251,
+            4.6865338669951, 0.15673306650247, 120.8, 171.7, 535, 920,};
+        ref.dot_normal = {1, 1, 1, 1, 0.99999815098379, 0.99999815098379, 1, 1,
+            1, 1,};
+        ref.halfway_safeties = {85, 267.5, 85.85, 60.4, 0.078366388350267,
+            2.343262600759, 0.078366388350244, 60.4, 85.85, 267.5, 460,};
+        // clang-format on
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Differs between G4/VG");
         auto result = test_->track({0, 0, 1328.0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"BEAM2", "OQUA", "CMSE",
-            "OCMS"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {12.495, 287.505, 530,
-            920};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {6.2475, 47.95, 242, 460};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"BEAM2", "OQUA", "CMSE", "OCMS"};
+        ref.volume_instances = {"BEAM2@0", "OQUA@0", "CMSE", "OCMS_PV"};
+        ref.distances = {12.495, 287.505, 530, 920};
+        ref.dot_normal = {};  // All normals are along track dir
+        ref.halfway_safeties = {6.2475, 47.95, 242, 460};
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
-    // clang-format on
 }
 
 //---------------------------------------------------------------------------//
