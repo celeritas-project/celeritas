@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "corecel/data/AuxInterface.hh"
-#include "corecel/data/AuxParamsData.hh"
+#include "corecel/data/AuxParams.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
@@ -23,7 +23,7 @@ namespace test
 /*!
  * Mock class for shared host data that has associated thread-local data.
  */
-class AuxMockParams : public AuxParamsData<AuxMockParamsData, AuxMockStateData>
+class AuxMockParams : public AuxParams<AuxMockParamsData, AuxMockStateData>
 {
   public:
     //!@{
@@ -57,7 +57,7 @@ class AuxMockParams : public AuxParamsData<AuxMockParamsData, AuxMockStateData>
     //!@}
 
     //! Access host/device params/state ref
-    using AuxParamsData::ref;
+    using AuxParams::ref;
 
   private:
     std::string label_;

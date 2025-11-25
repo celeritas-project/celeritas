@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/data/AuxInterface.hh"
-#include "corecel/data/AuxParamsData.hh"
+#include "corecel/data/AuxParams.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/geo/GeoFwd.hh"
@@ -28,7 +28,7 @@ namespace detail
  * \todo Move out of detail, take core params/state to copy detector steps? Not
  * currently possible right now because the step interface doesn't take params.
  */
-class StepParams : public AuxParamsData<StepParamsData, StepStateData>
+class StepParams : public AuxParams<StepParamsData, StepStateData>
 {
   public:
     //!@{
@@ -62,7 +62,7 @@ class StepParams : public AuxParamsData<StepParamsData, StepStateData>
     //!@}
 
     //! Access host/device params/state ref
-    using AuxParamsData::ref;
+    using AuxParams::ref;
 
     // Access data selection
     inline StepSelection const& selection() const;

@@ -9,7 +9,7 @@
 #include <string_view>
 
 #include "corecel/Types.hh"
-#include "corecel/data/AuxParamsData.hh"
+#include "corecel/data/AuxParams.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Types.hh"
@@ -38,7 +38,7 @@ class CoreState;
  */
 class StatusChecker final
     : public CoreBeginRunActionInterface,
-      public AuxParamsData<StatusCheckParamsData, StatusCheckStateData>
+      public AuxParams<StatusCheckParamsData, StatusCheckStateData>
 {
   public:
     // Construct and add to core params

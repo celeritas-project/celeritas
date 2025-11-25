@@ -2,11 +2,11 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/AuxParamsData.hh
+//! \file corecel/data/AuxParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "AuxStateData.hh"
+#include "AuxState.hh"
 #include "AuxStateVec.hh"
 
 namespace celeritas
@@ -21,7 +21,7 @@ namespace celeritas
  * manages some of the boilerplate code for the common use case of having
  * portable "params" data (e.g., model data) and "state" data (e.g., temporary
  * values used across multiple kernels or processed into user space). Each
- * state/stream will have an instance of \c AuxStateData accessible by this
+ * state/stream will have an instance of \c AuxState accessible by this
  * class. An instance of this class can be shared among multiple actions, or an
  * action could inherit from it. 
  *
@@ -47,7 +47,7 @@ namespace celeritas
  */
 template<template<Ownership, MemSpace> class P,
          template<Ownership, MemSpace> class S>
-class AuxParamsData : public AuxParamsInterface, public ParamsDataInterface<P>
+class AuxParams : public AuxParamsInterface, public ParamsDataInterface<P>
 {
   public:
     //!@{
@@ -73,7 +73,7 @@ class AuxParamsData : public AuxParamsInterface, public ParamsDataInterface<P>
 
   private:
     template<MemSpace M>
-    using StateT = AuxStateData<S, M>;
+    using StateT = AuxState<S, M>;
 };
 
 //---------------------------------------------------------------------------//
@@ -82,13 +82,13 @@ class AuxParamsData : public AuxParamsInterface, public ParamsDataInterface<P>
 /*!
  * Build a multithread state for a stream.
  *
- * See \c AuxStateData .
+ * See \c AuxState .
  */
 template<template<Ownership, MemSpace> class P,
          template<Ownership, MemSpace> class S>
-auto AuxParamsData<P, S>::create_state(MemSpace m,
-                                       StreamId sid,
-                                       size_type size) const -> UPState
+auto AuxParams<P, S>::create_state(MemSpace m,
+                                   StreamId sid,
+                                   size_type size) const -> UPState
 {
     return ::celeritas::make_aux_state<S, P>(*this, m, sid, size);
 }
@@ -100,8 +100,7 @@ auto AuxParamsData<P, S>::create_state(MemSpace m,
 template<template<Ownership, MemSpace> class P,
          template<Ownership, MemSpace> class S>
 template<MemSpace M>
-auto AuxParamsData<P, S>::ref(AuxStateVec const& v) const
-    -> StateRefT<M> const&
+auto AuxParams<P, S>::ref(AuxStateVec const& v) const -> StateRefT<M> const&
 {
     return ::celeritas::get<StateT<M>>(v, this->aux_id()).ref();
 }
@@ -113,7 +112,7 @@ auto AuxParamsData<P, S>::ref(AuxStateVec const& v) const
 template<template<Ownership, MemSpace> class P,
          template<Ownership, MemSpace> class S>
 template<MemSpace M>
-auto AuxParamsData<P, S>::ref(AuxStateVec& v) const -> StateRefT<M>&
+auto AuxParams<P, S>::ref(AuxStateVec& v) const -> StateRefT<M>&
 {
     return ::celeritas::get<StateT<M>>(v, this->aux_id()).ref();
 }

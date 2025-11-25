@@ -112,4 +112,4 @@ Users and other parts of the code can add their own shared and stream-local
 Auxiliary collection groups
 ---------------------------
 
-.. doxygenclass:: celeritas::AuxParamsData
+.. doxygenclass:: celeritas::AuxParams
