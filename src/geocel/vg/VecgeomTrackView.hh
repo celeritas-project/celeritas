@@ -427,32 +427,12 @@ CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 /*!
  * Find the distance to the next geometric boundary.
  *
- * This function is allowed to be called from the exterior for ray tracing.
+ * \todo To support ray tracing from unknown distances from the world, we
+ * could add another special function \c find_first_step .
  */
 CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
 {
-    if (this->is_outside())
-    {
-        // SPECIAL CASE: find distance to interior from outside world volume
-        auto const& world_pv = this->world();
-        next_step_ = world_pv.DistanceToIn(detail::to_vector(pos_),
-                                           detail::to_vector(dir_),
-                                           vecgeom::kInfLength);
-
-        next_step_ = max(next_step_, this->extra_push());
-        vgnext_.Clear();
-        Propagation result;
-        result.distance = next_step_;
-        result.boundary = next_step_ < vecgeom::kInfLength;
-
-        if (result.boundary)
-        {
-            vgnext_.Push(&world_pv);
-            vgnext_.SetBoundaryState(true);
-        }
-
-        return result;
-    }
+    CELER_EXPECT(!this->is_outside());
 
     return this->find_next_step(vecgeom::kInfLength);
 }
@@ -572,29 +552,22 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
  */
 CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 {
+    CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(this->is_next_boundary());
 
+#if CELERITAS_VECGEOM_VERSION < 0x020000
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-#if CELERITAS_VECGEOM_SURFACE
-        if (!vgstate_.IsOutside())
-        {
-            // In surf model, relocation does not work from [OUTSIDE]
-            // (no need to call this function) as vgnext_ is already set
-            Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
-                                            detail::to_vector(this->dir_),
-                                            *next_surf_,
-                                            vgnext_);
-        }
-#elif CELERITAS_VECGEOM_VERSION < 0x020000
-        // Some navigators require an lvalue temp_pos
-        auto temp_pos = detail::to_vector(this->pos_);
-        Navigator::RelocateToNextVolume(
-            temp_pos, detail::to_vector(this->dir_), vgnext_);
-#endif
+        Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
+                                        detail::to_vector(this->dir_),
+#    if CELERITAS_VECGEOM_SURFACE
+                                        *next_surf_,
+#    endif
+                                        vgnext_);
     }
+#endif
 
     vgstate_ = vgnext_;
 
