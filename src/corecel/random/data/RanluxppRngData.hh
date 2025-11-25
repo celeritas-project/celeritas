@@ -1,13 +1,8 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// SPDX-FileCopyrightText: 2020 CERN
-// SPDX-License-Identifier: Apache-2.0
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/*!
- * \file corecel/random/data/RanluxppRngData.hh
- *
- * Original source:
- * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/Ranluxpp.h
- */
+//! \file corecel/random/data/RanluxppRngData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

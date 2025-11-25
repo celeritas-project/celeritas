@@ -1,13 +1,8 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// SPDX-FileCopyrightText: 2020 CERN
-// SPDX-License-Identifier: Apache-2.0
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/*!
- * \file corecel/random/data/RanluxppRngData.cc
- *
- * Original source:
- * https://github.com/apt-sim/AdePT/blob/master/include/AdePT/copcore/Ranluxpp.h
- */
+//! \file corecel/random/data/RanluxppRngData.cc
 //---------------------------------------------------------------------------//
 #include "RanluxppRngData.hh"
 
@@ -38,7 +33,8 @@ void resize(RanluxppRngStateData<Ownership::value, M>* state,
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
-    // Move params to device
+    // Create a temporary "native" copy of the params so that we can initialize
+    // the ranlux state
     RanluxppRngParamsData<Ownership::value, M> p;
     p = params;
 

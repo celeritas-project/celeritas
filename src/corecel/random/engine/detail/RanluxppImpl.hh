@@ -1,6 +1,7 @@
 //------------------------------- -*- C++ -*- -------------------------------//
 // SPDX-FileCopyrightText: 2020 CERN
-// SPDX-License-Identifier: LGPL-2.1-or-later
+// SPDX-FileCopyrightText: 2025 Celeritas contributors
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 /*!
  * \file corecel/random/engine/detail/RanluxppImpl.hh
