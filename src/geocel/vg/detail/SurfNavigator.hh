@@ -45,8 +45,6 @@ class SurfNavigator
     using SurfData = vgbrep::SurfData<vg_real_type>;
     using NavState = detail::VgNavStateWrapper;
 
-    static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
-
     /// @brief Locates the point in the geometry volume tree
     /// @param pvol_id Placed volume id to be checked first
     /// @param point Point to be checked, in the local frame of pvol
@@ -82,11 +80,7 @@ class SurfNavigator
 
     // Computes a step from the globalpoint (which must be in the current
     // volume) into globaldir, taking step_limit into account. If a volume is
-    // hit, the function calls out_state.SetBoundaryState(true) and relocates
-    // the state to the next volume.
-    //
-    // The surface model does automatic relocation, so this function does it as
-    // well.
+    // hit, the function calls out_state.SetBoundaryState(true)
     CELER_FUNCTION static vg_real_type
     ComputeStepAndNextVolume(VgReal3 const& globalpoint,
                              VgReal3 const& globaldir,
@@ -113,25 +107,7 @@ class SurfNavigator
         return step;
     }
 
-    // Computes a step from the globalpoint (which must be in the current
-    // volume) into globaldir, taking step_limit into account. If a volume is
-    // hit, the function calls out_state.SetBoundaryState(true) and relocates
-    // the state to the next volume.
-    CELER_FUNCTION static vg_real_type
-    ComputeStepAndPropagatedState(VgReal3 const& globalpoint,
-                                  VgReal3 const& globaldir,
-                                  vg_real_type step_limit,
-                                  VgSurfaceInt& hit_surf,
-                                  NavState const& in_state,
-                                  NavState& out_state)
-    {
-        return ComputeStepAndNextVolume(
-            globalpoint, globaldir, step_limit, in_state, out_state, hit_surf);
-    }
-
-    // Relocate a state that was returned from ComputeStepAndNextVolume: the
-    // surface model does this computation within ComputeStepAndNextVolume, so
-    // the relocation does nothing
+    // Relocate a state that was returned from ComputeStepAndNextVolume
     CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& globalpoint,
                                                     VgReal3 const& globaldir,
                                                     VgSurfaceInt hitsurf_index,
