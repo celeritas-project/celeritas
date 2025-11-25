@@ -240,11 +240,9 @@ class BVHNavigator
 
   public:
     // Computes the isotropic safety from the globalpoint.
-    CELER_FUNCTION static double
-    ComputeSafety(VgReal3 const& globalpoint,
-                  NavState const& state,
-                  vg_real_type safety
-                  = std::numeric_limits<vg_real_type>::infinity())
+    CELER_FUNCTION static double ComputeSafety(VgReal3 const& globalpoint,
+                                               NavState const& state,
+                                               vg_real_type safety)
     {
         VgPlacedVol const* pvol = state.Top();
         vecgeom::Transformation3D m;
