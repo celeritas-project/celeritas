@@ -143,7 +143,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         }
         if (next.distance < bump_tol)
         {
-            // Don't add epsilon distances
+            // Revert result of epsilon distance
             result.distances.pop_back();
             result.volumes.pop_back();
             if (!vol_inst.empty())
@@ -155,6 +155,9 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
             {
                 result.bumps.push_back(p * inv_length);
             }
+            // Unscaled bump value is a nice separator and can hint where the
+            // bump originates
+            result.bumps.push_back(next.distance);
         }
         else
         {
