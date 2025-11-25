@@ -202,22 +202,17 @@ load_gauss_scint(std::string const& prefix,
                  detail::GeantMaterialPropertyGetter& get_property,
                  int comp_idx)
 {
-    ImportGaussianScintComponent gauss;
-    bool found_mean = false;
+    ImportGaussianScintComponent gauss{};
 
-    for (auto&& [prop, label] : {std::pair{&gauss.lambda_mean, "LAMBDAMEAN"},
-                                 std::pair{&gauss.lambda_sigma, "LAMBDASIGMA"}})
-    {
-        if (get_property(
-                prop, "CELER_" + prefix + label, comp_idx, ImportUnits::len))
-        {
-            found_mean = true;
-        }
-    }
-    if (!found_mean)
-    {
-        return {};
-    }
+    bool found_mean = get_property(
+        &gauss.lambda_mean, prefix + "LAMBDAMEAN", comp_idx, ImportUnits::len);
+    bool found_sigma = get_property(
+        &gauss.lambda_sigma, prefix + "LAMBDASIGMA", comp_idx, ImportUnits::len);
+
+    CELER_VALIDATE(found_mean == found_sigma,
+                   << "only one of " << prefix << "LAMBDAMEAN" << comp_idx
+                   << " and " << prefix << "LAMBDASIGMA" << comp_idx
+                   << " was found");
     return gauss;
 }
 
@@ -265,8 +260,7 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
         {
             CELER_VALIDATE(
                 std::holds_alternative<std::monostate>(spectrum_component),
-                << "conflicting scintillation spectrum definitions "
-                   "for "
+                << "conflicting scintillation spectrum definitions for "
                 << prefix);
             spectrum_component = std::move(gauss);
         }
@@ -274,11 +268,10 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
         {
             CELER_VALIDATE(
                 std::holds_alternative<std::monostate>(spectrum_component),
-                << "conflicting/redundant scintillation properties "
-                   "for "
+                << "conflicting/redundant scintillation properties for "
                 << prefix);
             CELER_LOG(warning) << "Deprecated property prefix " << prefix
-                               << "LAMBDA: use CELER_" << prefix;
+                               << ": use CELER_" << prefix;
             spectrum_component = std::move(gauss);
         }
         if (get_property(&grid, name, {ImportUnits::mev, ImportUnits::unitless}))
