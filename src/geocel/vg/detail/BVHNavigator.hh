@@ -19,7 +19,9 @@
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
 
+#include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
+#include "geocel/vg/VecgeomTypes.hh"
 
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
@@ -30,9 +32,6 @@
 #else
 #    include "VgNavStateWrapper.hh"
 #endif
-
-#include "corecel/Macros.hh"
-#include "geocel/vg/VecgeomTypes.hh"
 
 namespace celeritas
 {
@@ -69,6 +68,7 @@ class BVHNavigator
             }
         }
 
+        CELER_ASSERT(vol);
         path.Push(vol);
 
         VgReal3 currentpoint(point);
@@ -89,8 +89,12 @@ class BVHNavigator
                 break;
             }
 
-            currentpoint = daughterlocalpoint;
+            CELER_ASSERT(vol);
             path.Push(vol);
+
+            // Transform to daughter
+            currentpoint = daughterlocalpoint;
+
             // Only exclude the placed volume once since we could enter it
             // again via a different volume history.
             exclude = nullptr;
@@ -100,6 +104,7 @@ class BVHNavigator
     CELER_FUNCTION static void
     RelocatePoint(VgReal3 const& localpoint, NavState& path)
     {
+        CELER_EXPECT(!path.IsOutside());
         VgPlacedVol const* currentmother = path.Top();
         VgReal3 transformed = localpoint;
         do
