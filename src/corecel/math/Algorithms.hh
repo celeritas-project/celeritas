@@ -537,6 +537,8 @@ inline CELER_FUNCTION T fastpow(T a, T b)
 /*!
  * Use fused multiply-add for generic calculations.
  *
+ * \f[ x \gets a \times b + y \f]
+ *
  * This provides a floating point specialization so that \c fma can be used in
  * code that is accelerated for floating point calculations but still works
  * correctly with integer arithmetic.
