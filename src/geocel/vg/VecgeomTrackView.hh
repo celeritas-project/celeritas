@@ -41,6 +41,11 @@
 #    include "detail/VgNavStateWrapper.hh"
 #endif
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -117,7 +122,7 @@ class VecgeomTrackView
     // Whether the track is exactly on a surface
     CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE_FUNCTION bool failed() const { return false; }
+    CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
     // Get the normal vector of the current surface
     inline CELER_FUNCTION Real3 normal() const;
 
@@ -180,6 +185,7 @@ class VecgeomTrackView
 
     // Temporary data
     real_type next_step_{0};
+    bool failed_{false};
 
     // Static data
 
@@ -290,7 +296,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // Set up current state and locate daughter volume
     vgstate_.Clear();
 #if CELERITAS_VECGEOM_SURFACE
-    // VecGeom's BVHSurfNav takes `int pvol_id ` but vecgeom's navtuple/index
+    // VecGeom's BVHSurfNav takes `int pvol_id` but vecgeom's navtuple/index
     // return NavIndex_t via `NavInd` :(
     VgPlacedVolumeInt world = vecgeom::NavigationState::WorldId();
 #else
@@ -300,6 +306,15 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     constexpr bool contains_point = true;
     Navigator::LocatePointIn(
         world, detail::to_vector(pos_), vgstate_, contains_point);
+
+    if (CELER_UNLIKELY(vgstate_.IsOutside()))
+    {
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(error);
+        msg << "Failed to initialize geometry state at " << repr(pos_);
+#endif
+        failed_ = true;
+    }
 
     return *this;
 }
@@ -468,7 +483,21 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
                                                      *next_surf_
 #endif
     );
-    CELER_ASSERT(next_step_ > 0);
+
+    if (CELER_UNLIKELY(!(next_step_ > 0)))
+    {
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(error);
+        msg << "Failed to find next step at " << repr(pos_) << " along "
+            << repr(dir_) << ": computed step is " << repr(next_step_);
+#endif
+        failed_ = true;
+        Propagation result;
+        result.distance = next_step_;
+        result.boundary = false;
+        return result;
+    }
+
     if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
         // Our accessor uses the next_surf_ state, but the temporary used for
@@ -580,6 +609,19 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
                                         *next_surf_,
 #endif
                                         vgnext_);
+    }
+
+    // Relocation should have changed volume
+    if (CELER_UNLIKELY(vgstate_.HasSamePathAsOther(vgnext_)))
+    {
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(error);
+        msg << "Failed to cross boundary: unique volume instance is the same "
+               "before and after at position "
+            << repr(pos_);
+#endif
+        failed_ = true;
+        return;
     }
 
     vgstate_ = vgnext_;
