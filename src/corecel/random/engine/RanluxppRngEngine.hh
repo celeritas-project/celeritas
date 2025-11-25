@@ -103,7 +103,7 @@ class RanluxppRngEngine
     inline CELER_FUNCTION void skip(RanluxppUInt n);
 
     // Return the next random bits, generate a new block if necessary
-    inline CELER_FUNCTION RanluxppUInt nextRandomBits();
+    inline CELER_FUNCTION RanluxppUInt next_random_bits();
 
     // Produce the next block of random bits.
     inline CELER_FUNCTION void advance();
@@ -148,8 +148,8 @@ RanluxppRngEngine::operator=(Initializer_t const& init)
 CELER_FUNCTION RanluxppUInt RanluxppRngEngine::operator()()
 {
     // draw two 48-bit words, but take only their low 32 bits each
-    RanluxppUInt lo = this->nextRandomBits() & 0xFFFFFFFFu;
-    RanluxppUInt hi = this->nextRandomBits() & 0xFFFFFFFFu;
+    RanluxppUInt lo = this->next_random_bits() & 0xFFFFFFFFu;
+    RanluxppUInt hi = this->next_random_bits() & 0xFFFFFFFFu;
     return (lo << 32) | hi;
 }
 
@@ -159,7 +159,7 @@ CELER_FUNCTION RanluxppUInt RanluxppRngEngine::operator()()
  */
 CELER_FUNCTION void RanluxppRngEngine::skip(RanluxppUInt n)
 {
-    CELER_ASSERT(n > 0);
+    CELER_EXPECT(n > 0);
     CELER_ASSERT(params_.max_position > 0);
 
     int left = (params_.max_position - state_->position) / offset_;
@@ -190,14 +190,14 @@ CELER_FUNCTION void RanluxppRngEngine::skip(RanluxppUInt n)
     int remaining = n - skip * nPerState;
     CELER_ASSERT(remaining >= 0);
     state_->position = remaining * offset_;
-    CELER_ASSERT(state_->position <= params_.max_position);
+    CELER_ENSURE(state_->position <= params_.max_position);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Return the next random bits, generate a new block if necessary.
  */
-CELER_FUNCTION RanluxppUInt RanluxppRngEngine::nextRandomBits()
+CELER_FUNCTION RanluxppUInt RanluxppRngEngine::next_random_bits()
 {
     if (state_->position + offset_ > params_.max_position)
     {
@@ -216,8 +216,8 @@ CELER_FUNCTION RanluxppUInt RanluxppRngEngine::nextRandomBits()
     bits &= ((RanluxppUInt(1) << offset_) - 1);
 
     state_->position += offset_;
-    CELER_ASSERT(state_->position <= params_.max_position);
 
+    CELER_ENSURE(state_->position <= params_.max_position);
     return bits;
 }
 
