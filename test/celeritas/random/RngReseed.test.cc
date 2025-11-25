@@ -81,6 +81,15 @@ TEST_F(RngReseedTest, reseed)
                                                    2861073075u,
                                                    1771581540u,
                                                    3600889717u};
+#elif CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP
+    static unsigned int const expected_values[] = {1506987910u,
+                                                   289122019u,
+                                                   3660744945u,
+                                                   46319873u,
+                                                   2718473539u,
+                                                   1739478500u,
+                                                   3043999655u,
+                                                   2441727977u};
 #endif
     EXPECT_VEC_EQ(values, expected_values);
 }

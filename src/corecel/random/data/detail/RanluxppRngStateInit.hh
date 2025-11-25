@@ -31,7 +31,10 @@ struct RanluxppRngSeedExecutor
     {
         CELER_EXPECT(tid < state.size());
         RanluxppRngEngine rng(params, state, tid);
-        rng = {tid.unchecked_get()};
+
+        // Hard-code offset to 0
+        RanluxppUInt offset = 0;
+        rng = {params.seed, tid.unchecked_get(), offset};
     }
 
     //! Initialize from the given thread.

@@ -28,9 +28,16 @@ template<Ownership W, MemSpace M>
 struct RanluxppRngParamsData
 {
     //// DATA ////
+    //! Stores the user provided seed
     RanluxppUInt seed = 0;
-    int max_position = 0;
+
+    //! Stores the maximum position in the state
+    static constexpr int max_position = 9 * 64;
+
+    //! Stores \f$a^2048 mod m\f$ for Ranluxpp values of \f$a\f$ and \f$m\f$.
     RanluxppArray9 state_2048;
+
+    //! Stores \f$a^(2048 * (2^96)) mod m\f$
     RanluxppArray9 seed_state;
 
     //// FUNCTIONS ////
@@ -46,7 +53,6 @@ struct RanluxppRngParamsData
     {
         CELER_EXPECT(other);
         seed = other.seed;
-        max_position = other.max_position;
         state_2048 = other.state_2048;
         seed_state = other.seed_state;
         return *this;
@@ -66,10 +72,20 @@ struct RanluxppRngState
     int position;
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Initializer object for the Ranluxpp engine
+ */
 struct RanluxppInitializer
 {
+    //! Seed
+    RanluxppUInt seed{0ull};
+
     //! Thread-local id.
-    RanluxppUInt thread_local_id;
+    RanluxppUInt subsequence{0ull};
+
+    //! Offset into rng stream
+    RanluxppUInt offset{0ull};
 };
 
 //---------------------------------------------------------------------------//

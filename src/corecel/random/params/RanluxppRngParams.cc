@@ -25,7 +25,6 @@ RanluxppRngParams::RanluxppRngParams(RanluxppUInt seed)
 
     // Save basic data
     host_data.seed = seed;
-    host_data.max_position = 9 * 64;
     host_data.state_2048 = {
         0xed7faa90747aaad9ull,
         0x4cec2c78af55c101ull,

@@ -54,9 +54,10 @@ class RanluxppRngEngine
   public:
     //@{
     //! Public types.
+    using result_type = RanluxppUInt;
+    using Initializer_t = RanluxppInitializer;
     using ParamsRef = NativeCRef<RanluxppRngParamsData>;
     using StateRef = NativeRef<RanluxppRngStateData>;
-    using result_type = RanluxppUInt;
     //@}
 
   public:
@@ -80,17 +81,24 @@ class RanluxppRngEngine
     }
 
     //! Initialize state with the given seed.
-    inline CELER_FUNCTION RanluxppRngEngine& operator=(RanluxppInitializer init)
+    inline CELER_FUNCTION RanluxppRngEngine&
+    operator=(Initializer_t const& init)
     {
-        // Skip forward (params_.seed + init.thread_local_id) states
+        // Skip forward (init.seed + init.subsequence) states
         RanluxppArray9 new_a_seed = celeritas::detail::compute_power_modulus(
-            params_.seed_state, params_.seed + init.thread_local_id);
+            params_.seed_state, init.seed + init.subsequence);
         RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0, 0};
         lcg = celeritas::detail::compute_mod_multiply(new_a_seed, lcg);
 
         // Convert to Ranluxpp number and save state
         state_->value = celeritas::detail::to_ranlux(lcg);
         state_->position = 0;
+
+        // Skip forward another init.offset samples
+        if (init.offset > 0)
+        {
+            this->discard(init.offset);
+        }
         return *this;
     }
 

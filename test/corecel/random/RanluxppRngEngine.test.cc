@@ -286,8 +286,8 @@ TEST_F(RanluxppRngEngineTest, jump)
     RanluxppRngEngine rng(params_->host_ref(), states.ref(), TrackSlotId{0});
     RanluxppRngEngine skip_rng(
         params_->host_ref(), states.ref(), TrackSlotId{1});
-    rng = RanluxppInitializer{12345};
-    skip_rng = RanluxppInitializer{12345};
+    rng = RanluxppInitializer{12345, 0, 0};
+    skip_rng = RanluxppInitializer{12345, 0, 0};
 
     // Compare first 5 random numbers
     for ([[maybe_unused]] int i : celeritas::range(5))
