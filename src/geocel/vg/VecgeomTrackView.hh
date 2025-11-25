@@ -193,9 +193,6 @@ class VecgeomTrackView
     // Whether the next distance-to-boundary is to a surface
     inline CELER_FUNCTION bool is_next_boundary() const;
 
-    // Get a reference to the world volume
-    inline CELER_FUNCTION VgPlacedVol const& world() const;
-
     // Get a reference to the current volume instance
     inline CELER_FUNCTION VgPlacedVol const& physical_volume() const;
 
@@ -285,9 +282,11 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // Set up current state and locate daughter volume
     vgstate_.Clear();
 #if CELERITAS_VECGEOM_SURFACE
-    auto world = vecgeom::NavigationState::WorldId();
+    // VecGeom's BVHSurfNav takes `int pvol_id ` but vecgeom's navtuple/index
+    // return NavIndex_t via `NavInd` :(
+    VgPlacedVolumeInt world = vecgeom::NavigationState::WorldId();
 #else
-    auto const* world = &this->world();
+    auto const* world = params_.scalars.world<MemSpace::native>();
 #endif
     // LocatePointIn sets `vgstate_`
     constexpr bool contains_point = true;
@@ -642,17 +641,6 @@ CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
     {
         return vgnext_.IsOnBoundary();
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a reference to the world volume instance.
- */
-CELER_FUNCTION auto VecgeomTrackView::world() const -> VgPlacedVol const&
-{
-    auto* pv = params_.scalars.world<MemSpace::native>();
-    CELER_ENSURE(pv);
-    return *pv;
 }
 
 //---------------------------------------------------------------------------//
