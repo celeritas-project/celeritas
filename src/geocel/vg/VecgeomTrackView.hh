@@ -367,15 +367,14 @@ CELER_FORCEINLINE_FUNCTION ImplVolumeId VecgeomTrackView::impl_volume_id() const
  */
 CELER_FUNCTION ImplSurfaceId VecgeomTrackView::impl_surface_id() const
 {
-#if CELERITAS_VECGEOM_SURFACE
-    if (this->is_on_boundary())
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
-        return id_cast<ImplSurfaceId>(*next_surf_);
+        if (this->is_on_boundary())
+        {
+            return id_cast<ImplSurfaceId>(*next_surf_);
+        }
     }
     return {};
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -384,15 +383,14 @@ CELER_FUNCTION ImplSurfaceId VecgeomTrackView::impl_surface_id() const
  */
 CELER_FUNCTION ImplSurfaceId VecgeomTrackView::next_impl_surface_id() const
 {
-#if CELERITAS_VECGEOM_SURFACE
-    if (!this->is_on_boundary())
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
-        return id_cast<ImplSurfaceId>(*next_surf_);
+        if (!this->is_on_boundary())
+        {
+            return id_cast<ImplSurfaceId>(*next_surf_);
+        }
     }
     return {};
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 //---------------------------------------------------------------------------//
