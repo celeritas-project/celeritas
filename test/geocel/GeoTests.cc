@@ -1548,13 +1548,9 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[15] = 18.8833925371992;
             ref.halfway_safeties[16] = 42.8430141842906;
         }
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
-        {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            auto tol = test_->tracking_tol();
-            EXPECT_REF_NEAR(ref, result, tol);
-        }
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Lower +x");
@@ -1670,12 +1666,7 @@ void SolidsGeoTest::test_trace() const
         }
 
         auto tol = test_->tracking_tol();
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
-        {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            EXPECT_REF_NEAR(ref, result, tol);
-        }
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Middle +y");
@@ -1737,13 +1728,8 @@ void SolidsGeoTest::test_trace() const
             74.5,
         };
 
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
-        {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            auto tol = test_->tracking_tol();
-            EXPECT_REF_NEAR(ref, result, tol);
-        }
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 
