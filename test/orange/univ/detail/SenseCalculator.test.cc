@@ -4,9 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file orange/univ/detail/SenseCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/univ/detail/SenseCalculator.hh"
 
-#include <type_traits>
+#include <vector>
 #include <gtest/gtest.h>
 
 #include "corecel/Assert.hh"
@@ -16,7 +15,6 @@
 #include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 #include "orange/univ/VolumeView.hh"
-#include "orange/univ/detail/CachedLazySenseCalculator.hh"
 #include "orange/univ/detail/LazySenseCalculator.hh"
 #include "orange/univ/detail/Types.hh"
 
@@ -56,7 +54,6 @@ TEST(Types, OnFace)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-template<class MySenseCalculator>
 class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
 {
   protected:
@@ -72,31 +69,13 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
         return LocalSurfaceVisitor(this->host_params(), SimpleUnitId{0});
     }
 
-    //! Access the shared CPU storage space for senses
-    Span<SenseValue> sense_storage()
+    LazySenseCalculator
+    construct_sense_calculator(LocalSurfaceVisitor const& visit,
+                               VolumeView const& vol,
+                               Real3 const& pos,
+                               OnFace& face)
     {
-        return this->host_state().temp_sense[AllItems<SenseValue>{}];
-    }
-
-    template<class MSC = MySenseCalculator,
-             std::enable_if_t<std::is_same_v<MSC, LazySenseCalculator>, bool> = true>
-    MSC construct_sense_calculator(LocalSurfaceVisitor const& visit,
-                                   VolumeView const& vol,
-                                   Real3 const& pos,
-                                   OnFace& face)
-    {
-        return MSC(visit, vol, pos, face);
-    }
-
-    template<class MSC = MySenseCalculator,
-             std::enable_if_t<!std::is_same_v<MSC, LazySenseCalculator>, bool>
-             = true>
-    MSC construct_sense_calculator(LocalSurfaceVisitor const& visit,
-                                   VolumeView const& vol,
-                                   Real3 const& pos,
-                                   OnFace& face)
-    {
-        return MSC(visit, vol, pos, this->sense_storage(), face);
+        return LazySenseCalculator(visit, vol, pos, face);
     }
 };
 
@@ -104,15 +83,10 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-using TestTypes = ::testing::
-    Types<SenseCalculator, CachedLazySenseCalculator, LazySenseCalculator>;
-
-TYPED_TEST_SUITE(SenseCalculatorTest, TestTypes, );
-
 #define ONE_VOLUME TEST_IF_CELERITAS_DEBUG(one_volume)
-TYPED_TEST(SenseCalculatorTest, ONE_VOLUME)
+TEST_F(SenseCalculatorTest, ONE_VOLUME)
 {
-    typename TestFixture::OneVolInput geo_inp;
+    OneVolInput geo_inp;
     this->build_geometry(geo_inp);
 
     // Test this degenerate case (no surfaces)
@@ -126,11 +100,10 @@ TYPED_TEST(SenseCalculatorTest, ONE_VOLUME)
 }
 #undef ONE_VOLUME
 
-TYPED_TEST(SenseCalculatorTest, two_volumes)
+TEST_F(SenseCalculatorTest, two_volumes)
 {
-    using MySenseCalc = TypeParam;
     {
-        typename TestFixture::TwoVolInput geo_inp;
+        TwoVolInput geo_inp;
         geo_inp.radius = 1.5;
         this->build_geometry(geo_inp);
     }
@@ -145,7 +118,7 @@ TYPED_TEST(SenseCalculatorTest, two_volumes)
         Real3 pos{0, 0.5, 0};
         {
             OnFace face;
-            MySenseCalc calc_senses = this->construct_sense_calculator(
+            LazySenseCalculator calc_senses = this->construct_sense_calculator(
                 this->make_surf_visitor(), inner, pos, face);
             // Test inner sphere, not on a face
             auto result = calc_senses(FaceId{0});
@@ -154,7 +127,7 @@ TYPED_TEST(SenseCalculatorTest, two_volumes)
         }
         {
             OnFace face;
-            MySenseCalc calc_senses = this->construct_sense_calculator(
+            LazySenseCalculator calc_senses = this->construct_sense_calculator(
                 this->make_surf_visitor(), outer, pos, face);
             // Test not-sphere, not on a face
             auto result = calc_senses(FaceId{0});
@@ -167,71 +140,50 @@ TYPED_TEST(SenseCalculatorTest, two_volumes)
         Real3 pos{1.5, 0, 0};
         {
             OnFace face;
-            MySenseCalc calc_senses = this->construct_sense_calculator(
+            LazySenseCalculator calc_senses = this->construct_sense_calculator(
                 this->make_surf_visitor(), inner, pos, face);
             auto result = calc_senses(FaceId{0});
             EXPECT_EQ(Sense::outside, result);
             EXPECT_EQ(FaceId{0}, face.id());
             EXPECT_EQ(Sense::outside, face.sense());
-            if constexpr (std::is_same_v<SenseCalculator, MySenseCalc>
-                          || std::is_same_v<CachedLazySenseCalculator,
-                                            MySenseCalc>)
-            {
-                calc_senses.flip_sense(FaceId{0});
-                EXPECT_EQ(Sense::inside, calc_senses(FaceId{0}));
-            }
         }
         {
             OnFace face{FaceId{0}, Sense::inside};
-            MySenseCalc calc_senses = this->construct_sense_calculator(
+            LazySenseCalculator calc_senses = this->construct_sense_calculator(
                 this->make_surf_visitor(), inner, pos, face);
             auto result = calc_senses(FaceId{0});
             EXPECT_EQ(Sense::inside, result);
             EXPECT_EQ(FaceId{0}, face.id());
             EXPECT_EQ(Sense::inside, face.sense());
-            if constexpr (std::is_same_v<SenseCalculator, MySenseCalc>
-                          || std::is_same_v<CachedLazySenseCalculator,
-                                            MySenseCalc>)
-            {
-                calc_senses.flip_sense(FaceId{0});
-                EXPECT_EQ(Sense::outside, calc_senses(FaceId{0}));
-            }
         }
     }
     {
         OnFace face;
         // Point is in the outer sphere
-        auto result = MySenseCalc{this->construct_sense_calculator(
+        auto result = LazySenseCalculator{this->construct_sense_calculator(
             this->make_surf_visitor(), inner, Real3{2, 0, 0}, face)}(FaceId{0});
         EXPECT_EQ(Sense::outside, result);
         EXPECT_FALSE(face);
     }
 }
 
-TYPED_TEST(SenseCalculatorTest, five_volumes)
+TEST_F(SenseCalculatorTest, five_volumes)
 {
-    using MySenseCalc = TypeParam;
     this->build_geometry("five-volumes.org.json");
     // this->describe(std::cout);
 
+    std::vector<Sense> storage;
+
     auto calc_senses = [&](VolumeView vol, Real3 pos, OnFace face = {}) {
-        [[maybe_unused]] MySenseCalc calc_senses
-            = this->construct_sense_calculator(
-                this->make_surf_visitor(), vol, pos, face);
+        LazySenseCalculator calc_senses = this->construct_sense_calculator(
+            this->make_surf_visitor(), vol, pos, face);
+        storage.clear();
+        storage.resize(vol.num_faces());
         for (FaceId cur_face : range(FaceId{vol.num_faces()}))
         {
-            if constexpr (std::is_same_v<MySenseCalc, LazySenseCalculator>)
-            {
-                this->sense_storage()[cur_face.unchecked_get()]
-                    = calc_senses(cur_face);
-            }
-            else if constexpr (std::is_same_v<MySenseCalc,
-                                              CachedLazySenseCalculator>)
-            {
-                calc_senses(cur_face);
-            }
+            storage[cur_face.unchecked_get()] = calc_senses(cur_face);
         }
-        return std::pair{this->sense_storage().first(vol.num_faces()), face};
+        return std::pair{make_span(storage), face};
     };
 
     // Volume definitions
