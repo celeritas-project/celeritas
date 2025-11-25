@@ -12,8 +12,8 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/random/distribution/DeltaDistribution.hh"
-#include "geocel/random/IsotropicDistribution.hh"
-#include "geocel/random/UniformBoxDistribution.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
+#include "corecel/random/distribution/UniformBoxDistribution.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/inp/Events.hh"
 
