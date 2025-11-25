@@ -62,11 +62,11 @@ class AuxParams : public AuxParamsInterface, public ParamsDataInterface<P>
 
     // Access the *state* ref (const)
     template<MemSpace M>
-    inline StateRefT<M> const& ref(AuxStateVec const& v) const;
+    inline StateRefT<M> const& state_ref(AuxStateVec const& v) const;
 
     // Access the *state* ref (mutable)
     template<MemSpace M>
-    inline StateRefT<M>& ref(AuxStateVec& v) const;
+    inline StateRefT<M>& state_ref(AuxStateVec& v) const;
 
     //! Allow access host/device *params* ref
     using ParamsDataInterface<P>::ref;
@@ -100,7 +100,8 @@ auto AuxParams<P, S>::create_state(MemSpace m,
 template<template<Ownership, MemSpace> class P,
          template<Ownership, MemSpace> class S>
 template<MemSpace M>
-auto AuxParams<P, S>::ref(AuxStateVec const& v) const -> StateRefT<M> const&
+auto AuxParams<P, S>::state_ref(AuxStateVec const& v) const
+    -> StateRefT<M> const&
 {
     return ::celeritas::get<StateT<M>>(v, this->aux_id()).ref();
 }
@@ -112,7 +113,7 @@ auto AuxParams<P, S>::ref(AuxStateVec const& v) const -> StateRefT<M> const&
 template<template<Ownership, MemSpace> class P,
          template<Ownership, MemSpace> class S>
 template<MemSpace M>
-auto AuxParams<P, S>::ref(AuxStateVec& v) const -> StateRefT<M>&
+auto AuxParams<P, S>::state_ref(AuxStateVec& v) const -> StateRefT<M>&
 {
     return ::celeritas::get<StateT<M>>(v, this->aux_id()).ref();
 }

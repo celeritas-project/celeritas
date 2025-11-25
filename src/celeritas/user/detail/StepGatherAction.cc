@@ -57,7 +57,7 @@ void StepGatherAction<P>::step(CoreParams const& params,
 {
     // Extract the local step state data
     auto const& step_params = params_->ref<MemSpace::native>();
-    auto& step_state = params_->ref<MemSpace::native>(state.aux());
+    auto& step_state = params_->state_ref<MemSpace::native>(state.aux());
 
     // Run the action
     auto execute = TrackExecutor{

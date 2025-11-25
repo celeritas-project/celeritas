@@ -107,12 +107,11 @@ void StatusChecker::step(ActionId prev_action,
                          CoreState<M>& state) const
 {
     CELER_EXPECT(data_);
-    CELER_EXPECT(this->data_);
     CELER_EXPECT(prev_action);
     CELER_EXPECT(params.action_reg()->num_actions()
                  == this->ref<M>().orders.size());
 
-    auto& aux_state = this->ref<M>(state.aux());
+    auto& aux_state = this->state_ref<M>(state.aux());
 
     // Update action before launching kernel
     CELER_ASSERT(prev_action < this->host_ref().orders.size());

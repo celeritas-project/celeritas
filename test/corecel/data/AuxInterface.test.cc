@@ -96,7 +96,7 @@ TEST_F(UserTest, state_host)
 
         // Use the params helper to get the device reference more easily
         // (it should be a pointer to the exact same data)
-        auto& sref = mock->ref<MemSpace::host>(states);
+        auto& sref = mock->state_ref<MemSpace::host>(states);
         EXPECT_EQ(&data, &sref);
     }
     {
@@ -114,7 +114,7 @@ TEST_F(UserTest, state_host)
 
         // Use the params helper to get the device reference more easily
         // (it should be a pointer to the exact same data)
-        auto& sref = mock2->ref<MemSpace::host>(states);
+        auto& sref = mock2->state_ref<MemSpace::host>(states);
         EXPECT_EQ(&data, &sref);
     }
     {
@@ -126,7 +126,7 @@ TEST_F(UserTest, state_host)
     {
         // Getting the wrong type/memspace should be a validation error (but
         // it's checked only when CELERITAS_DEBUG)
-        EXPECT_THROW(mock2->ref<MemSpace::device>(states), RuntimeError);
+        EXPECT_THROW(mock2->state_ref<MemSpace::device>(states), RuntimeError);
     }
 }
 
