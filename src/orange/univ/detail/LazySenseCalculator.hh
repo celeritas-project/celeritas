@@ -28,11 +28,10 @@ namespace detail
  * simple *and* complex intersection. Instances of this class are specific to a
  * volume, and a position. Calling an instance evaluates the sense of a
  * volume's face with respect to the given position. This class calculates
- * sense on-the-fly during evaluation of a logic expression. This class does
- * not cache calculated senses, that is senses are recomputed every time they
- * are requested. The advantage of not caching senses is that we eliminate
- * global memory usage. With infix evaluation, and short-circuiting logic, the
- * cost of recomputing senses should be small.
+ * sense on-the-fly during evaluation of a logic expression without caching
+ * previously requested senses. The advantage of not caching senses is that we
+ * eliminate global memory usage. With infix evaluation, and short-circuiting
+ * logic, the cost of recomputing senses should be small.
  *
  * The OnFace constructor's parameter is used to store the first face that we
  * are "on".
