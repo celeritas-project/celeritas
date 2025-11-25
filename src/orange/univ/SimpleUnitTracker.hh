@@ -560,8 +560,6 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     Real3 pos{state.pos};
     detail::OnFace on_face(detail::find_face(vol, state.surface));
 
-    // NOTE: if switching to the "eager" SenseCalculator, this must be moved
-    // inside the loop, since it recalculates senses only on construction.
     detail::SenseCalculator calc_sense{
         this->make_surface_visitor(), vol, pos, on_face};
 

@@ -8,7 +8,6 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/Bitset.hh"
 
 #include "OrangeTypes.hh"
 
