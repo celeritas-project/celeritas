@@ -48,8 +48,6 @@ class BVHNavigator
     using NavState = detail::VgNavStateWrapper;
 #endif
 
-    static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
-
     //! Update path (which must be reset in advance)
     CELER_FUNCTION static void
     LocatePointIn(VgPlacedVol const* vol,
@@ -136,18 +134,19 @@ class BVHNavigator
                              VgReal3 const& globaldir,
                              vg_real_type step_limit,
                              NavState const& in_state,
-                             NavState& out_state,
-                             vg_real_type push)
+                             NavState& out_state)
     {
+        // See VecgeomTrackView::relocate_bump_ ; this is from the VG 2.0
+        // boundary, setting external push to zero
+        static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
+
         // If we are on the boundary, push a bit more
-        if (in_state.IsOnBoundary())
-        {
-            push += kBoundaryPush;
-        }
+        vg_real_type push = in_state.IsOnBoundary() ? kBoundaryPush : 0;
+
         if (step_limit < push)
         {
             // Go as far as the step limit says, assuming there is no boundary.
-            // TODO: Does this make sense?
+            // TODO: DELETE
             in_state.CopyTo(&out_state);
             out_state.SetBoundaryState(false);
             return step_limit;
@@ -176,6 +175,7 @@ class BVHNavigator
         {
             if (!hitcandidate)
             {
+                // Pop back up to the parent volume
                 VgPlacedVol const* currentmother = out_state.Top();
                 VgReal3 transformed = localpoint;
                 // Push the point inside the next volume.
@@ -204,17 +204,15 @@ class BVHNavigator
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: It
     // recursively locates the pushed point in the containing volume.
-    CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& globalpoint,
-                                                    VgReal3 const& globaldir,
-                                                    NavState& state)
+    CELER_FUNCTION static void
+    RelocateToNextVolume(VgReal3 const& globalpoint,
+                         VgReal3 const& /* unused: globaldir */,
+                         NavState& state)
     {
-        // Push the point inside the next volume.
-        VgReal3 pushed = globalpoint + kBoundaryPush * globaldir;
-
         // Calculate local point from global point.
         vecgeom::Transformation3D m;
         state.TopMatrix(m);
-        VgReal3 localpoint = m.Transform(pushed);
+        VgReal3 localpoint = m.Transform(globalpoint);
 
         VgPlacedVol const* pvol = state.Top();
 

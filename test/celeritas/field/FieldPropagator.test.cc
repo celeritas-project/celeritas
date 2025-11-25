@@ -1222,13 +1222,12 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
     EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
 
-    // NOTE: vecgeom 2.x-solids puts this position slightly *outside* the beam
-    // tube rather than *inside*
     if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
-        // TODO: VecGeom 2.x-solids starts to diverge here
+        // NOTE: vecgeom 2 solid model thinks r=30 + epsilon is *outside* the
+        // 30cm radius cyl
         EXPECT_EQ("vacuum_tube", this->volume_name(geo));
-        GTEST_SKIP() << "FIXME: VecGeom 2.x-solid construction failure.";
+        GTEST_SKIP() << "VecGeom 2.x solid disagrees where the solid is";
     }
     EXPECT_EQ("si_tracker", this->volume_name(geo));
     {

@@ -54,8 +54,9 @@ namespace celeritas
     VecgeomTrackView geom(vg_params_ref, vg_state_ref, trackslot_id);
    \endcode
  *
- * The "next distance" is cached as part of `find_next_step`, but it is only
- * used when the immediate next call is `move_to_boundary`.
+ * \note VecGeom's solid model is imprcise and requires bumping. The bump
+ * values are arbitrary and may lead to geometry errors. The values of the bump
+ * constants do not account for the problem's length scale.
  */
 class VecgeomTrackView
 {
@@ -85,11 +86,6 @@ class VecgeomTrackView
     // Initialize the state
     inline CELER_FUNCTION VecgeomTrackView&
     operator=(Initializer_t const& init);
-
-    //// STATIC ACCESSORS ////
-
-    //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
 
     //// ACCESSORS ////
 
@@ -184,6 +180,22 @@ class VecgeomTrackView
 
     // Temporary data
     real_type next_step_{0};
+
+    // Static data
+
+    //! A tiny push to make sure tracks do not get stuck at boundaries (TODO:
+    //! DELETEME)
+    static constexpr real_type extra_push_ = 1e-13;
+
+    //! Absolute tolerance used in internal vecgeom construction:
+    //! 1e-9 for double, 1e-3 for single
+    static constexpr vg_real_type abs_tolerance_
+        = CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-9 : 1e-3;
+
+    //! Tolerance used for solid model relocation bump
+    //! V1 solids by default;
+    static constexpr vg_real_type relocate_bump_
+        = CELERITAS_VECGEOM_SURFACE ? 0 : 10 * abs_tolerance_;
 
     //// HELPER FUNCTIONS ////
 
@@ -292,6 +304,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     constexpr bool contains_point = true;
     Navigator::LocatePointIn(
         world, detail::to_vector(pos_), vgstate_, contains_point);
+
     return *this;
 }
 
@@ -465,7 +478,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
         CELER_ASSERT((*next_surf_ != null_surface()) == vgnext_.IsOnBoundary());
     }
 
-    next_step_ = max(next_step_, this->extra_push());
+    next_step_ = max(next_step_, this->extra_push_);
 
     if (!this->is_next_boundary())
     {
@@ -482,9 +495,9 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 
     CELER_ENSURE(this->has_next_step());
     CELER_ENSURE(result.distance > 0);
-    CELER_ENSURE(result.distance <= max(max_step, this->extra_push()));
+    CELER_ENSURE(result.distance <= max(max_step, this->extra_push_));
     CELER_ENSURE(result.boundary || result.distance == max_step
-                 || max_step < this->extra_push());
+                 || max_step < this->extra_push_);
     return result;
 }
 
@@ -551,7 +564,22 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-        Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
+        VgReal3 bumped_pos;
+        if constexpr (CELERITAS_VECGEOM_SURFACE)
+        {
+            // Surface relocation is exact, assuming a well constructed
+            // geometry
+            bumped_pos = detail::to_vector(pos_);
+        }
+        else
+        {
+            for (auto i : range(3))
+            {
+                bumped_pos[i] = fma(relocate_bump_, dir_[i], pos_[i]);
+            }
+        }
+
+        Navigator::RelocateToNextVolume(bumped_pos,
                                         detail::to_vector(this->dir_),
 #if CELERITAS_VECGEOM_SURFACE
                                         *next_surf_,

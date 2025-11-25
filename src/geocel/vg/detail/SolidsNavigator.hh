@@ -62,8 +62,6 @@ class SolidsNavigator
                              NavState& out_state)
     {
         ScopedVgNavState temp_state{out_state};
-        // TODO: maybe use ComputeStepToApproachNextVolume and eliminate next
-        // state?
         return NavImpl::ComputeStepAndNextVolume(
             pos, dir, step_limit, in_state, temp_state);
     }

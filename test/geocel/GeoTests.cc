@@ -363,13 +363,6 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         // Find the next step (to top edge of Shape1) but then scatter back
         // toward the sphere
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(10.0)));
-        if (test_->geometry_type() == "VecGeom" && using_solids_vg
-            && vecgeom_version >= Version{2, 0})
-        {
-            // Solids VG navig issues here - both v1,v2 work the same though
-            EXPECT_GT(1e-12, to_cm(next.distance));
-            GTEST_SKIP() << "FIXME: VG_solids navig issues: 1e-13 vs. 6";
-        }
         EXPECT_SOFT_EQ(6, to_cm(next.distance));
         geo.set_dir({-1, 0, 0});
         EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), to_cm(geo.pos()));
