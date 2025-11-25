@@ -529,9 +529,6 @@ struct OrangeStateData
     Items<LocalVolumeId> vol;
     Items<UnivId> univ;
 
-    // Scratch space with dimensions {track}{max_faces}
-    Items<SenseValue> temp_sense;
-
     // Scratch space with dimensions {track}{max_intersections}
     Items<FaceId> temp_face;
     Items<real_type> temp_distance;
@@ -556,7 +553,6 @@ struct OrangeStateData
             && dir.size() == pos.size()
             && vol.size() == pos.size()
             && univ.size() == pos.size()
-            && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
             && temp_isect.size() == temp_face.size();
@@ -590,8 +586,6 @@ struct OrangeStateData
         dir = other.dir;
         vol = other.vol;
         univ = other.univ;
-
-        temp_sense = other.temp_sense;
 
         temp_face = other.temp_face;
         temp_distance = other.temp_distance;
@@ -630,9 +624,6 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->dir, num_track_univ);
     resize(&data->vol, num_track_univ);
     resize(&data->univ, num_track_univ);
-
-    size_type num_track_face = params.scalars.max_faces * num_tracks;
-    resize(&data->temp_sense, num_track_face);
 
     size_type num_track_isect = params.scalars.max_intersections * num_tracks;
     resize(&data->temp_face, num_track_isect);

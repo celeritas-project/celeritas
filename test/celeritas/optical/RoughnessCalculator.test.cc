@@ -5,7 +5,7 @@
 //! \file celeritas/optical/RoughnessSampler.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/random/HistogramSampler.hh"
-#include "geocel/random/IsotropicDistribution.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/optical/surface/GaussianRoughnessSampler.hh"
 #include "celeritas/optical/surface/SmearRoughnessSampler.hh"
 #include "celeritas/optical/surface/SurfacePhysicsUtils.hh"

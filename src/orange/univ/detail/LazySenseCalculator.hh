@@ -27,11 +27,11 @@ namespace detail
  * This is an implementation detail used in initialization, boundary crossing,
  * simple *and* complex intersection. Instances of this class are specific to a
  * volume, and a position. Calling an instance evaluates the sense of a
- * volume's face with respect to the given position. This class is used to
- * lazily calculate sense during evaluation of a logic expression, contrary to
- * CachedLazySenseCalculator, this class does not cache the calculated sense:
- * potentially recomputing the same sense value multiple time. The advantage
- * is that we do not need to access global memory to store the cached sense.
+ * volume's face with respect to the given position. This class calculates
+ * sense on-the-fly during evaluation of a logic expression without caching
+ * previously requested senses. The advantage of not caching senses is that we
+ * eliminate global memory usage. With infix evaluation, and short-circuiting
+ * logic, the cost of recomputing senses should be small.
  *
  * The OnFace constructor's parameter is used to store the first face that we
  * are "on".

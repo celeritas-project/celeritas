@@ -2,24 +2,26 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/random/UniformBoxDistribution.hh
+//! \file corecel/random/distribution/IsotropicDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample a point uniformly in a box.
+ * Sample points uniformly on the surface of a unit sphere.
  */
 template<class RealType = ::celeritas::real_type>
-class UniformBoxDistribution
+class IsotropicDistribution
 {
   public:
     //!@{
@@ -30,53 +32,41 @@ class UniformBoxDistribution
 
   public:
     // Constructor
-    inline CELER_FUNCTION
-    UniformBoxDistribution(result_type lower, result_type upper);
+    inline CELER_FUNCTION IsotropicDistribution();
 
-    // Sample a random point in the box
+    // Sample a random unit vector
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
   private:
-    using UniformRealDist = UniformRealDistribution<real_type>;
-
-    Array<UniformRealDist, 3> sample_pos_;
+    UniformRealDistribution<real_type> sample_costheta_;
+    UniformRealDistribution<real_type> sample_phi_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from upper and lower coordinates.
+ * Construct with defaults.
  */
 template<class RealType>
-CELER_FUNCTION
-UniformBoxDistribution<RealType>::UniformBoxDistribution(result_type lower,
-                                                         result_type upper)
-    : sample_pos_{UniformRealDist{lower[0], upper[0]},
-                  UniformRealDist{lower[1], upper[1]},
-                  UniformRealDist{lower[2], upper[2]}}
+CELER_FUNCTION IsotropicDistribution<RealType>::IsotropicDistribution()
+    : sample_costheta_(-1, 1), sample_phi_(0, real_type(2 * constants::pi))
 {
-    CELER_EXPECT(lower[0] <= upper[0]);
-    CELER_EXPECT(lower[1] <= upper[1]);
-    CELER_EXPECT(lower[2] <= upper[2]);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample uniformly in the box.
+ * Sample an isotropic unit vector.
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-UniformBoxDistribution<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto IsotropicDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
 {
-    result_type result;
-    for (int i = 0; i < 3; ++i)
-    {
-        result[i] = sample_pos_[i](rng);
-    }
-    return result;
+    real_type const costheta = sample_costheta_(rng);
+    real_type const phi = sample_phi_(rng);
+    return from_spherical(costheta, phi);
 }
 
 //---------------------------------------------------------------------------//
