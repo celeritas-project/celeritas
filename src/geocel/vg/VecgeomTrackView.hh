@@ -556,18 +556,16 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(this->is_next_boundary());
 
-#if CELERITAS_VECGEOM_VERSION < 0x020000
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
         Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
                                         detail::to_vector(this->dir_),
-#    if CELERITAS_VECGEOM_SURFACE
+#if CELERITAS_VECGEOM_SURFACE
                                         *next_surf_,
-#    endif
+#endif
                                         vgnext_);
     }
-#endif
 
     vgstate_ = vgnext_;
 

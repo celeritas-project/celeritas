@@ -70,6 +70,7 @@ class SolidsNavigator
     }
 
     //-----------------------------------------------------------------------//
+    // FIXME: this *crosses* the volume
     CELER_FUNCTION static vg_real_type
     ComputeStepAndNextVolume(VgReal3 const& glpos,
                              VgReal3 const& gldir,
@@ -106,54 +107,10 @@ class SolidsNavigator
 
     //-----------------------------------------------------------------------//
     // Relocate a state that was returned from ComputeStepAndNextVolume
-    CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& glpos,
-                                                    VgReal3 const& gldir,
-                                                    NavState& curr,
-                                                    NavState& next)
-    {
-        VgPlacedVol const* pvol = curr.Top();
-        curr.Pop();
-        LocatePointIn(curr.Top(), glpos, curr, false, pvol);
-
-        // try to use a point in next volume
-        // Push the point inside the next volume.
-        static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
-        VgReal3 pushed = glpos + kBoundaryPush * gldir;
-        LocatePointIn(next.Top(), pushed, next, false, nullptr);
-
-        if (curr.Top() != nullptr)
-        {
-            while (curr.Top()->IsAssembly())
-            {
-                curr.Pop();
-            }
-            CELER_ASSERT(!curr.Top()
-                              ->GetLogicalVolume()
-                              ->GetUnplacedVolume()
-                              ->IsAssembly());
-        }
-    }
-
     CELER_FUNCTION static void
-    RelocatePoint(VgReal3 const& localpoint, NavState& path)
+    RelocateToNextVolume(VgReal3 const&, VgReal3 const&, NavState&)
     {
-        VgPlacedVol const* currentmother = path.Top();
-        VgReal3 transformed = localpoint;
-        do
-        {
-            path.Pop();
-            transformed = currentmother->GetTransformation()->InverseTransform(
-                transformed);
-            currentmother = path.Top();
-        } while (currentmother
-                 && (currentmother->IsAssembly()
-                     || !currentmother->UnplacedContains(transformed)));
-
-        if (currentmother)
-        {
-            path.Pop();
-            return LocatePointIn(currentmother, transformed, path, false);
-        }
+        // Relocation is done previously :(
     }
 };
 
