@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestInterface.hh"
 
+#include <stdexcept>
 #include <gtest/gtest.h>
 
 #include "corecel/cont/ArrayIO.hh"
@@ -13,6 +14,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
 #include "geocel/inp/Model.hh"
@@ -26,18 +28,17 @@ namespace celeritas
 {
 namespace test
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Track until exiting the geometry.
  *
  * The position uses the length scale defined by the test. It is loop checked
- * using a hardcoded value of 1000 steps.
+ * using a hardcoded value of 250 steps. (TestEm3 has more than 100.)
  */
 auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
-    int remaining_steps = 1000;
+    int remaining_steps = 250;
 
     TrackingResult result;
 
@@ -50,14 +51,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         result.disable_surface_normal();
     }
 
-#if 0
-    // FIXME: Geant4 solidstest fails at one point
     CheckedGeoTrackView geo{this->make_geo_track_view_interface()};
     geo.check_normal(check_surface_normal);
-#else
-    UPGeoTrack geo_sp = this->make_geo_track_view_interface();
-    auto& geo = *geo_sp;
-#endif
 
     // Note: position is scaled according to test
     geo = this->make_initializer(pos, dir);
@@ -126,8 +121,19 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         }
 
         // Add next distance
-        auto next = geo.find_next_step();
-        result.distances.push_back(next.distance * inv_length);
+        Propagation next;
+        try
+        {
+            next = geo.find_next_step();
+            result.distances.push_back(next.distance * inv_length);
+        }
+        catch (std::exception const& e)
+        {
+            ADD_FAILURE() << "failed to find next step at "
+                          << geo.pos() * inv_length << " along " << geo.dir()
+                          << ": " << e.what();
+            break;
+        }
         if (!next.boundary)
         {
             ADD_FAILURE() << "failed to find the next boundary while inside "
@@ -175,7 +181,18 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                     << " along " << geo.dir() << ": " << e.what();
                 break;
             }
-            result.halfway_safeties.push_back(geo.find_safety() * inv_length);
+
+            try
+            {
+                result.halfway_safeties.push_back(geo.find_safety()
+                                                  * inv_length);
+            }
+            catch (std::exception const& e)
+            {
+                ADD_FAILURE() << "failed to find safety at "
+                              << geo.pos() * inv_length << ": " << e.what();
+                break;
+            }
 
             if (result.halfway_safeties.back() > 0)
             {
@@ -214,6 +231,10 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         try
         {
             cross_boundary();
+            if (geo.failed())
+            {
+                throw std::runtime_error("geometry 'failed' flag is set");
+            }
         }
         catch (std::exception const& e)
         {

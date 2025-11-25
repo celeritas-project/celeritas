@@ -80,9 +80,13 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
  */
 Propagation CheckedGeoTrackView::find_next_step()
 {
+    bool orig_bndy = t_->is_on_boundary();
     CELER_VALIDATE(!t_->is_outside(), << "cannot find next step from outside");
     ++num_intersect_;
-    return t_->find_next_step();
+    auto result = t_->find_next_step();
+    CELER_VALIDATE(orig_bndy == t_->is_on_boundary(),
+                   << "boundary state changed during find_next_step");
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -111,6 +115,7 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                    << " exceeds maximum search value " << distance);
     CELER_VALIDATE(t_->is_on_boundary() == started_on_boundary,
                    << "boundary state changed via find_next_step");
+    CELER_VALIDATE(!t_->failed(), << "failed to find next step");
     return result;
 }
 
@@ -122,10 +127,9 @@ void CheckedGeoTrackView::move_internal(real_type step)
 {
     CELER_EXPECT(!t_->is_outside());
     t_->move_internal(step);
-    CELER_VALIDATE(
-        !t_->is_on_boundary() && !t_->is_outside() && t_->find_safety() >= 0,
-        << std::setprecision(16) << "zero safety distance after moving "
-        << step << " to " << t_->pos());
+    CELER_VALIDATE(!t_->is_on_boundary() && !t_->is_outside(),
+                   << "on boundary after moving " << repr(step) << " to "
+                   << repr(t_->pos()));
 }
 
 //---------------------------------------------------------------------------//
@@ -199,6 +203,7 @@ void CheckedGeoTrackView::cross_boundary()
 
     // Cross boundary
     t_->cross_boundary();
+    CELER_VALIDATE(!t_->failed(), << "failed to cross boundary");
     CELER_VALIDATE(t_->is_on_boundary(),
                    << std::setprecision(16)
                    << "internal move ends up 'outside' at " << t_->pos());
