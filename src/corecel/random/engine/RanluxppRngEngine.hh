@@ -80,30 +80,12 @@ class RanluxppRngEngine
         return celeritas::numeric_limits<RanluxppUInt>::max();
     }
 
-    //! Initialize state with the given seed.
+    // Initialize state with the given seed.
     inline CELER_FUNCTION RanluxppRngEngine&
-    operator=(Initializer_t const& init)
-    {
-        // Skip forward (init.seed + init.subsequence) states
-        RanluxppArray9 new_a_seed = celeritas::detail::compute_power_modulus(
-            params_.seed_state, init.seed + init.subsequence);
-        RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0, 0};
-        lcg = celeritas::detail::compute_mod_multiply(new_a_seed, lcg);
+    operator=(Initializer_t const& init);
 
-        // Convert to Ranluxpp number and save state
-        state_->value = celeritas::detail::to_ranlux(lcg);
-        state_->position = 0;
-
-        // Skip forward another init.offset samples
-        if (init.offset > 0)
-        {
-            this->discard(init.offset);
-        }
-        return *this;
-    }
-
-    //! Generate a double-precision random number.
-    CELER_FUNCTION RanluxppUInt operator()() { return this->intRndm64(); }
+    // Generate a double-precision random number
+    inline CELER_FUNCTION RanluxppUInt operator()();
 
     //! Advance the state \c count times.
     inline CELER_FUNCTION void discard(RanluxppUInt count)
@@ -122,24 +104,8 @@ class RanluxppRngEngine
     // Return the next random bits, generate a new block if necessary
     inline CELER_FUNCTION RanluxppUInt nextRandomBits();
 
-    //! Generate a uniformly random 64-bit integer by concatenating two
-    //! 32-bit words.
-    CELER_FUNCTION RanluxppUInt intRndm64()
-    {
-        // draw two 48-bit words, but take only their low 32 bits each
-        RanluxppUInt lo = this->nextRandomBits() & 0xFFFFFFFFu;
-        RanluxppUInt hi = this->nextRandomBits() & 0xFFFFFFFFu;
-        return (lo << 32) | hi;
-    }
-
-    //! Produce the next block of random bits.
-    CELER_FUNCTION void advance()
-    {
-        RanluxppArray9 lcg = celeritas::detail::to_lcg(state_->value);
-        lcg = celeritas::detail::compute_mod_multiply(params_.state_2048, lcg);
-        state_->value = celeritas::detail::to_ranlux(lcg);
-        state_->position = 0;
-    }
+    // Produce the next block of random bits.
+    inline CELER_FUNCTION void advance();
 
     /// DATA ///
     static constexpr int offset_ = 48;
@@ -149,6 +115,43 @@ class RanluxppRngEngine
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize state for the given seed and subsequence
+ */
+inline CELER_FUNCTION RanluxppRngEngine&
+RanluxppRngEngine::operator=(Initializer_t const& init)
+{
+    // Skip forward (init.seed + init.subsequence) states
+    RanluxppArray9 new_a_seed = celeritas::detail::compute_power_modulus(
+        params_.seed_state, init.seed + init.subsequence);
+    RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0, 0};
+    lcg = celeritas::detail::compute_mod_multiply(new_a_seed, lcg);
+
+    // Convert to Ranluxpp number and save state
+    state_->value = celeritas::detail::to_ranlux(lcg);
+    state_->position = 0;
+
+    // Skip forward another init.offset samples
+    if (init.offset > 0)
+    {
+        this->discard(init.offset);
+    }
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate a double-precision random number
+ */
+CELER_FUNCTION RanluxppUInt RanluxppRngEngine::operator()()
+{
+    // draw two 48-bit words, but take only their low 32 bits each
+    RanluxppUInt lo = this->nextRandomBits() & 0xFFFFFFFFu;
+    RanluxppUInt hi = this->nextRandomBits() & 0xFFFFFFFFu;
+    return (lo << 32) | hi;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Skip `n` random numbers without generating them.
@@ -170,7 +173,8 @@ CELER_FUNCTION void RanluxppRngEngine::skip(RanluxppUInt n)
     }
 
     n -= left;
-    // Need to advance and possibly skip over blocks.
+    // Need to advance and possibly skip multiple blocks (each block is 576
+    // random bits, or 12 48-bit samples)
     int nPerState = params_.max_position / offset_;
     int skip = n / nPerState;
 
@@ -214,6 +218,18 @@ CELER_FUNCTION RanluxppUInt RanluxppRngEngine::nextRandomBits()
     CELER_ASSERT(state_->position <= params_.max_position);
 
     return bits;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Produce the next block of random bits.
+ */
+CELER_FUNCTION void RanluxppRngEngine::advance()
+{
+    RanluxppArray9 lcg = celeritas::detail::to_lcg(state_->value);
+    lcg = celeritas::detail::compute_mod_multiply(params_.state_2048, lcg);
+    state_->value = celeritas::detail::to_ranlux(lcg);
+    state_->position = 0;
 }
 
 //---------------------------------------------------------------------------//
