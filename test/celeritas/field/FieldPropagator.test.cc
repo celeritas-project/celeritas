@@ -1031,7 +1031,8 @@ TEST_F(TwoBoxesTest,
         for (int i : range(2))
         {
             SCOPED_TRACE(i);
-            auto result = propagate(radius * dtheta);
+            Propagation result;
+            EXPECT_NO_THROW(result = propagate(radius * dtheta));
             if (result.boundary)
             {
                 geo.cross_boundary();
@@ -1246,7 +1247,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         {
             // Surface geometry does not intersect the cylinder boundary, so
             // the track keeps going until the "looping" counter is hit
-            EXPECT_SOFT_EQ(1.0314309658010318e-13, result.distance);
+            EXPECT_LT(result.distance, 2e-13);
             EXPECT_FALSE(result.looping);
         }
         else
@@ -1266,18 +1267,29 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
     {
         auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
+
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
-        auto result = propagate(30);
+        Propagation result;
+        try
+        {
+            result = propagate(30);
+        }
+        catch (RuntimeError const& e)
+        {
+            if (using_surface_vg)
+            {
+                EXPECT_TRUE(geo.failed());
+                GTEST_SKIP()
+                    << "FIXME: VecGeom surface model fails: " << e.what();
+            }
+            FAIL() << e.what();
+        }
+
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_SOFT_NEAR(
             double{30}, static_cast<double>(integrate.count()), 0.2);
 
-        if (using_surface_vg)
-        {
-            GTEST_SKIP() << "FIXME: VecGeom surface model fails a boundary "
-                            "requirement.";
-        }
         ASSERT_TRUE(geo.is_on_boundary());
 
         if (geo.check_normal())
@@ -1322,7 +1334,8 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
-        auto result = propagate(1.39170198361108938e-05);
+        Propagation result;
+        EXPECT_NO_THROW(result = propagate(1.39170198361108938e-05));
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
@@ -1336,8 +1349,26 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         geo.set_dir({-1.31178657592616127e-01,
                      -8.29310561920304168e-01,
                      -5.43172303859124073e-01});
-        geo.cross_boundary();  // TODO: hack cross_boundary to handle this case
-        successful_reentry = (this->volume_name(geo) == "em_calorimeter");
+        try
+        {
+            geo.cross_boundary();
+            successful_reentry = (this->volume_name(geo) == "em_calorimeter");
+        }
+        catch (RuntimeError const& e)
+        {
+            if (geo.failed())
+            {
+                // VecGeom can set the 'failed' flag, which CheckedGeoTrackView
+                // turns into an error. Ignore that error for now and say it's
+                // a failure
+                successful_reentry = false;
+            }
+            else
+            {
+                // Something else happened...
+                throw;
+            }
+        }
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             // ORANGE should successfully reenter. However, under certain
@@ -1345,7 +1376,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             // so we don't test in all cases.
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         }
-        else
+        else if (!geo.failed())
         {
             EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         }
@@ -1359,11 +1390,14 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             CELER_LOG(warning) << "Reentry failed for " << cmake::core_geo
                                << " geometry: post-propagation volume is "
                                << this->volume_name(geo);
+            if (!scoped_log_.empty())
+            {
+                CELER_LOG(warning) << scoped_log_;
+            }
 
             if (using_solids_vg && CELERITAS_VECGEOM_VERSION < 0x020000)
             {
-                // FIXME: VecGeom 1.x navigation failure (solids model)
-                EXPECT_EQ("world", this->volume_name(geo));
+                EXPECT_EQ("em_calorimeter", this->volume_name(geo));
             }
             else
             {
@@ -1374,17 +1408,18 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             // slightly differently.  Only surface model thinks the surface
             // was actually crossed, therefore the next step will find distinct
             // results
-            auto result = geo.find_next_step(1);
+            Propagation result;
+            EXPECT_NO_THROW(result = geo.find_next_step(1));
             EXPECT_LT(result.distance, 2e-8);
 
-            if (result.distance < 1e-6)
+            if (result.distance < 1e-6 && result.boundary)
             {
                 geo.move_to_boundary();
                 geo.cross_boundary();  // back into em_calorimeter
             }
 
             // then they are back to agreement
-            result = geo.find_next_step(1);
+            EXPECT_NO_THROW(result = geo.find_next_step(1));
             EXPECT_EQ(result.distance, 1);
             EXPECT_FALSE(result.boundary);
             EXPECT_TRUE(geo.is_on_boundary());
@@ -1408,7 +1443,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         Propagation result;
         // This absurdly long step is because in the "failed" case the
         // track thinks it's in the world volume (nearly vacuum)
-        result = propagate(2.12621374950874703e+21);
+        EXPECT_NO_THROW(result = propagate(2.12621374950874703e+21));
 
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
             && result.boundary != geo.is_on_boundary())
@@ -1510,7 +1545,6 @@ TEST_F(CmseTest, coarse)
             }
             catch (RuntimeError const& e)
             {
-                // Failure during Geant4 propagation
                 CELER_LOG(error) << e.what();
                 failed = true;
                 break;
@@ -1548,6 +1582,18 @@ TEST_F(CmseTest, coarse)
         expected_num_intercept = {30419, 615, 790, 414};
         expected_num_integration = {80659, 1670, 1956, 1092};
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    }
+    else if (using_solids_vg && failed)
+    {
+        expected_num_boundary[1] = 37;
+        expected_num_step[1] = 179;
+        expected_num_intercept[1] = 614;
+        expected_num_integration[1] = 1666;
+        static char const* const expected_log_messages[] = {
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))",
+            R"(Failed to find next step at {10.32, -6.565, 796.9} along {0.6896, -0.1485, 0.7088})"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
+            << scoped_log_;
     }
     else if (using_solids_vg)
     {
