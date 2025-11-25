@@ -70,12 +70,13 @@ class SurfNavigator
     /// @param globalpoint Point in global coordinates
     /// @param state Path where to compute safety
     /// @return Isotropic safe distance
-    CELER_FUNCTION static vg_real_type
-    ComputeSafety(VgReal3 const& globalpoint, NavState const& state)
+    CELER_FUNCTION static vg_real_type ComputeSafety(VgReal3 const& globalpoint,
+                                                     NavState const& state,
+                                                     Precision limit)
     {
         auto safety
             = vgbrep::protonav::BVHSurfNavigator<vg_real_type>::ComputeSafety(
-                globalpoint, state);
+                globalpoint, state, limit);
         return safety;
     }
 

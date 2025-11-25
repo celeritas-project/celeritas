@@ -511,13 +511,8 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
     CELER_EXPECT(!this->is_on_boundary());
     CELER_EXPECT(max_radius > 0);
 
-    real_type safety = Navigator::ComputeSafety(detail::to_vector(this->pos()),
-                                                vgstate_
-#if VECGEOM_VERSION >= 0x200000
-                                                ,
-                                                max_radius
-#endif
-    );
+    real_type safety = Navigator::ComputeSafety(
+        detail::to_vector(this->pos()), vgstate_, max_radius);
     safety = min<real_type>(safety, max_radius);
 
     // Since the reported "safety" is negative if we've moved slightly beyond
