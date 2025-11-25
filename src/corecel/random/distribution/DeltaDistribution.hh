@@ -22,6 +22,7 @@ class DeltaDistribution
     //!@{
     //! \name Type aliases
     using value_type = T;
+    using RecordT = DeltaDistributionRecord<T>;
     //!@}
 
   public:
@@ -31,14 +32,7 @@ class DeltaDistribution
     }
 
     // Construct with record
-    explicit CELER_FUNCTION
-    DeltaDistribution(DeltaOnedDistributionRecord const& record)
-        : value_(record.value)
-    {
-    }
-
-    explicit CELER_FUNCTION
-    DeltaDistribution(DeltaThreedDistributionRecord const& record)
+    explicit CELER_FUNCTION DeltaDistribution(RecordT const& record)
         : value_(record.value)
     {
     }

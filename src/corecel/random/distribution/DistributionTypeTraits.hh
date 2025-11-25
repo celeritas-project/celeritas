@@ -10,7 +10,7 @@
 #include "corecel/cont/EnumClassUtils.hh"
 #include "corecel/random/data/DistributionData.hh"
 
-#include "detail/DistributionFromRecordBuilder.hh"
+#include "detail/DistributionBuilder.hh"
 
 namespace celeritas
 {
@@ -21,18 +21,17 @@ namespace celeritas
 template<OnedDistributionType>
 struct OnedDistributionTypeTraits;
 
-#define CELER_DISTRIB_TRAITS(ENUM_VALUE, NAME, CLS)                     \
+#define CELER_DISTRIB_TRAITS(ENUM_VALUE, CLS)                           \
     template<>                                                          \
     struct OnedDistributionTypeTraits<OnedDistributionType::ENUM_VALUE> \
         : public EnumToClass<OnedDistributionType,                      \
                              OnedDistributionType::ENUM_VALUE,          \
                              CLS>                                       \
     {                                                                   \
-        using RecordT = NAME##DistributionRecord;                       \
     }
 
-CELER_DISTRIB_TRAITS(delta_oned, DeltaOned, DeltaDistribution<real_type>);
-CELER_DISTRIB_TRAITS(normal, Normal, NormalDistribution<real_type>);
+CELER_DISTRIB_TRAITS(delta, DeltaDistribution<real_type>);
+CELER_DISTRIB_TRAITS(normal, NormalDistribution<real_type>);
 
 #undef CELER_DISTRIB_TRAITS
 
@@ -43,21 +42,19 @@ CELER_DISTRIB_TRAITS(normal, Normal, NormalDistribution<real_type>);
 template<ThreedDistributionType>
 struct ThreedDistributionTypeTraits;
 
-#define CELER_DISTRIB_TRAITS(ENUM_VALUE, NAME, CLS)                         \
+#define CELER_DISTRIB_TRAITS(ENUM_VALUE, CLS)                               \
     template<>                                                              \
     struct ThreedDistributionTypeTraits<ThreedDistributionType::ENUM_VALUE> \
         : public EnumToClass<ThreedDistributionType,                        \
                              ThreedDistributionType::ENUM_VALUE,            \
                              CLS>                                           \
     {                                                                       \
-        using RecordT = NAME##DistributionRecord;                           \
     }
 
-CELER_DISTRIB_TRAITS(delta_threed,
-                     DeltaThreed,
-                     DeltaDistribution<DeltaThreedDistributionRecord::Real3>);
-CELER_DISTRIB_TRAITS(isotropic, Isotropic, IsotropicDistribution<real_type>);
-CELER_DISTRIB_TRAITS(uniform_box, UniformBox, UniformBoxDistribution<real_type>);
+CELER_DISTRIB_TRAITS(delta,
+                     DeltaDistribution<detail::DistributionBuilder::Real3>);
+CELER_DISTRIB_TRAITS(isotropic, IsotropicDistribution<real_type>);
+CELER_DISTRIB_TRAITS(uniform_box, UniformBoxDistribution<real_type>);
 
 #undef CELER_DISTRIB_TRAITS
 
@@ -67,6 +64,8 @@ CELER_DISTRIB_TRAITS(uniform_box, UniformBox, UniformBoxDistribution<real_type>)
  */
 struct DistributionVisitor
 {
+    using Real3 = Array<real_type, 3>;
+
     NativeCRef<DistributionParamsData> const& params;
 
     template<class F>
@@ -93,16 +92,17 @@ DistributionVisitor::operator()(F&& func, OnedDistributionId id)
     OnedDistributionType type = params.oned_types[id];
     size_type idx = params.oned_indices[id];
 
-    detail::DistributionFromRecordBuilder build_distribution;
+    detail::DistributionBuilder build;
 
-#define CELER_DISTRIB_CASE(LOWER, UPPER)                       \
-    case OnedDistributionType::LOWER:                          \
-        return celeritas::forward<F>(func)(build_distribution( \
-            params.LOWER##_records[ItemId<UPPER##DistributionRecord>(idx)]))
+#define CELER_DISTRIB_CASE(ENUM_VALUE, FIELD, RECORD) \
+    case OnedDistributionType::ENUM_VALUE:            \
+        return celeritas::forward<F>(func)(           \
+            build(params.FIELD[ItemId<RECORD>(idx)]))
     switch (type)
     {
-        CELER_DISTRIB_CASE(delta_oned, DeltaOned);
-        CELER_DISTRIB_CASE(normal, Normal);
+        CELER_DISTRIB_CASE(
+            delta, delta_real, DeltaDistributionRecord<real_type>);
+        CELER_DISTRIB_CASE(normal, normal, NormalDistributionRecord);
         default:
             CELER_ASSERT_UNREACHABLE();
     }
@@ -122,17 +122,18 @@ DistributionVisitor::operator()(F&& func, ThreedDistributionId id)
     ThreedDistributionType type = params.threed_types[id];
     size_type idx = params.threed_indices[id];
 
-    detail::DistributionFromRecordBuilder build_distribution;
+    detail::DistributionBuilder build;
 
-#define CELER_DISTRIB_CASE(LOWER, UPPER)                       \
-    case ThreedDistributionType::LOWER:                        \
-        return celeritas::forward<F>(func)(build_distribution( \
-            params.LOWER##_records[ItemId<UPPER##DistributionRecord>(idx)]))
+#define CELER_DISTRIB_CASE(ENUM_VALUE, FIELD, RECORD) \
+    case ThreedDistributionType::ENUM_VALUE:          \
+        return celeritas::forward<F>(func)(           \
+            build(params.FIELD[ItemId<RECORD>(idx)]))
     switch (type)
     {
-        CELER_DISTRIB_CASE(delta_threed, DeltaThreed);
-        CELER_DISTRIB_CASE(isotropic, Isotropic);
-        CELER_DISTRIB_CASE(uniform_box, UniformBox);
+        CELER_DISTRIB_CASE(delta, delta_real3, DeltaDistributionRecord<Real3>);
+        CELER_DISTRIB_CASE(isotropic, isotropic, IsotropicDistributionRecord);
+        CELER_DISTRIB_CASE(
+            uniform_box, uniform_box, UniformBoxDistributionRecord);
         default:
             CELER_ASSERT_UNREACHABLE();
     }

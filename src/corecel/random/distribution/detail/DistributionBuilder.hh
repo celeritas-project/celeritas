@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/random/distribution/detail/DistributionFromRecordBuilder.hh
+//! \file corecel/random/distribution/detail/DistributionBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,21 +24,25 @@ namespace detail
 /*!
  * Construct a distribution object from a record,
  */
-struct DistributionFromRecordBuilder
+struct DistributionBuilder
 {
     using Real3 = Array<real_type, 3>;
 
-#define CELER_DISTRIB_BUILD(CLS, NAME)                                    \
-    CELER_FUNCTION CLS operator()(NAME##DistributionRecord const& record) \
-        const                                                             \
-    {                                                                     \
-        return CLS{record};                                               \
+#define CELER_DISTRIB_BUILD(CLS, RECORD)                      \
+    CELER_FUNCTION CLS operator()(RECORD const& record) const \
+    {                                                         \
+        return CLS{record};                                   \
     }
-    CELER_DISTRIB_BUILD(DeltaDistribution<real_type>, DeltaOned);
-    CELER_DISTRIB_BUILD(NormalDistribution<real_type>, Normal);
-    CELER_DISTRIB_BUILD(DeltaDistribution<Real3>, DeltaThreed);
-    CELER_DISTRIB_BUILD(IsotropicDistribution<real_type>, Isotropic);
-    CELER_DISTRIB_BUILD(UniformBoxDistribution<real_type>, UniformBox);
+    CELER_DISTRIB_BUILD(DeltaDistribution<real_type>,
+                        DeltaDistributionRecord<real_type>);
+    CELER_DISTRIB_BUILD(NormalDistribution<real_type>,
+                        NormalDistributionRecord);
+    CELER_DISTRIB_BUILD(DeltaDistribution<Real3>,
+                        DeltaDistributionRecord<Real3>);
+    CELER_DISTRIB_BUILD(IsotropicDistribution<real_type>,
+                        IsotropicDistributionRecord);
+    CELER_DISTRIB_BUILD(UniformBoxDistribution<real_type>,
+                        UniformBoxDistributionRecord);
 #undef CELER_DISTRIB_TRAITS
 };
 

@@ -83,7 +83,7 @@ enum class UnitSystem
 //! Distributions returning a single real type
 enum class OnedDistributionType
 {
-    delta_oned,
+    delta,
     normal,
     size_
 };
@@ -92,7 +92,7 @@ enum class OnedDistributionType
 //! Distributions returning a length three array of real types
 enum class ThreedDistributionType
 {
-    delta_threed,
+    delta,
     isotropic,
     uniform_box,
     size_

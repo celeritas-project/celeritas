@@ -23,11 +23,12 @@ using ThreedDistributionId = OpaqueId<ThreedDistributionType>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for sampling a single value from a delta distribution.
+ * Data for sampling a value from a delta distribution.
  */
-struct DeltaOnedDistributionRecord
+template<class T>
+struct DeltaDistributionRecord
 {
-    real_type value{};
+    T value{};
 };
 
 //---------------------------------------------------------------------------//
@@ -38,17 +39,6 @@ struct NormalDistributionRecord
 {
     real_type mean{0};
     real_type stddev{1};
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Data for sampling a point from a delta distribution.
- */
-struct DeltaThreedDistributionRecord
-{
-    using Real3 = Array<real_type, 3>;
-
-    Real3 value{0, 0, 0};
 };
 
 //---------------------------------------------------------------------------//
@@ -93,16 +83,16 @@ struct DistributionParamsData
     OnedDistributionItems<OnedDistributionType> oned_types;
     OnedDistributionItems<size_type> oned_indices;
 
-    Items<DeltaOnedDistributionRecord> delta_oned_records;
-    Items<NormalDistributionRecord> normal_records;
+    Items<DeltaDistributionRecord<real_type>> delta_real;
+    Items<NormalDistributionRecord> normal;
 
     //! 3D distributions
     ThreedDistributionItems<ThreedDistributionType> threed_types;
     ThreedDistributionItems<size_type> threed_indices;
 
-    Items<DeltaThreedDistributionRecord> delta_threed_records;
-    Items<IsotropicDistributionRecord> isotropic_records;
-    Items<UniformBoxDistributionRecord> uniform_box_records;
+    Items<DeltaDistributionRecord<Array<real_type, 3>>> delta_real3;
+    Items<IsotropicDistributionRecord> isotropic;
+    Items<UniformBoxDistributionRecord> uniform_box;
 
     //// METHODS ////
 
@@ -123,14 +113,14 @@ struct DistributionParamsData
 
         oned_types = other.oned_types;
         oned_indices = other.oned_indices;
-        delta_oned_records = other.delta_oned_records;
-        normal_records = other.normal_records;
+        delta_real = other.delta_real;
+        normal = other.normal;
 
         threed_types = other.threed_types;
         threed_indices = other.threed_indices;
-        delta_threed_records = other.delta_threed_records;
-        isotropic_records = other.isotropic_records;
-        uniform_box_records = other.uniform_box_records;
+        delta_real3 = other.delta_real3;
+        isotropic = other.isotropic;
+        uniform_box = other.uniform_box;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
         return *this;

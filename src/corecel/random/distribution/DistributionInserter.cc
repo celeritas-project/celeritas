@@ -26,10 +26,10 @@ DistributionInserter::DistributionInserter(HostVal<DistributionParamsData>& data
 OnedDistributionId
 DistributionInserter::operator()(inp::DeltaDistribution<double> const& d)
 {
-    DeltaOnedDistributionRecord record;
+    DeltaDistributionRecord<real_type> record;
     record.value = d.value;
-    auto id = CollectionBuilder{&data_.delta_oned_records}.push_back(record);
-    return (*this)(OnedDistributionType::delta_oned, id.get());
+    auto id = CollectionBuilder{&data_.delta_real}.push_back(record);
+    return (*this)(OnedDistributionType::delta, id.get());
 }
 
 //---------------------------------------------------------------------------//
@@ -42,7 +42,7 @@ DistributionInserter::operator()(inp::NormalDistribution const& d)
     NormalDistributionRecord record;
     record.mean = d.mean;
     record.stddev = d.stddev;
-    auto id = CollectionBuilder{&data_.normal_records}.push_back(record);
+    auto id = CollectionBuilder{&data_.normal}.push_back(record);
     return (*this)(OnedDistributionType::normal, id.get());
 }
 
@@ -53,10 +53,10 @@ DistributionInserter::operator()(inp::NormalDistribution const& d)
 ThreedDistributionId DistributionInserter::operator()(
     inp::DeltaDistribution<Array<double, 3>> const& d)
 {
-    DeltaThreedDistributionRecord record;
+    DeltaDistributionRecord<Array<real_type, 3>> record;
     record.value = d.value;
-    auto id = CollectionBuilder{&data_.delta_threed_records}.push_back(record);
-    return (*this)(ThreedDistributionType::delta_threed, id.get());
+    auto id = CollectionBuilder{&data_.delta_real3}.push_back(record);
+    return (*this)(ThreedDistributionType::delta, id.get());
 }
 
 //---------------------------------------------------------------------------//
@@ -67,7 +67,7 @@ ThreedDistributionId
 DistributionInserter::operator()(inp::IsotropicDistribution const&)
 {
     IsotropicDistributionRecord record;
-    auto id = CollectionBuilder{&data_.isotropic_records}.push_back(record);
+    auto id = CollectionBuilder{&data_.isotropic}.push_back(record);
     return (*this)(ThreedDistributionType::isotropic, id.get());
 }
 
@@ -81,7 +81,7 @@ DistributionInserter::operator()(inp::UniformBoxDistribution const& d)
     UniformBoxDistributionRecord record;
     record.upper = d.upper;
     record.lower = d.lower;
-    auto id = CollectionBuilder{&data_.uniform_box_records}.push_back(record);
+    auto id = CollectionBuilder{&data_.uniform_box}.push_back(record);
     return (*this)(ThreedDistributionType::uniform_box, id.get());
 }
 
