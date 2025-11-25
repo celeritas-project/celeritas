@@ -183,10 +183,6 @@ class VecgeomTrackView
 
     // Static data
 
-    //! A tiny push to make sure tracks do not get stuck at boundaries (TODO:
-    //! DELETEME)
-    static constexpr real_type extra_push_ = 1e-13;
-
     //! Absolute tolerance used in internal vecgeom construction:
     //! 1e-9 for double, 1e-3 for single
     static constexpr vg_real_type abs_tolerance_
@@ -460,6 +456,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     {
         *next_surf_ = null_surface();
     }
+
     // TODO: vgnext is simply copied and the boundary flag optionally set
     next_step_ = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
                                                      detail::to_vector(dir_),
@@ -471,14 +468,13 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
                                                      *next_surf_
 #endif
     );
+    CELER_ASSERT(next_step_ > 0);
     if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
         // Our accessor uses the next_surf_ state, but the temporary used for
         // vgnext_ should reflect the same result
         CELER_ASSERT((*next_surf_ != null_surface()) == vgnext_.IsOnBoundary());
     }
-
-    next_step_ = max(next_step_, this->extra_push_);
 
     if (!this->is_next_boundary())
     {
@@ -495,9 +491,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 
     CELER_ENSURE(this->has_next_step());
     CELER_ENSURE(result.distance > 0);
-    CELER_ENSURE(result.distance <= max(max_step, this->extra_push_));
-    CELER_ENSURE(result.boundary || result.distance == max_step
-                 || max_step < this->extra_push_);
+    CELER_ENSURE(result.distance <= max_step);
+    CELER_ENSURE(result.boundary || result.distance == max_step);
     return result;
 }
 
