@@ -87,7 +87,6 @@ S& get(AuxStateVec& vec, AuxId auxid)
             << TypeDemangler<AuxStateInterface>{}(*ptr)
             << " but was accessed with type " << TypeDemangler<S>{}());
     }
-    CELER_ENSURE(dynamic_cast<S*>(ptr));
     return *static_cast<S*>(ptr);
 }
 
@@ -109,7 +108,6 @@ S const& get(AuxStateVec const& vec, AuxId auxid)
             << TypeDemangler<AuxStateInterface>{}(*ptr)
             << " but was accessed with type " << TypeDemangler<S>{}());
     }
-    CELER_ENSURE(dynamic_cast<S const*>(ptr));
     return *static_cast<S const*>(ptr);
 }
 
