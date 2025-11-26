@@ -11,16 +11,10 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/random/Types.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-//! Identifier for a distribution returning a single real type
-using OnedDistributionId = OpaqueId<OnedDistributionType>;
-
-//! Identifier for a distribution returning a length three array
-using ThreedDistributionId = OpaqueId<ThreedDistributionType>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Data for sampling a value from a delta distribution.
@@ -55,8 +49,6 @@ struct IsotropicDistributionRecord
  */
 struct UniformBoxDistributionRecord
 {
-    using Real3 = Array<real_type, 3>;
-
     Real3 lower{0, 0, 0};
     Real3 upper{0, 0, 0};
 };

@@ -12,7 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/random/data/DistributionData.hh"
-#include "corecel/random/distribution/DistributionTypeTraits.hh"
+#include "corecel/random/distribution/DistributionVisitor.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 
 #include "PrimaryGeneratorData.hh"

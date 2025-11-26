@@ -15,6 +15,7 @@
 #include "corecel/random/data/DistributionData.hh"
 #include "corecel/random/distribution/DeltaDistribution.hh"
 #include "corecel/random/distribution/DistributionInserter.hh"
+#include "corecel/random/distribution/DistributionVisitor.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/UniformBoxDistribution.hh"

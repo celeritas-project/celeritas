@@ -21,7 +21,7 @@ class DistributionInserter
 {
   public:
     // Construct with a reference to mutable host data
-    DistributionInserter(HostVal<DistributionParamsData>&);
+    explicit DistributionInserter(HostVal<DistributionParamsData>&);
 
     // Add 1D distribution data
     OnedDistributionId operator()(inp::DeltaDistribution<double> const&);

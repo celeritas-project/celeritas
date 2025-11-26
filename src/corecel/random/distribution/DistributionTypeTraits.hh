@@ -8,9 +8,13 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumClassUtils.hh"
+#include "corecel/random/Types.hh"
 #include "corecel/random/data/DistributionData.hh"
 
-#include "detail/DistributionBuilder.hh"
+#include "DeltaDistribution.hh"
+#include "IsotropicDistribution.hh"
+#include "NormalDistribution.hh"
+#include "UniformBoxDistribution.hh"
 
 namespace celeritas
 {
@@ -51,94 +55,11 @@ struct ThreedDistributionTypeTraits;
     {                                                                       \
     }
 
-CELER_DISTRIB_TRAITS(delta,
-                     DeltaDistribution<detail::DistributionBuilder::Real3>);
+CELER_DISTRIB_TRAITS(delta, DeltaDistribution<Real3>);
 CELER_DISTRIB_TRAITS(isotropic, IsotropicDistribution<real_type>);
 CELER_DISTRIB_TRAITS(uniform_box, UniformBoxDistribution<real_type>);
 
 #undef CELER_DISTRIB_TRAITS
-
-//---------------------------------------------------------------------------//
-/*!
- * Expand a macro to a switch statement over all possible distribution types.
- */
-struct DistributionVisitor
-{
-    using Real3 = Array<real_type, 3>;
-
-    NativeCRef<DistributionParamsData> const& params;
-
-    template<class F>
-    CELER_CONSTEXPR_FUNCTION decltype(auto)
-    operator()(F&& func, OnedDistributionId id);
-
-    template<class F>
-    CELER_CONSTEXPR_FUNCTION decltype(auto)
-    operator()(F&& func, ThreedDistributionId id);
-};
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Expand a macro to a switch statement over all 1D distribution types.
- */
-template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-DistributionVisitor::operator()(F&& func, OnedDistributionId id)
-{
-    CELER_EXPECT(id < params.oned_types.size());
-
-    OnedDistributionType type = params.oned_types[id];
-    size_type idx = params.oned_indices[id];
-
-    detail::DistributionBuilder build;
-
-#define CELER_DISTRIB_CASE(ENUM_VALUE, FIELD, RECORD) \
-    case OnedDistributionType::ENUM_VALUE:            \
-        return celeritas::forward<F>(func)(           \
-            build(params.FIELD[ItemId<RECORD>(idx)]))
-    switch (type)
-    {
-        CELER_DISTRIB_CASE(
-            delta, delta_real, DeltaDistributionRecord<real_type>);
-        CELER_DISTRIB_CASE(normal, normal, NormalDistributionRecord);
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
-#undef CELER_DISTRIB_CASE
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Expand a macro to a switch statement over all 3D distribution types.
- */
-template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-DistributionVisitor::operator()(F&& func, ThreedDistributionId id)
-{
-    CELER_EXPECT(id < params.threed_types.size());
-
-    ThreedDistributionType type = params.threed_types[id];
-    size_type idx = params.threed_indices[id];
-
-    detail::DistributionBuilder build;
-
-#define CELER_DISTRIB_CASE(ENUM_VALUE, FIELD, RECORD) \
-    case ThreedDistributionType::ENUM_VALUE:          \
-        return celeritas::forward<F>(func)(           \
-            build(params.FIELD[ItemId<RECORD>(idx)]))
-    switch (type)
-    {
-        CELER_DISTRIB_CASE(delta, delta_real3, DeltaDistributionRecord<Real3>);
-        CELER_DISTRIB_CASE(isotropic, isotropic, IsotropicDistributionRecord);
-        CELER_DISTRIB_CASE(
-            uniform_box, uniform_box, UniformBoxDistributionRecord);
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
-#undef CELER_DISTRIB_CASE
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
