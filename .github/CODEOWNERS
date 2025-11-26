@@ -1,0 +1,46 @@
+#-----------------------------------------------------------------------------#
+# CELERITAS PROJECT CODEOWNERS
+# See discussion in /doc/development/administration.rst .
+# Note that later lines take precedence over earlier ones.
+#-----------------------------------------------------------------------------#
+
+# Default all changes to ping the code lead if not overridden below
+* @celeritas-project/code-lead
+
+#-------------------------------------#
+# Topics
+#-------------------------------------#
+
+# Administration
+/.github/CODEOWNERS @celeritas-project/code-lead @celeritas-project/core-advisor
+/scripts/release/users.json @celeritas-project/code-lead
+/doc/development/administration.rst @celeritas-project/code-lead @celeritas-project/core-advisor
+
+# CI Infrastructure
+/.github/ @sethrj @pcanal
+/cmake/ @sethrj @pcanal
+/scripts/ci/ @sethrj @pcanal
+/scripts/docker/interactive @esseivaju
+/scripts/**/perlmutter.* @esseivaju
+
+# Core capabilities
+/src/corecel/ @sethrj
+/src/corecel/random/ @davidsgr @amandalund
+/src/corecel/sys/ @esseivaju
+
+# Physics
+/src/celeritas/em/ @amandalund @stognini @whokion
+/src/celeritas/field/ @sethrj @whokion
+/src/celeritas/neutron/ @whokion
+/src/celeritas/optical/ @amandalund @hhollenb @Rashika-Gupta @whokion
+/src/celeritas/phys/ @sethrj @amandalund
+/src/celeritas/track/ @amandalund @esseivaju @LSchwiebert
+
+# Geometry
+/src/orange/ @elliottbiondo @esseivaju @sethrj
+/src/geocel/vg/ @mrguilima @sethrj
+
+# Integration
+/src/celeritas/g4/ @drbenmorgan @sethrj @stognini @whokion
+/src/celeritas/ext/ @drbenmorgan @sethrj @stognini @whokion
+/src/accel/ @drbenmorgan @esseivaju @rahmans1 @Rashika-Gupta @sethrj @stognini @whokion

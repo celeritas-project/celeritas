@@ -26,8 +26,24 @@
 #    define VECGEOM_PRECISION_NAMESPACE
 #endif
 
+#define CELER_VGNAV_TUPLE 1
+#define CELER_VGNAV_INDEX 2
+#define CELER_VGNAV_PATH 3
+
+#if defined(VECGEOM_USE_NAVTUPLE)
+#    define CELER_VGNAV CELER_VGNAV_TUPLE
+#elif defined(VECGEOM_USE_NAVINDEX)
+#    define CELER_VGNAV CELER_VGNAV_INDEX
+#else
+#    define CELER_VGNAV CELER_VGNAV_PATH
+#endif
+
 namespace vecgeom
 {
+#if VECGEOM_VERSION >= 0x020000
+template<VECGEOM_PRECISION_NAMESPACE::uint MD>
+struct NavTuple;
+#endif
 VECGEOM_HOST_FORWARD_DECLARE(class LogicalVolume;);
 VECGEOM_DEVICE_FORWARD_DECLARE(class LogicalVolume;);
 VECGEOM_HOST_FORWARD_DECLARE(class VPlacedVolume;);
@@ -50,13 +66,37 @@ using vgbvh_real_type = float;
 using vgbvh_real_type = double;
 #endif
 
+#if VECGEOM_VERSION >= 0x020000
+// Allow trivial copying of tuple between device/host
+template<VECGEOM_PRECISION_NAMESPACE::uint MD>
+struct TriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
+{
+};
+#endif
+
 //---------------------------------------------------------------------------//
 // LOW-LEVEL TYPES
 //---------------------------------------------------------------------------//
 
 //! VecGeom::VPlacedVolume::id is unsigned int
-using VgPlacedVolumeId = OpaqueId<struct VecgeomPlacedVolume_,
-                                  std::make_unsigned_t<VgPlacedVolumeInt>>;
+using VgVolumeInstanceId = OpaqueId<struct VecgeomPlacedVolume_,
+                                    std::make_unsigned_t<VgPlacedVolumeInt>>;
+
+enum class VgBoundary : bool
+{
+    off,
+    on
+};
+
+CELER_CONSTEXPR_FUNCTION bool to_bool(VgBoundary b)
+{
+    return static_cast<bool>(b);
+}
+
+CELER_CONSTEXPR_FUNCTION VgBoundary to_vgboundary(bool b)
+{
+    return static_cast<VgBoundary>(b);
+}
 
 //---------------------------------------------------------------------------//
 // VOLUME/VECTOR TYPES
@@ -79,6 +119,18 @@ using VgReal3 = VgVector3<vg_real_type, MemSpace::native>;
 //---------------------------------------------------------------------------//
 // NAVIGATION TYPES
 //---------------------------------------------------------------------------//
+
+using VgNavIndex = VECGEOM_PRECISION_NAMESPACE::NavIndex_t;
+
+//! Low-level (POD compatible) VecGeom navigation state
+#if CELER_VGNAV == CELER_VGNAV_INDEX || defined(__DOXYGEN__)
+using VgNavStateImpl = VgNavIndex;
+#elif CELER_VGNAV == CELER_VGNAV_TUPLE
+using VgNavStateImpl = vecgeom::NavTuple<VECGEOM_NAVTUPLE_MAXDEPTH>;
+#elif CELER_VGNAV == CELER_VGNAV_PATH
+// Only used clangd parsing of VgNavStateWrapper
+using VgNavStateImpl = VgNavIndex;
+#endif
 
 //! High level VecGeom navigation state
 using VgNavState = vecgeom::NavigationState;

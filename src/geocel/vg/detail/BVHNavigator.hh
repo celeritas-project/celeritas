@@ -1,9 +1,10 @@
 //------------------------------- -*- C++ -*- -------------------------------//
 // SPDX-FileCopyrightText: 2020 CERN
+// SPDX-FileCopyrightText: 2025 Celeritas contributors
 // SPDX-License-Identifier: Apache-2.0
 //---------------------------------------------------------------------------//
 /*!
- * \file BVHNavigator.hh
+ * \file geocel/vg/detail/BVHNavigator.hh
  * \brief Bounding Volume Hierarchy navigator directly derived from AdePT
  *
  * Original source:
@@ -24,6 +25,12 @@
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
 
+#if CELER_VGNAV == CELER_VGNAV_PATH
+#    include <VecGeom/navigation/NavStatePath.h>
+#else
+#    include "VgNavStateWrapper.hh"
+#endif
+
 #include "corecel/Macros.hh"
 #include "geocel/vg/VecgeomTypes.hh"
 
@@ -36,7 +43,11 @@ class BVHNavigator
 {
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-    using NavState = VgNavState;
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    using NavState = vecgeom::NavStatePath;
+#else
+    using NavState = detail::VgNavStateWrapper;
+#endif
 
     static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
 
@@ -61,7 +72,6 @@ class BVHNavigator
         path.Push(vol);
 
         VgReal3 currentpoint(point);
-        VgReal3 daughterlocalpoint;
 
         while (vol->GetDaughters().size() > 0)
         {
@@ -69,7 +79,9 @@ class BVHNavigator
                 = vecgeom::BVHManager::GetBVH(vol->GetLogicalVolume()->id());
             CELER_ASSERT(bvh);
 
-            // Note: vol is updated by this call
+            // Note: vol *and* daughterlocalpoint are updated by this call
+            VgReal3 daughterlocalpoint;
+            vol = nullptr;
             if (!bvh->LevelLocate(
                     exclude, currentpoint, vol, daughterlocalpoint))
             {
@@ -459,6 +471,7 @@ class BVHNavigator
         }
     }
 };
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

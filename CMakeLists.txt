@@ -253,7 +253,7 @@ if(CELERITAS_USE_CUDA)
   celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
   celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
   if(NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
-    # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html#variable:CMAKE_%3CLANG%3E_HOST_COMPILER
+    # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html
     message(WARNING "CUDA host compiler mismatch: "
       "CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER} "
       "but CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
@@ -458,19 +458,35 @@ if(CELERITAS_USE_VecGeom)
     )
   endif()
 
-  if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
-    celeritas_error_incompatible_option(
-      "VecGeom installation at \"${VecGeom_DIR}\" is not CUDA-enabled"
-      CELERITAS_USE_CUDA
-      "${VecGeom_CUDA_FOUND}"
-    )
-  elseif(CELERITAS_USE_CUDA
-      AND NOT (VecGeom_CUDA_ARCHITECTURES STREQUAL CMAKE_CUDA_ARCHITECTURES))
-    message(WARNING "CUDA architecture types between "
-      "VecGeom (${VecGeom_CUDA_ARCHITECTURES}) and "
-      "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match: "
-      "runtime errors may result"
-    )
+  # Save VecGeom_NAV variable for diagnostics
+  if(VecGeom_VERSION VERSION_LESS 2.0)
+    if(VecGeom_USE_NAVINDEX)
+      set(VecGeom_NAV "index")
+    else()
+      set(VecGeom_NAV "path")
+    endif()
+  endif()
+
+  if(CELERITAS_USE_CUDA)
+    if(NOT VecGeom_CUDA_FOUND)
+      celeritas_error_incompatible_option(
+        "VecGeom installation at \"${VecGeom_DIR}\" is not CUDA-enabled"
+        CELERITAS_USE_CUDA
+        "${VecGeom_CUDA_FOUND}"
+      )
+    elseif(VecGeom_NAV STREQUAL "path")
+      celeritas_error_incompatible_option(
+        "VecGeom installation at \"${VecGeom_DIR}\" was built with VecGeom_NAV=path: use index or tuple instead for CUDA compatibility"
+        CELERITAS_USE_VecGeom
+        OFF
+      )
+    elseif(NOT (VecGeom_CUDA_ARCHITECTURES STREQUAL CMAKE_CUDA_ARCHITECTURES))
+      message(WARNING "CUDA architecture types between "
+        "VecGeom (${VecGeom_CUDA_ARCHITECTURES}) and "
+        "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match: "
+        "runtime errors may result"
+      )
+    endif()
   endif()
   if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
     celeritas_error_incompatible_option(
