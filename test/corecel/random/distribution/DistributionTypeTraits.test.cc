@@ -49,21 +49,24 @@ TEST(DistributionTypeTraitsTest, oned_visit)
                 std::visit([&rng](auto& d) { return d(rng); }, var));
         }
     }
-    static double const expected_result[] = {
-        1.2258231678182,
-        1.1978901974816,
-        0.83114664780031,
-        1.8521782793476,
-        1.23,
-        1.23,
-        1.23,
-        1.23,
-        4.56,
-        4.56,
-        4.56,
-        4.56,
-    };
-    EXPECT_VEC_SOFT_EQ(expected_result, result);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static double const expected_result[] = {
+            1.2258231678182,
+            1.1978901974816,
+            0.83114664780031,
+            1.8521782793476,
+            1.23,
+            1.23,
+            1.23,
+            1.23,
+            4.56,
+            4.56,
+            4.56,
+            4.56,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_result, result);
+    }
 }
 
 TEST(DistributionTypeTraitsTest, oned_params)
@@ -101,17 +104,20 @@ TEST(DistributionTypeTraitsTest, oned_params)
             result.push_back(visit([&rng](auto&& d) { return d(rng); }, id));
         }
     }
-    static double const expected_result[] = {
-        1.23,
-        1.23,
-        1.23,
-        1.23,
-        10.451646335636,
-        9.6622932956006,
-        11.025567998918,
-        10.110686567755,
-    };
-    EXPECT_VEC_SOFT_EQ(expected_result, result);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static double const expected_result[] = {
+            1.23,
+            1.23,
+            1.23,
+            1.23,
+            10.451646335636,
+            9.6622932956006,
+            11.025567998918,
+            10.110686567755,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_result, result);
+    }
 }
 
 TEST(DistributionTypeTraitsTest, threed_params)
@@ -153,21 +159,24 @@ TEST(DistributionTypeTraitsTest, threed_params)
             result.push_back(visit([&rng](auto&& d) { return d(rng); }, id));
         }
     }
-    static Array<double, 3> const expected_result[] = {
-        {1, 2, 3},
-        {1, 2, 3},
-        {1, 2, 3},
-        {1, 2, 3},
-        {0.34845268346628, -0.58912873788278, -0.72904599140644},
-        {0.062868760835021, 0.34161319019477, 0.93773554224846},
-        {-0.88312339429508, -0.26998805233565, -0.38366589898599},
-        {0.78125163804615, -0.034967222382795, -0.62323604790564},
-        {0.99646132554801, 0.9676949370105, 0.72583896321189},
-        {0.98110969177694, 0.10986175084421, 0.79810585674955},
-        {0.29702944955795, 0.0047834844193157, 0.11246451605618},
-        {0.63976335709815, 0.87843064539884, 0.50366267770517},
-    };
-    EXPECT_VEC_SOFT_EQ(expected_result, result);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static Array<double, 3> const expected_result[] = {
+            {1, 2, 3},
+            {1, 2, 3},
+            {1, 2, 3},
+            {1, 2, 3},
+            {0.34845268346628, -0.58912873788278, -0.72904599140644},
+            {0.062868760835021, 0.34161319019477, 0.93773554224846},
+            {-0.88312339429508, -0.26998805233565, -0.38366589898599},
+            {0.78125163804615, -0.034967222382795, -0.62323604790564},
+            {0.99646132554801, 0.9676949370105, 0.72583896321189},
+            {0.98110969177694, 0.10986175084421, 0.79810585674955},
+            {0.29702944955795, 0.0047834844193157, 0.11246451605618},
+            {0.63976335709815, 0.87843064539884, 0.50366267770517},
+        };
+        EXPECT_VEC_SOFT_EQ(expected_result, result);
+    }
 }
 
 //---------------------------------------------------------------------------//

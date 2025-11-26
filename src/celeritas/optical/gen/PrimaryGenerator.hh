@@ -74,10 +74,9 @@ PrimaryGenerator::operator()(Generator& rng)
     DistributionVisitor visit{params_};
 
     optical::TrackInitializer result;
-    result.energy = units::MevEnergy{
-        visit([&rng](auto&& d) { return d(rng); }, data_.energy)};
-    result.position = visit([&rng](auto&& d) { return d(rng); }, data_.shape);
-    result.direction = visit([&rng](auto&& d) { return d(rng); }, data_.angle);
+    result.energy = units::MevEnergy{sample_with(visit, data_.energy, rng)};
+    result.position = sample_with(visit, data_.shape, rng);
+    result.direction = sample_with(visit, data_.angle, rng);
     do
     {
         result.polarization = ExitingDirectionSampler{0, result.direction}(rng);

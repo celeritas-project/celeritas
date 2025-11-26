@@ -404,7 +404,7 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 {
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{10};
+    result.energy = inp::MonoenergeticDistribution{10};  // [MeV]
     result.shape
         = inp::PointDistribution{array_cast<double>(from_cm({99, 0.1, 0}))};
     result.angle = inp::IsotropicDistribution{};
@@ -475,7 +475,7 @@ auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
 {
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{100};
+    result.energy = inp::MonoenergeticDistribution{100};  // [MeV]
     result.shape
         = inp::PointDistribution{array_cast<double>(from_cm({-22, 0, 0}))};
     result.angle = inp::MonodirectionalDistribution{{1, 0, 0}};
@@ -524,7 +524,7 @@ auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
 {
     PrimaryInput result;
     result.pdg = {pdg::positron()};
-    result.energy = inp::MonoenergeticDistribution{0.5};
+    result.energy = inp::MonoenergeticDistribution{0.5};  // [MeV]
     result.shape
         = inp::PointDistribution{array_cast<double>(from_cm({0., 0., 0.}))};
     result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};

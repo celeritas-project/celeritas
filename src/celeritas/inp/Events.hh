@@ -21,7 +21,7 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
-//! Generate at a single energy value
+//! Generate at a single energy value [MeV]
 using MonoenergeticDistribution = DeltaDistribution<double>;
 
 //! Choose an energy distribution for the primary generator

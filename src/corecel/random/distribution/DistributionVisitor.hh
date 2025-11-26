@@ -118,4 +118,19 @@ DistributionVisitor::operator()(F&& func, ThreedDistributionId id)
 }
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function for sampling from a distribution.
+ */
+template<class Visitor, class Dist, class Engine>
+CELER_FUNCTION decltype(auto)
+sample_with(Visitor&& visit, Dist&& dist, Engine& rng)
+{
+    return celeritas::forward<Visitor>(visit)(
+        [&rng](auto&& d) -> decltype(auto) { return d(rng); },
+        celeritas::forward<Dist>(dist));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

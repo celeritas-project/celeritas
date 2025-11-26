@@ -117,7 +117,7 @@ celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
 celeritas_add_test(random/distribution/RejectionSampler.test.cc)
 celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
-celeritas_add_test(random/distribution/DistributionTypeTraits.test.cc GPU)
+celeritas_add_test(random/distribution/DistributionTypeTraits.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Sys

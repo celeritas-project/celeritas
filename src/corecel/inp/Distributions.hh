@@ -22,7 +22,7 @@ struct DeltaDistribution
 };
 
 //---------------------------------------------------------------------------//
-//! Generate primaries with Gaussian-distributed energy
+//! Sample from a Gaussian (normal) distribution
 struct NormalDistribution
 {
     double mean{0};

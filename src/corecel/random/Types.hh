@@ -8,7 +8,6 @@
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
 
 namespace celeritas
 {
@@ -36,9 +35,6 @@ enum class ThreedDistributionType
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
-
-//! Three-dimensional cartesian coordinates
-using Real3 = Array<real_type, 3>;
 
 //! Identifier for a distribution returning a single real type
 using OnedDistributionId = OpaqueId<OnedDistributionType>;

@@ -307,7 +307,7 @@ auto LarSphereOptical::make_primary_input() const -> PrimaryInput
     result.shape
         = inp::PointDistribution{array_cast<double>(from_cm({0.1, 0.1, 0}))};
     result.primaries_per_event = 1;
-    result.energy = inp::MonoenergeticDistribution{2};
+    result.energy = inp::MonoenergeticDistribution{2};  // [MeV]
     return result;
 }
 
