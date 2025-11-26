@@ -11,6 +11,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/DeltaDistribution.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
@@ -55,15 +56,16 @@ auto make_energy_sampler(inp::EnergyDistribution const& i)
 auto make_position_sampler(inp::ShapeDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
-    return std::visit(return_as<PrimaryGenerator::PositionSampler>(
-                          Overload{[](inp::PointDistribution const& ps) {
-                                       return DeltaDistribution{ps.value};
-                                   },
-                                   [](inp::UniformBoxDistribution const& ubs) {
-                                       return UniformBoxDistribution{
-                                           ubs.lower, ubs.upper};
-                                   }}),
-                      i);
+    return std::visit(
+        return_as<PrimaryGenerator::PositionSampler>(Overload{
+            [](inp::PointDistribution const& ps) {
+                return DeltaDistribution{array_cast<real_type>(ps.value)};
+            },
+            [](inp::UniformBoxDistribution const& ubs) {
+                return UniformBoxDistribution{array_cast<real_type>(ubs.lower),
+                                              array_cast<real_type>(ubs.upper)};
+            }}),
+        i);
 }
 
 //---------------------------------------------------------------------------//
@@ -73,17 +75,18 @@ auto make_position_sampler(inp::ShapeDistribution const& i)
 auto make_direction_sampler(inp::AngleDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
-    return std::visit(return_as<PrimaryGenerator::DirectionSampler>(Overload{
-                          [](inp::IsotropicDistribution const&) {
-                              return IsotropicDistribution<real_type>{};
-                          },
-                          [](inp::MonodirectionalDistribution const& ma) {
-                              CELER_VALIDATE(is_soft_unit_vector(ma.value),
-                                             << "primary generator angle is "
-                                                "not a unit vector");
-                              return DeltaDistribution{ma.value};
-                          }}),
-                      i);
+    return std::visit(
+        return_as<PrimaryGenerator::DirectionSampler>(Overload{
+            [](inp::IsotropicDistribution const&) {
+                return IsotropicDistribution<real_type>{};
+            },
+            [](inp::MonodirectionalDistribution const& ma) {
+                CELER_VALIDATE(is_soft_unit_vector(ma.value),
+                               << "primary generator angle is "
+                                  "not a unit vector");
+                return DeltaDistribution{array_cast<real_type>(ma.value)};
+            }}),
+        i);
 }
 
 //---------------------------------------------------------------------------//

@@ -139,7 +139,7 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     inp.primaries = 65536;
     inp.energy = inp::MonoenergeticDistribution{1e-5};
     inp.angle = inp::IsotropicDistribution{};
-    inp.shape = inp::PointDistribution{Real3{0, 0, 0}};
+    inp.shape = inp::PointDistribution{{0, 0, 0}};
     auto generate = optical::PrimaryGeneratorAction::make_and_insert(
         *this->core(), *this->optical_params(), std::move(inp));
 
@@ -175,9 +175,8 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_primary_generator))
     inp::OpticalPrimaryGenerator inp;
     inp.primaries = 65536;
     inp.energy = inp::NormalDistribution{1e-5, 1e-6};
-    inp.angle = inp::MonodirectionalDistribution{Real3{1, 0, 0}};
-    inp.shape
-        = inp::UniformBoxDistribution{Real3{-10, -10, -10}, Real3{10, 10, 10}};
+    inp.angle = inp::MonodirectionalDistribution{{1, 0, 0}};
+    inp.shape = inp::UniformBoxDistribution{{-10, -10, -10}, {10, 10, 10}};
     auto generate = optical::PrimaryGeneratorAction::make_and_insert(
         *this->core(), *this->optical_params(), std::move(inp));
 

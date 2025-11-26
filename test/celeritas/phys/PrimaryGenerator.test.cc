@@ -60,7 +60,7 @@ TEST_F(PrimaryGeneratorTest, basic)
     inp.num_events = 2;
     inp.primaries_per_event = 3;
     inp.energy = inp::MonoenergeticDistribution{10};
-    inp.shape = inp::PointDistribution{Real3{1, 2, 3}};
+    inp.shape = inp::PointDistribution{{1, 2, 3}};
     inp.angle = inp::IsotropicDistribution{};
     PrimaryGenerator generate_primaries(inp, *particles_);
     EXPECT_EQ(2, generate_primaries.num_events());

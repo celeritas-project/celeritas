@@ -74,10 +74,10 @@ inp::ShapeDistribution inp_from_position(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::PointDistribution{Real3{p[0], p[1], p[2]}};
+            return inp::PointDistribution{{p[0], p[1], p[2]}};
         case DistributionSelection::box:
-            return inp::UniformBoxDistribution{Real3{p[0], p[1], p[2]},
-                                               Real3{p[3], p[4], p[5]}};
+            return inp::UniformBoxDistribution{{p[0], p[1], p[2]},
+                                               {p[3], p[4], p[5]}};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
@@ -96,7 +96,7 @@ inp::AngleDistribution inp_from_direction(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::MonodirectionalDistribution{Real3{p[0], p[1], p[2]}};
+            return inp::MonodirectionalDistribution{{p[0], p[1], p[2]}};
         case DistributionSelection::isotropic:
             return inp::IsotropicDistribution{};
         default:
