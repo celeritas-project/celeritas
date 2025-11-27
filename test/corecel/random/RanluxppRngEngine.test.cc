@@ -30,10 +30,14 @@ TEST(RanluxImpl, params_copy)
 {
     HostVal<RanluxppRngParamsData> host_val;
     host_val.seed = 12345;
+    host_val.advance_state[0] = 1;
+    host_val.advance_sequence[0] = 2;
 
     HostRef<RanluxppRngParamsData> host_ref;
     host_ref = host_val;
     EXPECT_EQ(12345, host_ref.seed);
+    EXPECT_EQ(1, host_ref.advance_state[0]);
+    EXPECT_EQ(2, host_ref.advance_sequence[0]);
 }
 
 /*!
@@ -104,12 +108,12 @@ TEST(RanluxImpl, compute_power_modulus)
     auto const& params = host_params.host_ref();
     auto a_2048_actual
         = detail::compute_power_modulus(a, RanluxppUInt(1) << 11);
-    EXPECT_EQ(params.state_2048, a_2048_actual)
+    EXPECT_EQ(params.advance_state, a_2048_actual)
         << "actual: " << hex_repr(a_2048_actual);
 
     auto a_32 = detail::compute_power_modulus(a, RanluxppUInt(1) << 5);  // a^2^5
     auto a_1024 = detail::compute_power_modulus(a_32, RanluxppUInt(1) << 5);
-    EXPECT_EQ(params.state_2048, detail::compute_power_modulus(a_1024, 2));
+    EXPECT_EQ(params.advance_state, detail::compute_power_modulus(a_1024, 2));
 
     // Seed state is 2048 (= 2^{11}) LCG skips, applied 2^96 times:
     // = (a^{2^{11}})^{2^{96}}
@@ -120,22 +124,17 @@ TEST(RanluxImpl, compute_power_modulus)
     temp = detail::compute_power_modulus(temp,
                                          RanluxppUInt(1) << 50);  // a^2^100
     temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 7);  // a^2^107
-    EXPECT_EQ(params.seed_state, temp);
-
-    // Original seed state computation
-    temp = detail::compute_power_modulus(params.state_2048,
-                                         RanluxppUInt(1) << 48);
-    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 48);
-    EXPECT_EQ(params.seed_state, temp);
+    EXPECT_EQ(params.advance_sequence, temp);
 }
 
 TEST(RanluxImpl, compute_power_exp_modulus)
 {
-    RanluxppRngParams host_params{0};
-    auto const& params = host_params.host_ref();
+    // Original seed state computation
+    auto temp = detail::compute_power_modulus(rcarry_a, RanluxppUInt(1) << 11);
+    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 48);
+    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 48);
 
-    EXPECT_EQ(params.seed_state,
-              detail::compute_power_exp_modulus(rcarry_a, 107));
+    EXPECT_EQ(temp, detail::compute_power_exp_modulus(rcarry_a, 107));
 }
 
 //---------------------------------------------------------------------------//

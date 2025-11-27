@@ -125,7 +125,7 @@ RanluxppRngEngine::operator=(Initializer_t const& init)
 {
     // Skip forward (2^96) * (init.seed + init.subsequence) states
     RanluxppArray9 new_a_seed = celeritas::detail::compute_power_modulus(
-        params_.seed_state, init.seed + init.subsequence);
+        params_.advance_sequence, init.seed + init.subsequence);
 
     // Convert to Ranluxpp number and save state
     state_->value = celeritas::detail::to_ranlux(new_a_seed);
@@ -174,18 +174,18 @@ CELER_FUNCTION void RanluxppRngEngine::skip(RanluxppUInt n)
     n -= left;
     // Need to advance and possibly skip multiple blocks (each block is 576
     // random bits, or 12 48-bit samples)
-    constexpr int nPerState = ParamsRef::max_position / offset_;
-    int skip = n / nPerState;
+    constexpr int n_per_state = ParamsRef::max_position / offset_;
+    int skip = n / n_per_state;
 
     RanluxppArray9 a_skip = celeritas::detail::compute_power_modulus(
-        params_.state_2048, skip + 1);
+        params_.advance_state, skip + 1);
 
     RanluxppArray9 lcg = celeritas::detail::to_lcg(state_->value);
     lcg = celeritas::detail::compute_mod_multiply(a_skip, lcg);
     state_->value = celeritas::detail::to_ranlux(lcg);
 
     // Potentially skip numbers in the freshly generated block.
-    int remaining = n - skip * nPerState;
+    int remaining = n - skip * n_per_state;
     CELER_ASSERT(remaining >= 0);
     state_->position = remaining * offset_;
     CELER_ENSURE(state_->position <= params_.max_position);
@@ -226,7 +226,7 @@ CELER_FUNCTION RanluxppUInt RanluxppRngEngine::next_random_bits()
 CELER_FUNCTION void RanluxppRngEngine::advance()
 {
     RanluxppArray9 lcg = celeritas::detail::to_lcg(state_->value);
-    lcg = celeritas::detail::compute_mod_multiply(params_.state_2048, lcg);
+    lcg = celeritas::detail::compute_mod_multiply(params_.advance_state, lcg);
     state_->value = celeritas::detail::to_ranlux(lcg);
     state_->position = 0;
 }
