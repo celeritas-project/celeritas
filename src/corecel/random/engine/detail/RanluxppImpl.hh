@@ -581,9 +581,8 @@ CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
  *
  * Computes \f$ m = 2^{576} - 2^{240} + 1 \f$.
  *
- * \param[in] ranluxpp_carry_state  A struct containing the state and carry
- *                                  numbers
- * \return     The 576 bits of the LCG state, smaller than m
+ * \param[in] ranlux A struct containing the state and carry numbers
+ * \return The 576 bits of the LCG state, smaller than m
  */
 CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppNumber const& ranlux)
 {
