@@ -11,17 +11,15 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/random/data/RanluxppTypes.hh"
-#include "corecel/random/engine/detail/RanluxppImpl.hh"
 
 namespace celeritas
 {
 
 //---------------------------------------------------------------------------//
 /*!
- * Persistent data for the Ranluxpp random number generator.
+ * Persistent trivially copiable data for the Ranluxpp random number generator.
  */
-template<Ownership W, MemSpace M>
-struct RanluxppRngParamsData
+struct RanluxppRngParamsDataImpl
 {
     //// DATA ////
     //! Stores the user provided seed
@@ -50,14 +48,17 @@ struct RanluxppRngParamsData
     //// FUNCTIONS ////
     //! Whether the data is assigned.
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const { return true; }
+};
 
+template<Ownership W, MemSpace M>
+struct RanluxppRngParamsData : RanluxppRngParamsDataImpl
+{
     //! Assign from another set of data.
     template<Ownership W2, MemSpace M2>
     RanluxppRngParamsData& operator=(RanluxppRngParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        seed = other.seed;
-        seed_state = other.seed_state;
+        static_cast<RanluxppRngParamsDataImpl&>(*this) = other;
         return *this;
     }
 };
