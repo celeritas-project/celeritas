@@ -21,34 +21,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Implements the RANLUX++ random number generator engine with modifications.
+ * Implements the Ranluxpp random number generator engine.
  *
- * This implementation of RANLUX++
- * \citep{sibidanov-revisionsubtractwithborrow-2017,
- * https://doi.org/10.1016/j.cpc.2017.09.005} is based directly on the
- * implementation of
+ * A paper detailing this random number generator can be found here:
  * \citet{hahnfeld-ranlux-2021, https://doi.org/10.1051/epjconf/202125103008}.
- * The RANLUX++ algorithm
- * is an optimization of the RANLUX generator \citep{james-ranluxfortran-1994,
- * https://doi.org/10.1016/0010-4655(94)90233-X}, based on work by Luscher's
- * modification \citep{luscher-portablehighquality-1994,
- * http://arxiv.org/abs/hep-lat/9309020} of Marsaglia and Zaman's RCARRY
- * \citep{james-reviewpseudorandom-1990,
- * https://doi.org/10.1016/0010-4655(90)90032-V}. As discussed in the RANLUX
- * theory paper, the algorithm is essentially a linear congruential generator
- * (LCG) with a huge state.
- *
- * The underlying RCARRY algorithm used an array of 24 24-bit integer words,
- * which with today's large integer sizes can be written as 9 64-bit integers.
- * A given state is used to extract 12 samples, and the lower 32
- * bits of each is used as entropy. Two of those are concatenated to form a
- * 64-bit sample.
- *
- * \todo The decision to discard the high bits rather than the low bits from
- * each word is likely undesirable at least for the last number in the state,
- * since it is known that LCG integers have highly correlated sequential LSBs.
- * Additionally, the class should be adapted to provide 32-bit samples, which
- * the GenerateCanonical32 will map to 64-bit reals as needed.
  */
 class RanluxppRngEngine
 {
