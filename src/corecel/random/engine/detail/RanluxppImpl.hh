@@ -440,7 +440,7 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
 
     // Make a subspan of the last 9 elements of mul
     auto mul_end = celeritas::make_span(mul).subspan<9, 9>();
-    CELER_ASSERT(mul_end.size() == 9);
+    static_assert(mul_end.size() == 9);
 
     int64_t c = compute_remainder(mul_end, celeritas::make_span(r));
 
@@ -515,7 +515,7 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
  * \param[in] factor1 first factor with 9 numbers of 64 bits each
  * \param[in] factor2 second factor with 9 numbers of 64 bits each
  */
-CELER_FUNCTION RanluxppArray9 compute_mod_multiply(
+CELER_FORCEINLINE_FUNCTION RanluxppArray9 compute_mod_multiply(
     RanluxppArray9 const& factor1, RanluxppArray9 const& factor2)
 {
     RanluxppArray18 mul = multiply_9x9(factor1, factor2);
@@ -529,29 +529,26 @@ CELER_FUNCTION RanluxppArray9 compute_mod_multiply(
  * The arguments \p base and \p res may point to the same location.
  *
  * \param[in]  base  with 9 numbers of 64 bits each
- * \param[out] res   output with 9 numbers of 64 bits each
  * \param[in]  n     exponent
  */
-CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
-                                                    RanluxppUInt n)
+inline CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
+                                                           RanluxppUInt n)
 {
+    // Initial state: 1
     RanluxppArray9 res = {1, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    RanluxppArray18 mul;
     while (n)
     {
         if (n & 1)
         {
-            mul = multiply_9x9(res, base);
-            res = compute_modulus(mul);
+            res = compute_mod_multiply(res, base);
         }
         n >>= 1;
         if (!n)
         {
             break;
         }
-        mul = multiply_9x9(base, base);
-        base = compute_modulus(mul);
+        base = compute_mod_multiply(base, base);
     }
 
     return res;
