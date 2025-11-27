@@ -8,7 +8,6 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/Bitset.hh"
 
 #include "OrangeTypes.hh"
 
@@ -111,63 +110,5 @@ inline char const* to_cstring(SignedSense s)
     }
     return "<invalid>";
 }
-
-//---------------------------------------------------------------------------//
-// CLASSES
-//---------------------------------------------------------------------------//
-/*!
- * Wrapper for a sense value that is optionally set.
- */
-class SenseValue
-{
-  private:
-    enum : char
-    {
-        sense_bit,
-        is_assigned_bit,
-    };
-
-  public:
-    constexpr SenseValue() = default;
-
-    //! Construct with a sense value
-    CELER_CONSTEXPR_FUNCTION SenseValue(Sense sense)
-    {
-        sense_[sense_bit] = static_cast<bool>(sense);
-        sense_[is_assigned_bit] = true;
-    }
-
-    //! Convert to a sense value
-    CELER_CONSTEXPR_FUNCTION operator Sense() const
-    {
-        return to_sense(sense_[sense_bit]);
-    }
-
-    //! Convert to a boolean value
-    CELER_CONSTEXPR_FUNCTION explicit operator bool() const
-    {
-        return sense_[sense_bit];
-    }
-
-    //! Assign a sense value
-    CELER_CONSTEXPR_FUNCTION SenseValue& operator=(Sense sense)
-    {
-        sense_[sense_bit] = static_cast<bool>(sense);
-        sense_[is_assigned_bit] = true;
-        return *this;
-    }
-
-    //! Check whether there is a cached sense value
-    CELER_CONSTEXPR_FUNCTION bool is_assigned() const
-    {
-        return sense_[is_assigned_bit];
-    }
-
-    //! Clear the sense value
-    CELER_CONSTEXPR_FUNCTION void reset() { sense_.reset(); }
-
-  private:
-    Bitset<2> sense_;
-};
 
 }  // namespace celeritas

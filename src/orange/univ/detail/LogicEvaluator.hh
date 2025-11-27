@@ -12,7 +12,6 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/LdgIterator.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/SenseUtils.hh"
 
 #include "LogicStack.hh"
 
@@ -30,7 +29,7 @@ class LogicEvaluator
     //@{
     //! \name Type aliases
     using SpanConstLogic = LdgSpan<logic_int const>;
-    using SpanConstSense = Span<SenseValue const>;
+    using SpanConstSense = Span<Sense const>;
     //@}
 
   public:

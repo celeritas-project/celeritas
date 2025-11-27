@@ -49,15 +49,13 @@ void check_params_size(char const* sampler,
 // Helper: Convert energy distribution to inp::EnergyDistribution
 inp::EnergyDistribution inp_from_energy(DistributionOptions const& options)
 {
-    using MevEnergy = Quantity<units::Mev, double>;
-
     char const sampler_name[] = "energy";
     check_params_size(sampler_name, 1, options);
     auto const& p = options.params;
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::MonoenergeticDistribution{MevEnergy(p[0])};
+            return inp::MonoenergeticDistribution{p[0]};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
@@ -76,10 +74,10 @@ inp::ShapeDistribution inp_from_position(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::PointDistribution{Real3{p[0], p[1], p[2]}};
+            return inp::PointDistribution{{p[0], p[1], p[2]}};
         case DistributionSelection::box:
-            return inp::UniformBoxDistribution{Real3{p[0], p[1], p[2]},
-                                               Real3{p[3], p[4], p[5]}};
+            return inp::UniformBoxDistribution{{p[0], p[1], p[2]},
+                                               {p[3], p[4], p[5]}};
         default:
             CELER_VALIDATE(false,
                            << "invalid distribution type '"
@@ -98,7 +96,7 @@ inp::AngleDistribution inp_from_direction(DistributionOptions const& options)
     switch (options.distribution)
     {
         case DistributionSelection::delta:
-            return inp::MonodirectionalDistribution{Real3{p[0], p[1], p[2]}};
+            return inp::MonodirectionalDistribution{{p[0], p[1], p[2]}};
         case DistributionSelection::isotropic:
             return inp::IsotropicDistribution{};
         default:

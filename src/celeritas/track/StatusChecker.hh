@@ -9,7 +9,7 @@
 #include <string_view>
 
 #include "corecel/Types.hh"
-#include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxParams.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Types.hh"
@@ -36,9 +36,9 @@ class CoreState;
  * \em not a CoreStepAction. It's meant to be used inside the \c
  * ActionSequence itself, called after every action.
  */
-class StatusChecker final : public AuxParamsInterface,
-                            public CoreBeginRunActionInterface,
-                            public ParamsDataInterface<StatusCheckParamsData>
+class StatusChecker final
+    : public CoreBeginRunActionInterface,
+      public AuxParams<StatusCheckParamsData, StatusCheckStateData>
 {
   public:
     // Construct and add to core params
@@ -62,8 +62,6 @@ class StatusChecker final : public AuxParamsInterface,
 
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
-    // Build state data for a stream
-    UPState create_state(MemSpace m, StreamId id, size_type size) const final;
     //!@}
 
     //!@{
@@ -105,12 +103,12 @@ class StatusChecker final : public AuxParamsInterface,
 
     void begin_run_impl(CoreParams const&);
 
-    void launch_impl(CoreParams const&,
-                     CoreState<MemSpace::host>&,
-                     StatusStateRef<MemSpace::host> const&) const;
-    void launch_impl(CoreParams const&,
-                     CoreState<MemSpace::device>&,
-                     StatusStateRef<MemSpace::device> const&) const;
+    void step_impl(CoreParams const&,
+                   CoreState<MemSpace::host>&,
+                   StatusStateRef<MemSpace::host> const&) const;
+    void step_impl(CoreParams const&,
+                   CoreState<MemSpace::device>&,
+                   StatusStateRef<MemSpace::device> const&) const;
 };
 
 //---------------------------------------------------------------------------//

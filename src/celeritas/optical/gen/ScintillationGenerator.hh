@@ -157,22 +157,37 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         return shared_.scint_records[mat.components[component_idx]];
     }();
 
-    // Sample a photon for a single scintillation component, reusing the
-    // "spare" value that the wavelength sampler might have stored
-    CELER_ASSERT(component.lambda_mean > 0);
-    sample_lambda_
-        = NormalDistribution{component.lambda_mean, component.lambda_sigma};
-    real_type wavelength;
-    do
+    real_type energy_val{};
+    if (!component.energy_cdf)
     {
-        // Rejecting the case of very large sigma and/or very small lambda
-        wavelength = sample_lambda_(rng);
-    } while (CELER_UNLIKELY(wavelength <= 0));
+        // Sample a photon for a single scintillation component, reusing the
+        // "spare" value that the wavelength sampler might have stored
+        CELER_ASSERT(component.lambda_mean > 0);
+        sample_lambda_ = NormalDistribution{component.lambda_mean,
+                                            component.lambda_sigma};
+        real_type wavelength;
+        do
+        {
+            // Rejecting the case of very large sigma and/or very small lambda
+            wavelength = sample_lambda_(rng);
+        } while (CELER_UNLIKELY(wavelength <= 0));
+        energy_val = value_as<units::MevEnergy>(
+            detail::wavelength_to_energy(wavelength));
+    }
+    else
+    {
+        // If the scintillation spectrum is provided use grid-based sampling
+        NonuniformGridCalculator calc_cdf(
+            shared_.energy_cdfs[component.energy_cdf], shared_.reals);
+
+        NonuniformGridCalculator calc_energy = calc_cdf.make_inverse();
+        energy_val = calc_energy(generate_canonical(rng));
+    }
 
     ExponentialDist sample_time(real_type{1} / component.fall_time);
 
     TrackInitializer photon;
-    photon.energy = detail::wavelength_to_energy(wavelength);
+    photon.energy = Energy{energy_val};
 
     // Sample direction
     real_type cost = sample_cost_(rng);

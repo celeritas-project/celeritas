@@ -60,14 +60,16 @@ class DedupeCollectionBuilder;
  * has non-templated scalars (since the default assignment operator is less
  * work than manually copying scalars in a templated assignment operator.
  *
- * A collection group has the following requirements to be compatible with
- * the \c CollectionMirror, \c CollectionStateStore, and other such helper
+ * A <em>collection group</em> has the following requirements to be compatible
+ * with the \c CollectionMirror (for "params" collection groups), \c
+ * CollectionStateStore (for "state" collection groups"), and other such helper
  * classes:
- * - Be a struct templated with \c template<Ownership W, MemSpace M>
+ * - Be a struct templated with <code>template<Ownership W, MemSpace M></code>
  * - Contain only Collection objects and trivially copyable structs
  * - Define an operator bool that is true if and only if the class data is
  *   assigned and consistent
- * - Define a templated assignment operator on "other" Ownership and MemSpace
+ * - Define a \em templated assignment operator on "other" Ownership and
+ MemSpace
  *   which assigns every member to the right-hand-side's member
  *
  * Additionally, a \c StateData collection group must define

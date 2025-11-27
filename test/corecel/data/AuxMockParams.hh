@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "corecel/data/AuxInterface.hh"
-#include "corecel/data/AuxStateData.hh"
+#include "corecel/data/AuxParams.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
@@ -23,15 +23,12 @@ namespace test
 /*!
  * Mock class for shared host data that has associated thread-local data.
  */
-class AuxMockParams : public AuxParamsInterface,
-                      public ParamsDataInterface<AuxMockParamsData>
+class AuxMockParams : public AuxParams<AuxMockParamsData, AuxMockStateData>
 {
   public:
     //!@{
     //! \name Type aliases
     using VecInt = std::vector<int>;
-    template<MemSpace M>
-    using StateT = AuxStateData<AuxMockStateData, M>;
     //!@}
 
   public:
@@ -42,22 +39,25 @@ class AuxMockParams : public AuxParamsInterface,
                   VecInt const& integers);
 
     //!@{
-    //! \name User interface
+    //! \name Aux interface
+
     //! Short name for the data
     std::string_view label() const final { return label_; }
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
-    // Build state data for a stream
-    UPState create_state(MemSpace, StreamId, size_type) const final;
     //!@}
 
     //!@{
     //! \name Data interface
+
     //! Access data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
     //! Access data on device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
     //!@}
+
+    //! Access host/device params/state ref
+    using AuxParams::ref;
 
   private:
     std::string label_;

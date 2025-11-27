@@ -15,8 +15,8 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionMirror.hh"
-#include "geocel/random/IsotropicDistribution.hh"
-#include "geocel/random/UniformBoxDistribution.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
+#include "corecel/random/distribution/UniformBoxDistribution.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeInput.hh"

@@ -49,7 +49,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/Turn.hh"
-#include "geocel/random/UniformBoxDistribution.hh"
+#include "corecel/random/distribution/UniformBoxDistribution.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/g4org/Scaler.hh"
 #include "orange/g4org/Transformer.hh"

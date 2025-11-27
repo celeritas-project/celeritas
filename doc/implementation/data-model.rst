@@ -46,8 +46,8 @@ View
    All SM physics particles share a common set of properties such as mass and
    charge, and each instance of particle has a particular set of
    associated variables such as kinetic energy. The shared data (SM parameters)
-   reside in ``ParticleParams``, and the particle track properties are managed
-   by a ``ParticleStateStore`` class.
+   reside in ``ParticleParams``, and the particle track properties are stored
+   as part of the core state.
 
    A separate class, the ``ParticleTrackView``, is instantiated with a
    specific thread ID so that it acts as an accessor to the
@@ -75,6 +75,7 @@ Storage
 
 .. doxygenclass:: celeritas::Collection
 .. doxygenclass:: celeritas::CollectionMirror
+.. doxygenclass:: celeritas::CollectionStateStore
 
 .. doxygenclass:: celeritas::ldg
 
@@ -86,28 +87,29 @@ Containers
 These are containers and container-like objects used throughout Celeritas.
 
 .. doxygenclass:: celeritas::Array
-
 .. doxygenclass:: celeritas::EnumArray
-
 .. doxygenclass:: celeritas::Range
-
 .. doxygenclass:: celeritas::Span
 
 
 .. _api_auxiliary_data:
 
-Auxiliary user data
--------------------
+Auxiliary storage
+-----------------
 
 Users and other parts of the code can add their own shared and stream-local
-(i.e., thread-local) data to Celeritas using the ``AuxParamsInterface`` and ``AuxStateInterface`` classes, accessed through the  ``AuxParamsRegistry`` and ``AuxStateVec`` classes, respectively.
+(i.e., thread-local) data to Celeritas using the
+:cpp:class:`celeritas::AuxParamsInterface` and
+:cpp:class:`celeritas::AuxStateInterface` classes, accessed through the
+:cpp:class:`celeritas::AuxParamsRegistry` and
+:cpp:class:`celeritas::AuxStateVec` classes, respectively.
 
 .. doxygenclass:: celeritas::AuxParamsInterface
-
 .. doxygenclass:: celeritas::AuxStateInterface
-
 .. doxygenclass:: celeritas::AuxParamsRegistry
-
-.. doxygenclass:: celeritas::AuxStateData
-
 .. doxygenclass:: celeritas::AuxStateVec
+
+Auxiliary collection groups
+---------------------------
+
+.. doxygenclass:: celeritas::AuxParams

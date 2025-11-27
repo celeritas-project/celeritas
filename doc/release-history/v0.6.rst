@@ -503,3 +503,56 @@ Reviewers
 * Soon Yung Jun *(@whokion)*: 3
 
 **Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.5.0...v0.6.0
+
+.. _release_v0.6.3:
+
+Version 0.6.3
+-------------
+*Released 2025/11/21*
+
+Version 0.6.3 is a minor bug fix update.
+
+- Support CUDA 13
+- Allow initialization of Geant4 integration before run manager
+
+Changes since v0.6.2 follow.
+
+New features
+^^^^^^^^^^^^
+
+* Add pre-commit spell checking *(@sethrj, #1867)*
+* Loosen restrictions and catch errors in `accel` initialization order *(@sethrj, #1978)*
+* Fail at runtime rather than link time for G4 10 with tracking manager integration *(@sethrj, #1932)*
+
+Bug fixes
+^^^^^^^^^
+
+* Prevent build.sh exiting if pre-commit not found at start *(@drbenmorgan, #2026)*
+* Enable celeritas to build with CUDA 13 *(@LSchwiebert, #2067)*
+
+Documentation improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Improve instructions and build script for developers getting started *(@sethrj, #2003)*
+* Minor fixes for optical+ORANGE documentation *(@sethrj, #2052)*
+* Refactor Geant4 launching macros into a reusable script *(@sethrj, #1924)*
+
+Minor internal changes
+^^^^^^^^^^^^^^^^^^^^^^
+
+* Update build script with best practices *(@sethrj, #2106)*
+* Add ExCL H100 environment *(@sethrj, #2107)*
+* Update CMake requirements *(@sethrj, #1992)*
+
+Reviewers
+^^^^^^^^^
+
+* Philippe Canal *(@pcanal)*: 4
+* Amanda Lund *(@amandalund)*: 3
+* Seth R. Johnson *(@sethrj)*: 3
+* Rashika Gupta *(@Rashika-Gupta)*: 2
+* Greg Davidson *(@davidsgr)*: 1
+* Elliott Biondo *(@elliottbiondo)*: 1
+* Stefano Tognini *(@stognini)*: 1
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.6.2...v0.6.3

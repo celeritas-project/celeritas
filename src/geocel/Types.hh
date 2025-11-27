@@ -18,9 +18,6 @@ namespace celeritas
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-//! Three-dimensional cartesian coordinates
-using Real3 = Array<real_type, 3>;
-
 //! Two-dimensional cartesian coordinates
 using Real2 = Array<real_type, 2>;
 

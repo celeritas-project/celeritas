@@ -75,10 +75,14 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     vg/VecgeomParams.cc
     vg/VecgeomParamsOutput.cc
-    vg/detail/VecgeomNavCollection.cc
     vg/RaytraceImager.cc
     vg/SafetyImager.cc
   )
+  if(VecGeom_NAV STREQUAL "path")
+    list(APPEND SOURCES
+      vg/detail/VecgeomNavCollection.cc
+    )
+  endif()
   if(VecGeom_GDML_FOUND)
     list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   endif()
