@@ -672,6 +672,9 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
  *
  * This happens after a scattering event or movement inside a magnetic field.
  * It resets the calculated distance-to-boundary.
+ *
+ * \todo If on a boundary, determine as with ORANGE whether we should cancel
+ * the surface crossing.
  */
 CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 {

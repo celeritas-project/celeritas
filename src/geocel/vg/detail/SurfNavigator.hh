@@ -82,11 +82,7 @@ class SurfNavigator
 
     // Computes a step from the globalpoint (which must be in the current
     // volume) into globaldir, taking step_limit into account. If a volume is
-    // hit, the function calls out_state.SetBoundaryState(true) and relocates
-    // the state to the next volume.
-    //
-    // The surface model does automatic relocation, so this function does it as
-    // well.
+    // hit, the function calls out_state.SetBoundaryState(true)
     CELER_FUNCTION static vg_real_type
     ComputeStepAndNextVolume(VgReal3 const& globalpoint,
                              VgReal3 const& globaldir,
