@@ -123,14 +123,12 @@ class RanluxppRngEngine
 inline CELER_FUNCTION RanluxppRngEngine&
 RanluxppRngEngine::operator=(Initializer_t const& init)
 {
-    // Skip forward (init.seed + init.subsequence) states
+    // Skip forward (2^96) * (init.seed + init.subsequence) states
     RanluxppArray9 new_a_seed = celeritas::detail::compute_power_modulus(
         params_.seed_state, init.seed + init.subsequence);
-    RanluxppArray9 lcg = {1, 0, 0, 0, 0, 0, 0, 0, 0};
-    lcg = celeritas::detail::compute_mod_multiply(new_a_seed, lcg);
 
     // Convert to Ranluxpp number and save state
-    state_->value = celeritas::detail::to_ranlux(lcg);
+    state_->value = celeritas::detail::to_ranlux(new_a_seed);
     state_->position = 0;
 
     // Skip forward another init.offset samples
