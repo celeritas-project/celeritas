@@ -10,6 +10,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/random/data/DistributionData.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -26,12 +27,19 @@ class UniformBoxDistribution
     //! \name Type aliases
     using real_type = RealType;
     using result_type = Array<real_type, 3>;
+    using RecordT = UniformBoxDistributionRecord;
     //!@}
 
   public:
     // Constructor
     inline CELER_FUNCTION
     UniformBoxDistribution(result_type lower, result_type upper);
+
+    // Construct with record
+    explicit CELER_FUNCTION UniformBoxDistribution(RecordT const& record)
+        : UniformBoxDistribution(record.lower, record.upper)
+    {
+    }
 
     // Sample a random point in the box
     template<class Generator>

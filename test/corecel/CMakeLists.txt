@@ -103,6 +103,7 @@ celeritas_add_device_test(random/RngEngine
   LINK_LIBRARIES Celeritas::ExtThrust)
 celeritas_add_test(random/Selector.test.cc)
 celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
+celeritas_add_test(random/RanluxppRngEngine.test.cc GPU)
 
 celeritas_add_test(random/distribution/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distribution/ExponentialDistribution.test.cc)
@@ -117,6 +118,7 @@ celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
 celeritas_add_test(random/distribution/RejectionSampler.test.cc)
 celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
+celeritas_add_test(random/distribution/DistributionTypeTraits.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Sys

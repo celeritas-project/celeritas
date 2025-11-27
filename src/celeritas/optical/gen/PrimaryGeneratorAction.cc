@@ -9,9 +9,11 @@
 #include <variant>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/random/distribution/DistributionInserter.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/KernelLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -36,7 +38,7 @@ std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
     CoreParams const& params,
     Input&& input)
 {
-    CELER_EXPECT(input.num_events > 0 && input.primaries_per_event > 0);
+    CELER_EXPECT(input);
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *core_params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
@@ -52,8 +54,6 @@ std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
 //---------------------------------------------------------------------------//
 /*!
  * Construct with IDs and distribution.
- *
- * \todo Support multiple events and distribution types
  */
 PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
                                                AuxId aux_id,
@@ -65,24 +65,18 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
                     "primary-generate",
                     "generate optical photon primaries")
 {
-    CELER_VALIDATE(inp.num_events == 1,
-                   << "multiple events are not supported for optical primary "
-                      "generation");
-    CELER_VALIDATE(inp.energy.energy > zero_quantity(),
-                   << "expected nonzero energy in optical primary generator");
-    CELER_VALIDATE(std::holds_alternative<inp::PointDistribution>(inp.shape),
-                   << "unsupported distribution type for optical primary "
-                      "generator position");
-    CELER_VALIDATE(
-        std::holds_alternative<inp::IsotropicDistribution>(inp.angle),
-        << "unsupported distribution type for optical primary "
-           "generator direction");
+    HostVal<DistributionParamsData> host_params;
+    DistributionInserter insert(host_params);
 
-    data_.energy = inp.energy.energy;
-    data_.position = std::get<inp::PointDistribution>(inp.shape).pos;
-    data_.num_photons = inp.primaries_per_event;
+    data_.num_photons = inp.primaries;
+    data_.energy = std::visit(insert, inp.energy);
+    data_.angle = std::visit(insert, inp.angle);
+    data_.shape = std::visit(insert, inp.shape);
+
+    params_ = CollectionMirror<DistributionParamsData>{std::move(host_params)};
 
     CELER_ENSURE(data_);
+    CELER_ENSURE(params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -98,13 +92,6 @@ auto PrimaryGeneratorAction::create_state(MemSpace, StreamId, size_type) const
 //---------------------------------------------------------------------------//
 /*!
  * Set the number of pending tracks.
- *
- * The number of tracks to generate must be set at the beginning of each event
- * before the optical loop is launched.
- *
- * \todo Currently this is only called during testing, but it *must* be done at
- * the beginning of each event once this action is integrated into the stepping
- * loop.
  */
 void PrimaryGeneratorAction::insert(optical::CoreStateBase& state) const
 {
@@ -189,8 +176,11 @@ void PrimaryGeneratorAction::generate(CoreParams const& params,
         = min(state.counters().num_vacancies, aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
-    detail::PrimaryGeneratorExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), data_, state.counters()};
+    detail::PrimaryGeneratorExecutor execute{params.ptr<MemSpace::native>(),
+                                             state.ptr(),
+                                             data_,
+                                             params_.host_ref(),
+                                             state.counters()};
     launch_action(num_gen, execute);
 }
 

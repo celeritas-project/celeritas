@@ -218,7 +218,10 @@ list(APPEND SOURCES
   math/TridiagonalSolver.cc
   random/data/CuHipRngData.cc
   random/data/XorwowRngData.cc
+  random/data/RanluxppRngData.cc
+  random/distribution/DistributionInserter.cc
   random/params/CuHipRngParams.cc
+  random/params/RanluxppRngParams.cc
   random/params/XorwowRngParams.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
@@ -292,6 +295,7 @@ macro(celeritas_polysource filename_we)
 endmacro()
 
 celeritas_polysource(random/data/detail/CuHipRngStateInit)
+celeritas_polysource(random/data/detail/RanluxppRngStateInit)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES

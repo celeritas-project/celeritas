@@ -116,10 +116,10 @@ endif()
 # Random number generator selection
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
+celeritas_setup_option(CELERITAS_CORE_RNG ranluxpp)
 celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
 celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
 # TODO: add wrapper to standard library RNG when not building for device?
-# TODO: add ranluxpp?
 # TODO: maybe even add wrapper to Geant4 RNG??
 celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")

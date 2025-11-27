@@ -14,6 +14,7 @@
 #include <G4Step.hh>
 #include <G4StepPoint.hh>
 
+#include "corecel/math/ArrayUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/Convert.hh"
@@ -135,12 +136,12 @@ class LarSphereOpticalOffload : public LarSphere
  */
 auto LarSphereOpticalOffload::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
     auto result = LarSphereIntegrationMixin::make_primary_input();
 
-    result.shape = inp::PointDistribution{from_cm({0.1, 0.1, 0})};
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({0.1, 0.1, 0}))};
     result.primaries_per_event = 1;
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{1}};
+    result.energy = inp::MonoenergeticDistribution{1};  // [MeV]
     return result;
 }
 
