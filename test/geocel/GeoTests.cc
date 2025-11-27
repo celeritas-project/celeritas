@@ -302,7 +302,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
             EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
         }
         EXPECT_EQ("Shape2", test_->volume_name(geo));
-        geo.cross_boundary();
+        ASSERT_NO_THROW(geo.cross_boundary());
         if (check_normal)
         {
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
@@ -336,7 +336,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         {
             EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
         }
-        geo.cross_boundary();
+        ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_TRUE(geo.is_outside());
     }
     {
@@ -394,7 +394,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_TRUE(geo.is_on_boundary());
 
         // Enter the spehre
-        geo.cross_boundary();
+        ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("Shape2", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
@@ -419,7 +419,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
                 GTEST_SKIP() << "FIXME: vecgeom surface breaks";
             }
 
-            geo.cross_boundary();
+            ASSERT_NO_THROW(geo.cross_boundary());
             if (test_->geometry_type() == "VecGeom")
             {
                 // FIXME: boundary crossing doesn't change volume like it
@@ -431,7 +431,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
                 EXPECT_EQ("Shape1", test_->volume_name(geo));
             }
             geo.set_dir(Real3{-1, 0, 0});
-            geo.cross_boundary();
+            ASSERT_NO_THROW(geo.cross_boundary());
         }
         EXPECT_EQ("Shape2", test_->volume_name(geo));
 
@@ -2552,52 +2552,52 @@ void TwoBoxesGeoTest::test_tangent() const
 
     // Starting left of edge (-), headed down right (+,-)
     CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
-    geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
-    ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ("inner", test_->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
-
-    // Check for surfaces up to a distance of 4 units away
-    auto next = geo.find_next_step(from_cm(4.0));
-    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-
-    // Move to boundary (-; +,-)
-    geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_EQ("inner", test_->volume_name(geo));
-
-    // Reflect normal to surface (-; -,-)
-    geo.set_dir(Real3{-dx, -dx, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_EQ("inner", test_->volume_name(geo));
-
-    // Crossing will *not* change volumes (-; -,-)
-    geo.cross_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
-    if (test_->geometry_type() == "Geant4")
     {
-        // FIXME: Geant4 changes volumes :(
-        EXPECT_EQ("world", test_->volume_name(geo));
-        GTEST_SKIP() << "Unexpected boundary crossing";
+        SCOPED_TRACE("in first volume");
+        geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+        ASSERT_FALSE(geo.is_outside());
+        EXPECT_EQ("inner", test_->volume_name(geo));
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Check for surfaces up to a distance of 4 units away
+        auto next = geo.find_next_step(from_cm(4.0));
+        EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+        EXPECT_TRUE(next.boundary);
+
+        // Move to boundary (-; +,-)
+        geo.move_to_boundary();
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ("inner", test_->volume_name(geo));
+
+        // Reflect normal to surface (-; -,-)
+        geo.set_dir(Real3{-dx, -dx, 0});
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ("inner", test_->volume_name(geo));
     }
-    else if (test_->geometry_type() == "VecGeom")
+
+    // Crossing should *not* change volumes (-; -,-)
     {
-        // VecGeom 1.2.10 seems to unexpectedly exit as well. Seems to happen
-        // along the same lines as test_reentrant.
-        if ("world" == test_->volume_name(geo))
+        SCOPED_TRACE("trying to cross");
+        ASSERT_NO_THROW(geo.cross_boundary());
+        EXPECT_TRUE(geo.is_on_boundary());
+        if (test_->geometry_type() == "Geant4")
         {
+            // FIXME: Geant4 changes volumes :(
+            EXPECT_EQ("world", test_->volume_name(geo));
             GTEST_SKIP() << "Unexpected boundary crossing";
         }
+        EXPECT_EQ("inner", test_->volume_name(geo));
     }
-    EXPECT_EQ("inner", test_->volume_name(geo));
 
     // Find the next boundary and make sure that nearer distances aren't
     // accepted
-    next = geo.find_next_step();
-    EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    EXPECT_TRUE(geo.is_on_boundary());
+    {
+        SCOPED_TRACE("checking internal distance");
+        auto next = geo.find_next_step();
+        EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_TRUE(geo.is_on_boundary());
+    }
 }
 
 //---------------------------------------------------------------------------//
