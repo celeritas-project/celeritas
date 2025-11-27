@@ -24,9 +24,20 @@ namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
+
+// Validate that our assignment operator with inheritance works as expected
+TEST(RanluxImpl, params_copy)
+{
+    HostVal<RanluxppRngParamsData> host_val;
+    host_val.seed = 12345;
+
+    HostRef<RanluxppRngParamsData> host_ref;
+    host_ref = host_val;
+    EXPECT_EQ(12345, host_ref.seed);
+}
+
 /*!
- * Validate the definition of a_2048 and other skip parameters.
+ * Little-endian value of 'a' used in RCARRY/RANLUX/RANLUX++.
  *
  \code[python]
  def b_exp(p):
@@ -35,6 +46,22 @@ namespace test
  \endcode
 * then break into 16-digit chunks and reverse order.
 */
+static constexpr RanluxppArray9 rcarry_a{
+    0x0000000000000001ull,
+    0x0000000000000000ull,
+    0x0000000000000000ull,
+    0xffff000001000000ull,
+    0xffffffffffffffffull,
+    0xffffffffffffffffull,
+    0xffffffffffffffffull,
+    0xffffffffffffffffull,
+    0xfffffeffffffffffull,
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Validate the definition of a_2048 and other skip parameters.
+ */
 TEST(RanluxImpl, compute_power_modulus)
 {
     constexpr RanluxppArray9 unity{1, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -44,17 +71,7 @@ TEST(RanluxImpl, compute_power_modulus)
     // m = b^24 - b^10 + 1
     // a = m - (m - 1) / b = b^24 − b^23 − b^10 + b^9 + 1
     // NOTE: b^24 is 1 more than the capacity of RanluxppArray9
-    static constexpr RanluxppArray9 a{
-        0x0000000000000001ull,
-        0x0000000000000000ull,
-        0x0000000000000000ull,
-        0xffff000001000000ull,
-        0xffffffffffffffffull,
-        0xffffffffffffffffull,
-        0xffffffffffffffffull,
-        0xffffffffffffffffull,
-        0xfffffeffffffffffull,
-    };
+    auto const& a = rcarry_a;
     EXPECT_EQ(unity, detail::compute_power_modulus(a, 0));
 
     auto a_2 = detail::compute_power_modulus(a, 2);
@@ -98,22 +115,27 @@ TEST(RanluxImpl, compute_power_modulus)
     // = (a^{2^{11}})^{2^{96}}
     // = a^{2^{11} * 2^{96}}
     // = a^{2^{107}}
-    auto a_2_50 = detail::compute_power_modulus(a, RanluxppUInt(1) << 50);
-    auto a_2_100 = detail::compute_power_modulus(a_2_50, RanluxppUInt(1) << 50);
-    auto a_2_107 = detail::compute_power_modulus(a_2_100, RanluxppUInt(1) << 7);
-    EXPECT_EQ(params.seed_state, a_2_107);
-    cout << "actual: " << hex_repr(a_2_107) << endl;
+    auto temp
+        = detail::compute_power_modulus(a, RanluxppUInt(1) << 50);  // a^2^50
+    temp = detail::compute_power_modulus(temp,
+                                         RanluxppUInt(1) << 50);  // a^2^100
+    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 7);  // a^2^107
+    EXPECT_EQ(params.seed_state, temp);
+
+    // Original seed state computation
+    temp = detail::compute_power_modulus(params.state_2048,
+                                         RanluxppUInt(1) << 48);
+    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 48);
+    EXPECT_EQ(params.seed_state, temp);
 }
 
-// Validate that our assignment operator with inheritance works as expected
-TEST(RanluxImpl, params_copy)
+TEST(RanluxImpl, compute_power_exp_modulus)
 {
-    HostVal<RanluxppRngParamsData> host_val;
-    host_val.seed = 12345;
+    RanluxppRngParams host_params{0};
+    auto const& params = host_params.host_ref();
 
-    HostRef<RanluxppRngParamsData> host_ref;
-    host_ref = host_val;
-    EXPECT_EQ(12345, host_ref.seed);
+    EXPECT_EQ(params.seed_state,
+              detail::compute_power_exp_modulus(rcarry_a, 107));
 }
 
 //---------------------------------------------------------------------------//

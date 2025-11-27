@@ -62,6 +62,10 @@ compute_modulus(RanluxppArray18 const& mul);
 [[nodiscard]] inline CELER_FUNCTION RanluxppArray9 compute_mod_multiply(
     RanluxppArray9 const& factor1, RanluxppArray9 const& factor2);
 
+// Compute base to the 2^n modulo m
+[[nodiscard]] inline CELER_FUNCTION RanluxppArray9
+compute_power_exp_modulus(RanluxppArray9 base, RanluxppUInt log_n);
+
 // Compute base to the n modulo m
 [[nodiscard]] inline CELER_FUNCTION RanluxppArray9
 compute_power_modulus(RanluxppArray9 base, RanluxppUInt n);
@@ -264,7 +268,7 @@ CELER_FUNCTION int64_t compute_remainder(Span<RanluxppUInt const, 9> upper,
     // equal to m, we need cbar = 1 and subtract m, otherwise cbar = c. The
     // value currently in r is greater or equal to m, if and only if one of
     // the last 240 bits is set and the upper bits are all set.
-    bool greater_m = r[0] | r[1] | r[2] | (r[3] & 0x0000ffffffffffff);
+    bool greater_m = r[0] | r[1] | r[2] | (r[3] & 0x0000ffffffffffffull);
     greater_m &= (r[3] >> 48) == 0xffff;
     for (int i : celeritas::range(4, 9))
     {
@@ -508,7 +512,7 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
 
 //---------------------------------------------------------------------------//
 /*!
- * Combine multiply_9x9 and compute_modulus with internal temporary storage.
+ * Compute factor1 * factor2 mod m using local storage.
  *
  * The result in \p fac_result is guaranteed to be smaller than the modulus.
  *
@@ -524,6 +528,23 @@ CELER_FORCEINLINE_FUNCTION RanluxppArray9 compute_mod_multiply(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Compute \c base to the \p 2^log_n modulo m.
+ *
+ * \param[in]  base  with 9 numbers of 64 bits each
+ * \param[in]  log_n log_2 of exponent
+ */
+CELER_FUNCTION RanluxppArray9 compute_power_exp_modulus(RanluxppArray9 result,
+                                                        RanluxppUInt log_n)
+{
+    for (; log_n > 0; --log_n)
+    {
+        result = compute_mod_multiply(result, result);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Compute \p base to the \p n modulo m.
  *
  * The arguments \p base and \p res may point to the same location.
@@ -531,8 +552,8 @@ CELER_FORCEINLINE_FUNCTION RanluxppArray9 compute_mod_multiply(
  * \param[in]  base  with 9 numbers of 64 bits each
  * \param[in]  n     exponent
  */
-inline CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
-                                                           RanluxppUInt n)
+CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
+                                                    RanluxppUInt n)
 {
     // Initial state: 1
     RanluxppArray9 res = {1, 0, 0, 0, 0, 0, 0, 0, 0};
