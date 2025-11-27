@@ -295,12 +295,12 @@ TEST_F(RanluxppRngEngineTest, generate_canonical)
     {
         RanluxppRngEngine rng(host_ref, states.ref(), TrackSlotId{0});
         EXPECT_FLOAT_EQ(0.59196556f, generate_canonical<float>(rng));
-        EXPECT_FLOAT_EQ(0.64862144f, generate_canonical<float>(rng));
+        EXPECT_FLOAT_EQ(0.23885389f, generate_canonical<float>(rng));
     }
     {
         RanluxppRngEngine rng(host_ref, states.ref(), TrackSlotId{1});
-        EXPECT_DOUBLE_EQ(0.4976657511624521, generate_canonical<double>(rng));
-        EXPECT_DOUBLE_EQ(0.84101992374240664, generate_canonical<double>(rng));
+        EXPECT_DOUBLE_EQ(0.49766548977877423, generate_canonical<double>(rng));
+        EXPECT_DOUBLE_EQ(0.84101980819525746, generate_canonical<double>(rng));
     }
 }
 
