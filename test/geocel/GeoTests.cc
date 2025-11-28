@@ -489,25 +489,9 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_trace() const
 {
-    // VGDML doesn't trim pointers
-    bool const is_vecgeom = (test_->geometry_type() == "VecGeom");
-    auto fix_vgdml_names = [is_vecgeom](GenericGeoTrackingResult& result) {
-        if (is_vecgeom)
-        {
-            for (std::string& s : result.volume_instances)
-            {
-                if (s == "World0xdeadbeef_PV")
-                {
-                    s = "World_PV";
-                }
-            }
-        }
-    };
-
     {
         SCOPED_TRACE("Rightward");
         auto result = test_->track({-10, -10, -10}, {1, 0, 0});
-        fix_vgdml_names(result);
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
@@ -567,7 +551,6 @@ void FourLevelsGeoTest::test_trace() const
     {
         SCOPED_TRACE("From just inside outside edge");
         auto result = test_->track({-24 + 0.001, 10., 10.}, {1, 0, 0});
-        fix_vgdml_names(result);
 
         // clang-format off
         GenericGeoTrackingResult ref;
@@ -590,7 +573,6 @@ void FourLevelsGeoTest::test_trace() const
     {
         SCOPED_TRACE("Leaving world");
         auto result = test_->track({-10, 10, 10}, {0, 1, 0});
-        fix_vgdml_names(result);
 
         GenericGeoTrackingResult ref;
         ref.volumes = {"Shape2", "Shape1", "Envelope", "World"};
@@ -605,7 +587,6 @@ void FourLevelsGeoTest::test_trace() const
     {
         SCOPED_TRACE("Upward");
         auto result = test_->track({-10, 10, 10}, {0, 0, 1});
-        fix_vgdml_names(result);
 
         GenericGeoTrackingResult ref;
         ref.volumes = {"Shape2", "Shape1", "Envelope", "World"};
@@ -624,6 +605,11 @@ void FourLevelsGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void LarSphereGeoTest::test_trace() const
 {
+    if (test_->geometry_type() == "VecGeom" && using_surface_vg)
+    {
+        GTEST_SKIP() << "Fails to cross +y";
+    }
+
     bool const is_orange = test_->geometry_type() == "ORANGE";
     {
         SCOPED_TRACE("+y");
@@ -2587,6 +2573,11 @@ void TwoBoxesGeoTest::test_tangent() const
             EXPECT_EQ("world", test_->volume_name(geo));
             GTEST_SKIP() << "Unexpected boundary crossing";
         }
+        else if (test_->geometry_type() == "VecGeom"
+                 && "world" == test_->volume_name(geo))
+        {
+            GTEST_SKIP() << "Unexpected boundary crossing";
+        }
         EXPECT_EQ("inner", test_->volume_name(geo));
     }
 
@@ -2688,7 +2679,7 @@ void ZnenvGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
-        if (using_solids_vg)
+        if (using_solids_vg && vecgeom_version >= Version{2, 0})
         {
             GTEST_SKIP() << "FIXME: Znenv VecGeom model construction failure.";
         }

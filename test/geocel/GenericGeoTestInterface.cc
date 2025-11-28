@@ -46,9 +46,11 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     bool const check_surface_normal{this->supports_surface_normal()};
     if (!check_surface_normal)
     {
-        CELER_LOG(warning) << "Surface normal checking is disabled for "
-                           << this->gdml_basename() << " using "
-                           << this->geometry_type();
+        static int warn_count{0};
+        world_logger()(CELER_CODE_PROVENANCE,
+                       warn_count++ == 0 ? LogLevel::warning : LogLevel::debug)
+            << "Surface normal checking is disabled for "
+            << this->gdml_basename() << " using " << this->geometry_type();
         result.disable_surface_normal();
     }
 
@@ -170,8 +172,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                 if (geo.is_outside())
                 {
                     ADD_FAILURE() << "reinitialization put the track outside "
-                                     "the geometry at"
-                                  << init.pos;
+                                     "the geometry "
+                                  << geo;
                     break;
                 }
                 if (geo.impl_volume_id() != prev_id)
@@ -189,8 +191,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                 EXPECT_TRUE(next.boundary);
                 EXPECT_SOFT_NEAR(next.distance, half_distance, this->bump_tol())
                     << "reinitialized distance mismatch at index "
-                    << result.volumes.size() - 1 << ": " << init.pos
-                    << " along " << init.dir;
+                    << result.volumes.size() - 1 << ": " << geo;
             }
         }
 
