@@ -72,11 +72,11 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
 
     // Length scale and description
     auto const unit_length = this->unit_length();
-    // Bump tolerance is unitless
-    real_type const bump_tol = this->bump_tol() * unit_length.value;
     // Convert from Celeritas native unit system to unit test's internal system
     auto from_native_length
         = [scale = unit_length.value](auto&& v) { return v / scale; };
+    // Bump tolerance is unitless
+    SoftZero soft_zero{this->bump_tol() * unit_length.value};
 
     while (!geo.is_outside())
     {
@@ -88,20 +88,20 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         }
         catch (std::exception const& e)
         {
-            ADD_FAILURE() << "failed to find next step at "
-                          << from_native_length(geo.pos()) << " along "
-                          << geo.dir() << ": " << e.what();
+            ADD_FAILURE() << "failed to find next step: " << e.what() << ": "
+                          << geo;
             break;
         }
         if (!next.boundary)
         {
-            ADD_FAILURE() << "failed to find the next boundary while inside "
-                             "the geometry";
+            ADD_FAILURE()
+                << R"(failed to find the next boundary while inside the geometry )"
+                << geo;
             result.volumes.push_back("[NO INTERCEPT]");
             break;
         }
 
-        if (next.distance < bump_tol)
+        if (soft_zero(next.distance))
         {
             // Add the point to the bump list
             for (auto p : geo.pos())
@@ -130,10 +130,9 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
             }
             catch (std::exception const& e)
             {
-                ADD_FAILURE() << "failed movement of "
-                              << from_native_length(half_distance) << " to "
-                              << from_native_length(geo.pos()) << " along "
-                              << geo.dir() << ": " << e.what();
+                ADD_FAILURE()
+                    << "failed movement of "
+                    << from_native_length(half_distance) << ": " << e.what();
                 break;
             }
 
@@ -148,7 +147,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                               << geo.dir() << ": " << e.what();
                 break;
             }
-            EXPECT_SOFT_NEAR(next.distance, half_distance, this->bump_tol());
+            EXPECT_SOFT_NEAR(next.distance, half_distance, soft_zero.abs());
 
             try
             {
@@ -163,7 +162,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                 break;
             }
 
-            if (result.halfway_safeties.back() > 0)
+            if (!soft_zero(result.halfway_safeties.back()))
             {
                 // Check reinitialization if not tangent to a surface
                 GeoTrackInitializer const init{geo.pos(), geo.dir()};
@@ -179,17 +178,16 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                 if (geo.impl_volume_id() != prev_id)
                 {
                     ADD_FAILURE()
-                        << "reinitialization changed the volume at "
-                        << init.pos << " along " << init.dir << " from "
+                        << "reinitialization changed the volume from "
                         << result.volumes.back() << " to "
                         << this->volume_name(geo) << " (alleged safety: "
                         << result.halfway_safeties.back() << " ["
-                        << unit_length.label << "])";
+                        << unit_length.label << "]) ";
                     result.volumes.back() += "/" + this->volume_name(geo);
                 }
                 next = geo.find_next_step();
                 EXPECT_TRUE(next.boundary);
-                EXPECT_SOFT_NEAR(next.distance, half_distance, this->bump_tol())
+                EXPECT_SOFT_NEAR(next.distance, half_distance, soft_zero.abs())
                     << "reinitialized distance mismatch at index "
                     << result.volumes.size() - 1 << ": " << geo;
             }
@@ -210,15 +208,13 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         }
         catch (std::exception const& e)
         {
-            ADD_FAILURE() << "failed to cross boundary at "
-                          << from_native_length(geo.pos()) << " along "
-                          << geo.dir() << ": " << e.what();
+            ADD_FAILURE() << "failed to cross boundary: " << e.what() << geo;
             break;
         }
 
         if (remaining_steps-- == 0)
         {
-            ADD_FAILURE() << "maximum steps exceeded";
+            ADD_FAILURE() << "maximum steps exceeded" << geo;
             break;
         }
     }
