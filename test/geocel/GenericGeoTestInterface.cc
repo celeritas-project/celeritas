@@ -56,41 +56,12 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
 
     // Note: position is scaled according to test
     geo = this->make_initializer(pos, dir);
+    // Checked track view prevents particles starting outside
+    EXPECT_FALSE(geo.is_outside());
 
     auto const& vol_inst = this->get_test_volumes().volume_instance_labels();
     real_type const inv_length = real_type{1} / this->unit_length();
     real_type const bump_tol = this->bump_tol() * this->unit_length();
-
-    // Cross boundary, checking and recording data
-    auto cross_boundary = [&] {
-        CELER_EXPECT(geo.is_on_boundary());
-        geo.cross_boundary();
-        if (check_surface_normal && !geo.is_outside())
-        {
-            // Add post-crossing (interior surface) dot product
-            result.dot_normal.push_back([&] {
-                if (!geo.is_on_boundary())
-                {
-                    return TrackingResult::no_surface_normal;
-                }
-                return std::fabs(dot_product(geo.dir(), geo.normal()));
-            }());
-        }
-    };
-
-    if (geo.is_outside())
-    {
-        // Initial step is outside but may approach inside
-        result.volumes.emplace_back(this->volume_name(geo));
-        auto next = geo.find_next_step();
-        result.distances.push_back(next.distance * inv_length);
-        if (next.boundary)
-        {
-            geo.move_to_boundary();
-            cross_boundary();
-            --remaining_steps;
-        }
-    }
 
     while (!geo.is_outside())
     {
@@ -230,13 +201,18 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                     << " along " << init.dir;
             }
         }
+
+        // Move to the boundary and attempt to cross
         geo.move_to_boundary();
         try
         {
-            cross_boundary();
-            if (geo.failed())
+            geo.cross_boundary();
+            if (check_surface_normal && !geo.is_outside())
             {
-                throw std::runtime_error("geometry 'failed' flag is set");
+                // Add post-crossing (interior surface) dot product
+                result.dot_normal.push_back([&] {
+                    return std::fabs(dot_product(geo.dir(), geo.normal()));
+                }());
             }
         }
         catch (std::exception const& e)
