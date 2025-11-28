@@ -263,6 +263,18 @@ std::string_view GenericGeoTestInterface::gdml_basename() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create a track view with runtime error checking.
+ */
+CheckedGeoTrackView GenericGeoTestInterface::make_checked_track_view()
+{
+    CheckedGeoTrackView result{this->make_geo_track_view_interface()};
+
+    result.check_normal(this->supports_surface_normal());
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Unit length for "track" testing and other results (defaults to cm).
  */
 auto GenericGeoTestInterface::unit_length() const -> UnitLength

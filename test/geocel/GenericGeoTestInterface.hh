@@ -14,6 +14,7 @@
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
 
+#include "CheckedGeoTrackView.hh"
 #include "LazyGeantGeoManager.hh"
 #include "UnitUtils.hh"
 
@@ -71,6 +72,9 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
 
     //! Create a track view (TODO: replace geo test base view)
     virtual UPGeoTrack make_geo_track_view_interface() = 0;
+
+    // Create a checked track view
+    CheckedGeoTrackView make_checked_track_view();
 
     //// CONFIGURABLE INTERFACE ////
 
