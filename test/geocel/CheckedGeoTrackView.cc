@@ -184,6 +184,9 @@ void CheckedGeoTrackView::move_to_boundary()
     // Move to boundary
     t_->move_to_boundary();
     checked_internal_ = false;
+
+    CELER_VALIDATE(t_->is_on_boundary(),
+                   << "moving to boundary did not leave track on a boundary");
 }
 
 //---------------------------------------------------------------------------//

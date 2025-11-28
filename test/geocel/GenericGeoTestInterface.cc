@@ -141,6 +141,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                               << geo.dir() << ": " << e.what();
                 break;
             }
+            EXPECT_SOFT_NEAR(next.distance, half_distance, this->bump_tol());
 
             try
             {
@@ -179,11 +180,9 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                         << unit_length.label << "])";
                     result.volumes.back() += "/" + this->volume_name(geo);
                 }
-                auto new_next = geo.find_next_step();
-                EXPECT_TRUE(new_next.boundary);
-                EXPECT_SOFT_NEAR(new_next.distance,
-                                 next.distance / 2,
-                                 100 * SoftEqual<>{}.rel())
+                next = geo.find_next_step();
+                EXPECT_TRUE(next.boundary);
+                EXPECT_SOFT_NEAR(next.distance, half_distance, this->bump_tol())
                     << "reinitialized distance mismatch at index "
                     << result.volumes.size() - 1 << ": " << init.pos
                     << " along " << init.dir;
