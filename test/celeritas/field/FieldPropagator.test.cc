@@ -803,7 +803,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
             EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
 
-        geo.cross_boundary();
+        EXPECT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("world", this->volume_name(geo));
     }
     {
@@ -832,7 +832,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
             EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
 
-        geo.cross_boundary();
+        EXPECT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("world", this->volume_name(geo));
     }
     {

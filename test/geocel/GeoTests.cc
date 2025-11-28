@@ -274,6 +274,7 @@ void FourLevelsGeoTest::test_consecutive_compute() const
 void FourLevelsGeoTest::test_detailed_tracking() const
 {
     bool const check_normal = test_->supports_surface_normal();
+    Propagation next;
     {
         SCOPED_TRACE("rightward along corner");
         auto geo = make_geo_track_view(*test_, {-10, -10, -10}, {1, 0, 0});
@@ -282,17 +283,17 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_FALSE(geo.is_on_boundary());
 
         // Check for surfaces up to a distance of 4 units away
-        auto next = geo.find_next_step(from_cm(4.0));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
         EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
-        next = geo.find_next_step(from_cm(4.0));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
         EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
         geo.move_internal(from_cm(3.5));
         EXPECT_FALSE(geo.is_on_boundary());
 
         // Find one a bit further, then cross it
-        next = geo.find_next_step(from_cm(4.0));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
@@ -312,11 +313,11 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 
         // Find the next boundary and make sure that nearer distances aren't
         // accepted
-        next = geo.find_next_step();
+        ASSERT_NO_THROW(next = geo.find_next_step());
         EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
-        next = geo.find_next_step(from_cm(0.5));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(0.5)));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
     }
@@ -326,7 +327,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         ASSERT_FALSE(geo.is_outside());
         EXPECT_EQ("World", test_->volume_name(geo));
 
-        auto next = geo.find_next_step(from_cm(2));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(2)));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
 
@@ -349,7 +350,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_FALSE(geo.is_on_boundary());
 
         // Check for surfaces: we should hit the outside of the sphere Shape2
-        auto next = geo.find_next_step(from_cm(1.0));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1.0)));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
         // Move left to the boundary but scatter perpendicularly, tangent
         // upward to the sphere
@@ -361,7 +362,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 
         // Find the next step (to top edge of Shape1) but then scatter back
         // toward the sphere
-        next = geo.find_next_step(from_cm(10.0));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(10.0)));
         if (test_->geometry_type() == "VecGeom" && using_solids_vg
             && vecgeom_version >= Version{2, 0})
         {
@@ -379,7 +380,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         // into the sphere (this may be a "bump": 1e-13 for surface VG, Geant4;
         // 1e-8 for volume VG; BUT exactly zero for ORANGE thanks to
         // "reentrant" logic)
-        next = geo.find_next_step(from_cm(20.0));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(20.0)));
         EXPECT_LE(next.distance, to_cm(1e-8));
         ASSERT_TRUE(next.boundary);
         if (next.distance > 0)
@@ -436,14 +437,14 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_EQ("Shape2", test_->volume_name(geo));
 
         // Now move just barely inside the sphere
-        next = geo.find_next_step(from_cm(1e-6));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1e-6)));
         EXPECT_FALSE(next.boundary);
         geo.move_internal(next.distance);
         EXPECT_FALSE(geo.is_on_boundary());
 
         // Exit the sphere
         geo.set_dir({1, 0, 0});
-        next = geo.find_next_step(from_cm(1));
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1)));
         EXPECT_LE(next.distance, from_cm(1e-5));
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
