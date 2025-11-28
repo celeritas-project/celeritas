@@ -16,6 +16,7 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class GeoParamsInterface;
 class VolumeParams;
 
@@ -49,18 +50,11 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     {
     }
 
-    //! Construct with a unique pointer to a geo track view
+    // Construct with a unique pointer to a geo track view
     CheckedGeoTrackView(UPTrack track,
                         SPConstVolumes volumes,
-                        SPConstGeoI geo,
-                        UnitLength unit_length)
-        : t_{std::move(track)}
-        , volumes_{std::move(volumes)}
-        , params_{std::move(geo)}
-        , unit_length_(unit_length)
-    {
-        CELER_EXPECT(unit_length_.value > 0);
-    }
+                        SPConstGeoI geo_interface,
+                        UnitLength unit_length);
 
     //! Access the underlying track view
     TrackT const& track_view() const { return *t_; }
@@ -84,10 +78,12 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     //! Whether normal checking is enabled
     bool check_normal() const { return check_normal_; }
 
-    //! Access the volumes parameters
+    //! Canonical volume parameters (if available)
     SPConstVolumes const& volumes() const { return volumes_; }
-    //! Access the geometry interface
-    SPConstGeoI const& params() const { return params_; }
+    //! Geometry interface (if available)
+    SPConstGeoI const& geo_interface() const { return geo_interface_; }
+    //! Length scale
+    UnitLength unit_length() const { return unit_length_; }
 
     //// GEO TRACK INTERFACE ////
 
@@ -151,7 +147,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
   private:
     UPTrack t_;
     SPConstVolumes volumes_;
-    SPConstGeoI params_;
+    SPConstGeoI geo_interface_;
     UnitLength unit_length_;
     bool checked_internal_{false};
     bool check_normal_{false};
@@ -167,9 +163,17 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
 std::string volume_name(GeoTrackInterface<real_type> const& geo,
                         VolumeParams const& params);
 
+// Get a robust name using impl volume params
+std::string volume_name(GeoTrackInterface<real_type> const& geo,
+                        GeoParamsInterface const& params);
+
 // Get the descriptive, robust volume instance name based on the geo state
 std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
                                  VolumeParams const& params);
+
+// Get the descriptive, robust volume instance name based on the geo state
+std::string unique_volume_name(GeoTrackInterface<real_type> const& geo,
+                               VolumeParams const& params);
 
 std::ostream& operator<<(std::ostream&, CheckedGeoTrackView const&);
 

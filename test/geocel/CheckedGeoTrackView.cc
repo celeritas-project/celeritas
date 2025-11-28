@@ -14,13 +14,79 @@
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeoParamsInterface.hh"
 #include "geocel/VolumeParams.hh"
 
 namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+
+struct StreamableUniqueVolName
+{
+    GeoTrackInterface<real_type> const& geo;
+    VolumeParams const& params;
+};
+
+std::ostream& operator<<(std::ostream& os, StreamableUniqueVolName const& suvn)
+{
+    if (suvn.geo.is_outside())
+    {
+        return os << "[OUTSIDE]";
+    }
+
+    auto const& vi_labels = suvn.params.volume_instance_labels();
+    if (vi_labels.empty())
+    {
+        return os;
+    }
+
+    auto vlev = suvn.geo.volume_level();
+    CELER_ASSERT(vlev && vlev >= VolumeLevelId{0});
+
+    std::vector<VolumeInstanceId> ids(vlev.get() + 1);
+    suvn.geo.volume_instance_id(make_span(ids));
+
+    os << vi_labels.at(ids[0]);
+    for (auto i : range(std::size_t{1}, ids.size()))
+    {
+        os << '/';
+        if (ids[i])
+        {
+            os << vi_labels.at(ids[i]);
+        }
+        else
+        {
+            os << "[INVALID]";
+        }
+    }
+    return os;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * ! Construct with a unique pointer to a geo track view.
+ */
+CheckedGeoTrackView::CheckedGeoTrackView(UPTrack track,
+                                         SPConstVolumes volumes,
+                                         SPConstGeoI geo_interface,
+                                         UnitLength unit_length)
+    : t_{std::move(track)}
+    , volumes_{std::move(volumes)}
+    , geo_interface_{std::move(geo_interface)}
+    , unit_length_(unit_length)
+{
+    CELER_EXPECT(unit_length_.value > 0);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the state.
@@ -106,8 +172,8 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     {
         real_type safety = t_->find_safety(distance);
         CELER_VALIDATE(safety <= result.distance,
-                       << std::setprecision(16) << "safety " << safety
-                       << " exceeds actual distance " << result.distance
+                       << "safety " << repr(safety)
+                       << " exceeds actual distance " << repr(result.distance)
                        << " to boundary at " << t_->pos() << " in "
                        << t_->impl_volume_id().get());
     }
@@ -149,15 +215,12 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
         ImplVolumeId expected = t_->impl_volume_id();
         Initializer_t here{t_->pos(), t_->dir()};
         *t_ = here;
-        CELER_VALIDATE(!t_->is_outside(),
-                       << std::setprecision(16)
-                       << "internal move ends up 'outside' at " << t_->pos());
+        CELER_VALIDATE(!t_->is_outside(), << "internal move ends up 'outside'");
         CELER_VALIDATE(t_->impl_volume_id() == expected,
-                       << std::setprecision(16)
                        << "volume ID changed during internal move from"
-                       << repr(orig_pos) << " to " << repr(t_->pos())
-                       << ": was " << expected.get() << ", now "
-                       << t_->impl_volume_id().get());
+                       << repr(orig_pos) << ": was " << expected.get()
+                       << ", now " << t_->impl_volume_id().get() << " at "
+                       << *this);
         checked_internal_ = true;
     }
     if (orig_safety == 0 && !t_->is_on_boundary())
@@ -207,10 +270,9 @@ void CheckedGeoTrackView::cross_boundary()
 
     // Cross boundary
     t_->cross_boundary();
-    CELER_VALIDATE(!t_->failed(), << "failed to cross boundary");
+    CELER_VALIDATE(!t_->failed(), << "failed to cross boundary: " << *this);
     CELER_VALIDATE(t_->is_on_boundary(),
-                   << std::setprecision(16)
-                   << "internal move ends up 'outside' at " << t_->pos());
+                   << "internal move ends up 'outside': " << *this);
 
     // Verify post-crossing normal if checking is enabled
     if (pre_crossing_normal && !t_->is_outside())
@@ -219,17 +281,15 @@ void CheckedGeoTrackView::cross_boundary()
         CELER_VALIDATE(
             soft_equal(std::fabs(dot_product(*pre_crossing_normal, post_norm)),
                        real_type{1}),
-            << std::setprecision(16)
-            << "Normal is not consistent at boundary: pre-crossing "
-            << *pre_crossing_normal << ", post-crossing " << post_norm);
+            << "normal is not consistent at boundary: pre-crossing "
+            << *pre_crossing_normal << ", post-crossing " << post_norm << " ("
+            << *this << ")");
 
         // Check for tangent crossing warning
         if (soft_zero(dot_product(t_->dir(), post_norm)))
         {
-            CELER_LOG(warning)
-                << "Crossed into " << t_->impl_volume_id().get()
-                << " at a tangent; traveling along " << repr(t_->dir())
-                << ", normal is " << repr(post_norm);
+            CELER_LOG(warning) << "Crossed at a tangent normal "
+                               << repr(post_norm) << ": " << *this;
         }
     }
 }
@@ -251,6 +311,31 @@ std::string volume_name(GeoTrackInterface<real_type> const& geo,
         return {};
 
     VolumeId id = geo.volume_id();
+    if (!id)
+    {
+        return "[INVALID]";
+    }
+
+    return vol_labels.at(id).name;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the descriptive, robust impl volume name based on the geo state.
+ */
+std::string volume_name(GeoTrackInterface<real_type> const& geo,
+                        GeoParamsInterface const& params)
+{
+    if (geo.is_outside())
+    {
+        return "[OUTSIDE]";
+    }
+
+    auto const& vol_labels = params.impl_volumes();
+    if (vol_labels.empty())
+        return {};
+
+    ImplVolumeId id = geo.impl_volume_id();
     if (!id)
     {
         return "[INVALID]";
@@ -295,13 +380,51 @@ std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
     return to_string(vi_labels.at(vi_id));
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Get the descriptive, robust volume instance name based on the geo state.
+ */
+std::string unique_volume_name(GeoTrackInterface<real_type> const& geo,
+                               VolumeParams const& params)
+{
+    std::ostringstream os;
+    os << StreamableUniqueVolName{geo, params};
+    return std::move(os).str();
+}
+
 std::ostream& operator<<(std::ostream& os, CheckedGeoTrackView const& geo)
 {
-    os << "GeoTrackView{pos=" << geo.pos() << ", dir=" << geo.dir()
-       << ", volume=" << geo.impl_volume_id().get()
-       << ", on_boundary=" << std::boolalpha << geo.is_on_boundary()
-       << ", outside=" << geo.is_outside() << ", failed=" << geo.failed()
-       << "}";
+    // Length scale and description
+    auto const& units = geo.unit_length();
+
+    os << "at " << repr(geo.pos() / units.value) << " [" << units.label
+       << "] along " << repr(geo.dir()) << ": ";
+    if (geo.failed())
+    {
+        os << "[FAILED] ";
+    }
+    if (geo.is_on_boundary())
+    {
+        os << "[ON BOUNDARY] ";
+    }
+    if (geo.volumes())
+    {
+        os << StreamableUniqueVolName{geo, *geo.volumes()};
+    }
+    else if (geo.geo_interface())
+    {
+        os << volume_name(geo, *geo.geo_interface());
+    }
+    else if (geo.is_outside())
+    {
+        os << "[OUTSIDE]";
+    }
+    else
+    {
+        // Unlikely
+        os << "impl volume " << geo.impl_volume_id().unchecked_get();
+    }
+
     return os;
 }
 

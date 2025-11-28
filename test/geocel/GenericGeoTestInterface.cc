@@ -351,33 +351,8 @@ std::string GenericGeoTestInterface::volume_name(GeoTrackView const& geo) const
 std::string
 GenericGeoTestInterface::unique_volume_name(GeoTrackView const& geo) const
 {
-    if (geo.is_outside())
-    {
-        return "[OUTSIDE]";
-    }
-
-    auto vlev = geo.volume_level();
-    CELER_ASSERT(vlev && vlev >= VolumeLevelId{0});
-
-    std::vector<VolumeInstanceId> ids(vlev.get() + 1);
-    geo.volume_instance_id(make_span(ids));
-
-    auto const& vol_inst = this->get_test_volumes()->volume_instance_labels();
-    std::ostringstream os;
-    os << vol_inst.at(ids[0]);
-    for (auto i : range(std::size_t{1}, ids.size()))
-    {
-        os << '/';
-        if (ids[i])
-        {
-            os << vol_inst.at(ids[i]);
-        }
-        else
-        {
-            os << "[INVALID]";
-        }
-    }
-    return std::move(os).str();
+    return ::celeritas::test::unique_volume_name(geo,
+                                                 *this->get_test_volumes());
 }
 
 //---------------------------------------------------------------------------//
