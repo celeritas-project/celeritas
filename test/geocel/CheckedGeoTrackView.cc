@@ -295,6 +295,16 @@ std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
     return to_string(vi_labels.at(vi_id));
 }
 
+std::ostream& operator<<(std::ostream& os, CheckedGeoTrackView const& geo)
+{
+    os << "GeoTrackView{pos=" << geo.pos() << ", dir=" << geo.dir()
+       << ", volume=" << geo.impl_volume_id().get()
+       << ", on_boundary=" << std::boolalpha << geo.is_on_boundary()
+       << ", outside=" << geo.is_outside() << ", failed=" << geo.failed()
+       << "}";
+    return os;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

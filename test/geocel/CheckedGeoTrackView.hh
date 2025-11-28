@@ -7,14 +7,18 @@
 #pragma once
 
 #include <memory>
+#include <sstream>
 
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
-#include "geocel/detail/LengthUnits.hh"
+
+#include "UnitUtils.hh"
 
 namespace celeritas
 {
+class GeoParamsInterface;
 class VolumeParams;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -34,13 +38,28 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     using Real3 = Array<real_type, 3>;
     using TrackT = GeoTrackInterface<real_type>;
     using UPTrack = std::unique_ptr<TrackT>;
+    using SPConstGeoI = std::shared_ptr<GeoParamsInterface const>;
+    using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     //!@}
 
   public:
     //! Construct with a unique pointer to a geo track view
-    explicit CheckedGeoTrackView(UPTrack track) : t_(std::move(track))
+    explicit CheckedGeoTrackView(UPTrack track)
+        : CheckedGeoTrackView{std::move(track), nullptr, nullptr, UnitLength{}}
     {
-        CELER_EXPECT(t_);
+    }
+
+    //! Construct with a unique pointer to a geo track view
+    CheckedGeoTrackView(UPTrack track,
+                        SPConstVolumes volumes,
+                        SPConstGeoI geo,
+                        UnitLength unit_length)
+        : t_{std::move(track)}
+        , volumes_{std::move(volumes)}
+        , params_{std::move(geo)}
+        , unit_length_(unit_length)
+    {
+        CELER_EXPECT(unit_length_.value > 0);
     }
 
     //! Access the underlying track view
@@ -49,12 +68,9 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     TrackT& track_view() { return *t_; }
 
     //! Check volume consistency this far from the boundary
-    static constexpr real_type safety_tol()
-    {
-        return 1e-4 * lengthunits::centimeter;
-    }
+    real_type safety_tol() const { return 1e-4 * unit_length_.value; }
 
-    //// INSTRUMENTATION ////
+    //// ACCESSORS ////
 
     //! Number of calls of find_next_step
     size_type intersect_count() const { return num_intersect_; }
@@ -67,6 +83,11 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     void check_normal(bool value) { check_normal_ = value; }
     //! Whether normal checking is enabled
     bool check_normal() const { return check_normal_; }
+
+    //! Access the volumes parameters
+    SPConstVolumes const& volumes() const { return volumes_; }
+    //! Access the geometry interface
+    SPConstGeoI const& params() const { return params_; }
 
     //// GEO TRACK INTERFACE ////
 
@@ -129,6 +150,9 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
 
   private:
     UPTrack t_;
+    SPConstVolumes volumes_;
+    SPConstGeoI params_;
+    UnitLength unit_length_;
     bool checked_internal_{false};
     bool check_normal_{false};
     size_type num_intersect_{0};
@@ -146,6 +170,8 @@ std::string volume_name(GeoTrackInterface<real_type> const& geo,
 // Get the descriptive, robust volume instance name based on the geo state
 std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
                                  VolumeParams const& params);
+
+std::ostream& operator<<(std::ostream&, CheckedGeoTrackView const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

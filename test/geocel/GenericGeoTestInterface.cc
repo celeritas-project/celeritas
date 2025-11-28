@@ -52,7 +52,12 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         result.disable_surface_normal();
     }
 
-    CheckedGeoTrackView geo{this->make_geo_track_view_interface()};
+    CheckedGeoTrackView geo{
+        this->make_geo_track_view_interface(),
+        this->get_test_volumes(),
+        this->geometry_interface(),
+        this->unit_length(),
+    };
     geo.check_normal(check_surface_normal);
 
     // Note: position is scaled according to test
