@@ -7,7 +7,6 @@
 #pragma once
 
 #include <memory>
-#include <sstream>
 
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"

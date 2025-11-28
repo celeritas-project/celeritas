@@ -9,6 +9,8 @@
 #include <stdexcept>
 #include <gtest/gtest.h>
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
@@ -76,7 +78,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     auto from_native_length
         = [scale = unit_length.value](auto&& v) { return v / scale; };
     // Bump tolerance is unitless
-    SoftZero soft_zero{this->bump_tol() * unit_length.value};
+    SoftZero soft_zero{this->tracking_tol().distance * unit_length.value};
 
     while (!geo.is_outside())
     {
@@ -312,17 +314,6 @@ GenericGeoTrackingTolerance GenericGeoTestInterface::tracking_tol() const
 bool GenericGeoTestInterface::supports_surface_normal() const
 {
     return true;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the threshold for a movement being a "bump".
- *
- * This unitless tolerance is multiplied by the test's unit length when used.
- */
-real_type GenericGeoTestInterface::bump_tol() const
-{
-    return 1e-7;
 }
 
 //---------------------------------------------------------------------------//

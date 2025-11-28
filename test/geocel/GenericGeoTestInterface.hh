@@ -90,9 +90,6 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     // Get the safety tolerance (defaults to SoftEq tol) for tracking result
     virtual GenericGeoTrackingTolerance tracking_tol() const;
 
-    // Get the threshold in "unit lengths" for a movement being a "bump"
-    virtual real_type bump_tol() const;
-
     //// UTILITIES ////
 
     // Construct an initializer with correct scaling/normalization

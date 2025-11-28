@@ -16,8 +16,6 @@
 #include "geocel/GeoTests.hh"
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/VolumeToString.hh"
-#include "geocel/detail/LengthUnits.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "orange/Debug.hh"
 #include "orange/OrangeTypes.hh"
@@ -242,7 +240,7 @@ class ReplicaTest
 
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
-            result.distance *= 10;
+            result.distance = 1e-5;
         }
 
         return result;
