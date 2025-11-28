@@ -15,6 +15,7 @@
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/Types.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/VolumeToString.hh"
 #include "geocel/detail/LengthUnits.hh"
 #include "geocel/rasterize/SafetyImager.hh"
@@ -58,8 +59,6 @@ class GeantOrangeTest : public OrangeTestBase
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;
     }
-
-    Constant unit_length() const final { return lengthunits::centimeter; }
 };
 
 //---------------------------------------------------------------------------//

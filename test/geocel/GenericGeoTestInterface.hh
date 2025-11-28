@@ -16,6 +16,7 @@
 #include "geocel/detail/LengthUnits.hh"
 
 #include "LazyGeantGeoManager.hh"
+#include "UnitUtils.hh"
 
 class G4VPhysicalVolume;
 
@@ -75,7 +76,7 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //// CONFIGURABLE INTERFACE ////
 
     // Unit length for "track" testing and other results (defaults to cm)
-    virtual Constant unit_length() const;
+    virtual UnitLength unit_length() const;
 
     // Maximum number of local track slots
     virtual size_type num_track_slots() const;

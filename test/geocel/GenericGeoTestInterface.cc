@@ -60,8 +60,12 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     EXPECT_FALSE(geo.is_outside());
 
     auto const& vol_inst = this->get_test_volumes()->volume_instance_labels();
-    real_type const inv_length = real_type{1} / this->unit_length();
-    real_type const bump_tol = this->bump_tol() * this->unit_length();
+    auto const unit_length = this->unit_length();
+    // Bump tolerance is unitless
+    real_type const bump_tol = this->bump_tol() * unit_length.value;
+    // Convert from Celeritas native unit system to unit test's internal system
+    auto from_native_length
+        = [scale = unit_length.value](auto&& v) { return v / scale; };
 
     while (!geo.is_outside())
     {
@@ -96,13 +100,13 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         try
         {
             next = geo.find_next_step();
-            result.distances.push_back(next.distance * inv_length);
+            result.distances.push_back(from_native_length(next.distance));
         }
         catch (std::exception const& e)
         {
             ADD_FAILURE() << "failed to find next step at "
-                          << geo.pos() * inv_length << " along " << geo.dir()
-                          << ": " << e.what();
+                          << from_native_length(geo.pos()) << " along "
+                          << geo.dir() << ": " << e.what();
             break;
         }
         if (!next.boundary)
@@ -124,7 +128,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
             // Instead add the point to the bump list
             for (auto p : geo.pos())
             {
-                result.bumps.push_back(p * inv_length);
+                result.bumps.push_back(from_native_length(p));
             }
             // Unscaled bump value is a nice separator and can hint where the
             // bump originates
@@ -138,10 +142,10 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
             }
             catch (std::exception const& e)
             {
-                ADD_FAILURE()
-                    << "failed movement of " << next.distance * inv_length / 2
-                    << " to " << geo.pos() * inv_length << " along "
-                    << geo.dir() << ": " << e.what();
+                ADD_FAILURE() << "failed movement of "
+                              << from_native_length(next.distance / 2)
+                              << " to " << from_native_length(geo.pos())
+                              << " along " << geo.dir() << ": " << e.what();
                 break;
             }
             try
@@ -150,21 +154,22 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
             }
             catch (std::exception const& e)
             {
-                ADD_FAILURE()
-                    << "failed to find next step at " << geo.pos() * inv_length
-                    << " along " << geo.dir() << ": " << e.what();
+                ADD_FAILURE() << "failed to find next step at "
+                              << from_native_length(geo.pos()) << " along "
+                              << geo.dir() << ": " << e.what();
                 break;
             }
 
             try
             {
-                result.halfway_safeties.push_back(geo.find_safety()
-                                                  * inv_length);
+                result.halfway_safeties.push_back(
+                    from_native_length(geo.find_safety()));
             }
             catch (std::exception const& e)
             {
-                ADD_FAILURE() << "failed to find safety at "
-                              << geo.pos() * inv_length << ": " << e.what();
+                ADD_FAILURE()
+                    << "failed to find safety at "
+                    << from_native_length(geo.pos()) << ": " << e.what();
                 break;
             }
 
@@ -188,7 +193,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                         << init.pos << " along " << init.dir << " from "
                         << result.volumes.back() << " to "
                         << this->volume_name(geo) << " (alleged safety: "
-                        << result.halfway_safeties.back() * inv_length << ")";
+                        << result.halfway_safeties.back() << " ["
+                        << unit_length.label << "])";
                     result.volumes.back() += "/" + this->volume_name(geo);
                 }
                 auto new_next = geo.find_next_step();
@@ -218,8 +224,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         catch (std::exception const& e)
         {
             ADD_FAILURE() << "failed to cross boundary at "
-                          << geo.pos() * inv_length << " along " << geo.dir()
-                          << ": " << e.what();
+                          << from_native_length(geo.pos()) << " along "
+                          << geo.dir() << ": " << e.what();
             break;
         }
 
@@ -277,9 +283,9 @@ std::string_view GenericGeoTestInterface::gdml_basename() const
 /*!
  * Unit length for "track" testing and other results (defaults to cm).
  */
-Constant GenericGeoTestInterface::unit_length() const
+auto GenericGeoTestInterface::unit_length() const -> UnitLength
 {
-    return lengthunits::centimeter;
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -333,7 +339,7 @@ GenericGeoTestInterface::make_initializer(Real3 const& pos_unit_length,
                                           Real3 const& dir) const
 {
     GeoTrackInitializer init{pos_unit_length, make_unit_vector(dir)};
-    init.pos *= static_cast<real_type>(this->unit_length());
+    init.pos *= static_cast<real_type>(this->unit_length().value);
     return init;
 }
 

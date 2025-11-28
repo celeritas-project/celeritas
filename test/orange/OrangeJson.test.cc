@@ -37,7 +37,7 @@ class JsonOrangeTest : public OrangeGeoTestBase
     //! Use multiple track slots to check detailed initialization
     size_type num_track_slots() const override { return 2; }
     //! Length scale is hardcoded into JSON files
-    Constant unit_length() const override { return Constant{1}; }
+    UnitLength unit_length() const override { return {Constant{1}, "length"}; }
 
     virtual std::string_view geometry_basename() const = 0;
 
