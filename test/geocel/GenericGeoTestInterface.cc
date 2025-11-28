@@ -59,7 +59,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     // Checked track view prevents particles starting outside
     EXPECT_FALSE(geo.is_outside());
 
-    auto const& vol_inst = this->get_test_volumes().volume_instance_labels();
+    auto const& vol_inst = this->get_test_volumes()->volume_instance_labels();
     real_type const inv_length = real_type{1} / this->unit_length();
     real_type const bump_tol = this->bump_tol() * this->unit_length();
 
@@ -255,7 +255,8 @@ auto GenericGeoTestInterface::volume_stack(Real3 const& pos)
     geo.volume_instance_id(make_span(inst_ids));
 
     return VolumeStackResult::from_span(
-        this->get_test_volumes().volume_instance_labels(), make_span(inst_ids));
+        this->get_test_volumes()->volume_instance_labels(),
+        make_span(inst_ids));
 }
 
 //---------------------------------------------------------------------------//
@@ -346,7 +347,7 @@ std::string GenericGeoTestInterface::volume_name(GeoTrackView const& geo) const
 
     if (VolumeId id = geo.volume_id())
     {
-        return this->get_test_volumes().volume_labels().at(id).name;
+        return this->get_test_volumes()->volume_labels().at(id).name;
     }
     return "[INVALID]";
 }
@@ -366,7 +367,7 @@ GenericGeoTestInterface::unique_volume_name(GeoTrackView const& geo) const
     std::vector<VolumeInstanceId> ids(vlev.get() + 1);
     geo.volume_instance_id(make_span(ids));
 
-    auto const& vol_inst = this->get_test_volumes().volume_instance_labels();
+    auto const& vol_inst = this->get_test_volumes()->volume_instance_labels();
     std::ostringstream os;
     os << vol_inst.at(ids[0]);
     for (auto i : range(std::size_t{1}, ids.size()))
@@ -385,7 +386,7 @@ GenericGeoTestInterface::unique_volume_name(GeoTrackView const& geo) const
 }
 
 //---------------------------------------------------------------------------//
-VolumeParams const& GenericGeoTestInterface::get_test_volumes() const
+auto GenericGeoTestInterface::get_test_volumes() const -> SPConstVolumes const&
 {
     volumes_ = this->volumes();
     if (!volumes_)
@@ -394,14 +395,14 @@ VolumeParams const& GenericGeoTestInterface::get_test_volumes() const
         static PersistentSP<VolumeParams const> pv{
             "GenericGeoTestBase volumes"};
         pv.lazy_update(std::string{this->gdml_basename()},
-                       [&g = this->geometry_interface()]() {
+                       [g = this->geometry_interface()]() {
                            return std::make_shared<VolumeParams const>(
-                               g.make_model_input().volumes);
+                               g->make_model_input().volumes);
                        });
         volumes_ = pv.value();
     }
     CELER_ENSURE(volumes_);
-    return *volumes_;
+    return volumes_;
 }
 
 }  // namespace test

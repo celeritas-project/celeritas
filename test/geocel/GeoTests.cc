@@ -94,7 +94,7 @@ void delete_orange_safety(GenericGeoTestInterface const& interface,
 //! Test geometry accessors
 void CmsEeBackDeeGeoTest::test_accessors() const
 {
-    auto const& geo = test_->geometry_interface();
+    auto const& geo = *test_->geometry_interface();
 
     auto expected_bbox = calc_expected_bbox(
         test_->geometry_type(), {0., -177.5, 359.5}, {177.5, 177.5, 399.6});
@@ -240,7 +240,7 @@ void CmseGeoTest::test_trace() const
 //! Test geometry accessors
 void FourLevelsGeoTest::test_accessors() const
 {
-    auto const& geo = test_->geometry_interface();
+    auto const& geo = *test_->geometry_interface();
 
     auto expected_bbox = calc_expected_bbox(
         test_->geometry_type(), {-24., -24., -24.}, {24., 24., 24.});
@@ -1365,7 +1365,7 @@ void ReplicaGeoTest::test_volume_stack() const
 //! Test geometry accessors
 void SolidsGeoTest::test_accessors() const
 {
-    auto const& geo = test_->geometry_interface();
+    auto const& geo = *test_->geometry_interface();
 
     auto expected_bbox = calc_expected_bbox(
         test_->geometry_type(), {-600., -300., -75.}, {600., 300., 75.});
@@ -2068,7 +2068,7 @@ void TilecalPlugGeoTest::test_trace() const
 //! Test geometry accessors
 void TransformedBoxGeoTest::test_accessors() const
 {
-    auto const& geo = test_->geometry_interface();
+    auto const& geo = *test_->geometry_interface();
 
     auto expected_bbox = calc_expected_bbox(
         test_->geometry_type(), {-50., -50., -50.}, {50., 50., 50.});
@@ -2292,7 +2292,7 @@ void TransformedBoxGeoTest::test_trace() const
 //! Test geometry accessors
 void TwoBoxesGeoTest::test_accessors() const
 {
-    auto const& geo = test_->geometry_interface();
+    auto const& geo = *test_->geometry_interface();
     auto expected_bbox = calc_expected_bbox(
         test_->geometry_type(), {-500., -500., -500.}, {500., 500., 500.});
     auto const& bbox = geo.bbox();

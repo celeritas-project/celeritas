@@ -67,7 +67,7 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     virtual std::string_view geometry_type() const = 0;
 
     //! Access the geometry interface
-    virtual GeoParamsInterface const& geometry_interface() const = 0;
+    virtual SPConstGeoI geometry_interface() const = 0;
 
     //! Create a track view (TODO: replace geo test base view)
     virtual UPGeoTrack make_geo_track_view_interface() = 0;
@@ -105,7 +105,7 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
 
   private:
     // Volume params, possibly not from G4
-    VolumeParams const& get_test_volumes() const;
+    SPConstVolumes const& get_test_volumes() const;
     // Lazily constructed volumes, possibly from non-G4 model
     mutable SPConstVolumes volumes_;
 };
