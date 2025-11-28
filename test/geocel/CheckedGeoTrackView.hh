@@ -14,6 +14,7 @@
 
 namespace celeritas
 {
+class VolumeParams;
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -133,6 +134,18 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     size_type num_intersect_{0};
     size_type num_safety_{0};
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Get the descriptive, robust volume name based on the geo state
+std::string volume_name(GeoTrackInterface<real_type> const& geo,
+                        VolumeParams const& params);
+
+// Get the descriptive, robust volume instance name based on the geo state
+std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
+                                 VolumeParams const& params);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -15,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/VolumeParams.hh"
 
 namespace celeritas
 {
@@ -228,6 +229,67 @@ void CheckedGeoTrackView::cross_boundary()
                 << ", normal is " << repr(post_norm);
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the descriptive, robust volume name based on the geo state.
+ */
+std::string volume_name(GeoTrackInterface<real_type> const& geo,
+                        VolumeParams const& params)
+{
+    if (geo.is_outside())
+    {
+        return "[OUTSIDE]";
+    }
+
+    auto const& vol_labels = params.volume_labels();
+    if (vol_labels.empty())
+        return {};
+
+    VolumeId id = geo.volume_id();
+    if (!id)
+    {
+        return "[INVALID]";
+    }
+
+    return vol_labels.at(id).name;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the descriptive, robust volume instance name based on the geo state.
+ */
+std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
+                                 VolumeParams const& params)
+{
+    if (geo.is_outside())
+    {
+        return "[OUTSIDE]";
+    }
+
+    auto const& vi_labels = params.volume_instance_labels();
+    if (vi_labels.empty())
+        return {};
+
+    VolumeInstanceId vi_id;
+    try
+    {
+        vi_id = geo.volume_instance_id();
+    }
+    catch (celeritas::DebugError const& e)
+    {
+        std::ostringstream os;
+        os << "<exception at " << e.details().file << ':' << e.details().line
+           << ": " << e.details().condition << '>';
+        return std::move(os).str();
+    }
+    if (!vi_id)
+    {
+        return "[INVALID]";
+    }
+
+    return to_string(vi_labels.at(vi_id));
 }
 
 //---------------------------------------------------------------------------//

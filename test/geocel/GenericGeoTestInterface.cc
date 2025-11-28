@@ -17,6 +17,7 @@
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
+#include "geocel/detail/LengthUnits.hh"
 #include "geocel/inp/Model.hh"
 
 #include "CheckedGeoTrackView.hh"
@@ -59,7 +60,10 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     // Checked track view prevents particles starting outside
     EXPECT_FALSE(geo.is_outside());
 
-    auto const& vol_inst = this->get_test_volumes()->volume_instance_labels();
+    auto const& vols = *this->get_test_volumes();
+    bool const has_vol_inst = !vols.volume_instance_labels().empty();
+
+    // Length scale and description
     auto const unit_length = this->unit_length();
     // Bump tolerance is unitless
     real_type const bump_tol = this->bump_tol() * unit_length.value;
@@ -69,38 +73,11 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
 
     while (!geo.is_outside())
     {
-        // Add volume names
-        result.volumes.emplace_back(this->volume_name(geo));
-        if (!vol_inst.empty())
-        {
-            result.volume_instances.emplace_back([&] {
-                VolumeInstanceId vi_id;
-                try
-                {
-                    vi_id = geo.volume_instance_id();
-                }
-                catch (celeritas::DebugError const& e)
-                {
-                    std::ostringstream os;
-                    os << "<exception at " << e.details().file << ':'
-                       << e.details().line << ": " << e.details().condition
-                       << '>';
-                    return std::move(os).str();
-                }
-                if (!vi_id)
-                {
-                    return std::string{"---"};
-                }
-                return to_string(vol_inst.at(vi_id));
-            }());
-        }
-
-        // Add next distance
+        // Find next distance
         Propagation next;
         try
         {
             next = geo.find_next_step();
-            result.distances.push_back(from_native_length(next.distance));
         }
         catch (std::exception const& e)
         {
@@ -116,16 +93,10 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
             result.volumes.push_back("[NO INTERCEPT]");
             break;
         }
+
         if (next.distance < bump_tol)
         {
-            // Revert result of epsilon distance
-            result.distances.pop_back();
-            result.volumes.pop_back();
-            if (!vol_inst.empty())
-            {
-                result.volume_instances.pop_back();
-            }
-            // Instead add the point to the bump list
+            // Add the point to the bump list
             for (auto p : geo.pos())
             {
                 result.bumps.push_back(from_native_length(p));
@@ -136,21 +107,32 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         }
         else
         {
+            // Add distance and names
+            result.distances.push_back(from_native_length(next.distance));
+            result.volumes.emplace_back(test::volume_name(geo, vols));
+            if (has_vol_inst)
+            {
+                result.volume_instances.emplace_back(
+                    test::volume_instance_name(geo, vols));
+            }
+
+            real_type const half_distance = next.distance / 2;
             try
             {
-                geo.move_internal(next.distance / 2);
+                geo.move_internal(half_distance);
             }
             catch (std::exception const& e)
             {
                 ADD_FAILURE() << "failed movement of "
-                              << from_native_length(next.distance / 2)
-                              << " to " << from_native_length(geo.pos())
-                              << " along " << geo.dir() << ": " << e.what();
+                              << from_native_length(half_distance) << " to "
+                              << from_native_length(geo.pos()) << " along "
+                              << geo.dir() << ": " << e.what();
                 break;
             }
+
             try
             {
-                geo.find_next_step();
+                next = geo.find_next_step();
             }
             catch (std::exception const& e)
             {
@@ -346,16 +328,7 @@ GenericGeoTestInterface::make_initializer(Real3 const& pos_unit_length,
 //---------------------------------------------------------------------------//
 std::string GenericGeoTestInterface::volume_name(GeoTrackView const& geo) const
 {
-    if (geo.is_outside())
-    {
-        return "[OUTSIDE]";
-    }
-
-    if (VolumeId id = geo.volume_id())
-    {
-        return this->get_test_volumes()->volume_labels().at(id).name;
-    }
-    return "[INVALID]";
+    return ::celeritas::test::volume_name(geo, *this->get_test_volumes());
 }
 
 //---------------------------------------------------------------------------//

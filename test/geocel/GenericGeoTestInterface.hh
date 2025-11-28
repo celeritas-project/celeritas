@@ -13,7 +13,6 @@
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
-#include "geocel/detail/LengthUnits.hh"
 
 #include "LazyGeantGeoManager.hh"
 #include "UnitUtils.hh"
