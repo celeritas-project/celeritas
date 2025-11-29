@@ -29,13 +29,16 @@ class QuarticSolverTest : public ::celeritas::test::Test
     using Coeffs4 = Array<real_type, 4>;
     using Coeffs5 = Array<real_type, 5>;
 
+    // template<class MQS = MyQuarticSolver>
+    // static inline MQS solve_quartic = ;
+
     QuarticSolverTest() {}
 
     template<class MQS = MyQuarticSolver>
-    Intersections get_roots(Coeffs5 const& abcde)
+    MQS get_solver()
     {
         MQS solve_quartic;  // Default tolerance
-        return solve_quartic(abcde);
+        return solve_quartic;
     }
 
     Intersections fill_inf(std::initializer_list<real_type> const& up_to_four)
@@ -65,14 +68,15 @@ class QuarticSolverTest : public ::celeritas::test::Test
         std::initializer_list<real_type> const& expected, Coeffs4 const& abcd)
     {
         auto [a, b, c, d] = abcd;
-        auto x = this->get_roots({a, b, c, d, 0});
+        auto x = this->get_solver().solve_general({a, b, c, d, 0},
+                                                  SurfaceState::on);
         this->expect_softeq_list(fill_inf(expected), x);
     }
 
     void expect_nonsurface_roots_from_coeffs(
         std::initializer_list<real_type> const& expected, Coeffs5 const& abcde)
     {
-        auto x = this->get_roots(abcde);
+        auto x = this->get_solver()(abcde);
         this->expect_softeq_list(fill_inf(expected), x);
     }
 };
@@ -95,11 +99,11 @@ TYPED_TEST(QuarticSolverTest, no_roots)
         this->expect_nonsurface_roots_from_coeffs(
             {}, {1, 2, -2.999998, -3.999998, 4.000005000001});
     }
-    // x^4 + x^3 - 2.999999*x^2 - 0.999997*x + 2.000002
+    // x^4 + x^3 - 2.999999*x^2 - 0.999997*x + 2.200002
     // Two negative real roots 2, 1, and two imaginary roots 1+-0.001i
     {
         this->expect_nonsurface_roots_from_coeffs(
-            {}, {1, 1, -2.999999, -0.999997, 2.000002});
+            {}, {1, 1, -2.999999, -0.999997, 2.200002});
     }
     // x^4 + 10*x^3 + 35*x^2 + 50*x + 24
     // Four negative roots -1, -2, -3, -4
