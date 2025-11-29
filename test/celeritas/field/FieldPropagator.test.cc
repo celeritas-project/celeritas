@@ -1478,7 +1478,6 @@ TEST_F(CmseTest, coarse)
     std::vector<int> num_integration;
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger()};
-    bool failed{false};
 
     for (real_type radius : {5, 10, 20, 50})
     {
@@ -1538,14 +1537,37 @@ TEST_F(CmseTest, coarse)
     std::vector<int> expected_num_step = {10001, 6450, 3236, 1303};
     std::vector<int> expected_num_intercept = {30419, 19521, 16170, 9956};
     std::vector<int> expected_num_integration = {80659, 58204, 41914, 26114};
+    std::vector<std::string> expected_log_messages;
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4 && failed)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
     {
         // FIXME: this happens because of incorrect momentum update
         expected_num_boundary = {134, 37, 60, 40};
         expected_num_step = {10001, 179, 3236, 1303};
         expected_num_intercept = {30419, 615, 16170, 9956};
         expected_num_integration = {80659, 1670, 41914, 26114};
+    }
+    else if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    {
+        expected_num_boundary = {1, 1, 2, 3};
+        expected_num_step = {5, 3, 48, 29};
+        expected_num_intercept = {17, 13, 236, 197};
+        expected_num_integration = {40, 31, 612, 529};
+        expected_log_messages = {
+            R"(Failed to cross boundary: unique volume instance is the same before and after at {4.033, -2.557, -286.0} cm)",
+            R"(Failed to cross boundary: unique volume instance is the same before and after at {6.349, 2.564, -280.4} cm)",
+            R"(Failed to cross boundary: unique volume instance is the same before and after at {19.03, 12.38, 351.4} cm)",
+            R"(Failed to cross boundary: unique volume instance is the same before and after at {51.18, 32.69, 657.9} cm)"};
+    }
+    else if (using_solids_vg)
+    {
+        expected_num_boundary[1] = 37;
+        expected_num_step[1] = 179;
+        expected_num_intercept[1] = 614;
+        expected_num_integration[1] = 1666;
+        expected_log_messages = {
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))",
+            R"(Failed to find next step at {10.32, -6.565, 796.9} cm along {0.6896, -0.1485, 0.7088}: computed step is 0 cm)"};
     }
     else if (using_surface_vg)
     {
@@ -1555,22 +1577,12 @@ TEST_F(CmseTest, coarse)
         expected_num_integration = {80659, 1670, 1956, 1092};
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
-    else if (using_solids_vg)
-    {
-        expected_num_boundary[1] = 37;
-        expected_num_step[1] = 179;
-        expected_num_intercept[1] = 614;
-        expected_num_integration[1] = 1666;
-        static char const* const expected_log_messages[] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))",
-            R"(Failed to find next step at {10.32, -6.565, 796.9} cm along {0.6896, -0.1485, 0.7088}: computed step is 0 cm)"};
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
-            << scoped_log_;
-    }
-    EXPECT_VEC_EQ(expected_num_boundary, num_boundary);
-    EXPECT_VEC_EQ(expected_num_step, num_step);
-    EXPECT_VEC_EQ(expected_num_intercept, num_intercept);
-    EXPECT_VEC_EQ(expected_num_integration, num_integration);
+    EXPECT_VEC_EQ(expected_num_boundary, num_boundary) << repr(num_boundary);
+    EXPECT_VEC_EQ(expected_num_step, num_step) << repr(num_step);
+    EXPECT_VEC_EQ(expected_num_intercept, num_intercept) << repr(num_intercept);
+    EXPECT_VEC_EQ(expected_num_integration, num_integration)
+        << repr(num_integration);
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages()) << scoped_log_;
 }
 
 //---------------------------------------------------------------------------//
