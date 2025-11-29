@@ -1110,7 +1110,7 @@ TEST_F(TwoBoxesTest,
      * along {-0.96863764097147, -0.24847760561715, 0},
      * [FAILED] [ON BOUNDARY] in world_PV
      */
-    if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    if (CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
         expected_boundary = {1, 0, 1, 0, 1, -1, 1, -1, -1, -1};
         expected_distances[1] = 0.00785398163397448;
@@ -1133,6 +1133,14 @@ TEST_F(TwoBoxesTest,
             "[FAILURE]",
             "[FAILURE]",
         };
+
+        if (using_surface_vg)
+        {
+            expected_boundary[8] = 1;
+            expected_substeps[8] = 1;
+            expected_substeps[9] = 1;
+            expected_volumes[8] = "inner";
+        }
     }
     else if (using_solids_vg)
     {
@@ -1567,15 +1575,17 @@ TEST_F(CmseTest, coarse)
         expected_num_integration[1] = 1666;
         expected_log_messages = {
             R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))",
-            R"(Failed to find next step at {10.32, -6.565, 796.9} cm along {0.6896, -0.1485, 0.7088}: computed step is 0 cm)"};
+            R"(Failed to find next step at {10.32, -6.565, 796.9} cm along {0.6896, -0.1485, 0.7088}: computed step is 0 cm)",
+        };
     }
     else if (using_surface_vg)
     {
-        expected_num_boundary = {134, 37, 43, 16};
-        expected_num_step = {10001, 179, 160, 63};
-        expected_num_intercept = {30419, 615, 790, 414};
-        expected_num_integration = {80659, 1670, 1956, 1092};
-        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+        expected_num_boundary = {106, 37, 43, 16};
+        expected_num_step = {670, 179, 160, 63};
+        expected_num_intercept = {2371, 615, 790, 414};
+        expected_num_integration = {5931, 1670, 1956, 1092};
+        expected_log_messages = {
+            R"(Failed to find next step at {9.956, 0.4182, 1833.} cm along {-0.2459, 0.6576, 0.7121}: computed step is -7.707e-13 cm)"};
     }
     EXPECT_VEC_EQ(expected_num_boundary, num_boundary) << repr(num_boundary);
     EXPECT_VEC_EQ(expected_num_step, num_step) << repr(num_step);
