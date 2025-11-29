@@ -41,9 +41,13 @@ namespace test
 auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
-    int remaining_steps = 250;
-
     TrackingResult result;
+    CheckedGeoTrackView geo{
+        this->make_geo_track_view_interface(),
+        this->get_test_volumes(),
+        this->geometry_interface(),
+        this->unit_length(),
+    };
 
     bool const check_surface_normal{this->supports_surface_normal()};
     if (!check_surface_normal)
@@ -55,19 +59,30 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
             << this->gdml_basename() << " using " << this->geometry_type();
         result.disable_surface_normal();
     }
-
-    CheckedGeoTrackView geo{
-        this->make_geo_track_view_interface(),
-        this->get_test_volumes(),
-        this->geometry_interface(),
-        this->unit_length(),
-    };
     geo.check_normal(check_surface_normal);
 
+#define GGTI_EXPECT_NO_THROW(ACTION)                                        \
+    try                                                                     \
+    {                                                                       \
+        ACTION;                                                             \
+    }                                                                       \
+    catch (CheckedGeoError const& e)                                        \
+    {                                                                       \
+        auto const& d = e.details();                                        \
+        CELER_LOG(debug) << "Failed '" << d.condition << "' at " << d.file  \
+                         << ':' << d.line << " during '" << #ACTION << "'"; \
+        ADD_FAILURE() << "Geometry failed " << d.what;                      \
+        return result;                                                      \
+    }                                                                       \
+    catch (std::exception const& e)                                         \
+    {                                                                       \
+        ADD_FAILURE() << "Caught exception during '" << #ACTION             \
+                      << "': " << e.what() << ": " << geo;                  \
+        return result;                                                      \
+    }
+
     // Note: position is scaled according to test
-    geo = this->make_initializer(pos, dir);
-    // Checked track view prevents particles starting outside
-    EXPECT_FALSE(geo.is_outside());
+    GGTI_EXPECT_NO_THROW(geo = this->make_initializer(pos, dir));
 
     auto const& vols = *this->get_test_volumes();
     bool const has_vol_inst = !vols.volume_instance_labels().empty();
@@ -80,28 +95,12 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     // Bump tolerance is unitless
     SoftZero soft_zero{this->tracking_tol().distance * unit_length.value};
 
+    int remaining_steps = 250;
     while (!geo.is_outside())
     {
         // Find next distance
         Propagation next;
-        try
-        {
-            next = geo.find_next_step();
-        }
-        catch (std::exception const& e)
-        {
-            ADD_FAILURE() << "failed to find next step: " << e.what() << ": "
-                          << geo;
-            break;
-        }
-        if (!next.boundary)
-        {
-            ADD_FAILURE()
-                << R"(failed to find the next boundary while inside the geometry )"
-                << geo;
-            result.volumes.push_back("[NO INTERCEPT]");
-            break;
-        }
+        GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
 
         if (soft_zero(next.distance))
         {
@@ -125,58 +124,22 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                     test::volume_instance_name(geo, vols));
             }
 
+            // Move halfway to next boundary
             real_type const half_distance = next.distance / 2;
-            try
-            {
-                geo.move_internal(half_distance);
-            }
-            catch (std::exception const& e)
-            {
-                ADD_FAILURE()
-                    << "failed movement of "
-                    << from_native_length(half_distance) << ": " << e.what();
-                break;
-            }
-
-            try
-            {
-                next = geo.find_next_step();
-            }
-            catch (std::exception const& e)
-            {
-                ADD_FAILURE() << "failed to find next step at "
-                              << from_native_length(geo.pos()) << " along "
-                              << geo.dir() << ": " << e.what();
-                break;
-            }
+            GGTI_EXPECT_NO_THROW(geo.move_internal(half_distance));
+            GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
             EXPECT_SOFT_NEAR(next.distance, half_distance, soft_zero.abs());
 
-            try
-            {
-                result.halfway_safeties.push_back(
-                    from_native_length(geo.find_safety()));
-            }
-            catch (std::exception const& e)
-            {
-                ADD_FAILURE()
-                    << "failed to find safety at "
-                    << from_native_length(geo.pos()) << ": " << e.what();
-                break;
-            }
+            real_type safety{0};
+            GGTI_EXPECT_NO_THROW(safety = geo.find_safety());
+            result.halfway_safeties.push_back(from_native_length(safety));
 
-            if (!soft_zero(result.halfway_safeties.back()))
+            if (!soft_zero(safety))
             {
-                // Check reinitialization if not tangent to a surface
+                // Check reinitialization if not along a surface
                 GeoTrackInitializer const init{geo.pos(), geo.dir()};
                 auto prev_id = geo.impl_volume_id();
-                geo = init;
-                if (geo.is_outside())
-                {
-                    ADD_FAILURE() << "reinitialization put the track outside "
-                                     "the geometry "
-                                  << geo;
-                    break;
-                }
+                GGTI_EXPECT_NO_THROW(geo = init);
                 if (geo.impl_volume_id() != prev_id)
                 {
                     ADD_FAILURE()
@@ -187,8 +150,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                         << unit_length.label << "]) ";
                     result.volumes.back() += "/" + this->volume_name(geo);
                 }
-                next = geo.find_next_step();
-                EXPECT_TRUE(next.boundary);
+                GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
                 EXPECT_SOFT_NEAR(next.distance, half_distance, soft_zero.abs())
                     << "reinitialized distance mismatch at index "
                     << result.volumes.size() - 1 << ": " << geo;
@@ -196,27 +158,20 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         }
 
         // Move to the boundary and attempt to cross
-        geo.move_to_boundary();
-        try
+        GGTI_EXPECT_NO_THROW(geo.move_to_boundary());
+        GGTI_EXPECT_NO_THROW(geo.cross_boundary());
+        if (check_surface_normal && !geo.is_outside())
         {
-            geo.cross_boundary();
-            if (check_surface_normal && !geo.is_outside())
-            {
-                // Add post-crossing (interior surface) dot product
-                result.dot_normal.push_back([&] {
-                    return std::fabs(dot_product(geo.dir(), geo.normal()));
-                }());
-            }
-        }
-        catch (std::exception const& e)
-        {
-            ADD_FAILURE() << "failed to cross boundary: " << e.what() << geo;
-            break;
+            Real3 normal{};
+            GGTI_EXPECT_NO_THROW(normal = geo.normal());
+            // Add post-crossing (interior surface) dot product
+            result.dot_normal.push_back(
+                std::fabs(dot_product(geo.dir(), normal)));
         }
 
         if (remaining_steps-- == 0)
         {
-            ADD_FAILURE() << "maximum steps exceeded" << geo;
+            ADD_FAILURE() << "maximum steps exceeded: " << geo;
             break;
         }
     }

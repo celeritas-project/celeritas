@@ -77,6 +77,11 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     //! Whether normal checking is enabled
     bool check_normal() const { return check_normal_; }
 
+    //! Enable/disable failure state checking
+    void check_failure(bool value) { check_failure_ = value; }
+    //! Whether failure checking is enabled
+    bool check_failure() const { return check_failure_; }
+
     //! Canonical volume parameters (if available)
     SPConstVolumes const& volumes() const { return volumes_; }
     //! Geometry interface (if available)
@@ -150,8 +155,15 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     UnitLength unit_length_;
     bool checked_internal_{false};
     bool check_normal_{false};
+    bool check_failure_{true};
     size_type num_intersect_{0};
     size_type num_safety_{0};
+};
+
+class CheckedGeoError : public RuntimeError
+{
+  public:
+    using RuntimeError::RuntimeError;
 };
 
 //---------------------------------------------------------------------------//

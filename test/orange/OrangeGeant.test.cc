@@ -233,7 +233,7 @@ class ReplicaTest
     : public GenericGeoParameterizedTest<GeantOrangeTest, ReplicaGeoTest>
 {
   public:
-    //! Distance is slightly off for single precision
+    //! Transforms cause slight disagreement from G4
     GenericGeoTrackingTolerance tracking_tol() const override
     {
         auto result = GeantOrangeTest::tracking_tol();
@@ -241,6 +241,10 @@ class ReplicaTest
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
             result.distance = 1e-5;
+        }
+        else
+        {
+            result.distance = 1e-11;
         }
 
         return result;

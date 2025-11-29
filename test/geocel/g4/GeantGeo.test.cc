@@ -683,7 +683,18 @@ TEST_F(PolyhedraTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-using ReplicaTest = GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>;
+class ReplicaTest
+    : public GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>
+{
+  public:
+    //! Half-distance is off by ~2e-12
+    GenericGeoTrackingTolerance tracking_tol() const override
+    {
+        auto result = GeantGeoTest::tracking_tol();
+        result.distance = 1e-11;
+        return result;
+    }
+};
 
 TEST_F(ReplicaTest, model)
 {
