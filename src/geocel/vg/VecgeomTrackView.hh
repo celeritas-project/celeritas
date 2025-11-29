@@ -44,6 +44,7 @@
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
 #    include "corecel/io/Repr.hh"
+#    include "geocel/detail/LengthUnits.hh"
 #endif
 
 namespace celeritas
@@ -189,7 +190,7 @@ class VecgeomTrackView
 
     // Static data
 
-    //! Absolute tolerance used in internal vecgeom construction:
+    //! Absolute tolerance in vecgeom::kTolerance
     //! 1e-9 for double, 1e-3 for single
     static constexpr vg_real_type abs_tolerance_
         = CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-9 : 1e-3;
@@ -311,7 +312,8 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     {
 #if !CELER_DEVICE_COMPILE
         auto msg = CELER_LOG_LOCAL(error);
-        msg << "Failed to initialize geometry state at " << repr(pos_);
+        msg << "Failed to initialize geometry state at " << repr(pos_)
+            << lengthunits::label;
 #endif
         failed_ = true;
     }
@@ -488,8 +490,10 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     {
 #if !CELER_DEVICE_COMPILE
         auto msg = CELER_LOG_LOCAL(error);
-        msg << "Failed to find next step at " << repr(pos_) << " along "
-            << repr(dir_) << ": computed step is " << repr(next_step_);
+        msg << "Failed to find next step at " << repr(pos_) << ' '
+            << lengthunits::label << " along " << repr(dir_)
+            << ": computed step is " << repr(next_step_) << ' '
+            << lengthunits::label;
 #endif
         failed_ = true;
         Propagation result;
@@ -617,8 +621,8 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 #if !CELER_DEVICE_COMPILE
         auto msg = CELER_LOG_LOCAL(error);
         msg << "Failed to cross boundary: unique volume instance is the same "
-               "before and after at position "
-            << repr(pos_);
+               "before and after at "
+            << repr(pos_) << ' ' << lengthunits::label;
 #endif
         failed_ = true;
         return;
