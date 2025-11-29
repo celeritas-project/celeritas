@@ -9,6 +9,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
@@ -50,6 +51,7 @@ class FerrariSolver
     //! \name Type aliases
     using Intersections = Array<real_type, 4>;
     using Real2 = Array<real_type, 2>;
+    using Real3 = Array<real_type, 3>;
     using Real5 = Array<real_type, 5>;
     //!@}
 
@@ -85,6 +87,11 @@ class FerrariSolver
     static inline CELER_FUNCTION real_type
     dominant_root_normalized_cubic(real_type b, real_type c, real_type d);
 
+    // Find all roots of normalized cubic (unsorted, dominant first)
+    static inline CELER_FUNCTION Real3 real_roots_normalized_cubic(real_type b,
+                                                                   real_type c,
+                                                                   real_type d);
+
     // Find real quadratic roots
     static inline CELER_FUNCTION Real2
     real_roots_normalized_quadratic(real_type b, real_type c);
@@ -109,7 +116,20 @@ CELER_FUNCTION auto FerrariSolver::solve_general(Real5 abcde,
     if (on_surface == SurfaceState::on)
     {
         auto [a, b, c, d, e] = abcde;
-        selected_abcde = {a, b, c, d, 0};
+        Real3 cubic_roots
+            = solve.real_roots_normalized_cubic(b / a, c / a, d / a);
+        // sort(&cubic_roots[0], &cubic_roots[3]);
+        auto [z0, z1, z2] = cubic_roots;
+
+        if (z0 <= 0)
+            z0 = no_intersection();
+        if (z1 <= 0)
+            z1 = no_intersection();
+        if (z2 <= 0)
+            z2 = no_intersection();
+        Intersections final_roots(z0, z1, z2, no_intersection());
+        sort(&final_roots[0], &final_roots[4]);
+        return final_roots;
     }
     return solve(selected_abcde);
 }
@@ -157,8 +177,9 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real5 abcde) const
     }
 
     // One real root of subsidiary cubic
-    real_type z0 = FerrariSolver::dominant_root_normalized_cubic(
-        p, r, p * r - half * q * q);
+    Real3 z = FerrariSolver::real_roots_normalized_cubic(
+        p, r, p * r - half * ipow<2>(q));
+    real_type z0 = z[0];
 
     real_type s2 = 2 * p + 2 * z0;
     if (s2 >= 0)
@@ -283,27 +304,150 @@ CELER_FUNCTION real_type FerrariSolver::dominant_root_normalized_cubic(
     real_type third_b = b * third;
 
     // Intermediate values
-    real_type f = third * c - ipow<2>(third_b);
-    real_type g = PolyEvaluator{d, -c, 0, 2}(third_b);
-    real_type h = real_type{0.25} * ipow<2>(g) + ipow<3>(f);
+    // real_type f = third * c - ipow<2>(third_b);
+    // real_type g = PolyEvaluator{d, -c, 0, 2}(third_b);
+    // real_type h = real_type{0.25} * ipow<2>(g) + ipow<3>(f);
 
-    if (soft_zero_(f) && soft_zero_(g) && soft_zero_(h))
+    // if (soft_zero_(f) && soft_zero_(g) && soft_zero_(h))
+    // {
+    //     return -std::cbrt(d);
+    // }
+    // else if (h <= 0)
+    // {
+    //     real_type j = std::sqrt(-f);
+    //     real_type k = std::acos(-half * g / ipow<3>(j));
+    //     real_type m = std::cos(third * k);
+    //     return 2 * j * m - third_b;
+    // }
+    // else
+    // {
+    //     real_type sqrt_h = std::sqrt(h);
+    //     real_type s = std::cbrt(-half * g + sqrt_h);
+    //     real_type u = std::cbrt(-half * g - sqrt_h);
+    //     return s + u - third_b;
+    // }
+
+    real_type q = (b * b - 3 * c) / 9;
+    real_type r = (2 * b * b * b - 9 * b * c + 27 * d) / 54;
+    real_type q3 = ipow<3>(q);
+    real_type r2 = ipow<2>(r);
+
+    if (r2 < q3)
     {
-        return -std::cbrt(d);
-    }
-    else if (h <= 0)
-    {
-        real_type j = std::sqrt(-f);
-        real_type k = std::acos(-half * g / ipow<3>(j));
-        real_type m = std::cos(third * k);
-        return 2 * j * m - third_b;
+        real_type theta = std::acos(r / std::sqrt(q3));
+        real_type n2_root_q = real_type{-2} * std::sqrt(q);
+
+        // real_type x1, x2, x3;
+        // x1 = n2_root_q * std::cos(theta * third) - third_b;
+        // x2 = n2_root_q * std::cos((theta + 2*constants::pi) * third) -
+        // third_b; x3 = n2_root_q * std::cos((theta - 2*constants::pi) *
+        // third) - third_b;
+        if (2 * theta < constants::pi)
+        {
+            real_type x1 = n2_root_q * std::cos(theta * third) - third_b;
+            return x1;
+        }
+        else
+        {
+            real_type x2 = n2_root_q
+                               * std::cos((theta + 2 * constants::pi) * third)
+                           - third_b;
+            return x2;
+        }
     }
     else
     {
-        real_type sqrt_h = std::sqrt(h);
-        real_type s = std::cbrt(-half * g + sqrt_h);
-        real_type u = std::cbrt(-half * g - sqrt_h);
-        return s + u - third_b;
+        // real_type sqrt_h = std::sqrt(h);
+        // real_type s = std::cbrt(-half * g + sqrt_h);
+        // real_type u = std::cbrt(-half * g - sqrt_h);
+        // real_type disc, abs_r, rdisc, cb_rd;
+        // disc = r2 - q3;
+        // abs_r = std::abs(r);
+        // rdisc = abs_r + disc;
+        // cb_rd = std::cbrt(rdisc);
+        real_type nr_a = -signum(r)
+                         * std::cbrt(std::abs(r) + std::sqrt(r2 - q3));
+        real_type nr_b = nr_a == 0 ? 0 : q / nr_a;
+        return nr_a + nr_b - third_b;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Solve for the real roots of a cubic function.
+ *
+ * Specifically, the cubic function
+ * \f[
+   a x^3 + b x^2 + c x + d
+ * \f]
+ * where a is assumed to already be 1, and is not provided to the
+ * function.
+ * Uses the Numerical Recipes cubic algorithm, a combination of Cardano and
+ trigonometry.
+ *
+ * \return The real roots of the given cubic equation, with the dominant at
+ index 0.
+ */
+CELER_FUNCTION auto FerrariSolver::real_roots_normalized_cubic(real_type b,
+                                                               real_type c,
+                                                               real_type d)
+    -> Real3
+{
+    real_type z0 = FerrariSolver::dominant_root_normalized_cubic(b, c, d);
+    // return Real3(z0, no_intersection(), no_intersection());
+    constexpr real_type half = real_type{0.5};
+    constexpr real_type third = real_type{1} / real_type{3};
+    real_type third_b = b * third;
+    real_type sqrt3 = std::sqrt(3);
+
+    // Intermediate values
+    real_type q = ipow<2>(third_b) - third * c;
+    real_type r = half * PolyEvaluator{d, -c, 0, 2}(third_b);
+
+    real_type q3 = ipow<3>(q);
+    real_type r2 = ipow<2>(r);
+
+    real_type discrim = r2 - q3;
+
+    if (soft_zero_(q) && soft_zero_(r) && soft_zero_(discrim))
+    {
+        return Real3(-std::cbrt(d), no_intersection(), no_intersection());
+    }
+    else if (discrim <= 0)
+    {
+        real_type theta = std::acos(r / std::sqrt(q3));
+        real_type n2_root_q = real_type{-2} * std::sqrt(q);
+        real_type twth_pi = constants::pi * real_type{2} * third;
+        real_type third_theta = theta * third;
+
+        real_type z0 = n2_root_q * std::cos(third_theta) - third_b;
+        real_type z1 = n2_root_q * std::cos(third_theta + twth_pi) - third_b;
+        real_type z2 = n2_root_q * std::cos(third_theta - twth_pi) - third_b;
+
+        if (real_type{2} * theta < constants::pi)
+        {
+            return Real3(z0, z1, z2);
+        }
+        else
+        {
+            return Real3(z1, z0, z2);
+        }
+    }
+    else
+    {
+        real_type nr_a = -signum(r)
+                         * std::cbrt(std::abs(r) + std::sqrt(discrim));
+        real_type nr_b = nr_a == 0 ? 0 : q / nr_a;
+        real_type z0 = nr_a + nr_b - third_b;
+        Real3 z(z0, no_intersection(), no_intersection());
+        if (soft_zero_(discrim))
+        {
+            // In case of double root, give quadratic tolerance
+            // TODO: is this actually necessary? How bad is it to not graze the
+            // side?
+            z[1] = -half * (nr_a + nr_b) - third_b;
+        }
+        return z;
     }
 }
 
