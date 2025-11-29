@@ -25,9 +25,15 @@ namespace test
 /*!
  * Check validity of safety and volume crossings while navigating on CPU.
  *
- * Also count the number of calls to "find distance" and "find safety".
- *
  * This wraps a \c GeoTrackInterface and adds validation and instrumentation.
+ * It counts the number of calls to \c find_next_step and \c find_safety .
+ *
+ * Two flags can alter the error checking:
+ * - \c check_normal will validate the normal calculation when on a boundary
+ * - \c check_failure will throw before and after a call
+ *
+ * The only nontrivial function that can be called from an outside or failed
+ * state is initialization (with \c operator= ).
  */
 class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
 {
@@ -150,14 +156,23 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
 
   private:
     UPTrack t_;
+
+    // Metadata
     SPConstVolumes volumes_;
     SPConstGeoI geo_interface_;
     UnitLength unit_length_;
-    bool checked_internal_{false};
+
+    // Configuration flags
     bool check_normal_{false};
     bool check_failure_{true};
+
+    // Counters
     size_type num_intersect_{0};
     size_type num_safety_{0};
+
+    // Temporary state
+    bool checked_internal_{false};
+    std::optional<real_type> next_boundary_;
 };
 
 class CheckedGeoError : public RuntimeError
