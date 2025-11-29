@@ -49,30 +49,33 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         result.disable_surface_normal();
     }
 
-#define GGTI_EXPECT_NO_THROW(ACTION)                                      \
-    try                                                                   \
-    {                                                                     \
-        ACTION;                                                           \
-    }                                                                     \
-    catch (CheckedGeoError const& e)                                      \
-    {                                                                     \
-        auto const& d = e.details();                                      \
-        auto msg = CELER_LOG(debug);                                      \
-        msg << "Failed ";                                                 \
-        if (!d.condition.empty())                                         \
-        {                                                                 \
-            msg << '\'' << d.condition << "' ";                           \
-        }                                                                 \
-        msg << "at " << d.file << ':' << d.line << " during '" << #ACTION \
-            << "'";                                                       \
-        ADD_FAILURE() << d.what;                                          \
-        return result;                                                    \
-    }                                                                     \
-    catch (std::exception const& e)                                       \
-    {                                                                     \
-        ADD_FAILURE() << "Caught exception during '" << #ACTION           \
-                      << "': " << e.what() << ": " << geo;                \
-        return result;                                                    \
+#define GGTI_EXPECT_NO_THROW(ACTION)                                          \
+    try                                                                       \
+    {                                                                         \
+        ACTION;                                                               \
+    }                                                                         \
+    catch (CheckedGeoError const& e)                                          \
+    {                                                                         \
+        auto const& d = e.details();                                          \
+        {                                                                     \
+            auto msg = CELER_LOG(debug);                                      \
+            msg << "Failed ";                                                 \
+            if (!d.condition.empty())                                         \
+            {                                                                 \
+                msg << '\'' << d.condition << "' ";                           \
+            }                                                                 \
+            msg << "at " << d.file << ':' << d.line << " during '" << #ACTION \
+                << "'";                                                       \
+        }                                                                     \
+        CELER_LOG(error) << "Failed: " << d.what;                             \
+        result.fail();                                                        \
+        return result;                                                        \
+    }                                                                         \
+    catch (std::exception const& e)                                           \
+    {                                                                         \
+        ADD_FAILURE() << "Caught exception during '" << #ACTION               \
+                      << "': " << e.what() << ": " << geo;                    \
+        return result;                                                        \
     }
 
     // Note: position is scaled according to test

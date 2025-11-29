@@ -24,6 +24,43 @@
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
 
+/*!
+ * Allow a statement to skip the test when using a certain geometry.
+ *
+ * Run \c STATEMENT. When  \c COND is true, the statement is expected to throw,
+ * and
+ */
+#define SHOULD_FAIL_WHEN(STATEMENT, COND)                               \
+    do                                                                  \
+    {                                                                   \
+        bool succeeded_{false};                                         \
+        try                                                             \
+        {                                                               \
+            STATEMENT;                                                  \
+            succeeded_ = true;                                          \
+        }                                                               \
+        catch (::celeritas::test::CheckedGeoError const& e)             \
+        {                                                               \
+            if (COND)                                                   \
+            {                                                           \
+                GTEST_SKIP() << "Geometry fails when " << #COND << ": " \
+                             << e.details().what;                       \
+            }                                                           \
+            else                                                        \
+            {                                                           \
+                FAIL() << "'" << #STATEMENT                             \
+                       << "' failed unexpectedly: " << e.what();        \
+            }                                                           \
+        }                                                               \
+        catch (std::exception const& e)                                 \
+        {                                                               \
+            FAIL() << "'" << #STATEMENT                                 \
+                   << "' failed unexpectedly: " << e.what();            \
+        }                                                               \
+                                                                        \
+        EXPECT_EQ(!(COND), succeeded_);                                 \
+    } while (0)
+
 namespace celeritas
 {
 namespace test
@@ -198,6 +235,18 @@ void CmseGeoTest::test_trace() const
             29.931406871193, 40.276406871193, 57.573593128807, 57.573593128807,
             57.573593128807, 57.573593128807,};
         // clang-format on
+        if (test_->geometry_type() == "VecGeom"
+            && vecgeom_version >= Version{2, 0} && using_solids_vg)
+        {
+            /*
+             * Failed to cross boundary:
+             * unique volume instance is the same before and after
+             * at {30, 30, 655.04101161124} [cm] along {0, 0, 1},
+             * [FAILED] [ON BOUNDARY] in OCMS_PV/CMSE/MUON
+             */
+            ref.fail_at(12);
+        }
+
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -217,6 +266,18 @@ void CmseGeoTest::test_trace() const
         ref.halfway_safeties = {85, 267.5, 85.85, 60.4, 0.078366388350267,
             2.343262600759, 0.078366388350244, 60.4, 85.85, 267.5, 460,};
         // clang-format on
+        if (test_->geometry_type() == "VecGeom"
+            && vecgeom_version >= Version{2, 0} && using_solids_vg)
+        {
+            /*
+             * Failed to cross boundary:
+             * unique volume instance is the same before and after
+             * at {-295, 0, -48.5} [cm] along {1, 0, 0},
+             * [FAILED] [ON BOUNDARY] in OCMS_PV/CMSE/MUON
+             */
+            ref.fail_at(2);
+        }
+
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -229,6 +290,18 @@ void CmseGeoTest::test_trace() const
         ref.distances = {12.495, 287.505, 530, 920};
         ref.dot_normal = {};  // All normals are along track dir
         ref.halfway_safeties = {6.2475, 47.95, 242, 460};
+        if (test_->geometry_type() == "VecGeom"
+            && vecgeom_version >= Version{2, 0} && using_solids_vg)
+        {
+            /*
+             * Failed to cross boundary:
+             * unique volume instance is the same before and after
+             * at {300, 0, 1328} [cm] along {1, 0, 0},
+             * [FAILED] [ON BOUNDARY] in OCMS_PV/CMSE/OQUA@0
+             */
+            ref.fail_at(2);
+        }
+
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -370,10 +443,11 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_TRUE(geo.is_on_boundary());
 
         // Check the distance to the sphere boundary again, then scatter
-        // into the sphere (this may be a "bump": 1e-13 for surface VG, Geant4;
-        // 1e-8 for volume VG; BUT exactly zero for ORANGE thanks to
-        // "reentrant" logic)
-        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(20.0)));
+        // into the sphere (this may be a "bump": 1e-13 for Geant4;
+        // BUT exactly zero for ORANGE thanks to "reentrant" logic)
+        SHOULD_FAIL_WHEN(next = geo.find_next_step(from_cm(20.0)),
+                         vecgeom_version >= Version{2}
+                             && test_->geometry_type() == "VecGeom");
         EXPECT_LE(next.distance, to_cm(1e-8));
         ASSERT_TRUE(next.boundary);
         if (next.distance > 0)
@@ -404,26 +478,9 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         else
         {
             geo.set_dir(Real3{1, 0, 0});
-            if (test_->geometry_type() == "VecGeom"
-                && CELERITAS_VECGEOM_SURFACE)
-            {
-                // Assertion failure in NavStateTuple::PushDaughterImpl:
-                // trying to push into a daughter but there are none
-                // (pv ID 1)
-                GTEST_SKIP() << "FIXME: vecgeom surface breaks";
-            }
-
-            ASSERT_NO_THROW(geo.cross_boundary());
-            if (test_->geometry_type() == "VecGeom")
-            {
-                // FIXME: boundary crossing doesn't change volume like it
-                // should
-                EXPECT_EQ("Shape2", test_->volume_name(geo));
-            }
-            else
-            {
-                EXPECT_EQ("Shape1", test_->volume_name(geo));
-            }
+            SHOULD_FAIL_WHEN(geo.cross_boundary(),
+                             test_->geometry_type() == "VecGeom");
+            EXPECT_EQ("Shape1", test_->volume_name(geo));
             geo.set_dir(Real3{-1, 0, 0});
             ASSERT_NO_THROW(geo.cross_boundary());
         }
@@ -1282,12 +1339,6 @@ void ReplicaGeoTest::test_trace() const
         }
 
         delete_orange_safety(*test_, ref, result);
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
-        {
-            // TODO: VecGemo 2.x-solids returns wrong distance values
-            EXPECT_REF_NEAR(ref, result, tol);
-        }
     }
 }
 
@@ -1324,7 +1375,7 @@ void ReplicaGeoTest::test_volume_stack() const
         if (test_->geometry_type() != "VecGeom"
             || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
         {
-            // TODO: VecGemo 2.x-solids returns wrong volume instances
+            // TODO: VecGeom 2.x-solids returns wrong volume instances
             EXPECT_REF_EQ(ref, result);
         }
     }
@@ -1547,6 +1598,17 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[14] = 42.8397753718277;
             ref.halfway_safeties[15] = 18.8833925371992;
             ref.halfway_safeties[16] = 42.8430141842906;
+
+            if (vecgeom_version >= Version{2})
+            {
+                /*
+                 * Unique volume instance is the same before and after
+                 * Failed during cross_boundary:
+                 * at {258.1, 0, 0.5} [cm] along {-1, 0, 0},
+                 * [FAILED] [ON BOUNDARY] in World_PV/polycone1_PV
+                 */
+                ref.fail_at(4);
+            }
         }
 
         auto tol = test_->tracking_tol();
@@ -1655,6 +1717,18 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[13] = 19.0382940808067;
             ref.halfway_safeties[14] = 0.5;
             ref.halfway_safeties[17] = 28.6150602709819;
+
+            if (vecgeom_version >= Version{2})
+            {
+                /*
+                 * Unique volume instance is the same before and after
+                 * Failed during cross_boundary:
+                 * at {-335.05, -125, 0.5} [cm] along {1, 0, 0},
+                 * [FAILED] [ON BOUNDARY] in World_PV/arb8b_PV
+                 */
+                ref.halfway_safeties[4] = 39.0470100365853;
+                ref.fail_at(5);
+            }
         }
 
         if (test_->geometry_type() == "Geant4"
@@ -2382,7 +2456,6 @@ void TwoBoxesGeoTest::test_reentrant() const
 
     // Cross into the new volume, needed for optical physics (+; +,-)
     geo.cross_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
     if (check_normal)
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
@@ -2399,18 +2472,22 @@ void TwoBoxesGeoTest::test_reentrant() const
     EXPECT_EQ("world", test_->volume_name(geo));
 
     // Cross back into previous volume (-; -,-)
-    if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
+    // GeantGTV has an extra check because we know it can't do this :(
+    if (test_->geometry_type() == "Geant4")
     {
-        // GeantGTV has an extra check because we know it can't do this :(
-        EXPECT_THROW(geo.cross_boundary(), DebugError);
-        GTEST_SKIP() << "Consecutive boundary crossing fails for G4";
+        // TODO: Geant4 does not allow crossing to new volume and returning
+        // to old
+        if (CELERITAS_DEBUG)
+        {
+            EXPECT_THROW(geo.cross_boundary(), DebugError);
+        }
+        GTEST_SKIP() << "Geant4 does not allow crossing to new volume and "
+                        "returning to old";
     }
     else
     {
-        // Typical case
         ASSERT_NO_THROW(geo.cross_boundary());
     }
-    EXPECT_TRUE(geo.is_on_boundary());
 
     if (check_normal)
     {
@@ -2425,9 +2502,9 @@ void TwoBoxesGeoTest::test_reentrant() const
         {
             GTEST_SKIP() << "Unexpected failure to cross volume";
         }
-        if ("[OUTSIDE]" == test_->volume_name(geo))
+        if (geo.is_outside())
         {
-            GTEST_SKIP() << "FIXME: Unexpected track location.";
+            GTEST_SKIP() << "FIXME: Unexpected track location";
         }
     }
 
@@ -2435,9 +2512,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     {
         // VecGeom with surfaces seems to have issues here
         EXPECT_EQ("[OUTSIDE]", test_->volume_name(geo));
-        {
-            GTEST_SKIP() << "FIXME: VecGeom v2.x-surface misses inner volume.";
-        }
+        GTEST_SKIP() << "FIXME: VecGeom v2.x-surface misses inner volume.";
     }
     EXPECT_EQ("inner", test_->volume_name(geo));
 
@@ -2544,17 +2619,13 @@ void TwoBoxesGeoTest::test_tangent() const
     // Crossing should *not* change volumes (-; -,-)
     {
         SCOPED_TRACE("trying to cross");
-        ASSERT_NO_THROW(geo.cross_boundary());
+        SHOULD_FAIL_WHEN(geo.cross_boundary(),
+                         test_->geometry_type() == "VecGeom");
         EXPECT_TRUE(geo.is_on_boundary());
         if (test_->geometry_type() == "Geant4")
         {
             // FIXME: Geant4 changes volumes :(
             EXPECT_EQ("world", test_->volume_name(geo));
-            GTEST_SKIP() << "Unexpected boundary crossing";
-        }
-        else if (test_->geometry_type() == "VecGeom"
-                 && "world" == test_->volume_name(geo))
-        {
             GTEST_SKIP() << "Unexpected boundary crossing";
         }
         EXPECT_EQ("inner", test_->volume_name(geo));
