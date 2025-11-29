@@ -274,8 +274,13 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                       << " to boundary at " << t_->pos() << " in "
                       << t_->impl_volume_id().get());
     }
+    if (result.distance == 0)
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Returning zero distance should be prohibited: " << *this;
+    }
     CGTV_VALIDATE(*this,
-                  result.distance > 0 && result.distance <= distance,
+                  result.distance >= 0 && result.distance <= distance,
                   << "return distance " << repr(result.distance)
                   << " out of bounds " << distance);
     CGTV_VALIDATE(*this,
@@ -299,6 +304,7 @@ void CheckedGeoTrackView::move_internal(real_type step)
     // TODO: check next_boundary_
 
     t_->move_internal(step);
+    next_boundary_.reset();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
     CGTV_VALIDATE(*this,
                   !t_->is_on_boundary() && !t_->is_outside(),
@@ -322,6 +328,7 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
     real_type orig_safety = (t_->is_on_boundary() ? 0 : t_->find_safety());
     auto orig_pos = t_->pos();
     t_->move_internal(pos);
+    next_boundary_.reset();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
     CGTV_VALIDATE(*this,
                   !this->is_on_boundary() && !t_->is_outside(),

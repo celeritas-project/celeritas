@@ -90,8 +90,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     // Convert from Celeritas native unit system to unit test's internal system
     auto from_native_length
         = [scale = unit_length.value](auto&& v) { return v / scale; };
-    // Bump tolerance is unitless
-    SoftZero soft_zero{this->tracking_tol().distance * unit_length.value};
+    auto const tol = this->tracking_tol();
 
     int remaining_steps = 250;
     while (!geo.is_outside())
@@ -100,7 +99,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         Propagation next;
         GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
 
-        if (soft_zero(next.distance))
+        if (SoftZero{tol.distance}(next.distance))
         {
             // Add the point to the bump list
             for (auto p : geo.pos())
@@ -126,13 +125,13 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
             real_type const half_distance = next.distance / 2;
             GGTI_EXPECT_NO_THROW(geo.move_internal(half_distance));
             GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
-            EXPECT_SOFT_NEAR(next.distance, half_distance, soft_zero.abs());
+            EXPECT_SOFT_NEAR(next.distance, half_distance, tol.distance);
 
             real_type safety{0};
             GGTI_EXPECT_NO_THROW(safety = geo.find_safety());
             result.halfway_safeties.push_back(from_native_length(safety));
 
-            if (!soft_zero(safety))
+            if (!SoftZero{tol.safety}(safety))
             {
                 // Check reinitialization if not along a surface
                 GeoTrackInitializer const init{geo.pos(), geo.dir()};
@@ -149,7 +148,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
                     result.volumes.back() += "/" + this->volume_name(geo);
                 }
                 GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
-                EXPECT_SOFT_NEAR(next.distance, half_distance, soft_zero.abs())
+                EXPECT_SOFT_NEAR(next.distance, half_distance, tol.distance)
                     << "reinitialized distance mismatch at index "
                     << result.volumes.size() - 1 << ": " << geo;
             }

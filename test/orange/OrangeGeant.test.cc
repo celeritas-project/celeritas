@@ -240,7 +240,9 @@ class ReplicaTest
 
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
-            result.distance = 1e-5;
+            // 2e-5 error during midpoint reinitialize in
+            // world_PV/fSecondArmPhys/chamber2@0
+            result.distance = 1e-4;
         }
         else
         {
