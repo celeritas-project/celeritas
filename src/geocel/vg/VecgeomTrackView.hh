@@ -266,6 +266,7 @@ CELER_FUNCTION VecgeomTrackView&
 VecgeomTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+    failed_ = false;
 
     // Initialize direction
     dir_ = init.dir;
