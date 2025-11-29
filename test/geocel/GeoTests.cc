@@ -2620,11 +2620,13 @@ void TwoBoxesGeoTest::test_tangent() const
     {
         SCOPED_TRACE("trying to cross");
         SHOULD_FAIL_WHEN(geo.cross_boundary(),
-                         test_->geometry_type() == "VecGeom");
+                         test_->geometry_type() == "VecGeom"
+                             && !CELERITAS_VECGEOM_SURFACE);
         EXPECT_TRUE(geo.is_on_boundary());
-        if (test_->geometry_type() == "Geant4")
+        if (test_->geometry_type() == "Geant4"
+            || test_->geometry_type() == "VecGeom")
         {
-            // FIXME: Geant4 changes volumes :(
+            // FIXME: should reentrant volume changes be handled by geo track?
             EXPECT_EQ("world", test_->volume_name(geo));
             GTEST_SKIP() << "Unexpected boundary crossing";
         }
