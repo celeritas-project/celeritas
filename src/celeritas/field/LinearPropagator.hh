@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
 #include "geocel/Types.hh"
 
@@ -78,7 +79,11 @@ CELER_FUNCTION auto LinearPropagator<GTV>::operator()(real_type dist)
 
     result_type result = geo_.find_next_step(dist);
 
-    if (result.boundary)
+    if (CELER_UNLIKELY(geo_.failed()))
+    {
+        result.failed = true;
+    }
+    else if (result.boundary)
     {
         geo_.move_to_boundary();
     }

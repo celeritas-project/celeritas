@@ -109,12 +109,17 @@ struct GeoTrackInitializer
  *
  * The boundary flag means that the geometry is step limiting, but the surface
  * crossing must be called externally.
+ *
+ * \todo Change to a status type, or have separate "propagation" and "next
+ * step" result types. Currently this is copied from the geometry state to the
+ * propagation result because the track view failure flags are ephemeral.
  */
 struct Propagation
 {
     real_type distance{0};  //!< Distance traveled
     bool boundary{false};  //!< True if hit a boundary before given distance
     bool looping{false};  //!< True if track is looping in the field propagator
+    bool failed{false};  //!< True if a failure state occurred
 };
 
 //---------------------------------------------------------------------------//

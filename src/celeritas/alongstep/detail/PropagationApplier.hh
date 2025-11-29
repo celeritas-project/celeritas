@@ -114,6 +114,11 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
 #endif
         auto propagate = make_propagator(track);
         p = propagate(sim.step_length());
+        if (CELER_UNLIKELY(p.failed))
+        {
+            track.apply_errored();
+            return;
+        }
         tracks_can_loop = propagate.tracks_can_loop();
         CELER_ASSERT(p.distance > 0);
 #if CELERITAS_DEBUG

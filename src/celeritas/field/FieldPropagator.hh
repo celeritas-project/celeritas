@@ -197,7 +197,13 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
         real_type const update_length = substep.length * linear_step.distance
                                         / chord.length;
 
-        if (!linear_step.boundary)
+        if (CELER_UNLIKELY(geo_.failed()))
+        {
+            // Time to die
+            result.failed = true;
+            return result;
+        }
+        else if (!linear_step.boundary)
         {
             // No boundary intersection along the chord: accept substep
             // movement inside the current volume and reset the remaining
