@@ -462,7 +462,7 @@ std::ostream& operator<<(std::ostream& os, CheckedGeoTrackView const& geo)
     auto const& units = geo.unit_length();
 
     os << "at " << repr(geo.pos() / units.value) << " [" << units.label
-       << "] along " << repr(geo.dir()) << ": ";
+       << "] along " << repr(geo.dir()) << ", ";
     if (geo.failed())
     {
         os << "[FAILED] ";

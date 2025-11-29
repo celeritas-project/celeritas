@@ -53,24 +53,30 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         result.disable_surface_normal();
     }
 
-#define GGTI_EXPECT_NO_THROW(ACTION)                                        \
-    try                                                                     \
-    {                                                                       \
-        ACTION;                                                             \
-    }                                                                       \
-    catch (CheckedGeoError const& e)                                        \
-    {                                                                       \
-        auto const& d = e.details();                                        \
-        CELER_LOG(debug) << "Failed '" << d.condition << "' at " << d.file  \
-                         << ':' << d.line << " during '" << #ACTION << "'"; \
-        ADD_FAILURE() << "Geometry failed " << d.what;                      \
-        return result;                                                      \
-    }                                                                       \
-    catch (std::exception const& e)                                         \
-    {                                                                       \
-        ADD_FAILURE() << "Caught exception during '" << #ACTION             \
-                      << "': " << e.what() << ": " << geo;                  \
-        return result;                                                      \
+#define GGTI_EXPECT_NO_THROW(ACTION)                                      \
+    try                                                                   \
+    {                                                                     \
+        ACTION;                                                           \
+    }                                                                     \
+    catch (CheckedGeoError const& e)                                      \
+    {                                                                     \
+        auto const& d = e.details();                                      \
+        auto msg = CELER_LOG(debug);                                      \
+        msg << "Failed ";                                                 \
+        if (!d.condition.empty())                                         \
+        {                                                                 \
+            msg << '\'' << d.condition << "' ";                           \
+        }                                                                 \
+        msg << "at " << d.file << ':' << d.line << " during '" << #ACTION \
+            << "'";                                                       \
+        ADD_FAILURE() << d.what;                                          \
+        return result;                                                    \
+    }                                                                     \
+    catch (std::exception const& e)                                       \
+    {                                                                     \
+        ADD_FAILURE() << "Caught exception during '" << #ACTION           \
+                      << "': " << e.what() << ": " << geo;                \
+        return result;                                                    \
     }
 
     // Note: position is scaled according to test
