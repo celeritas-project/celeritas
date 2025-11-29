@@ -42,15 +42,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
     TrackingResult result;
-    CheckedGeoTrackView geo{
-        this->make_geo_track_view_interface(),
-        this->get_test_volumes(),
-        this->geometry_interface(),
-        this->unit_length(),
-    };
-
-    bool const check_surface_normal{this->supports_surface_normal()};
-    if (!check_surface_normal)
+    CheckedGeoTrackView geo = this->make_checked_track_view();
+    if (!geo.check_normal())
     {
         static int warn_count{0};
         world_logger()(CELER_CODE_PROVENANCE,
@@ -59,7 +52,6 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
             << this->gdml_basename() << " using " << this->geometry_type();
         result.disable_surface_normal();
     }
-    geo.check_normal(check_surface_normal);
 
 #define GGTI_EXPECT_NO_THROW(ACTION)                                        \
     try                                                                     \
@@ -160,7 +152,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         // Move to the boundary and attempt to cross
         GGTI_EXPECT_NO_THROW(geo.move_to_boundary());
         GGTI_EXPECT_NO_THROW(geo.cross_boundary());
-        if (check_surface_normal && !geo.is_outside())
+        if (geo.check_normal() && !geo.is_outside())
         {
             Real3 normal{};
             GGTI_EXPECT_NO_THROW(normal = geo.normal());
@@ -225,7 +217,12 @@ std::string_view GenericGeoTestInterface::gdml_basename() const
  */
 CheckedGeoTrackView GenericGeoTestInterface::make_checked_track_view()
 {
-    CheckedGeoTrackView result{this->make_geo_track_view_interface()};
+    CheckedGeoTrackView result{
+        this->make_geo_track_view_interface(),
+        this->get_test_volumes(),
+        this->geometry_interface(),
+        this->unit_length(),
+    };
 
     result.check_normal(this->supports_surface_normal());
     return result;

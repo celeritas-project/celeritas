@@ -40,7 +40,7 @@ auto make_geo_track_view(GenericGeoTestInterface& gti,
                          Real3 const& pos,
                          Real3 const& dir)
 {
-    auto tracker = CheckedGeoTrackView{gti.make_geo_track_view_interface()};
+    auto tracker = gti.make_checked_track_view();
     tracker = gti.make_initializer(pos, dir);
     return tracker;
 }
