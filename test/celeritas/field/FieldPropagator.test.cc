@@ -813,8 +813,21 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
             EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
 
-        EXPECT_NO_THROW(geo.cross_boundary());
-        EXPECT_EQ("world", this->volume_name(geo));
+        if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+        {
+            /*
+             * unique volume instance is the same before and after
+             * at {-4.9930093111683, 5, 0} [cm]
+             * along {-0.99997563423471, 0.0069807547505593, 0},
+             * [FAILED] [ON BOUNDARY] in world_PV/inner_PV
+             */
+            EXPECT_THROW(geo.cross_boundary(), CheckedGeoError);
+        }
+        else
+        {
+            EXPECT_NO_THROW(geo.cross_boundary());
+            EXPECT_EQ("world", this->volume_name(geo));
+        }
     }
     {
         SCOPED_TRACE("Barely (correctly) misses y");
@@ -1032,16 +1045,34 @@ TEST_F(TwoBoxesTest,
         {
             SCOPED_TRACE(i);
             Propagation result;
-            EXPECT_NO_THROW(result = propagate(radius * dtheta));
-            if (result.boundary)
+            result.distance = 0;
+            result.boundary = false;
+
+            try
             {
-                geo.cross_boundary();
+                if (!geo.failed())
+                {
+                    result = propagate(radius * dtheta);
+                }
+            }
+            catch (CheckedGeoError const& e)
+            {
+                CELER_LOG(error) << e.what();
             }
 
-            boundary.push_back(result.boundary);
+            if (result.distance > 0)
+            {
+                boundary.push_back(result.boundary);
+                volumes.push_back(this->volume_name(geo));
+            }
+            else
+            {
+                // Error sentinel
+                boundary.push_back(-1);
+                volumes.push_back("[FAILURE]");
+            }
             distances.push_back(result.distance);
             substeps.push_back(integrate.count());
-            volumes.push_back(this->volume_name(geo));
             integrate.reset_count();
         }
     }
@@ -1073,10 +1104,54 @@ TEST_F(TwoBoxesTest,
         "world",
     };
 
-    EXPECT_VEC_EQ(expected_boundary, boundary);
-    EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps);
-    EXPECT_VEC_EQ(expected_substeps, substeps);
-    EXPECT_VEC_EQ(expected_volumes, volumes);
+    /*
+     * Failed to find next step: computed step is 0 cm
+     * at {0.0014111984735586, 5, 0} [cm]
+     * along {-0.96863764097147, -0.24847760561715, 0},
+     * [FAILED] [ON BOUNDARY] in world_PV
+     */
+    if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    {
+        expected_boundary = {1, 0, 1, 0, 1, -1, 1, -1, -1, -1};
+        expected_distances[1] = 0.00785398163397448;
+        expected_distances[3] = 0.00448798950512828;
+        expected_distances[5] = 0;
+        expected_distances[6] = 9.99996586224189e-09;
+        expected_distances[7] = 0;
+        expected_substeps[1] = 1;
+        expected_substeps[3] = 1;
+        expected_substeps[9] = 0;
+        expected_volumes = {
+            "inner",
+            "inner",
+            "inner",
+            "inner",
+            "inner",
+            "[FAILURE]",
+            "inner",
+            "[FAILURE]",
+            "[FAILURE]",
+            "[FAILURE]",
+        };
+    }
+    else if (using_solids_vg)
+    {
+        expected_boundary[1] = 0;
+        expected_boundary[3] = 0;
+        expected_distances[1] = 0.00785398163397448;
+        expected_distances[3] = 0.00448798950512828;
+        expected_distances[5] = 1e-6;
+        expected_substeps[1] = 1;
+        expected_substeps[3] = 1;
+        expected_substeps[5] = 4;
+        expected_volumes.assign(expected_volumes.size(), "inner");
+    }
+
+    EXPECT_VEC_EQ(expected_boundary, boundary) << repr(boundary);
+    EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps)
+        << repr(distances);
+    EXPECT_VEC_EQ(expected_substeps, substeps) << repr(substeps);
+    EXPECT_VEC_EQ(expected_volumes, volumes) << repr(volumes);
 }
 
 // Heuristic test: plotting points with finer propagation distance show a track
@@ -1419,7 +1494,7 @@ TEST_F(CmseTest, coarse)
         int step_count = 0;
         int boundary_count = 0;
         int const max_steps = 10000;
-        while (!geo.is_outside() && step_count++ < max_steps)
+        while (!geo.is_outside() && !geo.failed() && step_count++ < max_steps)
         {
             Propagation result;
             try
@@ -1429,12 +1504,26 @@ TEST_F(CmseTest, coarse)
             catch (CheckedGeoError const& e)
             {
                 CELER_LOG(error) << e.what();
-                failed = true;
                 break;
             }
             if (result.boundary)
             {
-                geo.cross_boundary();
+                try
+                {
+                    geo.cross_boundary();
+                }
+                catch (CheckedGeoError const& e)
+                {
+                    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+                    {
+                        CELER_LOG(error) << e.details().what;
+                        break;
+                    }
+                    else
+                    {
+                        FAIL() << e.what();
+                    }
+                }
                 ++boundary_count;
             }
         }
@@ -1466,7 +1555,7 @@ TEST_F(CmseTest, coarse)
         expected_num_integration = {80659, 1670, 1956, 1092};
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
-    else if (using_solids_vg && failed)
+    else if (using_solids_vg)
     {
         expected_num_boundary[1] = 37;
         expected_num_step[1] = 179;
@@ -1475,18 +1564,6 @@ TEST_F(CmseTest, coarse)
         static char const* const expected_log_messages[] = {
             R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))",
             R"(Failed to find next step at {10.32, -6.565, 796.9} cm along {0.6896, -0.1485, 0.7088}: computed step is 0 cm)"};
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
-            << scoped_log_;
-    }
-    else if (using_solids_vg)
-    {
-        // Bumped (platform-dependent!): counts change a bit
-        expected_num_boundary[1] = 101;
-        expected_num_step[1] = 6462;
-        expected_num_intercept[1] = 19551;
-        expected_num_integration[1] = 58282;
-        static char const* const expected_log_messages[] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
             << scoped_log_;
     }
