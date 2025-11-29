@@ -146,7 +146,7 @@ CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
  */
 real_type CheckedGeoTrackView::find_safety()
 {
-    CELER_VALIDATE(!this->failed() || !check_failure_, );
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
 
     ++num_safety_;
 
@@ -168,7 +168,7 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
 {
     CELER_VALIDATE(max_safety > 0,
                    << "invalid safety maximum " << repr(max_safety));
-    CELER_VALIDATE(!this->failed() || !check_failure_, );
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
 
     ++num_safety_;
 
@@ -193,7 +193,7 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
 {
     CELER_VALIDATE(is_soft_unit_vector(newdir),
                    << "cannot change to a non-unit direction " << repr(newdir));
-    CELER_VALIDATE(!this->failed() || !check_failure_, );
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(),
                    << "cannot change direction while outside");
 
@@ -216,7 +216,7 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
  */
 Propagation CheckedGeoTrackView::find_next_step()
 {
-    CELER_VALIDATE(!this->failed() || !check_failure_, );
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(),
                    << "cannot find next step while outside");
 
@@ -248,7 +248,7 @@ Propagation CheckedGeoTrackView::find_next_step()
 Propagation CheckedGeoTrackView::find_next_step(real_type distance)
 {
     CELER_VALIDATE(distance > 0, << "invalid step maximum " << repr(distance));
-    CELER_VALIDATE(!this->failed() || !check_failure_, );
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(),
                    << "cannot find next step from outside");
     if (next_boundary_ && distance <= *next_boundary_)
@@ -299,7 +299,7 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
  */
 void CheckedGeoTrackView::move_internal(real_type step)
 {
-    CELER_VALIDATE(!this->failed() || !check_failure_, );
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "cannot move while outside");
     // TODO: check next_boundary_
 
@@ -322,7 +322,7 @@ void CheckedGeoTrackView::move_internal(real_type step)
  */
 void CheckedGeoTrackView::move_internal(Real3 const& pos)
 {
-    CELER_VALIDATE(!this->failed() || !check_failure_, );
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "cannot move while outside");
 
     real_type orig_safety = (t_->is_on_boundary() ? 0 : t_->find_safety());
@@ -368,8 +368,8 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
  */
 void CheckedGeoTrackView::move_to_boundary()
 {
-    CELER_VALIDATE(!this->failed() || !check_failure_, );
-    CELER_VALIDATE(!this->is_outside(), );
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
+    CELER_VALIDATE(!this->is_outside(), << "invalid call while outside");
 
     // Move to boundary
     t_->move_to_boundary();
@@ -387,8 +387,8 @@ void CheckedGeoTrackView::move_to_boundary()
  */
 void CheckedGeoTrackView::cross_boundary()
 {
-    CELER_VALIDATE(!this->failed() || !check_failure_, );
-    CELER_VALIDATE(!this->is_outside(), );
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
+    CELER_VALIDATE(!this->is_outside(), << "invalid call while outside");
 
     CELER_VALIDATE(t_->is_on_boundary(),
                    << "cannot cross boundary without being on boundary");

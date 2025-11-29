@@ -84,12 +84,6 @@
                   << "failed to open '" << filename
                   << "' (should contain relaxation data)");
  * \endcode
- *
- * An always-on debug-type assertion without a detailed message can be
- * constructed by omitting the stream (but leaving the comma):
- * \code
-    CELER_VALIDATE(file_stream,);
- * \endcode
  */
 /*!
  * \def CELER_DEBUG_FAIL
