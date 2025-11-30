@@ -16,11 +16,13 @@ class G4VPhysicalVolume;
 namespace celeritas
 {
 class GeantGeoParams;
+namespace inp
+{
+struct OrangeGeoFromGeant;
+}
+
 namespace g4org
 {
-//---------------------------------------------------------------------------//
-struct Options;
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct a "physical volume" and its children from a Geant4 object.
@@ -35,11 +37,12 @@ class PhysicalVolumeConverter
     //! \name Type aliases
     using arg_type = G4VPhysicalVolume const&;
     using result_type = PhysicalVolume;
+    using Input = inp::OrangeGeoFromGeant;
     //!@}
 
   public:
     // Construct with options and parent geometry
-    PhysicalVolumeConverter(GeantGeoParams const& geo, Options const& options);
+    PhysicalVolumeConverter(GeantGeoParams const& geo, Input const& options);
 
     // Default destructor
     ~PhysicalVolumeConverter();

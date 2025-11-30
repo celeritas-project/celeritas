@@ -10,8 +10,7 @@
 
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
-
-#include "Options.hh"
+#include "orange/inp/Import.hh"
 
 //---------------------------------------------------------------------------//
 // Forward declarations
@@ -52,6 +51,7 @@ class Converter
     //!@{
     //! \name Type aliases
     using arg_type = GeantGeoParams const&;
+    using Input = inp::OrangeGeoFromGeant;
     //!@}
 
     struct result_type
@@ -61,22 +61,22 @@ class Converter
 
   public:
     // Construct with options
-    explicit Converter(Options&&);
+    explicit Converter(Input&&);
 
     //! Construct with default options
-    Converter() : Converter{Options{}} {}
+    Converter() : Converter{Input{}} {}
 
     // Convert the world
     result_type operator()(GeantGeoParams const&, VolumeParams const&);
 
   private:
-    Options opts_;
+    Input opts_;
 };
 
 //---------------------------------------------------------------------------//
 
 #if !CELERITAS_USE_GEANT4
-inline Converter::Converter(Options&&)
+inline Converter::Converter(Input&&)
 {
     CELER_DISCARD(opts_);
 }

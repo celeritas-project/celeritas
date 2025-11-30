@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/g4org/Options.hh
+//! \file orange/inp/Import.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,7 +16,7 @@
 
 namespace celeritas
 {
-namespace g4org
+namespace inp
 {
 //---------------------------------------------------------------------------//
 //! How to inline volumes used only once
@@ -43,7 +43,7 @@ enum class InlineSingletons
  * - remove_interior to be true (see
  * https://github.com/celeritas-project/celeritas/issues/2012 )
  */
-struct Options
+struct OrangeGeoFromGeant
 {
     //!@{
     //! \name Problem scale and tolerance
@@ -100,21 +100,10 @@ struct Options
 char const* to_cstring(InlineSingletons value);
 
 // Helper to read from a file or stream
-std::istream& operator>>(std::istream& is, Options&);
+std::istream& operator>>(std::istream& is, OrangeGeoFromGeant&);
 // Helper to write to a file or stream
-std::ostream& operator<<(std::ostream& os, Options const&);
-
-#if !CELERITAS_USE_GEANT4
-inline std::istream& operator>>(std::istream&, Options&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-inline std::ostream& operator<<(std::ostream&, Options const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-#endif
+std::ostream& operator<<(std::ostream& os, OrangeGeoFromGeant const&);
 
 //---------------------------------------------------------------------------//
-}  // namespace g4org
+}  // namespace inp
 }  // namespace celeritas

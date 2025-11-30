@@ -22,10 +22,10 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "orange/inp/Import.hh"
 #include "orange/transform/TransformIO.hh"
 
 #include "LogicalVolumeConverter.hh"
-#include "Options.hh"
 #include "Scaler.hh"
 #include "SolidConverter.hh"
 #include "Transformer.hh"
@@ -112,7 +112,7 @@ struct PhysicalVolumeConverter::Builder
  * Construct with options.
  */
 PhysicalVolumeConverter::PhysicalVolumeConverter(GeantGeoParams const& geo,
-                                                 Options const& opts)
+                                                 Input const& opts)
     : data_{std::make_unique<Data>(geo)}
 {
     CELER_VALIDATE(opts.unit_length > 0,

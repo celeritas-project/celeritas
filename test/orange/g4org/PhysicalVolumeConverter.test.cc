@@ -12,7 +12,7 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "orange/MatrixUtils.hh"
-#include "orange/g4org/Options.hh"
+#include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/transform/TransformIO.hh"
 
@@ -33,7 +33,7 @@ constexpr RealTurn degrees_to_turn(double v)
 
 auto make_options()
 {
-    Options opts;
+    inp::OrangeGeoFromGeant opts;
     opts.unit_length = 0.1;
     return opts;
 }

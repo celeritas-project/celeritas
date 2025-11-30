@@ -87,6 +87,7 @@ list(APPEND SOURCES
   transform/TransformSimplifier.cc
   transform/Transformation.cc
   transform/VariantTransform.cc
+  inp/ImportIO.json.cc
 )
 
 
@@ -94,7 +95,6 @@ if(CELERITAS_USE_Geant4)
   list(APPEND SOURCES
     g4org/Converter.cc
     g4org/ProtoConstructor.cc
-    g4org/OptionsIO.json.cc
   )
 
   # Only the following sources require Geant4 linkage
