@@ -378,7 +378,6 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe,
     CELER_EXPECT(orange_data->scalars.tol);
 
     // Initialize scalars
-    orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
 }
 
@@ -592,7 +591,6 @@ LocalVolumeRecord UnitInserter::insert_volume(
 
     // Update global max faces/intersections/logic
     OrangeParamsScalars& scalars = orange_data_->scalars;
-    inplace_max<size_type>(&scalars.max_faces, output.faces.size());
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
 
