@@ -5,19 +5,24 @@
 #-----------------------------------------------------------------------------#
 
 if ! command -v load_system_env >/dev/null 2>&1; then
-  printf "error: define a function 'load_system_env' in your .bashrc:
+  printf "error: define a function load_system_env in your shell rc:
 load_system_env() {
-  . "\${CELER_SOURCE_DIR}/scripts/env/\$1.sh"
+  . \${CELER_SOURCE_DIR}/scripts/env/\$1.sh
 }
 " >&2
   return 1
 fi
 
-# Redundant with cmake prefix but useful if this is being used for other env
-export CUDAARCHS=90
-# Set C++ compiler
-export CXX=/usr/bin/c++
-export CC=/usr/bin/cc
+# FIXME: scratch isn't mounted on faraday :(
+export SCRATCHDIR=/tmp/${USER}
 
 # Dispatch common loading to the 'excl' system
 load_system_env excl || return $?
+
+# Load AMD modules
+if command -v module >/dev/null 2>&1; then
+  module load rocmmod
+else
+  celerlog error "module: command not found"
+  return 1
+fi
