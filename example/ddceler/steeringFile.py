@@ -1,3 +1,5 @@
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 
 Minimal proof of concept for DDG4 steering file to run Geant4 with celeritas integration.
