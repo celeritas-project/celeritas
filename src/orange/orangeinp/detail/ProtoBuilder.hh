@@ -76,13 +76,13 @@ class ProtoBuilder
     // Construct a universe (to be called *once* per proto)
     void insert(VariantUniverseInput&& unit);
 
-    // The the UniverseId of the universe currently being built
-    UnivId current_uid() const { return current_uid_; }
+    // Get the UniverseId of the universe currently being built
+    inline UnivId current_uid() const;
 
     // Whether or not the current universe is the global universe
     bool is_global_universe() const
     {
-        return current_uid_ == orange_global_univ;
+        return this->current_uid() == orange_global_univ;
     }
 
   private:
@@ -90,9 +90,10 @@ class ProtoBuilder
     ProtoMap const& protos_;
     SaveUnivJson save_json_;
     std::vector<BBox> bboxes_;
+    size_type num_univs_;
 
     // State variables
-    UnivId current_uid_;
+    size_type num_univs_inserted_;
 };
 
 //---------------------------------------------------------------------------//
@@ -114,6 +115,16 @@ BBox const& ProtoBuilder::bbox(UnivId univ_id) const
 {
     CELER_EXPECT(univ_id < bboxes_.size());
     return bboxes_[univ_id.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the UniverseId of the universe currently being built.
+ */
+UnivId ProtoBuilder::current_uid() const
+{
+    CELER_EXPECT(num_univs_inserted_ < num_univs_);
+    return UnivId{num_univs_ - num_univs_inserted_ - 1};
 }
 
 //---------------------------------------------------------------------------//

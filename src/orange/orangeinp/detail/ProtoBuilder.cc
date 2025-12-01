@@ -28,7 +28,8 @@ ProtoBuilder::ProtoBuilder(OrangeInput* inp,
     , protos_{protos}
     , save_json_{opts.save_json}
     , bboxes_{protos_.size()}
-    , current_uid_{protos_.size() - 1}
+    , num_univs_{protos_.size()}
+    , num_univs_inserted_{0}
 {
     CELER_EXPECT(inp_);
     CELER_EXPECT(opts.tol);
@@ -61,7 +62,7 @@ void ProtoBuilder::save_json(JsonPimpl&& jp) const
 {
     CELER_EXPECT(this->save_json());
 
-    save_json_(current_uid_, std::move(jp));
+    save_json_(this->current_uid(), std::move(jp));
 }
 
 //---------------------------------------------------------------------------//
@@ -72,11 +73,11 @@ void ProtoBuilder::save_json(JsonPimpl&& jp) const
  */
 void ProtoBuilder::insert(VariantUniverseInput&& unit)
 {
-    inp_->universes[current_uid_.get()] = std::move(unit);
+    inp_->universes[this->current_uid().get()] = std::move(unit);
 
     if (!this->is_global_universe())
     {
-        --current_uid_;
+        ++num_univs_inserted_;
     }
 }
 
