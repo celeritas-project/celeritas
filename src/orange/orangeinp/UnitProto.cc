@@ -397,12 +397,6 @@ void UnitProto::build(ProtoBuilder& pb) const
         auto trans_id = fill->trans_id;
         CELER_ASSERT(trans_id < csg_unit.transforms.size());
         iter->second.transform = csg_unit.transforms[trans_id.get()];
-
-        // Update bounding box of the daughter universe by inverting the
-        // daughter-to-parent reference transform and applying it to the
-        // parent-reference-frame bbox
-        auto local_bbox = apply_transform(calc_inverse(iter->second.transform),
-                                          result.volumes[vol_id.get()].bbox);
     }
 
     // Save attributes from materials
