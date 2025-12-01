@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/inp/Distributions.hh"
 #include "geocel/Types.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -20,18 +21,16 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
-//! Generate at a single point
-struct PointDistribution
-{
-    Real3 pos{0, 0, 0};  // [length]
-};
+//! Generate at a single energy value [MeV]
+using MonoenergeticDistribution = DeltaDistribution<double>;
 
-//! Sample uniformly in a box
-struct UniformBoxDistribution
-{
-    Real3 lower{0, 0, 0};  // [length]
-    Real3 upper{0, 0, 0};  // [length]
-};
+//! Choose an energy distribution for the primary generator
+using EnergyDistribution
+    = std::variant<MonoenergeticDistribution, NormalDistribution>;
+
+//---------------------------------------------------------------------------//
+//! Generate at a single point
+using PointDistribution = DeltaDistribution<Array<double, 3>>;
 
 // TODO: cylinder shape
 // TODO: shape with volume rejection
@@ -41,69 +40,42 @@ using ShapeDistribution
     = std::variant<PointDistribution, UniformBoxDistribution>;
 
 //---------------------------------------------------------------------------//
-//! Generate angles isotropically
-struct IsotropicDistribution
-{
-};
-
 //! Generate angles in a single direction
-struct MonodirectionalDistribution
-{
-    Real3 dir{0, 0, 1};
-};
+using MonodirectionalDistribution = DeltaDistribution<Array<double, 3>>;
 
 //! Choose an angular distribution for the primary generator
 using AngleDistribution
-    = std::variant<IsotropicDistribution, MonodirectionalDistribution>;
-
-//---------------------------------------------------------------------------//
-//! Generate primaries at a single energy value
-struct MonoenergeticDistribution
-{
-    using MevEnergy = Quantity<units::Mev, double>;
-
-    MevEnergy energy;
-};
-
-//! Choose an energy distribution for the primary generator
-using EnergyDistribution = MonoenergeticDistribution;
+    = std::variant<MonodirectionalDistribution, IsotropicDistribution>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate from a hardcoded distribution of primary particles.
- *
- * \todo move num_events to StandaloneInput
  */
 struct PrimaryGenerator
 {
-    //! Number of events to generate
-    size_type num_events{};
-    //! Number of primaries per event
-    size_type primaries_per_event{};
-
     //! Distribution for sampling spatial component (position)
     ShapeDistribution shape;
     //! Distribution for sampling angular component (direction)
     AngleDistribution angle;
     //! Distribution for sampling source energy
     EnergyDistribution energy;
-
-    //! True if there's at least one primary
-    explicit operator bool() const
-    {
-        return num_events > 0 && primaries_per_event > 0;
-    }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate particles in the core stepping loop.
  *
+ * \todo move num_events to StandaloneInput
  * \todo Allow programmatic setting from particle ID as well:
  * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
  */
 struct CorePrimaryGenerator : PrimaryGenerator
 {
+    //! Number of events to generate
+    size_type num_events{};
+    //! Number of primaries per event
+    size_type primaries_per_event{};
+
     //! Random number seed
     unsigned int seed{};
     //! Sample evenly from this vector of particle types
@@ -112,7 +84,7 @@ struct CorePrimaryGenerator : PrimaryGenerator
     //! True if there's at least one primary
     explicit operator bool() const
     {
-        return PrimaryGenerator::operator bool() && !pdg.empty();
+        return num_events > 0 && primaries_per_event > 0 && !pdg.empty();
     }
 };
 
@@ -120,9 +92,16 @@ struct CorePrimaryGenerator : PrimaryGenerator
 /*!
  * Generate optical photon primary particles.
  *
- * \todo Time? Polarization?
+ * \note The sampled optical photon primaries are unpolarized.
  */
-using OpticalPrimaryGenerator = PrimaryGenerator;
+struct OpticalPrimaryGenerator : PrimaryGenerator
+{
+    //! Total number of primaries
+    size_type primaries{};
+
+    //! True if there's at least one primary
+    explicit operator bool() const { return primaries > 0; }
+};
 
 //---------------------------------------------------------------------------//
 /*!

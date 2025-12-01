@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/AuxStateData.hh
+//! \file corecel/data/AuxState.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,7 +18,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for retrieving templated state data on a single stream.
+ * Store a state collection group as aux state data.
+ * \tparam S State data collection group
+ * \tparam M Memory space for the state
  *
  * This class is most easily used with \c make_aux_state to create a
  * "collection group"-style state (see \ref collections) associated with a
@@ -37,7 +39,7 @@ namespace celeritas
  * \endcode
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
-class AuxStateData final : public AuxStateInterface
+class AuxState final : public AuxStateInterface
 {
   public:
     //!@{
@@ -48,12 +50,10 @@ class AuxStateData final : public AuxStateInterface
   public:
     // Construct by resizing and passing host params
     template<template<Ownership, MemSpace> class P>
-    inline AuxStateData(HostCRef<P> const& p,
-                        StreamId stream_id,
-                        size_type size);
+    inline AuxState(HostCRef<P> const& p, StreamId stream_id, size_type size);
 
     // Construct by resizing without params
-    inline AuxStateData(StreamId stream_id, size_type size);
+    inline AuxState(StreamId stream_id, size_type size);
 
     //! Whether any data is being stored
     explicit operator bool() const { return static_cast<bool>(store_); }
@@ -86,12 +86,12 @@ make_aux_state(ParamsDataInterface<P> const& params,
 {
     if (m == MemSpace::host)
     {
-        using ASD = AuxStateData<S, MemSpace::host>;
+        using ASD = AuxState<S, MemSpace::host>;
         return std::make_unique<ASD>(params.host_ref(), stream_id, size);
     }
     else if (m == MemSpace::device)
     {
-        using ASD = AuxStateData<S, MemSpace::device>;
+        using ASD = AuxState<S, MemSpace::device>;
         return std::make_unique<ASD>(params.host_ref(), stream_id, size);
     }
     CELER_ASSERT_UNREACHABLE();
@@ -107,12 +107,12 @@ make_aux_state(MemSpace m, StreamId stream_id, size_type size)
 {
     if (m == MemSpace::host)
     {
-        using ASD = AuxStateData<S, MemSpace::host>;
+        using ASD = AuxState<S, MemSpace::host>;
         return std::make_unique<ASD>(stream_id, size);
     }
     else if (m == MemSpace::device)
     {
-        using ASD = AuxStateData<S, MemSpace::device>;
+        using ASD = AuxState<S, MemSpace::device>;
         return std::make_unique<ASD>(stream_id, size);
     }
     CELER_ASSERT_UNREACHABLE();
@@ -127,9 +127,9 @@ make_aux_state(MemSpace m, StreamId stream_id, size_type size)
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 template<template<Ownership, MemSpace> class P>
-AuxStateData<S, M>::AuxStateData(HostCRef<P> const& p,
-                                 StreamId stream_id,
-                                 size_type size)
+AuxState<S, M>::AuxState(HostCRef<P> const& p,
+                         StreamId stream_id,
+                         size_type size)
     : store_{p, stream_id, size}
 {
 }
@@ -139,7 +139,7 @@ AuxStateData<S, M>::AuxStateData(HostCRef<P> const& p,
  * Construct by resizing.
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
-AuxStateData<S, M>::AuxStateData(StreamId stream_id, size_type size)
+AuxState<S, M>::AuxState(StreamId stream_id, size_type size)
     : store_{stream_id, size}
 {
 }

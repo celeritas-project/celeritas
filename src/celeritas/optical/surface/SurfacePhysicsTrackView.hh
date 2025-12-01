@@ -76,7 +76,7 @@ class SurfacePhysicsTrackView
     inline CELER_FUNCTION void update_traversal_direction(Real3 const&);
 
     // Get global surface normal
-    inline CELER_FUNCTION Real3 const& global_normal() const;
+    inline CELER_FUNCTION Real3 global_normal() const;
 
     // Get local facet normal
     inline CELER_FUNCTION Real3 const& facet_normal() const;
@@ -200,7 +200,8 @@ SurfacePhysicsTrackView::update_traversal_direction(Real3 const& dir)
 {
     CELER_EXPECT(is_soft_unit_vector(dir));
     this->traversal().dir(
-        calc_subsurface_direction(dir, this->global_normal()));
+        calc_subsurface_direction(dir, states_.global_normal[track_id_]));
+    CELER_ENSURE(is_entering_surface(dir, this->global_normal()));
 }
 
 //---------------------------------------------------------------------------//
@@ -211,10 +212,11 @@ SurfacePhysicsTrackView::update_traversal_direction(Real3 const& dir)
  * include any roughness effects. By convention it points from the post-volume
  * into the pre-volume.
  */
-CELER_FUNCTION Real3 const& SurfacePhysicsTrackView::global_normal() const
+CELER_FUNCTION Real3 SurfacePhysicsTrackView::global_normal() const
 {
     CELER_EXPECT(this->is_crossing_boundary());
-    return states_.global_normal[track_id_];
+    return to_signed_offset(this->traversal().dir())
+           * states_.global_normal[track_id_];
 }
 
 //---------------------------------------------------------------------------//

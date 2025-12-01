@@ -18,18 +18,19 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for copying setup-time Collection groups to host and device.
+ * Store and reference persistent collection groups on host and device.
+ * \tparam P Params data collection group
  *
  * This should generally be an implementation detail of Params classes, which
  * are constructed on host and must have the same data both on host and device.
- * The template `P` must be a `FooData` class that:
+ * The template \c P must be a `FooData` class that:
  * - Is templated on ownership and memory space
  * - Has a templated assignment operator to copy from one space to another
  * - Has a boolean operator returning whether it's in a valid state.
  *
  * On assignment, it will copy the data to the device if the GPU is enabled.
  *
- * Example:
+ * \par Example:
  * \code
  * class FooParams
  * {
@@ -45,6 +46,8 @@ namespace celeritas
  *     CollectionMirror<FooData> data_;
  * };
  * \endcode
+ *
+ * \todo Rename ParamsDataStore
  */
 template<template<Ownership, MemSpace> class P>
 class CollectionMirror final : public ParamsDataInterface<P>
@@ -58,7 +61,7 @@ class CollectionMirror final : public ParamsDataInterface<P>
     //!@}
 
   public:
-    //! Default constructor leaves in an "unassigned" state
+    //! Default constructor leaves the class in an "unassigned" state
     CollectionMirror() = default;
 
     // Construct from host data
@@ -70,7 +73,7 @@ class CollectionMirror final : public ParamsDataInterface<P>
     //! Access data on host
     HostRef const& host_ref() const final { return host_ref_; }
 
-    //! Access data on device
+    //! Access data on device, if the device is enabled
     DeviceRef const& device_ref() const final { return device_ref_; }
 
     using ParamsDataInterface<P>::ref;
@@ -86,7 +89,7 @@ class CollectionMirror final : public ParamsDataInterface<P>
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Construct by capturing host data.
  */
 template<template<Ownership, MemSpace> class P>
 CollectionMirror<P>::CollectionMirror(HostValue&& host)

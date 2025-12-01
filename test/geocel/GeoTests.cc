@@ -2348,13 +2348,6 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     geo.set_dir({-1, 0, 0});
     next = geo.find_next_step(from_cm(1000));
     EXPECT_TRUE(next.boundary);
-    if (test_->geometry_type() == "VecGeom" && using_solids_vg
-        && vecgeom_version >= Version{2, 0})
-    {
-        // VecGeom 2.x-solid totally misses the inner boundary
-        EXPECT_SOFT_NEAR(505 + 2 * dx, to_cm(next.distance), 1e-4);
-        GTEST_SKIP() << "VecGeom 2.x misses inner boundary";
-    }
     EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());

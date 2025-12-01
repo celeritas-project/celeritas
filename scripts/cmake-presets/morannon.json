@@ -1,0 +1,55 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": "dev",
+      "displayName": "Default development options",
+      "inherits": [".debug", "default"],
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+      }
+    },
+    {
+      "name": "reldeb",
+      "displayName": "With vecgeom in optimized+errcheck mode",
+      "inherits": [".reldeb"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "ndebug",
+      "displayName": "With vecgeom in optimized mode and CLHEP units",
+      "inherits": [".ndebug"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_UNITS": "CLHEP",
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "jobs": 8,
+      "nativeToolOptions": ["-k0"]
+    },
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "dev"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "dev"}
+  ],
+  "testPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+    },
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "dev"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "dev"}
+  ]
+}

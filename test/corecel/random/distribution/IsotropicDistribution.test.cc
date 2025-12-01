@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/random/IsotropicDistribution.test.cc
+//! \file corecel/random/distribution/IsotropicDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "geocel/random/IsotropicDistribution.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 
 #include <random>
 

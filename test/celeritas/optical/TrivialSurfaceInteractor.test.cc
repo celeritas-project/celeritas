@@ -34,9 +34,7 @@ TEST_F(TrivialSurfaceInteractorTest, interactor)
         }
         {
             auto result = TrivialInteractor{M::transmit, dir, pol}();
-            EXPECT_EQ(A::refracted, result.action);
-            EXPECT_VEC_EQ(dir, result.direction);
-            EXPECT_VEC_EQ(pol, result.polarization);
+            EXPECT_EQ(A::transmitted, result.action);
         }
         {
             auto result = TrivialInteractor{M::backscatter, dir, pol}();

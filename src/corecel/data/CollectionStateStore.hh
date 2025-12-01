@@ -15,7 +15,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for storing Collection classes on host or device.
+ * Store and reference stateful collection groups on host and device.
+ * \tparam S State data collection group
  *
  * This can be used for unit tests (MemSpace is host) as well as production
  * code. States generally shouldn't be copied between host and device, so the
@@ -31,11 +32,14 @@ namespace celeritas
  * - \b OPTIONAL: a \c StreamId for setting up thread/task-local data
  * - \b REQUIRED: a \c size_type for specifying the size of the new state.
  *
+ * \par Example:
  * \code
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
         *particle_params, num_tracks);
     state_data.particle = pstates.ref();
    \endcode
+ *
+ * \todo Rename StateDataStore
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 class CollectionStateStore
@@ -49,6 +53,7 @@ class CollectionStateStore
     //!@}
 
   public:
+    //! The default constructor initializes as empty
     CollectionStateStore() = default;
     ~CollectionStateStore() = default;
 
@@ -230,23 +235,21 @@ auto CollectionStateStore<S, M>::operator=(S<W2, M2> const& other)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a reference to the mutable state data.
+ * Get a mutable reference to the mutable state data.
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 auto CollectionStateStore<S, M>::ref() -> Ref&
 {
-    CELER_EXPECT(*this);
     return ref_;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a reference to the mutable state data.
+ * Get a const reference to the state data.
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 auto CollectionStateStore<S, M>::ref() const -> Ref const&
 {
-    CELER_EXPECT(*this);
     return ref_;
 }
 

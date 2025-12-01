@@ -97,7 +97,7 @@ CELER_FUNCTION SurfaceInteraction TrivialInteractor::operator()() const
             result = SurfaceInteraction::from_absorption();
             break;
         case TrivialInteractionMode::transmit:
-            result = {SurfaceInteraction::Action::refracted, dir_, pol_};
+            result = SurfaceInteraction::from_transmission();
             break;
         case TrivialInteractionMode::backscatter:
             result = {SurfaceInteraction::Action::reflected,
