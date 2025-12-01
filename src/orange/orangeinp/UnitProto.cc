@@ -403,7 +403,6 @@ void UnitProto::build(ProtoBuilder& pb) const
         // parent-reference-frame bbox
         auto local_bbox = apply_transform(calc_inverse(iter->second.transform),
                                           result.volumes[vol_id.get()].bbox);
-        pb.expand_bbox(iter->second.univ_id, bump_bbox(local_bbox));
     }
 
     // Save attributes from materials
