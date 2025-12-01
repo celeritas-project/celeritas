@@ -1,3 +1,6 @@
+<!-- Derived from https://github.com/AIDASoft/DD4hep/blob/master/DDDetectors/compact/SiD.xml -->
+<!-- Copyright Celeritas contributors: see top-level COPYRIGHT file for details -->
+<!-- SPDX-License-Identifier: (Apache-2.0 OR MIT) -->
 <lccdd>
   <comment>
     Using a constant field in the DD4hep example SiD detector description
