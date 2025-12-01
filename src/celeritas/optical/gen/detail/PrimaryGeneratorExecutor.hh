@@ -34,6 +34,7 @@ struct PrimaryGeneratorExecutor
     CRefPtr<CoreParamsData, MemSpace::native> params;
     RefPtr<CoreStateData, MemSpace::native> state;
     PrimaryDistributionData data;
+    NativeCRef<DistributionParamsData> distributions;
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
@@ -57,6 +58,7 @@ CELER_FUNCTION void PrimaryGeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_EXPECT(params);
     CELER_EXPECT(state);
     CELER_EXPECT(data);
+    CELER_EXPECT(distributions);
 
     CoreTrackView track(*params, *state, tid);
 
@@ -71,7 +73,7 @@ CELER_FUNCTION void PrimaryGeneratorExecutor::operator()(TrackSlotId tid) const
 
     // Generate one primary from the distribution
     auto rng = track.rng();
-    vacancy = PrimaryGenerator(data)(rng);
+    vacancy = PrimaryGenerator(distributions, data)(rng);
 }
 
 //---------------------------------------------------------------------------//

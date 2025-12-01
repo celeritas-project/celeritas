@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/random/UniformBoxDistribution.test.cc
+//! \file corecel/random/distribution/UniformBoxDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "geocel/random/UniformBoxDistribution.hh"
+#include "corecel/random/distribution/UniformBoxDistribution.hh"
 
 #include <random>
 

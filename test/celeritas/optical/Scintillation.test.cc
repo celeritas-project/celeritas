@@ -8,9 +8,11 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
@@ -74,7 +76,7 @@ class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
     real_type step_length_{2.5};  // [cm]
 };
 
-class MaterialScintillationTest : public ScintillationTestBase
+class MaterialScintillationGaussianTest : public ScintillationTestBase
 {
   public:
     //! Create scintillation params
@@ -100,9 +102,42 @@ class MaterialScintillationTest : public ScintillationTestBase
 
         // Note second component has zero rise time
         std::vector<ImportScintComponent> comps;
-        comps.push_back({0.5, 100 * nm, 5 * nm, 10 * ns, 6 * ns});
-        comps.push_back({0.3, 200 * nm, 10 * nm, 0, 1500 * ns});
-        comps.push_back({0.2, 400 * nm, 20 * nm, 10 * ns, 3000 * ns});
+        comps.push_back({0.5, 10 * ns, 6 * ns, {100 * nm, 5 * nm}, {}});
+        comps.push_back({0.3, 0, 1500 * ns, {200 * nm, 10 * nm}, {}});
+        comps.push_back({0.2, 10 * ns, 3000 * ns, {400 * nm, 20 * nm}, {}});
+
+        return comps;
+    }
+};
+
+class MaterialScintillationTabularTest : public ScintillationTestBase
+{
+  public:
+    //! Create scintillation params
+    SPParams build_scintillation_params() override
+    {
+        ScintillationParams::Input inp;
+        inp.resolution_scale.push_back(1);
+
+        // One material, three components
+        ImportMaterialScintSpectrum mat_spec;
+        mat_spec.yield_per_energy = 5;
+        mat_spec.components = this->build_material_components();
+        inp.materials.push_back(std::move(mat_spec));
+
+        return std::make_shared<ScintillationParams>(std::move(inp));
+    }
+
+    //! Create material components
+    std::vector<ImportScintComponent> build_material_components()
+    {
+        static constexpr real_type ns{units::nanosecond};
+
+        // Note these components are in tabular form
+        std::vector<ImportScintComponent> comps;
+        comps.push_back(
+            {0.2, 10 * ns, 1500 * ns, {}, {{1.0, 2.0, 3.0}, {0.5, 0.3, 0.2}}});
+
         return comps;
     }
 };
@@ -141,8 +176,8 @@ class ParticleScintillationTest : public ScintillationTestBase
         std::vector<ImportScintComponent> vec_comps;
         ImportScintComponent comp;
         comp.yield_frac = 1;
-        comp.lambda_mean = from_cm(1e-5);
-        comp.lambda_sigma = from_cm(1e-6);
+        comp.gauss.lambda_mean = from_cm(1e-5);
+        comp.gauss.lambda_sigma = from_cm(1e-6);
         comp.rise_time = native_value_from(TimeSecond(15e-9));
         comp.fall_time = native_value_from(TimeSecond(5e-9));
         vec_comps.push_back(std::move(comp));
@@ -154,7 +189,7 @@ class ParticleScintillationTest : public ScintillationTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MaterialScintillationTest, data)
+TEST_F(MaterialScintillationGaussianTest, data)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -190,8 +225,8 @@ TEST_F(MaterialScintillationTest, data)
     for (auto const& comp : this->build_material_components())
     {
         expected_yield_fracs.push_back(comp.yield_frac / norm);
-        expected_lambda_means.push_back(comp.lambda_mean);
-        expected_lambda_sigmas.push_back(comp.lambda_sigma);
+        expected_lambda_means.push_back(comp.gauss.lambda_mean);
+        expected_lambda_sigmas.push_back(comp.gauss.lambda_sigma);
         expected_rise_times.push_back(comp.rise_time);
         expected_fall_times.push_back(comp.fall_time);
     }
@@ -204,14 +239,15 @@ TEST_F(MaterialScintillationTest, data)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MaterialScintillationTest, pre_generator)
+TEST_F(MaterialScintillationGaussianTest, pre_generator)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
     EXPECT_FALSE(data.scintillation_by_particle());
 
-    // The particle's energy is necessary for the particle track view but is
-    // irrelevant for the test since what matters is the energy deposition
+    // The particle's energy is necessary for the particle track view but
+    // is irrelevant for the test since what matters is the energy
+    // deposition
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
@@ -245,7 +281,7 @@ TEST_F(MaterialScintillationTest, pre_generator)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MaterialScintillationTest, basic)
+TEST_F(MaterialScintillationGaussianTest, basic)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -377,7 +413,7 @@ TEST_F(ParticleScintillationTest, basic)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MaterialScintillationTest, stress_test)
+TEST_F(MaterialScintillationGaussianTest, stress_test)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -432,6 +468,49 @@ TEST_F(MaterialScintillationTest, stress_test)
         expected_error += component.lambda_sigma * yield;
     }
     EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, expected_error);
+}
+
+TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
+{
+    auto const params = this->build_scintillation_params();
+    auto const& data = params->host_ref();
+
+    // Iterate components and, when an energy CDF is present, construct grid
+    for (auto i : range(data.scint_records.size()))
+    {
+        auto const& rec = data.scint_records[ItemId<ScintRecord>(i)];
+
+        if (rec.energy_cdf)
+        {
+            NonuniformGridCalculator calc_cdf(data.energy_cdfs[rec.energy_cdf],
+                                              data.reals);
+            auto const& cdf_grid = calc_cdf.grid();
+
+            EXPECT_SOFT_EQ(1, cdf_grid.front());
+            EXPECT_SOFT_EQ(3, cdf_grid.back());
+
+            // Invert a representative CDF value
+            auto calc_energy = calc_cdf.make_inverse();
+            EXPECT_SOFT_EQ(cdf_grid.front(), calc_energy(0));
+            EXPECT_SOFT_EQ(cdf_grid.back(), calc_energy(1));
+
+            std::vector<real_type> energy;
+            Rng rng;
+            for ([[maybe_unused]] auto i : range(4))
+            {
+                energy.push_back(calc_energy(generate_canonical(rng)));
+            }
+            if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+            {
+                static double const expected_energy[] = {1.22015013198227,
+                                                         2.57102233398591,
+                                                         2.919056204923,
+                                                         1.3591803198469};
+
+                EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+            }
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

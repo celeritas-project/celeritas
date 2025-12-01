@@ -291,7 +291,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     // loading events
     auto num_events = std::visit(
         Overload{
-            [](inp::PrimaryGenerator const& pg) { return pg.num_events; },
+            [](inp::CorePrimaryGenerator const& pg) { return pg.num_events; },
             [](inp::SampleFileEvents const& sfe) { return sfe.num_events; },
             [](inp::ReadFileEvents const& rfe) {
                 if (ends_with(rfe.event_file, ".jsonl"))
