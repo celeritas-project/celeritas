@@ -73,6 +73,7 @@ endif()
 
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
+    vg/VecgeomData.cc
     vg/VecgeomParams.cc
     vg/VecgeomParamsOutput.cc
     vg/RaytraceImager.cc
