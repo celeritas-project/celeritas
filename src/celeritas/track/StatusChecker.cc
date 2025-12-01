@@ -79,16 +79,6 @@ std::string_view StatusChecker::description() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Build state data for a stream.
- */
-auto StatusChecker::create_state(MemSpace m, StreamId id, size_type size) const
-    -> UPState
-{
-    return make_aux_state<StatusCheckStateData>(*this, m, id, size);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set host data at the beginning of a run.
  */
 void StatusChecker::begin_run(CoreParams const& params, CoreStateHost&)
@@ -121,8 +111,7 @@ void StatusChecker::step(ActionId prev_action,
     CELER_EXPECT(params.action_reg()->num_actions()
                  == this->ref<M>().orders.size());
 
-    using StateT = AuxStateData<StatusCheckStateData, M>;
-    auto& aux_state = get<StateT>(state.aux(), aux_id_).ref();
+    auto& aux_state = this->state_ref<M>(state.aux());
 
     // Update action before launching kernel
     CELER_ASSERT(prev_action < this->host_ref().orders.size());
@@ -130,7 +119,7 @@ void StatusChecker::step(ActionId prev_action,
     aux_state.order = this->host_ref().orders[prev_action];
 
     CELER_ASSERT(aux_state.order != StepActionOrder::size_);
-    this->launch_impl(params, state, aux_state);
+    this->step_impl(params, state, aux_state);
 
     // Save the status and limiting action IDs
     auto const& sim_state = state.ref().sim;
@@ -186,10 +175,9 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
 /*!
  * Execute with with the last action's ID and the state.
  */
-void StatusChecker::launch_impl(
-    CoreParams const& params,
-    CoreState<MemSpace::host>& state,
-    StatusStateRef<MemSpace::host> const& aux_state) const
+void StatusChecker::step_impl(CoreParams const& params,
+                              CoreState<MemSpace::host>& state,
+                              StatusStateRef<MemSpace::host> const& aux_state) const
 {
     launch_core(this->label(),
                 params,
@@ -202,9 +190,9 @@ void StatusChecker::launch_impl(
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void StatusChecker::launch_impl(CoreParams const&,
-                                CoreState<MemSpace::device>&,
-                                StatusStateRef<MemSpace::device> const&) const
+void StatusChecker::step_impl(CoreParams const&,
+                              CoreState<MemSpace::device>&,
+                              StatusStateRef<MemSpace::device> const&) const
 
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");

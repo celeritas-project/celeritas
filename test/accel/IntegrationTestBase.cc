@@ -31,6 +31,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TracingSession.hh"
@@ -401,12 +402,11 @@ auto LarSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
-
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{10}};
-    result.shape = inp::PointDistribution{from_cm({99, 0.1, 0})};
+    result.energy = inp::MonoenergeticDistribution{10};  // [MeV]
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({99, 0.1, 0}))};
     result.angle = inp::IsotropicDistribution{};
     result.num_events = 4;  // Overridden with BeamOn
     result.primaries_per_event = 10;
@@ -473,13 +473,12 @@ auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
-
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{100}};
-    result.shape = inp::PointDistribution{from_cm({-22, 0, 0})};
-    result.angle = inp::MonodirectionalDistribution{Real3{1, 0, 0}};
+    result.energy = inp::MonoenergeticDistribution{100};  // [MeV]
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({-22, 0, 0}))};
+    result.angle = inp::MonodirectionalDistribution{{1, 0, 0}};
     result.num_events = 2;
     result.primaries_per_event = 1;
     return result;
@@ -523,12 +522,11 @@ auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
-
     PrimaryInput result;
     result.pdg = {pdg::positron()};
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{0.5}};
-    result.shape = inp::PointDistribution{from_cm({0., 0., 0.})};
+    result.energy = inp::MonoenergeticDistribution{0.5};  // [MeV]
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({0., 0., 0.}))};
     result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};
     result.num_events = 12;  // Overridden with BeamOn
     result.primaries_per_event = 10;

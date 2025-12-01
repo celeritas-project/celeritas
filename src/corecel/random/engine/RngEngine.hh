@@ -23,5 +23,11 @@ namespace celeritas
 {
 using RngEngine = XorwowRngEngine;
 }
+#elif (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
+#    include "RanluxppRngEngine.hh"
+namespace celeritas
+{
+using RngEngine = RanluxppRngEngine;
+}
 #endif
 // IWYU pragma: end_exports

@@ -19,5 +19,8 @@ using RngParams = CuHipRngParams;
 #elif (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
 class XorwowRngParams;
 using RngParams = XorwowRngParams;
+#elif (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
+class RanluxppRngParams;
+using RngParams = RanluxppRngParams;
 #endif
 }  // namespace celeritas

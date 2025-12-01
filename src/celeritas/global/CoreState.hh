@@ -10,7 +10,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/AuxInterface.hh"
-#include "corecel/data/AuxStateData.hh"
+#include "corecel/data/AuxState.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionStateStore.hh"
@@ -202,7 +202,7 @@ auto CoreState<M>::aux_data(AuxId auxid) -> StateRef<S>&
     CELER_EXPECT(auxid < aux_state_->size());
 
     // TODO: use "checked static cast" for better runtime performance
-    auto* state = dynamic_cast<AuxStateData<S, M>*>(&aux_state_->at(auxid));
+    auto* state = dynamic_cast<AuxState<S, M>*>(&aux_state_->at(auxid));
     CELER_ASSERT(state);
 
     CELER_ENSURE(*state);

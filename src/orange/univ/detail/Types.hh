@@ -172,7 +172,6 @@ struct LocalState
     Real3 dir;
     LocalVolumeId volume;
     OnLocalSurface surface;
-    Span<SenseValue> temp_sense;
     TempNextFace temp_next;
 };
 

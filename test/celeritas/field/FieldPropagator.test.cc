@@ -1091,19 +1091,6 @@ TEST_F(TwoBoxesTest,
         "world",
     };
 
-    if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
-    {
-        expected_boundary[1] = 0;
-        expected_substeps[1] = 1;
-        expected_distances[1] = 0.00785398163397448;
-        expected_volumes[1] = "world";
-
-        expected_boundary[3] = 0;
-        expected_substeps[3] = 1;
-        expected_distances[3] = 0.00448798950512828;
-        expected_volumes[3] = "world";
-    }
-
     EXPECT_VEC_EQ(expected_boundary, boundary);
     EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps);
     EXPECT_VEC_EQ(expected_substeps, substeps);
@@ -1584,31 +1571,11 @@ TEST_F(CmseTest, coarse)
     }
     else if (using_solids_vg)
     {
-        if (CELERITAS_VECGEOM_VERSION < 0x020000)
-        {
-            expected_num_boundary = {134, 101, 60, 40};
-            expected_num_step = {10001, 6462, 3236, 1303};
-            expected_num_intercept = {30419, 19551, 16170, 9956};
-            expected_num_integration = {80659, 58282, 41914, 26114};
-            EXPECT_EQ(scoped_log_.messages().size(), 1);
-        }
-        else
-        {
-            // FIXME: version 1.x needs much more steps -> taking much longer!
-            expected_num_boundary = {20, 101, 60, 24};
-            expected_num_step = {53, 6462, 3236, 428};
-            expected_num_intercept = {204, 19551, 16170, 3176};
-            expected_num_integration = {475, 58282, 41914, 8362};
-            EXPECT_EQ(scoped_log_.messages().size(), 62);
-        }
-    }
-    else if (!scoped_log_.empty())
-    {
         // Bumped (platform-dependent!): counts change a bit
-        expected_num_boundary = {134, 101, 60, 40};
-        expected_num_step = {10001, 6462, 3236, 1303};
-        expected_num_intercept = {30419, 19551, 16170, 9956};
-        expected_num_integration = {80659, 58282, 41914, 26114};
+        expected_num_boundary[1] = 101;
+        expected_num_step[1] = 6462;
+        expected_num_intercept[1] = 19551;
+        expected_num_integration[1] = 58282;
         static char const* const expected_log_messages[] = {
             R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())

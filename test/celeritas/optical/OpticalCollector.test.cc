@@ -17,9 +17,9 @@
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/LArSphereBase.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
@@ -468,8 +468,8 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        constexpr unsigned int expected_steps = using_surface_vg ? 109 : 121;
-        constexpr unsigned int expected_step_iters = using_surface_vg ? 4 : 5;
+        constexpr unsigned int expected_steps = using_surface_vg ? 109 : 116;
+        constexpr unsigned int expected_step_iters = 4;
         EXPECT_EQ(expected_steps, result.accum.steps);
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
@@ -496,7 +496,7 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        unsigned int expected_steps = using_surface_vg ? 23642 : 25770;
+        unsigned int expected_steps = using_surface_vg ? 23642 : 25046;
         unsigned int expected_step_iters = using_surface_vg ? 1 : 3;
         EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
@@ -535,7 +535,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        constexpr int ref_steps = using_surface_vg ? 55 : 60;
+        constexpr int ref_steps = using_surface_vg ? 55 : 59;
         EXPECT_EQ(ref_steps, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());

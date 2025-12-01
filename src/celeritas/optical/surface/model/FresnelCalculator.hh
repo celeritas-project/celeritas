@@ -6,9 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iomanip>
-#include <iostream>
-
 #include "corecel/Macros.hh"
 #include "celeritas/optical/MaterialView.hh"
 #include "celeritas/optical/ParticleTrackView.hh"

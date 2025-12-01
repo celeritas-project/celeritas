@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Interface class for accessing parameter data.
+ * Interface class for accessing "collection groups" of parameter data.
  */
 template<template<Ownership, MemSpace> class P>
 class ParamsDataInterface

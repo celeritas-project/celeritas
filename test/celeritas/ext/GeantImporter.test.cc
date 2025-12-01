@@ -1660,8 +1660,8 @@ TEST_F(LarSphere, optical)
     for (auto const& comp : scint.material.components)
     {
         components.push_back(comp.yield_frac);
-        components.push_back(to_cm(comp.lambda_mean));
-        components.push_back(to_cm(comp.lambda_sigma));
+        components.push_back(to_cm(comp.gauss.lambda_mean));
+        components.push_back(to_cm(comp.gauss.lambda_sigma));
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
@@ -1677,19 +1677,12 @@ TEST_F(LarSphere, optical)
         1e-08,
         1.5e-06,
         1,
-        2e-05,
-        2.0099589626834e-06,
+        0,
+        0,
         1e-08,
         3e-06,
     };
     EXPECT_VEC_NEAR(expected_components, components, tol);
-    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
-    {
-        static std::string const expected_messages
-            = R"(Estimated custom properties CELER_SCINTILLATIONLAMBDAMEAN3=2e-5 and CELER_SCINTILLATIONLAMBDASIGMA3=2.010e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
-        EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1])
-            << scoped_log;
-    }
 
     // Particle scintillation
     EXPECT_EQ(6, scint.particles.size());
@@ -1710,8 +1703,8 @@ TEST_F(LarSphere, optical)
         for (auto comp : part.components)
         {
             comp_y.push_back(comp.yield_frac);
-            comp_lm.push_back(to_cm(comp.lambda_mean));
-            comp_ls.push_back(to_cm(comp.lambda_sigma));
+            comp_lm.push_back(to_cm(comp.gauss.lambda_mean));
+            comp_ls.push_back(to_cm(comp.gauss.lambda_sigma));
             comp_rt.push_back(to_sec(comp.rise_time));
             comp_ft.push_back(to_sec(comp.fall_time));
         }

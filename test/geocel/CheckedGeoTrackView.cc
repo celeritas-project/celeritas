@@ -93,10 +93,11 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
 {
     CELER_VALIDATE(distance > 0, << "invalid step maximum " << repr(distance));
     CELER_VALIDATE(!t_->is_outside(), << "cannot find next step from outside");
+    bool const started_on_boundary{t_->is_on_boundary()};
     ++num_intersect_;
     auto result = t_->find_next_step(distance);
     if (result.boundary && result.distance > this->safety_tol()
-        && !t_->is_on_boundary())
+        && !started_on_boundary)
     {
         real_type safety = t_->find_safety(distance);
         CELER_VALIDATE(safety <= result.distance,
@@ -108,6 +109,8 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     CELER_VALIDATE(result.distance <= distance,
                    << "return distance " << result.distance
                    << " exceeds maximum search value " << distance);
+    CELER_VALIDATE(t_->is_on_boundary() == started_on_boundary,
+                   << "boundary state changed via find_next_step");
     return result;
 }
 
