@@ -19,7 +19,7 @@
 
 #include "VecgeomTypes.hh"
 
-#if CELERITAS_VECGEOM_VERSION >= 0x020000
+#if CELERITAS_VECGEOM_VERSION >= 0x020000 && defined(VECGEOM_ENABLE_CUDA)
 // IWYU errors from navindex/tuple
 #    include <VecGeom/base/Cuda.h>
 #    include <VecGeom/base/Global.h>
