@@ -3,7 +3,6 @@ nax
 nd
 VarT
 therefrom
-nam
 overlayed
 TE
 TM

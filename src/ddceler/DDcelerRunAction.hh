@@ -30,7 +30,7 @@ class DDcelerRunAction : public Geant4RunAction
 
   public:
     // Standard constructor
-    inline DDcelerRunAction(Geant4Context* ctxt, std::string const& nam);
+    inline DDcelerRunAction(Geant4Context* ctxt, std::string const& name);
 
     // Default destructor
     ~DDcelerRunAction();
@@ -46,8 +46,8 @@ class DDcelerRunAction : public Geant4RunAction
 /*!
  * Standard constructor
  */
-DDcelerRunAction::DDcelerRunAction(Geant4Context* ctxt, std::string const& nam)
-    : Geant4RunAction(ctxt, nam)
+DDcelerRunAction::DDcelerRunAction(Geant4Context* ctxt, std::string const& name)
+    : Geant4RunAction(ctxt, name)
 {
     InstanceCount::increment(this);
     this->info("Constructed Geant4RunAction");

@@ -36,7 +36,7 @@ class DDcelerTMI : public Geant4PhysicsList
 
   public:
     // Standard constructor
-    inline DDcelerTMI(Geant4Context* ctxt, std::string const& nam);
+    inline DDcelerTMI(Geant4Context* ctxt, std::string const& name);
 
     // Default destructor
     virtual ~DDcelerTMI() = default;
@@ -54,8 +54,8 @@ class DDcelerTMI : public Geant4PhysicsList
 /*!
  * Standard constructor
  */
-DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& nam)
-    : Geant4PhysicsList(ctxt, nam)
+DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& name)
+    : Geant4PhysicsList(ctxt, name)
 {
     declareProperty("MaxNumTracks", m_maxNumTracks);
     declareProperty("InitCapacity", m_initCapacity);
