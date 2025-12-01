@@ -19,6 +19,13 @@
 
 #include "VecgeomTypes.hh"
 
+#if CELERITAS_VECGEOM_VERSION >= 0x020000
+// IWYU errors from navindex/tuple
+#    include <VecGeom/base/Cuda.h>
+#    include <VecGeom/base/Global.h>
+#    include <VecGeom/management/CudaManager.h>
+#endif
+
 #if CELER_VGNAV == CELER_VGNAV_PATH
 #    include "detail/VecgeomNavCollection.hh"
 #elif CELER_VGNAV == CELER_VGNAV_TUPLE
