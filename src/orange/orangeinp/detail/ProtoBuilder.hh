@@ -80,7 +80,7 @@ class ProtoBuilder
     OrangeInput* inp_;
     ProtoMap const& protos_;
     SaveUnivJson save_json_;
-    size_type num_univs_;
+    size_type num_univs_{};
 
     // State variables
     size_type num_univs_inserted_;
