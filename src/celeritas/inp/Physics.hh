@@ -16,6 +16,7 @@
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "Events.hh"
+#include "MucfPhysics.hh"
 #include "PhysicsProcess.hh"
 #include "ProcessBuilder.hh"
 #include "SurfacePhysics.hh"
@@ -59,71 +60,6 @@ struct EmPhysics
 
     //! Add custom user processes
     ProcessBuilderMap user_processes;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Muon-catalyzed fusion physics options and data import.
- *
- * Minimum requirements for muon-catalyzed fusion:
- * - Muon energy CDF data, required for sampling the outgoing muCF muon, and
- * - Mean cycle rate data for dd, dt, and tt muonic molecules.
- *
- * Muonic atom transfer and muonic atom spin flip are secondary effects and not
- * required for muCF to function.
- */
-struct MucfPhysics
-{
-    template<class T>
-    using Vec = std::vector<T>;
-
-    Grid muon_energy_cdf;  //!< CDF for outgoing muCF muon
-    Vec<CycleRateData> cycle_rates;  //!< Mean cycle rates for muonic molecules
-    Vec<AtomTransferRateData> atom_transfer;  //!< Muon atom transfer rates
-    Vec<AtomSpinFlipRateData> atom_spin_flip;  //!< Muon atom spin flip rates
-
-    //! Whether muon-catalyzed fusion physics is enabled
-    explicit operator bool() const
-    {
-        return muon_energy_cdf && !cycle_rates.empty();
-    }
-
-    /*!
-     * Construct hardcoded muon-catalyzed fusion physics data.
-     *
-     * \note
-     * This will be replaced by importing the data from output files.
-     * The grid data are large, so we may want to have a separate header to
-     * store them in the meantime, otherwise this function will be thousands of
-     * lines long.
-     */
-    static MucfPhysics from_default()
-    {
-        MucfPhysics result;
-
-        //! \todo Initialize hardcoded CDF data
-        //! \todo Initialize hardcoded cycle rate data
-        //! \todo Initialize hardcoded atom transfer data
-        //! \todo Initialize hardcoded spin flip data
-
-        // Temporary test dummy data to verify correct import
-        {
-            result.muon_energy_cdf = Grid::from_constant(1.0);
-
-            CycleRateData dt_cycle;
-            dt_cycle.molecule = MuonicMolecule::deuterium_tritium;
-
-            dt_cycle.spin_label = "F=0";
-            dt_cycle.grid = Grid::from_constant(2.0);
-            result.cycle_rates.push_back(dt_cycle);
-
-            dt_cycle.spin_label = "F=1";
-            dt_cycle.grid = Grid::from_constant(3.0);
-            result.cycle_rates.push_back(dt_cycle);
-        }
-
-        return result;
-    }
 };
 
 //---------------------------------------------------------------------------//

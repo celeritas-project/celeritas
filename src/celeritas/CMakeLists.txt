@@ -80,6 +80,7 @@ list(APPEND SOURCES
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
   grid/XsGridInserter.cc
+  inp/MucfPhysics.cc
   io/AtomicRelaxationReader.cc
   io/GammaNuclearXsReader.cc
   io/ImportData.cc
