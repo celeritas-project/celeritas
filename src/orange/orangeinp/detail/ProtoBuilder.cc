@@ -28,7 +28,6 @@ ProtoBuilder::ProtoBuilder(OrangeInput* inp,
     , protos_{protos}
     , save_json_{opts.save_json}
     , num_univs_{protos_.size()}
-    , num_univs_inserted_{0}
 {
     CELER_EXPECT(inp_);
     CELER_EXPECT(opts.tol);
