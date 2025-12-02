@@ -16,6 +16,7 @@
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "Events.hh"
+#include "MucfPhysics.hh"
 #include "PhysicsProcess.hh"
 #include "ProcessBuilder.hh"
 #include "SurfacePhysics.hh"
@@ -114,6 +115,9 @@ struct Physics
 {
     //! Physics that applies to offloaded EM particles
     EmPhysics em;
+
+    //! Muon-catalyzed fusion physics
+    MucfPhysics mucf;
 
     //! Physics for optical photons
     OpticalPhysics optical;

@@ -83,6 +83,14 @@ auto get_device_pointer()
     return result;
 }
 
+template<class T>
+struct InplaceNew
+{
+    T* ptr;
+
+    __device__ void operator()(ThreadId tid) { new (ptr + tid.get()) T(); }
+};
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -98,7 +106,7 @@ CudaPointers<CudaBVH_t const> bvh_pointers_device()
 
     // Copy from symbol using runtime API
     CELER_DEVICE_API_CALL(
-        MemcpyFromSymbol(&result.symbol,
+        MemcpyFromSymbol(static_cast<void*>(&result.symbol),
 #if VECGEOM_VERSION >= 0x020000
                          vecgeom::cuda::dBVH<vgbvh_real_type>,
                          sizeof(vecgeom::cuda::dBVH<vgbvh_real_type>),
@@ -126,7 +134,7 @@ CudaPointers<NavIndex_t const> navindex_pointers_device()
 
     // Copy from symbol using runtime API
     CELER_DEVICE_API_CALL(
-        MemcpyFromSymbol(&result.symbol,
+        MemcpyFromSymbol(static_cast<void*>(&result.symbol),
                          vecgeom::globaldevicegeomdata::gNavIndex,
                          sizeof(vecgeom::globaldevicegeomdata::gNavIndex),
                          0,
@@ -135,6 +143,23 @@ CudaPointers<NavIndex_t const> navindex_pointers_device()
 
     return result;
 }
+
+#if CELER_VGNAV == CELER_VGNAV_TUPLE
+//---------------------------------------------------------------------------//
+/*
+ * Default-initialize nav tuple states.
+ *
+ * This is needed because DeviceVector performs only initialization, not
+ * allocation.
+ */
+void init_navstate_device(Span<VgNavStateImpl> states, StreamId stream)
+{
+    InplaceNew execute_thread{states.data()};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "vecgeom-init-navtuple");
+    launch_kernel(states.size(), stream, execute_thread);
+}
+#endif
 
 //---------------------------------------------------------------------------//
 // VECGEOM SURFACE

@@ -151,6 +151,9 @@ struct GeantPhysicsOptions
     //! Muon EM physics
     GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
 
+    //! Muon-catalyzed fusion physics
+    bool mucf_physics{false};
+
     //!@{
     //! \name Physics options
 
@@ -249,41 +252,50 @@ constexpr bool
 operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
 {
     // clang-format off
-    return a.coulomb_scattering == b.coulomb_scattering
-           && a.photoelectric == b.photoelectric
-           && a.rayleigh_scattering == b.rayleigh_scattering
-           && a.gamma_conversion == b.gamma_conversion
-           && a.gamma_general == b.gamma_general
-           && a.compton_scattering == b.compton_scattering
-           && a.ionization == b.ionization
-           && a.annihilation == b.annihilation
-           && a.brems == b.brems
-           && a.seltzer_berger_limit == b.seltzer_berger_limit
-           && a.msc == b.msc
-           && a.relaxation == b.relaxation
-           && a.em_bins_per_decade == b.em_bins_per_decade
-           && a.eloss_fluctuation == b.eloss_fluctuation
-           && a.lpm == b.lpm
-           && a.integral_approach == b.integral_approach
-           && a.min_energy == b.min_energy
-           && a.max_energy == b.max_energy
-           && a.linear_loss_limit == b.linear_loss_limit
-           && a.lowest_electron_energy == b.lowest_electron_energy
-           && a.lowest_muhad_energy == b.lowest_muhad_energy
-           && a.apply_cuts == b.apply_cuts
-           && a.msc_range_factor == b.msc_range_factor
-           && a.msc_muhad_range_factor == b.msc_muhad_range_factor
-           && a.msc_safety_factor == b.msc_safety_factor
-           && a.msc_lambda_limit == b.msc_lambda_limit
-           && a.msc_theta_limit == b.msc_theta_limit
-           && a.angle_limit_factor == b.angle_limit_factor
-           && a.msc_displaced == b.msc_displaced
-           && a.msc_muhad_displaced == b.msc_muhad_displaced
-           && a.msc_step_algorithm == b.msc_step_algorithm
-           && a.msc_muhad_step_algorithm == b.msc_muhad_step_algorithm
-           && a.form_factor == b.form_factor
-           && a.verbose == b.verbose
-           && a.optical == b.optical;
+    return a.compton_scattering == b.compton_scattering
+        && a.photoelectric == b.photoelectric
+        && a.rayleigh_scattering == b.rayleigh_scattering
+        && a.gamma_conversion == b.gamma_conversion
+        && a.gamma_general == b.gamma_general
+        // Electron and positron
+        && a.coulomb_scattering == b.coulomb_scattering
+        && a.ionization == b.ionization
+        && a.annihilation == b.annihilation
+        && a.brems == b.brems
+        && a.seltzer_berger_limit == b.seltzer_berger_limit
+        && a.msc == b.msc
+        && a.relaxation == b.relaxation
+        // Muon EM physics
+        && a.muon == b.muon
+        // Muon-catalyzed fusion physics
+        && a.mucf_physics == b.mucf_physics
+        // Physics options
+        && a.em_bins_per_decade == b.em_bins_per_decade
+        && a.eloss_fluctuation == b.eloss_fluctuation
+        && a.lpm == b.lpm
+        && a.integral_approach == b.integral_approach
+        // Cutoff options
+        && a.min_energy == b.min_energy
+        && a.max_energy == b.max_energy
+        && a.linear_loss_limit == b.linear_loss_limit
+        && a.lowest_electron_energy == b.lowest_electron_energy
+        && a.lowest_muhad_energy == b.lowest_muhad_energy
+        && a.apply_cuts == b.apply_cuts
+        && a.default_cutoff == b.default_cutoff
+        // Multiple scattering configuration
+        && a.msc_range_factor == b.msc_range_factor
+        && a.msc_muhad_range_factor == b.msc_muhad_range_factor
+        && a.msc_safety_factor == b.msc_safety_factor
+        && a.msc_lambda_limit == b.msc_lambda_limit
+        && a.msc_theta_limit == b.msc_theta_limit
+        && a.angle_limit_factor == b.angle_limit_factor
+        && a.msc_displaced == b.msc_displaced
+        && a.msc_muhad_displaced == b.msc_muhad_displaced
+        && a.msc_step_algorithm == b.msc_step_algorithm
+        && a.msc_muhad_step_algorithm == b.msc_muhad_step_algorithm
+        && a.form_factor == b.form_factor
+        && a.verbose == b.verbose
+        && a.optical == b.optical;
     // clang-format on
 }
 
