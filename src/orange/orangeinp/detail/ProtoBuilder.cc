@@ -27,29 +27,13 @@ ProtoBuilder::ProtoBuilder(OrangeInput* inp,
     : inp_{inp}
     , protos_{protos}
     , save_json_{opts.save_json}
-    , bboxes_{protos_.size()}
+    , num_univs_{protos_.size()}
 {
     CELER_EXPECT(inp_);
     CELER_EXPECT(opts.tol);
 
     inp_->tol = opts.tol;
-    inp_->universes.reserve(protos_.size());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Expand the bounding box of a universe.
- *
- * Creating successive instances of a universe's "parent" volume will expand
- * the possible extents of that universe. In SCALE, same universe could be
- * "holed" (placed) in different volumes with different bounds, so long as the
- * enclosures are within the extents of the child universe.
- */
-void ProtoBuilder::expand_bbox(UnivId univ_id, BBox const& local_bbox)
-{
-    CELER_EXPECT(univ_id < bboxes_.size());
-    BBox& target = bboxes_[univ_id.get()];
-    target = calc_union(target, local_bbox);
+    inp_->universes.resize(protos_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -59,9 +43,7 @@ void ProtoBuilder::expand_bbox(UnivId univ_id, BBox const& local_bbox)
 void ProtoBuilder::save_json(JsonPimpl&& jp) const
 {
     CELER_EXPECT(this->save_json());
-    CELER_EXPECT(inp_->universes.size() < protos_.size());
-
-    save_json_(UnivId(inp_->universes.size()), std::move(jp));
+    save_json_(this->current_uid(), std::move(jp));
 }
 
 //---------------------------------------------------------------------------//
@@ -72,9 +54,12 @@ void ProtoBuilder::save_json(JsonPimpl&& jp) const
  */
 void ProtoBuilder::insert(VariantUniverseInput&& unit)
 {
-    CELER_EXPECT(inp_->universes.size() < protos_.size());
+    inp_->universes[this->current_uid().get()] = std::move(unit);
 
-    inp_->universes.emplace_back(std::move(unit));
+    if (!this->is_global_universe())
+    {
+        ++num_univs_inserted_;
+    }
 }
 
 //---------------------------------------------------------------------------//
