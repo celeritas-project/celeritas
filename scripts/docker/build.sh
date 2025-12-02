@@ -31,7 +31,7 @@ case $CONFIG in
     CONFIG=rocky-cuda12
     ;;
   rocm )
-    CONFIG=ubuntu-rocm6
+    CONFIG=ubuntu-rocm7
     ;;
 esac
 
@@ -43,10 +43,10 @@ case $CONFIG in
     DOCKERFILE_DISTRO=rocky
     BASE_TAG=nvidia/cuda:12.6.3-devel-rockylinux9
     ;;
-  ubuntu-rocm6)
-    # ***IMPORTANT***: update hip external version in dev/ubuntu-rocm5!
+  ubuntu-rocm7)
+    # ***IMPORTANT***: update hip external version in dev/ubuntu-rocm7!
     DOCKERFILE_DISTRO=ubuntu
-    BASE_TAG=rocm/dev-ubuntu-24.04:6.3.1
+    BASE_TAG=rocm/dev-ubuntu-24.04:7.1
     ;;
   *)
     echo "Invalid configure type: $1"

@@ -9,7 +9,7 @@ images:
 
 Additionally there are two image configurations:
 - `rocky-cuda12`: Rocky 9 with CUDA 12.
-- `ubuntu-rocm6`: Ubuntu 24 with ROCm 6.3
+- `ubuntu-rocm7`: Ubuntu 24 with ROCm 7.1.
 
 ## Building
 
@@ -49,7 +49,7 @@ where `${SOURCE}` is your local Celeritas source directory and `${DATE}` is the
 date time stamp of the desired image. If you just built locally, you can
 replace that last argument with the tag `ci-focal-cuda11`:
 ```console
-$ docker run --rm -ti -e "TERM=xterm-256color" -v /rnsdhpc/code/celeritas-docker:/home/celeritas/src ci-ubuntu-rocm6
+$ docker run --rm -ti -e "TERM=xterm-256color" -v /rnsdhpc/code/celeritas-docker:/home/celeritas/src ci-ubuntu-rocm7
 ```
 
 After mounting, use the build scripts to configure and go:

@@ -137,7 +137,7 @@ class HitProcessor
     bool step_post_status_{false};
 
     //! Accumulated number of hits
-    size_type num_hits_;
+    size_type num_hits_{0};
 
     void update_track(G4Track&) const;
 };

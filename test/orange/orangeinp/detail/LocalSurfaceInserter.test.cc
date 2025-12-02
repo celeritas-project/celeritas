@@ -8,9 +8,9 @@
 
 #include <random>
 
+#include "corecel/random/distribution/UniformBoxDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "geocel/random/UniformBoxDistribution.hh"
 
 #include "celeritas_test.hh"
 

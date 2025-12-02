@@ -17,8 +17,8 @@
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/InfixEvaluator.hh"
-#include "detail/LazySenseCalculator.hh"
 #include "detail/LogicEvaluator.hh"
+#include "detail/SenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"
 #include "detail/Types.hh"
 #include "detail/Utils.hh"
@@ -32,7 +32,11 @@ namespace celeritas
  * The simple unit tracker is based on a set of non-overlapping volumes
  * comprised of surfaces. It is a faster but less "user-friendly" version of
  * the masked unit tracker because it requires all volumes to be exactly
- * defined by their connected surfaces. It does *not* check for overlaps.
+ * defined by their connected surfaces. It does \em not check for overlaps.
+ *
+ * All IDs inside the simple unit tracker are \em local and
+ * implementation-specific,  with the exception that daughter IDs are *global*
+ * (but also implementation-specific).
  */
 class SimpleUnitTracker
 {
@@ -43,6 +47,10 @@ class SimpleUnitTracker
     using Initialization = detail::Initialization;
     using Intersection = detail::Intersection;
     using LocalState = detail::LocalState;
+    using LogicEvaluator
+        = std::conditional_t<orange_tracking_logic() == LogicNotation::infix,
+                             detail::InfixEvaluator,
+                             detail::PostfixEvaluator>;
     //!@}
 
   public:
@@ -72,6 +80,12 @@ class SimpleUnitTracker
 
     // DaughterId of universe embedded in a given volume
     inline CELER_FUNCTION DaughterId daughter(LocalVolumeId vol) const;
+
+    // Volume level relative to the "top" canonical volume in the universe
+    inline CELER_FUNCTION vol_level_uint local_vol_level(LocalVolumeId vol) const;
+
+    // Local volume ID of the parent canonical volume, if any
+    inline CELER_FUNCTION LocalVolumeId local_parent(LocalVolumeId vol) const;
 
     //// OPERATIONS ////
 
@@ -178,9 +192,9 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
         on_surface = {};
         VolumeView vol = this->make_local_volume(id);
-        auto calc_senses = detail::LazySenseCalculator(
+        auto calc_senses = detail::SenseCalculator(
             this->make_surface_visitor(), vol, state.pos, on_surface);
-        return detail::LogicEvaluator(vol.logic())(calc_senses);
+        return LogicEvaluator(vol.logic())(calc_senses);
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
 
@@ -219,10 +233,10 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
 
         VolumeView vol = this->make_local_volume(id);
         detail::OnFace face{detail::find_face(vol, state.surface)};
-        auto calc_senses = detail::LazySenseCalculator(
+        auto calc_senses = detail::SenseCalculator(
             this->make_surface_visitor(), vol, state.pos, face);
 
-        if (detail::LogicEvaluator(vol.logic())(calc_senses))
+        if (LogicEvaluator(vol.logic())(calc_senses))
         {
             // Inside: find and save the local surface ID, and end the search
             on_surface = get_surface(vol, face);
@@ -370,7 +384,7 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance-to-intercept for the next surface.
+ * Calculate distance-to-intercept for the next local surface.
  *
  * The algorithm is:
  * - If the volume is the "background" then search externally for the next
@@ -383,7 +397,7 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  *   *only* intersections that are valid (either finite *or* less than the
  *   user-supplied maximum). The buffer contains the distances, the face
  *   indices, and an index used for sorting (if the volume has internal
- *   surfaes).
+ *   surfaces).
  * - If no intersecting surfaces are found, return immediately. (Rely on the
  *   caller to set the "maximum distance" if we're not searching to infinity.)
  * - If the volume has no special cases, find the closest surface by calling \c
@@ -395,7 +409,7 @@ CELER_FUNCTION auto
 SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
     -> Intersection
 {
-    CELER_EXPECT(state.volume && !state.temp_sense.empty());
+    CELER_EXPECT(state.volume);
 
     // Resize temporaries based on volume properties
     VolumeView vol = this->make_local_volume(state.volume);
@@ -546,14 +560,12 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     Real3 pos{state.pos};
     detail::OnFace on_face(detail::find_face(vol, state.surface));
 
-    // NOTE: if switching to the "eager" SenseCalculator, this must be moved
-    // inside the loop, since it recalculates senses only on construction.
-    detail::LazySenseCalculator calc_sense{
+    detail::SenseCalculator calc_sense{
         this->make_surface_visitor(), vol, pos, on_face};
 
     // Calculate local senses, taking current face into account
     // Current senses should put us inside the volume
-    detail::LogicEvaluator is_inside(vol.logic());
+    LogicEvaluator is_inside(vol.logic());
     CELER_ASSERT(is_inside(calc_sense) != (target_sense == Sense::inside));
 
     // previous isect distance for move delta
@@ -691,6 +703,48 @@ CELER_FUNCTION DaughterId SimpleUnitTracker::daughter(LocalVolumeId vol) const
 {
     CELER_EXPECT(vol < unit_record_.volumes.size());
     return params_.volume_records[unit_record_.volumes[vol]].daughter_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Volume level relative to the "top" canonical volume in the universe.
+ *
+ * When representing a Geant4 geometry, this will be zero for the top-level
+ * volume, one if it's a volume instance that's been "inlined" into this
+ * universe as a volume, two if it's a volume inlined inside that one, etc.
+ */
+CELER_FUNCTION auto SimpleUnitTracker::local_vol_level(LocalVolumeId vol) const
+    -> vol_level_uint
+{
+    CELER_EXPECT(unit_record_.local_vol_level.empty()
+                 || vol < unit_record_.volumes.size());
+    if (unit_record_.local_vol_level.empty())
+        return 0;
+
+    OpaqueId<vol_level_uint> level_ptr = unit_record_.local_vol_level[vol];
+    vol_level_uint local_vol_level = params_.vl_uints[level_ptr];
+    return local_vol_level;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Local volume ID of the parent canonical volume, if any.
+ *
+ * This gives the within-universe implementation volume ID of the canonical
+ * volume that "encloses" (i.e., has a level one less than) the given local
+ * volume. If the local parent volume is null, then the parent is the placement
+ * of the current ORANGE universe as a daughter.
+ */
+CELER_FUNCTION LocalVolumeId
+SimpleUnitTracker::local_parent(LocalVolumeId vol) const
+{
+    CELER_EXPECT(unit_record_.local_parent.empty()
+                 || vol < unit_record_.volumes.size());
+    if (unit_record_.local_parent.empty())
+        return {};
+
+    OpaqueId<LocalVolumeId> lv_ptr = unit_record_.local_parent[vol];
+    return params_.local_volume_ids[lv_ptr];
 }
 
 //---------------------------------------------------------------------------//

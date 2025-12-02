@@ -86,6 +86,12 @@ template<class T>
 rotate(Array<T, 3> const& dir, Array<T, 3> const& rot);
 
 //---------------------------------------------------------------------------//
+// Convert an array from type \c T2 to \c T1
+template<class T1, class T2, size_type N>
+[[nodiscard]] inline CELER_FUNCTION Array<T1, N>
+array_cast(Array<T2, N> const& x);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -340,6 +346,21 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
 
     // Always normalize to prevent roundoff error from propagating
     return make_unit_vector(result);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert an array from type \c T2 to \c T1.
+ */
+template<class T1, class T2, size_type N>
+CELER_FUNCTION Array<T1, N> array_cast(Array<T2, N> const& x)
+{
+    Array<T1, N> result;
+    for (size_type i = 0; i != N; ++i)
+    {
+        result[i] = static_cast<T1>(x[i]);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

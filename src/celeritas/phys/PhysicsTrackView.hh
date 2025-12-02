@@ -14,6 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
+#include "celeritas/em/xs/GammaNuclearMicroXsCalculator.hh"
 #include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
 #include "celeritas/grid/GridIdFinder.hh"
 #include "celeritas/grid/XsCalculator.hh"
@@ -462,6 +463,11 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
             result = EPlusGGMacroXsCalculator(params_.hardwired.eplusgg,
                                               material)(energy);
         }
+        else if (model_id == params_.hardwired.ids.bertini_qgs)
+        {
+            result = MacroXsCalculator<GammaNuclearMicroXsCalculator>(
+                params_.hardwired.bertini_qgs, material)(energy);
+        }
         else if (model_id == params_.hardwired.ids.chips)
         {
             result = MacroXsCalculator<NeutronElasticMicroXsCalculator>(
@@ -530,6 +536,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
     if ((process == params_.hardwired.ids.photoelectric
          && energy < LivermoreElement::tabulated_threshold())
         || (process == params_.hardwired.ids.annihilation)
+        || (process == params_.hardwired.ids.gamma_nuclear)
         || (process == params_.hardwired.ids.neutron_elastic))
     {
         auto find_model = this->make_model_finder(ppid);

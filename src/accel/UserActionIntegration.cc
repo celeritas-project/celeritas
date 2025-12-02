@@ -61,7 +61,7 @@ void UserActionIntegration::BeginOfEventAction(G4Event const* event)
 {
     get_event_time_ = {};
 
-    auto& local = detail::IntegrationSingleton::local_transporter();
+    auto& local = detail::IntegrationSingleton::instance().local_offload();
     if (!local)
         return;
 
@@ -107,11 +107,12 @@ void UserActionIntegration::PreUserTrackingAction(G4Track* track)
  */
 void UserActionIntegration::EndOfEventAction(G4Event const*)
 {
-    auto& local = detail::IntegrationSingleton::local_transporter();
+    auto& singleton = detail::IntegrationSingleton::instance();
+
+    auto& local = singleton.local_offload();
     if (!local)
         return;
 
-    auto& singleton = detail::IntegrationSingleton::instance();
     CELER_TRY_HANDLE(
         local.Flush(),
         ExceptionConverter("celer.event.flush", &singleton.shared_params()));

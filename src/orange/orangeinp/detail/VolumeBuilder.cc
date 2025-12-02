@@ -57,22 +57,22 @@ NodeId VolumeBuilder::insert_region(Metadata&& md, Joined&& j)
         if (j.op == op_and)
         {
             // Shrink an infinite bounding zone
-            BoundingZone bz = BoundingZone::from_infinite();
+            BoundingZone result = BoundingZone::from_infinite();
             for (NodeId d : j.nodes)
             {
-                bz = calc_intersection(bz, ub_->bounds(d));
+                result = calc_intersection(result, ub_->bounds(d));
             }
-            return bz;
+            return result;
         }
         else if (j.op == op_or)
         {
             // Grow a null bounding zone
-            BoundingZone bz;
+            BoundingZone result;
             for (NodeId d : j.nodes)
             {
-                bz = calc_union(bz, ub_->bounds(d));
+                result = calc_union(result, ub_->bounds(d));
             }
-            return bz;
+            return result;
         }
         else
         {

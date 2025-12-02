@@ -5,28 +5,25 @@
 //! \file celeritas/optical/Generator.test.cc
 //---------------------------------------------------------------------------//
 #include <memory>
+#include <set>
 #include <utility>
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/PoissonDistribution.hh"
-#include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/LArSphereBase.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/ModelImporter.hh"
-#include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/CoreParams.hh"  // IWYU pragma: keep
+#include "celeritas/optical/CoreState.hh"  // IWYU pragma: keep
 #include "celeritas/optical/Transporter.hh"
+#include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/optical/gen/OffloadData.hh"
 #include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
-#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "celeritas_test.hh"
 
@@ -34,6 +31,15 @@ namespace celeritas
 {
 namespace test
 {
+
+// Reference results:
+// - Double precision
+// - Not vecgeom surface
+constexpr bool reference_configuration
+    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM
+           || !CELERITAS_VECGEOM_SURFACE));
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
@@ -62,18 +68,20 @@ class LArSphereGeneratorTest : public LArSphereBase
 
         state_ = std::make_shared<optical::CoreState<M>>(
             *this->optical_params(), StreamId{0}, size);
-
-        auto* state = dynamic_cast<optical::CoreState<M>*>(&*state_);
-        CELER_ASSERT(state);
-        state->aux() = std::make_shared<AuxStateVec>(
+        state_->aux() = std::make_shared<AuxStateVec>(
             *this->core()->aux_reg(), M, StreamId{0}, size);
     }
 
     //! Construct the optical transporter
     void build_transporter()
     {
+        // Create transporter with aux data for accumulating action times
         optical::Transporter::Input inp;
         inp.params = this->optical_params();
+        inp.action_times = ActionTimes::make_and_insert(
+            this->optical_params()->action_reg(),
+            this->core()->aux_reg(),
+            "optical-action-times");
         transport_ = std::make_shared<optical::Transporter>(std::move(inp));
     }
 
@@ -108,13 +116,10 @@ class LArSphereGeneratorTest : public LArSphereBase
     }
 
     //! Get optical counters
-    template<MemSpace M>
     OpticalAccumStats counters(optical::GeneratorBase const& gen) const
     {
-        auto* state = dynamic_cast<optical::CoreState<M>*>(&*state_);
-        CELER_ASSERT(state);
-        OpticalAccumStats result = state->accum();
-        result.generators.push_back(gen.counters(*state->aux()).accum);
+        OpticalAccumStats result = state_->accum();
+        result.generators.push_back(gen.counters(*state_->aux()).accum);
         return result;
     }
 
@@ -131,28 +136,28 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
 {
     // Create primary generator action
     inp::OpticalPrimaryGenerator inp;
-    inp.num_events = 1;
-    inp.primaries_per_event = 65536;
-    inp.energy.energy = units::MevEnergy{1e-5};
-    inp.shape = inp::PointDistribution{Real3{0, 0, 0}};
+    inp.primaries = 65536;
+    inp.energy = inp::MonoenergeticDistribution{1e-5};
+    inp.angle = inp::IsotropicDistribution{};
+    inp.shape = inp::PointDistribution{{0, 0, 0}};
     auto generate = optical::PrimaryGeneratorAction::make_and_insert(
         *this->core(), *this->optical_params(), std::move(inp));
 
-    this->build_state<MemSpace::host>(4096);
     this->build_transporter();
+    this->build_state<MemSpace::host>(4096);
 
-    // Queue primaries for one event
+    // Queue primaries
     generate->insert(*state_);
 
     // Launch the optical loop
     (*transport_)(*state_);
 
     // Get the accumulated counters
-    auto result = this->counters<MemSpace::host>(*generate);
+    auto result = this->counters(*generate);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
-        EXPECT_EQ(68916, result.steps);
+        EXPECT_EQ(68939, result.steps);
         EXPECT_EQ(18, result.step_iters);
     }
     EXPECT_EQ(1, result.flushes);
@@ -164,6 +169,83 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     EXPECT_EQ(65536, gen.num_generated);
 }
 
+TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_primary_generator))
+{
+    // Create primary generator action
+    inp::OpticalPrimaryGenerator inp;
+    inp.primaries = 65536;
+    inp.energy = inp::NormalDistribution{1e-5, 1e-6};
+    inp.angle = inp::MonodirectionalDistribution{{1, 0, 0}};
+    inp.shape = inp::UniformBoxDistribution{{-10, -10, -10}, {10, 10, 10}};
+    auto generate = optical::PrimaryGeneratorAction::make_and_insert(
+        *this->core(), *this->optical_params(), std::move(inp));
+
+    this->build_transporter();
+    this->build_state<MemSpace::device>(16384);
+
+    // Queue primaries
+    generate->insert(*state_);
+
+    // Launch the optical loop
+    (*transport_)(*state_);
+
+    // Get the accumulated counters
+    auto result = this->counters(*generate);
+
+    if (reference_configuration)
+    {
+        EXPECT_EQ(69257, result.steps);
+        EXPECT_EQ(6, result.step_iters);
+    }
+    EXPECT_EQ(1, result.flushes);
+    ASSERT_EQ(1, result.generators.size());
+
+    auto const& gen = result.generators.front();
+    EXPECT_EQ(0, gen.buffer_size);
+    EXPECT_EQ(0, gen.num_pending);
+    EXPECT_EQ(65536, gen.num_generated);
+}
+
+TEST_F(LArSphereGeneratorTest, direct_generator)
+{
+    // Create direct generator action
+    std::vector<optical::TrackInitializer> inits(
+        128,
+        optical::TrackInitializer{units::MevEnergy{1e-5},
+                                  Real3{0, 0, 0},
+                                  Real3{1, 0, 0},
+                                  Real3{0, 1, 0},
+                                  0,
+                                  ImplVolumeId{0}});
+    auto generate = optical::DirectGeneratorAction::make_and_insert(
+        *this->core(), *this->optical_params());
+
+    this->build_transporter();
+    this->build_state<MemSpace::host>(32);
+
+    // Queue primaries
+    generate->insert(*state_, make_span(inits));
+
+    // Launch the optical loop
+    (*transport_)(*state_);
+
+    // Get the accumulated counters
+    auto result = this->counters(*generate);
+    if (reference_configuration
+        && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
+    {
+        EXPECT_EQ(133, result.steps);
+        EXPECT_EQ(5, result.step_iters);
+    }
+    EXPECT_EQ(1, result.flushes);
+    ASSERT_EQ(1, result.generators.size());
+
+    auto const& gen = result.generators.front();
+    EXPECT_EQ(128, gen.buffer_size);
+    EXPECT_EQ(0, gen.num_pending);
+    EXPECT_EQ(128, gen.num_generated);
+}
+
 TEST_F(LArSphereGeneratorTest, generator)
 {
     // Create optical action to generate Cherenkov and scintillation photons
@@ -171,8 +253,8 @@ TEST_F(LArSphereGeneratorTest, generator)
     auto generate = optical::GeneratorAction::make_and_insert(
         *this->core(), *this->optical_params(), capacity);
 
-    this->build_state<MemSpace::host>(4096);
     this->build_transporter();
+    this->build_state<MemSpace::host>(4096);
 
     // Create host distributions and copy to generator
     size_type num_photons{0};
@@ -184,7 +266,7 @@ TEST_F(LArSphereGeneratorTest, generator)
     (*transport_)(*state_);
 
     // Get the accumulated counters
-    auto result = this->counters<MemSpace::host>(*generate);
+    auto result = this->counters(*generate);
 
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());
@@ -193,12 +275,34 @@ TEST_F(LArSphereGeneratorTest, generator)
     EXPECT_EQ(512, gen.buffer_size);
     EXPECT_EQ(0, gen.num_pending);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
-        EXPECT_EQ(54319, result.steps);
-        EXPECT_EQ(15, result.step_iters);
+        EXPECT_EQ(53429, result.steps);
+        EXPECT_EQ(14, result.step_iters);
     }
+
+    // Check accumulated action times
+    std::set<std::string> labels;
+    auto action_times = transport_->get_action_times(*state_->aux());
+    for (auto const& [label, time] : action_times)
+    {
+        labels.insert(label);
+        EXPECT_GT(time, 0);
+    }
+    static std::string const expected_labels[] = {
+        "absorption",
+        "along-step",
+        "locate-vacancies",
+        "optical-boundary-init",
+        "optical-boundary-post",
+        "optical-discrete-select",
+        "optical-generate",
+        "optical-surface-stepping",
+        "pre-step",
+        "tracking-cut",
+    };
+    EXPECT_VEC_EQ(expected_labels, labels);
 }
 
 TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
@@ -208,8 +312,8 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
     auto generate = optical::GeneratorAction::make_and_insert(
         *this->core(), *this->optical_params(), capacity);
 
-    this->build_state<MemSpace::device>(16384);
     this->build_transporter();
+    this->build_state<MemSpace::device>(16384);
 
     // Create host distributions and copy to generator
     size_type num_photons{0};
@@ -221,7 +325,7 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
     (*transport_)(*state_);
 
     // Get the accumulated counters
-    auto result = this->counters<MemSpace::device>(*generate);
+    auto result = this->counters(*generate);
 
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());
@@ -230,10 +334,10 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
     EXPECT_EQ(4096, gen.buffer_size);
     EXPECT_EQ(0, gen.num_pending);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
         EXPECT_EQ(409643, gen.num_generated);
-        EXPECT_EQ(434165, result.steps);
+        EXPECT_EQ(427544, result.steps);
         EXPECT_EQ(28, result.step_iters);
     }
 }

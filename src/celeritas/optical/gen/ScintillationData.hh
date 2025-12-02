@@ -30,12 +30,13 @@ struct ScintRecord
     real_type lambda_sigma{};  //!< Standard deviation of wavelength
     real_type rise_time{};  //!< Rise time
     real_type fall_time{};  //!< Decay time
-
+    ItemId<NonuniformGridRecord> energy_cdf;
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return lambda_mean > 0 && lambda_sigma > 0 && rise_time >= 0
-               && fall_time > 0;
+        bool const has_gauss = (lambda_mean > 0 && lambda_sigma > 0);
+        bool const has_grid = static_cast<bool>(energy_cdf);
+        return (has_gauss || has_grid) && rise_time >= 0 && fall_time > 0;
     }
 };
 
@@ -128,6 +129,8 @@ struct ScintillationData
     //! Material-dependent scintillation spectrum data [OptMatId]
     OptMatItems<MatScintSpectrum> materials;
 
+    // Cumulative probability of emission as a function of energy [MeV]
+    Items<NonuniformGridRecord> energy_cdfs;
     //! Index between \c ScintParticleId and \c ParticleId
     ParticleItems<ScintParticleId> pid_to_scintpid;
     //! Particle/material scintillation spectrum data [ParScintSpectrumId]
@@ -176,6 +179,7 @@ struct ScintillationData
         pid_to_scintpid = other.pid_to_scintpid;
         num_scint_particles = other.num_scint_particles;
         particles = other.particles;
+        energy_cdfs = other.energy_cdfs;
         reals = other.reals;
         scint_records = other.scint_records;
         return *this;

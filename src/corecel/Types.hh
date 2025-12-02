@@ -14,6 +14,7 @@
 
 #include <cstddef>
 #include <string>
+#include <type_traits>
 
 #include "corecel/Config.hh"
 
@@ -22,6 +23,8 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// TYPE ALIASES
+//---------------------------------------------------------------------------//
 #if CELER_USE_DEVICE || defined(__DOXYGEN__)
 //! Standard type for container sizes, optimized for GPU use
 using size_type = unsigned int;
@@ -29,7 +32,7 @@ using size_type = unsigned int;
 using size_type = std::size_t;
 #endif
 
-#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE || defined(__DOXYGEN__)
 //! Numerical type for real numbers
 using real_type = double;
 #elif CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
@@ -40,6 +43,11 @@ using real_type = void;
 
 //! Equivalent to std::size_t but compatible with CUDA atomics
 using ull_int = unsigned long long int;
+
+//! Three-dimensional cartesian coordinates
+template<class T, size_type N>
+class Array;
+using Real3 = Array<real_type, 3>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -78,6 +86,8 @@ enum class UnitSystem
     native = CELERITAS_UNITS,  //!< Compile time selected system
 };
 
+//---------------------------------------------------------------------------//
+// TEMPLATE ALIASES
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Convenience typedefs for params and states.
@@ -118,6 +128,41 @@ using RefPtr = ObserverPtr<S<Ownership::reference, M>, M>;
 
 //!@}
 
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Type trait utilities, used for VecGeom or elsewhere.
+
+//! Switch between host or device type based on memspace
+template<MemSpace M, class HT, class DT>
+using MemSpaceCond_t
+    = std::conditional_t<M == MemSpace::host,
+                         HT,
+                         std::conditional_t<M == MemSpace::device, DT, void>>;
+
+/*!
+ * Traits class marking compatibility with Collection and Copier.
+ *
+ * This should usually apply only to trivially copyable objects, but there are
+ * \em rare exceptions for external libraries that we know from source
+ * inspection are essentially trivial.
+ */
+template<class T>
+struct TriviallyCopyable : std::is_trivially_copyable<T>
+{
+};
+
+//! True if a type can be copied from host/device without UB
+template<class T>
+constexpr inline bool TriviallyCopyable_v = TriviallyCopyable<T>::value;
+
+//! True if an object (functor) is compatible with kernel launchers
+template<class F>
+constexpr inline bool Launchable_v
+    = (TriviallyCopyable_v<F> || CELERITAS_USE_HIP
+       || CELER_COMPILER == CELER_COMPILER_CLANG)
+      && !std::is_pointer_v<F> && !std::is_reference_v<F>;
+
+//!@}
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//

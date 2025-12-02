@@ -56,6 +56,7 @@ class UnitInserter
     DedupeCollectionBuilder<LocalSurfaceId> local_surface_ids_;
     DedupeCollectionBuilder<LocalVolumeId> local_volume_ids_;
     DedupeCollectionBuilder<OpaqueId<real_type>> real_ids_;
+    DedupeCollectionBuilder<vol_level_uint> vl_uints_;
     DedupeCollectionBuilder<logic_int> logic_ints_;
     DedupeCollectionBuilder<real_type> reals_;
     DedupeCollectionBuilder<SurfaceType> surface_types_;

@@ -1,0 +1,38 @@
+digraph G {
+  graph [rankdir=TB];
+  node  [shape=record];
+
+  // Classes
+  Object [label="{«Interface»\nObject||+string_view label()*\l+NodeId build(VolumeBuilder&)*\l}"];
+  Transformed [label="{Transformed|-SPConstObject obj\l-VariantTransform transform\l|}"];
+  ShapeBase [label="{«Abstract»\nShapeBase||#IntersectRegion const& interior()*\l}"];
+  Shape [label="{Shape|-string label\l-IntersectRegion region\l|}"];
+  IntersectRegion [label="{«Interface»\nIntersectRegion||+void build(IntersectSurfaceBuilder&)*\l}"];
+  Box [label="{Box|-Real3 halfwidths\l|}"];
+  Sphere [label="{Sphere|-real_type radius\l|}"];
+
+  // Declared but not detailed
+  NegatedObject [label="{NegatedObject||}"];
+  JoinObjects   [label="{JoinObjects||}"];
+  BoxShape      [label="{BoxShape||}"];
+  SphereShape   [label="{SphereShape||}"];
+
+  // Inheritance (solid)
+  Transformed   -> Object         [arrowhead=onormal];
+  Shape         -> Object         [arrowhead=onormal];
+  NegatedObject -> Object         [arrowhead=onormal];
+  JoinObjects   -> Object         [arrowhead=onormal];
+  Shape         -> ShapeBase      [arrowhead=onormal];
+  Box           -> IntersectRegion[arrowhead=onormal];
+  Sphere        -> IntersectRegion[arrowhead=onormal];
+
+  // Realization (dashed inheritance)
+  BoxShape      -> Shape          [arrowhead=onormal, style=dashed];
+  SphereShape   -> Shape          [arrowhead=onormal, style=dashed];
+
+  // Composition (diamond at owner)
+  Transformed   -> Object         [arrowhead=none, arrowtail=diamond, dir=both];
+  Shape         -> IntersectRegion[arrowhead=none, arrowtail=diamond, dir=both];
+  BoxShape      -> Box            [arrowhead=none, arrowtail=diamond, dir=both];
+  SphereShape   -> Sphere         [arrowhead=none, arrowtail=diamond, dir=both];
+}

@@ -82,6 +82,9 @@ struct CsgUnit
     GeoMatId background;  //!< Optional background fill
     //!@}
 
+    //! The CSG tree stores the actual volume nodes since it may reorder
+    CsgTree::VecNodeId const& volumes() const { return tree.volumes(); }
+
     //!@{
     //! \name Transforms
     //! Vectors are indexed by TransformId.
@@ -115,9 +118,8 @@ inline constexpr bool is_filled(CsgUnit::Fill const& fill)
 CsgUnit::operator bool() const
 {
     return this->metadata.size() == this->tree.size()
-           && !this->tree.volumes().empty()
-           && this->tree.volumes().size() == this->fills.size();
-    ;
+           && !this->volumes().empty()
+           && this->volumes().size() == this->fills.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -127,7 +129,7 @@ CsgUnit::operator bool() const
 bool CsgUnit::empty() const
 {
     return this->surfaces.empty() && this->metadata.empty()
-           && this->regions.empty() && this->tree.volumes().empty()
+           && this->regions.empty() && this->volumes().empty()
            && this->fills.empty() && this->transforms.empty();
 }
 

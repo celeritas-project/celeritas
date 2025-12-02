@@ -8,11 +8,16 @@
 
 #include <memory>
 #include <utility>
+#include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1070
+#    include <G4HadronicParameters.hh>
+#else
+#    include <G4HadronicProcessStore.hh>
+#endif
 #include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VUserDetectorConstruction.hh>
-#include <G4Version.hh>
 #if G4VERSION_NUMBER >= 1070
 #    include <G4Backtrace.hh>
 #endif
@@ -124,6 +129,15 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         CELER_LOG(status) << "Building Geant4 physics tables";
         ScopedMem record_mem("GeantSetup.initialize");
         ScopedTimeLog scoped_time;
+
+        // Suppress Geant4 verbosity when G4ProcessType::fHadronic are enabled
+#if G4VERSION_NUMBER >= 1070
+        auto* had_params = G4HadronicParameters::Instance();
+        had_params->SetVerboseLevel(0);
+#else
+        auto had_store = G4HadronicProcessStore::Instance();
+        had_store->SetVerbose(0);
+#endif
 
         run_manager_->Initialize();
         run_manager_->RunInitialization();

@@ -42,9 +42,9 @@ class WrappedGeoTrackView final
     CELER_DEFAULT_MOVE_DELETE_COPY(WrappedGeoTrackView);
 
     //! Access the underlying track view
-    GTV const& track_view() const { return t_; }
+    CELER_FORCEINLINE GTV const& track_view() const { return t_; }
     //! Access the underlying track view
-    GTV& track_view() { return t_; }
+    CELER_FORCEINLINE GTV& track_view() { return t_; }
 
     //// GEO TRACK INTERFACE ////
 

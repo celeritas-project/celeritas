@@ -34,7 +34,6 @@ set(SOURCES
   VolumeTestBase.cc
 )
 
-set(PRIVATE_DEPS ${testcel_core} Celeritas::ExtGeant4Geo)
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   list(APPEND SOURCES
     g4/GeantGeoTestBase.cc
@@ -44,14 +43,13 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     vg/VecgeomTestBase.cc
   )
-  list(APPEND PRIVATE_DEPS Celeritas::ExtVecGeom)
 endif()
 
 celeritas_add_test_library(testcel_geocel ${SOURCES})
 
 celeritas_target_link_libraries(testcel_geocel
   PUBLIC testcel_harness Celeritas::geocel
-  PRIVATE ${PRIVATE_DEPS}
+  PRIVATE Celeritas::ExtGeant4Geo Celeritas::ExtVecGeom
 )
 
 #-----------------------------------------------------------------------------#
@@ -71,9 +69,6 @@ celeritas_add_test(BoundingBox.test.cc
 )
 celeritas_add_test(Surface.test.cc)
 celeritas_add_test(Volume.test.cc)
-
-celeritas_add_test(random/IsotropicDistribution.test.cc)
-celeritas_add_test(random/UniformBoxDistribution.test.cc)
 
 #-----------------------------------------------------------------------------#
 # VecGeom

@@ -170,16 +170,16 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
                                             par.energy(),
                                             msc_helper.msc_mfp(),
                                             phys.dedx_range());
-        auto gp = calc_geom_path(true_path);
+        auto result = calc_geom_path(true_path);
 
         // Limit geometrical step to 1 MSC MFP
-        if (gp.step > msc_helper.msc_mfp())
+        if (result.step > msc_helper.msc_mfp())
         {
-            gp.step = msc_helper.msc_mfp();
+            result.step = msc_helper.msc_mfp();
             limited = true;
         }
 
-        return gp;
+        return result;
     }();
     CELER_ASSERT(0 < gp.step && gp.step <= true_path);
 
