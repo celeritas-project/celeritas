@@ -94,7 +94,7 @@ Device& global_device()
  */
 int Device::num_devices()
 {
-    static int const result = [] {
+    static int const num_devices_ = [] {
         if (!CELER_USE_DEVICE)
         {
             CELER_LOG(debug)
@@ -121,7 +121,7 @@ int Device::num_devices()
         CELER_ENSURE(result >= 0);
         return result;
     }();
-    return result;
+    return num_devices_;
 }
 
 //---------------------------------------------------------------------------//
@@ -151,7 +151,7 @@ bool Device::async()
 {
     if constexpr (CELER_STREAM_SUPPORTS_ASYNC)
     {
-        static bool const result = []() -> bool {
+        static bool const async_ = []() -> bool {
             constexpr bool default_val = CELERITAS_USE_CUDA
                                          || !CELER_BUGGY_HIP_ASYNC;
             auto result = getenv_flag("CELER_DEVICE_ASYNC", default_val);
@@ -164,7 +164,7 @@ bool Device::async()
             }
             return result.value;
         }();
-        return result;
+        return async_;
     }
     else
     {

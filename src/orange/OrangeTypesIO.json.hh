@@ -9,7 +9,6 @@
 #include <nlohmann/json.hpp>
 
 #include "OrangeTypes.hh"
-#include "OrangeTypesIO.json.hh"
 
 namespace celeritas
 {
@@ -22,6 +21,9 @@ void to_json(nlohmann::json& j, Tolerance<T> const& value);
 
 extern template void from_json(nlohmann::json const&, Tolerance<real_type>&);
 extern template void to_json(nlohmann::json&, Tolerance<real_type> const&);
+
+void from_json(nlohmann::json const& j, LogicNotation& value);
+void to_json(nlohmann::json& j, LogicNotation const& value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

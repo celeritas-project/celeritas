@@ -24,6 +24,7 @@
 #include <G4MuMultipleScattering.hh>
 #include <G4MuPairProduction.hh>
 #include <G4MuonMinus.hh>
+#include <G4MuonMinusAtomicCapture.hh>
 #include <G4MuonPlus.hh>
 #include <G4PairProductionRelModel.hh>
 #include <G4ParticleDefinition.hh>
@@ -166,19 +167,21 @@ SupportedEmStandardPhysics::SupportedEmStandardPhysics(Options const& options)
  */
 void SupportedEmStandardPhysics::ConstructParticle()
 {
-    CELER_LOG(debug) << "Constructing particles";
+    CELER_LOG(debug) << "Constructing default EM particles: gamma, e+, e-";
 
-    G4Gamma::GammaDefinition();
-    G4Electron::ElectronDefinition();
-    G4Positron::PositronDefinition();
-    if (options_.muon)
+    G4Gamma::Definition();
+    G4Electron::Definition();
+    G4Positron::Definition();
+    if (options_.muon || options_.mucf_physics)
     {
-        G4MuonMinus::MuonMinus();
-        G4MuonPlus::MuonPlus();
+        CELER_LOG(debug) << "Constructing: mu+, mu-";
+        G4MuonMinus::Definition();
+        G4MuonPlus::Definition();
     }
     if (options_.msc != MscModelSelection::none || options_.coulomb_scattering)
     {
-        G4Proton::ProtonDefinition();
+        CELER_LOG(debug) << "Constructing: proton";
+        G4Proton::Definition();
     }
 }
 
@@ -192,12 +195,12 @@ void SupportedEmStandardPhysics::ConstructProcess()
 
     // Add E.M. processes for photons, electrons, and positrons
     this->add_gamma_processes();
-    this->add_e_processes(G4Electron::Electron());
-    this->add_e_processes(G4Positron::Positron());
-    if (options_.muon)
+    this->add_e_processes(G4Electron::Definition());
+    this->add_e_processes(G4Positron::Definition());
+    if (options_.muon || options_.mucf_physics)
     {
-        this->add_mu_processes(G4MuonMinus::MuonMinus());
-        this->add_mu_processes(G4MuonPlus::MuonPlus());
+        this->add_mu_processes(G4MuonMinus::Definition());
+        this->add_mu_processes(G4MuonPlus::Definition());
     }
 }
 
@@ -490,6 +493,16 @@ void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
         ph.RegisterProcess(new G4CoulombScattering(), p);
         CELER_LOG(debug) << "Using muon Coulomb scattering with "
                             "G4eCoulombScatteringModel";
+    }
+
+    if (options_.mucf_physics && p == G4MuonMinus::Definition())
+    {
+        // This is a G4VRestProcess with G4ProcessType::fHadronic
+        auto* pm = p->GetProcessManager();
+        CELER_ASSERT(pm);
+        pm->AddRestProcess(new G4MuonMinusAtomicCapture());
+        CELER_LOG(debug) << "Using muon atomic capture with "
+                            "G4MuonMinusAtomicCapture";
     }
 
     if (options_.muon.msc != MscModelSelection::none)

@@ -18,7 +18,8 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-/*! Oriented bounding zone for safety distance calculations.
+/*!
+ * Oriented bounding zone for safety distance calculations.
  *
  * Here, the oriented bounding zone (OBZ) is defined by inner and outer
  * bounding boxes transformed by the same transformation --- that of the volume

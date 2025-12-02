@@ -88,6 +88,7 @@ class GeoTrackInterface
 
     //!@{
     //! \name Physical state
+
     //! Return the physical position in the global coordinate system
     virtual Real3 const& pos() const = 0;
     //! Return the direction in the global coordinate system
@@ -96,6 +97,7 @@ class GeoTrackInterface
 
     //!@{
     //! \name Canonical volume state
+
     //! Get the canonical volume ID in the current impl volume
     virtual VolumeId volume_id() const = 0;
     //! Get the physical volume ID in the current cell

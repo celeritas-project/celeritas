@@ -40,6 +40,7 @@
 #cmakedefine01 CELERITAS_DEVICE_DEBUG
 
 // Device-only options
+#cmakedefine01 CELERITAS_HAVE_HIPCUB
 #cmakedefine01 CELERITAS_HAVE_ROCTX
 #cmakedefine CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
 

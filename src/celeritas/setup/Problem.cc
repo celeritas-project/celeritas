@@ -14,11 +14,14 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -43,6 +46,7 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Diagnostics.hh"
@@ -61,8 +65,11 @@
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
+#include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
+#include "celeritas/optical/gen/GeneratorAction.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -74,6 +81,7 @@
 #include "celeritas/track/StatusChecker.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
+#include "celeritas/user/ActionTimes.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/SlotDiagnostic.hh"
@@ -372,6 +380,17 @@ auto build_optical_offload(
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
     oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
+    oc_inp.action_times = [&p] {
+        if (!celeritas::device())
+        {
+            return true;
+        }
+        if (p.control.device_debug)
+        {
+            return p.control.device_debug->sync_stream;
+        }
+        return false;
+    }();
 
     CELER_ENSURE(oc_inp);
 
@@ -634,6 +653,11 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
             *core_params, std::move(step_interfaces));
     }
 
+    // Whether to accumulate timing results for actions
+    bool action_times
+        = (!celeritas::device()
+           || (p.control.device_debug && p.control.device_debug->sync_stream));
+
     if (p.control.optical_capacity)
     {
         if (core_params->surface()->empty())
@@ -644,23 +668,64 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         }
         CELER_ASSERT(p.physics.optical);
 
-        result.optical_params
+        auto optical_params
             = build_optical_params(p.physics.optical, *core_params, imported);
 
-        std::visit(Overload{
-                       [&](inp::OpticalEmGenerator) {
-                           // Generate optical photons from Cherenkov or
-                           // scintillation
-                           result.optical_collector = build_optical_offload(
-                               p, *core_params, result.optical_params);
-                       },
-                       [](inp::OpticalOffloadGenerator) {},
-                       [](inp::OpticalPrimaryGenerator) {
-                           //! \todo Enable optical primary generator
-                           CELER_NOT_IMPLEMENTED("optical primary generator");
-                       },
-                   },
-                   p.physics.optical_generator);
+        // Save optical diagnostic information
+        core_params->output_reg()->insert(
+            std::make_shared<ActionRegistryOutput>(
+                optical_params->action_reg(), "optical-actions"));
+
+        auto const& capacity = *p.control.optical_capacity;
+
+        // Add optical sizes
+        OpticalSizes sizes;
+        sizes.streams = core_params->max_streams();
+        sizes.generators = capacity.generators;
+        sizes.tracks = capacity.tracks;
+
+        core_params->output_reg()->insert(
+            OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
+                OutputInterface::Category::internal,
+                "optical-sizes",
+                std::move(sizes)));
+
+        std::visit(
+            Overload{
+                [&](inp::OpticalEmGenerator) {
+                    // Generate Cherenkov or scintillation optical
+                    // photons from Celeritas tracks
+                    result.optical_collector = build_optical_offload(
+                        p, *core_params, optical_params);
+                },
+                [&](inp::OpticalOffloadGenerator) {
+                    // Generate Cherenkov or scintillation photons
+                    optical::GeneratorAction::make_and_insert(
+                        *core_params, *optical_params, capacity.generators);
+
+                    // Build the optical transporter \em after all optical
+                    // actions have been added to the registry
+                    optical::Transporter::Input inp;
+                    inp.params = optical_params;
+                    inp.max_step_iters = p.tracking.limits.optical_step_iters;
+                    if (action_times)
+                    {
+                        // Create aux data to accumulate optical action times
+                        inp.action_times = ActionTimes::make_and_insert(
+                            optical_params->action_reg(),
+                            core_params->aux_reg(),
+                            "optical-action-times");
+                    }
+                    result.optical_transporter
+                        = std::make_shared<optical::Transporter>(
+                            std::move(inp));
+                },
+                [](inp::OpticalPrimaryGenerator) {
+                    //! \todo Enable optical primary generator
+                    CELER_NOT_IMPLEMENTED("optical primary generator");
+                },
+            },
+            p.physics.optical_generator);
     }
     else
     {
@@ -670,6 +735,19 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                           "tracking loop parameters, or ignore optical "
                           "physics");
     }
+
+    // Construct the action sequence
+    result.actions = [&] {
+        ActionSequence::Options opt;
+        auto const& action_reg = core_params->action_reg();
+        if (action_times)
+        {
+            // Create aux data to accumulate action times
+            opt.action_times = ActionTimes::make_and_insert(
+                action_reg, core_params->aux_reg(), "action-times");
+        }
+        return std::make_shared<ActionSequence>(*action_reg, std::move(opt));
+    }();
 
     if (result.root_manager)
     {

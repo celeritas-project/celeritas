@@ -238,6 +238,25 @@ enum class CylAxis
 };
 
 //---------------------------------------------------------------------------//
+//! Muon-catalyzed fusion atoms
+enum class MucfMuonicAtom
+{
+    deuterium,
+    tritium,
+    size_
+};
+
+//---------------------------------------------------------------------------//
+//! Muon-catalyzed fusion molecules
+enum class MucfMuonicMolecule
+{
+    deuterium_deuterium,
+    deuterium_tritium,
+    tritium_tritium,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
 //! Step length and limiting action to take

@@ -184,6 +184,12 @@ astroparticle, high energy physics, and nuclear physics experiments including
 LZ, Calvision, DUNE, and
 ePIC. See the :ref:`api_optical_physics` section of the implementation details.
 
+MuCF Physics
+------------
+
+Celeritas has a limited implementation of muon-catalyzed fusion physics.
+Details are documented in :ref:`api_mucf_physics`.
+
 Stepping loop
 -------------
 
@@ -284,6 +290,7 @@ configuration attributes.
    implementation/em-physics.rst
    implementation/optical-physics.rst
    implementation/decay-physics.rst
+   implementation/mucf-physics.rst
    implementation/geant4-interface.rst
 
 

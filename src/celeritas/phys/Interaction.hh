@@ -34,6 +34,7 @@ struct Interaction
     {
         scattered,  //!< Still alive, state has changed
         absorbed,  //!< Absorbed or transformed to another particle type
+        onloaded,  //!< Transfer interaction to the host
         unchanged,  //!< No state change, no secondaries
         failed,  //!< Ran out of memory during sampling
     };
@@ -53,6 +54,9 @@ struct Interaction
 
     // Return an interaction with no change in the track state
     static inline CELER_FUNCTION Interaction from_unchanged();
+
+    // Return an interaction with onload in the tract state
+    static inline CELER_FUNCTION Interaction from_onloaded();
 
     //! Whether the state changed but did not fail
     CELER_FUNCTION bool changed() const
@@ -168,6 +172,17 @@ CELER_FUNCTION Interaction Interaction::from_unchanged()
 {
     Interaction result;
     result.action = Action::unchanged;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an interaction from a particle that will be onloaded.
+ */
+CELER_FUNCTION Interaction Interaction::from_onloaded()
+{
+    Interaction result;
+    result.action = Action::onloaded;
     return result;
 }
 

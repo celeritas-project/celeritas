@@ -285,6 +285,27 @@ class TestEm3 : public GeantImporterTest
 };
 
 //---------------------------------------------------------------------------//
+class MucfBox : public GeantImporterTest
+{
+  protected:
+    void SetUp() override
+    {
+        selection_.particles = DataSelection::em;
+        selection_.processes = DataSelection::em | DataSelection::hadron;
+    }
+
+    std::string_view gdml_basename() const override { return "mucf-box"sv; }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        //! \todo Enable muon EM and decay physics once fully supported
+        GeantPhysicsOptions opts;
+        opts.mucf_physics = true;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
 class OneSteelSphere : public GeantImporterTest
 {
   protected:
@@ -1660,8 +1681,8 @@ TEST_F(LarSphere, optical)
     for (auto const& comp : scint.material.components)
     {
         components.push_back(comp.yield_frac);
-        components.push_back(to_cm(comp.lambda_mean));
-        components.push_back(to_cm(comp.lambda_sigma));
+        components.push_back(to_cm(comp.gauss.lambda_mean));
+        components.push_back(to_cm(comp.gauss.lambda_sigma));
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
@@ -1677,19 +1698,12 @@ TEST_F(LarSphere, optical)
         1e-08,
         1.5e-06,
         1,
-        2e-05,
-        2.0099589626834e-06,
+        0,
+        0,
         1e-08,
         3e-06,
     };
     EXPECT_VEC_NEAR(expected_components, components, tol);
-    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
-    {
-        static std::string const expected_messages
-            = R"(Estimated custom properties CELER_SCINTILLATIONLAMBDAMEAN3=2e-5 and CELER_SCINTILLATIONLAMBDASIGMA3=2.010e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
-        EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1])
-            << scoped_log;
-    }
 
     // Particle scintillation
     EXPECT_EQ(6, scint.particles.size());
@@ -1710,8 +1724,8 @@ TEST_F(LarSphere, optical)
         for (auto comp : part.components)
         {
             comp_y.push_back(comp.yield_frac);
-            comp_lm.push_back(to_cm(comp.lambda_mean));
-            comp_ls.push_back(to_cm(comp.lambda_sigma));
+            comp_lm.push_back(to_cm(comp.gauss.lambda_mean));
+            comp_ls.push_back(to_cm(comp.gauss.lambda_sigma));
             comp_rt.push_back(to_sec(comp.rise_time));
             comp_ft.push_back(to_sec(comp.fall_time));
         }
@@ -2119,6 +2133,37 @@ TEST_F(OpticalSurfaces, surfaces)
 
 #undef OS_IS_MAPPED
 }
+
+//---------------------------------------------------------------------------//
+TEST_F(MucfBox, run)
+{
+    auto const& mucf = this->imported_data().mucf_physics;
+    EXPECT_TRUE(mucf);
+
+    static double const expected_muon_energy_cdf_y[] = {1, 1};
+    EXPECT_EQ(2, mucf.muon_energy_cdf.x.size());
+    EXPECT_VEC_EQ(expected_muon_energy_cdf_y, mucf.muon_energy_cdf.y);
+
+    auto const& cycle_f0 = mucf.cycle_rates[0];
+    static double const expected_cycle_rate_f0_y[] = {2, 2};
+    EXPECT_TRUE(cycle_f0);
+    EXPECT_EQ(cycle_f0.molecule, MucfMuonicMolecule::deuterium_tritium);
+    EXPECT_EQ("F=0", cycle_f0.spin_label);
+    EXPECT_EQ(2, cycle_f0.rate.x.size());
+    EXPECT_VEC_EQ(expected_cycle_rate_f0_y, cycle_f0.rate.y);
+
+    auto const& cycle_f1 = mucf.cycle_rates[1];
+    static double const expected_cycle_rate_f1_y[] = {3, 3};
+    EXPECT_TRUE(cycle_f1);
+    EXPECT_EQ(cycle_f1.molecule, MucfMuonicMolecule::deuterium_tritium);
+    EXPECT_EQ("F=1", cycle_f1.spin_label);
+    EXPECT_EQ(2, cycle_f1.rate.x.size());
+    EXPECT_VEC_EQ(expected_cycle_rate_f1_y, cycle_f1.rate.y);
+
+    EXPECT_TRUE(mucf.atom_transfer.empty());
+    EXPECT_TRUE(mucf.atom_spin_flip.empty());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

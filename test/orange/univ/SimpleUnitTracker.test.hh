@@ -56,10 +56,6 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
 
     lstate.surface = {};
 
-    size_type const max_faces = params.scalars.max_faces;
-    lstate.temp_sense
-        = states.temp_sense[build_range<SenseValue>(max_faces, tid)];
-
     size_type const max_isect = params.scalars.max_intersections;
     lstate.temp_next.face
         = states.temp_face[build_range<FaceId>(max_isect, tid)].data();

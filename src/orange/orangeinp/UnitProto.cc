@@ -13,19 +13,19 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
-#include "corecel/OpaqueIdIO.hh"
+#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/io/JsonUtils.json.hh"
-#include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/JsonUtils.json.hh"  // IWYU pragma: keep
+#include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/VolumeToString.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "CsgObject.hh"
@@ -79,6 +79,7 @@ void remove_interior(CsgUnit& unit, std::string_view label)
                    unknowns.begin(), unknowns.end(), ", ", write_node_labels);
     }
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Simplify negated joins for infix evaluation.
@@ -158,6 +159,8 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
     unit.regions = std::move(regions);
     unit.tree = std::move(tree);
 }
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -295,9 +298,10 @@ void UnitProto::build(ProtoBuilder& pb) const
     {
         NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
-
         // Construct logic and faces with remapped surfaces
         auto&& [faces, logic] = detail::build_logic(
+            // always use postfix logic for unit input, post-processing to
+            // convert to tracking notation
             detail::PostfixBuildLogicPolicy{csg_unit.tree,
                                             sorted_local_surfaces},
             node_id);
@@ -352,6 +356,29 @@ void UnitProto::build(ProtoBuilder& pb) const
     // nodes for the region, because we can't know which ones have the
     // user-supplied volume names
     auto vol_iter = result.volumes.begin();
+    // Local impl volume ID of the first local 'material' placement:
+    // offset to account for exterior and daughters
+    auto const first_lv = id_cast<LocalVolumeId>(1 + input_.daughters.size());
+    auto add_local_parent = [&result, &vol_iter, first_lv](LocalParent lp) {
+        if (!lp)
+        {
+            return;
+        }
+        LocalVolumeId parent_id;
+        auto child_id
+            = id_cast<LocalVolumeId>(vol_iter - result.volumes.begin());
+        if (MaterialInputId parent_mi_id = *lp)
+        {
+            parent_id = first_lv + parent_mi_id.get();
+        }
+        else
+        {
+            // Option value is set, but to a "null" ID: parent is
+            // background volume
+            parent_id = id_cast<LocalVolumeId>(result.volumes.size() - 1);
+        }
+        result.local_parent_map.emplace(child_id, parent_id);
+    };
 
     // Save attributes for exterior volume
     if (pb.current_uid() != orange_global_univ)
@@ -376,11 +403,14 @@ void UnitProto::build(ProtoBuilder& pb) const
         vol_iter->label = d.label;
         if (vol_iter->label == VariantLabel{})
         {
-            // Choose default label for the volume
+            // Choose default label for the impl volume
             vol_iter->label = Label{std::string{d.fill->label()},
                                     std::string{this->label()}};
         }
         vol_iter->zorder = d.zorder;
+        // Add local parent if applicable
+        add_local_parent(d.local_parent);
+
         /* TODO: the "embedded_universe" flag is *also* set by the unit
          * builder. Move that here. */
         ++vol_iter;
@@ -410,6 +440,9 @@ void UnitProto::build(ProtoBuilder& pb) const
             vol_iter->label = Label{std::string(m.interior->label())};
         }
         vol_iter->zorder = ZOrder::media;
+        // Add local parent if applicable
+        add_local_parent(m.local_parent);
+
         ++vol_iter;
     }
 
@@ -564,7 +597,8 @@ auto UnitProto::build(Tol const& tol,
         remove_interior(result, this->label());
     }
 
-    if (input_.remove_negated_join)
+    if (orange_tracking_logic() == LogicNotation::infix
+        || input_.remove_negated_join)
     {
         remove_negated_join(result, this->label());
     }

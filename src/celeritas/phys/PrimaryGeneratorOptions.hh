@@ -39,7 +39,7 @@ enum class DistributionSelection
 struct DistributionOptions
 {
     DistributionSelection distribution{DistributionSelection::size_};
-    std::vector<real_type> params;
+    std::vector<double> params;
 
     //! Whether the options are valid
     explicit operator bool() const

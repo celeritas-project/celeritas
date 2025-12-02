@@ -58,7 +58,7 @@ std::ostream& operator<<(std::ostream& os, Joined const& n)
        << join(n.nodes.begin(),
                n.nodes.end(),
                ',',
-               [](NodeId n) { return n.unchecked_get(); })
+               [](NodeId jn) { return jn.unchecked_get(); })
        << '}';
     return os;
 }

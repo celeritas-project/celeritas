@@ -62,6 +62,7 @@ char const* to_cstring(ImportProcessClass value)
         "mu_brems",
         "mu_pair_prod",
         "gamma_general",
+        "gamma_nuclear",
         "neutron_elastic",
     };
     return to_cstring_impl(value);
@@ -92,6 +93,7 @@ char const* to_geant_name(ImportProcessClass value)
         "muBrems",  // mu_brems,
         "muPairProd",  // mu_pair_prod,
         "GammaGeneralProc",  // gamma_general,
+        "GammaNuclearProc",  // gamma_nuclear,
         "neutronElasticProc",  // neutron_elastic,
     };
     return to_name_impl(value);

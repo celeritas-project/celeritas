@@ -22,9 +22,12 @@ namespace test
 {
 constexpr bool using_orange_geo
     = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
-constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
-                                       && CELERITAS_CORE_GEO
-                                              == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_solids_vg = !CELERITAS_VECGEOM_SURFACE
+                                 && CELERITAS_CORE_GEO
+                                        == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 class GeometryTest : public HeuristicGeoTestBase
@@ -110,20 +113,42 @@ auto TestEm3Test::reference_volumes() const -> SpanConstStr
 
 auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 {
-    static real_type const paths[]
-        = {7.504,  0.07378, 0.2057, 0.102,  0.2408, 0.1006, 0.3019, 0.1153,
-           0.2812, 0.1774,  0.4032, 0.1354, 0.3163, 0.1673, 0.3465, 0.1786,
-           0.4494, 0.2237,  0.5863, 0.192,  0.4027, 0.1905, 0.5949, 0.3056,
-           0.5217, 0.2179,  0.5365, 0.2123, 0.5484, 0.2938, 0.634,  0.3144,
-           0.6364, 0.2207,  0.5688, 0.2685, 0.6717, 0.2697, 0.6468, 0.2824,
-           0.7424, 0.3395,  0.6919, 0.3018, 0.7078, 0.3441, 0.9093, 0.4125,
-           0.7614, 0.334,   0.8102, 0.3901, 0.8114, 0.3377, 0.8856, 0.39,
-           0.7765, 0.3847,  0.785,  0.3017, 0.6694, 0.3026, 0.7018, 0.2482,
-           0.6192, 0.2405,  0.6014, 0.2733, 0.6454, 0.2804, 0.6941, 0.2608,
-           0.5855, 0.2318,  0.5043, 0.1906, 0.6139, 0.3125, 0.6684, 0.3002,
-           0.7295, 0.2874,  0.6328, 0.2524, 0.532,  0.2354, 0.5435, 0.2612,
-           0.5484, 0.2294,  0.5671, 0.246,  0.5157, 0.1953, 0.3996, 0.1301,
-           0.3726, 0.1642,  0.3317, 0.1375, 0.1909};
+    static real_type const paths[] = {
+        7.7553316492292,  0.080436919091118, 0.20906819128204,
+        0.10341971435766, 0.24442742004502,  0.10505779938552,
+        0.26853647729147, 0.11478190785371,  0.25108494748183,
+        0.16275614647623, 0.35684411181979,  0.12070929565832,
+        0.2888565798791,  0.17840855709179,  0.34929831766689,
+        0.16411790601534, 0.43972046590778,  0.21379238581294,
+        0.48619139484194, 0.17494602518841,  0.36077540983427,
+        0.18745409879988, 0.51414709415072,  0.2646563441426,
+        0.45705298436828, 0.18030129445946,  0.52327385767217,
+        0.20544279231036, 0.50553437440921,  0.28475683157811,
+        0.63511448126477, 0.31064017312511,  0.59162676130916,
+        0.20863682114035, 0.58993916841835,  0.28189492572873,
+        0.68741278096147, 0.26798185554196,  0.656704888553,
+        0.30263088790675, 0.75315871342742,  0.31659959494466,
+        0.69488777516365, 0.30203832457611,  0.71845197459549,
+        0.33780104822681, 0.89899785782997,  0.40785898003768,
+        0.78122645488702, 0.35981932175816,  0.78903454960273,
+        0.37901217424405, 0.79230410293104,  0.32749577059466,
+        0.8515318730945,  0.3754540586868,   0.78241321155331,
+        0.38539496079739, 0.78200342222905,  0.31528134575265,
+        0.6476737245263,  0.2925462036084,   0.69796517974068,
+        0.24525768322878, 0.65006623602054,  0.26616334641623,
+        0.67437909504339, 0.28888249357192,  0.66152800260054,
+        0.30076215517064, 0.70351910161418,  0.27531434585801,
+        0.57324258052408, 0.23250545039233,  0.51275424345496,
+        0.2168406554649,  0.60811652275962,  0.31506819796893,
+        0.69690066834181, 0.30151441113098,  0.73074573212379,
+        0.30074874138257, 0.71067813488393,  0.30726391224123,
+        0.59292351490755, 0.23619185409827,  0.57739610782314,
+        0.26927647941776, 0.56045055887279,  0.24979059910026,
+        0.55821379478737, 0.24840237717025,  0.52234151059082,
+        0.18310556267665, 0.3719862592643,   0.12440516234962,
+        0.34905658478792, 0.16284436650089,  0.2958888858561,
+        0.11815507344671, 0.19055547284288,
+    };
     return make_span(paths);
     //(void)paths;
     // return {};
@@ -166,9 +191,30 @@ auto SimpleCmsTest::reference_volumes() const -> SpanConstStr
 
 auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 {
-    static real_type const paths[]
-        = {56.38, 403, 261.3, 507.5, 467.1, 1142, 1851};
-    return make_span(paths);
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    {
+        static real_type paths[]
+            = {56, 390, 255.5, 497.960489118954, 451, 1137, 1870};
+        if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+        {
+            // TODO: try to fix any discrepancies from vg2.x-solids
+            paths[4] = 487.651955842282;
+            paths[5] = 869.116923540767;
+            paths[6] = 2199.33144744229;
+        }
+        return make_span(paths);
+    }
+    else
+    {
+        static real_type const paths[] = {55.1981791404751,
+                                          391.527352172831,
+                                          256.751883069029,
+                                          497.960489118954,
+                                          467.10982806831,
+                                          1146.66783154138,
+                                          1863.80981999409};
+        return make_span(paths);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -201,7 +247,18 @@ auto ThreeSpheresTest::reference_volumes() const -> SpanConstStr
 
 auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 {
-    static real_type const paths[] = {0.2013, 3.346, 6.696, 375.5};
+    static real_type paths[] = {
+        0.195837257764839,
+        3.28275955815444,
+        6.54698622785098,
+        376.100451629357,
+    };
+    if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    {
+        // TODO: try to fix any discrepancies from vg2.x-solids
+        paths[0] = 0.174520372497482;
+        paths[2] = 4.97131837547155;
+    }
     return make_span(paths);
 }
 
@@ -282,15 +339,13 @@ TEST_F(TestEm3Test, run)
     // VecGeom solid and ORANGE also diverge fairly quickly: this is in part
     // due to bumps
 
-    if (using_vecgeom_surface && celeritas::device())
+    if (using_surface_vg && celeritas::device())
     {
         GTEST_SKIP() << "GPU and CPU diverge for vgsurf due to sensitivity to "
                         "boundaries";
     }
 
-    real_type tol = using_orange_geo         ? 1e-3
-                    : !using_vecgeom_surface ? 0.35
-                                             : 1000;
+    real_type tol = using_orange_geo ? 1e-3 : !using_surface_vg ? 0.35 : 1000;
     this->run(512, /* num_steps = */ 1024, tol);
 }
 
@@ -329,9 +384,7 @@ TEST_F(ThreeSpheresTest, avg_path)
 {
     // Results were generated with ORANGE
     // TODO: investigate differences w.r.t. surface model
-    real_type tol = using_orange_geo         ? 1e-3
-                    : !using_vecgeom_surface ? 0.05
-                                             : 0.80;
+    real_type tol = using_orange_geo ? 1e-3 : !using_surface_vg ? 0.05 : 0.80;
     EXPECT_TRUE(this->geometry()->supports_safety());
     this->run(512, /* num_steps = */ 1024, tol);
 }

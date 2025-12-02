@@ -65,6 +65,12 @@ namespace celeritas
  * | Coulomb scattering           | G4eCoulombScatteringModel    |
  * | Multiple scattering          | G4WentzelVIModel             |
  *
+ * \warning For muon-catalyzed fusion physics, the \c G4MuonMinusAtomicCapture
+ * , which is a \c G4VRestProcess with \c G4ProcessType::fHadronic , is added
+ * for \c mu- and is the exception to the EM-only rule. It does not require
+ * importing any cross section tables, but its inclusion enables muCF physics.
+ * This design decision may need revisiting in the future.
+ *
  * \note Prior to version 11.1.0, Geant4 used the \c G4BetheBlochModel for muon
  * ionization between 200 keV and 1 GeV and the \c G4MuBetheBlochModel above 1
  * GeV. Since version 11.1.0, the \c G4MuBetheBlochModel is used for all

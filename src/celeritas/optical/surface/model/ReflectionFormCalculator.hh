@@ -60,7 +60,7 @@ class ReflectionFormCalculator
   private:
     Real3 const& direction_;
     Real3 const& polarization_;
-    Real3 const& global_normal_;
+    Real3 global_normal_;
     Real3 const& facet_normal_;
 
     // Calculate specular reflection about the given normal
@@ -155,7 +155,8 @@ ReflectionFormCalculator::sample_lambertian_reflection(Engine& rng) const
     SurfaceInteraction result;
     result.action = SurfaceInteraction::Action::reflected;
     result.direction = LambertianDistribution{global_normal_}(rng);
-    // \todo get correct polarization?
+    auto n = make_unit_vector(result.direction - direction_);
+    result.polarization = -geometric_reflected_from(polarization_, n);
     return result;
 }
 

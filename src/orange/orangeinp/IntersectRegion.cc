@@ -852,11 +852,11 @@ GenPrism GenPrism::from_trap(
                    << " [turns]: must be in the range [0, 0.25)");
 
     // Calculate offset of faces from z axis
-    auto [dxdz_hz, dydz_hz] = [&]() -> std::pair<real_type, real_type> {
+    auto [dxdz_hz, dydz_hz] = [&]() {
         real_type cos_phi{}, sin_phi{};
         sincos(phi, &sin_phi, &cos_phi);
         real_type const tan_theta = tan(theta);
-        return {hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
+        return std::pair{hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
     }();
 
     // Construct points on faces

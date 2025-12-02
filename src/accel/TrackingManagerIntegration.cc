@@ -47,7 +47,7 @@ namespace
 void verify_tracking_managers(Span<G4PD const* const> expected,
                               Span<G4PD const* const> actual,
                               SharedParams const& expected_shared,
-                              LocalTransporter const& expected_local)
+                              LocalOffloadInterface const& expected_local)
 {
     std::set<G4PD const*> not_offloaded{actual.begin(), actual.end()};
     std::vector<G4PD const*> missing;
@@ -176,8 +176,8 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
         // Set particle offloading based on user options
         auto const& user_offload = singleton.setup_options().offload_particles;
         auto const& offload_particles
-            = user_offload.empty() ? SharedParams::default_offload_particles()
-                                   : user_offload;
+            = user_offload ? *user_offload
+                           : SharedParams::default_offload_particles();
 
         // Set tracking manager on workers when Celeritas is not fully disabled
         CELER_LOG(debug) << "Verifying tracking manager";
@@ -186,7 +186,7 @@ void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
                 make_span(singleton.shared_params().OffloadParticles()),
                 make_span(offload_particles),
                 singleton.shared_params(),
-                singleton.local_transporter()),
+                singleton.local_offload()),
             ExceptionConverter{"celer.init.verify"});
     }
 

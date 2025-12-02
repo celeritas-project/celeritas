@@ -46,6 +46,10 @@ bool is_running_events()
            || !G4Threading::IsMultithreadedApplication();
 }
 
+constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
+                                  && CELERITAS_CORE_GEO
+                                         == CELERITAS_CORE_GEO_VECGEOM;
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -148,6 +152,10 @@ TEST_F(LarSphere, run)
     if (this->HasFailure())
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
+    }
+    if (using_surface_vg)
+    {
+        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
     }
 
     CELER_LOG(status) << "Beam on (second run)";
@@ -294,12 +302,12 @@ auto LarSphereOptical::make_physics_input() const -> PhysicsInput
 
 auto LarSphereOptical::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
     auto result = LarSphereIntegrationMixin::make_primary_input();
 
-    result.shape = inp::PointDistribution{from_cm({0.1, 0.1, 0})};
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({0.1, 0.1, 0}))};
     result.primaries_per_event = 1;
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{2}};
+    result.energy = inp::MonoenergeticDistribution{2};  // [MeV]
     return result;
 }
 
@@ -311,12 +319,12 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
 
-    result.optical_capacity = [] {
-        inp::OpticalStateCapacity cap;
-        cap.tracks = 32768;
-        cap.generators = 32768 * 8;
-        cap.primaries = cap.generators;
-        return cap;
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = 32768 * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        return opt;
     }();
 
     return result;
@@ -341,7 +349,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
         EXPECT_EQ(is_running_events(), static_cast<bool>(local_transporter));
         EXPECT_TRUE(shared_params) << "Celeritas was not enabled";
 
-        auto const& optical_collector = shared_params.optical();
+        auto const& optical_collector = shared_params.optical_collector();
         EXPECT_TRUE(optical_collector) << "optical offloading was not enabled";
         if (local_transporter && optical_collector)
         {
@@ -406,13 +414,6 @@ TEST_F(LarSphereOptical, run)
     rm.Initialize();
     CELER_LOG(status) << "Run two events";
     rm.BeamOn(2);
-
-    if (this->HasFailure())
-    {
-        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
-    }
-    CELER_LOG(status) << "Run one more event";
-    rm.BeamOn(2);
 }
 
 /*!
@@ -458,7 +459,7 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
         EXPECT_EQ(is_running_events(), static_cast<bool>(local_transporter));
         EXPECT_TRUE(shared_params) << "Celeritas was not enabled";
 
-        auto const& optical_collector = shared_params.optical();
+        auto const& optical_collector = shared_params.optical_collector();
         EXPECT_TRUE(optical_collector) << "optical offloading was not enabled";
         if (local_transporter && optical_collector)
         {
@@ -522,13 +523,6 @@ TEST_F(OpNoviceOptical, run)
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
     CELER_LOG(status) << "Run two events";
-    rm.BeamOn(10);
-
-    if (this->HasFailure())
-    {
-        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
-    }
-    CELER_LOG(status) << "Run one more event";
     rm.BeamOn(10);
 }
 

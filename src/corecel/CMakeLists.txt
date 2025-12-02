@@ -127,10 +127,11 @@ foreach(_dep Geant4 VecGeom HepMC3)
 endforeach()
 
 # Save VecGeom options as always-on macros to simplify testing
-set(CELERITAS_VECGEOM_CONFIG)
-if(CELERITAS_VecGeom_SURFACE)
+if(DEFINED CELERITAS_VecGeom_SURFACE)
+  # Override/pretend VecGeom has this option
   set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
 endif()
+set(CELERITAS_VECGEOM_CONFIG)
 set(_vecgeom_opts)
 foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
   if(NOT DEFINED VecGeom_${_opt})
@@ -217,7 +218,10 @@ list(APPEND SOURCES
   math/TridiagonalSolver.cc
   random/data/CuHipRngData.cc
   random/data/XorwowRngData.cc
+  random/data/RanluxppRngData.cc
+  random/distribution/DistributionInserter.cc
   random/params/CuHipRngParams.cc
+  random/params/RanluxppRngParams.cc
   random/params/XorwowRngParams.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
@@ -291,6 +295,7 @@ macro(celeritas_polysource filename_we)
 endmacro()
 
 celeritas_polysource(random/data/detail/CuHipRngStateInit)
+celeritas_polysource(random/data/detail/RanluxppRngStateInit)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
