@@ -5,16 +5,13 @@
 #-----------------------------------------------------------------------------#
 
 if ! command -v load_system_env >/dev/null 2>&1; then
-  printf "error: define a function load_system_env in your shell rc:
+  printf 'error: define a function "load_system_env" in your shell rc:
 load_system_env() {
-  . \${CELER_SOURCE_DIR}/scripts/env/\$1.sh
+  . ${CELER_SOURCE_DIR}/scripts/env/$1.sh
 }
-" >&2
+' >&2
   return 1
 fi
-
-# FIXME: scratch isn't mounted on faraday :(
-export SCRATCHDIR=/tmp/${USER}
 
 # From modules/rocmmod
 export ROCM_PATH="/opt/rocm-7.0.1"

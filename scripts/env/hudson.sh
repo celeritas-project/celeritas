@@ -5,11 +5,11 @@
 #-----------------------------------------------------------------------------#
 
 if ! command -v load_system_env >/dev/null 2>&1; then
-  printf "error: define a function 'load_system_env' in your .bashrc:
+  printf 'error: define a function "load_system_env" in your .bashrc:
 load_system_env() {
-  . "\${CELER_SOURCE_DIR}/scripts/env/\$1.sh"
+  . "${CELER_SOURCE_DIR}/scripts/env/$1.sh"
 }
-" >&2
+' >&2
   return 1
 fi
 
