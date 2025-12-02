@@ -87,4 +87,4 @@ fi
 export PATH=${CELERITAS_ENV}/bin:${PATH}
 export CMAKE_PREFIX_PATH=${CELERITAS_ENV}:${CMAKE_PREFIX_PATH}
 
-export CCACHE_DIR=/scratch/$USER/ccache
+export CCACHE_DIR="${SCRATCHDIR}/ccache"

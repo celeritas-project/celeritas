@@ -19,7 +19,7 @@
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_HIP_PLATFORM": "amd",
-        "CMAKE_HIP_ARCHITECTURES": "gfx940",
+        "CMAKE_HIP_ARCHITECTURES": "gfx942",
         "CMAKE_INSTALL_PREFIX": "$env{SCRATCHDIR}/install/celeritas-${presetName}",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
       }
@@ -27,7 +27,7 @@
     {
       "name": "release-orange",
       "displayName": "Build with full optimizations (ORANGE)",
-      "inherits": ["release"],
+      "inherits": [".base", ".ndebug"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
@@ -35,7 +35,7 @@
     {
       "name": "reldeb-orange",
       "displayName": "Build with optimizations, but enable host debugging (ORANGE)",
-      "inherits": ["reldeb"],
+      "inherits": [".base", ".reldeb"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
@@ -54,11 +54,9 @@
     {
       "name": ".base",
       "configurePreset": ".base",
-      "jobs": 48,
+      "jobs": 96,
       "nativeToolOptions": ["-k0"]
     },
-    {"name": "release", "configurePreset": "release", "inherits": ".base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": ".base"},
     {"name": "release-orange", "configurePreset": "release-orange", "inherits": ".base"},
     {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": ".base"},
     {"name": "debug-orange", "configurePreset": "debug-orange", "inherits": ".base"}
@@ -70,8 +68,6 @@
       "output": {"outputOnFailure": true},
       "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
     },
-    {"name": "release", "configurePreset": "release", "inherits": ".base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": ".base"},
     {"name": "release-orange", "configurePreset": "release-orange", "inherits": ".base"},
     {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": ".base"},
     {"name": "debug-orange", "configurePreset": "debug-orange", "inherits": ".base"}

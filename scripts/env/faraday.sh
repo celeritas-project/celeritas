@@ -16,13 +16,12 @@ fi
 # FIXME: scratch isn't mounted on faraday :(
 export SCRATCHDIR=/tmp/${USER}
 
+# From modules/rocmmod
+export PATH=/opt/rocm-7.0.1/bin:/opt/rocm-7.0.1/lib/llvm/bin:$PATH
+export MANPATH="/opt/rocm-7.0.1/share/man:/opt/rocm-7.0.1/lib/llvm/share/man1:$MANPATH"
+export CMAKE_PREFIX_PATH="/opt/rocm-7.0.1:$CMAKE_PREFIX_PATH"
+export ROCM_PATH="/opt/rocm-7.0.1"
+export HIP_PATH="/opt/rocm-7.0.1"
+
 # Dispatch common loading to the 'excl' system
 load_system_env excl || return $?
-
-# Load AMD modules
-if command -v module >/dev/null 2>&1; then
-  module load rocmmod
-else
-  celerlog error "module: command not found"
-  return 1
-fi
