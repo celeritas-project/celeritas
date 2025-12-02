@@ -239,7 +239,7 @@
 #    define CELER_VALIDATE(COND, MSG)                \
         do                                           \
         {                                            \
-            (void)sizeof(COND);                      \
+            CELER_DISCARD(COND);                     \
             CELER_RUNTIME_THROW(nullptr, "", #COND); \
         } while (0)
 #endif
