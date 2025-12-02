@@ -25,9 +25,9 @@ struct SATestInput
     using MockAllocatorData
         = StackAllocatorData<MockSecondary, Ownership::reference, MemSpace::device>;
 
-    int num_threads;
-    int num_iters;
-    int alloc_size;
+    size_type num_threads;
+    size_type num_iters;
+    size_type alloc_size;
     MockAllocatorData sa_data;
 };
 
@@ -35,9 +35,9 @@ struct SATestInput
 //! Output results
 struct SATestOutput
 {
-    int num_errors = 0;
-    int num_allocations = 0;
-    int view_size = 0;
+    size_type num_errors = 0;
+    size_type num_allocations = 0;
+    size_type view_size = 0;
     ull_int last_secondary_address = 0;
 };
 

@@ -236,7 +236,12 @@
             }                                                    \
         } while (0)
 #else
-#    define CELER_VALIDATE(COND, MSG) CELER_RUNTIME_THROW(nullptr, "", #COND)
+#    define CELER_VALIDATE(COND, MSG)                \
+        do                                           \
+        {                                            \
+            (void)sizeof(COND);                      \
+            CELER_RUNTIME_THROW(nullptr, "", #COND); \
+        } while (0)
 #endif
 
 #define CELER_NOT_CONFIGURED(WHAT) \
