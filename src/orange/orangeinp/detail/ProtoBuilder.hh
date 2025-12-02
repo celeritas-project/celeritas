@@ -83,7 +83,7 @@ class ProtoBuilder
     size_type num_univs_{};
 
     // State variables
-    size_type num_univs_inserted_;
+    size_type num_univs_inserted_{};
 };
 
 //---------------------------------------------------------------------------//
