@@ -107,13 +107,36 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
 /*!
  * Buffer distribution data for generating optical photons.
  */
-void LocalOpticalTrackOffload::Push(TrackData const& track)
+void LocalOpticalTrackOffload::Push(G4Track const& g4track)
 {
     CELER_EXPECT(*this);
+    TrackData init;
+
+    // Sanity check: this path is meant for optical photons
+    CELER_EXPECT(g4track.GetDefinition());
+    CELER_EXPECT(g4track.GetDefinition()->GetParticleName() == "opticalphoton");
+
+    // Energy: convert Geant4 energy [MeV] to Celeritas MevEnergy
+    init.energy = units::MevEnergy{g4track.GetTotalEnergy() / CLHEP::MeV};
+
+    // Position: Geant4 uses mm; Celeritas uses cm
+    auto const& pos = g4track.GetPosition();
+    init.position
+        = Real3{pos.x() / CLHEP::cm, pos.y() / CLHEP::cm, pos.z() / CLHEP::cm};
+
+    auto const& dir = g4track.GetMomentumDirection();
+    init.direction = Real3{dir.x(), dir.y(), dir.z()};
+
+    // Polarization: directly from G4
+    auto const& pol = g4track.GetPolarization();
+    init.polarization = Real3{pol.x(), pol.y(), pol.z()};
+
+    // Time: Geant4 uses ns; Celeritas uses seconds
+    init.time = g4track.GetGlobalTime() / CLHEP::s;
 
     ScopedProfiling profile_this{"push"};
 
-    buffer_.push_back(track);
+    buffer_.push_back(init);
     pending_tracks_++;
 
     if (pending_tracks_ >= auto_flush_)
@@ -164,6 +187,9 @@ void LocalOpticalTrackOffload::Flush()
             << " optical track from event " << event_id_.unchecked_get()
             << " with Celeritas";
     }
+    // Inject buffered tracks into optical state
+
+    state_->insert_primaries(make_span(buffer_));
 
     pending_tracks_ = 0;
     buffer_.clear();

@@ -10,8 +10,9 @@
 #include "celeritas/Types.hh"
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/Transporter.hh"
+#include "accel/TrackOffloadInterface.hh"
 
-#include "LocalOffloadInterface.hh"
+#include "TrackOffloadInterface.hh"
 
 class G4EventManager;
 
@@ -35,7 +36,7 @@ class SharedParams;
     LocalOpticalTrackOffload ...;
    \endcode
  */
-class LocalOpticalTrackOffload final : public LocalOffloadInterface
+class LocalOpticalTrackOffload final : public TrackOffloadInterface
 {
   public:
     using TrackData = optical::TrackInitializer;
@@ -61,7 +62,7 @@ class LocalOpticalTrackOffload final : public LocalOffloadInterface
     // Whether the class instance is initialized
     bool Initialized() const final { return static_cast<bool>(state_); }
     // Offload optical distribution data to Celeritas
-    void Push(TrackData const&);
+    void Push(G4Track const&) final;
     // Number of buffered tracks
     size_type GetBufferSize() const final { return pending_tracks_; }
 
