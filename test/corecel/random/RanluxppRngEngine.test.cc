@@ -16,6 +16,7 @@
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/engine/detail/RanluxppImpl.hh"
 #include "corecel/random/params/RanluxppRngParams.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #include "RngTally.hh"
 #include "celeritas_test.hh"
@@ -268,22 +269,39 @@ TEST_F(RanluxppRngEngineTest, host)
 
 TEST_F(RanluxppRngEngineTest, moments)
 {
-    unsigned int num_samples = 1 << 13;
-    unsigned int num_seeds = 1 << 8;
+    unsigned int num_samples = 4000;
+    TrackSlotId::size_type num_states = 256;
 
-    HostStore states(params_->host_ref(), StreamId{0}, num_seeds);
+    auto const& host_ref = params_->host_ref();
+    HostStore states(host_ref, StreamId{0}, num_states);
     RngTally tally;
 
-    for (unsigned int i = 0; i < num_seeds; ++i)
+    for (auto tid : range(TrackSlotId{num_states}))
     {
-        RanluxppRngEngine rng(
-            params_->host_ref(), states.ref(), TrackSlotId{i});
+        RanluxppRngEngine rng(host_ref, states.ref(), tid);
         for (unsigned int j = 0; j < num_samples; ++j)
         {
             tally(generate_canonical(rng));
         }
     }
-    tally.check(num_samples * num_seeds, 1e-3);
+    tally.check(static_cast<double>(num_samples * num_states), 1e-3);
+}
+
+TEST_F(RanluxppRngEngineTest, generate_canonical)
+{
+    auto const& host_ref = params_->host_ref();
+    HostStore states(host_ref, StreamId{0}, 2);
+
+    {
+        RanluxppRngEngine rng(host_ref, states.ref(), TrackSlotId{0});
+        EXPECT_FLOAT_EQ(0.59196556f, generate_canonical<float>(rng));
+        EXPECT_FLOAT_EQ(0.23885389f, generate_canonical<float>(rng));
+    }
+    {
+        RanluxppRngEngine rng(host_ref, states.ref(), TrackSlotId{1});
+        EXPECT_DOUBLE_EQ(0.49766548977877423, generate_canonical<double>(rng));
+        EXPECT_DOUBLE_EQ(0.84101980819525746, generate_canonical<double>(rng));
+    }
 }
 
 TEST_F(RanluxppRngEngineTest, jump)
