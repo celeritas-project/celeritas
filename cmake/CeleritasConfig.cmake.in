@@ -170,11 +170,11 @@ cmake_policy(POP)
 #-----------------------------------------------------------------------------#
 
 if(NOT TARGET celeritas)
-  # Load Celeritas-distributed RDC utils after potential older version
-  # in dependencies
-  # TODO: in the future, rely on its inclusion via upstream VecGeom, and only
-  # include here if VecGeom+CUDA are enabled.
-  include("${CELERITAS_CMAKE_DIR}/CudaRdcUtils.cmake" OPTIONAL)
+  # Load Celeritas-distributed RDC utils after dependencies to override
+  # potential older versions
+  if(VecGeom_CUDA_FOUND)
+    include("${CELERITAS_CMAKE_DIR}/CudaRdcUtils.cmake")
+  endif()
 
   # Load Celeritas library wrappers
   include("${CELERITAS_CMAKE_DIR}/CeleritasLibrary.cmake")

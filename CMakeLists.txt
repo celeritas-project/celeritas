@@ -614,7 +614,10 @@ endif()
 # Load our local copy in case a dependency hasn't loaded a newer one
 # and install it alongside CeleritasConfig (see further below)
 set(_LOCAL_RDCUTILS_FILENAME "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcUtils.cmake")
-include("${_LOCAL_RDCUTILS_FILENAME}")
+if(VecGeom_CUDA_FOUND)
+  # RDC hacks are only needed and desired when VecGeom is enabled and compiled with CUDA support
+  include("${_LOCAL_RDCUTILS_FILENAME}")
+endif()
 
 # NOTE: include library utils after RDC
 include(CeleritasLibrary)
