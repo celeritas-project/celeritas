@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/inp/ImportIO.json.hh
+//! \file orange/inp/IO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

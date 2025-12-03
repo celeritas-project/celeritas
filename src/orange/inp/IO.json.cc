@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/inp/ImportIO.json.cc
+//! \file orange/inp/IO.json.cc
 //---------------------------------------------------------------------------//
-#include "ImportIO.json.hh"
+#include "IO.json.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"

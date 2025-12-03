@@ -87,7 +87,7 @@ list(APPEND SOURCES
   transform/TransformSimplifier.cc
   transform/Transformation.cc
   transform/VariantTransform.cc
-  inp/ImportIO.json.cc
+  inp/IO.json.cc
 )
 
 
