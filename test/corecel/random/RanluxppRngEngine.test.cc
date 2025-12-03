@@ -284,7 +284,7 @@ TEST_F(RanluxppRngEngineTest, moments)
             tally(generate_canonical(rng));
         }
     }
-    tally.check(num_samples * num_states, 1e-3);
+    tally.check(static_cast<double>(num_samples * num_states), 1e-3);
 }
 
 TEST_F(RanluxppRngEngineTest, generate_canonical)
