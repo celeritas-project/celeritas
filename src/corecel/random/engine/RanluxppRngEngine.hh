@@ -87,10 +87,10 @@ class RanluxppRngEngine
     inline CELER_FUNCTION RanluxppRngEngine&
     operator=(Initializer_t const& init);
 
-    // Generate a double-precision random number
+    // Generate a 32-bit random integer
     inline CELER_FUNCTION result_type operator()();
 
-    //! Advance the state \c count times.
+    // Advance the state \c count times.
     inline CELER_FUNCTION void discard(RanluxppUInt count);
 
   private:
@@ -107,7 +107,7 @@ class RanluxppRngEngine
 
 //---------------------------------------------------------------------------//
 /*!
- * Specialization of GenerateCanonical for XorwowRngEngine.
+ * Specialization of GenerateCanonical for RanluxppRngEngine.
  */
 template<class RealType>
 struct GenerateCanonical<RanluxppRngEngine, RealType>
@@ -132,7 +132,7 @@ struct GenerateCanonical<RanluxppRngEngine, RealType>
 // INLINE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Initialize state for the given seed and subsequence
+ * Initialize state for the given seed and subsequence.
  */
 inline CELER_FUNCTION RanluxppRngEngine&
 RanluxppRngEngine::operator=(Initializer_t const& init)
@@ -195,7 +195,7 @@ CELER_FUNCTION void RanluxppRngEngine::discard(RanluxppUInt n)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the next random bits, generate a new block if necessary.
+ * Return the next random bits, generating a new block if necessary.
  */
 CELER_FUNCTION auto RanluxppRngEngine::operator()() -> result_type
 {
@@ -224,7 +224,7 @@ CELER_FUNCTION auto RanluxppRngEngine::operator()() -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Produce the next block of random bits.
+ * Advance to the next state (block of random bits).
  */
 CELER_FUNCTION void RanluxppRngEngine::advance()
 {
