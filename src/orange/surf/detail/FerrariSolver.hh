@@ -72,25 +72,25 @@ class FerrariSolver
   private:
     //// DATA ////
     // Soft zero for biquadratic and degenerate cubic detection
-    static inline SoftZero<real_type> const soft_zero_;
+    SoftZero<real_type> const soft_zero_;
 
     //// UTIL ////
     // Try to place real at given index in list, return next free index
-    static inline CELER_FUNCTION int
-    place_root(Intersections& roots, real_type new_root, int free_index);
+    inline CELER_FUNCTION int
+    place_root(Intersections& roots, real_type new_root, int free_index) const;
 
     // Find roots of special reduced quartic which is biquadratic
-    static inline CELER_FUNCTION Intersections
-    calc_biquadratic_roots(real_type qb, real_type p, real_type r);
+    inline CELER_FUNCTION Intersections
+    calc_biquadratic_roots(real_type qb, real_type p, real_type r) const;
 
     // Find all roots of normalized cubic (unsorted, dominant first)
-    static inline CELER_FUNCTION Real3 real_roots_normalized_cubic(real_type b,
-                                                                   real_type c,
-                                                                   real_type d);
+    inline CELER_FUNCTION Real3 real_roots_normalized_cubic(real_type b,
+                                                            real_type c,
+                                                            real_type d) const;
 
     // Find real quadratic roots
-    static inline CELER_FUNCTION Real2
-    real_roots_normalized_quadratic(real_type b, real_type c);
+    inline CELER_FUNCTION Real2
+    real_roots_normalized_quadratic(real_type b, real_type c) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -238,7 +238,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real4 const& abcd) const
  */
 CELER_FUNCTION int FerrariSolver::place_root(Intersections& roots,
                                              real_type new_root,
-                                             int free_index)
+                                             int free_index) const
 {
     if (!(new_root == no_intersection() || new_root <= 0))
     {
@@ -256,8 +256,9 @@ CELER_FUNCTION int FerrariSolver::place_root(Intersections& roots,
  * solved as a quadratic equation: The square roots of each quadratic solution
  * then go on to form potential quartic solutions, for up to four roots.
  */
-CELER_FUNCTION auto
-FerrariSolver::calc_biquadratic_roots(real_type qb, real_type p, real_type r)
+CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
+                                                          real_type p,
+                                                          real_type r) const
     -> Intersections
 {
     auto ir = real_roots_normalized_quadratic(-p, -r);
@@ -306,10 +307,10 @@ FerrariSolver::calc_biquadratic_roots(real_type qb, real_type p, real_type r)
  * \return The real roots of the given cubic equation, with the dominant at
  * index 0.
  */
-CELER_FUNCTION auto FerrariSolver::real_roots_normalized_cubic(real_type b,
-                                                               real_type c,
-                                                               real_type d)
-    -> Real3
+CELER_FUNCTION auto
+FerrariSolver::real_roots_normalized_cubic(real_type b,
+                                           real_type c,
+                                           real_type d) const -> Real3
 {
     constexpr real_type half = real_type{0.5};
     constexpr real_type third = real_type{1} / real_type{3};
@@ -380,7 +381,7 @@ CELER_FUNCTION auto FerrariSolver::real_roots_normalized_cubic(real_type b,
  * no_intersection().
  */
 CELER_FUNCTION auto
-FerrariSolver::real_roots_normalized_quadratic(real_type hb, real_type c)
+FerrariSolver::real_roots_normalized_quadratic(real_type hb, real_type c) const
     -> Real2
 {
     real_type qb2 = ipow<2>(hb);
