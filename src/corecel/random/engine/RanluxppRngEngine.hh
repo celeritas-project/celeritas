@@ -14,8 +14,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/random/data/RanluxppRngData.hh"
-#include "corecel/random/engine/detail/RanluxppImpl.hh"
+#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/detail/GenerateCanonical32.hh"
 #include "corecel/sys/ThreadId.hh"
+
+#include "detail/RanluxppImpl.hh"
 
 namespace celeritas
 {
@@ -100,6 +103,29 @@ class RanluxppRngEngine
     static constexpr int offset_ = 48;
     ParamsRef const& params_;
     RanluxppRngState* state_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Specialization of GenerateCanonical for XorwowRngEngine.
+ */
+template<class RealType>
+struct GenerateCanonical<RanluxppRngEngine, RealType>
+{
+    //!@{
+    //! \name Type aliases
+    using real_type = RealType;
+    using result_type = RealType;
+    //!@}
+
+    //! Declare that we use the 32-bit canonical generator
+    static constexpr auto policy = GenerateCanonicalPolicy::builtin32;
+
+    //! Sample a random number on [0, 1)
+    CELER_FORCEINLINE_FUNCTION result_type operator()(RanluxppRngEngine& rng)
+    {
+        return detail::GenerateCanonical32<RealType>()(rng);
+    }
 };
 
 //---------------------------------------------------------------------------//
