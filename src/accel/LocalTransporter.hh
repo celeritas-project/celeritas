@@ -15,7 +15,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "LocalOffloadInterface.hh"
+#include "TrackOffloadInterface.hh"
 
 class G4EventManager;
 class G4Track;
@@ -52,7 +52,7 @@ class StepperInterface;
  *
  * \todo Rename \c LocalOffload or something?
  */
-class LocalTransporter final : public LocalOffloadInterface
+class LocalTransporter final : public TrackOffloadInterface
 {
   public:
     // Construct in an invalid state
@@ -88,7 +88,7 @@ class LocalTransporter final : public LocalOffloadInterface
     //!@}
 
     // Offload this track
-    void Push(G4Track&);
+    void Push(G4Track const&) override;
 
     // Access core state data for user diagnostics
     CoreStateInterface const& GetState() const;
