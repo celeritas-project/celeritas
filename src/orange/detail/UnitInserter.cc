@@ -552,15 +552,26 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     auto params_cref = make_const_ref(*orange_data_);
     LocalSurfaceVisitor visit_surface(params_cref, surf_record);
 
-    // Mark as 'simple safety' if all the surfaces are simple
+    // Mark this volume as "simple safety" if all of its constituent surfaces
+    // support it, even in the case where the volume is implicit
     bool simple_safety = true;
-    size_type max_intersections = 0;
-
     for (LocalSurfaceId sid : v.faces)
     {
         simple_safety = simple_safety
                         && visit_surface(SimpleSafetyGetter{}, sid);
-        max_intersections += visit_surface(NumIntersectionGetter{}, sid);
+    }
+
+    // Calculate the max_intersection for the volume by summing up the
+    // max_intersection for all constituent surfaces. If the volume is
+    // background (implicit), no intersection is possible, thus
+    // max_intersections is zero
+    size_type max_intersections = 0;
+    if (v.zorder != ZOrder::background)
+    {
+        for (LocalSurfaceId sid : v.faces)
+        {
+            max_intersections += visit_surface(NumIntersectionGetter{}, sid);
+        }
     }
 
     static logic_int const nowhere_logic[] = {logic::ltrue, logic::lnot};
