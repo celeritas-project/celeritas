@@ -140,6 +140,24 @@ LocalOpticalTrackOffload& IntegrationSingleton::local_optical_track_offload()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Static THREAD-LOCAL Celeritas optical state data.
+ */
+LocalOpticalTrackOffload& IntegrationSingleton::local_optical_track_offload()
+{
+    auto& offload = IntegrationSingleton::local_offload_ptr();
+    if (!offload)
+    {
+        offload = std::make_unique<LocalOpticalTrackOffload>();
+    }
+    auto* lt = dynamic_cast<LocalOpticalTrackOffload*>(offload.get());
+    CELER_VALIDATE(lt,
+                   << "Cannot access LocalOpticalTrtackOffload when "
+                      "LocalTransporter is being used");
+    return *lt;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Access the thread-local offload interface.
  */
 LocalOffloadInterface& IntegrationSingleton::local_offload()
@@ -342,6 +360,11 @@ bool IntegrationSingleton::optical_offload() const
     return options_.optical
            && std::holds_alternative<inp::OpticalOffloadGenerator>(
                options_.optical->generator);
+}
+
+bool IntegrationSingleton::optical_track_offload() const
+{
+    return options_.optical && options_.optical->offload_tracks;
 }
 
 //---------------------------------------------------------------------------//
