@@ -282,6 +282,7 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/EventData.hh"
     "celeritas/inp/Grid.hh"
     "celeritas/inp/Particle.hh"
+    OPTIONS --failOnWarnings
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
