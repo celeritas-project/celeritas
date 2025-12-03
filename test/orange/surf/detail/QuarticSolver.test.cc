@@ -156,7 +156,7 @@ TYPED_TEST(QuarticSolverTest, surf_zero_roots)
     // Quadruple root at 0, to catch degenerate cases
     EXPECT_VEC_SOFT_EQ(make_roots({}), solve(Real4{1, 0, 0, 0}));
     // x^4 + 4*x^3
-    // Triple root at 3, one at -4, to catch degenerate cases
+    // Triple root at 0, one at -4, to catch degenerate cases
     EXPECT_VEC_SOFT_EQ(make_roots({}), solve(Real4{1, 4, 0, 0}));
 }
 
