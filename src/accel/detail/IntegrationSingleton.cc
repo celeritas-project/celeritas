@@ -78,6 +78,15 @@ IntegrationSingleton& IntegrationSingleton::instance()
 /*!
  * Static THREAD-LOCAL Celeritas state data.
  */
+TrackOffloadInterface& IntegrationSingleton::local_track_offload()
+{
+    if (this->optical_track_offload())
+    {
+        return IntegrationSingleton::local_optical_track_offload();
+    }
+    return IntegrationSingleton::local_transporter();
+}
+
 LocalTransporter& IntegrationSingleton::local_transporter()
 {
     auto& offload = IntegrationSingleton::local_offload_ptr();
@@ -112,15 +121,46 @@ LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Static THREAD-LOCAL Celeritas optical state data.
+ */
+LocalOpticalTrackOffload& IntegrationSingleton::local_optical_track_offload()
+{
+    auto& offload = IntegrationSingleton::local_offload_ptr();
+    if (!offload)
+    {
+        offload = std::make_unique<LocalOpticalTrackOffload>();
+    }
+    auto* lt = dynamic_cast<LocalOpticalTrackOffload*>(offload.get());
+    CELER_VALIDATE(lt,
+                   << "Cannot access LocalOpticalTrtackOffload when "
+                      "LocalTransporter is being used");
+    return *lt;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Access the thread-local offload interface.
  */
 LocalOffloadInterface& IntegrationSingleton::local_offload()
 {
-    if (this->optical_offload())
+    CELER_VALIDATE(!(this->optical_track_offload() && this->optical_offload()),
+                   << "Cannot enable both optical generator offload and "
+                      "optical "
+                      "track offload at the same time");
+
+    if (this->optical_track_offload())
+    {
+        return IntegrationSingleton::local_optical_track_offload();
+    }
+
+    else if (this->optical_offload())
     {
         return IntegrationSingleton::local_optical_offload();
     }
-    return IntegrationSingleton::local_transporter();
+    else
+    {
+        return IntegrationSingleton::local_transporter();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -362,6 +402,11 @@ bool IntegrationSingleton::optical_offload() const
     return options_.optical
            && std::holds_alternative<inp::OpticalOffloadGenerator>(
                options_.optical->generator);
+}
+
+bool IntegrationSingleton::optical_track_offload() const
+{
+    return options_.optical && options_.optical->offload_tracks;
 }
 
 //---------------------------------------------------------------------------//

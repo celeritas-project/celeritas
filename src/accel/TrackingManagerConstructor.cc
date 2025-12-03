@@ -55,7 +55,7 @@ TrackingManagerConstructor::TrackingManagerConstructor(
     : TrackingManagerConstructor(
           &detail::IntegrationSingleton::instance().shared_params(), [](int) {
               return &detail::IntegrationSingleton::instance()
-                          .local_transporter();
+                          .local_track_offload();
           })
 {
     CELER_EXPECT(tmi == &TrackingManagerIntegration::Instance());
@@ -134,7 +134,7 @@ void TrackingManagerConstructor::ConstructProcess()
 /*!
  * Get the local transporter associated with the current thread ID.
  */
-LocalTransporter* TrackingManagerConstructor::get_local_transporter() const
+TrackOffloadInterface* TrackingManagerConstructor::get_local_transporter() const
 {
     CELER_EXPECT(get_local_);
     return this->get_local_(G4Threading::G4GetThreadId());

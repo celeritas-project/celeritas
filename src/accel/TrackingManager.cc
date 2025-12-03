@@ -16,6 +16,7 @@
 #include "ExceptionConverter.hh"
 #include "LocalTransporter.hh"
 #include "SharedParams.hh"
+#include "TrackOffloadInterface.hh"
 
 namespace celeritas
 {
@@ -27,7 +28,7 @@ namespace celeritas
  * run.
  */
 TrackingManager::TrackingManager(SharedParams const* params,
-                                 LocalTransporter* local)
+                                 TrackOffloadInterface* local)
     : params_(params), transport_(local)
 {
     CELER_EXPECT(params_);

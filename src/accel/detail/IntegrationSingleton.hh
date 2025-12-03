@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "corecel/sys/Stopwatch.hh"
+#include "accel/LocalOpticalTrackOffload.hh"
 
 #include "../LocalOpticalOffload.hh"
 #include "../LocalTransporter.hh"
@@ -54,6 +55,12 @@ class IntegrationSingleton
     // Static THREAD-LOCAL Celeritas optical state data
     static LocalOpticalOffload& local_optical_offload();
 
+    // Static Thread-local Celeritas optical track offload
+    static LocalOpticalTrackOffload& local_optical_track_offload();
+
+    // Thread-local offload object for particles handled by the tracking
+    // manager
+    TrackOffloadInterface& local_track_offload();
     //// ACCESSORS ////
 
     // Access the thread-local offload interface
@@ -121,6 +128,8 @@ class IntegrationSingleton
 
     // Whether offloading optical distribution data is enabled
     bool optical_offload() const;
+
+    bool optical_track_offload() const;
 
     // Set up or update logging if the run manager is enabled
     void update_logger();

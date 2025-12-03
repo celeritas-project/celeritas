@@ -11,12 +11,13 @@
 #include <G4VPhysicsConstructor.hh>
 
 #include "corecel/cont/Span.hh"
+#include "accel/TrackOffloadInterface.hh"
 
 #include "detail/IntegrationSingleton.hh"
 
 namespace celeritas
 {
-class LocalTransporter;
+class TrackOffloadInterface;
 class SharedParams;
 class TrackingManagerIntegration;
 
@@ -51,7 +52,8 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
   public:
     //!@{
     //! \name Type aliases
-    using LocalTransporterFromThread = std::function<LocalTransporter*(int)>;
+    using LocalTransporterFromThread
+        = std::function<TrackOffloadInterface*(int)>;
     using VecG4PD = SetupOptions::VecG4PD;
     //!@}
 
@@ -75,7 +77,7 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     SharedParams const* shared_params() const { return shared_; }
 
     // Get the local transporter associated with the current thread ID
-    LocalTransporter* get_local_transporter() const;
+    TrackOffloadInterface* get_local_transporter() const;
 
   private:
     SharedParams const* shared_{nullptr};
