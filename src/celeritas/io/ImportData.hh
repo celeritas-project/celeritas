@@ -113,6 +113,8 @@ struct ImportData
     // Physics groups
     inp::OpticalPhysics optical_physics;
 
+    // Muon-catalyzed fusion
+    inp::MucfPhysics mucf_physics;
     //!@}
 };
 

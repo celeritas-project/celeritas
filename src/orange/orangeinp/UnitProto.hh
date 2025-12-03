@@ -173,7 +173,7 @@ class UnitProto : public ProtoInterface
     //// HELPER FUNCTIONS ////
 
     // Construct a standalone unit for testing and external interface
-    Unit build(Tol const& tol, BBox const& bbox) const;
+    Unit build(Tol const& tol, BBox const& bbox, bool is_global_universe) const;
 
   private:
     Input input_;

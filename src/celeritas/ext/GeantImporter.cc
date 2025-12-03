@@ -29,6 +29,7 @@
 #include <G4MscStepLimitType.hh>
 #include <G4MuPairProduction.hh>
 #include <G4MuPairProductionModel.hh>
+#include <G4MuonMinusAtomicCapture.hh>
 #include <G4Navigator.hh>
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
@@ -993,6 +994,15 @@ auto import_processes(GeantImporter::DataSelection selected,
             msc_models.insert(msc_models.end(),
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
+        }
+        else if (dynamic_cast<G4MuonMinusAtomicCapture const*>(&process))
+        {
+            // G4MuonMinusAtomicCapture is a G4ProcessType::fHadronic
+            // It is also a G4VRestProcess and does not require import data
+            CELER_LOG(debug) << "Initializing default muCF data for particle "
+                             << particle.GetParticleName() << " ("
+                             << particle.GetPDGEncoding() << ')';
+            imported.mucf_physics = inp::MucfPhysics::from_default();
         }
         else if (import_optical_model
                  && dynamic_cast<G4OpAbsorption const*>(&process))
