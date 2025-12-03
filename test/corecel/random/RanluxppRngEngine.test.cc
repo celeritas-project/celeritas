@@ -8,10 +8,13 @@
 
 #include <memory>
 
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/io/HexRepr.hh"
 #include "corecel/random/data/RanluxppRngData.hh"
 #include "corecel/random/data/RanluxppTypes.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/engine/detail/RanluxppImpl.hh"
 #include "corecel/random/params/RanluxppRngParams.hh"
 
 #include "RngTally.hh"
@@ -21,6 +24,119 @@ namespace celeritas
 {
 namespace test
 {
+
+// Validate that our assignment operator with inheritance works as expected
+TEST(RanluxImpl, params_copy)
+{
+    HostVal<RanluxppRngParamsData> host_val;
+    host_val.seed = 12345;
+    host_val.advance_state[0] = 1;
+    host_val.advance_sequence[0] = 2;
+
+    HostRef<RanluxppRngParamsData> host_ref;
+    host_ref = host_val;
+    EXPECT_EQ(12345, host_ref.seed);
+    EXPECT_EQ(1, host_ref.advance_state[0]);
+    EXPECT_EQ(2, host_ref.advance_sequence[0]);
+}
+
+/*!
+ * Little-endian value of 'a' used in RCARRY/RANLUX/RANLUX++.
+ *
+ \code[python]
+ def b_exp(p):
+     return 2**(24 * p)
+ print(hex(b_exp(24) - b_exp(23) - b_exp(10) + b_exp(9) + 1))
+ \endcode
+* then break into 16-digit chunks and reverse order.
+*/
+static constexpr RanluxppArray9 rcarry_a{
+    0x0000000000000001ull,
+    0x0000000000000000ull,
+    0x0000000000000000ull,
+    0xffff000001000000ull,
+    0xffffffffffffffffull,
+    0xffffffffffffffffull,
+    0xffffffffffffffffull,
+    0xffffffffffffffffull,
+    0xfffffeffffffffffull,
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Validate the definition of a_2048 and other skip parameters.
+ */
+TEST(RanluxImpl, compute_power_modulus)
+{
+    constexpr RanluxppArray9 unity{1, 0, 0, 0, 0, 0, 0, 0, 0};
+    EXPECT_EQ(unity, detail::compute_power_modulus(unity, 1));
+
+    // b = 2^24
+    // m = b^24 - b^10 + 1
+    // a = m - (m - 1) / b = b^24 − b^23 − b^10 + b^9 + 1
+    // NOTE: b^24 is 1 more than the capacity of RanluxppArray9
+    auto const& a = rcarry_a;
+    EXPECT_EQ(unity, detail::compute_power_modulus(a, 0));
+
+    auto a_2 = detail::compute_power_modulus(a, 2);
+    EXPECT_EQ(detail::compute_power_modulus(a, 4),
+              detail::compute_power_modulus(a_2, 2));
+
+    EXPECT_EQ(unity, detail::compute_power_modulus(a, 0));
+    EXPECT_EQ(a, detail::compute_power_modulus(a, 1));
+
+    // From Sibidinov, integer ordering reversed (little endian)
+    static constexpr RanluxppArray9 a_24{
+        0x0000000000000000ull,
+        0x0000000000000000ull,
+        0x0000000000010000ull,
+        0xfffe000000000000ull,
+        0xffffffffffffffffull,
+        0xffffffffffffffffull,
+        0xffffffffffffffffull,
+        0xfffffffeffffffffull,
+        0xffffffffffffffffull,
+    };
+
+    // Calculate the state after 24 LCG samples (aka RCARRY with luxury level
+    // 1)
+    auto a_24_actual = detail::compute_power_modulus(a, 24);
+    EXPECT_EQ(a_24, a_24_actual) << "actual: " << hex_repr(a_24_actual);
+
+    // Calculate the state after 2048 LCG samples
+    RanluxppRngParams host_params{0};
+    auto const& params = host_params.host_ref();
+    auto a_2048_actual
+        = detail::compute_power_modulus(a, RanluxppUInt(1) << 11);
+    EXPECT_EQ(params.advance_state, a_2048_actual)
+        << "actual: " << hex_repr(a_2048_actual);
+
+    auto a_32 = detail::compute_power_modulus(a, RanluxppUInt(1) << 5);  // a^2^5
+    auto a_1024 = detail::compute_power_modulus(a_32, RanluxppUInt(1) << 5);
+    EXPECT_EQ(params.advance_state, detail::compute_power_modulus(a_1024, 2));
+
+    // Seed state is 2048 (= 2^{11}) LCG skips, applied 2^96 times:
+    // = (a^{2^{11}})^{2^{96}}
+    // = a^{2^{11} * 2^{96}}
+    // = a^{2^{107}}
+    auto temp
+        = detail::compute_power_modulus(a, RanluxppUInt(1) << 50);  // a^2^50
+    temp = detail::compute_power_modulus(temp,
+                                         RanluxppUInt(1) << 50);  // a^2^100
+    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 7);  // a^2^107
+    EXPECT_EQ(params.advance_sequence, temp);
+}
+
+TEST(RanluxImpl, compute_power_exp_modulus)
+{
+    // Original seed state computation
+    auto temp = detail::compute_power_modulus(rcarry_a, RanluxppUInt(1) << 11);
+    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 48);
+    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 48);
+
+    EXPECT_EQ(temp, detail::compute_power_exp_modulus(rcarry_a, 107));
+}
+
 //---------------------------------------------------------------------------//
 class RanluxppRngEngineTest : public Test
 {
