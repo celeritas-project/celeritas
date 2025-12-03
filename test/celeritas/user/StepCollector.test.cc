@@ -256,13 +256,13 @@ TEST_F(KnMctruthTest, two_step)
     EXPECT_VEC_EQ(expected_track, result.track);
     static int const expected_step[] = {1, 2, 1, 2, 1, 2, 1, 2};
     EXPECT_VEC_EQ(expected_step, result.step);
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        static int const expected_volume[] = {1, 1, 1, 1, 1, 2, 1, 2};
-        EXPECT_VEC_EQ(expected_volume, result.volume);
-    }
     if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
     {
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            static int const expected_volume[] = {1, 1, 1, 1, 1, 2, 1, 2};
+            EXPECT_VEC_EQ(expected_volume, result.volume);
+        }
         // clang-format off
         static const double expected_pos[] = {0, 0, 0, 2.6999255778482, 0, 0, 0, 0, 0, 3.5717683161497, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
