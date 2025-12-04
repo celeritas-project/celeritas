@@ -9,7 +9,6 @@
 #include <memory>
 #include <vector>
 
-#include "corecel/io/Label.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 

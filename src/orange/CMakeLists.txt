@@ -31,6 +31,9 @@ list(APPEND SOURCES
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
   detail/UniverseInserter.cc
+  g4org/Converter.cc
+  g4org/ProtoConstructor.cc
+  inp/IO.json.cc
   orangeinp/CsgObject.cc
   orangeinp/CsgTree.cc
   orangeinp/CsgTreeIO.json.cc
@@ -87,16 +90,10 @@ list(APPEND SOURCES
   transform/TransformSimplifier.cc
   transform/Transformation.cc
   transform/VariantTransform.cc
-  inp/IO.json.cc
 )
 
 
 if(CELERITAS_USE_Geant4)
-  list(APPEND SOURCES
-    g4org/Converter.cc
-    g4org/ProtoConstructor.cc
-  )
-
   # Only the following sources require Geant4 linkage
   set(_cg4org_sources
     g4org/LogicalVolumeConverter.cc

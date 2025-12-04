@@ -73,20 +73,5 @@ class Converter
 };
 
 //---------------------------------------------------------------------------//
-
-#if !CELERITAS_USE_GEANT4
-inline Converter::Converter(Input&&)
-{
-    CELER_DISCARD(opts_);
-}
-
-inline auto Converter::operator()(GeantGeoParams const&, VolumeParams const&)
-    -> result_type
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-#endif
-
-//---------------------------------------------------------------------------//
 }  // namespace g4org
 }  // namespace celeritas

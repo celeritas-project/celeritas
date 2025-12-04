@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 
-#include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -14,7 +13,7 @@
 #include "orange/MatrixUtils.hh"
 #include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
-#include "orange/transform/TransformIO.hh"
+#include "orange/transform/TransformIO.hh"  // IWYU pragma: keep
 
 #include "GeantLoadTestBase.hh"
 #include "celeritas_test.hh"

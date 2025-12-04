@@ -112,7 +112,7 @@ struct PhysicalVolumeConverter::Builder
  * Construct with options.
  */
 PhysicalVolumeConverter::PhysicalVolumeConverter(GeantGeoParams const& geo,
-                                                 Input const& opts)
+                                                 Options const& opts)
     : data_{std::make_unique<Data>(geo)}
 {
     CELER_VALIDATE(opts.unit_length > 0,
