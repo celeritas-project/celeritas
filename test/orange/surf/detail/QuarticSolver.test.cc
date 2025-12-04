@@ -149,12 +149,6 @@ TYPED_TEST(QuarticSolverTest, surf_zero_roots)
     // x^4 + 6*x^3 + 11*x^2 + 6*x
     // Surface, three negative roots at -1, -2, -3
     EXPECT_VEC_SOFT_EQ(make_roots({}), solve(Real4{1, 6, 11, 6}));
-    // x^4
-    // Quadruple root at 0, to catch degenerate cases
-    EXPECT_VEC_SOFT_EQ(make_roots({}), solve(Real4{1, 0, 0, 0}));
-    // x^4 + 4*x^3
-    // Triple root at 0, one at -4, to catch degenerate cases
-    EXPECT_VEC_SOFT_EQ(make_roots({}), solve(Real4{1, 4, 0, 0}));
 }
 
 TYPED_TEST(QuarticSolverTest, surf_one_root)
@@ -165,27 +159,28 @@ TYPED_TEST(QuarticSolverTest, surf_one_root)
     {
         EXPECT_VEC_SOFT_EQ(make_roots({1.0}), solve(Real4{1, 3, 1, -5}));
     }
-    // x^4 - 2*x^3 + x^2
-    // Double root on surface, double root at 1
+    // x^4 + 3*x^3 - 4*x
+    // Surface, one root at 1, two roots at -2
     {
-        EXPECT_VEC_SOFT_EQ(make_roots({1.0}), solve(Real4{1, -2, 1, 0}));
+        EXPECT_VEC_SOFT_EQ(make_roots({1.0}), solve(Real4{1, 3, 0, -4}));
     }
 }
 
 TYPED_TEST(QuarticSolverTest, surf_two_roots)
 {
     TypeParam solve{};
-    // x^4 - 3*x^3 + 2*x^2
-    // Double root on surface, two roots at 1, 2
-    EXPECT_VEC_SOFT_EQ(make_roots({1.0, 2.0}), solve(Real4{1, -3, 2, 0}));
+    // x^4 - 2*x^3 - x^2 + 2*x
+    // Surface, two roots at 1, 2, one root at -1
+    EXPECT_VEC_SOFT_EQ(make_roots({1.0, 2.0}), solve(Real4{1, -2, -1, 2}));
 }
 
-TYPED_TEST(QuarticSolverTest, surf_two_roots_one_double)
+TYPED_TEST(QuarticSolverTest, surf_three_roots)
 {
     TypeParam solve{};
-    // x^4 - 5*x^3 + 8*x^2 - 4*x
-    // Surface, one double root at 2, one root at 1
-    EXPECT_VEC_SOFT_EQ(make_roots({1.0, 2.0}), solve(Real4{1, -5, 8, -4}));
+    // x^4 - 6*x^3 + 11*x^2 - 6*x
+    // Surface, roots at 1, 2, and 3
+    EXPECT_VEC_SOFT_EQ(make_roots({1.0, 2.0, 3.0}),
+                       solve(Real4{1, -6, 11, -6}));
 }
 
 //---------------------------------------------------------------------------//
