@@ -280,7 +280,7 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/ImportUnits.hh"
     "celeritas/io/ImportVolume.hh"
     "celeritas/io/EventData.hh"
-    "celeritas/inp/Grid.hh"
+    "corecel/inp/Grid.hh"
     "celeritas/inp/Particle.hh"
     OPTIONS --failOnWarnings
     NOINSTALL

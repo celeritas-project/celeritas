@@ -9,9 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "corecel/inp/Grid.hh"
 #include "celeritas/Types.hh"
-
-#include "Grid.hh"
 
 namespace celeritas
 {

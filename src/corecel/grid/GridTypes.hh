@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -32,6 +34,16 @@ enum class Interp
 };
 
 //---------------------------------------------------------------------------//
+//! Interpolation for physics grids
+enum class InterpolationType
+{
+    linear,
+    poly_spline,  //!< Piecewise polynomial interpolation
+    cubic_spline,  //!< Cubic spline interpolation with \f$ C^2 \f$ continuity
+    size_
+};
+
+//---------------------------------------------------------------------------//
 //! Cubic spline interpolation boundary conditions
 enum class SplineBoundaryCondition
 {
@@ -50,6 +62,9 @@ CELER_CONSTEXPR_FUNCTION int to_int(Bound b)
 {
     return static_cast<int>(b);
 }
+
+// Get a string corresponding to the interpolation method
+char const* to_cstring(InterpolationType value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
