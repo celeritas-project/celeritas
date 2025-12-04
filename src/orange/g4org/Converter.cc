@@ -58,7 +58,7 @@ LocalVolumeId find_bg_volume(std::vector<VolumeInput> const& volumes)
 /*!
  * Construct with options.
  */
-Converter::Converter(Input&& opts) : opts_{std::move(opts)}
+Converter::Converter(Options&& opts) : opts_{std::move(opts)}
 {
     if (!opts_.tol)
     {

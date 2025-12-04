@@ -9,7 +9,6 @@
 #include "corecel/Config.hh"
 
 #include "orange/OrangeInput.hh"
-#include "orange/OrangeTypes.hh"
 #include "orange/inp/Import.hh"
 
 //---------------------------------------------------------------------------//
@@ -51,7 +50,7 @@ class Converter
     //!@{
     //! \name Type aliases
     using arg_type = GeantGeoParams const&;
-    using Input = inp::OrangeGeoFromGeant;
+    using Options = inp::OrangeGeoFromGeant;
     //!@}
 
     struct result_type
@@ -61,16 +60,16 @@ class Converter
 
   public:
     // Construct with options
-    explicit Converter(Input&&);
+    explicit Converter(Options&&);
 
     //! Construct with default options
-    Converter() : Converter{Input{}} {}
+    Converter() : Converter{Options{}} {}
 
     // Convert the world
     result_type operator()(GeantGeoParams const&, VolumeParams const&);
 
   private:
-    Input opts_;
+    Options opts_;
 };
 
 //---------------------------------------------------------------------------//
