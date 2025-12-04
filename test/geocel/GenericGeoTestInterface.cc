@@ -6,12 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestInterface.hh"
 
-#include <stdexcept>
 #include <gtest/gtest.h>
 
-#include "corecel/Config.hh"
-
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -19,7 +15,6 @@
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
-#include "geocel/detail/LengthUnits.hh"
 #include "geocel/inp/Model.hh"
 
 #include "CheckedGeoTrackView.hh"
@@ -36,10 +31,11 @@ namespace test
  * Track until exiting the geometry.
  *
  * The position uses the length scale defined by the test. It is loop checked
- * using a hardcoded value of 250 steps. (TestEm3 has more than 100.)
+ * using an input value.
  */
-auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
-    -> TrackingResult
+auto GenericGeoTestInterface::track(Real3 const& pos,
+                                    Real3 const& dir,
+                                    int remaining_steps) -> TrackingResult
 {
     TrackingResult result;
     CheckedGeoTrackView geo = this->make_checked_track_view();
@@ -92,7 +88,6 @@ auto GenericGeoTestInterface::track(Real3 const& pos, Real3 const& dir)
         = [scale = unit_length.value](auto&& v) { return v / scale; };
     auto const tol = this->tracking_tol();
 
-    int remaining_steps = 250;
     while (!geo.is_outside())
     {
         // Find next distance

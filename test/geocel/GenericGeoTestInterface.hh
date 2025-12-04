@@ -10,7 +10,6 @@
 #include <string>
 #include <gtest/gtest.h>
 
-#include "geocel/GeoParamsInterface.hh"
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
 
@@ -53,7 +52,9 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //// TESTS ////
 
     // Track until exiting the geometry
-    TrackingResult track(Real3 const& pos_cm, Real3 const& dir);
+    TrackingResult
+    track(Real3 const& pos_cm, Real3 const& dir, int max_steps = 50);
+
     // Obtain the "touchable history" at a point
     VolumeStackResult volume_stack(Real3 const& pos_cm);
 

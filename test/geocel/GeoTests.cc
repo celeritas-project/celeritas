@@ -1160,7 +1160,7 @@ void ReplicaGeoTest::test_trace() const
 
     {
         SCOPED_TRACE("Center +z");
-        auto result = test_->track({0, 0.5, -990}, {0, 0, 1});
+        auto result = test_->track({0, 0.5, -990}, {0, 0, 1}, 75);
 
         // clang-format off
         GenericGeoTrackingResult ref;
@@ -1207,7 +1207,7 @@ void ReplicaGeoTest::test_trace() const
         SCOPED_TRACE("Second arm");
         Real3 dir{0, 0, 0};
         sincos(Turn{-30.0 / 360.}, &dir[0], &dir[2]);
-        auto result = test_->track({0.125, 0.5, 0.0625}, dir);
+        auto result = test_->track({0.125, 0.5, 0.0625}, dir, 100);
 
         // clang-format off
         GenericGeoTrackingResult ref;
@@ -1877,7 +1877,7 @@ void SimpleCmsGeoTest::test_trace() const
 void TestEm3GeoTest::test_trace() const
 {
     {
-        auto result = test_->track({-20.1}, {1, 0, 0});
+        auto result = test_->track({-20.1}, {1, 0, 0}, /*max_steps=*/250);
         result.volume_instances.clear();  // boring
 
         GenericGeoTrackingResult ref;
