@@ -352,15 +352,7 @@ FerrariSolver::real_roots_normalized_cubic(real_type b,
                          * std::cbrt(std::abs(r) + std::sqrt(discrim));
         real_type nr_b = nr_a == 0 ? 0 : q / nr_a;
         real_type z0 = nr_a + nr_b - third_b;
-        Real3 z(z0, no_intersection(), no_intersection());
-        if (soft_zero_(discrim))
-        {
-            // If near double root, accept within quadratic tolerance
-            // TODO: is this actually necessary? How bad is it to not graze the
-            // side?
-            z[1] = -half * (nr_a + nr_b) - third_b;
-        }
-        return z;
+        return Real3(z0, no_intersection(), no_intersection());
     }
 }
 
