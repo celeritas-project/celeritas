@@ -103,10 +103,7 @@ class FerrariSolver
  * such as the particle starting on the surface.
  */
 CELER_FUNCTION
-FerrariSolver::FerrariSolver(real_type tolerance)
-{
-    SoftZero soft_zero_{tolerance};
-}
+FerrariSolver::FerrariSolver(real_type tolerance) : soft_zero_{tolerance} {}
 
 //---------------------------------------------------------------------------//
 /*!
