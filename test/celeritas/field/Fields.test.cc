@@ -332,8 +332,8 @@ TEST_F(CartMapFieldTest, host)
     CartMapFieldInput inp = build_cart_map_input();
     CartMapFieldParams field_map{inp};
 
+    // FIXME: test data should be single-precision
     CartMapField calc_field(field_map.host_ref());
-    using real_type = CartMapField::real_type;
 
     // Sample the field
 
