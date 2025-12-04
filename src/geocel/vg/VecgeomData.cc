@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomData.hh"
 
+#include "corecel/Types.hh"
+#include "geocel/vg/VecgeomTypes.hh"
+
 #if CELER_VGNAV == CELER_VGNAV_TUPLE
 #    include <VecGeom/navigation/NavStateTuple.h>
 #else
@@ -14,11 +17,16 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 
+#include "detail/VecgeomSetup.hh"
+
 namespace celeritas
 {
+
 //---------------------------------------------------------------------------//
 /*!
  * Resize geometry states.
+ *
+ * \todo Add stream ID
  */
 template<MemSpace M>
 void resize(VecgeomStateData<Ownership::value, M>* data,
@@ -32,13 +40,22 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
     resize(&data->pos, size);
     resize(&data->dir, size);
     resize(&data->state, size);
+    resize(&data->next_state, size);
+    if constexpr (M == MemSpace::device)
+    {
+#if CELER_VGNAV == CELER_VGNAV_TUPLE
+        using AllStates = AllItems<VgNavStateImpl, MemSpace::device>;
+        detail::init_navstate_device(data->state[AllStates{}], StreamId{});
+        detail::init_navstate_device(data->next_state[AllStates{}], StreamId{});
+#endif
+    }
+
     if constexpr (CELER_VGNAV != CELER_VGNAV_PATH)
     {
         // Unless using the 'path' navigator, boundary data is stored
         // independently
         resize(&data->boundary, size);
     }
-    resize(&data->next_state, size);
     if constexpr (CELER_VGNAV != CELER_VGNAV_PATH)
     {
         // Path navigator stores the boundary, and surface model uses next_surf

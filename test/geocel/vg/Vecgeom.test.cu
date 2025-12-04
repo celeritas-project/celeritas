@@ -12,6 +12,7 @@
 
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
+#include "geocel/vg/VecgeomTypes.hh"
 
 using thrust::raw_pointer_cast;
 

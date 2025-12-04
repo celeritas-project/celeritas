@@ -204,7 +204,7 @@ else()
 endif()
 
 # Check if the compiler/linker supports -Wl,-z,undefs flag
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CUDA_COMPILER)
   include(CheckLinkerFlag)
   check_linker_flag(CXX "LINKER:-z,undefs" CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)
   if(CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)

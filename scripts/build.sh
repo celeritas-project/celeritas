@@ -20,7 +20,7 @@
 set -e
 
 # Print a colorful message to stderr
-log() {
+celerlog() {
   level=$1
   message=$2
 
@@ -39,6 +39,10 @@ log() {
   printf "\033[%sm%s:\033[0m %s\n" "${color}" "${level}" "${message}" >&2
 }
 
+log() {
+  celerlog "$@"
+}
+
 # Get the hostname, trying to account for being on a compute node or cluster
 fancy_hostname() {
   sys=${LMOD_SYSTEM_NAME}
@@ -53,6 +57,22 @@ fancy_hostname() {
   fi
   log debug "Determined system name: ${sys} (override with LMOD_SYSTEM_NAME)"
   printf '%s\n' "${sys}"
+}
+
+# Load environment (make sure this is not executed as a subshell)
+load_system_env() {
+  ENV_SCRIPT="${CELER_SOURCE_DIR}/scripts/env/$1.sh"
+  if [ -f "${ENV_SCRIPT}" ]; then
+    log info "Sourcing environment script at ${ENV_SCRIPT}"
+    set +e
+    if ! . "$ENV_SCRIPT"; then
+      log error "Environment setup for $1 failed"
+      exit 1
+    fi
+    set -e
+  else
+    log debug "No environment script exists at ${ENV_SCRIPT}"
+  fi
 }
 
 # Link the presets file
@@ -146,14 +166,8 @@ fi
 OLD_CMAKE="$(command -v cmake 2>/dev/null || printf '')"
 OLD_PRE_COMMIT="$(command -v pre-commit 2>/dev/null || printf '')"
 
-# Load environment paths
-ENV_SCRIPT="scripts/env/${SYSTEM_NAME}.sh"
-if [ -f "${ENV_SCRIPT}" ]; then
-  log info "Sourcing environment script at ${ENV_SCRIPT}"
-  . "${ENV_SCRIPT}"
-else
-  log debug "No environment script exists at ${ENV_SCRIPT}"
-fi
+# Load environment paths using the system name
+load_system_env "${SYSTEM_NAME}"
 
 NEW_CMAKE="$(command -v cmake 2>/dev/null || printf 'cmake unavailable')"
 NEW_PRE_COMMIT="$(command -v pre-commit 2>/dev/null || printf '')"

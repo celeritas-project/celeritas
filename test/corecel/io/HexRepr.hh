@@ -27,11 +27,11 @@ template<class T>
 inline std::ostream& operator<<(std::ostream& os, HexRepr<T> const& h)
 {
     ScopedStreamFormat save_fmt(&os);
-
-    os << std::hexfloat << h.value;
+    os << std::hexfloat << std::hex << h.value;
     return os;
 }
 
+//! Print an integer or float (or array thereof) as a hexadecimal
 template<class T>
 inline HexRepr<T> hex_repr(T value)
 {

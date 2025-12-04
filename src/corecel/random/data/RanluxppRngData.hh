@@ -11,53 +11,47 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/random/data/RanluxppTypes.hh"
-#include "corecel/random/engine/detail/RanluxppImpl.hh"
 
 namespace celeritas
 {
 
 //---------------------------------------------------------------------------//
 /*!
- * Persistent data for the Ranluxpp random number generator.
+ * Persistent trivially copiable data for the Ranluxpp random number generator.
  */
-template<Ownership W, MemSpace M>
-struct RanluxppRngParamsData
+struct RanluxppRngParamsDataImpl
 {
     //// DATA ////
-    //! Stores the user provided seed
+
+    //! User-provided seed
     RanluxppUInt seed = 0;
 
-    //! Stores the maximum position in the state
+    //! Maximum bit position in the state
     static constexpr int max_position = sizeof(RanluxppArray9) * 8;
 
-    //! Stores \f$a^2048 mod m\f$ for Ranluxpp values of \f$a\f$ and \f$m\f$.
-    static constexpr RanluxppArray9 state_2048 = {
-        0xed7faa90747aaad9ull,
-        0x4cec2c78af55c101ull,
-        0xe64dcb31c48228ecull,
-        0x6d8a15a13bee7cb0ull,
-        0x20b2ca60cb78c509ull,
-        0x256c3d3c662ea36cull,
-        0xff74e54107684ed2ull,
-        0x492edfcc0cc8e753ull,
-        0xb48c187cf5b22097ull,
-    };
+    //! Stores \f$a^2048 mod m\f$ for RCARRY values of \f$a\f$ and \f$m\f$.
+    RanluxppArray9 advance_state;
 
     //! Stores \f$a^(2048 * (2^96)) mod m\f$
-    //! \todo Make this constexpr
-    RanluxppArray9 seed_state;
+    RanluxppArray9 advance_sequence;
 
     //// FUNCTIONS ////
     //! Whether the data is assigned.
-    explicit CELER_CONSTEXPR_FUNCTION operator bool() const { return true; }
+    explicit CELER_CONSTEXPR_FUNCTION operator bool() const
+    {
+        return advance_state[0] != 0 && advance_sequence[0] != 0;
+    }
+};
 
+template<Ownership W, MemSpace M>
+struct RanluxppRngParamsData : RanluxppRngParamsDataImpl
+{
     //! Assign from another set of data.
     template<Ownership W2, MemSpace M2>
     RanluxppRngParamsData& operator=(RanluxppRngParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        seed = other.seed;
-        seed_state = other.seed_state;
+        static_cast<RanluxppRngParamsDataImpl&>(*this) = other;
         return *this;
     }
 };

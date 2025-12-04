@@ -80,6 +80,7 @@ list(APPEND SOURCES
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
   grid/XsGridInserter.cc
+  inp/MucfPhysics.cc
   io/AtomicRelaxationReader.cc
   io/GammaNuclearXsReader.cc
   io/ImportData.cc
@@ -281,6 +282,7 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/EventData.hh"
     "celeritas/inp/Grid.hh"
     "celeritas/inp/Particle.hh"
+    OPTIONS --failOnWarnings
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
