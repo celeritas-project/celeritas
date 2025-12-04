@@ -77,15 +77,6 @@
       }
     },
     {
-      "name": "clhep",
-      "displayName": "With CLHEP units",
-      "inherits": [".base", ".debug", "default"],
-      "cacheVariables": {
-        "CELERITAS_UNITS": "CLHEP",
-        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
-      }
-    },
-    {
       "name": "mini",
       "displayName": "Minimal deps",
       "inherits": ["minimal", ".base", ".debug"]
@@ -172,7 +163,7 @@
     {
       "name": "ndebug",
       "displayName": "With ORANGE in optimized mode",
-      "inherits": [".ndebug", ".base"],
+      "inherits": [".ccache", ".ndebug", ".base"],
       "cacheVariables": {
         "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "OFF"}
       }
@@ -180,7 +171,7 @@
     {
       "name": "ndebug-vecgeom",
       "displayName": "With vecgeom, clhep, dev g4 in optimized mode",
-      "inherits": [".base", ".ndebug", "vecgeom"],
+      "inherits": [".ccache", ".base", ".ndebug", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},

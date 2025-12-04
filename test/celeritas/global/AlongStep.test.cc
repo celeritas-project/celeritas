@@ -577,6 +577,11 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         // Without a field the electron has the same step length but a larger
         // displacement
         auto result = this->run(inp, num_tracks);
+        if (CELERITAS_CORE_RNG != CELERITAS_CORE_RNG_XORWOW)
+        {
+            GTEST_SKIP() << "Not using reference RNG";
+        }
+
         EXPECT_SOFT_NEAR(0.28064807889290933, result.displacement, tol);
         EXPECT_SOFT_NEAR(0.68629076604678063, result.angle, tol);
         EXPECT_SOFT_NEAR(0.33775753626703175, result.step, tol);
@@ -639,6 +644,10 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         inp.direction = {0, -1, 0};
 
         auto result = this->run(inp, num_tracks);
+        if (CELERITAS_CORE_RNG != CELERITAS_CORE_RNG_XORWOW)
+        {
+            GTEST_SKIP() << "Not using reference RNG";
+        }
         EXPECT_SOFT_NEAR(0.28057298212898418, result.displacement, tol);
         EXPECT_SOFT_NEAR(0.6882027184831665, result.angle, tol);
         EXPECT_SOFT_NEAR(0.33775753626703175, result.step, tol);
