@@ -78,10 +78,9 @@ struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
                           field_t,
                           detail::CovfieFieldTraits<MemSpace::host>::field_t>)
         {
-            // no covfie hip texture memory support, we can simply copy from
-            // the host field
             if constexpr (CELERITAS_USE_HIP)
             {
+                // No texture memory support: simply copy from the host field
                 field = std::make_unique<field_t>(*other.field);
             }
             else
