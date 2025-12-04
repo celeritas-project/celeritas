@@ -61,7 +61,7 @@ class PhysicalVolumeConverter
 };
 
 //---------------------------------------------------------------------------//
-#if !CELERITAS_USE_GEANT4
+#if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
 struct PhysicalVolumeConverter::PhysicalVolumeConverter::Data
 {
 };
