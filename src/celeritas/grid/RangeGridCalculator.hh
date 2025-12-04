@@ -15,8 +15,8 @@
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/grid/UniformGridData.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {

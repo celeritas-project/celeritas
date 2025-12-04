@@ -218,16 +218,6 @@ enum class WlsTimeProfile
 };
 
 //---------------------------------------------------------------------------//
-//! Interpolation for physics grids
-enum class InterpolationType
-{
-    linear,
-    poly_spline,  //!< Piecewise polynomial interpolation
-    cubic_spline,  //!< Cubic spline interpolation with \f$ C^2 \f$ continuity
-    size_
-};
-
-//---------------------------------------------------------------------------//
 //! Cylindrical coordinates indices
 enum class CylAxis
 {
@@ -301,9 +291,6 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
-
-// Get a string corresponding to the interpolation method
-char const* to_cstring(InterpolationType value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/inp/Particle.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/PhysicsModel.hh"

@@ -6,9 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
-#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
