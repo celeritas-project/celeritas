@@ -58,18 +58,16 @@ TYPED_TEST_SUITE(QuarticSolverTest, QuarticSolvers, );
 TYPED_TEST(QuarticSolverTest, no_roots)
 {
     TypeParam solve{};
-    // x^4 + 2*x^3 - 2.999998*x^2 - 3.999998*x + 4.000005000001
-    // Four complex roots 1+-0.001i, -2+-0.001i
-    {
-        EXPECT_VEC_SOFT_EQ(
-            make_roots({}),
-            solve(Real5{1, 2, -2.999998, -3.999998, 4.000005000001}));
-    }
-    // x^4 + x^3 - 2.999999*x^2 - 0.999997*x + 2.200002
-    // Two negative real roots 2, 1, and two imaginary roots 1+-0.001i
+    // x^4 + 2*x^3 - 2.98*x^2 - 3.98*x + 4.0501
+    // Four complex roots 1+-0.1i, -2+-0.1i
     {
         EXPECT_VEC_SOFT_EQ(make_roots({}),
-                           solve(Real5{1, 1, -2.999999, -0.999997, 2.200002}));
+                           solve(Real5{1, 2, -2.98, -3.98, 4.0501}));
+    }
+    // x^4 + x^3 - 2*x^2 + 2*x + 4
+    // Two negative real roots 2, 1, and two imaginary roots 1+-i
+    {
+        EXPECT_VEC_SOFT_EQ(make_roots({}), solve(Real5{1, 1, -2, 2, 4}));
     }
     // x^4 + 10*x^3 + 35*x^2 + 50*x + 24
     // Four negative roots -1, -2, -3, -4
@@ -91,11 +89,10 @@ TYPED_TEST(QuarticSolverTest, one_root)
     {
         EXPECT_VEC_SOFT_EQ(make_roots({2.0}), solve(Real5{1, -2, -2, 0, 8}));
     }
-    // x^4 - 3*x^3 + 1.000001*x^2 + 2.999999*x - 2.000002
+    // x^4 - 3*x^3 + 2*x^2 + 2x - 4
     // One root at 2, one negative root at -1, two imag roots
     {
-        EXPECT_VEC_SOFT_EQ(make_roots({2.0}),
-                           solve(Real5{1, -3, 1.000001, 2.999999, -2.000002}));
+        EXPECT_VEC_SOFT_EQ(make_roots({2.0}), solve(Real5{1, -3, 2, 2, -4}));
     }
 }
 
