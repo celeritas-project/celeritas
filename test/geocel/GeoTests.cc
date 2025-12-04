@@ -1938,7 +1938,7 @@ void TestEm3GeoTest::test_trace() const
 void TestEm3FlatGeoTest::test_trace() const
 {
     {
-        auto result = test_->track({-20.1}, {1, 0, 0});
+        auto result = test_->track({-20.1}, {1, 0, 0}, 150);
         result.volume_instances.clear();  // boring
 
         GenericGeoTrackingResult ref;
