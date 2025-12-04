@@ -28,6 +28,14 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
 {
     celeritas::SetupOptions opts;
 
+    // Validate configuration parameters
+    CELER_VALIDATE(m_maxNumTracks > 0,
+                   << "MaxNumTracks must be set to a positive value (got "
+                   << m_maxNumTracks << ")");
+    CELER_VALIDATE(m_initCapacity > 0,
+                   << "InitCapacity must be set to a positive value (got "
+                   << m_initCapacity << ")");
+
     // NOTE: these numbers are appropriate for CPU execution and can be set
     // through the UI using `/celer/`
     opts.max_num_tracks = m_maxNumTracks;

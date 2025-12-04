@@ -30,8 +30,8 @@ class DDcelerTMI : public Geant4PhysicsList
     // Define standard assignments and constructors
     DDG4_DEFINE_ACTION_CONSTRUCTORS(DDcelerTMI);
 
-    int m_maxNumTracks;
-    int m_initCapacity;
+    int m_maxNumTracks{0};
+    int m_initCapacity{0};
     std::vector<std::string> m_ignoreProcesses;
 
   public:
