@@ -2,30 +2,27 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/io/ImportPhysicsTable.hh
+//! \file corecel/grid/GridTypes.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "GridTypes.hh"
 
-#include <vector>
-
-#include "corecel/inp/Grid.hh"
-
-#include "ImportUnits.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Imported physics table. Each table stores physics vectors for all materials.
+ * Get a string corresponding to the interpolation method.
  */
-struct ImportPhysicsTable
+char const* to_cstring(InterpolationType value)
 {
-    ImportUnits x_units{ImportUnits::unitless};
-    ImportUnits y_units{ImportUnits::unitless};
-    std::vector<inp::UniformGrid> grids;
-
-    explicit operator bool() const { return !grids.empty(); }
-};
+    static EnumStringMapper<InterpolationType> const to_cstring_impl{
+        "linear",
+        "poly_spline",
+        "cubic_spline",
+    };
+    return to_cstring_impl(value);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
