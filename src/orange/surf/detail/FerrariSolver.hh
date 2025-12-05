@@ -62,9 +62,7 @@ class FerrariSolver
     FerrariSolver(real_type tolerance = Tolerance<real_type>::sqrt_quadratic());
 
     // Solver for fully general case
-    inline CELER_FUNCTION Intersections operator()(Real5 const& abcde,
-                                                   SurfaceState on_surface
-                                                   = SurfaceState::off) const;
+    inline CELER_FUNCTION Intersections operator()(Real5 const& abcde) const;
 
     // Solver for surface case
     inline CELER_FUNCTION Intersections operator()(Real4 const& abcd) const;
@@ -119,18 +117,11 @@ FerrariSolver::FerrariSolver(real_type tolerance) : soft_zero_{tolerance} {}
  * Allows user to specify if the operation takes place on the surface, in which
  * case it will solve as a cubic to avoid the root at 0.
  */
-CELER_FUNCTION auto
-FerrariSolver::operator()(Real5 const& abcde, SurfaceState on_surface) const
+CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
     -> Intersections
 {
     CELER_EXPECT(abcde[0] != 0);
     auto [a, b, c, d, e] = abcde;
-
-    // If known to be on surface, solve using cubic instead
-    if (on_surface == SurfaceState::on)
-    {
-        return operator()(Real4{a, b, c, d});
-    }
 
     // Normalize coefficients
     real_type ba = b / a, ca = c / a, da = d / a, ea = e / a;
