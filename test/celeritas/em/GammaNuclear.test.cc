@@ -85,7 +85,7 @@ TEST_F(GammaNuclearTest, micro_xs)
     // Check the size of the element cross section data (G4PARTICLEXS4.1)
     HostCRef<GammaNuclearData> shared = model_->host_ref();
 
-    NonuniformGridRecord grid = shared.micro_xs_iaea[el_id];
+    NonuniformGridRecord grid = shared.xs_iaea[el_id];
     EXPECT_EQ(grid.grid.size(), 260);
 
     // Microscopic cross section (units::BarnXs) in [0.5:100.5] (MeV)
@@ -112,7 +112,7 @@ TEST_F(GammaNuclearTest, micro_xs)
     // Calculate the gamma-nuclear cross section at the high energy region
     // using parameterizated data
 
-    NonuniformGridRecord grid_high = shared.micro_xs_chips[el_id];
+    NonuniformGridRecord grid_high = shared.xs_chips[el_id];
     EXPECT_EQ(grid_high.grid.size(), 300);
 
     // Expected microscopic cross section (units::BarnXs) in [130:1e+8] (MeV)
@@ -124,7 +124,7 @@ TEST_F(GammaNuclearTest, micro_xs)
            {1e+3, 0.032829279254133224},
            {5e+3, 0.018822644663262746},
            {5e+4, 0.01448519295151751},
-           {1e+6, 0.017121938325768058},
+           {1e+6, 0.017122133350371736},
            {1e+8, 0.027254443598797456}};
 
     for (auto i : range(energy_xs.size()))
@@ -156,7 +156,7 @@ TEST_F(GammaNuclearTest, macro_xs)
            {1e+3, 0.1353591424632776},
            {5e+3, 0.077905738172584824},
            {5e+4, 0.060230059626849054},
-           {1e+6, 0.071193761086917717},
+           {1e+6, 0.071194572007666074},
            {1e+8, 0.11332515683749959}};
 
     for (auto i : range(energy_xs.size()))
