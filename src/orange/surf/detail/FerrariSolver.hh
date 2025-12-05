@@ -7,7 +7,6 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
 
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
