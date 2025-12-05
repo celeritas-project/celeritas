@@ -71,7 +71,7 @@ class FerrariSolver
     // Soft zero for biquadratic and degenerate cubic detection
     SoftZero<real_type> const soft_zero_;
 
-    //// UTIL ////
+    //// HELPER FUNCTIONS ////
     // Try to place real at given index in list, return next free index
     inline CELER_FUNCTION int
     place_root(Intersections& roots, real_type new_root, int free_index) const;
