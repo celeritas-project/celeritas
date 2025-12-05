@@ -96,7 +96,7 @@ jobs:
           echo "::group::Build verbosely"
           ninja -v -k0
           echo "::endgroup::"
-          echo "::notice title=build-size::$(du -hs . | awk '{print $1}')"
+          echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
 
       ### TEST ###
 
@@ -135,7 +135,9 @@ jobs:
         id: install
         working-directory: build
         run: |
+          echo "::group::Install"
           cmake --install .
+          echo "::endgroup::
           cmake --build . --target clean
       - name: Check installation
         if: >-

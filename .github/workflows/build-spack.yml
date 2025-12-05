@@ -144,7 +144,9 @@ jobs:
                 && matrix.geant != ''}}; then
             spack -e . add g4vg@1.0.5
           fi
+          echo "::group::Find compilers"
           spack -vd -e . compiler find --mixed-toolchain
+          echo "::endgroup::
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
       - name: Cache concretization
@@ -245,7 +247,7 @@ jobs:
           echo "::group::Build verbosely"
           ninja -v -k0
           echo "::endgroup::"
-          echo "::notice title=build-size::$(du -hs . | awk '{print $1}')"
+          echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
       - name: Show ccache stats
         if: ${{!cancelled() && steps.installdeps.outcome == 'success'}}
         run: |
@@ -357,7 +359,9 @@ jobs:
           }}
         working-directory: build
         run: |
-          ninja install
+          echo "::group::Install"
+          cmake --install .
+          echo "::endgroup::
           ninja clean
       - name: Check installation
         if: >-
