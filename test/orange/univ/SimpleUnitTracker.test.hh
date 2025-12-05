@@ -49,16 +49,12 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
     // Create local state from global memory
     LocalState lstate;
 
-    LevelStateAccessor lsa(&states, tid, LevelId{0});
+    LevelStateAccessor lsa(params.scalars, &states, tid, UnivLevelId{0});
     lstate.pos = lsa.pos();
     lstate.dir = lsa.dir();
     lstate.volume = lsa.vol();
 
     lstate.surface = {};
-
-    size_type const max_faces = params.scalars.max_faces;
-    lstate.temp_sense
-        = states.temp_sense[build_range<SenseValue>(max_faces, tid)];
 
     size_type const max_isect = params.scalars.max_intersections;
     lstate.temp_next.face
@@ -89,7 +85,7 @@ struct InitializingExecutor
 
         // TODO: for multiuniverses tests, we actually have to iterate
         // through daughter universes to assign the level and volume
-        LevelStateAccessor lsa(&states, tid, LevelId{0});
+        LevelStateAccessor lsa(params.scalars, &states, tid, UnivLevelId{0});
         lsa.vol() = init.volume;
 
         lstate.volume = init.volume;

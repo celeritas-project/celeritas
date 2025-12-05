@@ -9,8 +9,8 @@
 #include <functional>
 
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/inp/Grid.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"

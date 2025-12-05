@@ -52,8 +52,8 @@ CoulombScatteringExecutor::operator()(CoreTrackView const& track)
 
     // Select isotope
     ElementView element = material.element_record(elcomp_id);
-    IsotopeSelector iso_select(element);
-    IsotopeView target = element.isotope_record(iso_select(rng));
+    IsotopeView target
+        = element.isotope_record(make_isotope_selector(element)(rng));
 
     // Construct the interactor
     CoulombScatteringInteractor interact(

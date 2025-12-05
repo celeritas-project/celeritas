@@ -15,7 +15,7 @@ optical tracking loop as a flowchart.
 
 .. _fig-optical-flow:
 
-.. figure:: /_static/mermaid/optical-flow.*
+.. figure:: /_static/dot/optical-flow.*
    :align: center
    :width: 80%
 
@@ -80,6 +80,7 @@ analogous to secondary particles in Geant4.
 
 .. doxygenclass:: celeritas::optical::CherenkovGenerator
 .. doxygenclass:: celeritas::optical::ScintillationGenerator
+.. doxygenclass:: celeritas::optical::WavelengthShiftGenerator
 
 Volumetric processes
 ====================
@@ -87,8 +88,11 @@ Volumetric processes
 Like other particles, optical photons undergo stochastic interactions inside
 optical materials.
 
-.. doxygenclass:: celeritas::optical::AbsorptionModel
-.. doxygenclass:: celeritas::optical::RayleighModel
+.. doxygenclass:: celeritas::optical::AbsorptionInteractor
+.. doxygenclass:: celeritas::optical::RayleighInteractor
+.. doxygenclass:: celeritas::optical::MieInteractor
+.. doxygenclass:: celeritas::optical::WavelengthShiftInteractor
+
 .. doxygenclass:: celeritas::optical::RayleighMfpCalculator
 
 .. _surface_processes:
@@ -112,3 +116,10 @@ distribution" to account for the roughness of the surface.
 
 .. doxygenclass:: celeritas::optical::SmearRoughnessSampler
 .. doxygenclass:: celeritas::optical::GaussianRoughnessSampler
+
+Interactions are sampled from models describing the distributions of absorption,
+reflection, and refraction on the surface.
+
+.. doxygenclass:: celeritas::optical::FresnelCalculator
+.. doxygenclass:: celeritas::optical::ReflectionFormCalculator
+.. doxygenclass:: celeritas::optical::DielectricInteractor

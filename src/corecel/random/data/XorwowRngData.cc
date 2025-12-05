@@ -80,7 +80,7 @@ void resize(XorwowRngStateData<Ownership::value, M>* state,
         host_state.state[AllItems<XorwowState>{}], params.seed, stream);
 
     // Move or copy to input
-    if (M == MemSpace::host)
+    if constexpr (M == MemSpace::host)
     {
         state->state = std::move(host_state.state);
     }

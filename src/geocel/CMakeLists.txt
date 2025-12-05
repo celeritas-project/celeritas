@@ -13,7 +13,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   BoundingBoxIO.json.cc
-  GeoParamsInterface.cc
+  GeoInterface.cc
   GeoParamsOutput.cc
   SurfaceParams.cc
   VolumeParams.cc
@@ -73,12 +73,17 @@ endif()
 
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
+    vg/VecgeomData.cc
     vg/VecgeomParams.cc
     vg/VecgeomParamsOutput.cc
-    vg/detail/VecgeomNavCollection.cc
     vg/RaytraceImager.cc
     vg/SafetyImager.cc
   )
+  if(VecGeom_NAV STREQUAL "path")
+    list(APPEND SOURCES
+      vg/detail/VecgeomNavCollection.cc
+    )
+  endif()
   if(VecGeom_GDML_FOUND)
     list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   endif()

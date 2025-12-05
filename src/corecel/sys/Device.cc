@@ -94,7 +94,7 @@ Device& global_device()
  */
 int Device::num_devices()
 {
-    static int const result = [] {
+    static int const num_devices_ = [] {
         if (!CELER_USE_DEVICE)
         {
             CELER_LOG(debug)
@@ -121,7 +121,7 @@ int Device::num_devices()
         CELER_ENSURE(result >= 0);
         return result;
     }();
-    return result;
+    return num_devices_;
 }
 
 //---------------------------------------------------------------------------//
@@ -151,7 +151,7 @@ bool Device::async()
 {
     if constexpr (CELER_STREAM_SUPPORTS_ASYNC)
     {
-        static bool const result = []() -> bool {
+        static bool const async_ = []() -> bool {
             constexpr bool default_val = CELERITAS_USE_CUDA
                                          || !CELER_BUGGY_HIP_ASYNC;
             auto result = getenv_flag("CELER_DEVICE_ASYNC", default_val);
@@ -164,7 +164,7 @@ bool Device::async()
             }
             return result.value;
         }();
-        return result;
+        return async_;
     }
     else
     {
@@ -216,10 +216,25 @@ Device::Device(int id) : id_{id}
     }
 #    endif
 
+    // CUDA 13 moved clockRate and memoryClockRate out of cudaDeviceProperties
+#    if CELERITAS_USE_CUDA
+#        if CUDART_VERSION < 13000
     extra_["clock_rate"] = props.clockRate;
+    extra_["memory_clock_rate"] = props.memoryClockRate;
+#        else
+    int clock_rate;
+    int memory_clock_rate;
+    cudaDeviceGetAttribute(&clock_rate, cudaDevAttrClockRate, id);
+    extra_["clock_rate"] = clock_rate;
+    cudaDeviceGetAttribute(&memory_clock_rate, cudaDevAttrMemoryClockRate, id);
+    extra_["memory_clock_rate"] = memory_clock_rate;
+#        endif
+#    else
+    extra_["clock_rate"] = props.clockRate;
+    extra_["memory_clock_rate"] = props.memoryClockRate;
+#    endif
     extra_["multiprocessor_count"] = props.multiProcessorCount;
     extra_["max_cache_size"] = props.l2CacheSize;
-    extra_["memory_clock_rate"] = props.memoryClockRate;
     extra_["regs_per_block"] = props.regsPerBlock;
     extra_["shared_mem_per_block"] = props.sharedMemPerBlock;
     extra_["total_const_mem"] = props.totalConstMem;

@@ -20,17 +20,16 @@ namespace celeritas
 /*!
  * Generate random data using the XORWOW algorithm.
  *
- * The XorwowRngEngine uses a C++11-like interface to generate random data. The
- * sampling of uniform floating point data is done with specializations to the
- * GenerateCanonical class.
+ * The XorwowRngEngine uses a C++11-like interface to generate random data
+ * using Marasglia's modified xorshift generator
+ * \citep{marsaglia-xorshift-2003,
+ * https://www.jstatsoft.org/index.php/jss/article/view/v008i14/916}.
+ * The sampling of uniform floating point data is done with specializations to
+ * the \c GenerateCanonical class.
  *
  * The \c resize function for \c XorwowRngStateData will fully randomize the
  * state at initialization. Alternatively, the state can be initialized with a
  * seed, subsequence, and offset.
- *
- * See Marsaglia (2003) for the theory underlying the algorithm and the the
- * "example" \c xorwow that combines an \em xorshift output with a Weyl
- * sequence (https://www.jstatsoft.org/index.php/jss/article/view/v008i14/916).
  *
  * Initialization moves the state ahead to the given subsequence (a subsequence
  * has size \f$2^{67}\f$) and skips \c offset random numbers.

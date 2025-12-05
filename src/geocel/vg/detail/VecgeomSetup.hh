@@ -7,17 +7,26 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-
-#include "VecgeomVersion.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "geocel/vg/VecgeomTypes.hh"
 
 #if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
+#include <VecGeom/base/BVH.h>
 
 namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+#if VECGEOM_VERSION >= 0x020000
+using CudaBVH_t = vecgeom::cuda::BVH<vgbvh_real_type>;
+#else
+using CudaBVH_t = vecgeom::cuda::BVH;
+#endif
+
 //---------------------------------------------------------------------------//
 /*!
  * Pointers to device data, obtained from a kernel launch or from runtime.
@@ -38,6 +47,14 @@ struct CudaPointers
 CudaPointers<detail::CudaBVH_t const> bvh_pointers_device();
 
 //---------------------------------------------------------------------------//
+// Get pointers to the global nav index after setup, for consistency checking
+CudaPointers<unsigned int const> navindex_pointers_device();
+
+//---------------------------------------------------------------------------//
+// Default-initialize navigation state because DeviceVector doesn't
+void init_navstate_device(Span<VgNavStateImpl> nav, StreamId);
+
+//---------------------------------------------------------------------------//
 #if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
 // Set up surface tracking
 void setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&);
@@ -50,7 +67,12 @@ void teardown_surface_tracking_device();
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #ifndef VECGEOM_ENABLE_CUDA
-inline CudaPointers<detail::CudaBVH_t const> bvh_pointers_device()
+inline CudaPointers<CudaBVH_t const> bvh_pointers_device()
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline CudaPointers<unsigned int const> navindex_pointers_device()
 {
     CELER_ASSERT_UNREACHABLE();
 }
@@ -68,6 +90,14 @@ inline void teardown_surface_tracking_device()
 }
 #    endif
 #endif
+
+#if !defined(VECGEOM_ENABLE_CUDA) || CELER_VGNAV != CELER_VGNAV_TUPLE
+inline void init_navstate_device(Span<VgNavStateImpl>, StreamId)
+{
+    // Null-op: not navtuple or CUDA not enabled
+}
+#endif
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

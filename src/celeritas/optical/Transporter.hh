@@ -12,6 +12,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/ActionGroups.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/user/ActionTimes.hh"
 
 #include "CoreState.hh"
 
@@ -25,10 +26,14 @@ namespace optical
 class CoreParams;
 template<MemSpace M>
 class CoreState;
+class CoreStateBase;
 
 //---------------------------------------------------------------------------//
 /*!
  * Transport all pending optical tracks to completion.
+ *
+ * \note This class must be constructed \em after all optical actions have been
+ * added to the action registry.
  */
 class Transporter
 {
@@ -38,11 +43,14 @@ class Transporter
     using CoreStateHost = CoreState<MemSpace::host>;
     using CoreStateDevice = CoreState<MemSpace::device>;
     using SPConstParams = std::shared_ptr<CoreParams const>;
+    using SPActionTimes = std::shared_ptr<ActionTimes>;
+    using MapStrDbl = ActionTimes::MapStrDbl;
     //!@}
 
     struct Input
     {
         SPConstParams params;
+        SPActionTimes action_times;  //!< Optional
         size_type max_step_iters{numeric_limits<size_type>::max()};
     };
 
@@ -50,11 +58,14 @@ class Transporter
     // Construct with problem parameters and setup options
     explicit Transporter(Input&&);
 
-    // Transport all pending optical tracks on the host
-    void operator()(CoreStateHost&) const;
+    // Transport all pending optical tracks
+    void operator()(CoreStateBase&) const;
 
-    // Transport all pending optical tracks on the device
-    void operator()(CoreStateDevice&) const;
+    //! Access the shared params
+    SPConstParams const& params() const { return data_.params; }
+
+    // Get the accumulated action times
+    MapStrDbl get_action_times(AuxStateVec const&) const;
 
   private:
     //// TYPES ////
@@ -64,8 +75,7 @@ class Transporter
 
     //// DATA ////
 
-    SPConstParams params_;
-    size_type max_step_iters_{};
+    Input data_;
     SPActionGroups actions_;
 
     //// HELPERS ////

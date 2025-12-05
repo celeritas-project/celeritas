@@ -12,18 +12,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Store region description and attributes.
- */
-struct ImportRegion
-{
-    std::string name;
-    bool field_manager{false};
-    bool production_cuts{false};
-    bool user_limits{false};
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Store logical volume properties.
  *
  * \note The "phys material ID" is the index of the MaterialCutsCouple, and the

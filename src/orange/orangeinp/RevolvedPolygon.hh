@@ -16,7 +16,8 @@ namespace celeritas
 namespace orangeinp
 {
 //---------------------------------------------------------------------------//
-/*! An azimuthally sliced arbitrary polygon revolved around the \em z axis.
+/*!
+ * An azimuthally sliced arbitrary polygon revolved around the \em z axis.
  *
  * The polygon must be specified in counterclockwise order and may not be self
  * intersecting. The polygon cannot cross the \em z axis, i.e., all vertices
@@ -58,8 +59,9 @@ namespace orangeinp
    \endverbatim
  * In this example, level 1 region 0 is formed from only two subregions, but
  * the general case is handled via:
- *
- * region = union(outer subregions) - union(inner subregions).
+ * \verbatim
+   region = union(outer subregions) - union(inner subregions).
+   \endverbatim
  *
  * The final step in construction is azimuthal truncation, which is done
  * through a union operation with a negated or non-negated EnclosedAzi.
@@ -70,23 +72,23 @@ namespace orangeinp
  * level, additional nodes are created in the form: `label@level.suffix` where
  * suffixes have the following meanings:
  *
- *  1) .cu : the union of all concave regions on the level,
- *  2) .ncu : the negation of .cu,
- *  3) .d : the difference between the level's convex hull and .cu.
+ *  1. .cu : the union of all concave regions on the level,
+ *  2. .ncu : the negation of .cu,
+ *  3. .d : the difference between the level's convex hull and .cu.
  *
  * For each region, additional nodes are created in the form
  * label@level.region.suffix where suffixes have the following meanings:
  *
- * 1) .ou : the union of nodes that comprise the outer boundary of the region,
- * 2) .iu : the union of nodes that comprise the inner boundary of the region,
- * 3) .nui : the negation of .ui,
- * 4) .d : the difference between .ou and .iu.
+ *  1. .ou : the union of nodes that comprise the outer boundary of the region,
+ *  2. .iu : the union of nodes that comprise the inner boundary of the region,
+ *  3. .nui : the negation of .ui,
+ *  4. .d : the difference between .ou and .iu.
  *
- * If the supplied EnclosedAzi object is not [0, 2pi], additional nodes with
- * the following extensions are added:
+ * If the supplied EnclosedAzi object is true (truncating), additional nodes
+ * with the following extensions are added:
  *
- * 1) azi/~azi : the enclosed, possibly negated, azimuthal angle,
- * 2) restricted : the intersection of the revolved polygon and azi/~azi.
+ *  1. azi/~azi : the enclosed, possibly negated, azimuthal angle,
+ *  2. restricted : the intersection of the revolved polygon and azi/~azi.
  */
 class RevolvedPolygon final : public ObjectInterface
 {

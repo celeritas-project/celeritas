@@ -33,19 +33,5 @@ AuxMockParams::AuxMockParams(std::string&& label,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Build state data for a stream.
- */
-auto AuxMockParams::create_state(MemSpace memspace,
-                                 StreamId stream,
-                                 size_type size) const -> UPState
-{
-    CELER_EXPECT(stream);
-    CELER_EXPECT(size > 0);
-
-    return make_aux_state<AuxMockStateData>(*this, memspace, stream, size);
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

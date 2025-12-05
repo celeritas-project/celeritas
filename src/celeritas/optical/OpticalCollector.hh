@@ -11,12 +11,14 @@
 
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/optical/Types.hh"
 #include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
+#include "celeritas/user/ActionTimes.hh"
 
+#include "CoreParams.hh"
 #include "Model.hh"
 #include "gen/OffloadData.hh"
-#include "gen/detail/GeneratorTraits.hh"
 
 namespace celeritas
 {
@@ -24,8 +26,8 @@ namespace celeritas
 class ActionRegistry;
 class AuxStateVec;
 class CherenkovParams;
-class CoreParams;
 class CoreStateInterface;
+class CoreParams;
 template<GeneratorType G>
 class OffloadAction;
 class OffloadGatherAction;
@@ -34,9 +36,7 @@ class ScintillationParams;
 namespace optical
 {
 class CoreStateBase;
-template<GeneratorType G>
 class GeneratorAction;
-class MaterialParams;
 }  // namespace optical
 
 namespace detail
@@ -69,21 +69,15 @@ class OpticalCollector
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
-    using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
-    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using OpticalBufferSize = GeneratorCounters<size_type>;
     using SPConstOpticalParams = std::shared_ptr<optical::CoreParams const>;
+    using MapStrDbl = ActionTimes::MapStrDbl;
     //!@}
 
     struct Input
     {
         //! Optical params
         std::shared_ptr<optical::CoreParams> optical_params;
-
-        //! Optical photon generating processes
-        SPConstCherenkov cherenkov;
-        SPConstScintillation scintillation;
 
         //! Number track slots in the optical loop
         size_type num_track_slots{};
@@ -97,10 +91,15 @@ class OpticalCollector
         //! Maximum step iterations before aborting optical loop
         size_type max_step_iters{numeric_limits<size_type>::max()};
 
+        //! Whether to synchronize and record accumulated action times
+        bool action_times{false};
+
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return optical_params && (scintillation || cherenkov)
+            return optical_params
+                   && (optical_params->scintillation()
+                       || optical_params->cherenkov())
                    && num_track_slots > 0 && buffer_capacity > 0
                    && auto_flush > 0;
         }
@@ -122,12 +121,6 @@ class OpticalCollector
     optical::CoreStateBase const&
     optical_state(CoreStateInterface const& core) const;
 
-    // Access Cherenkov params (may be null)
-    SPConstCherenkov cherenkov() const;
-
-    // Access scintillation params (may be null)
-    SPConstScintillation scintillation() const;
-
     //// GENERATOR MANAGEMENT ////
 
     // Get the generator registry
@@ -139,6 +132,9 @@ class OpticalCollector
     // Get queued buffer sizes
     OpticalBufferSize buffer_counts(AuxStateVec const& aux) const;
 
+    // Get the accumulated action times
+    MapStrDbl get_action_times(AuxStateVec const&) const;
+
   private:
     //// TYPES ////
 
@@ -146,11 +142,9 @@ class OpticalCollector
     using SPCherenkovOffload = std::shared_ptr<OffloadAction<GT::cherenkov>>;
     using SPScintOffload = std::shared_ptr<OffloadAction<GT::scintillation>>;
     using SPGatherAction = std::shared_ptr<OffloadGatherAction>;
-    using SPCherenkovGen
-        = std::shared_ptr<optical::GeneratorAction<GT::cherenkov>>;
-    using SPScintGen
-        = std::shared_ptr<optical::GeneratorAction<GT::scintillation>>;
+    using SPGenerator = std::shared_ptr<optical::GeneratorAction>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
+    using SPActionTimes = std::shared_ptr<ActionTimes>;
 
     //// DATA ////
 
@@ -158,9 +152,9 @@ class OpticalCollector
     SPGatherAction gather_;
     SPCherenkovOffload cherenkov_offload_;
     SPScintOffload scint_offload_;
-    SPCherenkovGen cherenkov_generate_;
-    SPScintGen scint_generate_;
+    SPGenerator generate_;
     SPLaunchAction launch_;
+    SPActionTimes action_times_;
 };
 
 //---------------------------------------------------------------------------//

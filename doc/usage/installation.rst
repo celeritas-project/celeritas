@@ -56,7 +56,6 @@ internet if required but not available on the user's system.
    VecGeom_, Runtime, "On-device navigation of GDML-defined detector geometry"
    Breathe_, Docs, "Generating code documentation inside user docs"
    Doxygen_, Docs, "Code documentation"
-   mermaid-cli_, Docs, "Mermaid diagrams for user documentation"
    Sphinx_, Docs, "User documentation"
    sphinxbib_, Docs, "Reference generation for user documentation"
    clang-format_, Development, "C++ code formatting"
@@ -82,7 +81,6 @@ internet if required but not available on the user's system.
 .. _HepMC3: http://hepmc.web.cern.ch/hepmc/
 .. _HIP: https://docs.amd.com
 .. _libpng: http://www.libpng.org/
-.. _mermaid-cli: https://github.com/mermaid-js/mermaid-cli
 .. _nljson: https://github.com/nlohmann/json
 .. _Open MPI: https://www.open-mpi.org
 .. _Perfetto: https://perfetto.dev/

@@ -9,7 +9,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "corecel/OpaqueId.hh"
+#include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/orangeinp/UnitProto.hh"
 
@@ -50,12 +50,13 @@ class ProtoConstructor
     using SPConstObject = std::shared_ptr<orangeinp::ObjectInterface const>;
     using ObjLv = std::pair<SPConstObject, LogicalVolume const*>;
     using SPUnitProto = std::shared_ptr<UnitProto>;
+    using Input = inp::OrangeGeoFromGeant;
     //!@}
 
   public:
     //! Construct with verbosity setting
-    ProtoConstructor(VolumeParams const& vols, bool verbose)
-        : volumes_{vols}, verbose_{verbose}
+    ProtoConstructor(VolumeParams const& vols, Input const& options)
+        : volumes_{vols}, opts_{options}
     {
     }
 
@@ -63,26 +64,36 @@ class ProtoConstructor
     SPUnitProto operator()(LogicalVolume const&);
 
   private:
+    //// TYPES ////
+
+    using MaterialInputId = orangeinp::UnitProto::MaterialInputId;
+
     //// DATA ////
 
     VolumeParams const& volumes_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
     int depth_{0};
-    bool verbose_{false};
+    Input const& opts_;
 
     //// HELPER FUNCTIONS ////
+
+    // Whether we should inline a volume based on its pv's transform
+    bool can_inline_transform(VariantTransform const&) const;
 
     // Place a physical volume into the given unconstructed proto
     void place_pv(VariantTransform const& parent_transform,
                   PhysicalVolume const& pv,
+                  MaterialInputId local_parent,
                   UnitProto::Input* proto);
 
     SPConstObject make_explicit_background(LogicalVolume const& lv,
                                            VariantTransform const& transform);
 
-    // (TODO: make this configurable)
     //! Number of daughters above which we use a "fill" material
-    static constexpr int fill_daughter_threshold() { return 2; }
+    CELER_FORCEINLINE size_type fill_daughter_threshold()
+    {
+        return opts_.explicit_interior_threshold;
+    }
 };
 
 //---------------------------------------------------------------------------//

@@ -8,9 +8,6 @@ cmake_minimum_required(VERSION 3.18...4.1)
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
-set(CMAKE_USER_MAKE_RULES_OVERRIDE
-  "${CMAKE_CURRENT_LIST_DIR}/cmake/CeleritasMakeRulesOverride.cmake")
-
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -119,10 +116,10 @@ endif()
 # Random number generator selection
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
+celeritas_setup_option(CELERITAS_CORE_RNG ranluxpp)
 celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
 celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
 # TODO: add wrapper to standard library RNG when not building for device?
-# TODO: add ranluxpp?
 # TODO: maybe even add wrapper to Geant4 RNG??
 celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
@@ -256,7 +253,7 @@ if(CELERITAS_USE_CUDA)
   celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
   celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
   if(NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
-    # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html#variable:CMAKE_%3CLANG%3E_HOST_COMPILER
+    # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html
     message(WARNING "CUDA host compiler mismatch: "
       "CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER} "
       "but CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
@@ -336,17 +333,18 @@ if(CELERITAS_USE_CUDA)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   # NOTE: known broken up to 5.6; unknown after
-  if(CELERITAS_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
+  if(CELERITAS_DEVICE_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
     celeritas_error_incompatible_option(
       "HIP cannot build debug code (unhandled SGPR spill to memory)"
-      CELERITAS_DEBUG
+      CELERITAS_DEVICE_DEBUG
       OFF
     )
   endif()
-  find_library(ROCTX_LIBRARY roctx64)
-  if(ROCTX_LIBRARY)
-    set(CELERITAS_HAVE_ROCTX ON)
-  endif()
+  # Include the default ROCm installation path in the search
+  find_library(ROCTX_LIBRARY roctx64 PATHS /opt/rocm/lib)
+  celeritas_set_onoff(CELERITAS_HAVE_ROCTX ${ROCTX_LIBRARY})
+  find_file(HIPCUB hipcub_version.hpp PATHS /opt/rocm/include/hipcub)
+  celeritas_set_onoff(CELERITAS_HAVE_HIPCUB ${HIPCUB})
 endif()
 
 if(CELERITAS_USE_CUDA)
@@ -409,7 +407,7 @@ endif()
 
 if(CELERITAS_USE_Python)
   if(NOT Python_FOUND)
-    find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
+    find_package(Python 3.9 REQUIRED COMPONENTS Interpreter)
   endif()
 endif()
 
@@ -460,19 +458,35 @@ if(CELERITAS_USE_VecGeom)
     )
   endif()
 
-  if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
-    celeritas_error_incompatible_option(
-      "VecGeom installation at \"${VecGeom_DIR}\" is not CUDA-enabled"
-      CELERITAS_USE_CUDA
-      "${VecGeom_CUDA_FOUND}"
-    )
-  elseif(CELERITAS_USE_CUDA
-      AND NOT (VecGeom_CUDA_ARCHITECTURES STREQUAL CMAKE_CUDA_ARCHITECTURES))
-    message(WARNING "CUDA architecture types between "
-      "VecGeom (${VecGeom_CUDA_ARCHITECTURES}) and "
-      "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match: "
-      "runtime errors may result"
-    )
+  # Save VecGeom_NAV variable for diagnostics
+  if(VecGeom_VERSION VERSION_LESS 2.0)
+    if(VecGeom_USE_NAVINDEX)
+      set(VecGeom_NAV "index")
+    else()
+      set(VecGeom_NAV "path")
+    endif()
+  endif()
+
+  if(CELERITAS_USE_CUDA)
+    if(NOT VecGeom_CUDA_FOUND)
+      celeritas_error_incompatible_option(
+        "VecGeom installation at \"${VecGeom_DIR}\" is not CUDA-enabled"
+        CELERITAS_USE_CUDA
+        "${VecGeom_CUDA_FOUND}"
+      )
+    elseif(VecGeom_NAV STREQUAL "path")
+      celeritas_error_incompatible_option(
+        "VecGeom installation at \"${VecGeom_DIR}\" was built with VecGeom_NAV=path: use index or tuple instead for CUDA compatibility"
+        CELERITAS_USE_VecGeom
+        OFF
+      )
+    elseif(NOT (VecGeom_CUDA_ARCHITECTURES STREQUAL CMAKE_CUDA_ARCHITECTURES))
+      message(WARNING "CUDA architecture types between "
+        "VecGeom (${VecGeom_CUDA_ARCHITECTURES}) and "
+        "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match: "
+        "runtime errors may result"
+      )
+    endif()
   endif()
   if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
     celeritas_error_incompatible_option(
@@ -516,10 +530,15 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 if(CELERITAS_BUILD_DOCS)
+  set(_prev_dot "${DOXYGEN_DOT_EXECUTABLE}")
   if(NOT Doxygen_FOUND)
-    find_package(Doxygen)
+    find_package(Doxygen COMPONENTS doxygen dot)
   endif()
-  if(NOT Doxygen_FOUND)
+  if(NOT DEFINED Doxygen_doxygen_FOUND)
+    # Backward compatibility or caller package doesn't specify components
+    set(Doxygen_doxygen_FOUND ${Doxygen_FOUND})
+  endif()
+  if(NOT Doxygen_doxygen_FOUND)
     celeritas_error_incompatible_option(
       "Doxygen is required for building documentation but was not found"
       CELERITAS_BUILD_DOCS
@@ -535,12 +554,21 @@ if(CELERITAS_BUILD_DOCS)
     celeritas_check_python_module(CELERITAS_USE_Breathe "breathe")
     celeritas_check_python_module(CELERITAS_USE_Furo "furo")
     celeritas_check_python_module(CELERITAS_USE_SphinxBibtex "sphinxcontrib.bibtex")
-    celeritas_check_python_module(CELERITAS_USE_SphinxMermaid "sphinxcontrib.mermaid")
     if(CELERITAS_USE_Breathe)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
-    find_program(MMDC_EXECUTABLE mmdc)
   endif()
+
+  if(NOT DOXYGEN_DOT_EXECUTABLE)
+    find_program(DOXYGEN_DOT_EXECUTABLE dot)
+  endif()
+  if(DOXYGEN_DOT_EXECUTABLE AND NOT _prev_dot)
+    message(STATUS "Found dot: ${DOXYGEN_DOT_EXECUTABLE}")
+  elseif(_prev_dot STREQUAL "")
+    # Note: use string comparison, not boolean, to avoid matching old "NOTFOUND"
+    message(STATUS "Could NOT find graphviz generator `dot`")
+  endif()
+
   include(ExternalProject)
 endif()
 

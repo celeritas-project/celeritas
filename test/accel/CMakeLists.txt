@@ -60,11 +60,20 @@ function(celeritas_add_integration_tests basename suite test)
     )
   endif()
 
+  if(Geant4_VERSION VERSION_LESS 11.0 AND basename MATCHES "TrackingManager")
+    set(fail_if_unsupported WILL_FAIL)
+  elseif(Geant4_VERSION VERSION_LESS 11.1 AND basename MATCHES "FastSim")
+    set(fail_if_unsupported WILL_FAIL)
+  else()
+    set(fail_if_unsupported)
+  endif()
+
   celeritas_g4_add_tests(${_target}
     NAME "${_name}:${suite}.${test}"
     ARGS "--gtest_filter=${suite}.${test}"
     LABELS unit
     ${ARGN}
+    ${fail_if_unsupported}
   )
 endfunction()
 
@@ -79,6 +88,11 @@ foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration)
     OFFLOAD cpu gpu
     RMTYPE serial
   )
+  # Test OpNovice
+  celeritas_add_integration_tests(
+    ${_basename} OpNoviceOptical run
+    OFFLOAD cpu gpu g4
+    RMTYPE ${_optical_rm_type})
 endforeach()
 
 # Test that the UI integration works (and ignores if Celeritas is disabled)
@@ -97,6 +111,13 @@ endif()
 # navigation for the optical tracks wreaks havoc
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphereOptical run
+  OFFLOAD cpu gpu g4
+  RMTYPE ${_optical_rm_type}
+)
+
+# Test with optical physics offloading distributions
+celeritas_add_integration_tests(
+  UserActionIntegration LarSphereOpticalOffload run
   OFFLOAD cpu gpu g4
   RMTYPE ${_optical_rm_type}
 )

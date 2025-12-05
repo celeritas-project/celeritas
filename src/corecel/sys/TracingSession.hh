@@ -13,6 +13,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
@@ -23,9 +24,9 @@ namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
- * RAII wrapper for a tracing session.
+ * Record Perfetto events during the lifetime of this object.
  *
- * Constructors will only configure and initialize the session.
+ * This RAII class manages a Perfetto tracing session.
  * Only a single tracing mode is supported. If you are only interested in
  * application-level events (\c ScopedProfiling and \c trace_counter),
  * then the in-process mode is sufficient and is enabled by providing the
@@ -39,7 +40,8 @@ namespace celeritas
  * required. To start the system daemons using the perfetto backend,
  * see https://perfetto.dev/docs/quickstart/linux-tracing#capturing-a-trace
  *
- * TODO: Support multiple tracing modes.
+ * \note Profiling is disabled unless the \c CELER_ENABLE_PROFILING environment
+ * variable is set; see celeritas::ScopedProfiling.
  */
 class TracingSession
 {
@@ -48,10 +50,10 @@ class TracingSession
     static void flush() noexcept;
 
     // Configure a system session recording to a daemon
-    TracingSession() noexcept;
+    TracingSession();
 
     // Configure an in-process session recording to filename
-    explicit TracingSession(std::string const& filename) noexcept;
+    explicit TracingSession(std::string const& filename);
 
     // Start the profiling session (DEPRECATED: remove in v1.0)
     //! The session is now started on construction; this is now a null-op
@@ -79,8 +81,8 @@ inline void flush_tracing() noexcept
 }
 
 #if !CELERITAS_USE_PERFETTO
-inline TracingSession::TracingSession() noexcept = default;
-inline TracingSession::TracingSession(std::string const& s) noexcept
+inline TracingSession::TracingSession() = default;
+inline TracingSession::TracingSession(std::string const& s)
 {
     if (!s.empty())
     {

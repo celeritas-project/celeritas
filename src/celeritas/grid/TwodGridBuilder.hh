@@ -10,7 +10,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/TwodGridData.hh"
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 
 namespace celeritas
 {

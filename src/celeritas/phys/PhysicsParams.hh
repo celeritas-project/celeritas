@@ -14,12 +14,9 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "Model.hh"
@@ -216,8 +213,8 @@ ProcessId PhysicsParams::process_id(ModelId id) const
  */
 auto PhysicsParams::model_actions() const -> ActionIdRange
 {
-    auto offset = host_ref().scalars.model_to_action;
-    return {ActionId{offset}, ActionId{offset + this->num_models()}};
+    auto action = host_ref().scalars.first_model_action;
+    return {action, action + this->num_models()};
 }
 
 //---------------------------------------------------------------------------//

@@ -72,10 +72,10 @@ verb. For example::
    ModelEvaluator evaluate_something(parameters...);
    auto result = evaluate_something(arguments...);
 
-There are many opportunities to use ``OpaqueId`` in GPU code to indicate
-indexing into particular vectors. To maintain consistency, we let an
-index into a vector of ``Foo`` objects have a corresponding ``OpaqueId``
-type::
+There are many opportunities to use :cpp:class:`celeritas::OpaqueId` in GPU
+code to indicate indexing into particular vectors.
+To maintain consistency, we let an index into a vector of ``Foo`` objects have
+a corresponding Opaque type::
 
     using FooId = OpaqueId<Foo>;
 

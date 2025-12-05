@@ -75,9 +75,9 @@ void TrackingManagerConstructor::ConstructParticle()
     // since it will instantiate the G4Particle::Definition() singletons
     auto& is = detail::IntegrationSingleton::instance();
     auto& opts = is.setup_options();
-    offload_particles_ = opts.offload_particles.empty()
-                             ? SharedParams::default_offload_particles()
-                             : is.offloaded_particles();
+    offload_particles_ = opts.offload_particles
+                             ? is.offloaded_particles()
+                             : SharedParams::default_offload_particles();
 }
 
 //---------------------------------------------------------------------------//

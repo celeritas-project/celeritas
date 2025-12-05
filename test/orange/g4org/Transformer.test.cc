@@ -10,15 +10,11 @@
 #include <G4RotationMatrix.hh>
 #include <G4ThreeVector.hh>
 
-#include "corecel/cont/ArrayIO.hh"
-#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/detail/LengthUnits.hh"
-#include "geocel/g4/Convert.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/g4org/Scaler.hh"
-#include "orange/transform/TransformIO.hh"
 
 #include "celeritas_test.hh"
 

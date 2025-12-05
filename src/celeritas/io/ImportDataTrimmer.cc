@@ -66,7 +66,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
         (*this)(data.geo_materials);
         (*this)(data.phys_materials);
 
-        (*this)(data.regions);
         (*this)(data.volumes);
 
         (*this)(data.optical_materials);
@@ -105,9 +104,7 @@ void ImportDataTrimmer::operator()(ImportData& data)
 
     // Trim infinities from grid
     this->for_each(data.optical_physics.surfaces.reflectivity.grid);
-    this->for_each(
-        data.optical_physics.surfaces.interaction.dielectric_dielectric);
-    this->for_each(data.optical_physics.surfaces.interaction.dielectric_metal);
+    this->for_each(data.optical_physics.surfaces.interaction.dielectric);
 }
 
 //---------------------------------------------------------------------------//
@@ -250,14 +247,19 @@ void ImportDataTrimmer::operator()(ImportProcess& data)
 }
 
 //---------------------------------------------------------------------------//
+void ImportDataTrimmer::operator()(inp::DielectricInteraction& data)
+{
+    (*this)(data.reflection);
+}
+
+//---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(inp::ReflectionForm& data)
 {
-    filter_out_infs(data.specular_spike.x);
-    filter_out_infs(data.specular_spike.y);
-    filter_out_infs(data.specular_lobe.x);
-    filter_out_infs(data.specular_lobe.y);
-    filter_out_infs(data.backscatter.x);
-    filter_out_infs(data.backscatter.y);
+    for (auto& grid : data.reflection_grids)
+    {
+        filter_out_infs(grid.x);
+        filter_out_infs(grid.y);
+    }
 }
 
 //---------------------------------------------------------------------------//

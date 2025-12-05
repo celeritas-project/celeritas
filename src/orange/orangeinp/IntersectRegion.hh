@@ -105,6 +105,10 @@ class Box final : public IntersectRegionInterface
  *
  * This intersect region, along with the Cylinder, is a base component of the
  * G4Polycone (PCON).
+ *
+ * \note The Cone is allowed to be "degenerate" in the sense of
+ * having nearly equal lower and upper radii. It will construct a cylinder with
+ * an average of the two radii.
  */
 class Cone final : public IntersectRegionInterface
 {
@@ -136,6 +140,55 @@ class Cone final : public IntersectRegionInterface
   private:
     Real2 radii_;
     real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A *z*-aligned cylinder centered on the origin, with top/bottom cuts.
+ *
+ * The shape is defined with a radius, half-height, and the outward-facing
+ * normals of the cutting planes, passing through \f$(0, 0, \pm
+ * \mathrm{hh})\f$.
+ */
+class CutCylinder final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radius, half-height, and bottom/top cut plane normals
+    CutCylinder(real_type radius,
+                real_type halfheight,
+                Real3 const& bottom_normal,
+                Real3 const& top_normal);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another cut cylinder
+    bool encloses(CutCylinder const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Radius
+    real_type radius() const { return radius_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
+    //! Outward-facing normal of the bottom cuting plane
+    Real3 const& bottom_normal() const { return bot_normal_; }
+
+    //! Outward-facing normal of the top cuting plane
+    Real3 const& top_normal() const { return top_normal_; }
+
+  private:
+    real_type radius_;
+    real_type hh_;
+    Real3 bot_normal_;
+    Real3 top_normal_;
 };
 
 //---------------------------------------------------------------------------//
@@ -523,6 +576,63 @@ class GenPrism final : public IntersectRegionInterface
     Degenerate degen_{Degenerate::none};  //!< no plane on this z axis
     real_type length_scale_{};
 };
+// ...existing code...
+
+//---------------------------------------------------------------------------//
+/*!
+ * A *z*-aligned hyperboloid of revolution centered on the origin.
+ *
+ * A hyperboloid is defined by rotating a hyperbola around the z-axis. This
+ * implementation uses a minimum radius (at \f$ z=0 \f$) and a maximum radius
+ * (at \f$z=\pm \textrm{hh}\f$).
+ *
+ * The hyperboloid surface is defined by the equation:
+ * \f[
+ *   x^2 + y^2 - r_{min}^2 \left(1 + z^2 t^2\right) = 0
+ * \f]
+ * where \f$ r_{min} \f$ is the minimum radius (at z=0) and
+ * \f$ t^2 = (r_{max}^2 - r_{min}^2) / h^2 \f$, with \f$ r_{max} \f$
+ * being the maximum radius and \f$ h \f$ the half-height.
+ *
+ * The maximum radius must be greater than the minimum radius, ensuring a valid
+ * hyperboloid shape. The minimum radius must be positive, as a radius of zero
+ * would produce a two-sheeted cone.
+ */
+class Hyperboloid final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radius at midpoint (min) and end (max), and half-height
+    Hyperboloid(real_type min_radius,
+                real_type max_radius,
+                real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another hyperboloid
+    bool encloses(Hyperboloid const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Minimum radius at z=0
+    real_type min_radius() const { return r_min_; }
+
+    //! Maximum radius at |z|=hh
+    real_type max_radius() const { return r_max_; }
+
+    //! Half-height along z
+    real_type halfheight() const { return hh_; }
+
+  private:
+    real_type r_min_;  //!< Minimum radius at z=0
+    real_type r_max_;  //!< Maximum radius at |z|=hh
+    real_type hh_;  //!< Half-height along z
+};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -893,6 +1003,55 @@ class Sphere final : public IntersectRegionInterface
 
   private:
     real_type radius_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A tetrahedron defined by four vertices.
+ *
+ * A tetrahedron is a polyhedron with four triangular faces. The four vertices
+ * should not be coplanar, and they should be ordered such that when viewed
+ * from outside the tetrahedron, each triangular face has vertices in
+ * counterclockwise order (following the right-hand rule for outward normals).
+ *
+ * The tetrahedron is constructed by defining four planes, one for each face.
+ * Each plane is determined by three vertices. Face \em i uses all the vertices
+ * except for the one at index \em i .
+ */
+class Tet final : public IntersectRegionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using ArrReal3 = Array<Real3, 4>;
+    //!@}
+
+  public:
+    // Construct from an array of four vertices
+    explicit Tet(ArrReal3 const&);
+
+    //! Construct from four vertices
+    Tet(Real3 const& v0, Real3 const& v1, Real3 const& v2, Real3 const& v3)
+        : Tet(ArrReal3{v0, v1, v2, v3})
+    {
+    }
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    // Get a vertex by index
+    Real3 const& vertex(size_type i) const;
+
+    //! Get all vertices
+    ArrReal3 const& vertices() const { return v_; }
+
+  private:
+    ArrReal3 v_;  //!< Four vertices defining the tetrahedron
 };
 
 //---------------------------------------------------------------------------//

@@ -23,6 +23,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Environment.hh"
+#include "orange/OrangeData.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "UniverseInserter.hh"
 #include "../OrangeInput.hh"
@@ -35,21 +37,21 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-constexpr int invalid_max_depth = -1;
+constexpr int invalid_depth = -1;
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the maximum logic depth of a volume definition.
+ * Calculate the maximum CSG logic depth of a volume definition.
  *
- * Return 0 if the definition is invalid so that we can raise an assertion in
- * the caller with more context.
+ * Return a sentinel if the definition is invalid so that we can raise an
+ * assertion in the caller with more context.
  */
-int calc_max_depth(Span<logic_int const> logic)
+int calc_depth(Span<logic_int const> logic)
 {
     CELER_EXPECT(!logic.empty());
 
     // Calculate max depth
-    int max_depth = 1;
+    int depth = 1;
     int cur_depth = 0;
 
     for (auto id : logic)
@@ -60,17 +62,17 @@ int calc_max_depth(Span<logic_int const> logic)
         }
         else if (id == logic::land || id == logic::lor)
         {
-            max_depth = std::max(cur_depth, max_depth);
+            depth = std::max(cur_depth, depth);
             --cur_depth;
         }
     }
     if (cur_depth != 1)
     {
         // Input definition is invalid; return a sentinel value
-        max_depth = invalid_max_depth;
+        depth = invalid_depth;
     }
-    CELER_ENSURE(max_depth > 0 || max_depth == invalid_max_depth);
-    return max_depth;
+    CELER_ENSURE(depth > 0 || depth == invalid_depth);
+    return depth;
 }
 
 //---------------------------------------------------------------------------//
@@ -260,6 +262,98 @@ std::string to_string(VolumeInput::VariantLabel const& vlabel)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create a vector (indexed by local volume ID) of local canonical parents.
+ *
+ * This simply expands a sparse map into a full vector. The indices are all
+ * local implementation volume IDs, even though the relationship they describe
+ * is the "canonical" volume structure.
+ */
+std::vector<LocalVolumeId>
+make_local_parent_vec(LocalVolumeId::size_type num_volumes,
+                      UnitInput::MapLocalParent const& local_parent_map)
+{
+    CELER_EXPECT(num_volumes > 0);
+    CELER_EXPECT(!local_parent_map.empty());
+
+    std::vector<LocalVolumeId> local_parents(num_volumes);
+    // Fill local parents
+    for (auto&& [child, parent] : local_parent_map)
+    {
+        CELER_ASSERT(child < num_volumes);
+        CELER_ASSERT(parent < num_volumes);
+        local_parents[child.get()] = parent;
+    }
+
+    return local_parents;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Determine relative canonical volume levels of each local volume.
+ *
+ * Use a depth-first search to fill an array, indexed by local impl volumes, of
+ * the volume relative to the top (most enclosing/closest to "world").
+ */
+std::vector<vol_level_uint>
+make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
+{
+    constexpr vol_level_uint not_visited{static_cast<vol_level_uint>(-1)};
+    std::vector<vol_level_uint> local_vol_level(local_parents.size(),
+                                                not_visited);
+    std::vector<LocalVolumeId> stack;
+
+    // Traverse all local levels with DFS, excluding unreachable "exterior"
+    // We loop over all volumes because we don't know a priori which one is the
+    // "top" volume in the universe (could be background, could be explicit)
+    for (auto lv_id : range(orange_exterior_volume + 1,
+                            id_cast<LocalVolumeId>(local_parents.size())))
+    {
+        if (local_vol_level[lv_id.get()] != not_visited)
+        {
+            continue;
+        }
+        stack.push_back(lv_id);
+        while (!stack.empty())
+        {
+            // Guard against cycles, which shouldn't be possible to construct
+            CELER_ASSERT(stack.size() < VolumeLevelId{}.unchecked_get());
+
+            auto child = stack.back();
+            auto parent = local_parents[child.get()];
+            vol_level_uint child_level{not_visited};
+            if (parent)
+            {
+                child_level = local_vol_level[parent.get()];
+                if (child_level == not_visited)
+                {
+                    // Parent has not yet been visited; go deeper
+                    stack.push_back(parent);
+                    continue;
+                }
+                else
+                {
+                    // Child is one deeper than parent
+                    ++child_level;
+                }
+            }
+            else
+            {
+                // No enclosing local volume: level zero
+                child_level = 0;
+            }
+
+            // Save local level
+            CELER_ASSERT(child_level != not_visited);
+            local_vol_level[child.get()] = child_level;
+            stack.pop_back();
+        }
+    }
+
+    return local_vol_level;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -278,6 +372,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , local_surface_ids_{&orange_data_->local_surface_ids}
     , local_volume_ids_{&orange_data_->local_volume_ids}
     , real_ids_{&orange_data_->real_ids}
+    , vl_uints_{&orange_data_->vl_uints}
     , logic_ints_{&orange_data_->logic_ints}
     , reals_{&orange_data_->reals}
     , surface_types_{&orange_data_->surface_types}
@@ -299,7 +394,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
 /*!
  * Create a simple unit and return its ID.
  */
-UniverseId UnitInserter::operator()(UnitInput&& inp)
+UnivId UnitInserter::operator()(UnitInput&& inp)
 {
     CELER_VALIDATE(inp,
                    << "simple unit '" << inp.label
@@ -315,7 +410,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
     std::vector<FastBBox> bboxes;
     BIHBuilder::SetLocalVolId implicit_vol_ids;
-    for (auto i : range(inp.volumes.size()))
+    for (auto i : range<LocalVolumeId::size_type>(inp.volumes.size()))
     {
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
@@ -358,6 +453,24 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
                 connectivity[f.unchecked_get()].insert(LocalVolumeId(i));
             }
         }
+
+        CELER_VALIDATE(LocalVolumeId{i} == orange_exterior_volume
+                           || inp.volumes[i].zorder != ZOrder::exterior,
+                       << "only local volume 0 can be exterior");
+    }
+
+    // Save local parent IDs and local volume level
+    if (!inp.local_parent_map.empty())
+    {
+        auto parents
+            = make_local_parent_vec(inp.volumes.size(), inp.local_parent_map);
+        auto levels = make_local_level_vec(parents);
+        CELER_ASSERT(parents.size() == levels.size());
+
+        unit.local_parent
+            = local_volume_ids_.insert_back(parents.begin(), parents.end());
+        unit.local_vol_level
+            = vl_uints_.insert_back(levels.begin(), levels.end());
     }
 
     // Save volumes
@@ -419,7 +532,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     simple_units_.push_back(unit);
     auto surf_labels = make_surface_labels(inp);
     auto vol_labels = make_volume_labels(inp);
-    return (*insert_universe_)(UniverseType::simple,
+    return (*insert_universe_)(UnivType::simple,
                                std::move(inp.label),
                                std::move(surf_labels),
                                std::move(vol_labels));
@@ -439,15 +552,26 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     auto params_cref = make_const_ref(*orange_data_);
     LocalSurfaceVisitor visit_surface(params_cref, surf_record);
 
-    // Mark as 'simple safety' if all the surfaces are simple
+    // Mark this volume as "simple safety" if all of its constituent surfaces
+    // support it, even in the case where the volume is implicit
     bool simple_safety = true;
-    size_type max_intersections = 0;
-
     for (LocalSurfaceId sid : v.faces)
     {
         simple_safety = simple_safety
                         && visit_surface(SimpleSafetyGetter{}, sid);
-        max_intersections += visit_surface(NumIntersectionGetter{}, sid);
+    }
+
+    // Calculate the max_intersection for the volume by summing up the
+    // max_intersection for all constituent surfaces. If the volume is
+    // background (implicit), no intersection is possible, thus
+    // max_intersections is zero
+    size_type max_intersections = 0;
+    if (v.zorder != ZOrder::background)
+    {
+        for (LocalSurfaceId sid : v.faces)
+        {
+            max_intersections += visit_surface(NumIntersectionGetter{}, sid);
+        }
     }
 
     static logic_int const nowhere_logic[] = {logic::ltrue, logic::lnot};
@@ -498,8 +622,8 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     }
 
     // Calculate the maximum stack depth of the volume definition
-    int max_depth = calc_max_depth(input_logic);
-    CELER_VALIDATE(max_depth > 0,
+    int depth = calc_depth(input_logic);
+    CELER_VALIDATE(depth > 0,
                    << "invalid logic definition: operators do not balance");
 
     // Update global max faces/intersections/logic
@@ -507,7 +631,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     inplace_max<size_type>(&scalars.max_faces, output.faces.size());
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
-    inplace_max<size_type>(&scalars.max_logic_depth, max_depth);
+    inplace_max<size_type>(&scalars.max_csg_levels, depth);
 
     return output;
 }
@@ -550,7 +674,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
                                     DaughterInput const& daughter_input)
 {
     Daughter daughter;
-    daughter.universe_id = daughter_input.universe_id;
+    daughter.univ_id = daughter_input.univ_id;
     daughter.trans_id = insert_transform_(daughter_input.transform);
 
     vol_record->daughter_id = daughters_.push_back(daughter);

@@ -110,19 +110,6 @@
       "range" : 0.1
     }}]
   }],
-  "regions" : [{
-    "_typename" : "celeritas::ImportRegion",
-    "name" : "DefaultRegionForTheWorld",
-    "field_manager" : false,
-    "production_cuts" : true,
-    "user_limits" : false
-  }, {
-    "_typename" : "celeritas::ImportRegion",
-    "name" : "DefaultRegionForParallelWorld",
-    "field_manager" : false,
-    "production_cuts" : true,
-    "user_limits" : false
-  }],
   "volumes" : [{
     "_typename" : "celeritas::ImportVolume",
     "geo_material_id" : 0,
@@ -532,47 +519,69 @@
       },
       "interaction" : {
         "_typename" : "celeritas::inp::InteractionModels",
-        "dielectric_dielectric" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>,celeritas::inp::ReflectionForm>", "first" : {
+        "dielectric" : [{"$pair" : "pair<celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>,celeritas::inp::DielectricInteraction>", "first" : {
           "_typename" : "celeritas::OpaqueId<celeritas::PhysSurface_,unsigned int>",
           "value_" : 0
         }, "second" : {
-          "_typename" : "celeritas::inp::ReflectionForm",
-          "specular_spike" : {
-            "_typename" : "celeritas::inp::Grid",
-            "x" : [0, 1e308],
-            "y" : [1, 1],
-            "interpolation" : {
-              "_typename" : "celeritas::inp::Interpolation",
-              "type" : 0,
-              "order" : 1,
-              "bc" : 2
+          "_typename" : "celeritas::inp::DielectricInteraction",
+          "reflection" : {
+            "_typename" : "celeritas::inp::ReflectionForm",
+            "reflection_grids" : {
+              "_typename" : "celeritas::EnumArray<celeritas::optical::ReflectionMode,celeritas::inp::Grid>",
+              "data_" : [{
+                "_typename" : "celeritas::inp::Grid",
+                "x" : [0, 1e308],
+                "y" : [1, 1],
+                "interpolation" : {
+                  "_typename" : "celeritas::inp::Interpolation",
+                  "type" : 0,
+                  "order" : 1,
+                  "bc" : 2
+                }
+              }, {
+                "_typename" : "celeritas::inp::Grid",
+                "x" : [0, 1e308],
+                "y" : [0, 0],
+                "interpolation" : {
+                  "_typename" : "celeritas::inp::Interpolation",
+                  "type" : 0,
+                  "order" : 1,
+                  "bc" : 2
+                }
+              }, {
+                "_typename" : "celeritas::inp::Grid",
+                "x" : [0, 1e308],
+                "y" : [0, 0],
+                "interpolation" : {
+                  "_typename" : "celeritas::inp::Interpolation",
+                  "type" : 0,
+                  "order" : 1,
+                  "bc" : 2
+                }
+              }]
             }
           },
-          "specular_lobe" : {
-            "_typename" : "celeritas::inp::Grid",
-            "x" : [0, 1e308],
-            "y" : [0, 0],
-            "interpolation" : {
-              "_typename" : "celeritas::inp::Interpolation",
-              "type" : 0,
-              "order" : 1,
-              "bc" : 2
-            }
-          },
-          "backscatter" : {
-            "_typename" : "celeritas::inp::Grid",
-            "x" : [0, 1e308],
-            "y" : [0, 0],
-            "interpolation" : {
-              "_typename" : "celeritas::inp::Interpolation",
-              "type" : 0,
-              "order" : 1,
-              "bc" : 2
-            }
-          }
+          "is_metal" : false
         }}],
-        "dielectric_metal" : []
+        "trivial" : []
       }
     }
+  },
+  "mucf_physics" : {
+    "_typename" : "celeritas::inp::MucfPhysics",
+    "muon_energy_cdf" : {
+      "_typename" : "celeritas::inp::Grid",
+      "x" : [],
+      "y" : [],
+      "interpolation" : {
+        "_typename" : "celeritas::inp::Interpolation",
+        "type" : 0,
+        "order" : 1,
+        "bc" : 2
+      }
+    },
+    "cycle_rates" : [],
+    "atom_transfer" : [],
+    "atom_spin_flip" : []
   }
 }

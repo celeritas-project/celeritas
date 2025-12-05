@@ -113,6 +113,8 @@ CELER_FUNCTION SubsurfaceDirection SurfacePhysicsView::orientation() const
 CELER_FUNCTION OptMatId
 SurfacePhysicsView::interstitial_material(SurfaceTrackPosition pos) const
 {
+    CELER_EXPECT(pos > SurfaceTrackPosition{0});
+
     // Position 0 is pre-volume material, and N+1 is post-volume material.
     // Offset position so it maps to the interstitial material range.
     --pos;
@@ -133,7 +135,12 @@ SurfacePhysicsView::interstitial_material(SurfaceTrackPosition pos) const
 CELER_FUNCTION PhysSurfaceId SurfacePhysicsView::interface(
     SurfaceTrackPosition pos, SubsurfaceDirection d) const
 {
-    auto interface_pos = pos + (d == SubsurfaceDirection::reverse ? -1 : 0);
+    CELER_EXPECT(pos);
+
+    auto interface_pos = SurfaceTrackPosition{
+        pos.unchecked_get()
+        + static_cast<SurfaceTrackPosition::size_type>(
+            d == SubsurfaceDirection::reverse ? -1 : 0)};
 
     CELER_ASSERT(interface_pos
                  < this->surface_record().subsurface_interfaces.size());
@@ -159,10 +166,13 @@ template<class T>
 CELER_FUNCTION T SurfacePhysicsView::oriented_map(
     ItemMap<SurfaceTrackPosition, T> const& map, SurfaceTrackPosition pos) const
 {
-    auto index = orientation_ == SubsurfaceDirection::reverse
-                     ? SurfaceTrackPosition{(map.size() - 1) - pos.get()}
-                     : pos;
-    CELER_ASSERT(index < map.size());
+    CELER_EXPECT(pos < map.size());
+
+    auto index
+        = orientation_ == SubsurfaceDirection::reverse
+              ? SurfaceTrackPosition{map.size() - 1 - pos.unchecked_get()}
+              : pos;
+
     return map[index];
 }
 

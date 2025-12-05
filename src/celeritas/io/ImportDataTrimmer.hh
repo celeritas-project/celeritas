@@ -9,8 +9,8 @@
 #include <map>
 #include <vector>
 
+#include "corecel/inp/Grid.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "celeritas/inp/Grid.hh"
 
 #include "ImportData.hh"
 
@@ -67,6 +67,7 @@ class ImportDataTrimmer
     void operator()(inp::UniformGrid& data);
     void operator()(ImportPhysicsTable& data);
     void operator()(inp::TwodGrid& data);
+    void operator()(inp::DielectricInteraction& data);
     //!@}
 
   private:

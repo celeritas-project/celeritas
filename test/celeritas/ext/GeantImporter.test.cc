@@ -285,6 +285,27 @@ class TestEm3 : public GeantImporterTest
 };
 
 //---------------------------------------------------------------------------//
+class MucfBox : public GeantImporterTest
+{
+  protected:
+    void SetUp() override
+    {
+        selection_.particles = DataSelection::em;
+        selection_.processes = DataSelection::em | DataSelection::hadron;
+    }
+
+    std::string_view gdml_basename() const override { return "mucf-box"sv; }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        //! \todo Enable muon EM and decay physics once fully supported
+        GeantPhysicsOptions opts;
+        opts.mucf_physics = true;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
 class OneSteelSphere : public GeantImporterTest
 {
   protected:
@@ -1627,7 +1648,7 @@ TEST_F(LarSphere, optical)
 {
     ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
-    ASSERT_EQ(4, imported.optical_models.size());
+    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1660,8 +1681,8 @@ TEST_F(LarSphere, optical)
     for (auto const& comp : scint.material.components)
     {
         components.push_back(comp.yield_frac);
-        components.push_back(to_cm(comp.lambda_mean));
-        components.push_back(to_cm(comp.lambda_sigma));
+        components.push_back(to_cm(comp.gauss.lambda_mean));
+        components.push_back(to_cm(comp.gauss.lambda_sigma));
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
@@ -1677,19 +1698,12 @@ TEST_F(LarSphere, optical)
         1e-08,
         1.5e-06,
         1,
-        2e-05,
-        2.0099589626834e-06,
+        0,
+        0,
         1e-08,
         3e-06,
     };
     EXPECT_VEC_NEAR(expected_components, components, tol);
-    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
-    {
-        static std::string const expected_messages
-            = R"(Estimated custom properties CELER_SCINTILLATIONLAMBDAMEAN3=2e-5 and CELER_SCINTILLATIONLAMBDASIGMA3=2.010e-6 from Geant4-defined property SCINTILLATIONCOMPONENT3)";
-        EXPECT_VEC_EQ(expected_messages, scoped_log.messages()[1])
-            << scoped_log;
-    }
 
     // Particle scintillation
     EXPECT_EQ(6, scint.particles.size());
@@ -1710,8 +1724,8 @@ TEST_F(LarSphere, optical)
         for (auto comp : part.components)
         {
             comp_y.push_back(comp.yield_frac);
-            comp_lm.push_back(to_cm(comp.lambda_mean));
-            comp_ls.push_back(to_cm(comp.lambda_sigma));
+            comp_lm.push_back(to_cm(comp.gauss.lambda_mean));
+            comp_ls.push_back(to_cm(comp.gauss.lambda_sigma));
             comp_rt.push_back(to_sec(comp.rise_time));
             comp_ft.push_back(to_sec(comp.fall_time));
         }
@@ -1780,7 +1794,7 @@ TEST_F(LarSphere, optical)
 
     {
         // Check WLS optical properties
-        auto const& model = imported.optical_models[2];
+        auto const& model = imported.optical_models[3];
         EXPECT_EQ(optical::ImportModelClass::wls, model.model_class);
         ASSERT_EQ(1, model.mfp_table.size());
 
@@ -1811,7 +1825,7 @@ TEST_F(LarSphere, optical)
     }
     {
         // Check WLS2 optical properties
-        auto const& model = imported.optical_models[3];
+        auto const& model = imported.optical_models[4];
         EXPECT_EQ(optical::ImportModelClass::wls2, model.model_class);
         ASSERT_EQ(1, model.mfp_table.size());
 
@@ -1861,7 +1875,7 @@ TEST_F(LarSphere, optical)
 TEST_F(LarSphereExtramat, optical)
 {
     auto&& imported = this->imported_data();
-    ASSERT_EQ(4, imported.optical_models.size());
+    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1923,7 +1937,6 @@ TEST_F(Solids, volumes_only)
     EXPECT_EQ(0, imported.particles.size());
     EXPECT_EQ(0, imported.elements.size());
     EXPECT_EQ(0, imported.geo_materials.size());
-    EXPECT_EQ(3, imported.regions.size());
     EXPECT_EQ(0, imported.phys_materials.size());
 
     std::vector<std::string> names;
@@ -1987,6 +2000,21 @@ TEST_F(Solids, physics)
 
 TEST_F(OpticalSurfaces, surfaces)
 {
+    auto specular_spike = [](inp::DielectricInteraction const& di) {
+        return di.reflection
+            .reflection_grids[optical::ReflectionMode::specular_spike];
+    };
+
+    auto specular_lobe = [](inp::DielectricInteraction const& di) {
+        return di.reflection
+            .reflection_grids[optical::ReflectionMode::specular_lobe];
+    };
+
+    auto backscatter = [](inp::DielectricInteraction const& di) {
+        return di.reflection
+            .reflection_grids[optical::ReflectionMode::backscatter];
+    };
+
     auto&& osp = this->imported_data().optical_physics.surfaces;
     EXPECT_TRUE(osp);
 
@@ -2002,13 +2030,13 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
-        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
-        EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
-        EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
-        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_FALSE(di.is_metal);
+        EXPECT_SOFT_EQ(1, specular_spike(di).y[0]);
+        EXPECT_SOFT_EQ(0, specular_lobe(di).y[0]);
+        EXPECT_SOFT_EQ(0, backscatter(di).y[0]);
     }
 
     // tube2_surf: glisur, ground, dielectric-dielectric, specular lobe
@@ -2021,17 +2049,17 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
         static double const polish
             = 1 - osp.roughness.smear.find(sid)->second.roughness;
         EXPECT_SOFT_EQ(0.9, polish);
 
-        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
-        EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
-        EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
-        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_FALSE(di.is_metal);
+        EXPECT_SOFT_EQ(0, specular_spike(di).y[0]);
+        EXPECT_SOFT_EQ(1, specular_lobe(di).y[0]);
+        EXPECT_SOFT_EQ(0, backscatter(di).y[0]);
     }
 
     // lomid_surf: unified, polished, dielectric-dielectric
@@ -2044,21 +2072,21 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
-        auto& rf = osp.interaction.dielectric_dielectric.find(sid)->second;
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_FALSE(di.is_metal);
         static double const expected_energy[] = {2e-06, 8e-06};
         static double const expected_specular_spike[] = {0.1, 0.3};
         static double const expected_specular_lobe[] = {0.2, 0.2};
         static double const expected_backscatter[] = {0.3, 0.1};
 
-        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_lobe.x);
-        EXPECT_VEC_SOFT_EQ(expected_energy, rf.specular_spike.x);
-        EXPECT_VEC_SOFT_EQ(expected_energy, rf.backscatter.x);
-        EXPECT_VEC_SOFT_EQ(expected_specular_lobe, rf.specular_lobe.y);
-        EXPECT_VEC_SOFT_EQ(expected_specular_spike, rf.specular_spike.y);
-        EXPECT_VEC_SOFT_EQ(expected_backscatter, rf.backscatter.y);
+        EXPECT_VEC_SOFT_EQ(expected_energy, specular_lobe(di).x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, specular_spike(di).x);
+        EXPECT_VEC_SOFT_EQ(expected_energy, backscatter(di).x);
+        EXPECT_VEC_SOFT_EQ(expected_specular_lobe, specular_lobe(di).y);
+        EXPECT_VEC_SOFT_EQ(expected_specular_spike, specular_spike(di).y);
+        EXPECT_VEC_SOFT_EQ(expected_backscatter, backscatter(di).y);
     }
 
     // midlo_surf: glisur, polished, dielectric-metal, specular spike
@@ -2071,13 +2099,13 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric, sid));
 
-        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
-        EXPECT_SOFT_EQ(1, rf.specular_spike.y[0]);
-        EXPECT_SOFT_EQ(0, rf.specular_lobe.y[0]);
-        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_TRUE(di.is_metal);
+        EXPECT_SOFT_EQ(1, specular_spike(di).y[0]);
+        EXPECT_SOFT_EQ(0, specular_lobe(di).y[0]);
+        EXPECT_SOFT_EQ(0, backscatter(di).y[0]);
     }
 
     // midhi_surf: glisur, ground, dielectric-metal, specular lobe
@@ -2090,21 +2118,52 @@ TEST_F(OpticalSurfaces, surfaces)
         EXPECT_TRUE(OS_IS_MAPPED(reflectivity.grid, sid));
         EXPECT_FALSE(OS_IS_MAPPED(reflectivity.fresnel, sid));
 
-        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric_dielectric, sid));
-        EXPECT_TRUE(OS_IS_MAPPED(interaction.dielectric_metal, sid));
+        EXPECT_FALSE(OS_IS_MAPPED(interaction.dielectric, sid));
 
         static double const polish
             = 1 - osp.roughness.smear.find(sid)->second.roughness;
         EXPECT_SOFT_EQ(0.7, polish);
 
-        auto& rf = osp.interaction.dielectric_metal.find(sid)->second;
-        EXPECT_SOFT_EQ(0, rf.specular_spike.y[0]);
-        EXPECT_SOFT_EQ(1, rf.specular_lobe.y[0]);
-        EXPECT_SOFT_EQ(0, rf.backscatter.y[0]);
+        auto& di = osp.interaction.dielectric.find(sid)->second;
+        EXPECT_TRUE(di.is_metal);
+        EXPECT_SOFT_EQ(0, specular_spike(di).y[0]);
+        EXPECT_SOFT_EQ(1, specular_lobe(di).y[0]);
+        EXPECT_SOFT_EQ(0, backscatter(di).y[0]);
     }
 
 #undef OS_IS_MAPPED
 }
+
+//---------------------------------------------------------------------------//
+TEST_F(MucfBox, run)
+{
+    auto const& mucf = this->imported_data().mucf_physics;
+    EXPECT_TRUE(mucf);
+
+    static double const expected_muon_energy_cdf_y[] = {1, 1};
+    EXPECT_EQ(2, mucf.muon_energy_cdf.x.size());
+    EXPECT_VEC_EQ(expected_muon_energy_cdf_y, mucf.muon_energy_cdf.y);
+
+    auto const& cycle_f0 = mucf.cycle_rates[0];
+    static double const expected_cycle_rate_f0_y[] = {2, 2};
+    EXPECT_TRUE(cycle_f0);
+    EXPECT_EQ(cycle_f0.molecule, MucfMuonicMolecule::deuterium_tritium);
+    EXPECT_EQ("F=0", cycle_f0.spin_label);
+    EXPECT_EQ(2, cycle_f0.rate.x.size());
+    EXPECT_VEC_EQ(expected_cycle_rate_f0_y, cycle_f0.rate.y);
+
+    auto const& cycle_f1 = mucf.cycle_rates[1];
+    static double const expected_cycle_rate_f1_y[] = {3, 3};
+    EXPECT_TRUE(cycle_f1);
+    EXPECT_EQ(cycle_f1.molecule, MucfMuonicMolecule::deuterium_tritium);
+    EXPECT_EQ("F=1", cycle_f1.spin_label);
+    EXPECT_EQ(2, cycle_f1.rate.x.size());
+    EXPECT_VEC_EQ(expected_cycle_rate_f1_y, cycle_f1.rate.y);
+
+    EXPECT_TRUE(mucf.atom_transfer.empty());
+    EXPECT_TRUE(mucf.atom_spin_flip.empty());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

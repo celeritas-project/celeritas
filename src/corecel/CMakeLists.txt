@@ -127,10 +127,11 @@ foreach(_dep Geant4 VecGeom HepMC3)
 endforeach()
 
 # Save VecGeom options as always-on macros to simplify testing
-set(CELERITAS_VECGEOM_CONFIG)
-if(CELERITAS_VecGeom_SURFACE)
+if(DEFINED CELERITAS_VecGeom_SURFACE)
+  # Override/pretend VecGeom has this option
   set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
 endif()
+set(CELERITAS_VECGEOM_CONFIG)
 set(_vecgeom_opts)
 foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
   if(NOT DEFINED VecGeom_${_opt})
@@ -156,6 +157,16 @@ if(NOT VecGeom_VECTOR STREQUAL "empty")
 endif()
 list(JOIN _vecgeom_opts "," _vecgeom_opts)
 celeritas_append_cmake_string("vecgeom_options" "${_vecgeom_opts}")
+
+# Save Geant4 options for verbose output: start with optional TLS model
+set(_g4_opts ${Geant4_TLS_MODEL})
+foreach(_opt multithreaded shared static smartstack gdml usolids)
+  if(Geant4_${_opt}_FOUND)
+    list(APPEND _g4_opts "${_opt}")
+  endif()
+endforeach()
+list(JOIN _g4_opts "," _g4_opts)
+celeritas_append_cmake_string("geant4_options" "${_g4_opts}")
 
 # Convert lists to newline-separated strings
 foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG DEPENDENCY_VERSIONS)
@@ -186,6 +197,8 @@ list(APPEND SOURCES
   data/AuxParamsRegistry.cc
   data/AuxStateVec.cc
   data/detail/PinnedAllocatorImpl.cc
+  grid/GridTypes.cc
+  grid/GridTypesIO.json.cc
   grid/SplineDerivCalculator.cc
   grid/VectorUtils.cc
   io/BuildOutput.cc
@@ -207,7 +220,10 @@ list(APPEND SOURCES
   math/TridiagonalSolver.cc
   random/data/CuHipRngData.cc
   random/data/XorwowRngData.cc
+  random/data/RanluxppRngData.cc
+  random/distribution/DistributionInserter.cc
   random/params/CuHipRngParams.cc
+  random/params/RanluxppRngParams.cc
   random/params/XorwowRngParams.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
@@ -281,6 +297,7 @@ macro(celeritas_polysource filename_we)
 endmacro()
 
 celeritas_polysource(random/data/detail/CuHipRngStateInit)
+celeritas_polysource(random/data/detail/RanluxppRngStateInit)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES

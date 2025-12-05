@@ -12,10 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayOperators.hh"
-#include "corecel/math/BisectionRootFinder.hh"
 #include "corecel/math/IllinoisRootFinder.hh"
-#include "corecel/math/RegulaFalsiRootFinder.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "InvolutePoint.hh"
@@ -174,13 +171,12 @@ CELER_FUNCTION auto InvoluteSolver::operator()(Real3 const& pos,
     v *= convert;
 
     // Line angle parameter
-
-    real_type beta = line_angle_param(u, v);
+    real_type angle = line_angle_param(u, v);
 
     // Setting first interval bounds, needs to be done to ensure roots are
     // found
     real_type t_lower = 0;
-    real_type t_upper = beta - a_;
+    real_type t_upper = angle - a_;
 
     // Round t_upper to the first positive multiple of pi
     t_upper += max<real_type>(real_type{0}, -std::floor(t_upper / pi)) * pi;

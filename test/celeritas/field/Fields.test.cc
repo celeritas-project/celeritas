@@ -327,11 +327,12 @@ CartMapFieldInput build_cart_map_input()
     return inp;
 }
 
-TEST_F(CartMapFieldTest, all)
+TEST_F(CartMapFieldTest, host)
 {
     CartMapFieldInput inp = build_cart_map_input();
     CartMapFieldParams field_map{inp};
 
+    // FIXME: test data should be single-precision
     CartMapField calc_field(field_map.host_ref());
 
     // Sample the field
@@ -458,11 +459,13 @@ TEST_F(CartMapFieldTest, TEST_IF_CELER_DEVICE(device))
 {
     Array<size_type, 3> n_samples{3, 3, 3};
 
+    // FIXME: these should be single-precision for covfie
     std::vector<real_type> field_values(n_samples[0] * n_samples[1]
                                         * n_samples[2] * 3);
 
     auto input = build_cart_map_input();
     auto span = make_span(field_values);
+
     // Run the test on device
     field_test(input, span, n_samples);
 
@@ -481,8 +484,12 @@ TEST_F(CartMapFieldTest, TEST_IF_CELER_DEVICE(device))
            -0.830352, 0.956376,  0.16975,  -0.830352, 0.956376,  0.336311,
            -0.830352, -0.547601, 0,        -0.830352, -0.547601, 0.16975,
            -0.830352, -0.547601, 0.336311};
-    EXPECT_VEC_NEAR(expected_field, field_values, real_type{1e-5});
+
+    // FIXME: reference values use lower-precision texture interpolation
+    constexpr real_type tol = CELERITAS_USE_HIP ? 1e-2 : 1e-5;
+    EXPECT_VEC_NEAR(expected_field, field_values, tol);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

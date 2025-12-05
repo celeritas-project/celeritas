@@ -9,7 +9,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 
 class G4VSolid;

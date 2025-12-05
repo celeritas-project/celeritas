@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/inp/Particle.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/PhysicsModel.hh"
@@ -73,7 +73,6 @@ struct ImportData
 
     //!@{
     //! \name Spatial region data
-    std::vector<ImportRegion> regions;
     std::vector<ImportVolume> volumes;
     //!@}
 
@@ -114,6 +113,8 @@ struct ImportData
     // Physics groups
     inp::OpticalPhysics optical_physics;
 
+    // Muon-catalyzed fusion
+    inp::MucfPhysics mucf_physics;
     //!@}
 };
 

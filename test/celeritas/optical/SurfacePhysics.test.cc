@@ -164,17 +164,16 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
         input.interaction = InteractionModels{
             {
-                {PSI{0}, ReflectionForm::from_spike()},
-                {PSI{3}, ReflectionForm::from_lobe()},
-                {PSI{4}, ReflectionForm::from_lambertian()},
-                {PSI{6}, ReflectionForm::from_lobe()},
-                {PSI{7}, ReflectionForm::from_spike()},
+                {PSI{0}, {ReflectionForm::from_spike(), false}},
+                {PSI{1}, {ReflectionForm::from_lambertian(), true}},
+                {PSI{2}, {ReflectionForm::from_spike(), true}},
+                {PSI{3}, {ReflectionForm::from_lobe(), false}},
+                {PSI{4}, {ReflectionForm::from_lambertian(), false}},
+                {PSI{5}, {ReflectionForm::from_lobe(), true}},
+                {PSI{6}, {ReflectionForm::from_lobe(), false}},
+                {PSI{7}, {ReflectionForm::from_spike(), false}},
             },
-            {
-                {PSI{1}, ReflectionForm::from_lambertian()},
-                {PSI{2}, ReflectionForm::from_spike()},
-                {PSI{5}, ReflectionForm::from_lobe()},
-            },
+            {},
         };
 
         return std::make_shared<SurfacePhysicsParams const>(
@@ -262,12 +261,12 @@ TEST_F(SurfacePhysicsTest, init_params)
             {
                 as_id_vec<SurfaceModelId>(0, 0, 1, 2),
                 as_id_vec<SurfaceModelId>(0, 1, 0, 1),
-                as_id_vec<SurfaceModelId>(0, 1, 1, 0),
+                as_id_vec<SurfaceModelId>(0, 0, 0, 0),
             },
             {
                 as_id_vec<SubModelId>(0, 1, 0, 0),
                 as_id_vec<SubModelId>(0, 0, 1, 1),
-                as_id_vec<SubModelId>(0, 0, 1, 1),
+                as_id_vec<SubModelId>(0, 1, 2, 3),
             },
         },
         // Geometric Surface 1
@@ -279,12 +278,12 @@ TEST_F(SurfacePhysicsTest, init_params)
             {
                 as_id_vec<SurfaceModelId>(2, 1),
                 as_id_vec<SurfaceModelId>(1, 0),
-                as_id_vec<SurfaceModelId>(0, 1),
+                as_id_vec<SurfaceModelId>(0, 0),
             },
             {
                 as_id_vec<SubModelId>(1, 1),
                 as_id_vec<SubModelId>(2, 2),
-                as_id_vec<SubModelId>(2, 2),
+                as_id_vec<SubModelId>(4, 5),
             },
         },
         // Geometric Surface 2
@@ -301,7 +300,7 @@ TEST_F(SurfacePhysicsTest, init_params)
             {
                 as_id_vec<SubModelId>(2),
                 as_id_vec<SubModelId>(3),
-                as_id_vec<SubModelId>(3),
+                as_id_vec<SubModelId>(6),
             },
         },
         // Geometric Surface 3 - default surface
@@ -316,7 +315,7 @@ TEST_F(SurfacePhysicsTest, init_params)
             {
                 as_id_vec<SubModelId>(3),
                 as_id_vec<SubModelId>(4),
-                as_id_vec<SubModelId>(4),
+                as_id_vec<SubModelId>(7),
             },
         },
     };
@@ -351,8 +350,7 @@ TEST_F(SurfacePhysicsTest, init_params)
         "fresnel",
     };
     expected_model_names[SurfacePhysicsOrder::interaction] = {
-        "dielectric-dielectric",
-        "dielectric-metal",
+        "interaction-dielectric",
     };
 
     for (auto step : range(SurfacePhysicsOrder::size_))
@@ -504,7 +502,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
                              {
                                  as_id_vec<SubModelId>(2),
                                  as_id_vec<SubModelId>(3),
-                                 as_id_vec<SubModelId>(3),
+                                 as_id_vec<SubModelId>(6),
                              },
                              {
                                  as_id_vec<OptMatId>(0),
@@ -559,7 +557,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
                              {
                                  as_id_vec<SubModelId>(2),
                                  as_id_vec<SubModelId>(3),
-                                 as_id_vec<SubModelId>(3),
+                                 as_id_vec<SubModelId>(6),
                              },
                              {
                                  as_id_vec<OptMatId>(1),
@@ -619,12 +617,12 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
             {
                 as_id_vec<SurfaceModelId>(0, 0, 0, 0, 1, 2, 2, 1, 0, 0),
                 as_id_vec<SurfaceModelId>(0, 1, 1, 1, 0, 1, 1, 0, 1, 0),
-                as_id_vec<SurfaceModelId>(0, 1, 1, 1, 1, 0, 0, 1, 1, 0),
+                as_id_vec<SurfaceModelId>(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
             },
             {
                 as_id_vec<SubModelId>(0, 1, 1, 1, 0, 0, 0, 0, 1, 0),
                 as_id_vec<SubModelId>(0, 0, 0, 0, 1, 1, 1, 1, 0, 0),
-                as_id_vec<SubModelId>(0, 0, 0, 0, 1, 1, 1, 1, 0, 0),
+                as_id_vec<SubModelId>(0, 1, 1, 1, 2, 3, 3, 2, 1, 0),
             },
             {
                 as_id_vec<OptMatId>(0, 3, 1, 3, 1, 2, 1, 2, 1, 3),
@@ -680,12 +678,12 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
             {
                 as_id_vec<SurfaceModelId>(1, 2, 2, 1, 1, 2),
                 as_id_vec<SurfaceModelId>(0, 1, 1, 0, 0, 1),
-                as_id_vec<SurfaceModelId>(1, 0, 0, 1, 1, 0),
+                as_id_vec<SurfaceModelId>(0, 0, 0, 0, 0, 0),
             },
             {
                 as_id_vec<SubModelId>(1, 1, 1, 1, 1, 1),
                 as_id_vec<SubModelId>(2, 2, 2, 2, 2, 2),
-                as_id_vec<SubModelId>(2, 2, 2, 2, 2, 2),
+                as_id_vec<SubModelId>(5, 4, 4, 5, 5, 4),
             },
             {
                 as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),

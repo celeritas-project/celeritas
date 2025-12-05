@@ -9,6 +9,8 @@
 #include <memory>
 #include <type_traits>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/DeviceVector.hh"
@@ -76,9 +78,17 @@ struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
                           field_t,
                           detail::CovfieFieldTraits<MemSpace::host>::field_t>)
         {
-            field = std::make_unique<field_t>(covfie::make_parameter_pack(
-                other.field->backend().get_configuration(),
-                other.field->backend().get_backend().get_backend()));
+            if constexpr (CELERITAS_USE_HIP)
+            {
+                // No texture memory support: simply copy from the host field
+                field = std::make_unique<field_t>(*other.field);
+            }
+            else
+            {
+                field = std::make_unique<field_t>(covfie::make_parameter_pack(
+                    other.field->backend().get_configuration(),
+                    other.field->backend().get_backend().get_backend()));
+            }
             field_view = DeviceVector<view_t>{1};
             field_view.copy_to_device(make_span<view_t const>({{*field}}));
         }

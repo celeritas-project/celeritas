@@ -79,13 +79,4 @@ if(VecGeom_FOUND AND VecGeom_CUDA_FOUND AND (TARGET VecGeom::vecgeomcuda OR TARG
   endif()
 endif()
 
-# Save VecGeom_NAV variable for diagnostics
-if(VecGeom_VERSION VERSION_LESS 2.0)
-  if(VECGEOM_USE_NAVINDEX)
-    set(VecGeom_NAV "index")
-  else()
-    set(VecGeom_NAV "path")
-  endif()
-endif()
-
 #-----------------------------------------------------------------------------#

@@ -11,7 +11,9 @@
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
+#include "model/DielectricInteractionModel.hh"
 #include "model/PolishedRoughnessModel.hh"
+#include "model/TrivialInteractionModel.hh"
 
 #include "detail/BuiltinSurfaceModelBuilder.hh"
 
@@ -146,10 +148,10 @@ auto SurfacePhysicsParams::build_models(
                 build_model.build_fake("fresnel", input.reflectivity.fresnel);
                 break;
             case SurfacePhysicsOrder::interaction:
-                build_model.build_fake("dielectric-dielectric",
-                                       input.interaction.dielectric_dielectric);
-                build_model.build_fake("dielectric-metal",
-                                       input.interaction.dielectric_metal);
+                build_model.build<DielectricInteractionModel>(
+                    input.interaction.dielectric);
+                build_model.build<TrivialInteractionModel>(
+                    input.interaction.trivial);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();

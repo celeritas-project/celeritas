@@ -155,6 +155,11 @@ struct AppliesValidVolumetric
 /*!
  * Whether the track is undergoing a surface crossing and it matches the given
  * step and model.
+ *
+ * After the interaction step, a track may be on a surface but exiting so it
+ * does not have a valid next surface model. The surface stepping action is
+ * instead used, since tracks exiting the surface will have the post-boundary
+ * action set instead.
  */
 struct IsSurfaceModelEqual
 {
@@ -165,7 +170,8 @@ struct IsSurfaceModelEqual
     CELER_FUNCTION bool operator()(CoreTrackView const& track) const
     {
         auto s_phys = track.surface_physics();
-        return s_phys.is_crossing_boundary()
+        return IsStepActionEqual{s_phys.scalars().surface_stepping_action}(
+                   track)
                && s_phys.interface(step).surface_model_id() == model;
     }
 };

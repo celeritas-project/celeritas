@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -30,8 +32,12 @@ class DedupeCollectionBuilder;
  * The \c Collection manages data allocation and transfer between CPU and GPU.
  * Its primary design goal is facilitating construction of deeply hierarchical
  * data on host at setup time and seamlessly copying to device.
- * The templated \c T must be trivially copyable: either a fundamental data
- * type or a struct of such types.
+ * The templated \c T must be trivially copyable and destructable: either a
+ * fundamental data type or a struct of such types.  (Some classes in external
+ * libraries, such as rocrand's state types and VecGeom's NavTuple types, are
+ * \em essentially trivial, but implement null-op destructors or optimized copy
+ * constructors, so we allow specialization through the
+ * celeritas::TriviallyCopyable class.
  *
  * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
  * a contiguous subset of items are accessed with \c ItemRange<T>, and the
@@ -54,20 +60,22 @@ class DedupeCollectionBuilder;
  * has non-templated scalars (since the default assignment operator is less
  * work than manually copying scalars in a templated assignment operator.
  *
- * A collection group has the following requirements to be compatible with
- * the \c CollectionMirror, \c CollectionStateStore, and other such helper
+ * A <em>collection group</em> has the following requirements to be compatible
+ * with the \c CollectionMirror (for "params" collection groups), \c
+ * CollectionStateStore (for "state" collection groups"), and other such helper
  * classes:
- * - Be a struct templated with \c template<Ownership W, MemSpace M>
+ * - Be a struct templated with <code>template<Ownership W, MemSpace M></code>
  * - Contain only Collection objects and trivially copyable structs
  * - Define an operator bool that is true if and only if the class data is
  *   assigned and consistent
- * - Define a templated assignment operator on "other" Ownership and MemSpace
+ * - Define a \em templated assignment operator on "other" Ownership and
+ MemSpace
  *   which assigns every member to the right-hand-side's member
  *
  * Additionally, a \c StateData collection group must define
  * - A member function \c size() returning the number of entries (i.e. number
  *   of threads)
- * - A free function \c resize with one of two signatures:
+ * - A free function \c resize with one of three signatures:
  * \code
    void resize(
        StateData<Ownership::value, M>* data,
@@ -185,8 +193,8 @@ using ItemRange = Range<OpaqueId<T, Size>>;
 template<class T1, class T2>
 class ItemMap
 {
-    static_assert(detail::is_opaque_id_v<T1>, "T1 is not OpaqueID");
-    static_assert(detail::is_opaque_id_v<T2>, "T2 is not OpaqueID");
+    static_assert(is_opaque_id_v<T1>, "T1 is not OpaqueID");
+    static_assert(is_opaque_id_v<T2>, "T2 is not OpaqueID");
 
   public:
     //!@{
@@ -282,20 +290,19 @@ struct AllItems
  https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#zero-copy).
  *
  * Accessing a \c const_reference collection in \c device memory will return a
- * wrapper container that accesses the low-level data through the \c __ldg
- * primitive, which can accelerate random access by telling the compiler
+ * wrapper container that accesses the low-level data through the \c
+ celeritas::ldg
+ * wrapper function, which can accelerate random access on GPU by telling the
+ compiler
  * <em>the memory will not be changed during the lifetime of the kernel</em>.
  * Therefore it is important to \em only use const Collections for shared,
- * constant "params" data.
+ * immutable-after-creation "params" data.
  */
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
-    // rocrand states have nontrivial destructors
-    static_assert(std::is_trivially_copyable<T>::value || CELERITAS_USE_HIP,
+    static_assert(TriviallyCopyable_v<T>,
                   "Collection element is not trivially copyable");
-    static_assert(std::is_trivially_destructible<T>::value || CELERITAS_USE_HIP,
-                  "Collection element is not trivially destructible");
 
     using CollectionTraitsT = detail::CollectionTraits<T, W, M>;
     using const_value_type = typename CollectionTraitsT::const_type;

@@ -25,16 +25,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Whether profiling is enabled.
- *
- * This is off by default but must be enabled (in conjunction with other tools;
- * see \rstref{the profiling section,profiling} for more details). The
- * \c CELER_ENABLE_PROFILING environment variable is used to override this
- * behavior. Profiling is never enabled if CUDA/ROC-TX/Perfetto are
- * unavailable.
  */
 bool ScopedProfiling::enabled()
 {
-    static bool const result = [] {
+    static bool const enabled_ = [] {
         auto result = celeritas::getenv_flag("CELER_ENABLE_PROFILING", false);
         if (result.value)
         {
@@ -46,9 +40,10 @@ bool ScopedProfiling::enabled()
             }
             else if constexpr (!CELER_USE_DEVICE && !CELERITAS_USE_PERFETTO)
             {
-                CELER_LOG(error)
-                    << "CELER_ENABLE_PROFILING is set but Celeritas "
-                       "was compiled without a profiling backend";
+                CELER_LOG(error) << "CELER_ENABLE_PROFILING is set but "
+                                    "Celeritas was compiled without a "
+                                    "profiling backend: code will run but no "
+                                    "profiling will be generated";
                 return false;
             }
         }
@@ -69,7 +64,7 @@ bool ScopedProfiling::enabled()
             << " performance profiling";
         return result.value;
     }();
-    return result;
+    return enabled_;
 }
 
 #if CELERITAS_USE_PERFETTO

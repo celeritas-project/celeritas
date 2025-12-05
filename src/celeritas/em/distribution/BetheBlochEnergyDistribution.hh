@@ -26,7 +26,7 @@ namespace celeritas
  * Sample the energy of the delta ray for muon or hadron ionization.
  *
  * This samples the energy according to the Bethe-Bloch model, as described in
- * the Geant4 Physics Reference Manual release 11.2 section 12.1.5. The
+ * \cite{g4prm} (release 11.2, section 12.1.5). The
  * Bethe-Bloch differential cross section can be written as
  * \f[
    \difd{\sigma}{T} = 2\pi r_e^2 mc^2 Z \frac{z_p^2}{\beta^2}\frac{1}{T^2}

@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/inp/Grid.hh"
 #include "geocel/Types.hh"
-#include "celeritas/inp/Grid.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
 
 // Geant4 forward declaration

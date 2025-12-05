@@ -149,6 +149,7 @@ celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
 celeritas_add_test(em/BetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})
+celeritas_add_test(em/GammaNuclear.test.cc ${_needs_double})
 celeritas_add_test(em/KleinNishina.test.cc ${_needs_double})
 celeritas_add_test(em/LivermorePE.test.cc ${_needs_double})
 celeritas_add_test(em/MollerBhabha.test.cc ${_needs_double})
@@ -201,18 +202,12 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 
-  set(_ltu_tests)
-  if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    # ORANGE does not yet support touchable-based mapping
-    set(_ltu_tests DISABLE)
-  endif()
-
   celeritas_add_test(ext/detail/LevelTouchableUpdater.test.cc
-    LINK_LIBRARIES testcel_celeritas_g4
-    FILTER ${_ltu_tests})
+    LINK_LIBRARIES testcel_celeritas_g4)
   if(CELERITAS_REAL_TYPE STREQUAL "double")
-    # This test requires Geant4 *geometry* which is incompatible
-    # with single-precision
+    # This test requires Geant4 *test harness* which is double-precision only,
+    # incompatible with single-precision build (GeantGeoTestBase is not built in
+    # test/geocel/CMakeLists.txt unless using double precision)
     celeritas_add_test(ext/detail/NaviTouchableUpdater.test.cc
       LINK_LIBRARIES testcel_celeritas_g4 testcel_geocel)
   endif()
@@ -387,13 +382,14 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 # Optical
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
+celeritas_add_test(optical/Generator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
+celeritas_add_test(optical/Mie.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
-celeritas_add_test(optical/PrimaryGenerator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/RoughnessCalculator.test.cc)
@@ -403,6 +399,11 @@ celeritas_add_test(optical/Physics.test.cc)
 celeritas_add_test(optical/VolumeSurfaceSelector.test.cc
     LINK_LIBRARIES testcel_geocel)
 celeritas_add_test(optical/SurfacePhysics.test.cc)
+celeritas_add_test(optical/ReflectionFormSampler.test.cc)
+celeritas_add_test(optical/Fresnel.test.cc)
+celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
+celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
+celeritas_add_test(optical/SurfacePhysicsIntegration.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat

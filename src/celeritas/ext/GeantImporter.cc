@@ -29,10 +29,12 @@
 #include <G4MscStepLimitType.hh>
 #include <G4MuPairProduction.hh>
 #include <G4MuPairProductionModel.hh>
+#include <G4MuonMinusAtomicCapture.hh>
 #include <G4Navigator.hh>
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
 #include <G4OpAbsorption.hh>
+#include <G4OpMieHG.hh>
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
 #include <G4ParticleDefinition.hh>
@@ -70,6 +72,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/PdfUtils.hh"
@@ -84,7 +87,6 @@
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/Grid.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
@@ -194,6 +196,28 @@ auto& optical_particles_map()
 }
 
 //---------------------------------------------------------------------------//
+//! Custom-defined scintillation properties approximating to Gaussian
+//! distribution
+ImportGaussianScintComponent
+load_gauss_scint(std::string const& prefix,
+                 detail::GeantMaterialPropertyGetter& get_property,
+                 int comp_idx)
+{
+    ImportGaussianScintComponent gauss{};
+
+    bool found_mean = get_property(
+        &gauss.lambda_mean, prefix + "LAMBDAMEAN", comp_idx, ImportUnits::len);
+    bool found_sigma = get_property(
+        &gauss.lambda_sigma, prefix + "LAMBDASIGMA", comp_idx, ImportUnits::len);
+
+    CELER_VALIDATE(found_mean == found_sigma,
+                   << "only one of " << prefix << "LAMBDAMEAN" << comp_idx
+                   << " and " << prefix << "LAMBDASIGMA" << comp_idx
+                   << " was found");
+    return gauss;
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Populate an \c ImportScintComponent .
  * To retrieve a material-only component simply do not use particle name.
@@ -221,82 +245,62 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
         ImportScintComponent comp;
         get(&comp.yield_frac, "YIELD", ImportUnits::inv_mev);
 
-        // Custom-defined properties not available in G4MaterialPropertyIndex
-        for (auto&& [prop, label] : {
-                 std::pair{&comp.lambda_mean, "LAMBDAMEAN"},
-                 std::pair{&comp.lambda_sigma, "LAMBDASIGMA"},
-             })
-        {
-            if (get_property(
-                    prop, "CELER_" + prefix + label, comp_idx, ImportUnits::len))
-            {
-                any_found = true;
-            }
-            else if (get(prop, label, ImportUnits::len))
-            {
-                CELER_LOG(warning)
-                    << "Deprecated property name " << prefix << label
-                    << ": use CELER_" << prefix << label;
-            }
-        }
-
         // Rise time is not defined for particle type in Geant4
         get(&comp.rise_time, "RISETIME", ImportUnits::time);
         get(&comp.fall_time, "TIMECONSTANT", ImportUnits::time);
 
-        if (any_found)
+        auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
+        inp::Grid grid;
+
+        using ScintSpectrumComponent
+            = std::variant<std::monostate, ImportGaussianScintComponent, inp::Grid>;
+        ScintSpectrumComponent spectrum_component;
+
+        if (auto gauss
+            = load_gauss_scint("CELER_" + prefix, get_property, comp_idx))
         {
-            if (comp.lambda_mean == 0)
-            {
-                // Geant4 uses a tabulated distribution for the scintillation
-                // wavelength, while Celeritas samples from a Gaussian
-                // distribution with user-provided mean and standard deviation.
-                // If these custom-defined properties aren't found, try getting
-                // the Geant4-defined property and estimating the distribution
-                // parameters from the tabulated values.
-                inp::Grid grid;
-                auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
-                if (get_property(
-                        &grid, name, {ImportUnits::len, ImportUnits::unitless}))
-                {
-                    auto const& grid_cref = grid;
-                    auto moments = MomentCalculator{}(make_span(grid_cref.x),
-                                                      make_span(grid_cref.y));
-                    comp.lambda_mean = moments.mean;
-                    comp.lambda_sigma = std::sqrt(moments.variance);
-
-                    if (comp.lambda_sigma == 0)
-                    {
-                        // This case is triggered when Geant4 provides only two
-                        // points for a scintillation component. We
-                        // approximate the distribution as a Gaussian
-                        // distribution centered at the midpoint.
-                        double emin = grid.x.front();
-                        double emax = grid.x.back();
-                        comp.lambda_mean = (emax + emin) / 2;
-                        comp.lambda_sigma
-                            = (emax - emin)
-                              / 2.3548200450309493;  // sigma =
-                                                     // FWHM/(2*sqrt(2*ln(2))
-                        CELER_LOG(warning)
-                            << "Scintillation component " << comp_idx
-                            << " has only two points: approximating spectrum "
-                               "as a Gaussian ";
-                    }
-                    CELER_LOG(info)
-                        << "Estimated custom properties CELER_" << prefix
-                        << "LAMBDAMEAN" << comp_idx << "=" << comp.lambda_mean
-                        << " and CELER_" << prefix << "LAMBDASIGMA" << comp_idx
-                        << "=" << comp.lambda_sigma
-                        << " from Geant4-defined property " << name;
-                }
-            }
-
-            // Note that the user may be missing some properties: in that case
-            // (if Geant4 didn't warn/error/die already) then we will rely on
-            // the downstream code to validate.
-            components.push_back(std::move(comp));
+            CELER_VALIDATE(
+                std::holds_alternative<std::monostate>(spectrum_component),
+                << "conflicting scintillation spectrum definitions for "
+                << prefix);
+            spectrum_component = std::move(gauss);
         }
+        if (auto gauss = load_gauss_scint(prefix, get_property, comp_idx))
+        {
+            CELER_VALIDATE(
+                std::holds_alternative<std::monostate>(spectrum_component),
+                << "conflicting/redundant scintillation properties for "
+                << prefix);
+            CELER_LOG(warning) << "Deprecated property prefix " << prefix
+                               << ": use CELER_" << prefix;
+            spectrum_component = std::move(gauss);
+        }
+        if (get_property(&grid, name, {ImportUnits::mev, ImportUnits::unitless}))
+        {
+            // If an explicit energy/intensity grid is provided, use it
+            spectrum_component = std::move(grid);
+        }
+
+        if (auto* g
+            = std::get_if<ImportGaussianScintComponent>(&spectrum_component))
+        {
+            comp.gauss = *g;
+        }
+        else if (auto* gr = std::get_if<inp::Grid>(&spectrum_component))
+        {
+            comp.spectrum = *gr;
+        }
+
+        bool has_spectrum
+            = !std::holds_alternative<std::monostate>(spectrum_component);
+        if (any_found || has_spectrum)
+            // Note that the user may be missing some properties: in that
+            // case (if Geant4 didn't warn/error/die already) then we will
+            // rely on the downstream code to validate.
+            // Additionally, this check prevents adding components with only
+            // default (zero) values and no spectrum, which would otherwise
+            // trigger validation errors.
+            components.push_back(std::move(comp));
     }
     return components;
 }
@@ -677,6 +681,15 @@ import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
                      "WLSCOMPONENT2",
                      {ImportUnits::mev, ImportUnits::unitless});
 
+        // Save Mie properties
+        get_property(&optical.mie.forward_ratio,
+                     "MIEHG_FORWARD_RATIO",
+                     ImportUnits::unitless);
+        get_property(
+            &optical.mie.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
+        get_property(
+            &optical.mie.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
+
         CELER_ASSERT(optical);
     }
 
@@ -713,8 +726,10 @@ inp::SurfacePhysics import_optical_surface_physics()
     result.roughness.polished.emplace(default_surface, inp::NoRoughness{});
     result.reflectivity.fresnel.emplace(default_surface,
                                         inp::FresnelReflection{});
-    result.interaction.dielectric_dielectric.emplace(
-        default_surface, inp::ReflectionForm::from_spike());
+    result.interaction.dielectric.emplace(
+        default_surface,
+        inp::DielectricInteraction::from_dielectric(
+            inp::ReflectionForm::from_spike()));
 
     CELER_LOG(debug) << "Loaded " << result.materials.size()
                      << " optical surfaces (" << num_phys_surfaces
@@ -899,38 +914,6 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportRegion vector.
- */
-std::vector<ImportRegion> import_regions()
-{
-    auto& regions = *G4RegionStore::GetInstance();
-
-    std::vector<ImportRegion> result(regions.size());
-
-    // Loop over region data
-    for (auto i : range(result.size()))
-    {
-        // Fetch material, element, and production cuts lists
-        auto const* g4reg = regions[i];
-        CELER_ASSERT(g4reg);
-        CELER_ASSERT(static_cast<std::size_t>(g4reg->GetInstanceID()) == i);
-
-        ImportRegion region;
-        region.name = g4reg->GetName();
-        region.field_manager = (g4reg->GetFieldManager() != nullptr);
-        region.production_cuts = (g4reg->GetProductionCuts() != nullptr);
-        region.user_limits = (g4reg->GetUserLimits() != nullptr);
-
-        // Add region to result
-        result[i] = std::move(region);
-    }
-
-    CELER_LOG(debug) << "Loaded " << result.size() << " regions";
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Return a populated \c ImportProcess vector.
  */
 auto import_processes(GeantImporter::DataSelection selected,
@@ -1012,6 +995,15 @@ auto import_processes(GeantImporter::DataSelection selected,
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
         }
+        else if (dynamic_cast<G4MuonMinusAtomicCapture const*>(&process))
+        {
+            // G4MuonMinusAtomicCapture is a G4ProcessType::fHadronic
+            // It is also a G4VRestProcess and does not require import data
+            CELER_LOG(debug) << "Initializing default muCF data for particle "
+                             << particle.GetParticleName() << " ("
+                             << particle.GetPDGEncoding() << ')';
+            imported.mucf_physics = inp::MucfPhysics::from_default();
+        }
         else if (import_optical_model
                  && dynamic_cast<G4OpAbsorption const*>(&process))
         {
@@ -1029,6 +1021,13 @@ auto import_processes(GeantImporter::DataSelection selected,
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::wls));
         }
+        else if (import_optical_model
+                 && dynamic_cast<G4OpMieHG const*>(&process))
+        {
+            optical_models.push_back(
+                import_optical_model(optical::ImportModelClass::mie));
+        }
+
 #if G4VERSION_NUMBER >= 1070
         else if (import_optical_model
                  && dynamic_cast<G4OpWLS2 const*>(&process))
@@ -1459,7 +1458,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                 << R"(DEPRECATED: volumes are always reproducibly uniquified)";
         }
 
-        imported.regions = import_regions();
         imported.volumes = import_volumes();
         if (selected.particles != DataSelection::none)
         {

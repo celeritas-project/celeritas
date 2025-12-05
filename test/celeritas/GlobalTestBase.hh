@@ -17,6 +17,7 @@
 #include "geocel/LazyGeantGeoManager.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/optical/CoreParams.hh"
 
 #include "Test.hh"
 
@@ -52,7 +53,6 @@ struct Primary;
 
 namespace optical
 {
-class CoreParams;
 class MaterialParams;
 class PhysicsParams;
 class SurfacePhysicsParams;
@@ -165,6 +165,8 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstScintillation const& scintillation() const;
     //!@}
 
+    optical::CoreParams::Input optical_params_input();
+
     SPConstPrimariesAction const& primaries_action();
     void
     insert_primaries(CoreStateInterface& state, SpanConstPrimary primaries);
@@ -272,6 +274,20 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
         return this->NAME##_;                       \
     }
 
+#define DEF_OPTIONAL_GTB_ACCESSORS(CLS, NAME)       \
+    auto GlobalTestBase::NAME() -> CLS const&       \
+    {                                               \
+        if (!this->NAME##_)                         \
+        {                                           \
+            this->NAME##_ = this->build_##NAME();   \
+        }                                           \
+        return this->NAME##_;                       \
+    }                                               \
+    auto GlobalTestBase::NAME() const -> CLS const& \
+    {                                               \
+        return this->NAME##_;                       \
+    }
+
 DEF_GTB_ACCESSORS(SPConstCoreGeo, geometry)
 DEF_GTB_ACCESSORS(SPConstMaterial, material)
 DEF_GTB_ACCESSORS(SPConstGeoMaterial, geomaterial)
@@ -291,21 +307,11 @@ DEF_GTB_ACCESSORS(SPConstOpticalMaterial, optical_material)
 DEF_GTB_ACCESSORS(SPOpticalParams, optical_params)
 DEF_GTB_ACCESSORS(SPConstOpticalPhysics, optical_physics)
 DEF_GTB_ACCESSORS(SPConstOpticalSurfacePhysics, optical_surface_physics)
-DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
-auto GlobalTestBase::wentzel() -> SPConstWentzelOKVI const&
-{
-    if (!this->wentzel_)
-    {
-        this->wentzel_ = this->build_wentzel();
-    }
-    return this->wentzel_;
-}
-auto GlobalTestBase::wentzel() const -> SPConstWentzelOKVI const&
-{
-    return this->wentzel_;
-}
+DEF_OPTIONAL_GTB_ACCESSORS(SPConstScintillation, scintillation)
+DEF_OPTIONAL_GTB_ACCESSORS(SPConstWentzelOKVI, wentzel)
 
 #undef DEF_GTB_ACCESSORS
+#undef DEF_OPTIONAL_GTB_ACCESSORS
 
 //---------------------------------------------------------------------------//
 }  // namespace test

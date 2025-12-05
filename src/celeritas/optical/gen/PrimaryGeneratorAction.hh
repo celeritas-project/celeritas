@@ -11,13 +11,15 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/random/data/DistributionData.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
 #include "GeneratorBase.hh"
-#include "GeneratorData.hh"
 #include "OffloadData.hh"
+#include "PrimaryGeneratorData.hh"
 
 namespace celeritas
 {
@@ -25,6 +27,8 @@ class CoreParams;
 
 namespace optical
 {
+class CoreStateBase;
+
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical primaries from user-configurable distributions.
@@ -48,6 +52,9 @@ class PrimaryGeneratorAction final : public GeneratorBase
     // Construct with IDs and distributions
     PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);
 
+    // Set the number of pending tracks
+    void insert(CoreStateBase&) const;
+
     //!@{
     //! \name Aux interface
 
@@ -64,16 +71,16 @@ class PrimaryGeneratorAction final : public GeneratorBase
     void step(CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
-    // Set the number of pending tracks
-    template<MemSpace M>
-    inline void queue_primaries(CoreState<M>&) const;
-
   private:
     //// DATA ////
 
     PrimaryDistributionData data_;
+    CollectionMirror<DistributionParamsData> params_;
 
     //// HELPER FUNCTIONS ////
+
+    template<MemSpace M>
+    void insert_impl(CoreState<M>&) const;
 
     template<MemSpace M>
     void step_impl(CoreParams const&, CoreState<M>&) const;
@@ -81,28 +88,6 @@ class PrimaryGeneratorAction final : public GeneratorBase
     void generate(CoreParams const&, CoreStateHost&) const;
     void generate(CoreParams const&, CoreStateDevice&) const;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Set the number of pending tracks.
- *
- * The number of tracks to generate must be set at the beginning of each event
- * before the optical loop is launched.
- *
- * \todo Currently this is only called during testing, but it *must* be done at
- * the beginning of each event once this action is integrated into the stepping
- * loop. Refactor/replace this.
- */
-template<MemSpace M>
-void PrimaryGeneratorAction::queue_primaries(CoreState<M>& state) const
-{
-    CELER_EXPECT(state.aux());
-    auto& aux_state = this->counters(*state.aux());
-    aux_state.counters.num_pending = data_.num_photons;
-    state.counters().num_pending = data_.num_photons;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

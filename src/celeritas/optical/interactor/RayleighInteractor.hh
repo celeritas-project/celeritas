@@ -12,8 +12,8 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
-#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 

@@ -31,12 +31,12 @@
 #pragma link C++ class celeritas::ImportOpticalParameters+;
 #pragma link C++ class celeritas::ImportOpticalProperty+;
 #pragma link C++ class celeritas::ImportOpticalRayleigh+;
+#pragma link C++ class celeritas::ImportMie+;
 #pragma link C++ class celeritas::ImportParticleScintSpectrum+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;
 #pragma link C++ class celeritas::ImportPhysMaterial+;
 #pragma link C++ class celeritas::ImportProcess+;
 #pragma link C++ class celeritas::ImportProductionCut+;
-#pragma link C++ class celeritas::ImportRegion+;
 #pragma link C++ class celeritas::ImportScintComponent+;
 #pragma link C++ class celeritas::ImportScintData+;
 #pragma link C++ class celeritas::ImportTransParameters+;
@@ -45,16 +45,22 @@
 
 
 // Input data
+#pragma link C++ class celeritas::inp::DielectricInteraction+;
 #pragma link C++ class celeritas::inp::FresnelReflection+;
 #pragma link C++ class celeritas::inp::GaussianRoughness+;
 #pragma link C++ class celeritas::inp::Grid+;
 #pragma link C++ class celeritas::inp::GridReflection+;
 #pragma link C++ class celeritas::inp::Interpolation+;
+#pragma link C++ class celeritas::inp::MucfPhysics+;
+#pragma link C++ class celeritas::inp::MucfCycleRate+;
+#pragma link C++ class celeritas::inp::MucfAtomTransferRate+;
+#pragma link C++ class celeritas::inp::MucfAtomSpinFlipRate+;
 #pragma link C++ class celeritas::inp::MuPairProductionEnergyTransferTable+;
 #pragma link C++ class celeritas::inp::NoRoughness+;
 #pragma link C++ class celeritas::inp::OpticalPhysics+;
 #pragma link C++ class celeritas::inp::Particle+;
 #pragma link C++ class celeritas::inp::ReflectionForm+;
+#pragma link C++ class celeritas::inp::ReflectionForm::ReflectionGrids+;
 #pragma link C++ class celeritas::inp::SmearRoughness+;
 #pragma link C++ class celeritas::inp::SurfacePhysics+;
 #pragma link C++ class celeritas::inp::TwodGrid+;
@@ -71,6 +77,7 @@
 #pragma link C++ class celeritas::inp::ReflectivityModels+;
 #pragma link C++ class celeritas::inp::RoughnessModels+;
 #pragma link C++ class celeritas::inp::SeltzerBergerModel+;
+#pragma link C++ enum class celeritas::optical::TrivialInteractionMode+;
 
 // Quantities
 #pragma link C++ class celeritas::Quantity<celeritas::units::EElectron,double>+;
@@ -81,6 +88,7 @@
 #pragma link C++ class celeritas::EventHitData+;
 
 // OpaqueIds
+#pragma link C++ enum celeritas::MucfMuonicMolecule+;
 #pragma link C++ class celeritas::OptMatId+;
 #pragma link C++ class celeritas::PhysSurfaceId+;
 #pragma link C++ class celeritas::SurfaceId+;

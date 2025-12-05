@@ -62,6 +62,12 @@ inline CELER_FUNCTION bool
 is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
+// Check whether two vectors are approximately collinear
+template<class T, size_type N>
+inline CELER_FUNCTION bool
+is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y);
+
+//---------------------------------------------------------------------------//
 // Calculate the Euclidean (2) distance between two points
 template<class T, size_type N>
 [[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
@@ -78,6 +84,12 @@ from_spherical(T costheta, T phi);
 template<class T>
 [[nodiscard]] inline CELER_FUNCTION Array<T, 3>
 rotate(Array<T, 3> const& dir, Array<T, 3> const& rot);
+
+//---------------------------------------------------------------------------//
+// Convert an array from type \c T2 to \c T1
+template<class T1, class T2, size_type N>
+[[nodiscard]] inline CELER_FUNCTION Array<T1, N>
+array_cast(Array<T2, N> const& x);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -185,7 +197,7 @@ make_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
 
 //---------------------------------------------------------------------------//
 /*!
- * Check whether two vectors are approximately orthogonal.
+ * Check whether two unit vectors are approximately orthogonal.
  *
  * Note that the test for orthogonality should use relative tolerance, not
  * absolute.
@@ -194,8 +206,23 @@ template<class T, size_type N>
 inline CELER_FUNCTION bool
 is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
 {
-    SoftZero const soft_zero{SoftEqual{}.rel()};
+    SoftZero const soft_zero{SoftEqual<T>{}.rel()};
     return soft_zero(dot_product(x, y));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check whether two vectors are approximately collinear.
+ *
+ * \pre Vectors must be normalized, i.e., have unit magnitude.
+ */
+template<class T, size_type N>
+inline CELER_FUNCTION bool
+is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y)
+{
+    CELER_EXPECT(is_soft_unit_vector(x) && is_soft_unit_vector(y));
+    SoftEqual<T> const soft_eq;
+    return soft_eq(dot_product(x, y), 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -319,6 +346,21 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
 
     // Always normalize to prevent roundoff error from propagating
     return make_unit_vector(result);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert an array from type \c T2 to \c T1.
+ */
+template<class T1, class T2, size_type N>
+CELER_FUNCTION Array<T1, N> array_cast(Array<T2, N> const& x)
+{
+    Array<T1, N> result;
+    for (size_type i = 0; i != N; ++i)
+    {
+        result[i] = static_cast<T1>(x[i]);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

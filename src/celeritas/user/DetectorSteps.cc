@@ -136,13 +136,13 @@ void copy_steps<MemSpace::host>(
         DS_ASSIGN(points[sp].pos);
         DS_ASSIGN(points[sp].dir);
         DS_ASSIGN(points[sp].energy);
-        if (state.volume_instance_depth > 0)
+        if (state.num_volume_levels > 0)
         {
             assign_field(&(output->points[sp].volume_instance_ids),
                          state.data.points[sp].volume_instance_ids,
                          state.data.detector,
                          size,
-                         state.volume_instance_depth);
+                         state.num_volume_levels);
         }
     }
 
@@ -155,7 +155,7 @@ void copy_steps<MemSpace::host>(
     DS_ASSIGN(particle);
     DS_ASSIGN(energy_deposition);
 
-    output->volume_instance_depth = state.volume_instance_depth;
+    output->num_volume_levels = state.num_volume_levels;
 
 #undef DS_ASSIGN
 

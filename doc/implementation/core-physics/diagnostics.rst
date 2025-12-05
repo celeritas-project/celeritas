@@ -11,9 +11,7 @@ tracks in flight, on CPU or GPU.  The interface to most of these diagnostics
 should be considered unstable.
 
 .. doxygenclass:: celeritas::ActionDiagnostic
-
 .. doxygenclass:: celeritas::StepDiagnostic
-
 .. doxygenclass:: celeritas::SlotDiagnostic
 
 
@@ -23,7 +21,5 @@ Step writers
 These use a special interface to extract step information.
 
 .. doxygenclass:: celeritas::SimpleCalo
-
 .. doxygenclass:: celeritas::RootStepWriter
-
 .. celerstruct:: SimpleRootFilterInput

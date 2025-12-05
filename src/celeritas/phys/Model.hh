@@ -12,9 +12,9 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"  // IWYU pragma: export
-#include "celeritas/inp/Grid.hh"
 
 #include "Applicability.hh"  // IWYU pragma: export
 

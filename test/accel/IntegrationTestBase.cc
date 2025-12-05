@@ -31,6 +31,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TracingSession.hh"
@@ -288,7 +289,7 @@ G4RunManager& IntegrationTestBase::run_manager()
 #if G4VERSION_NUMBER >= 1100
             G4RunManagerFactory::CreateRunManager()
 #else
-            std::shared_ptr<G4RunManager>()
+            std::make_shared<G4RunManager>()
 #endif
         };
         CELER_ASSERT(rm);
@@ -401,12 +402,11 @@ auto LarSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
-
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{10}};
-    result.shape = inp::PointDistribution{from_cm({99, 0.1, 0})};
+    result.energy = inp::MonoenergeticDistribution{10};  // [MeV]
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({99, 0.1, 0}))};
     result.angle = inp::IsotropicDistribution{};
     result.num_events = 4;  // Overridden with BeamOn
     result.primaries_per_event = 10;
@@ -432,7 +432,7 @@ auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
  */
 void LarSphereIntegrationMixin::process_hit(G4Step const* step)
 {
-    if (!step || !step->GetTrack())
+    if (CELER_UNLIKELY(!step || !step->GetTrack()))
     {
         // Reduce testing overhead: google assertions allocate memory
         ASSERT_TRUE(step);
@@ -441,8 +441,8 @@ void LarSphereIntegrationMixin::process_hit(G4Step const* step)
     }
 
     auto& track = *step->GetTrack();
-    if (!(track.GetWeight() > 0) || !track.GetVolume()
-        || !track.GetNextVolume())
+    if (CELER_UNLIKELY(!(track.GetWeight() > 0) || !track.GetVolume()
+                       || !track.GetNextVolume()))
     {
         EXPECT_GT(track.GetWeight(), 0);
         EXPECT_TRUE(track.GetVolume());
@@ -473,13 +473,12 @@ auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
  */
 auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
 {
-    using MevEnergy = Quantity<units::Mev, double>;
-
     PrimaryInput result;
     result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{MevEnergy{100}};
-    result.shape = inp::PointDistribution{from_cm({-22, 0, 0})};
-    result.angle = inp::MonodirectionalDistribution{Real3{1, 0, 0}};
+    result.energy = inp::MonoenergeticDistribution{100};  // [MeV]
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({-22, 0, 0}))};
+    result.angle = inp::MonodirectionalDistribution{{1, 0, 0}};
     result.num_events = 2;
     result.primaries_per_event = 1;
     return result;
@@ -495,6 +494,70 @@ auto TestEm3IntegrationMixin::make_sens_det(std::string const& sd_name)
     EXPECT_EQ("lAr", sd_name);
 
     return std::make_unique<SimpleSensitiveDetector>(sd_name);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create physics list
+ */
+auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
+{
+    auto result = Base::make_physics_input();
+
+    // Enable optical physics (scintillation + Cherenkov)
+    auto& optical = result.optical;
+    optical = {};
+    EXPECT_TRUE(optical);
+    EXPECT_TRUE(optical.scintillation);
+    EXPECT_TRUE(optical.cherenkov);
+    EXPECT_TRUE(optical.mie_scattering);
+    EXPECT_TRUE(optical.rayleigh_scattering);
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a 0.5 MeV positron primary.
+ */
+auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
+{
+    PrimaryInput result;
+    result.pdg = {pdg::positron()};
+    result.energy = inp::MonoenergeticDistribution{0.5};  // [MeV]
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({0., 0., 0.}))};
+    result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};
+    result.num_events = 12;  // Overridden with BeamOn
+    result.primaries_per_event = 10;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return null pointer for the sensitive detector
+ */
+auto OpNoviceIntegrationMixin::make_sens_det(std::string const&) -> UPSensDet
+{
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical physics options
+ */
+SetupOptions OpNoviceIntegrationMixin::make_setup_options()
+{
+    auto result = Base::make_setup_options();
+    result.sd.enabled = false;
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = 32768 * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        return opt;
+    }();
+    return result;
 }
 
 //---------------------------------------------------------------------------//
