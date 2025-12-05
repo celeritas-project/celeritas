@@ -285,8 +285,6 @@ CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
  * \f]
  * where a is assumed to already be 1, and is not provided to the
  * function.
- * Uses the Numerical Recipes cubic algorithm, a combination of Cardano and
- * trigonometry\citet{}.
  *
  * \return The real roots of the given cubic equation, with the dominant at
  * index 0.
