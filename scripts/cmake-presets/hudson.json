@@ -51,17 +51,17 @@
     {
       "name": "release-orange",
       "displayName": "Build with full optimizations (ORANGE)",
-      "inherits": ["release", ".orange"]
+      "inherits": [".orange", "release"]
     },
     {
       "name": "reldeb-orange",
       "displayName": "Build with optimizations, but enable host debugging (ORANGE)",
-      "inherits": ["reldeb", ".orange"]
+      "inherits": [".orange", "reldeb"]
     },
     {
       "name": "debug-orange",
       "displayName": "Build without optimization, enabling full host debugging (ORANGE)",
-      "inherits": [".base", ".debug", ".orange"],
+      "inherits": [".orange", ".base", ".debug"],
       "cacheVariables": {
         "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"}
       }
