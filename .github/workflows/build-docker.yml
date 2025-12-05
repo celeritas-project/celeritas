@@ -93,7 +93,10 @@ jobs:
       - name: Build Celeritas
         working-directory: build
         run: |
-          ninja
+          echo "::group::Build verbosely"
+          ninja -v -k0
+          echo "::endgroup::"
+          echo "::notice title=build-size::$(du -hs . | awk '{print $1}')"
 
       ### TEST ###
 

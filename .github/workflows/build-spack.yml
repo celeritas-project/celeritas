@@ -242,7 +242,10 @@ jobs:
         working-directory: build
         run: |
           ccache -z
+          echo "::group::Build verbosely"
           ninja -v -k0
+          echo "::endgroup::"
+          echo "::notice title=build-size::$(du -hs . | awk '{print $1}')"
       - name: Show ccache stats
         if: ${{!cancelled() && steps.installdeps.outcome == 'success'}}
         run: |
