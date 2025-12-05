@@ -122,6 +122,7 @@ jobs:
           path: spack-src
       - name: Initialize spack environment
         run: |
+          echo "::notice title=spack-arch::Spack architecture is $(spack arch)"
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
             scripts/ci/spack.yaml > spack.yaml
           if ${{matrix.geometry == 'vecgeom'}}; then
@@ -161,7 +162,6 @@ jobs:
         run: |
           spack -e . -v concretize || (
             ERR=$?
-            spack arch
             cat spack.yaml
             exit $ERR
           )
