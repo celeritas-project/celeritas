@@ -5,13 +5,14 @@
     {
       "name": "base",
       "displayName": "Ubuntu/nvidia-docker default options for GCC",
-      "inherits": [".cuda-volta", "default"],
+      "inherits": ["default"],
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
@@ -25,6 +26,7 @@
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings",
+        "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "80"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
       }
     },
@@ -70,7 +72,7 @@
       "cacheVariables": {
         "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_DEBUG": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_DEVICE_DEBUG": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_DEVICE_DEBUG": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -78,7 +80,8 @@
       "description": "Build with RelWithDebInfo, assertions, and VecGeom",
       "inherits": [".reldeb", ".vecgeom", "base"],
       "cacheVariables": {
-        "CELERITAS_DEVICE_DEBUG": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_DEVICE_DEBUG": {"type": "BOOL", "value": "ON"},
+        "CMAKE_CUDA_ARCHITECTURES": "80-virtual"
       }
     },
     {
