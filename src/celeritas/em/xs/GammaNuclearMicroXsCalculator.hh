@@ -65,26 +65,23 @@ CELER_FUNCTION
 auto GammaNuclearMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
 {
     NonuniformGridRecord grid;
-    NonuniformGridCalculator::Values values;
 
     // Use G4PARTICLEXS gamma-nuclear cross sections at low energy and CHIPS
     // parameterized cross sections at high energy.
 
-    if (inc_energy_ <= data_.reals_iaea[data_.micro_xs_iaea[el_id].grid.back()])
+    if (inc_energy_ <= data_.reals[data_.xs_iaea[el_id].grid.back()])
     {
-        CELER_EXPECT(el_id < data_.micro_xs_iaea.size());
-        grid = data_.micro_xs_iaea[el_id];
-        values = data_.reals_iaea;
+        CELER_EXPECT(el_id < data_.xs_iaea.size());
+        grid = data_.xs_iaea[el_id];
     }
     else
     {
-        CELER_EXPECT(el_id < data_.micro_xs_chips.size());
-        grid = data_.micro_xs_chips[el_id];
-        values = data_.reals_chips;
+        CELER_EXPECT(el_id < data_.xs_chips.size());
+        grid = data_.xs_chips[el_id];
     }
 
     // Calculate micro cross section at the given energy
-    NonuniformGridCalculator calc_xs(grid, values);
+    NonuniformGridCalculator calc_xs(grid, data_.reals);
     real_type result = calc_xs(inc_energy_);
 
     return BarnXs{result};
