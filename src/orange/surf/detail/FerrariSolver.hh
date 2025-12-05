@@ -123,28 +123,16 @@ CELER_FUNCTION auto
 FerrariSolver::operator()(Real5 const& abcde, SurfaceState on_surface) const
     -> Intersections
 {
-    // Normalize coefficients
     auto [a, b, c, d, e] = abcde;
-    real_type ba = b / a, ca = c / a, da = d / a, ea = e / a;
 
-    // If known to be on surface, divide polynomial by x and solve cubic
+    // If known to be on surface, solve using cubic instead
     if (on_surface == SurfaceState::on)
     {
-        Real3 cubic_roots = real_roots_normalized_cubic(ba, ca, da);
-        auto [z0, z1, z2] = cubic_roots;
-
-        Intersections roots(no_intersection(),
-                            no_intersection(),
-                            no_intersection(),
-                            no_intersection());
-
-        int idx = 0;
-        idx = place_root(roots, z0, idx);
-        idx = place_root(roots, z1, idx);
-        idx = place_root(roots, z2, idx);
-        sort(&roots[0], &roots[idx]);
-        return roots;
+        return operator()(Real4{a, b, c, d});
     }
+
+    // Normalize coefficients
+    real_type ba = b / a, ca = c / a, da = d / a, ea = e / a;
 
     constexpr real_type half{0.5};
     real_type qb = real_type{0.25} * ba;
@@ -222,7 +210,22 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real4 const& abcd) const
     -> Intersections
 {
     auto [a, b, c, d] = abcd;
-    return operator()({a, b, c, d, 0}, SurfaceState::on);
+    // Normalize coefficients
+    real_type ba = b / a, ca = c / a, da = d / a;
+    Real3 cubic_roots = real_roots_normalized_cubic(ba, ca, da);
+    auto [z0, z1, z2] = cubic_roots;
+
+    Intersections roots(no_intersection(),
+                        no_intersection(),
+                        no_intersection(),
+                        no_intersection());
+
+    int idx = 0;
+    idx = place_root(roots, z0, idx);
+    idx = place_root(roots, z1, idx);
+    idx = place_root(roots, z2, idx);
+    sort(&roots[0], &roots[idx]);
+    return roots;
 }
 
 //---------------------------------------------------------------------------//
