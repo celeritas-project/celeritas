@@ -54,5 +54,13 @@ from_cm(Array<real_type, 3> const& v)
 }
 
 //---------------------------------------------------------------------------//
+//! Unit system used for length in a test
+struct UnitLength
+{
+    Constant value{::celeritas::lengthunits::centimeter};
+    std::string label{"cm"};
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

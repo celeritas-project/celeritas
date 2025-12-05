@@ -88,7 +88,7 @@
 #pragma link C++ class celeritas::EventHitData+;
 
 // OpaqueIds
-#pragma link C++ class celeritas::MuonicMolecule+;
+#pragma link C++ enum celeritas::MucfMuonicMolecule+;
 #pragma link C++ class celeritas::OptMatId+;
 #pragma link C++ class celeritas::PhysSurfaceId+;
 #pragma link C++ class celeritas::SurfaceId+;

@@ -61,7 +61,7 @@ struct CovfieFieldTraits<MemSpace::device>
 #else
 // Manually interpolate rather than relying on texture memory
 #    if CELERITAS_USE_HIP
-    using storage_t = covfie::backend::hip_device_array<float3, float3>;
+    using storage_t = covfie::backend::hip_device_array<float3>;
 #    else
     using storage_t = covfie::backend::array<float3>;
 #    endif

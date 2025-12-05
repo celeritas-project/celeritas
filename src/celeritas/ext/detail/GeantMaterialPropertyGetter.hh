@@ -9,7 +9,7 @@
 #include <string>
 #include <G4Material.hh>
 
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/io/ImportUnits.hh"
 
 #include "GeantProcessImporter.hh"

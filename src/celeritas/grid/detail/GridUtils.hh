@@ -11,9 +11,9 @@
 #include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/UniformGridData.hh"
+#include "corecel/inp/Grid.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {

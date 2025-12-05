@@ -9,9 +9,7 @@
 #include "corecel/Config.hh"
 
 #include "orange/OrangeInput.hh"
-#include "orange/OrangeTypes.hh"
-
-#include "Options.hh"
+#include "orange/inp/Import.hh"
 
 //---------------------------------------------------------------------------//
 // Forward declarations
@@ -52,6 +50,7 @@ class Converter
     //!@{
     //! \name Type aliases
     using arg_type = GeantGeoParams const&;
+    using Options = inp::OrangeGeoFromGeant;
     //!@}
 
     struct result_type
@@ -72,21 +71,6 @@ class Converter
   private:
     Options opts_;
 };
-
-//---------------------------------------------------------------------------//
-
-#if !CELERITAS_USE_GEANT4
-inline Converter::Converter(Options&&)
-{
-    CELER_DISCARD(opts_);
-}
-
-inline auto Converter::operator()(GeantGeoParams const&, VolumeParams const&)
-    -> result_type
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace g4org

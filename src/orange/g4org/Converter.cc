@@ -14,7 +14,6 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
-#include "geocel/detail/LengthUnits.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/InputBuilder.hh"

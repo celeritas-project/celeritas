@@ -2,26 +2,27 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/g4org/OptionsIO.json.hh
+//! \file corecel/grid/GridTypes.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "GridTypes.hh"
 
-#include <nlohmann/json.hpp>
-
-#include "Options.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 namespace celeritas
 {
-namespace g4org
+//---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the interpolation method.
+ */
+char const* to_cstring(InterpolationType value)
 {
+    static EnumStringMapper<InterpolationType> const to_cstring_impl{
+        "linear",
+        "poly_spline",
+        "cubic_spline",
+    };
+    return to_cstring_impl(value);
+}
+
 //---------------------------------------------------------------------------//
-
-void to_json(nlohmann::json& j, InlineSingletons const&);
-void from_json(nlohmann::json const& j, InlineSingletons&);
-
-void to_json(nlohmann::json& j, Options const&);
-void from_json(nlohmann::json const& j, Options&);
-
-//---------------------------------------------------------------------------//
-}  // namespace g4org
 }  // namespace celeritas

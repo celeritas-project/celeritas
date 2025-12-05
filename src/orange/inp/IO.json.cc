@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/g4org/OptionsIO.json.cc
+//! \file orange/inp/IO.json.cc
 //---------------------------------------------------------------------------//
-#include "OptionsIO.json.hh"
+#include "IO.json.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
@@ -12,11 +12,9 @@
 #include "corecel/io/StringEnumMapper.hh"
 #include "orange/OrangeTypesIO.json.hh"
 
-#include "Options.hh"
-
 namespace celeritas
 {
-namespace g4org
+namespace inp
 {
 //---------------------------------------------------------------------------//
 static char const format_str[] = "g4org-options";
@@ -53,7 +51,7 @@ void from_json(nlohmann::json const& j, InlineSingletons& v)
     v = from_string(j.get<std::string>());
 }
 
-void to_json(nlohmann::json& j, Options const& v)
+void to_json(nlohmann::json& j, OrangeGeoFromGeant const& v)
 {
 #define OPT_JSON_STRING(NAME) CELER_JSON_PAIR_WHEN(v, NAME, !v.NAME.empty())
 
@@ -78,7 +76,7 @@ void to_json(nlohmann::json& j, Options const& v)
     save_format(j, format_str);
 }
 
-void from_json(nlohmann::json const& j, Options& v)
+void from_json(nlohmann::json const& j, OrangeGeoFromGeant& v)
 {
     check_format(j, format_str);
 
@@ -105,7 +103,7 @@ void from_json(nlohmann::json const& j, Options& v)
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper to read the conversion options from a file or stream.
+ * Helper to read the import options from a file or stream.
  *
  * Example to read from a file:
  * \code
@@ -113,7 +111,7 @@ void from_json(nlohmann::json const& j, Options& v)
    std::ifstream("foo.json") >> inp;
  * \endcode
  */
-std::istream& operator>>(std::istream& is, Options& inp)
+std::istream& operator>>(std::istream& is, OrangeGeoFromGeant& inp)
 {
     auto j = nlohmann::json::parse(is);
     j.get_to(inp);
@@ -124,7 +122,7 @@ std::istream& operator>>(std::istream& is, Options& inp)
 /*!
  * Helper to write the options to a file or stream.
  */
-std::ostream& operator<<(std::ostream& os, Options const& inp)
+std::ostream& operator<<(std::ostream& os, OrangeGeoFromGeant const& inp)
 {
     nlohmann::json j = inp;
     os << j.dump();
@@ -132,5 +130,5 @@ std::ostream& operator<<(std::ostream& os, Options const& inp)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace g4org
+}  // namespace inp
 }  // namespace celeritas

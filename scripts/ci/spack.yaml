@@ -4,9 +4,9 @@
 spack:
   view: /opt/spack-view
   specs:
-  - ccache
+  - "ccache@4.10:"
   - cli11 +pic ~ipo
-  - cmake
+  - "cmake ^curl tls=openssl"
   - covfie
   - googletest
   - hepmc3

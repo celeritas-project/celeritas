@@ -11,6 +11,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/grid/GridTypesIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"

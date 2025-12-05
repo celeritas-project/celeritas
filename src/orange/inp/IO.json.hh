@@ -2,19 +2,26 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/TypesIO.json.hh
+//! \file orange/inp/IO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-#include "Types.hh"
+#include "Import.hh"
 
 namespace celeritas
 {
+namespace inp
+{
 //---------------------------------------------------------------------------//
-void from_json(nlohmann::json const& j, TrackOrder& value);
-void to_json(nlohmann::json& j, TrackOrder const& value);
+
+void to_json(nlohmann::json& j, InlineSingletons const&);
+void from_json(nlohmann::json const& j, InlineSingletons&);
+
+void to_json(nlohmann::json& j, OrangeGeoFromGeant const&);
+void from_json(nlohmann::json const& j, OrangeGeoFromGeant&);
 
 //---------------------------------------------------------------------------//
+}  // namespace inp
 }  // namespace celeritas

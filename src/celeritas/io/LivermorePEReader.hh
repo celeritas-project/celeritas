@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "ImportLivermorePE.hh"

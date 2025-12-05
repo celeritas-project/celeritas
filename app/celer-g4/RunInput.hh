@@ -10,6 +10,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"

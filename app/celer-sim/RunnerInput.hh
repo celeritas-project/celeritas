@@ -14,6 +14,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"

@@ -83,7 +83,7 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
     // Get the label for this geometry: Geant4, VecGeom, ORANGE
     std::string_view geometry_type() const final;
     // Access the geometry interface
-    GeoParamsInterface const& geometry_interface() const final;
+    SPConstGeoI geometry_interface() const final;
 
   private:
     template<Ownership W, MemSpace M>

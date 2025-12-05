@@ -93,8 +93,8 @@ class GeoTrackInterface
     virtual Real3 const& pos() const = 0;
     //! Return the direction in the global coordinate system
     virtual Real3 const& dir() const = 0;
-    //!@}
 
+    //!@}
     //!@{
     //! \name Canonical volume state
 
@@ -124,6 +124,7 @@ class GeoTrackInterface
 
     //!@{
     //! \name Surface state
+
     /*!
      * Whether the track is exactly on a surface.
      *
@@ -142,9 +143,9 @@ class GeoTrackInterface
      */
     virtual Real3 normal() const = 0;
     //!@}
-
     //!@{
     //! \name Straight-line movement and boundary crossing
+
     /*!
      * Find the distance to the next boundary (infinite max).
      *
@@ -191,9 +192,9 @@ class GeoTrackInterface
      */
     virtual void cross_boundary() = 0;
     //!@}
-
     //!@{
     //! \name Locally bounded movement
+
     /*!
      * Find the safety distance at the current position.
      *

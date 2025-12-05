@@ -9,7 +9,7 @@
 #include <map>
 #include <vector>
 
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 
 #include "ImportUnits.hh"
 

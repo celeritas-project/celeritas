@@ -10,10 +10,10 @@
 #include <map>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/inp/Grid.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/Grid.hh"
 #include "celeritas/optical/Types.hh"
 
 namespace celeritas
