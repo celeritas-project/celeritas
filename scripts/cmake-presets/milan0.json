@@ -28,6 +28,14 @@
       }
     },
     {
+      "name": ".orange",
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_EXE_LINKER_FLAGS": "-Wl,-z,defs",
+        "CMAKE_SHARED_LINKER_FLAGS": "-Wl,-z,defs"
+      }
+    },
+    {
       "name": "release",
       "displayName": "Build with full optimizations (VecGeom)",
       "inherits": [".base", ".ndebug"]
@@ -43,26 +51,19 @@
     {
       "name": "release-orange",
       "displayName": "Build with full optimizations (ORANGE)",
-      "inherits": ["release"],
-      "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
-      }
+      "inherits": ["release", ".orange"]
     },
     {
       "name": "reldeb-orange",
       "displayName": "Build with optimizations, but enable host debugging (ORANGE)",
-      "inherits": ["reldeb"],
-      "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
-      }
+      "inherits": ["reldeb", ".orange"]
     },
     {
       "name": "debug-orange",
       "displayName": "Build without optimization, enabling full host debugging (ORANGE)",
-      "inherits": [".base", ".debug"],
+      "inherits": [".base", ".debug", ".orange"],
       "cacheVariables": {
-        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"}
       }
     }
   ],
