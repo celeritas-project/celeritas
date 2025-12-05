@@ -146,7 +146,7 @@ jobs:
           fi
           echo "::group::Find compilers"
           spack -vd -e . compiler find --mixed-toolchain
-          echo "::endgroup::
+          echo "::endgroup::"
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
       - name: Cache concretization
@@ -361,7 +361,7 @@ jobs:
         run: |
           echo "::group::Install"
           cmake --install .
-          echo "::endgroup::
+          echo "::endgroup::"
           ninja clean
       - name: Check installation
         if: >-

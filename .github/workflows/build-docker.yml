@@ -137,7 +137,7 @@ jobs:
         run: |
           echo "::group::Install"
           cmake --install .
-          echo "::endgroup::
+          echo "::endgroup::"
           cmake --build . --target clean
       - name: Check installation
         if: >-
