@@ -885,10 +885,9 @@ TEST_F(SolidsTest, trace)
     if (geant4_version >= Version{11})
     {
         // G4 11.3 report normal directions perpendicular to track direction
-        // due to coincident surfaces
-        static char const* const expected_log_levels[]
-            = {"warning", "warning", "warning", "warning"};
-        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
+        // due to coincident surfaces; and at least one of the tangents is
+        // machine-dependent
+        EXPECT_GE(scoped_log_.levels().size(), 3) << scoped_log_;
     }
 }
 
