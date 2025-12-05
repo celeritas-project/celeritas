@@ -44,17 +44,17 @@ namespace celeritas
  * corresponds to {a, b, c, d, e}. An overload using a four-element array
  * \c abcd solves the degenerate case where \f$ e = 0 \f$.
  *
- * \return An result_type array where each item is either a positive valid
- * intersection or the sentinel result \c infinity.
+ * The result is an array of 4 real numbers, where each is either a positive
+ * valid intersection or the sentinel result \c infinity.
  */
 class FerrariSolver
 {
   public:
     //!@{
     //! \name Type aliases
-    using result_type = Array<real_type, 4>;
     using Real4 = Array<real_type, 4>;
     using Real5 = Array<real_type, 5>;
+    using result_type = Real4;
     //!@}
 
   public:
