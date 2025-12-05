@@ -37,7 +37,7 @@ class JsonOrangeTest : public OrangeGeoTestBase
     //! Use multiple track slots to check detailed initialization
     size_type num_track_slots() const override { return 2; }
     //! Length scale is hardcoded into JSON files
-    Constant unit_length() const override { return Constant{1}; }
+    UnitLength unit_length() const override { return {Constant{1}, "length"}; }
 
     virtual std::string_view geometry_basename() const = 0;
 
@@ -781,11 +781,10 @@ TEST_F(InputBuilderTest, lar_split_detector)
 {
     auto inf = std::numeric_limits<real_type>::infinity();
     {
-        auto result = this->track({0, 0, -16}, {0, 0, 1});
+        auto result = this->track({0, 0, -14}, {0, 0, 1});
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            "[OUTSIDE]",
             "outer_region",
             "lower_shell",
             "inner",
@@ -799,8 +798,8 @@ TEST_F(InputBuilderTest, lar_split_detector)
             "upper_shell@global",
             "outer_region@global",
         };
-        ref.distances = {1, 5, 5, 10, 5, 5};
-        ref.halfway_safeties = {2.5, 2.5, inf, 2.5, 2.5};
+        ref.distances = {4, 5, 10, 5, 5};
+        ref.halfway_safeties = {2, 2.5, inf, 2.5, 2.5};
         ref.bumps = {};
         auto tol = this->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
