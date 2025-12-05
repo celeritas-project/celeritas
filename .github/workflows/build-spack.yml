@@ -105,7 +105,7 @@ jobs:
     continue-on-error: false
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
         with:
           fetch-depth: ${{format('{0}', matrix.special != 'tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
@@ -188,8 +188,6 @@ jobs:
 
       - name: Configure Celeritas
         run: |
-          # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
-          git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           if ${{matrix.geant == '11.0'}}; then
             # Test overriding of Geant4 environment variables
