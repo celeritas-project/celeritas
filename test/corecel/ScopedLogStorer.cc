@@ -79,11 +79,12 @@ void ScopedLogStorer::operator()(LogProvenance prov,
     {
         if (getenv_flag("CELER_LOG_SCOPED_VERBOSE", false).value)
         {
+            // Print entire message
             debug_clog(prov, lev, msg);
         }
         else
         {
-            // Print entire
+            // Strip colors and only write the first line
             static std::regex const strip_ansi_regex("\033\\[[0-9;]*m");
             auto temp_msg = std::regex_replace(msg, strip_ansi_regex, "");
             auto newline_pos = temp_msg.find_first_of('\n');
