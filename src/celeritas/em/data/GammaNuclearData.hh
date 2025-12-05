@@ -56,18 +56,17 @@ struct GammaNuclearData
     GammaNuclearScalars scalars;
 
     // Microscopic cross sections using G4PARTICLEXS/gamma nuclear (IAEA) data
-    ElementItems<NonuniformGridRecord> micro_xs_iaea;
-    Items<real_type> reals_iaea;
+    ElementItems<NonuniformGridRecord> xs_iaea;
+    Items<real_type> reals;
 
     // Microscopic cross sections using parameterized CHIPS data at high energy
-    ElementItems<NonuniformGridRecord> micro_xs_chips;
-    Items<real_type> reals_chips;
+    ElementItems<NonuniformGridRecord> xs_chips;
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return scalars && !micro_xs_iaea.empty() && !reals_iaea.empty()
-               && !micro_xs_chips.empty() && !reals_chips.empty();
+        return scalars && !xs_iaea.empty() && !reals.empty()
+               && !xs_chips.empty();
     }
 
     //! Assign from another set of data
@@ -76,10 +75,9 @@ struct GammaNuclearData
     {
         CELER_EXPECT(other);
         scalars = other.scalars;
-        micro_xs_iaea = other.micro_xs_iaea;
-        reals_iaea = other.reals_iaea;
-        micro_xs_chips = other.micro_xs_chips;
-        reals_chips = other.reals_chips;
+        xs_iaea = other.xs_iaea;
+        xs_chips = other.xs_chips;
+        reals = other.reals;
 
         return *this;
     }
