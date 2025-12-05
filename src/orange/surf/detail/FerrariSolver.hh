@@ -123,6 +123,7 @@ CELER_FUNCTION auto
 FerrariSolver::operator()(Real5 const& abcde, SurfaceState on_surface) const
     -> Intersections
 {
+    CELER_EXPECT(abcde[0] != 0);
     auto [a, b, c, d, e] = abcde;
 
     // If known to be on surface, solve using cubic instead
