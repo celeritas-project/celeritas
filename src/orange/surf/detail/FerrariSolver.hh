@@ -93,8 +93,6 @@ class FerrariSolver
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct a solver instance with a specified tolerance for degenerate cases,
  * such as the particle starting on the surface.
