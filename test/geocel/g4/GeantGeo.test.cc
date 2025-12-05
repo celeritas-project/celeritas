@@ -315,7 +315,13 @@ TEST_F(FourLevelsTest, consecutive_compute)
 
 TEST_F(FourLevelsTest, detailed_track)
 {
+    ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_detailed_tracking();
+
+    // "Finding next step up to ... when previous step 4 was already
+    // calculated"
+    static char const* const expected_log_levels[] = {"warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
 }
 
 TEST_F(FourLevelsTest, safety)
