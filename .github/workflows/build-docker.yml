@@ -129,10 +129,17 @@ jobs:
       ### INSTALL ###
 
       - name: Install Celeritas
+        id: install
         working-directory: build
         run: |
           cmake --install .
+          cmake --build . --target clean
       - name: Check installation
+        if: >-
+          ${{
+            !cancelled()
+            && steps.install.outcome == 'success'
+          }}
         working-directory: install
         run: |
           for exe in orange-update celer-export-geant \
@@ -144,7 +151,8 @@ jobs:
         # TODO: rocm+ndebug fails to propagate HIP library link
         if: >-
           ${{
-            !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'ndebug')
+            steps.install.outcome == 'success'
+            && !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'ndebug')
           }}
         run: |
           . /etc/profile

@@ -355,6 +355,7 @@ jobs:
         working-directory: build
         run: |
           ninja install
+          ninja clean
       - name: Check installation
         if: >-
           ${{
@@ -370,13 +371,12 @@ jobs:
           ./bin/celer-sim --config
       - name: Build examples
         env:
-          CELER_DISABLE_G4_EXAMPLES: >-
-            ${{(!matrix.geant) && '1' || ''}}
-        # Special clang features require downstream flags that don't propagate
+          CELER_DISABLE_G4_EXAMPLES: ${{(!matrix.geant) && '1' || ''}}
+        # `asanlite` requires downstream flags that don't propagate
         if: >-
           ${{
-            matrix.special != 'asanlite'
-            && matrix.special != 'tidy'
+            steps.install.outcome == 'success'
+            && matrix.special != 'asanlite'
           }}
         run: |
           . ${SPACK_VIEW}/rc
