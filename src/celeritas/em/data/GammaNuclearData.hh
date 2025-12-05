@@ -28,13 +28,7 @@ struct GammaNuclearScalars
     //! Model's maximum energy limit [MeV]
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_valid_energy()
     {
-        return units::MevEnergy{5e+4};
-    }
-
-    //! Maximum energy limit for PARTICLEXS/gamma cross sections [MeV]
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_low_energy()
-    {
-        return units::MevEnergy{130};
+        return units::MevEnergy{1e+8};
     }
 
     //! Whether data are assigned
@@ -61,16 +55,19 @@ struct GammaNuclearData
     // Scalar data
     GammaNuclearScalars scalars;
 
-    // Microscopic (element) cross section data (G4PARTICLEXS/gamma/inelZ)
-    ElementItems<NonuniformGridRecord> micro_xs;
+    // Microscopic cross sections using G4PARTICLEXS/gamma nuclear (IAEA) data
+    ElementItems<NonuniformGridRecord> micro_xs_iaea;
+    Items<real_type> reals_iaea;
 
-    // Backend data
-    Items<real_type> reals;
+    // Microscopic cross sections using parameterized CHIPS data at high energy
+    ElementItems<NonuniformGridRecord> micro_xs_chips;
+    Items<real_type> reals_chips;
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return scalars && !micro_xs.empty() && !reals.empty();
+        return scalars && !micro_xs_iaea.empty() && !reals_iaea.empty()
+               && !micro_xs_chips.empty() && !reals_chips.empty();
     }
 
     //! Assign from another set of data
@@ -79,8 +76,10 @@ struct GammaNuclearData
     {
         CELER_EXPECT(other);
         scalars = other.scalars;
-        micro_xs = other.micro_xs;
-        reals = other.reals;
+        micro_xs_iaea = other.micro_xs_iaea;
+        reals_iaea = other.reals_iaea;
+        micro_xs_chips = other.micro_xs_chips;
+        reals_chips = other.reals_chips;
 
         return *this;
     }

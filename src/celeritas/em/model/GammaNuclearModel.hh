@@ -7,6 +7,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/inp/Grid.hh"
@@ -21,6 +22,8 @@ namespace celeritas
 class MaterialParams;
 class ParticleParams;
 
+class EmExtraPhysicsHelper;
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the gamma-nuclear model interaction.
@@ -31,6 +34,10 @@ class GammaNuclearModel final : public Model, public StaticConcreteAction
     //!@{
     using MevEnergy = units::MevEnergy;
     using ReadData = std::function<inp::Grid(AtomicNumber)>;
+    using result_type = inp::Grid;
+    using BarnXs = units::BarnXs;
+    using MmSqMicroXs
+        = Quantity<UnitProduct<units::Millimeter, units::Millimeter>, double>;
     using HostRef = HostCRef<GammaNuclearData>;
     using DeviceRef = DeviceCRef<GammaNuclearData>;
     //!@}
@@ -62,6 +69,7 @@ class GammaNuclearModel final : public Model, public StaticConcreteAction
 
   private:
     //// DATA ////
+    std::shared_ptr<EmExtraPhysicsHelper> helper_;
 
     // Host/device storage and reference
     CollectionMirror<GammaNuclearData> data_;
@@ -69,6 +77,11 @@ class GammaNuclearModel final : public Model, public StaticConcreteAction
     //// TYPES ////
 
     using HostXsData = HostVal<GammaNuclearData>;
+
+    //// HELPER FUNCTIONS ////
+
+    result_type
+    calc_chips_xs(AtomicNumber atomic_number, double emin, double emax) const;
 };
 
 //---------------------------------------------------------------------------//
