@@ -25,7 +25,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Find positive, real, non-zero roots for quartic functions using the
- * Ferrari-Cardano method\citet{polyanin-ferrari-2007,
+ * Ferrari method\citet{polyanin-ferrari-2007,
  * https://doi.org/10.1201/9781420010510}.
  *
  * The quartic equation
@@ -36,7 +36,7 @@ namespace detail
  * both real and positive. This equation is also subject to multiple cases of
  * catastrophic precision-limitation-based error both fundamentally and as a
  * consequence of the particular algorithm chosen. This solver implements the
- * Ferrari-Cardano method, which is well-established and simple, but more
+ * Ferrari method, which is well-established and simple, but more
  * prone to numerical error than contemporary methods to be explored such as
  * Algorithm 1010\citet{orellana-alg1010-2020,
  * https://doi.org/10.1145/3386241}.
@@ -299,7 +299,7 @@ CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
  * where a is assumed to already be 1, and is not provided to the
  * function.
  * Uses the Numerical Recipes cubic algorithm, a combination of Cardano and
- * trigonometry.
+ * trigonometry\citet{}.
  *
  * \return The real roots of the given cubic equation, with the dominant at
  * index 0.
