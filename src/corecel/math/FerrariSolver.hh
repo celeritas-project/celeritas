@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/detail/FerrariSolver.hh
+//! \file corecel/math/FerrariSolver.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,8 +17,6 @@
 #include "corecel/math/SoftEqual.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -381,5 +379,4 @@ FerrariSolver::real_roots_normalized_quadratic(real_type hb, real_type c) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

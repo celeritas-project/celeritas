@@ -2,18 +2,16 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/detail/QuarticSolver.test.cc
+//! \file corecel/math/QuarticSolver.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/FerrariSolver.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "orange/surf/detail/FerrariSolver.hh"
 
 #include "celeritas_test.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 namespace test
 {
@@ -200,5 +198,4 @@ TYPED_TEST(QuarticSolverTest, surf_three_roots)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
-}  // namespace detail
 }  // namespace celeritas
