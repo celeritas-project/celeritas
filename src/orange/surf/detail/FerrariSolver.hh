@@ -181,8 +181,6 @@ FerrariSolver::operator()(Real5 const& abcde, SurfaceState on_surface) const
         idx = place_root(roots, r2 - qb, idx);
         idx = place_root(roots, r3 - qb, idx);
 
-        sort(&roots[0], &roots[idx]);
-
         return roots;
     }
     else
@@ -225,7 +223,6 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real4 const& abcd) const
     idx = place_root(roots, z0, idx);
     idx = place_root(roots, z1, idx);
     idx = place_root(roots, z2, idx);
-    sort(&roots[0], &roots[idx]);
     return roots;
 }
 
@@ -288,7 +285,6 @@ CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
             idx = place_root(roots, -sqrt_ir0 - qb, idx);
         }
     }
-    sort(&roots[0], &roots[idx]);
     return roots;
 }
 
