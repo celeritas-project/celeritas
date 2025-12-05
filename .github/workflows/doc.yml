@@ -94,7 +94,7 @@ jobs:
           mkdir build && cd build
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
             ${{ github.workflow == 'pull_request'
-             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_USER_HTML_ARGS="-W;--keep-going"'
+             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_ARGS="-W;--keep-going"'
              || ''}} \
             ..
       - name: Build documentation
