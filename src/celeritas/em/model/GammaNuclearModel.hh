@@ -27,6 +27,18 @@ class EmExtraPhysicsHelper;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the gamma-nuclear model interaction.
+ *
+ * The class also builds element cross-section tables using G4PARTICLEXS/gamma
+ * (IAEA) data at low energies and CHIPS gamma–nuclear cross sections using
+ * G4GammaNuclearXS above the IAEA upper energy limit (~130 MeV). The CHIPS
+ * cross sections are based on the parameterization developed by M. V. Kossov
+ * (CERN/ITEP Moscow) for the high energy region (106 MeV < E < 50 GeV) and on
+ * a Reggeon-based parameterization for the ultra high energy region
+ * (E > 50 GeV), as described in
+ * \citet{chips-gamma-nuclear-xs-2000, https://doi.org/10.1007/s100500070026}.
+ * G4GammaNuclearXS uses CHIPS (G4PhotoNuclearCrossSection) above 150 MeV and
+ * performs linear interpolation between the upper limit of the G4PARTICLEXS
+ * gamma-nuclear (IAEA) data and 150 MeV.
  */
 class GammaNuclearModel final : public Model, public StaticConcreteAction
 {
@@ -34,10 +46,6 @@ class GammaNuclearModel final : public Model, public StaticConcreteAction
     //!@{
     using MevEnergy = units::MevEnergy;
     using ReadData = std::function<inp::Grid(AtomicNumber)>;
-    using result_type = inp::Grid;
-    using BarnXs = units::BarnXs;
-    using MmSqMicroXs
-        = Quantity<UnitProduct<units::Millimeter, units::Millimeter>, double>;
     using HostRef = HostCRef<GammaNuclearData>;
     using DeviceRef = DeviceCRef<GammaNuclearData>;
     //!@}
@@ -80,7 +88,7 @@ class GammaNuclearModel final : public Model, public StaticConcreteAction
 
     //// HELPER FUNCTIONS ////
 
-    result_type
+    inp::Grid
     calc_chips_xs(AtomicNumber atomic_number, double emin, double emax) const;
 };
 
