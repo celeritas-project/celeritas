@@ -46,10 +46,20 @@ class EmExtraPhysicsHelper
     std::shared_ptr<G4GammaNuclearXS> gn_xs_;
 };
 
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+
 #if !CELERITAS_USE_GEANT4
 inline EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 {
     CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline MmSqXs
+EmExtraPhysicsHelper::calc_gamma_nuclear_xs(AtomicNumber z, MevEnergy energy)()
+{
+    CELER_ASSERT_UNREACHABLE();
 }
 
 #endif
