@@ -53,24 +53,25 @@ for _d in build install ccache; do
   unset _scratch
 done
 
-if [ -n "$GIT_WORK_TREE" ]; then
-  _clangd="$GIT_WORK_TREE/.clangd"
+if [ -n "$CELER_SOURCE_DIR" ]; then
+  _clangd="$CELER_SOURCE_DIR/.clangd"
   if [ ! -e "${_clangd}" ]; then
     # Create clangd compatible with the system and build config
-    celerlog info "Creating clangd config: ${_clangd}"
+    _gcc_version=$(gcc -dumpversion | cut -d. -f1)
+    celerlog info "Creating clangd config using GCC ${_gcc_version}: ${_clangd}"
     cat > "${_clangd}" << EOF
 CompileFlags:
-  CompilationDatabase: /scratch/s3j/build/celeritas-reldeb
+  CompilationDatabase: ${SCRATCHDIR}/build/celeritas-reldeb
   Add:
     [
       -isystem,
-      /usr/include/c++/13,
+      /usr/include/c++/${_gcc_version},
       -isystem,
       /usr/local/include,
       -isystem,
       /usr/include,
       -isystem,
-      /usr/include/x86_64-linux-gnu/c++/13,
+      /usr/include/x86_64-linux-gnu/c++/${_gcc_version},
     ]
 EOF
   fi
