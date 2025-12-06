@@ -10,6 +10,12 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/math/Quantity.hh"
+#include "corecel/math/UnitUtils.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/UnitTypes.hh"
+#include "celeritas/phys/AtomicNumber.hh"
+
 class G4GammaNuclearXS;
 
 namespace celeritas
@@ -56,7 +62,7 @@ inline EmExtraPhysicsHelper::EmExtraPhysicsHelper()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline EmExtraPhysicsHelper::MmSqXs
+inline Quantity<UnitProduct<units::Millimeter, units::Millimeter>, double>
 EmExtraPhysicsHelper::calc_gamma_nuclear_xs(AtomicNumber z,
                                             MevEnergy energy)() const
 {
