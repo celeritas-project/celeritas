@@ -5,7 +5,7 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": ["full", ".spack-base"],
+      "inherits": [".hip", "full", ".spack-base"],
       "binaryDir": "$env{SCRATCHDIR}/build/celeritas-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {

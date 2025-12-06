@@ -5,14 +5,12 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": ["full", ".spack-base"],
+      "inherits": [".cuda", "full", ".spack-base"],
       "binaryDir": "/scratch/$env{USER}/build/celeritas-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":     {"type": "BOOL", "value": "OFF"},
