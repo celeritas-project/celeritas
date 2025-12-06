@@ -155,14 +155,13 @@ setup_ccache() {
 
 # Check if pre-commit hook is installed and install if missing
 install_precommit_if_git() {
-  if git_dir=$(git rev-parse --git-dir 2>/dev/null); then
-    :
-  else
+  if ! git_hook_path="$(git rev-parse --git-path hooks/pre-commit 2>/dev/null)"; then
     log debug "Not in a git repository, skipping pre-commit check"
     return 1
   fi
+  log debug "Checking for pre-commit hooks at '${git_hook_path}'"
 
-  if [ ! -f "${git_dir}/hooks/pre-commit" ]; then
+  if [ ! -f "${git_hook_path}" ]; then
     log info "Pre-commit hook not found, installing commit hooks"
     ./scripts/dev/install-commit-hooks.sh
   fi
