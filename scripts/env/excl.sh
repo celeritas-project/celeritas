@@ -42,7 +42,7 @@ fi
 
 # Set default scratchdir; /scratch should exist according to excl docs
 export SCRATCHDIR="${SCRATCHDIR:-/scratch/$USER}"
-for _d in build install ccache; do
+for _d in build install cache; do
   # Create build/install in higher-performance local-but-persistent dir
   _scratch="$SCRATCHDIR/$_d"
   if ! test -d "${_scratch}"; then
@@ -88,4 +88,4 @@ fi
 export PATH=${CELERITAS_ENV}/bin:${PATH}
 export CMAKE_PREFIX_PATH=${CELERITAS_ENV}:${CMAKE_PREFIX_PATH}
 
-export CCACHE_DIR="${SCRATCHDIR}/ccache"
+export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
