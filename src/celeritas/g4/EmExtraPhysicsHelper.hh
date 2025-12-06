@@ -8,6 +8,9 @@
 
 #include <memory>
 
+#include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSetup.hh"
+
 class G4GammaNuclearXS;
 
 namespace celeritas
@@ -15,27 +18,51 @@ namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
- * A helper class to interface with Geant4 cross sections.
+ * A helper class for interfacing with Geant4 cross section calculations and
+ * other properties.
+ *
+ * This class primarily severs as a wrapper around Geant4 cross section
+ * calculation methods, which are not directly accessible from Celeritas EM
+ * physics models. Use of this class requires CELERITAS_USE_GEANT4 to be
+ * enabled.
  */
 class EmExtraPhysicsHelper
 {
+  public:
+    //!@{
+    using MevEnergy = units::MevEnergy;
+    using MmSqXs
+        = Quantity<UnitProduct<units::Millimeter, units::Millimeter>, double>;
+    //!@}
+
   public:
     // Construct EM extra physics helper
     EmExtraPhysicsHelper();
 
     // Calculate gamma-nuclear element cross section
-    double GammaNuclearElementXS(double energy, int z);
-
-    // The maximum high energy of G4PhotoNuclearCrossSection
-    static constexpr double max_high_energy()
-    {
-        return 5e+4;  // clhep::MeV
-    }
+    MmSqXs calc_gamma_nuclear_xs(AtomicNumber z, MevEnergy energy) const;
 
   private:
     //// DATA ////
     std::shared_ptr<G4GammaNuclearXS> gn_xs_;
 };
+
+#if !CELERITAS_USE_GEANT4
+inline GeantImporter::GeantImporter()
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline GeantImporter::GeantImporter(GeantSetup&&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline ImportData GeantImporter::operator()(DataSelection const&)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

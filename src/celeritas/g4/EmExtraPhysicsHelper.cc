@@ -21,12 +21,15 @@ EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the gamma-nuclear element cross section using G4GammaNuclearXS
- * in the native Geant4 unit [mb]
+ * Calculate the gamma-nuclear element cross section using G4GammaNuclearXS.
  */
-double EmExtraPhysicsHelper::GammaNuclearElementXS(double energy, int z)
+auto EmExtraPhysicsHelper::calc_gamma_nuclear_xs(AtomicNumber z,
+                                                 MevEnergy energy) const
+    -> MmSqXs
 {
-    return gn_xs_->ElementCrossSection(energy, z);
+    MmSqXs xs;
+    xs.value() = gn_xs_->ElementCrossSection(energy.value(), z.get());
+    return xs;
 }
 
 //---------------------------------------------------------------------------//

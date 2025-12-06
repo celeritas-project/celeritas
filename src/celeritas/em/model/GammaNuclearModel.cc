@@ -115,11 +115,10 @@ void GammaNuclearModel::step(CoreParams const&, CoreStateDevice&) const
 /*!
  * Build CHIPS gamma-nuclear element cross sections using G4GammaNuclearXS.
  */
-inp::Grid GammaNuclearModel::calc_chips_xs(AtomicNumber atomic_number,
-                                           double emin,
-                                           double emax) const
+inp::Grid
+GammaNuclearModel::calc_chips_xs(AtomicNumber z, double emin, double emax) const
 {
-    CELER_EXPECT(atomic_number);
+    CELER_EXPECT(z);
 
     inp::Grid result;
 
@@ -132,7 +131,7 @@ inp::Grid GammaNuclearModel::calc_chips_xs(AtomicNumber atomic_number,
     // interpolation between the upper limit of the IAEA cross-section data
     // and 150 MeV, as used in G4GammaNuclearXS, is also included in this
     // tabulation.
-    double const emid = helper_->max_high_energy();
+    double const emid = 5e+4;
     size_type nbin_total = 300;
     size_type nbin_ultra = 50;
 
@@ -145,11 +144,10 @@ inp::Grid GammaNuclearModel::calc_chips_xs(AtomicNumber atomic_number,
     result.x.insert(result.x.end(), ultra.begin(), ultra.end());
 
     // Tabulate the cross section from emin to emax
-    Quantity<UnitProduct<units::Millimeter, units::Millimeter>, double> xs;
+    EmExtraPhysicsHelper::MmSqXs xs;
     for (size_type i = 0; i < nbin_total; ++i)
     {
-        xs.value()
-            = helper_->GammaNuclearElementXS(result.x[i], atomic_number.get());
+        xs = helper_->calc_gamma_nuclear_xs(z, MevEnergy{result.x[i]});
         result.y[i]
             = native_value_to<units::BarnXs>(native_value_from(xs)).value();
     }
