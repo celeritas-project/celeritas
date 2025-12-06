@@ -30,6 +30,7 @@ class CoreStateInterface;
 class CoreParams;
 template<GeneratorType G>
 class OffloadAction;
+template<StepActionOrder S>
 class OffloadGatherAction;
 class ScintillationParams;
 
@@ -141,7 +142,10 @@ class OpticalCollector
     using GT = GeneratorType;
     using SPCherenkovOffload = std::shared_ptr<OffloadAction<GT::cherenkov>>;
     using SPScintOffload = std::shared_ptr<OffloadAction<GT::scintillation>>;
-    using SPGatherAction = std::shared_ptr<OffloadGatherAction>;
+    using SPPreGatherAction
+        = std::shared_ptr<OffloadGatherAction<StepActionOrder::pre>>;
+    using SPPrePostGatherAction
+        = std::shared_ptr<OffloadGatherAction<StepActionOrder::pre_post>>;
     using SPGenerator = std::shared_ptr<optical::GeneratorAction>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
     using SPActionTimes = std::shared_ptr<ActionTimes>;
@@ -149,7 +153,8 @@ class OpticalCollector
     //// DATA ////
 
     SPConstOpticalParams optical_params_;
-    SPGatherAction gather_;
+    SPPreGatherAction pre_gather_;
+    SPPrePostGatherAction pre_post_gather_;
     SPCherenkovOffload cherenkov_offload_;
     SPScintOffload scint_offload_;
     SPGenerator generate_;

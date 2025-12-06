@@ -279,8 +279,8 @@ TEST_F(LArSphereGeneratorTest, generator)
     if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
-        EXPECT_EQ(53429, result.steps);
-        EXPECT_EQ(14, result.step_iters);
+        EXPECT_EQ(53479, result.steps);
+        EXPECT_EQ(15, result.step_iters);
     }
 
     // Check accumulated action times
@@ -338,7 +338,7 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
     if (reference_configuration)
     {
         EXPECT_EQ(409643, gen.num_generated);
-        EXPECT_EQ(427544, result.steps);
+        EXPECT_EQ(427348, result.steps);
         EXPECT_EQ(28, result.step_iters);
     }
 }

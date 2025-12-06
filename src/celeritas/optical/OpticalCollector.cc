@@ -56,7 +56,8 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
                                                            std::move(la_inp));
 
     // Create core action to gather pre-step data for populating distributions
-    gather_ = OffloadGatherAction::make_and_insert(core);
+    pre_gather_
+        = OffloadGatherAction<StepActionOrder::pre>::make_and_insert(core);
 
     // Create optical action to generate Cherenkov or scintillation photons
     generate_ = optical::GeneratorAction::make_and_insert(
@@ -66,7 +67,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     {
         // Create core action to generate Cherenkov optical distributions
         OffloadAction<GT::cherenkov>::Input oa_inp;
-        oa_inp.step_id = gather_->aux_id();
+        oa_inp.pre_step_id = pre_gather_->aux_id();
         oa_inp.gen_id = generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();
@@ -76,9 +77,15 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     }
     if (inp.optical_params->scintillation())
     {
+        // Create core action to gather post-along-step state data
+        pre_post_gather_
+            = OffloadGatherAction<StepActionOrder::pre_post>::make_and_insert(
+                core);
+
         // Create action to generate scintillation optical distributions
         OffloadAction<GT::scintillation>::Input oa_inp;
-        oa_inp.step_id = gather_->aux_id();
+        oa_inp.pre_step_id = pre_gather_->aux_id();
+        oa_inp.pre_post_step_id = pre_post_gather_->aux_id();
         oa_inp.gen_id = generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();
