@@ -56,8 +56,9 @@ inline EmExtraPhysicsHelper::EmExtraPhysicsHelper()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline MmSqXs
-EmExtraPhysicsHelper::calc_gamma_nuclear_xs(AtomicNumber z, MevEnergy energy)()
+inline auto
+EmExtraPhysicsHelper::calc_gamma_nuclear_xs(AtomicNumber z,
+                                            MevEnergy energy)() const -> MmSqXs
 {
     CELER_ASSERT_UNREACHABLE();
 }
