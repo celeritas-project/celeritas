@@ -62,9 +62,9 @@ inline EmExtraPhysicsHelper::EmExtraPhysicsHelper()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline Quantity<UnitProduct<units::Millimeter, units::Millimeter>, double>
+inline EmExtraPhysicsHelper::MmSqXs
 EmExtraPhysicsHelper::calc_gamma_nuclear_xs(AtomicNumber z,
-                                            MevEnergy energy)() const
+                                            MevEnergy energy) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
