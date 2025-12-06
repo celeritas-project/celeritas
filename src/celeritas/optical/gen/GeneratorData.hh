@@ -53,15 +53,13 @@ struct GeneratorDistributionData
     real_type step_length{};
     units::ElementaryCharge charge;
     OptMatId material;
-    real_type alongstep_edep_fraction{};
     EnumArray<StepPoint, GeneratorStepData> points;
 
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return type != GeneratorType::size_ && num_photons > 0
-               && step_length > 0 && material && alongstep_edep_fraction >= 0
-               && alongstep_edep_fraction <= 1;
+               && step_length > 0 && material;
     }
 };
 

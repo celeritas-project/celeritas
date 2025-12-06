@@ -58,21 +58,12 @@ class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
     //! Set up mock pre-generator step data
     OffloadPreStepData build_pre_step()
     {
-        OffloadPreStepData result;
-        result.speed = LightSpeed(0.99862874144970537);  // 10 MeV
-        result.pos = {0, 0, 0};
-        result.time = 0;
-        result.material = opt_mat_;
-        return result;
-    }
-
-    //! Mock data for post-along-step
-    OffloadPrePostStepData build_pre_post_step(LightSpeed speed)
-    {
-        OffloadPrePostStepData result;
-        result.speed = speed;
-        result.energy_deposition = edep_;
-        return result;
+        OffloadPreStepData pre_step;
+        pre_step.speed = LightSpeed(0.99862874144970537);  // 10 MeV
+        pre_step.pos = {0, 0, 0};
+        pre_step.time = 0;
+        pre_step.material = opt_mat_;
+        return pre_step;
     }
 
   protected:
@@ -260,7 +251,7 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
-    auto const pre_post_step = this->build_pre_post_step(particle.speed());
+    OffloadPrePostStepData pre_post_step{particle.speed()};
 
     ScintillationOffload generate(particle,
                                   this->make_sim_track_view(step_length_),
@@ -301,7 +292,7 @@ TEST_F(MaterialScintillationGaussianTest, basic)
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
-    auto const pre_post_step = this->build_pre_post_step(particle.speed());
+    OffloadPrePostStepData pre_post_step{particle.speed()};
 
     // Pre-generate optical distribution data
     ScintillationOffload generate(particle,
@@ -435,7 +426,7 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
-    auto const pre_post_step = this->build_pre_post_step(particle.speed());
+    OffloadPrePostStepData pre_post_step{particle.speed()};
 
     ScintillationOffload generate(particle,
                                   this->make_sim_track_view(step_length_),

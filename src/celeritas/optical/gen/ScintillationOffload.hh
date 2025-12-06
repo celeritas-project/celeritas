@@ -63,7 +63,6 @@ class ScintillationOffload
     OffloadPreStepData const& pre_step_;
     optical::GeneratorStepData post_step_;
     NativeCRef<ScintillationData> const& shared_;
-    real_type alongstep_edep_frac_;
     real_type mean_num_photons_{0};
 
     static CELER_CONSTEXPR_FUNCTION real_type poisson_threshold()
@@ -91,7 +90,6 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     , pre_step_(pre_step)
     , post_step_({pre_post_step.speed, pos})
     , shared_(shared)
-    , alongstep_edep_frac_(pre_post_step.energy_deposition / energy_deposition)
 {
     CELER_EXPECT(step_length_ > 0);
     CELER_EXPECT(shared_);
@@ -151,7 +149,6 @@ ScintillationOffload::operator()(Generator& rng)
         result.step_length = step_length_;
         result.charge = charge_;
         result.material = pre_step_.material;
-        result.alongstep_edep_fraction = alongstep_edep_frac_;
         result.points[StepPoint::pre].speed = pre_step_.speed;
         result.points[StepPoint::pre].pos = pre_step_.pos;
         result.points[StepPoint::post] = post_step_;

@@ -56,18 +56,11 @@ struct OffloadPreStepData
 
 //---------------------------------------------------------------------------//
 /*!
- * Energy deposition and particle speed after the continuous part of the step.
+ * Particle speed after the continuous part of the step.
  */
 struct OffloadPrePostStepData
 {
     units::LightSpeed speed;
-    units::MevEnergy energy_deposition;
-
-    //! Check whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return speed > zero_quantity() || energy_deposition > zero_quantity();
-    }
 };
 
 //---------------------------------------------------------------------------//
