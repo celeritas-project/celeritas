@@ -8,8 +8,7 @@
 
 #include <memory>
 
-#include "celeritas/ext/GeantImporter.hh"
-#include "celeritas/ext/GeantSetup.hh"
+#include "corecel/Config.hh"
 
 class G4GammaNuclearXS;
 
@@ -48,20 +47,11 @@ class EmExtraPhysicsHelper
 };
 
 #if !CELERITAS_USE_GEANT4
-inline GeantImporter::GeantImporter()
+inline EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline GeantImporter::GeantImporter(GeantSetup&&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
-inline ImportData GeantImporter::operator()(DataSelection const&)
-{
-    CELER_ASSERT_UNREACHABLE();
-}
 #endif
 
 //---------------------------------------------------------------------------//
