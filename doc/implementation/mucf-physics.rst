@@ -101,7 +101,7 @@ muonic atom spin flip. The muon-catalyzed fusion process is activated by
 enabling the ``mucf_physics`` option in
 :cpp:class:`celeritas::ext::GeantPhysicsOptions`.
 
-.. doxygenclass:: celeritas::inp::MucfPhysics
+.. celerstruct:: inp::MucfPhysics
 
 .. todo:: Expand description when hardcoded data is finalized.
 
