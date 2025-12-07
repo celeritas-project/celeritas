@@ -125,20 +125,20 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
 {
     auto& pre_step
         = core_state.aux_data<OffloadPreStateData>(data_.pre_step_id);
-    auto pre_post_step = data_.pre_post_step_id
-                             ? core_state.aux_data<OffloadPrePostStateData>(
-                                   data_.pre_post_step_id)
-                             : NativeRef<OffloadPrePostStateData>{};
     auto& gen_state = get<optical::GeneratorState<MemSpace::native>>(
         core_state.aux(), data_.gen_id);
-    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
-                          core_state.ptr(),
-                          Executor{data_.material->host_ref(),
-                                   data_.shared->host_ref(),
-                                   gen_state.store.ref(),
-                                   pre_step,
-                                   pre_post_step,
-                                   gen_state.counters.buffer_size}};
+    TrackExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        Executor{data_.material->host_ref(),
+                 data_.shared->host_ref(),
+                 gen_state.store.ref(),
+                 pre_step,
+                 (G == GeneratorType::scintillation)
+                     ? core_state.aux_data<OffloadPrePostStateData>(
+                           data_.pre_post_step_id)
+                     : NativeRef<OffloadPrePostStateData>{},
+                 gen_state.counters.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 
