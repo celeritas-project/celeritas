@@ -71,6 +71,8 @@ template<StepActionOrder S>
 void OffloadGatherAction<S>::step(CoreParams const& params,
                                   CoreStateHost& state) const
 {
+    CELER_LOG(info) << "Accessing " << to_cstring(S)
+                    << " aux state data in OffloadGatherAction";
     auto& step = state.aux_data<Data>(aux_id_);
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(), state.ptr(), Executor{step});
