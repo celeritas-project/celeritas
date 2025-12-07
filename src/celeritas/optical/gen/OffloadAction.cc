@@ -123,14 +123,10 @@ template<GeneratorType G>
 void OffloadAction<G>::offload(CoreParams const& core_params,
                                CoreStateHost& core_state) const
 {
-    CELER_LOG(info) << "Accessing pre-step aux state data in "
-                    << optical::to_cstring(G) << " OffloadAction";
     auto& pre_step
         = core_state.aux_data<OffloadPreStateData>(data_.pre_step_id);
     auto& gen_state = get<optical::GeneratorState<MemSpace::native>>(
         core_state.aux(), data_.gen_id);
-    CELER_LOG(info) << "Accessing pre-post-step aux state data in "
-                    << optical::to_cstring(G) << " OffloadAction";
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),

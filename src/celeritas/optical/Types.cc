@@ -14,19 +14,6 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get a string corresponding to an optical photon generation process.
- */
-char const* to_cstring(GeneratorType type)
-{
-    static EnumStringMapper<GeneratorType> const to_cstring_impl{
-        "cherenkov",
-        "scintillation",
-    };
-    return to_cstring_impl(type);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get a string corresponding to an optical surface physics step.
  */
 char const* to_cstring(SurfacePhysicsOrder step)

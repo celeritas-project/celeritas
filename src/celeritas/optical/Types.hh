@@ -82,7 +82,6 @@ enum class TrivialInteractionMode
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-char const* to_cstring(GeneratorType);
 char const* to_cstring(SurfacePhysicsOrder);
 char const* to_cstring(ReflectionMode);
 
