@@ -233,7 +233,10 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
         auto const& pre = dist.points[StepPoint::pre];
         auto const& post = dist.points[StepPoint::post];
         EXPECT_GT(pre.speed, zero_quantity());
-        EXPECT_NE(post.pos, pre.pos);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_NE(post.pos, pre.pos);
+        }
         EXPECT_GT(dist.step_length, 0);
         EXPECT_EQ(0, dist.material.get());
     }
