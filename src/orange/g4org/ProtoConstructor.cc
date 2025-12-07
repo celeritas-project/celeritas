@@ -11,6 +11,7 @@
 #include "corecel/OpaqueIdIO.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "geocel/VolumeParams.hh"
+#include "orange/inp/Import.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Transformed.hh"
@@ -129,6 +130,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
  */
 bool ProtoConstructor::can_inline_transform(VariantTransform const& vt) const
 {
+    using celeritas::inp::InlineSingletons;
     switch (opts_.inline_singletons)
     {
         case InlineSingletons::none:

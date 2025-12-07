@@ -88,7 +88,7 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
     ScopedProfiling profile_this{"orange-load-geant"};
 
     // Set up options for debug output
-    g4org::Options opts;
+    inp::OrangeGeoFromGeant opts;
     if (auto opt_filename = celeritas::getenv("G4ORG_OPTIONS");
         !opt_filename.empty())
     {

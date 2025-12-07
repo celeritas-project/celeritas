@@ -9,10 +9,10 @@
 #include <memory>
 #include <unordered_map>
 
+#include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/orangeinp/UnitProto.hh"
 
-#include "Options.hh"
 #include "Volume.hh"
 
 namespace celeritas
@@ -50,11 +50,12 @@ class ProtoConstructor
     using SPConstObject = std::shared_ptr<orangeinp::ObjectInterface const>;
     using ObjLv = std::pair<SPConstObject, LogicalVolume const*>;
     using SPUnitProto = std::shared_ptr<UnitProto>;
+    using Input = inp::OrangeGeoFromGeant;
     //!@}
 
   public:
     //! Construct with verbosity setting
-    ProtoConstructor(VolumeParams const& vols, Options const& options)
+    ProtoConstructor(VolumeParams const& vols, Input const& options)
         : volumes_{vols}, opts_{options}
     {
     }
@@ -72,7 +73,7 @@ class ProtoConstructor
     VolumeParams const& volumes_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
     int depth_{0};
-    Options const& opts_;
+    Input const& opts_;
 
     //// HELPER FUNCTIONS ////
 

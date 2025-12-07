@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
+
+#include "corecel/cont/Span.hh"
 #include "geocel/GenericGeoTestBase.hh"
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomGeoTraits.hh"
@@ -19,9 +22,22 @@ namespace test
 //---------------------------------------------------------------------------//
 class VecgeomTestBase : public GenericGeoTestBase<VecgeomParams>
 {
+    using Base = GenericGeoTestBase<VecgeomParams>;
+
   public:
-    // TODO: surface normals do NOT currently work
+    using SpanStringView = Span<std::string_view const>;
+
+    // Keep track of log messages during load
+    virtual SpanStringView expected_log_levels() const;
+
+    // Construct via persistent geant_geo; see LazyGeantGeoManager
+    SPConstGeo build_geometry() const override;
+
+    // Surface normals do NOT currently work
     bool supports_surface_normal() const override { return false; }
+
+    // Get the safety tolerance: lower for surface geo
+    GenericGeoTrackingTolerance tracking_tol() const override;
 };
 
 //---------------------------------------------------------------------------//

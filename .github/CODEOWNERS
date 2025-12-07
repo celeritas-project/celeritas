@@ -1,11 +1,8 @@
-#-----------------------------------------------------------------------------#
+#-----------------------------*- codeowners -*--------------------------------#
 # CELERITAS PROJECT CODEOWNERS
 # See discussion in /doc/development/administration.rst .
 # Note that later lines take precedence over earlier ones.
 #-----------------------------------------------------------------------------#
-
-# Default all changes to ping the code lead if not overridden below
-* @celeritas-project/code-lead
 
 #-------------------------------------#
 # Topics
@@ -21,26 +18,30 @@
 /cmake/ @sethrj @pcanal
 /scripts/ci/ @sethrj @pcanal
 /scripts/docker/interactive @esseivaju
-/scripts/**/perlmutter.* @esseivaju
+
+# Input definitions
+/*/*/inp/ @sethrj
 
 # Core capabilities
-/src/corecel/ @sethrj
-/src/corecel/random/ @davidsgr @amandalund
-/src/corecel/sys/ @esseivaju
+/*/corecel/ @sethrj
+/*/corecel/random/**/Xorwow* @amandalund
+/*/corecel/random/**/Ranlux* @davidsgr @sethrj
+/*/corecel/sys/ @esseivaju
 
 # Physics
-/src/celeritas/em/ @amandalund @stognini @whokion
-/src/celeritas/field/ @sethrj @whokion
-/src/celeritas/neutron/ @whokion
-/src/celeritas/optical/ @amandalund @hhollenb @Rashika-Gupta @whokion
-/src/celeritas/phys/ @sethrj @amandalund
-/src/celeritas/track/ @amandalund @esseivaju @LSchwiebert
+/*/celeritas/decay/ @amandalund @stognini
+/*/celeritas/em/ @amandalund @stognini @whokion
+/*/celeritas/field/ @sethrj @whokion
+/*/celeritas/neutron/ @whokion
+/*/celeritas/optical/ @amandalund @hhollenb @whokion
+/*/celeritas/phys/ @sethrj @amandalund
+/*/celeritas/track/ @amandalund @esseivaju @LSchwiebert
 
 # Geometry
-/src/orange/ @elliottbiondo @esseivaju @sethrj
-/src/geocel/vg/ @mrguilima @sethrj
+/*/orange/ @elliottbiondo @sethrj
+/*/geocel/vg/ @mrguilima @sethrj
 
 # Integration
-/src/celeritas/g4/ @drbenmorgan @sethrj @stognini @whokion
-/src/celeritas/ext/ @drbenmorgan @sethrj @stognini @whokion
-/src/accel/ @drbenmorgan @esseivaju @rahmans1 @Rashika-Gupta @sethrj @stognini @whokion
+/*/celeritas/g4/ @drbenmorgan @stognini
+/*/celeritas/ext/ @drbenmorgan @stognini
+/*/accel/ @drbenmorgan @esseivaju @rahmans1 @Rashika-Gupta @sethrj @stognini @whokion

@@ -39,7 +39,7 @@ class ConverterTest : public GeantLoadTestBase
     //! Make a converter
     Converter make_converter(std::string_view filename = {})
     {
-        Options opts;
+        inp::OrangeGeoFromGeant opts;
         opts.verbose_structure = verbose_;
         if (!filename.empty())
         {

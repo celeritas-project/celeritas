@@ -22,10 +22,10 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "orange/inp/Import.hh"
 #include "orange/transform/TransformIO.hh"
 
 #include "LogicalVolumeConverter.hh"
-#include "Options.hh"
 #include "Scaler.hh"
 #include "SolidConverter.hh"
 #include "Transformer.hh"

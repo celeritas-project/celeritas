@@ -105,7 +105,7 @@ jobs:
     continue-on-error: false
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
         with:
           fetch-depth: ${{format('{0}', matrix.special != 'tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
@@ -122,6 +122,7 @@ jobs:
           path: spack-src
       - name: Initialize spack environment
         run: |
+          echo "::notice title=spack-arch::Spack architecture is $(spack arch)"
           sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
             scripts/ci/spack.yaml > spack.yaml
           if ${{matrix.geometry == 'vecgeom'}}; then
@@ -144,7 +145,9 @@ jobs:
                 && matrix.geant != ''}}; then
             spack -e . add g4vg@1.0.5
           fi
+          echo "::group::Find compilers"
           spack -vd -e . compiler find --mixed-toolchain
+          echo "::endgroup::"
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
       - name: Cache concretization
@@ -159,7 +162,6 @@ jobs:
         run: |
           spack -e . -v concretize || (
             ERR=$?
-            spack arch
             cat spack.yaml
             exit $ERR
           )
@@ -188,8 +190,6 @@ jobs:
 
       - name: Configure Celeritas
         run: |
-          # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
-          git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           if ${{matrix.geant == '11.0'}}; then
             # Test overriding of Geant4 environment variables
@@ -244,7 +244,10 @@ jobs:
         working-directory: build
         run: |
           ccache -z
+          echo "::group::Build verbosely"
           ninja -v -k0
+          echo "::endgroup::"
+          echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
       - name: Show ccache stats
         if: ${{!cancelled() && steps.installdeps.outcome == 'success'}}
         run: |
@@ -356,7 +359,10 @@ jobs:
           }}
         working-directory: build
         run: |
-          ninja install
+          echo "::group::Install"
+          cmake --install .
+          echo "::endgroup::"
+          ninja clean
       - name: Check installation
         if: >-
           ${{
@@ -372,13 +378,12 @@ jobs:
           ./bin/celer-sim --config
       - name: Build examples
         env:
-          CELER_DISABLE_G4_EXAMPLES: >-
-            ${{(!matrix.geant) && '1' || ''}}
-        # Special clang features require downstream flags that don't propagate
+          CELER_DISABLE_G4_EXAMPLES: ${{(!matrix.geant) && '1' || ''}}
+        # `asanlite` requires downstream flags that don't propagate
         if: >-
           ${{
-            matrix.special != 'asanlite'
-            && matrix.special != 'tidy'
+            steps.install.outcome == 'success'
+            && matrix.special != 'asanlite'
           }}
         run: |
           . ${SPACK_VIEW}/rc

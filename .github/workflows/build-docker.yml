@@ -75,7 +75,7 @@ jobs:
       # NOTE: checkout must occur *after* setting up environment for git tags to work
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
         with:
           fetch-depth: 383
           fetch-tags: true
@@ -93,7 +93,10 @@ jobs:
       - name: Build Celeritas
         working-directory: build
         run: |
-          ninja
+          echo "::group::Build verbosely"
+          ninja -v -k0
+          echo "::endgroup::"
+          echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
 
       ### TEST ###
 
@@ -129,10 +132,19 @@ jobs:
       ### INSTALL ###
 
       - name: Install Celeritas
+        id: install
         working-directory: build
         run: |
+          echo "::group::Install"
           cmake --install .
+          echo "::endgroup::"
+          cmake --build . --target clean
       - name: Check installation
+        if: >-
+          ${{
+            !cancelled()
+            && steps.install.outcome == 'success'
+          }}
         working-directory: install
         run: |
           for exe in orange-update celer-export-geant \
@@ -144,7 +156,8 @@ jobs:
         # TODO: rocm+ndebug fails to propagate HIP library link
         if: >-
           ${{
-            !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'ndebug')
+            steps.install.outcome == 'success'
+            && !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'ndebug')
           }}
         run: |
           . /etc/profile

@@ -2,26 +2,26 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/g4org/OptionsIO.json.hh
+//! \file orange/inp/IO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-#include "Options.hh"
+#include "Import.hh"
 
 namespace celeritas
 {
-namespace g4org
+namespace inp
 {
 //---------------------------------------------------------------------------//
 
 void to_json(nlohmann::json& j, InlineSingletons const&);
 void from_json(nlohmann::json const& j, InlineSingletons&);
 
-void to_json(nlohmann::json& j, Options const&);
-void from_json(nlohmann::json const& j, Options&);
+void to_json(nlohmann::json& j, OrangeGeoFromGeant const&);
+void from_json(nlohmann::json const& j, OrangeGeoFromGeant&);
 
 //---------------------------------------------------------------------------//
-}  // namespace g4org
+}  // namespace inp
 }  // namespace celeritas
