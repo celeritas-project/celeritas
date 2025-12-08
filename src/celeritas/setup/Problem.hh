@@ -45,7 +45,10 @@ struct ProblemLoaded
     //! Step collector
     std::shared_ptr<StepCollector> step_collector;
     //! Optical-only offload management
-    std::shared_ptr<optical::Transporter> optical_transporter;
+    std::shared_ptr<optical::Transporter> optical_transporter;  // optical
+                                                                // primary w/
+                                                                // haydens
+                                                                // class
     //! Combined EM and optical offload management
     std::shared_ptr<OpticalCollector> optical_collector;
     //! Geant4 SD interface
