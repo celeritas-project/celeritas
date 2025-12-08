@@ -747,7 +747,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     {
         CELER_VALIDATE(imported.optical_models.empty(),
                        << "optical physics models were imported but no "
-                          "optical capacity was set. Either define optical "
+                          "optical capacity was set. Either define "
+                          "optical "
                           "tracking loop parameters, or ignore optical "
                           "physics");
     }
