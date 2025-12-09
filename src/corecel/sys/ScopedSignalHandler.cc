@@ -30,7 +30,8 @@ extern "C" void celer_set_signal(int signal)
     // It's undefined behavior to throw C++ exceptions from inside a C function
     // call, so use a C assert to check that the bit being set is within
     // bounds.
-    assert(signal >= 0 && signal < static_cast<int>(sizeof(sig_atomic_t) * 8 - 1));
+    assert(signal >= 0
+           && signal < static_cast<int>(sizeof(sig_atomic_t) * 8 - 1));
 
     // Use separate load/stores since atomic modification isn't possible
     sig_atomic_t bits = g_celer_signal_bits_ | (1 << signal);

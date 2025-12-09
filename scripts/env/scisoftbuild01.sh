@@ -72,7 +72,7 @@ fi
 # Install larg4
 if [ -n "${MRB_SOURCE}" ]; then
   _pkg=larg4
-  if ! [ -d "${MRB_SOURCE}/${_pkg}" ]; then 
+  if ! [ -d "${MRB_SOURCE}/${_pkg}" ]; then
     celerlog info "Installing ${_pkg}"
     mrb g ${_pkg}
   fi
