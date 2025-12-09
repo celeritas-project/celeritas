@@ -36,7 +36,7 @@ CMake configuration utility functions for Celeritas, primarily for option setup.
   Add an configurable cache option ``CELERITAS_USE_<package>`` that searches for
   the package to decide its default value.
 
-    celeritas_optional_package(<package> [<find_package>] <docstring>)
+    celeritas_optional_package(<package> <docstring>)
 
   This won't be used for all Celeritas options or even all external dependent
   packages. If given, the ``<find_package>`` package name will searched for
@@ -218,19 +218,9 @@ endmacro()
 # Note: this is a macro so that `find_package` variables stay in the global
 # scope.
 macro(celeritas_optional_package package)
-  if("${ARGC}" EQUAL 2)
-    set(_findpkg "${package}")
-    set(_findversion)
-    set(_docstring "${ARGV1}")
-  else()
-    set(_findpkg "${ARGV1}")
-    set(_findversion)
-    if(_findpkg MATCHES "([^@]+)@([^@]+)")
-      set(_findpkg ${CMAKE_MATCH_1})
-      set(_findversion ${CMAKE_MATCH_2})
-    endif()
-    set(_docstring "${ARGV2}")
-  endif()
+  set(_findpkg "${package}")
+  set(_findversion)
+  set(_docstring "${ARGV1}")
 
   set(_var "CELERITAS_USE_${package}")
   if(DEFINED "${_var}")
