@@ -2,6 +2,28 @@
 #-------------------------------- -*- sh -*- ---------------------------------#
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#
+#-----------------------------------------------------------------------------#
+# Note: to launch the apptainer run this
+apptainer_fermilab() {
+  if ! [ -d "${SCRATCHDIR}" ]; then
+    echo "Scratch directory does not exist: ru
+  . scripts/env/scisoftbuild01.sh
+"
+    return 1
+  fi
+
+  image=${1:-fnal-dev-sl7:latest}
+
+  # Start apptainer, forwarding necessary directories
+  SUBDOMAIN=mis # codespell:ignore
+  exec /cvmfs/oasis.opensciencegrid.org/$SUBDOMAIN/apptainer/current/bin/apptainer \
+    shell --shell=/bin/bash \
+    -B /cvmfs,$SCRATCHDIR,$HOME,$XDG_RUNTIME_DIR,/opt,/etc/hostname,/etc/hosts,/etc/krb5.conf  \
+    --ipc --pid  \
+    /cvmfs/singularity.opensciencegrid.org/fermilab/${image}
+}
+
 #-----------------------------------------------------------------------------#
 
 # Reduce I/O metadata overhead by avoiding language translation lookups
@@ -10,12 +32,12 @@ export LC_ALL=C
 # Allow running from user rc setup outside of build.sh environment
 if ! command -v celerlog >/dev/null 2>&1; then
   celerlog() {
-    printf "%s: %s\n" "\$1" "\$2" >&2
+    printf "%s: %s\n" "$1" "$2" >&2
   }
 fi
 if [ -z "${SYSTEM_NAME}" ]; then
-  celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
   SYSTEM_NAME=$(uname -s)
+  celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
 fi
 
 if [ -n "${APPTAINER_CONTAINER}" ]; then
@@ -52,7 +74,7 @@ done
 if [ -n "${MRB_PROJECT}" ]; then
   LARSCRATCHDIR="${SCRATCHDIR}/${MRB_PROJECT}"
   if ! [ -d "${LARSCRATCHDIR}" ]; then
-    celerlog info "Setting up MRB in ${LARSCRATCHDIR}..."
+    celerlog info "Creating MRB dev area in ${LARSCRATCHDIR}..."
     mkdir -p "${LARSCRATCHDIR}" || return $?
     (
       cd "${LARSCRATCHDIR}"
@@ -63,15 +85,17 @@ if [ -n "${MRB_PROJECT}" ]; then
   _setup_filename="${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}_${MRB_PROJECT_VERSION}_${MRB_QUALS//:/_}/setup"
   if ! [ -f "${_setup_filename}" ]; then
     celerlog warn "Expected setup file at ${_setup_filename}: MRB may not have been set up correctly"
-    . "${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}*/setup"
-  else
-    . "${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}_${MRB_PROJECT_VERSION}_${MRB_QUALS//:/_}/setup"
+    _setup_filename=$(print %s"${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}*/setup")
+    if [ -f "${_setup_filename}" ]; then
+      celerlog info "Found setup file ${_setup_filename}"
+    fi
   fi
+  . "${_setup_filename}"
 fi
 
-# Install larg4
+# Install a package so that mrb will load cmake (may be arbitrary?)
 if [ -n "${MRB_SOURCE}" ]; then
-  _pkg=larg4
+  _pkg=larsim
   if ! [ -d "${MRB_SOURCE}/${_pkg}" ]; then
     celerlog info "Installing ${_pkg}"
     mrb g ${_pkg}

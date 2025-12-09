@@ -10,12 +10,12 @@ export LC_ALL=C
 # Allow running from user rc setup outside of build.sh environment
 if ! command -v celerlog >/dev/null 2>&1; then
   celerlog() {
-    printf "%s: %s\n" "\$1" "\$2" >&2
+    printf "%s: %s\n" "$1" "$2" >&2
   }
 fi
 if test -z "${SYSTEM_NAME}"; then
-  celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
   SYSTEM_NAME=$(uname -s)
+  celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
 fi
 
 export SPACK_ROOT=/auto/projects/celeritas/spack
