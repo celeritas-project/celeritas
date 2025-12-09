@@ -333,13 +333,13 @@ if(BUILD_TESTING)
 endif()
 
 if(CELERITAS_USE_LArSoft)
-  if(NOT CELERITAS_USE_ROOT)
-    celeritas_error_incompatible_option(
-      "LArSoft (LArSoft) requires ROOT"
-      CELERITAS_USE_ROOT
-      ON
-    )
-  endif()
+  foreach(_dep ROOT Geant4)
+    if(NOT CELERITAS_USE_${_dep})
+      celeritas_error_incompatible_option(
+        "LArSoft (LArSoft) requires ${_dep}" CELERITAS_USE_${_dep} ON
+      )
+    endif()
+  endforeach()
   find_package(LArSoft REQUIRED)
 endif()
 

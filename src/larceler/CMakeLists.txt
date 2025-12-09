@@ -25,7 +25,7 @@ list(APPEND SOURCES
 # Create library
 #-----------------------------------------------------------------------------#
 
-celeritas_add_src_library(larceler ${SOURCES})
+celeritas_add_src_library(larceler MODULE ${SOURCES})
 celeritas_target_link_libraries(larceler
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
