@@ -77,7 +77,6 @@ source_script() {
     log error "Failed to source '$1'"
     exit 1
   fi
-  _celer_build=0
   set -e
 }
 
@@ -140,7 +139,7 @@ check_ccache_usage() {
 
 # Find a command in PATH, suppressing error messages
 find_command() {
-    command -v "$1" 2>/dev/null || printf ""
+  command -v "$1" 2>/dev/null || printf ""
 }
 
 # Auto-detect and configure ccache if available
