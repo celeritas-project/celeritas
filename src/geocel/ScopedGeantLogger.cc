@@ -202,7 +202,7 @@ enum class SGLState
 
 SGLState& sgl_state()
 {
-    G4ThreadLocal SGLState result{SGLState::inactive};
+    static G4ThreadLocal SGLState result{SGLState::inactive};
     return result;
 }
 
