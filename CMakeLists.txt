@@ -421,9 +421,10 @@ if(CELERITAS_USE_ROOT)
   endif()
   # ROOT requirement is due to missing CMake commands in old versions
   find_package(ROOT 6.24 REQUIRED)
-  if(NOT ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD)
-    message(WARNING "ROOT C++ standard ${ROOT_CXX_STANDARD} "
-      "does not match current CMake standard ${CMAKE_CXX_STANDARD}: "
+  if(ROOT_CXX_STANDARD AND CMAKE_CXX_STANDARD
+     AND NOT (ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD))
+    message(WARNING "ROOT C++ standard (${ROOT_CXX_STANDARD}) "
+      "does not match current CMake standard (${CMAKE_CXX_STANDARD}): "
       "build warnings/errors may result")
   endif()
 endif()
