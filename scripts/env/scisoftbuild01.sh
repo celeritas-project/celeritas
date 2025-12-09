@@ -93,7 +93,7 @@ if [ -n "${MRB_PROJECT}" ]; then
   . "${_setup_filename}"
 fi
 
-# Install a package so that mrb will load cmake (may be arbitrary?)
+# Check out a package so that mrb will load cmake (may be arbitrary?)
 if [ -n "${MRB_SOURCE}" ]; then
   _pkg=larsim
   if ! [ -d "${MRB_SOURCE}/${_pkg}" ]; then
