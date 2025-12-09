@@ -105,7 +105,7 @@
       "name": ".base",
       "configurePreset": ".base",
       "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 48}
     },
     {"name": "release", "configurePreset": "release", "inherits": ".base"},
     {"name": "reldeb", "configurePreset": "reldeb", "inherits": ".base"},
