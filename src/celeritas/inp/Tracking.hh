@@ -9,6 +9,7 @@
 #include <limits>
 
 #include "corecel/Types.hh"
+
 namespace celeritas
 {
 namespace inp
