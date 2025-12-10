@@ -45,8 +45,6 @@ class SurfNavigator
     using SurfData = vgbrep::SurfData<vg_real_type>;
     using NavState = detail::VgNavStateWrapper;
 
-    static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
-
     /// @brief Locates the point in the geometry volume tree
     /// @param pvol_id Placed volume id to be checked first
     /// @param point Point to be checked, in the local frame of pvol

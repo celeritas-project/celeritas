@@ -1308,7 +1308,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 
     if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
-        // NOTE: vecgeom 2 solid model thinks r=30 + epsilon is *outside* the
+        // NOTE: vecgeom 2 solid model thinks r=30 + epsilon is *inside* the
         // 30cm radius cyl
         EXPECT_EQ("vacuum_tube", this->volume_name(geo));
         GTEST_SKIP() << "VecGeom 2.x solid disagrees where the solid is";
