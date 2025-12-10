@@ -62,8 +62,6 @@ class LarStandaloneRunner
     explicit LarStandaloneRunner(Input const&);
     // Don't allow copies of this class
     CELER_DEFAULT_MOVE_DELETE_COPY(LarStandaloneRunner);
-    // Default destructor
-    ~LarStandaloneRunner();
 
     // Run optical photons from a single set of energy steps
     VecBTR operator()(VecSED const& edep);

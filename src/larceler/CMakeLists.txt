@@ -6,13 +6,13 @@
 set(SOURCES)
 set(PRIVATE_DEPS
   fhiclcpp::fhiclcpp
+  larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
+  lardataobj::MCBase
   Celeritas::geocel
   Celeritas::celeritas
 )
 set(PUBLIC_DEPS
   Celeritas::BuildFlags
-  larcoreobj::SimpleTypesAndConstants
-  lardataobj::MCBase
 )
 
 #-----------------------------------------------------------------------------#

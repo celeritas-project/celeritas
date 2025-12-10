@@ -6,8 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "LarStandaloneRunner.hh"
 
+#include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
+
 #include "corecel/Assert.hh"
-#include "celeritas/optical/Transporter.hh"
+#include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoParams.hh"
 
 namespace celeritas
 {
@@ -15,14 +18,24 @@ namespace celeritas
 /*!
  * Construct with input parameters.
  */
-LarStandaloneRunner::LarStandaloneRunner(Input const&)
+LarStandaloneRunner::LarStandaloneRunner(Input const& i)
 {
-    CELER_NOT_IMPLEMENTED("LarStandaloneRunner");
+    // For test purposes, create the geometry and immediately tear it down
+    auto geo = GeantGeoParams::from_gdml(i.geometry);
+    CELER_ASSERT(geo);
+    CELER_ASSERT(!global_geant_geo().expired());
 }
 
 //---------------------------------------------------------------------------//
-//! Default destructor
-LarStandaloneRunner::~LarStandaloneRunner() = default;
+/*!
+ * Run optical photons from a single set of energy steps.
+ */
+auto LarStandaloneRunner::operator()(VecSED const&) -> VecBTR
+{
+    CELER_LOG(error) << "LArSoft interface is incomplete: no hits are "
+                        "simulated";
+    return {};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
