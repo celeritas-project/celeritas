@@ -3,32 +3,22 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-set(SOURCES)
-set(PRIVATE_DEPS
-  lardataobj::MCBase
+# See cetmodules/*/Modules
+# /cvmfs/larsoft.opensciencegrid.org/products/cetmodules/v3_24_01/Modules
+include(CetCMakeEnv)
+include(BasicPlugin)
+
+cet_cmake_env()
+
+#-----------------------------------------------------------------------------#
+# TODO: this will need to be `lar::OpticalSimInterface`
+set(_tool_interface art::tool)
+
+cet_build_plugin(LarCelerStandalone ${_tool_interface}
+  LIBRARIES PRIVATE
   Celeritas::geocel
-  Celeritas::celeritas
-)
-set(PUBLIC_DEPS
   Celeritas::BuildFlags
-)
-
-#-----------------------------------------------------------------------------#
-# Main code
-#-----------------------------------------------------------------------------#
-
-list(APPEND SOURCES
-  empty.cc
-)
-
-#-----------------------------------------------------------------------------#
-# Create library
-#-----------------------------------------------------------------------------#
-
-celeritas_add_src_library(larceler MODULE ${SOURCES})
-celeritas_target_link_libraries(larceler
-  PRIVATE ${PRIVATE_DEPS}
-  PUBLIC ${PUBLIC_DEPS}
+  Celeritas::celeritas
 )
 
 #-----------------------------------------------------------------------------#
