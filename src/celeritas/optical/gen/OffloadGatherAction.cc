@@ -60,7 +60,7 @@ auto OffloadGatherAction<S>::create_state(MemSpace m,
                                           StreamId id,
                                           size_type size) const -> UPState
 {
-    return make_aux_state<Data>(m, id, size);
+    return make_aux_state<TraitsT::template Data>(m, id, size);
 }
 
 //---------------------------------------------------------------------------//
@@ -71,7 +71,7 @@ template<StepActionOrder S>
 void OffloadGatherAction<S>::step(CoreParams const& params,
                                   CoreStateHost& state) const
 {
-    auto& step = state.aux_data<Data>(aux_id_);
+    auto& step = state.aux_data<TraitsT::template Data>(aux_id_);
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(), state.ptr(), Executor{step});
     launch_action(*this, params, state, execute);

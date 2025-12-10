@@ -93,8 +93,6 @@ class OffloadGatherAction final : public CoreStepActionInterface,
   private:
     //// TYPES ////
 
-    template<Ownership W, MemSpace M>
-    using Data = typename TraitsT::template Data<W, M>;
     using Executor = typename TraitsT::Executor;
 
     //// DATA ////

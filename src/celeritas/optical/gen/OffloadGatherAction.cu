@@ -25,7 +25,7 @@ template<StepActionOrder S>
 void OffloadGatherAction<S>::step(CoreParams const& params,
                                   CoreStateDevice& state) const
 {
-    auto& step = state.aux_data<Data>(aux_id_);
+    auto& step = state.aux_data<TraitsT::template Data>(aux_id_);
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(), state.ptr(), Executor{step});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
