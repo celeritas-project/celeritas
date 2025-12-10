@@ -3,21 +3,44 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file larceler/LarCelerStandalone.hh
+//! \note This file is an `art` plugin and should only be included by its .cc
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 #include <vector>
+#include <art/Utilities/ToolConfigTable.h>
 
-namespace fhicl
-{
-class ParameterSet;
-}
+#include "larceler/inp/LarStandaloneRunner.hh"
+
+#include "detail/LarCelerConfig.hh"
+
 namespace sim
 {
 class SimEnergyDeposit;
 class OpDetBacktrackerRecord;
 }  // namespace sim
+
+// TODO: This will be defined upstream (Stefano in progress)
+namespace phot
+{
+class OpticalSimInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecSED = std::vector<sim::SimEnergyDeposit>;
+    using VecBTR = std::vector<sim::OpDetBacktrackerRecord>;
+    using UPVecBTR = std::unique_ptr<VecBTR>;
+    ///@}
+
+    // Enable polymorphic deletion
+    virtual ~OpticalSimInterface() = 0;
+
+    // Execute simulation
+    virtual UPVecBTR execute(VecSED const& edeps) = 0;
+};
+}  // namespace phot
 
 namespace celeritas
 {
@@ -47,21 +70,24 @@ namespace celeritas
  * - Performance tweaking knobs (e.g., number of tracks in flight)
  * - ...
  */
-class LarCelerStandalone
+class LarCelerStandalone final : public phot::OpticalSimInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using VecSED = std::vector<sim::SimEnergyDeposit>;
-    using VecBTR = std::vector<sim::OpDetBacktrackerRecord>;
-    using UPVecBTR = std::unique_ptr<VecBTR>;
+    using Config = detail::LarCelerStandaloneConfig;
+    using Parameters = art::ToolConfigTable<Config>;
     ///@}
 
+  public:
     // Construct with fcl parameters
-    LarCelerStandalone(fhicl::ParameterSet const& p);
+    LarCelerStandalone(Parameters const& p);
 
     // Execute simulation
-    UPVecBTR execute(VecSED const& edeps);
+    UPVecBTR execute(VecSED const& edeps) final;
+
+  private:
+    inp::LarStandaloneRunner runner_inp_;
 };
 
 //---------------------------------------------------------------------------//

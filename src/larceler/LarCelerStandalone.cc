@@ -8,26 +8,35 @@
 #include "LarCelerStandalone.hh"
 
 #include <art/Utilities/ToolMacros.h>
-#include <fhiclcpp/ParameterSet.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
 #include "corecel/Assert.hh"
 
+#include "larceler/LarStandaloneRunner.hh"
+#include "larceler/inp/LarStandaloneRunner.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-LarCelerStandalone::LarCelerStandalone(fhicl::ParameterSet const&) {}
+LarCelerStandalone::LarCelerStandalone(Parameters const& config)
+    : runner_inp_{inp::from_config(config())}
+{
+}
 
 //---------------------------------------------------------------------------//
+/*!
+ * Instantiate and run Celeritas.
+ */
 auto LarCelerStandalone::execute(VecSED const& edeps) -> UPVecBTR
 {
     CELER_EXPECT(!edeps.empty());
 
-    CELER_NOT_IMPLEMENTED("LarCelerStandalone");
+    // Set up GPU, problem, and states
+    LarStandaloneRunner run{runner_inp_};
 
-    VecBTR result;
-    // TODO: result from standalone execution
+    // Calculate detector responsors for the input steps
+    VecBTR result = run(edeps);
     return std::make_unique<VecBTR>(std::move(result));
 }
 
