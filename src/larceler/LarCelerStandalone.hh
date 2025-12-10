@@ -24,6 +24,28 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Run optical photons in a standalone simulation.
+ *
+ * This plugin implements a replacement for LArSim's \c phot::PDFastSimPAR
+ * class, taking a vector of energy-depositing steps and returning a vector
+ * is instantiated by a FHICL workflow file with a set of
+ * parameters. It is executed after the detector simulation step (ionization,
+ * recombination, scintillation, etc.) with a vector of steps that contain
+ * energy deposition, and it returns a vector of detector responses.
+ *
+ * The execution happens \em after LArG4 is complete, so it is completely
+ * independent of the Geant4 run manager and execution. It requires an input
+ * GDML with:
+ * - Detector geometry description
+ * - Bulk optical physics properties (e.g., Rayleigh scattering in argon)
+ * - Surface properties (e.g., roughness, reflection probability)
+ * - Detector properties (e.g., sensitive volumes, efficiency multipliers)
+ *
+ * \par Parameter set definitions
+ *
+ * To be defined later, but we will need:
+ * - GDML input filename
+ * - Performance tweaking knobs (e.g., number of tracks in flight)
+ * - ...
  */
 class LarCelerStandalone
 {
@@ -31,7 +53,8 @@ class LarCelerStandalone
     //!@{
     //! \name Type aliases
     using VecSED = std::vector<sim::SimEnergyDeposit>;
-    using UPVecBTR = std::unique_ptr<std::vector<sim::OpDetBacktrackerRecord>>;
+    using VecBTR = std::vector<sim::OpDetBacktrackerRecord>;
+    using UPVecBTR = std::unique_ptr<VecBTR>;
     ///@}
 
     // Construct with fcl parameters

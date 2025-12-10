@@ -12,10 +12,24 @@
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
+#include "corecel/Assert.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 LarCelerStandalone::LarCelerStandalone(fhicl::ParameterSet const&) {}
+
+//---------------------------------------------------------------------------//
+auto LarCelerStandalone::execute(VecSED const& edeps) -> UPVecBTR
+{
+    CELER_EXPECT(!edeps.empty());
+
+    CELER_NOT_IMPLEMENTED("LarCelerStandalone");
+
+    VecBTR result;
+    // TODO: result from standalone execution
+    return std::make_unique<VecBTR>(std::move(result));
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
