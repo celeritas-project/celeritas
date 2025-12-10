@@ -16,7 +16,6 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/Ref.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
@@ -203,13 +202,8 @@ auto CoreState<M>::aux_data(AuxId auxid) -> StateRef<S>&
     CELER_EXPECT(auxid < aux_state_->size());
 
     // TODO: use "checked static cast" for better runtime performance
-    auto* base = &aux_state_->at(auxid);
-    auto* state = dynamic_cast<AuxState<S, M>*>(base);
-    CELER_VALIDATE(
-        state,
-        << "failed to access aux state with ID: " << auxid.unchecked_get()
-        << ", stored type: " << typeid(*base).name()
-        << ", expected type: " << typeid(AuxState<S, M>).name());
+    auto* state = dynamic_cast<AuxState<S, M>*>(&aux_state_->at(auxid));
+    CELER_ASSERT(state);
 
     CELER_ENSURE(*state);
     return state->ref();
