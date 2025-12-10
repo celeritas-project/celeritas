@@ -203,10 +203,11 @@ auto CoreState<M>::aux_data(AuxId auxid) -> StateRef<S>&
     CELER_EXPECT(auxid < aux_state_->size());
 
     // TODO: use "checked static cast" for better runtime performance
-    CELER_LOG(info) << "Accessing aux state with type "
-                    << TypeDemangler<S<Ownership::reference, M>>{}();
     auto* state = dynamic_cast<AuxState<S, M>*>(&aux_state_->at(auxid));
-    CELER_ASSERT(state);
+    CELER_VALIDATE(state,
+                   << "failed to access aux state with ID "
+                   << auxid.unchecked_get() << " and type "
+                   << (TypeDemangler<S<Ownership::reference, M>>{}()));
 
     CELER_ENSURE(*state);
     return state->ref();
