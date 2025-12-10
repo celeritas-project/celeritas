@@ -15,6 +15,7 @@
 
 #include "GeneratorData.hh"
 
+#include "detail/OffloadGatherTraits.hh"
 #include "detail/OffloadTraits.hh"
 
 namespace celeritas
@@ -93,6 +94,8 @@ class OffloadAction final : public CoreStepActionInterface
   private:
     //// TYPES ////
 
+    using PreTraitsT = detail::OffloadGatherTraits<StepActionOrder::pre>;
+    using PostTraitsT = detail::OffloadGatherTraits<StepActionOrder::pre_post>;
     using Executor = typename TraitsT::Executor;
 
     //// DATA ////
