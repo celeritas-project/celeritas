@@ -5,11 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 if ! command -v load_system_env >/dev/null 2>&1; then
-  printf 'error: define a function "load_system_env" in your shell rc:
-load_system_env() {
-  . ${CELER_SOURCE_DIR}/scripts/env/$1.sh
-}
-' >&2
+  printf "error: expected load_system_env helper function via build.sh or shell\n" >&2
   return 1
 fi
 

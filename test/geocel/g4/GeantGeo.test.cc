@@ -7,6 +7,7 @@
 #include <regex>
 #include <string_view>
 #include <G4LogicalVolume.hh>
+#include <G4StateManager.hh>
 #include <G4VSensitiveDetector.hh>
 
 #include "corecel/Config.hh"
@@ -25,10 +26,8 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/VolumeParams.hh"
-#include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoTrackView.hh"
-#include "geocel/inp/Model.hh"
+#include "geocel/VolumeParams.hh"  // IWYU pragma: keep
+#include "geocel/inp/Model.hh"  // IWYU pragma: keep
 #include "geocel/rasterize/SafetyImager.hh"
 
 #include "GeantGeoTestBase.hh"
@@ -84,6 +83,27 @@ class GeantGeoTest : public GeantGeoTestBase
 
     ScopedGeantExceptionHandler exception_handler;
     ScopedGeantLogger logger{celeritas::world_logger()};
+
+    void SetUp() override
+    {
+        GeantGeoTestBase::SetUp();
+        ASSERT_TRUE(this->geometry());
+
+        auto* sm = G4StateManager::GetStateManager();
+        CELER_ASSERT(sm);
+        // Have ScopedGeantExceptionHandler treat tracking errors like runtime
+        EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_EventProc));
+    }
+
+    void TearDown() override
+    {
+        ASSERT_TRUE(this->geometry());
+
+        // Restore G4 state just in case it matters
+        auto* sm = G4StateManager::GetStateManager();
+        EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_PreInit));
+        GeantGeoTestBase::TearDown();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -295,7 +315,13 @@ TEST_F(FourLevelsTest, consecutive_compute)
 
 TEST_F(FourLevelsTest, detailed_track)
 {
+    ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_detailed_tracking();
+
+    // "Finding next step up to ... when previous step 4 was already
+    // calculated"
+    static char const* const expected_log_levels[] = {"warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
 }
 
 TEST_F(FourLevelsTest, safety)
@@ -803,11 +829,14 @@ TEST_F(SimpleCmsTest, trace)
 
 TEST_F(SimpleCmsTest, detailed_track)
 {
-    if (CELERITAS_USE_VECGEOM && !CELERITAS_VECGEOM_SURFACE)
-    {
-        GTEST_SKIP() << "FIXME: VecGeom surface v1,v2 both trigger a G4 error";
-    }
+    ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_detailed_tracking();
+    if (geant4_version >= Version{11})
+    {
+        // G4 11.3: "Accuracy error or slightly inaccurate position shift."
+        static char const* const expected_log_levels[] = {"error", "error"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -851,7 +880,15 @@ TEST_F(SolidsTest, accessors)
 
 TEST_F(SolidsTest, trace)
 {
+    ScopedLogStorer scoped_log_{&self_logger()};
     TestImpl(this).test_trace();
+    if (geant4_version >= Version{11})
+    {
+        // G4 11.3 report normal directions perpendicular to track direction
+        // due to coincident surfaces; and at least one of the tangents is
+        // machine-dependent
+        EXPECT_GE(scoped_log_.levels().size(), 3) << scoped_log_;
+    }
 }
 
 //---------------------------------------------------------------------------//

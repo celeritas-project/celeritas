@@ -23,6 +23,8 @@ endif()
 
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
+else()
+  set(_needs_hepmc LINK_LIBRARIES ${HepMC3_LIBRARIES})
 endif()
 
 if(NOT CELERITAS_USE_ROOT)
@@ -371,8 +373,7 @@ celeritas_add_test(grid/XsCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # IO
-celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc}
-  LINK_LIBRARIES ${HepMC3_LIBRARIES})
+celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc})
 celeritas_add_test(io/ImportUnits.test.cc)
 celeritas_add_test(io/JsonEventIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
