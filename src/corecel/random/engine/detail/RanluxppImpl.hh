@@ -62,6 +62,10 @@ compute_modulus(RanluxppArray18 const& mul);
 [[nodiscard]] inline CELER_FUNCTION RanluxppArray9 compute_mod_multiply(
     RanluxppArray9 const& factor1, RanluxppArray9 const& factor2);
 
+// Compute base to the 2^n modulo m
+[[nodiscard]] inline CELER_FUNCTION RanluxppArray9
+compute_power_exp_modulus(RanluxppArray9 base, RanluxppUInt log_n);
+
 // Compute base to the n modulo m
 [[nodiscard]] inline CELER_FUNCTION RanluxppArray9
 compute_power_modulus(RanluxppArray9 base, RanluxppUInt n);
@@ -264,7 +268,7 @@ CELER_FUNCTION int64_t compute_remainder(Span<RanluxppUInt const, 9> upper,
     // equal to m, we need cbar = 1 and subtract m, otherwise cbar = c. The
     // value currently in r is greater or equal to m, if and only if one of
     // the last 240 bits is set and the upper bits are all set.
-    bool greater_m = r[0] | r[1] | r[2] | (r[3] & 0x0000ffffffffffff);
+    bool greater_m = r[0] | r[1] | r[2] | (r[3] & 0x0000ffffffffffffull);
     greater_m &= (r[3] >> 48) == 0xffff;
     for (int i : celeritas::range(4, 9))
     {
@@ -440,7 +444,7 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
 
     // Make a subspan of the last 9 elements of mul
     auto mul_end = celeritas::make_span(mul).subspan<9, 9>();
-    CELER_ASSERT(mul_end.size() == 9);
+    static_assert(mul_end.size() == 9);
 
     int64_t c = compute_remainder(mul_end, celeritas::make_span(r));
 
@@ -508,18 +512,35 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
 
 //---------------------------------------------------------------------------//
 /*!
- * Combine multiply_9x9 and compute_modulus with internal temporary storage.
+ * Compute factor1 * factor2 mod m using local storage.
  *
  * The result in \p fac_result is guaranteed to be smaller than the modulus.
  *
  * \param[in] factor1 first factor with 9 numbers of 64 bits each
  * \param[in] factor2 second factor with 9 numbers of 64 bits each
  */
-CELER_FUNCTION RanluxppArray9 compute_mod_multiply(
+CELER_FORCEINLINE_FUNCTION RanluxppArray9 compute_mod_multiply(
     RanluxppArray9 const& factor1, RanluxppArray9 const& factor2)
 {
     RanluxppArray18 mul = multiply_9x9(factor1, factor2);
     return compute_modulus(mul);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compute \c base to the \p 2^log_n modulo m.
+ *
+ * \param[in]  base  with 9 numbers of 64 bits each
+ * \param[in]  log_n log_2 of exponent
+ */
+CELER_FUNCTION RanluxppArray9 compute_power_exp_modulus(RanluxppArray9 result,
+                                                        RanluxppUInt log_n)
+{
+    for (; log_n > 0; --log_n)
+    {
+        result = compute_mod_multiply(result, result);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -529,29 +550,26 @@ CELER_FUNCTION RanluxppArray9 compute_mod_multiply(
  * The arguments \p base and \p res may point to the same location.
  *
  * \param[in]  base  with 9 numbers of 64 bits each
- * \param[out] res   output with 9 numbers of 64 bits each
  * \param[in]  n     exponent
  */
 CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
                                                     RanluxppUInt n)
 {
+    // Initial state: 1
     RanluxppArray9 res = {1, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    RanluxppArray18 mul;
     while (n)
     {
         if (n & 1)
         {
-            mul = multiply_9x9(res, base);
-            res = compute_modulus(mul);
+            res = compute_mod_multiply(res, base);
         }
         n >>= 1;
         if (!n)
         {
             break;
         }
-        mul = multiply_9x9(base, base);
-        base = compute_modulus(mul);
+        base = compute_mod_multiply(base, base);
     }
 
     return res;
@@ -563,9 +581,8 @@ CELER_FUNCTION RanluxppArray9 compute_power_modulus(RanluxppArray9 base,
  *
  * Computes \f$ m = 2^{576} - 2^{240} + 1 \f$.
  *
- * \param[in] ranluxpp_carry_state  A struct containing the state and carry
- *                                  numbers
- * \return     The 576 bits of the LCG state, smaller than m
+ * \param[in] ranlux A struct containing the state and carry numbers
+ * \return The 576 bits of the LCG state, smaller than m
  */
 CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppNumber const& ranlux)
 {

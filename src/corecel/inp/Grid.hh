@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/Grid.hh
+//! \file corecel/inp/Grid.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/grid/GridTypes.hh"
-#include "celeritas/Types.hh"
 
 namespace celeritas
 {

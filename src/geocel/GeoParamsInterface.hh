@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <utility>
-
 #include "corecel/Macros.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"  // IWYU pragma: export
 #include "corecel/cont/Span.hh"  // IWYU pragma: export

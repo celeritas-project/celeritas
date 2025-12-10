@@ -64,34 +64,40 @@ TEST_F(RngReseedTest, reseed)
         values.push_back(rng());
     }
 #if CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_CURAND
-    static unsigned int const expected_values[] = {65145249u,
-                                                   4154590960u,
-                                                   2216085262u,
-                                                   241608182u,
-                                                   2278993841u,
-                                                   1643630301u,
-                                                   2759037535u,
-                                                   3550652068u};
+    static unsigned int const expected_values[] = {
+        65145249u,
+        4154590960u,
+        2216085262u,
+        241608182u,
+        2278993841u,
+        1643630301u,
+        2759037535u,
+        3550652068u,
+    };
 #elif CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW
-    static unsigned int const expected_values[] = {3522223652u,
-                                                   296995412u,
-                                                   1414776235u,
-                                                   1609101469u,
-                                                   363980503u,
-                                                   2861073075u,
-                                                   1771581540u,
-                                                   3600889717u};
+    static unsigned int const expected_values[] = {
+        3522223652u,
+        296995412u,
+        1414776235u,
+        1609101469u,
+        363980503u,
+        2861073075u,
+        1771581540u,
+        3600889717u,
+    };
 #elif CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP
-    static unsigned int const expected_values[] = {1506987910u,
-                                                   289122019u,
-                                                   3660744945u,
-                                                   46319873u,
-                                                   2718473539u,
-                                                   1739478500u,
-                                                   3043999655u,
-                                                   2441727977u};
+    static unsigned int const expected_values[] = {
+        2625581829u,
+        4017657946u,
+        1657869191u,
+        2557868954u,
+        14578066u,
+        819209073u,
+        72409102u,
+        537563558u,
+    };
 #endif
-    EXPECT_VEC_EQ(values, expected_values);
+    EXPECT_VEC_EQ(expected_values, values) << repr(values);
 }
 
 //---------------------------------------------------------------------------//

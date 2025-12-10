@@ -129,12 +129,11 @@ std::string_view GenericGeoTestBase<HP>::geometry_type() const
  * Access the geometry interface, building if needed.
  */
 template<class HP>
-auto GenericGeoTestBase<HP>::geometry_interface() const
-    -> GeoParamsInterface const&
+auto GenericGeoTestBase<HP>::geometry_interface() const -> SPConstGeoI
 {
     auto result = this->geometry();
     CELER_ENSURE(result);
-    return *result;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

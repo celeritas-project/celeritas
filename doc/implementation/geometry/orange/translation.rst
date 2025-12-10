@@ -138,5 +138,5 @@ Configuration
 For debugging purposes, a special struct can be deserialized from a JSON input
 file specified with the ``G4ORG_OPTIONS`` environment variable.
 
-.. doxygenenum:: celeritas::g4org::InlineSingletons
-.. celerstruct:: g4org::Options
+.. doxygenenum:: celeritas::inp::InlineSingletons
+.. celerstruct:: inp::OrangeGeoFromGeant

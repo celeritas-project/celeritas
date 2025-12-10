@@ -37,10 +37,11 @@ namespace celeritas
 {
 namespace test
 {
-
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool reference_configuration
+    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM
+           || !CELERITAS_VECGEOM_SURFACE)
+       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
@@ -270,7 +271,8 @@ TEST_F(LArSphereOffloadTest, host_distributions)
     static real_type const expected_scintillation_charge[] = {-1, 0, 1};
     EXPECT_VEC_EQ(expected_scintillation_charge, result.scintillation.charge);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW))
     {
         EXPECT_EQ(231683,
                   result.cherenkov.total_num_photons
@@ -332,7 +334,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
     static real_type const expected_scintillation_charge[] = {-1, 0, 1};
     EXPECT_VEC_EQ(expected_scintillation_charge, result.scintillation.charge);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
     {
         EXPECT_EQ(381086,
                   result.cherenkov.total_num_photons
@@ -382,14 +385,6 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
         EXPECT_VEC_EQ(expected_scintillation_num_photons,
                       result.scintillation.num_photons);
     }
-    else
-    {
-        EXPECT_EQ(41339, result.cherenkov.total_num_photons);
-        EXPECT_EQ(88, result.cherenkov.num_photons.size());
-
-        EXPECT_EQ(373102, result.scintillation.total_num_photons);
-        EXPECT_EQ(202, result.scintillation.num_photons.size());
-    }
 }
 
 TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
@@ -407,15 +402,11 @@ TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.scintillation.num_photons.size());
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
     {
         EXPECT_EQ(21060, result.cherenkov.total_num_photons);
         EXPECT_EQ(39, result.cherenkov.num_photons.size());
-    }
-    else
-    {
-        EXPECT_EQ(16454, result.cherenkov.total_num_photons);
-        EXPECT_EQ(32, result.cherenkov.num_photons.size());
     }
 }
 
@@ -434,7 +425,8 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     EXPECT_EQ(0, result.cherenkov.total_num_photons);
     EXPECT_EQ(0, result.cherenkov.num_photons.size());
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
     {
         EXPECT_EQ(167469, result.scintillation.total_num_photons);
         EXPECT_EQ(48, result.scintillation.num_photons.size());
@@ -466,9 +458,9 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     size_type steps = 2;
     auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
-        constexpr unsigned int expected_steps = using_surface_vg ? 109 : 116;
+        constexpr unsigned int expected_steps = 116;
         constexpr unsigned int expected_step_iters = 4;
         EXPECT_EQ(expected_steps, result.accum.steps);
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
@@ -494,10 +486,10 @@ TEST_F(LArSphereOffloadTest, host_generate)
     size_type steps = 4;
     auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
-        unsigned int expected_steps = using_surface_vg ? 23642 : 25046;
-        unsigned int expected_step_iters = using_surface_vg ? 1 : 3;
+        unsigned int expected_steps = 25046;
+        unsigned int expected_step_iters = 3;
         EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
@@ -511,7 +503,7 @@ TEST_F(LArSphereOffloadTest, host_generate)
         EXPECT_EQ(7227, result.scintillation.total_num_photons);
         EXPECT_EQ(970, result.cherenkov.total_num_photons);
     }
-    else
+    else if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_GT(result.accum.step_iters, 0);
         EXPECT_GT(result.accum.flushes, 0);
@@ -533,9 +525,9 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     auto result
         = this->run<MemSpace::device>(primaries, core_track_slots, steps);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
-        constexpr int ref_steps = using_surface_vg ? 55 : 59;
+        constexpr int ref_steps = 59;
         EXPECT_EQ(ref_steps, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());

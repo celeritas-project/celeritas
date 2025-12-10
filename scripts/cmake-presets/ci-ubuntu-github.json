@@ -69,9 +69,13 @@
       "inherits": [".system"],
       "displayName": "FINAL: build only documentation",
       "cacheVariables": {
+        "BUILD_TESTING": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_APPS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
         "CELERITAS_DOXYGEN_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"}
       }
     },

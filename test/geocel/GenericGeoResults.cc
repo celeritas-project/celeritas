@@ -104,7 +104,7 @@ void GenericGeoTrackingResult::print_expected() const
         cout << CELER_REF_ATTR(bumps);
     }
 
-    cout << "auto tol = test_->;\n"
+    cout << "auto tol = test_->tracking_tol();\n"
             "EXPECT_REF_NEAR(ref, result, tol);\n"
             "/*** END CODE ***/\n";
 }
@@ -144,7 +144,10 @@ void GenericGeoTrackingResult::print_expected() const
     IRE_VEC_SOFT_EQ(distances, tol.distance);
     if (val1.disabled_surface_normal() || val2.disabled_surface_normal())
     {
-        CELER_LOG(warning) << "Skipping surface normal comparison";
+        static int warn_count{0};
+        world_logger()(CELER_CODE_PROVENANCE,
+                       warn_count++ == 0 ? LogLevel::warning : LogLevel::debug)
+            << "Skipping surface normal comparison";
     }
     else
     {

@@ -7,9 +7,9 @@
 #pragma once
 
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/grid/TwodGridBuilder.hh"
-#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
