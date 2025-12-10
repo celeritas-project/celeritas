@@ -421,8 +421,9 @@ void CheckedGeoTrackView::cross_boundary()
         // Check for tangent crossing warning
         if (soft_zero(dot_product(t_->dir(), post_norm)))
         {
-            CELER_LOG(warning) << "Crossed at a tangent normal "
-                               << repr(post_norm) << ": " << *this;
+            CELER_LOG_LOCAL(warning)
+                << "Crossed at a tangent normal " << repr(post_norm)
+                << ": post-crossing state is " << *this;
         }
     }
 }
