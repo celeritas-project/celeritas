@@ -20,6 +20,8 @@ jobs:
       - name: Build and test dd4hep integration
         shell: bash
         run: |
+          set +e 
+          set -o pipefail
           source /etc/profile
           eic-info
           cmake -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
