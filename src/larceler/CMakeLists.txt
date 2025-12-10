@@ -40,6 +40,8 @@ celeritas_target_link_libraries(${_plugin_name}
     art::Utilities
     cetlib::cetlib
     cetlib_except::cetlib_except
+    larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
+    lardataobj::MCBase
   PUBLIC ${PUBLIC_DEPS}
 )
 
