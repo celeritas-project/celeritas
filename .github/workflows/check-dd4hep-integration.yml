@@ -28,12 +28,10 @@ jobs:
           cmake --build build -j 8
           cmake --install build
           export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
-
-          geoConverter -compact2gdml -input $PWD/example/ddceler/SiD_ConstantField.xml -output SiD_ConstantField.gdml
-          
+ 
           # Run both simulations in parallel with separate log files
           echo "Starting Celeritas simulation..."
-          ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_celeritas.root > celeritas.log 2>&1 &
+          ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_celeritas.root --geometry.dumpGDML SiD_ConstantField.gdml > celeritas.log 2>&1 &
           CELER_PID=$!
           
           echo "Starting Geant4 simulation..."
