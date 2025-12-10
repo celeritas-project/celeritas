@@ -3,22 +3,29 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-# See cetmodules/*/Modules
-# /cvmfs/larsoft.opensciencegrid.org/products/cetmodules/v3_24_01/Modules
-include(CetCMakeEnv)
-include(BasicPlugin)
-
-cet_cmake_env()
+set(SOURCES)
+set(PRIVATE_DEPS
+  fhiclcpp::fhiclcpp
+  art::Utilities
+  cetlib::cetlib
+  cetlib_except::cetlib_except
+  lardataobj::MCBase
+  Celeritas::geocel
+  Celeritas::celeritas
+)
+set(PUBLIC_DEPS
+  Celeritas::BuildFlags
+)
 
 #-----------------------------------------------------------------------------#
-# TODO: this will need to be `lar::OpticalSimInterface`
-set(_tool_interface art::tool)
+# Create library
+#-----------------------------------------------------------------------------#
+set(_plugin_name LarCelerStandalone)
 
-cet_build_plugin(LarCelerStandalone ${_tool_interface}
-  LIBRARIES PRIVATE
-  Celeritas::geocel
-  Celeritas::BuildFlags
-  Celeritas::celeritas
+celeritas_add_src_library(${_plugin_name} MODULE ${_plugin_name}.cc)
+celeritas_target_link_libraries(${_plugin_name}
+  PRIVATE ${PRIVATE_DEPS}
+  PUBLIC ${PUBLIC_DEPS}
 )
 
 #-----------------------------------------------------------------------------#
