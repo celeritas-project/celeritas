@@ -28,6 +28,8 @@ jobs:
           cmake --build build -j 8
           cmake --install build
           export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
+
+          geoConverter -compact2gdml -input $PWD/example/ddceler/SiD_ConstantField.xml -output SiD_ConstantField.gdml
           
           # Run both simulations in parallel with separate log files
           echo "Starting Celeritas simulation..."
@@ -69,4 +71,5 @@ jobs:
           path: |
             *.log
             *.png
+            *.gdml
           
