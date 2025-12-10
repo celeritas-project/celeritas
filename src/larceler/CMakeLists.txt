@@ -9,6 +9,7 @@ set(PRIVATE_DEPS
   art::Utilities
   cetlib::cetlib
   cetlib_except::cetlib_except
+  larcoreobj::SimpleTypesAndConstants
   lardataobj::MCBase
   Celeritas::geocel
   Celeritas::celeritas

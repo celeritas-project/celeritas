@@ -38,7 +38,7 @@ class LarCelerStandalone
     LarCelerStandalone(fhicl::ParameterSet const& p);
 
     // Execute simulation
-    UPVecBTR execute(VecSED const& edeps) final;
+    UPVecBTR execute(VecSED const& edeps);
 };
 
 //---------------------------------------------------------------------------//
