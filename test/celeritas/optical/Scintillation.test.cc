@@ -251,13 +251,15 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
+    OffloadPrePostStepData pre_post_step{particle.speed()};
 
     ScintillationOffload generate(particle,
                                   this->make_sim_track_view(step_length_),
                                   post_pos_,
                                   edep_,
                                   data,
-                                  pre_step);
+                                  pre_step,
+                                  pre_post_step);
 
     Rng rng;
     auto const result = generate(rng);
@@ -287,16 +289,19 @@ TEST_F(MaterialScintillationGaussianTest, basic)
     auto const& data = params->host_ref();
     EXPECT_FALSE(data.scintillation_by_particle());
 
+    auto particle
+        = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
+    OffloadPrePostStepData pre_post_step{particle.speed()};
 
     // Pre-generate optical distribution data
-    ScintillationOffload generate(
-        this->make_particle_track_view(post_energy_, pdg::electron()),
-        this->make_sim_track_view(step_length_),
-        post_pos_,
-        edep_,
-        data,
-        pre_step);
+    ScintillationOffload generate(particle,
+                                  this->make_sim_track_view(step_length_),
+                                  post_pos_,
+                                  edep_,
+                                  data,
+                                  pre_step,
+                                  pre_post_step);
 
     Rng rng;
     auto const generated_dist = generate(rng);
@@ -417,15 +422,19 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
-    auto const pre_step = this->build_pre_step();
 
-    ScintillationOffload generate(
-        this->make_particle_track_view(post_energy_, pdg::electron()),
-        this->make_sim_track_view(step_length_),
-        post_pos_,
-        edep_,
-        data,
-        pre_step);
+    auto particle
+        = this->make_particle_track_view(post_energy_, pdg::electron());
+    auto const pre_step = this->build_pre_step();
+    OffloadPrePostStepData pre_post_step{particle.speed()};
+
+    ScintillationOffload generate(particle,
+                                  this->make_sim_track_view(step_length_),
+                                  post_pos_,
+                                  edep_,
+                                  data,
+                                  pre_step,
+                                  pre_post_step);
 
     // Generate optical photons for a given input
     Rng rng;

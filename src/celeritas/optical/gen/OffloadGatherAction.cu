@@ -12,7 +12,8 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/OffloadGatherExecutor.hh"
+#include "detail/OffloadPreGatherExecutor.hh"
+#include "detail/OffloadPrePostGatherExecutor.hh"
 
 namespace celeritas
 {
@@ -20,17 +21,23 @@ namespace celeritas
 /*!
  * Gather pre-step data.
  */
-void OffloadGatherAction::step(CoreParams const& params,
-                               CoreStateDevice& state) const
+template<StepActionOrder S>
+void OffloadGatherAction<S>::step(CoreParams const& params,
+                                  CoreStateDevice& state) const
 {
-    auto& step = state.aux_data<OffloadStepStateData>(aux_id_);
-    auto execute
-        = make_active_track_executor(params.ptr<MemSpace::native>(),
-                                     state.ptr(),
-                                     detail::OffloadGatherExecutor{step});
+    auto& step = state.aux_data<TraitsT::template Data>(aux_id_);
+    auto execute = make_active_track_executor(
+        params.ptr<MemSpace::native>(), state.ptr(), Executor{step});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class OffloadGatherAction<StepActionOrder::pre>;
+template class OffloadGatherAction<StepActionOrder::pre_post>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

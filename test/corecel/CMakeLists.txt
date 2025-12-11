@@ -78,21 +78,23 @@ celeritas_add_test(io/StringUtils.test.cc)
 
 # Math
 celeritas_add_device_test(math/Algorithms)
+celeritas_add_device_test(math/NumericLimits)
 celeritas_add_test(math/ArrayOperators.test.cc)
 celeritas_add_test(math/ArrayUtils.test.cc)
-celeritas_add_test(math/PdfUtils.test.cc)
+celeritas_add_test(math/BisectionRootFinder.test.cc)
 celeritas_add_test(math/Constant.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
+celeritas_add_test(math/IllinoisRootFinder.test.cc)
 celeritas_add_test(math/Integrator.test.cc)
-celeritas_add_device_test(math/NumericLimits)
+celeritas_add_test(math/PdfUtils.test.cc)
 celeritas_add_test(math/PolyEvaluator.test.cc)
 celeritas_add_test(math/Quantity.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
-celeritas_add_test(math/SoftEqual.test.cc)
+celeritas_add_test(math/QuarticSolver.test.cc)
 celeritas_add_test(math/RegulaFalsiRootFinder.test.cc)
-celeritas_add_test(math/BisectionRootFinder.test.cc)
-celeritas_add_test(math/IllinoisRootFinder.test.cc)
+celeritas_add_test(math/SoftEqual.test.cc)
 celeritas_add_test(math/TridiagonalSolver.test.cc)
+
 
 #-----------------------------------------------------------------------------#
 # Random

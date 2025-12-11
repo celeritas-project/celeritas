@@ -28,6 +28,10 @@ namespace celeritas
  * ScintillationGenerator to generate optical photons using post-step and
  * cached pre-step data.
  *
+ * The post-step speed is calculated from the particle's energy after
+ * continuous slowing down but before the particle loses energy in a discrete
+ * interaction.
+ *
  * The mean number of photons is a product of the energy deposition and a
  * material-dependent yield fraction (photons per MeV). The actual number of
  * photons sampled is determined by sampling:
@@ -45,7 +49,8 @@ class ScintillationOffload
                          Real3 const& pos,
                          units::MevEnergy energy_deposition,
                          NativeCRef<ScintillationData> const& shared,
-                         OffloadPreStepData const& step_data);
+                         OffloadPreStepData const& pre_step,
+                         OffloadPrePostStepData const& pre_post_step);
 
     // Gather the input data needed to sample scintillation photons
     template<class Generator>
@@ -78,11 +83,12 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     Real3 const& pos,
     units::MevEnergy energy_deposition,
     NativeCRef<ScintillationData> const& shared,
-    OffloadPreStepData const& step_data)
+    OffloadPreStepData const& pre_step,
+    OffloadPrePostStepData const& pre_post_step)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
-    , pre_step_(step_data)
-    , post_step_({particle.speed(), pos})
+    , pre_step_(pre_step)
+    , post_step_({pre_post_step.speed, pos})
     , shared_(shared)
 {
     CELER_EXPECT(step_length_ > 0);
