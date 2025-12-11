@@ -28,10 +28,10 @@ jobs:
           cmake --build build -j 8
           cmake --install build
           export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
-          
+ 
           # Run both simulations in parallel with separate log files
           echo "Starting Celeritas simulation..."
-          ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_celeritas.root > celeritas.log 2>&1 &
+          ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_celeritas.root --geometry.dumpGDML SiD_ConstantField.gdml > celeritas.log 2>&1 &
           CELER_PID=$!
           
           echo "Starting Geant4 simulation..."
@@ -61,9 +61,13 @@ jobs:
             echo "Error: Output files not found"
             exit 1
           fi
-      - name: Upload comparison plots
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: comparison-plots
-          path: "*.png"
+          name: simulation-artifacts
+          path: |
+            *.log
+            *.png
+            *.gdml
+          
