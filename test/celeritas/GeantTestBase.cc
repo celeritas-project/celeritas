@@ -58,6 +58,12 @@ bool GeantTestBase::is_ci_build()
         // Config options are different
         return false;
     }
+    // Skip if VG 2.0
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+        && CELERITAS_VECGEOM_VERSION > 0x020000)
+    {
+        return false;
+    }
     // Check clhep/g4 versions
     auto clhep = Version::from_string(cmake::clhep_version);
     auto g4 = Version::from_string(cmake::geant4_version);
