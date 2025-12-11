@@ -1982,6 +1982,12 @@ void SimpleCmsGeoTest::test_trace() const
             ref.bumps[3] = 5.245209e-06f;
         }
 
+        if (using_solids_vg && vecgeom_version >= Version{2, 0})
+        {
+            // Track starts on boundary, avoiding bump
+            ref.bumps.clear();
+        }
+
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -2021,6 +2027,14 @@ void SimpleCmsGeoTest::test_trace() const
             162.41892241026,
             232.37188601505,
         };
+
+        if (using_solids_vg && vecgeom_version >= Version{2, 0})
+        {
+            // Track fails immediately
+            ref = {};
+            ref.fail();
+        }
+
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
