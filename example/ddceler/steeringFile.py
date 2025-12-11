@@ -5,7 +5,9 @@
 Usage:
     ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml \\
           --steering $PWD/example/ddceler/steeringFile.py \\
-          --outputFile output.root
+          --outputFile output.root \\
+          --random.seed=1 \\
+          --random.enableEventSeed
 """
 
 from DDSim.DD4hepSimulation import DD4hepSimulation
@@ -23,12 +25,12 @@ runner.action.calorimeterSDTypes = ["calorimeter"]
 runner.outputConfig.forceDD4HEP = True
 
 # Number of events
-runner.numberOfEvents = 20
+runner.numberOfEvents = 100
 
 # Particle gun configuration
 runner.enableGun = True
 runner.gun.particle = "e-"
-runner.gun.energy = "5*GeV"
+runner.gun.energy = "18*GeV"
 runner.gun.distribution = "uniform"
 runner.gun.etaMin = 1
 runner.gun.etaMax = 2
@@ -49,6 +51,10 @@ def setup_physics(kernel):
 
     phys = Geant4(kernel).setupPhysics("QGSP_BERT")
     celer_phys = PhysicsList(kernel, str("DDcelerTMI"))
+    # MaxNumTracks: max number of tracks in flight
+    # InitCapacity: initial capacity for state data allocation
+    # CPU defaults: MaxNumTracks=2048, InitCapacity=245760
+    # GPU recommendation: MaxNumTracks=262144, InitCapacity=8388608
     celer_phys.MaxNumTracks = 2048
     celer_phys.InitCapacity = 245760
     # Celeritas does not support EmStandard MSC physics above 200 MeV
