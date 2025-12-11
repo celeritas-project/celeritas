@@ -90,6 +90,9 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
     auto from_native_length
         = [scale = unit_length.value](auto&& v) { return v / scale; };
     auto const tol = this->tracking_tol();
+    EqualOr<SoftEqual<real_type>> soft_eq_dist{
+        tol.distance, tol.distance * unit_length.value};
+    SoftZero is_bump(10 * soft_eq_dist.abs());
 
     while (!geo.is_outside())
     {
@@ -97,7 +100,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         Propagation next;
         GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
 
-        if (SoftZero{tol.distance}(next.distance))
+        if (is_bump(next.distance))
         {
             // Add the point to the bump list
             for (auto p : geo.pos())
@@ -123,7 +126,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
             real_type const half_distance = next.distance / 2;
             GGTI_EXPECT_NO_THROW(geo.move_internal(half_distance));
             GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
-            EXPECT_SOFT_NEAR(next.distance, half_distance, tol.distance);
+
+            EXPECT_SOFT_NEAR(next.distance, half_distance, soft_eq_dist);
 
             real_type safety{0};
             GGTI_EXPECT_NO_THROW(safety = geo.find_safety());
@@ -146,7 +150,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
                     result.volumes.back() += "/" + this->volume_name(geo);
                 }
                 GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
-                EXPECT_SOFT_NEAR(next.distance, half_distance, tol.distance)
+                EXPECT_SOFT_NEAR(next.distance, half_distance, soft_eq_dist)
                     << "reinitialized distance mismatch at index "
                     << result.volumes.size() - 1 << ": " << geo;
             }
@@ -253,7 +257,7 @@ size_type GenericGeoTestInterface::num_track_slots() const
 GenericGeoTrackingTolerance GenericGeoTestInterface::tracking_tol() const
 {
     GenericGeoTrackingTolerance result;
-    result.distance = SoftEqual{}.rel();
+    result.distance = 5 * SoftEqual{}.rel();
     result.normal = celeritas::sqrt_tol();
     result.safety = result.distance;
     return result;

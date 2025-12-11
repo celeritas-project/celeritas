@@ -1922,6 +1922,108 @@ void SimpleCmsGeoTest::test_trace() const
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
+
+    // Edge case from FieldPropagator test
+    constexpr Real3 pos{
+        -2.43293925496543e+01, -1.75522265870979e+01, 2.80918346435833e+02};
+    constexpr Real3 dir{
+        7.01343313647855e-01, -6.43327996599957e-01, 3.06996164784077e-01};
+    {
+        SCOPED_TRACE("edge case");
+        auto result = test_->track(pos, dir);
+        result.volume_instances.clear();
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "vacuum_tube",
+            "si_tracker",
+            "em_calorimeter",
+            "had_calorimeter",
+            "sc_solenoid",
+            "fe_muon_chambers",
+            "world",
+        };
+        ref.distances = {
+            12.743906479688,
+            121.29083284073,
+            53.606590194296,
+            106.03009509735,
+            105.51658247496,
+            342.0533777001,
+            719.28354304297,
+        };
+        ref.dot_normal = {
+            0.19238060078892,
+            0.19238060078893,
+            0.92504797421279,
+            0.93820197534225,
+            0.94626349101788,
+            0.94878522291859,
+            0.950872075671,
+        };
+        ref.halfway_safeties = {
+            0.61931256376742,
+            40.222931079394,
+            24.914281270933,
+            49.898407971867,
+            49.967525043337,
+            162.41892241026,
+            252.232351765063,
+        };
+        ref.bumps = {
+            -24.329392549654,
+            -17.552226587098,
+            280.91834643583,
+            4.8849813083507e-14,
+        };
+        delete_orange_safety(*test_, ref, result);
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            ref.bumps[3] = 5.245209e-06f;
+        }
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("edge case with flipped direction");
+        auto result = test_->track(pos, -dir);
+        result.volume_instances.clear();
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "si_tracker",
+            "em_calorimeter",
+            "had_calorimeter",
+            "sc_solenoid",
+            "fe_muon_chambers",
+            "world",
+        };
+        ref.distances = {
+            121.29083284073,
+            53.606590194296,
+            106.03009509735,
+            105.51658247496,
+            342.0533777001,
+            662.64803982069,
+        };
+        ref.dot_normal = {
+            0.92504797421279,
+            0.93820197534225,
+            0.94626349101788,
+            0.94878522291859,
+            0.950872075671,
+        };
+        ref.halfway_safeties = {
+            40.222931079394,
+            24.914281270933,
+            49.898407971867,
+            49.967525043337,
+            162.41892241026,
+            232.37188601505,
+        };
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
 }
 
 //---------------------------------------------------------------------------//
