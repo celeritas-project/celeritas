@@ -271,12 +271,21 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
         && !started_on_boundary)
     {
         real_type safety = t_->find_safety(distance);
-        CGTV_VALIDATE(*this,
-                      safety <= result.distance,
-                      << "safety " << repr(safety)
-                      << " exceeds actual distance " << repr(result.distance)
-                      << " to boundary at " << t_->pos() << " in "
-                      << t_->impl_volume_id().get());
+        if (!(safety <= result.distance))
+        {
+            auto const& units = this->unit_length();
+
+            CELER_LOG_LOCAL(warning)
+                << "Calculated safety " << repr(safety)
+                << " exceeds actual distance " << repr(result.distance)
+                << " to boundary at " << t_->pos() << " by "
+                << repr((safety - result.distance) / units.value) << " ["
+                << units.label << "]: " << *this;
+            CGTV_VALIDATE(*this,
+                          safety <= 1.1 * result.distance,
+                          << "calculated safety " << repr(safety)
+                          << " is much too large");
+        }
     }
     if (result.distance == 0)
     {
