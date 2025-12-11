@@ -134,6 +134,10 @@ CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
     *t_ = init;
     CGTV_VALIDATE_NOT_FAILED(*this, "initialization");
     CGTV_VALIDATE(*this, !t_->is_outside(), << "initialized outside");
+    if (t_->is_on_boundary())
+    {
+        CELER_LOG_LOCAL(warning) << "Started on a boundary: " << *this;
+    }
     next_boundary_.reset();
     return *this;
 }
