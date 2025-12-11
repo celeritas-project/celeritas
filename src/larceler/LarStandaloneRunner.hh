@@ -46,6 +46,9 @@ class CoreStateBase;
  * Since LArSoft is single-threaded, this runner uses only a single "stream".
  * We can in theory enable OpenMP to support parallelism across multiple CPUs
  * in a single-process execution.
+ *
+ * \par Construction
+ * See \c celeritas::inp::LarStandaloneRunner .
  */
 class LarStandaloneRunner
 {

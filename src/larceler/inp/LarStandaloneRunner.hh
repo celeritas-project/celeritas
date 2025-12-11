@@ -23,7 +23,7 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 /*!
- * Define input parameters for running LarCelerStandalone optical transport.
+ * Input parameters for running LarCelerStandalone optical transport.
  *
  * Variables are copied to a problem input (with classes in the \c
  * celeritas::inp namespace):

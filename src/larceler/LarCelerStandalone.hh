@@ -63,12 +63,10 @@ namespace celeritas
  * - Surface properties (e.g., roughness, reflection probability)
  * - Detector properties (e.g., sensitive volumes, efficiency multipliers)
  *
+ * \internal
  * \par Parameter set definitions
  *
- * To be defined later, but we will need:
- * - GDML input filename
- * - Performance tweaking knobs (e.g., number of tracks in flight)
- * - ...
+ * See \c celeritas::detail::LarCelerStandaloneConfig .
  */
 class LarCelerStandalone final : public phot::OpticalSimInterface
 {
