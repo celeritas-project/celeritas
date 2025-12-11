@@ -17,9 +17,6 @@ Package managers
 ----------------
 
 Celeritas is available through the Spack_ package manager, which is designed
-Note that this integration method differs substantially from other Geant4
-integration: it operates independently from the Geant4 run manager as a
-"postprocessing" step in a module after LArG4.
 for HPC environments and scientific software. The `Celeritas Spack package`_
 supports a wide range of configuration options including GPU acceleration
 (CUDA and HIP), geometry backends (VecGeom and ORANGE), I/O implementations
