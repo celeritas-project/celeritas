@@ -87,11 +87,15 @@ class RanluxppRngEngine
     inline CELER_FUNCTION RanluxppRngEngine&
     operator=(Initializer_t const& init);
 
-    // Generate a 32-bit random integer
+    // Generate a 32-bit random integer.
     inline CELER_FUNCTION result_type operator()();
 
     // Advance the state \c count times.
     inline CELER_FUNCTION void discard(RanluxppUInt count);
+
+    // Initialize a state for a new spawned RNG.
+    inline CELER_FUNCTION RanluxppRngEngine branch(StateRef const& state,
+                                                   TrackSlotId tid);
 
   private:
     /// IMPLEMENTATION ///
@@ -220,6 +224,47 @@ CELER_FUNCTION auto RanluxppRngEngine::operator()() -> result_type
 
     CELER_ENSURE(state_->position <= params_.max_position);
     return bits & 0xffffffffu;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Branch a new RNG from this RNG
+ *
+ * Branching is performed in two steps.  First, the state of the new RNG
+ * (\f$x^{\prime}\f$) is initialized as
+ * \f[
+ *      x^{i,\prime}_j = x^i_j ^ x^{i+1}_j \, .
+ * \f]
+ * Second, to decorrelate the new RNG from this RNG, the new RNG is
+ * advanced forward to the next block
+ */
+CELER_FUNCTION RanluxppRngEngine RanluxppRngEngine::branch(StateRef const& state,
+                                                           TrackSlotId tid)
+{
+    CELER_EXPECT(tid < state.state.size());
+
+    RanluxppRngEngine new_rng(params_, state, tid);
+    RanluxppRngState& new_state = *new_rng.state_;
+
+    // Copy the current state into the new state
+    for (auto i : celeritas::range(9))
+    {
+        new_state.value.number[i] = (*state_).value.number[i];
+    }
+
+    // Advance the RNG
+    this->advance();
+
+    // XOR the new state with the updated and advanced state
+    for (auto i : celeritas::range(9))
+    {
+        new_state.value.number[i] ^= (*state_).value.number[i];
+    }
+
+    // Advance the new rng to decorrelate it
+    new_rng.advance();
+
+    return new_rng;
 }
 
 //---------------------------------------------------------------------------//
