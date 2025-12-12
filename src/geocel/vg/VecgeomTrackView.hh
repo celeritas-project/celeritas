@@ -17,6 +17,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -309,12 +310,51 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     Navigator::LocatePointIn(
         world, detail::to_vector(pos_), vgstate_, contains_point);
 
+    if constexpr (!CELERITAS_VECGEOM_SURFACE
+                  && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    {
+        // VecGeom 2 solids can start "on boundary" :(
+        // so it'll end up on the wrong side of an object
+        // Bump backward and try again
+        if (CELER_UNLIKELY(vgstate_.IsOnBoundary()))
+        {
+#if !CELER_DEVICE_COMPILE
+            CELER_LOG_LOCAL(info)
+                << "Bumping geometry state on boundary backward by "
+                << relocate_bump_ << " at " << repr(pos_)
+                << lengthunits::label;
+#endif
+            vgstate_.Clear();
+            VgReal3 bumped_pos;
+            for (auto i : range(3))
+            {
+                bumped_pos[i] = fma(-relocate_bump_, dir_[i], pos_[i]);
+            }
+            Navigator::LocatePointIn(
+                world, bumped_pos, vgstate_, contains_point);
+#if !CELER_DEVICE_COMPILE
+            if (CELER_UNLIKELY(vgstate_.IsOnBoundary()))
+            {
+                CELER_LOG_LOCAL(warning)
+                    << "Initialized geometry state on boundary at "
+                    << repr(bumped_pos) << lengthunits::label;
+            }
+            else
+            {
+                CELER_LOG_LOCAL(info)
+                    << "Reinitialized geometry state at " << repr(bumped_pos)
+                    << lengthunits::label;
+                // vgstate_.SetBoundaryState(true);
+            }
+#endif
+        }
+    }
+
     if (CELER_UNLIKELY(vgstate_.IsOutside()))
     {
 #if !CELER_DEVICE_COMPILE
-        auto msg = CELER_LOG_LOCAL(error);
-        msg << "Failed to initialize geometry state at " << repr(pos_)
-            << lengthunits::label;
+        CELER_LOG_LOCAL(error) << "Failed to initialize geometry state at "
+                               << repr(pos_) << lengthunits::label;
 #endif
         failed_ = true;
     }
