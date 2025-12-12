@@ -392,7 +392,7 @@ TEST_F(RanluxppRngEngineTest, branch)
     }
 
     // Draw 10 random numbers from the two branched RNGs and compare
-    for (auto i : celeritas::range(10))
+    for ([[maybe_unused]] auto i : celeritas::range(10))
     {
         EXPECT_EQ(ref_branched_rng(), branched_rng());
     }
