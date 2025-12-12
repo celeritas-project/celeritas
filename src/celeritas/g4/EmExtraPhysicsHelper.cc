@@ -27,9 +27,7 @@ auto EmExtraPhysicsHelper::calc_gamma_nuclear_xs(AtomicNumber z,
                                                  MevEnergy energy) const
     -> MmSqXs
 {
-    MmSqXs xs;
-    xs.value() = gn_xs_->ElementCrossSection(energy.value(), z.get());
-    return xs;
+    return MmSqXs{gn_xs_->ElementCrossSection(energy.value(), z.get())};
 }
 
 //---------------------------------------------------------------------------//
