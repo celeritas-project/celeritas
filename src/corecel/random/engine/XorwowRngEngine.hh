@@ -84,6 +84,10 @@ class XorwowRngEngine
     // Advance the state \c count times
     inline CELER_FUNCTION void discard(ull_int count);
 
+    // Initialize a state for a new spawned RNG
+    inline CELER_FUNCTION XorwowRngEngine branch(StateRef const& state,
+                                                 TrackSlotId tid);
+
   private:
     /// TYPES ///
 
@@ -196,6 +200,42 @@ CELER_FUNCTION void XorwowRngEngine::discard(ull_int count)
 {
     this->jump(count, params_.jump);
     state_->weylstate += static_cast<unsigned int>(count) * 362437u;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate a branched and (hopefully) decorreleated RNG
+ *
+ * \todo There are good reasons to believe that an RNG that is based on XOR
+ *       operations may not be decorrelated when XORing the state.  Work on an
+ *       improved methodology may be warranted.
+ */
+CELER_FUNCTION XorwowRngEngine XorwowRngEngine::branch(StateRef const& state,
+                                                       TrackSlotId tid)
+{
+    XorwowRngEngine new_rng(params_, state, tid);
+    auto& new_state = *new_rng.state_;
+
+    // Copy the state into the new state
+    for (auto i : celeritas::range(new_state.xorstate.size()))
+    {
+        new_state.xorstate[i] = state_->xorstate[i];
+    }
+    new_state.weylstate = state_->weylstate;
+
+    // Advance this RNG
+    this->discard(1);
+
+    // XOR the state with the new state
+    for (auto i : celeritas::range(new_state.xorstate.size()))
+    {
+        new_state.xorstate[i] ^= state_->xorstate[i];
+    }
+
+    // Advance the new state to (hopefully) decorrelate
+    new_rng.discard(1);
+
+    return new_rng;
 }
 
 //---------------------------------------------------------------------------//

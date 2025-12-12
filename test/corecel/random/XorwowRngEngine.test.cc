@@ -258,6 +258,50 @@ TEST_F(XorwowRngEngineTest, jump)
     }
 }
 
+TEST_F(XorwowRngEngineTest, branch)
+{
+    unsigned int size = 4;
+
+    HostStore states(params_->host_ref(), StreamId{0}, size);
+    XorwowRngEngine rng(params_->host_ref(), states.ref(), TrackSlotId{0});
+    rng = XorwowRngInitializer{12345, 0, 0};
+
+    // Initialize second RNG
+    XorwowRngEngine branched_rng = rng.branch(states.ref(), TrackSlotId{1});
+
+    // Get references to the state
+    auto& ref_rng_state = states.ref().state[TrackSlotId{2}];
+    auto& ref_branched_rng_state = states.ref().state[TrackSlotId{3}];
+
+    // Create a third RNG, and branch it's state manually
+    XorwowRngEngine ref_branched_rng(
+        params_->host_ref(), states.ref(), TrackSlotId{3});
+    {
+        XorwowRngEngine ref_rng(
+            params_->host_ref(), states.ref(), TrackSlotId{2});
+        ref_rng = XorwowRngInitializer{12345, 0, 0};
+        ref_branched_rng = XorwowRngInitializer{12345, 0, 0};
+
+        // Advance the reference RNG
+        ref_rng.discard(1);
+
+        // XOR the branched state with the updated ref state
+        for (auto i : celeritas::range(ref_branched_rng_state.xorstate.size()))
+        {
+            ref_branched_rng_state.xorstate[i] ^= ref_rng_state.xorstate[i];
+        }
+
+        // Advance the branched RNG
+        ref_branched_rng.discard(1);
+    }
+
+    // Draw 10 random numbers form the two branched RNGs and compare
+    for (auto i : celeritas::range(10))
+    {
+        EXPECT_EQ(ref_branched_rng(), branched_rng());
+    }
+}
+
 TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))
 {
     // Create and initialize states
