@@ -36,7 +36,7 @@ namespace inp
  */
 struct LarStandaloneRunner
 {
-    //! Don't limit the number of steps (from TrackingLimits
+    //! Don't limit the number of steps (from TrackingLimits)
     static constexpr size_type unlimited
         = std::numeric_limits<size_type>::max();
 

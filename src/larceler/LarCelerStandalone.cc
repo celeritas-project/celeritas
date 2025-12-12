@@ -7,6 +7,7 @@
 
 #include "LarCelerStandalone.hh"
 
+#include <memory>
 #include <art/Utilities/ToolMacros.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
@@ -26,10 +27,21 @@ LarCelerStandalone::LarCelerStandalone(Parameters const& config)
 
 //---------------------------------------------------------------------------//
 /*!
- * Instantiate and run Celeritas.
+ * Start Celeritas at the beginning of the job.
  */
-auto LarCelerStandalone::execute(VecSED const& edeps) -> UPVecBTR
+void LarCelerStandalone::begin_job()
 {
+    CELER_EXPECT(!runner_);
+    runner_ = std::make_unique<LarStandaloneRunner>(runner_inp_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Run Celeritas on a single event.
+ */
+auto LarCelerStandalone::execute_event(VecSED const& edeps) -> UPVecBTR
+{
+    CELER_EXPECT(runner_);
     CELER_EXPECT(!edeps.empty());
 
     // Set up GPU, problem, and states
@@ -38,6 +50,16 @@ auto LarCelerStandalone::execute(VecSED const& edeps) -> UPVecBTR
     // Calculate detector responsors for the input steps
     VecBTR result = run(edeps);
     return std::make_unique<VecBTR>(std::move(result));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Free Celeritas memory at the end of the job.
+ */
+void LarCelerStandalone::end_job()
+{
+    CELER_EXPECT(runner_);
+    runner_.reset();
 }
 
 //---------------------------------------------------------------------------//

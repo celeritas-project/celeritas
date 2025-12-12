@@ -11,7 +11,7 @@
 #include <vector>
 #include <art/Utilities/ToolConfigTable.h>
 
-#include "larceler/inp/LarStandaloneRunner.hh"
+#include "LarStandaloneRunner.hh"
 
 #include "detail/LarCelerConfig.hh"
 
@@ -38,7 +38,13 @@ class OpticalSimInterface
     virtual ~OpticalSimInterface() = 0;
 
     // Execute simulation
-    virtual UPVecBTR execute(VecSED const& edeps) = 0;
+    virtual void begin_job() = 0;
+
+    // Execute simulation
+    virtual UPVecBTR execute_event(VecSED const& edeps) = 0;
+
+    // Execute simulation
+    virtual void end_job() = 0;
 };
 }  // namespace phot
 
@@ -50,7 +56,7 @@ namespace celeritas
  *
  * This plugin implements a replacement for LArSim's \c phot::PDFastSimPAR
  * class, taking a vector of energy-depositing steps and returning a vector
- * is instantiated by a FHICL workflow file with a set of
+ * is instantiated by a FHiCL workflow file with a set of
  * parameters. It is executed after the detector simulation step (ionization,
  * recombination, scintillation, etc.) with a vector of steps that contain
  * energy deposition, and it returns a vector of detector responses.
@@ -81,11 +87,18 @@ class LarCelerStandalone final : public phot::OpticalSimInterface
     // Construct with fcl parameters
     LarCelerStandalone(Parameters const& p);
 
-    // Execute simulation
-    UPVecBTR execute(VecSED const& edeps) final;
+    // Start simulating events
+    void begin_job() final;
+
+    // Simulate a single event
+    UPVecBTR execute_event(VecSED const& edeps) final;
+
+    // Complete the simulation
+    void end_job() final;
 
   private:
     inp::LarStandaloneRunner runner_inp_;
+    std::unique_ptr<LarStandaloneRunner> runner_;
 };
 
 //---------------------------------------------------------------------------//
