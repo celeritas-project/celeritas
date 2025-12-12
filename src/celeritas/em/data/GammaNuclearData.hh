@@ -66,7 +66,7 @@ struct GammaNuclearData
     explicit CELER_FUNCTION operator bool() const
     {
         return scalars && !xs_iaea.empty() && !reals.empty()
-               && !xs_chips.empty();
+               && xs_chips.size() == xs_iaea.size();
     }
 
     //! Assign from another set of data
