@@ -145,6 +145,7 @@ enum class SurfaceType : unsigned char
     sq,  //!< Simple quadric
     gq,  //!< General quadric
     inv,  //!< Involute
+    tor,  //!< Toroid
     size_  //!< Sentinel value for number of surface types
 };
 
