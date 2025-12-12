@@ -131,11 +131,13 @@ GammaNuclearModel::calc_chips_xs(AtomicNumber z, double emin, double emax) const
     // interpolation between the upper limit of the IAEA cross-section data
     // and 150 MeV, as used in G4GammaNuclearXS, is also included in this
     // tabulation.
+
+    // Upper limit of parameterizations for the high-energy region (50 GeV)
     double const emid = 5e+4;
+
     size_type nbin_total = 300;
     size_type nbin_ultra = 50;
 
-    result.x.resize(nbin_total);
     result.y.resize(nbin_total);
 
     result.x = geomspace(emin, emid, nbin_total - nbin_ultra);
@@ -144,10 +146,9 @@ GammaNuclearModel::calc_chips_xs(AtomicNumber z, double emin, double emax) const
     result.x.insert(result.x.end(), ultra.begin(), ultra.end());
 
     // Tabulate the cross section from emin to emax
-    EmExtraPhysicsHelper::MmSqXs xs;
     for (size_type i = 0; i < nbin_total; ++i)
     {
-        xs = helper_->calc_gamma_nuclear_xs(z, MevEnergy{result.x[i]});
+        auto xs = helper_->calc_gamma_nuclear_xs(z, MevEnergy{result.x[i]});
         result.y[i]
             = native_value_to<units::BarnXs>(native_value_from(xs)).value();
     }
