@@ -62,15 +62,8 @@ class SolidsNavigator
                              NavState& out_state)
     {
         ScopedVgNavState temp_state{out_state};
-        // FIXME: avoid pushing; and at least use a relative scale
-        static constexpr vg_real_type boundary_push = 10 * vecgeom::kTolerance;
         return NavImpl::ComputeStepAndNextVolume(
-            pos,
-            dir,
-            step_limit,
-            in_state,
-            temp_state,
-            in_state.IsOnBoundary() ? boundary_push : 0);
+            pos, dir, step_limit, in_state, temp_state);
     }
 
     //-----------------------------------------------------------------------//
