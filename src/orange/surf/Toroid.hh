@@ -41,8 +41,8 @@ class Toroid
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
-    using StorageSpan = Span<real_type const, 6>;
-    using Real3 = Array<real_type, 3>;
+    using StorageSpan = Span<real_type const, 4>;
+    using Real3 = Array<real_type, 6>;
     //@}
 
   public:
@@ -86,6 +86,9 @@ class Toroid
     //! Radius of revolved ellipse along z axis
     CELER_FUNCTION real_type ellipse_z_radius() const { return b_; }
 
+    //! View of data for type-deleted storage
+    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 6}; }
+
     //// CALCULATION ///
 
     // Determine the sense of the position relative to this surface
@@ -108,4 +111,17 @@ class Toroid
     real_type a_;  // Horizontal radius of revolved ellipse (along xy plane)
     real_type b_;  // Vertical radius of revolved ellipse (along z axis)
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from raw data.
+ */
+template<class R>
+CELER_FUNCTION Toroid::Toroid(Span<R, StorageSpan::extent> data)
+    : origin_{data[0], data[1], data[2]}, , r_{data[3]}, a_{data[4]}, b_{data[5]}
+{
+}
+
 }  // namespace celeritas
