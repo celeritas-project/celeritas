@@ -258,7 +258,7 @@ if ${needs_env}; then
   rc_file="$(get_shell_rc_file)"
   if install_shell_env "${rc_file}" "${ENV_SCRIPT}"; then
     needs_env=false
-  elif [ -n "${ENV_SCRIPT}" ]; then
+  else
     log warning "Please manually add the following to ${rc_file}:"
     printf ' . %s\n' "${ENV_SCRIPT}" >&2
   fi
@@ -305,7 +305,7 @@ else
   log error "build failed: check configuration and build errors above"
 fi
 
-if ${needs_env} && [ -n "${ENV_SCRIPT}" ]; then
+if ${needs_env}; then
   log warning "Environment changed: please manually add the following to ${rc_file}:"
   printf ' . %s\n' "${ENV_SCRIPT}" >&2
 fi
