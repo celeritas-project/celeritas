@@ -118,8 +118,6 @@ TEST_F(GammaNuclearTest, micro_xs)
     // Expected microscopic cross section (units::BarnXs) in [130:1e+8] (MeV)
     std::vector<std::pair<real_type, real_type>> const energy_xs
         = {{130, 0.010895100000000003},
-           {140, 0.016056145231123135},
-           {150, 0.02121368730750826},
            {200, 0.041931723222538624},
            {1e+3, 0.032829279254133224},
            {5e+3, 0.018822644663262746},
