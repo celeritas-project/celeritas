@@ -259,8 +259,8 @@ if ${needs_env}; then
   if install_shell_env "${rc_file}" "${ENV_SCRIPT}"; then
     needs_env=false
   elif [ -n "${ENV_SCRIPT}" ]; then
-      log warning "Please manually add the following to ${rc_file}:"
-      printf ' . %s\n' "${ENV_SCRIPT}" >&2
+    log warning "Please manually add the following to ${rc_file}:"
+    printf ' . %s\n' "${ENV_SCRIPT}" >&2
   fi
 fi
 
