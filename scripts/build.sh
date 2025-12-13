@@ -242,7 +242,7 @@ CMAKE="$(find_command cmake)"
 
 # Check whether the environment changed
 needs_env=false
-if [ "$(find_command cmake)" != "${OLD_PRE_COMMIT}" ]; then
+if [ "$(find_command pre-commit)" != "${OLD_PRE_COMMIT}" ]; then
   log warning "Local environment script uses a different pre-commit than your \$PATH"
   needs_env=true
 fi
@@ -258,9 +258,9 @@ if ${needs_env}; then
   rc_file="$(get_shell_rc_file)"
   if install_shell_env "${rc_file}" "${ENV_SCRIPT}"; then
     needs_env=false
-  else
-    log warning "Please manually add the following to ${rc_file}:"
-    printf ' . %s\n' "${ENV_SCRIPT}" >&2
+  elif [ -n "${ENV_SCRIPT}" ]; then
+      log warning "Please manually add the following to ${rc_file}:"
+      printf ' . %s\n' "${ENV_SCRIPT}" >&2
   fi
 fi
 
@@ -305,7 +305,7 @@ else
   log error "build failed: check configuration and build errors above"
 fi
 
-if ${needs_env}; then
+if ${needs_env} && [ -n "${ENV_SCRIPT}" ]; then
   log warning "Environment changed: please manually add the following to ${rc_file}:"
   printf ' . %s\n' "${ENV_SCRIPT}" >&2
 fi
