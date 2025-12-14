@@ -47,6 +47,12 @@ else()
   set(_DOXYGEN_TEST_SOURCE)
 endif()
 
+# Include paths must be used for macro preprocessing to function correctly...
+set(DOXYGEN_INCLUDE_PATH
+  "${PROJECT_BINARY_DIR}/include/"
+  "${PROJECT_SOURCE_DIR}/src/"
+)
+
 # Documentation usage
 set(DOXYGEN_DISTRIBUTE_GROUP_DOC YES)
 set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_DEV")
