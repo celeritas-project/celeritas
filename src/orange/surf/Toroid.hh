@@ -7,7 +7,6 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
 
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.hh"
@@ -187,7 +186,6 @@ CELER_FUNCTION auto Toroid::calc_intersections(Real3 const& pos,
     -> Intersections
 {
     Real5 abcde = calc_intersection_polynomial(pos, dir, on_surface);
-    std::cout << "Polynomial: " << to_string(abcde) << "\n";
     FerrariSolver solve{};  // Default tolerance
     Intersections roots;
 
@@ -218,14 +216,11 @@ Toroid::calc_intersection_polynomial(Real3 const& pos,
 {
     auto [x0, y0, z0] = sub(pos, origin_);
     auto [ax, ay, az] = make_unit_vector(dir);
-    std::cout << "pos: " << to_string(pos)
-              << "dir: " << to_string(make_unit_vector(dir)) << "\n";
 
     // Intermediate terms
     real_type p = sq(a_) / sq(b_);
     real_type A0 = 4 * sq(r_);
     real_type B0 = sq(r_) - sq(a_);
-    std::cout << "p: " << p << ", A0: " << A0 << ", B0: " << B0 << "\n";
 
     real_type f = 1 - sq(az);
     real_type g = f + p * sq(az);
@@ -234,9 +229,6 @@ Toroid::calc_intersection_polynomial(Real3 const& pos,
     real_type q = A0 / sq(g);
     real_type m = (l + 2 * p * z0 * az) / g;
     real_type u = (t + p * sq(z0) + B0) / g;
-
-    std::cout << "f: " << f << ", g: " << g << ", l: " << l << ", t: " << t
-              << ", q: " << q << ", m: " << m << ", u: " << u << "\n";
 
     // Polynomial coefficients, i.e. cn*x^n
     real_type c4 = 1;
