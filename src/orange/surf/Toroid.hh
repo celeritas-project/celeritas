@@ -96,7 +96,7 @@ class Toroid
     CELER_FUNCTION real_type ellipse_z_radius() const { return b_; }
 
     //! View of data for type-deleted storage
-    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 6}; }
+    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 4}; }
 
     //// CALCULATION ///
 
