@@ -6,11 +6,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include <iostream>
 
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/FerrariSolver.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
@@ -47,6 +51,8 @@ class Toroid
     using Intersections = Array<real_type, 4>;
     using StorageSpan = Span<real_type const, 4>;
     using Real3 = Array<real_type, 3>;
+    using Real4 = Array<real_type, 4>;
+    using Real5 = Array<real_type, 5>;
     //@}
 
   public:
@@ -106,6 +112,7 @@ class Toroid
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
   private:
+    //// DATA ////
     // Location of center of toroid
     Real3 origin_;
 
@@ -114,6 +121,17 @@ class Toroid
                    // xy plane)
     real_type a_;  // Horizontal radius of revolved ellipse (along xy plane)
     real_type b_;  // Vertical radius of revolved ellipse (along z axis)
+
+    //// HELPER FUNCTIONS ////
+    // Calculate the coefficients of the polynomial for ray intersection
+    inline CELER_FUNCTION Real5 calc_intersection_polynomial(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
+
+    // Shorthand to subtract b from a
+    static CELER_FUNCTION Real3 sub(Real3 const& a, Real3 const& b);
+
+    // Shorthnad to square a number
+    static CELER_FUNCTION real_type sq(real_type val);
 };
 
 //---------------------------------------------------------------------------//
@@ -146,14 +164,10 @@ CELER_FUNCTION Toroid::Toroid(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const
 {
-    auto [x, y, z] = pos;
-    real_type x0 = x - origin_[0];
-    real_type y0 = y - origin_[1];
-    real_type z0 = z - origin_[2];
+    auto [x0, y0, z0] = sub(pos, origin_);
 
-    real_type val = (ipow<2>(ipow<2>(x0) + ipow<2>(y0) + ipow<2>(z0 * a_ / b_)
-                             + (ipow<2>(r_) - ipow<2>(a_)))
-                     - (4 * ipow<2>(r_)) * (ipow<2>(x0) + ipow<2>(y0)));
+    real_type val = (sq(sq(x0) + sq(y0) + sq(z0 * a_ / b_) + (sq(r_) - sq(a_)))
+                     - (4 * sq(r_)) * (sq(x0) + sq(y0)));
     if (val < 0)
         return SignedSense::inside;
     else if (val > 0)
@@ -163,7 +177,7 @@ CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const
 }
 
 //---------------------------------------------------------------------------//
-/**
+/*!
  * Calculate all possible straight-line intersections between the given ray and
  * this surface.
  */
@@ -172,19 +186,99 @@ CELER_FUNCTION auto Toroid::calc_intersections(Real3 const& pos,
                                                SurfaceState on_surface) const
     -> Intersections
 {
-    return Intersections{no_intersection(),
-                         no_intersection(),
-                         no_intersection(),
-                         no_intersection()};
+    Real5 abcde = calc_intersection_polynomial(pos, dir, on_surface);
+    std::cout << "Polynomial: " << to_string(abcde) << "\n";
+    FerrariSolver solve{};  // Default tolerance
+    Intersections roots;
+
+    if (on_surface == SurfaceState::on)
+    {
+        auto [a, b, c, d, e] = abcde;
+        roots = solve(Real4{a, b, c, d});
+    }
+    else
+    {
+        roots = solve(abcde);
+    }
+
+    return roots;
 }
 
 //---------------------------------------------------------------------------//
-/**
+/*!
+ * Calculate the coefficients of the polynomial corresponding to the given
+ * ray's intersections with the toroid.
+ *
+ * Written referencing Graphics Gems II.
+ */
+CELER_FUNCTION auto
+Toroid::calc_intersection_polynomial(Real3 const& pos,
+                                     Real3 const& dir,
+                                     SurfaceState on_surface) const -> Real5
+{
+    auto [x0, y0, z0] = sub(pos, origin_);
+    auto [ax, ay, az] = make_unit_vector(dir);
+    std::cout << "pos: " << to_string(pos)
+              << "dir: " << to_string(make_unit_vector(dir)) << "\n";
+
+    // Intermediate terms
+    real_type p = sq(a_) / sq(b_);
+    real_type A0 = 4 * sq(r_);
+    real_type B0 = sq(r_) - sq(a_);
+    std::cout << "p: " << p << ", A0: " << A0 << ", B0: " << B0 << "\n";
+
+    real_type f = 1 - sq(az);
+    real_type g = f + p * sq(az);
+    real_type l = 2 * (x0 * ax + y0 * ay);
+    real_type t = sq(x0) + sq(y0);
+    real_type q = A0 / sq(g);
+    real_type m = (l + 2 * p * z0 * az) / g;
+    real_type u = (t + p * sq(z0) + B0) / g;
+
+    std::cout << "f: " << f << ", g: " << g << ", l: " << l << ", t: " << t
+              << ", q: " << q << ", m: " << m << ", u: " << u << "\n";
+
+    // Polynomial coefficients, i.e. cn*x^n
+    real_type c4 = 1;
+    real_type c3 = 2 * m;
+    real_type c2 = sq(m) + 2 * u - q * f;
+    real_type c1 = 2 * m * u - q * l;
+    real_type c0 = on_surface == SurfaceState::on ? 0 : sq(u) - q * t;
+    // Potential refinement of c0 if close to 0?
+
+    return Real5{c4, c3, c2, c1, c0};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate outward facing normal at a position on or close to the surface.
  */
 CELER_FUNCTION auto Toroid::calc_normal(Real3 const& pos) const -> Real3
 {
-    return Real3{0, 0, 0};
+    auto [x0, y0, z0] = sub(pos, origin_);
+
+    real_type d = std::sqrt(sq(x0) + sq(y0));
+    real_type f = 2 * (d - r_) / (d * sq(a_));
+    Real3 n{x0 * f, y0 * f, (2 * z0) / (sq(b_))};
+    return make_unit_vector(n);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Shorthand for power macro for readability, as squares are used frequently
+ */
+CELER_FUNCTION real_type Toroid::sq(real_type val)
+{
+    return ipow<2>(val);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Shorthand for subtracting vector b from vector a
+ */
+CELER_FUNCTION Real3 Toroid::sub(Real3 const& a, Real3 const& b)
+{
+    return Real3{a[0] - b[0], a[1] - b[1], a[2] - b[2]};
 }
 
 }  // namespace celeritas
