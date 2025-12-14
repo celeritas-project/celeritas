@@ -6,8 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iostream>
+
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
@@ -25,6 +28,7 @@ namespace celeritas
  *  /   b   \         /       \
  * |    |    |       |         |
  * |-a--+    |   o-----r--+    |
+ * |         |       |         |
  *  \       /         \       /
  *   \     /           \     /
  *     ⁻⁻⁻   ⁻⁻⁻⁻⁻⁻⁻⁻⁻   ⁻⁻⁻
@@ -40,9 +44,9 @@ class Toroid
   public:
     //@{
     //! \name Type aliases
-    using Intersections = Array<real_type, 3>;
+    using Intersections = Array<real_type, 4>;
     using StorageSpan = Span<real_type const, 4>;
-    using Real3 = Array<real_type, 6>;
+    using Real3 = Array<real_type, 3>;
     //@}
 
   public:
@@ -51,7 +55,7 @@ class Toroid
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
     {
-        return SurfaceType::tor;
+        return SurfaceType::s;
     }
 
     //! Safety distance is calculable w/xy of normal and ellipse safety
@@ -120,8 +124,67 @@ class Toroid
  */
 template<class R>
 CELER_FUNCTION Toroid::Toroid(Span<R, StorageSpan::extent> data)
-    : origin_{data[0], data[1], data[2]}, , r_{data[3]}, a_{data[4]}, b_{data[5]}
+    : origin_{data[0], data[1], data[2]}, r_{data[3]}, a_{data[4]}, b_{data[5]}
 {
+}
+
+//---------------------------------------------------------------------------//
+/**
+ * Determine the sense of the position relative to this surface.
+ *
+ * For a toroid, being inside the toroid (i) counts as inside, outside
+ * (including in the 'hole' region) (o) as outside, and on the surface exactly
+ * as on (s).
+ *     ___   _________   ___
+ *   /     \           /     \
+ *  /       \     o   /       \
+ * |         |       |         | o
+ * |         |       |    i    s
+ *  \       /         \       /
+ *   \     /           \     /
+ *     ⁻⁻⁻   ⁻⁻⁻⁻⁻⁻⁻⁻⁻   ⁻⁻⁻
+ */
+CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const
+{
+    auto [x, y, z] = pos;
+    real_type x0 = x - origin_[0];
+    real_type y0 = y - origin_[1];
+    real_type z0 = z - origin_[2];
+
+    real_type val = (ipow<2>(ipow<2>(x0) + ipow<2>(y0) + ipow<2>(z0 * a_ / b_)
+                             + (ipow<2>(r_) - ipow<2>(a_)))
+                     - (4 * ipow<2>(r_)) * (ipow<2>(x0) + ipow<2>(y0)));
+    if (val < 0)
+        return SignedSense::inside;
+    else if (val > 0)
+        return SignedSense::outside;
+    else
+        return SignedSense::on;
+}
+
+//---------------------------------------------------------------------------//
+/**
+ * Calculate all possible straight-line intersections between the given ray and
+ * this surface.
+ */
+CELER_FUNCTION auto Toroid::calc_intersections(Real3 const& pos,
+                                               Real3 const& dir,
+                                               SurfaceState on_surface) const
+    -> Intersections
+{
+    return Intersections{no_intersection(),
+                         no_intersection(),
+                         no_intersection(),
+                         no_intersection()};
+}
+
+//---------------------------------------------------------------------------//
+/**
+ * Calculate outward facing normal at a position on or close to the surface.
+ */
+CELER_FUNCTION auto Toroid::calc_normal(Real3 const& pos) const -> Real3
+{
+    return Real3{0, 0, 0};
 }
 
 }  // namespace celeritas
