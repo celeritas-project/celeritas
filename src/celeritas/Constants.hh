@@ -77,7 +77,7 @@ CELER_ICC kcd_luminous{683};
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
 //!@{
 //! \name Special cases for CLHEP
-//! Electron charged is unity by definition
+//! Electron charge is unity by definition
 CELER_ICC e_electron{1};
 //!@}
 #endif
