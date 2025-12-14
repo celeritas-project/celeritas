@@ -17,6 +17,34 @@ namespace test
 //---------------------------------------------------------------------------//
 
 using Real3 = Toroid::Real3;
+using Intersections = Toroid::Intersections;
+//---------------------------------------------------------------------------//
+/*!
+ * Fills a list of fewer than 4 roots with "no real positive root"
+ */
+Intersections make_roots(std::initializer_list<real_type> const& inp)
+{
+    CELER_EXPECT(inp.size() <= Roots{}.size());
+    Roots result;
+    auto iter = std::copy(inp.begin(), inp.end(), result.begin());
+    std::fill(iter, result.end(), NumericLimits<real_type>::infinity());
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sorts a given array of four roots and returns the array.
+ */
+Intersections sorted(Intersections four_roots)
+{
+    sort(four_roots.begin(), four_roots.end());
+    return four_roots;
+}
+
+//---------------------------------------------------------------------------//
+// TEST CASES
+//---------------------------------------------------------------------------//
+
 /*!
  * Test constructors and span output of toroid class
  */
@@ -51,7 +79,8 @@ Real3 add(Real3 const a, Real3 const b)
  */
 TEST(ToroidTest, sense)
 {
-    Real3 origin{1, 2, 3} Toroid tor{origin, 5, 1, 2};
+    Real3 origin{1, 2, 3};
+    Toroid tor{origin, 5, 1, 2};
     Real3 inner_points[] = {{5, 0, 0}, {0, 5, 0}, {5 * 0.707, 5 * 0.707, 1.9}};
     for (Real3 const& point : inner_points)
     {
@@ -99,6 +128,44 @@ TEST(ToroidTest, normal)
 /*!
  * Test intersection calculation
  */
-TEST(ToroidTest, intersect) {}
+TEST(ToroidTest, intersect)
+{
+    Real3 origin{1, 2, 3};
+    Toroid tor{origin, 5, 1, 2};
+
+    using on = SurfaceState::on;
+    using off = SurfaceState::off;
+
+    // Ray through center shouldn't hit
+    Real3 s{add(origin, {0, 0, 2})};
+    Real3 u{0, 0, -1};
+    EXPECT_VEC_SOFT_EQ(tor.calc_intersections(s, u, off), make_roots({}));
+
+    // Ray inside and out from center should hit exactly once
+    s = {0, 5, 0};
+    u = {0, 1, 0};
+    EXPECT_VEC_SOFT_EQ(sorted(tor.calc_intersections(s, u, off)),
+                       make_roots({1}));
+
+    // Ray inside towards center should hit 3 times
+    s = {0, 5, 0};
+    u = {0, -1, 0};
+    EXPECT_VEC_SOFT_EQ(sorted(tor.calc_intersections(s, u, off)),
+                       make_roots({1, 9, 11}));
+
+    // Ray inside towards center again, to have one test that's not nice even
+    // numbers
+    s = {0.2, 5.1, 0.1};
+    u = {-0.039178047638066676, -0.9990402147707002, 0.019589023819033338};
+    Intersections expected = make_roots(
+        {0.98858498636089176, 10.967709087577969, 9.0295095778886321});
+    EXPECT_VEC_SOFT_EQ(sorted(tor.calc_intersections(s, u, off)), expected);
+
+    // Ray above torus shouldn't hit torus below it
+    s = {0.2, 5.1, 2.1};
+    u = {1 / 9, 4 / 9, 8 / 9};
+    EXPECT_VEC_SOFT_EQ(sorted(tor.calc_intersections(s, u, off)),
+                       make_roots({}));
+}
 }  // namespace test
 }  // namespace celeritas
