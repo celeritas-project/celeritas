@@ -127,10 +127,10 @@ class Toroid
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Shorthand to subtract b from a
-    static CELER_FUNCTION Real3 sub(Real3 const& a, Real3 const& b);
+    static inline CELER_FUNCTION Real3 sub(Real3 const& a, Real3 const& b);
 
     // Shorthnad to square a number
-    static CELER_FUNCTION real_type sq(real_type val);
+    static inline CELER_FUNCTION real_type sq(real_type val);
 };
 
 //---------------------------------------------------------------------------//

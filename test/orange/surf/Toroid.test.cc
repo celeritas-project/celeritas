@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file orange/surf/Toroid.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surf/Toroid.cc"
+#include "orange/surf/Toroid.hh"
 
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.hh"
