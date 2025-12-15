@@ -87,8 +87,29 @@ CELER_ICC e_electron{1};
 CELER_ICC hbar_planck{h_planck / (2 * pi)};
 //!@}
 
+//! Experimental physical constants from CODATA 2006
+#if CELERITAS_CODATA == CELERITAS_CODATA_2006
+inline
+#endif
+    namespace codata2006
+{
+CELER_ICC a0_bohr = Constant{5.2917720859e-11} * units::meter;
+CELER_ICC alpha_fine_structure = Constant{7.2973525376e-3};
+CELER_ICC atomic_mass = Constant{1.660538782e-24} * units::gram;
+CELER_ICC electron_mass = Constant{9.10938215e-28} * units::gram;
+CELER_ICC proton_mass = Constant{1.672621637e-24} * units::gram;
+CELER_ICC eps_electric = Constant{8.854187817e-12} * units::farad
+                         / units::meter;
+CELER_ICC mu_magnetic = Constant{1.2566370614e-6} * units::newton
+                        / (units::ampere * units::ampere);
+CELER_ICC r_electron = Constant{2.8179402894e-15} * units::meter;
+CELER_ICC rinf_rydberg = Constant{10973731.568527} / units::meter;
+CELER_ICC eh_hartree = Constant{4.35974394e-18} / units::meter;
+CELER_ICC lambdabar_electron = Constant{3.8615926459e-13} * units::meter;
+}
+
 //! Experimental physical constants from CODATA 2018
-#if CELERITAS_CODATA == CELERITAS_CODATA_2018 && !defined(__DOXYGEN__)
+#if CELERITAS_CODATA == CELERITAS_CODATA_2018
 inline
 #endif
     namespace codata2018
@@ -109,7 +130,7 @@ CELER_ICC lambdabar_electron = Constant{3.8615926796e-13} * units::meter;
 }
 
 //! Experimental physical constants from CODATA 2022
-#if CELERITAS_CODATA == CELERITAS_CODATA_2022 && !defined(__DOXYGEN__)
+#if CELERITAS_CODATA == CELERITAS_CODATA_2022
 inline
 #endif
     namespace codata2022
@@ -130,7 +151,7 @@ CELER_ICC lambdabar_electron = Constant{3.8615926744e-13} * units::meter;
 }
 
 //!@{
-//! \name Other constants
+//! \name Other constants with physical meaning
 inline constexpr int stable_decay_constant{0};
 //!@}
 
