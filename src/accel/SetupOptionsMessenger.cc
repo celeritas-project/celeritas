@@ -185,7 +185,7 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
             "Maximum number of events in use (DEPRECATED)");
     add_cmd(&options->max_steps,
             "maxNumSteps",
-            "Limit on number of step iterations before aborting");
+            "Limit on number of steps per track before killing");
     add_cmd(&options->initializer_capacity,
             "maxInitializers",
             "Maximum number of track initializers (primaries+secondaries)");

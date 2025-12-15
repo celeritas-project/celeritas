@@ -22,6 +22,30 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Shared simulation data.
+ *
+ * These are cutoff parameters based on the number of steps a track has taken.
+ */
+template<Ownership W, MemSpace M>
+struct SimParamsData
+{
+    size_type max_steps{};
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const { return max_steps > 0; }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    SimParamsData& operator=(SimParamsData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+        max_steps = other.max_steps;
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Storage for dynamic simulation data.
  */
 template<Ownership W, MemSpace M>
