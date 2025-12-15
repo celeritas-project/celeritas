@@ -33,10 +33,10 @@ class CoreParams;
  * beginning-of-step properties so that optical photons can be generated
  * between the start and end points of the step.
  *
- * The pre-post-step action stores the particle's speed following the
- * continuous energy loss but before the particle undergoes a discrete
- * interaction. These must be cached for scintillation, which offloads the
- * distribution data post-step rather than pre-post-step because it also
+ * The pre-post-step action stores the particle's speed and energy deposition
+ * following the continuous energy loss but before the particle undergoes a
+ * discrete interaction. These must be cached for scintillation, which offloads
+ * the distribution data post-step rather than pre-post-step because it also
  * requires the local energy deposition from the interaction.
  *
  * \sa OffloadGatherExecutor

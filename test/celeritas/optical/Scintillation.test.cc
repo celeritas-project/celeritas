@@ -251,7 +251,7 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
-    OffloadPrePostStepData pre_post_step{particle.speed()};
+    OffloadPrePostStepData pre_post_step{particle.speed(), edep_};
 
     ScintillationOffload generate(particle,
                                   this->make_sim_track_view(step_length_),
@@ -292,7 +292,7 @@ TEST_F(MaterialScintillationGaussianTest, basic)
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
-    OffloadPrePostStepData pre_post_step{particle.speed()};
+    OffloadPrePostStepData pre_post_step{particle.speed(), edep_};
 
     // Pre-generate optical distribution data
     ScintillationOffload generate(particle,
@@ -426,7 +426,7 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
-    OffloadPrePostStepData pre_post_step{particle.speed()};
+    OffloadPrePostStepData pre_post_step{particle.speed(), edep_};
 
     ScintillationOffload generate(particle,
                                   this->make_sim_track_view(step_length_),

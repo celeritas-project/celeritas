@@ -44,6 +44,7 @@ OffloadPrePostGatherExecutor::operator()(CoreTrackView const& track)
 
     OffloadPrePostStepData& step = state.step[track.track_slot_id()];
     step.speed = track.particle().speed();
+    step.energy_deposition = track.physics_step().energy_deposition();
 }
 
 //---------------------------------------------------------------------------//

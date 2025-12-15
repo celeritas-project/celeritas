@@ -75,6 +75,7 @@ CELER_FUNCTION void ScintOffloadExecutor::operator()(CoreTrackView const& track)
     // Get the cached state data from after the along-step kernel
     CELER_ASSERT(tsid < pre_post_steps.step.size());
     auto const& pre_post_step = pre_post_steps.step[tsid];
+    CELER_ASSERT(pre_post_step);
 
     Real3 const& pos = track.geometry().pos();
     auto edep = track.physics_step().energy_deposition();
