@@ -38,13 +38,13 @@ class OpticalSimInterface
     // Enable polymorphic deletion
     virtual ~OpticalSimInterface() = 0;
 
-    // Execute simulation
+    // Set up execution
     virtual void begin_job() = 0;
 
-    // Execute simulation
+    // Process a single event, returning detector hits
     virtual UPVecBTR execute_event(VecSED const& edeps) = 0;
 
-    // Execute simulation
+    // Tear down execution
     virtual void end_job() = 0;
 };
 }  // namespace phot

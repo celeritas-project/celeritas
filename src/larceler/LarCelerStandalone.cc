@@ -44,10 +44,8 @@ auto LarCelerStandalone::execute_event(VecSED const& edeps) -> UPVecBTR
     CELER_EXPECT(runner_);
     CELER_EXPECT(!edeps.empty());
 
-    // Set up GPU, problem, and states
-    LarStandaloneRunner run{runner_inp_};
-
     // Calculate detector responsors for the input steps
+    auto& run = *runner_;
     VecBTR result = run(edeps);
     return std::make_unique<VecBTR>(std::move(result));
 }
