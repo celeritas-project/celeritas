@@ -242,7 +242,7 @@ CMAKE="$(find_command cmake)"
 
 # Check whether the environment changed
 needs_env=false
-if [ "$(find_command cmake)" != "${OLD_PRE_COMMIT}" ]; then
+if [ "$(find_command pre-commit)" != "${OLD_PRE_COMMIT}" ]; then
   log warning "Local environment script uses a different pre-commit than your \$PATH"
   needs_env=true
 fi
