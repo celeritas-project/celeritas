@@ -15,6 +15,12 @@ set(PUBLIC_DEPS
   Celeritas::BuildFlags
 )
 
+if(TARGET larsim::OpticalPropagationTools)
+  message(SEND_ERROR "This version of Celeritas is meant for testing larsim "
+    "before https://github.com/nuRiceLab/larsim/pull/1 : please implement or "
+    "update Celeritas")
+endif()
+
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#

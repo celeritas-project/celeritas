@@ -21,7 +21,8 @@ class SimEnergyDeposit;
 class OpDetBacktrackerRecord;
 }  // namespace sim
 
-// TODO: This will be defined upstream (Stefano in progress)
+// TODO: This will be defined upstream:
+// see https://github.com/nuRiceLab/larsim/pull/1
 namespace phot
 {
 class OpticalSimInterface
