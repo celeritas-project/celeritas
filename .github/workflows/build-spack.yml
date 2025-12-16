@@ -129,7 +129,6 @@ jobs:
             spack -e . add vecgeom@1.2.11:1+gdml
           elif ${{matrix.geometry == 'vecgeom2'}}; then
             spack -e . add vecgeom@2.0.0-rc.7+gdml
-          fi
           elif ${{matrix.geometry == 'vgsurf'}}; then
             spack -e . add vecgeom@2.0.0-rc.7+surface+gdml
           fi
