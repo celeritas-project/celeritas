@@ -28,7 +28,7 @@ class TrackOffloadInterface : public LocalOffloadInterface
     virtual ~TrackOffloadInterface() = default;
 
     // Push a full Geant4 track to Celeritas
-    virtual void Push(G4Track const&) = 0;
+    virtual void Push(G4Track&) = 0;
 };
 
 //---------------------------------------------------------------------------//

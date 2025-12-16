@@ -88,7 +88,7 @@ class LocalTransporter final : public TrackOffloadInterface
     //!@}
 
     // Offload this track
-    void Push(G4Track const&) override;
+    void Push(G4Track&) override;
 
     // Access core state data for user diagnostics
     CoreStateInterface const& GetState() const;

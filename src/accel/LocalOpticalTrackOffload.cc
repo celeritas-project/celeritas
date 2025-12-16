@@ -107,7 +107,7 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
 /*!
  * Buffer distribution data for generating optical photons.
  */
-void LocalOpticalTrackOffload::Push(G4Track const& g4track)
+void LocalOpticalTrackOffload::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
     TrackData init;

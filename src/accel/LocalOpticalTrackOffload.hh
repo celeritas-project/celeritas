@@ -62,7 +62,7 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
     // Whether the class instance is initialized
     bool Initialized() const final { return static_cast<bool>(state_); }
     // Offload optical distribution data to Celeritas
-    void Push(G4Track const&) final;
+    void Push(G4Track&) final;
     // Number of buffered tracks
     size_type GetBufferSize() const final { return pending_tracks_; }
 
