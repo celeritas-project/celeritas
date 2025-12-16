@@ -27,6 +27,7 @@ SimParams::SimParams(inp::OpticalTrackingLimits const& inp)
 
     HostVal<SimParamsData> host_data;
     host_data.max_steps = inp.steps;
+    host_data.max_step_iters = inp.step_iters;
 
     data_ = CollectionMirror<SimParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);

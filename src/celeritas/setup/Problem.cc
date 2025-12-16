@@ -381,7 +381,6 @@ auto build_optical_offload(
     oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
-    oc_inp.max_step_iters = p.tracking.optical_limits.step_iters;
     oc_inp.action_times = [&p] {
         if (!celeritas::device())
         {
@@ -707,7 +706,6 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                     // actions have been added to the registry
                     optical::Transporter::Input inp;
                     inp.params = optical_params;
-                    inp.max_step_iters = p.tracking.optical_limits.step_iters;
                     if (action_times)
                     {
                         // Create aux data to accumulate optical action times

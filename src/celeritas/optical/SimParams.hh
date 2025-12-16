@@ -34,6 +34,12 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
     //! Access data on device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
+    //! Maximum step iterations before aborting
+    size_type max_step_iters() const
+    {
+        return this->host_ref().max_step_iters;
+    }
+
   private:
     // Host/device storage and reference
     CollectionMirror<SimParamsData> data_;
