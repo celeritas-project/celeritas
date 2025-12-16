@@ -718,40 +718,35 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                         = std::make_shared<optical::Transporter>(
                             std::move(inp));
                 },
+                [&](inp::OpticalTrackOffload) {
+                    // Build optical track transporter
+                    optical::Transporter::Input inp;
+                    inp.params = optical_params;
+                    inp.max_step_iters = p.tracking.limits.optical_step_iters;
+                    if (action_times)
+                    {
+                        inp.action_times = ActionTimes::make_and_insert(
+                            optical_params->action_reg(),
+                            core_params->aux_reg(),
+                            "optical-action-times");
+                    }
+
+                    result.optical_transporter
+                        = std::make_shared<optical::Transporter>(
+                            std::move(inp));
+                },
                 [](inp::OpticalPrimaryGenerator) {
                     //! \todo Enable optical primary generator
                     CELER_NOT_IMPLEMENTED("optical primary generator");
                 },
             },
             p.physics.optical_generator);
-
-        if (p.physics.optical && p.physics.optical_generat)
-        {
-            if (!optical_transporter_)
-            {
-                optical::Transporter::Input inp;
-                inp.params = optical_params;
-                inp.max_step_iters = p.tracking.limits.optical_step_iters;
-
-                if (action_times)
-                {
-                    inp.action_times = ActionTimes::make_and_insert(
-                        optical_params->action_reg(),
-                        core_params->aux_reg(),
-                        "optical-action-times");
-                }
-
-                result.optical_transporter
-                    = std::make_shared<optical::Transporter>(std::move(inp));
-            }
-        }
     }
     else
     {
         CELER_VALIDATE(imported.optical_models.empty(),
                        << "optical physics models were imported but no "
-                          "optical capacity was set. Either define "
-                          "optical "
+                          "optical capacity was set. Either define optical "
                           "tracking loop parameters, or ignore optical "
                           "physics");
     }

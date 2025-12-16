@@ -120,10 +120,19 @@ struct OpticalOffloadGenerator
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Generate optical photons track.
+ */
+struct OpticalTrackOffload
+{
+};
+
+//---------------------------------------------------------------------------//
 //! Mechanism for generating optical photons
 using OpticalGenerator = std::variant<OpticalEmGenerator,
                                       OpticalOffloadGenerator,
-                                      OpticalPrimaryGenerator>;
+                                      OpticalPrimaryGenerator,
+                                      OpticalTrackOffload>;
 
 //---------------------------------------------------------------------------//
 /*!
