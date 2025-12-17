@@ -154,6 +154,10 @@ easy way to toggle through all the valid options.
   Choose the native Celeritas unit system: see :ref:`the unit
   documentation <api_units>`.
 
+``CELERITAS_CODATA``
+  Choose the default set of experimentally measured CODATA constants:
+  see :ref:`the constants documentation <api_constants>`.
+
 Celeritas libraries (generally) use CMake-provided default properties. These
 can be changed with standard `CMake variables`_ such as ``BUILD_SHARED_LIBS`` to
 enable shared libraries, ``CMAKE_POSITION_INDEPENDENT_CODE``, etc.
