@@ -18,10 +18,16 @@ namespace celeritas
  */
 EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 {
+    CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
+                   << "compiled version of Geant4 (" << G4VERSION_NUMBER
+                   << ") is too old for gamma-nuclear cross section "
+                      "calculation");
     gn_xs_ = std::make_shared<G4GammaNuclearXS>();
-#if G4VERSION_NUMBER < 1120
-    gn_xs_->BuildPhysicsTable(*G4Gamma::Gamma());
-#endif
+
+    if constexpr (G4VERSION_NUMBER < 1120)
+    {
+        gn_xs_->BuildPhysicsTable(*G4Gamma::Gamma());
+    }
 }
 
 //---------------------------------------------------------------------------//

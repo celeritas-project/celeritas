@@ -20,16 +20,13 @@ class G4GammaNuclearXS;
 
 namespace celeritas
 {
-
 //---------------------------------------------------------------------------//
 /*!
- * A helper class for interfacing with Geant4 cross section calculations and
- * other properties.
+ * Calculate Geant4 gamma-nuclear cross sections.
  *
  * This class primarily severs as a wrapper around Geant4 cross section
  * calculation methods, which are not directly accessible from Celeritas EM
- * physics models. Use of this class requires CELERITAS_USE_GEANT4 to be
- * enabled.
+ * physics models. Use of this class requires Geant4 11.0 or higher.
  */
 class EmExtraPhysicsHelper
 {
@@ -56,10 +53,17 @@ class EmExtraPhysicsHelper
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 
-#if !CELERITAS_USE_GEANT4
+#if CELERITAS_GEANT4_VERSION < 0x0b0000
 inline EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 {
+#    if !CELERITAS_USE_GEANT4
     CELER_NOT_CONFIGURED("Geant4");
+#    else
+    CELER_VALIDATE(false,
+                   << "Geant4 version " << cmake::geant4_version
+                   << " is too old for gamma-nuclear cross section "
+                      "calculation");
+#    endif
 }
 
 inline EmExtraPhysicsHelper::MmSqXs
