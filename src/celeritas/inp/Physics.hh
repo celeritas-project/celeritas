@@ -6,15 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <optional>
-#include <string>
-#include <vector>
-
-#include "corecel/Types.hh"
-#include "corecel/io/Label.hh"
-#include "celeritas/Types.hh"
-#include "celeritas/phys/AtomicNumber.hh"
-
 #include "Events.hh"
 #include "MucfPhysics.hh"
 #include "PhysicsProcess.hh"
@@ -87,8 +78,6 @@ struct OpticalPhysics
     //! \name Optical surface physics and properties
     SurfacePhysics surfaces;
     //!@}
-
-    //! \todo Move optical bulk models here
 
     //! Whether optical physics is enabled
     explicit operator bool() const

@@ -64,24 +64,6 @@
       }
     },
     {
-      "name": "debug-vecgeom",
-      "description": "Build tests with vecgeom and assertions enabled",
-      "inherits": [".ndebug", ".vecgeom", "base"],
-      "cacheVariables": {
-        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_DEBUG": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_DEVICE_DEBUG": {"type": "BOOL", "value": "ON"}
-      }
-    },
-    {
-      "name": "reldeb-vecgeom",
-      "description": "Build with RelWithDebInfo, assertions, and VecGeom",
-      "inherits": [".reldeb", ".vecgeom", "base"],
-      "cacheVariables": {
-        "CELERITAS_DEVICE_DEBUG": {"type": "BOOL", "value": "ON"}
-      }
-    },
-    {
       "name": "ndebug-vecgeom",
       "description": "Build release with vecgeom for testing *only* demos",
       "inherits": [".ndebug", ".vecgeom", "base"],
@@ -110,8 +92,6 @@
     },
     {"name": "debug-orange"       , "configurePreset": "debug-orange"       , "inherits": "base"},
     {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base", "targets": ["all", "install"]},
-    {"name": "reldeb-vecgeom"  , "configurePreset": "reldeb-vecgeom"  , "inherits": "base", "targets": ["all", "install"]},
-    {"name": "debug-vecgeom"   , "configurePreset": "debug-vecgeom"   , "inherits": "base", "jobs": 8},
     {"name": "ndebug-vecgeom"   , "configurePreset": "ndebug-vecgeom"   , "inherits": "base", "jobs": 8, "targets": ["app/all", "install"]}
   ],
   "testPresets": [
@@ -133,8 +113,6 @@
     },
     {"name": "debug-orange"       , "configurePreset": "debug-orange"       , "inherits": "base"},
     {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base"},
-    {"name": "reldeb-vecgeom"  , "configurePreset": "reldeb-vecgeom"  , "inherits": "base"},
-    {"name": "debug-vecgeom"   , "configurePreset": "debug-vecgeom"   , "inherits": "base"},
     {"name": "ndebug-vecgeom"   , "configurePreset": "ndebug-vecgeom"   , "inherits": "base"}
   ]
 }

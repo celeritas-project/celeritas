@@ -45,6 +45,7 @@ void BuildOutput::output(JsonPimpl* j) const
             CO_ADD_OPT(GEANT4);
             CO_ADD_OPT(HEPMC3);
             CO_ADD_OPT(HIP);
+            CO_ADD_OPT(LARSOFT);
             CO_ADD_OPT(MPI);
             CO_ADD_OPT(OPENMP);
             CO_ADD_OPT(PERFETTO);
