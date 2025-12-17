@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GammaNuclearModel.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/g4/EmExtraPhysicsHelper.hh"
@@ -148,7 +149,8 @@ GammaNuclearModel::calc_chips_xs(AtomicNumber z, double emin, double emax) const
     // Tabulate the cross section from emin to emax
     for (size_type i = 0; i < nbin_total; ++i)
     {
-        auto xs = helper_->calc_gamma_nuclear_xs(z, MevEnergy{result.x[i]});
+        auto xs = helper_->calc_gamma_nuclear_xs(
+            z, MevEnergy{static_cast<real_type>(result.x[i])});
         result.y[i]
             = native_value_to<units::BarnXs>(native_value_from(xs)).value();
     }
