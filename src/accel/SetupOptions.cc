@@ -100,11 +100,6 @@ void ProblemSetup::operator()(inp::Problem& p) const
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         return c;
     }();
-    if (so.max_num_events)
-    {
-        CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
-                              "be an error in v0.7";
-    }
 
     p.tracking.limits = [this] {
         inp::TrackingLimits tl;
