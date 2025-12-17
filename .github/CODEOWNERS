@@ -30,7 +30,8 @@
 # Physics
 /*/celeritas/decay/interactor/ @amandalund @stognini
 /*/celeritas/em/interactor/ @amandalund @stognini @whokion
-/*/celeritas/field/interactor/ @sethrj @whokion
+/*/celeritas/field/*covfie* @esseivaju
+/*/celeritas/*Propagator* @sethrj
 /*/celeritas/neutron/interactor/ @whokion
 /*/celeritas/optical/**/*Interact* @amandalund @hhollenb @whokion
 /*/celeritas/**/*Algorithms* @amandalund @LSchwiebert
