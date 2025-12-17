@@ -152,8 +152,8 @@ void PersistentSP<T>::Env::TearDown()
     }
     else if (use_count == 1)
     {
-        CELER_LOG(info) << "Clearing persistent " << this->desc << " '"
-                        << this->key << "'";
+        CELER_LOG(debug) << "Clearing persistent " << this->desc << " '"
+                         << this->key << "'";
     }
     else
     {

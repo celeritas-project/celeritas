@@ -15,6 +15,7 @@
 
 #include "GeneratorData.hh"
 
+#include "detail/OffloadGatherTraits.hh"
 #include "detail/OffloadTraits.hh"
 
 namespace celeritas
@@ -42,7 +43,8 @@ class OffloadAction final : public CoreStepActionInterface
     //! Offload input data
     struct Input
     {
-        AuxId step_id;
+        AuxId pre_step_id;
+        AuxId pre_post_step_id;
         AuxId gen_id;
         AuxId optical_id;
         SPConstMaterial material;
@@ -50,7 +52,7 @@ class OffloadAction final : public CoreStepActionInterface
 
         explicit operator bool() const
         {
-            return step_id && gen_id && optical_id && material && shared;
+            return pre_step_id && gen_id && optical_id && material && shared;
         }
     };
 
@@ -77,7 +79,7 @@ class OffloadAction final : public CoreStepActionInterface
     //! \name StepAction interface
 
     //! Dependency ordering of the action
-    StepActionOrder order() const final { return StepActionOrder::user_post; }
+    StepActionOrder order() const final { return TraitsT::order; }
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
@@ -92,6 +94,8 @@ class OffloadAction final : public CoreStepActionInterface
   private:
     //// TYPES ////
 
+    using PreTraitsT = detail::OffloadGatherTraits<StepActionOrder::pre>;
+    using PostTraitsT = detail::OffloadGatherTraits<StepActionOrder::pre_post>;
     using Executor = typename TraitsT::Executor;
 
     //// DATA ////

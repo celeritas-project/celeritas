@@ -16,23 +16,41 @@
 
 #include "OffloadData.hh"
 
+#include "detail/OffloadGatherTraits.hh"
+
 namespace celeritas
 {
 class CoreParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Collect pre-step data needed to generate optical distribution data.
+ * Collect state data needed to create optical distribution data.
  *
- * This pre-step action stores the optical material ID and other
+ * This action is templated on the step action order so that it can be used to
+ * collect both pre-step data and pre-post-step data.
+ *
+ * The pre-step action stores the optical material ID and other
  * beginning-of-step properties so that optical photons can be generated
  * between the start and end points of the step.
  *
+ * The pre-post-step action stores the particle's speed following the
+ * continuous energy loss but before the particle undergoes a discrete
+ * interaction. These must be cached for scintillation, which offloads the
+ * distribution data post-step rather than pre-post-step because it also
+ * requires the local energy deposition from the interaction.
+ *
  * \sa OffloadGatherExecutor
  */
+template<StepActionOrder S>
 class OffloadGatherAction final : public CoreStepActionInterface,
                                   public AuxParamsInterface
 {
+  public:
+    //!@{
+    //! \name Type aliases
+    using TraitsT = detail::OffloadGatherTraits<S>;
+    //!@}
+
   public:
     // Construct and add to core params
     static std::shared_ptr<OffloadGatherAction>
@@ -56,16 +74,16 @@ class OffloadGatherAction final : public CoreStepActionInterface,
     //! ID of the model
     ActionId action_id() const final { return action_id_; }
     //! Short name for the action
-    std::string_view label() const final { return "optical-offload-gather"; }
-    // Name of the action (for user output)
-    std::string_view description() const final;
+    std::string_view label() const final { return TraitsT::label; }
+    //! Description of the action
+    std::string_view description() const final { return TraitsT::description; }
     //!@}
 
     //!@{
     //! \name StepAction interface
 
     //! Dependency ordering of the action
-    StepActionOrder order() const final { return StepActionOrder::user_pre; }
+    StepActionOrder order() const final { return S; }
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
@@ -73,11 +91,22 @@ class OffloadGatherAction final : public CoreStepActionInterface,
     //!@}
 
   private:
+    //// TYPES ////
+
+    using Executor = typename TraitsT::Executor;
+
     //// DATA ////
 
     ActionId action_id_;
     AuxId aux_id_;
 };
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class OffloadGatherAction<StepActionOrder::pre>;
+extern template class OffloadGatherAction<StepActionOrder::pre_post>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

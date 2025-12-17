@@ -182,6 +182,17 @@ celeritas_define_options(CELERITAS_UNITS
   "Native unit system for Celeritas")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_CODATA
+# Experimentally measured physical constants
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+celeritas_setup_option(CELERITAS_CODATA 2006) # Used by CLHEP
+celeritas_setup_option(CELERITAS_CODATA 2018)
+celeritas_setup_option(CELERITAS_CODATA 2022)
+set(CELERITAS_CODATA_OPTION_DEFAULT 2018)
+celeritas_define_options(CELERITAS_CODATA
+  "Experimentally measured physical constants revision")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_REAL_TYPE
 # Precision for real numbers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -421,9 +432,10 @@ if(CELERITAS_USE_ROOT)
   endif()
   # ROOT requirement is due to missing CMake commands in old versions
   find_package(ROOT 6.24 REQUIRED)
-  if(NOT ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD)
-    message(WARNING "ROOT C++ standard ${ROOT_CXX_STANDARD} "
-      "does not match current CMake standard ${CMAKE_CXX_STANDARD}: "
+  if(ROOT_CXX_STANDARD AND CMAKE_CXX_STANDARD
+     AND NOT (ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD))
+    message(WARNING "ROOT C++ standard (${ROOT_CXX_STANDARD}) "
+      "does not match current CMake standard (${CMAKE_CXX_STANDARD}): "
       "build warnings/errors may result")
   endif()
 endif()

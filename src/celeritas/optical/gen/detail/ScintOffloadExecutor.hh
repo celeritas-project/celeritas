@@ -35,7 +35,8 @@ struct ScintOffloadExecutor
     NativeCRef<celeritas::optical::MaterialParamsData> const material;
     NativeCRef<ScintillationData> const scint;
     NativeRef<optical::GeneratorStateData> const offload;
-    NativeRef<OffloadStepStateData> const steps;
+    NativeRef<OffloadPreStateData> const pre_steps;
+    NativeRef<OffloadPrePostStateData> const pre_post_steps;
     size_type buffer_size;
 };
 
@@ -49,7 +50,8 @@ CELER_FUNCTION void ScintOffloadExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(scint);
     CELER_EXPECT(offload);
-    CELER_EXPECT(steps);
+    CELER_EXPECT(pre_steps);
+    CELER_EXPECT(pre_post_steps);
 
     using DistId = ItemId<optical::GeneratorDistributionData>;
 
@@ -61,14 +63,18 @@ CELER_FUNCTION void ScintOffloadExecutor::operator()(CoreTrackView const& track)
     dist = {};
 
     auto sim = track.sim();
-    auto const& step = steps.step[tsid];
+    auto const& pre_step = pre_steps.step[tsid];
 
-    if (!step || sim.status() == TrackStatus::inactive)
+    if (!pre_step || sim.status() == TrackStatus::inactive)
     {
         // Inactive tracks, materials with no optical properties, or particles
         // that started the step with zero energy (e.g. a stopped positron)
         return;
     }
+
+    // Get the cached state data from after the along-step kernel
+    CELER_ASSERT(tsid < pre_post_steps.step.size());
+    auto const& pre_post_step = pre_post_steps.step[tsid];
 
     Real3 const& pos = track.geometry().pos();
     auto edep = track.physics_step().energy_deposition();
@@ -76,7 +82,8 @@ CELER_FUNCTION void ScintOffloadExecutor::operator()(CoreTrackView const& track)
     auto rng = track.rng();
 
     // Get the distribution data used to generate scintillation optical photons
-    dist = ScintillationOffload(particle, sim, pos, edep, scint, step)(rng);
+    dist = ScintillationOffload(
+        particle, sim, pos, edep, scint, pre_step, pre_post_step)(rng);
 }
 
 //---------------------------------------------------------------------------//

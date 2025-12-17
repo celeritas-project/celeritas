@@ -48,6 +48,8 @@
 // Core configuration
 //---------------------------------------------------------------------------//
 
+@CELERITAS_CODATA_CONFIG@
+
 @CELERITAS_REAL_TYPE_CONFIG@
 
 @CELERITAS_UNITS_CONFIG@

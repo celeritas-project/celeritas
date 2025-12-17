@@ -532,10 +532,22 @@ std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
             result.push_back(region);
         }
     }
-    CELER_LOG(debug) << "Loaded " << region_map.size() << " regions out of "
-                     << G4RegionStore::GetInstance()->size()
-                     << " Geant4 regions and created " << result.size()
-                     << " new regions";
+
+    auto* region_store = G4RegionStore::GetInstance();
+    CELER_ASSERT(region_store);
+
+    if (!region_store->empty() || !result.empty())
+    {
+        CELER_LOG(debug) << "Loaded " << region_map.size()
+                         << " regions out of "
+                         << G4RegionStore::GetInstance()->size()
+                         << " Geant4 regions and created " << result.size()
+                         << " new regions";
+    }
+    else
+    {
+        CELER_LOG(debug) << "Geant4 has no regions, and none were created";
+    }
 
     // Add regions to result vector
     for (auto&& [g4reg, volumes] : region_map)

@@ -36,7 +36,7 @@ jobs:
             sudo apt-get -y install \
                 cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
         with:
           fetch-depth: 383
           fetch-tags: true
@@ -44,8 +44,6 @@ jobs:
         # Turn warnings into errors only for PRs
         # Disable expensive graphs for PRs also
         run: |
-          # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
-          git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           mkdir build && cd build
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
@@ -79,7 +77,7 @@ jobs:
             sudo apt-get -y install \
                 cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
         with:
           fetch-depth: 383
           fetch-tags: true
@@ -92,13 +90,11 @@ jobs:
             pip install -r scripts/doc-requirements.txt
       - name: Configure celeritas
         run: |
-          # NOTE: tags have issues, see https://github.com/actions/checkout/issues/2041
-          git fetch --tags
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           mkdir build && cd build
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
             ${{ github.workflow == 'pull_request'
-             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_USER_HTML_ARGS="-W;--keep-going"'
+             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_ARGS="-W;--keep-going"'
              || ''}} \
             ..
       - name: Build documentation

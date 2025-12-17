@@ -5,26 +5,23 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": [".hip", "full", ".spack-base"],
+      "inherits": ["full"],
       "binaryDir": "$env{SCRATCHDIR}/build/celeritas-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -fdiagnostics-color=always",
-        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD": "17",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_EXE_LINKER_FLAGS": "-Wl,-z,defs",
         "CMAKE_SHARED_LINKER_FLAGS": "-Wl,-z,defs",
-        "CMAKE_HIP_FLAGS": "-Wall -Wextra -pedantic -Werror -fdiagnostics-color=always",
-        "CMAKE_HIP_PLATFORM": "amd",
-        "CMAKE_HIP_ARCHITECTURES": "gfx942",
         "CMAKE_INSTALL_PREFIX": "$env{SCRATCHDIR}/install/celeritas-${presetName}",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
       }
@@ -41,6 +38,7 @@
       "displayName": "Build with optimizations, but enable host debugging (ORANGE)",
       "inherits": [".base", ".reldeb"],
       "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -48,7 +46,8 @@
       "displayName": "Build without optimization, enabling full host debugging (ORANGE)",
       "inherits": [".base", ".debug"],
       "cacheVariables": {
-        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"}
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     }
   ],
@@ -56,7 +55,7 @@
     {
       "name": ".base",
       "configurePreset": ".base",
-      "jobs": 96,
+      "jobs": 24,
       "nativeToolOptions": ["-k0"]
     },
     {"name": "release-orange", "configurePreset": "release-orange", "inherits": ".base"},
@@ -68,7 +67,7 @@
       "name": ".base",
       "configurePreset": ".base",
       "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 96}
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 24}
     },
     {"name": "release-orange", "configurePreset": "release-orange", "inherits": ".base"},
     {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": ".base"},
