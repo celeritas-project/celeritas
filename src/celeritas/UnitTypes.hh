@@ -11,6 +11,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Macros.hh"
 #include "corecel/math/Constant.hh"
 #include "corecel/math/UnitUtils.hh"
 

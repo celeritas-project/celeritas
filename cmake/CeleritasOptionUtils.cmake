@@ -353,7 +353,11 @@ function(celeritas_define_options var doc)
 
   if(_val STREQUAL "")
     # Dynamic default option: set as core variable in parent scope
-    list(GET ${var}_OPTIONS 0 _default)
+    if(DEFINED ${var}_OPTION_DEFAULT)
+      set(_default ${${var}_OPTION_DEFAULT})
+    else()
+      list(GET ${var}_OPTIONS 0 _default)
+    endif()
     set(${var} "${_default}" PARENT_SCOPE)
     set(_val "${_default}")
     if(NOT "${_val}" STREQUAL "${${_last_var}}")

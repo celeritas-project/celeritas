@@ -182,6 +182,17 @@ celeritas_define_options(CELERITAS_UNITS
   "Native unit system for Celeritas")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_CODATA
+# Experimentally measured physical constants
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+celeritas_setup_option(CELERITAS_CODATA 2006) # Used by CLHEP
+celeritas_setup_option(CELERITAS_CODATA 2018)
+celeritas_setup_option(CELERITAS_CODATA 2022)
+set(CELERITAS_CODATA_OPTION_DEFAULT 2018)
+celeritas_define_options(CELERITAS_CODATA
+  "Experimentally measured physical constants revision")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_REAL_TYPE
 # Precision for real numbers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -32,6 +32,7 @@ set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 # Start counter from 1 because undefined config have the implicit value of 0 in
 # the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
 # when HIP is in use) will implicitly be zero.
+celeritas_generate_option_config(CELERITAS_CODATA)
 celeritas_generate_option_config(CELERITAS_CORE_GEO)
 celeritas_generate_option_config(CELERITAS_CORE_RNG)
 celeritas_generate_option_config(CELERITAS_OPENMP)
@@ -74,7 +75,7 @@ else()
     string(APPEND CELERITAS_BUILD_TYPE ",pic")
   endif()
 endif()
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
+foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS CONSTANTS OPENMP CORE_GEO CORE_RNG)
   string(TOLOWER "${_var}" _lower)
   celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
