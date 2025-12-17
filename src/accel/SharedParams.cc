@@ -337,6 +337,14 @@ SharedParams::SharedParams(SetupOptions const& options)
             optical_collector_ = std::move(loaded.problem.optical_collector);
             CELER_ASSERT(optical_collector_);
         }
+        else if (std::holds_alternative<inp::OpticalTrackOffload>(
+                     opt->generator))
+        {
+            optical_transporter_
+                = std::move(loaded.problem.optical_transporter);
+            CELER_LOG(info) << "could break here in optical offload";
+            CELER_ASSERT(optical_transporter_);
+        }
         else
         {
             CELER_VALIDATE(false,

@@ -92,12 +92,14 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = id_cast<UniqueEventId>(id);
-
+    CELER_LOG(debug) << "Entering the init evt : ";
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
     {
-        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
-        // using the Geant4 event ID for reproducibility. This guarantees that
+        // Since Geant4 schedules events dynamically, reseed the Celeritas
+        //  RNGs
+        // using the Geant4 event ID for reproducibility. This guarantees
+        // that
         // an event can be reproduced given the event ID.
         state_->reseed(transport_->params()->rng(), id_cast<UniqueEventId>(id));
     }
@@ -109,9 +111,12 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
  */
 void LocalOpticalTrackOffload::Push(G4Track& g4track)
 {
+    CELER_LOG(info) << "Transport pointer: " << transport_;
     CELER_EXPECT(*this);
     TrackData init;
-
+    CELER_LOG(info) << "Optical track offloaded to Celeritas: "
+                    << "E=" << g4track.GetTotalEnergy() / CLHEP::eV << " eV, ";
+    //<< "event=" << g4track.GetEventID();
     // Sanity check: this path is meant for optical photons
     CELER_EXPECT(g4track.GetDefinition());
     CELER_EXPECT(g4track.GetDefinition()->GetParticleName() == "opticalphoton");
@@ -151,7 +156,8 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
 void LocalOpticalTrackOffload::Flush()
 {
     CELER_EXPECT(*this);
-
+    CELER_LOG(info) << "Flushing " << buffer_.size()
+                    << " optical tracks to Celeritas";
     if (buffer_.empty())
     {
         return;
@@ -180,22 +186,21 @@ void LocalOpticalTrackOffload::Flush()
     }
     CELER_ASSERT(event_id_);
 
-    if (celeritas::device())
-    {
-        CELER_LOG_LOCAL(debug)
-            << "Transporting " << pending_tracks_
-            << " optical track from event " << event_id_.unchecked_get()
-            << " with Celeritas";
-    }
+    //  if (celeritas::device())
+    //  {
+    CELER_LOG(debug) << "Transporting " << pending_tracks_
+                     << " optical track from event "
+                     << event_id_.unchecked_get() << " with Celeritas";
+    //}
     // Inject buffered tracks into optical state
 
-    state_->insert_primaries(make_span(buffer_));
-
-    pending_tracks_ = 0;
+    //  state_->insert_primaries(make_span(buffer_));
+    CELER_LOG(info) << "Skipping optical transport (WIP)";
     buffer_.clear();
+    pending_tracks_ = 0;
 
     // Generate optical photons and transport to completion
-    (*transport_)(*state_);
+    // (*transport_)(*state_);
 }
 
 //---------------------------------------------------------------------------//

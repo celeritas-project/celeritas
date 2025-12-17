@@ -125,9 +125,11 @@ LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
  */
 LocalOpticalTrackOffload& IntegrationSingleton::local_optical_track_offload()
 {
+    CELER_LOG(info) << "Entered integration singleton";
     auto& offload = IntegrationSingleton::local_offload_ptr();
     if (!offload)
     {
+        CELER_LOG(info) << "Optical offload is not empty";
         offload = std::make_unique<LocalOpticalTrackOffload>();
     }
     auto* lt = dynamic_cast<LocalOpticalTrackOffload*>(offload.get());
@@ -189,7 +191,8 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
             << R"(SetOptions called with incomplete input: you must use the UI to update before /run/initialize)";
     }
 
-    CELER_ENSURE(!offloaded_.empty() || this->optical_offload());
+    CELER_ENSURE(!offloaded_.empty() || this->optical_offload()
+                 || this->optical_track_offload());
 }
 
 //---------------------------------------------------------------------------//
