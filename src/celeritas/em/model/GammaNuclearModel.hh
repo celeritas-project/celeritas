@@ -35,7 +35,8 @@ class EmExtraPhysicsHelper;
  * (CERN/ITEP Moscow) for the high energy region (106 MeV < E < 50 GeV) and on
  * a Reggeon-based parameterization for the ultra high energy region
  * (E > 50 GeV), as described in
- * \citet{chips-gamma-nuclear-xs-2000, https://doi.org/10.1007/s100500070026}.
+ * \citet{degtyarenko-chiralinvariant-2000,
+ * https://doi.org/10.1007/s100500070026}.
  * G4GammaNuclearXS uses CHIPS (G4PhotoNuclearCrossSection) above 150 MeV and
  * performs linear interpolation between the upper limit of the G4PARTICLEXS
  * gamma-nuclear (IAEA) data and 150 MeV.
