@@ -20,6 +20,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct with fcl parameters.
+ */
 LarCelerStandalone::LarCelerStandalone(Parameters const& config)
     : runner_inp_{inp::from_config(config())}
 {
@@ -29,7 +32,7 @@ LarCelerStandalone::LarCelerStandalone(Parameters const& config)
 /*!
  * Start Celeritas at the beginning of the job.
  */
-void LarCelerStandalone::begin_job()
+void LarCelerStandalone::beginJob()
 {
     CELER_EXPECT(!runner_);
     runner_ = std::make_unique<LarStandaloneRunner>(runner_inp_);
@@ -39,7 +42,7 @@ void LarCelerStandalone::begin_job()
 /*!
  * Run Celeritas on a single event.
  */
-auto LarCelerStandalone::execute_event(VecSED const& edeps) -> UPVecBTR
+auto LarCelerStandalone::executeEvent(VecSED const& edeps) -> UPVecBTR
 {
     CELER_EXPECT(runner_);
     CELER_EXPECT(!edeps.empty());
@@ -54,7 +57,7 @@ auto LarCelerStandalone::execute_event(VecSED const& edeps) -> UPVecBTR
 /*!
  * Free Celeritas memory at the end of the job.
  */
-void LarCelerStandalone::end_job()
+void LarCelerStandalone::endJob()
 {
     CELER_EXPECT(runner_);
     runner_.reset();

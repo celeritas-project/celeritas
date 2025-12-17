@@ -39,13 +39,13 @@ class OpticalSimInterface
     virtual ~OpticalSimInterface() = 0;
 
     // Set up execution
-    virtual void begin_job() = 0;
+    virtual void beginJob() = 0;
 
     // Process a single event, returning detector hits
-    virtual UPVecBTR execute_event(VecSED const& edeps) = 0;
+    virtual UPVecBTR executeEvent(VecSED const& edeps) = 0;
 
     // Tear down execution
-    virtual void end_job() = 0;
+    virtual void endJob() = 0;
 };
 }  // namespace phot
 
@@ -89,13 +89,13 @@ class LarCelerStandalone final : public phot::OpticalSimInterface
     LarCelerStandalone(Parameters const& p);
 
     // Start simulating events
-    void begin_job() final;
+    void beginJob() final;
 
     // Simulate a single event
-    UPVecBTR execute_event(VecSED const& edeps) final;
+    UPVecBTR executeEvent(VecSED const& edeps) final;
 
     // Complete the simulation
-    void end_job() final;
+    void endJob() final;
 
   private:
     inp::LarStandaloneRunner runner_inp_;
