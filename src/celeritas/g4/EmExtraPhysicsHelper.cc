@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "EmExtraPhysicsHelper.hh"
 
+#include <G4Gamma.hh>
 #include <G4GammaNuclearXS.hh>
+#include <G4Version.hh>
 
 namespace celeritas
 {
@@ -17,6 +19,9 @@ namespace celeritas
 EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 {
     gn_xs_ = std::make_shared<G4GammaNuclearXS>();
+#if G4VERSION_NUMBER < 1120
+    gn_xs_->BuildPhysicsTable(*G4Gamma::Gamma());
+#endif
 }
 
 //---------------------------------------------------------------------------//
