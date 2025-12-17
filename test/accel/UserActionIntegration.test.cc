@@ -7,6 +7,7 @@
 #include "accel/UserActionIntegration.hh"
 
 #include <memory>
+#include <optional>
 #include <G4Cerenkov.hh>
 #include <G4ProcessManager.hh>
 #include <G4RunManager.hh>
@@ -15,6 +16,7 @@
 #include <G4StepPoint.hh>
 
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/Quantity.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/Convert.hh"
@@ -288,6 +290,78 @@ TEST_F(LarSphereOpticalOffload, run)
 
     rm.Initialize();
     rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+// LAR SPHERE WITH OPTICAL TRACK OFFLOAD
+//---------------------------------------------------------------------------//
+class LarSphereOpticalTrackOffload : public LarSphere
+{
+  public:
+    PhysicsInput make_physics_input() const override;
+    SetupOptions make_setup_options() override;
+    UPTrackAction make_tracking_action() override
+    {
+        return std::make_unique<UAITrackingAction>();
+    }
+};
+
+auto LarSphereOpticalTrackOffload::make_physics_input() const -> PhysicsInput
+{
+    auto result = LarSphereIntegrationMixin::make_physics_input();
+
+    auto& optical = result.optical;
+    optical = {};
+
+    optical.cherenkov.stack_photons = true;
+    optical.scintillation.stack_photons = true;
+
+    using WLSO = WavelengthShiftingOptions;
+    optical.wavelength_shifting = WLSO::deactivated();
+    optical.wavelength_shifting2 = WLSO::deactivated();
+
+    return result;
+}
+
+auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
+{
+    auto result = LarSphereIntegrationMixin::make_setup_options();
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 1;
+        opt.capacity.generators = opt.capacity.tracks * 8;
+        opt.capacity.primaries = opt.capacity.tracks * 16;
+        opt.generator = inp::OpticalTrackOffload{};
+        opt.offload_tracks = true;
+
+        return opt;
+    }();
+    //   result.offload_particles = {};
+    // Don't offload any particles
+    result.offload_particles = SetupOptions::VecG4PD{};
+
+    return result;
+}
+
+// sIntegrationTestBase::UPTrackAction
+// sLarSphereOpticalTrackOffload::make_tracking_action()
+// s{
+// s    CELER_LOG(info) << "Optical photon seen in G4";
+// s     return std::make_unique<LSTOTrackingAction>();
+// s}
+
+TEST_F(LarSphereOpticalTrackOffload, run)
+{
+    auto& rm = this->run_manager();
+    UAI::Instance().SetOptions(this->make_setup_options());
+
+    rm.Initialize();
+    rm.BeamOn(1);
+
+    // auto& local
+    //     =
+    //     detail::IntegrationSingleton::instance().local_optical_track_offload();
+    // EXPECT_FALSE(local);  // flushed after event
 }
 
 //---------------------------------------------------------------------------//
