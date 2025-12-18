@@ -32,6 +32,7 @@ endif()
 celeritas_optional_package(covfie "Use Covfie field integrator")
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
+celeritas_optional_package(LArSoft "Build LArSoft data interfaces")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(PNG "Enable PNG output with libpng")
@@ -182,6 +183,17 @@ celeritas_define_options(CELERITAS_UNITS
   "Native unit system for Celeritas")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_CODATA
+# Experimentally measured physical constants
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+celeritas_setup_option(CELERITAS_CODATA 2006) # Used by CLHEP
+celeritas_setup_option(CELERITAS_CODATA 2018)
+celeritas_setup_option(CELERITAS_CODATA 2022)
+set(CELERITAS_CODATA_OPTION_DEFAULT 2018)
+celeritas_define_options(CELERITAS_CODATA
+  "Experimentally measured physical constants revision")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_REAL_TYPE
 # Precision for real numbers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -306,7 +318,18 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 # DEPENDENCIES
 # NOTE: when adding a new dependency, update the CMakeConfig "find_dependency"
 # and check the dependency code in the CMakeConfig setup at the bottom of this
-# file
+# file; with exceptions:
+# - CLI11 is only used for app/
+# - googletest is only used for test/
+#
+# TODO: dependencies are ordered from highest to lowest level so that we can
+# let other packages choose dependencies. Low-level dependencies should
+# be sorted alphabetically.
+# LArSoft -> ROOT
+# ROOT -> JSON
+# G4 -> VecGeom
+# VecGeom -> CUDA
+# ...
 #----------------------------------------------------------------------------#
 
 include(CeleritasUtils)
@@ -318,6 +341,17 @@ endif()
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
   include(CTest)
+endif()
+
+if(CELERITAS_USE_LArSoft)
+  foreach(_dep ROOT Geant4)
+    if(NOT CELERITAS_USE_${_dep})
+      celeritas_error_incompatible_option(
+        "LArSoft (LArSoft) requires ${_dep}" CELERITAS_USE_${_dep} ON
+      )
+    endif()
+  endforeach()
+  find_package(LArSoft REQUIRED)
 endif()
 
 if(CELERITAS_USE_CUDA)
@@ -670,11 +704,17 @@ set(_cmake_files
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
 # Add packages with custom Celeritas-provided FindX scripts
-foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
+foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 LArSoft Perfetto ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
 endforeach()
+if(CELERITAS_USE_LArSoft)
+  foreach(_dep lardataobj cetmodules)
+    list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
+  endforeach()
+endif()
+
 if(CELERITAS_BUILD_TESTS)
   list(APPEND _cmake_files
     "${PROJECT_SOURCE_DIR}/cmake/CeleritasAddTest.cmake"

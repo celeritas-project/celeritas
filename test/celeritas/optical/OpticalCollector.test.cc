@@ -73,7 +73,7 @@ class LArSphereOffloadTest : public LArSphereBase
         // Set default values
         input_.num_track_slots = 4096;
         input_.buffer_capacity = 512;
-        input_.auto_flush = 4096;
+        input_.auto_flush = input_.num_track_slots;
         params_ = this->optical_params_input();
     }
 
@@ -257,15 +257,22 @@ template LArSphereOffloadTest::RunResult
 
 TEST_F(LArSphereOffloadTest, host_distributions)
 {
-    input_.max_step_iters = 0;
+    input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 4;
     this->build_optical_collector();
 
     size_type primaries = 4;
     size_type core_track_slots = 4;
-    size_type steps = 64;
+    // Even with an infinite auto flush, the optical launcher will flush when
+    // there are no more active core tracks. Restrict the number of core step
+    // iterations such that we can retrieve the distributions before flushing.
+    size_type steps = 45;
     auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
+    // No steps ran
+    EXPECT_EQ(0, result.accum.steps);
+    EXPECT_EQ(0, result.accum.step_iters);
+    EXPECT_EQ(0, result.accum.flushes);
     EXPECT_EQ(1, result.accum.generators.size());
 
     static real_type const expected_cherenkov_charge[] = {-1, 1};
@@ -277,7 +284,7 @@ TEST_F(LArSphereOffloadTest, host_distributions)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
         && (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW))
     {
-        EXPECT_EQ(230764,
+        EXPECT_EQ(228154,
                   result.cherenkov.total_num_photons
                       + result.scintillation.total_num_photons);
 
@@ -292,7 +299,7 @@ TEST_F(LArSphereOffloadTest, host_distributions)
         EXPECT_VEC_EQ(expected_cherenkov_num_photons,
                       result.cherenkov.num_photons);
 
-        EXPECT_EQ(209460, result.scintillation.total_num_photons);
+        EXPECT_EQ(206850, result.scintillation.total_num_photons);
         static unsigned int const expected_scintillation_num_photons[] = {
             2678u, 3867u, 11346u, 11391u, 7849u, 3835u, 8938u, 3409u, 6309u,
             2820u, 5504u, 8457u,  1923u,  2355u, 3423u, 3099u, 4546u, 5263u,
@@ -308,8 +315,7 @@ TEST_F(LArSphereOffloadTest, host_distributions)
             120u,  1027u, 59u,    18u,    43u,   487u,  9u,    21u,   12u,
             273u,  643u,  137u,   1795u,  66u,   116u,  607u,  11u,   199u,
             20u,   147u,  106u,   11u,    45u,   248u,  492u,  3951u, 1176u,
-            3068u, 4u,    2446u,  212u,   2039u, 350u,  1732u, 14u,   75u,
-            335u,  454u,
+            3068u, 4u,    2446u,  212u,   2039u, 350u,
         };
         EXPECT_VEC_EQ(expected_scintillation_num_photons,
                       result.scintillation.num_photons);
@@ -318,7 +324,7 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 {
-    input_.max_step_iters = 0;
+    input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 8;
     this->build_optical_collector();
 
@@ -328,6 +334,10 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
     auto result
         = this->run<MemSpace::device>(primaries, core_track_slots, steps);
 
+    // No steps ran
+    EXPECT_EQ(0, result.accum.steps);
+    EXPECT_EQ(0, result.accum.step_iters);
+    EXPECT_EQ(0, result.accum.flushes);
     EXPECT_EQ(1, result.accum.generators.size());
 
     static real_type const expected_cherenkov_charge[] = {-1, 1};
@@ -394,7 +404,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 {
     params_.scintillation = nullptr;
-    input_.max_step_iters = 0;
+    input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 4;
     this->build_optical_collector();
 
@@ -417,7 +427,7 @@ TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 TEST_F(LArSphereOffloadTest, scintillation_distributions)
 {
     params_.cherenkov = nullptr;
-    input_.max_step_iters = 0;
+    input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 4;
     this->build_optical_collector();
 

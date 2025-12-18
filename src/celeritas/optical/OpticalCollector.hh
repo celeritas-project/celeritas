@@ -89,9 +89,6 @@ class OpticalCollector
         //! Threshold number of photons for launching optical loop
         size_type auto_flush{};
 
-        //! Maximum step iterations before aborting optical loop
-        size_type max_step_iters{numeric_limits<size_type>::max()};
-
         //! Whether to synchronize and record accumulated action times
         bool action_times{false};
 

@@ -31,8 +31,9 @@ class SimTrackView
 
   public:
     // Construct from local data
-    inline CELER_FUNCTION
-    SimTrackView(NativeRef<SimStateData> const&, TrackSlotId);
+    inline CELER_FUNCTION SimTrackView(NativeCRef<SimParamsData> const& params,
+                                       NativeRef<SimStateData> const&,
+                                       TrackSlotId);
 
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(Initializer const&);
@@ -78,7 +79,13 @@ class SimTrackView
     // Access post-step action to take
     inline CELER_FUNCTION ActionId post_step_action() const;
 
+    //// PARAMETER DATA ////
+
+    // Maximum number of steps before killing the track
+    inline CELER_FUNCTION size_type max_steps() const;
+
   private:
+    NativeCRef<SimParamsData> const& params_;
     NativeRef<SimStateData> const& states_;
     TrackSlotId track_slot_;
 };
@@ -90,10 +97,12 @@ class SimTrackView
  * Construct from local data.
  */
 CELER_FUNCTION
-SimTrackView::SimTrackView(NativeRef<SimStateData> const& states,
+SimTrackView::SimTrackView(NativeCRef<SimParamsData> const& params,
+                           NativeRef<SimStateData> const& states,
                            TrackSlotId tid)
-    : states_(states), track_slot_(tid)
+    : params_(params), states_(states), track_slot_(tid)
 {
+    CELER_EXPECT(params_);
     CELER_EXPECT(track_slot_ < states_.size());
 }
 
@@ -257,6 +266,15 @@ CELER_FORCEINLINE_FUNCTION real_type SimTrackView::step_length() const
 CELER_FORCEINLINE_FUNCTION ActionId SimTrackView::post_step_action() const
 {
     return states_.post_step_action[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum number of steps before killing the track.
+ */
+CELER_FORCEINLINE_FUNCTION size_type SimTrackView::max_steps() const
+{
+    return params_.max_steps;
 }
 
 //---------------------------------------------------------------------------//
