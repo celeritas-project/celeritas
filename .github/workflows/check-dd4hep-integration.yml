@@ -20,7 +20,7 @@ jobs:
       - name: Build and test dd4hep integration
         shell: bash
         run: |
-          set +e 
+          set +e
           set -o pipefail
           source /etc/profile
           eic-info
@@ -28,35 +28,35 @@ jobs:
           cmake --build build -j 8
           cmake --install build
           export LD_LIBRARY_PATH=$PWD/install/lib:${LD_LIBRARY_PATH}
- 
+
           # Run both simulations in parallel with separate log files
           echo "Starting Celeritas simulation..."
           ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_celeritas.root --geometry.dumpGDML SiD_ConstantField.gdml > celeritas.log 2>&1 &
           CELER_PID=$!
-          
+
           echo "Starting Geant4 simulation..."
           CELER_DISABLE=1 ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml --steering $PWD/example/ddceler/steeringFile.py --outputFile output_geant4.root > geant4.log 2>&1 &
           GEANT4_PID=$!
-          
+
           # Wait for both to complete
           wait $CELER_PID || CELER_EXIT=$?
           wait $GEANT4_PID || GEANT4_EXIT=$?
-          
+
           # Display logs
           echo "=== Celeritas Log ==="
           cat celeritas.log
           echo "=== Geant4 Log ==="
           cat geant4.log
-          
+
           # Check exit codes
           if [ "${CELER_EXIT:-0}" -ne 0 ] || [ "${GEANT4_EXIT:-0}" -ne 0 ]; then
             echo "Error: One or more simulations failed"
             exit 1
           fi
-          
-          # Compare benchmarks and generate plots
+
+          # Compare benchmarks and generate plots using CTest
           if [ -f output_geant4.root ] && [ -f output_celeritas.root ]; then
-            root -l -b -q "${PWD}/example/ddceler/compare_benchmarks.cc(\"output_geant4.root\", \"output_celeritas.root\")"
+            DDCELER_FILE1=$PWD/output_geant4.root DDCELER_FILE2=$PWD/output_celeritas.root ctest --test-dir build -R ddceler-validation -V
           else
             echo "Error: Output files not found"
             exit 1
@@ -68,6 +68,7 @@ jobs:
           name: simulation-artifacts
           path: |
             *.log
-            *.png
+            *.root
             *.gdml
-          
+            build/*.png
+            build/Testing/Temporary/LastTest.log
