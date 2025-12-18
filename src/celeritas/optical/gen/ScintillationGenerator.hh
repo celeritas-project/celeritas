@@ -215,7 +215,12 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         // loss) and at the interaction site (local energy deposition) is
         // proportional to their respective energy contributions. If both
         // components are present, sample where to generate using the fraction
-        // of the energy deposited along the step.
+        // of the energy deposited along the step. The following condition is
+        // statistically equivalent to sampling \c
+        // BernoulliDistribution{p}(rng), but it avoids generating a random
+        // number in the expected case where the probability is exactly zero or
+        // one, while remaining correct if energy is deposited both along the
+        // step and at the endpoint.
         if (p == 1 || (p != 0 && BernoulliDistribution{p}(rng)))
         {
             // Sample uniformly along the step
