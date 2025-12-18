@@ -837,6 +837,7 @@ void VecgeomParams::build_volume_tracking()
 
         check_bvh_device_pointers();
         check_navindex_device_pointers();
+        detail::check_other_device_pointers();
 
         device_ownership_ = Ownership::value;
     }
