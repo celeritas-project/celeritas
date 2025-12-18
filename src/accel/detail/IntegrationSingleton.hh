@@ -10,7 +10,7 @@
 
 #include "corecel/sys/Stopwatch.hh"
 
-#include "../LocalOpticalOffload.hh"
+#include "../LocalOpticalGenOffload.hh"
 #include "../LocalTransporter.hh"
 #include "../SetupOptions.hh"
 #include "../SharedParams.hh"
@@ -52,7 +52,10 @@ class IntegrationSingleton
     static LocalTransporter& local_transporter();
 
     // Static THREAD-LOCAL Celeritas optical state data
-    static LocalOpticalOffload& local_optical_offload();
+    static LocalOpticalGenOffload& local_optical_offload();
+
+    // Access thread-local track offload interface
+    TrackOffloadInterface& local_track_offload();
 
     //// ACCESSORS ////
 

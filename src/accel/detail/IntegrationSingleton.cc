@@ -78,6 +78,11 @@ IntegrationSingleton& IntegrationSingleton::instance()
 /*!
  * Static THREAD-LOCAL Celeritas state data.
  */
+TrackOffloadInterface& IntegrationSingleton::local_track_offload()
+{
+    return IntegrationSingleton::local_transporter();
+}
+
 LocalTransporter& IntegrationSingleton::local_transporter()
 {
     auto& offload = IntegrationSingleton::local_offload_ptr();
@@ -88,7 +93,7 @@ LocalTransporter& IntegrationSingleton::local_transporter()
     auto* lt = dynamic_cast<LocalTransporter*>(offload.get());
     CELER_VALIDATE(lt,
                    << "Cannot access LocalTransporter when "
-                      "LocalOpticalOffload is being used");
+                      "LocalOpticalGenOffload is being used");
     return *lt;
 }
 
@@ -96,16 +101,16 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 /*!
  * Static THREAD-LOCAL Celeritas optical state data.
  */
-LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
+LocalOpticalGenOffload& IntegrationSingleton::local_optical_offload()
 {
     auto& offload = IntegrationSingleton::local_offload_ptr();
     if (!offload)
     {
-        offload = std::make_unique<LocalOpticalOffload>();
+        offload = std::make_unique<LocalOpticalGenOffload>();
     }
-    auto* lt = dynamic_cast<LocalOpticalOffload*>(offload.get());
+    auto* lt = dynamic_cast<LocalOpticalGenOffload*>(offload.get());
     CELER_VALIDATE(lt,
-                   << "Cannot access LocalOpticalOffload when "
+                   << "Cannot access LocalOpticalGenOffload when "
                       "LocalTransporter is being used");
     return *lt;
 }
@@ -116,11 +121,18 @@ LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
  */
 LocalOffloadInterface& IntegrationSingleton::local_offload()
 {
+    CELER_VALIDATE(
+        !this->optical_offload(),
+        << R"(Cannot enable both optical generator offload and optical track offload at the same time)");
+
     if (this->optical_offload())
     {
         return IntegrationSingleton::local_optical_offload();
     }
-    return IntegrationSingleton::local_transporter();
+    else
+    {
+        return IntegrationSingleton::local_transporter();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -293,7 +305,7 @@ auto IntegrationSingleton::local_offload_ptr() -> UPOffload&
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the local optical offload is used.
+ * Whether the local optical generator offload is used.
  */
 bool IntegrationSingleton::optical_offload() const
 {

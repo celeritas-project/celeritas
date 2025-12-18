@@ -144,7 +144,7 @@ struct OpticalSetupOptions
  * disables Celeritas offloading and immediately kills the \c offload_particles
  * in Geant4. The only expected use case for an empty \c offload_particles
  * vector is when offloading optical distribution data to Celeritas through the
- * \c LocalOpticalOffload.
+ * \c LocalOpticalGenOffload.
  *
  * Note that the Celeritas core capacity values (\c max_num_tracks, \c
  * initializer_capacity and \c auto_flush) are per \em stream while the \c
