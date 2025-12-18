@@ -39,7 +39,6 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
     // Save a pointer to the optical transporter
     transport_ = params.optical_transporter();
     CELER_ASSERT(transport_);
-
     CELER_ASSERT(transport_->params());
     auto const& optical_params = *transport_->params();
 
@@ -92,7 +91,6 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = id_cast<UniqueEventId>(id);
-    CELER_LOG(debug) << "Entering the init evt : ";
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
     {
@@ -111,13 +109,10 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
  */
 void LocalOpticalTrackOffload::Push(G4Track& g4track)
 {
-    CELER_LOG(info) << "Transport pointer: " << transport_;
     CELER_EXPECT(*this);
+    ++num_pushed_;
     TrackData init;
-    CELER_LOG(info) << "Optical track offloaded to Celeritas: "
-                    << "E=" << g4track.GetTotalEnergy() / CLHEP::eV << " eV, ";
-    //<< "event=" << g4track.GetEventID();
-    // Sanity check: this path is meant for optical photons
+
     CELER_EXPECT(g4track.GetDefinition());
     CELER_EXPECT(g4track.GetDefinition()->GetParticleName() == "opticalphoton");
 
@@ -156,8 +151,6 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
 void LocalOpticalTrackOffload::Flush()
 {
     CELER_EXPECT(*this);
-    CELER_LOG(info) << "Flushing " << buffer_.size()
-                    << " optical tracks to Celeritas";
     if (buffer_.empty())
     {
         return;
@@ -186,16 +179,10 @@ void LocalOpticalTrackOffload::Flush()
     }
     CELER_ASSERT(event_id_);
 
-    //  if (celeritas::device())
-    //  {
-    CELER_LOG(debug) << "Transporting " << pending_tracks_
-                     << " optical track from event "
-                     << event_id_.unchecked_get() << " with Celeritas";
-    //}
     // Inject buffered tracks into optical state
-
+    ++num_flushed_;
     //  state_->insert_primaries(make_span(buffer_));
-    CELER_LOG(info) << "Skipping optical transport (WIP)";
+    // ToDo Skipping optical transport (WIP)
     buffer_.clear();
     pending_tracks_ = 0;
 
@@ -222,6 +209,11 @@ void LocalOpticalTrackOffload::Finalize()
 
     CELER_VALIDATE(buffer_.empty(),
                    << pending_tracks_ << " optical tracks were not flushed");
+
+    CELER_LOG(info) << "Finalizing Celeritas after " << num_pushed_
+                    << " optical tracks pushed (over " << num_flushed_
+                    << " ) flushes";
+
     // Reset all data
     *this = {};
 

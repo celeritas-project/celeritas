@@ -66,6 +66,8 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
     // Number of buffered tracks
     size_type GetBufferSize() const final { return pending_tracks_; }
 
+    // Optical tracks pushed
+    size_type num_pushed() const { return num_pushed_; }
     // Get accumulated action times
     MapStrDbl GetActionTime() const final;
     //!@}
@@ -78,10 +80,14 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
 
     std::vector<TrackData> buffer_;
     size_type pending_tracks_{};
-    // Number of photons to buffer before offloading
+    // Number of photons tracks to buffer before offloading
     size_type auto_flush_{};
-
-    // Current event ID or manager for obtaining it
+    //  size_type num_pushed_{};
+    // Diagnostics (thread-local)
+    size_type num_pushed_{0};
+    size_type num_flushed_{0};
+    // size_type num_events_{0};
+    //  Current event ID or manager for obtaining it
     UniqueEventId event_id_;
     G4EventManager* event_manager_{nullptr};
 };
