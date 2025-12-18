@@ -117,19 +117,25 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
     CELER_EXPECT(g4track.GetDefinition()->GetParticleName() == "opticalphoton");
 
     // Energy: convert Geant4 energy [MeV] to Celeritas MevEnergy
-    init.energy = units::MevEnergy{g4track.GetTotalEnergy() / CLHEP::MeV};
+    init.energy = units::MevEnergy{
+        static_cast<real_type>(g4track.GetTotalEnergy() / CLHEP::MeV)};
 
     // Position: Geant4 uses mm; Celeritas uses cm
     auto const& pos = g4track.GetPosition();
-    init.position
-        = Real3{pos.x() / CLHEP::cm, pos.y() / CLHEP::cm, pos.z() / CLHEP::cm};
+    init.position = Real3{static_cast<real_type>(pos.x() / CLHEP::cm),
+                          static_cast<real_type>(pos.y() / CLHEP::cm),
+                          static_cast<real_type>(pos.z() / CLHEP::cm)};
 
     auto const& dir = g4track.GetMomentumDirection();
-    init.direction = Real3{dir.x(), dir.y(), dir.z()};
+    init.direction = Real3{static_cast<real_type>(dir.x()),
+                           static_cast<real_type>(dir.y()),
+                           static_cast<real_type>(dir.z())};
 
     // Polarization: directly from G4
     auto const& pol = g4track.GetPolarization();
-    init.polarization = Real3{pol.x(), pol.y(), pol.z()};
+    init.polarization = Real3{static_cast<real_type>(pol.x()),
+                              static_cast<real_type>(pol.y()),
+                              static_cast<real_type>(pol.z())};
 
     // Time: Geant4 uses ns; Celeritas uses seconds
     init.time = g4track.GetGlobalTime() / CLHEP::s;

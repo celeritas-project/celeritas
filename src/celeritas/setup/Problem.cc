@@ -722,7 +722,6 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                     // Build optical track transporter
                     optical::Transporter::Input inp;
                     inp.params = optical_params;
-                    inp.max_step_iters = p.tracking.limits.optical_step_iters;
                     if (action_times)
                     {
                         inp.action_times = ActionTimes::make_and_insert(
