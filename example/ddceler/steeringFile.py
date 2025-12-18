@@ -32,8 +32,8 @@ runner.enableGun = True
 runner.gun.particle = "e-"
 runner.gun.energy = "18*GeV"
 runner.gun.distribution = "uniform"
-runner.gun.etaMin = 1
-runner.gun.etaMax = 2
+runner.gun.etaMin = 2
+runner.gun.etaMax = 2.1
 
 # Field tracking configuration - defined once, used by both
 # DD4hep/Geant4 and Celeritas
