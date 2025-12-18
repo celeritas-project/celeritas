@@ -3,69 +3,334 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ddceler/compare_benchmarks.C
+//! \file ddceler/compare_benchmarks.cc
 //! \brief Compare DD4hep simulation data between two configurations
 //---------------------------------------------------------------------------//
 /*!
  * Usage:
- * $ root
- * root[0] .x compare_benchmarks.C("config1-out.root", "config2-out.root")
+ * $ ddceler-compare <file1.root> <file2.root>
  *
  * DD4hep simulation output comparison for validation studies.
  *
- * Update histogram info and select data accordingly in the Helper functions
- * and static variables section.
- *
- * Plot attributes are meant to be used with the Celeritas plot style. See
- * https://github.com/celeritas-project/benchmarks/blob/main/rootlogon.C
+ * Validation tests performed (6 total):
+ * - Initial distributions (pt, eta, phi): KS test (p-value > 0.05)
+ * - Calorimeter energy: Total energy difference < 3%
+ * - Shower profiles (r-z, phi-z): Percentiles within 3%
  */
 //---------------------------------------------------------------------------//
+// Standard library
+#include <cstdlib>
+#include <iostream>
 #include <vector>
+
+// ROOT headers
 #include <TCanvas.h>
 #include <TFile.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TLatex.h>
 #include <TLegend.h>
 #include <TMath.h>
+#include <TPad.h>
+#include <TStyle.h>
+#include <TSystem.h>
 #include <TText.h>
 #include <TTree.h>
 #include <TTreeReader.h>
 #include <TTreeReaderValue.h>
 
-// Include dd4hep headers
+// DD4hep headers
 #include "DDG4/Geant4Data.h"
 #include "DDG4/Geant4Particle.h"
 
-// Include additional ROOT headers for 2D plotting
-#include <TH2D.h>
-#include <TLatex.h>
-#include <TPad.h>
-#include <TStyle.h>
-
 //---------------------------------------------------------------------------//
-//! Helper functions and static variables
+//! Constants
 //---------------------------------------------------------------------------//
-// Histogram definition
 static int const n_bins = 50;
-static double const bin_min = 0;
-static double const bin_max = 50;
-static TString const hist_title
-    = "MC Particle p_{T} Distribution (DD4hep Simulation)";
 static TString const commit_hash = "";
-static TString const x_axis_title = "p_{T} [GeV]";
-static TString const config1_legend = "Configuration 1";
-static TString const config2_legend = "Configuration 2";
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
-// Loop over events for a given ROOT file and populate histogram
-void loop(TString file, TH1D* hist, TString plot_type)
+//---------------------------------------------------------------------------//
+//! Statistical comparison metrics for 1D histograms
+//---------------------------------------------------------------------------//
+struct ComparisonMetrics
 {
-    std::cout << "Processing " << file.Data() << std::endl;
+    double ks_prob;
+    double mean_z_score;
+    double rms_rel_diff;
+};
+
+ComparisonMetrics calculate_1D_metrics(TH1D* h1, TH1D* h2)
+{
+    ComparisonMetrics metrics;
+
+    // Kolmogorov-Smirnov test
+    metrics.ks_prob = h1->KolmogorovTest(h2);
+
+    // Z-score for mean comparison
+    double mean1 = h1->GetMean();
+    double mean2 = h2->GetMean();
+    double rms1 = h1->GetRMS();
+    double rms2 = h2->GetRMS();
+    double n1 = h1->GetEntries();
+    double n2 = h2->GetEntries();
+
+    // Standard errors
+    double se1 = (n1 > 0) ? rms1 / TMath::Sqrt(n1) : 0;
+    double se2 = (n2 > 0) ? rms2 / TMath::Sqrt(n2) : 0;
+    double se_combined = TMath::Sqrt(se1 * se1 + se2 * se2);
+
+    metrics.mean_z_score = (se_combined > 0) ? (mean1 - mean2) / se_combined
+                                             : 0;
+
+    // RMS relative difference
+    metrics.rms_rel_diff = (rms1 != 0) ? (rms1 - rms2) / rms1 * 100 : 0;
+
+    return metrics;
+}
+
+bool print_1D_metrics(TString plot_type, ComparisonMetrics const& metrics)
+{
+    // For initial distributions: validate with KS test
+    if (plot_type == "pt" || plot_type == "eta" || plot_type == "phi")
+    {
+        bool passed = metrics.ks_prob > 0.05;
+        std::cout << "  [" << (passed ? "PASS" : "FAIL") << "] " << plot_type
+                  << ": KS p-value = " << metrics.ks_prob
+                  << " (threshold: >0.05)" << std::endl;
+        return passed;
+    }
+
+    // For energy: no validation here (done separately with total energy)
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+//! Shower profile metrics for physics-based comparison
+//---------------------------------------------------------------------------//
+struct ShowerMetrics
+{
+    // Penetration depth (longitudinal)
+    double z_10_percentile;  // 10% of hits have z < this
+    double z_50_percentile;  // Median z
+    double z_90_percentile;  // 90% of hits have z < this
+    double z_mean;
+    double z_rms;
+
+    // Radial spread (transverse)
+    double r_mean;
+    double r_rms;
+    double r_10_percentile;
+    double r_50_percentile;
+    double r_90_percentile;
+};
+
+struct ShowerComparison
+{
+    // Penetration depth comparison
+    double z_10_rel_diff;
+    double z_50_rel_diff;
+    double z_90_rel_diff;
+    double z_rms_rel_diff;
+
+    // Radial spread comparison
+    double r_rms_rel_diff;
+    double r_10_rel_diff;
+    double r_50_rel_diff;
+    double r_90_rel_diff;
+};
+
+//---------------------------------------------------------------------------//
+// Calculate shower profile metrics from 2D r-z histogram
+//---------------------------------------------------------------------------//
+ShowerMetrics calculate_shower_metrics_rz(TH2D* h)
+{
+    ShowerMetrics metrics;
+
+    // Get z and r projections for percentile calculations
+    TH1D* proj_z = h->ProjectionX("_pz_temp");
+    TH1D* proj_r = h->ProjectionY("_pr_temp");
+
+    // Calculate z percentiles (penetration depth)
+    double quantiles_z[3];
+    double probSum[3] = {0.1, 0.5, 0.9};
+    proj_z->GetQuantiles(3, quantiles_z, probSum);
+    metrics.z_10_percentile = quantiles_z[0];
+    metrics.z_50_percentile = quantiles_z[1];
+    metrics.z_90_percentile = quantiles_z[2];
+    metrics.z_mean = proj_z->GetMean();
+    metrics.z_rms = proj_z->GetRMS();
+
+    // Calculate r percentiles (radial spread)
+    double quantiles_r[3];
+    proj_r->GetQuantiles(3, quantiles_r, probSum);
+    metrics.r_10_percentile = quantiles_r[0];
+    metrics.r_50_percentile = quantiles_r[1];
+    metrics.r_90_percentile = quantiles_r[2];
+    metrics.r_mean = proj_r->GetMean();
+    metrics.r_rms = proj_r->GetRMS();
+
+    delete proj_z;
+    delete proj_r;
+
+    return metrics;
+}
+
+//---------------------------------------------------------------------------//
+// Calculate shower profile metrics from 2D phi-z histogram
+//---------------------------------------------------------------------------//
+ShowerMetrics calculate_shower_metrics_phiz(TH2D* h)
+{
+    ShowerMetrics metrics;
+
+    // Get z and phi projections
+    TH1D* proj_z = h->ProjectionX("_pz_temp");
+    TH1D* proj_phi = h->ProjectionY("_pphi_temp");
+
+    // Calculate z percentiles (penetration depth)
+    double quantiles_z[3];
+    double probSum[3] = {0.1, 0.5, 0.9};
+    proj_z->GetQuantiles(3, quantiles_z, probSum);
+    metrics.z_10_percentile = quantiles_z[0];
+    metrics.z_50_percentile = quantiles_z[1];
+    metrics.z_90_percentile = quantiles_z[2];
+    metrics.z_mean = proj_z->GetMean();
+    metrics.z_rms = proj_z->GetRMS();
+
+    // For phi distribution, we care about uniformity (RMS)
+    // Phi mean is not physically meaningful (depends on coordinate system)
+    // But phi RMS tells us about azimuthal spread
+    metrics.r_10_percentile = 0;  // Not applicable for phi-z
+    metrics.r_50_percentile = 0;
+    metrics.r_90_percentile = 0;
+    metrics.r_mean = proj_phi->GetMean();  // Store phi mean for comparison
+    metrics.r_rms = proj_phi->GetRMS();  // Azimuthal spread
+
+    delete proj_z;
+    delete proj_phi;
+
+    return metrics;
+}
+
+//---------------------------------------------------------------------------//
+// Compare shower metrics between two histograms
+//---------------------------------------------------------------------------//
+ShowerComparison compare_shower_metrics(ShowerMetrics const& m1,
+                                        ShowerMetrics const& m2,
+                                        TH2D*,
+                                        TH2D*)
+{
+    ShowerComparison comp;
+
+    // Penetration depth comparisons (relative differences for percentiles)
+    comp.z_10_rel_diff = (m1.z_10_percentile != 0)
+                             ? (m1.z_10_percentile - m2.z_10_percentile)
+                                   / m1.z_10_percentile * 100
+                             : 0;
+    comp.z_50_rel_diff = (m1.z_50_percentile != 0)
+                             ? (m1.z_50_percentile - m2.z_50_percentile)
+                                   / m1.z_50_percentile * 100
+                             : 0;
+    comp.z_90_rel_diff = (m1.z_90_percentile != 0)
+                             ? (m1.z_90_percentile - m2.z_90_percentile)
+                                   / m1.z_90_percentile * 100
+                             : 0;
+
+    comp.z_rms_rel_diff
+        = (m1.z_rms != 0) ? (m1.z_rms - m2.z_rms) / m1.z_rms * 100 : 0;
+
+    // Radial spread comparisons
+    comp.r_rms_rel_diff
+        = (m1.r_rms != 0) ? (m1.r_rms - m2.r_rms) / m1.r_rms * 100 : 0;
+
+    comp.r_10_rel_diff = (m1.r_10_percentile != 0)
+                             ? (m1.r_10_percentile - m2.r_10_percentile)
+                                   / m1.r_10_percentile * 100
+                             : 0;
+    comp.r_50_rel_diff = (m1.r_50_percentile != 0)
+                             ? (m1.r_50_percentile - m2.r_50_percentile)
+                                   / m1.r_50_percentile * 100
+                             : 0;
+    comp.r_90_rel_diff = (m1.r_90_percentile != 0)
+                             ? (m1.r_90_percentile - m2.r_90_percentile)
+                                   / m1.r_90_percentile * 100
+                             : 0;
+
+    return comp;
+}
+
+//---------------------------------------------------------------------------//
+// Print shower comparison metrics
+//---------------------------------------------------------------------------//
+bool print_shower_metrics(TString plot_type,
+                          ShowerMetrics const& m1,
+                          ShowerMetrics const&,
+                          ShowerComparison const& comp)
+{
+    bool all_passed = true;
+    double threshold = 3.0;  // 3% threshold for all tests
+
+    // Only print z metrics for r-z plots
+    if (m1.z_mean != 0)
+    {
+        // Hard checks on penetration depth
+        bool z_10_pass = TMath::Abs(comp.z_10_rel_diff) < threshold;
+        bool z_50_pass = TMath::Abs(comp.z_50_rel_diff) < threshold;
+        bool z_90_pass = TMath::Abs(comp.z_90_rel_diff) < threshold;
+
+        std::cout << "  [" << (z_10_pass ? "PASS" : "FAIL") << "] "
+                  << plot_type << " z 10th percentile: |" << comp.z_10_rel_diff
+                  << "%| (threshold: <3%)" << std::endl;
+        std::cout << "  [" << (z_50_pass ? "PASS" : "FAIL") << "] "
+                  << plot_type << " z 50th percentile: |" << comp.z_50_rel_diff
+                  << "%| (threshold: <3%)" << std::endl;
+        std::cout << "  [" << (z_90_pass ? "PASS" : "FAIL") << "] "
+                  << plot_type << " z 90th percentile: |" << comp.z_90_rel_diff
+                  << "%| (threshold: <3%)" << std::endl;
+
+        all_passed = all_passed && z_10_pass && z_50_pass && z_90_pass;
+    }
+
+    // For phi-z plots, skip radial tests (no validation, just informational)
+    if (!plot_type.Contains("phiz"))
+    {
+        // For r-z and x-y plots, display radial spread
+        if (m1.r_10_percentile != 0)  // Only print percentiles if available
+        {
+            // Hard checks on radial spread
+            bool r_10_pass = TMath::Abs(comp.r_10_rel_diff) < threshold;
+            bool r_50_pass = TMath::Abs(comp.r_50_rel_diff) < threshold;
+            bool r_90_pass = TMath::Abs(comp.r_90_rel_diff) < threshold;
+
+            std::cout << "  [" << (r_10_pass ? "PASS" : "FAIL") << "] "
+                      << plot_type << " r 10th percentile: |"
+                      << comp.r_10_rel_diff << "%| (threshold: <3%)"
+                      << std::endl;
+            std::cout << "  [" << (r_50_pass ? "PASS" : "FAIL") << "] "
+                      << plot_type << " r 50th percentile: |"
+                      << comp.r_50_rel_diff << "%| (threshold: <3%)"
+                      << std::endl;
+            std::cout << "  [" << (r_90_pass ? "PASS" : "FAIL") << "] "
+                      << plot_type << " r 90th percentile: |"
+                      << comp.r_90_rel_diff << "%| (threshold: <3%)"
+                      << std::endl;
+
+            all_passed = all_passed && r_10_pass && r_50_pass && r_90_pass;
+        }
+    }
+
+    return all_passed;
+}
+
+//---------------------------------------------------------------------------//
+// 1D histogram data processing
+//---------------------------------------------------------------------------//
+double loop(TString file, TH1D* hist, TString plot_type)
+{
     auto tfile = TFile::Open(file.Data(), "read");
     if (!tfile || tfile->IsZombie())
     {
         std::cerr << "Error: Cannot open file " << file.Data() << std::endl;
-        return;
+        return 0.0;
     }
 
     // Create TTreeReader
@@ -74,21 +339,34 @@ void loop(TString file, TH1D* hist, TString plot_type)
     // Define TTreeReaderValues for different branches
     TTreeReaderValue<std::vector<dd4hep::sim::Geant4Particle*>> mcParticles(
         reader, "MCParticles");
-    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>> trackerHits(
-        reader, "SiTrackerBarrelHits");
     TTreeReaderValue<std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>>
-        calorimeterHits(reader, "HcalEndcapHits");
+        ecalEndcapHits(reader, "EcalEndcapHits");
+
+    // For calorimeter deposited energy sum validation
+    double total_deposited_energy = 0;
+    int num_events = 0;
+    int num_particles_total = 0;
+    int num_primaries = 0;
 
     // Event loop
     while (reader.Next())
     {
         if (plot_type == "pt" || plot_type == "eta" || plot_type == "phi")
         {
-            // Analyze MC particles
+            // Analyze MC particles (primaries only)
             for (auto const& particle : *mcParticles)
             {
                 if (particle)
                 {
+                    num_particles_total++;
+                    // Filter for primary particles only (no parents)
+                    if (particle->parents.size() != 0)
+                    {
+                        continue;
+                    }
+
+                    num_primaries++;
+
                     // Get momentum components
                     double px = particle->psx;
                     double py = particle->psy;
@@ -121,114 +399,124 @@ void loop(TString file, TH1D* hist, TString plot_type)
                 }
             }
         }
-        else if (plot_type == "calo_energy")
+        else if (plot_type == "ecal_endcap_energy")
         {
-            // Analyze calorimeter hits
-            for (auto const& hit : *calorimeterHits)
-            {
+            double event_deposited_energy = 0;
+            for (auto const& hit : *ecalEndcapHits)
                 if (hit)
-                {
-                    double energy = hit->energyDeposit;
-                    hist->Fill(energy);
-                }
-            }
+                    event_deposited_energy += hit->energyDeposit;
+
+            hist->Fill(event_deposited_energy);
+            total_deposited_energy += event_deposited_energy;
+            num_events++;
         }
     }
 
+    // Return total deposited energy for validation (no verbose output)
+
     tfile->Close();
+    return total_deposited_energy;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Main function.
+ * Compare 1D histograms between two ROOT files.
+ *
+ * Supported plot types: pt, eta, phi, ecal_endcap_energy
  */
-void compare_1D_histos(TString config1_rootfile,
+bool compare_1D_histos(TString config1_rootfile,
                        TString config2_rootfile,
                        TString plot_type)
 {
-    // Update histogram parameters based on plot variable
-    double hist_bin_min = bin_min;
-    double hist_bin_max = bin_max;
-    TString hist_x_axis = x_axis_title;
-    TString hist_plot_title = hist_title;
-    TString config1_rootfile_label = config1_rootfile;
-    config1_rootfile_label.ReplaceAll(".root", "");
-    TString config2_rootfile_label = config2_rootfile;
-    config2_rootfile_label.ReplaceAll(".root", "");
+    // Prepare labels - extract basename and remove .root extension
+    TString config1_label = gSystem->BaseName(config1_rootfile);
+    config1_label.ReplaceAll(".root", "");
+    TString config2_label = gSystem->BaseName(config2_rootfile);
+    config2_label.ReplaceAll(".root", "");
 
-    // Variables for custom binning
-    TH1D* h_config1;
-    TH1D* h_config2;
-    TH1D* h_config1_rel_err;
-    TH1D* h_config1_rel_err_3s;
+    // Configure histogram parameters based on plot type
+    double hist_bin_min, hist_bin_max;
+    int hist_n_bins;
+    TString hist_x_axis, hist_plot_title;
+    TH1D *h_config1, *h_config2;
 
-    if (plot_type == "eta")
+    if (plot_type == "pt")
     {
-        hist_bin_min = 0;
-        hist_bin_max = 9;
+        hist_bin_min = 4000;
+        hist_bin_max = 5000;
+        hist_n_bins = 50;
+        hist_x_axis = "p_{T} [MeV]";
+        hist_plot_title = "MC Particle p_{T} Distribution (DD4hep Simulation)";
+    }
+    else if (plot_type == "eta")
+    {
+        hist_bin_min = 1.8;
+        hist_bin_max = 2.3;
+        hist_n_bins = 25;
         hist_x_axis = "#eta";
         hist_plot_title = "MC Particle #eta Distribution (DD4hep Simulation)";
-
-        // Regular binning for eta
-        h_config1 = new TH1D("Config1", "", n_bins, hist_bin_min, hist_bin_max);
-        h_config2 = new TH1D("Config2", "", n_bins, hist_bin_min, hist_bin_max);
     }
     else if (plot_type == "phi")
     {
         hist_bin_min = -TMath::Pi();
         hist_bin_max = TMath::Pi();
+        hist_n_bins = n_bins;
         hist_x_axis = "#phi";
         hist_plot_title = "MC Particle #phi Distribution (DD4hep Simulation)";
-
-        // Regular binning for phi
-        h_config1 = new TH1D("Config1", "", n_bins, hist_bin_min, hist_bin_max);
-        h_config2 = new TH1D("Config2", "", n_bins, hist_bin_min, hist_bin_max);
     }
-    else if (plot_type == "calo_energy")
+    else if (plot_type == "ecal_endcap_energy")
     {
-        hist_bin_min = 0.000001;  // Start from 0.01 GeV to avoid log(0)
-        hist_bin_max = 0.001;
-        hist_x_axis = "Energy [GeV]";
+        hist_bin_min = 200;
+        hist_bin_max = 400;
+        hist_n_bins = n_bins;
+        hist_x_axis = "Energy [MeV]";
         hist_plot_title
-            = "Calorimeter Hit Energy Distribution (DD4hep Simulation)";
-
-        // Create logarithmic bins
-        int const n_log_bins = n_bins;  // Use the same number of bins
-        double log_min = TMath::Log10(hist_bin_min);
-        double log_max = TMath::Log10(hist_bin_max);
-        double log_bin_width = (log_max - log_min) / n_log_bins;
-
-        // Create array of bin edges
-        double* bin_edges = new double[n_log_bins + 1];
-        for (int i = 0; i <= n_log_bins; i++)
-        {
-            bin_edges[i] = TMath::Power(10, log_min + i * log_bin_width);
-        }
-
-        // Create histograms with variable bin widths
-        h_config1 = new TH1D("Config1", "", n_log_bins, bin_edges);
-        h_config2 = new TH1D("Config2", "", n_log_bins, bin_edges);
-
-        delete[] bin_edges;  // Clean up the array
+            = "ECAL Endcap Total Energy per Event (DD4hep Simulation)";
     }
     else
     {
-        // Default case - regular binning
-        h_config1 = new TH1D("Config1", "", n_bins, hist_bin_min, hist_bin_max);
-        h_config2 = new TH1D("Config2", "", n_bins, hist_bin_min, hist_bin_max);
+        std::cerr << "Error: Unknown plot type " << plot_type << std::endl;
+        return false;
     }
 
+    // Create histograms
+    h_config1
+        = new TH1D("Config1", "", hist_n_bins, hist_bin_min, hist_bin_max);
+    h_config2
+        = new TH1D("Config2", "", hist_n_bins, hist_bin_min, hist_bin_max);
+
     // Process data
-    loop(config1_rootfile, h_config1, plot_type);
-    loop(config2_rootfile, h_config2, plot_type);
+    double total_energy1 = loop(config1_rootfile, h_config1, plot_type);
+    double total_energy2 = loop(config2_rootfile, h_config2, plot_type);
+
+    // Calculate and print statistical metrics
+    ComparisonMetrics metrics = calculate_1D_metrics(h_config1, h_config2);
+    bool passed = print_1D_metrics(plot_type, metrics);
+
+    // Additional validation for energy
+    if (plot_type == "ecal_endcap_energy")
+    {
+        // Hard check on total energy difference < 3%
+        double rel_diff = 0.0;
+        if (total_energy1 != 0.0)
+        {
+            rel_diff
+                = TMath::Abs((total_energy1 - total_energy2) / total_energy1)
+                  * 100.0;
+        }
+        passed = rel_diff < 3.0;
+        std::cout << "  [" << (passed ? "PASS" : "FAIL") << "] "
+                  << "Total energy: |rel diff| = " << rel_diff
+                  << "% (threshold: <3%)" << std::endl;
+    }
 
     // Create relative error histograms
-    h_config1_rel_err = new TH1D(
-        "Config1 rel. err.", "", n_bins, hist_bin_min, hist_bin_max);
-    h_config1_rel_err_3s = new TH1D(
-        "Config1 rel. err. 3sigma", "", n_bins, hist_bin_min, hist_bin_max);
+    auto h_config1_rel_err = new TH1D(
+        "Config1 rel. err.", "", hist_n_bins, hist_bin_min, hist_bin_max);
+    auto h_config1_rel_err_3s = new TH1D(
+        "Config1 rel. err. 3sigma", "", hist_n_bins, hist_bin_min, hist_bin_max);
 
-    for (int i = 0; i < n_bins; i++)
+    for (int i = 0; i < hist_n_bins; i++)
     {
         double error = h_config1->GetBinError(i);
         double value = h_config1->GetBinContent(i);
@@ -268,19 +556,36 @@ void compare_1D_histos(TString config1_rootfile,
     h_config1->GetYaxis()->SetLabelOffset(0.007);
     h_config1->GetYaxis()->CenterTitle();
 
+    // Disable default ROOT stats box
+    h_config1->SetStats(0);
+    h_config2->SetStats(0);
+
     // Draw histograms
     h_config1->Draw("PE2");
     h_config2->Draw("hist sames");
 
-    auto legend_top = new TLegend(0.57, 0.46, 0.86, 0.86);
-    legend_top->SetHeader("Stats");
-    legend_top->AddEntry(h_config1, config1_rootfile_label, "p");
-    legend_top->AddEntry(h_config2, config2_rootfile_label, "l");
-    legend_top->AddEntry(new TH1D(), "Statistical errors:", "f");
-    legend_top->AddEntry(h_config1_rel_err, "1#sigma", "f");
-    legend_top->AddEntry(h_config1_rel_err_3s, "3#sigma", "f");
-    legend_top->SetMargin(0.27);
-    legend_top->SetLineColor(kGray);
+    auto legend_top = new TLegend(0.55, 0.60, 0.88, 0.88);
+    legend_top->SetHeader("Statistics", "C");
+    legend_top->SetTextSize(0.035);
+
+    // Add entry for config1
+    TString stats1 = Form("%s: Mean=%.1f, RMS=%.1f",
+                          config1_label.Data(),
+                          h_config1->GetMean(),
+                          h_config1->GetRMS());
+    legend_top->AddEntry(h_config1, stats1, "p");
+
+    // Add entry for config2
+    TString stats2 = Form("%s: Mean=%.1f, RMS=%.1f",
+                          config2_label.Data(),
+                          h_config2->GetMean(),
+                          h_config2->GetRMS());
+    legend_top->AddEntry(h_config2, stats2, "l");
+
+    legend_top->SetMargin(0.12);
+    legend_top->SetBorderSize(1);
+    legend_top->SetFillStyle(1001);
+    legend_top->SetFillColorAlpha(kWhite, 0.9);
     legend_top->Draw();
 
     auto title_text = new TText(0.17, 0.92, hist_plot_title);
@@ -295,7 +600,6 @@ void compare_1D_histos(TString config1_rootfile,
 
     // Redraw axis above the histogram lines
     pad_top->RedrawAxis();
-    pad_top->SetLogy();
     // Move back to canvas
     canvas->cd();
 
@@ -340,9 +644,8 @@ void compare_1D_histos(TString config1_rootfile,
     h_rel_diff->Draw("hist sames");
 
     pad_bottom->RedrawAxis();
-    canvas->SetLogy();
-    canvas->Print(config1_rootfile_label + "_" + config2_rootfile_label + "_"
-                  + plot_type + ".png");
+    canvas->Print(config1_label + "_" + config2_label + "_" + plot_type
+                  + ".png");
 
     // Clean up
     delete canvas;
@@ -351,10 +654,12 @@ void compare_1D_histos(TString config1_rootfile,
     delete h_config1_rel_err;
     delete h_config1_rel_err_3s;
     delete h_rel_diff;
+
+    return passed;
 }
 
 //---------------------------------------------------------------------------//
-// Helper functions for 2D histogram comparison
+// 2D histogram helper functions
 //---------------------------------------------------------------------------//
 void SetAxisStyle(TAxis* axis,
                   double titleSize,
@@ -366,19 +671,16 @@ void SetAxisStyle(TAxis* axis,
                   bool isXaxis)
 {
     if (isXaxis)
-    {
         axis->SetMaxDigits(4);
-    }
     axis->SetTitleSize(titleSize);
     axis->SetTitleOffset(titleOffset);
     axis->SetLabelSize(labelSize);
     axis->SetLabelOffset(labelOffset);
     axis->SetTickLength(tickLength);
     axis->SetNdivisions(nDivisions);
-    return;
 }
 
-void DrawEntryNote(TCanvas* c, TH2D* h, int pad_num, TString primary)
+void DrawEntryNote(TCanvas* c, TH2D*, int pad_num, TString primary)
 {
     TLatex* text = new TLatex(0.37, 0.88, Form("%s", primary.Data()));
     text->SetTextSize(0.04);
@@ -387,11 +689,58 @@ void DrawEntryNote(TCanvas* c, TH2D* h, int pad_num, TString primary)
     text->Draw();
 }
 
+// Helper functions to fill 2D histograms from hit collections
+template<typename HitType>
+void fill_2D_rz_hist_impl(TH2D* h, std::vector<HitType*> const& hits)
+{
+    for (auto const& hit : hits)
+    {
+        if (hit)
+        {
+            double x = hit->position.x();
+            double y = hit->position.y();
+            double z = hit->position.z();
+            double r = TMath::Sqrt(x * x + y * y);
+            h->Fill(z, r);
+        }
+    }
+}
+
+void fill_2D_rz_hist(
+    TH2D* h,
+    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>>& hits)
+{
+    fill_2D_rz_hist_impl(h, *hits);
+}
+
+void fill_2D_rz_tracker_hist(
+    TH2D* h,
+    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>>& hits)
+{
+    fill_2D_rz_hist_impl(h, *hits);
+}
+
+void fill_2D_phiz_hist(
+    TH2D* h,
+    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>>& hits)
+{
+    for (auto const& hit : *hits)
+    {
+        if (hit)
+        {
+            double x = hit->position.x();
+            double y = hit->position.y();
+            double z = hit->position.z();
+            double phi = TMath::ATan2(y, x);
+            h->Fill(z, phi);
+        }
+    }
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 // Create 2D histograms from DD4hep data
 void create_2D_histograms(TString file, TH2D* h, TString plot_type)
 {
-    std::cout << "Processing 2D data from " << file.Data() << std::endl;
     auto tfile = TFile::Open(file.Data(), "read");
     if (!tfile || tfile->IsZombie())
     {
@@ -402,44 +751,39 @@ void create_2D_histograms(TString file, TH2D* h, TString plot_type)
     // Create TTreeReader
     TTreeReader reader("EVENT", tfile);
 
-    // Define TTreeReaderValues for different branches
-    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>> trackerHits(
-        reader, "SiTrackerBarrelHits");
+    // All tracker collections
+    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>>
+        siVertexBarrelHits(reader, "SiVertexBarrelHits");
+    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>>
+        siVertexEndcapHits(reader, "SiVertexEndcapHits");
+    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>>
+        siTrackerBarrelHits(reader, "SiTrackerBarrelHits");
+    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>>
+        siTrackerEndcapHits(reader, "SiTrackerEndcapHits");
+    TTreeReaderValue<std::vector<dd4hep::sim::Geant4Tracker::Hit*>>
+        siTrackerForwardHits(reader, "SiTrackerForwardHits");
+
+    // Calorimeter collection
     TTreeReaderValue<std::vector<dd4hep::sim::Geant4Calorimeter::Hit*>>
-        calorimeterHits(reader, "HcalEndcapHits");
+        ecalEndcapHits(reader, "EcalEndcapHits");
 
     // Event loop
     while (reader.Next())
     {
-        // Fill tracker r-z histogram
+        // Fill tracker r-z histogram from all tracker collections
         if (plot_type == "tracker_rz")
         {
-            for (auto const& hit : *trackerHits)
-            {
-                if (hit)
-                {
-                    double x = hit->position.x();
-                    double y = hit->position.y();
-                    double z = hit->position.z();
-                    double r = TMath::Sqrt(x * x + y * y);
-                    h->Fill(z, r);
-                }
-            }
+            fill_2D_rz_tracker_hist(h, siVertexBarrelHits);
+            fill_2D_rz_tracker_hist(h, siVertexEndcapHits);
+            fill_2D_rz_tracker_hist(h, siTrackerBarrelHits);
+            fill_2D_rz_tracker_hist(h, siTrackerEndcapHits);
+            fill_2D_rz_tracker_hist(h, siTrackerForwardHits);
         }
 
-        if (plot_type == "calo_xy")
-        {
-            // Fill calorimeter x-y histogram
-            for (auto const& hit : *calorimeterHits)
-            {
-                if (hit)
-                {
-                    double x = hit->position.x();
-                    double y = hit->position.y();
-                    h->Fill(x, y);
-                }
-            }
-        }
+        if (plot_type == "ecal_endcap_rz")
+            fill_2D_rz_hist(h, ecalEndcapHits);
+        else if (plot_type == "ecal_endcap_phiz")
+            fill_2D_phiz_hist(h, ecalEndcapHits);
     }
 
     tfile->Close();
@@ -447,71 +791,99 @@ void create_2D_histograms(TString file, TH2D* h, TString plot_type)
 
 //---------------------------------------------------------------------------//
 /*!
- * 2D histogram comparison function
+ * Compare 2D spatial histograms between two ROOT files.
+ *
+ * Supported plot types: tracker_rz, ecal_endcap_rz, ecal_endcap_phiz
  */
-int compare_2D_histos(TString f1_name,
-                      TString f2_name,
-                      TString h1_label,
-                      TString h2_label,
-                      TString plot_type,
-                      TString primary)
+bool compare_2D_histos(TString f1_name,
+                       TString f2_name,
+                       TString plot_type,
+                       TString primary)
 {
-    // Create histograms based on plot type
+    // Extract basenames for output labels
+    TString h1_label = gSystem->BaseName(f1_name);
+    h1_label.ReplaceAll(".root", "");
+    TString h2_label = gSystem->BaseName(f2_name);
+    h2_label.ReplaceAll(".root", "");
+
+    // Configure histogram parameters based on plot type
+    TString hist_name1, hist_name2, hist_title, hist_axes;
+    int nbins_x, nbins_y;
+    double xmin, xmax, ymin, ymax;
     TH2D *h1, *h2;
-    f1_name += ".root";
-    f2_name += ".root";
 
-    if (plot_type == "calo_xy")
+    if (plot_type == "tracker_rz")
     {
-        h1 = new TH2D("h1_calo_xy",
-                      "Calorimeter Hit Position;X [mm];Y [mm]",
-                      200,
-                      -2000,
-                      2000,
-                      200,
-                      -2000,
-                      2000);
-        h2 = new TH2D("h2_calo_xy",
-                      "Calorimeter Hit Position;X [mm];Y [mm]",
-                      200,
-                      -2000,
-                      2000,
-                      200,
-                      -2000,
-                      2000);
-
-        // Fill histograms from DD4hep data
-        create_2D_histograms(f1_name, h1, plot_type);
-        create_2D_histograms(f2_name, h2, plot_type);
+        hist_name1 = "h1_tracker_rz";
+        hist_name2 = "h2_tracker_rz";
+        hist_title = "Tracker Hit r-z Distribution;z [mm];r [mm]";
+        nbins_x = 40;
+        xmin = -1500;
+        xmax = 2500;
+        nbins_y = 30;
+        ymin = 0;
+        ymax = 1500;
     }
-    else if (plot_type == "tracker_rz")
+    else if (plot_type == "ecal_endcap_rz")
     {
-        h1 = new TH2D("h1_tracker_rz",
-                      "Tracker Hit r-z Distribution;z [mm];r [mm]",
-                      200,
-                      -3000,
-                      3000,
-                      100,
-                      0,
-                      2000);
-        h2 = new TH2D("h2_tracker_rz",
-                      "Tracker Hit r-z Distribution;z [mm];r [mm]",
-                      200,
-                      -3000,
-                      3000,
-                      100,
-                      0,
-                      2000);
-
-        // Fill histograms from DD4hep data
-        create_2D_histograms(f1_name, h1, plot_type);
-        create_2D_histograms(f2_name, h2, plot_type);
+        hist_name1 = "h1_ecal_endcap_rz";
+        hist_name2 = "h2_ecal_endcap_rz";
+        hist_title = "ECAL Endcap Hit r-z Distribution;z [mm];r [mm]";
+        nbins_x = 30;
+        xmin = 1400;
+        xmax = 2000;
+        nbins_y = 30;
+        ymin = 200;  // Lower range to capture full shower at eta 2.0-2.1
+        ymax = 800;
+    }
+    else if (plot_type == "ecal_endcap_phiz")
+    {
+        hist_name1 = "h1_ecal_endcap_phiz";
+        hist_name2 = "h2_ecal_endcap_phiz";
+        hist_title = "ECAL Endcap Hit #phi-z Distribution;z [mm];#phi [rad]";
+        nbins_x = 30;
+        xmin = 1400;
+        xmax = 2000;
+        nbins_y = 24;
+        ymin = -TMath::Pi();
+        ymax = TMath::Pi();
     }
     else
     {
-        std::cerr << "Error: Unknown plot type " << plot_type.Data()
-                  << std::endl;
-        return 1;
+        std::cerr << "Error: Unknown plot type " << plot_type << std::endl;
+        return false;
+    }
+
+    // Create histograms with configured parameters
+    h1 = new TH2D(
+        hist_name1, hist_title, nbins_x, xmin, xmax, nbins_y, ymin, ymax);
+    h2 = new TH2D(
+        hist_name2, hist_title, nbins_x, xmin, xmax, nbins_y, ymin, ymax);
+
+    // Fill histograms from DD4hep data
+    create_2D_histograms(f1_name, h1, plot_type);
+    create_2D_histograms(f2_name, h2, plot_type);
+
+    // Calculate and print shower profile metrics (calorimeters only)
+    bool passed = true;  // Default to pass for non-validated plots (e.g.,
+                         // tracker)
+    if (plot_type.Contains("ecal"))
+    {
+        ShowerMetrics shower1, shower2;
+        if (plot_type.Contains("_rz"))
+        {
+            shower1 = calculate_shower_metrics_rz(h1);
+            shower2 = calculate_shower_metrics_rz(h2);
+        }
+        else if (plot_type.Contains("_phiz"))
+        {
+            shower1 = calculate_shower_metrics_phiz(h1);
+            shower2 = calculate_shower_metrics_phiz(h2);
+        }
+
+        ShowerComparison shower_comp
+            = compare_shower_metrics(shower1, shower2, h1, h2);
+        passed = print_shower_metrics(plot_type, shower1, shower2, shower_comp);
     }
 
     // Initialize canvas
@@ -571,36 +943,175 @@ int compare_2D_histos(TString f1_name,
     delete h1;
     delete h2;
 
-    return 0;
+    return passed;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Wrapper function for backward compatibility and demonstration
+ * Main entry point: Compare all relevant histograms between two
+ * configurations.
+ *
+ * Validation tests performed (6 total):
+ * - Initial distributions (pt, eta, phi): KS test (p-value > 0.05)
+ * - Calorimeter energy (ecal_endcap_energy): Total energy difference < 3%
+ * - Shower profiles (ecal_endcap_rz, ecal_endcap_phiz): Percentiles within 3%
+ * - Tracker distribution (tracker_rz): Informational only
  */
 void compare_benchmarks(TString config1_rootfile, TString config2_rootfile)
 {
-    std::cout << "Running 1D histogram comparison..." << std::endl;
-    compare_1D_histos(config1_rootfile, config2_rootfile, "pt");
-    compare_1D_histos(config1_rootfile, config2_rootfile, "eta");
-    compare_1D_histos(config1_rootfile, config2_rootfile, "phi");
-    compare_1D_histos(config1_rootfile, config2_rootfile, "calo_energy");
+    std::cout << "\n========================================" << std::endl;
+    std::cout << "   DD4hep Validation Benchmark" << std::endl;
+    std::cout << "========================================\n" << std::endl;
 
-    std::cout << "Running 2D histogram comparisons..." << std::endl;
-    config1_rootfile.ReplaceAll(".root", "");
-    config2_rootfile.ReplaceAll(".root", "");
-    // Example 2D comparisons
-    compare_2D_histos(config1_rootfile,
-                      config2_rootfile,
-                      config1_rootfile,
-                      config2_rootfile,
-                      "calo_xy",
-                      "DD4hep Calorimeter Analysis");
+    bool all_tests_passed = true;
+    int num_tests = 0;
+    int num_passed = 0;
 
-    compare_2D_histos(config1_rootfile,
-                      config2_rootfile,
-                      config1_rootfile,
-                      config2_rootfile,
-                      "tracker_rz",
-                      "DD4hep Tracker Analysis");
+    // Test 1-3: Initial kinematic distributions (KS test)
+    std::cout << "[1/3] Initial Particle Distributions (KS Test)" << std::endl;
+    bool test_pt = compare_1D_histos(config1_rootfile, config2_rootfile, "pt");
+    num_tests++;
+    if (test_pt)
+        num_passed++;
+    all_tests_passed = all_tests_passed && test_pt;
+
+    bool test_eta
+        = compare_1D_histos(config1_rootfile, config2_rootfile, "eta");
+    num_tests++;
+    if (test_eta)
+        num_passed++;
+    all_tests_passed = all_tests_passed && test_eta;
+
+    bool test_phi
+        = compare_1D_histos(config1_rootfile, config2_rootfile, "phi");
+    num_tests++;
+    if (test_phi)
+        num_passed++;
+    all_tests_passed = all_tests_passed && test_phi;
+
+    // Test 4: ECAL endcap energy distribution (total energy difference < 3%)
+    std::cout << "\n[2/3] Calorimeter Energy Deposition" << std::endl;
+    bool test_energy = compare_1D_histos(
+        config1_rootfile, config2_rootfile, "ecal_endcap_energy");
+    num_tests++;
+    if (test_energy)
+        num_passed++;
+    all_tests_passed = all_tests_passed && test_energy;
+
+    // Test 5-6: ECAL endcap shower profiles (2D histograms)
+    std::cout << "\n[3/3] Shower Profile Distributions" << std::endl;
+    bool test_shower_rz = compare_2D_histos(config1_rootfile,
+                                            config2_rootfile,
+                                            "ecal_endcap_rz",
+                                            "DD4hep ECAL Endcap Analysis");
+    num_tests++;
+    if (test_shower_rz)
+        num_passed++;
+    all_tests_passed = all_tests_passed && test_shower_rz;
+
+    bool test_shower_phiz = compare_2D_histos(config1_rootfile,
+                                              config2_rootfile,
+                                              "ecal_endcap_phiz",
+                                              "DD4hep ECAL Endcap Analysis");
+    num_tests++;
+    if (test_shower_phiz)
+        num_passed++;
+    all_tests_passed = all_tests_passed && test_shower_phiz;
+
+    // Print summary
+    std::cout << "\n========================================" << std::endl;
+    std::cout << "   Validation Summary" << std::endl;
+    std::cout << "========================================" << std::endl;
+    std::cout << "Tests passed: " << num_passed << "/" << num_tests
+              << std::endl;
+    std::cout << "Overall: " << (all_tests_passed ? "PASS ✓" : "FAIL ✗")
+              << std::endl;
+    std::cout << "========================================\n" << std::endl;
+
+    // Return exit code for CI/CD
+    if (!all_tests_passed)
+    {
+        exit(1);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Main entry point for compiled executable.
+ */
+int main(int argc, char** argv)
+{
+    // Load DD4hep dictionaries for ROOT to properly access DD4hep classes
+    gSystem->Load("libDDG4Plugins.so");
+    gSystem->Load("libDDG4.so");
+
+    TString file1, file2;
+
+    // Try to read from command-line arguments first
+    if (argc == 3)
+    {
+        file1 = argv[1];
+        file2 = argv[2];
+    }
+    // Fall back to environment variables
+    else if (argc == 1)
+    {
+        char const* env_file1 = std::getenv("DDCELER_FILE1");
+        char const* env_file2 = std::getenv("DDCELER_FILE2");
+
+        if (!env_file1 || !env_file2)
+        {
+            std::cerr << "Usage: " << argv[0] << " <file1.root> <file2.root>"
+                      << std::endl;
+            std::cerr << "\nOr set environment variables DDCELER_FILE1 and "
+                         "DDCELER_FILE2"
+                      << std::endl;
+            std::cerr
+                << "\nCompares two DD4hep simulation outputs for validation."
+                << std::endl;
+            std::cerr << "Example: " << argv[0]
+                      << " output_celeritas.root output_geant4.root"
+                      << std::endl;
+            std::cerr << "Example: DDCELER_FILE1=file1.root "
+                         "DDCELER_FILE2=file2.root "
+                      << argv[0] << std::endl;
+            return 1;
+        }
+
+        file1 = env_file1;
+        file2 = env_file2;
+    }
+    else
+    {
+        std::cerr << "Usage: " << argv[0] << " <file1.root> <file2.root>"
+                  << std::endl;
+        std::cerr
+            << "\nOr set environment variables DDCELER_FILE1 and DDCELER_FILE2"
+            << std::endl;
+        std::cerr << "\nCompares two DD4hep simulation outputs for validation."
+                  << std::endl;
+        std::cerr << "Example: " << argv[0]
+                  << " output_celeritas.root output_geant4.root" << std::endl;
+        std::cerr
+            << "Example: DDCELER_FILE1=file1.root DDCELER_FILE2=file2.root "
+            << argv[0] << std::endl;
+        return 1;
+    }
+
+    // Check if files exist
+    if (gSystem->AccessPathName(file1))
+    {
+        std::cerr << "Error: Cannot access file: " << file1 << std::endl;
+        return 1;
+    }
+    if (gSystem->AccessPathName(file2))
+    {
+        std::cerr << "Error: Cannot access file: " << file2 << std::endl;
+        return 1;
+    }
+
+    // Run comparison
+    compare_benchmarks(file1, file2);
+
+    return 0;
 }
