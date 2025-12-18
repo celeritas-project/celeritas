@@ -90,18 +90,9 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 
     // Convert Cartesian to cylindrical coordinates
     real_type r = hypot(pos[0], pos[1]);
-    // Ensure phi is in [0, 2\f$\pi\f$)
+    // Wrap turn from [-1/2; 1/2] into [0, 1)
     auto phi = atan2turn<real_type>(pos[1], pos[0]);
-    if (phi < zero_quantity())
-    {
-        phi.value() += 1;
-    }
-    if (CELER_UNLIKELY(phi.value() == 1))
-    {
-        // Make sure phi is in [0, 1). If phi is a negative value smaller
-        // than machine epsilon, adding 1 will result in phi equal to 1
-        phi.value() = 0;
-    }
+    phi.value() -= floor(phi.value());
     CELER_ASSERT(phi >= zero_quantity() && phi.value() < 1);
 
     // Check if point is within field map bounds
@@ -143,15 +134,9 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
     }
 
     // Project cylindrical components to Cartesian coordinates
-    // default for r == 0
-    real_type cos_phi = 1;
-    real_type sin_phi = 0;
-
-    if (r != 0)
-    {
-        cos_phi = pos[0] / r;
-        sin_phi = pos[1] / r;
-    }
+    real_type sin_phi;
+    real_type cos_phi;
+    sincos(phi, &sin_phi, &cos_phi);
     value[0] = interp_field[CylAxis::r] * cos_phi
                - interp_field[CylAxis::phi] * sin_phi;
     value[1] = interp_field[CylAxis::r] * sin_phi
