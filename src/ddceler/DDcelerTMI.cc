@@ -154,21 +154,23 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
         << " mm";
 
     // Use a uniform magnetic field based on DD4hep ConstantField
-    auto make_field_input
-        = [field_direction, min_step, delta_chord, delta_intersection] {
-              celeritas::inp::UniformField input;
+    auto make_field_input = [field_direction,
+                             min_step,
+                             delta_chord,
+                             delta_intersection,
+                             dd4hep_tesla] {
+        celeritas::inp::UniformField input;
 
-              // Convert from DD4hep units (tesla) to Celeritas field units
-              constexpr double dd4hep_tesla = dd4hep::tesla;
-              input.strength = {field_direction.X() / dd4hep_tesla,
-                                field_direction.Y() / dd4hep_tesla,
-                                field_direction.Z() / dd4hep_tesla};
+        // Convert from DD4hep units (tesla) to Celeritas field units
+        input.strength = {field_direction.X() / dd4hep_tesla,
+                          field_direction.Y() / dd4hep_tesla,
+                          field_direction.Z() / dd4hep_tesla};
 
-              input.driver_options.minimum_step = min_step;
-              input.driver_options.delta_chord = delta_chord;
-              input.driver_options.delta_intersection = delta_intersection;
-              return input;
-          };
+        input.driver_options.minimum_step = min_step;
+        input.driver_options.delta_chord = delta_chord;
+        input.driver_options.delta_intersection = delta_intersection;
+        return input;
+    };
     opts.make_along_step = celeritas::UniformAlongStepFactory(make_field_input);
     opts.sd.ignore_zero_deposition = false;
 
