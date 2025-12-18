@@ -87,7 +87,6 @@ void UserActionIntegration::PreUserTrackingAction(G4Track* track)
     // Optical track offload path
     if (track->GetDefinition() == G4OpticalPhoton::Definition())
     {
-        CELER_LOG(debug) << "Entering optical offload in user action";
         auto& opt_local
             = detail::IntegrationSingleton::local_optical_track_offload();
         if (opt_local)
@@ -130,13 +129,6 @@ void UserActionIntegration::EndOfEventAction(G4Event const*)
     CELER_TRY_HANDLE(
         local.Flush(),
         ExceptionConverter("celer.event.flush", &singleton.shared_params()));
-    auto& opt = detail::IntegrationSingleton::local_optical_track_offload();
-    if (opt && opt.GetBufferSize() > 0)
-    {
-        CELER_LOG(info) << "EOE flushing optical tracks";
-        opt.Flush();
-    }
-    // Record the time for this event
     singleton.shared_params().timer()->RecordEventTime(get_event_time_());
 }
 

@@ -328,7 +328,7 @@ auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
     auto result = LarSphereIntegrationMixin::make_setup_options();
     result.optical = [] {
         OpticalSetupOptions opt;
-        opt.capacity.tracks = 1;
+        opt.capacity.tracks = 32;
         opt.capacity.generators = opt.capacity.tracks * 8;
         opt.capacity.primaries = opt.capacity.tracks * 16;
         opt.generator = inp::OpticalTrackOffload{};
@@ -343,25 +343,14 @@ auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
     return result;
 }
 
-// sIntegrationTestBase::UPTrackAction
-// sLarSphereOpticalTrackOffload::make_tracking_action()
-// s{
-// s    CELER_LOG(info) << "Optical photon seen in G4";
-// s     return std::make_unique<LSTOTrackingAction>();
-// s}
-
 TEST_F(LarSphereOpticalTrackOffload, run)
 {
     auto& rm = this->run_manager();
+    rm.SetNumberOfThreads(1);
     UAI::Instance().SetOptions(this->make_setup_options());
 
     rm.Initialize();
     rm.BeamOn(1);
-
-    // auto& local
-    //     =
-    //     detail::IntegrationSingleton::instance().local_optical_track_offload();
-    // EXPECT_FALSE(local);  // flushed after event
 }
 
 //---------------------------------------------------------------------------//

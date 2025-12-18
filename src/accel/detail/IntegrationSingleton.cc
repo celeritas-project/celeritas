@@ -125,11 +125,10 @@ LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
  */
 LocalOpticalTrackOffload& IntegrationSingleton::local_optical_track_offload()
 {
-    CELER_LOG(info) << "Entered integration singleton";
     auto& offload = IntegrationSingleton::local_offload_ptr();
     if (!offload)
     {
-        CELER_LOG(info) << "Optical offload is not empty";
+        CELER_LOG(info) << "Optical track offload enabled";
         offload = std::make_unique<LocalOpticalTrackOffload>();
     }
     auto* lt = dynamic_cast<LocalOpticalTrackOffload*>(offload.get());
