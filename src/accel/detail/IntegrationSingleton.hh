@@ -11,7 +11,7 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "accel/LocalOpticalTrackOffload.hh"
 
-#include "../LocalOpticalOffload.hh"
+#include "../LocalOpticalGenOffload.hh"
 #include "../LocalTransporter.hh"
 #include "../SetupOptions.hh"
 #include "../SharedParams.hh"
@@ -53,7 +53,7 @@ class IntegrationSingleton
     static LocalTransporter& local_transporter();
 
     // Static THREAD-LOCAL Celeritas optical state data
-    static LocalOpticalOffload& local_optical_offload();
+    static LocalOpticalGenOffload& local_optical_offload();
 
     // Static Thread-local Celeritas optical track offload
     static LocalOpticalTrackOffload& local_optical_track_offload();

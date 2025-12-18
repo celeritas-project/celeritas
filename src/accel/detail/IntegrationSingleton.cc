@@ -97,7 +97,7 @@ LocalTransporter& IntegrationSingleton::local_transporter()
     auto* lt = dynamic_cast<LocalTransporter*>(offload.get());
     CELER_VALIDATE(lt,
                    << "Cannot access LocalTransporter when "
-                      "LocalOpticalOffload is being used");
+                      "LocalOpticalGenOffload is being used");
     return *lt;
 }
 
@@ -105,16 +105,16 @@ LocalTransporter& IntegrationSingleton::local_transporter()
 /*!
  * Static THREAD-LOCAL Celeritas optical state data.
  */
-LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
+LocalOpticalGenOffload& IntegrationSingleton::local_optical_offload()
 {
     auto& offload = IntegrationSingleton::local_offload_ptr();
     if (!offload)
     {
-        offload = std::make_unique<LocalOpticalOffload>();
+        offload = std::make_unique<LocalOpticalGenOffload>();
     }
-    auto* lt = dynamic_cast<LocalOpticalOffload*>(offload.get());
+    auto* lt = dynamic_cast<LocalOpticalGenOffload*>(offload.get());
     CELER_VALIDATE(lt,
-                   << "Cannot access LocalOpticalOffload when "
+                   << "Cannot access LocalOpticalGenOffload when "
                       "LocalTransporter is being used");
     return *lt;
 }
