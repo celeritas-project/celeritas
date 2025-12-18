@@ -295,6 +295,12 @@ TEST_F(LarSphereOpticalOffload, run)
 //---------------------------------------------------------------------------//
 // LAR SPHERE WITH OPTICAL TRACK OFFLOAD
 //---------------------------------------------------------------------------//
+class LSOOTrackingAction final : public G4UserTrackingAction
+{
+    void PreUserTrackingAction(G4Track const* track) final;
+};
+
+//---------------------------------------------------------------------------//
 class LarSphereOpticalTrackOffload : public LarSphere
 {
   public:
@@ -302,7 +308,7 @@ class LarSphereOpticalTrackOffload : public LarSphere
     SetupOptions make_setup_options() override;
     UPTrackAction make_tracking_action() override
     {
-        return std::make_unique<UAITrackingAction>();
+        return std::make_unique<LSOOTrackingAction>();
     }
 };
 
@@ -341,6 +347,30 @@ auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
     result.offload_particles = SetupOptions::VecG4PD{};
 
     return result;
+}
+
+void LSOOTrackingAction::PreUserTrackingAction(G4Track const* track)
+{
+    CELER_EXPECT(track);
+
+    auto& singleton = detail::IntegrationSingleton::instance();
+    auto const mode = singleton.shared_params().mode();
+    if (mode == SharedParams::Mode::disabled)
+        return;
+
+    // Optical track offload path
+    if (track->GetDefinition() == G4OpticalPhoton::Definition())
+    {
+        auto& opt_local
+            = detail::IntegrationSingleton::local_optical_track_offload();
+        if (opt_local)
+        {
+            auto* mutable_track = const_cast<G4Track*>(track);
+            opt_local.Push(*mutable_track);
+            mutable_track->SetTrackStatus(fStopAndKill);
+            return;
+        }
+    }
 }
 
 TEST_F(LarSphereOpticalTrackOffload, run)

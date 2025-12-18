@@ -7,7 +7,6 @@
 #include "UserActionIntegration.hh"
 
 #include <G4Event.hh>
-#include <G4OpticalPhoton.hh>
 #include <G4Threading.hh>
 #include <G4Track.hh>
 
@@ -84,18 +83,6 @@ void UserActionIntegration::PreUserTrackingAction(G4Track* track)
     if (mode == SharedParams::Mode::disabled)
         return;
 
-    // Optical track offload path
-    if (track->GetDefinition() == G4OpticalPhoton::Definition())
-    {
-        auto& opt_local
-            = detail::IntegrationSingleton::local_optical_track_offload();
-        if (opt_local)
-        {
-            opt_local.Push(*track);
-            track->SetTrackStatus(fStopAndKill);
-            return;
-        }
-    }
     auto const& particles = singleton.shared_params().OffloadParticles();
     if (std::find(particles.begin(), particles.end(), track->GetDefinition())
         != particles.end())
@@ -129,6 +116,8 @@ void UserActionIntegration::EndOfEventAction(G4Event const*)
     CELER_TRY_HANDLE(
         local.Flush(),
         ExceptionConverter("celer.event.flush", &singleton.shared_params()));
+
+    // Record the time for this event
     singleton.shared_params().timer()->RecordEventTime(get_event_time_());
 }
 
