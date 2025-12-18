@@ -17,6 +17,9 @@ include(CeleritasOptionUtils)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 
+# Enable CTest support
+enable_testing()
+
 #----------------------------------------------------------------------------#
 # PACKAGE OPTIONS
 #----------------------------------------------------------------------------#
@@ -371,6 +374,9 @@ if(CELERITAS_USE_DD4hep)
     include(${DD4hep_DIR}/cmake/DD4hep.cmake)
     include(${DD4hep_DIR}/cmake/DD4hepBuild.cmake)
   endif()
+
+  # Add DD4hep examples
+  add_subdirectory(example/ddceler)
 endif()
 
 if(CELERITAS_USE_HepMC3)
