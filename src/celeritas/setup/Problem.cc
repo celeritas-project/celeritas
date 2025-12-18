@@ -313,6 +313,7 @@ auto build_optical_params(inp::Problem const& p,
     params.surface = core.surface();
     params.action_reg = std::make_shared<ActionRegistry>();
     params.gen_reg = std::make_shared<GeneratorRegistry>();
+    params.aux_reg = core.aux_reg();
     params.max_streams = core.max_streams();
     {
         // Construct optical physics models
@@ -689,41 +690,41 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                 "optical-sizes",
                 std::move(sizes)));
 
-        std::visit(
-            Overload{
-                [&](inp::OpticalEmGenerator) {
-                    // Generate Cherenkov or scintillation optical
-                    // photons from Celeritas tracks
-                    result.optical_collector = build_optical_offload(
-                        p, *core_params, optical_params);
-                },
-                [&](inp::OpticalOffloadGenerator) {
-                    // Generate Cherenkov or scintillation photons
-                    optical::GeneratorAction::make_and_insert(
-                        *core_params, *optical_params, capacity.generators);
+        std::visit(Overload{
+                       [&](inp::OpticalEmGenerator) {
+                           // Generate Cherenkov or scintillation optical
+                           // photons from Celeritas tracks
+                           result.optical_collector = build_optical_offload(
+                               p, *core_params, optical_params);
+                       },
+                       [&](inp::OpticalOffloadGenerator) {
+                           // Generate Cherenkov or scintillation photons
+                           optical::GeneratorAction::make_and_insert(
+                               *optical_params, capacity.generators);
 
-                    // Build the optical transporter \em after all optical
-                    // actions have been added to the registry
-                    optical::Transporter::Input inp;
-                    inp.params = optical_params;
-                    if (action_times)
-                    {
-                        // Create aux data to accumulate optical action times
-                        inp.action_times = ActionTimes::make_and_insert(
-                            optical_params->action_reg(),
-                            core_params->aux_reg(),
-                            "optical-action-times");
-                    }
-                    result.optical_transporter
-                        = std::make_shared<optical::Transporter>(
-                            std::move(inp));
-                },
-                [](inp::OpticalPrimaryGenerator) {
-                    //! \todo Enable optical primary generator
-                    CELER_NOT_IMPLEMENTED("optical primary generator");
-                },
-            },
-            p.physics.optical_generator);
+                           // Build the optical transporter \em after all
+                           // optical actions have been added to the registry
+                           optical::Transporter::Input inp;
+                           inp.params = optical_params;
+                           if (action_times)
+                           {
+                               // Create aux data to accumulate optical action
+                               // times
+                               inp.action_times = ActionTimes::make_and_insert(
+                                   optical_params->action_reg(),
+                                   core_params->aux_reg(),
+                                   "optical-action-times");
+                           }
+                           result.optical_transporter
+                               = std::make_shared<optical::Transporter>(
+                                   std::move(inp));
+                       },
+                       [](inp::OpticalPrimaryGenerator) {
+                           //! \todo Enable optical primary generator
+                           CELER_NOT_IMPLEMENTED("optical primary generator");
+                       },
+                   },
+                   p.physics.optical_generator);
     }
     else
     {

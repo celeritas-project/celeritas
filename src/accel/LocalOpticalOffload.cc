@@ -88,10 +88,10 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
     }
 
     // Allocate auxiliary data
-    if (params.Params()->aux_reg())
+    if (optical_params.aux_reg())
     {
         state_->aux() = std::make_shared<AuxStateVec>(
-            *params.Params()->aux_reg(), memspace, stream_id, capacity.tracks);
+            *optical_params.aux_reg(), memspace, stream_id, capacity.tracks);
     }
 
     CELER_ENSURE(*this);

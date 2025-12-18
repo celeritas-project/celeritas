@@ -22,6 +22,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class AuxParamsRegistry;
 class CherenkovParams;
 class GeneratorRegistry;
 class ScintillationParams;
@@ -51,6 +52,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
     using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
     using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
@@ -77,6 +79,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
         SPActionRegistry action_reg;
         SPGeneratorRegistry gen_reg;
+        SPAuxRegistry aux_reg;  //!< Optional, empty default
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
@@ -115,6 +118,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         return input_.surface_physics;
     }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
+    SPAuxRegistry const& aux_reg() const { return input_.aux_reg; }
     SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
     SPConstDetectors const& detectors() const { return detectors_; }
     SPConstCherenkov const& cherenkov() const { return input_.cherenkov; }

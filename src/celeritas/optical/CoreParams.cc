@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "CoreParams.hh"
 
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -131,6 +132,10 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     if (!detectors_)
     {
         detectors_ = std::make_shared<SDParams>();
+    }
+    if (!input_.aux_reg)
+    {
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
     }
 
     ScopedMem record_mem("optical::CoreParams.construct");

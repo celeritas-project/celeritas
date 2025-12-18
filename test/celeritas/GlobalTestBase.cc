@@ -186,6 +186,7 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.surface = this->core()->surface();
     inp.action_reg = this->optical_action_reg();
     inp.gen_reg = std::make_shared<GeneratorRegistry>();
+    inp.aux_reg = this->core()->aux_reg();
     inp.physics = this->optical_physics();
     inp.sim = this->optical_sim();
     inp.surface_physics = this->optical_surface_physics();

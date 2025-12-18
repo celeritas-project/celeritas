@@ -59,8 +59,8 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         = OffloadGatherAction<StepActionOrder::pre>::make_and_insert(core);
 
     // Create optical action to generate Cherenkov or scintillation photons
-    generate_ = optical::GeneratorAction::make_and_insert(
-        core, *inp.optical_params, inp.buffer_capacity);
+    generate_ = optical::GeneratorAction::make_and_insert(*inp.optical_params,
+                                                          inp.buffer_capacity);
 
     if (inp.optical_params->cherenkov())
     {
