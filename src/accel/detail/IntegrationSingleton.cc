@@ -121,14 +121,14 @@ LocalOpticalGenOffload& IntegrationSingleton::local_optical_offload()
 
 //---------------------------------------------------------------------------//
 /*!
- * Static THREAD-LOCAL Celeritas optical state data.
+ * Static thread-local Celeritas optical track.
  */
 LocalOpticalTrackOffload& IntegrationSingleton::local_optical_track_offload()
 {
     auto& offload = IntegrationSingleton::local_offload_ptr();
     if (!offload)
     {
-        CELER_LOG(info) << "Optical track offload enabled";
+        CELER_LOG(info) << "Optical track offload initialised";
         offload = std::make_unique<LocalOpticalTrackOffload>();
     }
     auto* lt = dynamic_cast<LocalOpticalTrackOffload*>(offload.get());
@@ -397,7 +397,7 @@ auto IntegrationSingleton::local_offload_ptr() -> UPOffload&
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the local optical offload is used.
+ * Whether the local optical generator offload is used.
  */
 bool IntegrationSingleton::optical_offload() const
 {
@@ -406,6 +406,10 @@ bool IntegrationSingleton::optical_offload() const
                options_.optical->generator);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the local optical track offload is used.
+ */
 bool IntegrationSingleton::optical_track_offload() const
 {
     return options_.optical && options_.optical->offload_tracks;

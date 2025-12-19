@@ -129,7 +129,7 @@ struct OpticalSetupOptions
     size_type max_steps{inp::TrackingLimits::unlimited};
     //! Limit on number of optical step iterations before aborting
     size_type max_step_iters{inp::TrackingLimits::unlimited};
-
+    //! Optical photon track offload option
     bool offload_tracks{false};
 };
 

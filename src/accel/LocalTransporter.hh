@@ -49,8 +49,6 @@ class StepperInterface;
  *
  * \warning Due to Geant4 thread-local allocators, this class \em must be
  * finalized or destroyed on the same CPU thread in which is created and used!
- *
- * \todo Rename \c LocalOffload or something?
  */
 class LocalTransporter final : public TrackOffloadInterface
 {

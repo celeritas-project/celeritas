@@ -76,7 +76,7 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     //! Get the shared params associated with this TM
     SharedParams const* shared_params() const { return shared_; }
 
-    // Get the local transporter associated with the current thread ID
+    // Get the track transporter associated with the current thread ID
     TrackOffloadInterface* get_local_transporter() const;
 
   private:

@@ -9,12 +9,8 @@
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/TrackInitializer.hh"
-#include "celeritas/optical/Transporter.hh"
-#include "accel/TrackOffloadInterface.hh"
 
 #include "TrackOffloadInterface.hh"
-
-class G4EventManager;
 
 namespace celeritas
 {
@@ -29,17 +25,17 @@ class SharedParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    LocalOpticalTrackOffload ...;
-   \endcode
+ * Offload Geant4 optical photon tracks to Celeritas.
  */
 class LocalOpticalTrackOffload final : public TrackOffloadInterface
 {
   public:
+    //!@{
+    //! \name Type aliases
     using TrackData = optical::TrackInitializer;
+    //!@}
+
+  public:
     // Construct in an invalid state
     LocalOpticalTrackOffload() = default;
 
@@ -47,7 +43,9 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
     LocalOpticalTrackOffload(SetupOptions const& options, SharedParams& params);
 
     //!@{
-    //! \name Type aliases
+    //! \name TrackOffloadInterface
+
+    // Initialize with options and shared data
     void Initialize(SetupOptions const&, SharedParams&) final;
 
     // Set the event ID and reseed the Celeritas RNG at the start of an event
@@ -60,36 +58,41 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
     void Finalize() final;
 
     // Whether the class instance is initialized
-    bool Initialized() const final { return static_cast<bool>(state_); }
-    // Offload optical distribution data to Celeritas
-    void Push(G4Track&) final;
+    bool Initialized() const final { return static_cast<bool>(transport_); }
+
     // Number of buffered tracks
     size_type GetBufferSize() const final { return pending_tracks_; }
 
-    // Optical tracks pushed
-    size_type num_pushed() const { return num_pushed_; }
     // Get accumulated action times
     MapStrDbl GetActionTime() const final;
     //!@}
 
+    // Offload optical distribution track to Celeritas
+    void Push(G4Track&) final;
+
   private:
     // Transport pending optical tracks
     std::shared_ptr<optical::Transporter> transport_;
+
     // Thread-local state data
     std::shared_ptr<optical::CoreStateBase> state_;
 
+    // Buffered tracks for offloading
     std::vector<TrackData> buffer_;
-    size_type pending_tracks_{};
+
     // Number of photons tracks to buffer before offloading
     size_type auto_flush_{};
-    //  size_type num_pushed_{};
-    // Diagnostics (thread-local)
-    size_type num_pushed_{0};
-    size_type num_flushed_{0};
-    // size_type num_events_{0};
-    //  Current event ID or manager for obtaining it
+
+    // Accumulated number of optical photon tracks
+    size_type num_pushed_{};
+
+    // Accumulated number of tracks pushed over flushes
+    size_type num_flushed_{};
+
+    size_type pending_tracks_{};
+
+    //  Current event ID for obtaining it
     UniqueEventId event_id_;
-    G4EventManager* event_manager_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

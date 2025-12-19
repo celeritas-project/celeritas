@@ -342,7 +342,6 @@ SharedParams::SharedParams(SetupOptions const& options)
         {
             optical_transporter_
                 = std::move(loaded.problem.optical_transporter);
-            CELER_LOG(info) << "could break here in optical offload";
             CELER_ASSERT(optical_transporter_);
         }
         else

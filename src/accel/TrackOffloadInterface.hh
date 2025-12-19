@@ -14,18 +14,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    TrackOffloadInterface ...;
-   \endcode
+ * Interface for offloading complete Geant4 tracks to Celeritas.
+ * It allows the Geant4 tracking manager to forward full
+ * track to Celeritas, such as EM or optical track transport.
  */
 class TrackOffloadInterface : public LocalOffloadInterface
 {
   public:
     // Construct with defaults
-    virtual ~TrackOffloadInterface() = default;
+    ~TrackOffloadInterface() override = default;
 
     // Push a full Geant4 track to Celeritas
     virtual void Push(G4Track&) = 0;

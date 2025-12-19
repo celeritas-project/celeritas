@@ -301,6 +301,9 @@ class LSOOTrackingAction final : public G4UserTrackingAction
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Offload optical tracks.
+ */
 class LarSphereOpticalTrackOffload : public LarSphere
 {
   public:
@@ -312,10 +315,15 @@ class LarSphereOpticalTrackOffload : public LarSphere
     }
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical physics
+ */
 auto LarSphereOpticalTrackOffload::make_physics_input() const -> PhysicsInput
 {
     auto result = LarSphereIntegrationMixin::make_physics_input();
 
+    // Set default optical physics
     auto& optical = result.optical;
     optical = {};
 
@@ -329,6 +337,10 @@ auto LarSphereOpticalTrackOffload::make_physics_input() const -> PhysicsInput
     return result;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical tracking offloading.
+ */
 auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
@@ -342,13 +354,17 @@ auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
 
         return opt;
     }();
-    //   result.offload_particles = {};
+
     // Don't offload any particles
     result.offload_particles = SetupOptions::VecG4PD{};
 
     return result;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Tracking action for pushing optical tracks to Celeritas.
+ */
 void LSOOTrackingAction::PreUserTrackingAction(G4Track const* track)
 {
     CELER_EXPECT(track);
@@ -361,6 +377,7 @@ void LSOOTrackingAction::PreUserTrackingAction(G4Track const* track)
     // Optical track offload path
     if (track->GetDefinition() == G4OpticalPhoton::Definition())
     {
+        // optical photon track offloading is enabled
         auto& opt_local
             = detail::IntegrationSingleton::local_optical_track_offload();
         if (opt_local)
@@ -373,6 +390,7 @@ void LSOOTrackingAction::PreUserTrackingAction(G4Track const* track)
     }
 }
 
+//---------------------------------------------------------------------------//
 TEST_F(LarSphereOpticalTrackOffload, run)
 {
     auto& rm = this->run_manager();
