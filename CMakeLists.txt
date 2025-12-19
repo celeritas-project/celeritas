@@ -375,8 +375,12 @@ if(CELERITAS_USE_DD4hep)
     include(${DD4hep_DIR}/cmake/DD4hepBuild.cmake)
   endif()
 
-  # Add DD4hep examples
-  add_subdirectory(example/ddceler)
+  # Add DD4hep examples (requires ROOT for validation)
+  if(ROOT_FOUND)
+    add_subdirectory(example/ddceler)
+  else()
+    message(STATUS "ROOT not found: skipping ddceler example and validation")
+  endif()
 endif()
 
 if(CELERITAS_USE_HepMC3)

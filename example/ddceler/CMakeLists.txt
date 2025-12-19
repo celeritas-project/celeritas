@@ -2,16 +2,8 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-
-if(NOT DD4hep_FOUND)
-  message(STATUS "DD4hep not found: skipping ddceler example")
-  return()
-endif()
-
-if(NOT ROOT_FOUND)
-  message(STATUS "ROOT not found: skipping ddceler validation")
-  return()
-endif()
+# NOTE: This subdirectory is only added when CELERITAS_USE_DD4hep=ON and ROOT_FOUND=TRUE
+# (see main CMakeLists.txt), so DD4hep and ROOT are guaranteed to be available.
 
 #-----------------------------------------------------------------------------#
 # DD4hep Comparison Executable
