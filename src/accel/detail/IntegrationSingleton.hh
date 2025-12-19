@@ -61,9 +61,6 @@ class IntegrationSingleton
     // Static Thread-local Celeritas optical track offload
     static LocalOpticalTrackOffload& local_optical_track_offload();
 
-    // Thread-local offload object for particles handled by the tracking
-    // manager
-    TrackOffloadInterface& local_track_offload();
     // Access thread-local track offload interface
     TrackOffloadInterface& local_track_offload();
     //// ACCESSORS ////
@@ -123,6 +120,7 @@ class IntegrationSingleton
     // Whether offloading optical distribution data is enabled
     bool optical_offload() const;
 
+    // Whether offloading optical track is enabled
     bool optical_track_offload() const;
 
     // Set up or update logging if the run manager is enabled

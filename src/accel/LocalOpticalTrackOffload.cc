@@ -92,12 +92,13 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = id_cast<UniqueEventId>(id);
-
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
     {
-        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
-        // using the Geant4 event ID for reproducibility. This guarantees that
+        // Since Geant4 schedules events dynamically, reseed the Celeritas
+        //  RNGs
+        // using the Geant4 event ID for reproducibility. This guarantees
+        // that
         // an event can be reproduced given the event ID.
         state_->reseed(transport_->params()->rng(), id_cast<UniqueEventId>(id));
     }
@@ -138,8 +139,7 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
 void LocalOpticalTrackOffload::Flush()
 {
     CELER_EXPECT(*this);
-    CELER_LOG(info) << "Flushing " << buffer_.size()
-                    << " optical tracks to Celeritas";
+
     if (buffer_.empty())
     {
         return;
