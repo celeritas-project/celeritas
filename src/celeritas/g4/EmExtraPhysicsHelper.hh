@@ -16,13 +16,15 @@
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
+class G4DynamicParticle;
+class G4ElectroNuclearCrossSection;
 class G4GammaNuclearXS;
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate Geant4 gamma-nuclear cross sections.
+ * Calculate Geant4 gamma-nuclear and electro-nuclear cross sections.
  *
  * This class primarily severs as a wrapper around Geant4 cross section
  * calculation methods, which are not directly accessible from Celeritas EM
@@ -41,11 +43,16 @@ class EmExtraPhysicsHelper
     // Construct EM extra physics helper
     EmExtraPhysicsHelper();
 
+    // Calculate electro-nuclear element cross section
+    MmSqXs calc_electro_nuclear_xs(AtomicNumber z, MevEnergy energy) const;
+
     // Calculate gamma-nuclear element cross section
     MmSqXs calc_gamma_nuclear_xs(AtomicNumber z, MevEnergy energy) const;
 
   private:
     //// DATA ////
+    std::shared_ptr<G4DynamicParticle> particle_;
+    std::shared_ptr<G4ElectroNuclearCrossSection> en_xs_;
     std::shared_ptr<G4GammaNuclearXS> gn_xs_;
 };
 
