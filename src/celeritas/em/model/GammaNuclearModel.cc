@@ -44,9 +44,6 @@ GammaNuclearModel::GammaNuclearModel(ActionId id,
                    << "missing gamma (required for " << this->description()
                    << ")");
 
-    // Save particle properties
-    CELER_EXPECT(data.scalars);
-
     // Load gamma-nuclear element cross section data
     NonuniformGridInserter insert_xs_iaea{&data.reals, &data.xs_iaea};
     NonuniformGridInserter insert_xs_chips{&data.reals, &data.xs_chips};

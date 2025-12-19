@@ -43,9 +43,6 @@ ElectroNuclearModel::ElectroNuclearModel(ActionId id,
                    << "missing particles (required for " << this->description()
                    << ")");
 
-    // Save particle properties
-    CELER_EXPECT(data.scalars);
-
     // Electro-nuclear element cross section data
     NonuniformGridInserter insert_micro_xs{&data.reals, &data.micro_xs};
 
