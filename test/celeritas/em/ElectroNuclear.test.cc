@@ -86,7 +86,7 @@ TEST_F(ElectroNuclearTest, micro_xs)
 
     // Expected microscopic cross section (units::BarnXs) in [100:1e+8] (MeV)
     std::vector<std::pair<real_type, real_type>> const energy_xs
-        = {{100, 0.0},
+        = {{101, 0.002402354569182156},
            {200, 0.0076866011595330607},
            {500, 0.010594901781001968},
            {1e+3, 0.012850271316595725},
@@ -112,7 +112,7 @@ TEST_F(ElectroNuclearTest, macro_xs)
 
     // Expected macroscopic cross section (\f$ cm^{-1} \f$)} in [100:1e+8](MeV)
     std::vector<std::pair<real_type, real_type>> const energy_xs
-        = {{100, 0.0},
+        = {{101, 0.0096722815355263173},
            {200, 0.03099484247367704},
            {500, 0.042848174635210838},
            {1e+3, 0.05204849281161035},
