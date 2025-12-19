@@ -46,6 +46,7 @@ list(APPEND SOURCES
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
   em/process/CoulombScatteringProcess.cc
+  em/process/ElectroNuclearProcess.cc
   em/process/EIonizationProcess.cc
   em/process/EPlusAnnihilationProcess.cc
   em/process/GammaConversionProcess.cc
@@ -357,6 +358,7 @@ celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
+celeritas_polysource(em/model/ElectroNuclearModel)
 celeritas_polysource(em/model/EPlusGGModel)
 celeritas_polysource(em/model/GammaNuclearModel)
 celeritas_polysource(em/model/ICRU73QOModel)
