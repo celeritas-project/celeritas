@@ -292,16 +292,18 @@ CMAKE_PRESET=$1
 shift
 
 # Configure, build, and test
-log info "Configuring with verbosity"
+log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"
 cmake --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
-log info "Building"
+log info "Building with --preset=${CMAKE_PRESET}"
 if cmake --build --preset="${CMAKE_PRESET}"; then
-  log info "Testing"
+  log info "Testing with --preset=${CMAKE_PRESET} --timeout 15"
   if ctest --preset="${CMAKE_PRESET}" --timeout 15; then
     log info "Celeritas was successfully built and tested for development!"
   else
     log warning "Celeritas built but some tests failed"
     log info "Ask the Celeritas team whether the failures indicate an actual error"
+    log info "Provide the system configuration:"
+    cmake --build-target get-config --preset=${CMAKE_PRESET}
   fi
 
   install_precommit_if_git
