@@ -98,11 +98,15 @@ ln_presets() {
 
   # Return early if it exists
   if [ -L "${dst}" ]; then
-    src="$(readlink "${dst}" 2>/dev/null || printf "<unknown>")"
-    log debug "CMake preset already exists: ${dst} -> ${src}"
-    return
-  elif [ -e "${dst}" ]; then
-    log debug "CMake preset already exists: ${dst}"
+    actual="$(readlink "${dst}" 2>/dev/null || printf "<unknown>")"
+    if [ "${src}" = "${actual}" ]; then
+      log debug "CMake preset already exists: ${dst} -> ${actual}"
+      return
+    else
+      log warning "${dst} points to ${actual}, not ${src}: overwriting"
+    fi
+  elif [ -e "${src}" ]; then
+    log warning "${dst} already exists but is not a symlink to ${src}"
     return
   fi
 
@@ -113,7 +117,7 @@ ln_presets() {
     git add "${src}" || log error "Could not stage presets"
   fi
   log info "Linking presets to ${dst}"
-  ln -s "${src}" "${dst}"
+  ln -f -s "${src}" "${dst}"
 }
 
 # Check if ccache is full and warn user
