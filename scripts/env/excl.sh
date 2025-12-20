@@ -14,7 +14,7 @@ if ! command -v celerlog >/dev/null 2>&1; then
   }
 fi
 if test -z "${SYSTEM_NAME}"; then
-  SYSTEM_NAME=$(uname -s)
+  SYSTEM_NAME=$(hostname -s)
   celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
 fi
 
