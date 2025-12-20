@@ -19,6 +19,11 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Apply energy loss (with fluctuations) to a track.
+ *
+ * \warning Because particle range is the integral of the \em mean energy loss,
+ * and this samples from a distribution, the sampled energy loss may be more
+ * than the particle's energy! We take care not to end a particle's life on a
+ * boundary, which is a nonphysical bias.
  */
 class FluctELoss
 {
@@ -33,16 +38,10 @@ class FluctELoss
     // Construct with fluctuation data
     inline explicit CELER_FUNCTION FluctELoss(ParamsRef const& params);
 
-    // Whether energy loss can be used for this track
-    inline CELER_FUNCTION bool is_applicable(CoreTrackView const&) const;
-
     // Apply to the track
     inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track,
                                             real_type step,
                                             bool apply_cut);
-
-    //! Indicate that we can lose all energy before hitting the dE/dx range
-    static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return true; }
 
   private:
     //// DATA ////
@@ -67,21 +66,6 @@ CELER_FUNCTION FluctELoss::FluctELoss(ParamsRef const& params)
     : fluct_params_{params}
 {
     CELER_EXPECT(fluct_params_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether energy loss is used for this track.
- */
-CELER_FUNCTION bool FluctELoss::is_applicable(CoreTrackView const& track) const
-{
-    // The track can be marked as `errored` *within* the along-step kernel,
-    // during propagation
-    if (track.sim().status() == TrackStatus::errored)
-        return false;
-
-    // Energy loss grid ID is 'false'
-    return static_cast<bool>(track.physics().energy_loss_grid());
 }
 
 //---------------------------------------------------------------------------//
@@ -143,7 +127,8 @@ CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
         {
             // Sampled energy loss can be greater than actual remaining energy
             // because the range calculation is based on the *mean* energy
-            // loss.
+            // loss. To fix this, we would need to sample the range from a
+            // distribution as well.
             if (apply_cut)
             {
                 // Clamp to actual particle energy so that it stops

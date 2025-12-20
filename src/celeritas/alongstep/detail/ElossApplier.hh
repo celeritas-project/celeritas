@@ -40,8 +40,21 @@ template<class EH>
 CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
 {
     auto particle = track.particle();
-    if (!eloss.is_applicable(track) || particle.is_stopped())
+    auto sim = track.sim();
+
+    if (sim.status() == TrackStatus::errored)
     {
+        // Failed during propagation
+        return;
+    }
+    if (!track.physics().energy_loss_grid())
+    {
+        // No energy loss for this particle/material
+        return;
+    }
+    if (particle.is_stopped())
+    {
+        // No energy to lose
         return;
     }
 

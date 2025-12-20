@@ -27,35 +27,14 @@ class MeanELoss
     //!@}
 
   public:
-    // Whether energy loss is used for this track
-    inline CELER_FUNCTION bool is_applicable(CoreTrackView const&) const;
-
     // Apply to the track
     inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track,
                                             real_type step,
                                             bool apply_cut);
-
-    //! Particle will slow down to zero only if range limited
-    static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return false; }
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Whether energy loss is used for this track.
- */
-CELER_FUNCTION bool MeanELoss::is_applicable(CoreTrackView const& track) const
-{
-    // The track can be marked as `errored` *within* the along-step kernel,
-    // during propagation
-    if (track.sim().status() == TrackStatus::errored)
-        return false;
-
-    // Energy loss grid ID is 'false'
-    return static_cast<bool>(track.physics().energy_loss_grid());
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Apply energy loss to the given track.
