@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "corecel/math/Quantity.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Types.hh"
@@ -337,6 +338,10 @@ select_discrete_interaction(MaterialView const& material,
     return physics.model_to_action(physics.model_id(pmid));
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Deposit energy along the particle's step.
+ */
 inline CELER_FUNCTION void apply_slowing_down(PhysicsTrackView const& phys,
                                               bool on_boundary,
                                               ParticleTrackView::Energy eloss,
@@ -351,10 +356,10 @@ inline CELER_FUNCTION void apply_slowing_down(PhysicsTrackView const& phys,
     if (!on_boundary
         && (particle.energy() - eloss <= phys.particle_scalars().lowest_energy))
     {
-        // Particle ended below the tracking cut: deposit all its energy (aka
-        // adjusting dE/dx upward a bit)
-        // TODO: maybe we should change the range integral so that instead of
-        // ending at E=0 it ends at E=tcut?
+        // Particle ended below the tracking cut: deposit all its energy
+        // (aka adjusting dE/dx upward a bit)
+        // TODO: maybe we should change the range integral so that instead
+        // of ending at E=0 it ends at E=tcut?
         eloss = particle.energy();
     }
     if (eloss > zero_quantity())
@@ -362,6 +367,7 @@ inline CELER_FUNCTION void apply_slowing_down(PhysicsTrackView const& phys,
         // Deposit energy loss
         pstep.deposit_energy_from(eloss, particle);
     }
+
     // At this point, we shouldn't have any low-energy tracks *except* on the
     // boundary
     CELER_ASSERT(particle.energy() >= phys.particle_scalars().lowest_energy

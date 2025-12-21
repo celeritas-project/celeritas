@@ -95,7 +95,6 @@ CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track) -> Energy
     // Apply energy loss fluctuations
     auto cutoffs = track.cutoff();
     auto material = track.material();
-
     EnergyLossHelper loss_helper(
         fluct_params_, cutoffs, material, particle, eloss, sim.step_length());
 

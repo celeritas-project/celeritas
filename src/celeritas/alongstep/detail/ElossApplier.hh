@@ -74,12 +74,13 @@ CELER_FUNCTION void ElossApplier<EH>::operator()(CoreTrackView const& track)
     if (!on_boundary
         && particle.energy() < phys.particle_scalars().lowest_energy)
     {
-        // Deposit all energy at end of step when energy is below the tracking
-        // cut
+        // Beginning-of-step energy is below the tracking cut: deposit all
+        // remaining energy along the step
         deposited = particle.energy();
     }
     else
     {
+        // Calculate energy loss along the step
         deposited = eloss.calc_eloss(track);
     }
 
