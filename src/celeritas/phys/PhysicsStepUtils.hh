@@ -21,6 +21,7 @@
 #include "celeritas/grid/SplineCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "ParticleTrackView.hh"
 #include "PhysicsStepView.hh"
@@ -334,6 +335,52 @@ select_discrete_interaction(MaterialView const& material,
     pstep.element(elcomp_id);
 
     return physics.model_to_action(physics.model_id(pmid));
+}
+
+inline CELER_FUNCTION void apply_slowing_down(PhysicsTrackView const& phys,
+                                              bool on_boundary,
+                                              ParticleTrackView::Energy eloss,
+                                              ParticleTrackView& particle,
+                                              PhysicsStepView& pstep,
+                                              SimTrackView& sim)
+{
+    CELER_EXPECT(eloss <= particle.energy());
+    CELER_EXPECT(eloss != particle.energy() || !on_boundary
+                 || sim.post_step_action() == phys.scalars().range_action());
+
+    if (!on_boundary
+        && (particle.energy() - eloss <= phys.particle_scalars().lowest_energy))
+    {
+        // Particle ended below the tracking cut: deposit all its energy (aka
+        // adjusting dE/dx upward a bit)
+        // TODO: maybe we should change the range integral so that instead of
+        // ending at E=0 it ends at E=tcut?
+        eloss = particle.energy();
+    }
+    if (eloss > zero_quantity())
+    {
+        // Deposit energy loss
+        pstep.deposit_energy_from(eloss, particle);
+    }
+    // At this point, we shouldn't have any low-energy tracks *except* on the
+    // boundary
+    CELER_ASSERT(particle.energy() >= phys.particle_scalars().lowest_energy
+                 || on_boundary || particle.is_stopped());
+
+    if (particle.is_stopped())
+    {
+        if (!phys.at_rest_process())
+        {
+            // Immediately kill stopped particles with no at rest processes
+            sim.status(TrackStatus::killed);
+            sim.post_step_action(phys.scalars().range_action());
+        }
+        else
+        {
+            // Particle slowed down to zero: force a discrete interaction
+            sim.post_step_action(phys.scalars().discrete_action());
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
