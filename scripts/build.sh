@@ -98,11 +98,15 @@ ln_presets() {
 
   # Return early if it exists
   if [ -L "${dst}" ]; then
-    src="$(readlink "${dst}" 2>/dev/null || printf "<unknown>")"
-    log debug "CMake preset already exists: ${dst} -> ${src}"
-    return
-  elif [ -e "${dst}" ]; then
-    log debug "CMake preset already exists: ${dst}"
+    actual="$(readlink "${dst}" 2>/dev/null || printf "<unknown>")"
+    if [ "${src}" = "${actual}" ]; then
+      log debug "CMake preset already exists: ${dst} -> ${actual}"
+      return
+    else
+      log warning "${dst} points to ${actual}, not ${src}: overwriting"
+    fi
+  elif [ -e "${src}" ]; then
+    log warning "${dst} already exists but is not a symlink to ${src}"
     return
   fi
 
@@ -113,7 +117,7 @@ ln_presets() {
     git add "${src}" || log error "Could not stage presets"
   fi
   log info "Linking presets to ${dst}"
-  ln -s "${src}" "${dst}"
+  ln -f -s "${src}" "${dst}"
 }
 
 # Check if ccache is full and warn user
@@ -288,16 +292,18 @@ CMAKE_PRESET=$1
 shift
 
 # Configure, build, and test
-log info "Configuring with verbosity"
+log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"
 cmake --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
-log info "Building"
+log info "Building with --preset=${CMAKE_PRESET}"
 if cmake --build --preset="${CMAKE_PRESET}"; then
-  log info "Testing"
+  log info "Testing with --preset=${CMAKE_PRESET} --timeout 15"
   if ctest --preset="${CMAKE_PRESET}" --timeout 15; then
     log info "Celeritas was successfully built and tested for development!"
   else
     log warning "Celeritas built but some tests failed"
     log info "Ask the Celeritas team whether the failures indicate an actual error"
+    log info "Provide the system configuration:"
+    cmake --build-target get-config --preset=${CMAKE_PRESET}
   fi
 
   install_precommit_if_git
