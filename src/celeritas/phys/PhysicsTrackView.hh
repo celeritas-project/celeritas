@@ -663,7 +663,8 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id(ParticleModelId pmid) const
 /*!
  * Calculate scaled step range.
  *
- * This is the updated step function given by Eq. 7.4 of \cite{g4prm}: \f[
+ * This is the updated step function given by Eq. 7.4 of Geant4 Physics
+ * Reference Manual, Release 10.6: \f[
    s = \alpha r + \rho (1 - \alpha) (2 - \frac{\rho}{r})
  \f]
  * where alpha is \c max_step_over_range and rho is \c min_range .
@@ -671,7 +672,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id(ParticleModelId pmid) const
  * Below \c min_range, no step scaling is applied, but the step can still
  * be arbitrarily small.
  *
- * \todo Rename calc_eloss_step_limit . This step limiter allows tuning the
+ * \todo Rename \c calc_eloss_step_limit . This step limiter allows tuning the
  * accuracy loss from approximating a constant cross section along the step. We
  * should also split this into limiting the \em actual range (where the energy
  * goes to zero or the minimum allowable tracking range) versus a dE/dx
