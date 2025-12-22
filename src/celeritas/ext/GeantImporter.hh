@@ -42,9 +42,6 @@ struct GeantImportDataSelection
     bool materials = true;
     Flags processes = em | optical;
 
-    //! Change volume names to match exported GDML file
-    bool unique_volumes = false;
-
     // TODO expand/set reader flags automatically based on loaded processes
     bool reader_data = true;
 
@@ -111,7 +108,6 @@ inline constexpr bool operator==(GeantImporter::DataSelection const& lhs,
     return    lhs.particles == rhs.particles
            && lhs.materials == rhs.materials
            && lhs.processes == rhs.processes
-           && lhs.unique_volumes == rhs.unique_volumes
            && lhs.reader_data == rhs.reader_data;
     // clang-format on
 }

@@ -67,6 +67,7 @@
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
@@ -293,12 +294,10 @@ auto build_along_step(inp::Field const& var_field,
 /*!
  * Construct optical parameters.
  */
-auto build_optical_params(inp::OpticalPhysics const& optical,
+auto build_optical_params(inp::Problem const& p,
                           CoreParams const& core,
                           ImportData const& imported)
 {
-    CELER_EXPECT(optical);
-
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
                       "materials are present");
@@ -309,6 +308,8 @@ auto build_optical_params(inp::OpticalPhysics const& optical,
         imported, *core.geomaterial(), *core.material());
     // TODO: unique RNG streams for optical loop
     params.rng = core.rng();
+    params.sim
+        = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
     params.surface = core.surface();
     params.action_reg = std::make_shared<ActionRegistry>();
     params.gen_reg = std::make_shared<GeneratorRegistry>();
@@ -332,15 +333,16 @@ auto build_optical_params(inp::OpticalPhysics const& optical,
     }
 
     // Construct optical surface physics models
+    CELER_ASSERT(p.physics.optical);
     params.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
-        params.action_reg.get(), optical.surfaces);
+        params.action_reg.get(), p.physics.optical.surfaces);
 
     // Add photon generating processes
-    if (optical.cherenkov)
+    if (p.physics.optical.cherenkov)
     {
         params.cherenkov = std::make_shared<CherenkovParams>(*params.material);
     }
-    if (optical.scintillation)
+    if (p.physics.optical.scintillation)
     {
         params.scintillation
             = ScintillationParams::from_import(imported, core.particle());
@@ -379,7 +381,6 @@ auto build_optical_offload(
     oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
-    oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
     oc_inp.action_times = [&p] {
         if (!celeritas::device())
         {
@@ -666,10 +667,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                                   "any geometry surface definitions: default "
                                   "physics will be used for all surfaces";
         }
-        CELER_ASSERT(p.physics.optical);
 
-        auto optical_params
-            = build_optical_params(p.physics.optical, *core_params, imported);
+        auto optical_params = build_optical_params(p, *core_params, imported);
 
         // Save optical diagnostic information
         core_params->output_reg()->insert(
@@ -707,7 +706,6 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                     // actions have been added to the registry
                     optical::Transporter::Input inp;
                     inp.params = optical_params;
-                    inp.max_step_iters = p.tracking.limits.optical_step_iters;
                     if (action_times)
                     {
                         // Create aux data to accumulate optical action times

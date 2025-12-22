@@ -4,9 +4,8 @@
 Detailed interface
 ------------------
 
-These classes are usually integrated into UserActions. The ``SimpleOffload``
-interface above hides the complexity of these classes, or for more complex
-applications you can choose to use these classes directly instead of it.
+These classes manage the low-level runtime interface between Celeritas and
+Geant4.
 
 .. doxygenclass:: celeritas::SharedParams
 .. doxygenclass:: celeritas::LocalTransporter

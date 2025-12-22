@@ -37,13 +37,12 @@ jobs:
         image: ["rocky-cuda", "ubuntu-rocm"]
         exclude:
           - geometry: "vecgeom"
+            buildtype: "debug" # Build is too large
+          - geometry: "vecgeom"
             image: "ubuntu-rocm" # VecGeom not installed on HIP
           - buildtype: "debug"
-            image: "ubuntu-rocm" # Debug builds don't work with HIP
+            image: "ubuntu-rocm" # Debug device code breaks HIP optimizer
         include:
-          - geometry: "vecgeom"
-            buildtype: "reldeb"
-            image: "rocky-cuda"
           - buildtype: "reldeb"
             geometry: "vecgeom"
             special: "codecov"

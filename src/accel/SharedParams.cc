@@ -181,14 +181,9 @@ auto SharedParams::GetMode() -> Mode
         if (!result.value)
             return false;
 
-        if (kill_offload)
-        {
-            CELER_LOG(warning)
-                << "DEPRECATED (remove in 0.7): both CELER_DISABLE "
-                   "and CELER_KILL_OFFLOAD environment variables "
-                   "were defined: choose one";
-            return false;
-        }
+        CELER_VALIDATE(!kill_offload,
+                       << "both CELER_DISABLE and CELER_KILL_OFFLOAD "
+                          "environment variables were defined: choose one");
 
         CELER_LOG(info)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
