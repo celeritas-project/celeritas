@@ -183,6 +183,9 @@ endif()
 if(CELERITAS_USE_DD4hep)
   add_subdirectory(ddceler)
 endif()
+if(CELERITAS_USE_LArSoft)
+  add_subdirectory(larceler)
+endif()
 
 # Add alias as a bridge library: see cmake/CeleritasConfig.cmake.in
 # TODO: move to a separate library for just high level interfaces

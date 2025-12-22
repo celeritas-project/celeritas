@@ -17,7 +17,8 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "detail/OffloadGatherExecutor.hh"
+#include "detail/OffloadPreGatherExecutor.hh"
+#include "detail/OffloadPrePostGatherExecutor.hh"
 
 namespace celeritas
 {
@@ -25,8 +26,9 @@ namespace celeritas
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<OffloadGatherAction>
-OffloadGatherAction::make_and_insert(CoreParams const& core)
+template<StepActionOrder S>
+std::shared_ptr<OffloadGatherAction<S>>
+OffloadGatherAction<S>::make_and_insert(CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
@@ -41,7 +43,8 @@ OffloadGatherAction::make_and_insert(CoreParams const& core)
 /*!
  * Construct with action ID and aux ID.
  */
-OffloadGatherAction::OffloadGatherAction(ActionId action_id, AuxId aux_id)
+template<StepActionOrder S>
+OffloadGatherAction<S>::OffloadGatherAction(ActionId action_id, AuxId aux_id)
     : action_id_(action_id), aux_id_(aux_id)
 {
     CELER_EXPECT(action_id_);
@@ -52,44 +55,43 @@ OffloadGatherAction::OffloadGatherAction(ActionId action_id, AuxId aux_id)
 /*!
  * Build state data for a stream.
  */
-auto OffloadGatherAction::create_state(MemSpace m,
-                                       StreamId id,
-                                       size_type size) const -> UPState
+template<StepActionOrder S>
+auto OffloadGatherAction<S>::create_state(MemSpace m,
+                                          StreamId id,
+                                          size_type size) const -> UPState
 {
-    return make_aux_state<OffloadStepStateData>(m, id, size);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Descriptive name of the action.
- */
-std::string_view OffloadGatherAction::description() const
-{
-    return "gather pre-step data to generate optical distributions";
+    return make_aux_state<TraitsT::template Data>(m, id, size);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Gather pre-step data.
  */
-void OffloadGatherAction::step(CoreParams const& params,
-                               CoreStateHost& state) const
+template<StepActionOrder S>
+void OffloadGatherAction<S>::step(CoreParams const& params,
+                                  CoreStateHost& state) const
 {
-    auto& step = state.aux_data<OffloadStepStateData>(aux_id_);
-    auto execute
-        = make_active_track_executor(params.ptr<MemSpace::native>(),
-                                     state.ptr(),
-                                     detail::OffloadGatherExecutor{step});
+    auto& step = state.aux_data<TraitsT::template Data>(aux_id_);
+    auto execute = make_active_track_executor(
+        params.ptr<MemSpace::native>(), state.ptr(), Executor{step});
     launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void OffloadGatherAction::step(CoreParams const&, CoreStateDevice&) const
+template<StepActionOrder S>
+void OffloadGatherAction<S>::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class OffloadGatherAction<StepActionOrder::pre>;
+template class OffloadGatherAction<StepActionOrder::pre_post>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

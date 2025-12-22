@@ -349,7 +349,7 @@ namespace nlohmann
 void adl_serializer<CelerSPObjConst>::to_json(json& j,
                                               CelerSPObjConst const& oi)
 {
-    j = oi ? celeritas::json_pimpl_output(*oi) : json(nullptr);
+    j = oi ? celeritas::output_to_json(*oi) : json(nullptr);
 }
 
 void adl_serializer<CelerVarTransform>::to_json(json& j,

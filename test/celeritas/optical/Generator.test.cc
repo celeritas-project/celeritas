@@ -100,6 +100,7 @@ class LArSphereGeneratorTest : public LArSphereBase
         data.step_length = from_cm(0.2);
         data.charge = units::ElementaryCharge{-1};
         data.material = OptMatId(0);
+        data.continuous_edep_fraction = 1;
         data.points[StepPoint::pre]
             = {units::LightSpeed(0.7), from_cm(Real3{0, 0, 0})};
         data.points[StepPoint::post]

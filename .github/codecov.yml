@@ -44,3 +44,4 @@ ignore:
   - "*.md"
   - "scripts/**/*"
   - ".github/**/*"
+  - "src/larceler/LarCelerStandalone*"

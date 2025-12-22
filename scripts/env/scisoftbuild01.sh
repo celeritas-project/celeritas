@@ -2,27 +2,30 @@
 #-------------------------------- -*- sh -*- ---------------------------------#
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-#
 #-----------------------------------------------------------------------------#
-# Note: to launch the apptainer run this
+
+# BEGIN APPTAINER SCRIPT
+# Call this helper function on the login node bare metal
 apptainer_fermilab() {
   if ! [ -d "${SCRATCHDIR}" ]; then
-    echo "Scratch directory does not exist: ru
-  . scripts/env/scisoftbuild01.sh
+    echo "Scratch directory does not exist: run
+  . \${CELERITAS_SOURCE}/scripts/env/scisoftbuild01.sh
 "
     return 1
   fi
 
+  # Use the Scientific Linux distribution required for the dependencies
   image=${1:-fnal-dev-sl7:latest}
 
   # Start apptainer, forwarding necessary directories
-  SUBDOMAIN=mis # codespell:ignore
-  exec /cvmfs/oasis.opensciencegrid.org/$SUBDOMAIN/apptainer/current/bin/apptainer \
+  MIS_DIR=/cvmfs/oasis.opensciencegrid.org/mis # codespell:ignore
+  exec $MIS_DIR/apptainer/current/bin/apptainer \
     shell --shell=/bin/bash \
     -B /cvmfs,$SCRATCHDIR,$HOME,$XDG_RUNTIME_DIR,/opt,/etc/hostname,/etc/hosts,/etc/krb5.conf  \
     --ipc --pid  \
     /cvmfs/singularity.opensciencegrid.org/fermilab/${image}
 }
+# END APPTAINER SCRIPT
 
 #-----------------------------------------------------------------------------#
 

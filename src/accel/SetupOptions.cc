@@ -100,14 +100,9 @@ void ProblemSetup::operator()(inp::Problem& p) const
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         return c;
     }();
-    if (so.max_num_events)
-    {
-        CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
-                              "be an error in v0.7";
-    }
 
     p.tracking.limits = [this] {
-        inp::TrackingLimits tl;
+        inp::CoreTrackingLimits tl;
         tl.steps = so.max_steps;
         tl.step_iters = so.max_step_iters;
         tl.field_substeps = so.max_field_substeps;
@@ -118,7 +113,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         p.control.optical_capacity = so.optical->capacity;
         p.physics.optical_generator = so.optical->generator;
-        p.tracking.limits.optical_step_iters = so.optical->max_step_iters;
+        p.tracking.optical_limits.steps = so.optical->max_steps;
+        p.tracking.optical_limits.step_iters = so.optical->max_step_iters;
     }
 
     if (so.track_order != TrackOrder::size_)

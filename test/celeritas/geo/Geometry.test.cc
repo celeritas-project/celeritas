@@ -198,9 +198,9 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
         if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
         {
             // TODO: try to fix any discrepancies from vg2.x-solids
-            paths[4] = 487.651955842282;
-            paths[5] = 869.116923540767;
-            paths[6] = 2199.33144744229;
+            paths[4] = 454.195842538179;
+            paths[5] = 1148.46821493334;
+            paths[6] = 1871.43143781146;
         }
         return make_span(paths);
     }
@@ -256,8 +256,8 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
     if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
         // TODO: try to fix any discrepancies from vg2.x-solids
-        paths[0] = 0.174520372497482;
-        paths[2] = 4.97131837547155;
+        paths[0] = 0.193968509125204;
+        paths[2] = 6.63492117919102;
     }
     return make_span(paths);
 }

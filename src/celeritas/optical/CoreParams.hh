@@ -32,6 +32,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 class MaterialParams;
 class PhysicsParams;
+class SimParams;
 class SurfacePhysicsParams;
 //---------------------------------------------------------------------------//
 /*!
@@ -46,6 +47,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
+    using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
@@ -66,6 +68,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstMaterial material;
         SPConstPhysics physics;
         SPConstRng rng;
+        SPConstSim sim;
         SPConstSurface surface;
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;
@@ -81,8 +84,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && surface && surface_physics
-                   && action_reg && gen_reg && max_streams;
+            return geometry && material && rng && sim && surface
+                   && surface_physics && action_reg && gen_reg && max_streams;
         }
     };
 
@@ -105,6 +108,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstMaterial const& material() const { return input_.material; }
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
+    SPConstSim const& sim() const { return input_.sim; }
     SPConstSurface const& surface() const { return input_.surface; }
     SPConstSurfacePhysics const& surface_physics() const
     {

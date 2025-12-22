@@ -1451,12 +1451,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                 imported.mu_production = std::move(mupp_model);
             }
         }
-        if (selected.unique_volumes)
-        {
-            // TODO: remove in v0.7
-            CELER_LOG(warning)
-                << R"(DEPRECATED: volumes are always reproducibly uniquified)";
-        }
 
         imported.volumes = import_volumes();
         if (selected.particles != DataSelection::none)

@@ -115,6 +115,7 @@ list(APPEND SOURCES
   optical/MaterialParams.cc
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
+  optical/SimParams.cc
   optical/Transporter.cc
   optical/Types.cc
   optical/action/ActionGroups.cc
@@ -182,20 +183,30 @@ if(CELERITAS_USE_covfie)
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
-
-  celeritas_add_object_library(celeritas_covfie ${_celer_covfie_src})
-  celeritas_target_link_libraries(celeritas_covfie
-    PRIVATE
+  # object libraries do not work properly with RDC builds
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND SOURCES ${_celer_covfie_src})
+    list(APPEND PRIVATE_DEPS
       Celeritas::BuildFlags
       Celeritas::geocel
       ${_core_geo_deps}
       Celeritas::Extcovfie
-  )
-  list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_covfie>)
-  list(APPEND PRIVATE_DEPS celeritas_covfie)
+    )
+  else()
+    celeritas_add_object_library(celeritas_covfie ${_celer_covfie_src})
+    celeritas_target_link_libraries(celeritas_covfie
+      PRIVATE
+        Celeritas::BuildFlags
+        Celeritas::geocel
+        ${_core_geo_deps}
+        Celeritas::Extcovfie
+    )
+    list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_covfie>)
+    list(APPEND PRIVATE_DEPS celeritas_covfie)
+  endif()
 else()
   celeritas_polysource_append(SOURCES
-  alongstep/AlongStepCartMapFieldMscAction)
+    alongstep/AlongStepCartMapFieldMscAction)
 endif()
 
 if(CELERITAS_USE_Geant4)
@@ -225,6 +236,14 @@ if(CELERITAS_USE_Geant4)
     ext/detail/TouchableUpdaterInterface.cc
     ext/detail/TrackProcessor.cc
   )
+
+  if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
+    # NOTE: G4GammaNuclearXS is unavailable for 10.6 or lower,
+    # incomplete until version 11
+    list(APPEND _cg4_sources
+      g4/EmExtraPhysicsHelper.cc
+    )
+  endif()
 
   celeritas_get_g4libs(_cg4_libs
     global geometry materials processes run physicslists tasking

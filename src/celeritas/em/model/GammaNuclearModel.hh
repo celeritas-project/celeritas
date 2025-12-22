@@ -7,6 +7,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/inp/Grid.hh"
@@ -21,9 +22,24 @@ namespace celeritas
 class MaterialParams;
 class ParticleParams;
 
+class EmExtraPhysicsHelper;
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the gamma-nuclear model interaction.
+ *
+ * The class also builds element cross-section tables using G4PARTICLEXS/gamma
+ * (IAEA) data at low energies and CHIPS gamma–nuclear cross sections using
+ * G4GammaNuclearXS above the IAEA upper energy limit (~130 MeV). The CHIPS
+ * cross sections are based on the parameterization developed by M. V. Kossov
+ * (CERN/ITEP Moscow) for the high energy region (106 MeV < E < 50 GeV) and on
+ * a Reggeon-based parameterization for the ultra high energy region
+ * (E > 50 GeV), as described in
+ * \citet{degtyarenko-chiralinvariant-2000,
+ * https://doi.org/10.1007/s100500070026}.
+ * G4GammaNuclearXS uses CHIPS (G4PhotoNuclearCrossSection) above 150 MeV and
+ * performs linear interpolation between the upper limit of the G4PARTICLEXS
+ * gamma-nuclear (IAEA) data and 150 MeV.
  */
 class GammaNuclearModel final : public Model, public StaticConcreteAction
 {
@@ -62,6 +78,7 @@ class GammaNuclearModel final : public Model, public StaticConcreteAction
 
   private:
     //// DATA ////
+    std::shared_ptr<EmExtraPhysicsHelper> helper_;
 
     // Host/device storage and reference
     CollectionMirror<GammaNuclearData> data_;
@@ -69,6 +86,11 @@ class GammaNuclearModel final : public Model, public StaticConcreteAction
     //// TYPES ////
 
     using HostXsData = HostVal<GammaNuclearData>;
+
+    //// HELPER FUNCTIONS ////
+
+    inp::Grid
+    calc_chips_xs(AtomicNumber atomic_number, double emin, double emax) const;
 };
 
 //---------------------------------------------------------------------------//
