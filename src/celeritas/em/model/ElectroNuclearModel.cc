@@ -110,6 +110,13 @@ void ElectroNuclearModel::step(CoreParams const&, CoreStateDevice&) const
 //---------------------------------------------------------------------------//
 /*!
  * Build electro-nuclear element cross sections using G4ElectroNuclearXS.
+ *
+ * Tabulate cross sections using separate parameterizations for the high energy
+ * region (emin < E < 50 GeV) and the ultra high energy region up to the
+ * maximum valid energy (emax). The numbers of bins are chosen to adequately
+ * capture both parameterized points (336 bins from 2.0612 MeV to 50 GeV) and
+ * calculations used in G4ElectroNuclearCrossSection, which can be made
+ * configurable if needed (TODO).
  */
 inp::Grid ElectroNuclearModel::calc_micro_xs(AtomicNumber z,
                                              double emin,
@@ -118,13 +125,6 @@ inp::Grid ElectroNuclearModel::calc_micro_xs(AtomicNumber z,
     CELER_EXPECT(z);
 
     inp::Grid result;
-
-    // Tabulate cross sections using separate parameterizations for the high
-    // energy region (emin < E < 50 GeV) and the ultra high energy region up
-    // to the maximum valid energy (emax). The numbers of bins are chosen to
-    // adequately capture both parameterized points (336 bins from 2.0612 MeV
-    // to 50 GeV) and calculations used in G4ElectroNuclearCrossSection, which
-    // can be made configurable if needed (TODO).
 
     // Upper limit of parameterizations of electro-nuclear cross section [Mev]
     double const emid = 5e+4;

@@ -112,6 +112,15 @@ void GammaNuclearModel::step(CoreParams const&, CoreStateDevice&) const
 //---------------------------------------------------------------------------//
 /*!
  * Build CHIPS gamma-nuclear element cross sections using G4GammaNuclearXS.
+ *
+ * Tabulate cross sections using separate parameterizations for the high energy
+ * region (emin < E < 50 GeV) and the ultra high energy region up to the
+ * maximum valid energy (emax). The numbers of bins are chosen to adequately
+ * capture both the parameterized points (224 bins from 106 MeV to 50 GeV) and
+ * the calculations used in G4PhotoNuclearCrossSection, which can be made
+ * configurable if needed (TODO). Note that the linear interpolation between
+ * the upper limit of the IAEA cross-section data and 150 MeV, as used in
+ * G4GammaNuclearXS, is also included in the tabulation.
  */
 inp::Grid
 GammaNuclearModel::calc_chips_xs(AtomicNumber z, double emin, double emax) const
@@ -119,16 +128,6 @@ GammaNuclearModel::calc_chips_xs(AtomicNumber z, double emin, double emax) const
     CELER_EXPECT(z);
 
     inp::Grid result;
-
-    // Tabulate cross sections using separate parameterizations for the high
-    // energy region (emin < E < 50 GeV) and the ultra high energy region up
-    // to the maximum valid energy (emax). The numbers of bins are chosen to
-    // adequately capture both the parameterized points (224 bins from 106 MeV
-    // to 50 GeV) and the calculations used in G4PhotoNuclearCrossSection,
-    // which can be made configurable if needed (TODO). Note that the linear
-    // interpolation between the upper limit of the IAEA cross-section data
-    // and 150 MeV, as used in G4GammaNuclearXS, is also included in this
-    // tabulation.
 
     // Upper limit of parameterizations for the high-energy region (50 GeV)
     double const emid = 5e+4;
