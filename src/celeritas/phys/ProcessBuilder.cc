@@ -18,6 +18,7 @@
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
+#include "celeritas/em/process/ElectroNuclearProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
 #include "celeritas/em/process/GammaNuclearProcess.hh"
 #include "celeritas/em/process/MuBremsstrahlungProcess.hh"
@@ -114,6 +115,7 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         {IPC::coulomb_scat, &ProcessBuilder::build_coulomb},
         {IPC::e_brems, &ProcessBuilder::build_ebrems},
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
+        {IPC::electro_nuclear, &ProcessBuilder::build_electro_nuclear},
         {IPC::gamma_nuclear, &ProcessBuilder::build_gamma_nuclear},
         {IPC::mu_brems, &ProcessBuilder::build_mubrems},
         {IPC::mu_ioni, &ProcessBuilder::build_muioni},
@@ -156,6 +158,13 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
                                                    this->imported(),
                                                    data_.seltzer_berger,
                                                    options);
+}
+
+//---------------------------------------------------------------------------//
+auto ProcessBuilder::build_electro_nuclear() -> SPProcess
+{
+    return std::make_shared<ElectroNuclearProcess>(this->particle(),
+                                                   this->material());
 }
 
 //---------------------------------------------------------------------------//

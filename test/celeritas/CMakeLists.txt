@@ -156,6 +156,8 @@ celeritas_add_test(em/xs/ScreeningFunctions.test.cc)
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
 celeritas_add_test(em/BetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
+celeritas_add_test(em/ElectroNuclear.test.cc ${_needs_double}
+  ${_needs_geant4_11})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})
 celeritas_add_test(em/GammaNuclear.test.cc ${_needs_double} ${_needs_geant4_11})
 celeritas_add_test(em/KleinNishina.test.cc ${_needs_double})
