@@ -6,8 +6,8 @@ dd4hep_add_plugin(DDcelerTMI
 )
 
 dd4hep_add_plugin(DDcelerRunAction
-    SOURCES DDcelerRunAction.cc
-    USES DD4hep::DDG4 DD4hep::DDCore Celeritas::accel Celeritas::celeritas Celeritas::corecel
+  SOURCES DDcelerRunAction.cc
+  USES DD4hep::DDG4 DD4hep::DDCore Celeritas::accel Celeritas::celeritas Celeritas::corecel
 )
 
 # Configure all plugins
@@ -16,16 +16,15 @@ set(_component_sources)
 set(_component_outputs)
 
 foreach(_target ${_plugins})
-    # VecGeom linking if enabled
-    if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-        target_link_libraries(${_target} PRIVATE
-            "-Wl,--push-state,--no-as-needed" Celeritas::accel_final "-Wl,--pop-state"
-        )
-    endif()
-
-    # Track .components files for copying
-    list(APPEND _component_sources ${CMAKE_CURRENT_BINARY_DIR}/lib${_target}.components)
-    list(APPEND _component_outputs ${CMAKE_BINARY_DIR}/lib/lib${_target}.components)
+  # VecGeom linking if enabled
+  if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
+    target_link_libraries(${_target} PRIVATE
+        "-Wl,--push-state,--no-as-needed" Celeritas::accel_final "-Wl,--pop-state"
+    )
+  endif()
+  # Track .components files for copying
+  list(APPEND _component_sources ${CMAKE_CURRENT_BINARY_DIR}/lib${_target}.components)
+  list(APPEND _component_outputs ${CMAKE_BINARY_DIR}/lib/lib${_target}.components)
 endforeach()
 
 # Ensure plugins link against build directory libraries, not installed ones

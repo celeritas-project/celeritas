@@ -22,42 +22,21 @@ namespace sim
 /*!
  * DDG4 action plugin for Celeritas tracking manager integration (TMI).
  */
-class DDcelerRunAction : public Geant4RunAction
+class DDcelerRunAction final : public Geant4RunAction
 {
+  public:
+    // Standard constructor
+    DDcelerRunAction(Geant4Context* ctxt, std::string const& name);
+
+    // Run action callbacks
+    void begin(G4Run const* run) final;
+    void end(G4Run const* run) final;
+
   protected:
     // Define standard assignments and constructors
     DDG4_DEFINE_ACTION_CONSTRUCTORS(DDcelerRunAction);
-
-  public:
-    // Standard constructor
-    inline DDcelerRunAction(Geant4Context* ctxt, std::string const& name);
-
-    // Default destructor
-    ~DDcelerRunAction();
-
-    // Run action callbacks
-    void begin(G4Run const* run) override;
-    void end(G4Run const* run) override;
+    ~DDcelerRunAction() final;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Standard constructor
- */
-DDcelerRunAction::DDcelerRunAction(Geant4Context* ctxt, std::string const& name)
-    : Geant4RunAction(ctxt, name)
-{
-    InstanceCount::increment(this);
-    this->info("Constructed Geant4RunAction");
-}
-
-DDcelerRunAction::~DDcelerRunAction()
-{
-    this->info("Destructing Geant4RunAction");
-    InstanceCount::decrement(this);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace sim

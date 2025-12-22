@@ -24,44 +24,26 @@ namespace sim
 /*!
  * DDG4 action plugin for Celeritas tracking manager integration (TMI).
  */
-class DDcelerTMI : public Geant4PhysicsList
+class DDcelerTMI final : public Geant4PhysicsList
 {
-  protected:
-    // Define standard assignments and constructors
-    DDG4_DEFINE_ACTION_CONSTRUCTORS(DDcelerTMI);
-
-    int m_maxNumTracks{0};
-    int m_initCapacity{0};
-    std::vector<std::string> m_ignoreProcesses;
-
   public:
     // Standard constructor
-    inline DDcelerTMI(Geant4Context* ctxt, std::string const& name);
-
-    // Default destructor
-    virtual ~DDcelerTMI() = default;
+    DDcelerTMI(Geant4Context* ctxt, std::string const& name);
 
     // Make options for Celeritas tracking manager
     celeritas::SetupOptions makeOptions();
 
     // constructPhysics callback
-    virtual void constructPhysics(G4VModularPhysicsList* physics) override;
+    virtual void constructPhysics(G4VModularPhysicsList* physics) final;
+
+  protected:
+    // Define standard assignments and constructors
+    DDG4_DEFINE_ACTION_CONSTRUCTORS(DDcelerTMI);
+
+    int max_num_tracks_{0};
+    int init_capacity_{0};
+    std::vector<std::string> ignore_processes_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Standard constructor
- */
-DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& name)
-    : Geant4PhysicsList(ctxt, name)
-{
-    declareProperty("MaxNumTracks", m_maxNumTracks);
-    declareProperty("InitCapacity", m_initCapacity);
-    declareProperty("IgnoreProcesses", m_ignoreProcesses);
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace sim
 }  // namespace dd4hep

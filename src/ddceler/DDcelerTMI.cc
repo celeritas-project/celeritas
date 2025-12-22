@@ -24,25 +24,37 @@ namespace dd4hep
 namespace sim
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Standard constructor
+ */
+DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& name)
+    : Geant4PhysicsList(ctxt, name)
+{
+    declareProperty("MaxNumTracks", max_num_tracks_);
+    declareProperty("InitCapacity", init_capacity_);
+    declareProperty("IgnoreProcesses", ignore_processes_);
+}
+
+//---------------------------------------------------------------------------//
 celeritas::SetupOptions DDcelerTMI::makeOptions()
 {
     celeritas::SetupOptions opts;
 
     // Validate configuration parameters
-    CELER_VALIDATE(m_maxNumTracks > 0,
+    CELER_VALIDATE(max_num_tracks_ > 0,
                    << "MaxNumTracks must be set to a positive value (got "
-                   << m_maxNumTracks << ")");
-    CELER_VALIDATE(m_initCapacity > 0,
+                   << max_num_tracks_ << ")");
+    CELER_VALIDATE(init_capacity_ > 0,
                    << "InitCapacity must be set to a positive value (got "
-                   << m_initCapacity << ")");
+                   << init_capacity_ << ")");
 
     // NOTE: these numbers are appropriate for CPU execution and can be set
     // through the UI using `/celer/`
-    opts.max_num_tracks = m_maxNumTracks;
-    opts.initializer_capacity = m_initCapacity;
+    opts.max_num_tracks = max_num_tracks_;
+    opts.initializer_capacity = init_capacity_;
 
     // Set ignored processes from configuration
-    for (auto const& proc : m_ignoreProcesses)
+    for (auto const& proc : ignore_processes_)
     {
         opts.ignore_processes.push_back(proc);
     }
@@ -106,11 +118,7 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     auto const& overlaid_properties = overlaid_obj->properties;
 
     // Default values
-    constexpr auto celer_mm = celeritas::units::millimeter;
-
-    double min_step = 1e-6 * celer_mm;
-    double delta_chord = 0.025 * celer_mm;
-    double delta_intersection = 1e-5 * celer_mm;
+    celeritas::FieldDriverOptions driver_options;
 
     // Try to read from DD4hep field_tracking properties if available
     if (overlaid_properties.count("field_tracking"))
@@ -120,8 +128,7 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
         // Create evaluator for parsing expressions with units
         dd4hep::tools::Evaluator eval;
 
-        auto get_param
-            = [&](std::string const& key, double default_val) -> double {
+        auto set_param = [&tracking_props](std::string const& key, double& val) {
             if (!tracking_props.count(key))
                 return default_val;
 
@@ -137,13 +144,13 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
 
             // result.second is already in mm (DD4hep's base unit)
             // Convert to Celeritas internal units
-            return result.second * celer_mm;
+            constexpr auto celer_mm = celeritas::units::millimeter;
+            val = result.second * celer_mm;
         };
 
-        min_step = get_param("min_chord_step", min_step);
-        delta_chord = get_param("delta_chord", delta_chord);
-        delta_intersection
-            = get_param("delta_intersection", delta_intersection);
+        set_param("min_chord_step", driver_options.minimum_step);
+        set_param("delta_chord", driver_options.delta_chord);
+        set_param("delta_intersection", driver_options.delta_intersection);
     }
 
     // Print field driver options
@@ -154,11 +161,7 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
         << " mm";
 
     // Use a uniform magnetic field based on DD4hep ConstantField
-    auto make_field_input = [field_direction,
-                             min_step,
-                             delta_chord,
-                             delta_intersection,
-                             dd4hep_tesla] {
+    auto make_field_input = [&] {
         celeritas::inp::UniformField input;
 
         // Convert from DD4hep units (tesla) to Celeritas field units
@@ -166,35 +169,29 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
                           field_direction.Y() / dd4hep_tesla,
                           field_direction.Z() / dd4hep_tesla};
 
-        input.driver_options.minimum_step = min_step;
-        input.driver_options.delta_chord = delta_chord;
-        input.driver_options.delta_intersection = delta_intersection;
+        input.driver_options = driver_options;
         return input;
     };
     opts.make_along_step = celeritas::UniformAlongStepFactory(make_field_input);
     opts.sd.ignore_zero_deposition = false;
 
     // Save diagnostic file to a unique name
-    opts.output_file = "trackingmanager-offload.out.json";
+    opts.output_file = "ddceler.out.json";
     return opts;
 }
+
 //---------------------------------------------------------------------------//
 
 void DDcelerTMI::constructPhysics(G4VModularPhysicsList* physics)
 {
-    this->info(
-        "Using Celeritas tracking for "
-        "e-/e+/gamma.");
-
     // Register Celeritas tracking manager
     auto& tmi = TMI::Instance();
     physics->RegisterPhysics(new celeritas::TrackingManagerConstructor(&tmi));
 
     // Configure Celeritas options
-    tmi.SetOptions(makeOptions());
-
-    this->info("Celeritas TrackingManager registered.");
+    tmi.SetOptions(this->makeOptions());
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace sim
 }  // namespace dd4hep

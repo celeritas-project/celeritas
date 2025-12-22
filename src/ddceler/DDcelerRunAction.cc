@@ -15,6 +15,22 @@ namespace dd4hep
 {
 namespace sim
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Standard constructor
+ */
+DDcelerRunAction::DDcelerRunAction(Geant4Context* ctxt, std::string const& name)
+    : Geant4RunAction(ctxt, name)
+{
+    InstanceCount::increment(this);
+}
+
+//---------------------------------------------------------------------------//
+
+DDcelerRunAction::~DDcelerRunAction()
+{
+    InstanceCount::decrement(this);
+}
 
 //---------------------------------------------------------------------------//
 
@@ -29,8 +45,8 @@ void DDcelerRunAction::end(G4Run const* run)
 {
     TMI::Instance().EndOfRunAction(run);
 }
-//---------------------------------------------------------------------------//
 
+//---------------------------------------------------------------------------//
 }  // namespace sim
 }  // namespace dd4hep
 
