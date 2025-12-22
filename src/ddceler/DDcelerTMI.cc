@@ -50,23 +50,23 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     // Get the field from DD4hep detector description and validate its type
     auto& detector = context()->detectorDescription();
     auto field = detector.field();
-    auto* overlayed_obj = field.data<OverlayedField::Object>();
+    auto* overlaid_obj = field.data<OverlayedField::Object>();
 
     // Validate field configuration: no electric components
-    CELER_VALIDATE(overlayed_obj->electric_components.empty(),
+    CELER_VALIDATE(overlaid_obj->electric_components.empty(),
                    << "Celeritas does not support electric field components. "
                       "Found "
-                   << overlayed_obj->electric_components.size()
+                   << overlaid_obj->electric_components.size()
                    << " electric component(s).");
 
-    CELER_VALIDATE(!overlayed_obj->magnetic_components.empty(),
+    CELER_VALIDATE(!overlaid_obj->magnetic_components.empty(),
                    << "No magnetic field components found in DD4hep field "
                       "description.");
 
     // Check that all magnetic components are ConstantField and sum them
     Direction summed_direction(0, 0, 0);
 
-    for (auto const& mag_component : overlayed_obj->magnetic_components)
+    for (auto const& mag_component : overlaid_obj->magnetic_components)
     {
         auto* cartesian_obj = mag_component.data<CartesianField::Object>();
         auto* const_field = dynamic_cast<ConstantField const*>(cartesian_obj);
@@ -85,7 +85,7 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     }
 
     this->info(("All "
-                + std::to_string(overlayed_obj->magnetic_components.size())
+                + std::to_string(overlaid_obj->magnetic_components.size())
                 + " magnetic component(s) are ConstantField.")
                    .c_str());
 
@@ -101,9 +101,9 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
                      << field_direction.Y() / dd4hep_tesla << ", "
                      << field_direction.Z() / dd4hep_tesla << ") T";
 
-    // Query field tracking parameters from DD4hep overlayed field properties
+    // Query field tracking parameters from DD4hep overlaid field properties
     // These are set in the steering file via RUNNER.field.*
-    auto const& overlayed_properties = overlayed_obj->properties;
+    auto const& overlaid_properties = overlaid_obj->properties;
 
     // Default values
     constexpr auto celer_mm = celeritas::units::millimeter;
@@ -113,9 +113,9 @@ celeritas::SetupOptions DDcelerTMI::makeOptions()
     double delta_intersection = 1e-5 * celer_mm;
 
     // Try to read from DD4hep field_tracking properties if available
-    if (overlayed_properties.count("field_tracking"))
+    if (overlaid_properties.count("field_tracking"))
     {
-        auto const& tracking_props = overlayed_properties.at("field_tracking");
+        auto const& tracking_props = overlaid_properties.at("field_tracking");
 
         // Create evaluator for parsing expressions with units
         dd4hep::tools::Evaluator eval;
