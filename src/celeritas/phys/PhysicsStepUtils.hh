@@ -11,7 +11,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/Selector.hh"
@@ -19,8 +18,6 @@
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/grid/SplineCalculator.hh"
-#include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
@@ -208,13 +205,6 @@ calc_physics_step_limit(MaterialTrackView const& material,
  * \note The inverse range correction assumes range is always the integral of
  * the stopping power/energy loss.
  *
- * \todo The GEANT3 manual \cite{geant3-1993} makes the point that linear
- * interpolation of energy
- * loss rate results in a piecewise constant energy deposition curve, which is
- * why they use spline interpolation. Investigate higher-order reconstruction
- * of energy loss curve, e.g. through spline-based interpolation or log-log
- * interpolation.
- *
  * \note See section 7.2.4 Run Time Energy Loss Computation of the Geant4
  * physics manual \cite{g4prm}. See also the longer discussions in section 8
  * of PHYS010 of the Geant3 manual.
@@ -336,57 +326,6 @@ select_discrete_interaction(MaterialView const& material,
     pstep.element(elcomp_id);
 
     return physics.model_to_action(physics.model_id(pmid));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Deposit energy along the particle's step.
- */
-inline CELER_FUNCTION void apply_slowing_down(PhysicsTrackView const& phys,
-                                              bool on_boundary,
-                                              ParticleTrackView::Energy eloss,
-                                              ParticleTrackView& particle,
-                                              PhysicsStepView& pstep,
-                                              SimTrackView& sim)
-{
-    CELER_EXPECT(eloss <= particle.energy());
-    CELER_EXPECT(eloss != particle.energy() || !on_boundary
-                 || sim.post_step_action() == phys.scalars().range_action());
-
-    if (!on_boundary
-        && (particle.energy() - eloss <= phys.particle_scalars().lowest_energy))
-    {
-        // Particle ended below the tracking cut: deposit all its energy
-        // (aka adjusting dE/dx upward a bit)
-        // TODO: maybe we should change the range integral so that instead
-        // of ending at E=0 it ends at E=tcut?
-        eloss = particle.energy();
-    }
-    if (eloss > zero_quantity())
-    {
-        // Deposit energy loss
-        pstep.deposit_energy_from(eloss, particle);
-    }
-
-    // At this point, we shouldn't have any low-energy tracks *except* on the
-    // boundary
-    CELER_ASSERT(particle.energy() >= phys.particle_scalars().lowest_energy
-                 || on_boundary || particle.is_stopped());
-
-    if (particle.is_stopped())
-    {
-        if (!phys.at_rest_process())
-        {
-            // Immediately kill stopped particles with no at rest processes
-            sim.status(TrackStatus::killed);
-            sim.post_step_action(phys.scalars().range_action());
-        }
-        else
-        {
-            // Particle slowed down to zero: force a discrete interaction
-            sim.post_step_action(phys.scalars().discrete_action());
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//

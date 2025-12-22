@@ -48,7 +48,7 @@ struct NoMsc
 struct NoELoss
 {
     //! No energy loss
-    CELER_FUNCTION auto calc_eloss(CoreTrackView const&) const -> decltype(auto)
+    CELER_FUNCTION auto operator()(CoreTrackView const&) const -> decltype(auto)
     {
         return zero_quantity();
     }

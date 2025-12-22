@@ -28,7 +28,7 @@ class MeanELoss
 
   public:
     // Apply to the track
-    inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track);
+    inline CELER_FUNCTION Energy operator()(CoreTrackView const& track);
 };
 
 //---------------------------------------------------------------------------//
@@ -37,7 +37,7 @@ class MeanELoss
 /*!
  * Apply energy loss to the given track.
  */
-CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track) -> Energy
+CELER_FUNCTION auto MeanELoss::operator()(CoreTrackView const& track) -> Energy
 {
     auto particle = track.particle();
     auto phys = track.physics();

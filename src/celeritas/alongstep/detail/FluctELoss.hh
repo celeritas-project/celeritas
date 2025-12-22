@@ -39,7 +39,7 @@ class FluctELoss
     inline explicit CELER_FUNCTION FluctELoss(ParamsRef const& params);
 
     // Apply to the track
-    inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track);
+    inline CELER_FUNCTION Energy operator()(CoreTrackView const& track);
 
   private:
     //// DATA ////
@@ -79,7 +79,7 @@ CELER_FUNCTION FluctELoss::FluctELoss(ParamsRef const& params)
  *   applied) or to the mean energy loss (if cuts are prohibited due to this
  *   being a non-physics-based step).
  */
-CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track) -> Energy
+CELER_FUNCTION auto FluctELoss::operator()(CoreTrackView const& track) -> Energy
 {
     auto particle = track.particle();
     auto phys = track.physics();
