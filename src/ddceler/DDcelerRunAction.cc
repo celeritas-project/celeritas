@@ -20,7 +20,6 @@ namespace sim
 
 void DDcelerRunAction::begin(G4Run const* run)
 {
-    this->info("Begin of run");
     TMI::Instance().BeginOfRunAction(run);
 }
 
@@ -28,7 +27,6 @@ void DDcelerRunAction::begin(G4Run const* run)
 
 void DDcelerRunAction::end(G4Run const* run)
 {
-    this->info("End of run");
     TMI::Instance().EndOfRunAction(run);
 }
 //---------------------------------------------------------------------------//
