@@ -6,18 +6,18 @@
 //---------------------------------------------------------------------------//
 #include "DDcelerRunAction.hh"
 
-#include <CeleritasG4.hh>
+#include <DD4hep/InstanceCount.h>
 #include <DDG4/Factories.h>
+
+#include "accel/TrackingManagerIntegration.hh"
 
 using TMI = celeritas::TrackingManagerIntegration;
 
-namespace dd4hep
-{
-namespace sim
+namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Standard constructor
+ * Standard constructor.
  */
 DDcelerRunAction::DDcelerRunAction(Geant4Context* ctxt, std::string const& name)
     : Geant4RunAction(ctxt, name)
@@ -47,7 +47,6 @@ void DDcelerRunAction::end(G4Run const* run)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace sim
-}  // namespace dd4hep
+}  // namespace celeritas
 
-DECLARE_GEANT4ACTION(DDcelerRunAction)
+DECLARE_GEANT4ACTION_NS(DDcelerRunAction, celeritas)

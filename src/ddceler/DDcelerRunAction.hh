@@ -6,13 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <DD4hep/InstanceCount.h>
+#include <string>
 #include <DDG4/Geant4Action.h>
 #include <DDG4/Geant4RunAction.h>
-
-using Geant4Context = dd4hep::sim::Geant4Context;
-using Geant4Action = dd4hep::sim::Geant4Action;
-using Geant4RunAction = dd4hep::sim::Geant4RunAction;
 
 namespace dd4hep
 {
@@ -22,11 +18,11 @@ namespace sim
 /*!
  * DDG4 action plugin for Celeritas tracking manager integration (TMI).
  */
-class DDcelerRunAction final : public Geant4RunAction
+class DDcelerRunAction final : public dd4hep::sim::Geant4RunAction
 {
   public:
     // Standard constructor
-    DDcelerRunAction(Geant4Context* ctxt, std::string const& name);
+    DDcelerRunAction(dd4hep::sim::Geant4Context* ctxt, std::string const& name);
 
     // Run action callbacks
     void begin(G4Run const* run) final;
