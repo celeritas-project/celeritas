@@ -40,7 +40,7 @@ class ElectroNuclearMicroXsCalculator
   private:
     // Shared cross section data
     ParamsRef const& data_;
-    // Incident photon energy
+    // Incident particle energy
     real_type const inc_energy_;
 };
 
