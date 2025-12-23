@@ -9,10 +9,8 @@
 #include <DD4hep/Detector.h>
 #include <DD4hep/FieldTypes.h>
 #include <DDG4/Factories.h>
-#include <Evaluator/DD4hepUnits.h>
-#include <Evaluator/Evaluator.h>
-#include <G4FieldManager.hh>
-#include <G4TransportationManager.hh>
+#include <DDG4/Geant4ActionPhase.h>
+#include <DDG4/Geant4Kernel.h>
 
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Field.hh"
@@ -32,40 +30,22 @@ namespace ddceler
 {
 
 //---------------------------------------------------------------------------//
-FieldDriverOptions
-load_driver_options(std::map<std::string, std::string> const& tracking_props)
+FieldDriverOptions load_driver_options(dd4hep::sim::Geant4Action* field_action)
 {
-    FieldDriverOptions result;
-    // Create evaluator for parsing expressions with units
-    dd4hep::tools::Evaluator eval;
+    FieldDriverOptions driver_options;
+    constexpr auto celer_mm = units::millimeter;
 
-    auto set_param
-        = [&tracking_props, &eval](std::string const& key, double& val) {
-              if (!tracking_props.count(key))
-                  return;
+    // Load field tracking parameters directly from DD4hep action properties
+    // Values are in DD4hep units (mm)
+    driver_options.delta_chord
+        = field_action->property("delta_chord").value<double>() * celer_mm;
+    driver_options.delta_intersection
+        = field_action->property("delta_intersection").value<double>()
+          * celer_mm;
+    driver_options.minimum_step
+        = field_action->property("delta_one_step").value<double>() * celer_mm;
 
-              // Values from RUNNER.field can include units (e.g., "0.025*mm"
-              // or "0.025")
-              std::string const& value_str = tracking_props.at(key);
-
-              // Evaluate expression to get value in DD4hep internal units
-              // (mm=1)
-              auto eval_result = eval.evaluate(value_str.c_str());
-              CELER_VALIDATE(eval_result.first == dd4hep::tools::Evaluator::OK,
-                             << "failed to parse field tracking parameter '"
-                             << key << "' with value '" << value_str << "'");
-
-              // eval_result.second is already in mm (DD4hep's base unit)
-              // Convert to Celeritas internal units
-              constexpr auto celer_mm = units::millimeter;
-              val = eval_result.second * celer_mm;
-          };
-
-    set_param("min_chord_step", result.minimum_step);
-    set_param("delta_chord", result.delta_chord);
-    set_param("delta_intersection", result.delta_intersection);
-
-    return result;
+    return driver_options;
 }
 
 //---------------------------------------------------------------------------//
@@ -158,14 +138,37 @@ SetupOptions DDcelerTMI::make_options()
                      << field_direction.Y() / dd4hep_tesla << ", "
                      << field_direction.Z() / dd4hep_tesla << ") T";
 
-    // Query field tracking parameters from DD4hep overlaid field properties
-    // These are set in the steering file via RUNNER.field.*
+    // Get field tracking parameters from DD4hep FieldSetup action
+    // These parameters are set in the steering file (runner.field.*)
     FieldDriverOptions driver_options;
-    auto const& overlaid_properties = overlaid_obj->properties;
-    if (auto iter = overlaid_properties.find("field_tracking");
-        iter != overlaid_properties.end())
+
+    auto& kernel = context()->kernel();
+    auto* config_phase = kernel.getPhase("configure");
+
+    dd4hep::sim::Geant4Action* field_action = nullptr;
+    if (config_phase)
     {
-        driver_options = load_driver_options(iter->second);
+        // Find the MagFieldTrackingSetup action in the configure phase
+        for (auto const& [action, callback] : config_phase->members())
+        {
+            if (action->name() == "MagFieldTrackingSetup")
+            {
+                field_action = action;
+                break;
+            }
+        }
+    }
+
+    if (field_action)
+    {
+        driver_options = load_driver_options(field_action);
+        CELER_LOG(debug) << "Loaded field driver options from DD4hep "
+                            "FieldSetup action";
+    }
+    else
+    {
+        CELER_LOG(warning) << "MagFieldTrackingSetup action not found, using "
+                              "default field parameters";
     }
 
     // Print field driver options
