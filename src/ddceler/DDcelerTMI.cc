@@ -35,32 +35,32 @@ namespace ddceler
 FieldDriverOptions
 load_driver_options(std::map<std::string, std::string> const& tracking_props)
 {
-    FieldDriverOptions result;
     // Create evaluator for parsing expressions with units
     dd4hep::tools::Evaluator eval;
 
-    auto set_param
-        = [&tracking_props, &eval](std::string const& key, double& val) {
-              if (!tracking_props.count(key))
-                  return;
+    auto set_param = [&](std::string const& key, double& val) {
+        auto iter = tracking_props.find(key);
+        if (iter == tracking_props.end())
+            return;
 
-              // Values from RUNNER.field can include units (e.g., "0.025*mm"
-              // or "0.025")
-              std::string const& value_str = tracking_props.at(key);
+        // Values from RUNNER.field can include units (e.g., "0.025*mm"
+        // or "0.025")
+        std::string const& value_str = iter->second;
 
-              // Evaluate expression to get value in DD4hep internal units
-              // (mm=1)
-              auto eval_result = eval.evaluate(value_str.c_str());
-              CELER_VALIDATE(eval_result.first == dd4hep::tools::Evaluator::OK,
-                             << "failed to parse field tracking parameter '"
-                             << key << "' with value '" << value_str << "'");
+        // Evaluate expression to get value in DD4hep internal units
+        // (mm=1)
+        auto eval_result = eval.evaluate(value_str.c_str());
+        CELER_VALIDATE(eval_result.first == dd4hep::tools::Evaluator::OK,
+                       << "failed to parse field tracking parameter '" << key
+                       << "' with value '" << value_str << "'");
 
-              // eval_result.second is already in mm (DD4hep's base unit)
-              // Convert to Celeritas internal units
-              constexpr auto celer_mm = units::millimeter;
-              val = eval_result.second * celer_mm;
-          };
+        // eval_result.second is already in mm (DD4hep's base unit)
+        // Convert to Celeritas internal units
+        constexpr auto celer_mm = units::millimeter;
+        val = eval_result.second * celer_mm;
+    };
 
+    FieldDriverOptions result;
     set_param("min_chord_step", result.minimum_step);
     set_param("delta_chord", result.delta_chord);
     set_param("delta_intersection", result.delta_intersection);
@@ -121,8 +121,7 @@ SetupOptions DDcelerTMI::make_options()
                       "description.");
 
     // Check that all magnetic components are ConstantField and sum them
-    Direction summed_direction(0, 0, 0);
-
+    Direction field_direction(0, 0, 0);
     for (auto const& mag_component : overlaid_obj->magnetic_components)
     {
         auto* cartesian_obj = mag_component.data<CartesianField::Object>();
@@ -134,19 +133,8 @@ SetupOptions DDcelerTMI::make_options()
                        << "fields. Found non-constant field component in "
                           "DD4hep "
                        << "description.");
-
-        summed_direction
-            = Direction(summed_direction.X() + const_field->direction.X(),
-                        summed_direction.Y() + const_field->direction.Y(),
-                        summed_direction.Z() + const_field->direction.Z());
+        field_direction += const_field->direction;
     }
-
-    this->info(("All "
-                + std::to_string(overlaid_obj->magnetic_components.size())
-                + " magnetic component(s) are ConstantField.")
-                   .c_str());
-
-    Direction field_direction = summed_direction;
 
     // Print field strength
     // Note: field_direction is already in DD4hep internal units (parsed from
