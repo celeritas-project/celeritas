@@ -33,8 +33,12 @@ set_target_properties(${_plugins} PROPERTIES
   INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
   SKIP_BUILD_RPATH FALSE
   BUILD_WITH_INSTALL_RPATH FALSE
-  LINK_FLAGS "-Wl,--disable-new-dtags"
 )
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set_target_properties(${_plugins} PROPERTIES APPEND
+    LINK_FLAGS "-Wl,--disable-new-dtags"
+  )
+endif()
 
 install(TARGETS ${_plugins} LIBRARY DESTINATION lib)
 

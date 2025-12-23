@@ -344,9 +344,6 @@ double loop(TString file, TH1D* hist, TString plot_type)
 
     // For calorimeter deposited energy sum validation
     double total_deposited_energy = 0;
-    int num_events = 0;
-    int num_particles_total = 0;
-    int num_primaries = 0;
 
     // Event loop
     while (reader.Next())
@@ -358,14 +355,11 @@ double loop(TString file, TH1D* hist, TString plot_type)
             {
                 if (particle)
                 {
-                    num_particles_total++;
                     // Filter for primary particles only (no parents)
                     if (particle->parents.size() != 0)
                     {
                         continue;
                     }
-
-                    num_primaries++;
 
                     // Get momentum components
                     double px = particle->psx;
@@ -408,7 +402,6 @@ double loop(TString file, TH1D* hist, TString plot_type)
 
             hist->Fill(event_deposited_energy);
             total_deposited_energy += event_deposited_energy;
-            num_events++;
         }
     }
 

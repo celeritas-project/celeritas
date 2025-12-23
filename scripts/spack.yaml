@@ -34,7 +34,9 @@ spack:
     root:
       # Note: dd4hep requires +gsl+math
       # ROOT here is built without GUI to reduce build time
-      variants: ~aqua ~davix ~examples ~opengl ~x ~tbb
+      variants: ~aqua ~davix ~examples ~opengl ~x ~tbb ~webgui +root7
+    dd4hep:
+      variants: ~utilityapps ~ddeve
     all:
       require:
       # Note: C++17 is the minimum required but we'll default to C++20
