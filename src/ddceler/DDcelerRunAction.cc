@@ -12,8 +12,13 @@
 #include "accel/TrackingManagerIntegration.hh"
 
 using TMI = celeritas::TrackingManagerIntegration;
+using Geant4Context = dd4hep::sim::Geant4Context;
+using Geant4RunAction = dd4hep::sim::Geant4RunAction;
+using InstanceCount = dd4hep::InstanceCount;
 
 namespace celeritas
+{
+namespace ddceler
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -47,6 +52,7 @@ void DDcelerRunAction::end(G4Run const* run)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace ddceler
 }  // namespace celeritas
 
-DECLARE_GEANT4ACTION_NS(DDcelerRunAction, celeritas)
+DECLARE_GEANT4ACTION_NS(celeritas::ddceler, DDcelerRunAction)

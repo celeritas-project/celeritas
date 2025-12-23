@@ -19,42 +19,53 @@
 #include "accel/TrackingManagerIntegration.hh"
 
 using TMI = celeritas::TrackingManagerIntegration;
+using Geant4Context = dd4hep::sim::Geant4Context;
+using Geant4PhysicsList = dd4hep::sim::Geant4PhysicsList;
+using OverlayedField = dd4hep::OverlayedField;
+using CartesianField = dd4hep::CartesianField;
+using ConstantField = dd4hep::ConstantField;
+using Direction = dd4hep::Direction;
 
 namespace celeritas
 {
-namespace
+namespace ddceler
 {
 
 //---------------------------------------------------------------------------//
-FieldDriverOptions load_driver_options(Props const& tracking_props)
+FieldDriverOptions
+load_driver_options(std::map<std::string, std::string> const& tracking_props)
 {
     FieldDriverOptions result;
     // Create evaluator for parsing expressions with units
     dd4hep::tools::Evaluator eval;
 
-    auto set_param = [&tracking_props](std::string const& key, double& val) {
-        if (!tracking_props.count(key))
-            return default_val;
+    auto set_param
+        = [&tracking_props, &eval](std::string const& key, double& val) {
+              if (!tracking_props.count(key))
+                  return;
 
-        // Values from RUNNER.field can include units (e.g., "0.025*mm" or
-        // "0.025")
-        std::string const& value_str = tracking_props.at(key);
+              // Values from RUNNER.field can include units (e.g., "0.025*mm"
+              // or "0.025")
+              std::string const& value_str = tracking_props.at(key);
 
-        // Evaluate expression to get value in DD4hep internal units (mm=1)
-        auto result = eval.evaluate(value_str.c_str());
-        CELER_VALIDATE(result.first == dd4hep::tools::Evaluator::OK,
-                       << "failed to parse field tracking parameter '" << key
-                       << "' with value '" << value_str << "'");
+              // Evaluate expression to get value in DD4hep internal units
+              // (mm=1)
+              auto eval_result = eval.evaluate(value_str.c_str());
+              CELER_VALIDATE(eval_result.first == dd4hep::tools::Evaluator::OK,
+                             << "failed to parse field tracking parameter '"
+                             << key << "' with value '" << value_str << "'");
 
-        // result.second is already in mm (DD4hep's base unit)
-        // Convert to Celeritas internal units
-        constexpr auto celer_mm = units::millimeter;
-        val = result.second * celer_mm;
-    };
+              // eval_result.second is already in mm (DD4hep's base unit)
+              // Convert to Celeritas internal units
+              constexpr auto celer_mm = units::millimeter;
+              val = eval_result.second * celer_mm;
+          };
 
-    set_param("min_chord_step", driver_options.minimum_step);
-    set_param("delta_chord", driver_options.delta_chord);
-    set_param("delta_intersection", driver_options.delta_intersection);
+    set_param("min_chord_step", result.minimum_step);
+    set_param("delta_chord", result.delta_chord);
+    set_param("delta_intersection", result.delta_intersection);
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -70,7 +81,7 @@ DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& name)
 }
 
 //---------------------------------------------------------------------------//
-SetupOptions DDcelerTMI::makeOptions()
+SetupOptions DDcelerTMI::make_options()
 {
     SetupOptions opts;
 
@@ -154,15 +165,17 @@ SetupOptions DDcelerTMI::makeOptions()
     if (auto iter = overlaid_properties.find("field_tracking");
         iter != overlaid_properties.end())
     {
-        overlaid_obj->properties = load_driver_options(iter->second);
+        driver_options = load_driver_options(iter->second);
     }
 
     // Print field driver options
+    constexpr auto celer_mm = units::millimeter;
     CELER_LOG(debug)
-        << "Field driver options: min_step=" << min_step / celer_mm
-        << " mm, delta_chord=" << delta_chord / celer_mm
-        << " mm, delta_intersection=" << delta_intersection / celer_mm
-        << " mm";
+        << "Field driver options: min_step="
+        << driver_options.minimum_step / celer_mm
+        << " mm, delta_chord=" << driver_options.delta_chord / celer_mm
+        << " mm, delta_intersection="
+        << driver_options.delta_intersection / celer_mm << " mm";
 
     // Use a uniform magnetic field based on DD4hep ConstantField
     auto make_field_input = [field_direction, driver_options] {
@@ -192,10 +205,11 @@ void DDcelerTMI::constructPhysics(G4VModularPhysicsList* physics)
     physics->RegisterPhysics(new TrackingManagerConstructor(&tmi));
 
     // Configure Celeritas options
-    tmi.SetOptions(this->makeOptions());
+    tmi.SetOptions(this->make_options());
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace ddceler
 }  // namespace celeritas
 
-DECLARE_GEANT4ACTION_NS(DDcelerTMI, celeritas)
+DECLARE_GEANT4ACTION_NS(celeritas::ddceler, DDcelerTMI)

@@ -8,11 +8,14 @@
 
 #include <string>
 #include <vector>
+#include <CeleritasG4.hh>
 #include <DDG4/Geant4Action.h>
 #include <DDG4/Geant4PhysicsList.h>
 #include <G4VModularPhysicsList.hh>
 
 namespace celeritas
+{
+namespace ddceler
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -40,4 +43,5 @@ class DDcelerTMI final : public dd4hep::sim::Geant4PhysicsList
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace ddceler
 }  // namespace celeritas

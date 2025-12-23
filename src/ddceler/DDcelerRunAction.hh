@@ -10,9 +10,9 @@
 #include <DDG4/Geant4Action.h>
 #include <DDG4/Geant4RunAction.h>
 
-namespace dd4hep
+namespace celeritas
 {
-namespace sim
+namespace ddceler
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -35,5 +35,5 @@ class DDcelerRunAction final : public dd4hep::sim::Geant4RunAction
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace sim
-}  // namespace dd4hep
+}  // namespace ddceler
+}  // namespace celeritas
