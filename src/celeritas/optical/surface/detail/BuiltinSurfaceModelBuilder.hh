@@ -6,15 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
 #include <memory>
+#include <string_view>
+#include <vector>
 
+#include "celeritas/Types.hh"
 #include "celeritas/optical/surface/SurfaceModel.hh"
 
 namespace celeritas
 {
 namespace optical
 {
-//---------------------------------------------------------------------------//
 namespace detail
 {
 namespace
