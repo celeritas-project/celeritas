@@ -20,8 +20,6 @@ namespace optical
 {
 namespace detail
 {
-namespace
-{
 //---------------------------------------------------------------------------//
 /*!
  * Fake model as a placeholder for surface models yet to be implemented.
@@ -55,8 +53,6 @@ class FakeModel : public SurfaceModel
   private:
     VecSurfaceLayer layers_;
 };
-
-}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
