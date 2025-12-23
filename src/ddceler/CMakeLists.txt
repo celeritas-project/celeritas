@@ -1,3 +1,47 @@
+function(dd4hep_generate_rootmap library)
+  if(APPLE)
+    set(_ld_var DYLD_LIBRARY_PATH)
+  else()
+    set(_ld_var LD_LIBRARY_PATH)
+  endif()
+
+  set(DD4HEP_LIBRARY_PATH "$ENV{${_ld_var}}"
+    CACHE STRING
+    "Set ${_ld_var} when adding plugins"
+  )
+  set(DD4HEP_ROOT_LIBRARY_PATH "$ENV{ROOT_LIBRARY_PATH}"
+    CACHE STRING
+    "Set ROOT_LIBRARY_PATH when adding plugins"
+  )
+
+  string(JOIN ":" _ld_path
+    "$<TARGET_FILE_DIR:${library}>"
+    "$<TARGET_FILE_DIR:DD4hep::DD4hepGaudiPluginMgr>"
+    "${DD4HEP_LIBRARY_PATH}"
+  )
+
+  set(rootmapfile ${CMAKE_SHARED_MODULE_PREFIX}${library}.components)
+
+  add_custom_command(OUTPUT ${rootmapfile}
+                     DEPENDS ${library}
+                     COMMAND
+                     "${CMAKE_COMMAND}" -E env
+                     "${_ld_var}=${_ld_path}"
+                     "ROOT_LIBRARY_PATH=${DD4HEP_ROOT_LIBRARY_PATH}"
+                     $<TARGET_FILE:DD4hep::listcomponents> -o ${rootmapfile} $<TARGET_FILE_NAME:${library}>
+                     WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
+                     )
+
+  add_custom_target(Components_${library} ALL DEPENDS ${rootmapfile})
+  SET( install_destination "lib" )
+  if( CMAKE_INSTALL_LIBDIR )
+    SET( install_destination ${CMAKE_INSTALL_LIBDIR} )
+  endif()
+  install(FILES $<TARGET_FILE_DIR:${library}>/${rootmapfile}
+    DESTINATION ${install_destination}
+  )
+endfunction()
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 dd4hep_add_plugin(DDcelerTMI
