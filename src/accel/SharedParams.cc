@@ -62,8 +62,10 @@
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -101,7 +103,7 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
         {
             PDGNumber pdg{pd->GetPDGEncoding()};
             CELER_VALIDATE(
-                pdg, << "unsupported particle type: " << PrintablePD{pd});
+                pdg, << "unsupported particle type: " << StreamablePD{pd});
             pid = particles.find(pdg);
         }
         if (pid)
@@ -121,7 +123,7 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
     }
 
     auto printable_pd
-        = [](G4ParticleDefinition const* p) { return PrintablePD{p}; };
+        = [](G4ParticleDefinition const* p) { return StreamablePD{p}; };
     CELER_VALIDATE(missing.empty(),
                    << "not all particles from TrackingManagerConstructor are "
                       "active in Celeritas: missing "
@@ -179,14 +181,9 @@ auto SharedParams::GetMode() -> Mode
         if (!result.value)
             return false;
 
-        if (kill_offload)
-        {
-            CELER_LOG(warning)
-                << "DEPRECATED (remove in 0.7): both CELER_DISABLE "
-                   "and CELER_KILL_OFFLOAD environment variables "
-                   "were defined: choose one";
-            return false;
-        }
+        CELER_VALIDATE(!kill_offload,
+                       << "both CELER_DISABLE and CELER_KILL_OFFLOAD "
+                          "environment variables were defined: choose one");
 
         CELER_LOG(info)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
@@ -208,9 +205,12 @@ auto SharedParams::GetMode() -> Mode
 //---------------------------------------------------------------------------//
 /*!
  * Get a list of all supported particles.
+
+ * \note This can only be called after the run manager is constructed.
  */
 auto SharedParams::supported_offload_particles() -> VecG4PD const&
 {
+    CELER_EXPECT(G4RunManager::GetRunManager());
     static VecG4PD const supported_particles = {
         G4Electron::Definition(),
         G4Positron::Definition(),
@@ -227,9 +227,13 @@ auto SharedParams::supported_offload_particles() -> VecG4PD const&
  * Get the list of default particles offloaded in Geant4 applications.
  *
  * If no user-defined list is provided, this defaults to simulating EM showers.
+ *
+ * \note This can only be called after the run manager is constructed.
  */
 auto SharedParams::default_offload_particles() -> VecG4PD const&
 {
+    CELER_EXPECT(G4RunManager::GetRunManager());
+
     static VecG4PD const default_particles = {
         G4Electron::Definition(),
         G4Positron::Definition(),
@@ -274,9 +278,9 @@ SharedParams::SharedParams(SetupOptions const& options)
     if (mode_ == Mode::enabled || mode_ == Mode::kill_offload)
     {
         // Set up offloaded particles based on user input
-        auto const& user_offload = options.offload_particles;
-        offload_particles_ = user_offload.empty() ? default_offload_particles()
-                                                  : user_offload;
+        offload_particles_ = options.offload_particles
+                                 ? *options.offload_particles
+                                 : default_offload_particles();
     }
 
     if (mode_ != Mode::enabled)
@@ -317,9 +321,32 @@ SharedParams::SharedParams(SetupOptions const& options)
     auto framework_inp = to_inp(options);
     auto loaded = setup::framework_input(framework_inp);
     params_ = std::move(loaded.problem.core_params);
-    optical_ = std::move(loaded.problem.optical_collector);
-    output_filename_ = loaded.problem.output_file;
     CELER_ASSERT(params_);
+    output_filename_ = loaded.problem.output_file;
+
+    if (auto const& opt = options.optical)
+    {
+        if (std::holds_alternative<inp::OpticalOffloadGenerator>(opt->generator))
+        {
+            optical_transporter_
+                = std::move(loaded.problem.optical_transporter);
+            CELER_ASSERT(optical_transporter_);
+        }
+        else if (std::holds_alternative<inp::OpticalEmGenerator>(opt->generator))
+        {
+            optical_collector_ = std::move(loaded.problem.optical_collector);
+            CELER_ASSERT(optical_collector_);
+        }
+        else
+        {
+            CELER_VALIDATE(false,
+                           << "invalid optical photon generation mechanism");
+        }
+    }
+
+    // Save action sequence
+    actions_ = std::move(loaded.problem.actions);
+    CELER_ASSERT(actions_);
 
     // Load geant4 geometry adapter and save as "global"
     CELER_ASSERT(loaded.geo);
@@ -361,7 +388,12 @@ SharedParams::SharedParams(SetupOptions const& options)
         !offload_file.empty())
     {
         std::unique_ptr<EventWriterInterface> writer;
-        if (ends_with(offload_file, ".root"))
+        if (ends_with(offload_file, ".jsonl"))
+        {
+            writer.reset(
+                new JsonEventWriter(offload_file, params_->particle()));
+        }
+        else if (ends_with(offload_file, ".root"))
         {
             writer.reset(new RootEventWriter(
                 std::make_shared<RootFileManager>(offload_file.c_str()),

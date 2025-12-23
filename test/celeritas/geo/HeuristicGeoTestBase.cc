@@ -67,6 +67,8 @@ void HeuristicGeoTestBase::run(size_type num_states,
 
     if (celeritas::device())
     {
+        device().create_streams(1);
+
         auto dvc_path = this->run_impl<MemSpace::device>(num_states, num_steps);
         EXPECT_VEC_SOFT_EQ(host_path, dvc_path)
             << R"(GPU and CPU produced different results)";

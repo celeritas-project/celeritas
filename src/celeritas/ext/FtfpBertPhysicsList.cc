@@ -16,6 +16,7 @@
 #include <G4StoppingPhysics.hh>
 #include <G4ios.hh>
 
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/g4/SupportedEmStandardPhysics.hh"
 #include "celeritas/g4/SupportedOpticalPhysics.hh"
@@ -32,6 +33,8 @@ namespace celeritas
 FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
 {
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
+
+    ScopedStreamRedirect scoped_log(&std::cout);
 
     int verbosity = options.verbose;
     this->SetVerboseLevel(verbosity);

@@ -84,11 +84,14 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
                          << g4lv.GetSolid()->GetEntityType() << "' named '"
                          << g4lv.GetSolid()->GetName()
                          << "': " << e.details().what;
+        CELER_LOG(debug) << "Solid conversion failed at " << e.details().file
+                         << ':' << e.details().line;
         result->solid = this->convert_solid_.to_sphere(*g4lv.GetSolid());
-        CELER_LOG(warning) << "Replaced unknown solid with sphere ("
-                           << to_string(*result->solid) << ")";
+        CELER_LOG(warning)
+            << "Replaced invalid solid with equivalent-volume sphere ("
+            << to_string(*result->solid) << ")";
         CELER_LOG(info) << "Unsupported solid belongs to logical volume "
-                        << PrintableLV{&g4lv};
+                        << StreamableLV{&g4lv};
     }
     catch (celeritas::DebugError const& e)
     {
@@ -96,7 +99,7 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
                          << g4lv.GetSolid()->GetEntityType() << "' named '"
                          << g4lv.GetSolid()->GetName();
         CELER_LOG(info) << "Unsupported solid belongs to logical volume "
-                        << PrintableLV{&g4lv};
+                        << StreamableLV{&g4lv};
 
         static bool const allow_errors
             = !celeritas::getenv("G4ORG_ALLOW_ERRORS").empty();

@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/surface/SmearRoughnessSampler.hh"
-#include "celeritas/optical/surface/SurfaceModelView.hh"
 #include "celeritas/optical/surface/SurfacePhysicsUtils.hh"
 
 #include "SmearRoughnessData.hh"
@@ -18,35 +18,29 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a sampling executor for a smear roughness model.
+ * Sample and save a facet normal for the smear roughness model.
+ *
+ * TODO: refactor into roughness applier and SmearNormalCalculator
  */
 struct SmearRoughnessExecutor
 {
-    //!@{
-    //! \name Type aliases
-    using Sampler = EnteringSurfaceNormalSampler<SmearRoughnessSampler>;
-    //!@}
-
     NativeCRef<SmearRoughnessData> data;
 
-    inline CELER_FUNCTION Sampler operator()(SurfaceModelView const& model,
-                                             Real3 const& dir,
-                                             Real3 const& normal) const;
+    //! Apply smear roughness executor
+    CELER_FUNCTION void operator()(CoreTrackView& track) const
+    {
+        auto s_phys = track.surface_physics();
+        auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::roughness)
+                                .internal_surface_id();
+        CELER_ASSERT(sub_model_id < data.roughness.size());
+        EnteringSurfaceNormalSampler<SmearRoughnessSampler> sample_facet{
+            track.geometry().dir(),
+            s_phys.global_normal(),
+            data.roughness[sub_model_id]};
+        auto rng = track.rng();
+        s_phys.facet_normal(sample_facet(rng));
+    }
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct sampler for the given model.
- */
-CELER_FUNCTION auto
-SmearRoughnessExecutor::operator()(SurfaceModelView const& model,
-                                   Real3 const& dir,
-                                   Real3 const& normal) const -> Sampler
-{
-    return Sampler(dir, normal, data.roughness[model.internal_surface_id()]);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

@@ -1,6 +1,7 @@
 {
 "_format": "ORANGE",
 "_version": 0,
+"logic": "postfix",
 "tol": {
 "abs": 1e-05,
 "rel": 1e-05

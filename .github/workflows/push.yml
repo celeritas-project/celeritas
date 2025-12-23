@@ -1,3 +1,10 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Run tests on push to develop/backport branches.
+#-----------------------------------------------------------------------------#
+
 name: push
 
 on:
@@ -17,8 +24,10 @@ jobs:
     uses: ./.github/workflows/build-fast.yml
   build-docker:
     uses: ./.github/workflows/build-docker.yml
+    secrets: inherit
   build-spack:
     uses: ./.github/workflows/build-spack.yml
+    secrets: inherit
   all:
     needs: [build-fast, build-docker, build-spack]
     runs-on: ubuntu-24.04

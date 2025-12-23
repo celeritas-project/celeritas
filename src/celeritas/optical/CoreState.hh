@@ -11,6 +11,7 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
@@ -49,6 +50,9 @@ class CoreStateInterface : public AuxStateInterface
     //! Access track initialization counters
     virtual CoreStateCounters const& counters() const = 0;
 
+    //! Reseed the RNGs at the start of an event for reproducibility
+    virtual void reseed(std::shared_ptr<RngParams const>, UniqueEventId) = 0;
+
     //! Number of track slots
     virtual size_type size() const = 0;
 
@@ -58,15 +62,22 @@ class CoreStateInterface : public AuxStateInterface
 
   protected:
     CoreStateInterface() = default;
+
     CELER_DEFAULT_COPY_MOVE(CoreStateInterface);
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Manage the optical state counters.
+ * Manage the optical state counters and auxiliary data.
  */
 class CoreStateBase : public CoreStateInterface
 {
+  public:
+    //!@{
+    //! \name Type aliases
+    using SPAuxStateVec = std::shared_ptr<AuxStateVec>;
+    //!@}
+
   public:
     //! Track initialization counters
     CoreStateCounters& counters() { return counters_; }
@@ -80,12 +91,29 @@ class CoreStateBase : public CoreStateInterface
     //! Optical loop statistics
     OpticalAccumStats& accum() { return accum_; }
 
+    //// AUXILIARY DATA ////
+
+    //! Access auxiliary core state data
+    SPAuxStateVec const& aux() const { return aux_state_; }
+
+    //! Access auxiliary core state data (mutable)
+    SPAuxStateVec& aux() { return aux_state_; }
+
+  protected:
+    CoreStateBase() = default;
+
+    // Anchor vtable
+    ~CoreStateBase() override;
+
   private:
     // Counters for track initialization and activity
     CoreStateCounters counters_;
 
     //! Counts accumulated over the event for diagnostics
     OpticalAccumStats accum_;
+
+    // Auxiliary data owned by the core state
+    SPAuxStateVec aux_state_;
 };
 
 //---------------------------------------------------------------------------//
@@ -106,7 +134,6 @@ class CoreState final : public CoreStateBase
     //! \name Type aliases
     template<template<Ownership, MemSpace> class S>
     using StateRef = S<Ownership::reference, M>;
-    using SPAuxStateVec = std::shared_ptr<AuxStateVec>;
 
     using Ref = StateRef<CoreStateData>;
     using Ptr = ObserverPtr<Ref, M>;
@@ -117,6 +144,9 @@ class CoreState final : public CoreStateBase
     CoreState(CoreParams const& params,
               StreamId stream_id,
               size_type num_track_slots);
+
+    // Default destructor
+    ~CoreState() final;
 
     //! Thread/stream ID
     StreamId stream_id() const final { return this->ref().stream_id; }
@@ -138,19 +168,14 @@ class CoreState final : public CoreStateBase
     //! Get a native-memspace pointer to the mutable state data
     Ptr ptr() { return ptr_; }
 
-    //! Reset the state data
+    // Reset the data for a new step
     void reset();
+
+    // Reseed the RNGs at the start of an event for reproducibility
+    void reseed(std::shared_ptr<RngParams const>, UniqueEventId) final;
 
     // Inject primaries to be turned into TrackInitializers
     void insert_primaries(Span<TrackInitializer const> host_primaries) final;
-
-    //// AUXILIARY DATA ////
-
-    //! Access auxiliary core state data
-    SPAuxStateVec const& aux() const { return aux_state_; }
-
-    //! Access auxiliary core state data (mutable)
-    SPAuxStateVec& aux() { return aux_state_; }
 
   private:
     // State data
@@ -161,9 +186,6 @@ class CoreState final : public CoreStateBase
 
     // Native pointer to ref or
     Ptr ptr_;
-
-    // Auxiliary data owned by the core state
-    SPAuxStateVec aux_state_;
 };
 
 //---------------------------------------------------------------------------//

@@ -24,7 +24,7 @@
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #endif
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
 #ifdef VECGEOM_GDML
@@ -57,7 +57,6 @@
 
 #include "detail/VecgeomCompatibility.hh"
 #include "detail/VecgeomSetup.hh"
-#include "detail/VecgeomVersion.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
               "Celeritas and VecGeom real types do not match");
@@ -80,7 +79,7 @@ namespace
 #    define VG_CUDA_CALL(CODE) CELER_UNREACHABLE
 #endif
 
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
 #    define VG_SURF_CALL(CODE) CODE
 #else
 #    define VG_SURF_CALL(CODE) \
@@ -89,6 +88,18 @@ namespace
         } while (0)
 #endif
 
+//---------------------------------------------------------------------------//
+// HELPER TYPES
+//---------------------------------------------------------------------------//
+
+#if VECGEOM_VERSION >= 0x020000
+using ABBoxManager_t = vecgeom::ABBoxManager<vecgeom::Precision>;
+#else
+using ABBoxManager_t = vecgeom::ABBoxManager;
+#endif
+
+//---------------------------------------------------------------------------//
+// HELPER CLASSES
 //---------------------------------------------------------------------------//
 class VecgeomVolumeAccessor final
     : public VolumeAccessorInterface<vecgeom::LogicalVolume const*,
@@ -226,7 +237,7 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
 
 //---------------------------------------------------------------------------//
 vecgeom::VPlacedVolume const&
-get_placed_volume(vecgeom::GeoManager const& geo, VecgeomPlacedVolumeId ivi_id)
+get_placed_volume(vecgeom::GeoManager const& geo, VgVolumeInstanceId ivi_id)
 {
     CELER_EXPECT(ivi_id);
 
@@ -239,6 +250,83 @@ get_placed_volume(vecgeom::GeoManager const& geo, VecgeomPlacedVolumeId ivi_id)
         ivi_id.unchecked_get());
     CELER_ENSURE(vgpv);
     return *vgpv;
+}
+
+struct StreamablePointer
+{
+    void const* ptr{nullptr};
+};
+
+std::ostream& operator<<(std::ostream& os, StreamablePointer sp)
+{
+    if (sp.ptr)
+    {
+        os << sp.ptr;
+    }
+    else
+    {
+        os << "nullptr";
+    }
+
+    return os;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Confirm that the BVH device pointers are consistent.
+ *
+ * RDC linking can cause inline versus noninline methods to return different
+ * pointer addresses, leading to bizarre runtime crashes.
+ */
+void check_bvh_device_pointers()
+{
+    auto ptrs = detail::bvh_pointers_device();
+
+    detail::CudaBVH_t const* bvh_symbol_ptr{nullptr};
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+    bvh_symbol_ptr = BVHManager::GetDeviceBVH();
+#endif
+    if (ptrs.kernel == nullptr || ptrs.kernel != ptrs.symbol
+        || (bvh_symbol_ptr && (ptrs.kernel != bvh_symbol_ptr)))
+    {
+        // It's very bad if the kernel-viewed BVH pointer is null or
+        // inconsistent with the VecGeom-provided BVH pointer (only
+        // available in very recent VecGeom). It's bad (but not really
+        // necessary?) if cudaMemcpyFromSymbol fails when accessed from
+        // Celeritas
+        CELER_LOG(error)
+            << "VecGeom CUDA may not be correctly linked or initialized ("
+               "BVH device pointers are null or inconsistent: "
+            << StreamablePointer{ptrs.kernel}
+            << " from Celeritas device kernel, "
+            << StreamablePointer{ptrs.symbol}
+            << " from Celeritas runtime symbol, "
+#ifdef VECGEOM_BVHMANAGER_DEVICE
+            << StreamablePointer{bvh_symbol_ptr}
+#else
+            << "unavailable"
+#endif
+            << " from VecGeom runtime symbol)";
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Confirm that the navigation index device pointers are consistent.
+ */
+void check_navindex_device_pointers()
+{
+    auto ptrs = detail::navindex_pointers_device();
+    if (ptrs.kernel == nullptr || ptrs.kernel != ptrs.symbol)
+    {
+        CELER_LOG(error)
+            << "VecGeom CUDA may not be correctly linked or initialized ("
+               "navigation index table is null or inconsistent: "
+            << StreamablePointer{ptrs.kernel}
+            << " from Celeritas device kernel, "
+            << StreamablePointer{ptrs.symbol}
+            << " from Celeritas runtime symbol)";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -291,7 +379,7 @@ std::shared_ptr<VecgeomParams>
 VecgeomParams::from_gdml_vg(std::string const& filename)
 {
     {
-        ScopedProfiling profile_this{"load-vecgeom"};
+        ScopedProfiling profile_this{"vecgeom-vgdml-load"};
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
 
         CELER_LOG(status) << "Loading VecGeom geometry using VGDML from '"
@@ -324,7 +412,7 @@ VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
                          "geometry";
 #if CELERITAS_USE_GEANT4
     // Convert the geometry to VecGeom
-    ScopedProfiling profile_this{"load-vecgeom"};
+    ScopedProfiling profile_this{"vecgeom-g4vg-load"};
     ScopedMem record_mem("Converter.convert");
     ScopedTimeLog scoped_time;
     g4vg::Options opts;
@@ -357,7 +445,7 @@ VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
  */
 bool VecgeomParams::use_surface_tracking()
 {
-#ifdef VECGEOM_USE_SURF
+#if CELERITAS_VECGEOM_SURFACE
     return 1;
 #else
     return 0;
@@ -414,7 +502,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         // Save host data
         HostVal<VecgeomParamsData> host_data;
         host_data.scalars.host_world = geo.GetWorld();
-        host_data.scalars.max_depth = geo.getMaxDepth();
+        host_data.scalars.num_volume_levels = geo.getMaxDepth();
 
         if (celeritas::device())
         {
@@ -494,8 +582,8 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         // Save world bbox
         bbox_ = [&world] {
             // Calculate bounding box
-            auto bbox_mgr = detail::ABBoxManager_t::Instance();
-            vecgeom::Vector3D<real_type> lower, upper;
+            auto bbox_mgr = ABBoxManager_t::Instance();
+            VgReal3 lower, upper;
             bbox_mgr.ComputeABBox(&world, &lower, &upper);
             return BBox{detail::to_array(lower), detail::to_array(upper)};
         }();
@@ -614,6 +702,12 @@ inp::Model VecgeomParams::make_model_input() const
  */
 void VecgeomParams::build_surface_tracking()
 {
+    static int initialization_count{0};
+    CELER_VALIDATE(initialization_count == 0,
+                   << "VecGeom surface geometry currently crashes if "
+                      "recreated during an execution (you may call BeamOn "
+                      "only once)");
+
     VG_SURF_CALL(auto& brep_helper = vgbrep::BrepHelper<real_type>::Instance());
     VG_SURF_CALL(brep_helper.SetVerbosity(vecgeom_verbosity()));
 
@@ -627,6 +721,9 @@ void VecgeomParams::build_surface_tracking()
         {
             VG_SURF_CALL(brep_helper.PrintSurfData());
         }
+        // Prevent us from accidentally rebuilding and getting a segfault
+        // See https://its.cern.ch/jira/projects/VECGEOM/issues/VECGEOM-634
+        ++initialization_count;
     }
 
     if (celeritas::device())
@@ -658,7 +755,7 @@ void VecgeomParams::build_volume_tracking()
 
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
-        detail::ABBoxManager_t::Instance().InitABBoxesForCompleteGeometry();
+        ABBoxManager_t::Instance().InitABBoxesForCompleteGeometry();
     }
 
     // Init the bounding volume hierarchy structure
@@ -738,45 +835,8 @@ void VecgeomParams::build_volume_tracking()
             CELER_DEVICE_API_CALL(PeekAtLastError());
         }
 
-        // Check BVH pointers
-        auto ptrs = detail::bvh_pointers_device();
-
-        detail::CudaBVH_t const* bvh_symbol_ptr{nullptr};
-#ifdef VECGEOM_BVHMANAGER_DEVICE
-        bvh_symbol_ptr = BVHManager::GetDeviceBVH();
-#endif
-        if (ptrs.kernel == nullptr || ptrs.kernel != ptrs.symbol
-            || (bvh_symbol_ptr && (ptrs.kernel != bvh_symbol_ptr)))
-        {
-            // It's very bad if the kernel-viewed BVH pointer is null or
-            // inconsistent with the VecGeom-provided BVH pointer (only
-            // available in very recent VecGeom). It's bad (but not really
-            // necessary?) if cudaMemcpyFromSymbol fails when accessed from
-            // Celeritas
-            auto msg = CELER_LOG(error);
-            auto msg_pointer = [&msg](auto* p) {
-                if (p)
-                {
-                    msg << p;
-                }
-                else
-                {
-                    msg << "nullptr";
-                }
-            };
-            msg << "VecGeom CUDA may not be correctly linked or initialized ("
-                   "BVH device pointers are null or inconsistent: ";
-            msg_pointer(ptrs.kernel);
-            msg << " from Celeritas device kernel, ";
-            msg_pointer(ptrs.symbol);
-            msg << " from Celeritas runtime symbol, ";
-#ifdef VECGEOM_BVHMANAGER_DEVICE
-            msg_pointer(bvh_symbol_ptr);
-#else
-            msg << "unavailable";
-#endif
-            msg << " from VecGeom runtime symbol)";
-        }
+        check_bvh_device_pointers();
+        check_navindex_device_pointers();
 
         device_ownership_ = Ownership::value;
     }

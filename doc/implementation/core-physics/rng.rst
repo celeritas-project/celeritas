@@ -15,7 +15,7 @@ Engines
 -------
 
 Celeritas defaults to using an in-house implementation of the XORWOW
-:cite:`marsaglia-xorshift-2003` bit shifting generator. Each thread's state is
+bit shifting generator, :cpp:class:`celeritas::XorwowRngEngine`. Each thread's state is
 seeded at runtime by filling the state with bits generated from a 32-bit
 Mersenne twister. When a new event begins through the Geant4 interface, each
 thread's state is initialized using same seed and skipped ahead a different
@@ -25,6 +25,8 @@ statistically correlated values.
 .. doxygenfunction:: celeritas::initialize_xorwow
 
 .. doxygenclass:: celeritas::XorwowRngEngine
+
+.. doxygenclass:: celeritas::RanluxppRngEngine
 
 .. _celeritas_random_distributions:
 
@@ -60,8 +62,14 @@ Additionally we define a few helper classes for common physics sampling
 routines.
 
 .. doxygenclass:: celeritas::RejectionSampler
+.. doxygenclass:: celeritas::Selector
+.. doxygenfunction:: celeritas::make_selector
+.. doxygenfunction:: celeritas::make_unnormalized_selector
+
+And specifically for elements and isotopes:
+
+.. doxygenfunction:: celeritas::make_isotope_selector
 .. doxygenclass:: celeritas::ElementSelector
-.. doxygenclass:: celeritas::IsotopeSelector
 .. doxygenclass:: celeritas::TabulatedElementSelector
 
 The physics model implementations are built on top of these helper

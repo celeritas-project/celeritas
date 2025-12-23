@@ -25,7 +25,7 @@ struct GaussianRoughnessData
     //!@{
     //! \name Type aliases
     template<class T>
-    using SurfaceItems = Collection<T, W, M, SurfaceModel::InternalSurfaceId>;
+    using SurfaceItems = Collection<T, W, M, SubModelId>;
     //!@}
 
     //// DATA /////

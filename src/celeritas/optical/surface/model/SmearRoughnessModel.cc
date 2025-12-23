@@ -6,12 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "SmearRoughnessModel.hh"
 
+#include <algorithm>
+
 #include "corecel/data/CollectionBuilder.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
-#include "celeritas/optical/surface/TrackSlotExecutor.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "SmearRoughnessExecutor.hh"
 
@@ -21,47 +22,57 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct model from surfaces and inputs.
+ * Construct the model from an ID and a layer map.
  */
 SmearRoughnessModel::SmearRoughnessModel(
-    SurfaceModelId model, std::map<PhysSurfaceId, InputT> const& inputs)
-    : BuiltinRoughnessModel(model, "smear", inputs)
+    SurfaceModelId id, std::map<PhysSurfaceId, InputT> const& layer_map)
+    : SurfaceModel(id, "roughness-smear")
 {
+    surfaces_.reserve(layer_map.size());
+    std::transform(layer_map.begin(),
+                   layer_map.end(),
+                   std::back_inserter(surfaces_),
+                   [](auto const& layer) { return layer.first; });
+
     HostVal<SmearRoughnessData> data;
     auto build_roughness = CollectionBuilder{&data.roughness};
 
-    for (auto const& [surface, smear] : inputs)
+    for (auto const& [surface, smear] : layer_map)
     {
         CELER_ENSURE(smear);
         build_roughness.push_back(smear.roughness);
     }
 
     CELER_ENSURE(data);
-    CELER_ENSURE(data.roughness.size() == inputs.size());
+    CELER_ENSURE(data.roughness.size() == layer_map.size());
 
     data_ = CollectionMirror<SmearRoughnessData>{std::move(data)};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch kernel on host.
+ * Execute model with host data.
  */
 void SmearRoughnessModel::step(CoreParams const& params,
                                CoreStateHost& state) const
 {
     launch_action(state,
-                  this->make_executor(
-                      params, state, SmearRoughnessExecutor{data_.host_ref()}));
+                  make_surface_physics_executor(
+                      params.ptr<MemSpace::native>(),
+                      state.ptr(),
+                      SurfacePhysicsOrder::roughness,
+                      this->surface_model_id(),
+                      SmearRoughnessExecutor{data_.host_ref()}));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch kernel on device.
+ * Execute kernel with device data.
  */
 #if !CELER_USE_DEVICE
 void SmearRoughnessModel::step(CoreParams const&, CoreStateDevice&) const
 {
-    CELER_NOT_IMPLEMENTED("CUDA OR HIP");
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
 

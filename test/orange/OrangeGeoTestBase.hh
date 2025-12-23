@@ -42,7 +42,6 @@ class OrangeGeoTestBase : public OrangeTestBase
     using HostParamsRef = HostCRef<OrangeParamsData>;
     using Params = OrangeParams;
     using SPConstParams = std::shared_ptr<OrangeParams const>;
-    using Initializer_t = GeoTrackInitializer;
     //!@}
 
     //!@{
@@ -60,7 +59,7 @@ class OrangeGeoTestBase : public OrangeTestBase
 
   public:
     // Convert a vector of senses to a string
-    static std::string senses_to_string(Span<SenseValue const> senses);
+    static std::string senses_to_string(Span<Sense const> senses);
 
     // Convert a string to a sense vector
     static std::vector<Sense> string_to_senses(std::string const& s);
@@ -102,15 +101,15 @@ class OrangeGeoTestBase : public OrangeTestBase
     ImplSurfaceId find_surface(std::string const& label) const;
 
     // Surface name (or sentinel if no surface)
-    std::string id_to_label(UniverseId uid, LocalSurfaceId surfid) const;
+    std::string id_to_label(UnivId uid, LocalSurfaceId surfid) const;
 
-    // Surface name (or sentinel if no surface) within UniverseId{0}
+    // Surface name (or sentinel if no surface) within UnivId{0}
     std::string id_to_label(LocalSurfaceId surfid) const;
 
     // Cell name (or sentinel if no surface)
-    std::string id_to_label(UniverseId uid, LocalVolumeId vol_id) const;
+    std::string id_to_label(UnivId uid, LocalVolumeId vol_id) const;
 
-    // Cell name (or sentinel if no surface) within UniverseId{0}
+    // Cell name (or sentinel if no surface) within UnivId{0}
     std::string id_to_label(LocalVolumeId vol_id) const;
 
     // Print geometry description

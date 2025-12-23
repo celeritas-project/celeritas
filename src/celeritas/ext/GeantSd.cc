@@ -47,17 +47,7 @@ void update_selection(StepPointSelection* selection,
     selection->energy = options.kinetic_energy;
     if (options.touchable)
     {
-        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-        {
-            CELER_LOG(warning) << "Using less accurate navigator-based "
-                                  "reconstruction for ORANGE geometry";
-            selection->pos = true;
-            selection->dir = true;
-        }
-        else
-        {
-            selection->volume_instance_ids = true;
-        }
+        selection->volume_instance_ids = true;
     }
 }
 

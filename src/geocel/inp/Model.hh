@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <set>
 #include <string>
 #include <utility>
 #include <variant>
@@ -27,8 +28,6 @@ namespace inp
  * A given volume instance ID can appear only *once* across all volumes.
  * \todo Instead of this, which allows us to "easily" translate between geant4
  * IDs and instance IDs, we should just have a vector of volume instances here.
- *
- * \todo Add region definitions.
  *
  * \note Currently, to support internal geometry mappings a volume \em is
  * allowed to be null.
@@ -140,6 +139,34 @@ struct Detectors
 
 //---------------------------------------------------------------------------//
 /*!
+ * Define a single region.
+ *
+ * A region is a set of volumes that share physics properties such as
+ * production cuts, fields, user limits, or fast simulation. A volume can
+ * belong to only one region.
+ */
+struct Region
+{
+    Label label;
+    std::set<VolumeId> volumes;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * List all regions in a problem.
+ */
+struct Regions
+{
+    using VecRegion = std::vector<Region>;
+
+    VecRegion regions;
+
+    //! True if at least one region is defined
+    explicit operator bool() const { return !regions.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Set up geometry/material model.
  *
  * The geometry filename should almost always be a GDML path. As a temporary
@@ -155,10 +182,10 @@ struct Model
     std::variant<std::string, G4VPhysicalVolume const*> geometry;
 
     // TODO: Materials
-    // TODO: Regions
     Volumes volumes;
     Surfaces surfaces;
     Detectors detectors;
+    Regions regions;
 };
 
 //---------------------------------------------------------------------------//

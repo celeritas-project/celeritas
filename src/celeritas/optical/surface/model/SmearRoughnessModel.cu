@@ -9,7 +9,7 @@
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionLauncher.device.hh"
-#include "celeritas/optical/surface/TrackSlotExecutor.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "SmearRoughnessExecutor.hh"
 
@@ -19,13 +19,17 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch kernel on device.
+ * Launch kernel with device data.
  */
 void SmearRoughnessModel::step(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    auto execute = this->make_executor(
-        params, state, SmearRoughnessExecutor{data_.device_ref()});
+    auto execute = make_surface_physics_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        SurfacePhysicsOrder::roughness,
+        this->surface_model_id(),
+        SmearRoughnessExecutor{data_.device_ref()});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);

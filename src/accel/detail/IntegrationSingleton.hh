@@ -10,6 +10,7 @@
 
 #include "corecel/sys/Stopwatch.hh"
 
+#include "../LocalOpticalOffload.hh"
 #include "../LocalTransporter.hh"
 #include "../SetupOptions.hh"
 #include "../SharedParams.hh"
@@ -50,7 +51,13 @@ class IntegrationSingleton
     // Static THREAD-LOCAL Celeritas state data
     static LocalTransporter& local_transporter();
 
+    // Static THREAD-LOCAL Celeritas optical state data
+    static LocalOpticalOffload& local_optical_offload();
+
     //// ACCESSORS ////
+
+    // Access the thread-local offload interface
+    LocalOffloadInterface& local_offload();
 
     //! Assign setup options before constructing params
     void setup_options(SetupOptions&&);
@@ -72,9 +79,6 @@ class IntegrationSingleton
 
     //// HELPERS ////
 
-    // Set up logging
-    void initialize_logger();
-
     // Construct shared params on master (or single) thread
     void initialize_shared_params();
 
@@ -94,8 +98,9 @@ class IntegrationSingleton
     real_type stop_timer() { return get_time_(); }
 
   private:
-    // Only this class can construct
-    IntegrationSingleton();
+    //// TYPES ////
+
+    using UPOffload = std::unique_ptr<LocalOffloadInterface>;
 
     //// DATA ////
     SetupOptions options_;
@@ -104,6 +109,21 @@ class IntegrationSingleton
     std::unique_ptr<ScopedMpiInit> scoped_mpi_;
     std::unique_ptr<SetupOptionsMessenger> messenger_;
     Stopwatch get_time_;
+    bool have_created_logger_{false};
+
+    //// PRIVATE MEMBER FUNCTIONS ////
+
+    // Only this class can construct
+    IntegrationSingleton();
+
+    // Static thread-local Celeritas state data
+    static UPOffload& local_offload_ptr();
+
+    // Whether offloading optical distribution data is enabled
+    bool optical_offload() const;
+
+    // Set up or update logging if the run manager is enabled
+    void update_logger();
 };
 
 //---------------------------------------------------------------------------//

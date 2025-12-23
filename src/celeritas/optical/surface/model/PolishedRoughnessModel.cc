@@ -6,11 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "PolishedRoughnessModel.hh"
 
-#include "celeritas/inp/SurfacePhysics.hh"
+#include <algorithm>
+
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
-#include "celeritas/optical/surface/TrackSlotExecutor.hh"
+#include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "PolishedRoughnessExecutor.hh"
 
@@ -20,33 +21,42 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct model from surfaces and inputs.
+ * Construct the model from an ID and a layer map.
  */
 PolishedRoughnessModel::PolishedRoughnessModel(
-    SurfaceModelId model, std::map<PhysSurfaceId, InputT> const& inputs)
-    : BuiltinRoughnessModel(model, "polished", inputs)
+    SurfaceModelId id, std::map<PhysSurfaceId, InputT> const& layer_map)
+    : SurfaceModel(id, "roughness-polished")
 {
+    surfaces_.reserve(layer_map.size());
+    std::transform(layer_map.begin(),
+                   layer_map.end(),
+                   std::back_inserter(surfaces_),
+                   [](auto const& layer) { return layer.first; });
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch kernel on host.
+ * Execute model with host data.
  */
 void PolishedRoughnessModel::step(CoreParams const& params,
                                   CoreStateHost& state) const
 {
-    launch_action(
-        state, this->make_executor(params, state, PolishedRoughnessExecutor{}));
+    launch_action(state,
+                  make_surface_physics_executor(params.ptr<MemSpace::native>(),
+                                                state.ptr(),
+                                                SurfacePhysicsOrder::roughness,
+                                                this->surface_model_id(),
+                                                PolishedRoughnessExecutor{}));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch kernel on device.
+ * Execute kernel with device data.
  */
 #if !CELER_USE_DEVICE
 void PolishedRoughnessModel::step(CoreParams const&, CoreStateDevice&) const
 {
-    CELER_NOT_IMPLEMENTED("CUDA OR HIP");
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
 

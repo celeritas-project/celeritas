@@ -16,7 +16,7 @@
 #include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
-#include "surface/SurfacePhysicsView.hh"
+#include "surface/SurfacePhysicsTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -57,6 +57,9 @@ class CoreTrackView
     // Return a material view (using an existing geo view)
     inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
 
+    // Return a material view for a specific optical material
+    inline CELER_FUNCTION MaterialView material_record(OptMatId) const;
+
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
 
@@ -73,7 +76,7 @@ class CoreTrackView
     inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
 
     // Return a surface physics view
-    inline CELER_FUNCTION SurfacePhysicsView surface_physics() const;
+    inline CELER_FUNCTION SurfacePhysicsTrackView surface_physics() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -180,6 +183,18 @@ CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return a material view for a specific optical material ID.
+ */
+CELER_FUNCTION auto CoreTrackView::material_record(OptMatId opt_mat) const
+    -> MaterialView
+{
+    auto material = MaterialView{params_.material, opt_mat};
+    CELER_ENSURE(material);
+    return material;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a particle view.
  */
 CELER_FUNCTION auto CoreTrackView::particle() const -> ParticleTrackView
@@ -223,11 +238,12 @@ CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
 /*!
  * Return a surface physics view.
  */
-CELER_FUNCTION auto CoreTrackView::surface_physics() const -> SurfacePhysicsView
+CELER_FUNCTION auto CoreTrackView::surface_physics() const
+    -> SurfacePhysicsTrackView
 {
-    return SurfacePhysicsView{params_.surface_physics,
-                              states_.surface_physics,
-                              this->track_slot_id()};
+    return SurfacePhysicsTrackView{params_.surface_physics,
+                                   states_.surface_physics,
+                                   this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -245,7 +261,7 @@ CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
  */
 CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 {
-    return SimTrackView{states_.sim, this->track_slot_id()};
+    return SimTrackView{params_.sim, states_.sim, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

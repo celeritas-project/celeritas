@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <utility>
-
 #include "corecel/Macros.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"  // IWYU pragma: export
 #include "corecel/cont/Span.hh"  // IWYU pragma: export
@@ -43,7 +41,7 @@ class GeoParamsInterface
     //!@}
 
   public:
-    // Anchor virtual destructor
+    // Anchor virtual destructor in GeoInterface.cc
     virtual ~GeoParamsInterface() = 0;
 
     //! Whether safety distance calculations are accurate and precise

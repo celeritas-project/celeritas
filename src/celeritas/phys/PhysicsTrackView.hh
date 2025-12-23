@@ -14,6 +14,8 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
+#include "celeritas/em/xs/ElectroNuclearMicroXsCalculator.hh"
+#include "celeritas/em/xs/GammaNuclearMicroXsCalculator.hh"
 #include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
 #include "celeritas/grid/GridIdFinder.hh"
 #include "celeritas/grid/XsCalculator.hh"
@@ -457,10 +459,21 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
             result = MacroXsCalculator<LivermorePEMicroXsCalculator>(
                 params_.hardwired.livermore_pe, material)(energy);
         }
+
         else if (model_id == params_.hardwired.ids.eplusgg)
         {
             result = EPlusGGMacroXsCalculator(params_.hardwired.eplusgg,
                                               material)(energy);
+        }
+        else if (model_id == params_.hardwired.ids.electro_vd)
+        {
+            result = MacroXsCalculator<ElectroNuclearMicroXsCalculator>(
+                params_.hardwired.electro_vd, material)(energy);
+        }
+        else if (model_id == params_.hardwired.ids.bertini_qgs)
+        {
+            result = MacroXsCalculator<GammaNuclearMicroXsCalculator>(
+                params_.hardwired.bertini_qgs, material)(energy);
         }
         else if (model_id == params_.hardwired.ids.chips)
         {
@@ -530,6 +543,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
     if ((process == params_.hardwired.ids.photoelectric
          && energy < LivermoreElement::tabulated_threshold())
         || (process == params_.hardwired.ids.annihilation)
+        || (process == params_.hardwired.ids.gamma_nuclear)
         || (process == params_.hardwired.ids.neutron_elastic))
     {
         auto find_model = this->make_model_finder(ppid);
@@ -625,8 +639,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId action) const
         return ModelId{};
 
     // Rely on unsigned rollover if action ID is less than the first model
-    ModelId::size_type result = action.unchecked_get()
-                                - params_.scalars.model_to_action;
+    ModelId::size_type result = action - params_.scalars.first_model_action;
     if (result >= params_.scalars.num_models)
         return ModelId{};
 
@@ -640,7 +653,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId action) const
 CELER_FUNCTION ActionId PhysicsTrackView::model_to_action(ModelId model) const
 {
     CELER_ASSERT(model < params_.scalars.num_models);
-    return ActionId{model.unchecked_get() + params_.scalars.model_to_action};
+    return params_.scalars.first_model_action + model.unchecked_get();
 }
 
 //---------------------------------------------------------------------------//

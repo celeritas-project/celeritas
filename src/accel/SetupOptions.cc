@@ -100,30 +100,22 @@ void ProblemSetup::operator()(inp::Problem& p) const
             = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
         return c;
     }();
-    p.control.optical_capacity = so.optical_capacity;
-    if (so.optical_capacity)
-    {
-        inp::OpticalPhysics optical_physics;
-        optical_physics.cherenkov = true;
-        optical_physics.scintillation = true;
-
-        p.physics.optical = optical_physics;
-
-        CELER_LOG(debug) << "Optical physics enabled";
-    }
-    if (so.max_num_events)
-    {
-        CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
-                              "be an error in v0.7";
-    }
 
     p.tracking.limits = [this] {
-        inp::TrackingLimits tl;
+        inp::CoreTrackingLimits tl;
         tl.steps = so.max_steps;
         tl.step_iters = so.max_step_iters;
         tl.field_substeps = so.max_field_substeps;
         return tl;
     }();
+
+    if (so.optical)
+    {
+        p.control.optical_capacity = so.optical->capacity;
+        p.physics.optical_generator = so.optical->generator;
+        p.tracking.optical_limits.steps = so.optical->max_steps;
+        p.tracking.optical_limits.step_iters = so.optical->max_step_iters;
+    }
 
     if (so.track_order != TrackOrder::size_)
     {
@@ -267,8 +259,12 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     using GIDS = GeantImportDataSelection;
 
     auto includes_muon = [&so]() -> bool {
-        return std::any_of(so.offload_particles.begin(),
-                           so.offload_particles.end(),
+        if (!so.offload_particles)
+        {
+            return false;
+        }
+        return std::any_of(so.offload_particles->begin(),
+                           so.offload_particles->end(),
                            [](G4ParticleDefinition* pd) {
                                return (std::abs(pd->GetPDGEncoding())
                                        == pdg::mu_minus().get());
@@ -277,14 +273,14 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
 
     inp::FrameworkInput result;
     result.system = load_system(so);
-    result.geant.ignore_processes = so.ignore_processes;
-    result.geant.data_selection.interpolation = so.interpolation;
+    result.physics_import.ignore_processes = so.ignore_processes;
+    result.physics_import.data_selection.interpolation = so.interpolation;
 
     // Correctly assign DataSelection import flags when muons are present
     auto const selection = GIDS::optical
                            | (includes_muon() ? GIDS::em : GIDS::em_basic);
-    result.geant.data_selection.particles = selection;
-    result.geant.data_selection.processes = selection;
+    result.physics_import.data_selection.particles = selection;
+    result.physics_import.data_selection.processes = selection;
 
     result.adjust = ProblemSetup{so};
     return result;

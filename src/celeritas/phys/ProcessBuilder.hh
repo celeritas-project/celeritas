@@ -15,7 +15,6 @@
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/inp/ProcessBuilder.hh"
 #include "celeritas/io/ImportProcess.hh"
-#include "celeritas/io/ImportSBTable.hh"
 
 #include "AtomicNumber.hh"
 #include "Process.hh"
@@ -48,6 +47,10 @@ struct ImportMuPairProductionTable;
  *
  * \note Imported data may have multiple duplicate "process" entries, one
  * per particle type, because that's how Geant4 manages processes.
+ *
+ * \todo This will be basically deleted, replaced by a PhysicsBuilder that uses
+ * a
+ * \c celeritas::inp volume physics input to construct processes.
  */
 class ProcessBuilder
 {
@@ -93,12 +96,9 @@ class ProcessBuilder
   private:
     //// DATA ////
 
+    ImportData const& data_;
     UserBuildInput input_;
     UserBuildMap user_build_map_;
-    std::function<ImportSBTable(AtomicNumber)> read_sb_;
-    std::function<ImportLivermorePE(AtomicNumber)> read_livermore_;
-    std::function<inp::Grid(AtomicNumber)> read_neutron_elastic_;
-    std::shared_ptr<ImportMuPairProductionTable> mu_pairprod_table_;
 
     bool enable_lpm_;
 
@@ -114,6 +114,8 @@ class ProcessBuilder
     auto build_coulomb() -> SPProcess;
     auto build_ebrems() -> SPProcess;
     auto build_eioni() -> SPProcess;
+    auto build_electro_nuclear() -> SPProcess;
+    auto build_gamma_nuclear() -> SPProcess;
     auto build_mubrems() -> SPProcess;
     auto build_muioni() -> SPProcess;
     auto build_mupairprod() -> SPProcess;

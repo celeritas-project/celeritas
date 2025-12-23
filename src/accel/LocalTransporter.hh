@@ -7,8 +7,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -17,8 +15,10 @@
 #include "celeritas/Types.hh"
 #include "celeritas/phys/Primary.hh"
 
-class G4Track;
+#include "LocalOffloadInterface.hh"
+
 class G4EventManager;
+class G4Track;
 
 namespace celeritas
 {
@@ -52,14 +52,8 @@ class StepperInterface;
  *
  * \todo Rename \c LocalOffload or something?
  */
-class LocalTransporter
+class LocalTransporter final : public LocalOffloadInterface
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using MapStrReal = std::unordered_map<std::string, real_type>;
-    //!@}
-
   public:
     // Construct in an invalid state
     LocalTransporter() = default;
@@ -67,29 +61,34 @@ class LocalTransporter
     // Initialized with shared (across threads) params
     LocalTransporter(SetupOptions const& options, SharedParams& params);
 
-    // Alternative to construction + move assignment
-    inline void Initialize(SetupOptions const& options, SharedParams& params);
+    //!@{
+    //! \name LocalOffload interface
 
-    // Set the event ID and reseed the Celeritas RNG (remove in v0.6)
-    [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
+    // Alternative to construction + move assignment
+    inline void
+    Initialize(SetupOptions const& options, SharedParams& params) final;
 
     // Set the event ID and reseed the Celeritas RNG at the start of an event
-    void InitializeEvent(int);
+    void InitializeEvent(int) final;
+
+    // Transport all buffered tracks to completion
+    void Flush() final;
+
+    // Clear local data and return to an invalid state
+    void Finalize() final;
+
+    // Whether the class instance is initialized
+    bool Initialized() const final { return static_cast<bool>(step_); }
+
+    // Number of buffered tracks
+    size_type GetBufferSize() const final { return buffer_.size(); }
+
+    // Get accumulated action times
+    MapStrDbl GetActionTime() const final;
+    //!@}
 
     // Offload this track
     void Push(G4Track&);
-
-    // Transport all buffered tracks to completion
-    void Flush();
-
-    // Clear local data and return to an invalid state
-    void Finalize();
-
-    // Get accumulated action times
-    MapStrReal GetActionTime() const;
-
-    // Number of buffered tracks
-    size_type GetBufferSize() const { return buffer_.size(); }
 
     // Access core state data for user diagnostics
     CoreStateInterface const& GetState() const;
@@ -98,7 +97,7 @@ class LocalTransporter
     CoreStateInterface& GetState();
 
     //! Whether the class instance is initialized
-    explicit operator bool() const { return static_cast<bool>(step_); }
+    explicit operator bool() const { return this->Initialized(); }
 
   private:
     //// TYPES ////

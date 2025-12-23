@@ -28,7 +28,7 @@ struct OrangeMiniStateData
 
     StateItems<Real3> pos;
     StateItems<Real3> dir;
-    StateItems<SenseValue> sense;
+    StateItems<Sense> sense;
     StateItems<real_type> distance;
 
     //! True if sizes are consistent and nonzero
@@ -86,7 +86,7 @@ struct CalcSenseDistance
 {
     Real3 const& pos;
     Real3 const& dir;
-    SenseValue* sense;
+    Sense* sense;
     real_type* distance;
 
     template<class S>

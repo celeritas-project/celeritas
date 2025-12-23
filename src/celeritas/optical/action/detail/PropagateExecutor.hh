@@ -32,11 +32,6 @@ struct PropagateExecutor
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void PropagateExecutor::operator()(CoreTrackView& track)
 {
-    if (track.surface_physics().is_crossing_boundary())
-    {
-        return;
-    }
-
     auto&& sim = track.sim();
     CELER_ASSERT(sim.status() == TrackStatus::alive);
 
@@ -50,7 +45,8 @@ CELER_FUNCTION void PropagateExecutor::operator()(CoreTrackView& track)
     {
         geo.move_to_boundary();
         sim.step_length(p.distance);
-        sim.post_step_action(track.surface_physics().init_boundary_action());
+        sim.post_step_action(
+            track.surface_physics().scalars().init_boundary_action);
     }
     else
     {

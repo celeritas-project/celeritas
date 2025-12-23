@@ -9,6 +9,7 @@
 #include <limits>
 
 #include "corecel/Types.hh"
+
 namespace celeritas
 {
 namespace inp
@@ -27,13 +28,27 @@ struct TrackingLimits
     size_type steps{unlimited};
     //! Step iterations before aborting a run
     size_type step_iters{unlimited};
-    //! Step iterations before aborting the optical stepping loop
-    size_type optical_step_iters{unlimited};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Tracking limits for the main stepping loop.
+ */
+struct CoreTrackingLimits : TrackingLimits
+{
     //! Integration substeps during field propagation before ending the step
-    size_type field_substeps{100};
+    size_type field_substeps{10};
 
     //! Stop electron/positron below this energy
     // TODO: Energy electron_energy = Energy{0.001};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Tracking limits for the optical stepping loop.
+ */
+struct OpticalTrackingLimits : TrackingLimits
+{
 };
 
 //---------------------------------------------------------------------------//
@@ -43,7 +58,9 @@ struct TrackingLimits
 struct Tracking
 {
     //! Hard-coded cutoffs before giving up
-    TrackingLimits limits;
+    CoreTrackingLimits limits;
+    //! Limits for the optical stepping loop
+    OpticalTrackingLimits optical_limits;
 
     //! Hardcoded maximum step for debugging charged particles (none if zero)
     real_type force_step_limit{};

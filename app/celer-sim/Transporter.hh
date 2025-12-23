@@ -21,6 +21,7 @@
 
 namespace celeritas
 {
+class ActionSequence;
 struct Primary;
 template<MemSpace M>
 class Stepper;
@@ -38,9 +39,7 @@ struct TransporterInput
 {
     // Stepper input
     std::shared_ptr<CoreParams const> params;
-    std::shared_ptr<OpticalCollector const> optical;
-    bool action_times{false};  //!< Whether to synchronize device between
-                               //!< actions for timing
+    std::shared_ptr<ActionSequence> actions;
 
     // Loop control
     size_type max_steps{};
@@ -50,10 +49,12 @@ struct TransporterInput
 
     StreamId stream_id{0};
 
+    std::shared_ptr<OpticalCollector const> optical;
+
     //! True if all params are assigned
     explicit operator bool() const
     {
-        return params && max_steps > 0 && log_progress > 0;
+        return params && actions && max_steps > 0 && log_progress > 0;
     }
 };
 

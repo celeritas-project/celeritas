@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/cont/Span.hh"
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/phys/Model.hh"
 

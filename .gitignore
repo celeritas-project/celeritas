@@ -25,4 +25,5 @@ Testing
 /CMakeCache.txt
 /CMakeFiles
 /CMakeUserPresets.json
+/scripts/cmake-presets/mac147429.json
 /spack.yaml

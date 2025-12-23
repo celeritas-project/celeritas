@@ -72,6 +72,8 @@ class AuxParamsInterface
  * Auxiliary state data owned by a single stream.
  *
  * This interface class is strictly to allow polymorphism and dynamic casting.
+ * It does not include attributes like size or memspace, because not all use
+ * cases require it.
  */
 class AuxStateInterface
 {

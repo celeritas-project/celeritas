@@ -13,7 +13,8 @@ Some pieces of core Celeritas code interrogate the environment for variables to
 change system- or output-level behavior. These variables are checked once per
 execution, and checking them inserts the key and user-defined value (or empty)
 into a diagnostic database saved to Celeritas' JSON output, so the user can
-tell what variables are in use or may be useful.
+tell what variables are in use or may be useful. A variable marked as a *flag*
+has a default value but can be overridden with any boolean value.
 
 .. table:: Environment variables used by Celeritas.
 
@@ -24,7 +25,9 @@ tell what variables are in use or may be useful.
  CELER_DEBUG_DEVICE      corecel   Flag: check device ID consistency
  CELER_DISABLE_DEVICE    corecel   Flag: disable CUDA/HIP support
  CELER_DISABLE_PARALLEL  corecel   Flag: disable MPI support
+ CELER_DISABLE_REDIRECT  corecel   Flag: disable stream->logger redirection
  CELER_DISABLE_ROOT      corecel   Flag: disable ROOT I/O calls
+ CELER_DISABLE_SIGNALS   corecel   Flag: disable signal handling
  CELER_DEVICE_ASYNC      corecel   Flag: allocate memory asynchronously
  CELER_ENABLE_PROFILING  corecel   Flag: use NVTX/ROCTX profiling [#pr]_
  CELER_LOG               corecel   Set "global" logger verbosity [#lg]_
@@ -34,8 +37,7 @@ tell what variables are in use or may be useful.
  CELER_PROFILE_DEVICE    corecel   Flag: record kernel launch counts
  CUDA_HEAP_SIZE          geocel    Set ``cudaLimitMallocHeapSize`` (VG)
  CUDA_STACK_SIZE         geocel    Set ``cudaLimitStackSize`` for VecGeom
- G4ORG_EXPORT            orange    Filename base to save converted G4 geo
- G4ORG_VERBOSE           orange    Flag: verbose Geant4-to-ORANGE conversion
+ G4ORG_OPTIONS           orange    JSON filename for G4-to-ORANGE conversion
  G4VG_COMPARE_VOLUMES    geocel    Check G4VG volume capacity when converting
  HEPMC3_VERBOSE          celeritas HepMC3 debug level integer
  VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity integer

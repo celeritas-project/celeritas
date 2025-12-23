@@ -89,7 +89,6 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 
     // Start profiling
     TracingSession tracing_session{run_input->tracing_file};
-    tracing_session.start();
     ScopedProfiling profile_this{"celer-sim"};
 
     // Create runner and save setup time
@@ -167,7 +166,7 @@ std::string get_device_string()
     celeritas::activate_device();
 
     CELER_VALIDATE(celeritas::Device::num_devices() != 0,
-                   << "No GPUs were detected");
+                   << "no GPUs were detected");
     return nlohmann::json(celeritas::device()).dump(1);
 }
 

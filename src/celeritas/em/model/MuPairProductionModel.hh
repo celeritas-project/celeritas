@@ -12,7 +12,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuPairProductionData.hh"
-#include "celeritas/io/ImportMuPairProductionTable.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
@@ -33,6 +33,7 @@ class MuPairProductionModel final : public Model, public StaticConcreteAction
     using HostRef = HostCRef<MuPairProductionData>;
     using DeviceRef = DeviceCRef<MuPairProductionData>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    using Input = inp::MuPairProductionModel;
     //!@}
 
   public:
@@ -40,7 +41,7 @@ class MuPairProductionModel final : public Model, public StaticConcreteAction
     MuPairProductionModel(ActionId,
                           ParticleParams const&,
                           SPConstImported,
-                          ImportMuPairProductionTable const&);
+                          Input const&);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -61,11 +62,17 @@ class MuPairProductionModel final : public Model, public StaticConcreteAction
     //!@}
 
   private:
+    using MuppetTable = inp::MuPairProductionEnergyTransferTable;
+
+    //// DATA ////
+
     CollectionMirror<MuPairProductionData> data_;
     ImportedModelAdapter imported_;
 
-    using HostTable = HostVal<MuPairProductionTableData>;
-    void build_table(ImportMuPairProductionTable const&, HostTable*) const;
+    //// HELPERS ////
+
+    void build_table(MuppetTable const& imported,
+                     HostVal<MuPairProductionTableData>* table) const;
 };
 
 //---------------------------------------------------------------------------//

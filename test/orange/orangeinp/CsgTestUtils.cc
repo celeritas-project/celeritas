@@ -111,6 +111,7 @@ std::string tree_string(CsgUnit const& u)
 //---------------------------------------------------------------------------//
 std::vector<std::string> md_strings(CsgUnit const& u)
 {
+    // NOTE: string simplifier removes pointer addresses from G4-derived names
     std::vector<std::string> result;
     ::celeritas::test::StringSimplifier simplify;
     for (auto const& md_set : u.metadata)
@@ -232,7 +233,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
         {
             std::ostringstream os;
             os << "{u=";
-            if (auto u = d->universe_id)
+            if (auto u = d->univ_id)
             {
                 os << id_to_int(u);
             }
@@ -267,6 +268,41 @@ std::vector<real_type> flattened(BoundingZone const& bz)
     }
     result.push_back(bz.negated ? -1 : 1);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Count the number of surface types used in the CSG unit's tree.
+ *
+ * Note that this uses only the deduplicated surfaces, because the actual
+ * surface count is much more sensitive to floating point errors.
+ */
+std::string count_surface_types(detail::CsgUnit const& u)
+{
+    EnumArray<SurfaceType, size_type> counts = {};
+    for (auto nid : range(NodeId{u.tree.size()}))
+    {
+        if (auto* surf_node = std::get_if<Surface>(&u.tree[nid]))
+        {
+            auto lsid = surf_node->id;
+            CELER_ASSERT(lsid < u.surfaces.size());
+
+            std::visit(
+                [&counts](auto&& surf) { ++counts[surf.surface_type()]; },
+                u.surfaces[lsid.get()]);
+        }
+    }
+
+    nlohmann::json j;
+    for (auto st : range(SurfaceType::size_))
+    {
+        if (counts[st] > 0)
+        {
+            j[std::string{to_cstring(st)}] = counts[st];
+        }
+    }
+
+    return j.dump();
 }
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,7 @@
 #include <regex>
 #include <string_view>
 #include <G4LogicalVolume.hh>
+#include <G4StateManager.hh>
 #include <G4VSensitiveDetector.hh>
 
 #include "corecel/Config.hh"
@@ -22,11 +23,11 @@
 #include "geocel/GenericGeoResults.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/GeoTests.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/VolumeParams.hh"
-#include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoTrackView.hh"
-#include "geocel/inp/Model.hh"
+#include "geocel/VolumeParams.hh"  // IWYU pragma: keep
+#include "geocel/inp/Model.hh"  // IWYU pragma: keep
 #include "geocel/rasterize/SafetyImager.hh"
 
 #include "GeantGeoTestBase.hh"
@@ -56,7 +57,7 @@ class GeantGeoTest : public GeantGeoTestBase
         static bool const have_printed_ = [] {
             using namespace celeritas::cmake;
             cout << color_code('x') << "Using Geant4 v" << geant4_version
-                 << color_code(' ') << endl;
+                 << " (" << geant4_options << ")" << color_code(' ') << endl;
             return true;
         }();
         EXPECT_TRUE(have_printed_);
@@ -79,6 +80,30 @@ class GeantGeoTest : public GeantGeoTestBase
     }
 
     virtual SpanStringView expected_log_levels() const { return {}; }
+
+    ScopedGeantExceptionHandler exception_handler;
+    ScopedGeantLogger logger{celeritas::world_logger()};
+
+    void SetUp() override
+    {
+        GeantGeoTestBase::SetUp();
+        ASSERT_TRUE(this->geometry());
+
+        auto* sm = G4StateManager::GetStateManager();
+        CELER_ASSERT(sm);
+        // Have ScopedGeantExceptionHandler treat tracking errors like runtime
+        EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_EventProc));
+    }
+
+    void TearDown() override
+    {
+        ASSERT_TRUE(this->geometry());
+
+        // Restore G4 state just in case it matters
+        auto* sm = G4StateManager::GetStateManager();
+        EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_PreInit));
+        GeantGeoTestBase::TearDown();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -273,6 +298,8 @@ TEST_F(FourLevelsTest, model)
         2,
     };
     ref.world = "World";
+    ref.region.labels = {"envelope_region"};
+    ref.region.volumes = {{0, 1, 2}};
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -283,14 +310,18 @@ TEST_F(FourLevelsTest, trace)
 
 TEST_F(FourLevelsTest, consecutive_compute)
 {
-    // Templated test
-    FourLevelsGeoTest::test_consecutive_compute(this);
+    this->impl().test_consecutive_compute();
 }
 
 TEST_F(FourLevelsTest, detailed_track)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    ScopedLogStorer scoped_log_{&self_logger()};
+    this->impl().test_detailed_tracking();
+
+    // "Finding next step up to ... when previous step 4 was already
+    // calculated"
+    static char const* const expected_log_levels[] = {"warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
 }
 
 TEST_F(FourLevelsTest, safety)
@@ -449,6 +480,8 @@ TEST_F(MultiLevelTest, model)
     ref.world = "world";
     ref.detector.labels = {"sph_sd"};
     ref.detector.volumes = {{0, 5}};
+    ref.region.labels = {"sph_region", "tri_region", "box_region"};
+    ref.region.volumes = {{0, 5}, {1, 6}, {2, 4}};
     EXPECT_REF_EQ(ref, result);
 }
 
@@ -470,6 +503,11 @@ TEST_F(MultiLevelTest, sd_creation)
 TEST_F(MultiLevelTest, trace)
 {
     this->impl().test_trace();
+}
+
+TEST_F(MultiLevelTest, volume_level)
+{
+    this->impl().test_volume_level();
 }
 
 TEST_F(MultiLevelTest, volume_stack)
@@ -671,7 +709,18 @@ TEST_F(PolyhedraTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-using ReplicaTest = GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>;
+class ReplicaTest
+    : public GenericGeoParameterizedTest<GeantGeoTest, ReplicaGeoTest>
+{
+  public:
+    //! Half-distance is off by ~2e-12
+    GenericGeoTrackingTolerance tracking_tol() const override
+    {
+        auto result = GeantGeoTest::tracking_tol();
+        result.distance = 1e-11;
+        return result;
+    }
+};
 
 TEST_F(ReplicaTest, model)
 {
@@ -717,9 +766,9 @@ TEST_F(ReplicaTest, level_strings)
     {
         auto geo = this->make_geo_track_view({xz[0], 0.0, xz[1]}, {1, 0, 0});
 
-        auto level = geo.level();
-        CELER_ASSERT(level && level >= LevelId{0});
-        std::vector<VolumeInstanceId> inst_ids(level.get() + 1);
+        auto depth = geo.volume_level();
+        CELER_ASSERT(depth && depth >= VolumeLevelId{0});
+        std::vector<VolumeInstanceId> inst_ids(depth.get() + 1);
         geo.volume_instance_id(make_span(inst_ids));
         std::vector<std::string> names(inst_ids.size());
         for (auto i : range(inst_ids.size()))
@@ -780,8 +829,14 @@ TEST_F(SimpleCmsTest, trace)
 
 TEST_F(SimpleCmsTest, detailed_track)
 {
-    // Templated test
-    SimpleCmsGeoTest::test_detailed_tracking(this);
+    ScopedLogStorer scoped_log_{&self_logger()};
+    this->impl().test_detailed_tracking();
+    if (geant4_version >= Version{11})
+    {
+        // G4 11.3: "Accuracy error or slightly inaccurate position shift."
+        static char const* const expected_log_levels[] = {"error", "error"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -825,7 +880,15 @@ TEST_F(SolidsTest, accessors)
 
 TEST_F(SolidsTest, trace)
 {
+    ScopedLogStorer scoped_log_{&self_logger()};
     TestImpl(this).test_trace();
+    if (geant4_version >= Version{11})
+    {
+        // G4 11.3 report normal directions perpendicular to track direction
+        // due to coincident surfaces; and at least one of the tangents is
+        // machine-dependent
+        EXPECT_GE(scoped_log_.levels().size(), 3) << scoped_log_;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -919,6 +982,11 @@ TEST_F(TwoBoxesTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(TwoBoxesTest, detailed_tracking)
+{
+    this->impl().test_detailed_tracking();
+}
+
 TEST_F(TwoBoxesTest, model)
 {
     auto result = this->summarize_model();
@@ -932,10 +1000,19 @@ TEST_F(TwoBoxesTest, model)
     EXPECT_REF_EQ(ref, result);
 }
 
-TEST_F(TwoBoxesTest, track)
+TEST_F(TwoBoxesTest, reentrant)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesTest, reentrant_undo)
+{
+    this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesTest, tangent)
+{
+    this->impl().test_tangent();
 }
 
 TEST_F(TwoBoxesTest, trace)

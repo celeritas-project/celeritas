@@ -23,6 +23,7 @@ celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
 set(CELERITAS_USE_COVFIE ${CELERITAS_USE_covfie})
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
+set(CELERITAS_USE_LARSOFT ${CELERITAS_USE_LArSoft})
 set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
 set(CELERITAS_USE_PERFETTO ${CELERITAS_USE_Perfetto})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
@@ -32,6 +33,7 @@ set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 # Start counter from 1 because undefined config have the implicit value of 0 in
 # the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
 # when HIP is in use) will implicitly be zero.
+celeritas_generate_option_config(CELERITAS_CODATA)
 celeritas_generate_option_config(CELERITAS_CORE_GEO)
 celeritas_generate_option_config(CELERITAS_CORE_RNG)
 celeritas_generate_option_config(CELERITAS_OPENMP)
@@ -74,7 +76,8 @@ else()
     string(APPEND CELERITAS_BUILD_TYPE ",pic")
   endif()
 endif()
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
+set(CELERITAS_CONSTANTS "CODATA ${CELERITAS_CODATA}")
+foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS CONSTANTS OPENMP CORE_GEO CORE_RNG)
   string(TOLOWER "${_var}" _lower)
   celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
@@ -94,7 +97,7 @@ list(APPEND CELERITAS_CMAKE_STRINGS "")
 # Save dependency versions as strings
 set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
 set(HIP_VERSION_STRING "${hip-lang_VERSION}")
-foreach(_pkg CLHEP covfie CUDA HepMC3 HIP Geant4 G4VG ROOT Thrust VecGeom)
+foreach(_pkg CLHEP covfie CUDA HepMC3 HIP Geant4 G4VG LArSoft ROOT Thrust VecGeom)
   string(TOLOWER "${_pkg}" _lower)
   if(DEFINED ${_pkg}_VERSION_STRING)
     set(_value "${${_pkg}_VERSION_STRING}")
@@ -127,10 +130,11 @@ foreach(_dep Geant4 VecGeom HepMC3)
 endforeach()
 
 # Save VecGeom options as always-on macros to simplify testing
-set(CELERITAS_VECGEOM_CONFIG)
-if(DEFINED VecGeom_USE_SURF)
-  set(VecGeom_SURFACE ${VecGeom_USE_SURF})
+if(DEFINED CELERITAS_VecGeom_SURFACE)
+  # Override/pretend VecGeom has this option
+  set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
 endif()
+set(CELERITAS_VECGEOM_CONFIG)
 set(_vecgeom_opts)
 foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
   if(NOT DEFINED VecGeom_${_opt})
@@ -156,6 +160,16 @@ if(NOT VecGeom_VECTOR STREQUAL "empty")
 endif()
 list(JOIN _vecgeom_opts "," _vecgeom_opts)
 celeritas_append_cmake_string("vecgeom_options" "${_vecgeom_opts}")
+
+# Save Geant4 options for verbose output: start with optional TLS model
+set(_g4_opts ${Geant4_TLS_MODEL})
+foreach(_opt multithreaded shared static smartstack gdml usolids)
+  if(Geant4_${_opt}_FOUND)
+    list(APPEND _g4_opts "${_opt}")
+  endif()
+endforeach()
+list(JOIN _g4_opts "," _g4_opts)
+celeritas_append_cmake_string("geant4_options" "${_g4_opts}")
 
 # Convert lists to newline-separated strings
 foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG DEPENDENCY_VERSIONS)
@@ -186,6 +200,8 @@ list(APPEND SOURCES
   data/AuxParamsRegistry.cc
   data/AuxStateVec.cc
   data/detail/PinnedAllocatorImpl.cc
+  grid/GridTypes.cc
+  grid/GridTypesIO.json.cc
   grid/SplineDerivCalculator.cc
   grid/VectorUtils.cc
   io/BuildOutput.cc
@@ -207,7 +223,10 @@ list(APPEND SOURCES
   math/TridiagonalSolver.cc
   random/data/CuHipRngData.cc
   random/data/XorwowRngData.cc
+  random/data/RanluxppRngData.cc
+  random/distribution/DistributionInserter.cc
   random/params/CuHipRngParams.cc
+  random/params/RanluxppRngParams.cc
   random/params/XorwowRngParams.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
@@ -281,6 +300,7 @@ macro(celeritas_polysource filename_we)
 endmacro()
 
 celeritas_polysource(random/data/detail/CuHipRngStateInit)
+celeritas_polysource(random/data/detail/RanluxppRngStateInit)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES

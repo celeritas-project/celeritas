@@ -6,11 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/optical/Types.hh"
-#include "celeritas/phys/SurfacePhysicsMapView.hh"
 
-#include "SurfaceModelView.hh"
 #include "SurfacePhysicsData.hh"
 #include "SurfacePhysicsUtils.hh"
 
@@ -20,12 +17,11 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Optical surface physics data for a track.
+ * Optical surface physics data.
  *
- * Tracks maintain a position while traversing the interstitial materials of an
- * optical surface. This class provides transformations from this position
- * based on the surface orientation and traversal direction to access relevant
- * material and interface data in storage.
+ * Maps surface track position to interstitial optical material and interface
+ * data for a given optical surface. The optical surface may be oriented
+ * (forward or reverse) relative to its layout in the data record.
  */
 class SurfacePhysicsView
 {
@@ -33,174 +29,54 @@ class SurfacePhysicsView
     //!@{
     //! \name Type aliases
     using SurfaceParamsRef = NativeCRef<SurfacePhysicsParamsData>;
-    using SurfaceStateRef = NativeRef<SurfacePhysicsStateData>;
     //!@}
 
-    struct Initializer
-    {
-        SurfaceId surface{};
-        SubsurfaceDirection orientation;
-        Real3 global_normal{0, 0, 0};
-        OptMatId pre_volume_material{};
-        OptMatId post_volume_material{};
-    };
-
   public:
-    //  Create view from surface physics data and state
-    inline CELER_FUNCTION SurfacePhysicsView(SurfaceParamsRef const&,
-                                             SurfaceStateRef const&,
-                                             TrackSlotId);
+    // Construct view from data and state
+    inline CELER_FUNCTION
+    SurfacePhysicsView(SurfaceParamsRef const&, SurfaceId, SubsurfaceDirection);
 
-    //// INITIALIZATION ////
-
-    // Initialize track state
-    inline CELER_FUNCTION SurfacePhysicsView& operator=(Initializer const&);
-
-    // Reset surface physics state of the track
-    inline CELER_FUNCTION void reset();
-
-    //// STATE INVARIANTS ////
-
-    // Get current geometric surface
+    // Get current surface ID
     inline CELER_FUNCTION SurfaceId surface() const;
 
     // Get surface orientation
     inline CELER_FUNCTION SubsurfaceDirection orientation() const;
 
-    // Get global surface normal
-    inline CELER_FUNCTION Real3 const& global_normal() const;
-
-    //// QUERY CROSSING STATE ////
-
-    // Whether track is undergoing boundary crossing
-    inline CELER_FUNCTION bool is_crossing_boundary() const;
-
-    // Whether direction is exiting the boundary
-    inline CELER_FUNCTION bool is_exiting(SubsurfaceDirection) const;
-
-    // Whether the track is in the pre-volume
-    inline CELER_FUNCTION bool in_pre_volume() const;
-
-    // Whether the track is in the post-volume
-    inline CELER_FUNCTION bool in_post_volume() const;
-
-    //// ACCESS PHYSICS DATA ////
-
-    // Position of the track in the surface crossing
-    inline CELER_FUNCTION SurfaceTrackPosition subsurface_position() const;
-
-    // Set position of the track in the surface crossing
-    inline CELER_FUNCTION void subsurface_position(SurfaceTrackPosition);
-
-    // Number of valid positions of the track in the surface crossing
-    inline CELER_FUNCTION SurfaceTrackPosition::size_type num_positions() const;
-
-    // Get current track traversal direction
-    inline CELER_FUNCTION SubsurfaceDirection traversal_direction() const;
-
-    // Set track traversal direction
-    inline CELER_FUNCTION void traversal_direction(SubsurfaceDirection);
-
-    // Calculate and update traversal direction from track momentum
-    inline CELER_FUNCTION void traversal_direction(Real3 const&);
-
-    // Get surface model for the given step
+    // Get optical interstitial material at the given track position
     inline CELER_FUNCTION
-        SurfaceModelView surface_model(SurfacePhysicsOrder) const;
+        OptMatId interstitial_material(SurfaceTrackPosition) const;
 
-    // Get local facet normal
-    inline CELER_FUNCTION Real3 const& facet_normal() const;
-
-    // Assign local facet normal
-    inline CELER_FUNCTION void facet_normal(Real3 const&);
-
-    //// MUTATORS ////
-
-    // Cross subsurface interface in the given direction (track-local)
-    inline CELER_FUNCTION void cross_subsurface_interface(SubsurfaceDirection);
-
-    //// ACCESS SCALAR DATA ////
-
-    // Default surface physics
-    inline CELER_FUNCTION SurfaceId default_surface() const;
-
-    // Get init-boundary action
-    inline CELER_FUNCTION ActionId init_boundary_action() const;
-
-    // Get surface stepping loop action
-    inline CELER_FUNCTION ActionId surface_stepping_action() const;
-
-    // Get post-boundary action
-    inline CELER_FUNCTION ActionId post_boundary_action() const;
+    // Get the physics surface at the given position and direction
+    inline CELER_FUNCTION PhysSurfaceId interface(SurfaceTrackPosition,
+                                                  SubsurfaceDirection) const;
 
   private:
     SurfaceParamsRef const& params_;
-    SurfaceStateRef const& states_;
-    TrackSlotId const track_id_;
+    SurfaceId surface_;
+    SubsurfaceDirection orientation_;
 
-    // Get surface record of current geometric surface
+    // Get record data for the current surface
     inline CELER_FUNCTION SurfaceRecord const& surface_record() const;
 
-    // Get the record index from a track-local position
-    template<class T, class U>
-    CELER_FUNCTION U to_record_index(SurfaceTrackPosition,
-                                     ItemMap<T, U> const&) const;
-
-    // Subsurface material at the given position
-    inline CELER_FUNCTION
-        OptMatId subsurface_material(SurfaceTrackPosition) const;
-
-    // Next subsurface interface in the given direction (track-local)
-    inline CELER_FUNCTION
-        PhysSurfaceId subsurface_interface(SubsurfaceDirection) const;
+    // Index a map along a given orientation
+    template<class T>
+    inline CELER_FUNCTION T oriented_map(ItemMap<SurfaceTrackPosition, T> const&,
+                                         SurfaceTrackPosition) const;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Initialize view from surface physics data and state for a given track.
+ * Construct from data, states, and a given track ID.
  */
 CELER_FUNCTION
 SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
-                                       SurfaceStateRef const& states,
-                                       TrackSlotId track)
-    : params_(params), states_(states), track_id_(track)
+                                       SurfaceId surface,
+                                       SubsurfaceDirection orientation)
+    : params_(params), surface_(surface), orientation_(orientation)
 {
-    CELER_EXPECT(track_id_ < states_.size());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize track state with given initializer data.
- */
-CELER_FUNCTION SurfacePhysicsView&
-SurfacePhysicsView::operator=(Initializer const& init)
-{
-    CELER_EXPECT(init.surface < params_.surfaces.size());
-    CELER_EXPECT(is_soft_unit_vector(init.global_normal));
-    states_.surface[track_id_] = init.surface;
-    states_.surface_orientation[track_id_] = init.orientation;
-    states_.global_normal[track_id_] = init.global_normal;
-    states_.facet_normal[track_id_] = init.global_normal;
-    states_.surface_position[track_id_] = SurfaceTrackPosition{0};
-    states_.track_direction[track_id_] = SubsurfaceDirection::forward;
-    states_.pre_volume_material[track_id_] = init.pre_volume_material;
-    states_.post_volume_material[track_id_] = init.post_volume_material;
-    return *this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reset the state of a track.
- *
- * Invalidates the surface ID, indicating the track is no longer undergoing
- * boundary crossing.
- */
-CELER_FUNCTION void SurfacePhysicsView::reset()
-{
-    states_.surface[track_id_] = {};
-    CELER_ENSURE(!states_.surface[track_id_]);
+    CELER_EXPECT(surface_ < params_.surfaces.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -211,7 +87,7 @@ CELER_FUNCTION void SurfacePhysicsView::reset()
  */
 CELER_FUNCTION SurfaceId SurfacePhysicsView::surface() const
 {
-    return states_.surface[track_id_];
+    return surface_;
 }
 
 //---------------------------------------------------------------------------//
@@ -224,294 +100,28 @@ CELER_FUNCTION SurfaceId SurfacePhysicsView::surface() const
  */
 CELER_FUNCTION SubsurfaceDirection SurfacePhysicsView::orientation() const
 {
-    CELER_EXPECT(this->is_crossing_boundary());
-    return states_.surface_orientation[track_id_];
+    return orientation_;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get global surface normal.
+ * Return the interstitial material ID of the given track position.
  *
- * The global surface normal is the normal defined by the geometry and does not
- * include any roughness effects. By convention it points from the post-volume
- * into the pre-volume.
- */
-CELER_FUNCTION Real3 const& SurfacePhysicsView::global_normal() const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    return states_.global_normal[track_id_];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the track is undergoing boundary crossing.
- *
- * Returns true if there's a valid surface ID, otherwise false.
- */
-CELER_FUNCTION bool SurfacePhysicsView::is_crossing_boundary() const
-{
-    return this->surface() < params_.surfaces.size();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the direction is exiting the surface.
- */
-CELER_FUNCTION bool SurfacePhysicsView::is_exiting(SubsurfaceDirection d) const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    // Use unsigned underflow when moving reverse (-1) on the pre-surface
-    // (position 0) to wrap to an invalid position value
-    return advance_subsurface_position_along(this->subsurface_position(), d)
-               .unchecked_get()
-           >= this->num_positions();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the track is in the pre-volume.
- */
-CELER_FUNCTION bool SurfacePhysicsView::in_pre_volume() const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    return this->subsurface_position().get() == 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the track is in the post-volume.
- */
-CELER_FUNCTION bool SurfacePhysicsView::in_post_volume() const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    return this->subsurface_position().get() + 1 == this->num_positions();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Current position of the track in the sub-surfaces, in track-local
- * coordinates.
- *
- * Tracks traverse a surface in track-local coordinates where 0 is the
- * pre-volume and N is the post-volume. Depending on the surface orientation,
- * this will be mapped to the appropriate sub-surface material and interface.
- */
-CELER_FUNCTION SurfaceTrackPosition SurfacePhysicsView::subsurface_position() const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    return states_.surface_position[track_id_];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set current position of the track in the sub-surfaces, in track-local
- * coordinates.
- */
-CELER_FUNCTION void
-SurfacePhysicsView::subsurface_position(SurfaceTrackPosition pos)
-{
-    CELER_EXPECT(pos < this->num_positions());
-    states_.surface_position[track_id_] = pos;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get number of valid track positions in the surface.
- *
- * This is equivalent to the number of interstitial sub-surface materials, plus
- * the pre-volume and post-volumes.
- */
-CELER_FUNCTION SurfaceTrackPosition::size_type
-SurfacePhysicsView::num_positions() const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    return this->surface_record().subsurface_materials.size() + 2;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get current track traversal direction.
- *
- * This quantity is cached for a single loop of surface boundary crossing to
- * avoid repeated queries of the geometry. The traversal direction should be
- * updated when the geometry direction is updated after an interaction.
- */
-CELER_FUNCTION SubsurfaceDirection SurfacePhysicsView::traversal_direction() const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    return states_.track_direction[track_id_];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set current track traversal direction.
- */
-CELER_FUNCTION void
-SurfacePhysicsView::traversal_direction(SubsurfaceDirection dir)
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    states_.track_direction[track_id_] = dir;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate and update traversal direction from track momentum.
- */
-CELER_FUNCTION void SurfacePhysicsView::traversal_direction(Real3 const& dir)
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    CELER_EXPECT(is_soft_unit_vector(dir));
-    this->traversal_direction(static_cast<SubsurfaceDirection>(
-        is_entering_surface(dir, this->global_normal())));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get surface model view of the given step in the given direction.
- */
-CELER_FUNCTION SurfaceModelView
-SurfacePhysicsView::surface_model(SurfacePhysicsOrder step) const
-{
-    auto dir = this->traversal_direction();
-    CELER_EXPECT(this->is_crossing_boundary());
-    CELER_EXPECT(!this->is_exiting(dir));
-    CELER_EXPECT(step != SurfacePhysicsOrder::size_);
-
-    auto phys_surface = this->subsurface_interface(dir);
-    CELER_ASSERT(phys_surface);
-
-    return SurfaceModelView{
-        SurfacePhysicsMapView{params_.model_maps[step], phys_surface},
-        this->subsurface_material(this->subsurface_position()),
-        this->subsurface_material(advance_subsurface_position_along(
-            this->subsurface_position(), dir))};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get local facet normal after roughness sampling.
- */
-CELER_FUNCTION Real3 const& SurfacePhysicsView::facet_normal() const
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    return states_.facet_normal[track_id_];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Assign local facet normal from roughness sampling.
- */
-CELER_FUNCTION void SurfacePhysicsView::facet_normal(Real3 const& normal)
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    CELER_EXPECT(is_soft_unit_vector(normal));
-    states_.facet_normal[track_id_] = normal;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Cross the subsurface interface in the given direction.
- */
-CELER_FUNCTION void
-SurfacePhysicsView::cross_subsurface_interface(SubsurfaceDirection d)
-{
-    CELER_EXPECT(this->is_crossing_boundary());
-    CELER_EXPECT(!this->is_exiting(d));
-    this->subsurface_position(
-        advance_subsurface_position_along(this->subsurface_position(), d));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the default surface.
- */
-CELER_FUNCTION SurfaceId SurfacePhysicsView::default_surface() const
-{
-    return params_.scalars.default_surface;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get init-boundary action.
- */
-CELER_FUNCTION ActionId SurfacePhysicsView::init_boundary_action() const
-{
-    return params_.scalars.init_boundary_action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get surface stepping loop action.
- */
-CELER_FUNCTION ActionId SurfacePhysicsView::surface_stepping_action() const
-{
-    return params_.scalars.surface_stepping_action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get post-boundary action.
- */
-CELER_FUNCTION ActionId SurfacePhysicsView::post_boundary_action() const
-{
-    return params_.scalars.post_boundary_action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the surface record of the current geometric surface.
- */
-CELER_FUNCTION SurfaceRecord const& SurfacePhysicsView::surface_record() const
-{
-    CELER_EXPECT(this->surface() < params_.surfaces.size());
-    return params_.surfaces[this->surface()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert track-local position to index in a surface record.
- */
-template<class T, class U>
-CELER_FUNCTION U SurfacePhysicsView::to_record_index(
-    SurfaceTrackPosition pos, ItemMap<T, U> const& map) const
-{
-    T index{pos.get()};
-    if (this->orientation() == SubsurfaceDirection::reverse)
-    {
-        index = T{map.size() - 1 - index.get()};
-    }
-
-    CELER_ASSERT(index < map.size());
-
-    return map[index];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return the subsurface material ID of the current track position.
+ * Position should be in the range [1,N] where N is the number of subsurface
+ * materials.
  */
 CELER_FUNCTION OptMatId
-SurfacePhysicsView::subsurface_material(SurfaceTrackPosition pos) const
+SurfacePhysicsView::interstitial_material(SurfaceTrackPosition pos) const
 {
-    CELER_EXPECT(this->is_crossing_boundary());
+    CELER_EXPECT(pos > SurfaceTrackPosition{0});
 
-    auto pos_range = range(SurfaceTrackPosition{this->num_positions()});
+    // Position 0 is pre-volume material, and N+1 is post-volume material.
+    // Offset position so it maps to the interstitial material range.
+    --pos;
+    CELER_ASSERT(pos < this->surface_record().subsurface_materials.size());
 
-    // In pre-volume
-    if (pos == pos_range.front())
-    {
-        return states_.pre_volume_material[track_id_];
-    }
-    // In post-volume
-    if (pos == pos_range.back())
-    {
-        return states_.post_volume_material[track_id_];
-    }
-
-    CELER_ASSERT(pos.get() > 0);
-
-    auto material_record_id = this->to_record_index(
-        pos - 1, this->surface_record().subsurface_materials);
+    auto material_record_id
+        = this->oriented_map(this->surface_record().subsurface_materials, pos);
     CELER_ASSERT(material_record_id < params_.subsurface_materials.size());
 
     return params_.subsurface_materials[material_record_id];
@@ -519,17 +129,51 @@ SurfacePhysicsView::subsurface_material(SurfaceTrackPosition pos) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the physics surface ID of the subsurface in the given direction.
+ * Return the subsurface interface ID of the given track position and
+ * direction.
  */
-CELER_FUNCTION PhysSurfaceId
-SurfacePhysicsView::subsurface_interface(SubsurfaceDirection d) const
+CELER_FUNCTION PhysSurfaceId SurfacePhysicsView::interface(
+    SurfaceTrackPosition pos, SubsurfaceDirection d) const
 {
-    CELER_EXPECT(this->is_crossing_boundary());
-    CELER_EXPECT(!this->is_exiting(d));
+    CELER_EXPECT(pos);
 
-    auto track_pos = this->subsurface_position() + (static_cast<int>(d) - 1);
-    return this->to_record_index(track_pos,
-                                 this->surface_record().subsurface_interfaces);
+    auto interface_pos = SurfaceTrackPosition{
+        pos.unchecked_get()
+        + static_cast<SurfaceTrackPosition::size_type>(
+            d == SubsurfaceDirection::reverse ? -1 : 0)};
+
+    CELER_ASSERT(interface_pos
+                 < this->surface_record().subsurface_interfaces.size());
+
+    return oriented_map(this->surface_record().subsurface_interfaces,
+                        interface_pos);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get surface record of current geometric surface.
+ */
+CELER_FUNCTION SurfaceRecord const& SurfacePhysicsView::surface_record() const
+{
+    return params_.surfaces[this->surface()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Index an \c ItemMap along the surface's orientation.
+ */
+template<class T>
+CELER_FUNCTION T SurfacePhysicsView::oriented_map(
+    ItemMap<SurfaceTrackPosition, T> const& map, SurfaceTrackPosition pos) const
+{
+    CELER_EXPECT(pos < map.size());
+
+    auto index
+        = orientation_ == SubsurfaceDirection::reverse
+              ? SurfaceTrackPosition{map.size() - 1 - pos.unchecked_get()}
+              : pos;
+
+    return map[index];
 }
 
 //---------------------------------------------------------------------------//

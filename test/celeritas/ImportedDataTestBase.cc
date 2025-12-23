@@ -14,6 +14,7 @@
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
@@ -179,6 +180,12 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
 }
 
 //---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_optical_sim() -> SPConstOpticalSim
+{
+    return std::make_shared<optical::SimParams>(inp::OpticalTrackingLimits{});
+}
+
+//---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_optical_surface_physics()
     -> SPConstOpticalSurfacePhysics
 {
@@ -190,8 +197,10 @@ auto ImportedDataTestBase::build_optical_surface_physics()
         input.materials.push_back(std::vector<OptMatId>{});
         input.roughness.polished.emplace(s, inp::NoRoughness{});
         input.reflectivity.fresnel.emplace(s, inp::FresnelReflection{});
-        input.interaction.dielectric_dielectric.emplace(
-            s, inp::ReflectionForm::from_spike());
+        input.interaction.dielectric.emplace(
+            s,
+            inp::DielectricInteraction::from_dielectric(
+                inp::ReflectionForm::from_spike()));
     }
 
     return std::make_shared<optical::SurfacePhysicsParams>(

@@ -30,18 +30,19 @@ list(APPEND SOURCES
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
   IntegrationBase.cc
+  LocalOpticalOffload.cc
   LocalTransporter.cc
   Logger.cc
   PGPrimaryGeneratorAction.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc
-  SimpleOffload.cc
   TimeOutput.cc
   TrackingManagerConstructor.cc
   TrackingManagerIntegration.cc
   UserActionIntegration.cc
   detail/GeantSimpleCaloSD.cc
+  detail/LoggerImpl.cc
   detail/IntegrationSingleton.cc
 )
 

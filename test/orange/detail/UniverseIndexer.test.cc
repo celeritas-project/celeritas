@@ -56,27 +56,27 @@ TEST_F(UniverseIndexerTest, single)
     EXPECT_EQ(10, indexer.num_volumes());
 
     EXPECT_EQ(ImplSurfaceId(0),
-              indexer.global_surface(UniverseId{0}, LocalSurfaceId{0}));
+              indexer.global_surface(UnivId{0}, LocalSurfaceId{0}));
     EXPECT_EQ(ImplSurfaceId(3),
-              indexer.global_surface(UniverseId{0}, LocalSurfaceId{3}));
+              indexer.global_surface(UnivId{0}, LocalSurfaceId{3}));
 
     EXPECT_EQ(ImplVolumeId(0),
-              indexer.global_volume(UniverseId{0}, LocalVolumeId{0}));
+              indexer.global_volume(UnivId{0}, LocalVolumeId{0}));
     EXPECT_EQ(ImplVolumeId(9),
-              indexer.global_volume(UniverseId{0}, LocalVolumeId{9}));
+              indexer.global_volume(UnivId{0}, LocalVolumeId{9}));
 
     auto local_s = indexer.local_surface(ImplSurfaceId{0});
-    EXPECT_EQ(UniverseId(0), local_s.universe);
+    EXPECT_EQ(UnivId(0), local_s.univ);
     EXPECT_EQ(LocalSurfaceId(0), local_s.surface);
     local_s = indexer.local_surface(ImplSurfaceId{3});
-    EXPECT_EQ(UniverseId(0), local_s.universe);
+    EXPECT_EQ(UnivId(0), local_s.univ);
     EXPECT_EQ(LocalSurfaceId(3), local_s.surface);
 
     auto local_v = indexer.local_volume(ImplVolumeId{0});
-    EXPECT_EQ(UniverseId(0), local_v.universe);
+    EXPECT_EQ(UnivId(0), local_v.univ);
     EXPECT_EQ(LocalVolumeId(0), local_v.volume);
     local_v = indexer.local_volume(ImplVolumeId{3});
-    EXPECT_EQ(UniverseId(0), local_v.universe);
+    EXPECT_EQ(UnivId(0), local_v.univ);
     EXPECT_EQ(LocalVolumeId(3), local_v.volume);
 }
 
@@ -85,13 +85,13 @@ TEST_F(UniverseIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
     this->set_data({0, 4}, {0, 10});
     UniverseIndexer indexer(this->host_ref());
 
-    EXPECT_THROW(indexer.global_surface(UniverseId{0}, LocalSurfaceId{4}),
+    EXPECT_THROW(indexer.global_surface(UnivId{0}, LocalSurfaceId{4}),
                  DebugError);
-    EXPECT_THROW(indexer.global_surface(UniverseId{1}, LocalSurfaceId{0}),
+    EXPECT_THROW(indexer.global_surface(UnivId{1}, LocalSurfaceId{0}),
                  DebugError);
-    EXPECT_THROW(indexer.global_volume(UniverseId{0}, LocalVolumeId{10}),
+    EXPECT_THROW(indexer.global_volume(UnivId{0}, LocalVolumeId{10}),
                  DebugError);
-    EXPECT_THROW(indexer.global_volume(UniverseId{1}, LocalVolumeId{0}),
+    EXPECT_THROW(indexer.global_volume(UnivId{1}, LocalVolumeId{0}),
                  DebugError);
 
     EXPECT_THROW(indexer.local_surface(ImplSurfaceId(4)), DebugError);
@@ -120,10 +120,10 @@ TEST_F(UniverseIndexerTest, multi)
         for (auto s : range(surfaces_per_uni[u]))
         {
             auto local = indexer.local_surface(ImplSurfaceId{global_surface});
-            EXPECT_EQ(u, local.universe.unchecked_get());
+            EXPECT_EQ(u, local.univ.unchecked_get());
             EXPECT_EQ(s, local.surface.unchecked_get());
             EXPECT_EQ(global_surface,
-                      indexer.global_surface(local.universe, local.surface)
+                      indexer.global_surface(local.univ, local.surface)
                           .unchecked_get());
             ++global_surface;
         }
@@ -134,11 +134,11 @@ TEST_F(UniverseIndexerTest, multi)
         for (auto c : range(cells_per_uni[u]))
         {
             auto local = indexer.local_volume(ImplVolumeId{global_volume});
-            EXPECT_EQ(u, local.universe.unchecked_get());
+            EXPECT_EQ(u, local.univ.unchecked_get());
             EXPECT_EQ(c, local.volume.unchecked_get());
-            EXPECT_EQ(global_volume,
-                      indexer.global_volume(local.universe, local.volume)
-                          .unchecked_get());
+            EXPECT_EQ(
+                global_volume,
+                indexer.global_volume(local.univ, local.volume).unchecked_get());
             ++global_volume;
         }
     }

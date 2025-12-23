@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "corecel/cont/Array.hh"
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/io/ImportElement.hh"
 #include "celeritas/io/ImportMaterial.hh"
 #include "celeritas/io/ImportModel.hh"

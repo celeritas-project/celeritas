@@ -32,10 +32,20 @@ template<class T>
                                         detail::VolumeBuilder& vb)
 {
     std::string const label{base.label()};
+    auto build_isect = [&](std::string&& ext, auto&& region) {
+        static_assert(
+            std::is_base_of_v<IntersectRegionInterface,
+                              std::remove_reference_t<decltype(region)>>,
+            "invalid build_region return value");
+        return build_intersect_region(
+            vb, std::string{label}, std::move(ext), region);
+    };
+
     auto const& segments = base.segments();
     CELER_ASSERT(segments.z().size() == segments.size() + 1);
 
     SoftEqual soft_eq{vb.tol().rel};
+    SoftZero soft_zero{vb.tol().abs};
     std::vector<NodeId> segment_nodes;
 
     for (auto i : range(segments.size()))
@@ -55,23 +65,26 @@ template<class T>
         // Build outer shape
         NodeId segment_node;
         {
-            auto outer = build_region(segments.outer(i), hz);
-            segment_node = build_intersect_region(
-                vb, std::string{label}, std::to_string(i) + ".interior", outer);
+            auto outer = segments.outer(i);
+            segment_node = build_isect(std::to_string(i) + ".int",
+                                       build_region(outer, hz));
         }
 
         if (segments.has_exclusion())
         {
-            // Build inner shape
-            auto inner = build_region(segments.inner(i), hz);
-            NodeId inner_node = build_intersect_region(
-                vb, std::string{label}, std::to_string(i) + ".excluded", inner);
+            Real2 inner = segments.inner(i);
+            if (!soft_zero(inner[0]) || !soft_zero(inner[1]))
+            {
+                // Build inner shape
+                NodeId inner_node = build_isect(std::to_string(i) + ".exc",
+                                                build_region(inner, hz));
 
-            // Subtract (i.e., "and not") inner shape from this segment
-            auto sub_node = vb.insert_region({}, Negated{inner_node});
-            segment_node
-                = vb.insert_region(Label{label, std::to_string(i)},
-                                   Joined{op_and, {segment_node, sub_node}});
+                // Subtract (i.e., "and not") inner shape from this segment
+                auto sub_node = vb.insert_region({}, Negated{inner_node});
+                segment_node = vb.insert_region(
+                    Label{label, std::to_string(i)},
+                    Joined{op_and, {segment_node, sub_node}});
+            }
         }
         segment_nodes.push_back(segment_node);
     }
@@ -137,8 +150,15 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
                    << "inconsistent inner radius size (" << inner_.size()
                    << "): expected " << z_.size());
 
+    if (z_.front() > z_.back())
+    {
+        // Input grid is decreasing: reverse everything
+        std::reverse(z_.begin(), z_.end());
+        std::reverse(inner_.begin(), inner_.end());
+        std::reverse(outer_.begin(), outer_.end());
+    }
     CELER_VALIDATE(is_monotonic_nondecreasing(make_span(z_)),
-                   << "axial grid has decreasing grid points");
+                   << "axial grid is non-monotonic");
     for (auto i : range(outer_.size()))
     {
         CELER_VALIDATE(outer_[i] >= 0, << "invalid outer radius " << outer_[i]);
@@ -249,7 +269,7 @@ void PolyCone::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a polycone *or* a simplified version for only a single segment.
+ * Return a polyprism *or* a simplified version for only a single segment.
  */
 auto PolyPrism::or_solid(std::string&& label,
                          PolySegments&& segments,
@@ -259,7 +279,7 @@ auto PolyPrism::or_solid(std::string&& label,
 {
     if (segments.size() > 1)
     {
-        // Can't be simplified: make a polycone
+        // Can't be simplified: make a polyprism
         return std::make_shared<PolyPrism>(std::move(label),
                                            std::move(segments),
                                            std::move(enclosed),

@@ -6,25 +6,20 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "BuiltinSurfaceModel.hh"
+#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/optical/surface/SurfaceModel.hh"
 
 namespace celeritas
 {
-namespace inp
-{
-struct NoRoughness;
-}
-
 namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Polished roughness surface model.
+ * Trivial roughness model for a perfectly polished surface.
  *
- * Trivial roughness model that just uses the global surface normal as the
- * local facet normal.
+ * Sets the facet normal equal to the surface's global normal for each track.
  */
-class PolishedRoughnessModel : public BuiltinRoughnessModel
+class PolishedRoughnessModel : public SurfaceModel
 {
   public:
     //!@{
@@ -33,15 +28,21 @@ class PolishedRoughnessModel : public BuiltinRoughnessModel
     //!@}
 
   public:
-    // Construct model from surfaces and inputs
-    PolishedRoughnessModel(SurfaceModelId model,
-                           std::map<PhysSurfaceId, InputT> const& inputs);
+    // Construct the model from an ID and layer map
+    PolishedRoughnessModel(SurfaceModelId,
+                           std::map<PhysSurfaceId, InputT> const&);
 
-    // Launch kernel on host
-    void step(CoreParams const& params, CoreStateHost& state) const final;
+    //! Get the list of physical surfaces this model applies to
+    VecSurfaceLayer const& get_surfaces() const final { return surfaces_; }
 
-    // Launch kernel on device
+    // Execute the model with host data
+    void step(CoreParams const&, CoreStateHost&) const final;
+
+    // Execute the model with device data
     void step(CoreParams const&, CoreStateDevice&) const final;
+
+  private:
+    VecSurfaceLayer surfaces_;
 };
 
 //---------------------------------------------------------------------------//

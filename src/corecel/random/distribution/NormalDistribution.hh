@@ -13,6 +13,7 @@
 #include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/random/data/DistributionData.hh"
 #include "celeritas/Constants.hh"
 
 #include "GenerateCanonical.hh"
@@ -47,6 +48,7 @@ class NormalDistribution
     //! \name Type aliases
     using real_type = RealType;
     using result_type = real_type;
+    using RecordT = NormalDistributionRecord;
     //!@}
 
   public:
@@ -56,6 +58,12 @@ class NormalDistribution
     //! Construct with unit deviation
     explicit CELER_FUNCTION NormalDistribution(real_type mean)
         : NormalDistribution{mean, 1}
+    {
+    }
+
+    // Construct from record
+    explicit CELER_FUNCTION NormalDistribution(RecordT const& record)
+        : NormalDistribution(record.mean, record.stddev)
     {
     }
 

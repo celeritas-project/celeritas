@@ -164,17 +164,5 @@ auto LazyGeantGeoManager::volumes() const -> SPConstVolumes
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Reset the secondary geometry manually.
- *
- * This is needed by AllGeoTypedTestBase, where multiple versions of the same
- * Geant4 geometry are loaded in a single test.
- */
-void LazyGeantGeoManager::clear_lazy_geo()
-{
-    persistent_geo().clear();
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

@@ -174,22 +174,21 @@ bool is_probability(inp::Grid const& grid)
 inp::ReflectionForm
 load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
 {
+    static EnumArray<optical::ReflectionMode, char const*> labels{
+        "SPECULARSPIKECONSTANT", "SPECULARLOBECONSTANT", "BACKSCATTERCONSTANT"};
+
     inp::ReflectionForm refl_form;
-    helper.get_property(&refl_form.specular_lobe, "SPECULARLOBECONSTANT");
-    helper.get_property(&refl_form.specular_spike, "SPECULARSPIKECONSTANT");
-    helper.get_property(&refl_form.backscatter, "BACKSCATTERCONSTANT");
+
+    for (auto mode : range(optical::ReflectionMode::size_))
+    {
+        auto& grid = refl_form.reflection_grids[mode];
+        helper.get_property(&grid, labels[mode]);
+        CELER_VALIDATE(is_probability(grid),
+                       << "parameter '" << to_cstring(mode)
+                       << "' is not within [0, 1] range");
+    }
+
     CELER_VALIDATE(refl_form, << "missing UNIFIED model reflection form grids");
-
-#define GSPL_VALIDATE_PROB(PARAM)             \
-    CELER_VALIDATE(is_probability(PARAM),     \
-                   << "parameter '" << #PARAM \
-                   << "' is not within [0, 1] range")
-
-    GSPL_VALIDATE_PROB(refl_form.specular_spike);
-    GSPL_VALIDATE_PROB(refl_form.specular_lobe);
-    GSPL_VALIDATE_PROB(refl_form.backscatter);
-
-#undef GSPL_VALIDATE_PROB
 
     return refl_form;
 }
@@ -353,10 +352,14 @@ void GeantSurfacePhysicsLoader::insert_interaction(
     switch (helper.surface().GetType())
     {
         case G4ST::dielectric_dielectric:
-            helper.emplace(interaction.dielectric_dielectric, std::move(rf));
+            helper.emplace(
+                interaction.dielectric,
+                inp::DielectricInteraction::from_dielectric(std::move(rf)));
             break;
         case G4ST::dielectric_metal:
-            helper.emplace(interaction.dielectric_metal, std::move(rf));
+            helper.emplace(
+                interaction.dielectric,
+                inp::DielectricInteraction::from_metal(std::move(rf)));
             break;
         default:
             CELER_VALIDATE(false,

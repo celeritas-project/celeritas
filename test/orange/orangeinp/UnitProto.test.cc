@@ -169,7 +169,7 @@ TEST_F(LeafTest, errors)
         append_material(inp, SPConstObject(inp.boundary.interior), 1);
         UnitProto const proto{std::move(inp)};
 
-        EXPECT_THROW(proto.build(tol_, BBox{}), RuntimeError);
+        EXPECT_THROW(proto.build(tol_, BBox{}, true), RuntimeError);
     }
 }
 
@@ -189,7 +189,7 @@ TEST_F(LeafTest, explicit_exterior)
     EXPECT_EQ("", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, BBox{});
+        auto u = proto.build(tol_, BBox{}, true);
 
         static char const* const expected_surface_strings[]
             = {"Plane: z=-1", "Plane: z=1", "Cyl z: r=1", "Plane: z=0"};
@@ -220,7 +220,7 @@ TEST_F(LeafTest, explicit_exterior)
         EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}});
+        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}}, false);
         static char const* const expected_volume_strings[] = {"F", "-3", "+3"};
 
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -240,7 +240,7 @@ TEST_F(LeafTest, implicit_exterior)
     UnitProto const proto{std::move(inp)};
 
     {
-        auto u = proto.build(tol_, BBox{});
+        auto u = proto.build(tol_, BBox{}, true);
 
         static char const* const expected_surface_strings[] = {
             "Plane: z=-1",
@@ -260,7 +260,7 @@ TEST_F(LeafTest, implicit_exterior)
         EXPECT_EQ(GeoMatId{0}, u.background);
     }
     {
-        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}});
+        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}}, false);
 
         static char const* const expected_volume_strings[]
             = {"F", "all(+3, -4)"};
@@ -305,7 +305,7 @@ TEST_F(MotherTest, explicit_exterior)
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, BBox{});
+        auto u = proto.build(tol_, BBox{}, true);
 
         static char const* const expected_surface_strings[] = {
             "Sphere: r=10",
@@ -322,19 +322,21 @@ TEST_F(MotherTest, explicit_exterior)
             "-4",
             "all(-0, +1, +2, +3, +4)",
         };
-        static char const* const expected_md_strings[] = {"",
-                                                          "",
-                                                          "[EXTERIOR],bound@s",
-                                                          "bound",
-                                                          "d1:ext@s",
-                                                          "d1:ext",
-                                                          "d2:ext@s",
-                                                          "d2:ext",
-                                                          "leaf@s",
-                                                          "leaf",
-                                                          "leaf2@s",
-                                                          "leaf2",
-                                                          "interior"};
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "[EXTERIOR],bound@s",
+            "bound",
+            "d1:ext@s",
+            "d1:ext",
+            "d2:ext@s",
+            "d2:ext",
+            "leaf@s",
+            "leaf",
+            "leaf2@s",
+            "leaf2",
+            "interior",
+        };
         static char const* const expected_trans_strings[] = {
             "2: t=0 -> {}",
             "3: t=0",
@@ -367,7 +369,7 @@ TEST_F(MotherTest, explicit_exterior)
         EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}});
+        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}}, false);
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4", "all(+1, +2, +3, +4)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -396,7 +398,7 @@ TEST_F(MotherTest, implicit_exterior)
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, BBox{});
+        auto u = proto.build(tol_, BBox{}, true);
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "-2", "-3", "-4"};
         static int const expected_volume_nodes[] = {2, 5, 7, 9, 11};
@@ -406,7 +408,7 @@ TEST_F(MotherTest, implicit_exterior)
         EXPECT_EQ(GeoMatId{3}, u.background);
     }
     {
-        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}});
+        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}}, false);
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -431,20 +433,22 @@ TEST_F(MotherTest, fuzziness)
     EXPECT_EQ("d1", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, BBox{});
+        auto u = proto.build(tol_, BBox{}, true);
         static char const* const expected_surface_strings[]
             = {"Sphere: r=10", "Sphere: r=1", "Sphere: r=1.0001"};
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "all(-0, +2)"};
-        static char const* const expected_md_strings[] = {"",
-                                                          "",
-                                                          "[EXTERIOR],bound@s",
-                                                          "bound",
-                                                          "d1:ext@s",
-                                                          "d1:ext",
-                                                          "similar@s",
-                                                          "similar",
-                                                          "interior"};
+        static char const* const expected_md_strings[] = {
+            "",
+            "",
+            "[EXTERIOR],bound@s",
+            "bound",
+            "d1:ext@s",
+            "d1:ext",
+            "similar@s",
+            "similar",
+            "interior",
+        };
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
@@ -452,7 +456,7 @@ TEST_F(MotherTest, fuzziness)
     {
         // Simplify with lower tolerance because the user has tried to avoid
         // overlap by adding .0001 to the "similar" shape
-        auto u = proto.build(Tol::from_relative(1e-3), BBox{});
+        auto u = proto.build(Tol::from_relative(1e-3), BBox{}, true);
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "all(-0, +1)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -470,8 +474,8 @@ class InputBuilderTest : public UnitProtoTest
         InputBuilder build_input([&] {
             InputBuilder::Options opts;
             opts.tol = this->tol_;
-            opts.proto_output_file = output_base + ".protos.json";
-            opts.debug_output_file = output_base + ".csg.json";
+            opts.objects_output_file = output_base + ".objects.json";
+            opts.csg_output_file = output_base + ".csg.json";
             return opts;
         }());
         OrangeInput inp = build_input(global);

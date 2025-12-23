@@ -29,6 +29,16 @@ struct ModelSetup
 
     //! Geometry filename to load (usually GDML)
     std::string geometry_file;
+
+    //! Perfetto tracing session output
+    std::string perfetto_file;
+};
+
+//! Echoed output from model setup
+struct ModelSetupOutput : public ModelSetup
+{
+    std::string version_string;
+    int version_hex{};
 };
 
 //---------------------------------------------------------------------------//
@@ -54,6 +64,8 @@ struct TraceSetup
 
 void to_json(nlohmann::json& j, ModelSetup const& value);
 void from_json(nlohmann::json const& j, ModelSetup& value);
+
+void to_json(nlohmann::json& j, ModelSetupOutput const& value);
 
 void to_json(nlohmann::json& j, TraceSetup const& value);
 void from_json(nlohmann::json const& j, TraceSetup& value);

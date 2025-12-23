@@ -17,6 +17,7 @@
 #include "geocel/LazyGeantGeoManager.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/optical/CoreParams.hh"
 
 #include "Test.hh"
 
@@ -52,7 +53,6 @@ struct Primary;
 
 namespace optical
 {
-class CoreParams;
 class MaterialParams;
 class PhysicsParams;
 class SurfacePhysicsParams;
@@ -102,6 +102,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
     using SPOpticalParams = SP<optical::CoreParams>;
     using SPConstOpticalPhysics = SP<optical::PhysicsParams const>;
+    using SPConstOpticalSim = SP<optical::SimParams const>;
     using SPConstOpticalSurfacePhysics
         = SP<optical::SurfacePhysicsParams const>;
     using SPConstScintillation = SP<ScintillationParams const>;
@@ -139,6 +140,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstOpticalMaterial const& optical_material();
     inline SPOpticalParams const& optical_params();
     inline SPConstOpticalPhysics const& optical_physics();
+    inline SPConstOpticalSim const& optical_sim();
     inline SPConstOpticalSurfacePhysics const& optical_surface_physics();
     inline SPConstScintillation const& scintillation();
 
@@ -161,9 +163,12 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstOpticalMaterial const& optical_material() const;
     inline SPOpticalParams const& optical_params() const;
     inline SPConstOpticalPhysics const& optical_physics() const;
+    inline SPConstOpticalSim const& optical_sim() const;
     inline SPConstOpticalSurfacePhysics const& optical_surface_physics() const;
     inline SPConstScintillation const& scintillation() const;
     //!@}
+
+    optical::CoreParams::Input optical_params_input();
 
     SPConstPrimariesAction const& primaries_action();
     void
@@ -193,6 +198,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     [[nodiscard]] virtual SPConstCherenkov build_cherenkov() = 0;
     [[nodiscard]] virtual SPConstOpticalMaterial build_optical_material() = 0;
     [[nodiscard]] virtual SPConstOpticalPhysics build_optical_physics() = 0;
+    [[nodiscard]] virtual SPConstOpticalSim build_optical_sim() = 0;
     [[nodiscard]] virtual SPConstOpticalSurfacePhysics
     build_optical_surface_physics()
         = 0;
@@ -245,6 +251,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     SPConstOpticalMaterial optical_material_;
     SPOpticalParams optical_params_;
     SPConstOpticalPhysics optical_physics_;
+    SPConstOpticalSim optical_sim_;
     SPConstOpticalSurfacePhysics optical_surface_physics_;
     SPConstScintillation scintillation_;
 
@@ -272,6 +279,20 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
         return this->NAME##_;                       \
     }
 
+#define DEF_OPTIONAL_GTB_ACCESSORS(CLS, NAME)       \
+    auto GlobalTestBase::NAME() -> CLS const&       \
+    {                                               \
+        if (!this->NAME##_)                         \
+        {                                           \
+            this->NAME##_ = this->build_##NAME();   \
+        }                                           \
+        return this->NAME##_;                       \
+    }                                               \
+    auto GlobalTestBase::NAME() const -> CLS const& \
+    {                                               \
+        return this->NAME##_;                       \
+    }
+
 DEF_GTB_ACCESSORS(SPConstCoreGeo, geometry)
 DEF_GTB_ACCESSORS(SPConstMaterial, material)
 DEF_GTB_ACCESSORS(SPConstGeoMaterial, geomaterial)
@@ -290,22 +311,13 @@ DEF_GTB_ACCESSORS(SPActionRegistry, optical_action_reg)
 DEF_GTB_ACCESSORS(SPConstOpticalMaterial, optical_material)
 DEF_GTB_ACCESSORS(SPOpticalParams, optical_params)
 DEF_GTB_ACCESSORS(SPConstOpticalPhysics, optical_physics)
+DEF_GTB_ACCESSORS(SPConstOpticalSim, optical_sim)
 DEF_GTB_ACCESSORS(SPConstOpticalSurfacePhysics, optical_surface_physics)
-DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
-auto GlobalTestBase::wentzel() -> SPConstWentzelOKVI const&
-{
-    if (!this->wentzel_)
-    {
-        this->wentzel_ = this->build_wentzel();
-    }
-    return this->wentzel_;
-}
-auto GlobalTestBase::wentzel() const -> SPConstWentzelOKVI const&
-{
-    return this->wentzel_;
-}
+DEF_OPTIONAL_GTB_ACCESSORS(SPConstScintillation, scintillation)
+DEF_OPTIONAL_GTB_ACCESSORS(SPConstWentzelOKVI, wentzel)
 
 #undef DEF_GTB_ACCESSORS
+#undef DEF_OPTIONAL_GTB_ACCESSORS
 
 //---------------------------------------------------------------------------//
 }  // namespace test

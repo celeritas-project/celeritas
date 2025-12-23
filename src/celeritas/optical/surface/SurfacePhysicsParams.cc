@@ -9,11 +9,13 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/optical/surface/model/GaussianRoughnessModel.hh"
+#include "celeritas/optical/surface/model/SmearRoughnessModel.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
-#include "model/GaussianRoughnessModel.hh"
+#include "model/DielectricInteractionModel.hh"
 #include "model/PolishedRoughnessModel.hh"
-#include "model/SmearRoughnessModel.hh"
+#include "model/TrivialInteractionModel.hh"
 
 #include "detail/BuiltinSurfaceModelBuilder.hh"
 
@@ -149,10 +151,10 @@ auto SurfacePhysicsParams::build_models(
                 build_model.build_fake("fresnel", input.reflectivity.fresnel);
                 break;
             case SurfacePhysicsOrder::interaction:
-                build_model.build_fake("dielectric-dielectric",
-                                       input.interaction.dielectric_dielectric);
-                build_model.build_fake("dielectric-metal",
-                                       input.interaction.dielectric_metal);
+                build_model.build<DielectricInteractionModel>(
+                    input.interaction.dielectric);
+                build_model.build<TrivialInteractionModel>(
+                    input.interaction.trivial);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();
@@ -160,7 +162,7 @@ auto SurfacePhysicsParams::build_models(
 
         CELER_VALIDATE(
             build_model.num_surfaces() == num_phys_surfaces(input.materials),
-            << " same number of physics surfaces required for each "
+            << "same number of physics surfaces required for each "
                "surface physics step ("
             << num_phys_surfaces(input.materials) << " expected surfaces, "
             << build_model.num_surfaces() << " surfaces from "

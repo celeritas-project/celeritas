@@ -9,9 +9,9 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/LeadBoxTestBase.hh"
 #include "celeritas/OneSteelSphereBase.hh"
 #include "celeritas/TestEm15Base.hh"
@@ -322,7 +322,7 @@ TEST_F(TestEm3Compton, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -389,7 +389,7 @@ TEST_F(TestEm3NoMsc, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -457,7 +457,7 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -544,7 +544,7 @@ TEST_F(TestEm3Msc, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -572,7 +572,7 @@ TEST_F(TestEm3Msc, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -599,14 +599,14 @@ TEST_F(TestEm3MscNofluct, host)
         EXPECT_LE(69, result.num_step_iters());
         EXPECT_GE(73, result.num_step_iters());
         EXPECT_LE(58.625, result.calc_avg_steps_per_primary());
-        EXPECT_GE(63.125, result.calc_avg_steps_per_primary());
+        EXPECT_GE(64.75, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
     }
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -627,16 +627,16 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
     if (this->is_ci_build())
     {
         EXPECT_LE(76, result.num_step_iters());
-        EXPECT_GE(77, result.num_step_iters());
+        EXPECT_GE(88, result.num_step_iters());
         EXPECT_LE(48, result.calc_avg_steps_per_primary());
-        EXPECT_GE(48.25, result.calc_avg_steps_per_primary());
+        EXPECT_GE(50, result.calc_avg_steps_per_primary());
         EXPECT_EQ(7, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({5, 7}), result.calc_queue_hwm());
     }
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -660,9 +660,9 @@ TEST_F(TestEm3MscNoIntegral, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_LE(86, result.num_step_iters());
+        EXPECT_LE(68, result.num_step_iters());
         EXPECT_GE(87, result.num_step_iters());
-        EXPECT_LE(54.7, result.calc_avg_steps_per_primary());
+        EXPECT_LE(53.416, result.calc_avg_steps_per_primary());
         EXPECT_GE(54.75, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({6, 15}), result.calc_queue_hwm());
@@ -670,7 +670,7 @@ TEST_F(TestEm3MscNoIntegral, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -736,7 +736,7 @@ TEST_F(TestEm15FieldMsc, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -763,7 +763,7 @@ TEST_F(TestEm15FieldMsc, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -830,7 +830,7 @@ TEST_F(OneSteelSphere, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())

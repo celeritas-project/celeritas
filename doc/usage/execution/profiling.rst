@@ -5,8 +5,8 @@
 
 .. _profiling:
 
-Profiling
-=========
+Performance profiling
+=====================
 
 Since the primary motivator of Celeritas is performance on GPU hardware,
 profiling is a necessity. Celeritas uses NVTX (CUDA),  ROCTX (HIP) or Perfetto (CPU)
@@ -113,7 +113,8 @@ application**.
 The commands shown in the previous sections can be used to profile your application.
 If your application already uses NVTX, or ROCTX, you can exclude Celeritas events by excluding the ``celeritas`` domain.
 
-When using Perfetto for CPU profiling, you need to create a ``TracingSession``
+When using Perfetto for CPU profiling, you need to create a
+:cpp:class:celeritas::TracingSession:
 instance. The profiling session needs to be explicitly started, and will end when the object goes out of scope,
 but it can be moved to extend its lifetime.
 
@@ -124,16 +125,15 @@ but it can be moved to extend its lifetime.
 
    int main()
    {
-      // System-level profiling: pass a filename to use application-level profiling
-      celeritas::TracingSession session;
-      session.start()
+      // Pass with empty/no filename for system profiling
+      celeritas::TracingSession session("out.perfetto");
    }
 
 As mentioned above, Perfetto can either profile application events only, or application and system events.
 The system-level profiling requires starting external services. Details on how to setup the system services can be found in the `Perfetto documentation`_. Root access on the system is required.
 
 When the tracing session is started with a filename, the application-level profiling is used and written to the specified file.
-Omitting the filename will use the system-level profiling, in which case you must have the external Perfetto tracing processes started. The container in ``scripts/docker/interactive`` provides an example Perfetto configuration for tracing both system-level and celeritas events.
+Omitting the filename will use the system-level profiling, in which case you must have the external Perfetto tracing processes started. The container in ``scripts/docker/interactive`` provides an example Perfetto configuration for tracing both system-level and Celeritas events.
 
 As with NVTX and ROCTX, if your application already uses Perfetto, you can exclude Celeritas events by excluding the ``celeritas`` category.
 

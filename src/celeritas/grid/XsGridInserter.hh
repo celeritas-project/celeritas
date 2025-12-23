@@ -14,8 +14,8 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/UniformGridData.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/Grid.hh"
 
 #include "XsGridData.hh"
 

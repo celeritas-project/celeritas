@@ -13,11 +13,6 @@
 #include "corecel/cont/Span.hh"
 #include "geocel/Types.hh"
 
-// DEPRECATED: remove in v0.7
-#define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) EXPECT_REF_EQ(EXPECTED, ACTUAL)
-#define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
-    EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
-
 //! Check that a surface normal is equivalent (modulo the sign)
 #define EXPECT_NORMAL_EQUIV(expected, actual) \
     EXPECT_PRED_FORMAT2(::celeritas::test::IsNormalEquiv, expected, actual)
@@ -150,6 +145,12 @@ struct GenericGeoModelInp
         std::vector<std::string> labels;
         std::vector<std::string> volumes;
     } surface;
+
+    struct
+    {
+        std::vector<std::string> labels;
+        std::vector<std::vector<int>> volumes;
+    } region;
 
     struct
     {

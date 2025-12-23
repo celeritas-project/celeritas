@@ -22,7 +22,7 @@ class G4ParticleDefinition;  // IWYU pragma: keep
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Only import a subset of available Geant4 data
+//! DEPRECATED: Only import a subset of available Geant4 data
 struct GeantImportDataSelection
 {
     //! Bit flags for selecting particles and process types
@@ -41,9 +41,6 @@ struct GeantImportDataSelection
     Flags particles = em | optical;
     bool materials = true;
     Flags processes = em | optical;
-
-    //! Change volume names to match exported GDML file
-    bool unique_volumes = false;
 
     // TODO expand/set reader flags automatically based on loaded processes
     bool reader_data = true;
@@ -102,10 +99,6 @@ class GeantImporter final : public ImporterInterface
 };
 
 //---------------------------------------------------------------------------//
-
-inp::Particle import_particle(G4ParticleDefinition const& p);
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 inline constexpr bool operator==(GeantImporter::DataSelection const& lhs,
@@ -115,7 +108,6 @@ inline constexpr bool operator==(GeantImporter::DataSelection const& lhs,
     return    lhs.particles == rhs.particles
            && lhs.materials == rhs.materials
            && lhs.processes == rhs.processes
-           && lhs.unique_volumes == rhs.unique_volumes
            && lhs.reader_data == rhs.reader_data;
     // clang-format on
 }

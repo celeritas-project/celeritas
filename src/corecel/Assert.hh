@@ -84,12 +84,6 @@
                   << "failed to open '" << filename
                   << "' (should contain relaxation data)");
  * \endcode
- *
- * An always-on debug-type assertion without a detailed message can be
- * constructed by omitting the stream (but leaving the comma):
- * \code
-    CELER_VALIDATE(file_stream,);
- * \endcode
  */
 /*!
  * \def CELER_DEBUG_FAIL
@@ -236,7 +230,12 @@
             }                                                    \
         } while (0)
 #else
-#    define CELER_VALIDATE(COND, MSG) CELER_RUNTIME_THROW(nullptr, "", #COND)
+#    define CELER_VALIDATE(COND, MSG)                \
+        do                                           \
+        {                                            \
+            CELER_DISCARD(COND);                     \
+            CELER_RUNTIME_THROW(nullptr, "", #COND); \
+        } while (0)
 #endif
 
 #define CELER_NOT_CONFIGURED(WHAT) \
@@ -255,8 +254,7 @@
  * RuntimeError if it fails. If no device platform is enabled, throw an
  * unconfigured assertion.
  *
- * Example:
- *
+ * \par Example:
  * \code
    CELER_DEVICE_API_CALL(Malloc(&ptr_gpu, 100 * sizeof(float)));
    CELER_DEVICE_API_CALL(DeviceSynchronize());

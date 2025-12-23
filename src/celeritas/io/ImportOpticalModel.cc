@@ -17,7 +17,7 @@ namespace optical
 char const* to_cstring(ImportModelClass imc)
 {
     static EnumStringMapper<ImportModelClass> const to_cstring_impl{
-        "absorption", "rayleigh", "wls", "wls2"};
+        "absorption", "rayleigh", "wls", "wls2", "mie"};
     return to_cstring_impl(imc);
 }
 

@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "celeritas/optical/surface/model/BuiltinSurfaceModel.hh"
+#include "celeritas/optical/surface/SurfaceModel.hh"
 
 namespace celeritas
 {
@@ -24,20 +24,33 @@ namespace
  * Fake model as a placeholder for surface models yet to be implemented.
  */
 template<class T>
-class FakeModel
-    : public BuiltinSurfaceModel<SurfacePhysicsOrder::size_, TrivialApplier>
+class FakeModel : public SurfaceModel
 {
   public:
     FakeModel(SurfaceModelId model_id,
               std::string_view label,
               std::map<PhysSurfaceId, T> const& surfaces)
-        : BuiltinSurfaceModel<SurfacePhysicsOrder::size_, TrivialApplier>(
-              model_id, label, surfaces)
+        : SurfaceModel(model_id, label)
     {
+        layers_.reserve(surfaces.size());
+
+        for (auto const& [surface, input] : surfaces)
+        {
+            CELER_ENSURE(surface);
+            CELER_DISCARD(input);
+            layers_.push_back(surface);
+        }
+
+        CELER_ENSURE(layers_.size() == surfaces.size());
     }
 
     void step(CoreParams const&, CoreStateHost&) const final {}
     void step(CoreParams const&, CoreStateDevice&) const final {}
+
+    VecSurfaceLayer const& get_surfaces() const final { return layers_; }
+
+  private:
+    VecSurfaceLayer layers_;
 };
 
 }  // namespace

@@ -7,9 +7,7 @@
 #include "PhysicalVolumeConverter.hh"
 
 #include <deque>
-#include <iomanip>
 #include <iostream>
-#include <unordered_set>
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
 #include <G4ReplicaNavigation.hh>
@@ -24,6 +22,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "orange/inp/Import.hh"
 #include "orange/transform/TransformIO.hh"
 
 #include "LogicalVolumeConverter.hh"
@@ -55,7 +54,8 @@ struct ParamUpdater
     void operator()(int copy_no, G4VPhysicalVolume& g4pv)
     {
         // TODO: this only works with parameterized transformations, not
-        // changes to the solid or material.
+        // changes to the solid or material. We may need to recompute whether
+        // the new solid or LV matches the previously converted one.
         param_.ComputeTransformation(copy_no, &g4pv);
         g4pv.SetCopyNo(copy_no);
     }
@@ -112,11 +112,13 @@ struct PhysicalVolumeConverter::Builder
  * Construct with options.
  */
 PhysicalVolumeConverter::PhysicalVolumeConverter(GeantGeoParams const& geo,
-                                                 Options opts)
+                                                 Options const& opts)
     : data_{std::make_unique<Data>(geo)}
 {
-    data_->scale = Scaler{opts.scale};
-    data_->verbose = opts.verbose;
+    CELER_VALIDATE(opts.unit_length > 0,
+                   << "invalid unit length " << opts.unit_length);
+    data_->scale = Scaler{opts.unit_length};
+    data_->verbose = opts.verbose_volumes;
 }
 
 //---------------------------------------------------------------------------//
@@ -129,7 +131,7 @@ auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
     CELER_EXPECT(!g4world.GetRotation());
     CELER_EXPECT(g4world.GetTranslation() == G4ThreeVector(0, 0, 0));
 
-    ScopedProfiling profile_this{"import-geant-geo"};
+    ScopedProfiling profile_this{"g4org-convert"};
     ScopedMem record_mem("orange.convert-geant");
 
     CELER_LOG(status) << "Converting Geant4 geometry elements to ORANGE input";
@@ -244,7 +246,7 @@ void PhysicalVolumeConverter::Builder::place_child(
                              << TypeDemangler<G4VPhysicalVolume>{}(g4pv)
                              << "' for physical volume '" << g4pv.GetName()
                              << "' (corresponding LV: "
-                             << PrintableLV{g4pv.GetLogicalVolume()} << ")";
+                             << StreamableLV{g4pv.GetLogicalVolume()} << ")";
     }
 }
 

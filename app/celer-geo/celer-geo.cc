@@ -13,22 +13,28 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
+#include "corecel/Version.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterface.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "geocel/rasterize/Image.hh"
 #include "geocel/rasterize/ImageIO.json.hh"
+#include "orange/OrangeParamsOutput.hh"
 
 #include "CliUtils.hh"
 #include "GeoInput.hh"
@@ -78,9 +84,27 @@ nlohmann::json get_json_line(std::istream& is)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Write a line of JSON output.
+ */
+void put_json_line(nlohmann::json const& j)
+{
+    std::cout << j.dump() << std::endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write a line of JSON output.
+ */
+void put_json_line(OutputInterface const& oi)
+{
+    return put_json_line(output_to_json(oi));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create a Runner from user input.
  */
-Runner make_runner(json const& input)
+std::unique_ptr<Runner> make_runner(json const& input)
 {
     ModelSetup model_setup;
     try
@@ -91,12 +115,19 @@ Runner make_runner(json const& input)
     {
         CELER_LOG(error)
             << R"(Invalid model setup; expected structure written to stdout)";
-        std::cout << json(ModelSetup{}).dump() << std::endl;
+        put_json_line(ModelSetup{});
         throw;
     }
 
-    Runner result(model_setup);
-    std::cout << json(model_setup) << std::endl;
+    auto result = std::make_unique<Runner>(model_setup);
+
+    // Echo setup with additions by copying base class attributes first
+    ModelSetupOutput out;
+    static_cast<ModelSetup&>(out) = model_setup;
+    out.version_string = std::string{celeritas::version_string};
+    out.version_hex = CELERITAS_VERSION;
+
+    put_json_line(out);
     return result;
 }
 
@@ -104,7 +135,7 @@ Runner make_runner(json const& input)
 /*!
  * Execute a single raytrace.
  */
-void run_trace(Runner& run_trace,
+void run_trace(Runner& runner,
                TraceSetup const& trace_setup,
                ImageInput const& image_setup)
 {
@@ -116,12 +147,12 @@ void run_trace(Runner& run_trace,
         if (image_setup)
         {
             // User specified a new image setup
-            return run_trace(trace_setup, image_setup);
+            return runner.trace(trace_setup, image_setup);
         }
         else
         {
             // Reuse last image setup
-            return run_trace(trace_setup);
+            return runner.trace(trace_setup);
         }
     }();
     CELER_ASSERT(image);
@@ -147,10 +178,81 @@ void run_trace(Runner& run_trace,
     if (trace_setup.volumes)
     {
         // Get geometry names
-        out["volumes"] = run_trace.get_volumes(trace_setup.geometry);
+        out["volumes"] = runner.get_volumes(trace_setup.geometry);
     }
 
-    std::cout << out.dump() << std::endl;
+    put_json_line(out);
+}
+
+//---------------------------------------------------------------------------//
+using CmdFuncPtr = void (*)(Runner*, nlohmann::json const&);
+
+void cmd_config(Runner*, nlohmann::json const&)
+{
+    put_json_line(BuildOutput{});
+}
+
+void cmd_trace(Runner* runner, nlohmann::json const& input)
+{
+    CELER_EXPECT(runner);
+    // Load required trace setup (geometry/memspace/output)
+    TraceSetup trace_setup;
+    ImageInput image_setup;
+    try
+    {
+        input.get_to(trace_setup);
+        if (auto iter = input.find("image"); iter != input.end())
+        {
+            iter->get_to(image_setup);
+        }
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(error)
+            << R"(Invalid trace setup; expected structure written to stdout ()"
+            << e.what() << ")";
+        json temp = TraceSetup{};
+        temp["image"] = ImageInput{};
+        put_json_line(temp);
+        return;
+    }
+
+    run_trace(*runner, trace_setup, image_setup);
+}
+
+void cmd_orange_stats(Runner* runner, nlohmann::json const&)
+{
+    CELER_EXPECT(runner);
+    put_json_line(
+        OrangeParamsOutput{runner->load_geometry<Geometry::orange>()});
+}
+
+CmdFuncPtr
+get_cmd_funcptr(nlohmann::json const& input, std::string_view cmd_str)
+{
+    auto iter = input.find("_cmd");
+    if (iter == input.end())
+    {
+        CELER_LOG(warning) << "Missing '_cmd' key: assuming '" << cmd_str
+                           << "' (DEPRECATED: will be removed in v1.0)";
+    }
+    else
+    {
+        CELER_VALIDATE(iter->is_string(), << "invalid type for _cmd");
+        cmd_str = iter->get_ref<std::string const&>();
+    }
+
+    using MapCmdConverter = std::unordered_map<std::string_view, CmdFuncPtr>;
+    static MapCmdConverter const cmd_to_func = {
+        {"config", &cmd_config},
+        {"trace", &cmd_trace},
+        {"orange_stats", &cmd_orange_stats},
+    };
+
+    auto func_iter = cmd_to_func.find(cmd_str);
+    CELER_VALIDATE(func_iter != cmd_to_func.end(),
+                   << "invalid _cmd='" << cmd_str << "'");
+    return func_iter->second;
 }
 
 //---------------------------------------------------------------------------//
@@ -173,10 +275,28 @@ void run(std::string const& filename)
     // Load the model
     CELER_LOG(diagnostic) << "Waiting for model setup";
     auto json_input = get_json_line(infile);
+    if (json_input.is_null())
+    {
+        CELER_LOG(info)
+            << R"(No input provided: printing build configuration and exiting)";
+        cmd_config(nullptr, {});
+        return;
+    }
+
     CELER_VALIDATE(json_input.is_object(),
                    << "missing or invalid JSON-formatted run input");
 
-    auto runner = make_runner(json_input);
+    std::unique_ptr<Runner> runner;
+    try
+    {
+        runner = make_runner(json_input);
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(critical) << "Failed to load model";
+        put_json_line(ExceptionOutput{std::current_exception()});
+        throw;
+    }
 
     while (true)
     {
@@ -193,52 +313,33 @@ void run(std::string const& filename)
             break;
         }
 
-        // Load required trace setup (geometry/memspace/output)
-        TraceSetup trace_setup;
-        ImageInput image_setup;
         try
         {
-            CELER_VALIDATE(!json_input.empty(),
-                           << "no raytrace input was specified");
-            json_input.get_to(trace_setup);
-            if (auto iter = json_input.find("image"); iter != json_input.end())
-            {
-                iter->get_to(image_setup);
-            }
+            CELER_VALIDATE(json_input.is_object(),
+                           << "invalid JSON input: must be object");
+            auto cmd_funcptr = get_cmd_funcptr(json_input, "trace");
+            (*cmd_funcptr)(runner.get(), json_input);
         }
         catch (std::exception const& e)
         {
-            CELER_LOG(error)
-                << R"(Invalid trace setup; expected structure written to stdout ()"
-                << e.what() << ")";
-            json temp = TraceSetup{};
-            temp["image"] = ImageInput{};
-            std::cout << json(temp).dump() << std::endl;
-            continue;
-        }
-        try
-        {
-            run_trace(runner, trace_setup, image_setup);
-        }
-        catch (std::exception const& e)
-        {
-            CELER_LOG(error) << "Failed raytrace: " << e.what();
-            std::cout << ExceptionOutput{std::current_exception()} << std::endl;
+            CELER_LOG(error) << "Command failed: " << e.what();
+            put_json_line(ExceptionOutput{std::current_exception()});
         }
     }
 
-    // Construct json output (TODO: add build metadata)
-    std::cout << json{
-        {"timers", runner.timers()},
+    // Construct json output
+    put_json_line(json::object({
+        {"timers", runner->timers()},
         {
             "runtime",
             {
                 {"device", device()},
                 {"kernels", kernel_registry()},
-                {"build", json_pimpl_output(BuildOutput{})},
+                {"environment", environment()},
+                {"build", output_to_json(BuildOutput{})},
             },
         },
-    } << std::endl;
+    }));
 }
 
 //---------------------------------------------------------------------------//

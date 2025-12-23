@@ -20,6 +20,8 @@
 #include "SimData.hh"
 #include "TrackInitData.hh"
 #include "Types.hh"
+#include "gen/CherenkovData.hh"
+#include "gen/ScintillationData.hh"
 #include "surface/SurfacePhysicsData.hh"
 
 namespace celeritas
@@ -51,8 +53,11 @@ struct CoreParamsData
     MaterialParamsData<W, M> material;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
+    SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
     SurfacePhysicsParamsData<W, M> surface_physics;
+    CherenkovData<W, M> cherenkov;
+    ScintillationData<W, M> scintillation;
 
     CoreScalars scalars;
 
@@ -60,7 +65,7 @@ struct CoreParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && material && physics && surface && surface_physics
-               && rng && scalars;
+               && rng && sim && scalars;
     }
 
     //! Assign from another set of data
@@ -72,9 +77,12 @@ struct CoreParamsData
         material = other.material;
         physics = other.physics;
         rng = other.rng;
+        sim = other.sim;
         surface = other.surface;
         surface_physics = other.surface_physics;
         scalars = other.scalars;
+        cherenkov = other.cherenkov;
+        scintillation = other.scintillation;
         return *this;
     }
 };

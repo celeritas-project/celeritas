@@ -7,8 +7,9 @@
 #pragma once
 
 #include "corecel/data/CollectionMirror.hh"
+#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/optical/surface/SurfaceModel.hh"
 
-#include "BuiltinSurfaceModel.hh"
 #include "SmearRoughnessData.hh"
 
 namespace celeritas
@@ -27,7 +28,7 @@ namespace optical
  * Approximates the surface roughness of an optical surface with the GliSur3
  * uniform smear roughness model.
  */
-class SmearRoughnessModel : public BuiltinRoughnessModel
+class SmearRoughnessModel : public SurfaceModel
 {
   public:
     //!@{
@@ -36,17 +37,20 @@ class SmearRoughnessModel : public BuiltinRoughnessModel
     //!@}
 
   public:
-    // Construct model from surfaces and inputs
-    SmearRoughnessModel(SurfaceModelId model,
-                        std::map<PhysSurfaceId, InputT> const& inputs);
+    // Construct the model from an ID and layer map
+    SmearRoughnessModel(SurfaceModelId, std::map<PhysSurfaceId, InputT> const&);
 
-    // Launch kernel on host
-    void step(CoreParams const& params, CoreStateHost& state) const final;
+    //! Get the list of physical surfaces this model applies to
+    VecSurfaceLayer const& get_surfaces() const final { return surfaces_; }
 
-    // Launch kernel on device
+    // Execute the model with host data
+    void step(CoreParams const&, CoreStateHost&) const final;
+
+    // Execute the model with device data
     void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
+    VecSurfaceLayer surfaces_;
     CollectionMirror<SmearRoughnessData> data_;
 };
 

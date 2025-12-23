@@ -15,6 +15,7 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "geocel/GeantUtils.hh"
 
+#include "LoggerImpl.hh"
 #include "../ExceptionConverter.hh"
 #include "../Logger.hh"
 #include "../SetupOptionsMessenger.hh"
@@ -33,9 +34,9 @@ namespace
  * default list accordingly.
  */
 SetupOptions::VecG4PD
-validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
+validate_and_return_offloaded(std::optional<SetupOptions::VecG4PD> const& user)
 {
-    if (user.empty())
+    if (!user)
     {
         // Celeritas will use default hardcoded list; nothing to do
         return SharedParams::default_offload_particles();
@@ -51,14 +52,14 @@ validate_and_return_offloaded(SetupOptions::VecG4PD const& user)
             });
     };
 
-    for (auto const& pd : user)
+    for (auto const& pd : *user)
     {
         CELER_ASSERT(pd);
         CELER_VALIDATE(find(pd),
-                       << "Particle " << PrintablePD{pd}
+                       << "Particle " << StreamablePD{pd}
                        << " is not available in Celeritas");
     }
-    return user;
+    return *user;
 }
 //---------------------------------------------------------------------------//
 };  // namespace
@@ -79,18 +80,62 @@ IntegrationSingleton& IntegrationSingleton::instance()
  */
 LocalTransporter& IntegrationSingleton::local_transporter()
 {
-    static G4ThreadLocal LocalTransporter lt;
-    return lt;
+    auto& offload = IntegrationSingleton::local_offload_ptr();
+    if (!offload)
+    {
+        offload = std::make_unique<LocalTransporter>();
+    }
+    auto* lt = dynamic_cast<LocalTransporter*>(offload.get());
+    CELER_VALIDATE(lt,
+                   << "Cannot access LocalTransporter when "
+                      "LocalOpticalOffload is being used");
+    return *lt;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Assign global setup options before constructing params.
+ * Static THREAD-LOCAL Celeritas optical state data.
+ */
+LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
+{
+    auto& offload = IntegrationSingleton::local_offload_ptr();
+    if (!offload)
+    {
+        offload = std::make_unique<LocalOpticalOffload>();
+    }
+    auto* lt = dynamic_cast<LocalOpticalOffload*>(offload.get());
+    CELER_VALIDATE(lt,
+                   << "Cannot access LocalOpticalOffload when "
+                      "LocalTransporter is being used");
+    return *lt;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the thread-local offload interface.
+ */
+LocalOffloadInterface& IntegrationSingleton::local_offload()
+{
+    if (this->optical_offload())
+    {
+        return IntegrationSingleton::local_optical_offload();
+    }
+    return IntegrationSingleton::local_transporter();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Assign global setup options after run manager initialization but before run.
  */
 void IntegrationSingleton::setup_options(SetupOptions&& opts)
 {
     CELER_TRY_HANDLE(
         {
+            // Run manager initialization requires no G4ParticleDef exists
+            CELER_VALIDATE(
+                G4RunManager::GetRunManager(),
+                << R"(options cannot be set before G4RunManager is constructed)");
+            // SharedParams require options to be set at BeginOfRun
             CELER_VALIDATE(
                 !params_,
                 << R"(options cannot be set after Celeritas is constructed)");
@@ -104,7 +149,7 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
             << R"(SetOptions called with incomplete input: you must use the UI to update before /run/initialize)";
     }
 
-    CELER_ENSURE(!offloaded_.empty());
+    CELER_ENSURE(!offloaded_.empty() || this->optical_offload());
 }
 
 //---------------------------------------------------------------------------//
@@ -120,25 +165,6 @@ OffloadMode IntegrationSingleton::mode() const
     }
 
     return SharedParams::GetMode();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set up logging.
- */
-void IntegrationSingleton::initialize_logger()
-{
-    CELER_TRY_HANDLE(
-        {
-            auto* run_man = G4RunManager::GetRunManager();
-            CELER_VALIDATE(run_man,
-                           << "logger cannot be set up before run manager");
-            CELER_VALIDATE(!params_,
-                           << "logger cannot be set up after shared params");
-            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
-            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
-        },
-        ExceptionConverter{"celer.init.logger"});
 }
 
 //---------------------------------------------------------------------------//
@@ -169,6 +195,11 @@ void IntegrationSingleton::initialize_shared_params()
                 CELER_VALIDATE(
                     !params_,
                     << R"(BeginOfRunAction cannot be called more than once)");
+
+                // Update logger in case run manager has changed number of
+                // threads, or user called initialization after run manager
+                this->update_logger();
+
                 params_.Initialize(options_);
             },
             call_g4exception);
@@ -232,7 +263,7 @@ bool IntegrationSingleton::initialize_local_transporter()
 
     CELER_TRY_HANDLE(
         {
-            auto& lt = IntegrationSingleton::local_transporter();
+            auto& lt = this->local_offload();
             CELER_VALIDATE(!lt,
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
@@ -267,7 +298,7 @@ void IntegrationSingleton::finalize_local_transporter()
 
     CELER_TRY_HANDLE(
         {
-            auto& lt = IntegrationSingleton::local_transporter();
+            auto& lt = this->local_offload();
             CELER_VALIDATE(lt,
                            << "local thread "
                            << G4Threading::G4GetThreadId() + 1
@@ -307,8 +338,56 @@ IntegrationSingleton::IntegrationSingleton()
         {
             scoped_mpi_ = std::make_unique<ScopedMpiInit>();
             messenger_ = std::make_unique<SetupOptionsMessenger>(&options_);
+            this->update_logger();
         },
         ExceptionConverter{"celer.init.singleton"});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Static THREAD-LOCAL Celeritas offload.
+ */
+auto IntegrationSingleton::local_offload_ptr() -> UPOffload&
+{
+    static G4ThreadLocal UPOffload offload;
+    return offload;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the local optical offload is used.
+ */
+bool IntegrationSingleton::optical_offload() const
+{
+    return options_.optical
+           && std::holds_alternative<inp::OpticalOffloadGenerator>(
+               options_.optical->generator);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create or update the number of threads for the logger.
+ */
+void IntegrationSingleton::update_logger()
+{
+    if (auto* run_man = G4RunManager::GetRunManager())
+    {
+        if (!have_created_logger_)
+        {
+            celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
+            celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
+            have_created_logger_ = true;
+        }
+        else
+        {
+            if (auto* handle
+                = celeritas::world_logger().handle().target<MtSelfWriter>())
+            {
+                // Update thread count
+                *handle = MtSelfWriter{get_geant_num_threads(*run_man)};
+            }
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

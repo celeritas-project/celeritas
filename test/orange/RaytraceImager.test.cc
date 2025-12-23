@@ -179,7 +179,8 @@ template<class P>
 class RaytraceImagerTest : public OrangeGeoTestBase
 {
   protected:
-    Constant unit_length() const override { return Constant{1}; }
+    //! Length scale is hardcoded into JSON input
+    UnitLength unit_length() const override { return {Constant{1}, "length"}; }
 
     void SetUp() override
     {

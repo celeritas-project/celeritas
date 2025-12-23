@@ -116,8 +116,9 @@ void PersistentSP<T>::lazy_update(std::string key, Func&& build_fn)
         {
             this->clear();
         }
-        env_->key = std::move(key);
+        // Run function first in case an exception is thrown
         env_->ptr = build_fn();
+        env_->key = std::move(key);
         CELER_EXPECT(env_->ptr);
     }
 }
@@ -151,8 +152,8 @@ void PersistentSP<T>::Env::TearDown()
     }
     else if (use_count == 1)
     {
-        CELER_LOG(info) << "Clearing persistent " << this->desc << " '"
-                        << this->key << "'";
+        CELER_LOG(debug) << "Clearing persistent " << this->desc << " '"
+                         << this->key << "'";
     }
     else
     {

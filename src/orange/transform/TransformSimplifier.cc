@@ -17,7 +17,7 @@ namespace celeritas
  */
 VariantTransform TransformSimplifier::operator()(Translation const& t)
 {
-    if (norm(t.translation()) <= eps_)
+    if (soft_zero_(norm(t.translation())))
     {
         // Distance to origin is less than tolerance
         return NoTransformation{};
@@ -34,7 +34,7 @@ VariantTransform TransformSimplifier::operator()(Translation const& t)
 VariantTransform TransformSimplifier::operator()(Transformation const& t)
 {
     real_type tr = trace(t.rotation());
-    if (tr >= 3 - ipow<2>(eps_))
+    if (tr >= 3 - ipow<2>(soft_zero_.abs()))
     {
         // Rotation results in no more then epsilon movement
         return (*this)(Translation{t.translation()});

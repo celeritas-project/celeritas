@@ -13,8 +13,8 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/NonuniformGridData.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/UnitTypes.hh"
-#include "celeritas/inp/Grid.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 
 #include "Test.hh"

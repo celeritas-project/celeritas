@@ -29,7 +29,7 @@ SurfacePhysicsMapBuilder::SurfacePhysicsMapBuilder(
     resize(&data_.internal_surface_ids, num_surfaces);
 
     fill(SurfaceModelId{}, &data_.surface_models);
-    fill(InternalSurfaceId{}, &data_.internal_surface_ids);
+    fill(SubModelId{}, &data_.internal_surface_ids);
 
     CELER_ENSURE(data_);
 }
@@ -50,7 +50,7 @@ void SurfacePhysicsMapBuilder::operator()(SurfaceModel const& model)
         CELER_DISCARD(iter);
     }
 
-    InternalSurfaceId::size_type ms_index{0};
+    SubModelId::size_type ms_index{0};
     for (PhysSurfaceId surface_id : model.get_surfaces())
     {
         CELER_VALIDATE(surface_id < data_.surface_models.size(),
@@ -65,7 +65,7 @@ void SurfacePhysicsMapBuilder::operator()(SurfaceModel const& model)
                           "the same surface");
 
         // Add the model surface ID
-        data_.internal_surface_ids[surface_id] = InternalSurfaceId{ms_index++};
+        data_.internal_surface_ids[surface_id] = SubModelId{ms_index++};
     }
     CELER_VALIDATE(ms_index > 0,
                    << "surface physics model " << model.label()

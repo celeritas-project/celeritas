@@ -7,9 +7,9 @@
 #pragma once
 
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/PowerDistribution.hh"
 #include "geocel/Types.hh"
-#include "geocel/random/IsotropicDistribution.hh"
 
 namespace celeritas
 {

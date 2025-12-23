@@ -14,7 +14,6 @@
 #include <string>
 #include <vector>
 #include <CLI/CLI.hpp>
-#include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/FileOrConsole.hh"
@@ -23,7 +22,6 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/ext/RootJsonDumper.hh"
@@ -54,10 +52,9 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
     else
     {
         FileOrStdin infile(option_filename);
-        nlohmann::json::parse(infile).get_to(options);
+        infile >> options;
         CELER_LOG(info) << "Loaded Geant4 setup options from "
-                        << infile.filename() << ": "
-                        << nlohmann::json{options}.dump();
+                        << infile.filename() << ": " << options;
     }
     return options;
 }
@@ -120,9 +117,7 @@ void run(std::string const& gdml_filename,
 
 void run_dump_default()
 {
-    GeantPhysicsOptions options;
-    constexpr int indent = 1;
-    std::cout << nlohmann::json{options}.dump(indent) << std::endl;
+    std::cout << GeantPhysicsOptions{} << std::endl;
 }
 
 //---------------------------------------------------------------------------//
