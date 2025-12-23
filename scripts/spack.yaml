@@ -26,6 +26,7 @@ spack:
     - py-sphinx
     - py-sphinxcontrib-bibtex
     # ... plus experimental options
+    - "dd4hep@1.18:"
     - mpi
   view: true
   concretizer:
