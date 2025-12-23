@@ -38,8 +38,8 @@ runner.gun.etaMax = 2.1
 # Field tracking configuration - defined once, used by both
 # DD4hep/Geant4 and Celeritas
 runner.field.delta_chord = 0.025  # mm
-runner.field.delta_intersection = 1e-5  # mm
-runner.field.delta_one_step = 0.01  # mm
+runner.field.delta_intersection = 1e-2  # mm
+runner.field.delta_one_step = 0.001  # mm
 runner.field.eps_min = 5e-5  # mm
 runner.field.eps_max = 0.001  # mm
 runner.field.min_chord_step = 1e-6  # mm
