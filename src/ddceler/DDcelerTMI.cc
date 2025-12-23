@@ -101,8 +101,7 @@ SetupOptions DDcelerTMI::make_options()
                       "description.");
 
     // Check that all magnetic components are ConstantField and sum them
-    Direction summed_direction(0, 0, 0);
-
+    Direction field_direction(0, 0, 0);
     for (auto const& mag_component : overlaid_obj->magnetic_components)
     {
         auto* cartesian_obj = mag_component.data<CartesianField::Object>();
@@ -114,19 +113,8 @@ SetupOptions DDcelerTMI::make_options()
                        << "fields. Found non-constant field component in "
                           "DD4hep "
                        << "description.");
-
-        summed_direction
-            = Direction(summed_direction.X() + const_field->direction.X(),
-                        summed_direction.Y() + const_field->direction.Y(),
-                        summed_direction.Z() + const_field->direction.Z());
+        field_direction += const_field->direction;
     }
-
-    this->info(("All "
-                + std::to_string(overlaid_obj->magnetic_components.size())
-                + " magnetic component(s) are ConstantField.")
-                   .c_str());
-
-    Direction field_direction = summed_direction;
 
     // Print field strength
     // Note: field_direction is already in DD4hep internal units (parsed from
