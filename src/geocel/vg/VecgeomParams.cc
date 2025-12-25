@@ -237,7 +237,7 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
 
 //---------------------------------------------------------------------------//
 vecgeom::VPlacedVolume const&
-get_placed_volume(vecgeom::GeoManager const& geo, VgPlacedVolumeId ivi_id)
+get_placed_volume(vecgeom::GeoManager const& geo, VgVolumeInstanceId ivi_id)
 {
     CELER_EXPECT(ivi_id);
 

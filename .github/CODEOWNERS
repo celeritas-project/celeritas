@@ -1,0 +1,45 @@
+#-----------------------------*- codeowners -*--------------------------------#
+# CELERITAS PROJECT CODEOWNERS
+# See discussion in /doc/development/administration.rst .
+# Note that later lines take precedence over earlier ones.
+#-----------------------------------------------------------------------------#
+
+#-------------------------------------#
+# Topics
+#-------------------------------------#
+
+# Administration
+/.github/CODEOWNERS @celeritas-project/code-lead
+/scripts/release/users.json @celeritas-project/code-lead
+/doc/development/administration.rst @celeritas-project/code-lead
+
+# CI Infrastructure
+/.github/ @sethrj @pcanal
+/cmake/ @sethrj @pcanal
+/scripts/ci/ @sethrj @pcanal
+/scripts/docker/interactive @esseivaju
+
+# Input definitions
+/*/*/inp/ @sethrj
+
+# Core capabilities
+/*/corecel/random/**/Xorwow* @amandalund
+/*/corecel/random/**/Ranlux* @davidsgr @sethrj
+/*/corecel/sys/ @esseivaju
+
+# Physics
+/*/celeritas/decay/interactor/ @amandalund @stognini
+/*/celeritas/em/interactor/ @amandalund @stognini @whokion
+/*/celeritas/field/*covfie* @esseivaju
+/*/celeritas/*Propagator* @sethrj
+/*/celeritas/neutron/interactor/ @whokion
+/*/celeritas/optical/**/*Interact* @amandalund @hhollenb @whokion
+/*/celeritas/**/*Algorithms* @amandalund @LSchwiebert
+
+# Geometry
+/*/orange/ @elliottbiondo @sethrj
+/*/geocel/vg/ @mrguilima @sethrj
+
+# Integration
+/*/celeritas/g4/ @drbenmorgan @stognini
+/*/celeritas/ext/ @drbenmorgan @stognini

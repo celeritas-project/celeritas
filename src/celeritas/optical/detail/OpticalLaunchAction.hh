@@ -55,7 +55,6 @@ class OpticalLaunchAction : public AuxParamsInterface,
     {
         SPOpticalParams optical_params;
         size_type num_track_slots{};
-        size_type max_step_iters{numeric_limits<size_type>::max()};
         size_type auto_flush{};
         SPActionTimes action_times;
 

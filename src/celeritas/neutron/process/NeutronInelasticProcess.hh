@@ -9,7 +9,7 @@
 #include <functional>
 #include <memory>
 
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/AtomicNumber.hh"

@@ -137,7 +137,7 @@ relocatable device code and most importantly linking against those libraries.
 
 #]=======================================================================]
 
-set(_CUDA_RDC_VERSION 13)
+set(_CUDA_RDC_VERSION 14)
 if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
   # A newer version has already been loaded
   message(VERBOSE "Ignoring CUDA_RDC_VERSION ${_CUDA_RDC_VERSION}: "
@@ -204,7 +204,7 @@ else()
 endif()
 
 # Check if the compiler/linker supports -Wl,-z,undefs flag
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CUDA_COMPILER)
   include(CheckLinkerFlag)
   check_linker_flag(CXX "LINKER:-z,undefs" CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)
   if(CUDA_RDC_LINKER_SUPPORTS_Z_UNDEFS)
@@ -527,6 +527,8 @@ function(cuda_rdc_add_library target)
     CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
     EXPORT_PROPERTIES "CUDA_RUNTIME_LIBRARY;CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY"
   )
+  # Ensure middle library and its dependents see the `-lcudart` library path
+  target_link_libraries(${target} PUBLIC CUDA::toolkit)
 
   if(CUDA_RDC_LINKER_SUPPORTS_ALLOW_SHLIB_UNDEFINED)
     target_link_options(${target} PRIVATE LINKER:--allow-shlib-undefined)

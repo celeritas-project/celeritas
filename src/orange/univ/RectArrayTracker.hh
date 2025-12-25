@@ -307,7 +307,7 @@ CELER_FUNCTION auto
 RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
     -> Intersection
 {
-    CELER_EXPECT(state.volume && !state.temp_sense.empty());
+    CELER_EXPECT(state.volume);
 
     auto coords
         = VolumeInverseIndexer{record_.dims}(state.volume.unchecked_get());

@@ -15,8 +15,7 @@ namespace celeritas
 /*!
  * Interact with device data.
  */
-void GammaNuclearModel::step(CoreParams const& params,
-                             CoreStateDevice& state) const
+void GammaNuclearModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_IMPLEMENTED("Gamma-nuclear interaction");
 }

@@ -90,9 +90,6 @@ class LocalTransporter final : public LocalOffloadInterface
     // Offload this track
     void Push(G4Track&);
 
-    // Set the event ID and reseed the Celeritas RNG (remove in v0.6)
-    [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
-
     // Access core state data for user diagnostics
     CoreStateInterface const& GetState() const;
 

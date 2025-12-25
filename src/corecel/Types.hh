@@ -23,6 +23,8 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// TYPE ALIASES
+//---------------------------------------------------------------------------//
 #if CELER_USE_DEVICE || defined(__DOXYGEN__)
 //! Standard type for container sizes, optimized for GPU use
 using size_type = unsigned int;
@@ -41,6 +43,11 @@ using real_type = void;
 
 //! Equivalent to std::size_t but compatible with CUDA atomics
 using ull_int = unsigned long long int;
+
+//! Three-dimensional cartesian coordinates
+template<class T, size_type N>
+class Array;
+using Real3 = Array<real_type, 3>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS

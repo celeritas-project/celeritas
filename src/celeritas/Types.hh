@@ -218,22 +218,31 @@ enum class WlsTimeProfile
 };
 
 //---------------------------------------------------------------------------//
-//! Interpolation for physics grids
-enum class InterpolationType
-{
-    linear,
-    poly_spline,  //!< Piecewise polynomial interpolation
-    cubic_spline,  //!< Cubic spline interpolation with \f$ C^2 \f$ continuity
-    size_
-};
-
-//---------------------------------------------------------------------------//
 //! Cylindrical coordinates indices
 enum class CylAxis
 {
     r = 0,
     phi,
     z,
+    size_
+};
+
+//---------------------------------------------------------------------------//
+//! Muon-catalyzed fusion atoms
+enum class MucfMuonicAtom
+{
+    deuterium,
+    tritium,
+    size_
+};
+
+//---------------------------------------------------------------------------//
+//! Muon-catalyzed fusion molecules
+enum class MucfMuonicMolecule
+{
+    deuterium_deuterium,
+    deuterium_tritium,
+    tritium_tritium,
     size_
 };
 
@@ -282,9 +291,6 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
-
-// Get a string corresponding to the interpolation method
-char const* to_cstring(InterpolationType value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

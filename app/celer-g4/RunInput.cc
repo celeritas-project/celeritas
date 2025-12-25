@@ -77,7 +77,7 @@ inp::Problem load_problem(RunInput const& ri)
     }
 
     {
-        inp::TrackingLimits& limits = p.tracking.limits;
+        inp::CoreTrackingLimits& limits = p.tracking.limits;
         limits.steps = ri.max_steps;
     }
 

@@ -15,8 +15,7 @@
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/Types.hh"
-#include "geocel/VolumeToString.hh"
-#include "geocel/detail/LengthUnits.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "orange/Debug.hh"
 #include "orange/OrangeTypes.hh"
@@ -58,8 +57,6 @@ class GeantOrangeTest : public OrangeTestBase
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;
     }
-
-    Constant unit_length() const final { return lengthunits::centimeter; }
 };
 
 //---------------------------------------------------------------------------//
@@ -236,14 +233,20 @@ class ReplicaTest
     : public GenericGeoParameterizedTest<GeantOrangeTest, ReplicaGeoTest>
 {
   public:
-    //! Distance is slightly off for single precision
+    //! Transforms cause slight disagreement from G4
     GenericGeoTrackingTolerance tracking_tol() const override
     {
         auto result = GeantOrangeTest::tracking_tol();
 
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
-            result.distance *= 10;
+            // 2e-5 error during midpoint reinitialize in
+            // world_PV/fSecondArmPhys/chamber2@0
+            result.distance = 1e-4;
+        }
+        else
+        {
+            result.distance = 1e-11;
         }
 
         return result;

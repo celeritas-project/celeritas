@@ -41,34 +41,44 @@ giving weight to the appropriate capability area lead if possible.
 Roles
 =====
 
-The roles of the Celeritas code base are related to the roles
-set out in the SciDAC project management plan. These roles should be
-reflected in the different teams and/or access restrictions in GitHub.
+The roles of the Celeritas project reflect the varying degrees of
+responsibility and commitment.
+Most are defined as `team lists`_ in the GitHub organization page, which is the
+official record of roles.
 
-Code lead
+Code lead *(code-lead)*
    The code lead is responsible for steering the technical implementation of
    Celeritas to meet the long-term project goals. One key responsibility of
    the code lead is to set up milestones for releases and execute the release
    process described below.
 
-Maintainer
-   Maintainers should be familiar with most or all parts of the codebase and
-   are responsible for merging pull requests (PRs) and closing issues.
+Core team member *(core)*
+   The "core team" are dedicated and long-term contributors, usually funded to
+   work on Celeritas.
+   Core team members are responsible for reviewing PRs in accordance with the
+   :ref:`contributing guidelines <contributing>`.
+   They should regularly contribute new code, perform code reviews, publish new
+   results using Celeritas, and/or participate in Celeritas stand-up meetings
+   and hackathons.
 
-Core team member
-   The "core team" are those currently funded to work on Celeritas. Core team
-   members are responsible for reviewing PRs in accordance with the
-   :ref:`contributing guidelines <contributing>`. They should regularly
-   contribute new code, perform code reviews, publish new results using
-   Celeritas, and/or participate in Celeritas stand-up meetings and hackathons.
-
-Core advisor
+Core advisor  *(core-advisors)*
    Advisors maintain close ties to Celeritas but are not consistently
    developing or validating it. They should be officially part of a Celeritas
    proposal or funded work even though they may charge only a small fraction of
    their time. Core advisors are encouraged to perform code reviews and attend
    meetings, and they are expected to have a leadership role in long-term
    project planning.
+
+Affiliate *(affiliates)*
+   Summer students, adjunct faculty, and others who maintain a close but
+   temporary connection to the organization may be assigned this role to gain
+   limited access to internal benchmark/regression repositories.
+
+Member
+   Members consult and collaborate with Celeritas developers.
+   This role is recommended for points-of-contact with external physics
+   collaborations and allows them to be easily tagged in issues and pull
+   requests.
 
 Contributor
    Anyone can submit a PR that conforms to the contribution
@@ -83,13 +93,30 @@ Roles should be periodically reevaluated to reflect current participation in
 the project. It is recommended to re-evaluate core roles at the start of each
 calendar year based on the last year's participation and upcoming work plans.
 
-Adding or removing a member of the "core team" can be done at any time by
-consensus of the
-leadership team (or if the core team member wants to remove themself). Adding
-maintainers can be done at the whim of the code lead. The `team list`_ on
-GitHub is the official record of roles.
+A regular participant of Celeritas activities (meetings, pull requests)
+can be nominated to "core team" membership by an existing core member at any
+time via the core Slack channel.
+If three other members agree and none object, the nominee is added to the slack
+channel and GitHub team.
+Any member can choose to leave at any time.
+All other role changes are currently handled in an *ad hoc* basis by discussion
+among the core team.
 
-.. _team list: https://github.com/orgs/celeritas-project/teams
+
+.. _team lists: https://github.com/orgs/celeritas-project/teams
+
+
+Code "owners"
+-------------
+
+As discussed in the :ref:`contributing` section, the collective project has
+collective responsibility for all the code. However, certain members are more
+familiar with a given subject (e.g., random number generators, optical physics)
+and/or its implementation in Celeritas. This expertise is recognized in the
+`CODEOWNERS`_  file, which automatically requests the responsible authority for
+a review for certain subdirectories.
+
+.. _CODEOWNERS: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 
 .. _code_review:
@@ -276,8 +303,7 @@ history and provide easy bisecting because all commits pass all tests.
 Squashing eliminates the potential of broken commits and relieves developers of
 the burden of worrying about clean commit messages within a branch.
 
-Since there are few enough merge requests these days, only :ref:`maintainers
-<roles>` may commit a merge. When merging, check that the commit title matches
+When merging, check that the commit title matches
 the issue title (it may be inconsistent if the branch has only a single
 commit), and that the "co-author" tags at the bottom of the commit message
 accurately reflect contributions (co-authorship may be erroneously attributed

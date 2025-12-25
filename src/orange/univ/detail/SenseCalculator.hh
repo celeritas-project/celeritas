@@ -7,13 +7,12 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/cont/Span.hh"
+#include "corecel/Macros.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
-#include "LazySenseCalculator.hh"
+#include "SurfaceFunctors.hh"
 #include "Types.hh"
 #include "../VolumeView.hh"
 
@@ -25,9 +24,17 @@ namespace detail
 /*!
  * Calculate senses with a fixed particle position.
  *
- * This is an implementation detail used in initialization *and* complex
- * intersection. Senses are eagerly calculated for all faces in the volume at
- * construction.
+ * This is an implementation detail used in initialization, boundary crossing,
+ * simple *and* complex intersection. Instances of this class are specific to a
+ * volume, and a position. Calling an instance evaluates the sense of a
+ * volume's face with respect to the given position. This class calculates
+ * sense on-the-fly during evaluation of a logic expression without caching
+ * previously requested senses. The advantage of not caching senses is that we
+ * eliminate global memory usage. With infix evaluation, and short-circuiting
+ * logic, the cost of recomputing senses should be small.
+ *
+ * The OnFace constructor's parameter is used to store the first face that we
+ * are "on".
  */
 class SenseCalculator
 {
@@ -36,21 +43,24 @@ class SenseCalculator
     inline CELER_FUNCTION SenseCalculator(LocalSurfaceVisitor const& visit,
                                           VolumeView const& vol,
                                           Real3 const& pos,
-                                          Span<SenseValue> storage,
                                           OnFace& face);
 
-    // Calculate senses for the given volume, possibly on a face
+    // Calculate senses for a single face of the given volume, possibly on a
+    // face
     inline CELER_FUNCTION Sense operator()(FaceId face_id);
 
-    //! Flip the sense of a face
-    CELER_FUNCTION void flip_sense(FaceId face_id)
-    {
-        sense_storage_[face_id.get()] = celeritas::flip_sense((*this)(face_id));
-    }
-
   private:
-    //! Temporary senses
-    Span<SenseValue> sense_storage_;
+    //! Apply a function to a local surface
+    LocalSurfaceVisitor visit_;
+
+    //! Volume to calculate senses for
+    VolumeView const& vol_;
+
+    //! Local position
+    Real3 const& pos_;
+
+    //! The first face encountered that we are "on"
+    OnFace& face_;
 };
 
 //---------------------------------------------------------------------------//
@@ -63,20 +73,9 @@ CELER_FUNCTION
 SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
                                  VolumeView const& vol,
                                  Real3 const& pos,
-                                 Span<SenseValue> storage,
                                  OnFace& face)
-    : sense_storage_{storage.first(vol.num_faces())}
+    : visit_{visit}, vol_{vol}, pos_{pos}, face_{face}
 {
-    CELER_EXPECT(vol.num_faces() <= storage.size());
-    LazySenseCalculator lazy_sense_calculator(visit, vol, pos, face);
-    // Fill the temp logic vector with values for all surfaces in the volume
-    for (FaceId cur_face : range(FaceId{vol.num_faces()}))
-    {
-        sense_storage_[cur_face.unchecked_get()]
-            = lazy_sense_calculator(cur_face);
-    }
-
-    CELER_ENSURE(!face || face.id() < sense_storage_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -86,11 +85,31 @@ SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
  * If the point is exactly on one of the volume's surfaces, the \c face
  * reference passed during instance construction will be set.
  */
-CELER_FUNCTION Sense SenseCalculator::operator()(FaceId face_id)
+CELER_FUNCTION auto SenseCalculator::operator()(FaceId face_id) -> Sense
 {
-    CELER_EXPECT(face_id < sense_storage_.size());
+    CELER_EXPECT(face_id < vol_.num_faces());
+    CELER_EXPECT(!face_ || face_.id() < vol_.num_faces());
 
-    return sense_storage_[face_id.unchecked_get()];
+    Sense sense;
+    if (face_id != face_.id())
+    {
+        // Calculate sense
+        SignedSense ss = visit_(CalcSense{pos_}, vol_.get_surface(face_id));
+        sense = to_sense(ss);
+        if (ss == SignedSense::on && !face_)
+        {
+            // This is the first face that we're exactly on: save it
+            face_ = {face_id, sense};
+        }
+    }
+    else
+    {
+        // Sense is known a priori
+        sense = face_.sense();
+    }
+
+    CELER_ENSURE(!face_ || face_.id() < vol_.num_faces());
+    return sense;
 }
 
 //---------------------------------------------------------------------------//

@@ -31,6 +31,9 @@
 #include "corecel/Macros.hh"
 #include "geocel/vg/VecgeomTypes.hh"
 
+#include "ScopedVgNavState.hh"
+#include "VgNavStateWrapper.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -40,7 +43,7 @@ class SurfNavigator
 {
   public:
     using SurfData = vgbrep::SurfData<vg_real_type>;
-    using NavState = VgNavState;
+    using NavState = detail::VgNavStateWrapper;
 
     static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
 
@@ -58,8 +61,9 @@ class SurfNavigator
                   bool top,
                   VgPlacedVolumeInt* exclude = nullptr)
     {
+        ScopedVgNavState temp_out_state{nav};
         return vgbrep::protonav::BVHSurfNavigator<vg_real_type>::LocatePointIn(
-            pvol_id, point, nav, top, exclude);
+            pvol_id, point, temp_out_state, top, exclude);
     }
 
     /// @brief Computes the isotropic safety from the globalpoint.
@@ -97,11 +101,12 @@ class SurfNavigator
             return step_limit;
         }
 
+        ScopedVgNavState temp_out_state{out_state};
         auto step = vgbrep::protonav::BVHSurfNavigator<
             vg_real_type>::ComputeStepAndNextSurface(globalpoint,
                                                      globaldir,
                                                      in_state,
-                                                     out_state,
+                                                     temp_out_state,
                                                      hitsurf,
                                                      step_limit);
         return step;
@@ -133,15 +138,17 @@ class SurfNavigator
     {
         CELER_EXPECT(!out_state.IsOutside());
         vgbrep::CrossedSurface crossed_surf;
+        ScopedVgNavState temp_out_state{out_state};
         vgbrep::protonav::BVHSurfNavigator<vg_real_type>::RelocateToNextVolume(
             globalpoint,
             globaldir,
             vg_real_type(0),
             hitsurf_index,
-            out_state,
+            temp_out_state,
             crossed_surf);
     }
 };
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
-}  // End namespace celeritas
+}  // namespace celeritas

@@ -7,6 +7,8 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/vg/VecgeomTypes.hh"
 
 #if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
@@ -49,6 +51,10 @@ CudaPointers<detail::CudaBVH_t const> bvh_pointers_device();
 CudaPointers<unsigned int const> navindex_pointers_device();
 
 //---------------------------------------------------------------------------//
+// Default-initialize navigation state because DeviceVector doesn't
+void init_navstate_device(Span<VgNavStateImpl> nav, StreamId);
+
+//---------------------------------------------------------------------------//
 #if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
 // Set up surface tracking
 void setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&);
@@ -84,6 +90,14 @@ inline void teardown_surface_tracking_device()
 }
 #    endif
 #endif
+
+#if !defined(VECGEOM_ENABLE_CUDA) || CELER_VGNAV != CELER_VGNAV_TUPLE
+inline void init_navstate_device(Span<VgNavStateImpl>, StreamId)
+{
+    // Null-op: not navtuple or CUDA not enabled
+}
+#endif
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

@@ -36,6 +36,7 @@ class GammaNuclearInteractor
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data, and a target nucleus.
  */

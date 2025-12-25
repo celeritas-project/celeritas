@@ -51,7 +51,6 @@ class Transporter
     {
         SPConstParams params;
         SPActionTimes action_times;  //!< Optional
-        size_type max_step_iters{numeric_limits<size_type>::max()};
     };
 
   public:

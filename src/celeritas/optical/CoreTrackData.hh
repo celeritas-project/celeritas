@@ -54,6 +54,7 @@ struct CoreParamsData
     MaterialParamsData<W, M> material;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
+    SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
     SurfacePhysicsParamsData<W, M> surface_physics;
     SDParamsData<W, M> detectors;
@@ -66,7 +67,7 @@ struct CoreParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && material && physics && surface && surface_physics
-               && rng && scalars;
+               && rng && sim && scalars;
     }
 
     //! Assign from another set of data
@@ -78,6 +79,7 @@ struct CoreParamsData
         material = other.material;
         physics = other.physics;
         rng = other.rng;
+        sim = other.sim;
         surface = other.surface;
         surface_physics = other.surface_physics;
         scalars = other.scalars;

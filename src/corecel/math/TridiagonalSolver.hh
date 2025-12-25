@@ -30,7 +30,6 @@ class TridiagonalSolver
   public:
     //!@{
     //! \name Type aliases
-    using Real3 = Array<real_type, 3>;
     using Coeffs = std::vector<Real3>;
     using SpanConstReal = Span<real_type const>;
     using SpanReal = Span<real_type>;

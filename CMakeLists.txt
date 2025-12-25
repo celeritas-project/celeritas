@@ -32,6 +32,7 @@ endif()
 celeritas_optional_package(covfie "Use Covfie field integrator")
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
+celeritas_optional_package(LArSoft "Build LArSoft data interfaces")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(PNG "Enable PNG output with libpng")
@@ -116,10 +117,10 @@ endif()
 # Random number generator selection
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
+celeritas_setup_option(CELERITAS_CORE_RNG ranluxpp)
 celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
 celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
 # TODO: add wrapper to standard library RNG when not building for device?
-# TODO: add ranluxpp?
 # TODO: maybe even add wrapper to Geant4 RNG??
 celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
@@ -180,6 +181,17 @@ celeritas_setup_option(CELERITAS_UNITS SI)
 celeritas_setup_option(CELERITAS_UNITS CLHEP)
 celeritas_define_options(CELERITAS_UNITS
   "Native unit system for Celeritas")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_CODATA
+# Experimentally measured physical constants
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+celeritas_setup_option(CELERITAS_CODATA 2006) # Used by CLHEP
+celeritas_setup_option(CELERITAS_CODATA 2018)
+celeritas_setup_option(CELERITAS_CODATA 2022)
+set(CELERITAS_CODATA_OPTION_DEFAULT 2018)
+celeritas_define_options(CELERITAS_CODATA
+  "Experimentally measured physical constants revision")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_REAL_TYPE
@@ -253,7 +265,7 @@ if(CELERITAS_USE_CUDA)
   celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
   celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
   if(NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
-    # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html#variable:CMAKE_%3CLANG%3E_HOST_COMPILER
+    # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html
     message(WARNING "CUDA host compiler mismatch: "
       "CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER} "
       "but CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
@@ -306,7 +318,18 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 # DEPENDENCIES
 # NOTE: when adding a new dependency, update the CMakeConfig "find_dependency"
 # and check the dependency code in the CMakeConfig setup at the bottom of this
-# file
+# file; with exceptions:
+# - CLI11 is only used for app/
+# - googletest is only used for test/
+#
+# TODO: dependencies are ordered from highest to lowest level so that we can
+# let other packages choose dependencies. Low-level dependencies should
+# be sorted alphabetically.
+# LArSoft -> ROOT
+# ROOT -> JSON
+# G4 -> VecGeom
+# VecGeom -> CUDA
+# ...
 #----------------------------------------------------------------------------#
 
 include(CeleritasUtils)
@@ -318,6 +341,17 @@ endif()
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
   include(CTest)
+endif()
+
+if(CELERITAS_USE_LArSoft)
+  foreach(_dep ROOT Geant4)
+    if(NOT CELERITAS_USE_${_dep})
+      celeritas_error_incompatible_option(
+        "LArSoft (LArSoft) requires ${_dep}" CELERITAS_USE_${_dep} ON
+      )
+    endif()
+  endforeach()
+  find_package(LArSoft REQUIRED)
 endif()
 
 if(CELERITAS_USE_CUDA)
@@ -421,9 +455,10 @@ if(CELERITAS_USE_ROOT)
   endif()
   # ROOT requirement is due to missing CMake commands in old versions
   find_package(ROOT 6.24 REQUIRED)
-  if(NOT ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD)
-    message(WARNING "ROOT C++ standard ${ROOT_CXX_STANDARD} "
-      "does not match current CMake standard ${CMAKE_CXX_STANDARD}: "
+  if(ROOT_CXX_STANDARD AND CMAKE_CXX_STANDARD
+     AND NOT (ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD))
+    message(WARNING "ROOT C++ standard (${ROOT_CXX_STANDARD}) "
+      "does not match current CMake standard (${CMAKE_CXX_STANDARD}): "
       "build warnings/errors may result")
   endif()
 endif()
@@ -458,19 +493,35 @@ if(CELERITAS_USE_VecGeom)
     )
   endif()
 
-  if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
-    celeritas_error_incompatible_option(
-      "VecGeom installation at \"${VecGeom_DIR}\" is not CUDA-enabled"
-      CELERITAS_USE_CUDA
-      "${VecGeom_CUDA_FOUND}"
-    )
-  elseif(CELERITAS_USE_CUDA
-      AND NOT (VecGeom_CUDA_ARCHITECTURES STREQUAL CMAKE_CUDA_ARCHITECTURES))
-    message(WARNING "CUDA architecture types between "
-      "VecGeom (${VecGeom_CUDA_ARCHITECTURES}) and "
-      "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match: "
-      "runtime errors may result"
-    )
+  # Save VecGeom_NAV variable for diagnostics
+  if(VecGeom_VERSION VERSION_LESS 2.0)
+    if(VecGeom_USE_NAVINDEX)
+      set(VecGeom_NAV "index")
+    else()
+      set(VecGeom_NAV "path")
+    endif()
+  endif()
+
+  if(CELERITAS_USE_CUDA)
+    if(NOT VecGeom_CUDA_FOUND)
+      celeritas_error_incompatible_option(
+        "VecGeom installation at \"${VecGeom_DIR}\" is not CUDA-enabled"
+        CELERITAS_USE_CUDA
+        "${VecGeom_CUDA_FOUND}"
+      )
+    elseif(VecGeom_NAV STREQUAL "path")
+      celeritas_error_incompatible_option(
+        "VecGeom installation at \"${VecGeom_DIR}\" was built with VecGeom_NAV=path: use index or tuple instead for CUDA compatibility"
+        CELERITAS_USE_VecGeom
+        OFF
+      )
+    elseif(NOT (VecGeom_CUDA_ARCHITECTURES STREQUAL CMAKE_CUDA_ARCHITECTURES))
+      message(WARNING "CUDA architecture types between "
+        "VecGeom (${VecGeom_CUDA_ARCHITECTURES}) and "
+        "Celeritas (${CMAKE_CUDA_ARCHITECTURES}) should probably match: "
+        "runtime errors may result"
+      )
+    endif()
   endif()
   if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
     celeritas_error_incompatible_option(
@@ -653,11 +704,17 @@ set(_cmake_files
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
 # Add packages with custom Celeritas-provided FindX scripts
-foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
+foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 LArSoft Perfetto ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
 endforeach()
+if(CELERITAS_USE_LArSoft)
+  foreach(_dep lardataobj cetmodules)
+    list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
+  endforeach()
+endif()
+
 if(CELERITAS_BUILD_TESTS)
   list(APPEND _cmake_files
     "${PROJECT_SOURCE_DIR}/cmake/CeleritasAddTest.cmake"

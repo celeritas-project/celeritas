@@ -16,13 +16,21 @@ endif()
 
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
+  set(_needs_geant4_11 DISABLE)
 else()
   set(_optional_geant4_env ENVIRONMENT "${CELER_G4ENV}")
   set(_needs_geant4 ${_optional_geant4_env})
+  if(Geant4_VERSION VERSION_GREATER_EQUAL 11)
+    set(_needs_geant4_11 ${_optional_geant4_env})
+  else()
+    set(_needs_geant4_11 DISABLE)
+  endif()
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
+else()
+  set(_needs_hepmc LINK_LIBRARIES ${HepMC3_LIBRARIES})
 endif()
 
 if(NOT CELERITAS_USE_ROOT)
@@ -148,8 +156,10 @@ celeritas_add_test(em/xs/ScreeningFunctions.test.cc)
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
 celeritas_add_test(em/BetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
+celeritas_add_test(em/ElectroNuclear.test.cc ${_needs_double}
+  ${_needs_geant4_11})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})
-celeritas_add_test(em/GammaNuclear.test.cc ${_needs_double})
+celeritas_add_test(em/GammaNuclear.test.cc ${_needs_double} ${_needs_geant4_11})
 celeritas_add_test(em/KleinNishina.test.cc ${_needs_double})
 celeritas_add_test(em/LivermorePE.test.cc ${_needs_double})
 celeritas_add_test(em/MollerBhabha.test.cc ${_needs_double})
@@ -371,8 +381,7 @@ celeritas_add_test(grid/XsCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # IO
-celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc}
-  LINK_LIBRARIES ${HepMC3_LIBRARIES})
+celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc})
 celeritas_add_test(io/ImportUnits.test.cc)
 celeritas_add_test(io/JsonEventIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})

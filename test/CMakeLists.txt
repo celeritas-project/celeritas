@@ -77,6 +77,10 @@ if(CELERITAS_USE_Geant4)
   add_subdirectory(accel)
 endif()
 
+if(CELERITAS_USE_LArSoft)
+  add_subdirectory(larceler)
+endif()
+
 celeritas_setup_tests(SERIAL PREFIX testdetail)
 celeritas_add_test(TestMacros.test.cc)
 celeritas_add_test(JsonComparer.test.cc)

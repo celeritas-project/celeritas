@@ -35,6 +35,12 @@
 #    include "detail/SolidsNavigator.hh"
 #endif
 
+#if CELER_VGNAV == CELER_VGNAV_PATH
+#    include <VecGeom/navigation/NavStatePath.h>
+#else
+#    include "detail/VgNavStateWrapper.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -66,7 +72,7 @@ class VecgeomTrackView
 #else
     using Navigator = celeritas::detail::SolidsNavigator;
 #endif
-    using ImplVolInstanceId = VgPlacedVolumeId;
+    using ImplVolInstanceId = VgVolumeInstanceId;
     using real_type = vg_real_type;
     //!@}
 
@@ -153,7 +159,12 @@ class VecgeomTrackView
 
     using VgLogVol = VgLogicalVolume<MemSpace::native>;
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-    using NavState = VgNavState;
+
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    using NavStateWrapper = vecgeom::NavStatePath&;
+#else
+    using NavStateWrapper = detail::VgNavStateWrapper;
+#endif
 
     //// DATA ////
 
@@ -164,13 +175,11 @@ class VecgeomTrackView
 
     //!@{
     //! Referenced thread-local data
-    NavState& vgstate_;
-    NavState& vgnext_;
+    NavStateWrapper vgstate_;
+    NavStateWrapper vgnext_;
     Real3& pos_;
     Real3& dir_;
-#if CELERITAS_VECGEOM_SURFACE
-    VgSurfaceInt& next_surface_;
-#endif
+    VgSurfaceInt* next_surf_{nullptr};
     //!@}
 
     // Temporary data
@@ -212,14 +221,21 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
     : params_(params)
     , state_(states)
     , tid_(tid)
-    , vgstate_(states.vgstate.at(params_.scalars.num_volume_levels, tid))
-    , vgnext_(states.vgnext.at(params_.scalars.num_volume_levels, tid))
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    // Nav path holds direct references to state with unused "last state"
+    , vgstate_{states.state[tid]}
+    , vgnext_{states.next_state[tid]}
+#else
+    , vgstate_{states.state[tid], states.boundary[tid]}
+    , vgnext_{states.next_state[tid], states.next_boundary[tid]}
+#endif
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
-#if CELERITAS_VECGEOM_SURFACE
-    , next_surface_{states.next_surface[tid]}
-#endif
 {
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
+    {
+        next_surf_ = &states.next_surf[tid];
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -261,11 +277,12 @@ VecgeomTrackView::operator=(Initializer_t const& init)
 
     // Initialize the state from a position
     pos_ = init.pos;
-#if CELERITAS_VECGEOM_SURFACE
-    next_surface_ = null_surface();
-#endif
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
+    {
+        *next_surf_ = null_surface();
+    }
 
-    // Set up current state and locate daughter volume.
+    // Set up current state and locate daughter volume
     vgstate_.Clear();
 #if CELERITAS_VECGEOM_SURFACE
     auto world = vecgeom::NavigationState::WorldId();
@@ -350,15 +367,14 @@ CELER_FORCEINLINE_FUNCTION ImplVolumeId VecgeomTrackView::impl_volume_id() const
  */
 CELER_FUNCTION ImplSurfaceId VecgeomTrackView::impl_surface_id() const
 {
-#if CELERITAS_VECGEOM_SURFACE
-    if (this->is_on_boundary())
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
-        return id_cast<ImplSurfaceId>(next_surface_);
+        if (this->is_on_boundary())
+        {
+            return id_cast<ImplSurfaceId>(*next_surf_);
+        }
     }
     return {};
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -367,15 +383,14 @@ CELER_FUNCTION ImplSurfaceId VecgeomTrackView::impl_surface_id() const
  */
 CELER_FUNCTION ImplSurfaceId VecgeomTrackView::next_impl_surface_id() const
 {
-#if CELERITAS_VECGEOM_SURFACE
-    if (!this->is_on_boundary())
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
-        return id_cast<ImplSurfaceId>(next_surface_);
+        if (!this->is_on_boundary())
+        {
+            return id_cast<ImplSurfaceId>(*next_surf_);
+        }
     }
     return {};
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -449,10 +464,10 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
 
-#if CELERITAS_VECGEOM_SURFACE
-    // Use the navigator to find internal distance
-    next_surface_ = null_surface();
-#endif
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
+    {
+        *next_surf_ = null_surface();
+    }
     // TODO: vgnext is simply copied and the boundary flag optionally set
     next_step_ = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
                                                      detail::to_vector(dir_),
@@ -461,9 +476,16 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
                                                      vgnext_
 #if CELERITAS_VECGEOM_SURFACE
                                                      ,
-                                                     next_surface_
+                                                     *next_surf_
 #endif
     );
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
+    {
+        // Our accessor uses the next_surf_ state, but the temporary used for
+        // vgnext_ should reflect the same result
+        CELER_ASSERT((*next_surf_ != null_surface()) == vgnext_.IsOnBoundary());
+    }
+
     next_step_ = max(next_step_, this->extra_push());
 
     if (!this->is_next_boundary())
@@ -554,22 +576,16 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-#if CELERITAS_VECGEOM_SURFACE
-        if (!vgstate_.IsOutside())
+        if (!CELERITAS_VECGEOM_SURFACE || !vgstate_.IsOutside())
         {
             // In surf model, relocation does not work from [OUTSIDE]
-            // (no need to call this function) as vgnext_ is already set
             Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
                                             detail::to_vector(this->dir_),
-                                            next_surface_,
+#if CELERITAS_VECGEOM_SURFACE
+                                            *next_surf_,
+#endif
                                             vgnext_);
         }
-#elif CELERITAS_VECGEOM_VERSION < 0x020000
-        // Some navigators require an lvalue temp_pos
-        auto temp_pos = detail::to_vector(this->pos_);
-        Navigator::RelocateToNextVolume(
-            temp_pos, detail::to_vector(this->dir_), vgnext_);
-#endif
     }
 
     vgstate_ = vgnext_;
@@ -646,7 +662,14 @@ CELER_FUNCTION bool VecgeomTrackView::has_next_step() const
 CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
 {
     CELER_EXPECT(this->has_next_step() || this->is_on_boundary());
-    return vgnext_.IsOnBoundary();
+    if constexpr (CELERITAS_VECGEOM_SURFACE)
+    {
+        return *next_surf_ != null_surface();
+    }
+    else
+    {
+        return vgnext_.IsOnBoundary();
+    }
 }
 
 //---------------------------------------------------------------------------//

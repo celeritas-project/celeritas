@@ -19,6 +19,7 @@
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "PhysicsParams.hh"
+#include "SimParams.hh"
 #include "action/AlongStepAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
@@ -49,9 +50,10 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.geometry = get_ref<M>(*p.geometry);
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
+    ref.rng = get_ref<M>(*p.rng);
+    ref.sim = get_ref<M>(*p.sim);
     ref.surface = get_ref<M>(*p.surface);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
-    ref.rng = get_ref<M>(*p.rng);
     ref.detectors = get_ref<M>(*p.detectors);
     if (p.cherenkov)
     {
@@ -114,12 +116,13 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(material);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(surface_physics);
+    CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
-    CP_VALIDATE_INPUT(detectors);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);

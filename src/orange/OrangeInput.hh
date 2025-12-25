@@ -2,8 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/OrangeInput.hh
-//! \todo Move to inp/Orange.hh ?
+/*!
+ * \file orange/OrangeInput.hh
+ * \brief Input data structures for an ORANGE geometry.
+ *
+ * \todo This is a weird mix of input and built objects so we can't put it in
+ * \c inp . See discussion at
+ * https://github.com/celeritas-project/celeritas/pull/2045#discussion_r2437457681
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 

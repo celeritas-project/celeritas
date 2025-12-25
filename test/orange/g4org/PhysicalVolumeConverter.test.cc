@@ -6,15 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 
-#include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "orange/MatrixUtils.hh"
-#include "orange/g4org/Options.hh"
+#include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
-#include "orange/transform/TransformIO.hh"
+#include "orange/transform/TransformIO.hh"  // IWYU pragma: keep
 
 #include "GeantLoadTestBase.hh"
 #include "celeritas_test.hh"
@@ -33,7 +32,7 @@ constexpr RealTurn degrees_to_turn(double v)
 
 auto make_options()
 {
-    Options opts;
+    inp::OrangeGeoFromGeant opts;
     opts.unit_length = 0.1;
     return opts;
 }

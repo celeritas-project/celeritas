@@ -10,12 +10,12 @@
 #include <string>
 #include <gtest/gtest.h>
 
-#include "geocel/GeoParamsInterface.hh"
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
-#include "geocel/detail/LengthUnits.hh"
 
+#include "CheckedGeoTrackView.hh"
 #include "LazyGeantGeoManager.hh"
+#include "UnitUtils.hh"
 
 class G4VPhysicalVolume;
 
@@ -52,7 +52,9 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //// TESTS ////
 
     // Track until exiting the geometry
-    TrackingResult track(Real3 const& pos_cm, Real3 const& dir);
+    TrackingResult
+    track(Real3 const& pos_cm, Real3 const& dir, int max_steps = 50);
+
     // Obtain the "touchable history" at a point
     VolumeStackResult volume_stack(Real3 const& pos_cm);
 
@@ -67,15 +69,18 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     virtual std::string_view geometry_type() const = 0;
 
     //! Access the geometry interface
-    virtual GeoParamsInterface const& geometry_interface() const = 0;
+    virtual SPConstGeoI geometry_interface() const = 0;
 
     //! Create a track view (TODO: replace geo test base view)
     virtual UPGeoTrack make_geo_track_view_interface() = 0;
 
+    // Create a checked track view
+    CheckedGeoTrackView make_checked_track_view();
+
     //// CONFIGURABLE INTERFACE ////
 
     // Unit length for "track" testing and other results (defaults to cm)
-    virtual Constant unit_length() const;
+    virtual UnitLength unit_length() const;
 
     // Maximum number of local track slots
     virtual size_type num_track_slots() const;
@@ -85,9 +90,6 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
 
     // Get the safety tolerance (defaults to SoftEq tol) for tracking result
     virtual GenericGeoTrackingTolerance tracking_tol() const;
-
-    // Get the threshold in "unit lengths" for a movement being a "bump"
-    virtual real_type bump_tol() const;
 
     //// UTILITIES ////
 
@@ -105,7 +107,7 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
 
   private:
     // Volume params, possibly not from G4
-    VolumeParams const& get_test_volumes() const;
+    SPConstVolumes const& get_test_volumes() const;
     // Lazily constructed volumes, possibly from non-G4 model
     mutable SPConstVolumes volumes_;
 };

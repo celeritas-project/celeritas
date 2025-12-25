@@ -31,13 +31,12 @@ struct TrackingCutExecutor
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void TrackingCutExecutor::operator()(CoreTrackView& track)
 {
-    using Energy = ParticleTrackView::Energy;
-
     auto deposited = track.particle().energy().value();
 
     auto&& sim = track.sim();
 #if !CELER_DEVICE_COMPILE
     {
+        using Energy = ParticleTrackView::Energy;
         // Print a debug message if track is just being cut; error message if
         // an error occurred
         auto msg = self_logger()(CELER_CODE_PROVENANCE,
@@ -47,6 +46,8 @@ CELER_FUNCTION void TrackingCutExecutor::operator()(CoreTrackView& track)
         msg << "Killing optical photon: lost " << deposited << ' '
             << Energy::unit_type::label();
     }
+#else
+    CELER_DISCARD(deposited);
 #endif
 
     sim.status(TrackStatus::killed);

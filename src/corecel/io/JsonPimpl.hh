@@ -8,8 +8,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Assert.hh"
 
 namespace celeritas
@@ -46,8 +44,9 @@ void to_json_pimpl(JsonPimpl* jp, T const& self)
     to_json(jp->obj, self);
 }
 
+//! Get a JSON object from an OutputInterface
 template<class T>
-nlohmann::json json_pimpl_output(T const& self)
+nlohmann::json output_to_json(T const& self)
 {
     JsonPimpl jp;
     self.output(&jp);

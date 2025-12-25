@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <VecGeom/base/Version.h>
+
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
@@ -17,13 +19,27 @@
 
 #include "VecgeomTypes.hh"
 
-#include "detail/VecgeomNavCollection.hh"
+#if CELERITAS_VECGEOM_VERSION >= 0x020000 && defined(VECGEOM_ENABLE_CUDA)
+// IWYU errors from navindex/tuple
+#    include <VecGeom/base/Cuda.h>
+#    include <VecGeom/base/Global.h>
+#    include <VecGeom/management/CudaManager.h>
+#endif
+
+#if CELER_VGNAV == CELER_VGNAV_PATH
+#    include "detail/VecgeomNavCollection.hh"
+#elif CELER_VGNAV == CELER_VGNAV_TUPLE
+#    include <VecGeom/navigation/NavStateTuple.h>
+#else
+#    include <VecGeom/navigation/NavStateIndex.h>
+#endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
 inline constexpr VgSurfaceInt vg_null_surface{-1};
+inline constexpr VgNavIndex vg_outside_nav_index{0};
 
 //---------------------------------------------------------------------------//
 // PARAMS
@@ -71,7 +87,7 @@ struct VecgeomScalars
 template<Ownership W, MemSpace M>
 struct VecgeomParamsData
 {
-    using ImplVolInstanceId = VgPlacedVolumeId;
+    using ImplVolInstanceId = VgVolumeInstanceId;
 
     //! Values that don't require host/device copying
     VecgeomScalars scalars;
@@ -113,30 +129,41 @@ struct VecgeomStateData
 
     template<class T>
     using StateItems = StateCollection<T, W, M>;
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    using VgStateItems = detail::VecgeomNavCollection<W, M>;
+#else
+    using VgStateItems = StateItems<VgNavStateImpl>;
+#endif
 
     //// DATA ////
 
-    // Collections
+    // Physical state
     StateItems<Real3> pos;
     StateItems<Real3> dir;
-#if CELERITAS_VECGEOM_SURFACE
-    StateItems<VgSurfaceInt> next_surface;
-#endif
 
-    // Wrapper for NavStatePool, vector, or void*
-    detail::VecgeomNavCollection<W, M> vgstate;
-    detail::VecgeomNavCollection<W, M> vgnext;
+    // Logical volumetric state
+    VgStateItems state;
+    StateItems<VgBoundary> boundary;  // Empty if VGNAV=path
+    VgStateItems next_state;  // TODO: prev_state
+    StateItems<VgBoundary> next_boundary;  // Empty if VGNAV=path
+
+    // Surface state
+    StateItems<VgSurfaceInt> next_surf;  // Empty unless using surface model
 
     //// METHODS ////
 
     //! True if sizes are consistent and states are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return this->size() > 0 && dir.size() == this->size()
-#if CELERITAS_VECGEOM_SURFACE
-               && next_surface.size() == this->size()
-#endif
-               && vgstate && vgnext;
+        // clang-format off
+        return pos.size() > 0
+            && dir.size() == pos.size()
+            && state.size() == pos.size()
+            && boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
+            && next_state.size() == pos.size()
+            && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
+            && next_surf.size() == (CELERITAS_VECGEOM_SURFACE ? pos.size() : 0);
+        // clang-format on
     }
 
     //! State size
@@ -149,38 +176,31 @@ struct VecgeomStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
-#if CELERITAS_VECGEOM_SURFACE
-        next_surface = other.next_surface;
-#endif
-        vgstate = other.vgstate;
-        vgnext = other.vgnext;
+        state = other.state;
+        boundary = other.boundary;
+        next_state = other.next_state;
+        next_boundary = other.next_boundary;
+        next_surf = other.next_surf;
         return *this;
     }
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Resize geometry states.
- */
+// Resize geometry states
 template<MemSpace M>
 void resize(VecgeomStateData<Ownership::value, M>* data,
             HostCRef<VecgeomParamsData> const& params,
-            size_type size)
-{
-    CELER_EXPECT(data);
-    CELER_EXPECT(size > 0);
-    CELER_EXPECT(params);
+            size_type size);
 
-    resize(&data->pos, size);
-    resize(&data->dir, size);
-#if CELERITAS_VECGEOM_SURFACE
-    resize(&data->next_surface, size);
-#endif
-    data->vgstate.resize(params.scalars.num_volume_levels, size);
-    data->vgnext.resize(params.scalars.num_volume_levels, size);
+extern template void
+resize<MemSpace::host>(VecgeomStateData<Ownership::value, MemSpace::host>*,
+                       HostCRef<VecgeomParamsData> const&,
+                       size_type);
 
-    CELER_ENSURE(data);
-}
+extern template void
+resize<MemSpace::device>(VecgeomStateData<Ownership::value, MemSpace::device>*,
+                         HostCRef<VecgeomParamsData> const&,
+                         size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

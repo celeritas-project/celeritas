@@ -47,6 +47,12 @@ else()
   set(_DOXYGEN_TEST_SOURCE)
 endif()
 
+# Include paths must be used for macro preprocessing to function correctly...
+set(DOXYGEN_INCLUDE_PATH
+  "${PROJECT_BINARY_DIR}/include/"
+  "${PROJECT_SOURCE_DIR}/src/"
+)
+
 # Documentation usage
 set(DOXYGEN_DISTRIBUTE_GROUP_DOC YES)
 set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_DEV")
@@ -89,6 +95,7 @@ celeritas_set_default(DOXYGEN_COLLABORATION_GRAPH NO)
 celeritas_set_default(DOXYGEN_DOT_GRAPH_MAX_NODES 32)
 celeritas_set_default(DOXYGEN_GRAPHICAL_HIERARCHY NO)
 celeritas_set_default(DOXYGEN_INCLUDE_GRAPH NO)
+celeritas_set_default(DOXYGEN_INCLUDED_BY_GRAPH NO)
 celeritas_set_default(DOXYGEN_MAX_DOT_GRAPH_DEPTH 2)
 celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
 
@@ -109,6 +116,7 @@ if(CELERITAS_PYTHONPATH_RERUN)
   unset(CELERITAS_PYTHONPATH_RERUN CACHE)
 endif()
 
+
 if(NOT Sphinx_FOUND)
   function(celeritas_build_sphinx type output depends)
     add_custom_command(
@@ -124,6 +132,10 @@ if(NOT Sphinx_FOUND)
     )
   endfunction()
 else()
+  set(CELERITAS_SPHINX_ARGS "" CACHE STRING
+    "Additional arguments to pass to Sphinx to build user docs")
+  mark_as_advanced(CELERITAS_SPHINX_ARGS)
+
   celeritas_get_pyenv(CELER_PYTHONENV)
   function(celeritas_build_sphinx type output depends)
     if(NOT type STREQUAL "dummy")
@@ -138,7 +150,7 @@ else()
         "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q
           -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
           -b ${type}
-          ${ARGN}
+          ${CELERITAS_SPHINX_ARGS}
           "${CMAKE_CURRENT_SOURCE_DIR}"
           "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       COMMENT "${_comment}"
@@ -271,7 +283,7 @@ doxygen_add_docs(doxygen_xml
 )
 
 #-----------------------------------------------------------------------------#
-# MMD PROCESSING
+# GRAPHICS PROCESSING
 
 # Note that *all* dot files must be present at the same time to prevent
 # errors when doing separate HTML/PDF builds: the doctrees directory caches the
@@ -337,12 +349,8 @@ add_custom_target(doc_preprocess DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doctree
 
 #-----------------------------------------------------------------------------#
 # HTML
-set(CELERITAS_SPHINX_USER_HTML_ARGS "" CACHE STRING
-  "Additional arguments to pass to Sphinx to build HTML user docs")
-mark_as_advanced(CELERITAS_SPHINX_USER_HTML_ARGS)
-
 set(_doc_html "html/index.html")
-celeritas_build_sphinx(html "${_doc_html}" "${_doctree_env}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
+celeritas_build_sphinx(html "${_doc_html}" "${_doctree_env}")
 add_custom_target(doc DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doc_html}")
 
 install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"

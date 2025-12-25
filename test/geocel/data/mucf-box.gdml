@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="1" Z="1" name="protium0x1549b96b0">
+      <atom unit="g/mole" value="1.00794"/>
+    </isotope>
+    <isotope N="2" Z="1" name="deuterium0x1549b96f0">
+      <atom unit="g/mole" value="2.01410178"/>
+    </isotope>
+    <isotope N="3" Z="1" name="tritium0x1549b9730">
+      <atom unit="g/mole" value="3.0160492"/>
+    </isotope>
+    <element name="hydrogen-mix0x1549b9770">
+      <fraction n="0" ref="protium0x1549b96b0"/>
+      <fraction n="0.5" ref="deuterium0x1549b96f0"/>
+      <fraction n="0.5" ref="tritium0x1549b9730"/>
+    </element>
+    <material name="hdt_fuel0x1549bbbe0" state="gas">
+      <T unit="K" value="300"/>
+      <MEE unit="eV" value="19.2"/>
+      <D unit="g/cm3" value="0.177496197091547"/>
+      <fraction n="1" ref="hydrogen-mix0x1549b9770"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="mm" name="world_solid0x1549bc570" x="1000" y="1000" z="1000"/>
+  </solids>
+
+  <structure>
+    <volume name="world_lv0x1549bc900">
+      <materialref ref="hdt_fuel0x1549bbbe0"/>
+      <solidref ref="world_solid0x1549bc570"/>
+      <auxiliary auxtype="SensDet" auxvalue="world_sd"/>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world_lv0x1549bc900"/>
+  </setup>
+
+</gdml>

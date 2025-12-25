@@ -13,6 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/sys/Environment.hh"
 
 #include "StringSimplifier.hh"
 
@@ -20,6 +21,15 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+void debug_clog(LogProvenance, LogLevel lev, std::string msg)
+{
+    std::clog << color_code('x') << to_cstring(lev) << ": " << msg
+              << color_code(' ') << std::endl;
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct reference to log to temporarily replace.
@@ -59,15 +69,36 @@ ScopedLogStorer::~ScopedLogStorer()
 
 //---------------------------------------------------------------------------//
 //! Save a log message
-void ScopedLogStorer::operator()(LogProvenance, LogLevel lev, std::string msg)
+void ScopedLogStorer::operator()(LogProvenance prov,
+                                 LogLevel lev,
+                                 std::string msg)
 {
     static LogLevel const debug_level
         = log_level_from_env("CELER_LOG_SCOPED", LogLevel::warning);
     if (lev >= debug_level)
     {
-        std::clog << color_code('x') << to_cstring(lev) << ": " << msg
-                  << color_code(' ') << std::endl;
+        if (getenv_flag("CELER_LOG_SCOPED_VERBOSE", false).value)
+        {
+            // Print entire message
+            debug_clog(prov, lev, msg);
+        }
+        else
+        {
+            // Strip colors and only write the first line
+            static std::regex const strip_ansi_regex("\033\\[[0-9;]*m");
+            auto temp_msg = std::regex_replace(msg, strip_ansi_regex, "");
+            auto newline_pos = temp_msg.find_first_of('\n');
+            if (newline_pos != std::string::npos)
+            {
+                // Erase newline and after
+                temp_msg.erase(newline_pos);
+                temp_msg
+                    += "... [truncated: set CELER_LOG_SCOPED_VERBOSE to show]";
+            }
+            debug_clog(prov, lev, temp_msg);
+        }
     }
+
     if (lev < min_level_)
     {
         return;

@@ -9,8 +9,8 @@
 #include <map>
 #include <vector>
 
+#include "corecel/inp/Grid.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "celeritas/inp/Grid.hh"
 
 #include "ImportData.hh"
 

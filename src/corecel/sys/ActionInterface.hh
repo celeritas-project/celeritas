@@ -188,7 +188,7 @@ class StepActionInterface : public ActionTypeTraits<P, S>,
 /*!
  * Concrete mixin utility class for managing an action.
  *
- * Example:
+ * \par Example:
  * \code
   class KernellyPhysicsAction final : public CoreStepActionInterface,
                                       public ConcreteAction

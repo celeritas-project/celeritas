@@ -107,11 +107,15 @@ if(CELERITAS_USE_Geant4)
   set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${_include_dirs}")
 
   # Re-establish policy if Geant4 11.1/.2's PTL overwrote it
-  cmake_policy(VERSION 3.10...3.31)
+  cmake_policy(VERSION 3.10...4.0)
 endif()
 
 if(CELERITAS_USE_HepMC3)
   find_dependency(HepMC3 @HepMC3_VERSION@ REQUIRED)
+endif()
+
+if(CELERITAS_USE_LArSoft)
+  find_dependency(LArSoft @LArSoft_VERSION@ REQUIRED)
 endif()
 
 find_dependency(nlohmann_json @nlohmann_json_VERSION@ REQUIRED)
@@ -133,7 +137,7 @@ if(CELERITAS_USE_PNG)
 endif()
 
 if(CELERITAS_USE_Python)
-  find_dependency(Python 3.6 REQUIRED COMPONENTS Interpreter)
+  find_dependency(Python REQUIRED COMPONENTS Interpreter)
 endif()
 
 if(CELERITAS_USE_ROOT)

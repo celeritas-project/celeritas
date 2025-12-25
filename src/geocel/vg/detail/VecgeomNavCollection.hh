@@ -9,32 +9,44 @@
 #include <memory>
 #include <vector>
 #include <VecGeom/base/Config.h>
-#include <VecGeom/base/Cuda.h>
-#include <VecGeom/navigation/NavStateFwd.h>
-#include <VecGeom/navigation/NavStatePool.h>
-#include <VecGeom/navigation/NavigationState.h>
+#include <VecGeom/navigation/NavStatePath.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/vg/VecgeomTypes.hh"
+
+#if CELER_VGNAV != CELER_VGNAV_PATH
+#    error \
+        "This file can only be included when using VecGeom built with VecGeom_NAV=path"
+#endif
 
 namespace celeritas
 {
 namespace detail
 {
+using UPVgPathState = std::unique_ptr<vecgeom::NavStatePath>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Collection-like container for managing VecGeom navigation states.
  *
- * Since reference and value all behave differently for host and device, we
- * only *declare* the class, and provide specializations for each type. The
- * specializations are also explicitly declared before their definitions, since
- * many of the definitions may not be available depending on which compiler or
- * which compilation phase is active.
+ * This is now used explicitly for a host-only collection of "path" navigation
+ * states.
  */
 template<Ownership W, MemSpace M>
-struct VecgeomNavCollection;
+struct VecgeomNavCollection
+{
+    explicit operator bool() const { return false; }
+    size_type size() const { return 0; }
+
+    template<Ownership W2, MemSpace M2>
+    VecgeomNavCollection& operator=(VecgeomNavCollection<W2, M2>&)
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+};
 
 //---------------------------------------------------------------------------//
 // HOST MEMSPACE
@@ -45,15 +57,13 @@ struct VecgeomNavCollection;
 template<>
 struct VecgeomNavCollection<Ownership::value, MemSpace::host>
 {
-    using NavState = vecgeom::cxx::NavigationState;
-    using UPNavState = std::unique_ptr<NavState>;
+    std::vector<UPVgPathState> nav_state;
 
-    std::vector<UPNavState> nav_state;
-
-    // Resize with a number of states
-    void resize(int depth, size_type size);
     // Whether the collection is assigned
     explicit operator bool() const { return !nav_state.empty(); }
+
+    //! Number of elements
+    size_type size() const { return nav_state.size(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -63,10 +73,7 @@ struct VecgeomNavCollection<Ownership::value, MemSpace::host>
 template<>
 struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
 {
-    using NavState = vecgeom::cxx::NavigationState;
-    using UPNavState = std::unique_ptr<NavState>;
-
-    Span<UPNavState> nav_state;
+    Span<UPVgPathState> nav_state;
 
     // Default construction and copy construction
     VecgeomNavCollection() = default;
@@ -78,104 +85,30 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
     // Default copy assignment
     VecgeomNavCollection& operator=(VecgeomNavCollection const&) = default;
 
-    // Get the navigation state for a given track slot
-    NavState& at(int, TrackSlotId tid) const;
-    //! True if the collection is assigned/valiid
+    //! Get the navigation state for a given track slot
+    vecgeom::NavStatePath& operator[](TrackSlotId tid) const
+    {
+        CELER_EXPECT(*this);
+        CELER_EXPECT(tid < nav_state.size());
+        return *nav_state[tid.unchecked_get()];
+    }
+
+    //! Number of elements
+    size_type size() const { return nav_state.size(); }
+
+    //! True if the collection is assigned/valid
     explicit operator bool() const { return !nav_state.empty(); }
 };
 
 //---------------------------------------------------------------------------//
-// DEVICE MEMSPACE
-//---------------------------------------------------------------------------//
-/*!
- * Delete a VecGeom pool.
- *
- * Due to VecGeom macros, the definition of this function can only be compiled
- * from a .cc file.
- */
-struct NavStatePoolDeleter
+// Resize with a number of states
+void resize(VecgeomNavCollection<Ownership::value, MemSpace::host>* nav,
+            size_type size);
+
+inline void
+resize(VecgeomNavCollection<Ownership::value, MemSpace::device>*, size_type)
 {
-    using arg_type = vecgeom::cxx::NavStatePool*;
-    void operator()(arg_type) const;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Manage a pool of device-side geometry states.
- *
- * Construction and destruction of the NavStatePool has to be in a host
- * compilation unit due to VecGeom macro magic. We hide this class to keep
- * NavStatePool and smart pointer usage from the NVCC device compiler.
- */
-template<>
-struct VecgeomNavCollection<Ownership::value, MemSpace::device>
-{
-    using UPNavStatePool
-        = std::unique_ptr<vecgeom::cxx::NavStatePool, NavStatePoolDeleter>;
-
-    UPNavStatePool pool;
-    void* ptr = nullptr;
-    int depth = 0;
-    size_type size = 0;
-
-    // Resize based on geometry params and state size
-    void resize(int depth, size_type size);
-    //! True if the collection is assigned/valid
-    explicit CELER_FUNCTION operator bool() const { return ptr; }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Reference on-device memory owned by VecgeomNavCollection<value, device>.
- *
- * The NavStatePool underpinning the storage returns a void pointer that must
- * be manually manipulated to get a single state pointer. The depth
- * argument must be the same as the given to VecgeomGeoParams.
- */
-template<>
-struct VecgeomNavCollection<Ownership::reference, MemSpace::device>
-{
-    using NavState = vecgeom::NavigationState;
-
-    vecgeom::NavStatePoolView pool_view = {nullptr, 0, 0};
-
-    // Default construct and copy construct
-    VecgeomNavCollection() = default;
-    VecgeomNavCollection(VecgeomNavCollection const& other) = default;
-
-    // Assign from device value
-    VecgeomNavCollection&
-    operator=(VecgeomNavCollection<Ownership::value, MemSpace::device>& other);
-    // Assign from device reference
-    VecgeomNavCollection& operator=(VecgeomNavCollection const& other)
-        = default;
-
-    // Get the navigation state for the given track slot
-    inline CELER_FUNCTION NavState& at(int depth, TrackSlotId tid) const;
-
-    //! True if the collection is assigned/valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return pool_view.IsValid();
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the navigation state at the given track slot.
- *
- * The depth_param is used for error checking against the allocated
- * depth.
- */
-CELER_FUNCTION auto
-VecgeomNavCollection<Ownership::reference, MemSpace::device>::at(
-    int depth_param, TrackSlotId tid) const -> NavState&
-{
-    CELER_EXPECT(this->pool_view.IsValid());
-    CELER_EXPECT(tid < this->pool_view.Capacity());
-    CELER_EXPECT(depth_param == this->pool_view.Depth());
-
-    return *const_cast<NavState*>((this->pool_view)[tid.get()]);
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

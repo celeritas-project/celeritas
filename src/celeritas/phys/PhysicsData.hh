@@ -13,6 +13,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
+#include "celeritas/em/data/ElectroNuclearData.hh"
 #include "celeritas/em/data/GammaNuclearData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/grid/XsGridData.hh"
@@ -156,6 +157,9 @@ struct HardwiredIds
     ProcessId annihilation;
     ModelId eplusgg;
 
+    ProcessId electro_nuclear;
+    ModelId electro_vd;
+
     ProcessId gamma_nuclear;
     ModelId bertini_qgs;
 
@@ -178,6 +182,7 @@ struct HardwiredModels
 
     // Model data
     EPlusGGData eplusgg;
+    ElectroNuclearData<W, M> electro_vd;
     GammaNuclearData<W, M> bertini_qgs;
     LivermorePEData<W, M> livermore_pe;
     AtomicRelaxParamsData<W, M> relaxation;
