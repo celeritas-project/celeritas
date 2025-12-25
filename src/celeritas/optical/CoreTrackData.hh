@@ -20,7 +20,6 @@
 #include "PhysicsData.hh"
 #include "SimData.hh"
 #include "TrackInitData.hh"
-#include "Types.hh"
 #include "gen/CherenkovData.hh"
 #include "gen/ScintillationData.hh"
 #include "surface/SurfacePhysicsData.hh"

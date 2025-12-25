@@ -80,7 +80,7 @@ class CoreTrackView
     inline CELER_FUNCTION SurfacePhysicsTrackView surface_physics() const;
 
     // Return a sensitive detector view
-    inline CELER_FUNCTION SensitiveDetectorView sensitive_detectors() const;
+    inline CELER_FUNCTION SensitiveDetectorView detectors() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -254,8 +254,7 @@ CELER_FUNCTION auto CoreTrackView::surface_physics() const
 /*!
  * Return a sensitive detector view.
  */
-CELER_FUNCTION auto CoreTrackView::sensitive_detectors() const
-    -> SensitiveDetectorView
+CELER_FUNCTION auto CoreTrackView::detectors() const -> SensitiveDetectorView
 {
     return SensitiveDetectorView{params_.detectors};
 }

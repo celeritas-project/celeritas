@@ -61,7 +61,7 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
     {
         // Crossing into a new volume
         ImplVolumeId iv_id = geo.impl_volume_id();
-        DetectorId det_id = track.sensitive_detectors().detector_id(iv_id);
+        DetectorId det_id = track.detectors().detector_id(iv_id);
         if (det_id)
         {
             auto energy = track.particle().energy();
