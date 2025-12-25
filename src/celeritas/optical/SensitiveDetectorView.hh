@@ -37,7 +37,7 @@ SensitiveDetectorView::SensitiveDetectorView(SDParamsRef const& params)
 
 CELER_FUNCTION auto SensitiveDetectorView::detector_id(ImplVolumeId iv_id)
 {
-    return params_.detector[iv_id];
+    return params_.detectors[iv_id];
 }
 
 }  // namespace optical

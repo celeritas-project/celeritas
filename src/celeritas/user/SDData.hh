@@ -19,17 +19,20 @@ struct SDParamsData
     //// DATA ////
 
     //! Mapping for volume -> sensitive detector
-    Collection<DetectorId, W, M, ImplVolumeId> detector;
+    Collection<DetectorId, W, M, ImplVolumeId> detectors;
 
     //! Whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const { return !detector.empty(); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !detectors.empty();
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     SDParamsData& operator=(SDParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        detector = other.detector;
+        detectors = other.detectors;
         return *this;
     }
 };

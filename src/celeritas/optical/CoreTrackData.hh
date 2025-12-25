@@ -81,9 +81,10 @@ struct CoreParamsData
         sim = other.sim;
         surface = other.surface;
         surface_physics = other.surface_physics;
-        scalars = other.scalars;
+        detectors = other.detectors;
         cherenkov = other.cherenkov;
         scintillation = other.scintillation;
+        scalars = other.scalars;
         return *this;
     }
 };
@@ -99,7 +100,6 @@ struct CoreStateData
     using Items = StateCollection<T, W, M>;
 
     GeoStateData<W, M> geometry;
-    // TODO: should we cache the material ID?
     ParticleStateData<W, M> particle;
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;

@@ -230,7 +230,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.sim = this->sim();
     inp.surface = surface_;
     inp.volume = volume_;
-    inp.detector = detector_;
+    inp.detectors = detector_;
     inp.wentzel = this->wentzel();
 
     inp.action_reg = this->action_reg();

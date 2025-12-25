@@ -44,17 +44,19 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     //!@{
     //! \name Type aliases
     using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
+    using SPConstDetectors = std::shared_ptr<SDParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
-    using SPActionRegistry = std::shared_ptr<ActionRegistry>;
-    using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
-    using SPConstDetectors = std::shared_ptr<SDParams const>;
+
     using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
+
+    using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -72,6 +74,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstSurface surface;
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;
+
         SPConstCherenkov cherenkov;  //!< Optional
         SPConstScintillation scintillation;  //!< Optional
 

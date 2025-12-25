@@ -57,11 +57,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstCutoff = std::shared_ptr<CutoffParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
-    using SPConstSensDet = std::shared_ptr<SDParams const>;
     using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPConstVolume = std::shared_ptr<VolumeParams const>;
+    using SPConstDetectors = std::shared_ptr<SDParams const>;
 
     using SPConstWentzelOKVI = std::shared_ptr<WentzelOKVIParams const>;
 
@@ -85,15 +85,16 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstCutoff cutoff;
         SPConstPhysics physics;
         SPConstRng rng;
-        SPConstSensDet detector;
         SPConstSim sim;
+        SPConstVolume volume;
         SPConstSurface surface;
         SPConstTrackInit init;
-        SPConstVolume volume;
-        SPConstWentzelOKVI wentzel;  //!< Optional (TODO: move to EM physics)
+        SPConstDetectors detectors;  //!< Optional
+        SPConstWentzelOKVI wentzel;  //!< TODO: move to EM physics
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
+
         SPAuxRegistry aux_reg;  //!< Optional, empty default
         SPConstMpiCommunicator mpi_comm;  //!< Optional, world_comm default
 
@@ -128,11 +129,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstCutoff const& cutoff() const { return input_.cutoff; }
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
-    SPConstSensDet const& detector() const { return input_.detector; }
     SPConstSim const& sim() const { return input_.sim; }
+    SPConstVolume const& volume() const { return input_.volume; }
     SPConstSurface const& surface() const { return input_.surface; }
     SPConstTrackInit const& init() const { return input_.init; }
-    SPConstVolume const& volume() const { return input_.volume; }
+    SPConstDetectors const& detectors() const { return input_.detectors; }
     SPConstWentzelOKVI const& wentzel() const { return input_.wentzel; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }

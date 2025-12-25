@@ -47,7 +47,7 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     //! Access detector ID based on implementation volume ID
     DetectorId volume_to_detector_id(ImplVolumeId iv_id)
     {
-        return host_ref().detector[iv_id];
+        return host_ref().detectors[iv_id];
     }
 
     //! Access volume ID based on detector ID

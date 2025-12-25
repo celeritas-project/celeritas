@@ -314,7 +314,7 @@ auto build_optical_params(inp::Problem const& p,
     params.action_reg = std::make_shared<ActionRegistry>();
     params.gen_reg = std::make_shared<GeneratorRegistry>();
     params.max_streams = core.max_streams();
-    params.detectors = core.detector();
+    params.detectors = core.detectors();
     {
         // Construct optical physics models
         optical::PhysicsParams::Input pp_inp;
@@ -461,7 +461,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
             }
             params.surface = std::make_shared<SurfaceParams>();
         }
-        params.detector = std::move(loaded_model.detector);
+        params.detectors = std::move(loaded_model.detector);
     }
 
     // Load materials

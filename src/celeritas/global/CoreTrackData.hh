@@ -67,15 +67,15 @@ template<Ownership W, MemSpace M>
 struct CoreParamsData
 {
     GeoParamsData<W, M> geometry;
-    GeoMaterialParamsData<W, M> geo_mats;
     MaterialParamsData<W, M> materials;
+    GeoMaterialParamsData<W, M> geo_mats;
     ParticleParamsData<W, M> particles;
     CutoffParamsData<W, M> cutoffs;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
-    SDParamsData<W, M> detector;
     SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
+    SDParamsData<W, M> detectors;
     TrackInitParamsData<W, M> init;
     WentzelOKVIData<W, M> wentzel;
 
@@ -94,15 +94,15 @@ struct CoreParamsData
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
-        geo_mats = other.geo_mats;
         materials = other.materials;
+        geo_mats = other.geo_mats;
         particles = other.particles;
         cutoffs = other.cutoffs;
         physics = other.physics;
         rng = other.rng;
-        detector = other.detector;
         sim = other.sim;
         surface = other.surface;
+        detectors = other.detectors;
         init = other.init;
         wentzel = other.wentzel;
         scalars = other.scalars;

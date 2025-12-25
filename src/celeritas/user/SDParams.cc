@@ -57,7 +57,7 @@ SDParams::SDParams(CoreGeoParams const& geo, inp::Detectors detectors)
 
     mirror_ = CollectionMirror{[&] {
         HostVal<SDParamsData> host_data;
-        host_data.detector = build_volume_collection<DetectorId>(
+        host_data.detectors = build_volume_collection<DetectorId>(
             geo, VolumeMapFiller{detector_map});
         CELER_ENSURE(host_data);
         return host_data;
