@@ -10,6 +10,10 @@
 #include "corecel/Macros.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#endif
+
 namespace celeritas
 {
 namespace optical
@@ -39,32 +43,34 @@ struct PostBoundaryExecutor
 CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
 {
     auto geo = track.geometry();
-    auto det_params = track.sensitive_detectors();
-    ImplVolumeId iv_id = geo.impl_volume_id();
-
-    DetectorId det_id = det_params.detector_id(iv_id);
-    if (det_id)
-    {
-        auto energy = track.particle().energy();
-        // TODO print energy when killing at SD
-        std::cout << "Detector hit in volume " << iv_id.get()
-                  << " on detector " << det_id.get() << " with energy "
-                  << energy.value() << std::endl;
-        track.sim().status(TrackStatus::killed);
-    }
 
     auto traverse = track.surface_physics().traversal();
     CELER_EXPECT(traverse.is_exiting());
 
     if (traverse.in_pre_volume())
     {
-        // Re-entrant into the pre-volume
-        // auto geo = track.geometry();
+        // Reentrant into the pre-volume
         geo.cross_boundary();
         if (CELER_UNLIKELY(geo.failed()))
         {
             track.apply_errored();
             return;
+        }
+    }
+    else
+    {
+        // Crossing into a new volume
+        ImplVolumeId iv_id = geo.impl_volume_id();
+        DetectorId det_id = track.sensitive_detectors().detector_id(iv_id);
+        if (det_id)
+        {
+            auto energy = track.particle().energy();
+#if !CELER_DEVICE_COMPILE
+            CELER_LOG_LOCAL(debug)
+                << "hit volume " << iv_id.get() << " on detector "
+                << det_id.get() << " with energy " << energy.value();
+#endif
+            track.sim().status(TrackStatus::killed);
         }
     }
 
