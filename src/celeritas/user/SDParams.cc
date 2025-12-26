@@ -8,28 +8,17 @@
 
 #include <unordered_map>
 
-#include "corecel/data/CollectionBuilder.hh"
-// #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeCollectionBuilder.hh"
-// #include "geocel/vg/VecgeomParams.hh"
-// #include "orange/OrangeParams.hh"
-#include "corecel/io/Logger.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from list of volume labels.
+ * Construct from geometry and detector input.
  */
-SDParams::SDParams(CoreGeoParams const& geo, inp::Detectors detectors)
+SDParams::SDParams(GeoParamsInterface const& geo, inp::Detectors detectors)
     : detectors_{std::move(detectors)}
 {
-    if (!detectors_)
-    {
-        CELER_LOG(warning) << "Empty detectors list passed to SDParams";
-    }
-
     // Map labels to volume IDs
     auto const num_impl_volumes = geo.impl_volumes().size();
 
@@ -44,11 +33,9 @@ SDParams::SDParams(CoreGeoParams const& geo, inp::Detectors detectors)
     }
 
     std::unordered_map<VolumeId, DetectorId> detector_map;
-    for (size_type det_num = 0; det_num < detectors_.detectors.size();
-         ++det_num)
+    for (auto det_id : range(id_cast<DetectorId>(detectors_.detectors.size())))
     {
-        DetectorId det_id(det_num);
-        auto& detector = detectors_.detectors[det_num];
+        auto& detector = detectors_.detectors[det_id.get()];
         for (auto& volume : detector.volumes)
         {
             detector_map[volume] = det_id;

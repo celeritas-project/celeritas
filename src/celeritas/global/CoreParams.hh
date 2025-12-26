@@ -89,7 +89,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstVolume volume;
         SPConstSurface surface;
         SPConstTrackInit init;
-        SPConstDetectors detectors;  //!< Optional
+        SPConstDetectors detectors;
         SPConstWentzelOKVI wentzel;  //!< TODO: move to EM physics
 
         SPActionRegistry action_reg;

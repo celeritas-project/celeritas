@@ -150,7 +150,8 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
     surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
 
     detector_ = std::make_shared<SDParams>(*core_geo, mi.detectors);
-    std::cout << "Detector size " << mi.detectors.detectors.size() << std::endl;
+    CELER_LOG(debug) << "Built SD params with "
+                     << mi.detectors.detectors.size() << " detectors";
 
     return core_geo;
 }
@@ -209,22 +210,25 @@ auto GlobalTestBase::build_optical_params() -> SPOpticalParams
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_core() -> SPConstCore
 {
-    CoreParams::Input inp;
-    inp.geometry = this->geometry();
+    // Load geometry and create empty attributes if needed
+    auto geo = this->geometry();
+    CELER_ASSERT(static_cast<bool>(surface_) == static_cast<bool>(volume_)
+                 && static_cast<bool>(surface_)
+                        == static_cast<bool>(detector_));
     if (!surface_)
     {
         surface_ = std::make_shared<SurfaceParams>();
-    }
-    if (!volume_)
-    {
         volume_ = std::make_shared<VolumeParams>();
+        detector_ = std::make_shared<SDParams>();
     }
 
-    inp.cutoff = this->cutoff();
+    CoreParams::Input inp;
+    inp.geometry = std::move(geo);
     inp.geomaterial = this->geomaterial();
+    inp.particle = this->particle();
+    inp.cutoff = this->cutoff();
     inp.init = this->init();
     inp.material = this->material();
-    inp.particle = this->particle();
     inp.physics = this->physics();
     inp.rng = this->rng();
     inp.sim = this->sim();
