@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "MucfPhysics.hh"
 
+#include "MucfPhysicsData.hh"
+
 namespace celeritas
 {
 namespace inp
@@ -21,16 +23,13 @@ namespace inp
 MucfPhysics MucfPhysics::from_default()
 {
     MucfPhysics result;
-
-    //! \todo Initialize hardcoded CDF data
-    //! \todo Initialize hardcoded cycle rate data
-    //! \todo Initialize hardcoded atom transfer data
-    //! \todo Initialize hardcoded spin flip data
+    result.muon_energy_cdf = mucf_muon_energy_cdf();
+    result.cycle_rates = mucf_cycle_rates();
+    result.atom_transfer = mucf_atom_transfer_rates();
+    result.atom_spin_flip = mucf_atom_spin_flip_rates();
 
     // Temporary test dummy data to verify correct import
     {
-        result.muon_energy_cdf = Grid::from_constant(1.0);
-
         MucfCycleRate dt_cycle;
         dt_cycle.molecule = MucfMuonicMolecule::deuterium_tritium;
 
