@@ -114,3 +114,30 @@ fusion data is constructed when the ``G4MuonMinusAtomicCapture`` process is
 registered.
 
 .. todo:: Add process/model/executor details
+
+Code implementation
+===================
+
+The ``MucfProcess`` process only has the model ``DTMixMucfModel`` attached to
+it, responsible for deuterium-tritium mixtures. It can simulate materials from
+near absolute zero to 1500 kelvin, and it is an *at rest* model that encompasses
+the full cycle---atom formation, molecule formation, and fusion.
+
+.. note:: Only reactive channels are implemented.
+
+.. doxygenclass:: celeritas::MucfProcess
+
+The main cycle is managed by the ``DTMixMucfExecutor``, with the
+Interactors reserved for sampling final states of the outgoing secondaries.
+
+.. doxygenclass:: celeritas::DTMixMucfModel
+.. doxygenclass:: celeritas::DTMixMucfExecutor
+
+Most of the data is material-dependent, and thus can be calculated and cached
+during model construction. This is done by the ``DTMixMaterialCalculator``.
+
+.. doxygenclass:: celeritas::detail::DTMixMaterialCalculator
+.. doxygenclass:: celeritas::DTMixMucfExecutor
+.. doxygenclass:: celeritas::DDMucfInteractor
+.. doxygenclass:: celeritas::DTMucfInteractor
+.. doxygenclass:: celeritas::TTMucfInteractor
