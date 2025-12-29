@@ -336,6 +336,21 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 # ...
 #----------------------------------------------------------------------------#
 
+# Model explicit package dependencies
+foreach(_pkg LArSoft DD4hep)
+  if(CELERITAS_USE_${_pkg})
+    foreach(_dep ROOT Geant4)
+      if(NOT CELERITAS_USE_${_dep})
+        celeritas_error_incompatible_option(
+          "${_pkg} requires ${_dep}" CELERITAS_USE_${_dep} ON
+        )
+      endif()
+    endforeach()
+  endif()
+endforeach()
+
+#----------------------------------------------------------------------------#
+
 include(CeleritasUtils)
 
 if(CELERITAS_USE_CLI11)
@@ -348,14 +363,15 @@ if(BUILD_TESTING)
 endif()
 
 if(CELERITAS_USE_LArSoft)
-  foreach(_dep ROOT Geant4)
-    if(NOT CELERITAS_USE_${_dep})
-      celeritas_error_incompatible_option(
-        "LArSoft (LArSoft) requires ${_dep}" CELERITAS_USE_${_dep} ON
-      )
-    endif()
-  endforeach()
-  find_package(LArSoft REQUIRED)
+  if(NOT LArSoft_FOUND)
+    find_package(LArSoft REQUIRED)
+  endif()
+endif()
+
+if(CELERITAS_USE_DD4hep)
+  if(NOT DD4hep_FOUND)
+    find_package(DD4hep REQUIRED COMPONENTS DDCore DDG4)
+  endif()
 endif()
 
 if(CELERITAS_USE_CUDA)
@@ -393,25 +409,14 @@ endif()
 # Unconditionally set Thrust availability for downstream configuration
 celeritas_force_package(Thrust "${Thrust_FOUND}")
 
-if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
-  find_package(Geant4 REQUIRED)
+if(CELERITAS_USE_Geant4)
+  if(NOT Geant4_FOUND)
+    find_package(Geant4 REQUIRED)
+  endif()
   if(CELERITAS_OPENMP STREQUAL "track" AND Geant4_multithreaded_FOUND)
     message(WARNING "Track-level OpenMP will conflict with MT runs of geant4:"
       "consider setting CELERITAS_OPENMP to \"event\" or disabling OpenMP"
     )
-  endif()
-endif()
-
-if(CELERITAS_USE_DD4hep)
-  if(NOT DD4hep_FOUND)
-    find_package(DD4hep REQUIRED COMPONENTS DDCore DDG4)
-  endif()
-
-  # Add DD4hep examples (requires ROOT for validation)
-  if(ROOT_FOUND)
-    add_subdirectory(example/ddceler)
-  else()
-    message(STATUS "ROOT not found: skipping ddceler example and validation")
   endif()
 endif()
 
@@ -470,8 +475,10 @@ if(CELERITAS_USE_ROOT)
       ON
     )
   endif()
-  # ROOT requirement is due to missing CMake commands in old versions
-  find_package(ROOT 6.24 REQUIRED)
+  if(NOT ROOT_FOUND)
+    # ROOT requirement is due to missing CMake commands in old versions
+    find_package(ROOT 6.24 REQUIRED)
+  endif()
   if(ROOT_CXX_STANDARD AND CMAKE_CXX_STANDARD
      AND NOT (ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD))
     message(WARNING "ROOT C++ standard (${ROOT_CXX_STANDARD}) "
@@ -479,6 +486,7 @@ if(CELERITAS_USE_ROOT)
       "build warnings/errors may result")
   endif()
 endif()
+
 
 if(CELERITAS_USE_covfie)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
