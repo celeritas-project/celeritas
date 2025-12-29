@@ -81,6 +81,7 @@ jobs:
             $PWD/output_celeritas.root
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
+        if:
           ${{
             !cancelled()
             && steps.build.outcome == 'success'
