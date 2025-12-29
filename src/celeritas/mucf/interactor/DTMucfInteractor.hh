@@ -1,0 +1,145 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/mucf/interactor/DTMucfInteractor.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include "corecel/Macros.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/mucf/data/DTMixMucfData.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Muon-catalyzed fusion of \f$ (dt)_\mu \f$ molecules.
+ *
+ * This is an \em at-rest interaction.
+ */
+class DTMucfInteractor
+{
+  public:
+    enum class Channel
+    {
+        alpha_muon_neutron,  //!< \f$ \alpha + \mu + n \f$
+        muonicalpha_neutron,  //!< \f$ (\alpha)_\mu + n \f$
+        size_
+    };
+
+    // Construct from shared and state data
+    inline CELER_FUNCTION
+    DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
+                     Channel const channel,
+                     StackAllocator<Secondary>& allocate);
+
+    // Sample an interaction with the given RNG
+    template<class Engine>
+    inline CELER_FUNCTION Interaction operator()(Engine& rng);
+
+  private:
+    // Shared constant physics properties
+    NativeCRef<DTMixMucfData> const& data_;
+    // Selected fusion channel
+    Channel channel_{Channel::size_};
+    // Allocate space for secondary particles
+    StackAllocator<Secondary>& allocate_;
+
+    // Get number of secondaries for each channel
+    inline CELER_FUNCTION size_type num_secondaries() const;
+
+    // Sample Interaction secondaries
+    template<class Engine>
+    inline CELER_FUNCTION Span<Secondary>
+    sample_secondaries(Secondary* secondaries /*, other args */, Engine&);
+};
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with shared and state data.
+ */
+DTMucfInteractor::DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
+                                   Channel const channel,
+                                   StackAllocator<Secondary>& allocate)
+    : data_(data), channel_(channel), allocate_(allocate)
+{
+    CELER_EXPECT(data_);
+    CELER_EXPECT(channel_ < Channel::size_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a dt muonic molecule fusion.
+ */
+template<class Engine>
+CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
+{
+    // Allocate space for the final fusion channel
+    Secondary* secondaries = allocate_(this->num_secondaries());
+    if (secondaries == nullptr)
+    {
+        // Failed to allocate space for secondaries
+        return Interaction::from_failure();
+    }
+
+    // Kill primary and generate secondaries
+    Interaction result = Interaction::from_absorption();
+    result.secondaries = this->sample_secondaries(secondaries, rng);
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return number of secondaries from each fusion channel.
+ */
+CELER_FUNCTION size_type DTMucfInteractor::num_secondaries() const
+{
+    switch (channel_)
+    {
+        case Channel::alpha_muon_neutron:
+            return 3;
+        case Channel::muonicalpha_neutron:
+            return 2;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample the secondaries of the selected channel.
+ *
+ * Since secondaries come from an at rest interaction, their final state is
+ * a simple combination of random direction + momentum conservation
+ */
+template<class Engine>
+CELER_FUNCTION Span<Secondary>
+DTMucfInteractor::sample_secondaries(Secondary* secondaries /*, other args */,
+                                     Engine&)
+{
+    switch (channel_)
+    {
+        case Channel::alpha_muon_neutron:
+            //! \todo Assign secondaries
+            break;
+        case Channel::muonicalpha_neutron:
+            //! \todo Assign secondaries
+            break;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+
+    return Span<Secondary>{secondaries, this->num_secondaries()};
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas
