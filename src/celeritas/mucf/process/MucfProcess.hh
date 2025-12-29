@@ -8,6 +8,7 @@
 
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Process.hh"
 
 namespace celeritas
