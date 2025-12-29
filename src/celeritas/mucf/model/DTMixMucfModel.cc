@@ -1,0 +1,146 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/mucf/model/DTMixMucfModel.cc
+//---------------------------------------------------------------------------//
+#include "DTMixMucfModel.hh"
+
+#include <algorithm>
+
+#include "corecel/inp/Grid.hh"
+#include "celeritas/global/ActionLauncher.hh"
+#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
+#include "celeritas/inp/MucfPhysicsData.hh"
+#include "celeritas/mucf/executor/DTMixMucfExecutor.hh"  // IWYU pragma: associated
+#include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
+#include "celeritas/phys/PDGNumber.hh"
+
+#include "detail/DTMixMaterialCalculator.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from model ID and other necessary data.
+ *
+ * Most of the muon-catalyzed fusion data is static throughout the simulation,
+ * as it is only material-dependent (DT mixture and temperature). Therefore,
+ * most grids can be host-only and used to calculate final values, which are
+ * then cached and copied to device. The exception to this is the muon energy
+ * CDF grid, needed to sample the final state of the outgoing muon after a muCF
+ * interaction.
+ *
+ * \todo Correctly update \c ImportProcessClass and \c ImportModelClass . These
+ * operate under the assumption that there is a one-to-one equivalente between
+ * Geant4 and Celeritas. But for muCF, everything is done via one
+ * process/model/executor in Celeritas, whereas in Geant4 atom formation, spin
+ * flip, atom transfer, etc., are are all separate processes.
+ */
+DTMixMucfModel::DTMixMucfModel(ActionId id,
+                               ParticleParams const& particles,
+                               MaterialParams const& materials)
+    : StaticConcreteAction(
+          id,
+          "dt-mucf",
+          R"(interact by muon forming and fusing a dd, dt, or tt muonic molecule)")
+{
+    CELER_EXPECT(id);
+
+    using VecCycleTimes
+        = std::vector<detail::DTMixMaterialCalculator::CycleTimesArray>;
+    using VecMatId = std::vector<PhysMatId>;
+
+    // Initialize static muCF physics input data
+    //! \todo This may be replaced by user-provided data in the future
+    inp::MucfPhysics inp_data = inp::MucfPhysics::from_default();
+    CELER_EXPECT(inp_data);
+
+    // Load particle IDs
+    HostVal<DTMixMucfData> host_data;
+    host_data.particles = MucfParticles::from_params(particles);
+
+    // Copy muon energy CDF data using NonuniformGridBuilder
+    NonuniformGridBuilder build_grid_record{&host_data.reals};
+    host_data.muon_energy_cdf = build_grid_record(inp_data.muon_energy_cdf);
+
+    // Calculate and cache quantities for all materials with dt mixtures
+    VecCycleTimes vec_cycle_times;
+    VecMatId vec_physmatid;
+    for (auto const& matid : range(materials.num_materials()))
+    {
+        auto const& mat_view = materials.get(PhysMatId{matid});
+
+        // Construct calculator for this material
+        detail::DTMixMaterialCalculator mat_calculator(mat_view);
+        if (!mat_calculator)
+        {
+            // Skip non-dt mixture materials
+            continue;
+        }
+
+        // Store material ID and calculated data
+        //! \todo Store mean atom spin flip and transfer times
+        vec_physmatid.push_back(PhysMatId{matid});
+        vec_cycle_times.push_back(mat_calculator.cycle_times());
+    }
+
+    make_builder(&host_data.matcompid_to_matid)
+        .insert_back(vec_physmatid.begin(), vec_physmatid.end());
+    make_builder(&host_data.cycle_times)
+        .insert_back(vec_cycle_times.begin(), vec_cycle_times.end());
+
+    // Copy to device
+    data_ = CollectionMirror<DTMixMucfData>{std::move(host_data)};
+    CELER_ENSURE(this->data_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Particle types and energy ranges that this model applies to.
+ */
+auto DTMixMucfModel::applicability() const -> SetApplicability
+{
+    Applicability applic;
+    applic.particle = this->host_ref().particles.mu_minus;
+    // At-rest model
+    applic.lower = zero_quantity();
+    applic.upper = zero_quantity();
+
+    return {applic};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * At-rest model does not require microscopic cross sections.
+ */
+auto DTMixMucfModel::micro_xs(Applicability) const -> XsTable
+{
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Interact with host data.
+ */
+void DTMixMucfModel::step(CoreParams const& params, CoreStateHost& state) const
+{
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{DTMixMucfExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void DTMixMucfModel::step(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas
