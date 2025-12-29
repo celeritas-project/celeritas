@@ -2,14 +2,17 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# NOTE: This subdirectory is only added when CELERITAS_USE_DD4hep=ON and ROOT_FOUND=TRUE
-# (see main CMakeLists.txt), so DD4hep and ROOT are guaranteed to be available.
-
-#-----------------------------------------------------------------------------#
 # DD4hep Comparison Executable
+# Note that this does not require Celeritas
 #-----------------------------------------------------------------------------#
 
-add_executable(ddceler-compare compare_benchmarks.cc)
+cmake_minimum_required(VERSION 3.18...4.1)
+project(ddceler-compare VERSION 0.1.0 LANGUAGES CXX)
+
+find_package(ROOT REQUIRED)
+find_package(DD4hep REQUIRED COMPONENTS DDG4)
+
+add_executable(ddceler-compare ddceler-compare.cc)
 
 target_link_libraries(ddceler-compare
   PRIVATE
@@ -23,48 +26,3 @@ target_link_libraries(ddceler-compare
     DD4hep::DDCore
     DD4hep::DDG4
 )
-
-target_include_directories(ddceler-compare
-  PRIVATE
-    ${DD4hep_INCLUDE_DIRS}
-    ${ROOT_INCLUDE_DIRS}
-)
-
-# Inherit C++ standard from project settings
-set_target_properties(ddceler-compare PROPERTIES
-  CXX_STANDARD ${CMAKE_CXX_STANDARD}
-  CXX_STANDARD_REQUIRED ON
-  CXX_EXTENSIONS OFF
-)
-
-install(TARGETS ddceler-compare
-  RUNTIME DESTINATION bin
-)
-
-message(STATUS "Added DD4hep comparison executable: ddceler-compare")
-
-#-----------------------------------------------------------------------------#
-# CTest Integration using Environment Variables
-#-----------------------------------------------------------------------------#
-
-# Add validation test that expects environment variables
-add_test(
-  NAME ddceler-validation
-  COMMAND $<TARGET_FILE:ddceler-compare>
-)
-
-set_tests_properties(ddceler-validation PROPERTIES
-  LABELS "dd4hep;validation"
-  TIMEOUT 300  # 5 minutes
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-
-message(STATUS "Added DD4hep validation test: ddceler-validation")
-message(STATUS "")
-message(STATUS "Usage:")
-message(STATUS "  Set environment variables DDCELER_FILE1 and DDCELER_FILE2, then run:")
-message(STATUS "    DDCELER_FILE1=/path/to/file1.root DDCELER_FILE2=/path/to/file2.root ctest -R ddceler-validation")
-message(STATUS "")
-message(STATUS "  Or use the executable directly:")
-message(STATUS "    ddceler-compare file1.root file2.root")
-message(STATUS "")

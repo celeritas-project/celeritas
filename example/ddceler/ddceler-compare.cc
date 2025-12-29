@@ -1,9 +1,8 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2025 UT-Battelle, LLC, and other Celeritas developers.
-// See the top-level COPYRIGHT file for details.
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ddceler/compare_benchmarks.cc
+//! \file ddceler/ddceler-compare.cc
 //! \brief Compare DD4hep simulation data between two configurations
 //---------------------------------------------------------------------------//
 /*!
@@ -1034,10 +1033,6 @@ void compare_benchmarks(TString config1_rootfile, TString config2_rootfile)
  */
 int main(int argc, char** argv)
 {
-    // Load DD4hep dictionaries for ROOT to properly access DD4hep classes
-    gSystem->Load("libDDG4Plugins.so");
-    gSystem->Load("libDDG4.so");
-
     TString file1, file2;
 
     // Try to read from command-line arguments first
@@ -1102,6 +1097,10 @@ int main(int argc, char** argv)
         std::cerr << "Error: Cannot access file: " << file2 << std::endl;
         return 1;
     }
+
+    // Load DD4hep dictionaries for ROOT to properly access DD4hep classes
+    gSystem->Load("libDDG4Plugins.so");
+    gSystem->Load("libDDG4.so");
 
     // Run comparison
     compare_benchmarks(file1, file2);
