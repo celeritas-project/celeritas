@@ -40,7 +40,7 @@ auto MucfProcess::build_models(ActionIdIter start_id) const -> VecModel
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto MucfProcess::macro_xs(Applicability applic) const -> XsGrid
+auto MucfProcess::macro_xs(Applicability) const -> XsGrid
 {
     return {};
 }

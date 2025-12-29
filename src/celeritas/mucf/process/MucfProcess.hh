@@ -37,10 +37,10 @@ class MucfProcess final : public Process
     VecModel build_models(ActionIdIter start_id) const final;
 
     // Get the interaction cross sections for the given energy range
-    XsGrid macro_xs(Applicability range) const final;
+    XsGrid macro_xs(Applicability) const final;
 
     // Get the energy loss for the given energy range
-    EnergyLossGrid energy_loss(Applicability range) const final;
+    EnergyLossGrid energy_loss(Applicability) const final;
 
     //! Whether the integral method can be used to sample interaction length
     bool supports_integral_xs() const final { return true; }  //! \todo Check
