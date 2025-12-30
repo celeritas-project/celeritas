@@ -78,8 +78,20 @@ if(_final_lib)
   endif()
 endif()
 
-macro(celer_dd4hep_plugin target)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.25)
+  cmake_language(GET_MESSAGE_LOG_LEVEL _orig_log_lev)
+else()
+  set(_orig_log_lev STATUS)
+endif()
+
+function(celer_dd4hep_plugin target)
+  # Suppress verbose dd4hep
+  if(_orig_log_lev STREQUAL STATUS)
+    set(CMAKE_MESSAGE_LOG_LEVEL WARNING)
+  endif()
+
   dd4hep_add_plugin(${target} ${ARGN})
+
   if(_final_lib)
     # Link CUDA RDC "final" library into plugin
     target_link_options(${target} PRIVATE
@@ -93,7 +105,7 @@ macro(celer_dd4hep_plugin target)
       )
     endif()
   endif()
-endmacro()
+endfunction()
 
 #----------------------------------------------------------------------------#
 # Add plugins
