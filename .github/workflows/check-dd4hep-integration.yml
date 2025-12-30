@@ -17,31 +17,24 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        shell: bash
+        shell: bash -l -o pipefail {0}
     steps:
       - name: Check out
         uses: actions/checkout@v5
       - name: Configure
         run: |
-          # set +e
-          # set -o pipefail
-          # source /etc/profile
           eic-info
           cmake -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
       - name: Build and install
         id: build
         working-directory: build
         run: |
-          # source /etc/profile
           cmake --build -j 8 .
           cmake --install .
 
       - name: Run example
         working-directory: example/ddceler
         run: |
-          set +e
-          set -o pipefail
-          source /etc/profile
           # Run both simulations in parallel with separate log files
           echo "Starting Celeritas simulation..."
           ./run-example.sh \
@@ -75,7 +68,6 @@ jobs:
       - name: Compare results
         working-directory: example/ddceler
         run: |
-          source /etc/profile
           cmake -S . -B build
           cmake --build -j 8 build
           ./build/ddceler-compare \
