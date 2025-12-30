@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-include("${DD4hep_DIR}/cmake/DD4hep.cmake")
+# Set variables used by internal dd4hep macros
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}")
+set(LIBRARY_OUTPUT_PATH "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}")
 
 #----------------------------------------------------------------------------#
 # >>> OVERRIDE DD4HEP TO FIX NEW/RPATH/MACOS ROOT
@@ -52,7 +54,7 @@ function(dd4hep_generate_rootmap library)
 
   add_custom_target(Components_${library} ALL DEPENDS ${rootmapfile})
   set(install_destination "lib")
-  if(CMAKE_INSTALL_LIBDIR )
+  if(CMAKE_INSTALL_LIBDIR)
     set(install_destination ${CMAKE_INSTALL_LIBDIR})
   endif()
   install(FILES $<TARGET_FILE_DIR:${library}>/${rootmapfile}
@@ -63,34 +65,48 @@ endfunction()
 # <<< END OVERRIDE
 #----------------------------------------------------------------------------#
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
+get_target_property(_final_lib Celeritas::accel CUDA_RDC_FINAL_LIBRARY)
+if(_final_lib)
+  # Using CUDA RDC: check for other flags as well
+  if(NOT DEFINED CELERITAS_DISABLE_NEW_DTAGS)
+    set(_dtag_flag "--disable-new-dtags")
+    include(CheckLinkerFlag)
+    check_linker_flag(CXX "LINKER:${_dtag_flag}" CELERITAS_DISABLE_NEW_DTAGS)
+    if(CELERITAS_DISABLE_NEW_DTAGS)
+      set(CELERITAS_DISABLE_NEW_DTAGS "${_dtag_flag}" CACHE INTERNAL)
+    endif()
+  endif()
+endif()
 
-dd4hep_add_plugin(DDcelerTMI
+macro(celer_dd4hep_plugin target)
+  dd4hep_add_plugin(${target} ${ARGN})
+  if(_final_lib)
+    # Link CUDA RDC "final" library into plugin
+    target_link_options(${target} PRIVATE
+      "-Wl,--push-state,--no-as-needed"
+      "-l$<TARGET:${_final_lib}>"
+      "-Wl,--pop-state"
+    )
+    if(CELERITAS_DISABLE_NEW_DTAGS)
+      set_property(TARGET ${_plugins} APPEND
+        PROPERTY LINK_FLAGS "-Wl,--disable-new-dtags"
+      )
+    endif()
+  endif()
+endmacro()
+
+#----------------------------------------------------------------------------#
+# Add plugins
+
+celer_dd4hep_plugin(DDcelerTMI
   SOURCES DDcelerTMI.cc
   USES DD4hep::DDG4 Celeritas::accel Celeritas::celeritas Celeritas::corecel
 )
 
-dd4hep_add_plugin(DDcelerRunAction
+celer_dd4hep_plugin(DDcelerRunAction
   SOURCES DDcelerRunAction.cc
   USES DD4hep::DDG4 DD4hep::DDCore
     Celeritas::accel Celeritas::celeritas Celeritas::corecel
 )
-
-if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-  foreach(_target DDcelerTMI DDcelerRunAction)
-    target_link_options(${_target} PRIVATE
-      "-Wl,--push-state,--no-as-needed"
-      "-l$<TARGET:Celeritas::accel_final>"
-      "-Wl,--pop-state"
-    )
-  endforeach()
-endif()
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  set_target_properties(${_plugins} PROPERTIES APPEND
-    LINK_FLAGS "-Wl,--disable-new-dtags"
-  )
-endif()
 
 #----------------------------------------------------------------------------#
