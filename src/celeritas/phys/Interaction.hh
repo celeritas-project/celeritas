@@ -29,6 +29,8 @@ namespace celeritas
  */
 struct Interaction
 {
+    using Energy = units::MevEnergy;
+
     //! Interaction result category
     enum class Action
     {
@@ -39,11 +41,10 @@ struct Interaction
         failed,  //!< Ran out of memory during sampling
     };
 
-    units::MevEnergy energy;  //!< Post-interaction energy
+    Energy energy;  //!< Post-interaction energy
     Real3 direction;  //!< Post-interaction direction
     Span<Secondary> secondaries;  //!< Emitted secondaries
-    units::MevEnergy energy_deposition{0};  //!< Energy loss locally to
-                                            //!< material
+    Energy energy_deposition{0};  //!< Energy loss locally to material
     Action action{Action::scattered};  //!< Flags for interaction result
 
     // Return an interaction representing a recoverable error
