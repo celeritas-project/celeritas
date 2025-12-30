@@ -30,7 +30,7 @@ jobs:
         id: build
         working-directory: build
         run: |
-          cmake --build -j 8 .
+          cmake --build . -j8
           cmake --install .
 
       - name: Run example
@@ -70,7 +70,7 @@ jobs:
         working-directory: example/ddceler
         run: |
           cmake -S . -B build
-          cmake --build -j 8 build
+          cmake --build build -j8
           ./build/ddceler-compare \
             $PWD/output_geant4.root \
             $PWD/output_celeritas.root
