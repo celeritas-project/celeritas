@@ -24,7 +24,8 @@ jobs:
       - name: Configure
         run: |
           eic-info
-          cmake -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install -S . -B build
+          cmake --log-level=verbose -S . -B build \
+            -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install
       - name: Build and install
         id: build
         working-directory: build
