@@ -17,9 +17,6 @@ include(CeleritasOptionUtils)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 
-# Enable CTest support
-enable_testing()
-
 #----------------------------------------------------------------------------#
 # PACKAGE OPTIONS
 #----------------------------------------------------------------------------#
