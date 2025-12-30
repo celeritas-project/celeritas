@@ -29,6 +29,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
+#include "celeritas/em/model/ElectroNuclearModel.hh"
 #include "celeritas/em/model/GammaNuclearModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/params/AtomicRelaxationParams.hh"  // IWYU pragma: keep
@@ -445,6 +446,11 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             data->hardwired.ids.eplusgg = model_id;
             data->hardwired.eplusgg = m->host_ref();
         }
+        else if (dynamic_cast<ElectroNuclearModel const*>(&model))
+        {
+            data->hardwired.ids.electro_nuclear = process_id;
+            data->hardwired.ids.electro_vd = model_id;
+        }
         else if (dynamic_cast<GammaNuclearModel const*>(&model))
         {
             data->hardwired.ids.gamma_nuclear = process_id;
@@ -480,6 +486,14 @@ void PhysicsParams::build_hardwired()
         CELER_ASSERT(model);
         host_ref_.hardwired.livermore_pe = model->host_ref();
         device_ref_.hardwired.livermore_pe = model->device_ref();
+    }
+    if (auto model_id = host_ref_.hardwired.ids.electro_vd)
+    {
+        auto const* model = dynamic_cast<ElectroNuclearModel const*>(
+            models_[model_id.get()].first.get());
+        CELER_ASSERT(model);
+        host_ref_.hardwired.electro_vd = model->host_ref();
+        device_ref_.hardwired.electro_vd = model->device_ref();
     }
     if (auto model_id = host_ref_.hardwired.ids.bertini_qgs)
     {
