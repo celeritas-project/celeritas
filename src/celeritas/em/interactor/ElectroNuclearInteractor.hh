@@ -2,12 +2,12 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/interactor/GammaNuclearInteractor.hh
+//! \file celeritas/em/interactor/ElectroNuclearInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "celeritas/em/data/GammaNuclearData.hh"
+#include "celeritas/em/data/ElectroNuclearData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
@@ -15,20 +15,23 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Handle the gamma-nuclear interaction.
+ * Handle the electro-nuclear interaction using G4ElectroVDNuclearModel.
  *
- * The gamma-nuclear interaction requires hadronic models for the final state
- * generation in Geant4 physics manual section 44.2. When the gamma-nuclear
- * process is selected, the status is set to onload::gamma_nuclear and the
- * post step action will be handled by Geant4.
+ * The electro-nuclear interaction requires hadronic models for the final
+ * state generation, as described in section 45.2 of the Geant4 physics manual.
+ * When the electro-nuclear process is selected, the electromagnetic vertex
+ * of the electro-nucleus reaction is computed and the virtual photon is
+ * generated. The status is set to onload::electro_nuclear and the post step
+ * action of the converted real photon will be handled by Geant4, while the
+ * primary electron or position continues to be tracked.
  */
-class GammaNuclearInteractor
+class ElectroNuclearInteractor
 {
   public:
     // Construct from shared and state data
     inline CELER_FUNCTION
-    GammaNuclearInteractor(NativeCRef<GammaNuclearData> const& shared,
-                           ParticleTrackView const& particle);
+    ElectroNuclearInteractor(NativeCRef<ElectroNuclearData> const& shared,
+                             ParticleTrackView const& particle);
 
     // Sample an interaction
     inline CELER_FUNCTION Interaction operator()();
@@ -41,18 +44,19 @@ class GammaNuclearInteractor
  * Construct with shared and state data, and a target nucleus.
  */
 CELER_FUNCTION
-GammaNuclearInteractor::GammaNuclearInteractor(
-    NativeCRef<GammaNuclearData> const& shared,
+ElectroNuclearInteractor::ElectroNuclearInteractor(
+    NativeCRef<ElectroNuclearData> const& shared,
     ParticleTrackView const& particle)
 {
-    CELER_EXPECT(particle.particle_id() == shared.scalars.gamma_id);
+    CELER_EXPECT(particle.particle_id() == shared.scalars.electron_id
+                 || particle.particle_id() == shared.scalars.positron_id);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Onload the gamma-nuclear interaction.
+ * Onload the electro-nuclear interaction.
  */
-CELER_FUNCTION Interaction GammaNuclearInteractor::operator()()
+CELER_FUNCTION Interaction ElectroNuclearInteractor::operator()()
 {
     return Interaction::from_onloaded();
 }
