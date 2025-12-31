@@ -78,6 +78,9 @@ CELER_FUNCTION FluctELoss::FluctELoss(ParamsRef const& params)
  *   energy, we reduce it to the particle energy (if energy cuts are to be
  *   applied) or to the mean energy loss (if cuts are prohibited due to this
  *   being a non-physics-based step).
+ *
+ * \todo The gamma and gaussian energy loss models are never called by
+ * positrons/electrons, only by muons
  */
 CELER_FUNCTION auto FluctELoss::operator()(CoreTrackView const& track) -> Energy
 {

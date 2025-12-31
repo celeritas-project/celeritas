@@ -805,6 +805,60 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         EXPECT_EQ("eloss-range", result.action);
     }
 }
+
+TEST_F(LeadBoxAlongStepTest, mfp_steps)
+{
+    size_type num_tracks = 128;
+    Input inp;
+    inp.particle_id = this->particle()->find(pdg::electron());
+    inp.energy = MevEnergy{10000};
+    inp.direction = {1, 0, 0};
+    inp.position = {0, 0, 0};
+    inp.phys_mfp = 1;
+    {
+        SCOPED_TRACE("near-zero mfp");
+        inp.phys_mfp = 1e-20;
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(0, result.eloss);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(0, result.mfp);
+        EXPECT_SOFT_EQ(1, result.alive);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        SCOPED_TRACE("tiny mfp");
+        inp.phys_mfp = 1e-6;
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(6.9164161686786e-07, result.eloss);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(1.6943121845301e-18, result.time);
+        EXPECT_SOFT_EQ(5.0794201375653e-08, result.step);
+        EXPECT_SOFT_EQ(0, result.mfp);
+        EXPECT_SOFT_EQ(1, result.alive);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        SCOPED_TRACE("single mfp");
+        inp.phys_mfp = 1;
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(0.68234478660682, result.eloss);
+        EXPECT_SOFT_EQ(0, result.mfp);
+        EXPECT_SOFT_EQ(1, result.alive);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        SCOPED_TRACE("large mfp");
+        inp.phys_mfp = 1e6;
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(2001.409778094, result.eloss);
+        EXPECT_SOFT_EQ(4.9030072611395e-09, result.time);
+        EXPECT_SOFT_EQ(146.988459649, result.step);
+        EXPECT_SOFT_EQ(2893.8039317112, result.mfp);
+        EXPECT_SOFT_EQ(1, result.alive);
+        EXPECT_EQ("eloss-range", result.action);
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
