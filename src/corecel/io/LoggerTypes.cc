@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "LoggerTypes.hh"
 
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/Environment.hh"
+
 #include "ColorUtils.hh"
 #include "EnumStringMapper.hh"
 
@@ -51,6 +54,33 @@ char const* to_color_code(LogLevel lev)
     // clang-format on
 
     return color_code(c);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the log level from an environment variable.
+ *
+ * \throws RuntimeError if string is invalid
+ */
+LogLevel getenv_loglevel(std::string const& level_env, LogLevel default_lev)
+{
+    // Search for the provided environment variable to set the default
+    // logging level using the `to_cstring` function in LoggerTypes.
+    std::string const& env_value = celeritas::getenv(level_env);
+    if (env_value.empty())
+    {
+        return default_lev;
+    }
+
+    auto levels = range(LogLevel::size_);
+    auto iter = std::find_if(
+        levels.begin(), levels.end(), [&env_value](LogLevel lev) {
+            return env_value == to_cstring(lev);
+        });
+    CELER_VALIDATE(iter != levels.end(),
+                   << "invalid log level '" << env_value
+                   << "' in environment variable '" << level_env << "'");
+    return *iter;
 }
 
 //---------------------------------------------------------------------------//

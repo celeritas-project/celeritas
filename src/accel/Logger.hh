@@ -15,11 +15,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Manually create a G4MT-friendly logger for event-specific info
-Logger MakeMTSelfLogger(G4RunManager const&);
+//! \deprecated Remove in v1.0; replaced by setup::System
+[[deprecated]] Logger MakeMTSelfLogger(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
 // Manually create a logger for setup info
-Logger MakeMTWorldLogger(G4RunManager const&);
+//! \deprecated Remove in v1.0; replaced by setup::System
+[[deprecated]] Logger MakeMTWorldLogger(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
 //! Manually create a multithread-friendly logger
