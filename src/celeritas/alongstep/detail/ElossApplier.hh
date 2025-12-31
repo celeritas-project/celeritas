@@ -21,7 +21,7 @@ namespace detail
 /*!
  * Whether the given track can lose energy along its step.
  */
-inline bool is_eloss_applicable(CoreTrackView const& track)
+inline CELER_FUNCTION bool is_eloss_applicable(CoreTrackView const& track)
 {
     auto sim = track.sim();
     if (sim.status() != TrackStatus::alive)
