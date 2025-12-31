@@ -83,9 +83,9 @@ jobs:
           cmake --version
           cmake --preset=${CMAKE_PRESET} \
             ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0} ', matrix.cxxstd) || ''}} \
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
+            -DCeleritas_VERSION_STRING="${{github.event.pull_request
+              && format('pr.{0}', github.event.pull_request.number)
+              || github.ref_name}}"
 
       ### BUILD ###
 
