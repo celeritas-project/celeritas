@@ -49,9 +49,9 @@ fi
 if [ -z "${CELER_SOURCE_DIR}" ]; then
   CELER_SOURCE_DIR=$(cd "$EXAMPLE_DIR"/../../.. && pwd)
 fi
-if [ -z "${CELER_INSTALL_DIR}" ]; then
-  CELER_INSTALL_DIR="${CELER_SOURCE_DIR}/install"
-  echo "warning: CELER_INSTALL_DIR is undefined: using ${CELER_INSTALL_DIR}"
+if [ -z "${Celeritas_ROOT}" ]; then
+  Celeritas_ROOT="${CELER_SOURCE_DIR}/install"
+  echo "warning: Celeritas_ROOT is undefined: using ${Celeritas_ROOT}"
 fi
 
 # Resolve ddsim
@@ -68,9 +68,9 @@ if [ -z "$DD4hepINSTALL" ]; then
   exit 1
 fi
 
-CELER_LIB_DIR=$(ls -1 -d "$CELER_INSTALL_DIR"/lib 2>/dev/null | head -1)
+CELER_LIB_DIR=$(ls -1 -d "$Celeritas_ROOT"/lib 2>/dev/null | head -1)
 if [ -z "$CELER_LIB_DIR" ]; then
-  echo "error: celeritas installation not found inside $CELER_INSTALL_DIR"
+  echo "error: celeritas installation not found inside $Celeritas_ROOT"
   exit 1
 fi
 
