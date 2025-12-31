@@ -47,6 +47,43 @@ inline bool is_eloss_applicable(CoreTrackView const& track)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the given track should lose all energy over the step.
+ *
+ * Tracks should theoretically only slow to zero via the range limiter (and its
+ * associated post-step action), but spline interpolation and energy
+ * fluctuations are inconsistent and may lead to incorrectly long steps.
+ */
+inline CELER_FUNCTION bool lost_all_energy(CoreTrackView const& track)
+{
+    bool const on_boundary = track.geometry().is_on_boundary();
+    CELER_ASSERT(
+        on_boundary
+        == (track.sim().post_step_action() == track.boundary_action()));
+    if (on_boundary)
+    {
+        // Avoid stopping particles unphysically on the boundary
+        return false;
+    }
+
+    auto phys = track.physics();
+    if (track.sim().step_length() == phys.dedx_range())
+    {
+        // Range limited step: particle has deposited all remaining energy by
+        // slowing down
+        return true;
+    }
+
+    if (track.particle().energy() < phys.particle_scalars().lowest_energy)
+    {
+        // Particle *started* below the tracking cut: deposit all remaining
+        // energy along the step
+        return true;
+    }
+    return false;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Deposit energy along the particle's step and update the particle state.
  *
  * - Particles that end below the tracking cut distribute their remaining
@@ -71,7 +108,7 @@ apply_slowing_down(CoreTrackView const& track, ParticleTrackView::Energy eloss)
     if (!on_boundary
         && (particle.energy() - eloss <= phys.particle_scalars().lowest_energy))
     {
-        // Particle ended below the tracking cut: deposit all its energy
+        // Particle *ended* below the tracking cut: deposit all its energy
         // (aka adjusting dE/dx upward a bit)
         eloss = particle.energy();
     }
@@ -134,33 +171,19 @@ CELER_FUNCTION void ElossApplier<EC>::operator()(CoreTrackView const& track)
     if (!is_eloss_applicable(track))
         return;
 
-    using Energy = ParticleTrackView::Energy;
-    Energy deposited = [this, &track]() -> Energy {
-        // Avoid stopping particles unphysically on the boundary: particles
-        // should theoretically only slow to zero via range action, but spline
-        // interpolation and energy fluctuations are inconsistent and may lead
-        // to incorrectly long steps
-        bool const on_boundary = track.geometry().is_on_boundary();
-        auto sim = track.sim();
-        CELER_ASSERT(on_boundary
-                     == (sim.post_step_action() == track.boundary_action()));
-
-        auto particle = track.particle();
-        auto phys = track.physics();
-        if (!on_boundary
-            && particle.energy() < phys.particle_scalars().lowest_energy)
+    auto deposited = [&] {
+        if (lost_all_energy(track))
         {
-            // Beginning-of-step energy is below the tracking cut: deposit all
-            // remaining energy along the step
-            return particle.energy();
+            // Particle was low energy or range-limited
+            return track.particle().energy();
         }
+
         // Calculate energy loss along the step
-        return this->calc_eloss(track);
+        return ParticleTrackView::Energy{this->calc_eloss(track)};
     }();
 
     if (deposited > zero_quantity())
     {
-        // Apply
         apply_slowing_down(track, deposited);
     }
 }

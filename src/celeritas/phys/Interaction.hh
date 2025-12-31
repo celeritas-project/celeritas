@@ -102,6 +102,8 @@ struct MscStep
  *
  * These values are calculated at the first step in every msc tracking volume
  * and reused at subsequent steps within the same volume.
+ *
+ * \todo move to physics step data
  */
 struct MscRange
 {
