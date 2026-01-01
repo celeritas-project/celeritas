@@ -99,7 +99,6 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 
     // Disable external error handlers
     ScopedRootErrorHandler scoped_root_errors;
-    disable_geant_signal_handler();
 
     // Set the random seed *before* the run manager is instantiated
     // (G4MTRunManager constructor uses the RNG)
