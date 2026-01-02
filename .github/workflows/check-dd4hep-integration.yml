@@ -33,47 +33,13 @@ jobs:
           cmake --build . -j8
           cmake --install .
 
-      - name: Run example
+      - name: Run preshower simulation
         working-directory: example/ddceler
         run: |
-          # Run both simulations in parallel with separate log files
-          echo "Starting Celeritas simulation..."
-          ./run-example.sh \
-            --outputFile output_celeritas.root \
-            > celeritas.log 2>&1 &
-          CELER_PID=$!
-
-          echo "Starting Geant4 simulation..."
-          CELER_DISABLE=1 \
-          ./run-example.sh \
-            --outputFile output_geant4.root \
-            > geant4.log 2>&1 &
-          GEANT4_PID=$!
-
-          # Wait for both to complete
-          wait $CELER_PID || CELER_EXIT=$?
-          wait $GEANT4_PID || GEANT4_EXIT=$?
-
-          # Display logs
-          echo "=== Celeritas Log ==="
-          cat celeritas.log
-          echo "=== Geant4 Log ==="
-          cat geant4.log
-
-          # Check exit codes
-          if [ "${CELER_EXIT:-0}" -ne 0 ] || [ "${GEANT4_EXIT:-0}" -ne 0 ]; then
-            echo "Error: One or more simulations failed"
-            exit 1
-          fi
-
-      - name: Compare results
-        working-directory: example/ddceler
-        run: |
-          cmake -S . -B build
-          cmake --build build -j8
-          ./build/ddceler-compare \
-            $PWD/output_geant4.root \
-            $PWD/output_celeritas.root
+          ./run-preshower.sh celeritas \
+            --numberOfEvents 3 \
+            --random.seed=1 \
+            --random.enableEventSeed
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if:
@@ -83,8 +49,4 @@ jobs:
           }}
         with:
           name: simulation-artifacts
-          path: |
-            example/ddceler/*.log
-            example/ddceler/*.root
-            example/ddceler/*.gdml
-            example/ddceler/*.png
+          path: example/ddceler/results/celeritas/*.root

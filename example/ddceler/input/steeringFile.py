@@ -1,14 +1,6 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""Minimal DDG4 steering file for Geant4 with Celeritas integration.
-
-Usage:
-    ddsim --compactFile=$PWD/example/ddceler/SiD_ConstantField.xml \\
-          --steering $PWD/example/ddceler/steeringFile.py \\
-          --outputFile output.root \\
-          --random.seed=1 \\
-          --random.enableEventSeed
-"""
+"""DDG4 steering file for Preshower benchmark with Celeritas integration."""
 
 from DDSim.DD4hepSimulation import DD4hepSimulation
 
@@ -30,10 +22,10 @@ runner.numberOfEvents = 100
 # Particle gun configuration
 runner.enableGun = True
 runner.gun.particle = "e-"
-runner.gun.energy = "18*GeV"
+runner.gun.energy = "5*GeV"
 runner.gun.distribution = "uniform"
-runner.gun.etaMin = 2
-runner.gun.etaMax = 2.1
+runner.gun.etaMin = 5.0
+runner.gun.etaMax = 5.0
 
 # Field tracking configuration - defined once, used by both
 # DD4hep/Geant4 and Celeritas
