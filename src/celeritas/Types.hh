@@ -98,9 +98,6 @@ using UniformGridId = OpaqueId<struct UniformGridRecord>;
 //! Opaque index of a cross section grid
 using XsGridId = OpaqueId<struct XsGridRecord>;
 
-//! Opaque index of a muCF material component
-using MuCfMatCompId = OpaqueId<struct MuCfMaterialComponent_>;
-
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
@@ -227,31 +224,6 @@ enum class CylAxis
     r = 0,
     phi,
     z,
-    size_
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Muonic atom selection from material data. This is *not* intended to be used
- * by the transport loop.
- */
-enum class MucfMuonicAtom
-{
-    deuterium,
-    tritium,
-    size_
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Muonic molecule selection from material data. This is *not* intended to be
- * used by the transport loop.
- */
-enum class MucfMuonicMolecule
-{
-    deuterium_deuterium,
-    deuterium_tritium,
-    tritium_tritium,
     size_
 };
 

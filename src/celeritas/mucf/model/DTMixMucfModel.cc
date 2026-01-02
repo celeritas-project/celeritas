@@ -8,11 +8,11 @@
 
 #include <algorithm>
 
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/inp/Grid.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
-#include "celeritas/inp/MucfPhysicsData.hh"
 #include "celeritas/mucf/executor/DTMixMucfExecutor.hh"  // IWYU pragma: associated
 #include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/PDGNumber.hh"
@@ -21,6 +21,56 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Assign particle IDs from \c ParticleParams .
+ */
+static MucfParticleIds from_params(ParticleParams const& particles)
+{
+    using PairStrPdg = std::pair<std::string, PDGNumber>;
+    std::vector<PairStrPdg> missing;
+    MucfParticleIds result;
+
+#define MP_ADD(MEMBER)                               \
+    result.MEMBER = particles.find(pdg::MEMBER());   \
+    if (!result.MEMBER)                              \
+    {                                                \
+        missing.push_back({#MEMBER, pdg::MEMBER()}); \
+    }
+
+    MP_ADD(mu_minus);
+    MP_ADD(neutron);
+    MP_ADD(proton);
+    MP_ADD(alpha);
+
+    //! \todo Decide whether to implement these PDGs in PDGNumber.hh
+#if 0
+    MP_ADD(helium_3);
+    MP_ADD(muonic_hydrogen);
+    MP_ADD(muonic_deuteron);
+    MP_ADD(muonic_triton);
+    MP_ADD(muonic_alpha);
+    MP_ADD(muonic_helium3);
+#endif
+
+    CELER_VALIDATE(missing.empty(),
+                   << "missing particles required for muon-catalyzed fusion: "
+                   << join_stream(missing.begin(),
+                                  missing.end(),
+                                  ", ",
+                                  [](std::ostream& os, PairStrPdg const& p) {
+                                      os << p.first << " (PDG "
+                                         << p.second.unchecked_get() << ')';
+                                  }));
+    return result;
+
+#undef MP_ADD
+}
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from model ID and other necessary data.
@@ -57,9 +107,8 @@ DTMixMucfModel::DTMixMucfModel(ActionId id,
     inp::MucfPhysics inp_data = inp::MucfPhysics::from_default();
     CELER_EXPECT(inp_data);
 
-    // Load particle IDs
     HostVal<DTMixMucfData> host_data;
-    host_data.particles = MucfParticles::from_params(particles);
+    host_data.particles = from_params(particles);
 
     // Copy muon energy CDF data using NonuniformGridBuilder
     NonuniformGridBuilder build_grid_record{&host_data.reals};

@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "corecel/inp/Grid.hh"
-#include "celeritas/Types.hh"
+#include "celeritas/mucf/Types.hh"
 
 namespace celeritas
 {

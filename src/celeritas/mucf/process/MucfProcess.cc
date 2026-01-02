@@ -23,7 +23,6 @@ MucfProcess::MucfProcess(SPConstParticles particles, SPConstMaterials materials)
     //! \todo Fix ImportProcessClass
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
-    CELER_EXPECT(particles_->find(pdg::mu_minus()));
 }
 
 //---------------------------------------------------------------------------//

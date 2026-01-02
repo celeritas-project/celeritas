@@ -36,7 +36,7 @@ class DTMucfInteractor
     // Construct from shared and state data
     inline CELER_FUNCTION
     DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
-                     Channel const channel,
+                     Channel channel,
                      StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG

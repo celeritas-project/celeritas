@@ -14,7 +14,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Select final channel for muonic dd molecules.
+ * Select final channel for muonic dt molecules.
  *
  * This selection already accounts for sticking, as that is one of the possible
  * outcomes.
