@@ -14,6 +14,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 
+using BoolFunc = std::function<bool()>;
+
 namespace celeritas
 {
 namespace
@@ -24,6 +26,7 @@ std::mutex& getenv_mutex()
     static std::mutex mu;
     return mu;
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -77,6 +80,17 @@ std::string const& getenv(std::string const& key)
  */
 GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
 {
+    return getenv_flag_lazy(key, [default_val]() { return default_val; });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Like \c genenv_flag but calls a function only when a default is needed.
+ */
+GetenvFlagResult
+getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
+{
+    CELER_EXPECT(get_default_value);
     std::scoped_lock lock_{getenv_mutex()};
 
     // Get the string value from the existing environment *or* system
@@ -102,8 +116,8 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
     }();
 
     GetenvFlagResult result;
+    bool invalid_str{false};
     result.defaulted = str_value.empty();
-    result.value = default_val;
     if (!result.defaulted)
     {
         str_value = tolower(str_value);
@@ -123,14 +137,24 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
         }
         else
         {
+            invalid_str = true;
+        }
+    }
+
+    if (result.defaulted || invalid_str)
+    {
+        // Get automatic default
+        result.value = get_default_value();
+
+        if (invalid_str)
+        {
+            // Warn before overwriting string
             CELER_LOG(warning)
                 << "Invalid environment value " << key << "=" << str_value
                 << " (expected a flag): using default=" << result.value;
         }
-    }
-    else
-    {
-        // Save string value to be added to environment
+
+        // Save string value actually used in environment
         str_value = result.value ? "1" : "0";
     }
 

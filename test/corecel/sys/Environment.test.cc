@@ -79,6 +79,37 @@ TEST(EnvironmentTest, global)
               getenv_flag("ENVTEST_TRUE", false));
 }
 
+TEST(EnvironmentTest, lazy)
+{
+    environment() = {};
+
+    // Set did_call to true and return its previous value
+    bool did_call{false};
+    auto get_default_false = [&did_call] {
+        did_call = true;
+        return false;
+    };
+    auto get_default_true = [&did_call] {
+        did_call = true;
+        return true;
+    };
+
+    EXPECT_EQ((GetenvFlagResult{false, false}),
+              getenv_flag_lazy("ENVTEST_ZERO", get_default_false));
+    EXPECT_FALSE(did_call);
+    EXPECT_EQ((GetenvFlagResult{false, true}),
+              getenv_flag_lazy("ENVTEST_NEW_F", get_default_false));
+    EXPECT_TRUE(did_call);
+    did_call = false;
+    EXPECT_EQ((GetenvFlagResult{true, true}),
+              getenv_flag_lazy("ENVTEST_NEW_T", get_default_true));
+    EXPECT_TRUE(did_call);
+    did_call = false;
+    EXPECT_EQ((GetenvFlagResult{true, false}),
+              getenv_flag_lazy("ENVTEST_NEW_T", get_default_true));
+    EXPECT_FALSE(did_call);
+}
+
 TEST(EnvironmentTest, global_overrides)
 {
     auto& env = environment();
