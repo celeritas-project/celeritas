@@ -128,8 +128,13 @@ getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
         static char const* const true_str[] = {"1", "t", "yes", "true"};
         static char const* const false_str[] = {"0", "f", "no", "false"};
 
-        if (std::find(std::begin(true_str), std::end(true_str), str_value)
-            != std::end(true_str))
+        if (str_value == "auto")
+        {
+            // User forcing default value
+            result.defaulted = true;
+        }
+        else if (std::find(std::begin(true_str), std::end(true_str), str_value)
+                 != std::end(true_str))
         {
             result.value = true;
         }

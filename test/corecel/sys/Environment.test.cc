@@ -77,6 +77,12 @@ TEST(EnvironmentTest, global)
               getenv_flag("ENVTEST_FALSE", false));
     EXPECT_EQ((GetenvFlagResult{true, false}),
               getenv_flag("ENVTEST_TRUE", false));
+
+    environment().insert({"ENVTEST_AUTO", "auto"});
+    EXPECT_EQ((GetenvFlagResult{true, true}),
+              getenv_flag("ENVTEST_AUTO", true));
+    EXPECT_EQ((GetenvFlagResult{false, true}),
+              getenv_flag("ENVTEST_AUTO", false));
 }
 
 TEST(EnvironmentTest, lazy)
