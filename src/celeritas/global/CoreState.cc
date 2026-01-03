@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "CoreState.hh"
 
+#include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -52,16 +53,19 @@ CoreState<M>::CoreState(CoreParams const& params,
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
 
-    counters_.num_vacancies = num_track_slots;
-
     if constexpr (M == MemSpace::device)
     {
+        auto counters = CoreStateCounters{};
+        counters.num_vacancies = num_track_slots;
+        this->sync_put_counters(counters);
         device_ref_vec_ = DeviceVector<Ref>(1);
         device_ref_vec_.copy_to_device({&this->ref(), 1});
         ptr_ = make_observer(device_ref_vec_);
     }
     else if constexpr (M == MemSpace::host)
     {
+        auto& counters = this->counters();
+        counters.num_vacancies = num_track_slots;
         ptr_ = make_observer(&this->ref());
     }
 
@@ -114,7 +118,18 @@ CoreState<M>::~CoreState()
 template<MemSpace M>
 void CoreState<M>::warming_up(bool new_state)
 {
-    CELER_EXPECT(!new_state || counters_.num_active == 0);
+    size_type num_active;
+    if constexpr (M == MemSpace::host)
+    {
+        auto& counters = this->counters();
+        num_active = counters.num_active;
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        auto counters = this->sync_get_counters();
+        num_active = counters.num_active;
+    }
+    CELER_EXPECT(!new_state || num_active == 0);
     warming_up_ = new_state;
 }
 
@@ -135,17 +150,75 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Copy the core state counters from the device to the host. Since the entire
+ * sequence of actions in a step are performed on the device, this is typically
+ * done at the end of a step.
+ */
+template<MemSpace M>
+CoreStateCounters const CoreState<M>::sync_get_counters() const
+{
+    if constexpr (M == MemSpace::device)
+    {
+        auto counters = device_pointer_cast(this->ref().init.counters.data());
+        return ItemCopier<CoreStateCounters>{stream_id()}(counters.get());
+    }
+    else if constexpr (M == MemSpace::host)
+    {
+        return *(this->ref().init.counters.data().get());
+        // CELER_ASSERT_UNREACHABLE();
+        // return CoreStateCounters{};
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy the core state counters from the host to the device. This function is a
+ * placeholder function until the corresponding host code that updates the Core
+ * State counters can be moved to device functions.
+ */
+template<MemSpace M>
+void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
+{
+    if constexpr (M == MemSpace::device)
+    {
+        auto counters = device_pointer_cast(this->ref().init.counters.data());
+        copy_bytes(MemSpace::device,
+                   counters.get(),
+                   MemSpace::host,
+                   &host_counters,
+                   sizeof(CoreStateCounters),
+                   stream_id());
+    }
+    else if constexpr (M == MemSpace::host)
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+    return;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Reset the state data.
  *
  * This clears the state counters and initializes the necessary state data so
- * the state can be reused for a new event. This should only be necessary if
+ * the state can be reused for a new event. This should be necessary only if
  * the previous event aborted early.
  */
 template<MemSpace M>
 void CoreState<M>::reset()
 {
-    counters_ = CoreStateCounters{};
-    counters_.num_vacancies = this->size();
+    if constexpr (M == MemSpace::host)
+    {
+        auto& counters = this->counters();
+        counters = CoreStateCounters{};
+        counters.num_vacancies = this->size();
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        auto counters = CoreStateCounters{};
+        counters.num_vacancies = this->size();
+        sync_put_counters(counters);
+    }
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);

@@ -51,12 +51,12 @@ void ExtendFromSecondariesAction::step(CoreParams const& params,
 /*!
  * Initialize track states.
  */
-template<MemSpace M>
 void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
-                                            CoreState<M>& core_state) const
+                                            CoreStateHost& core_state) const
 {
-    TrackInitStateData<Ownership::reference, M>& init = core_state.ref().init;
-    CoreStateCounters& counters = core_state.counters();
+    TrackInitStateData<Ownership::reference, MemSpace::host>& init
+        = core_state.ref().init;
+    auto& counters = core_state.counters();
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
@@ -65,7 +65,7 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
     counters.num_vacancies
-        = detail::remove_if_alive(init.vacancies, core_state.stream_id());
+        = detail::remove_if_alive(init, core_state.stream_id());
 
     // The exclusive prefix sum of the number of secondaries produced by each
     // track is used to get the start index in the vector of track initializers
@@ -133,6 +133,12 @@ void ExtendFromSecondariesAction::process_secondaries(
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void ExtendFromSecondariesAction::begin_run(CoreParams const&, CoreStateDevice&)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+void ExtendFromSecondariesAction::step_impl(CoreParams const&,
+                                            CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

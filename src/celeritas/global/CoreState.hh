@@ -49,7 +49,17 @@ class CoreStateInterface
     virtual size_type size() const = 0;
 
     //! Access track initialization counters
+    // Use when running all code on the host
+    // Use sync_get_counters() instead if accessing device data from the host
     virtual CoreStateCounters const& counters() const = 0;
+
+    //! Access track initialization counters
+    // Use when running all code on the host
+    // Use sync_get_counters() instead if accessing device data from the host
+    virtual CoreStateCounters& counters() = 0;
+
+    //! Synchronize and copy track initialization counters from device to host
+    [[nodiscard]] virtual CoreStateCounters const sync_get_counters() const = 0;
 
     //! Access auxiliary state data
     virtual AuxStateVec const& aux() const = 0;
@@ -131,10 +141,18 @@ class CoreState final : public CoreStateInterface
     //// COUNTERS ////
 
     //! Track initialization counters
-    CoreStateCounters& counters() { return counters_; }
+    inline CoreStateCounters& counters() final;
 
     //! Track initialization counters
-    CoreStateCounters const& counters() const final { return counters_; }
+    inline CoreStateCounters const& counters() const final;
+
+    //! Synchronize and copy track initialization counters from device to host
+    [[nodiscard]] CoreStateCounters const sync_get_counters() const final;
+
+    //! Synchronize and copy track initialization counters from host to device
+    //! Remove this once all the counter maintenance is device-only or
+    //! host-only
+    void sync_put_counters(CoreStateCounters&);
 
     //// AUXILIARY DATA ////
 
@@ -178,9 +196,6 @@ class CoreState final : public CoreStateInterface
     // Native pointer to ref data
     Ptr ptr_;
 
-    // Counters for track initialization and activity
-    CoreStateCounters counters_;
-
     // User-added data associated with params
     SPAuxStateVec aux_state_;
 
@@ -190,6 +205,34 @@ class CoreState final : public CoreStateInterface
     // Whether no primaries should be generated
     bool warming_up_{false};
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access counters -- works only when counters are stored on host.
+ * Otherwise, use sync_get_counters() to copy counters from device to host.
+ */
+template<MemSpace M>
+CoreStateCounters& CoreState<M>::counters()
+{
+    if constexpr (M == MemSpace::host)
+        return *(this->ref().init.counters.data().get());
+    else
+        CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access counters -- works only when counters are not stored on device.
+ * Otherwise, use sync_get_counters() to return results to the host.
+ */
+template<MemSpace M>
+CoreStateCounters const& CoreState<M>::counters() const
+{
+    if constexpr (M == MemSpace::host)
+        return *(this->ref().init.counters.data().get());
+    else
+        CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
 
 //---------------------------------------------------------------------------//
 /*!

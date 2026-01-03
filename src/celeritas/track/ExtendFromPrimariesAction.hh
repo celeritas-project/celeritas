@@ -90,8 +90,8 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
     void
     insert_impl(CoreState<M>& state, Span<Primary const> host_primaries) const;
 
-    template<MemSpace M>
-    void step_impl(CoreParams const&, CoreState<M>&) const;
+    void step_impl(CoreParams const&, CoreStateHost&) const;
+    void step_impl(CoreParams const&, CoreStateDevice&) const;
 
     void process_primaries(CoreParams const&,
                            CoreStateHost&,

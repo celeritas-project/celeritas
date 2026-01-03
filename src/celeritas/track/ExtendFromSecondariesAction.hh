@@ -108,8 +108,8 @@ class ExtendFromSecondariesAction final : public CoreStepActionInterface,
   private:
     ActionId id_;
 
-    template<MemSpace M>
-    void step_impl(CoreParams const&, CoreState<M>&) const;
+    void step_impl(CoreParams const&, CoreStateHost&) const;
+    void step_impl(CoreParams const&, CoreStateDevice&) const;
 
     void locate_alive(CoreParams const&, CoreStateHost&) const;
     void locate_alive(CoreParams const&, CoreStateDevice&) const;

@@ -61,16 +61,27 @@ RunResult RunResult::from_state(CoreState<M>& state)
     // Copy track initializer data to host
     HostVal<TrackInitStateData> data;
     data = state.ref().init;
+    size_type num_vacancies, num_initializers;
+
+    if constexpr (M == MemSpace::host)
+    {
+        num_vacancies = state.counters().num_vacancies;
+        num_initializers = state.counters().num_initializers;
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        num_vacancies = state.sync_get_counters().num_vacancies;
+        num_initializers = state.sync_get_counters().num_initializers;
+    }
 
     // Store the IDs of the vacant track slots
-    for (auto tid : range(TrackSlotId{state.counters().num_vacancies}))
+    for (auto tid : range(TrackSlotId{num_vacancies}))
     {
         result.vacancies.push_back(id_to_int(data.vacancies[tid]));
     }
 
     // Store the track IDs of the initializers
-    for (auto init_id :
-         range(ItemId<TrackInitializer>{state.counters().num_initializers}))
+    for (auto init_id : range(ItemId<TrackInitializer>{num_initializers}))
     {
         auto const& init = data.initializers[init_id];
         result.init_ids.push_back(id_to_int(init.sim.track_id));
@@ -226,15 +237,15 @@ TYPED_TEST_SUITE(TrackInitTest, MemspaceTypes, MemspaceTypeString);
 TYPED_TEST(TrackInitTest, add_more_primaries)
 {
     this->build_states(16);
-    EXPECT_EQ(0, this->state().counters().num_initializers);
+    EXPECT_EQ(0, this->state().sync_get_counters().num_initializers);
 
     auto primaries = this->make_primaries(22);
     this->extend_from_primaries(make_span(primaries));
-    EXPECT_EQ(22, this->state().counters().num_initializers);
+    EXPECT_EQ(22, this->state().sync_get_counters().num_initializers);
 
     primaries = this->make_primaries(32);
     this->extend_from_primaries(make_span(primaries));
-    EXPECT_EQ(54, this->state().counters().num_initializers);
+    EXPECT_EQ(54, this->state().sync_get_counters().num_initializers);
 }
 
 //! Test that we can add more primaries than the first allocation
@@ -248,7 +259,7 @@ TYPED_TEST(TrackInitTest, extend_primaries)
         this->insert_primaries(this->state(), make_span(primaries));
         RunResult::from_state(this->state());
 
-        EXPECT_EQ(0, this->state().counters().num_initializers);
+        EXPECT_EQ(0, this->state().sync_get_counters().num_initializers);
     }
     {
         // Now initialize after adding
@@ -415,8 +426,9 @@ TYPED_TEST(TrackInitTest, primaries)
         // Find vacancies and create track initializers from secondaries
         extend_from_secondaries.step(*this->core(), this->state());
         EXPECT_EQ(i * num_tracks / 2,
-                  this->state().counters().num_initializers);
-        EXPECT_EQ(num_tracks / 2, this->state().counters().num_vacancies);
+                  this->state().sync_get_counters().num_initializers);
+        EXPECT_EQ(num_tracks / 2,
+                  this->state().sync_get_counters().num_vacancies);
     }
 
     // Check the results
@@ -474,7 +486,8 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     // Create track initializers on device from primary particles
     auto primaries = this->make_primaries(num_primaries);
     this->extend_from_primaries(make_span(primaries));
-    EXPECT_EQ(num_primaries, this->state().counters().num_initializers);
+    EXPECT_EQ(num_primaries,
+              this->state().sync_get_counters().num_initializers);
 
     auto apply_actions = [&actions, this] {
         for (auto const& ea_interface : actions)
@@ -497,7 +510,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
         static int const expected_geo_parent_ids[] = {0, 2};
         EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
 
-        // init ids may not be deterministic, but can guarantee they are in the
+        // init IDs may not be deterministic, but can guarantee they are in the
         // range 8<=x<=12 as we create 4 tracks per iteration, 2 in reused
         // slots from their parent, 2 as new inits
         EXPECT_EQ(2, result.init_ids.size());
@@ -506,7 +519,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
             std::end(result.init_ids),
             [i](int id) { return id >= 8 + i * 4 && id <= 11 + i * 4; }));
 
-        // Track ids may not be deterministic, so only validate size and
+        // Track IDs may not be deterministic, so only validate size and
         // range. (Remember that we create 4 new tracks per iteration, with 2
         // slots reused
         EXPECT_EQ(num_tracks, result.track_ids.size());
@@ -518,9 +531,9 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
                                                        + (i + 1) * 4;
                                 }));
 
-        // Parent ids may not be deterministic, but all non-killed tracks are
-        // guaranteed to be primaries at every iteration. At end of first
-        // iteration, will still have some primary ids as these are not cleared
+        // Parent IDs may not be deterministic, but all non-killed tracks are
+        // guaranteed to be primaries at every iteration. At end of the first
+        // iteration, will still have some primary IDs as these are not cleared
         // until the next iteration
         for (size_type pidx : range(num_tracks))
         {
@@ -529,7 +542,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
                 << "iteration " << i;
         }
     }
-}  // namespace test
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

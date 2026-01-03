@@ -127,11 +127,11 @@ void OpticalLaunchAction::step(CoreParams const& params,
 /*!
  * Launch the optical tracking loop.
  */
-template<MemSpace M>
 void OpticalLaunchAction::execute_impl(CoreParams const&,
-                                       CoreState<M>& core_state) const
+                                       CoreStateHost& core_state) const
 {
-    auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
+    auto& state = get<optical::CoreState<MemSpace::host>>(core_state.aux(),
+                                                          this->aux_id());
     CELER_ASSERT(state.size() > 0);
 
     auto const& core_counters = core_state.counters();
@@ -148,6 +148,34 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
 
     // Transport pending optical tracks
     (*transport_)(state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch the optical tracking loop.
+ */
+void OpticalLaunchAction::execute_impl(CoreParams const&,
+                                       CoreStateDevice& core_state) const
+{
+    auto& state = get<optical::CoreState<MemSpace::device>>(core_state.aux(),
+                                                            this->aux_id());
+    CELER_ASSERT(state.size() > 0);
+
+    auto core_counters = core_state.sync_get_counters();
+    auto counters = state.counters();
+
+    if ((counters.num_pending < data_.auto_flush
+         && (core_counters.num_alive > 0 || core_counters.num_initializers > 0))
+        || counters.num_pending == 0)
+    {
+        // Don't launch the optical loop if the number of pending tracks is
+        // below the threshold and the core stepping loop hasn't completed yet
+        return;
+    }
+
+    // Transport pending optical tracks
+    (*transport_)(state);
+    core_state.sync_put_counters(core_counters);
 }
 
 //---------------------------------------------------------------------------//

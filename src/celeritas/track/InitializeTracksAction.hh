@@ -50,8 +50,8 @@ class InitializeTracksAction final : public CoreStepActionInterface
   private:
     ActionId id_;
 
-    template<MemSpace M>
-    void step_impl(CoreParams const&, CoreState<M>&) const;
+    void step_impl(CoreParams const&, CoreStateHost&) const;
+    void step_impl(CoreParams const&, CoreStateDevice&) const;
 
     void step_impl(CoreParams const&, CoreStateHost&, size_type) const;
     void step_impl(CoreParams const&, CoreStateDevice&, size_type) const;

@@ -11,6 +11,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
@@ -18,6 +19,7 @@
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "CoreStateCounters.hh"
 #include "SimData.hh"
 
 namespace celeritas
@@ -92,7 +94,9 @@ struct TrackInitializer
  *   created per event.
  * - \c secondary_counts stores the number of secondaries created by each track
  *   (with one remainder at the end for storing the accumulated number of
- *   secondaries)
+ *   secondaries).
+ * - \c counters stores the number of tracks with a given status and is updated
+ *   during each step of the simulation of the event.
  */
 template<Ownership W, MemSpace M>
 struct TrackInitStateData
@@ -117,6 +121,11 @@ struct TrackInitStateData
     // CoreStateCounters)
     Items<TrackInitializer> initializers;
 
+    // Maintain the counters here to allow GPU-resident computation with
+    // synchronization between host and device only at the end of a step or
+    // when explicitly requested, such as in the tests
+    Items<CoreStateCounters> counters;
+
     //// METHODS ////
 
     //! Whether the data are assigned
@@ -124,7 +133,8 @@ struct TrackInitStateData
     {
         return (indices.size() == vacancies.size() || indices.empty())
                && secondary_counts.size() == vacancies.size() + 1
-               && !track_counters.empty() && !initializers.empty();
+               && !track_counters.empty() && !initializers.empty()
+               && !counters.empty();
     }
 
     //! Assign from another set of data
@@ -139,6 +149,7 @@ struct TrackInitStateData
 
         vacancies = other.vacancies;
         initializers = other.initializers;
+        counters = other.counters;
 
         return *this;
     }
@@ -168,6 +179,7 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     // Allocate device data
     resize(&data->secondary_counts, size + 1);
     resize(&data->track_counters, params.max_events);
+    resize(&data->counters, 1);
     if (params.track_order == TrackOrder::init_charge)
     {
         resize(&data->indices, size);
@@ -182,6 +194,9 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
 
     // Reserve space for initializers
     resize(&data->initializers, params.capacity);
+
+    // Initialize the counters for the step to zero
+    fill(CoreStateCounters{}, &data->counters);
 
     CELER_ENSURE(*data);
 }

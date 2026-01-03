@@ -139,8 +139,9 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     //// HELPERS ////
 
-    template<MemSpace M>
-    void execute_impl(CoreParams const&, CoreState<M>&) const;
+    void execute_impl(CoreParams const&, CoreStateHost&) const;
+    void execute_impl(CoreParams const&, CoreStateDevice&) const;
+
     template<MemSpace M>
     void begin_run_impl(CoreState<M>&);
 };
