@@ -13,30 +13,31 @@
 #   ./run-preshower.sh geant4 --random.seed=42
 #-----------------------------------------------------------------------------#
 
+log() {
+  printf "%s\n" "$1" >&2
+}
+
 # Resolve symlink chain to actual file/executable
 resolve_symlinks() {
   _path="$1"
   while [ -L "$_path" ]; do
-    if [ "$_verbose" = "true" ]; then
-      printf "Following symlink: %s -> " "$_path"
-    fi
+    printf "Following symlink: %s -> " "$_path" >&2
     _path=$(readlink -f "$_path")
-    if [ "$_verbose" = "true" ]; then
-      printf "%s\n" "$_path"
-    fi
+    log "$_path"
   done
-  echo "$_path"
+  printf "%s\n" "$_path"
 }
+
 
 EXAMPLE_DIR=$(cd "$(dirname $0)" && pwd)
 
 # Parse mode argument
 MODE="${1:-celeritas}"
 if [ "$MODE" != "celeritas" ] && [ "$MODE" != "geant4" ]; then
-  echo "Usage: $0 [celeritas|geant4] [additional ddsim options]"
-  echo ""
-  echo "  celeritas - Run with Celeritas offload (default)"
-  echo "  geant4    - Run with Geant4 only"
+  log "Usage: $0 [celeritas|geant4] [additional ddsim options]"
+  log ""
+  log "  celeritas - Run with Celeritas offload (default)"
+  log "  geant4    - Run with Geant4 only"
   exit 1
 fi
 shift  # Remove first argument
@@ -51,26 +52,26 @@ if [ -z "${CELER_SOURCE_DIR}" ]; then
 fi
 if [ -z "${Celeritas_ROOT}" ]; then
   Celeritas_ROOT="${CELER_SOURCE_DIR}/install"
-  echo "warning: Celeritas_ROOT is undefined: using ${Celeritas_ROOT}"
+  log "warning: Celeritas_ROOT is undefined: using ${Celeritas_ROOT}"
 fi
 
 # Resolve ddsim
 DDSIM=$(command -v "ddsim" 2>/dev/null || printf "")
 if [ -z "$DDSIM" ]; then
-  echo "error: ddsim: command not found"
+  log "error: ddsim: command not found"
   exit 1
 fi
 DDSIM=$(resolve_symlinks "$DDSIM" true)
 
 if [ -z "$DD4hepINSTALL" ]; then
-  echo "error: DD4hepINSTALL environment variable is not set"
-  echo "  You must load DD4HEP's environment (including its PYTHONPATH and ROOT's)"
+  log "error: DD4hepINSTALL environment variable is not set"
+  log "  You must load DD4HEP's environment (including its PYTHONPATH and ROOT's)"
   exit 1
 fi
 
 CELER_LIB_DIR=$(ls -1 -d "$Celeritas_ROOT"/lib 2>/dev/null | head -1)
 if [ -z "$CELER_LIB_DIR" ]; then
-  echo "error: celeritas installation not found inside $Celeritas_ROOT"
+  log "error: celeritas installation not found inside $Celeritas_ROOT"
   exit 1
 fi
 
@@ -78,22 +79,29 @@ fi
 if [ "$(uname -s)" = "Darwin" ]; then
   _ld_prefix=DY
   export DYLD_LIBRARY_PATH=${CELER_LIB_DIR}:${DYLD_LIBRARY_PATH}
+  if [ -z "$DD4HEP_LIBRARY_PATH" ]; then
+    # Needed by dd4hep load on macos
+    log "error: DD4HEP_LIBRARY_PATH environment variable is not set"
+    exit 1
+  fi
 else
   _ld_prefix=
   export LD_LIBRARY_PATH=${CELER_LIB_DIR}:${LD_LIBRARY_PATH}
 fi
-echo "info: Prepended ${CELER_LIB_DIR} to ${_ld_prefix}LD_LIBRARY_PATH"
+log "info: Prepended ${CELER_LIB_DIR} to ${_ld_prefix}LD_LIBRARY_PATH"
 
 # Find python interpreter (prefer python3)
 PYTHON=$(command -v "python3" 2>/dev/null || command -v "python" 2>/dev/null || printf "")
 if [ -z "$PYTHON" ]; then
-  echo "error: failed to find python3 or python"
+  log "error: failed to find python3 or python"
   exit 1
 fi
 PYTHON=$(resolve_symlinks "$PYTHON" true)
 
-echo "info: Running in ${MODE} mode"
-echo "info: Output will be written to results/${MODE}/preshower-${MODE}.root"
+output_file="preshower-${MODE}.root"
+
+log "info: Running in ${MODE} mode"
+log "info: Output will be written to ${output_file}"
 
 # Create mode-specific subdirectory and change to it
 mkdir -p "${EXAMPLE_DIR}/results/${MODE}"
@@ -103,5 +111,5 @@ set -x
 exec "$PYTHON" "$DDSIM" \
   --compactFile="${EXAMPLE_DIR}/input/Preshower.xml" \
   --steering="${EXAMPLE_DIR}/input/steeringFile.py" \
-  --outputFile="preshower-${MODE}.root" \
+  --outputFile="${output_file}" \
   "$@"
