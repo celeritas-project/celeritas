@@ -7,7 +7,7 @@
 #include "CoreState.hh"
 
 #if CELER_USE_DEVICE
-#include "corecel/data/ObserverPtr.device.hh"
+#    include "corecel/data/ObserverPtr.device.hh"
 #endif
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
