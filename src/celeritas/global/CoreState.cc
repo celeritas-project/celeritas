@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "CoreState.hh"
 
+#include "corecel/Macros.hh"
 #if CELER_USE_DEVICE
 #    include "corecel/data/ObserverPtr.device.hh"
 #endif
