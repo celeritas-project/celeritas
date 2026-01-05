@@ -77,5 +77,31 @@ struct Problem
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Celeritas optical-only problem input definition.
+ */
+struct OpticalProblem
+{
+    //! Geometry, material, and region definitions
+    Model model;
+    //! Physics models and options
+    OpticalPhysics physics;
+    //! Optical photon generation mechanism
+    OpticalGenerator generator;
+    //! Hard cutoffs for counters
+    OpticalTrackingLimits limits;
+    //! Per-process state sizes for optical tracking loop
+    OpticalStateCapacity capacity;
+    //! Number of streams
+    size_type num_streams{};
+    //! Random number generator seed
+    unsigned int seed{};
+    //! Set up step or action timers
+    Timers timers;
+    //! Write Celeritas diagnostics to this file ("-" is stdout)
+    std::string output_file{"-"};
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace inp
 }  // namespace celeritas

@@ -44,15 +44,15 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
                    << "invalid optical photon generation mechanism for local "
                       "optical offload");
 
-    // Check the thread ID and MT model
-    validate_geant_threading(params.Params()->max_streams());
-
     // Save a pointer to the optical transporter
-    transport_ = params.optical_transporter();
+    transport_ = params.optical_problem_loaded().transporter;
     CELER_ASSERT(transport_);
 
     CELER_ASSERT(transport_->params());
     auto const& optical_params = *transport_->params();
+
+    // Check the thread ID and MT model
+    validate_geant_threading(optical_params.max_streams());
 
     // Save a pointer to the generator action
     auto const& gen_reg = *optical_params.gen_reg();

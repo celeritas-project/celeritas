@@ -43,6 +43,7 @@
 #include "celeritas/inp/Control.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/JsonEventWriter.hh"
+#include "celeritas/io/OffloadWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
@@ -51,8 +52,6 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
-
-#include "detail/OffloadWriter.hh"
 
 namespace celeritas
 {
@@ -209,7 +208,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     params.set_state(stream_id.get(), step_->sp_state());
 
     // Save optical pointers if available, for diagnostics
-    optical_ = params.optical_collector();
+    optical_ = params.problem_loaded().optical_collector;
 
     CELER_ENSURE(*this);
 }

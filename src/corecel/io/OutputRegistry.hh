@@ -40,6 +40,9 @@ class OutputRegistry
     // Add an interface for writing
     void insert(SPConstInterface);
 
+    // Add an interfaces for writing system diagnostics
+    void insert_system_diagnostics();
+
     // Write output to the given JSON object
     void output(JsonPimpl*) const;
 
