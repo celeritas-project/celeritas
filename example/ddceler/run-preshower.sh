@@ -48,7 +48,7 @@ if [ "$MODE" = "geant4" ]; then
 fi
 
 if [ -z "${CELER_SOURCE_DIR}" ]; then
-  CELER_SOURCE_DIR=$(cd "$EXAMPLE_DIR"/../../.. && pwd)
+  CELER_SOURCE_DIR=$(cd "$EXAMPLE_DIR"/../.. && pwd)
 fi
 if [ -z "${Celeritas_ROOT}" ]; then
   Celeritas_ROOT="${CELER_SOURCE_DIR}/install"
