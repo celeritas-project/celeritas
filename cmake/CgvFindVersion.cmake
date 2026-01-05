@@ -292,8 +292,6 @@ function(_cgv_try_git_describe)
     return()
   endif()
 
-  _cgv_git_call_output(_VERSION_STRING "describe" "--tags" ${_match})
-
   if(CGV_TAG_REGEX MATCHES "^\\^?([a-z-]+)")
     set(_match "--match" "${CMAKE_MATCH_1}*")
   else()
