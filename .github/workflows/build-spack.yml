@@ -350,7 +350,7 @@ jobs:
           CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
         run: |
           . ${SPACK_VIEW}/rc
-          Celeritas_ROOT=${PWD}/build ./scripts/ci/test-examples.sh
+          CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
         id: install
         if: >-

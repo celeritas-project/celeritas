@@ -6,18 +6,18 @@
 if [ -z "${CELER_SOURCE_DIR}" ]; then
   CELER_SOURCE_DIR=$(cd "$(dirname $0)"/../.. && pwd)
 fi
-if [ -z "${Celeritas_ROOT}" ]; then
-  Celeritas_ROOT="${CELER_SOURCE_DIR}/install"
-  echo "Celeritas_ROOT is undefined: using ${Celeritas_ROOT}"
+if [ -z "${CELER_INSTALL_DIR}" ]; then
+  CELER_INSTALL_DIR="${CELER_SOURCE_DIR}/install"
+  echo "CELER_INSTALL_DIR is undefined: using ${CELER_INSTALL_DIR}"
 fi
 if [ -z "${CMAKE_PRESET}" ]; then
   CMAKE_PRESET="base"
   echo "CMAKE_PRESET is undefined: using ${CMAKE_PRESET}"
 fi
-export CMAKE_PREFIX_PATH=${Celeritas_ROOT}:${CMAKE_PREFIX_PATH}
+export CMAKE_PREFIX_PATH=${CELER_INSTALL_DIR}:${CMAKE_PREFIX_PATH}
 
-test -d "${Celeritas_ROOT}" || (
-  echo "Celeritas_ROOT=${Celeritas_ROOT} is not a directory"
+test -d "${CELER_INSTALL_DIR}" || (
+  echo "CELER_INSTALL_DIR=${CELER_INSTALL_DIR} is not a directory"
   exit 1
 )
 
