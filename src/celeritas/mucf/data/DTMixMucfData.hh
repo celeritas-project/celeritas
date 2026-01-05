@@ -33,7 +33,7 @@ struct MucfParticleIds
     ParticleId neutron;
     ParticleId proton;
     ParticleId alpha;
-    ParticleId helium3;
+    ParticleId he3;
     //!@}
 
     //!@{
@@ -42,15 +42,14 @@ struct MucfParticleIds
     ParticleId muonic_deuteron;
     ParticleId muonic_triton;
     ParticleId muonic_alpha;
-    ParticleId muonic_helium3;
+    ParticleId muonic_he3;
     //!@}
 
     //! Check whether all particles are assigned
     CELER_FUNCTION explicit operator bool() const
     {
-        return mu_minus && neutron && proton && alpha && helium3
-               && muonic_hydrogen && muonic_alpha && muonic_triton
-               && muonic_helium3;
+        return mu_minus && neutron && proton && alpha && he3 && muonic_hydrogen
+               && muonic_alpha && muonic_triton && muonic_he3;
     }
 };
 
