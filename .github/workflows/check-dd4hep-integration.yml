@@ -1,11 +1,15 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Check that dd4hep plugin builds and runs on EIC containers
+#-----------------------------------------------------------------------------#
+
 name: Check dd4hep integration
 
 on:
   workflow_dispatch:
   workflow_call:
-  push:
-    branches:
-      - feature-dd4hep-integration-plugin
 
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
