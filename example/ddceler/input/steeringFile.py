@@ -7,7 +7,7 @@ from DDSim.DD4hepSimulation import DD4hepSimulation
 runner = DD4hepSimulation()
 
 # Action configuration
-runner.action.run = "DDcelerRunAction"
+runner.action.run = "CelerRun"
 runner.action.tracker = "Geant4TrackerAction"
 runner.action.trackerSDTypes = ["tracker"]
 runner.action.calo = "Geant4CalorimeterAction"
@@ -42,7 +42,7 @@ def setup_physics(kernel):
     from DDG4 import Geant4, PhysicsList
 
     phys = Geant4(kernel).setupPhysics("QGSP_BERT")
-    celer_phys = PhysicsList(kernel, str("DDcelerTMI"))
+    celer_phys = PhysicsList(kernel, str("CelerPhysics"))
     # MaxNumTracks: max number of tracks in flight
     # InitCapacity: initial capacity for state data allocation
     # CPU defaults: MaxNumTracks=2048, InitCapacity=245760

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ddceler/DDcelerRunAction.hh
+//! \file ddceler/CelerRun.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,17 +12,17 @@
 
 namespace celeritas
 {
-namespace ddceler
+namespace dd
 {
 //---------------------------------------------------------------------------//
 /*!
- * DDG4 action plugin for Celeritas tracking manager integration (TMI).
+ * DDG4 action plugin for Celeritas run action.
  */
-class DDcelerRunAction final : public dd4hep::sim::Geant4RunAction
+class CelerRun final : public dd4hep::sim::Geant4RunAction
 {
   public:
     // Standard constructor
-    DDcelerRunAction(dd4hep::sim::Geant4Context* ctxt, std::string const& name);
+    CelerRun(dd4hep::sim::Geant4Context* ctxt, std::string const& name);
 
     // Run action callbacks
     void begin(G4Run const* run) final;
@@ -30,10 +30,10 @@ class DDcelerRunAction final : public dd4hep::sim::Geant4RunAction
 
   protected:
     // Define standard assignments and constructors
-    DDG4_DEFINE_ACTION_CONSTRUCTORS(DDcelerRunAction);
-    ~DDcelerRunAction() final;
+    DDG4_DEFINE_ACTION_CONSTRUCTORS(CelerRun);
+    ~CelerRun() final;
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace ddceler
+}  // namespace dd
 }  // namespace celeritas

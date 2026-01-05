@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ddceler/DDcelerTMI.cc
+//! \file ddceler/CelerPhysics.cc
 //---------------------------------------------------------------------------//
-#include "DDcelerTMI.hh"
+#include "CelerPhysics.hh"
 
 #include <DD4hep/Detector.h>
 #include <DD4hep/FieldTypes.h>
@@ -26,7 +26,7 @@ using Direction = dd4hep::Direction;
 
 namespace celeritas
 {
-namespace ddceler
+namespace dd
 {
 namespace
 {
@@ -56,7 +56,7 @@ FieldDriverOptions load_driver_options(dd4hep::sim::Geant4Action* field_action)
 /*!
  * Standard constructor
  */
-DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& name)
+CelerPhysics::CelerPhysics(Geant4Context* ctxt, std::string const& name)
     : Geant4PhysicsList(ctxt, name)
 {
     declareProperty("MaxNumTracks", max_num_tracks_);
@@ -65,7 +65,7 @@ DDcelerTMI::DDcelerTMI(Geant4Context* ctxt, std::string const& name)
 }
 
 //---------------------------------------------------------------------------//
-SetupOptions DDcelerTMI::make_options()
+SetupOptions CelerPhysics::make_options()
 {
     SetupOptions opts;
 
@@ -192,7 +192,7 @@ SetupOptions DDcelerTMI::make_options()
 
 //---------------------------------------------------------------------------//
 
-void DDcelerTMI::constructPhysics(G4VModularPhysicsList* physics)
+void CelerPhysics::constructPhysics(G4VModularPhysicsList* physics)
 {
     // Register Celeritas tracking manager
     auto& tmi = TMI::Instance();
@@ -203,7 +203,7 @@ void DDcelerTMI::constructPhysics(G4VModularPhysicsList* physics)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace ddceler
+}  // namespace dd
 }  // namespace celeritas
 
-DECLARE_GEANT4ACTION_NS(celeritas::ddceler, DDcelerTMI)
+DECLARE_GEANT4ACTION_NS(celeritas::dd, CelerPhysics)

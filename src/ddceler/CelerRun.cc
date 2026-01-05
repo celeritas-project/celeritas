@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ddceler/DDcelerRunAction.cc
+//! \file ddceler/CelerRun.cc
 //---------------------------------------------------------------------------//
-#include "DDcelerRunAction.hh"
+#include "CelerRun.hh"
 
 #include <DD4hep/InstanceCount.h>
 #include <DDG4/Factories.h>
@@ -18,13 +18,13 @@ using InstanceCount = dd4hep::InstanceCount;
 
 namespace celeritas
 {
-namespace ddceler
+namespace dd
 {
 //---------------------------------------------------------------------------//
 /*!
  * Standard constructor.
  */
-DDcelerRunAction::DDcelerRunAction(Geant4Context* ctxt, std::string const& name)
+CelerRun::CelerRun(Geant4Context* ctxt, std::string const& name)
     : Geant4RunAction(ctxt, name)
 {
     InstanceCount::increment(this);
@@ -32,27 +32,27 @@ DDcelerRunAction::DDcelerRunAction(Geant4Context* ctxt, std::string const& name)
 
 //---------------------------------------------------------------------------//
 
-DDcelerRunAction::~DDcelerRunAction()
+CelerRun::~CelerRun()
 {
     InstanceCount::decrement(this);
 }
 
 //---------------------------------------------------------------------------//
 
-void DDcelerRunAction::begin(G4Run const* run)
+void CelerRun::begin(G4Run const* run)
 {
     TMI::Instance().BeginOfRunAction(run);
 }
 
 //---------------------------------------------------------------------------//
 
-void DDcelerRunAction::end(G4Run const* run)
+void CelerRun::end(G4Run const* run)
 {
     TMI::Instance().EndOfRunAction(run);
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace ddceler
+}  // namespace dd
 }  // namespace celeritas
 
-DECLARE_GEANT4ACTION_NS(celeritas::ddceler, DDcelerRunAction)
+DECLARE_GEANT4ACTION_NS(celeritas::dd, CelerRun)

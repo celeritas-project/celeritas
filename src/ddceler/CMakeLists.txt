@@ -111,13 +111,13 @@ endfunction()
 #----------------------------------------------------------------------------#
 # Add plugins
 
-celer_dd4hep_plugin(DDcelerTMI
-  SOURCES DDcelerTMI.cc
+celer_dd4hep_plugin(CelerPhysics
+  SOURCES CelerPhysics.cc
   USES DD4hep::DDG4 Celeritas::accel Celeritas::celeritas Celeritas::corecel
 )
 
-celer_dd4hep_plugin(DDcelerRunAction
-  SOURCES DDcelerRunAction.cc
+celer_dd4hep_plugin(CelerRun
+  SOURCES CelerRun.cc
   USES DD4hep::DDG4 DD4hep::DDCore
     Celeritas::accel Celeritas::celeritas Celeritas::corecel
 )
