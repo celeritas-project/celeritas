@@ -49,7 +49,7 @@ def setup_physics(kernel):
     # GPU recommendation: MaxNumTracks=262144, InitCapacity=8388608
     celer_phys.MaxNumTracks = 2048
     celer_phys.InitCapacity = 245760
-    # Celeritas does not support EmStandard MSC physics above 200 MeV
+    # Celeritas does not support single scattering
     celer_phys.IgnoreProcesses = ["CoulombScat"]
     phys.adopt(celer_phys)
     phys.dump()
