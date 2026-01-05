@@ -94,6 +94,9 @@ function(celer_dd4hep_plugin target)
   dd4hep_add_plugin(${target} ${ARGN})
 
   if(_final_lib)
+    # Add dependency on the final library to ensure it's built first
+    add_dependencies(${target} ${_final_lib})
+
     # Link CUDA RDC "final" library into plugin
     target_link_options(${target} PRIVATE
       "-Wl,--push-state,--no-as-needed"
