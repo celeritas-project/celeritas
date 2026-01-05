@@ -128,8 +128,6 @@ struct RunInput
 char const* to_cstring(PhysicsListSelection value);
 char const* to_cstring(SensitiveDetectorType value);
 
-inp::StandaloneInput to_input(RunInput const& run_input);
-
 //---------------------------------------------------------------------------//
 }  // namespace app
 }  // namespace celeritas
