@@ -138,10 +138,12 @@ jobs:
         run: |
           Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
           cmake --version
-          cmake --preset=$Env:CMAKE_PRESET `
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
+          cmake --preset=$Env:CMAKE_PRESET --log-level=VERBOSE `
+            -DCeleritas_VERSION_STRING="${{
+              github.event.pull_request
+              && format('-pr.{0}', github.event.pull_request.number)
+              || format('-{0}', github.ref_name)
+            }}"
 
       ### BUILD ###
 

@@ -126,8 +126,10 @@ endmacro()
 
 function(_cgv_store_version vstring vsuffix vhash tsfile)
   if(NOT vstring)
+    # Use fallback version 0.1.2
     set(vstring "${${CGV_PROJECT}_VERSION}")
     if(vstring)
+      # Look for and use version string "0.1.2-x+yz"
       string(REPLACE "${vstring}" "" vsuffix "${${CGV_PROJECT}_VERSION_STRING}")
       message(VERBOSE "Using fallback version and string: "
         "${CGV_PROJECT}_VERSION=${vstring}, "
