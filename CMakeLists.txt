@@ -5,7 +5,7 @@
 
 cmake_minimum_required(VERSION 3.18...4.1)
 
-# Fallback version in case of shallow clone
+# Fallback version in case of shallow clone: update when tagging "-dev"
 set(Celeritas_VERSION 0.7)
 # Load actual version from git metadata
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
