@@ -267,13 +267,13 @@ TEST_F(XorwowRngEngineTest, branch)
     rng = XorwowRngInitializer{12345, 0, 0};
 
     // Initialize second RNG
-    XorwowRngEngine branched_rng = rng.branch(states.ref(), TrackSlotId{1});
+    XorwowRngEngine branched_rng(
+        params_->host_ref(), states.ref(), TrackSlotId{1});
+    branched_rng = rng.branch();
 
-    // Get references to the state
+    // Create a third RNG, and branch its state manually
     auto& ref_rng_state = states.ref().state[TrackSlotId{2}];
     auto& ref_branched_rng_state = states.ref().state[TrackSlotId{3}];
-
-    // Create a third RNG, and branch it's state manually
     XorwowRngEngine ref_branched_rng(
         params_->host_ref(), states.ref(), TrackSlotId{3});
     {
@@ -283,7 +283,9 @@ TEST_F(XorwowRngEngineTest, branch)
         ref_branched_rng = XorwowRngInitializer{12345, 0, 0};
 
         // Advance the reference RNG
-        ref_rng.discard(1);
+        auto old_weyl = ref_rng_state.weylstate;
+        ref_rng.discard(4);
+        ref_rng_state.weylstate = old_weyl;
 
         // XOR the branched state with the updated ref state
         for (auto i : celeritas::range(ref_branched_rng_state.xorstate.size()))
@@ -292,10 +294,12 @@ TEST_F(XorwowRngEngineTest, branch)
         }
 
         // Advance the branched RNG
-        ref_branched_rng.discard(1);
+        old_weyl = ref_branched_rng_state.weylstate;
+        ref_branched_rng.discard(4);
+        ref_branched_rng_state.weylstate = old_weyl;
     }
 
-    // Draw 10 random numbers form the two branched RNGs and compare
+    // Draw 10 random numbers from the two branched RNGs and compare
     for ([[maybe_unused]] auto i : celeritas::range(10))
     {
         EXPECT_EQ(ref_branched_rng(), branched_rng());

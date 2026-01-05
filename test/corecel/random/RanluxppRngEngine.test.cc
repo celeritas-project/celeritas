@@ -347,13 +347,13 @@ TEST_F(RanluxppRngEngineTest, branch)
     rng = RanluxppInitializer{12345, 0, 0};
 
     // Initialize second RNG
-    RanluxppRngEngine branched_rng = rng.branch(states.ref(), TrackSlotId{1});
+    RanluxppRngEngine branched_rng(
+        params_->host_ref(), states.ref(), TrackSlotId{1});
+    branched_rng = rng.branch();
 
-    // Get references to the state
+    // Create a third RNG, and branch its state manually
     auto& ref_rng_state = states.ref().state[TrackSlotId{2}];
     auto& ref_branched_rng_state = states.ref().state[TrackSlotId{3}];
-
-    // Create a third RNG, and branch it's state manually
     RanluxppRngEngine ref_branched_rng(
         params_->host_ref(), states.ref(), TrackSlotId{3});
     {
