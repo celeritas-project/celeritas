@@ -28,8 +28,10 @@ namespace celeritas
 {
 namespace ddceler
 {
-
+namespace
+{
 //---------------------------------------------------------------------------//
+
 FieldDriverOptions load_driver_options(dd4hep::sim::Geant4Action* field_action)
 {
     FieldDriverOptions driver_options;
@@ -47,6 +49,8 @@ FieldDriverOptions load_driver_options(dd4hep::sim::Geant4Action* field_action)
 
     return driver_options;
 }
+
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -182,6 +186,7 @@ SetupOptions DDcelerTMI::make_options()
 
     // Save diagnostic file to a unique name
     opts.output_file = "ddceler.out.json";
+    opts.geometry_output_file = "ddceler.out.gdml";
     return opts;
 }
 
