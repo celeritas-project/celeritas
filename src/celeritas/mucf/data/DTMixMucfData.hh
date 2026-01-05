@@ -94,6 +94,25 @@ struct DTMixMucfData
                && (matcompid_to_matid.size() == cycle_times.size());
     }
 
+    //! Get the material componend ID from a given \c PhysMatId .
+    CELER_FUNCTION MuCfMatCompId material_component_id(PhysMatId matid) const
+    {
+        CELER_EXPECT(matid);
+        CELER_EXPECT(this);
+        CELER_EXPECT(!this->matcompid_to_matid.empty());
+
+        for (auto i : range(this->matcompid_to_matid.size()))
+        {
+            if (auto const comp_id = MuCfMatCompId{i};
+                this->matcompid_to_matid[comp_id] == matid)
+            {
+                return comp_id;
+            }
+        }
+        // Component ID not found
+        return MuCfMatCompId{};
+    }
+
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     DTMixMucfData& operator=(DTMixMucfData<W2, M2> const& other)
