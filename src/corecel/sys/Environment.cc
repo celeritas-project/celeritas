@@ -21,9 +21,9 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::recursive_mutex& getenv_mutex()
+std::mutex& getenv_mutex()
 {
-    static std::recursive_mutex mu;
+    static std::mutex mu;
     return mu;
 }
 
@@ -91,23 +91,26 @@ GetenvFlagResult
 getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
 {
     CELER_EXPECT(get_default_value);
-    std::scoped_lock lock_{getenv_mutex()};
 
     // Get the string value from the existing environment *or* system
     std::string str_value = [&key]() -> std::string {
-        auto& env = environment();
-        if (auto iter = env.find(key); iter != env.end())
         {
-            // Variable was already loaded internally
-            if (iter->second.empty())
+            std::scoped_lock lock_{getenv_mutex()};
+            auto& env = environment();
+            if (auto iter = env.find(key); iter != env.end())
             {
-                CELER_LOG(warning)
-                    << "Already-set but empty environment value '" << key
-                    << "' is being ignored";
+                // Variable was already loaded internally
+                if (iter->second.empty())
+                {
+                    CELER_LOG(warning)
+                        << "Already-used empty environment value '" << key
+                        << "' is being treated as 'auto'";
+                }
+                return iter->second;
             }
-            return iter->second;
         }
-        else if (char const* sys_value = std::getenv(key.c_str()))
+
+        if (char const* sys_value = std::getenv(key.c_str()))
         {
             // Variable is set in the user environment
             return sys_value;
@@ -158,7 +161,10 @@ getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
         str_value = result.value ? "1" : "0";
     }
 
-    environment().insert({key, str_value});
+    {
+        std::scoped_lock lock_{getenv_mutex()};
+        environment().insert({key, str_value});
+    }
     return result;
 }
 
