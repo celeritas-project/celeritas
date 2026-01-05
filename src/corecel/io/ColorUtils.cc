@@ -21,7 +21,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-// Get a default color based on the terminal settings
+//! Get a default color based on the terminal settings
 bool default_term_color()
 {
 #ifndef _WIN32
@@ -42,7 +42,7 @@ bool default_term_color()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a default color based on the terminal/env settings.
+ * Get the preferred environment variable to use for color override.
  */
 char const* color_env_var()
 {

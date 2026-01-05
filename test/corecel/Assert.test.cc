@@ -25,7 +25,6 @@ class AssertTest : public ::celeritas::test::Test
   protected:
     static void SetUpTestSuite()
     {
-        cout << "Color: " << celeritas::getenv("NO_COLOR").empty() << endl;
         EXPECT_TRUE(celeritas::getenv("NO_COLOR").empty()
                     && (celeritas::getenv_flag("CELER_COLOR", true).value
                         || celeritas::getenv_flag("GTEST_COLOR", true).value))
