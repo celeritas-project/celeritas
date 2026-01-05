@@ -28,11 +28,8 @@ resolve_symlinks() {
   printf "%s\n" "$_path"
 }
 
-
-EXAMPLE_DIR=$(cd "$(dirname $0)" && pwd)
-
 # Parse mode argument
-MODE="${1:-celeritas}"
+MODE=$1
 if [ "$MODE" != "celeritas" ] && [ "$MODE" != "geant4" ]; then
   log "Usage: $0 [celeritas|geant4] [additional ddsim options]"
   log ""
@@ -47,11 +44,10 @@ if [ "$MODE" = "geant4" ]; then
   export CELER_DISABLE=1
 fi
 
-if [ -z "${CELER_SOURCE_DIR}" ]; then
-  CELER_SOURCE_DIR=$(cd "$EXAMPLE_DIR"/../.. && pwd)
-fi
+EXAMPLE_DIR=$(cd "$(dirname $0)" && pwd)
+
 if [ -z "${Celeritas_ROOT}" ]; then
-  Celeritas_ROOT="${CELER_SOURCE_DIR}/install"
+  Celeritas_ROOT=$(cd "$EXAMPLE_DIR"/../.. && pwd)/install
   log "warning: Celeritas_ROOT is undefined: using ${Celeritas_ROOT}"
 fi
 
@@ -98,14 +94,14 @@ if [ -z "$PYTHON" ]; then
 fi
 PYTHON=$(resolve_symlinks "$PYTHON" true)
 
-output_file="preshower-${MODE}.root"
-
-log "info: Running in ${MODE} mode"
+# Set output file name based on run mode
+log "Running with ${MODE} physics"
+output_file="preshower.root"
 log "info: Output will be written to ${output_file}"
 
 # Create mode-specific subdirectory and change to it
-mkdir -p "${EXAMPLE_DIR}/results/${MODE}"
-cd "${EXAMPLE_DIR}/results/${MODE}"
+mkdir -p "${EXAMPLE_DIR}/output/${MODE}"
+cd "${EXAMPLE_DIR}/output/${MODE}"
 
 set -x
 exec "$PYTHON" "$DDSIM" \

@@ -49,4 +49,4 @@ jobs:
           }}
         with:
           name: simulation-artifacts
-          path: example/ddceler/results/celeritas/*.root
+          path: example/ddceler/output/**
