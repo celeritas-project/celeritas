@@ -73,8 +73,6 @@ SetupOptions DDcelerTMI::make_options()
                    << "InitCapacity must be set to a positive value (got "
                    << init_capacity_ << ")");
 
-    // NOTE: these numbers are appropriate for CPU execution and can be set
-    // through the UI using `/celer/`
     opts.max_num_tracks = max_num_tracks_;
     opts.initializer_capacity = init_capacity_;
 
