@@ -21,9 +21,9 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::mutex& getenv_mutex()
+std::recursive_mutex& getenv_mutex()
 {
-    static std::mutex mu;
+    static std::recursive_mutex mu;
     return mu;
 }
 
