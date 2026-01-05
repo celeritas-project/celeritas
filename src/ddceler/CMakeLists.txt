@@ -97,7 +97,7 @@ function(celer_dd4hep_plugin target)
     # Link CUDA RDC "final" library into plugin
     target_link_options(${target} PRIVATE
       "-Wl,--push-state,--no-as-needed"
-      "-l$<TARGET:${_final_lib}>"
+      "$<TARGET_LINKER_FILE:${_final_lib}>"
       "-Wl,--pop-state"
     )
     if(CELERITAS_DISABLE_NEW_DTAGS)
