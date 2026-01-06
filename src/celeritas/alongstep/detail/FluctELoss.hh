@@ -122,7 +122,7 @@ CELER_FUNCTION auto FluctELoss::operator()(CoreTrackView const& track) -> Energy
         // because the range calculation is based on the *mean* energy
         // loss. To fix this, we would need to sample the range from a
         // distribution as well.
-        if (CELER_UNLIKELY(track.geometry().is_on_boundary()))
+        if (track.geometry().is_on_boundary())
         {
             // Don't stop particles on geometry boundaries: just use the
             // mean loss which should be positive because this isn't a
