@@ -10,6 +10,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
 
 #include "celeritas_test.hh"
@@ -57,10 +59,6 @@ TEST(EnvironmentTest, global)
               getenv_flag("ENVTEST_ZERO", false));
     EXPECT_EQ((GetenvFlagResult{true, false}),
               getenv_flag("ENVTEST_ONE", false));
-    EXPECT_EQ((GetenvFlagResult{false, true}),
-              getenv_flag("ENVTEST_EMPTY", false));
-    EXPECT_EQ((GetenvFlagResult{true, true}),
-              getenv_flag("ENVTEST_EMPTY", true));
     EXPECT_EQ((GetenvFlagResult{true, true}),
               getenv_flag("ENVTEST_NEW_T", true));
     EXPECT_EQ((GetenvFlagResult{false, true}),
@@ -83,6 +81,26 @@ TEST(EnvironmentTest, global)
               getenv_flag("ENVTEST_AUTO", true));
     EXPECT_EQ((GetenvFlagResult{false, true}),
               getenv_flag("ENVTEST_AUTO", false));
+
+    {
+        // Empty should act like auto
+        ScopedLogStorer scoped_log_{&world_logger()};
+        EXPECT_EQ((GetenvFlagResult{false, true}),
+                  getenv_flag("ENVTEST_EMPTY", false));
+        EXPECT_EQ((GetenvFlagResult{true, true}),
+                  getenv_flag("ENVTEST_EMPTY", true));
+        scoped_log_.print_expected();
+    }
+    {
+        // Invalid flag should also act like auto
+        ScopedLogStorer scoped_log_{&world_logger()};
+        environment().insert({"ENVTEST_NOTAFLAG", "notaflag"});
+        EXPECT_EQ((GetenvFlagResult{false, true}),
+                  getenv_flag("ENVTEST_NOTAFLAG", false));
+        EXPECT_EQ((GetenvFlagResult{true, true}),
+                  getenv_flag("ENVTEST_NOTAFLAG", true));
+        scoped_log_.print_expected();
+    }
 }
 
 TEST(EnvironmentTest, lazy)

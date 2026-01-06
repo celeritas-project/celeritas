@@ -145,18 +145,19 @@ getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
         }
         else
         {
+            result.defaulted = true;
             invalid_str = true;
         }
     }
 
-    if (result.defaulted || invalid_str)
+    if (result.defaulted)
     {
         // Get automatic default
         result.value = get_default_value();
 
         if (invalid_str)
         {
-            // Warn before overwriting string
+            // Warn after getting value, before overwriting string
             CELER_LOG(warning)
                 << "Invalid environment value " << key << "=" << str_value
                 << " (expected a flag): using default=" << result.value;
