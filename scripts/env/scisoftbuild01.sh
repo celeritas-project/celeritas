@@ -114,25 +114,31 @@ if [ -n "$CELER_SOURCE_DIR" ]; then
   _clangd="$CELER_SOURCE_DIR/.clangd"
   if [ ! -e "${_clangd}" ]; then
     # Create clangd compatible with the system and build config
-    _gcc_version=$(gcc -dumpversion | cut -d. -f1)
-    celerlog info "Creating clangd config using GCC ${_gcc_version}: ${_clangd}"
-    cat > "${_clangd}" << EOF
+    _cxx=$GCC_FQ_DIR/bin/g++
+    if [ ! -x "${_cxx}" ]; then
+      celerlog info "GCC isn't loaded as expected at \$GCC_FQ_DIR/bin/g++ = ${_cxx}"
+    else
+      celerlog info "Creating clangd config using ${_cxx}: ${_clangd}"
+
+      # Extract include paths from GCC
+      _gcc_includes=$("${_cxx}" -E -x c++ - -v < /dev/null 2>&1 | \
+        sed -n '/^#include <...> search starts here:/,/^End of search list\./p' | \
+        grep '^ ' | sed 's/^ *//' | \
+        awk '{printf "      -isystem,\n      %s,\n", $0}' | \
+        sed '$s/,$//')
+
+      cat > "${_clangd}" << EOF
 CompileFlags:
   CompilationDatabase: ${SCRATCHDIR}/build/celeritas-reldeb-orange
   Add:
     [
-      -isystem,
-      /usr/include/c++/${_gcc_version},
-      -isystem,
-      /usr/local/include,
-      -isystem,
-      /usr/include,
-      -isystem,
-      /usr/include/x86_64-linux-gnu/c++/${_gcc_version},
+${_gcc_includes}
     ]
 EOF
+      unset _gcc_includes
+    fi
+    unset _clangd
   fi
-  unset _clangd
 fi
 
 export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
