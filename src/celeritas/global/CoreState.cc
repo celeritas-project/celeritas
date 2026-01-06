@@ -7,7 +7,7 @@
 #include "CoreState.hh"
 
 #include "corecel/Macros.hh"
-#if CELER_USE_DEVICE
+#ifdef CELER_USE_DEVICE
 #    include "corecel/data/ObserverPtr.device.hh"
 #endif
 #include "corecel/io/Logger.hh"
@@ -151,6 +151,7 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
     return {thread_offsets[action_id], thread_offsets[action_id + 1]};
 }
 
+#if CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Copy the core state counters from the device to the host. Since the entire
@@ -167,9 +168,9 @@ CoreStateCounters const CoreState<M>::sync_get_counters() const
     }
     else if constexpr (M == MemSpace::host)
     {
-        return *(this->ref().init.counters.data().get());
-        // CELER_ASSERT_UNREACHABLE();
-        // return CoreStateCounters{};
+        // return *(this->ref().init.counters.data().get());
+        CELER_ASSERT_UNREACHABLE();
+        return CoreStateCounters{};
     }
 }
 
@@ -198,6 +199,7 @@ void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
     }
     return;
 }
+#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -231,9 +233,25 @@ void CoreState<M>::reset()
 }
 
 //---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+template<MemSpace M>
+CoreStateCounters const CoreState<M>::sync_get_counters() const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+template<MemSpace M>
+void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
+
+//---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 template class CoreState<MemSpace::host>;
 template class CoreState<MemSpace::device>;
 //---------------------------------------------------------------------------//
+
 }  // namespace celeritas
