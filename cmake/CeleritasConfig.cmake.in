@@ -167,6 +167,10 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
+if(CELERITAS_USE_DD4hep)
+  find_dependency(DD4hep REQUIRED)
+endif()
+
 cmake_policy(POP)
 
 #-----------------------------------------------------------------------------#

@@ -462,7 +462,9 @@ commit on the ``develop`` branch that is *not* intended for version 1.0.1
 (i.e., the
 first new feature) should be tagged with ``v1.1.0-dev``, so that
 ``git describe --tags --match 'v*'`` shows the new features as being part of the
-``v1.1.0`` series.
+``v1.1.0`` series. That pull request should *also* update the "fallback"
+version number ``Celeritas_VERSION`` stored in the top-level
+:file:`CMakeLists.txt`.
 
 .. _helper notebook: https://github.com/celeritas-project/celeritas-docs/blob/master/nb/admin/github-stats.ipynb
 .. _geant-val: https://geant-val.cern.ch
