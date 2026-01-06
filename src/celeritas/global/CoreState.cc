@@ -193,7 +193,6 @@ void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
     }
     else if constexpr (M == MemSpace::host)
     {
-        host_counters = CoreStateCounters{};
         CELER_ASSERT_UNREACHABLE();
     }
     return;
@@ -242,6 +241,7 @@ CoreStateCounters const CoreState<M>::sync_get_counters() const
 template<MemSpace M>
 void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
 {
+    host_counters = CoreStateCounters{};
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
