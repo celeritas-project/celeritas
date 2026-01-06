@@ -193,7 +193,7 @@ void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
     }
     else if constexpr (M == MemSpace::host)
     {
-        CELER_DISCARD(host_counters);
+        host_counters = CoreStateCounters{};
         CELER_ASSERT_UNREACHABLE();
     }
     return;
