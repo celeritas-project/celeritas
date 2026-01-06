@@ -88,7 +88,7 @@ if [ -n "${MRB_PROJECT}" ]; then
   _setup_filename="${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}_${MRB_PROJECT_VERSION}_${MRB_QUALS//:/_}/setup"
   if ! [ -f "${_setup_filename}" ]; then
     celerlog warn "Expected setup file at ${_setup_filename}: MRB may not have been set up correctly"
-    _setup_filename=$(print %s"${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}*/setup")
+    _setup_filename=$(printf %s "${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}"*/setup)
     if [ -f "${_setup_filename}" ]; then
       celerlog info "Found setup file ${_setup_filename}"
     fi
@@ -106,7 +106,10 @@ if [ -n "${MRB_SOURCE}" ]; then
 
   # Now that a package exists in MRB source, cmake and dependencies can load
   celerlog info "Activating MRB environment"
-  mrbsetenv
+  if ! mrbsetenv; then
+    celerlog error "Failed to set up MRB"
+    return 1
+  fi
   celerlog debug "MRB setup complete"
 fi
 
