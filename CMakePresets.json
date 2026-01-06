@@ -8,7 +8,7 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
-        "Celeritas_GIT_DESCRIBE": "",
+        "Celeritas_CGV_CACHE": "",
         "BUILD_TESTING": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_COMPILER_LAUNCHER": {"type": "STRING", "value": "$env{CCACHE_PROGRAM}"},
