@@ -89,7 +89,12 @@ TEST(EnvironmentTest, global)
                   getenv_flag("ENVTEST_EMPTY", false));
         EXPECT_EQ((GetenvFlagResult{true, true}),
                   getenv_flag("ENVTEST_EMPTY", true));
-        scoped_log_.print_expected();
+        static char const* const expected_log_messages[] = {
+            R"(Already-set but empty environment value 'ENVTEST_EMPTY' is being ignored)",
+            R"(Already-set but empty environment value 'ENVTEST_EMPTY' is being ignored)"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning", "warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
     {
         // Invalid flag should also act like auto
@@ -99,7 +104,12 @@ TEST(EnvironmentTest, global)
                   getenv_flag("ENVTEST_NOTAFLAG", false));
         EXPECT_EQ((GetenvFlagResult{true, true}),
                   getenv_flag("ENVTEST_NOTAFLAG", true));
-        scoped_log_.print_expected();
+        static char const* const expected_log_messages[] = {
+            R"(Invalid environment value ENVTEST_NOTAFLAG=notaflag (expected a flag): using default=0)",
+            R"(Invalid environment value ENVTEST_NOTAFLAG=notaflag (expected a flag): using default=1)"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning", "warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
 }
 
@@ -160,7 +170,16 @@ TEST(EnvironmentTest, merge)
     Environment input;
     input.insert({"FOO", "foo2"});
     input.insert({"BAZ", "baz"});
-    sys.merge(input);
+    {
+        ScopedLogStorer scoped_log_{&world_logger()};
+        sys.merge(input);
+        static char const* const expected_log_messages[] = {
+            R"(Ignoring new environment variable FOO=foo2: using existing value 'foo')",
+        };
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    }
 
     std::ostringstream os;
     os << sys;
