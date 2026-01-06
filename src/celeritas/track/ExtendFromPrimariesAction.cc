@@ -106,7 +106,7 @@ void ExtendFromPrimariesAction::insert(CoreParams const& params,
     size_type num_initializers;
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
     {
-        num_initializers = state.counters().num_initializers;
+        num_initializers = s->counters().num_initializers;
     }
     else if (auto* s = dynamic_cast<CoreState<MemSpace::device>*>(&state))
     {
