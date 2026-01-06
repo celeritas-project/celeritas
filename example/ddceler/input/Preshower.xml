@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Derived from DD4hep example geometry -->
+<!-- Copyright Celeritas contributors: see top-level COPYRIGHT file for details -->
+<!-- SPDX-License-Identifier: (Apache-2.0 OR MIT) -->
+<lccdd>
+
+  <info name="Preshower"
+	title="Simple preshower detector with absorber and detection layers"
+	author="Modified"
+	url="http://www.cern.ch/lhcb"
+	status="development"
+	version="1.0">
+    <comment>Simple two-layer preshower detector</comment>
+  </info>
+
+  <includes>
+    <gdmlFile  ref="${DD4hepINSTALL}/DDDetectors/compact/elements.xml"/>
+    <gdmlFile  ref="${DD4hepINSTALL}/DDDetectors/compact/materials.xml"/>
+  </includes>
+
+  <materials>
+    <material name="Polystyrene">
+      <D type="density" unit="g/cm3" value="1.032"/>
+      <composite n="8" ref="C"/>
+      <composite n="8" ref="H"/>
+    </material>
+  </materials>
+
+  <define>
+    <constant name="world_size" value="30*m"/>
+    <constant name="world_x" value="world_size"/>
+    <constant name="world_y" value="world_size"/>
+    <constant name="world_z" value="world_size"/>
+  </define>
+
+  <display>
+    <vis name="Invisible" showDaughters="false" visible="false"/>
+    <vis name="InvisibleWithChildren" showDaughters="true" visible="false"/>
+    <vis name="VisibleRed"  r="1.0" g="0.0" b="0.0" showDaughters="true" visible="true"/>
+    <vis name="VisibleBlue" r="0.0" g="0.0" b="1.0" showDaughters="false" visible="true"/>
+    <vis name="VisibleGreen" alpha="1.0" r="0.0" g="1.0" b="0.0" drawingStyle="solid" lineStyle="solid" showDaughters="true" visible="true"/>
+    <vis name="VisibleYellow" alpha="1.0" r="1.0" g="1.0" b="0.0" drawingStyle="solid" lineStyle="solid" showDaughters="true" visible="true"/>
+  </display>
+
+  <limits>
+    <limitset name="PreshowerLimitSet">
+      <limit name="step_length_max" particles="*" value="5.0" unit="mm" />
+    </limitset>
+  </limits>
+
+  <regions>
+    <region name="PreshowerRegion" eunit="MeV" lunit="mm" cut="0.001" threshold="0.001">
+      <limitsetref name="PreshowerLimitSet"/>
+    </region>
+  </regions>
+
+  <detectors>
+    <!-- Absorber layer - Lead, passive -->
+    <detector id="1" name="AbsorberLayer" type="DD4hep_BoxSegment" vis="VisibleYellow" region="PreshowerRegion" limits="PreshowerLimitSet">
+      <material name="Lead"/>
+      <box      x="100*cm" y="100*cm" z="1*cm"/>
+      <position x="0"      y="0"      z="150*cm"/>
+      <rotation x="0"     y="0"      z="0"/>
+    </detector>
+
+    <!-- Detection layer - Scintillator, sensitive -->
+    <detector id="2" name="DetectionLayer" type="DD4hep_BoxSegment" readout="PreshowerHits" vis="VisibleGreen" sensitive="true" region="PreshowerRegion" limits="PreshowerLimitSet">
+      <material name="Polystyrene"/>
+      <sensitive type="calorimeter"/>
+      <box      x="60*cm" y="60*cm" z="2.5*cm"/>
+      <position x="0"     y="0"     z="151.25*cm"/>
+      <rotation x="0"     y="0"     z="0"/>
+    </detector>
+  </detectors>
+
+  <readouts>
+    <readout name="PreshowerHits">
+      <segmentation type="CartesianGridXY" grid_size_x="5*mm" grid_size_y="5*mm"/>
+      <id>system:8,x:24:-12,y:-12</id>
+    </readout>
+  </readouts>
+
+  <fields>
+    <field name="ConstantField" type="ConstantField" field="magnetic">
+      <strength x="0" y="0" z="5.0*tesla"/>
+    </field>
+  </fields>
+
+</lccdd>
