@@ -14,8 +14,8 @@
 
 #include "corecel/Assert.hh"
 
-#include "larceler/LarStandaloneRunner.hh"
-#include "larceler/inp/LarStandaloneRunner.hh"
+#include "LarStandaloneRunner.hh"
+#include "inp/LarStandaloneRunner.hh"
 
 namespace celeritas
 {

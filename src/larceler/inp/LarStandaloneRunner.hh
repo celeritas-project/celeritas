@@ -6,11 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <limits>
 #include <map>
 #include <string>
 
-#include "corecel/Types.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Tracking.hh"
 

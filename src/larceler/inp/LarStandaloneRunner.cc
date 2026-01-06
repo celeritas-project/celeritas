@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "LarStandaloneRunner.hh"
 
-#include "corecel/io/Logger.hh"
-
 #include "larceler/detail/LarCelerConfig.hh"
 
 namespace celeritas
