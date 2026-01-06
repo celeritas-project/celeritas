@@ -15,6 +15,10 @@ set(PUBLIC_DEPS
   Celeritas::BuildFlags
 )
 
+#-----------------------------------------------------------------------------#
+# Create mock upstream library for building against official LArSoft
+#-----------------------------------------------------------------------------#
+
 set(_larsoft_tool_target larsim::OpticalPropagationTools)
 if(NOT TARGET ${_larsoft_tool_target})
   message(WARNING "LArSoft version is too old for integrated Celeritas support: "
@@ -42,7 +46,6 @@ celeritas_target_link_libraries(larceler
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
-
 
 #-----------------------------------------------------------------------------#
 # Create plugin
