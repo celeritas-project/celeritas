@@ -236,16 +236,32 @@ TYPED_TEST_SUITE(TrackInitTest, MemspaceTypes, MemspaceTypeString);
 //! Test that we can add more primaries than the first allocation
 TYPED_TEST(TrackInitTest, add_more_primaries)
 {
-    this->build_states(16);
-    EXPECT_EQ(0, this->state().sync_get_counters().num_initializers);
+    if (TestFixture::M == MemSpace::device)
+    {
+        this->build_states(16);
+        EXPECT_EQ(0, this->state().sync_get_counters().num_initializers);
 
-    auto primaries = this->make_primaries(22);
-    this->extend_from_primaries(make_span(primaries));
-    EXPECT_EQ(22, this->state().sync_get_counters().num_initializers);
+        auto primaries = this->make_primaries(22);
+        this->extend_from_primaries(make_span(primaries));
+        EXPECT_EQ(22, this->state().sync_get_counters().num_initializers);
 
-    primaries = this->make_primaries(32);
-    this->extend_from_primaries(make_span(primaries));
-    EXPECT_EQ(54, this->state().sync_get_counters().num_initializers);
+        primaries = this->make_primaries(32);
+        this->extend_from_primaries(make_span(primaries));
+        EXPECT_EQ(54, this->state().sync_get_counters().num_initializers);
+    }
+    else
+    {
+        this->build_states(16);
+        EXPECT_EQ(0, this->state().counters().num_initializers);
+
+        auto primaries = this->make_primaries(22);
+        this->extend_from_primaries(make_span(primaries));
+        EXPECT_EQ(22, this->state().counters().num_initializers);
+
+        primaries = this->make_primaries(32);
+        this->extend_from_primaries(make_span(primaries));
+        EXPECT_EQ(54, this->state().counters().num_initializers);
+    }
 }
 
 //! Test that we can add more primaries than the first allocation
@@ -258,8 +274,10 @@ TYPED_TEST(TrackInitTest, extend_primaries)
         auto primaries = this->make_primaries(2);
         this->insert_primaries(this->state(), make_span(primaries));
         RunResult::from_state(this->state());
-
-        EXPECT_EQ(0, this->state().sync_get_counters().num_initializers);
+        if (TestFixture::M == MemSpace::device)
+            EXPECT_EQ(0, this->state().sync_get_counters().num_initializers);
+        else
+            EXPECT_EQ(0, this->state().counters().num_initializers);
     }
     {
         // Now initialize after adding
@@ -425,10 +443,19 @@ TYPED_TEST(TrackInitTest, primaries)
 
         // Find vacancies and create track initializers from secondaries
         extend_from_secondaries.step(*this->core(), this->state());
-        EXPECT_EQ(i * num_tracks / 2,
-                  this->state().sync_get_counters().num_initializers);
-        EXPECT_EQ(num_tracks / 2,
-                  this->state().sync_get_counters().num_vacancies);
+        if (TestFixture::M == MemSpace::device)
+        {
+            EXPECT_EQ(i * num_tracks / 2,
+                      this->state().sync_get_counters().num_initializers);
+            EXPECT_EQ(num_tracks / 2,
+                      this->state().sync_get_counters().num_vacancies);
+        }
+        else
+        {
+            EXPECT_EQ(i * num_tracks / 2,
+                      this->state().counters().num_initializers);
+            EXPECT_EQ(num_tracks / 2, this->state().counters().num_vacancies);
+        }
     }
 
     // Check the results
@@ -486,9 +513,11 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     // Create track initializers on device from primary particles
     auto primaries = this->make_primaries(num_primaries);
     this->extend_from_primaries(make_span(primaries));
-    EXPECT_EQ(num_primaries,
-              this->state().sync_get_counters().num_initializers);
-
+    if (TestFixture::M == MemSpace::device)
+        EXPECT_EQ(num_primaries,
+                  this->state().sync_get_counters().num_initializers);
+    else
+        EXPECT_EQ(num_primaries, this->state().counters().num_initializers);
     auto apply_actions = [&actions, this] {
         for (auto const& ea_interface : actions)
         {
