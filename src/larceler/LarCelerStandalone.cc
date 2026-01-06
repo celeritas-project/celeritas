@@ -47,6 +47,8 @@ auto LarCelerStandalone::executeEvent(VecSED const& edeps) -> UPVecBTR
     CELER_EXPECT(runner_);
     CELER_EXPECT(!edeps.empty());
 
+    using VecBTR = LarStandaloneRunner::VecBTR;
+
     // Calculate detector responsors for the input steps
     auto& run = *runner_;
     VecBTR result = run(edeps);
