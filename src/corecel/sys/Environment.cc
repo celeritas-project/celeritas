@@ -21,6 +21,12 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Use a recursive mutex due to "lazy" callbacks possibly using environment.
+ *
+ * Recursion (one getenv_lazy within another) can also be present due to the
+ * CELER_LOG calls.
+ */
 std::recursive_mutex& getenv_mutex()
 {
     static std::recursive_mutex mu;
