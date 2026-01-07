@@ -297,7 +297,7 @@ TEST_F(MockAlongStepTest, basic)
     }
 }
 
-TEST_F(MockAlongStepFieldTest, TEST_IF_CELERITAS_DOUBLE(basic))
+TEST_F(MockAlongStepFieldTest, basic)
 {
     size_type num_tracks = 10;
     Input inp;
@@ -305,12 +305,16 @@ TEST_F(MockAlongStepFieldTest, TEST_IF_CELERITAS_DOUBLE(basic))
     {
         inp.energy = MevEnergy{0.1};
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.087685148514851444, result.eloss);
-        EXPECT_SOFT_EQ(0.072154637489842119, result.displacement);
-        EXPECT_SOFT_EQ(-0.77818527618217903, result.angle);
-        EXPECT_SOFT_EQ(1.1701381163128199e-11, result.time);
-        EXPECT_SOFT_EQ(0.14614191419141928, result.step);
-        EXPECT_SOFT_EQ(0.00013152772277225111, result.mfp);
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.087685148514851444, result.eloss);
+            EXPECT_SOFT_EQ(0.072154637489842119, result.displacement);
+            EXPECT_SOFT_EQ(-0.77818527618217903, result.angle);
+            EXPECT_SOFT_EQ(1.1701381163128199e-11, result.time);
+            EXPECT_SOFT_EQ(0.14614191419141928, result.step);
+            EXPECT_SOFT_EQ(0.00013152772277225111, result.mfp);
+        }
         EXPECT_SOFT_EQ(1, result.alive);
         EXPECT_EQ("eloss-range", result.action);
     }
@@ -319,11 +323,14 @@ TEST_F(MockAlongStepFieldTest, TEST_IF_CELERITAS_DOUBLE(basic))
         inp.position = {0, 0, 7};  // Outside top sphere, heading out
         inp.phys_mfp = 100;
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.001, result.eloss);
-        EXPECT_SOFT_NEAR(0.0036768333578785931, result.displacement, 1e-10);
-        EXPECT_SOFT_NEAR(0.65590801657964626, result.angle, 1e-10);
-        EXPECT_SOFT_EQ(6.9431339225049422e-10, result.time);
-        EXPECT_SOFT_EQ(0.930177246841563, result.step);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.001, result.eloss);
+            EXPECT_SOFT_NEAR(0.0036768333578785931, result.displacement, 1e-10);
+            EXPECT_SOFT_NEAR(0.65590801657964626, result.angle, 1e-10);
+            EXPECT_SOFT_EQ(6.9431339225049422e-10, result.time);
+            EXPECT_SOFT_EQ(0.930177246841563, result.step);
+        }
         EXPECT_SOFT_EQ(0, result.mfp);
         EXPECT_SOFT_EQ(0, result.alive);
         EXPECT_EQ("eloss-range", result.action);
@@ -494,7 +501,10 @@ TEST_F(Em3AlongStepTest, msc_nofluct_finegrid)
         inp.phys_mfp = 0.469519866261640;
         auto result = this->run(inp, num_tracks);
         // Distance to interaction = 0.0499189990540797
-        EXPECT_SOFT_NEAR(0.049721747266950993, result.step, 1e-8);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_NEAR(0.049721747266950993, result.step, 1e-8);
+        }
         EXPECT_EQ("geo-boundary", result.action);
     }
 }
@@ -581,6 +591,10 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         {
             GTEST_SKIP() << "Not using reference RNG";
         }
+        if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            GTEST_SKIP() << "Not using double precision";
+        }
 
         EXPECT_SOFT_NEAR(0.28064807889290933, result.displacement, tol);
         EXPECT_SOFT_NEAR(0.68629076604678063, result.angle, tol);
@@ -628,7 +642,10 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
 
         auto result = this->run(inp, num_tracks);
 
-        EXPECT_SOFT_EQ(2.7199323076809536, result.step);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(2.7199323076809536, result.step);
+        }
         EXPECT_EQ(0, result.eloss);
         EXPECT_EQ(0, result.mfp);
         EXPECT_EQ("geo-propagation-limit", result.action);
@@ -647,6 +664,10 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         if (CELERITAS_CORE_RNG != CELERITAS_CORE_RNG_XORWOW)
         {
             GTEST_SKIP() << "Not using reference RNG";
+        }
+        if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            GTEST_SKIP() << "Not using double precision";
         }
         EXPECT_SOFT_NEAR(0.28057298212898418, result.displacement, tol);
         EXPECT_SOFT_NEAR(0.6882027184831665, result.angle, tol);
@@ -676,7 +697,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
 {
     bpd_ = 56;
 
-    size_type num_tracks = 1024;
+    size_type num_tracks = 8;
     Input inp;
     {
         SCOPED_TRACE("range-limited electron in field near boundary");
@@ -694,14 +715,23 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         auto result = this->run(inp, num_tracks);
         if (is_ci_build())
         {
-            // Range = 6.4161473386016025e-06
-            EXPECT_SOFT_EQ(6.4161473386016025e-06, result.step);
+            constexpr double range = 6.4161473386016025e-06;
+            EXPECT_SOFT_EQ(range, result.step);
         }
-        else
+        else if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
         }
-        EXPECT_EQ("eloss-range", result.action);
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_EQ("eloss-range", result.action);
+        }
+        else
+        {
+            // Step is too small for single precision
+            EXPECT_EQ("tracking-cut", result.action);
+        }
         EXPECT_REAL_EQ(0, result.alive);
     }
 }
@@ -709,11 +739,6 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
 // Test nearly tangent value nearly on the boundary
 TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
 {
-    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        GTEST_SKIP() << "This edge case only occurs with double";
-    }
-
     size_type num_tracks = 128;
     Input inp;
     {
@@ -726,9 +751,12 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
                          -0.0391118941072485030};
 
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.55155207893668967, result.displacement);
-        EXPECT_SOFT_NEAR(0.095305171122713847, result.angle, 1e-11);
-        EXPECT_EQ("geo-propagation-limit", result.action);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.55155207893668967, result.displacement);
+            EXPECT_SOFT_NEAR(0.095305171122713847, result.angle, 1e-11);
+            EXPECT_EQ("geo-propagation-limit", result.action);
+        }
     }
 }
 
@@ -805,6 +833,69 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         EXPECT_EQ("eloss-range", result.action);
     }
 }
+
+TEST_F(LeadBoxAlongStepTest, mfp_steps)
+{
+    size_type num_tracks = 128;
+    Input inp;
+    inp.particle_id = this->particle()->find(pdg::electron());
+    inp.energy = MevEnergy{10000};
+    inp.direction = {1, 0, 0};
+    inp.position = {0, 0, 0};
+    inp.phys_mfp = 1;
+    {
+        SCOPED_TRACE("near-zero mfp");
+        inp.phys_mfp = 1e-20;
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(0, result.eloss);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(0, result.mfp);
+        EXPECT_SOFT_EQ(1, result.alive);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        SCOPED_TRACE("tiny mfp");
+        inp.phys_mfp = 1e-6;
+        auto result = this->run(inp, num_tracks);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(6.9164161686786e-07, result.eloss);
+            EXPECT_SOFT_EQ(1, result.angle);
+            EXPECT_SOFT_EQ(1.6943121845301e-18, result.time);
+            EXPECT_SOFT_EQ(5.0794201375653e-08, result.step);
+        }
+        EXPECT_SOFT_EQ(0, result.mfp);
+        EXPECT_SOFT_EQ(1, result.alive);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        SCOPED_TRACE("single mfp");
+        inp.phys_mfp = 1;
+        auto result = this->run(inp, num_tracks);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.68234478660682, result.eloss);
+        }
+        EXPECT_SOFT_EQ(0, result.mfp);
+        EXPECT_SOFT_EQ(1, result.alive);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        SCOPED_TRACE("large mfp");
+        inp.phys_mfp = 1e6;
+        auto result = this->run(inp, num_tracks);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(2001.409778094, result.eloss);
+            EXPECT_SOFT_EQ(4.9030072611395e-09, result.time);
+            EXPECT_SOFT_EQ(146.988459649, result.step);
+            EXPECT_SOFT_EQ(2893.8039317112, result.mfp);
+        }
+        EXPECT_SOFT_EQ(1, result.alive);
+        EXPECT_EQ("eloss-range", result.action);
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

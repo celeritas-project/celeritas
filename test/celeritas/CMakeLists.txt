@@ -298,7 +298,7 @@ celeritas_add_test(geo/GeoMaterial.test.cc
 
 #-----------------------------------------------------------------------------#
 # Global
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+if(CELERITAS_USE_Geant4)
   set(_along_step_filter
     "-Em3*:SimpleCms*:LeadBox*:Mock*"
     "Mock*"
@@ -328,20 +328,9 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
       "LeadBox*"
     )
   endif()
-elseif(CELERITAS_USE_Geant4)
-  set(_along_step_filter
-    "-Em3*:SimpleCms*:LeadBox*"
-    "Em3AlongStepTest.nofluct_nomsc"
-    "Em3AlongStepTest.fluct_nomsc"
-    "LeadBox*"
-  )
-  set(_stepper_filter
-    "-TestEm*:LeadBox*"
-    "TestEm3Compton.*"
-    "TestEm3Msc.*"
-    "TestEm3MscNofluct.*"
-    "TestEm15FieldMsc.*"
-  )
+  if(Geant4_VERSION VERSION_LESS 11.0)
+    list(REMOVE_ITEM _along_step_filter)
+  endif()
 else()
   set(_along_step_filter)
   set(_stepper_filter)

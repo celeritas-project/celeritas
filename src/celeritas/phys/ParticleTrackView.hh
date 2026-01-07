@@ -61,9 +61,6 @@ class ParticleTrackView
     // Change the particle's energy [MeV]
     inline CELER_FUNCTION void energy(Energy);
 
-    // Reduce the particle's energy [MeV]
-    inline CELER_FUNCTION void subtract_energy(Energy);
-
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Unique particle type identifier
@@ -165,18 +162,6 @@ void ParticleTrackView::energy(Energy quantity)
     CELER_EXPECT(this->particle_id());
     CELER_EXPECT(quantity >= zero_quantity());
     states_.particle_energy[track_slot_] = quantity.value();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reduce the particle's energy without undergoing a collision [MeV].
- */
-CELER_FUNCTION void ParticleTrackView::subtract_energy(Energy eloss)
-{
-    CELER_EXPECT(eloss >= zero_quantity());
-    CELER_EXPECT(eloss <= this->energy());
-    // TODO: save a read/write by only saving if eloss is positive?
-    states_.particle_energy[track_slot_] -= eloss.value();
 }
 
 //---------------------------------------------------------------------------//
