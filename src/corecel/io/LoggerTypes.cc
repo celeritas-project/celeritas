@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "LoggerTypes.hh"
 
+#include <algorithm>
+#include <string>
+
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Environment.hh"
 
