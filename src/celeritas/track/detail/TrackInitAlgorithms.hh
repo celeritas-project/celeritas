@@ -88,7 +88,6 @@ inline size_type exclusive_scan_counts(
 inline void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
-    CoreStateCounters const&,
     size_type,
     StreamId)
 {
