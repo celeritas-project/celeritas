@@ -102,10 +102,25 @@ TEST(InitializedValue, finalizer)
     EXPECT_EQ(0, ival);
     EXPECT_EQ(std::nullopt, get_last_finalized());
 
+    {
+        InitValueInt temp{2};
+        ival = std::move(temp);
+        EXPECT_EQ(std::nullopt, get_last_finalized());
+        EXPECT_EQ(0, temp);
+        EXPECT_EQ(2, ival);
+    }
+    EXPECT_EQ(std::nullopt, get_last_finalized());
+    ival = {};
+    EXPECT_EQ(2, get_last_finalized());
+
     InitValueInt other{345};
     EXPECT_EQ(345, other);
     ival = other;
     EXPECT_EQ(std::nullopt, get_last_finalized());
+    EXPECT_EQ(345, ival);
+    EXPECT_EQ(345, other);
+    other = ival;
+    EXPECT_EQ(345, get_last_finalized());
     EXPECT_EQ(345, ival);
     EXPECT_EQ(345, other);
 
