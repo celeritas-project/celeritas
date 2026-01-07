@@ -15,10 +15,23 @@ set(PUBLIC_DEPS
   Celeritas::BuildFlags
 )
 
-if(TARGET larsim::OpticalPropagationTools)
-  message(SEND_ERROR "This version of Celeritas is meant for testing larsim "
-    "before https://github.com/nuRiceLab/larsim/pull/1 : please implement or "
-    "update Celeritas")
+#-----------------------------------------------------------------------------#
+# Create mock upstream library for building against official LArSoft
+#-----------------------------------------------------------------------------#
+
+set(_larsoft_tool_target larsim::OpticalPropagationTools)
+if(NOT TARGET ${_larsoft_tool_target})
+  message(WARNING "LArSoft version is too old for integrated Celeritas support: "
+    "defining fake plugin target for local testing "
+    "(missing target ${_larsoft_tool_target})"
+  )
+  celeritas_add_interface_library(OpticalPropagationTools)
+  celeritas_target_include_directories(OpticalPropagationTools
+    SYSTEM INTERFACE
+      "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/larceler/larsim-future>"
+      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/larceler/larsim-future>"
+  )
+  set(_larsoft_tool_target Celeritas::OpticalPropagationTools)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -48,6 +61,7 @@ celeritas_target_link_libraries(${_plugin_name}
     cetlib_except::cetlib_except
     larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
     lardataobj::MCBase
+    ${_larsoft_tool_target}
   PUBLIC ${PUBLIC_DEPS}
 )
 

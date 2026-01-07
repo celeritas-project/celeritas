@@ -233,7 +233,7 @@ It includes environment files for quickly getting started on systems including N
    $ cd celeritas
    $ ./scripts/build.sh base
 
-You can, of course, manually build as a
+You can, of course, build manually:
 
 .. code-block:: console
 
@@ -245,7 +245,7 @@ You can, of course, manually build as a
 
 .. _zip file: https://github.com/celeritas-project/celeritas/archive/refs/heads/develop.zip
 .. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/
-.. _ExCL: https://docs.olcf.ornl.gov/systems/excl_user_guide.html
+.. _ExCL: https://docs.excl.ornl.gov
 .. _Frontier: https://docs.olcf.ornl.gov/systems/frontier_user_guide.html
 .. _JLSE: https://www.jlse.anl.gov/
 

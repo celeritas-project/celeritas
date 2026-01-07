@@ -25,11 +25,10 @@ class AssertTest : public ::celeritas::test::Test
   protected:
     static void SetUpTestSuite()
     {
-        EXPECT_FALSE(celeritas::getenv("CELER_COLOR").empty()
-                     && celeritas::getenv("GTEST_COLOR").empty())
+        EXPECT_TRUE(celeritas::getenv("NO_COLOR").empty()
+                    && (celeritas::getenv_flag("CELER_COLOR", true).value
+                        || celeritas::getenv_flag("GTEST_COLOR", true).value))
             << "Color must be enabled for this test";
-        EXPECT_FALSE(celeritas::getenv("CELER_LOG").empty())
-            << "Logging (for verbose output) must be enabled for this test";
     }
 };
 
@@ -42,8 +41,8 @@ TEST_F(AssertTest, debug_error)
     details.line = 123;
 
     EXPECT_STREQ(
-        "\x1B[37;1mAssert.test.cc:123:\x1B[0m\nceleritas: \x1B[31;1minternal "
-        "assertion failed: \x1B[37;2m2 + 2 == 5\x1B[0m",
+        "\x1B[1;37mAssert.test.cc:123:\x1B[0m\nceleritas: \x1B[1;31minternal "
+        "assertion failed: \x1B[2;37m2 + 2 == 5\x1B[0m",
         DebugError{std::move(details)}.what());
 }
 
@@ -70,8 +69,8 @@ TEST_F(AssertTest, runtime_error)
     {
         EXPECT_TRUE(std::string{e.what()}.find("implementation error:")
                     != std::string::npos);
-        EXPECT_TRUE(std::string{e.what()}.find("feature is not yet "
-                                               "implemented: bar")
+        EXPECT_TRUE(std::string{e.what()}.find(
+                        R"(feature is not yet implemented: bar)")
                     != std::string::npos)
             << e.what();
     }
@@ -81,10 +80,9 @@ TEST_F(AssertTest, runtime_error)
     }
     catch (RuntimeError const& e)
     {
-        EXPECT_TRUE(std::string{e.what()}.find("runtime error: \x1B[0mthis is "
-                                               "not OK")
-                    != std::string::npos)
-            << e.what();
+        char const expected[] = "runtime error: \x1B[0mthis is not OK";
+        EXPECT_TRUE(std::string{e.what()}.find(expected) != std::string::npos)
+            << repr(e.what());
     }
 }
 
@@ -122,22 +120,22 @@ TEST_F(AssertTest, runtime_error_variations)
 
     // clang-format off
     static char const* const expected_messages[] = {
-        "\x1b[31;1munknown error: \x1b[0m\n\x1b[37;2munknown source:\x1b[0m failure",
-        "\x1b[31;1mruntime error: \x1b[0m\n\x1b[37;2munknown source:\x1b[0m failure",
-        "\x1b[31;1munknown error: \x1b[0mbad things happened\n\x1b[37;2munknown source:\x1b[0m failure",
-        "\x1b[31;1mruntime error: \x1b[0mbad things happened\n\x1b[37;2munknown source:\x1b[0m failure",
-        "\x1b[31;1munknown error: \x1b[0m\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
-        "\x1b[31;1mruntime error: \x1b[0m\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
-        "\x1b[31;1munknown error: \x1b[0mbad things happened\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
-        "\x1b[31;1mruntime error: \x1b[0mbad things happened\n\x1b[37;1munknown source:\x1b[0m '2 + 2 == 5' failed",
-        "\x1b[31;1munknown error: \x1b[0m\n\x1b[37;2mAssert.test.cc:\x1b[0m failure",
-        "\x1b[31;1mruntime error: \x1b[0m\n\x1b[37;2mAssert.test.cc:123:\x1b[0m failure",
-        "\x1b[31;1munknown error: \x1b[0mbad things happened\n\x1b[37;2mAssert.test.cc:\x1b[0m failure",
-        "\x1b[31;1mruntime error: \x1b[0mbad things happened\n\x1b[37;2mAssert.test.cc:123:\x1b[0m failure",
-        "\x1b[31;1munknown error: \x1b[0m\n\x1b[37;1mAssert.test.cc:\x1b[0m '2 + 2 == 5' failed",
-        "\x1b[31;1mruntime error: \x1b[0m\n\x1b[37;1mAssert.test.cc:123:\x1b[0m '2 + 2 == 5' failed",
-        "\x1b[31;1munknown error: \x1b[0mbad things happened\n\x1b[37;1mAssert.test.cc:\x1b[0m '2 + 2 == 5' failed",
-        "\x1b[31;1mruntime error: \x1b[0mbad things happened\n\x1b[37;1mAssert.test.cc:123:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[1;31munknown error: \x1b[0m\n\x1b[2;37munknown source:\x1b[0m failure",
+        "\x1b[1;31mruntime error: \x1b[0m\n\x1b[2;37munknown source:\x1b[0m failure",
+        "\x1b[1;31munknown error: \x1b[0mbad things happened\n\x1b[2;37munknown source:\x1b[0m failure",
+        "\x1b[1;31mruntime error: \x1b[0mbad things happened\n\x1b[2;37munknown source:\x1b[0m failure",
+        "\x1b[1;31munknown error: \x1b[0m\n\x1b[1;37munknown source:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[1;31mruntime error: \x1b[0m\n\x1b[1;37munknown source:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[1;31munknown error: \x1b[0mbad things happened\n\x1b[1;37munknown source:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[1;31mruntime error: \x1b[0mbad things happened\n\x1b[1;37munknown source:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[1;31munknown error: \x1b[0m\n\x1b[2;37mAssert.test.cc:\x1b[0m failure",
+        "\x1b[1;31mruntime error: \x1b[0m\n\x1b[2;37mAssert.test.cc:123:\x1b[0m failure",
+        "\x1b[1;31munknown error: \x1b[0mbad things happened\n\x1b[2;37mAssert.test.cc:\x1b[0m failure",
+        "\x1b[1;31mruntime error: \x1b[0mbad things happened\n\x1b[2;37mAssert.test.cc:123:\x1b[0m failure",
+        "\x1b[1;31munknown error: \x1b[0m\n\x1b[1;37mAssert.test.cc:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[1;31mruntime error: \x1b[0m\n\x1b[1;37mAssert.test.cc:123:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[1;31munknown error: \x1b[0mbad things happened\n\x1b[1;37mAssert.test.cc:\x1b[0m '2 + 2 == 5' failed",
+        "\x1b[1;31mruntime error: \x1b[0mbad things happened\n\x1b[1;37mAssert.test.cc:123:\x1b[0m '2 + 2 == 5' failed",
     };
     // clang-format on
 
