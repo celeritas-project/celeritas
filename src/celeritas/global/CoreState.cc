@@ -163,7 +163,11 @@ CoreStateCounters const CoreState<M>::sync_get_counters() const
     if constexpr (M == MemSpace::device)
     {
         auto counters = device_pointer_cast(this->ref().init.counters.data());
-        return ItemCopier<CoreStateCounters>{stream_id()}(counters.get());
+        auto& stream = device().stream(stream_id());
+        auto result
+            = ItemCopier<CoreStateCounters>{stream_id()}(counters.get());
+        stream.sync();
+        return result;
     }
     else if constexpr (M == MemSpace::host)
     {
@@ -184,12 +188,14 @@ void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
     if constexpr (M == MemSpace::device)
     {
         auto counters = device_pointer_cast(this->ref().init.counters.data());
+        auto& stream = device().stream(stream_id());
         copy_bytes(MemSpace::device,
                    counters.get(),
                    MemSpace::host,
                    &host_counters,
                    sizeof(CoreStateCounters),
                    stream_id());
+        stream.sync();
     }
     else if constexpr (M == MemSpace::host)
     {
@@ -239,9 +245,8 @@ CoreStateCounters const CoreState<M>::sync_get_counters() const
 }
 
 template<MemSpace M>
-void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
+void CoreState<M>::sync_put_counters(CoreStateCounters&)
 {
-    host_counters = CoreStateCounters{};
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
