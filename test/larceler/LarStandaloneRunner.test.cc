@@ -68,7 +68,7 @@ auto LarSphereTest::make_input() const -> Input
 {
     Input result;
     result.geometry = this->test_data_path("geocel", "lar-sphere.gdml");
-    result.optical_step_iters = 10;
+    result.tracking_limits.steps = 10;
     result.optical_capacity.tracks = 16;
     return result;
 }
@@ -103,6 +103,7 @@ TEST_F(LarSphereTest, single_photon)
         /* origTrackID = */ 123);
 
     auto response = run({sed});
+    EXPECT_EQ(0, response.size());
 }
 
 //---------------------------------------------------------------------------//

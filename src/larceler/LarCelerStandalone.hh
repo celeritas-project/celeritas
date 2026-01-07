@@ -8,8 +8,8 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <art/Utilities/ToolConfigTable.h>
+#include <larsim/PhotonPropagation/OpticalPropagationTools/IOpticalPropagation.h>
 
 #include "LarStandaloneRunner.hh"
 
@@ -21,34 +21,6 @@ class SimEnergyDeposit;
 class OpDetBacktrackerRecord;
 }  // namespace sim
 
-// TODO: This will be defined upstream:
-// see https://github.com/nuRiceLab/larsim/pull/1
-namespace phot
-{
-class OpticalSimInterface
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using VecSED = std::vector<sim::SimEnergyDeposit>;
-    using VecBTR = std::vector<sim::OpDetBacktrackerRecord>;
-    using UPVecBTR = std::unique_ptr<VecBTR>;
-    ///@}
-
-    // Enable polymorphic deletion
-    virtual ~OpticalSimInterface() = 0;
-
-    // Set up execution
-    virtual void beginJob() = 0;
-
-    // Process a single event, returning detector hits
-    virtual UPVecBTR executeEvent(VecSED const& edeps) = 0;
-
-    // Tear down execution
-    virtual void endJob() = 0;
-};
-}  // namespace phot
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -56,11 +28,11 @@ namespace celeritas
  * Run optical photons in a standalone simulation.
  *
  * This plugin implements a replacement for LArSim's \c phot::PDFastSimPAR
- * class, taking a vector of energy-depositing steps and returning a vector
- * is instantiated by a FHiCL workflow file with a set of
- * parameters. It is executed after the detector simulation step (ionization,
- * recombination, scintillation, etc.) with a vector of steps that contain
- * energy deposition, and it returns a vector of detector responses.
+ * class. It is instantiated by a FHiCL workflow file with a set of
+ * parameters. It takes a vector of energy-depositing steps and returns a
+ * vector of detector responses. It is executed after the detector simulation
+ * module (ionization, recombination, scintillation, etc.) with a vector of
+ * steps that contain local energy deposition.
  *
  * The execution happens \em after LArG4 is complete, so it is completely
  * independent of the Geant4 run manager and execution. It requires an input
@@ -75,7 +47,7 @@ namespace celeritas
  *
  * See \c celeritas::detail::LarCelerStandaloneConfig .
  */
-class LarCelerStandalone final : public phot::OpticalSimInterface
+class LarCelerStandalone final : public phot::IOpticalPropagation
 {
   public:
     //!@{
