@@ -14,16 +14,25 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 
+using BoolFunc = std::function<bool()>;
+
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
-std::mutex& getenv_mutex()
+/*!
+ * Use a recursive mutex due to "lazy" callbacks possibly using environment.
+ *
+ * Recursion (one getenv_lazy within another) can also be present due to the
+ * CELER_LOG calls.
+ */
+std::recursive_mutex& getenv_mutex()
 {
-    static std::mutex mu;
+    static std::recursive_mutex mu;
     return mu;
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -77,6 +86,17 @@ std::string const& getenv(std::string const& key)
  */
 GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
 {
+    return getenv_flag_lazy(key, [default_val]() { return default_val; });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Like \c getenv_flag but calls a function only when a default is needed.
+ */
+GetenvFlagResult
+getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
+{
+    CELER_EXPECT(get_default_value);
     std::scoped_lock lock_{getenv_mutex()};
 
     // Get the string value from the existing environment *or* system
@@ -102,8 +122,8 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
     }();
 
     GetenvFlagResult result;
+    bool invalid_str{false};
     result.defaulted = str_value.empty();
-    result.value = default_val;
     if (!result.defaulted)
     {
         str_value = tolower(str_value);
@@ -111,8 +131,13 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
         static char const* const true_str[] = {"1", "t", "yes", "true"};
         static char const* const false_str[] = {"0", "f", "no", "false"};
 
-        if (std::find(std::begin(true_str), std::end(true_str), str_value)
-            != std::end(true_str))
+        if (str_value == "auto")
+        {
+            // User forcing default value
+            result.defaulted = true;
+        }
+        else if (std::find(std::begin(true_str), std::end(true_str), str_value)
+                 != std::end(true_str))
         {
             result.value = true;
         }
@@ -123,14 +148,25 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
         }
         else
         {
+            result.defaulted = true;
+            invalid_str = true;
+        }
+    }
+
+    if (result.defaulted)
+    {
+        // Get automatic default
+        result.value = get_default_value();
+
+        if (invalid_str)
+        {
+            // Warn after getting value, before overwriting string
             CELER_LOG(warning)
                 << "Invalid environment value " << key << "=" << str_value
                 << " (expected a flag): using default=" << result.value;
         }
-    }
-    else
-    {
-        // Save string value to be added to environment
+
+        // Save string value actually used in environment
         str_value = result.value ? "1" : "0";
     }
 

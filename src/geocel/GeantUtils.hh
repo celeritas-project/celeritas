@@ -17,10 +17,6 @@ class G4RunManager;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Clear Geant4's signal handlers that get installed when linking 11+
-void disable_geant_signal_handler();
-
-//---------------------------------------------------------------------------//
 // Get the number of threads in a version-portable way
 int get_geant_num_threads(G4RunManager const&);
 
@@ -50,8 +46,6 @@ std::ostream& operator<<(std::ostream& os, StreamablePD const& pd);
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline void disable_geant_signal_handler() {}
-
 inline int get_geant_num_threads(G4RunManager const&)
 {
     CELER_NOT_CONFIGURED("Geant4");

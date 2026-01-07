@@ -13,6 +13,7 @@
 #    include <unistd.h>
 #endif
 
+#include "corecel/Assert.hh"
 #include "corecel/sys/Environment.hh"
 
 namespace celeritas
@@ -20,7 +21,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-// Get a default color based on the terminal settings
+//! Get a default color based on the terminal settings
 bool default_term_color()
 {
 #ifndef _WIN32
@@ -28,9 +29,9 @@ bool default_term_color()
     return isatty(fileno(stderr));
 #endif
     // Fall back to checking environment variable
-    if (char const* term_str = std::getenv("TERM"))
+    if (auto term_str = celeritas::getenv("TERM"); !term_str.empty())
     {
-        if (std::string{term_str}.find("xterm") != std::string::npos)
+        if (term_str.find("xterm") != std::string::npos)
         {
             // 'xterm' is in the TERM type, so assume it uses colors
             return true;
@@ -41,9 +42,9 @@ bool default_term_color()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a default color based on the terminal/env settings.
+ * Get the preferred environment variable to use for color override.
  */
-char const* default_color_env_str()
+char const* color_env_var()
 {
     auto hasenv = [](char const* key) { return std::getenv(key) != nullptr; };
     static char const celer_env[] = "CELER_COLOR";
@@ -58,17 +59,26 @@ char const* default_color_env_str()
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether colors are enabled (currently read-only).
+ * Whether colors are enabled by the environment.
  *
- * This checks the \c CELER_COLOR environment variable, or the \c
- * GTEST_COLOR variable (if it is defined and CELER_COLOR is not), and defaults
- * based on the terminal settings of \c stderr.
+ * The \c NO_COLOR environment variable, if set to a non-empty value, disables
+ * color output. If either of the \c CELER_COLOR or \c GTEST_COLOR variables is
+ * set, that value will be used. Failing that, the default is true if \c stderr
+ * is a tty. The result of this value is used by \c ansi_color .
  */
 bool use_color()
 {
-    static bool const result
-        = celeritas::getenv_flag(default_color_env_str(), default_term_color())
-              .value;
+    static bool const result = [] {
+        if (auto term_str = celeritas::getenv("NO_COLOR"); !term_str.empty())
+        {
+            // See https://no-color.org
+            return false;
+        }
+
+        // Check one environment variable and fall back to terminal color
+        auto flag = getenv_flag_lazy(color_env_var(), default_term_color);
+        return flag.value;
+    }();
     return result;
 }
 
@@ -83,35 +93,43 @@ bool use_color()
  *  - [x] gray
  *  - [R]ed bold
  *  - [W]hite bold
- *  - [ ] default (reset color)
+ *  - \c null reset color
+ *  - [ ] reset color
  */
-char const* color_code(char abbrev)
+char const* ansi_color(char abbrev)
 {
     if (!use_color())
         return "";
 
     switch (abbrev)
     {
-        case 'g':
-            return "\033[32m";
-        case 'b':
-            return "\033[34m";
+        case '\0':
+            [[fallthrough]];
+        case ' ':
+            return "\033[0m";
         case 'r':
             return "\033[31m";
-        case 'x':
-            return "\033[37;2m";
+        case 'g':
+            return "\033[32m";
         case 'y':
             return "\033[33m";
+        case 'b':
+            return "\033[34m";
         case 'R':
-            return "\033[31;1m";
+            return "\033[1;31m";
+        case 'G':
+            return "\033[1;32m";
+        case 'B':
+            return "\033[1;34m";
         case 'W':
-            return "\033[37;1m";
+            return "\033[1;37m";
+        case 'x':
+            return "\033[2;37m";
         default:
             return "\033[0m";
     }
 
-    // Unknown color code: ignore
-    return "";
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
