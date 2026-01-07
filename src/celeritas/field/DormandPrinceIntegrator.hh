@@ -78,7 +78,7 @@ class DormandPrinceIntegrator
     {
     }
 
-    // Adaptive step size control
+    // Perform numerical integration over a step given an initial state
     CELER_FUNCTION result_type operator()(real_type step,
                                           OdeState const& beg_state) const;
 
