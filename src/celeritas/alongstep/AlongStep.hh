@@ -24,7 +24,7 @@ namespace celeritas
  *
  * \tparam MH MSC helper, e.g. \c detail::NoMsc
  * \tparam MP Propagator factory, e.g. \c detail::LinearPropagatorFactory
- * \tparam EH Energy loss helper, e.g. \c detail::TrackNoEloss
+ * \tparam EH Energy loss helper, e.g. \c detail::NoELoss
  */
 template<class MH, class MP, class EH>
 struct AlongStep
