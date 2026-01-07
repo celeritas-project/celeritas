@@ -48,12 +48,16 @@ if [ -n "${APPTAINER_CONTAINER}" ]; then
   export MRB_PROJECT_VERSION=v10_14_01
   export MRB_QUALS=e26:prof
   celerlog info "Running in apptainer ${APPTAINER_CONTAINER}"
-  if [ -z "${UPS_DIR}" ]; then
+  if [ -n "${UPS_DIR}" ]; then
+    celerlog debug "Dune UPS already set up: ${UPS_DIR}"
+  else
     celerlog info "Setting up DUNE UPS"
     . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
     celerlog debug "Using UPS_OVERRIDE=${UPS_OVERRIDE}, MRB_PROJECT=${MRB_PROJECT}"
   fi
-  if [ -z "${SETUP_LARCORE}" ]; then
+  if [ -n "${SETUP_LARCORE}" ]; then
+    celerlog debug "LARCORE is already set up"
+  else
     # Set up larsoft build defaults with UPS
     celerlog info "Setting up ${MRB_PROJECT} ${MRB_PROJECT_VERSION} with qualifiers '${MRB_QUALS}'"
     setup ${MRB_PROJECT} ${MRB_PROJECT_VERSION} -q ${MRB_QUALS} || return $?
@@ -76,18 +80,20 @@ done
 # Set up larsoft if running inside an apptainer
 if [ -n "${MRB_PROJECT}" ]; then
   LARSCRATCHDIR="${SCRATCHDIR}/${MRB_PROJECT}"
-  if ! [ -d "${LARSCRATCHDIR}" ]; then
-    celerlog info "Creating MRB dev area in ${LARSCRATCHDIR}..."
+  if [ -d "${LARSCRATCHDIR}" ]; then
+    celerlog debug "MRB dev area already exists at ${LARSCRATCHDIR}"
+  else
+    celerlog info "Creating MRB dev area in ${LARSCRATCHDIR}"
     mkdir -p "${LARSCRATCHDIR}" || return $?
     (
       cd "${LARSCRATCHDIR}"
       mrb newDev
-    )
+    ) || return 1
     celerlog debug "MRB environment created"
   fi
   _setup_filename="${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}_${MRB_PROJECT_VERSION}_${MRB_QUALS//:/_}/setup"
   if ! [ -f "${_setup_filename}" ]; then
-    celerlog warn "Expected setup file at ${_setup_filename}: MRB may not have been set up correctly"
+    celerlog warning "Expected setup file at ${_setup_filename}: MRB may not have been set up correctly"
     _setup_filename=$(printf %s "${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}"*/setup)
     if [ -f "${_setup_filename}" ]; then
       celerlog info "Found setup file ${_setup_filename}"
@@ -100,17 +106,19 @@ fi
 if [ -n "${MRB_SOURCE}" ]; then
   _pkg=larsim
   if ! [ -d "${MRB_SOURCE}/${_pkg}" ]; then
-    celerlog info "Installing ${_pkg}"
-    mrb g ${_pkg}
+    _tag=LARSOFT_SUITE_${MRB_PROJECT_VERSION}
+    celerlog info "Installing ${_pkg} @${_tag}"
+    mrb g -t ${_tag} ${_pkg}
   fi
 
   # Now that a package exists in MRB source, cmake and dependencies can load
   celerlog info "Activating MRB environment"
-  if ! mrbsetenv; then
-    celerlog error "Failed to set up MRB"
-    return 1
+  # Note that this may be a shell script
+  if ! command -v mrbsetenv >/dev/null 2>&1 ; then
+    celerlog warning "mrbsetenv is not defined: run manually in shell"
+  else
+    celerlog debug "MRB setup complete"
   fi
-  celerlog debug "MRB setup complete"
 fi
 
 if [ -n "$CELER_SOURCE_DIR" ]; then
