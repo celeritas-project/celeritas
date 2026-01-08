@@ -49,13 +49,19 @@ TrackingManagerConstructor::TrackingManagerConstructor(
  *
  * Since there's only ever one tracking manager integration, we can just use
  * the behind-the-hood objects.
+ *
+ * \note When calling from a serial run manager in a threaded G4 build, the
+ * thread ID is \c G4Threading::MASTER_ID (-1). When calling from the run
+ * manager of a non-threaded G4 build, the thread is \c
+ * G4Threading::SEQUENTIAL_ID (-2).
  */
 TrackingManagerConstructor::TrackingManagerConstructor(
     TrackingManagerIntegration* tmi)
     : TrackingManagerConstructor(
           &detail::IntegrationSingleton::instance().shared_params(),
           [](int tid) {
-              CELER_EXPECT(tid >= 0);
+              CELER_EXPECT(tid >= 0
+                           || !G4Threading::IsMultithreadedApplication());
               return &detail::IntegrationSingleton::instance()
                           .local_transporter();
           })
