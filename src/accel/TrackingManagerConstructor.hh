@@ -7,12 +7,9 @@
 #pragma once
 
 #include <functional>
-#include <G4ParticleDefinition.hh>
 #include <G4VPhysicsConstructor.hh>
 
-#include "corecel/cont/Span.hh"
-
-#include "detail/IntegrationSingleton.hh"
+class G4ParticleDefinition;
 
 namespace celeritas
 {
@@ -52,7 +49,7 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     //!@{
     //! \name Type aliases
     using LocalTransporterFromThread = std::function<LocalTransporter*(int)>;
-    using VecG4PD = SetupOptions::VecG4PD;
+    using VecG4PD = std::vector<G4ParticleDefinition*>;
     //!@}
 
   public:
