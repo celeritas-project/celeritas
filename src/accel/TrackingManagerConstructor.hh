@@ -69,14 +69,6 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     // Build and attach tracking manager
     void ConstructProcess() override;
 
-    //// ACCESSORS ////
-
-    //! Get the shared params associated with this TM
-    SharedParams const* shared_params() const { return shared_; }
-
-    // Get the local transporter associated with the current thread ID
-    LocalTransporter* get_local_transporter() const;
-
   private:
     SharedParams const* shared_{nullptr};
     LocalTransporterFromThread get_local_{};
