@@ -53,7 +53,9 @@ TrackingManagerConstructor::TrackingManagerConstructor(
 TrackingManagerConstructor::TrackingManagerConstructor(
     TrackingManagerIntegration* tmi)
     : TrackingManagerConstructor(
-          &detail::IntegrationSingleton::instance().shared_params(), [](int) {
+          &detail::IntegrationSingleton::instance().shared_params(),
+          [](int tid) {
+              CELER_EXPECT(tid >= 0);
               return &detail::IntegrationSingleton::instance()
                           .local_transporter();
           })
@@ -100,8 +102,15 @@ void TrackingManagerConstructor::ConstructProcess()
         shared_ && get_local_,
         << R"(invalid null inputs given to TrackingManagerConstructor)");
 
-    auto* transporter = this->get_local_transporter();
-    CELER_VALIDATE(transporter, << "invalid null local transporter");
+    LocalTransporter* transporter{nullptr};
+
+    if (G4Threading::IsWorkerThread()
+        || !G4Threading::IsMultithreadedApplication())
+    {
+        // Don't create or access local transporter on master thread
+        transporter = this->get_local_(G4Threading::G4GetThreadId());
+        CELER_VALIDATE(transporter, << "invalid null local transporter");
+    }
 
 #if G4VERSION_NUMBER >= 1100
     // Create *thread-local* tracking manager with pointers to *global*
@@ -128,16 +137,6 @@ void TrackingManagerConstructor::ConstructProcess()
     // Constructor should've prevented this
     CELER_ASSERT_UNREACHABLE();
 #endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the local transporter associated with the current thread ID.
- */
-LocalTransporter* TrackingManagerConstructor::get_local_transporter() const
-{
-    CELER_EXPECT(get_local_);
-    return this->get_local_(G4Threading::G4GetThreadId());
 }
 
 //---------------------------------------------------------------------------//
