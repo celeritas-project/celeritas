@@ -11,31 +11,30 @@ Geant4.
 .. doxygenclass:: celeritas::LocalTransporter
 
 Interface utilities
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 .. celerstruct:: AlongStepFactoryInput
 
-.. doxygenfunction:: celeritas::MakeMTLogger
 .. doxygenclass:: celeritas::ExceptionConverter
 .. doxygenclass:: celeritas::AlongStepFactoryInterface
 
 .. _api_accel_adapters:
 
 Classes usable by Geant4
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 These utilities are based on Celeritas data structures and capabilities but are
 written to be usable both by the ``celer-g4`` app and potential other users.
 
 Fields
-^^^^^^
+""""""
 
 .. doxygenclass:: celeritas::RZMapMagneticField
 .. doxygenclass:: celeritas::CylMapMagneticField
 .. doxygenfunction:: celeritas::MakeCylMapFieldInput
 
 Primary generators
-^^^^^^^^^^^^^^^^^^
+""""""""""""""""""
 
 .. doxygenclass:: celeritas::HepMC3PrimaryGenerator
 .. doxygenclass:: celeritas::PGPrimaryGeneratorAction
@@ -43,7 +42,7 @@ Primary generators
 .. _api_geant4_physics_options:
 
 Physics constructors
-^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
 A Geant4 physics constructor :cpp:class:`celeritas::SupportedEmStandardPhysics` allows
 very fine-grained selection of the EM physics processes supported by Celeritas.
@@ -54,15 +53,22 @@ parameters to send to Geant4.
 .. doxygenclass:: celeritas::SupportedEmStandardPhysics
 
 Physics lists
-^^^^^^^^^^^^^
+"""""""""""""
 
-Two physics lists (one using Geant4 hadronics, the other using pure Celeritas)
-allow setup of EM physics using only processes supported by Celeritas.
+Two physics constructors build exclusively processes supported by Celeritas for
+Geant4:
 
-.. doxygenclass:: celeritas::EmPhysicsList
+.. doxygenclass:: celeritas::SupportedEmStandardPhysics
+.. doxygenclass:: celeritas::SupportedOpticalPhysics
+
+Two "modular" physics lists (one using Geant4 hadronics, the other using pure
+Celeritas) are stand-ins for physics factories suitable for sending to
+``G4RunManager::SetUserInitialization``.
+
+.. doxygenclass:: celeritas::EmStandardPhysics
 .. doxygenclass:: celeritas::FtfpBertPhysicsList
 
 Sensitive detectors
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 .. doxygenclass:: celeritas::GeantSimpleCalo

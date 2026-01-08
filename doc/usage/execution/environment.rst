@@ -100,10 +100,18 @@ Celeritas or its apps:
 Logging
 -------
 
-The Celeritas library writes informational messages to ``stderr``. The given
-levels can be used with the ``CELER_LOG`` and ``CELER_LOG_LOCAL`` environment
-variables to suppress or increase the output. The default is to print
-diagnostic messages and higher.
+The Celeritas library has an internal logger that, by default, writes
+informational messages to ``stderr`` through the ``std::clog`` (buffered
+standard error) handle.
+The "world" logger generally prints messages during setup or at circumstances
+shared by all threads/tasks/processes, and the "self" logger is for messages
+related to a particular thread. By default the self logger is mutexed for
+thread safety, and log messages are assembled internally before printing to
+reduce I/O contention.
+
+The levels below can be used with the ``CELER_LOG`` and ``CELER_LOG_LOCAL``
+environment variables to suppress or increase the output.
+The default is to print diagnostic messages and higher.
 
 .. table:: Logging levels in increasing severity.
 

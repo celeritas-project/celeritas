@@ -182,8 +182,8 @@ namespace detail
             CELER_LOG_LOCAL(critical) << "(unknown exception)";
         }
     }
-    CELER_LOG(critical) << "failed to clear exceptions from "
-                           "MultiExceptionHandler";
+    CELER_LOG(critical)
+        << R"(failed to clear exceptions from MultiExceptionHandler)";
     std::terminate();
 }
 

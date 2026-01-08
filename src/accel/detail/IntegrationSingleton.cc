@@ -377,6 +377,7 @@ void IntegrationSingleton::update_logger()
             celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
             celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
             have_created_logger_ = true;
+            CELER_LOG(debug) << "Celeritas logging redirected through Geant4";
         }
         else
         {
