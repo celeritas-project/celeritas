@@ -167,11 +167,16 @@
             ::celeritas::unreachable(); \
         }                               \
     } while (0)
-#define CELER_NOASSERT_(COND)   \
-    do                          \
-    {                           \
-        if (false && (COND)) {} \
-    } while (0)
+#ifndef CELERITAS_GCOV
+#    define CELER_NOASSERT_(COND)   \
+        do                          \
+        {                           \
+            if (false && (COND)) {} \
+        } while (0)
+#else
+// Delete the code completely
+#    define CELER_NOASSERT_(COND)
+#endif
 //! \endcond
 
 #define CELER_DEBUG_FAIL(MSG, WHICH)    \

@@ -79,7 +79,7 @@ jobs:
             geometry: "vecgeom"
             special: "tidy"
             geant: "11.2"
-          - build_type: "reldeb"
+          - build_type: "ndebug"
             geometry: "vecgeom"
             special: "codecov"
             geant: "11.3"
@@ -358,6 +358,7 @@ jobs:
             !cancelled()
             && steps.build.outcome == 'success'
             && matrix.special != 'tidy'
+            && matrix.special != 'codecov'
           }}
         working-directory: build
         run: |

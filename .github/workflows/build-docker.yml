@@ -43,7 +43,7 @@ jobs:
           - buildtype: "debug"
             image: "ubuntu-rocm" # Debug device code breaks HIP optimizer
         include:
-          - buildtype: "reldeb"
+          - buildtype: "ndebug"
             geometry: "vecgeom"
             special: "codecov"
             geant: "11.3"
