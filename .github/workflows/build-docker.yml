@@ -132,6 +132,12 @@ jobs:
 
       - name: Install Celeritas
         id: install
+        if: >-
+          ${{
+            !cancelled()
+            && steps.build.outcome == 'success'
+            && matrix.special != 'codecov'
+          }}
         working-directory: build
         run: |
           echo "::group::Install"
