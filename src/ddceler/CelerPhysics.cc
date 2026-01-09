@@ -131,13 +131,8 @@ SetupOptions CelerPhysics::make_options()
 
     // Get field tracking parameters from DD4hep FieldSetup action
     // These parameters are set in the steering file (runner.field.*)
-    FieldDriverOptions driver_options;
-
-    auto& kernel = context()->kernel();
-    auto* config_phase = kernel.getPhase("configure");
-
     dd4hep::sim::Geant4Action* field_action = nullptr;
-    if (config_phase)
+    if (auto* config_phase = context()->kernel().getPhase("configure"))
     {
         // Find the MagFieldTrackingSetup action in the configure phase
         for (auto const& [action, callback] : config_phase->members())
@@ -150,6 +145,7 @@ SetupOptions CelerPhysics::make_options()
         }
     }
 
+    FieldDriverOptions driver_options;
     if (field_action)
     {
         driver_options = load_driver_options(field_action);
