@@ -23,9 +23,12 @@
 
 #include "AlongStep.hh"
 
-#include "detail/CylMapFieldPropagatorFactory.hh"
+#include "detail/FieldTrackPropagator.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
+
+// Field classes
+#include "celeritas/field/CylMapField.hh"
 
 namespace celeritas
 {
@@ -97,7 +100,7 @@ void AlongStepCylMapFieldMscAction::step(CoreParams const& params,
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{CylMapFieldPropagatorFactory{
+        PropagationApplier{FieldTrackPropagator<CylMapField>{
             field_->ref<MemSpace::native>()}}(track);
         if (this->has_msc())
         {

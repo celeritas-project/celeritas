@@ -25,10 +25,13 @@
 #include "AlongStep.hh"
 
 #include "detail/FieldFunctors.hh"
+#include "detail/FieldTrackPropagator.hh"
 #include "detail/FluctELoss.hh"
-#include "detail/LinearPropagatorFactory.hh"
+#include "detail/LinearTrackPropagator.hh"
 #include "detail/MeanELoss.hh"
-#include "detail/UniformFieldPropagatorFactory.hh"
+
+// Field classes
+#include "celeritas/field/UniformField.hh"
 
 namespace celeritas
 {
@@ -106,12 +109,12 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
         }
         if (IsInUniformField{field_->ref<MemSpace::native>()}(track))
         {
-            PropagationApplier{UniformFieldPropagatorFactory{
+            PropagationApplier{FieldTrackPropagator<UniformField>{
                 field_->ref<MemSpace::native>()}}(track);
         }
         else
         {
-            PropagationApplier{LinearPropagatorFactory{}}(track);
+            PropagationApplier{LinearTrackPropagator{}}(track);
         }
         if (this->has_msc())
         {

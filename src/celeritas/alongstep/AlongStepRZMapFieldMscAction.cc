@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+#include "celeritas/alongstep/detail/PropagationApplier.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/em/params/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
@@ -23,9 +24,12 @@
 
 #include "AlongStep.hh"
 
+#include "detail/FieldTrackPropagator.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
-#include "detail/RZMapFieldPropagatorFactory.hh"
+
+// Field classes
+#include "celeritas/field/RZMapField.hh"
 
 namespace celeritas
 {
@@ -97,7 +101,7 @@ void AlongStepRZMapFieldMscAction::step(CoreParams const& params,
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{RZMapFieldPropagatorFactory{
+        PropagationApplier{FieldTrackPropagator<RZMapField>{
             field_->ref<MemSpace::native>()}}(track);
         if (this->has_msc())
         {

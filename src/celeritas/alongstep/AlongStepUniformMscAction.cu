@@ -20,9 +20,12 @@
 
 #include "detail/AlongStepKernels.hh"
 #include "detail/FieldFunctors.hh"
+#include "detail/FieldTrackPropagator.hh"
 #include "detail/LinearPropagatorFactory.hh"
 #include "detail/PropagationApplier.hh"
-#include "detail/UniformFieldPropagatorFactory.hh"
+
+// Field classes
+#include "celeritas/field/UniformField.hh"
 
 namespace celeritas
 {
@@ -45,8 +48,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
             params.ptr<MemSpace::native>(),
             state.ptr(),
             detail::IsAlongStepUniformField{this->action_id(), field},
-            detail::PropagationApplier{
-                detail::UniformFieldPropagatorFactory{field}}};
+            detail::FieldTrackPropagator<UniformField>{field}};
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate");
         launch_kernel(*this, params, state, execute_thread);

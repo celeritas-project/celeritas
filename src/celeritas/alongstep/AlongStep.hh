@@ -22,34 +22,36 @@ namespace celeritas
 /*!
  * Perform the along-step action using helper functions.
  *
+ * \todo move into ASNA.cc, only place it's used
+ *
  * \tparam MH MSC helper, e.g. \c detail::NoMsc
- * \tparam MP Propagator factory, e.g. \c detail::LinearPropagatorFactory
+ * \tparam TP Track propagator
  * \tparam EH Energy loss helper, e.g. \c detail::NoELoss
  */
-template<class MH, class MP, class EH>
+template<class MH, class TP, class EH>
 struct AlongStep
 {
     inline CELER_FUNCTION void operator()(CoreTrackView& track);
 
     MH msc;
-    MP make_propagator;
+    TP propagate_track;
     EH eloss;
 };
 
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<class MH, class MP, class EH>
-CELER_FUNCTION AlongStep(MH&&, MP&&, EH&&) -> AlongStep<MH, MP, EH>;
+template<class MH, class TP, class EH>
+CELER_FUNCTION AlongStep(MH&&, TP&&, EH&&) -> AlongStep<MH, TP, EH>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-template<class MH, class MP, class EH>
-CELER_FUNCTION void AlongStep<MH, MP, EH>::operator()(CoreTrackView& track)
+template<class MH, class TP, class EH>
+CELER_FUNCTION void AlongStep<MH, TP, EH>::operator()(CoreTrackView& track)
 {
     detail::MscStepLimitApplier{msc}(track);
-    detail::PropagationApplier{make_propagator}(track);
+    detail::PropagationApplier{propagate_track}(track);
     detail::MscApplier{msc}(track);
     detail::TimeUpdater{}(track);
     detail::ElossApplier{eloss}(track);

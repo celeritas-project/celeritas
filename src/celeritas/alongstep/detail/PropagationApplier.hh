@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
@@ -21,47 +22,40 @@ namespace detail
 /*!
  * Apply propagation over the step.
  *
- * \tparam MP Propagator factory
+ * \tparam TP Track propagator
  *
- * MP should be a function-like object:
- * \code Propagator(*)(CoreTrackView const&) \endcode
- *
- * This class is partially specialized with a second template argument to
- * extract any launch bounds from the MP class. TODO: we could probably inherit
- * from a helper class to pull in those constants (if available).
+ * TP should be a function-like object:
+ * \code Propagation (*)(CoreTrackView const&) \endcode
  */
-template<class MP>
+template<class TP>
 struct PropagationApplier
 {
     inline CELER_FUNCTION void operator()(CoreTrackView& track);
 
-    MP make_propagator;
+    TP propagate;
 };
 
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<class MP>
-CELER_FUNCTION PropagationApplier(MP&&) -> PropagationApplier<MP>;
+template<class TP>
+CELER_FUNCTION PropagationApplier(TP&&) -> PropagationApplier<TP>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-template<class MP>
-CELER_FUNCTION void PropagationApplier<MP>::operator()(CoreTrackView& track)
+template<class TP>
+CELER_FUNCTION void PropagationApplier<TP>::operator()(CoreTrackView& track)
 {
     auto sim = track.sim();
     CELER_EXPECT(sim.step_length() > 0);
 
-    bool tracks_can_loop;
     Propagation p;
     {
 #if CELERITAS_DEBUG
         Real3 const orig_pos = track.geometry().pos();
 #endif
-        auto propagate = make_propagator(track);
-        p = propagate(sim.step_length());
-        tracks_can_loop = propagate.tracks_can_loop();
+        p = this->propagate(track);
         CELER_ASSERT(p.distance > 0);
 #if CELERITAS_DEBUG
         if (CELER_UNLIKELY(track.geometry().pos() == orig_pos))
@@ -83,50 +77,18 @@ CELER_FUNCTION void PropagationApplier<MP>::operator()(CoreTrackView& track)
                 << " failed to change position";
 #    endif
             track.apply_errored();
-            return;
         }
 #endif
     }
 
-    if (tracks_can_loop)
-    {
-        sim.update_looping(p.looping);
-    }
-    if (tracks_can_loop && p.looping)
-    {
-        // The track is looping, i.e. progressing little over many
-        // integration steps in the field propagator (likely a low energy
-        // particle in a low density material/strong magnetic field).
-        sim.step_length(p.distance);
-
-        // Kill the track if it's stable and below the threshold energy or
-        // above the threshold number of steps allowed while looping.
-        sim.post_step_action([&track, &sim] {
-            auto particle = track.particle();
-            if (particle.is_stable()
-                && sim.is_looping(particle.particle_id(), particle.energy()))
-            {
-#if !CELER_DEVICE_COMPILE
-                CELER_LOG_LOCAL(debug)
-                    << "Track (pid=" << particle.particle_id().get()
-                    << ", E=" << particle.energy().value() << ' '
-                    << ParticleTrackView::Energy::unit_type::label()
-                    << ") is looping after " << sim.num_looping_steps()
-                    << " steps";
-#endif
-                return track.tracking_cut_action();
-            }
-            return track.propagation_limit_action();
-        }());
-    }
-    else if (p.boundary)
+    if (p.boundary)
     {
         // Stopped at a geometry boundary: this is the new step action.
         CELER_ASSERT(p.distance <= sim.step_length());
         sim.step_length(p.distance);
         sim.post_step_action(track.boundary_action());
     }
-    else if (p.distance < sim.step_length())
+    else if (!p.looping && p.distance < sim.step_length())
     {
         // Some tracks may get stuck on a boundary and fail to move at
         // all in the field propagator, and will get bumped a small

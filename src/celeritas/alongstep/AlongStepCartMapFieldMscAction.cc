@@ -6,13 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepCartMapFieldMscAction.hh"
 
-#include <type_traits>
 #include <utility>
 
 #include "corecel/Assert.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/em/params/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
+#include "celeritas/field/CartMapField.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionLauncher.hh"
@@ -23,7 +23,7 @@
 
 #include "AlongStep.hh"
 
-#include "detail/CartMapFieldPropagatorFactory.hh"
+#include "detail/FieldTrackPropagator.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
 
@@ -97,7 +97,7 @@ void AlongStepCartMapFieldMscAction::step(CoreParams const& params,
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{CartMapFieldPropagatorFactory{
+        PropagationApplier{detail::FieldTrackPropagator<CartMapField>{
             field_->ref<MemSpace::native>()}}(track);
         if (this->has_msc())
         {

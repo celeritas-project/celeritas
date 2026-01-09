@@ -16,7 +16,7 @@
 #include "AlongStep.hh"  // IWYU pragma: associated
 
 #include "detail/AlongStepNeutralImpl.hh"  // IWYU pragma: associated
-#include "detail/LinearPropagatorFactory.hh"  // IWYU pragma: associated
+#include "detail/LinearTrackPropagator.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -41,7 +41,7 @@ void AlongStepNeutralAction::step(CoreParams const& params,
         state.ptr(),
         this->action_id(),
         AlongStep{detail::NoMsc{},
-                  detail::LinearPropagatorFactory{},
+                  detail::LinearTrackPropagator{},
                   detail::NoELoss{}});
     return launch_action(*this, params, state, execute);
 }

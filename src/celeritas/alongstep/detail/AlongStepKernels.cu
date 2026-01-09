@@ -58,7 +58,7 @@ void launch_propagate(CoreStepActionInterface const& action,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         action.action_id(),
-        detail::PropagationApplier{detail::LinearPropagatorFactory{}});
+        detail::PropagationApplier{detail::LinearTrackPropagator{}});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "propagate-linear");
     launch_kernel(action, params, state, execute_thread);
