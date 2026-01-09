@@ -12,6 +12,7 @@
 #include <DDG4/Geant4ActionPhase.h>
 #include <DDG4/Geant4Kernel.h>
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Field.hh"
 #include "accel/TrackingManagerIntegration.hh"
