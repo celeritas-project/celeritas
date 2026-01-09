@@ -60,6 +60,7 @@ if(CELERITAS_BUILTIN_covfie)
     "https://github.com/acts-project/covfie/archive/refs/tags/v@VERSION@.tar.gz"
     72da1147c44731caf9163f3931de78d7605a44f056f22a2f6ea024ad02a1ba71
   )
+
   set(COVFIE_PLATFORM_CPU ON)
   set(COVFIE_PLATFORM_CUDA ${CELERITAS_USE_CUDA})
   set(COVFIE_PLATFORM_HIP ${CELERITAS_USE_HIP})
