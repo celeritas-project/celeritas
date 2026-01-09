@@ -89,6 +89,7 @@ endif()
 # Automatic options
 celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
 celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
+celeritas_force_package(G4VG ${CELERITAS_USE_VecGeom})
 celeritas_force_package(nlohmann_json ON)
 
 #----------------------------------------------------------------------------#
