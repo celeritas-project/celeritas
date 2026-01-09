@@ -52,9 +52,12 @@ class DDMucfInteractor
     Channel channel_{Channel::size_};
     // Allocate space for secondary particles
     StackAllocator<Secondary>& allocate_;
-
-    // Get number of secondaries for each channel
-    inline CELER_FUNCTION size_type num_secondaries() const;
+    // Number of secondaries per channel
+    static constexpr EnumArray<Channel, size_type> num_secondaries_{
+        3,  // helium3_muon_neutron
+        2,  // muonichelium3_neutron
+        3  // hydrogen3_muon_proton
+    };
 
     // Sample Interaction secondaries
     template<class Engine>
@@ -85,7 +88,7 @@ template<class Engine>
 CELER_FUNCTION Interaction DDMucfInteractor::operator()(Engine& rng)
 {
     // Allocate space for the final fusion channel
-    Secondary* secondaries = allocate_(this->num_secondaries());
+    Secondary* secondaries = allocate_(num_secondaries_[channel_]);
     if (secondaries == nullptr)
     {
         // Failed to allocate space for secondaries
@@ -97,25 +100,6 @@ CELER_FUNCTION Interaction DDMucfInteractor::operator()(Engine& rng)
     result.secondaries = this->sample_secondaries(secondaries, rng);
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return number of secondaries from each fusion channel.
- */
-CELER_FUNCTION size_type DDMucfInteractor::num_secondaries() const
-{
-    switch (channel_)
-    {
-        case Channel::helium3_muon_neutron:
-            return 3;
-        case Channel::muonichelium3_neutron:
-            return 2;
-        case Channel::hydrogen3_muon_proton:
-            return 3;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -145,7 +129,7 @@ DDMucfInteractor::sample_secondaries(Secondary* secondaries /*, other args */,
             CELER_ASSERT_UNREACHABLE();
     }
 
-    return Span<Secondary>{secondaries, this->num_secondaries()};
+    return Span<Secondary>{secondaries, num_secondaries_[channel_]};
 }
 
 //---------------------------------------------------------------------------//

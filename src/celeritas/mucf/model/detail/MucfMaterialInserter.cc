@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/mucf/model/detail/DTMixMaterialCalculator.cc
+//! \file celeritas/mucf/model/detail/MucfMaterialInserter.cc
 //---------------------------------------------------------------------------//
-#include "DTMixMaterialCalculator.hh"
+#include "MucfMaterialInserter.hh"
 
 #include "corecel/Assert.hh"
 
@@ -14,26 +14,41 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with material data.
+ * Construct with \c DTMixMucfModel model data.
+ */
+MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data)
+    : mucfmatid_to_matid_(&host_data->mucfmatid_to_matid)
+    , cycle_times_(&host_data->cycle_times)
+{
+    CELER_EXPECT(host_data);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert material information if applicable.
  *
  * Calculates and caches material-dependent properties needed by the
  * \c DTMixMucfModel . If the material does not contain deuterium and/or
- * tritium the object's operator bool will return false.
+ * tritium the operator will return false.
  */
-DTMixMaterialCalculator::DTMixMaterialCalculator(MaterialView const& material)
-    : material_(material)
+bool MucfMaterialInserter::operator()(MaterialView const& material)
 {
-    for (auto elcompid : range(material_.num_elements()))
+    LhdArray lhd_densities;
+    EquilibriumArray eq_densities;
+    CycleTimesArray cycle_times;
+
+    for (auto elcompid : range(material.num_elements()))
     {
         auto const& element_view
-            = material_.element_record(ElementComponentId{elcompid});
+            = material.element_record(ElementComponentId{elcompid});
         if (element_view.atomic_number() != AtomicNumber{1})
         {
             // Skip non-hydrogen elements
             continue;
         }
 
-        has_isotope_ = {false, false};
+        // Found hydrogen; Check for d and t isotopes
+        IsotopeChecker has_isotope{false, false};
         for (auto el_comp : range(element_view.num_isotopes()))
         {
             auto iso_view
@@ -45,17 +60,44 @@ DTMixMaterialCalculator::DTMixMaterialCalculator(MaterialView const& material)
                 continue;
             }
 
-            if (auto const atom = this->from_mass_number(mass);
-                atom < MucfMuonicAtom::size_)
+            auto const atom = this->from_mass_number(mass);
+            if (atom < MucfMuonicAtom::size_)
             {
-                // D and/or t isotopes found; calculate properties
-                has_isotope_[atom] = true;
-                lhd_densities_ = calc_lhd_densities();
-                eq_densities_ = calc_equilibrium_densities();
-                cycle_times_ = calc_cycle_times(element_view);
+                // Mark d or t isotope as found
+                has_isotope[atom] = true;
             }
         }
+
+        if (!has_isotope[MucfMuonicAtom::deuterium]
+            && !has_isotope[MucfMuonicAtom::tritium])
+        {
+            // No deuterium or tritium found; skip material
+            return false;
+        }
+
+        // Calculate and insert material-dependent muCF properties
+        mucfmatid_to_matid_.push_back(material.material_id());
+        cycle_times_.push_back(calc_cycle_times(element_view, has_isotope));
+        //! \todo Store mean atom spin flip and transfer times
     }
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return \c MucfMuonicAtom from a given atomic mass number.
+ */
+MucfMuonicAtom MucfMaterialInserter::from_mass_number(AtomicMassNumber mass)
+{
+    if (mass == AtomicMassNumber{2})
+    {
+        return MucfMuonicAtom::deuterium;
+    }
+    if (mass == AtomicMassNumber{3})
+    {
+        return MucfMuonicAtom::tritium;
+    }
+    return MucfMuonicAtom::size_;
 }
 
 //---------------------------------------------------------------------------//
@@ -64,7 +106,8 @@ DTMixMaterialCalculator::DTMixMaterialCalculator(MaterialView const& material)
  *
  * Used during cycle time calculations.
  */
-DTMixMaterialCalculator::LhdArray DTMixMaterialCalculator::calc_lhd_densities()
+MucfMaterialInserter::LhdArray
+MucfMaterialInserter::calc_lhd_densities(ElementView const&)
 {
     LhdArray result;
 
@@ -80,8 +123,8 @@ DTMixMaterialCalculator::LhdArray DTMixMaterialCalculator::calc_lhd_densities()
  *
  * Used during cycle time calculations.
  */
-DTMixMaterialCalculator::EquilibriumArray
-DTMixMaterialCalculator::calc_equilibrium_densities()
+MucfMaterialInserter::EquilibriumArray
+MucfMaterialInserter::calc_equilibrium_densities(ElementView const&)
 {
     EquilibriumArray result;
 
@@ -99,8 +142,9 @@ DTMixMaterialCalculator::calc_equilibrium_densities()
  * or
  * - Multiple elements, single isotope each (separate H, d, and t elements).
  */
-DTMixMaterialCalculator::CycleTimesArray
-DTMixMaterialCalculator::calc_cycle_times(ElementView const& element)
+MucfMaterialInserter::CycleTimesArray
+MucfMaterialInserter::calc_cycle_times(ElementView const& element,
+                                       IsotopeChecker const& has_isotope)
 {
     CycleTimesArray result;
     for (auto el_comp : range(element.num_isotopes()))
@@ -114,19 +158,19 @@ DTMixMaterialCalculator::calc_cycle_times(ElementView const& element)
             // Calculate cycle times for dd molecules
             case MucfMuonicAtom::deuterium: {
                 result[MucfMuonicMolecule::deuterium_deuterium]
-                    = this->calc_dd_cycle();
-                if (has_isotope_[MucfMuonicAtom::tritium])
+                    = this->calc_dd_cycle(element);
+                if (has_isotope[MucfMuonicAtom::tritium])
                 {
                     // Calculate cycle times for dt molecules
                     result[MucfMuonicMolecule::deuterium_tritium]
-                        = this->calc_dt_cycle();
+                        = this->calc_dt_cycle(element);
                 }
                 break;
             }
             // Calculate cycle times for tt molecules
             case MucfMuonicAtom::tritium: {
                 result[MucfMuonicMolecule::tritium_tritium]
-                    = this->calc_tt_cycle();
+                    = this->calc_tt_cycle(element);
                 break;
             }
             default:
@@ -143,7 +187,7 @@ DTMixMaterialCalculator::calc_cycle_times(ElementView const& element)
  *
  * Cycle times for dd molecules come from F = 0 and F = 1 spin states.
  */
-Array<real_type, 2> DTMixMaterialCalculator::calc_dd_cycle()
+Array<real_type, 2> MucfMaterialInserter::calc_dd_cycle(ElementView const&)
 {
     Array<real_type, 2> result;
 
@@ -161,7 +205,7 @@ Array<real_type, 2> DTMixMaterialCalculator::calc_dd_cycle()
  *
  * Cycle times for dt molecules come from F = 1/2 and F = 3/2 spin states.
  */
-Array<real_type, 2> DTMixMaterialCalculator::calc_dt_cycle()
+Array<real_type, 2> MucfMaterialInserter::calc_dt_cycle(ElementView const&)
 {
     Array<real_type, 2> result;
 
@@ -179,7 +223,7 @@ Array<real_type, 2> DTMixMaterialCalculator::calc_dt_cycle()
  *
  * Cycle times for tt molecules come only from the F = 1/2 spin state.
  */
-Array<real_type, 2> DTMixMaterialCalculator::calc_tt_cycle()
+Array<real_type, 2> MucfMaterialInserter::calc_tt_cycle(ElementView const&)
 {
     Array<real_type, 2> result;
 
@@ -188,23 +232,6 @@ Array<real_type, 2> DTMixMaterialCalculator::calc_tt_cycle()
     // Only F = 1/2 is reactive
     CELER_ENSURE(result[0] >= 0 && result[1] == 0);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return \c MucfMuonicAtom from a given atomic mass number.
- */
-MucfMuonicAtom DTMixMaterialCalculator::from_mass_number(AtomicMassNumber mass)
-{
-    if (mass == AtomicMassNumber{2})
-    {
-        return MucfMuonicAtom::deuterium;
-    }
-    if (mass == AtomicMassNumber{3})
-    {
-        return MucfMuonicAtom::tritium;
-    }
-    return MucfMuonicAtom::size_;
 }
 
 //---------------------------------------------------------------------------//

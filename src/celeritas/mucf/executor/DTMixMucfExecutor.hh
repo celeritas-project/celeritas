@@ -73,12 +73,26 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
     detail::MuonicMoleculeSpinSelector select_molecule_spin(muonic_molecule);
     auto const molecule_spin = select_molecule_spin(rng);
 
+    // Find muCF material ID from PhysMatId
+    auto find = [&](PhysMatId matid) -> MuCfMatId {
+        CELER_EXPECT(matid);
+        for (auto i : range(data.mucfmatid_to_matid.size()))
+        {
+            if (auto const comp_id = MuCfMatId{i};
+                data.mucfmatid_to_matid[comp_id] == matid)
+            {
+                return comp_id;
+            }
+        }
+        // MuCF material ID not found
+        return MuCfMatId{};
+    };
+
     // Load cycle time for the selected molecule
-    auto const mat_comp_id
-        = data.material_component_id(track.material().material_id());
-    CELER_ASSERT(mat_comp_id);
+    auto const mucf_matid = find(track.material().material_id());
+    CELER_ASSERT(mucf_matid);
     auto const cycle_time
-        = data.cycle_times[mat_comp_id][muonic_molecule][molecule_spin];
+        = data.cycle_times[mucf_matid][muonic_molecule][molecule_spin];
     CELER_ASSERT(cycle_time > 0);
 
     // Check if muon decays before fusion happens

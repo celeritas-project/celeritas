@@ -63,7 +63,7 @@ struct DTMixMucfData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using MaterialItems = Collection<T, W, M, MuCfMatCompId>;
+    using MaterialItems = Collection<T, W, M, MuCfMatId>;
     using GridRecord = NonuniformGridRecord;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, Array<real_type, 2>>;
 
@@ -76,40 +76,20 @@ struct DTMixMucfData
 
     //!@{
     //! Material-dependent data calculated at model construction
-    //! \c PhysMatId indexed by \c MuCfMatCompId
-    MaterialItems<PhysMatId> matcompid_to_matid;
+    //! \c PhysMatId indexed by \c MuCfMatId
+    MaterialItems<PhysMatId> mucfmatid_to_matid;
     //! Cycle times per material: [mat_comp_id][muonic_molecule][spin_index]
     MaterialItems<CycleTimesArray> cycle_times;  //!< In [s]
     //! \todo Add mean atom spin flip times
     //! \todo Add mean atom transfer times
     //!@}
 
-    //! \todo Check whether the data are assigned
+    //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        //! \todo Finalize implementation
-        return particles && muon_energy_cdf && !matcompid_to_matid.empty()
+        return particles && muon_energy_cdf && !mucfmatid_to_matid.empty()
                && !cycle_times.empty()
-               && (matcompid_to_matid.size() == cycle_times.size());
-    }
-
-    //! Get the material componend ID from a given \c PhysMatId .
-    CELER_FUNCTION MuCfMatCompId material_component_id(PhysMatId matid) const
-    {
-        CELER_EXPECT(matid);
-        CELER_EXPECT(this);
-        CELER_EXPECT(!this->matcompid_to_matid.empty());
-
-        for (auto i : range(this->matcompid_to_matid.size()))
-        {
-            if (auto const comp_id = MuCfMatCompId{i};
-                this->matcompid_to_matid[comp_id] == matid)
-            {
-                return comp_id;
-            }
-        }
-        // Component ID not found
-        return MuCfMatCompId{};
+               && (mucfmatid_to_matid.size() == cycle_times.size());
     }
 
     //! Assign from another set of data
@@ -122,7 +102,7 @@ struct DTMixMucfData
         this->particles = other.particles;
         this->reals = other.reals;
         this->muon_energy_cdf = other.muon_energy_cdf;
-        this->matcompid_to_matid = other.matcompid_to_matid;
+        this->mucfmatid_to_matid = other.mucfmatid_to_matid;
         this->cycle_times = other.cycle_times;
 
         return *this;

@@ -13,11 +13,12 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
+#include "celeritas/inp/MucfPhysics.hh"
 #include "celeritas/mucf/executor/DTMixMucfExecutor.hh"  // IWYU pragma: associated
 #include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "detail/DTMixMaterialCalculator.hh"
+#include "detail/MucfMaterialInserter.hh"
 
 namespace celeritas
 {
@@ -98,12 +99,7 @@ DTMixMucfModel::DTMixMucfModel(ActionId id,
 {
     CELER_EXPECT(id);
 
-    using VecCycleTimes
-        = std::vector<detail::DTMixMaterialCalculator::CycleTimesArray>;
-    using VecMatId = std::vector<PhysMatId>;
-
-    // Initialize static muCF physics input data
-    //! \todo This may be replaced by user-provided data in the future
+    // Initialize muCF physics input data
     inp::MucfPhysics inp_data = inp::MucfPhysics::from_default();
     CELER_EXPECT(inp_data);
 
@@ -115,30 +111,16 @@ DTMixMucfModel::DTMixMucfModel(ActionId id,
     host_data.muon_energy_cdf = build_grid_record(inp_data.muon_energy_cdf);
 
     // Calculate and cache quantities for all materials with dt mixtures
-    VecCycleTimes vec_cycle_times;
-    VecMatId vec_physmatid;
+    detail::MucfMaterialInserter insert(&host_data);
     for (auto const& matid : range(materials.num_materials()))
     {
         auto const& mat_view = materials.get(PhysMatId{matid});
-
-        // Construct calculator for this material
-        detail::DTMixMaterialCalculator mat_calculator(mat_view);
-        if (!mat_calculator)
+        if (insert(mat_view))
         {
-            // Skip non-dt mixture materials
-            continue;
+            CELER_LOG(debug) << "Added material ID " << mat_view.material_id()
+                             << " as a muCF d-t mixture";
         }
-
-        // Store material ID and calculated data
-        //! \todo Store mean atom spin flip and transfer times
-        vec_physmatid.push_back(PhysMatId{matid});
-        vec_cycle_times.push_back(mat_calculator.cycle_times());
     }
-
-    make_builder(&host_data.matcompid_to_matid)
-        .insert_back(vec_physmatid.begin(), vec_physmatid.end());
-    make_builder(&host_data.cycle_times)
-        .insert_back(vec_cycle_times.begin(), vec_cycle_times.end());
 
     // Copy to device
     data_ = CollectionMirror<DTMixMucfData>{std::move(host_data)};

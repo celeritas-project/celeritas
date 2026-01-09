@@ -10,12 +10,39 @@
 #include <vector>
 
 #include "corecel/inp/Grid.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/mucf/Types.hh"
 
 namespace celeritas
 {
 namespace inp
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Muon-catalyzed fusion scalars.
+ *
+ * Default values are the same used by Acceleron.
+ */
+struct MucfScalars
+{
+    // Atomic masses
+    units::AmuMass protium;  //!< Protium atomic mass [AMU]
+    units::AmuMass deuterium;  //!< Deuterium atomic mass [AMU]
+    units::AmuMass tritium;  //!< Tritium atomic mass [AMU]
+    units::InvCcDensity liquid_hydrogen_density;  //!< LHD unit [1/cm^3]
+
+    //! Initialize with hardcoded values
+    static MucfScalars from_default()
+    {
+        MucfScalars result;
+        result.protium = units::AmuMass{1.007825031898};
+        result.deuterium = units::AmuMass{2.014101777844};
+        result.tritium = units::AmuMass{3.016049281320};
+        result.liquid_hydrogen_density = units::InvCcDensity{4.25e22};
+        return result;
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Muon-catalyzed fusion mean cycle rate data.
@@ -78,20 +105,18 @@ struct MucfAtomTransferRate
  * Muon-catalyzed fusion mean atom spin flip data.
  *
  * Spin flip rates are as a function of temperature, with each grid/table
- * representing an atom pair combination and its spin (e.g.
- * deuterium-tritium, spin 1). Ordering is important, thus same spin
- * deuterium-tritium and tritium-deuterium have different tables, which
- * leads to a different final spin flip rate for a given material
- * definition.
+ * representing an atom pair combination and its spin (e.g. deuterium-tritium,
+ * spin 1). Ordering is important, thus same spin deuterium-tritium and
+ * tritium-deuterium have different tables, which leads to a different final
+ * spin flip rate for a given material definition.
  *
  * Each struct holds one of such combinations, with the full set of
- * combinations being the \c vector<MucfAtomSpinFlipRate> in \c MucfPhysics
- * .
+ * combinations being the \c vector<MucfAtomSpinFlipRate> in \c MucfPhysics .
  *
  * \note These grids are host-only, with only the final spin flip rate per
- * state (which is just a \c real_type ) for each combination being needed
- * in the stepping loop. This is because these rates are material
- * dependent, and thus can be cached at model construction.
+ * state (which is just a \c real_type ) for each combination being needed in
+ * the stepping loop. This is because these rates are material dependent, and
+ * thus can be cached at model construction.
  */
 struct MucfAtomSpinFlipRate
 {
@@ -110,14 +135,15 @@ struct MucfAtomSpinFlipRate
  * and
  * - Mean cycle rate data for dd, dt, and tt muonic molecules.
  *
- * Muonic atom transfer and muonic atom spin flip are secondary effects and
- * not required for muCF to function.
+ * Muonic atom transfer and muonic atom spin flip are secondary effects and not
+ * required for muCF to function.
  */
 struct MucfPhysics
 {
     template<class T>
     using Vec = std::vector<T>;
 
+    MucfScalars scalars;
     Grid muon_energy_cdf;  //!< CDF for sampling the outgoing muCF muon
     Vec<MucfCycleRate> cycle_rates;  //!< Mean cycle rates for muonic molecules
     Vec<MucfAtomTransferRate> atom_transfer;  //!< Muonic atom transfer rates

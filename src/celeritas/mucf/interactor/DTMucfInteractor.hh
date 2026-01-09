@@ -50,9 +50,11 @@ class DTMucfInteractor
     Channel channel_{Channel::size_};
     // Allocate space for secondary particles
     StackAllocator<Secondary>& allocate_;
-
-    // Get number of secondaries for each channel
-    inline CELER_FUNCTION size_type num_secondaries() const;
+    // Number of secondaries per channel
+    static constexpr EnumArray<Channel, size_type> num_secondaries_{
+        3,  // alpha_muon_neutron
+        2  // muonicalpha_neutron
+    };
 
     // Sample Interaction secondaries
     template<class Engine>
@@ -83,7 +85,7 @@ template<class Engine>
 CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
 {
     // Allocate space for the final fusion channel
-    Secondary* secondaries = allocate_(this->num_secondaries());
+    Secondary* secondaries = allocate_(num_secondaries_[channel_]);
     if (secondaries == nullptr)
     {
         // Failed to allocate space for secondaries
@@ -95,23 +97,6 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
     result.secondaries = this->sample_secondaries(secondaries, rng);
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return number of secondaries from each fusion channel.
- */
-CELER_FUNCTION size_type DTMucfInteractor::num_secondaries() const
-{
-    switch (channel_)
-    {
-        case Channel::alpha_muon_neutron:
-            return 3;
-        case Channel::muonicalpha_neutron:
-            return 2;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -138,7 +123,7 @@ DTMucfInteractor::sample_secondaries(Secondary* secondaries /*, other args */,
             CELER_ASSERT_UNREACHABLE();
     }
 
-    return Span<Secondary>{secondaries, this->num_secondaries()};
+    return Span<Secondary>{secondaries, num_secondaries_[channel_]};
 }
 
 //---------------------------------------------------------------------------//
