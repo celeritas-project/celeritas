@@ -21,7 +21,7 @@
 #include "detail/AlongStepKernels.hh"
 #include "detail/FieldFunctors.hh"
 #include "detail/FieldTrackPropagator.hh"
-#include "detail/LinearPropagatorFactory.hh"
+#include "detail/LinearTrackPropagator.hh"
 #include "detail/PropagationApplier.hh"
 
 // Field classes
@@ -48,7 +48,8 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
             params.ptr<MemSpace::native>(),
             state.ptr(),
             detail::IsAlongStepUniformField{this->action_id(), field},
-            detail::FieldTrackPropagator<UniformField>{field}};
+            detail::PropagationApplier{
+                detail::FieldTrackPropagator<UniformField>{field}}};
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate");
         launch_kernel(*this, params, state, execute_thread);
@@ -61,7 +62,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
             params.ptr<MemSpace::native>(),
             state.ptr(),
             detail::IsAlongStepLinear{this->action_id(), field},
-            detail::PropagationApplier{detail::LinearPropagatorFactory{}}};
+            detail::PropagationApplier{detail::LinearTrackPropagator{}}};
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate-linear");
         launch_kernel(*this, params, state, execute_thread);

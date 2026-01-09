@@ -22,11 +22,15 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
-#include "AlongStep.hh"
-
+#include "detail/ElossApplier.hh"
 #include "detail/FieldTrackPropagator.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
+#include "detail/MscApplier.hh"
+#include "detail/MscStepLimitApplier.hh"
+#include "detail/PropagationApplier.hh"
+#include "detail/TimeUpdater.hh"
+#include "detail/TrackUpdater.hh"
 
 // Field classes
 #include "celeritas/field/RZMapField.hh"

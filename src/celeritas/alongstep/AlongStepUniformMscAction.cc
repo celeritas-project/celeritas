@@ -10,9 +10,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/data/Ref.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/sys/Device.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
@@ -20,15 +17,18 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/track/TrackFunctors.hh"
 
-#include "AlongStep.hh"
-
+#include "detail/ElossApplier.hh"
 #include "detail/FieldFunctors.hh"
 #include "detail/FieldTrackPropagator.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/LinearTrackPropagator.hh"
 #include "detail/MeanELoss.hh"
+#include "detail/MscApplier.hh"
+#include "detail/MscStepLimitApplier.hh"
+#include "detail/PropagationApplier.hh"
+#include "detail/TimeUpdater.hh"
+#include "detail/TrackUpdater.hh"
 
 // Field classes
 #include "celeritas/field/UniformField.hh"

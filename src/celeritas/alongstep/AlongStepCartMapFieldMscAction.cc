@@ -12,20 +12,22 @@
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/em/params/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
-#include "celeritas/field/CartMapField.hh"
+#include "celeritas/field/CartMapField.hh"  // IWYU pragma: keep
 #include "celeritas/field/CartMapFieldInput.hh"
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
 
-#include "AlongStep.hh"
-
+#include "detail/ElossApplier.hh"
 #include "detail/FieldTrackPropagator.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
+#include "detail/MscApplier.hh"
+#include "detail/MscStepLimitApplier.hh"
+#include "detail/PropagationApplier.hh"
+#include "detail/TimeUpdater.hh"
+#include "detail/TrackUpdater.hh"
 
 namespace celeritas
 {

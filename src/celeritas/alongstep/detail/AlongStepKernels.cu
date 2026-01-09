@@ -17,7 +17,7 @@
 
 #include "ElossApplier.hh"
 #include "FluctELoss.hh"
-#include "LinearPropagatorFactory.hh"
+#include "LinearTrackPropagator.hh"
 #include "MeanELoss.hh"
 #include "MscApplier.hh"
 #include "MscStepLimitApplier.hh"

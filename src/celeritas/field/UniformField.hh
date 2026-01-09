@@ -22,13 +22,13 @@ namespace celeritas
 class UniformField
 {
   public:
-    using FieldParamsRef = NativeCRef<UniformFieldParamsData>;
+    using ParamsRef = NativeCRef<UniformFieldParamsData>;
 
     //! Construct with a field vector
     explicit CELER_FUNCTION UniformField(Real3 const& value) : value_(value) {}
 
     //! Construct with field params
-    explicit CELER_FUNCTION UniformField(FieldParamsRef const& params)
+    explicit CELER_FUNCTION UniformField(ParamsRef const& params)
         : value_(params.field)
     {
     }
