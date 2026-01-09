@@ -39,9 +39,3 @@ comment:
 ignore:
   - "test"
   - "app"
-  - "doc/**/*"
-  - "docs/**/*"
-  - "*.md"
-  - "scripts/**/*"
-  - ".github/**/*"
-  - "src/larceler/LarCelerStandalone*"
