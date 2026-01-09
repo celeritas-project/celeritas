@@ -218,7 +218,7 @@
       }
     },
     {
-      "name": "reldebinfo-orange-asanlite",
+      "name": "reldeb-orange-asanlite",
       "description": "FINAL: address sanitizer flags and debug symbols",
       "inherits": ["spack"],
       "cacheVariables": {
