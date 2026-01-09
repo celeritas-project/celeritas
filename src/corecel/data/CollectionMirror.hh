@@ -95,7 +95,13 @@ template<template<Ownership, MemSpace> class P>
 CollectionMirror<P>::CollectionMirror(HostValue&& host)
     : host_(std::move(host))
 {
-    CELER_EXPECT(host_);
+    // GCOVR_EXCL_START
+    if (CELER_UNLIKELY(!host_))
+    {
+        CELER_DEBUG_FAIL("incomplete host data or bad copy/move operator",
+                         precondition);
+    }
+
     host_ref_ = host_;
     if (celeritas::device())
     {
@@ -103,6 +109,7 @@ CollectionMirror<P>::CollectionMirror(HostValue&& host)
         device_ = host_;
         device_ref_ = device_;
     }
+    // GCOVR_EXCL_STOP
 }
 
 //---------------------------------------------------------------------------//
