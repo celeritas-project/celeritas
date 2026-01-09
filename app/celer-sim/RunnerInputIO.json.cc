@@ -98,6 +98,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_DEFAULT(num_track_slots, capacity.tracks);
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_DEFAULT(initializer_capacity, capacity.initializers);
+    CELER_ASSERT(capacity.secondaries);
     LDIO_LOAD_DEFAULT(
         secondary_stack_factor,
         static_cast<real_type>(*capacity.secondaries) / capacity.tracks);

@@ -101,6 +101,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_DEFAULT(num_track_slots, capacity.tracks / num_streams);
     RI_LOAD_OPTION(max_steps);
     RI_LOAD_DEFAULT(initializer_capacity, capacity.initializers / num_streams);
+    CELER_ASSERT(capacity.secondaries);
     RI_LOAD_DEFAULT(
         secondary_stack_factor,
         static_cast<real_type>(*capacity.secondaries) / capacity.tracks);
