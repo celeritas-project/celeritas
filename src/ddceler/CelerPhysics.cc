@@ -72,11 +72,11 @@ SetupOptions CelerPhysics::make_options()
 
     // Validate configuration parameters
     CELER_VALIDATE(max_num_tracks_ > 0,
-                   << "MaxNumTracks must be set to a positive value (got "
-                   << max_num_tracks_ << ")");
+                   << "invalid MaxNumTracks=" << max_num_tracks_
+                   << "(should be positive)");
     CELER_VALIDATE(init_capacity_ > 0,
-                   << "InitCapacity must be set to a positive value (got "
-                   << init_capacity_ << ")");
+                   << "invalid InitCapacity=" << init_capacity_
+                   << " (should be positive)");
 
     opts.max_num_tracks = max_num_tracks_;
     opts.initializer_capacity = init_capacity_;
@@ -89,7 +89,7 @@ SetupOptions CelerPhysics::make_options()
 
     // Get the field from DD4hep detector description and validate its type
     auto& detector = context()->detectorDescription();
-    auto field = detector.field();
+    auto&& field = detector.field();
     auto* overlaid_obj = field.data<OverlayedField::Object>();
 
     // Validate field configuration: no electric components
