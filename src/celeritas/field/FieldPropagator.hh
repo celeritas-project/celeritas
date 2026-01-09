@@ -54,9 +54,6 @@ class FieldPropagator
                                           ParticleTrackView const& particle,
                                           GTV&& geo);
 
-    // Move track to next volume boundary.
-    inline CELER_FUNCTION result_type operator()();
-
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
@@ -107,17 +104,6 @@ CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
 
     state_.pos = geo_.pos();
     state_.mom = value_as<MomentumUnits>(particle.momentum()) * geo_.dir();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Propagate a charged particle until it hits a boundary.
- */
-template<class SubstepperT, class GTV>
-CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()()
-    -> result_type
-{
-    return (*this)(numeric_limits<real_type>::infinity());
 }
 
 //---------------------------------------------------------------------------//

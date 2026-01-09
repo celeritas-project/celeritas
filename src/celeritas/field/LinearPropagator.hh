@@ -31,9 +31,6 @@ class LinearPropagator
     {
     }
 
-    // Move track to next volume boundary.
-    inline CELER_FUNCTION result_type operator()();
-
     // Move track up to a user-provided distance, up to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
@@ -52,22 +49,6 @@ CELER_FUNCTION LinearPropagator(GTV&&) -> LinearPropagator<GTV>;
 
 //---------------------------------------------------------------------------//
 /*!
- * Move track to next volume boundary.
- */
-template<class GTV>
-CELER_FUNCTION auto LinearPropagator<GTV>::operator()() -> result_type
-{
-    CELER_EXPECT(!geo_.is_outside());
-
-    result_type result = geo_.find_next_step();
-    CELER_ASSERT(result.boundary);
-    geo_.move_to_boundary();
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Move track by a user-provided distance up to the next boundary.
  */
 template<class GTV>
@@ -77,6 +58,13 @@ CELER_FUNCTION auto LinearPropagator<GTV>::operator()(real_type dist)
     CELER_EXPECT(dist > 0);
 
     result_type result = geo_.find_next_step(dist);
+    if (CELER_UNLIKELY(geo_.failed()))
+    {
+        // Mark as looping: update momentum and bump
+        result.looping = true;
+        result.distance = 0;
+        return result;
+    }
 
     if (result.boundary)
     {
