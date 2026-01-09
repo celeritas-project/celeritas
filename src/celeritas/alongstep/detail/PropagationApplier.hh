@@ -94,17 +94,7 @@ CELER_FUNCTION void
 PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
 {
     auto sim = track.sim();
-    if (sim.step_length() == 0)
-    {
-        // Track is stopped: no movement or energy loss will happen
-        // (could be a stopped positron waiting for annihilation, or a
-        // particle waiting to decay?)
-        CELER_ASSERT(track.particle().is_stopped());
-        CELER_ASSERT(sim.post_step_action()
-                     == track.physics().scalars().discrete_action());
-        CELER_ASSERT(track.physics().at_rest_process());
-        return;
-    }
+    CELER_EXPECT(sim.step_length() > 0);
 
     bool tracks_can_loop;
     Propagation p;
