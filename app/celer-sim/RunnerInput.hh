@@ -60,7 +60,7 @@ struct RunnerInput
 
     struct OpticalOptions
     {
-        // Sizes are divided among streams
+        // *Per-process* capacities
         size_type num_track_slots{};  //!< Number of optical loop tracks slots
         size_type buffer_capacity{};  //!< Number of steps that created photons
         size_type auto_flush{};  //!< Threshold number of primaries for
@@ -114,14 +114,12 @@ struct RunnerInput
 
     // Control
     unsigned int seed{};
-    size_type num_track_slots{};  //!< Divided among streams. Defaults to 2^20
-                                  //!< on device, 2^12 on host
-    size_type initializer_capacity{};  //!< Divided among streams. Defaults to
-                                       //!< 8 * num_track_slots
+    size_type num_track_slots{};  //!< Per-process track slots
+    size_type initializer_capacity{};  //!< Per-process initializer buffer size
+    real_type secondary_stack_factor{};
     size_type max_steps = static_cast<size_type>(-1);  //!< Step *iterations*
     InterpolationType interpolation{InterpolationType::linear};
     size_type poly_spline_order{1};
-    real_type secondary_stack_factor{2};
     bool use_device{};
     bool action_times{};
     bool merge_events{false};  //!< Run all events at once on a single stream
