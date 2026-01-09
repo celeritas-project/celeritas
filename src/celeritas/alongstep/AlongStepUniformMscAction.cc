@@ -89,20 +89,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
                                      CoreStateHost& state) const
 {
     using namespace ::celeritas::detail;
-
-    auto launch_impl = [&](auto&& execute_track) {
-        return launch_action(
-            *this,
-            params,
-            state,
-            make_along_step_track_executor(
-                params.ptr<MemSpace::native>(),
-                state.ptr(),
-                this->action_id(),
-                std::forward<decltype(execute_track)>(execute_track)));
-    };
-
-    launch_impl([&](CoreTrackView& track) {
+    auto execute_track = [&](CoreTrackView& track) {
         if (this->has_msc())
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
@@ -130,7 +117,16 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
             ElossApplier{MeanELoss{}}(track);
         }
         TrackUpdater{}(track);
-    });
+    };
+
+    return launch_action(
+        *this,
+        params,
+        state,
+        make_along_step_track_executor(params.ptr<MemSpace::native>(),
+                                       state.ptr(),
+                                       this->action_id(),
+                                       execute_track));
 }
 
 //---------------------------------------------------------------------------//
