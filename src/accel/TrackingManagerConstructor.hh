@@ -7,7 +7,6 @@
 #pragma once
 
 #include <functional>
-#include <G4ParticleDefinition.hh>
 #include <G4VPhysicsConstructor.hh>
 
 #include "corecel/cont/Span.hh"
