@@ -174,7 +174,7 @@
             if (false && (COND)) {} \
         } while (0)
 #else
-// Delete the code completely
+// Delete the code completely to avoid false posistives for coverage
 #    define CELER_NOASSERT_(COND)
 #endif
 //! \endcond
