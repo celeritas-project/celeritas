@@ -16,7 +16,7 @@
 namespace celeritas
 {
 class ActionRegistry;
-class ImportData;
+struct ImportData;
 class MaterialParams;
 
 namespace optical
