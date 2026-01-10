@@ -75,10 +75,19 @@ struct CoreStateCapacity : StateCapacity
     size_type initializers{};
     //! Maximum number of secondaries created per step
     std::optional<size_type> secondaries;
-
-    //! Maximum number of simultaneous events (zero for doing one event at a
-    //! time)
+    //! Maximum number of simultaneous events (zero for one event at a time)
     std::optional<size_type> events;
+
+    //! Return default values
+    static CoreStateCapacity from_default(bool use_device)
+    {
+        CoreStateCapacity result;
+        result.tracks = use_device ? 1048576 : 4096;
+        result.primaries = result.tracks;
+        result.initializers = 8 * result.tracks;
+        result.secondaries = 2 * result.tracks;
+        return result;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -91,6 +100,16 @@ struct OpticalStateCapacity : StateCapacity
 {
     //! Maximum number of queued photon-generating steps
     size_type generators{};
+
+    //! Return default values
+    static OpticalStateCapacity from_default(bool use_device)
+    {
+        OpticalStateCapacity result;
+        result.tracks = use_device ? 1048576 : 4096;
+        result.primaries = 128 * result.tracks;
+        result.generators = 2 * result.tracks;
+        return result;
+    }
 };
 
 //---------------------------------------------------------------------------//

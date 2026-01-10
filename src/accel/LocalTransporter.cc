@@ -40,6 +40,7 @@
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/inp/Control.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -150,9 +151,7 @@ void trace(StepperResult const& track_counts)
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
-    : auto_flush_(
-          get_default(options, params.Params()->max_streams()).primaries)
-    , max_step_iters_(options.max_step_iters)
+    : max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
@@ -163,6 +162,18 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                            options.optical->generator),
                    << "invalid optical photon generation mechanism for local "
                       "transporter");
+
+    if (options.auto_flush)
+    {
+        auto_flush_ = options.auto_flush;
+    }
+    else
+    {
+        // Get default *per-process* auto flush and divide by number of streams
+        auto capacity = inp::CoreStateCapacity::from_default(
+            celeritas::Device::num_devices());
+        auto_flush_ = capacity.primaries / params.Params()->max_streams();
+    }
 
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
