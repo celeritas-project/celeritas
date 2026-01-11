@@ -128,10 +128,7 @@
     {
       "name": "ultralite-codecov",
       "inherits": [".nogtest", ".gcov", "type-ndebug", "tool-system"],
-      "displayName": "FINAL: ultralite code coverage with only app tests",
-      "cacheVariables": {
-        "CMAKE_CXX_FLAGS": null
-      }
+      "displayName": "FINAL: ultralite code coverage with only app tests"
     },
     {
       "name": "reldeb-orange",
@@ -167,10 +164,7 @@
     {
       "name": "ndebug-vecgeom-codecov",
       "description": "FINAL: VecGeom and code coverage",
-      "inherits": [".vecgeom", ".gcov", "type-reldeb", "tool-spack"],
-      "cacheVariables": {
-        "CMAKE_CXX_FLAGS": null
-      }
+      "inherits": [".vecgeom", ".gcov", "type-reldeb", "tool-spack"]
     },
     {
       "name": "reldeb-vgsurf",
