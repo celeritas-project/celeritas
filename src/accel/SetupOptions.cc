@@ -246,6 +246,7 @@ void OpticalProblemSetup::operator()(inp::OpticalProblem& p) const
         return celeritas::get_geant_num_threads();
     }();
 
+    CELER_ASSERT(so.optical);
     p.generator = so.optical->generator;
     p.capacity = so.optical->capacity;
     p.limits = so.optical->limits;
