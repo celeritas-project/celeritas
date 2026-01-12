@@ -128,7 +128,7 @@ std::ostream& operator<<(std::ostream& os, StreamableLV const& plv)
  */
 void reset_geant_geometry()
 {
-    CELER_LOG(status) << "Resetting Geant4 geometry stores";
+    CELER_LOG(debug) << "Resetting Geant4 geometry stores";
 
     std::string msg;
     {

@@ -19,7 +19,6 @@
 #    include <HepMC3/GenParticle.h>
 #    include <HepMC3/Print.h>
 #    include <HepMC3/Reader.h>
-#    include <HepMC3/Selector.h>
 #    include <HepMC3/WriterAscii.h>
 #endif
 

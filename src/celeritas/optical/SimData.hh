@@ -22,6 +22,33 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Shared simulation data.
+ */
+template<Ownership W, MemSpace M>
+struct SimParamsData
+{
+    size_type max_steps{};
+    size_type max_step_iters{};
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return max_steps > 0 && max_step_iters > 0;
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    SimParamsData& operator=(SimParamsData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+        max_steps = other.max_steps;
+        max_step_iters = other.max_step_iters;
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Storage for dynamic simulation data.
  */
 template<Ownership W, MemSpace M>

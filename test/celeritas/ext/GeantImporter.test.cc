@@ -1434,7 +1434,6 @@ TEST_F(TestEm3, volume_names)
 TEST_F(TestEm3, unique_volumes)
 {
     selection_.reader_data = false;
-    selection_.unique_volumes = true;
 
     auto const& volumes = this->imported_data().volumes;
 
@@ -1930,7 +1929,6 @@ TEST_F(Solids, volumes_only)
     selection_.processes = GeantImportDataSelection::none;
     selection_.materials = false;
     selection_.reader_data = false;
-    selection_.unique_volumes = false;
 
     auto const& imported = this->imported_data();
     EXPECT_EQ(0, imported.processes.size());
@@ -1962,7 +1960,6 @@ TEST_F(Solids, volumes_unique)
     selection_.processes = GeantImportDataSelection::none;
     selection_.materials = false;
     selection_.reader_data = false;
-    selection_.unique_volumes = true;  // emulates accel/SharedParams
 
     auto const& imported = this->imported_data();
 

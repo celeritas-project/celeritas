@@ -48,8 +48,7 @@ struct SetupOptions;
  * Shared (one instance for all threads) Celeritas problem data.
  *
  * The \c CeleritasDisabled accessor queries the \c CELER_DISABLE environment
- * variable as a global option for disabling Celeritas offloading. This is
- * implemented by \c SimpleOffload
+ * variable as a global option for disabling Celeritas offloading.
  *
  * This should be instantiated on the master thread during problem setup,
  * preferably as a shared pointer. The shared pointer should be

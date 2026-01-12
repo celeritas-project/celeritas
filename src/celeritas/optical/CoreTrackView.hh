@@ -261,7 +261,7 @@ CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
  */
 CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 {
-    return SimTrackView{states_.sim, this->track_slot_id()};
+    return SimTrackView{params_.sim, states_.sim, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

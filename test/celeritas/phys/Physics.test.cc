@@ -399,8 +399,11 @@ TEST_F(PhysicsTrackViewHostTest, step_view)
         gamma.reset_energy_deposition();
         gamma.deposit_energy(Energy(2.5));
         EXPECT_REAL_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
-        // Allow zero-energy deposition
-        EXPECT_NO_THROW(gamma.deposit_energy(zero_quantity()));
+        // Forbid zero-energy deposition
+        if (CELERITAS_DEBUG)
+        {
+            EXPECT_THROW(gamma.deposit_energy(zero_quantity()), DebugError);
+        }
         EXPECT_REAL_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
         gamma.reset_energy_deposition();
         EXPECT_REAL_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));

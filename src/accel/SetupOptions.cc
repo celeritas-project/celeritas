@@ -91,23 +91,32 @@ void ProblemSetup::operator()(inp::Problem& p) const
     // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
     // *integrated* over streams
     p.control.capacity = [this, num_streams = p.control.num_streams] {
-        auto capacity = get_default(so, num_streams);
-        inp::CoreStateCapacity c;
-        c.tracks = capacity.tracks;
-        c.initializers = capacity.initializers;
-        c.primaries = capacity.primaries;
-        c.secondaries
-            = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
+        auto c = inp::CoreStateCapacity::from_default(
+            celeritas::Device::num_devices());
+
+        // Override default values if capacities were specified
+        if (so.max_num_tracks)
+        {
+            c.tracks = so.max_num_tracks * num_streams;
+        }
+        if (so.initializer_capacity)
+        {
+            c.initializers = so.initializer_capacity * num_streams;
+        }
+        if (so.auto_flush)
+        {
+            c.primaries = so.auto_flush * num_streams;
+        }
+        if (so.secondary_stack_factor)
+        {
+            c.secondaries
+                = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
+        }
         return c;
     }();
-    if (so.max_num_events)
-    {
-        CELER_LOG(warning) << "Ignoring removed option 'max_num_events': will "
-                              "be an error in v0.7";
-    }
 
     p.tracking.limits = [this] {
-        inp::TrackingLimits tl;
+        inp::CoreTrackingLimits tl;
         tl.steps = so.max_steps;
         tl.step_iters = so.max_step_iters;
         tl.field_substeps = so.max_field_substeps;
@@ -118,7 +127,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         p.control.optical_capacity = so.optical->capacity;
         p.physics.optical_generator = so.optical->generator;
-        p.tracking.limits.optical_step_iters = so.optical->max_step_iters;
+        p.tracking.optical_limits.steps = so.optical->max_steps;
+        p.tracking.optical_limits.step_iters = so.optical->max_step_iters;
     }
 
     if (so.track_order != TrackOrder::size_)
@@ -287,37 +297,6 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     result.physics_import.data_selection.processes = selection;
 
     result.adjust = ProblemSetup{so};
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get runtime-dependent default capacity values.
- *
- * \note This must be called after CUDA/MPI have been initialized.
- */
-inp::CoreStateCapacity
-get_default(SetupOptions const& so, size_type num_streams)
-{
-    inp::CoreStateCapacity result;
-    result.tracks = num_streams * [&so] {
-        if (so.max_num_tracks)
-        {
-            return static_cast<size_type>(so.max_num_tracks);
-        }
-        if (celeritas::Device::num_devices())
-        {
-            constexpr size_type device_default = 262144;
-            return device_default;
-        }
-        constexpr size_type host_default = 1024;
-        return host_default;
-    }();
-    result.initializers = so.initializer_capacity
-                              ? num_streams * so.initializer_capacity
-                              : 8 * result.tracks;
-    result.primaries = so.auto_flush ? so.auto_flush
-                                     : result.tracks / num_streams;
     return result;
 }
 

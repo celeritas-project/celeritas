@@ -37,7 +37,6 @@ list(APPEND SOURCES
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc
-  SimpleOffload.cc
   TimeOutput.cc
   TrackingManagerConstructor.cc
   TrackingManagerIntegration.cc

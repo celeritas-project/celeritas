@@ -15,9 +15,6 @@
 #if G4VERSION_NUMBER < 1070
 #    include <G4MTRunManager.hh>
 #endif
-#if G4VERSION_NUMBER >= 1070
-#    include <G4Backtrace.hh>
-#endif
 
 #ifdef _OPENMP
 #    include <omp.h>
@@ -30,21 +27,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Clear Geant4's signal handlers that get installed on startup/activation.
- *
- * This should be called before instantiating a run manager.
- */
-void disable_geant_signal_handler()
-{
-#if G4VERSION_NUMBER >= 1070
-    CELER_LOG(debug) << "Disabling Geant4 signal handlers";
-    // Disable geant4 signal interception
-    G4Backtrace::DefaultSignals() = {};
-#endif
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the number of threads in a version-portable way.

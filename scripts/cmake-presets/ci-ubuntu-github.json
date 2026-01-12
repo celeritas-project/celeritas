@@ -11,11 +11,19 @@
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_TEST_VERBOSE":{"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_DD4hep":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_LarSoft": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Perfetto":{"type": "BOOL", "value": "OFF"},
@@ -23,7 +31,6 @@
         "CELERITAS_USE_Python":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_covfie": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_HOSTNAME": "ubuntu-github",
         "CELERITAS_TEST_XML": "$env{GITHUB_WORKSPACE}/test-output/google/",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
@@ -34,53 +41,61 @@
       }
     },
     {
-      "name": "spack",
+      "name": "tool-spack",
       "inherits": ["base", ".spack-base"],
       "displayName": "CONFIG: use full spack toolchain",
       "cacheVariables": {
         "CELERITAS_USE_covfie": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_ROOT":    null,
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_Geant4": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":    null
       }
     },
     {
-      "name": ".system",
+      "name": "tool-system",
       "inherits": ["base"],
-      "displayName": "CONFIG: build with apt-get dependencies",
+      "displayName": "TOOLCHAIN: build with apt-get dependencies",
       "cacheVariables": {
+        "BUILD_TESTING": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILTIN_CLI11": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILTIN_nlohmann_json": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_BUILTIN_covfie": {"type": "BOOL", "value": "ON"}
       }
     },
     {
       "name": ".vecgeom",
+      "hidden": true,
       "description": "CONFIG: options to enable VecGeom on Ubuntu",
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
     },
     {
+      "name": ".nogtest",
+      "hidden": true,
+      "description": "CONFIG: disable googletest",
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILTIN_GTest": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": "doc",
-      "inherits": [".system"],
+      "inherits": [".nogtest", "tool-system"],
       "displayName": "FINAL: build only documentation",
       "cacheVariables": {
         "BUILD_TESTING": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILD_APPS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_APPS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEBUG": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_DOXYGEN_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_covfie": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_PNG": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
       "name": "type-reldeb",
+      "hidden": true,
       "description": "TYPE: debug assertions but no debug symbols",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":{"type": "BOOL", "value": "ON"},
@@ -90,17 +105,16 @@
     },
     {
       "name": "type-ndebug",
-      "description": "TYPE: release build for testing *only* apps",
+      "hidden": true,
+      "description": "TYPE: release build",
       "cacheVariables": {
-        "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
-        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
-        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Release"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_DEBUG": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Release"}
       }
     },
     {
       "name": "fast",
-      "inherits": ["type-reldeb", ".system"],
+      "inherits": ["type-reldeb", "tool-system"],
       "displayName": "FINAL: fast build using apt-get",
       "cacheVariables": {
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"}
@@ -108,36 +122,25 @@
     },
     {
       "name": "ultralite",
-      "inherits": ["type-ndebug", ".system"],
-      "displayName": "FINAL: ultralite build with only app tests",
-      "cacheVariables": {
-        "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"}
-      }
+      "inherits": [".nogtest", "type-ndebug", "tool-system"],
+      "displayName": "FINAL: ultralite build with only app tests"
     },
     {
       "name": "ultralite-codecov",
-      "inherits": ["type-ndebug", ".system", ".gcov"],
-      "displayName": "FINAL: ultralite code coverage with only app tests",
-      "cacheVariables": {
-        "BUILD_TESTING":         {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"}
-      }
+      "inherits": [".nogtest", ".gcov", "type-ndebug", "tool-system"],
+      "displayName": "FINAL: ultralite code coverage with only app tests"
     },
     {
       "name": "reldeb-orange",
       "description": "FINAL: ORANGE",
-      "inherits": ["type-reldeb", "spack"]
+      "inherits": ["type-reldeb", "tool-spack"]
     },
     {
       "name": "reldeb-vecgeom-tidy",
       "description": "FINAL: VecGeom and clang-tidy checks",
-      "inherits": ["type-reldeb", ".vecgeom", "spack"],
+      "inherits": [".nogtest", ".vecgeom", "type-reldeb", "tool-spack"],
       "cacheVariables": {
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_SCAN_FOR_MODULES":  {"type": "BOOL", "value": "OFF"},
@@ -148,7 +151,7 @@
     {
       "name": "reldeb-vecgeom-clhep",
       "description": "FINAL: VecGeom and CLHEP units",
-      "inherits": ["type-reldeb", ".vecgeom", "spack"],
+      "inherits": [".vecgeom", "type-reldeb", "tool-spack"],
       "cacheVariables": {
         "CELERITAS_UNITS": "CLHEP"
       }
@@ -156,17 +159,17 @@
     {
       "name": "reldeb-vecgeom",
       "description": "FINAL: release, assertions, VecGeom",
-      "inherits": ["type-reldeb", ".vecgeom", "spack"]
+      "inherits": [".vecgeom", "type-reldeb", "tool-spack"]
     },
     {
       "name": "reldeb-vecgeom-codecov",
       "description": "FINAL: VecGeom and code coverage",
-      "inherits": ["type-reldeb", ".vecgeom", ".gcov", "spack"]
+      "inherits": [".vecgeom", ".gcov", "type-reldeb", "tool-spack"]
     },
     {
       "name": "reldeb-vgsurf",
       "description": "FINAL: release, assertions, VecGeom 2+surf",
-      "inherits": ["type-reldeb", ".vecgeom", "spack"],
+      "inherits": [".vecgeom", "type-reldeb", "tool-spack"],
       "cacheVariables": {
         "CELERITAS_VecGeom_SURFACE": {"type": "BOOL", "value": "ON"}
       }
@@ -174,7 +177,7 @@
     {
       "name": "reldeb-vecgeom2",
       "description": "FINAL: release, assertions, VecGeom 2~surf",
-      "inherits": ["type-reldeb", ".vecgeom", "spack"],
+      "inherits": [".vecgeom", "type-reldeb", "tool-spack"],
       "cacheVariables": {
         "CELERITAS_VecGeom_SURFACE": {"type": "BOOL", "value": "OFF"}
       }
@@ -182,12 +185,12 @@
     {
       "name": "ndebug-vecgeom",
       "description": "FINAL: vecgeom app only",
-      "inherits": ["type-ndebug", ".vecgeom", "spack"]
+      "inherits": [".vecgeom", ".nogtest", "type-ndebug", "tool-spack"]
     },
     {
       "name": "ndebug-orange-static",
       "description": "FINAL: static libraries and perfetto, no tests",
-      "inherits": ["type-ndebug", "spack"],
+      "inherits": ["type-ndebug", "tool-spack"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Perfetto":{"type": "BOOL", "value": "ON"},
@@ -198,7 +201,7 @@
     {
       "name": "reldeb-geant4",
       "description": "FINAL: Geant4 geometry",
-      "inherits": ["type-reldeb", "spack"],
+      "inherits": ["type-reldeb", "tool-spack"],
       "cacheVariables": {
         "CELERITAS_CORE_GEO": "Geant4",
         "CELERITAS_UNITS": "CLHEP"
@@ -207,7 +210,7 @@
     {
       "name": "reldeb-orange-minimal",
       "description": "FINAL: minimal reasonable dependencies",
-      "inherits": ["type-reldeb", "spack"],
+      "inherits": ["type-reldeb", "tool-spack"],
       "cacheVariables": {
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
@@ -217,9 +220,9 @@
       }
     },
     {
-      "name": "reldebinfo-orange-asanlite",
+      "name": "reldeb-orange-asanlite",
       "description": "FINAL: address sanitizer flags and debug symbols",
-      "inherits": ["spack"],
+      "inherits": ["tool-spack"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS":{"type": "BOOL", "value": "ON"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
@@ -233,7 +236,7 @@
     {
       "name": "reldeb-orange-float",
       "description": "FINAL: single-precision arithmetic",
-      "inherits": ["type-reldeb", "spack"],
+      "inherits": ["type-reldeb", "tool-spack"],
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float"
       }
@@ -295,12 +298,12 @@
     },
     {
       "name": "spack-unit",
-      "configurePreset": "spack",
+      "configurePreset": "tool-spack",
       "inherits": [".unit", ".base"]
     },
     {
       "name": "spack-app",
-      "configurePreset": "spack",
+      "configurePreset": "tool-spack",
       "inherits": [".app", ".base"]
     },
     {

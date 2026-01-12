@@ -294,9 +294,6 @@ G4RunManager& IntegrationTestBase::run_manager()
         };
         CELER_ASSERT(rm);
 
-        // Disable signal handling
-        disable_geant_signal_handler();
-
         // Set up detector
         rm->SetUserInitialization(new DetectorConstruction{
             this->test_data_path("geocel", basename + ".gdml"),

@@ -6,20 +6,14 @@
 //! \brief Read in and write back an ORANGE JSON file
 //---------------------------------------------------------------------------//
 #include <cstdlib>
-#include <fstream>
-#include <iostream>
 #include <string>
-#include <vector>
 #include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
-#include "corecel/Assert.hh"
 #include "corecel/io/FileOrConsole.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-#include "orange/OrangeInputIO.json.hh"
+#include "orange/OrangeInputIO.json.hh"  // IWYU pragma: keep
 
 #include "CliUtils.hh"
 
