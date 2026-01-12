@@ -59,51 +59,25 @@ class InitializedValue
         std::is_nothrow_copy_constructible_v<T>)
         = default;
 
-    //! Exchange with other value on move construct
+    // Move constructor
     InitializedValue(InitializedValue&& other) noexcept(
-        std::is_nothrow_move_constructible_v<T>)
-        : value_(std::exchange(other.value_, {}))
-    {
-    }
+        std::is_nothrow_move_constructible_v<T>);
 
-    //! Call finalizer on destruct
-    ~InitializedValue() noexcept(noexcept_finalize_)
-    {
-        if (value_ != T{})
-        {
-            Finalizer{}(value_);
-        }
-    }
+    // Destructor
+    ~InitializedValue() noexcept(noexcept_finalize_);
 
     //!@}
+
     //!@{
     //! \name Assignment
-
-    //! Finalize our value when assigning
+    // Copy assignment
     InitializedValue& operator=(InitializedValue const& other) noexcept(
-        noexcept_finalize_ && std::is_nothrow_copy_assignable_v<T>)
-    {
-        if (value_ != T{})
-        {
-            Finalizer{}(value_);
-        }
-        value_ = other.value_;
-        return *this;
-    }
-
-    //! Clear other value on move assign
+        noexcept_finalize_ && std::is_nothrow_copy_assignable_v<T>);
+    // Move assignment
     InitializedValue& operator=(InitializedValue&& other) noexcept(
-        noexcept_finalize_ && std::is_nothrow_move_assignable_v<T>)
-    {
-        if (value_ != T{})
-        {
-            Finalizer{}(value_);
-        }
-        value_ = std::exchange(other.value_, T{});
-        return *this;
-    }
-
+        noexcept_finalize_ && std::is_nothrow_move_assignable_v<T>);
     //!@}
+
     //!@{
     //! \name Conversion
 
@@ -120,6 +94,58 @@ class InitializedValue
   private:
     T value_{};
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+//! Exchange with other value on move construct
+template<class T, class Finalizer>
+InitializedValue<T, Finalizer>::InitializedValue(
+    InitializedValue&& other) noexcept(std::is_nothrow_move_constructible_v<T>)
+    : value_(std::exchange(other.value_, {}))
+{
+}
+
+//---------------------------------------------------------------------------//
+//! Call finalizer on destruct
+template<class T, class Finalizer>
+InitializedValue<T, Finalizer>::~InitializedValue() noexcept(noexcept_finalize_)
+{
+    if (value_ != T{})
+    {
+        Finalizer{}(value_);
+    }
+}
+
+//---------------------------------------------------------------------------//
+//! Finalize our value when assigning
+template<class T, class Finalizer>
+InitializedValue<T, Finalizer>&
+InitializedValue<T, Finalizer>::operator=(InitializedValue const& other) noexcept(
+    noexcept_finalize_ && std::is_nothrow_copy_assignable_v<T>)
+{
+    if (value_ != T{})
+    {
+        Finalizer{}(value_);
+    }
+    value_ = other.value_;
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+//! Clear other value on move assign
+template<class T, class Finalizer>
+InitializedValue<T, Finalizer>&
+InitializedValue<T, Finalizer>::operator=(InitializedValue&& other) noexcept(
+    noexcept_finalize_ && std::is_nothrow_move_assignable_v<T>)
+{
+    if (value_ != T{})
+    {
+        Finalizer{}(value_);
+    }
+    value_ = std::exchange(other.value_, T{});
+    return *this;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
