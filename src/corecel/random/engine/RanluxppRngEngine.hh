@@ -98,18 +98,7 @@ class RanluxppRngEngine
     // Advance the state \c count times.
     inline CELER_FUNCTION void discard(RanluxppUInt count);
 
-    /*!
-     * Initialize a state for a new spawned RNG.
-     *
-     * \par Branching
-     * Branching is performed in two steps.  First, the state of the new RNG
-     * (\f$x^{\prime}\f$) is initialized as
-     * \f[
-     *      x^{i,\prime}_j = x^i_j ^ x^{i+1}_j \, .
-     * \f]
-     * Second, to decorrelate the new RNG from this RNG, the new RNG is
-     * advanced forward to the next block
-     */
+    // Initialize a state for a new spawned RNG.
     inline CELER_FUNCTION RngStateInitializer_t branch();
 
   private:
@@ -253,7 +242,18 @@ CELER_FUNCTION auto RanluxppRngEngine::operator()() -> result_type
 }
 
 //---------------------------------------------------------------------------//
-// Branch a new RNG from this RNG.
+/*!
+ * Initialize a state for a new spawned RNG.
+ *
+ * \par Branching
+ * Branching is performed in two steps.  First, the state of the new RNG
+ * (\f$x^{\prime}\f$) is initialized as
+ * \f[
+ *      x^{i,\prime}_j = x^i_j ^ x^{i+1}_j \, .
+ * \f]
+ * Second, to decorrelate the new RNG from this RNG, the new RNG is
+ * advanced forward to the next block
+ */
 CELER_FUNCTION RanluxppRngEngine::RngStateInitializer_t
 RanluxppRngEngine::branch()
 {
