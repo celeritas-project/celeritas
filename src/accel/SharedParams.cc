@@ -291,7 +291,7 @@ SharedParams::SharedParams(SetupOptions const& options)
 
             // Celeritas core params didn't add system metadata: do it
             // ourselves to save system diagnostic information
-            output_reg_->insert_system_diagnostics();
+            insert_system_diagnostics(*output_reg_);
             output_reg_->insert(timer_);
         }
 

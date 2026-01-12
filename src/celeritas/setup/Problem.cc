@@ -811,7 +811,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
     std::visit(Overload{
                    [&](inp::OpticalEmGenerator) {
                        CELER_VALIDATE(false,
-                                      << "OpticatEmGenerator cannot be used "
+                                      << "OpticalEmGenerator cannot be used "
                                          "with only optical physics enabled");
                    },
                    [&](inp::OpticalOffloadGenerator) {

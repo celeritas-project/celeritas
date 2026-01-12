@@ -323,7 +323,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     }
 
     // Save system diagnostic information
-    input_.output_reg->insert_system_diagnostics();
+    insert_system_diagnostics(*input_.output_reg);
 
     // Save core sizes
     input_.output_reg->insert(

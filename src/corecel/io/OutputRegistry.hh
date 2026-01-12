@@ -40,9 +40,6 @@ class OutputRegistry
     // Add an interface for writing
     void insert(SPConstInterface);
 
-    // Add an interfaces for writing system diagnostics
-    void insert_system_diagnostics();
-
     // Write output to the given JSON object
     void output(JsonPimpl*) const;
 
@@ -58,6 +55,13 @@ class OutputRegistry
     // Interfaces by category
     EnumArray<Category, std::map<std::string, SPConstInterface>> interfaces_;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Add an interfaces for writing system diagnostics
+void insert_system_diagnostics(OutputRegistry&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

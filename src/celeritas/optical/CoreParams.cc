@@ -144,7 +144,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     if (!input_.output_reg)
     {
         input_.output_reg = std::make_shared<OutputRegistry>();
-        input_.output_reg->insert_system_diagnostics();
+        insert_system_diagnostics(*input_.output_reg);
     }
 
     // Save optical action diagnostic information

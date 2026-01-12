@@ -56,25 +56,6 @@ void OutputRegistry::insert(SPConstInterface interface)
 
 //---------------------------------------------------------------------------//
 /*!
- * Add interfaces for writing system diagnostics.
- */
-void OutputRegistry::insert_system_diagnostics()
-{
-    this->insert(OutputInterfaceAdapter<Device>::from_const_ref(
-        OutputInterface::Category::system, "device", celeritas::device()));
-    this->insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
-        OutputInterface::Category::system,
-        "kernels",
-        celeritas::kernel_registry()));
-    this->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
-        OutputInterface::Category::system, "memory", celeritas::mem_registry()));
-    this->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
-        OutputInterface::Category::system, "environ", celeritas::environment()));
-    this->insert(std::make_shared<BuildOutput>());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Output all classes to a JSON object.
  */
 void OutputRegistry::output(JsonPimpl* j) const
@@ -133,6 +114,27 @@ bool OutputRegistry::empty() const
     return std::all_of(interfaces_.begin(),
                        interfaces_.end(),
                        [](auto const& m) { return m.empty(); });
+}
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Add interfaces for writing system diagnostics.
+ */
+void insert_system_diagnostics(OutputRegistry& output_reg)
+{
+    output_reg.insert(OutputInterfaceAdapter<Device>::from_const_ref(
+        OutputInterface::Category::system, "device", celeritas::device()));
+    output_reg.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
+        OutputInterface::Category::system,
+        "kernels",
+        celeritas::kernel_registry()));
+    output_reg.insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
+        OutputInterface::Category::system, "memory", celeritas::mem_registry()));
+    output_reg.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
+        OutputInterface::Category::system, "environ", celeritas::environment()));
+    output_reg.insert(std::make_shared<BuildOutput>());
 }
 
 //---------------------------------------------------------------------------//
