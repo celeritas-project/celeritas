@@ -31,6 +31,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        special: [null]
+        geometry: ["orange", "vecgeom"]
+        buildtype: ["debug", "ndebug"]
+        image: ["rocky-cuda", "ubuntu-rocm"]
+        exclude:
+          - geometry: "vecgeom"
+            buildtype: "debug" # Build is too large
+          - geometry: "vecgeom"
+            image: "ubuntu-rocm" # VecGeom not installed on HIP
+          - buildtype: "debug"
+            image: "ubuntu-rocm" # Debug device code breaks HIP optimizer
         include:
           - buildtype: "ndebug"
             geometry: "vecgeom"
