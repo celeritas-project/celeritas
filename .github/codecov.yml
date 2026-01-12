@@ -17,7 +17,7 @@ coverage:
         # 'auto' will use the coverage from the base commit (pull request base or
         # parent commit) coverage to compare against. This is the default.
         target: auto
-        # The default threshold is 1%, which means any drop in coverage will cause
+        # The default threshold is 1%, which means any drop in coverage will cause the CI to fail
         threshold: 5%
         base: auto
         if_not_found: success
@@ -39,9 +39,6 @@ comment:
 ignore:
   - "test"
   - "app"
-  - "doc/**/*"
-  - "docs/**/*"
-  - "*.md"
-  - "scripts/**/*"
-  - ".github/**/*"
-  - "src/larceler/LarCelerStandalone*"
+  - "example"
+  - "src/larceler/**/*"
+  - "src/ddceler/**/*"
