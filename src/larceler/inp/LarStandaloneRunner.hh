@@ -6,12 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <limits>
 #include <map>
 #include <string>
 
-#include "corecel/Types.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Tracking.hh"
 
 namespace celeritas
 {
@@ -36,10 +35,6 @@ namespace inp
  */
 struct LarStandaloneRunner
 {
-    //! Don't limit the number of steps (from TrackingLimits)
-    static constexpr size_type unlimited
-        = std::numeric_limits<size_type>::max();
-
     //// DATA ////
 
     //! Environment variables used for program setup/diagnostic
@@ -49,7 +44,7 @@ struct LarStandaloneRunner
     std::string geometry;
 
     //! Step iterations before aborting the optical stepping loop
-    size_type optical_step_iters{unlimited};
+    OpticalTrackingLimits tracking_limits;
 
     //! Optical buffer sizes
     OpticalStateCapacity optical_capacity;

@@ -3,26 +3,35 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-# Print extra information about downloading: hash failures, for example, are
-# silent otherwise
-set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
-
 # Download the package, save version, add to a list
 set(_celer_builtin_packages)
 macro(celer_fetch_external name version url sha)
-  # Save version and annotated string for corecel/Config.cc include
-  set(${name}_VERSION ${version} PARENT_SCOPE)
-  set(${name}_VERSION_STRING "${version}+builtin" PARENT_SCOPE)
+  if(CELERITAS_BUILTIN_${name} AND NOT CELERITAS_USE_${name})
+    message(WARNING "Ignoring CELERITAS_BUILTIN_${name} "
+      "since CELERITAS_USE_${name} is disabled")
+  else()
+    # Save version and annotated string for corecel/Config.cc include
+    # Note that since this a macro, PARENT_SCOPE will be the top-level
+    # celeritas/CMakeLists.txt
+    set(${name}_VERSION ${version} PARENT_SCOPE)
+    set(${name}_VERSION_STRING "${version}+builtin" PARENT_SCOPE)
 
-  string(REGEX REPLACE "@VERSION@" "${version}" _url "${url}")
-  FetchContent_Declare(
-    "${name}"
-    URL "${_url}"
-    URL_HASH SHA256=${sha}
-    DOWNLOAD_NO_PROGRESS TRUE
-  )
-  list(APPEND _celer_builtin_packages "${name}")
+    string(REGEX REPLACE "@VERSION@" "${version}" _url "${url}")
+    FetchContent_Declare(
+      "${name}"
+      URL "${_url}"
+      URL_HASH SHA256=${sha}
+      DOWNLOAD_NO_PROGRESS TRUE
+    )
+    list(APPEND _celer_builtin_packages "${name}")
+  endif()
 endmacro()
+
+#-----------------------------------------------------------------------------#
+
+# Print extra information about downloading: hash failures, for example, are
+# silent otherwise
+set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 
 #-----------------------------------------------------------------------------#
 # CLI11
@@ -51,6 +60,7 @@ if(CELERITAS_BUILTIN_covfie)
     "https://github.com/acts-project/covfie/archive/refs/tags/v@VERSION@.tar.gz"
     72da1147c44731caf9163f3931de78d7605a44f056f22a2f6ea024ad02a1ba71
   )
+
   set(COVFIE_PLATFORM_CPU ON)
   set(COVFIE_PLATFORM_CUDA ${CELERITAS_USE_CUDA})
   set(COVFIE_PLATFORM_HIP ${CELERITAS_USE_HIP})

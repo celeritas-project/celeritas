@@ -63,6 +63,7 @@ class FieldPropagator
     //! Whether it's possible to have tracks that are looping
     static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return true; }
 
+  private:
     //! Limit on substeps
     inline CELER_FUNCTION short int max_substeps() const;
 

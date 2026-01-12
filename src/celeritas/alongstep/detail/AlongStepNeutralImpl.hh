@@ -47,21 +47,11 @@ struct NoMsc
  */
 struct NoELoss
 {
-    //! This calculator never returns energy loss
-    CELER_CONSTEXPR_FUNCTION bool is_applicable(CoreTrackView const&)
-    {
-        return false;
-    }
-
     //! No energy loss
-    CELER_FUNCTION auto calc_eloss(CoreTrackView const&, real_type, bool) const
-        -> decltype(auto)
+    CELER_FUNCTION auto operator()(CoreTrackView const&) const -> decltype(auto)
     {
         return zero_quantity();
     }
-
-    //! No slowing down
-    static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return false; }
 };
 
 //---------------------------------------------------------------------------//

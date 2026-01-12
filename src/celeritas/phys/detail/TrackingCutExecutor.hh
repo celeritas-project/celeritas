@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
@@ -77,7 +78,7 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
 #endif
 
     track.physics_step().deposit_energy(Energy{deposited});
-    particle.subtract_energy(particle.energy());
+    particle.energy(zero_quantity());
 
     sim.status(TrackStatus::killed);
 }

@@ -48,12 +48,16 @@ if [ -n "${APPTAINER_CONTAINER}" ]; then
   export MRB_PROJECT_VERSION=v10_14_01
   export MRB_QUALS=e26:prof
   celerlog info "Running in apptainer ${APPTAINER_CONTAINER}"
-  if [ -z "${UPS_DIR}" ]; then
+  if [ -n "${UPS_DIR}" ]; then
+    celerlog debug "Dune UPS already set up: ${UPS_DIR}"
+  else
     celerlog info "Setting up DUNE UPS"
     . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
     celerlog debug "Using UPS_OVERRIDE=${UPS_OVERRIDE}, MRB_PROJECT=${MRB_PROJECT}"
   fi
-  if [ -z "${SETUP_LARCORE}" ]; then
+  if [ -n "${SETUP_LARCORE}" ]; then
+    celerlog debug "LARCORE is already set up"
+  else
     # Set up larsoft build defaults with UPS
     celerlog info "Setting up ${MRB_PROJECT} ${MRB_PROJECT_VERSION} with qualifiers '${MRB_QUALS}'"
     setup ${MRB_PROJECT} ${MRB_PROJECT_VERSION} -q ${MRB_QUALS} || return $?
@@ -76,19 +80,21 @@ done
 # Set up larsoft if running inside an apptainer
 if [ -n "${MRB_PROJECT}" ]; then
   LARSCRATCHDIR="${SCRATCHDIR}/${MRB_PROJECT}"
-  if ! [ -d "${LARSCRATCHDIR}" ]; then
-    celerlog info "Creating MRB dev area in ${LARSCRATCHDIR}..."
+  if [ -d "${LARSCRATCHDIR}" ]; then
+    celerlog debug "MRB dev area already exists at ${LARSCRATCHDIR}"
+  else
+    celerlog info "Creating MRB dev area in ${LARSCRATCHDIR}"
     mkdir -p "${LARSCRATCHDIR}" || return $?
     (
       cd "${LARSCRATCHDIR}"
       mrb newDev
-    )
+    ) || return 1
     celerlog debug "MRB environment created"
   fi
   _setup_filename="${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}_${MRB_PROJECT_VERSION}_${MRB_QUALS//:/_}/setup"
   if ! [ -f "${_setup_filename}" ]; then
-    celerlog warn "Expected setup file at ${_setup_filename}: MRB may not have been set up correctly"
-    _setup_filename=$(print %s"${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}*/setup")
+    celerlog warning "Expected setup file at ${_setup_filename}: MRB may not have been set up correctly"
+    _setup_filename=$(printf %s "${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}"*/setup)
     if [ -f "${_setup_filename}" ]; then
       celerlog info "Found setup file ${_setup_filename}"
     fi
@@ -100,39 +106,50 @@ fi
 if [ -n "${MRB_SOURCE}" ]; then
   _pkg=larsim
   if ! [ -d "${MRB_SOURCE}/${_pkg}" ]; then
-    celerlog info "Installing ${_pkg}"
-    mrb g ${_pkg}
+    _tag=LARSOFT_SUITE_${MRB_PROJECT_VERSION}
+    celerlog info "Installing ${_pkg} @${_tag}"
+    mrb g -t ${_tag} ${_pkg}
   fi
 
   # Now that a package exists in MRB source, cmake and dependencies can load
   celerlog info "Activating MRB environment"
-  mrbsetenv
-  celerlog debug "MRB setup complete"
+  # Note that this may be a shell script
+  if ! command -v mrbsetenv >/dev/null 2>&1 ; then
+    celerlog warning "mrbsetenv is not defined: run manually in shell"
+  else
+    celerlog debug "MRB setup complete"
+  fi
 fi
 
 if [ -n "$CELER_SOURCE_DIR" ]; then
   _clangd="$CELER_SOURCE_DIR/.clangd"
   if [ ! -e "${_clangd}" ]; then
     # Create clangd compatible with the system and build config
-    _gcc_version=$(gcc -dumpversion | cut -d. -f1)
-    celerlog info "Creating clangd config using GCC ${_gcc_version}: ${_clangd}"
-    cat > "${_clangd}" << EOF
+    _cxx=$GCC_FQ_DIR/bin/g++
+    if [ ! -x "${_cxx}" ]; then
+      celerlog info "GCC isn't loaded as expected at \$GCC_FQ_DIR/bin/g++ = ${_cxx}"
+    else
+      celerlog info "Creating clangd config using ${_cxx}: ${_clangd}"
+
+      # Extract include paths from GCC
+      _gcc_includes=$("${_cxx}" -E -x c++ - -v < /dev/null 2>&1 | \
+        sed -n '/^#include <...> search starts here:/,/^End of search list\./p' | \
+        grep '^ ' | sed 's/^ *//' | \
+        awk '{printf "      -isystem,\n      %s,\n", $0}' | \
+        sed '$s/,$//')
+
+      cat > "${_clangd}" << EOF
 CompileFlags:
   CompilationDatabase: ${SCRATCHDIR}/build/celeritas-reldeb-orange
   Add:
     [
-      -isystem,
-      /usr/include/c++/${_gcc_version},
-      -isystem,
-      /usr/local/include,
-      -isystem,
-      /usr/include,
-      -isystem,
-      /usr/include/x86_64-linux-gnu/c++/${_gcc_version},
+${_gcc_includes}
     ]
 EOF
+      unset _gcc_includes
+    fi
+    unset _clangd
   fi
-  unset _clangd
 fi
 
 export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
