@@ -209,7 +209,7 @@ struct SetupOptions
     //! Maximum number of track initializers (primaries+secondaries)
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
-    real_type secondary_stack_factor{2.0};
+    real_type secondary_stack_factor{};
     //! Number of tracks to buffer before offloading (if unset: max num tracks)
     size_type auto_flush{};
     //!@}
@@ -290,10 +290,6 @@ inp::GeantSd to_inp(SDSetupOptions const& so);
 
 // Construct a framework input
 inp::FrameworkInput to_inp(SetupOptions const& so);
-
-// Get runtime-dependent default capacity values
-inp::CoreStateCapacity
-get_default(SetupOptions const& so, size_type num_streams);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
