@@ -17,8 +17,7 @@ namespace test
 TEST(InitializedValue, no_finalizer)
 {
     using InitValueInt = InitializedValue<int>;
-    // TODO: in C++20 use [[no_unique_address]] and restore this assertion
-    // static_assert(sizeof(InitValueInt) == sizeof(int), "Bad size");
+    static_assert(sizeof(InitValueInt) == sizeof(int), "Bad size");
 
     // Use operator new to test that the int is being initialized properly by
     // constructing into data space that's been set to a different value
@@ -66,61 +65,87 @@ TEST(InitializedValue, no_finalizer)
 }
 
 //---------------------------------------------------------------------------//
+using OptionalInt = std::optional<int>;
 struct Finalizer
 {
-    static std::vector<int>& finalized_values()
+    static OptionalInt& last_finalized()
     {
-        static std::vector<int> result;
+        static OptionalInt result;
         return result;
     }
 
-    void operator()(int val) const { finalized_values().push_back(val); }
+    void operator()(int val) const { last_finalized() = val; }
 };
+
+OptionalInt get_last_finalized()
+{
+    return std::exchange(Finalizer::last_finalized(), {});
+}
 
 TEST(InitializedValue, finalizer)
 {
-    std::vector<int> expected;
-    std::vector<int>& actual = Finalizer::finalized_values();
-    actual.clear();
-
     using InitValueInt = InitializedValue<int, Finalizer>;
+
+    // Test default value
+    InitValueInt{};
+    EXPECT_EQ(std::nullopt, get_last_finalized());
+
+    {
+        // Test nondefault value
+        InitValueInt derp{1};
+        EXPECT_EQ(1, derp);
+        EXPECT_EQ(std::nullopt, get_last_finalized());
+    }
+    EXPECT_EQ(1, get_last_finalized());
 
     InitValueInt ival{};
     EXPECT_EQ(0, ival);
-    EXPECT_VEC_EQ(expected, actual);
+    EXPECT_EQ(std::nullopt, get_last_finalized());
+
+    {
+        InitValueInt temp{2};
+        ival = std::move(temp);
+        EXPECT_EQ(std::nullopt, get_last_finalized());
+        EXPECT_EQ(0, temp);
+        EXPECT_EQ(2, ival);
+    }
+    EXPECT_EQ(std::nullopt, get_last_finalized());
+    ival = {};
+    EXPECT_EQ(2, get_last_finalized());
 
     InitValueInt other{345};
     EXPECT_EQ(345, other);
     ival = other;
-    expected.push_back(0);
-    EXPECT_VEC_EQ(expected, actual);
+    EXPECT_EQ(std::nullopt, get_last_finalized());
+    EXPECT_EQ(345, ival);
+    EXPECT_EQ(345, other);
+    other = ival;
+    EXPECT_EQ(345, get_last_finalized());
     EXPECT_EQ(345, ival);
     EXPECT_EQ(345, other);
 
     other = 1000;
-    expected.push_back(345);
-    EXPECT_VEC_EQ(expected, actual);
+    EXPECT_EQ(345, get_last_finalized());
     ival = std::move(other);
-    expected.push_back(345);
-    EXPECT_VEC_EQ(expected, actual);
+    EXPECT_EQ(345, get_last_finalized());
     EXPECT_EQ(1000, ival);
     EXPECT_EQ(0, other);
 
     InitValueInt third(std::move(ival));
     EXPECT_EQ(0, ival);
     EXPECT_EQ(1000, third);
+    EXPECT_EQ(std::nullopt, get_last_finalized());
 
     // Test const T& constructor
     int const cint = 1234;
-    other = InitValueInt(cint);
-    expected.push_back(0);
-    EXPECT_VEC_EQ(expected, actual);
-    EXPECT_EQ(1234, other);
+    third = InitValueInt(cint);
+    EXPECT_EQ(1000, get_last_finalized());
+    EXPECT_EQ(1234, third);
 
     // Test implicit conversion
     int tempint;
     tempint = third;
-    EXPECT_EQ(1000, tempint);
+    EXPECT_EQ(1234, tempint);
 }
 
 //---------------------------------------------------------------------------//
