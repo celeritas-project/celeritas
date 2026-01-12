@@ -26,19 +26,20 @@ struct DefaultFinalize
 
 //---------------------------------------------------------------------------//
 /*!
- * Clear the value of the object on initialization and moving.
+ * Clear and finalize default values when moving and destroying.
  *
  * This helper class is used to simplify the "rule of 5" for classes that have
  * to treat one member data specially but can use default assign/construct for
  * the other elements. The default behavior is just to default-initialize when
  * assigning and clearing the RHS when moving; this is useful for handling
- * managed memory. The \em finalizer is called every time a value is lost by
- * assignment or destruction.
+ * managed memory. The \em finalizer is called every time a \em non-default
+ * value is lost by assignment or destruction.
  */
 template<class T, class Finalizer = detail::DefaultFinalize<T>>
 class InitializedValue
 {
-  private:
+    static_assert(std::is_default_constructible_v<T>);
+    static_assert(std::is_default_constructible_v<Finalizer>);
     static constexpr bool noexcept_finalize_
         = noexcept(std::declval<Finalizer>()(std::declval<T&>()));
 
@@ -58,13 +59,14 @@ class InitializedValue
         std::is_nothrow_copy_constructible_v<T>)
         = default;
 
-    //! Clear other value on move construct
+    //! Exchange with other value on move construct
     InitializedValue(InitializedValue&& other) noexcept(
         std::is_nothrow_move_constructible_v<T>)
         : value_(std::exchange(other.value_, {}))
     {
     }
 
+    //! Call finalizer on destruct
     ~InitializedValue() noexcept(noexcept_finalize_)
     {
         if (value_ != T{})
