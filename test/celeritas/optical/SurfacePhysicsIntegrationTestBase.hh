@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/SurfacePhysicsIntegration.hh
+//! \file celeritas/optical/SurfacePhysicsIntegrationTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -55,6 +55,8 @@ constexpr bool reference_configuration
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 /*!
+ * Template class for capturing photons after a surface interaction and scoring
+ * them with the given functor.
  */
 template<class Collector>
 class CollectResultsAction final : public OpticalStepActionInterface,
@@ -111,102 +113,37 @@ class CollectResultsAction final : public OpticalStepActionInterface,
 
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * A test base for running surface physics integration tests.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    SurfacePhysicsIntegration ...;
-   \endcode
+ * Tests are run in the optical-box.gdml setup, where photons are initialized
+ * close to the top (positive-y) edge and are shot directly into it. The
+ * collect action is used to capture photons immediately after a surface
+ * interaction and log them in an appropriate functor.
  */
 class SurfacePhysicsIntegrationTestBase : public GeantTestBase
 {
   public:
     std::string_view gdml_basename() const override { return "optical-box"; }
 
-    GeantPhysicsOptions build_geant_options() const override
+    GeantPhysicsOptions build_geant_options() const override;
+    GeantImportDataSelection build_import_data_selection() const override;
+    std::vector<IMC> select_optical_models() const override;
+    SPConstOpticalSurfacePhysics build_optical_surface_physics() override;
+
+    //! Initialize transporter and state for run
+    void initialize_run();
+
+    //! Run a single set of photons at the given angle
+    void run_step(real_type angle);
+
+    //! Create a collector action for the given functor
+    template<class C>
+    void create_collector(C& collect)
     {
-        auto result = GeantTestBase::build_geant_options();
-        result.optical = {};
-        CELER_ENSURE(result.optical);
-        return result;
-    }
-
-    GeantImportDataSelection build_import_data_selection() const override
-    {
-        auto result = GeantTestBase::build_import_data_selection();
-        result.processes |= GeantImportDataSelection::optical;
-        return result;
-    }
-
-    std::vector<IMC> select_optical_models() const override
-    {
-        return {IMC::absorption};
-    }
-
-    void SetUp() override {}
-
-    SPConstOpticalSurfacePhysics build_optical_surface_physics() override
-    {
-        inp::SurfacePhysics input;
-
-        this->setup_surface_models(input);
-
-        // Default surface
-
-        PhysSurfaceId phys_surface = [&] {
-            size_type num_surfaces = 0;
-            for (auto const& mats : input.materials)
-            {
-                num_surfaces += mats.size() + 1;
-            }
-            return PhysSurfaceId(num_surfaces);
-        }();
-
-        input.materials.push_back({});
-        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
-        input.reflectivity.fresnel.emplace(phys_surface,
-                                           inp::FresnelReflection{});
-        input.interaction.trivial.emplace(phys_surface,
-                                          TrivialInteractionMode::absorb);
-
-        return std::make_shared<SurfacePhysicsParams>(
-            this->optical_action_reg().get(), input);
-    }
-
-    void initialize_run()
-    {
-        auto generate = DirectGeneratorAction::make_and_insert(
-            *this->core(), *this->optical_params());
-
-        Transporter::Input inp;
-        inp.params = this->optical_params();
-        transport_ = std::make_shared<Transporter>(std::move(inp));
-
-        size_type num_tracks = 128;
-        auto state = std::make_shared<CoreState<MemSpace::host>>(
-            *this->optical_params(), StreamId{0}, num_tracks);
-        state->aux() = std::make_shared<AuxStateVec>(
-            *this->core()->aux_reg(), MemSpace::host, StreamId{0}, num_tracks);
-        state_ = state;
-    }
-
-    void run_step(real_type angle)
-    {
-        real_type sin_theta = std::sin(angle);
-        real_type cos_theta = std::cos(angle);
-
-        std::vector<TrackInitializer> inits(
-            100,
-            TrackInitializer{units::MevEnergy{3e-6},
-                             from_cm(Real3{0, 49, 0}),
-                             Real3{sin_theta, cos_theta, 0},
-                             Real3{0, 0, 1},
-                             0,
-                             ImplVolumeId{0}});
-
-        generate_->insert(*state_, make_span(inits));
-
-        (*transport_)(*state_);
+        auto& reg = *this->optical_params()->action_reg();
+        auto collector = std::make_shared<CollectResultsAction<C>>(
+            reg.next_id(), collect);
+        reg.insert(collector);
     }
 
   protected:

@@ -2,11 +2,10 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/SurfacePhysicsIntegration.test.cc
+//! \file celeritas/optical/SurfacePhysicsInteractionIntegration.test.cc
 //---------------------------------------------------------------------------//
 
-#include "SurfacePhysicsIntegration.hh"
-
+#include "SurfacePhysicsIntegrationTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -78,16 +77,13 @@ struct SurfaceTestResults
 // TEST CHASSIS
 //---------------------------------------------------------------------------//
 
-class SurfacePhysicsIntegrationTest : public SurfacePhysicsIntegrationTestBase
+class SurfacePhysicsInteractionIntegrationTest
+    : public SurfacePhysicsIntegrationTestBase
 {
   public:
     SurfaceTestResults run(std::vector<real_type> const& angles)
     {
-        // Create collector
-        auto& reg = *this->optical_params()->action_reg();
-        auto collector = std::make_shared<CollectResultsAction<CollectResults>>(
-            reg.next_id(), collect_);
-        reg.insert(collector);
+        this->create_collector<CollectResults>(collect_);
 
         this->initialize_run();
 
@@ -100,9 +96,9 @@ class SurfacePhysicsIntegrationTest : public SurfacePhysicsIntegrationTestBase
             this->run_step(deg_angle * constants::pi / 180);
 
             EXPECT_EQ(0, collect_.num_failed);
-            results_.num_absorbed.push_back(collect_.num_absorbed);
-            results_.num_reflected.push_back(collect_.num_reflected);
-            results_.num_refracted.push_back(collect_.num_refracted);
+            results.num_absorbed.push_back(collect_.num_absorbed);
+            results.num_reflected.push_back(collect_.num_reflected);
+            results.num_refracted.push_back(collect_.num_refracted);
         }
 
         return results;
@@ -122,12 +118,11 @@ class SurfacePhysicsIntegrationTest : public SurfacePhysicsIntegrationTestBase
 
   protected:
     CollectResults collect_;
-    SurfaceTestResults results_;
 };
 
 //---------------------------------------------------------------------------//
 class SurfacePhysicsIntegrationBackscatterTest
-    : public SurfacePhysicsIntegrationTest
+    : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
     void setup_surface_models(inp::SurfacePhysics& input) const final
@@ -149,7 +144,8 @@ class SurfacePhysicsIntegrationBackscatterTest
 };
 
 //---------------------------------------------------------------------------//
-class SurfacePhysicsIntegrationAbsorbTest : public SurfacePhysicsIntegrationTest
+class SurfacePhysicsIntegrationAbsorbTest
+    : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
     void setup_surface_models(inp::SurfacePhysics& input) const final
@@ -172,7 +168,7 @@ class SurfacePhysicsIntegrationAbsorbTest : public SurfacePhysicsIntegrationTest
 
 //---------------------------------------------------------------------------//
 class SurfacePhysicsIntegrationTransmitTest
-    : public SurfacePhysicsIntegrationTest
+    : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
     void setup_surface_models(inp::SurfacePhysics& input) const final
@@ -195,7 +191,7 @@ class SurfacePhysicsIntegrationTransmitTest
 
 //---------------------------------------------------------------------------//
 class SurfacePhysicsIntegrationFresnelTest
-    : public SurfacePhysicsIntegrationTest
+    : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
     void setup_surface_models(inp::SurfacePhysics& input) const final

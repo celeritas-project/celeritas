@@ -84,6 +84,7 @@ celeritas_add_test_library(testcel_celeritas
   optical/OpticalMockTestBase.cc
   optical/OpticalTestBase.cc
   optical/InteractorHostTestBase.cc
+  optical/SurfacePhysicsIntegrationTestBase.cc
   optical/ValidationUtils.cc
   phys/InteractionIO.cc
   phys/InteractorHostTestBase.cc
@@ -403,7 +404,7 @@ celeritas_add_test(optical/ReflectionFormSampler.test.cc)
 celeritas_add_test(optical/Fresnel.test.cc)
 celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
 celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
-celeritas_add_test(optical/SurfacePhysicsIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
