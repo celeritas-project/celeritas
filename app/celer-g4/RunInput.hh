@@ -78,10 +78,10 @@ struct RunInput
     PrimaryGeneratorOptions primary_options;
 
     // Control
-    size_type num_track_slots{};  //!< Defaults to 2^18 on device, 2^10 on host
+    size_type num_track_slots{};
     size_type max_steps{unspecified};
-    size_type initializer_capacity{};  //!< Defaults to 8 * num_track_slots
-    real_type secondary_stack_factor{2};
+    size_type initializer_capacity{};
+    real_type secondary_stack_factor{};
     size_type auto_flush{};  //!< Defaults to num_track_slots
 
     bool action_times{false};

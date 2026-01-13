@@ -32,6 +32,12 @@ void debug_clog(LogProvenance, LogLevel lev, std::string msg)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct null storer for disassociating before destruction.
+ */
+ScopedLogStorer::ScopedLogStorer() = default;
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct reference to log to temporarily replace.
  */
 ScopedLogStorer::ScopedLogStorer(Logger* orig, LogLevel min_level)

@@ -24,6 +24,7 @@ namespace celeritas
  * Construct a tracking manager with data needed to offload to Celeritas.
  *
  * \note The shared/local pointers must remain valid for the lifetime of the
+ * run. The local transporter should be null on the "master" thread of an MT
  * run.
  */
 TrackingManager::TrackingManager(SharedParams const* params,
@@ -31,7 +32,9 @@ TrackingManager::TrackingManager(SharedParams const* params,
     : params_(params), transport_(local)
 {
     CELER_EXPECT(params_);
-    CELER_EXPECT(transport_);
+    CELER_EXPECT(static_cast<bool>(transport_)
+                 == !(G4Threading::IsMasterThread()
+                      && G4Threading::IsMultithreadedApplication()));
 }
 
 //---------------------------------------------------------------------------//
@@ -51,11 +54,11 @@ TrackingManager::TrackingManager(SharedParams const* params,
  */
 void TrackingManager::BuildPhysicsTable(G4ParticleDefinition const& part)
 {
-    CELER_LOG(debug) << "Building physics table for " << part.GetParticleName();
+    CELER_EXPECT(params_->mode() != SharedParams::Mode::disabled);
 
-    CELER_VALIDATE(params_->mode() != SharedParams::Mode::disabled,
-                   << "Celeritas tracking manager cannot be active when "
-                      "Celeritas is disabled");
+    CELER_LOG_LOCAL(debug) << "Building physics table for "
+                           << part.GetParticleName();
+
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
     G4ProcessManager* pManager = part.GetProcessManager();
     CELER_ASSERT(pManager);
@@ -82,7 +85,7 @@ void TrackingManager::BuildPhysicsTable(G4ParticleDefinition const& part)
  *
  * Messaged by the \c G4ParticleDefinition who stores us whenever cross-section
  * tables have to be rebuilt (i.e. if new materials have been defined). As with
- * BuildPhysicsTable, we override this to ensure all Geant4
+ * \c BuildPhysicsTable, we override this to ensure all Geant4
  * process/cross-section data is available for Celeritas to use.
  *
  * The implementation follows that in \c
@@ -91,8 +94,10 @@ void TrackingManager::BuildPhysicsTable(G4ParticleDefinition const& part)
  */
 void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 {
-    CELER_LOG(debug) << "Preparing physics table for "
-                     << part.GetParticleName();
+    CELER_EXPECT(params_->mode() != SharedParams::Mode::disabled);
+
+    CELER_LOG_LOCAL(debug) << "Preparing physics table for "
+                           << part.GetParticleName();
 
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
     G4ProcessManager* pManager = part.GetProcessManager();
@@ -117,10 +122,13 @@ void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 //---------------------------------------------------------------------------//
 /*!
  * Offload the incoming track to Celeritas.
+ *
+ * This will \em not be called in the master thread of an MT run.
  */
 void TrackingManager::HandOverOneTrack(G4Track* track)
 {
     CELER_EXPECT(track);
+    CELER_EXPECT(transport_);
 
     if (CELER_UNLIKELY(!validated_))
     {

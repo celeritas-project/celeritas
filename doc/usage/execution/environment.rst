@@ -93,6 +93,8 @@ Celeritas or its apps:
    thread access the ``celeritas::environment()`` struct (see
    :ref:`api_system`), and call ``insert`` for the desired key/value pairs.
 
+.. doxygenfunction:: celeritas::use_color
+
 .. _logging:
 
 Logging

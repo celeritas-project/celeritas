@@ -33,6 +33,7 @@ endif()
 
 # Optional dependencies
 celeritas_optional_package(covfie "Use Covfie field integrator")
+celeritas_optional_package(DD4hep "Enable DD4hep integration")
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
 celeritas_optional_package(LArSoft "Build LArSoft data interfaces")
@@ -42,7 +43,6 @@ celeritas_optional_package(PNG "Enable PNG output with libpng")
 celeritas_optional_package(Python "Use Python for documentation and testing")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
-celeritas_optional_package(DD4hep "Enable DD4hep integration")
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 # Components
@@ -86,9 +86,17 @@ if(CELERITAS_BUILD_TESTS)
   mark_as_advanced(CELERITAS_TEST_XML)
 endif()
 
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
+  set(_needs_g4vg ON)
+else()
+  set(_needs_g4vg OFF)
+endif()
+
 # Automatic options
 celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
 celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
+celeritas_force_package(G4VG ${_needs_g4vg})
+celeritas_force_package(nlohmann_json ON)
 
 #----------------------------------------------------------------------------#
 # PACKAGE-SPECIFIC OPTIONS

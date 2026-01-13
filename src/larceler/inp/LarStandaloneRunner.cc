@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "LarStandaloneRunner.hh"
 
-#include "corecel/io/Logger.hh"
-
 #include "larceler/detail/LarCelerConfig.hh"
 
 namespace celeritas
@@ -34,11 +32,9 @@ from_config(detail::LarCelerStandaloneConfig const& cfg)
 #endif
 
     out.geometry = cfg.geometry();
-    out.optical_step_iters = cfg.optical_step_iters();
-    if (out.optical_step_iters == 0)
+    if (auto step_iters = cfg.optical_step_iters())
     {
-        CELER_LOG(debug) << "Using unlimited optical step iters";
-        out.optical_step_iters = out.unlimited;
+        out.tracking_limits.step_iters = step_iters;
     }
 
     // Optical capacities

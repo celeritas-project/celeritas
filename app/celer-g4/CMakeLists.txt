@@ -57,9 +57,11 @@ endif()
 set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/test-harness.py")
 set(_exe "$<TARGET_FILE:celer-g4>")
 set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
+set(_test_ext "cms")
 if(NOT CELERITAS_DEBUG)
   set(_events
     "${CELER_APP_DATA_DIR}/ttbarsplit-12evt-1108prim.hepmc3")
+  set(_test_ext "${_label}-large")
 else()
   # Use fewer events for debug
   set(_events
@@ -119,11 +121,12 @@ function(celer_app_test ext)
     list(APPEND _extra_env "CELER_DISABLE=1")
   endif()
 
-  add_test(NAME "app/celer-g4:${ext}"
+  set(_name "app/celer-g4:${_test_ext}:${ext}")
+  add_test(NAME "${_name}"
     COMMAND "${CELER_PYTHON}" "${_driver}" "${_exe}" "${_model}" "${_events}"
   )
 
-  set_tests_properties("app/celer-g4:${ext}" PROPERTIES
+  set_tests_properties("${_name}" PROPERTIES
     ENVIRONMENT "${_env};${_extra_env}"
     REQUIRED_FILES "${_required_files}"
     LABELS "${_labels}"

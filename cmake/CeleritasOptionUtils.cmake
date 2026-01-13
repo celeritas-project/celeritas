@@ -248,6 +248,7 @@ endmacro()
 macro(celeritas_force_package package value)
   set(_var "CELERITAS_USE_${package}")
   set(${_var} ${value})
+  message(VERBOSE "Celeritas: forced ${_var}=${value}")
   # Append to list of components
   _celeritas_append_optional_component(${package} "${value}")
   # Append to list of forced packages for export
