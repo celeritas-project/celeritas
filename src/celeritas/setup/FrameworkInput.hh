@@ -7,6 +7,7 @@
 #pragma once
 
 #include <memory>
+#include <variant>
 
 #include "Problem.hh"
 
@@ -26,9 +27,11 @@ namespace setup
 struct FrameworkLoaded
 {
     //! Loaded problem
-    ProblemLoaded problem;
+    std::variant<ProblemLoaded, OpticalProblemLoaded> problem;
     //! Geant4 geometry wrapper
     std::shared_ptr<GeantGeoParams> geo;
+    //! Write diagnostic output
+    std::string output_file;
 };
 
 //---------------------------------------------------------------------------//

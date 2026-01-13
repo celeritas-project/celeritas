@@ -2,18 +2,16 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/OffloadWriter.hh
+//! \file celeritas/io/OffloadWriter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 #include <mutex>
 
-#include "celeritas/io/EventIOInterface.hh"
+#include "EventIOInterface.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -64,5 +62,4 @@ void OffloadWriter::operator()(argument_type primaries)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

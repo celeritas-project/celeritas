@@ -143,7 +143,7 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
     inp.angle = inp::IsotropicDistribution{};
     inp.shape = inp::PointDistribution{{0, 0, 0}};
     auto generate = optical::PrimaryGeneratorAction::make_and_insert(
-        *this->core(), *this->optical_params(), std::move(inp));
+        *this->optical_params(), std::move(inp));
 
     this->build_transporter();
     this->build_state<MemSpace::host>(4096);
@@ -180,7 +180,7 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_primary_generator))
     inp.angle = inp::MonodirectionalDistribution{{1, 0, 0}};
     inp.shape = inp::UniformBoxDistribution{{-10, -10, -10}, {10, 10, 10}};
     auto generate = optical::PrimaryGeneratorAction::make_and_insert(
-        *this->core(), *this->optical_params(), std::move(inp));
+        *this->optical_params(), std::move(inp));
 
     this->build_transporter();
     this->build_state<MemSpace::device>(16384);
@@ -220,7 +220,7 @@ TEST_F(LArSphereGeneratorTest, direct_generator)
                                   0,
                                   ImplVolumeId{0}});
     auto generate = optical::DirectGeneratorAction::make_and_insert(
-        *this->core(), *this->optical_params());
+        *this->optical_params());
 
     this->build_transporter();
     this->build_state<MemSpace::host>(32);
@@ -253,7 +253,7 @@ TEST_F(LArSphereGeneratorTest, generator)
     // Create optical action to generate Cherenkov and scintillation photons
     size_type capacity = 512;
     auto generate = optical::GeneratorAction::make_and_insert(
-        *this->core(), *this->optical_params(), capacity);
+        *this->optical_params(), capacity);
 
     this->build_transporter();
     this->build_state<MemSpace::host>(4096);
@@ -312,7 +312,7 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_generator))
     // Create optical action to generate Cherenkov and scintillation photons
     size_type capacity = 4096;
     auto generate = optical::GeneratorAction::make_and_insert(
-        *this->core(), *this->optical_params(), capacity);
+        *this->optical_params(), capacity);
 
     this->build_transporter();
     this->build_state<MemSpace::device>(16384);
