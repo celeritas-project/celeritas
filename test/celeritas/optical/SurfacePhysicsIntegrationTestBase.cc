@@ -70,8 +70,7 @@ auto SurfacePhysicsIntegrationTestBase::build_optical_surface_physics()
 //---------------------------------------------------------------------------//
 void SurfacePhysicsIntegrationTestBase::initialize_run()
 {
-    generate_ = DirectGeneratorAction::make_and_insert(
-        *this->core(), *this->optical_params());
+    generate_ = DirectGeneratorAction::make_and_insert(*this->optical_params());
 
     Transporter::Input inp;
     inp.params = this->optical_params();
