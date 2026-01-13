@@ -4,10 +4,12 @@
 #-----------------------------------------------------------------------------#
 
 if(BUILD_TESTING)
+  celeritas_get_pyenv(CELER_PYTHONENV)
   if(CELERITAS_USE_Python)
     set(CELER_PYTHON "$<TARGET_FILE:Python::Interpreter>")
     set(CELER_NEEDS_PYTHON)
   else()
+    set(CELER_PYTHONENV)
     set(CELER_PYTHON "python3")
     set(CELER_NEEDS_PYTHON DISABLED true)
   endif()
@@ -21,20 +23,11 @@ if(BUILD_TESTING)
   endif()
   set(CELER_APP_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
 
-  # Disable device tests if no CUDA/HIP or if environment is set
-  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-    if("$ENV{CELER_DISABLE_DEVICE}")
-      message(WARNING
-        "Disabling GPU testing because CELER_DISABLE_DEVICE is set"
-      )
-      set(CELER_DISABLE_DEVICE TRUE)
-    else()
-      set(CELER_DISABLE_DEVICE FALSE)
-    endif()
-  else()
-    # No device support
-    set(CELER_DISABLE_DEVICE TRUE)
-  endif()
+  # Set environment variables from Geant4-exported configuration or
+  # environment currently used only for CTest setup
+  celeritas_get_g4env(CELER_G4ENV)
+  # Set option to disable GPU environment
+  celeritas_get_disable_device(CELER_DISABLE_DEVICE)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -55,8 +48,24 @@ celeritas_target_include_directories(celer_app_utils
 )
 
 #-----------------------------------------------------------------------------#
-# Geant4/ROOT data interface
+# Helper apps
 #-----------------------------------------------------------------------------#
+
+# Configuration output
+celeritas_add_executable(celer-config celer-config.cc)
+celeritas_target_link_libraries(celer-config
+  Celeritas::corecel
+  nlohmann_json::nlohmann_json
+  CLI11::CLI11
+  celer_app_utils
+)
+
+# Target to run celer-config
+add_custom_target(get-config
+  COMMAND "$<TARGET_FILE:celer-config>" "-d" "--indent" -1
+  VERBATIM
+  DEPENDS celer-config
+)
 
 # Orange JSON updater script
 celeritas_add_executable(orange-update orange-update.cc)
@@ -71,7 +80,6 @@ celeritas_target_link_libraries(orange-update
 celeritas_add_executable(celer-export-geant celer-export-geant.cc)
 celeritas_target_link_libraries(celer-export-geant
   Celeritas::celeritas
-  nlohmann_json::nlohmann_json
   CLI11::CLI11
   celer_app_utils
 )

@@ -100,6 +100,7 @@ TEST_F(TransformSimplifierTest, transform)
         EXPECT_TR_SOFT_EQ(orig, actual);
     }
     {
+        // NOTE: we don't have a separate 'rotation' class
         SCOPED_TRACE("simplify to rotation");
         auto actual = simplify(Transformation(large_r, Real3{0, 0, 0}));
         EXPECT_TR_SOFT_EQ(Transformation(large_r, Real3{0, 0, 0}), actual);

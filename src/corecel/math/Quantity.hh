@@ -105,6 +105,17 @@ class Quantity
     {
     }
 
+    //! Construct with quantity of same unit but different value type
+    template<class ValueT2,
+             std::enable_if_t<!std::is_same_v<ValueT, ValueT2>
+                                  && std::is_convertible_v<ValueT2, ValueT>,
+                              int>
+             = 0>
+    CELER_CONSTEXPR_FUNCTION Quantity(Quantity<UnitT, ValueT2> other) noexcept
+        : value_(static_cast<ValueT>(other.value()))
+    {
+    }
+
     //!@{
     //! Access the underlying numeric value, discarding units
     CELER_CONSTEXPR_FUNCTION value_type& value() & noexcept { return value_; }
@@ -335,6 +346,28 @@ inline char const* accessor_unit_label()
 {
     return detail::AccessorResultType<T>::unit_type::label();
 }
+
+//---------------------------------------------------------------------------//
+//! True if T is a Quantity
+template<class T>
+inline constexpr bool is_quantity_v = detail::IsQuantity<T>::value;
+
+//---------------------------------------------------------------------------//
+template<class T, class>
+struct LdgTraits;
+
+// Set up cached const global loading for Quantity
+template<class U, class T>
+struct LdgTraits<Quantity<U, T>, void>
+{
+    using underlying_type = typename Quantity<U, T>::value_type;
+
+    static CELER_CONSTEXPR_FUNCTION underlying_type const*
+    data(Quantity<U, T> const* ptr)
+    {
+        return ptr->data();
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

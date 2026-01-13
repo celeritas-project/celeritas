@@ -30,15 +30,19 @@ inline CELER_FUNCTION StepLimit calc_physics_step_limit(
     real_type total_xs = 0;
     for (auto model : range(ModelId{physics.num_models()}))
     {
-        total_xs += 1 / physics.calc_mfp(model, particle.energy());
+        total_xs += physics.calc_xs(model, particle.energy());
     }
     physics.macro_xs(total_xs);
-
-    CELER_ASSERT(physics.macro_xs() > 0);
+    CELER_ASSERT(physics.macro_xs() >= 0);
 
     StepLimit limit;
     limit.action = physics.discrete_action();
     limit.step = physics.interaction_mfp() / total_xs;
+
+    if (CELER_UNLIKELY(total_xs == 0))
+    {
+        limit.action = {};
+    }
 
     return limit;
 }
@@ -61,7 +65,7 @@ select_discrete_interaction(ParticleTrackView const& particle,
 
     ModelId mid = celeritas::make_selector(
         [&physics, energy = particle.energy()](ModelId m) {
-            return 1 / physics.calc_mfp(m, energy);
+            return physics.calc_xs(m, energy);
         },
         ModelId{physics.num_models()},
         physics.macro_xs())(rng);

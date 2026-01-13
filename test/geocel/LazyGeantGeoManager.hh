@@ -64,9 +64,6 @@ class LazyGeantGeoManager
 
     // Access volumes from built geometry or geant4 model
     SPConstVolumes volumes() const;
-
-    // Reset geometry (not G4) manually; needed by AllGeoTypedTestBase
-    static void clear_lazy_geo();
 };
 
 //---------------------------------------------------------------------------//

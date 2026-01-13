@@ -6,14 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <unordered_map>
-
 #include "corecel/Config.hh"
 
 #include "orange/OrangeInput.hh"
-#include "orange/OrangeTypes.hh"
+#include "orange/inp/Import.hh"
 
 //---------------------------------------------------------------------------//
 // Forward declarations
@@ -24,6 +20,7 @@ class G4LogicalVolume;
 namespace celeritas
 {
 class GeantGeoParams;
+class VolumeParams;
 
 struct OrangeInput;
 namespace orangeinp
@@ -53,20 +50,8 @@ class Converter
     //!@{
     //! \name Type aliases
     using arg_type = GeantGeoParams const&;
+    using Options = inp::OrangeGeoFromGeant;
     //!@}
-
-    //! Input options for the conversion
-    struct Options
-    {
-        //! Write output about volumes being converted
-        bool verbose{false};
-        //! Manually specify a tracking/construction tolerance
-        Tolerance<> tol;
-        //! Write interpreted geometry to a JSON file
-        std::string proto_output_file;
-        //! Write intermediate debug output (CSG construction) to a JSON file
-        std::string debug_output_file;
-    };
 
     struct result_type
     {
@@ -81,25 +66,11 @@ class Converter
     Converter() : Converter{Options{}} {}
 
     // Convert the world
-    result_type operator()(GeantGeoParams const&);
+    result_type operator()(GeantGeoParams const&, VolumeParams const&);
 
   private:
     Options opts_;
 };
-
-//---------------------------------------------------------------------------//
-
-#if !CELERITAS_USE_GEANT4
-inline Converter::Converter(Options&&)
-{
-    CELER_DISCARD(opts_);
-}
-
-inline auto Converter::operator()(arg_type) -> result_type
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace g4org

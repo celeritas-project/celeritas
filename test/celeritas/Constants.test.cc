@@ -10,6 +10,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/math/Quantity.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 
 #include "celeritas_test.hh"
@@ -64,6 +66,26 @@ TEST(ConstantsTest, formulas)
         a0_bohr);
     EXPECT_SOFT_EQ(alpha_fine_structure * alpha_fine_structure * a0_bohr,
                    r_electron);
+}
+
+TEST(ConstantsTest, clhep_codata)
+{
+    // Values differ from the CLHEP constants (CODATA 2006) by ~1e-7 due to
+    // the 2019 change in SI using e- charge as an exact definition
+    // rather than a measured constant
+    constexpr Constant old_e_electron{1.602176487e-19 * units::coulomb};
+
+    using MevMass = Quantity<units::MevPerCsq, double>;
+
+    // Like other CODATA constants, derivative values seem to be accurate only
+    // to ~1e-10 due to propagation of uncertainty
+    EXPECT_SOFT_NEAR(
+        native_value_to<MevMass>(codata2006::electron_mass).value(),
+        0.510998910 * old_e_electron / e_electron,
+        5e-10);
+    EXPECT_SOFT_NEAR(native_value_to<MevMass>(codata2006::proton_mass).value(),
+                     938.272013 * old_e_electron / e_electron,
+                     5e-10);
 }
 
 TEST(ConstantsTest, clhep)

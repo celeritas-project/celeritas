@@ -10,7 +10,7 @@ Dependencies
 ------------
 
 - Geant4 v11 or newer
-- Celeritas v0.5 or newer with ``CELERITAS_USE_Geant4=ON``
+- Celeritas v0.6 or newer with ``CELERITAS_USE_Geant4=ON``
 
 Build and run
 -------------
@@ -35,6 +35,11 @@ Example classes
   :cpp:class:`BeginOfRunAction` initializes Celeritas global shared data on
   master and worker threads, setting up a tracking manager under the hood.
   :cpp:class:`EndOfRunAction` clears data and finalizes Celeritas data.
+
+:cpp:class:`EventAction`
+  This optional event action demonstrates how to profile Geant4
+  and annotate GPU profiling results in a Geant4 context using
+  :cpp:class:`celeritas::ScopedProfiling`.
 
 :cpp:class:`SensitiveDetector`
   :cpp:class:`ProcessHits`: is currently the *only* Celeritas callback

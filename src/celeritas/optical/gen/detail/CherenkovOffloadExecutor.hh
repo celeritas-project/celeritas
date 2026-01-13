@@ -31,7 +31,8 @@ struct CherenkovOffloadExecutor
     NativeCRef<celeritas::optical::MaterialParamsData> material;
     NativeCRef<CherenkovData> cherenkov;
     NativeRef<optical::GeneratorStateData> offload;
-    NativeRef<OffloadStepStateData> steps;
+    NativeRef<OffloadPreStateData> const pre_steps;
+    NativeRef<OffloadPrePostStateData> const pre_post_steps;  //!< Unused
     size_type buffer_size;
 };
 
@@ -47,7 +48,7 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
     CELER_EXPECT(material);
     CELER_EXPECT(cherenkov);
     CELER_EXPECT(offload);
-    CELER_EXPECT(steps);
+    CELER_EXPECT(pre_steps);
 
     using DistId = ItemId<optical::GeneratorDistributionData>;
 
@@ -59,9 +60,9 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
     dist = {};
 
     auto sim = track.sim();
-    auto const& step = steps.step[tsid];
+    auto const& pre_step = pre_steps.step[tsid];
 
-    if (!step || sim.status() == TrackStatus::inactive)
+    if (!pre_step || sim.status() == TrackStatus::inactive)
     {
         // Inactive tracks, materials with no optical properties, or particles
         // that started the step with zero energy (e.g. a stopped positron)
@@ -75,8 +76,8 @@ CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
     {
         CherenkovOffload sample_dist(
             // Pre-step:
-            step,
-            optical::MaterialView{material, step.material},
+            pre_step,
+            optical::MaterialView{material, pre_step.material},
             // Post-step:
             particle,
             sim,

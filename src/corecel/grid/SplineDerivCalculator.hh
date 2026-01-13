@@ -105,10 +105,6 @@ class SplineDerivCalculator
     static CELER_CONSTEXPR_FUNCTION int min_grid_size() { return 5; }
 
   private:
-    //// TYPES ////
-
-    using Real3 = Array<real_type, 3>;
-
     //// DATA ////
 
     BoundaryCondition bc_;

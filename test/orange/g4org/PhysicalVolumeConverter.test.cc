@@ -6,14 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 
-#include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "orange/MatrixUtils.hh"
+#include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
-#include "orange/transform/TransformIO.hh"
+#include "orange/transform/TransformIO.hh"  // IWYU pragma: keep
 
 #include "GeantLoadTestBase.hh"
 #include "celeritas_test.hh"
@@ -32,9 +32,8 @@ constexpr RealTurn degrees_to_turn(double v)
 
 auto make_options()
 {
-    PhysicalVolumeConverter::Options opts;
-    opts.verbose = false;
-    opts.scale = 0.1;
+    inp::OrangeGeoFromGeant opts;
+    opts.unit_length = 0.1;
     return opts;
 }
 
@@ -45,13 +44,12 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
     Label const& get_label(LogicalVolume const& lv)
     {
         CELER_EXPECT(lv.id);
-        return this->geo().impl_volumes().at(lv.id);
+        return this->volumes()->volume_labels().at(lv.id);
     }
 
     Label const& get_label(PhysicalVolume const& pv)
     {
         CELER_EXPECT(pv.id);
-        CELER_EXPECT(this->volumes());
         return this->volumes()->volume_instance_labels().at(pv.id);
     }
 
@@ -62,9 +60,6 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
 TEST_F(PhysicalVolumeConverterTest, four_levels)
 {
     this->load_test_gdml("four-levels");
-    PhysicalVolumeConverter::Options opts;
-    opts.verbose = false;
-    opts.scale = 0.1;
     PhysicalVolumeConverter convert{this->geo(), make_options()};
 
     PhysicalVolume world = convert(this->world());

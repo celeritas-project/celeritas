@@ -29,20 +29,22 @@ namespace celeritas
  */
 struct Interaction
 {
+    using Energy = units::MevEnergy;
+
     //! Interaction result category
     enum class Action
     {
         scattered,  //!< Still alive, state has changed
         absorbed,  //!< Absorbed or transformed to another particle type
+        onloaded,  //!< Transfer interaction to the host
         unchanged,  //!< No state change, no secondaries
         failed,  //!< Ran out of memory during sampling
     };
 
-    units::MevEnergy energy;  //!< Post-interaction energy
+    Energy energy;  //!< Post-interaction energy
     Real3 direction;  //!< Post-interaction direction
     Span<Secondary> secondaries;  //!< Emitted secondaries
-    units::MevEnergy energy_deposition{0};  //!< Energy loss locally to
-                                            //!< material
+    Energy energy_deposition{0};  //!< Energy loss locally to material
     Action action{Action::scattered};  //!< Flags for interaction result
 
     // Return an interaction representing a recoverable error
@@ -53,6 +55,9 @@ struct Interaction
 
     // Return an interaction with no change in the track state
     static inline CELER_FUNCTION Interaction from_unchanged();
+
+    // Return an interaction with onload in the tract state
+    static inline CELER_FUNCTION Interaction from_onloaded();
 
     //! Whether the state changed but did not fail
     CELER_FUNCTION bool changed() const
@@ -97,6 +102,8 @@ struct MscStep
  *
  * These values are calculated at the first step in every msc tracking volume
  * and reused at subsequent steps within the same volume.
+ *
+ * \todo move to physics step data
  */
 struct MscRange
 {
@@ -168,6 +175,17 @@ CELER_FUNCTION Interaction Interaction::from_unchanged()
 {
     Interaction result;
     result.action = Action::unchanged;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an interaction from a particle that will be onloaded.
+ */
+CELER_FUNCTION Interaction Interaction::from_onloaded()
+{
+    Interaction result;
+    result.action = Action::onloaded;
     return result;
 }
 

@@ -38,7 +38,7 @@ void AlongStepAction::step(CoreParams const& params, CoreStateHost& state) const
         detail::PropagateExecutor{}(track);
         detail::AlongStepExecutor{}(track);
     };
-    auto execute = make_active_thread_executor(
+    auto execute = make_active_volumetric_thread_executor(
         params.ptr<MemSpace::native>(), state.ptr(), propagate_and_update);
     return launch_action(state, execute);
 }

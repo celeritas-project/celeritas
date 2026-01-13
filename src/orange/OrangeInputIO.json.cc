@@ -8,29 +8,26 @@
 
 #include <algorithm>
 #include <initializer_list>
-#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueIdIO.hh"
+#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/cont/ArrayIO.json.hh"  // IWYU pragma: keep
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Label.hh"
-#include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/io/Logger.hh"
-#include "geocel/BoundingBoxIO.json.hh"
+#include "geocel/BoundingBoxIO.json.hh"  // IWYU pragma: keep
 
-#include "OrangeInput.hh"
 #include "OrangeTypes.hh"
-#include "surf/SurfaceTypeTraits.hh"
+#include "OrangeTypesIO.json.hh"  // IWYU pragma: keep
 
 #include "detail/LogicUtils.hh"
 #include "detail/OrangeInputIOImpl.json.hh"
@@ -181,6 +178,26 @@ void to_json(nlohmann::json& j, VolumeInput const& value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Read background metadata from an ORANGE JSON file.
+ */
+void from_json(nlohmann::json const& j, BackgroundInput& value)
+{
+    CELER_JSON_LOAD_REQUIRED(j, value, label);
+    CELER_JSON_LOAD_REQUIRED(j, value, volume);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write background metadata to an ORANGE JSON file.
+ */
+void to_json(nlohmann::json& j, BackgroundInput const& value)
+{
+    CELER_JSON_SAVE(j, value, label);
+    CELER_JSON_SAVE(j, value, volume);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Read a unit definition from an ORANGE input file.
  *
  * NOTE: 'cell' nomenclature is from SCALE export (version 0)
@@ -241,19 +258,19 @@ void from_json(nlohmann::json const& j, UnitInput& value)
 
     for (char const* key : {"parent_volumes", "parent_cells"})
     {
-        auto iter = j.find(key);
-        if (iter == j.end())
+        auto parent_iter = j.find(key);
+        if (parent_iter == j.end())
         {
             continue;
         }
-        auto const& parent_vols = iter->get<std::vector<size_type>>();
+        auto const& parent_vols = parent_iter->get<std::vector<size_type>>();
 
         auto const& daughters = j.at("daughters").get<std::vector<size_type>>();
         CELER_VALIDATE(parent_vols.size() == daughters.size(),
                        << "fields '" << key
                        << "' and 'daughters' have different lengths");
 
-        std::vector<VariantTransform> transforms;  // SCALE ORANGE v0
+        std::vector<VariantTransform> transforms;
         if (auto iter = j.find("transforms"); iter != j.end())
         {
             for (auto const& t : *iter)
@@ -263,6 +280,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         }
         else if (auto iter = j.find("translations"); iter != j.end())
         {
+            // SCALE serialized translations
             auto translations = iter->get<std::vector<real_type>>();
             CELER_VALIDATE(3 * parent_vols.size() == translations.size(),
                            << "field 'translations' is not 3x length of '"
@@ -283,12 +301,31 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         for (auto i : range(parent_vols.size()))
         {
             DaughterInput daughter;
-            daughter.universe_id = UniverseId{daughters[i]};
+            daughter.univ_id = UnivId{daughters[i]};
             daughter.transform = std::move(transforms[i]);
             value.daughter_map.emplace(LocalVolumeId{parent_vols[i]},
                                        std::move(daughter));
         }
     }
+
+    if (auto iter = j.find("local_parent_map"); iter != j.end())
+    {
+        for (auto const& obj : *iter)
+        {
+            auto vals = obj.get<Array<LocalVolumeId, 2>>();
+            CELER_VALIDATE(vals[0] && vals[1],
+                           << "null ID in local parent map");
+            auto [lp_iter, inserted]
+                = value.local_parent_map.emplace(vals[0], vals[1]);
+            CELER_VALIDATE(inserted,
+                           << "duplicate local parent: local volume "
+                           << vals[0] << " cannot be inside both "
+                           << lp_iter->first.unchecked_get() << " and "
+                           << vals[1]);
+        }
+    }
+
+    CELER_JSON_LOAD_OPTION(j, value, background);
 }
 
 //---------------------------------------------------------------------------//
@@ -330,21 +367,33 @@ void to_json(nlohmann::json& j, UnitInput const& value)
 
     if (!value.daughter_map.empty())
     {
-        std::vector<size_type> parent_cells;
+        std::vector<size_type> parent_volumes;
         auto daughters = nlohmann::json::array();
         auto transforms = nlohmann::json::array();
 
         for (auto const& [local_vol, daughter_inp] : value.daughter_map)
         {
-            parent_cells.push_back(local_vol.unchecked_get());
-            daughters.push_back(daughter_inp.universe_id.unchecked_get());
+            parent_volumes.push_back(local_vol.unchecked_get());
+            daughters.push_back(daughter_inp.univ_id.unchecked_get());
             transforms.push_back(
                 detail::export_transform(daughter_inp.transform));
         }
-        j["parent_cells"] = std::move(parent_cells);
+        j["parent_cells"] = std::move(parent_volumes);
         j["daughters"] = std::move(daughters);
         j["transforms"] = std::move(transforms);
     }
+
+    if (!value.local_parent_map.empty())
+    {
+        auto parents = nlohmann::json::array();
+        for (auto const& [child, parent] : value.local_parent_map)
+        {
+            parents.push_back(Array{child, parent});
+        }
+        j["local_parent_map"] = std::move(parents);
+    }
+
+    CELER_JSON_SAVE_WHEN(j, value, background, value.background);
 }
 
 //---------------------------------------------------------------------------//
@@ -388,7 +437,7 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
         for (auto i : range(daughters.size()))
         {
             DaughterInput daughter;
-            daughter.universe_id = UniverseId{daughters[i]};
+            daughter.univ_id = UnivId{daughters[i]};
 
             // Read and convert transform
             daughter.transform
@@ -424,7 +473,7 @@ void to_json(nlohmann::json& j, RectArrayInput const& value)
 
         for (auto const& d : value.daughters)
         {
-            daughters.push_back(d.universe_id.unchecked_get());
+            daughters.push_back(d.univ_id.unchecked_get());
             if (auto* tr = std::get_if<Translation>(&d.transform))
             {
                 translations.insert(translations.end(),
@@ -446,43 +495,6 @@ void to_json(nlohmann::json& j, RectArrayInput const& value)
         j["translations"] = translations;
     }
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Read tolerances.
- */
-template<class T>
-void from_json(nlohmann::json const& j, Tolerance<T>& value)
-{
-    j.at("rel").get_to(value.rel);
-    CELER_VALIDATE(value.rel > 0 && value.rel < 1,
-                   << "tolerance " << value.rel
-                   << " is out of range [must be in (0,1)]");
-
-    j.at("abs").get_to(value.abs);
-    CELER_VALIDATE(value.abs > 0,
-                   << "tolerance " << value.abs
-                   << " is out of range [must be greater than zero]");
-}
-
-template void from_json(nlohmann::json const&, Tolerance<real_type>&);
-
-//---------------------------------------------------------------------------//
-/*!
- * Write tolerances.
- */
-template<class T>
-void to_json(nlohmann::json& j, Tolerance<T> const& value)
-{
-    CELER_EXPECT(value);
-
-    j = {
-        {"rel", value.rel},
-        {"abs", value.abs},
-    };
-}
-
-template void to_json(nlohmann::json&, Tolerance<real_type> const&);
 
 //---------------------------------------------------------------------------//
 /*!
@@ -526,6 +538,15 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
         }
     }
 
+    if (auto iter = j.find("logic"); iter != j.end())
+    {
+        iter->get_to(value.logic);
+    }
+    else
+    {
+        value.logic = LogicNotation::postfix;
+    }
+
     if (auto iter = j.find("tol"); iter != j.end())
     {
         iter->get_to(value.tol);
@@ -547,11 +568,11 @@ void to_json(nlohmann::json& j, OrangeInput const& value)
 {
     CELER_EXPECT(value);
 
-    j = nlohmann::json::object({
-        {"_format", "ORANGE"},
-        {"_version", 0},
-        {"universes", variants_to_json(value.universes)},
-    });
+    j = nlohmann::json::object(
+        {{"_format", "ORANGE"},
+         {"_version", 0},
+         {"universes", variants_to_json(value.universes)}});
+    j["logic"] = value.logic;
     if (value.tol)
     {
         j["tol"] = value.tol;

@@ -61,6 +61,9 @@ class Environment
     // Get an environment variable from current or system environments
     inline mapped_type const& operator[](key_type const&);
 
+    // Determine whether a variable has already been set (mostly internal)
+    inline const_iterator find(key_type const&) const;
+
     // Insert possibly new environment variables
     bool insert(value_type const& value);
 
@@ -109,11 +112,24 @@ std::string const& getenv(std::string const& key);
 // Thread-safe flag access to environment variables
 GetenvFlagResult getenv_flag(std::string const& key, bool default_val);
 
+// Thread-safe flag access to environment variables with lazy function default
+GetenvFlagResult
+getenv_flag_lazy(std::string const& key, std::function<bool()> const&);
+
 // Write the accessed environment variables to a stream
 std::ostream& operator<<(std::ostream&, Environment const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Determine whether a variable has already been set and get its value if so.
+ */
+auto Environment::find(key_type const& env_var) const -> const_iterator
+{
+    return vars_.find(env_var);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get an environment variable from current or system environments.

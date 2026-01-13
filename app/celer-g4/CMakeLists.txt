@@ -9,12 +9,10 @@ if(CELERITAS_USE_Geant4)
     ActionInitialization.cc
     DetectorConstruction.cc
     EventAction.cc
-    ExceptionHandler.cc
     GeantDiagnostics.cc
     GlobalSetup.cc
     HepMC3PrimaryGeneratorAction.cc
     LogHandlers.cc
-    PGPrimaryGeneratorAction.cc
     RunAction.cc
     RunInput.cc
     RunInputIO.json.cc
@@ -59,9 +57,11 @@ endif()
 set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/test-harness.py")
 set(_exe "$<TARGET_FILE:celer-g4>")
 set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
+set(_test_ext "cms")
 if(NOT CELERITAS_DEBUG)
   set(_events
     "${CELER_APP_DATA_DIR}/ttbarsplit-12evt-1108prim.hepmc3")
+  set(_test_ext "${_label}-large")
 else()
   # Use fewer events for debug
   set(_events
@@ -69,6 +69,7 @@ else()
 endif()
 
 set(_env
+  ${CELER_PYTHONENV}
   ${CELER_G4ENV}
   "CELER_LOG_LOCAL=debug"
   "CELER_DISABLE_PARALLEL=1"
@@ -87,6 +88,11 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3 OR NOT CELERITAS_USE_Geant4)
+  set(_props DISABLED true)
+endif()
+if(Geant4_VERSION VERSION_LESS "10.7")
+  # Don't bother: only for old framework support; and printf in the code fouls
+  # the JSON parsing
   set(_props DISABLED true)
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "Geant4")
@@ -115,11 +121,12 @@ function(celer_app_test ext)
     list(APPEND _extra_env "CELER_DISABLE=1")
   endif()
 
-  add_test(NAME "app/celer-g4:${ext}"
+  set(_name "app/celer-g4:${_test_ext}:${ext}")
+  add_test(NAME "${_name}"
     COMMAND "${CELER_PYTHON}" "${_driver}" "${_exe}" "${_model}" "${_events}"
   )
 
-  set_tests_properties("app/celer-g4:${ext}" PROPERTIES
+  set_tests_properties("${_name}" PROPERTIES
     ENVIRONMENT "${_env};${_extra_env}"
     REQUIRED_FILES "${_required_files}"
     LABELS "${_labels}"

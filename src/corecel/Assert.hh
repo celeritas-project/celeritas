@@ -84,12 +84,6 @@
                   << "failed to open '" << filename
                   << "' (should contain relaxation data)");
  * \endcode
- *
- * An always-on debug-type assertion without a detailed message can be
- * constructed by omitting the stream (but leaving the comma):
- * \code
-    CELER_VALIDATE(file_stream,);
- * \endcode
  */
 /*!
  * \def CELER_DEBUG_FAIL
@@ -173,11 +167,16 @@
             ::celeritas::unreachable(); \
         }                               \
     } while (0)
-#define CELER_NOASSERT_(COND)   \
-    do                          \
-    {                           \
-        if (false && (COND)) {} \
-    } while (0)
+#ifndef CELERITAS_GCOV
+#    define CELER_NOASSERT_(COND)   \
+        do                          \
+        {                           \
+            if (false && (COND)) {} \
+        } while (0)
+#else
+// Delete the code completely to avoid false posistives for coverage
+#    define CELER_NOASSERT_(COND)
+#endif
 //! \endcond
 
 #define CELER_DEBUG_FAIL(MSG, WHICH)    \
@@ -236,7 +235,12 @@
             }                                                    \
         } while (0)
 #else
-#    define CELER_VALIDATE(COND, MSG) CELER_RUNTIME_THROW(nullptr, "", #COND)
+#    define CELER_VALIDATE(COND, MSG)                \
+        do                                           \
+        {                                            \
+            CELER_DISCARD(COND);                     \
+            CELER_RUNTIME_THROW(nullptr, "", #COND); \
+        } while (0)
 #endif
 
 #define CELER_NOT_CONFIGURED(WHAT) \
@@ -255,8 +259,7 @@
  * RuntimeError if it fails. If no device platform is enabled, throw an
  * unconfigured assertion.
  *
- * Example:
- *
+ * \par Example:
  * \code
    CELER_DEVICE_API_CALL(Malloc(&ptr_gpu, 100 * sizeof(float)));
    CELER_DEVICE_API_CALL(DeviceSynchronize());

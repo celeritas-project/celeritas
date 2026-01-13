@@ -41,7 +41,7 @@ struct ImportData;
  * user-defined physics regions.
  *
  * \todo Replace id_to_label etc. with direct access to LabelIdMultiMap
- * \todo Split into isotope/element/geo material
+ * \todo Split into nuclide/element/geo material
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {
@@ -54,7 +54,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     using SpanConstIsotopeId = Span<IsotopeId const>;
     //!@}
 
-    //! Define an element's isotope input data
+    //! Define a single nuclide's data
     struct IsotopeInput
     {
         //!@{
@@ -69,7 +69,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         MevEnergy proton_loss_energy;  //!< BE(A, Z) - BE(A-1, Z-1)
         MevEnergy neutron_loss_energy;  //!< BE(A, Z) - BE(A-1, Z)
         units::MevMass nuclear_mass;  //!< Nucleons' mass + binding energy
-        Label label;  //!< Isotope name
+        Label label;  //!< Nuclide name
     };
 
     //! Define an element's input data

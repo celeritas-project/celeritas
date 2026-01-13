@@ -1,4 +1,10 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
+#-----------------------------------------------------------------------------#
+
 name: build-fast
 on:
   workflow_dispatch:
@@ -52,7 +58,7 @@ jobs:
       }}
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
 
       ### ENVIRONMENT ###
 
@@ -75,11 +81,13 @@ jobs:
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --version
-          cmake --preset=${CMAKE_PRESET} \
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
             ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0} ', matrix.cxxstd) || ''}} \
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
+            -DCeleritas_VERSION_STRING="${{
+              github.event.pull_request
+              && format('-pr.{0}', github.event.pull_request.number)
+              || format('-{0}', github.ref_name)
+            }}"
 
       ### BUILD ###
 
@@ -156,7 +164,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
 
       ### ENVIRONMENT ###
 
@@ -168,10 +176,12 @@ jobs:
       - name: Configure Celeritas
         run: |
           Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
-          cmake --preset=$Env:CMAKE_PRESET `
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
+          cmake --preset=$Env:CMAKE_PRESET --log-level=VERBOSE `
+            -DCeleritas_VERSION_STRING="${{
+              github.event.pull_request
+              && format('-pr.{0}', github.event.pull_request.number)
+              || format('-{0}', github.ref_name)
+            }}"
 
       ### BUILD ###
 

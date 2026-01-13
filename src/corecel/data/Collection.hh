@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -19,14 +21,23 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// Forward declare DedupeCollectionBuilder for use as a friend class
+template<class T, class Id>
+class DedupeCollectionBuilder;
+
+//---------------------------------------------------------------------------//
 /*!
  * \page collections Collection: a data portability class
  *
  * The \c Collection manages data allocation and transfer between CPU and GPU.
  * Its primary design goal is facilitating construction of deeply hierarchical
  * data on host at setup time and seamlessly copying to device.
- * The templated \c T must be trivially copyable: either a fundamental data
- * type or a struct of such types.
+ * The templated \c T must be trivially copyable and destructable: either a
+ * fundamental data type or a struct of such types.  (Some classes in external
+ * libraries, such as rocrand's state types and VecGeom's NavTuple types, are
+ * \em essentially trivial, but implement null-op destructors or optimized copy
+ * constructors, so we allow specialization through the
+ * celeritas::TriviallyCopyable class.
  *
  * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
  * a contiguous subset of items are accessed with \c ItemRange<T>, and the
@@ -49,20 +60,22 @@ namespace celeritas
  * has non-templated scalars (since the default assignment operator is less
  * work than manually copying scalars in a templated assignment operator.
  *
- * A collection group has the following requirements to be compatible with the
-\c
- * CollectionMirror, \c CollectionStateStore, and other such helper classes:
- * - Be a struct templated with \c template<Ownership W, MemSpace M>
+ * A <em>collection group</em> has the following requirements to be compatible
+ * with the \c CollectionMirror (for "params" collection groups), \c
+ * CollectionStateStore (for "state" collection groups"), and other such helper
+ * classes:
+ * - Be a struct templated with <code>template<Ownership W, MemSpace M></code>
  * - Contain only Collection objects and trivially copyable structs
  * - Define an operator bool that is true if and only if the class data is
  *   assigned and consistent
- * - Define a templated assignment operator on "other" Ownership and MemSpace
+ * - Define a \em templated assignment operator on "other" Ownership and
+ MemSpace
  *   which assigns every member to the right-hand-side's member
  *
  * Additionally, a \c StateData collection group must define
  * - A member function \c size() returning the number of entries (i.e. number
  *   of threads)
- * - A free function \c resize with one of two signatures:
+ * - A free function \c resize with one of three signatures:
  * \code
    void resize(
        StateData<Ownership::value, M>* data,
@@ -81,20 +94,26 @@ namespace celeritas
  * \endcode
  *
  * By convention, related groups of collections are stored in a header file
- * named \c Data.hh .
+ * named \c *Data.hh .
  *
- * See ParticleParamsData and ParticleStateData for minimal examples of using
- * collections. The MaterialParamsData demonstrates additional complexity
- * by having a multi-level data hierarchy, and MaterialStateData has a resize
- * function that uses params data. PhysicsParamsData is a very complex example,
- * and GeoParamsData demonstrates how to use template specialization to adapt
- * Collections to another codebase with a different convention for host-device
- * portability.
+ * See \c ParticleParamsData and \c ParticleStateData for minimal examples of
+ * using collections. The \c MaterialParamsData demonstrates additional
+ * complexity by having a multi-level data hierarchy, and \c MaterialStateData
+ * has a resize function that uses params data. \c PhysicsParamsData is a very
+ * complex example, and \c VecgeomParamsData demonstrates how to use template
+ * specialization to adapt Collections to another codebase with a different
+ * convention for host-device portability.
+ *
+ * A common paradigm for managing host-device data is to have a small
+ * fixed-size POD struct called a \em record that contains attributes about an
+ * item. These often need to reference a variable-sized range of data and do so
+ * by storing an \c ItemRange or \c ItemMap . These two types are offsets into
+ * "backend" data stored by a collection group.
  */
 
 //! Opaque ID representing a single element of a container.
-template<class T>
-using ItemId = OpaqueId<T, size_type>;
+template<class T, class U = size_type>
+using ItemId = OpaqueId<T, U>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -135,12 +154,47 @@ using ItemRange = Range<OpaqueId<T, Size>>;
  *
  * Here, T1 and T2 are expected to be OpaqueId types. This is simply a
  * type-safe "offset" with range checking.
+ *
+ * Example: \code
+   using ElComponentId = OpaqueId<struct ElComp_>;
+   using MatId = OpaqueId<struct MaterialRecord>;
+
+   // POD struct (record) describing a material
+   struct MaterialRecord
+   {
+     using DoubleId = ItemId<double>; // same as OpaqueId
+     ItemMap<ElComponentId, DoubleId> components;
+   };
+
+   template<Ownership W, MemSpace M>
+   struct MatParamsData
+   {
+     Collection<MaterialRecord, W, M> materials;
+     Collection<double, W, M> doubles; // Backend storage
+     // ...
+   };
+
+  \endcode
+ *
+ * Here, \c components semantically refers to a contiguous range of real values
+ * in the \c doubles collection, where \c ElComponentId{0} is the first value
+ * in that range. Dereferencing the value requires using the map alongside
+ * the backend storage: \code
+   double get_value(MatParamsData const& params, MatId m, ElComponentId ec)
+   {
+     MaterialRecord const& mat = params.materials[m];
+     ItemId<double> dbl_id = mat.components[ec];
+     return params.doubles[dbl_id];
+   }
+ * \endcode
+ * Note that this access requires only two indirections, as \c ItemMap is
+ * merely performing integer arithmetic.
  */
 template<class T1, class T2>
 class ItemMap
 {
-    static_assert(detail::is_opaque_id_v<T1>, "T1 is not OpaqueID");
-    static_assert(detail::is_opaque_id_v<T2>, "T2 is not OpaqueID");
+    static_assert(is_opaque_id_v<T1>, "T1 is not OpaqueID");
+    static_assert(is_opaque_id_v<T2>, "T2 is not OpaqueID");
 
   public:
     //!@{
@@ -154,8 +208,11 @@ class ItemMap
 
     ItemMap() = default;
 
-    //! Construct from an existing Range<T2>
-    explicit CELER_FUNCTION ItemMap(Range<T2> range) : range_(range) {}
+    //! Construct implicitly from an existing Range<T2>
+    CELER_FUNCTION ItemMap(Range<T2> range) : range_(range) {}
+
+    //! Construct like a range
+    CELER_FUNCTION ItemMap(T2 start, T2 stop) : range_{start, stop} {}
 
     //// ACCESS ////
 
@@ -233,20 +290,19 @@ struct AllItems
  https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#zero-copy).
  *
  * Accessing a \c const_reference collection in \c device memory will return a
- * wrapper container that accesses the low-level data through the \c __ldg
- * primitive, which can accelerate random access by telling the compiler
+ * wrapper container that accesses the low-level data through the \c
+ celeritas::ldg
+ * wrapper function, which can accelerate random access on GPU by telling the
+ compiler
  * <em>the memory will not be changed during the lifetime of the kernel</em>.
  * Therefore it is important to \em only use const Collections for shared,
- * constant "params" data.
+ * immutable-after-creation "params" data.
  */
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
-    // rocrand states have nontrivial destructors
-    static_assert(std::is_trivially_copyable<T>::value || CELERITAS_USE_HIP,
+    static_assert(TriviallyCopyable_v<T>,
                   "Collection element is not trivially copyable");
-    static_assert(std::is_trivially_destructible<T>::value || CELERITAS_USE_HIP,
-                  "Collection element is not trivially destructible");
 
     using CollectionTraitsT = detail::CollectionTraits<T, W, M>;
     using const_value_type = typename CollectionTraitsT::const_type;

@@ -96,7 +96,7 @@ struct ImportPhysMaterial
     using MapIntCutoff = std::map<PdgInt, ImportProductionCut>;
     //!@}
 
-    static constexpr Index unspecified = -1;
+    static constexpr Index unspecified = static_cast<Index>(-1);
 
     Index geo_material_id{};  //!< Index in geo_materials list
     Index optical_material_id{unspecified};  //!< Optional index in optical mat

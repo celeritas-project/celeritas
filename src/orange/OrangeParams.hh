@@ -8,13 +8,11 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "corecel/io/Label.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/inp/Model.hh"
@@ -44,14 +42,14 @@ class OrangeParams final : public GeoParamsInterface,
     //!@{
     //! \name Type aliases
     using SurfaceMap = LabelIdMultiMap<ImplSurfaceId>;
-    using UniverseMap = LabelIdMultiMap<UniverseId>;
+    using UniverseMap = LabelIdMultiMap<UnivId>;
     using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     //!@}
 
   public:
     //!@{
     //! \name Static constructor helpers
-    //! \todo: move these to a "model" abstraction that loads/emits geometry,
+    //! \todo Move these to a "model" abstraction that loads/emits geometry,
     //! materials, volumes?
 
     // Build by loading a GDML file
@@ -89,8 +87,8 @@ class OrangeParams final : public GeoParamsInterface,
     //! Outer bounding box of geometry
     BBox const& bbox() const final { return bbox_; }
 
-    // Maximum universe depth (not geometry volume depth!)
-    inline size_type max_depth() const;
+    // Number of levels deep universes can be (not geometry volume level!)
+    inline UnivLevelId::size_type num_univ_levels() const;
 
     // Create model parameters corresponding to our internal representation
     inp::Model make_model_input() const final;
@@ -106,17 +104,11 @@ class OrangeParams final : public GeoParamsInterface,
     // Get volume metadata
     inline ImplVolumeMap const& impl_volumes() const final;
 
-    // Get the volume ID corresponding to a Geant4 logical volume
-    inline ImplVolumeId find_volume(G4LogicalVolume const* volume) const final;
-
-    // Get the Geant4 physical volume corresponding to a volume instance ID
-    inline GeantPhysicalInstance
-    id_to_geant(VolumeInstanceId vol_id) const final;
-
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
-    // Get the volume instance ID corresponding to an implementation volume
+    // Get the (canonical) volume instance ID corresponding to an
+    // implementation volume
     inline VolumeInstanceId volume_instance_id(ImplVolumeId) const;
 
     //// DATA ACCESS ////
@@ -151,11 +143,11 @@ extern template class ParamsDataInterface<OrangeParamsData>;
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Maximum universe depth.
+ * Number of levels in the most deeply nested universe path.
  */
-size_type OrangeParams::max_depth() const
+UnivLevelId::size_type OrangeParams::num_univ_levels() const
 {
-    return this->host_ref().scalars.max_depth;
+    return this->host_ref().scalars.num_univ_levels;
 }
 
 //---------------------------------------------------------------------------//
@@ -183,28 +175,6 @@ auto OrangeParams::universes() const -> UniverseMap const&
 auto OrangeParams::impl_volumes() const -> ImplVolumeMap const&
 {
     return impl_vol_labels_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Locate the volume ID corresponding to a Geant4 volume.
- *
- * \todo Replace with GeantGeoParams + VolumeId
- */
-ImplVolumeId OrangeParams::find_volume(G4LogicalVolume const*) const
-{
-    return ImplVolumeId{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the Geant4 physical volume corresponding to a volume instance ID.
- *
- * \todo Implement using \c g4org::Converter
- */
-GeantPhysicalInstance OrangeParams::id_to_geant(VolumeInstanceId) const
-{
-    return {};
 }
 
 //---------------------------------------------------------------------------//

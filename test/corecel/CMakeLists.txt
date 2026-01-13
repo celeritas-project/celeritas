@@ -72,26 +72,29 @@ celeritas_add_test(io/Logger.test.cc
 celeritas_add_test(io/OutputRegistry.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(io/Repr.test.cc)
+celeritas_add_test(io/ScopedStreamRedirect.test.cc)
 celeritas_add_test(io/StringEnumMapper.test.cc)
 celeritas_add_test(io/StringUtils.test.cc)
 
 # Math
 celeritas_add_device_test(math/Algorithms)
+celeritas_add_device_test(math/NumericLimits)
 celeritas_add_test(math/ArrayOperators.test.cc)
 celeritas_add_test(math/ArrayUtils.test.cc)
-celeritas_add_test(math/PdfUtils.test.cc)
+celeritas_add_test(math/BisectionRootFinder.test.cc)
 celeritas_add_test(math/Constant.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
+celeritas_add_test(math/IllinoisRootFinder.test.cc)
 celeritas_add_test(math/Integrator.test.cc)
-celeritas_add_device_test(math/NumericLimits)
+celeritas_add_test(math/PdfUtils.test.cc)
 celeritas_add_test(math/PolyEvaluator.test.cc)
 celeritas_add_test(math/Quantity.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
-celeritas_add_test(math/SoftEqual.test.cc)
+celeritas_add_test(math/QuarticSolver.test.cc)
 celeritas_add_test(math/RegulaFalsiRootFinder.test.cc)
-celeritas_add_test(math/BisectionRootFinder.test.cc)
-celeritas_add_test(math/IllinoisRootFinder.test.cc)
+celeritas_add_test(math/SoftEqual.test.cc)
 celeritas_add_test(math/TridiagonalSolver.test.cc)
+
 
 #-----------------------------------------------------------------------------#
 # Random
@@ -102,18 +105,22 @@ celeritas_add_device_test(random/RngEngine
   LINK_LIBRARIES Celeritas::ExtThrust)
 celeritas_add_test(random/Selector.test.cc)
 celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
+celeritas_add_test(random/RanluxppRngEngine.test.cc GPU)
 
 celeritas_add_test(random/distribution/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distribution/ExponentialDistribution.test.cc)
 celeritas_add_test(random/distribution/GammaDistribution.test.cc)
 celeritas_add_test(random/distribution/InverseSquareDistribution.test.cc)
+celeritas_add_test(random/distribution/IsotropicDistribution.test.cc)
 celeritas_add_test(random/distribution/NormalDistribution.test.cc)
 celeritas_add_test(random/distribution/PoissonDistribution.test.cc)
 celeritas_add_test(random/distribution/PowerDistribution.test.cc)
 celeritas_add_test(random/distribution/RadialDistribution.test.cc)
 celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
 celeritas_add_test(random/distribution/RejectionSampler.test.cc)
+celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
+celeritas_add_test(random/distribution/DistributionTypeTraits.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Sys
@@ -131,7 +138,6 @@ celeritas_add_test(sys/MpiCommunicator.test.cc
 celeritas_add_test(sys/MultiExceptionHandler.test.cc)
 celeritas_add_test(sys/TypeDemangler.test.cc)
 celeritas_add_test(sys/ScopedSignalHandler.test.cc)
-celeritas_add_test(sys/ScopedStreamRedirect.test.cc)
 celeritas_add_test(sys/Stopwatch.test.cc ADDED_TESTS _stopwatch)
 set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
 celeritas_add_test(sys/Version.test.cc)

@@ -99,7 +99,6 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 
     // Disable external error handlers
     ScopedRootErrorHandler scoped_root_errors;
-    disable_geant_signal_handler();
 
     // Set the random seed *before* the run manager is instantiated
     // (G4MTRunManager constructor uses the RNG)
@@ -107,12 +106,6 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 
     // Construct global setup singleton and make options available to UI
     auto& setup = *GlobalSetup::Instance();
-    // Read user input
-    setup.ReadInput(std::string(filename));
-
-    // Start tracing session
-    celeritas::TracingSession tracing{setup.input().tracing_file};
-    tracing.start();
 
     auto run_manager = [] {
         // Run manager writes output that cannot be redirected with
@@ -140,6 +133,12 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 #endif
     }();
     CELER_ASSERT(run_manager);
+
+    // Read user input
+    setup.ReadInput(std::string(filename));
+
+    // Start tracing session
+    celeritas::TracingSession tracing{setup.input().tracing_file};
 
     // Set up loggers
     world_logger() = Logger::from_handle_env(make_world_handler(), "CELER_LOG");

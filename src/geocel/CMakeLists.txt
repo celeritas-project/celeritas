@@ -13,11 +13,11 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   BoundingBoxIO.json.cc
-  GeoParamsInterface.cc
+  GeoInterface.cc
   GeoParamsOutput.cc
-  GeoVolumeFinder.cc
   SurfaceParams.cc
   VolumeParams.cc
+  VolumeIdBuilder.cc
   VolumeToString.cc
   detail/SurfaceParamsBuilder.cc
   rasterize/Color.cc
@@ -52,12 +52,14 @@ if(CELERITAS_USE_Geant4)
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc
     GeantGeoParams.cc
+    detail/GeantVolumeInstanceMapper.cc
+    g4/GeantNavHistoryUpdater.cc
     g4/RaytraceImager.cc
     g4/SafetyImager.cc
     g4/detail/GeantGeoNavCollection.cc
   )
 
-  celeritas_get_g4libs(_cg4_libs global geometry materials particles
+  celeritas_get_g4libs(_cg4_libs global geometry digits_hits materials particles
     persistency intercoms)
   celeritas_target_link_libraries(geocel_geant4
     PRIVATE
@@ -71,12 +73,17 @@ endif()
 
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
+    vg/VecgeomData.cc
     vg/VecgeomParams.cc
     vg/VecgeomParamsOutput.cc
-    vg/detail/VecgeomNavCollection.cc
     vg/RaytraceImager.cc
     vg/SafetyImager.cc
   )
+  if(VecGeom_NAV STREQUAL "path")
+    list(APPEND SOURCES
+      vg/detail/VecgeomNavCollection.cc
+    )
+  endif()
   if(VecGeom_GDML_FOUND)
     list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   endif()

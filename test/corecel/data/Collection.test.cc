@@ -85,7 +85,7 @@ TEST(ItemMap, basic)
 
     // Create an ItemMap for each Range
     im_a = ItemMap(range_a);
-    im_b = ItemMap(range_b);
+    im_b = {*range_b.begin(), *range_b.end()};  // alternate syntax
 
     EXPECT_EQ(4, im_a.size());
     EXPECT_EQ(3, im_b.size());

@@ -16,6 +16,7 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -192,7 +193,7 @@ TEST_F(TestEm3DiagnosticTest, host)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
     }
 }
@@ -244,7 +245,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
     }
 }

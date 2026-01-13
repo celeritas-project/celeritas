@@ -39,13 +39,17 @@
 // Override an older version of that macro
 #        define FQUALIFIERS __forceinline__ __host__ __device__
 #    endif
-#    pragma clang diagnostic push
+#    if HIP_VERSION_MAJOR < 7
+#        pragma clang diagnostic push
 // "Disabled inline asm, because the build target does not support it."
-#    pragma clang diagnostic ignored "-W#warnings"
+#        pragma clang diagnostic ignored "-W#warnings"
 // "ignoring return value of function declared with 'nodiscard' attribute"
-#    pragma clang diagnostic ignored "-Wunused-result"
-#    include <hiprand/hiprand_kernel.h>
-#    pragma clang diagnostic pop
+#        pragma clang diagnostic ignored "-Wunused-result"
+#        include <hiprand/hiprand_kernel.h>
+#        pragma clang diagnostic pop
+#    else
+#        include <hiprand/hiprand_kernel.h>
+#    endif
 #    define CELER_RNG_PREFIX(TOK) hip##TOK
 #else
 // CuHipRng is invalid

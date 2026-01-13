@@ -7,9 +7,6 @@
 #include "OrangeParams.hh"
 
 #include <fstream>
-#include <initializer_list>
-#include <limits>
-#include <numeric>
 #include <utility>
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -17,11 +14,8 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueId.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
@@ -30,10 +24,11 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
+#include "orange/detail/LogicUtils.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
-#include "OrangeInputIO.json.hh"
+#include "OrangeInputIO.json.hh"  // IWYU pragma: keep
 #include "OrangeTypes.hh"
 #include "g4org/Converter.hh"
 #include "univ/detail/LogicStack.hh"
@@ -89,7 +84,33 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
     CELER_EXPECT(geo);
     CELER_EXPECT(volumes);
     CELER_EXPECT(!volumes->empty());
-    auto result = g4org::Converter{}(*geo).input;
+
+    ScopedProfiling profile_this{"orange-load-geant"};
+
+    // Set up options for debug output
+    inp::OrangeGeoFromGeant opts;
+    if (auto opt_filename = celeritas::getenv("G4ORG_OPTIONS");
+        !opt_filename.empty())
+    {
+        std::ifstream infile{opt_filename};
+        CELER_VALIDATE(infile,
+                       << "failed to open g4org option file at '"
+                       << opt_filename << "'");
+        try
+        {
+            infile >> opts;
+            CELER_LOG(debug) << "Loaded ORANGE conversion options: " << opts;
+        }
+        catch (std::exception const& e)
+        {
+            CELER_LOG(critical)
+                << "Failed to load options from " << opt_filename;
+        }
+    }
+
+    // Convert G4 geometry to ORANGE input data structure
+    auto result = g4org::Converter{std::move(opts)}(*geo, *volumes).input;
+
     return std::make_shared<OrangeParams>(std::move(result),
                                           std::move(volumes));
 }
@@ -122,6 +143,7 @@ OrangeParams::from_json(std::string const& filename)
 {
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedTimeLog scoped_time;
+    ScopedProfiling profile_this{"orange-load-json"};
 
     OrangeInput result;
 
@@ -152,7 +174,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
 
-    ScopedProfiling profile_this{"finalize-orange-runtime"};
+    ScopedProfiling profile_this{"orange-construct"};
     ScopedMem record_mem("orange.finalize_runtime");
     CELER_LOG(debug) << "Merging runtime data"
                      << (celeritas::device() ? " and copying to GPU" : "");
@@ -160,7 +182,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 
     // Save global bounding box
     bbox_ = [&input] {
-        auto& global = input.universes[orange_global_universe.unchecked_get()];
+        auto& global = input.universes[orange_global_univ.unchecked_get()];
         CELER_VALIDATE(std::holds_alternative<UnitInput>(global),
                        << "global universe is not a SimpleUnit");
         return std::get<UnitInput>(global).bbox;
@@ -169,7 +191,13 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
-    host_data.scalars.max_depth = detail::DepthCalculator{input.universes}();
+    host_data.scalars.logic = input.logic;
+    host_data.scalars.num_univ_levels
+        = detail::DepthCalculator{input.universes}();
+    host_data.scalars.num_vol_levels = volumes_ ? volumes_->num_volume_levels()
+                                                : 0;
+
+    detail::convert_logic(input, orange_tracking_logic());
 
     // Insert all universes
     {
@@ -209,14 +237,12 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
           && host_data.rect_arrays.empty();
 
     // Update scalars *after* loading all units
-    CELER_VALIDATE(host_data.scalars.max_logic_depth
-                       < detail::LogicStack::max_stack_depth(),
-                   << "input geometry has at least one volume with a "
-                      "logic depth of"
-                   << host_data.scalars.max_logic_depth
-                   << " (a volume's CSG tree is too deep); but the logic "
-                      "stack is limited to a depth of "
-                   << detail::LogicStack::max_stack_depth());
+    CELER_VALIDATE(
+        host_data.scalars.max_csg_levels <= detail::LogicStack::capacity(),
+        << "input geometry has at least one volume with a CSG tree depth of"
+        << host_data.scalars.max_csg_levels
+        << ", but the logic stack is limited to a depth of "
+        << detail::LogicStack::capacity());
 
     // Save pointers for debug output
     host_data.scalars.host_geo_params = this;

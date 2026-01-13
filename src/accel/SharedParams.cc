@@ -15,6 +15,8 @@
 #include <CLHEP/Random/Random.h>
 #include <G4Electron.hh>
 #include <G4Gamma.hh>
+#include <G4MuonMinus.hh>
+#include <G4MuonPlus.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4Positron.hh>
@@ -27,20 +29,16 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/BuildOutput.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/io/StringUtils.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/Environment.hh"
-#include "corecel/sys/EnvironmentIO.json.hh"
-#include "corecel/sys/KernelRegistry.hh"
-#include "corecel/sys/MemRegistry.hh"
-#include "corecel/sys/MemRegistryIO.json.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -57,10 +55,10 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/FrameworkInput.hh"
 #include "celeritas/inp/Scoring.hh"
-#include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/Transporter.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -76,46 +74,61 @@
 #include "SetupOptions.hh"
 #include "TimeOutput.hh"
 
-#include "detail/OffloadWriter.hh"
+#include "detail/IntegrationSingleton.hh"
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
-std::vector<G4ParticleDefinition*>
-build_g4_particles(std::shared_ptr<ParticleParams const> const& particles,
-                   std::shared_ptr<PhysicsParams const> const& phys)
+void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
+                    ParticleParams const& particles,
+                    PhysicsParams const& phys)
 {
-    CELER_EXPECT(particles);
-    CELER_EXPECT(phys);
+    std::vector<bool> found_particle(particles.size(), false);
+    std::vector<G4ParticleDefinition const*> missing;
 
-    G4ParticleTable* g4particles = G4ParticleTable::GetParticleTable();
-    CELER_ASSERT(g4particles);
-
-    std::vector<G4ParticleDefinition*> result;
-
-    for (auto par_id : range(ParticleId{particles->size()}))
+    for (auto const* pd : offload)
     {
-        if (phys->processes(par_id).empty())
+        ParticleId pid;
+        if (pd)
         {
-            CELER_LOG(warning)
-                << "Not offloading particle '"
-                << particles->id_to_label(par_id)
-                << "' because it has no physics processes defined";
-            continue;
+            PDGNumber pdg{pd->GetPDGEncoding()};
+            CELER_VALIDATE(
+                pdg, << "unsupported particle type: " << StreamablePD{pd});
+            pid = particles.find(pdg);
         }
-
-        PDGNumber pdg = particles->id_to_pdg(par_id);
-        G4ParticleDefinition* g4pd = g4particles->FindParticle(pdg.get());
-        CELER_VALIDATE(g4pd,
-                       << "could not find PDG '" << pdg.get()
-                       << "' in G4ParticleTable");
-        result.push_back(g4pd);
+        if (pid)
+        {
+            found_particle[pid.get()] = true;
+            if (phys.processes(pid).empty())
+            {
+                CELER_LOG(warning) << "User-selected offload particle '"
+                                   << particles.id_to_label(pid)
+                                   << "' has no physics processes defined";
+            }
+        }
+        else
+        {
+            missing.push_back(pd);
+        }
     }
 
-    CELER_ENSURE(!result.empty());
-    return result;
+    auto printable_pd
+        = [](G4ParticleDefinition const* p) { return StreamablePD{p}; };
+    CELER_VALIDATE(missing.empty(),
+                   << "not all particles from TrackingManagerConstructor are "
+                      "active in Celeritas: missing "
+                   << join(missing.begin(), missing.end(), ", ", printable_pd));
+
+    if (found_particle != std::vector<bool>(particles.size(), true))
+    {
+        //! \todo Overhaul DataSelection Flags and GeantImporter
+        CELER_LOG(warning)
+            << "Mismatch between ParticlesParams (size " << particles.size()
+            << ") and user-defined offload list (size " << offload.size()
+            << "). Geant4 data import is not properly defined.";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -135,9 +148,10 @@ std::mutex& updating_mutex()
 /*!
  * Whether celeritas is disabled, set to kill, or to be enabled.
  *
- * This gets the value from environment variables and
+ * Currently the mode is set by querying the environment variables \c
+ * CELER_KILL_OFFLOAD and \c CELER_DISABLE .
  *
- * \todo This will be refactored for 0.6 to take a \c celeritas::inp object and
+ * \todo This will be refactored for 0.7 to take a \c celeritas::inp object and
  * determine values rather than from the environment .
  */
 auto SharedParams::GetMode() -> Mode
@@ -145,26 +159,23 @@ auto SharedParams::GetMode() -> Mode
     using Mode = SharedParams::Mode;
 
     static bool const kill_offload = [] {
-        if (celeritas::getenv("CELER_KILL_OFFLOAD").empty())
-            return false;
+        auto result = getenv_flag("CELER_KILL_OFFLOAD", false);
 
-        CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
-                           "offloading since the 'CELER_KILL_OFFLOAD' "
-                        << "environment variable is present and non-empty";
-        return true;
+        if (result.value)
+        {
+            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
+                               "offloading";
+        }
+        return result.value;
     }();
     static bool const disabled = [] {
-        if (celeritas::getenv("CELER_DISABLE").empty())
+        auto result = getenv_flag("CELER_DISABLE", false);
+        if (!result.value)
             return false;
 
-        if (kill_offload)
-        {
-            CELER_LOG(warning)
-                << "DEPRECATED (remove in 0.7): both CELER_DISABLE "
-                   "and CELER_KILL_OFFLOAD environment variables "
-                   "were defined: choose one";
-            return false;
-        }
+        CELER_VALIDATE(!kill_offload,
+                       << "both CELER_DISABLE and CELER_KILL_OFFLOAD "
+                          "environment variables were defined: choose one");
 
         CELER_LOG(info)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
@@ -181,6 +192,47 @@ auto SharedParams::GetMode() -> Mode
         return Mode::kill_offload;
     }
     return Mode::enabled;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a list of all supported particles.
+
+ * \note This can only be called after the run manager is constructed.
+ */
+auto SharedParams::supported_offload_particles() -> VecG4PD const&
+{
+    CELER_EXPECT(G4RunManager::GetRunManager());
+    static VecG4PD const supported_particles = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+        G4MuonMinus::Definition(),
+        G4MuonPlus::Definition(),
+    };
+
+    return supported_particles;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the list of default particles offloaded in Geant4 applications.
+ *
+ * If no user-defined list is provided, this defaults to simulating EM showers.
+ *
+ * \note This can only be called after the run manager is constructed.
+ */
+auto SharedParams::default_offload_particles() -> VecG4PD const&
+{
+    CELER_EXPECT(G4RunManager::GetRunManager());
+
+    static VecG4PD const default_particles = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+    };
+
+    return default_particles;
 }
 
 //---------------------------------------------------------------------------//
@@ -214,44 +266,32 @@ SharedParams::SharedParams(SetupOptions const& options)
     ScopedTimeLog scoped_time;
 
     mode_ = GetMode();
-    if (mode_ == Mode::kill_offload)
-    {
-        // In a Geant4-only simulation, use a hardcoded list
-        particles_ = {
-            G4Gamma::Gamma(),
-            G4Electron::Electron(),
-            G4Positron::Positron(),
-        };
-    }
 
+    if (mode_ == Mode::enabled || mode_ == Mode::kill_offload)
+    {
+        // Set up offloaded particles based on user input
+        offload_particles_ = options.offload_particles
+                                 ? *options.offload_particles
+                                 : default_offload_particles();
+    }
     if (mode_ != Mode::enabled)
     {
         // Stop initializing but create output registry for diagnostics
         output_reg_ = std::make_shared<OutputRegistry>();
-        output_filename_ = options.output_file;
+        loaded_.output_file = options.output_file;
 
         // Create the timing output
         timer_
             = std::make_shared<TimeOutput>(celeritas::get_geant_num_threads());
 
-        if (!output_filename_.empty())
+        if (!loaded_.output_file.empty())
         {
             CELER_LOG(debug)
                 << R"(Constructing output registry for no-offload run)";
 
             // Celeritas core params didn't add system metadata: do it
             // ourselves to save system diagnostic information
-            output_reg_->insert(
-                OutputInterfaceAdapter<MemRegistry>::from_const_ref(
-                    OutputInterface::Category::system,
-                    "memory",
-                    celeritas::mem_registry()));
-            output_reg_->insert(
-                OutputInterfaceAdapter<Environment>::from_const_ref(
-                    OutputInterface::Category::system,
-                    "environ",
-                    celeritas::environment()));
-            output_reg_->insert(std::make_shared<BuildOutput>());
+            insert_system_diagnostics(*output_reg_);
             output_reg_->insert(timer_);
         }
 
@@ -260,36 +300,40 @@ SharedParams::SharedParams(SetupOptions const& options)
 
     // Construct input and then build the problem setup
     auto framework_inp = to_inp(options);
-    auto loaded = setup::framework_input(framework_inp);
-    params_ = std::move(loaded.problem.core_params);
-    optical_ = std::move(loaded.problem.optical_collector);
-    output_filename_ = loaded.problem.output_file;
-    CELER_ASSERT(params_);
+    loaded_ = setup::framework_input(framework_inp);
 
     // Load geant4 geometry adapter and save as "global"
-    CELER_ASSERT(loaded.geo);
-    geant_geo_ = std::move(loaded.geo);
-    celeritas::global_geant_geo(geant_geo_);
-
-    // Save built attributes
-    output_reg_ = params_->output_reg();
-    geant_sd_ = std::move(loaded.problem.geant_sd);
-    step_collector_ = std::move(loaded.problem.step_collector);
-
-    // Translate supported particles
-    particles_ = build_g4_particles(params_->particle(), params_->physics());
+    CELER_ASSERT(loaded_.geo);
+    celeritas::global_geant_geo(loaded_.geo);
 
     // Create bounding box from navigator geometry
-    bbox_ = geant_geo_->get_clhep_bbox();
+    bbox_ = loaded_.geo->get_clhep_bbox();
 
-    // Create streams
-    this->set_num_streams(params_->max_streams());
+    std::visit(
+        Overload{
+            [&](setup::ProblemLoaded const& p) {
+                // Translate supported particles
+                verify_offload(offload_particles_,
+                               *p.core_params->particle(),
+                               *p.core_params->physics());
+
+                // Set streams and output registry from core params
+                output_reg_ = p.core_params->output_reg();
+                this->set_num_streams(p.core_params->max_streams());
+            },
+            [&](setup::OpticalProblemLoaded const& p) {
+                // Set streams and output registry from optical params
+                output_reg_ = p.transporter->params()->output_reg();
+                this->set_num_streams(p.transporter->params()->max_streams());
+            },
+        },
+        loaded_.problem);
 
     // Add timing output
-    timer_ = std::make_shared<TimeOutput>(params_->max_streams());
+    timer_ = std::make_shared<TimeOutput>(this->num_streams());
     output_reg_->insert(timer_);
 
-    if (output_filename_ != "-")
+    if (loaded_.output_file != "-")
     {
         // Write output after params are constructed before anything can go
         // wrong
@@ -299,24 +343,6 @@ SharedParams::SharedParams(SetupOptions const& options)
     {
         CELER_LOG(debug)
             << R"(Skipping 'startup' JSON output since writing to stdout)";
-    }
-
-    if (auto const& offload_file = loaded.problem.offload_file;
-        !offload_file.empty())
-    {
-        std::unique_ptr<EventWriterInterface> writer;
-        if (ends_with(offload_file, ".root"))
-        {
-            writer.reset(new RootEventWriter(
-                std::make_shared<RootFileManager>(offload_file.c_str()),
-                params_->particle()));
-        }
-        else
-        {
-            writer.reset(new EventWriter(offload_file, params_->particle()));
-        }
-        offload_writer_
-            = std::make_shared<detail::OffloadWriter>(std::move(writer));
     }
 
     CELER_ENSURE(*this);
@@ -438,7 +464,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
  */
 void SharedParams::try_output() const
 {
-    std::string filename = output_filename_;
+    std::string filename = loaded_.output_file;
     if (filename.empty())
     {
         CELER_LOG(debug) << "Skipping output: SetupOptions::output_file is "

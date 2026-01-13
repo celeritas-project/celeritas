@@ -30,21 +30,17 @@ using MockStepActionInterface = StepActionInterface<MockParams, MockState>;
 
 //---------------------------------------------------------------------------//
 
-class MyExplicitAction final : public MockStepActionInterface,
-                               public MockBeginRunActionInterface
+class MyStepAction final : public MockStepActionInterface,
+                           public MockBeginRunActionInterface
 {
   public:
-    MyExplicitAction(ActionId ai, StepActionOrder ao)
-        : action_id_(ai), order_{ao}
+    MyStepAction(ActionId ai, StepActionOrder ao) : action_id_(ai), order_{ao}
     {
     }
 
     ActionId action_id() const final { return action_id_; }
-    std::string_view label() const final { return "explicit"; }
-    std::string_view description() const final
-    {
-        return "explicit action test";
-    }
+    std::string_view label() const final { return "step"; }
+    std::string_view description() const final { return "step action test"; }
 
     void begin_run(CoreParams const&, CoreStateHost&) final
     {
@@ -97,9 +93,9 @@ class ActionRegistryTest : public Test
         auto impl1 = std::make_shared<MyImplicitAction>(mgr.next_id(), "impl1");
         mgr.insert(impl1);
 
-        expl_action = std::make_shared<MyExplicitAction>(mgr.next_id(),
-                                                         StepActionOrder::pre);
-        mgr.insert(expl_action);
+        step_action = std::make_shared<MyStepAction>(mgr.next_id(),
+                                                     StepActionOrder::pre);
+        mgr.insert(step_action);
 
         auto impl2 = std::make_shared<MyImplicitAction>(
             mgr.next_id(), "impl2", "the second implicit action");
@@ -107,7 +103,7 @@ class ActionRegistryTest : public Test
     }
 
     ActionRegistry mgr;
-    std::shared_ptr<MyExplicitAction> expl_action;
+    std::shared_ptr<MyStepAction> step_action;
 };
 
 //---------------------------------------------------------------------------//
@@ -120,19 +116,19 @@ TEST_F(ActionRegistryTest, accessors)
     EXPECT_EQ(3, mgr.num_actions());
 
     // Find IDs
-    auto expl_id = mgr.find_action("explicit");
-    EXPECT_EQ(1, expl_id.unchecked_get());
+    auto step_id = mgr.find_action("step");
+    EXPECT_EQ(1, step_id.unchecked_get());
     EXPECT_EQ(0, mgr.find_action("impl1").unchecked_get());
     EXPECT_EQ(ActionId{}, mgr.find_action("nonexistent"));
 
     // Access an action
-    EXPECT_EQ("explicit action test", mgr.action(expl_id)->description());
-    EXPECT_EQ("explicit", mgr.id_to_label(expl_id));
+    EXPECT_EQ("step action test", mgr.action(step_id)->description());
+    EXPECT_EQ("step", mgr.id_to_label(step_id));
 
-    EXPECT_STREQ("pre", to_cstring(expl_action->order()));
+    EXPECT_STREQ("pre", to_cstring(step_action->order()));
 
     ASSERT_EQ(1, mgr.mutable_actions().size());
-    EXPECT_EQ(expl_action, mgr.mutable_actions().front());
+    EXPECT_EQ(step_action, mgr.mutable_actions().front());
 }
 
 TEST_F(ActionRegistryTest, output)
@@ -142,7 +138,7 @@ TEST_F(ActionRegistryTest, output)
         &mgr, [](ActionRegistry const*) {}));
     EXPECT_EQ("actions", out.label());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"actions","description":["","explicit action test","the second implicit action"],"label":["impl1","explicit","impl2"]})json",
+        R"json({"_category":"internal","_label":"actions","description":["","step action test","the second implicit action"],"label":["impl1","step","impl2"]})json",
         to_string(out));
 }
 

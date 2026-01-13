@@ -95,6 +95,18 @@
     </volume>
   </structure>
 
+  <userinfo>
+    <auxiliary auxtype="Region" auxvalue="box_region">
+      <auxiliary auxtype="volume" auxvalue="box"/>
+    </auxiliary>
+    <auxiliary auxtype="Region" auxvalue="tri_region">
+      <auxiliary auxtype="volume" auxvalue="tri"/>
+    </auxiliary>
+    <auxiliary auxtype="Region" auxvalue="sph_region">
+      <auxiliary auxtype="volume" auxvalue="sph"/>
+    </auxiliary>
+  </userinfo>
+
   <setup name="Default" version="1.0">
     <world ref="world"/>
   </setup>

@@ -19,6 +19,7 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -151,9 +152,10 @@ class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
 
     void SetUp() override
     {
+        // Construct geometry before instantiating calo
+        this->geometry();
         ExampleInstanceCalo::VecLabel labels = {"lar", "calorimeter", "world"};
-        calo_ = std::make_shared<ExampleInstanceCalo>(this->geometry(),
-                                                      std::move(labels));
+        calo_ = std::make_shared<ExampleInstanceCalo>(std::move(labels));
         collector_ = StepCollector::make_and_insert(*this->core(), {calo_});
     }
 
@@ -177,8 +179,8 @@ class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
 
 TEST_F(KnSimpleLoopTestBase, mixing_types)
 {
-    auto calo = std::make_shared<SimpleCalo>(
-        std::vector<Label>{"inner"}, *this->geometry(), 1);
+    this->geometry();
+    auto calo = std::make_shared<SimpleCalo>(std::vector<Label>{"inner"}, 1);
     auto mctruth = std::make_shared<ExampleMctruth>();
 
     StepCollector::VecInterface interfaces = {calo, mctruth};
@@ -203,6 +205,8 @@ TEST_F(KnSimpleLoopTestBase, multiple_interfaces)
         step_inp.params = this->core();
         step_inp.stream_id = StreamId{0};
         step_inp.num_track_slots = 2;
+        step_inp.actions = std::make_shared<ActionSequence>(
+            *this->action_reg(), ActionSequence::Options{});
 
         Stepper<MemSpace::host> step(step_inp);
 
@@ -252,13 +256,13 @@ TEST_F(KnMctruthTest, two_step)
     EXPECT_VEC_EQ(expected_track, result.track);
     static int const expected_step[] = {1, 2, 1, 2, 1, 2, 1, 2};
     EXPECT_VEC_EQ(expected_step, result.step);
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        static int const expected_volume[] = {1, 1, 1, 1, 1, 2, 1, 2};
-        EXPECT_VEC_EQ(expected_volume, result.volume);
-    }
     if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
     {
+        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            static int const expected_volume[] = {1, 1, 1, 1, 1, 2, 1, 2};
+            EXPECT_VEC_EQ(expected_volume, result.volume);
+        }
         // clang-format off
         static const double expected_pos[] = {0, 0, 0, 2.6999255778482, 0, 0, 0, 0, 0, 3.5717683161497, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
@@ -418,7 +422,7 @@ TEST_F(TestEm3MctruthTest, four_step)
     else
     {
         cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
+             << test::StreamableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -454,31 +458,21 @@ TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
 
 TEST_F(TestMultiEm3InstanceCaloTest, step_host)
 {
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        GTEST_SKIP() << "ORANGE currently does not return physical volume IDs";
-    }
-
     auto result = this->run<MemSpace::host>(128, 256);
 
     auto iter = std::find(result.instance.begin(),
                           result.instance.end(),
-                          "lar:world_PV/Calorimeter/Layer@0.01/lar_pv");
+                          "lar:world_PV/Calorimeter/Layer@1/lar_pv");
     EXPECT_TRUE(iter != result.instance.end()) << repr(result.instance);
 }
 
 TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
 {
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-    {
-        GTEST_SKIP() << "ORANGE currently does not return physical volume IDs";
-    }
-
     auto result = this->run<MemSpace::device>(1024, 32);
 
     auto iter = std::find(result.instance.begin(),
                           result.instance.end(),
-                          "lar:world_PV/Calorimeter/Layer@0.01/lar_pv");
+                          "lar:world_PV/Calorimeter/Layer@1/lar_pv");
     EXPECT_TRUE(iter != result.instance.end()) << repr(result.instance);
 }
 

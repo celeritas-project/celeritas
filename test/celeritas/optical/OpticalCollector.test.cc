@@ -17,13 +17,14 @@
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/random/IsotropicDistribution.hh"
 #include "celeritas/LArSphereBase.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/inp/Field.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
@@ -36,6 +37,12 @@ namespace celeritas
 {
 namespace test
 {
+constexpr bool reference_configuration
+    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM
+           || !CELERITAS_VECGEOM_SURFACE)
+       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
@@ -49,7 +56,7 @@ class LArSphereOffloadTest : public LArSphereBase
     {
         size_type total_num_photons{0};
         std::vector<size_type> num_photons;
-        std::vector<real_type> charge;
+        std::set<real_type> charge;
     };
 
     struct RunResult
@@ -64,12 +71,10 @@ class LArSphereOffloadTest : public LArSphereBase
     void SetUp() override
     {
         // Set default values
-        input_.optical_params = this->optical_params();
-        input_.cherenkov = this->cherenkov();
-        input_.scintillation = this->scintillation();
         input_.num_track_slots = 4096;
-        input_.buffer_capacity = 256;
-        input_.auto_flush = 4096;
+        input_.buffer_capacity = 512;
+        input_.auto_flush = input_.num_track_slots;
+        params_ = this->optical_params_input();
     }
 
     SPConstAction build_along_step() override;
@@ -91,6 +96,7 @@ class LArSphereOffloadTest : public LArSphereBase
     units::MevEnergy primary_energy_{10.0};
 
     OpticalCollector::Input input_;
+    optical::CoreParams::Input params_;
     std::shared_ptr<OpticalCollector> collector_;
 };
 
@@ -121,15 +127,13 @@ auto LArSphereOffloadTest::build_along_step() -> SPConstAction
 void LArSphereOffloadTest::build_optical_collector()
 {
     OpticalCollector::Input inp = input_;
+    inp.optical_params
+        = std::make_shared<optical::CoreParams>(std::move(params_));
     collector_
         = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
 
     // Check accessors
     EXPECT_TRUE(collector_->optical_params());
-    EXPECT_EQ(static_cast<bool>(input_.cherenkov),
-              static_cast<bool>(collector_->cherenkov()));
-    EXPECT_EQ(static_cast<bool>(input_.scintillation),
-              static_cast<bool>(collector_->scintillation()));
 }
 
 //---------------------------------------------------------------------------//
@@ -181,6 +185,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     step_inp.params = this->core();
     step_inp.stream_id = StreamId{0};
     step_inp.num_track_slots = num_track_slots;
+    step_inp.actions = std::make_shared<ActionSequence>(
+        *this->action_reg(), ActionSequence::Options{});
     Stepper<M> step(step_inp);
     LogContextException log_context{this->output_reg().get()};
 
@@ -198,45 +204,42 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     }
 
     auto const& gen_reg = collector_->gen_reg();
+    auto gen_id = gen_reg.find("optical-generate");
+    CELER_ASSERT(gen_id);
 
-    auto get_result = [&](OffloadResult& result, GeneratorId gen_id) {
-        if (!gen_id)
+    // Access the auxiliary data for the generator
+    auto const* aux
+        = dynamic_cast<AuxParamsInterface const*>(gen_reg.at(gen_id).get());
+    CELER_ASSERT(aux);
+    auto const& state
+        = get<optical::GeneratorState<M>>(step.state().aux(), aux->aux_id());
+    auto buffer = copy_to_host(state.store.ref().distributions);
+
+    for (auto const& dist :
+         buffer[DistRange(DistId(state.counters.buffer_size))])
+    {
+        auto& offload_result = dist.type == GeneratorType::cherenkov
+                                   ? result.cherenkov
+                                   : result.scintillation;
+
+        offload_result.total_num_photons += dist.num_photons;
+        offload_result.num_photons.push_back(dist.num_photons);
+        if (!dist)
         {
-            return;
+            continue;
         }
-        // Access the auxiliary data for this generator
-        auto const* aux = dynamic_cast<AuxParamsInterface const*>(
-            gen_reg.at(gen_id).get());
-        CELER_ASSERT(aux);
-        auto const& state = get<optical::GeneratorState<M>>(step.state().aux(),
-                                                            aux->aux_id());
-        auto buffer = copy_to_host(state.store.ref().distributions);
+        offload_result.charge.insert(dist.charge.value());
 
-        std::set<real_type> charge;
-        for (auto const& dist :
-             buffer[DistRange(DistId(state.counters.buffer_size))])
+        auto const& pre = dist.points[StepPoint::pre];
+        auto const& post = dist.points[StepPoint::post];
+        EXPECT_GT(pre.speed, zero_quantity());
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            result.total_num_photons += dist.num_photons;
-            result.num_photons.push_back(dist.num_photons);
-            if (!dist)
-            {
-                continue;
-            }
-            charge.insert(dist.charge.value());
-
-            auto const& pre = dist.points[StepPoint::pre];
-            auto const& post = dist.points[StepPoint::post];
-            EXPECT_GT(pre.speed, zero_quantity());
             EXPECT_NE(post.pos, pre.pos);
-            EXPECT_GT(dist.step_length, 0);
-            EXPECT_EQ(0, dist.material.get());
         }
-        result.charge.insert(result.charge.end(), charge.begin(), charge.end());
-    };
-
-    // Access the optical offload data
-    get_result(result.cherenkov, gen_reg.find("cherenkov-generate"));
-    get_result(result.scintillation, gen_reg.find("scintillation-generate"));
+        EXPECT_GT(dist.step_length, 0);
+        EXPECT_EQ(0, dist.material.get());
+    }
     result.accum = collector_->exchange_counters(step.sp_state()->aux());
 
     return result;
@@ -254,16 +257,23 @@ template LArSphereOffloadTest::RunResult
 
 TEST_F(LArSphereOffloadTest, host_distributions)
 {
-    input_.max_step_iters = 0;
+    input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 4;
     this->build_optical_collector();
 
     size_type primaries = 4;
     size_type core_track_slots = 4;
-    size_type steps = 64;
+    // Even with an infinite auto flush, the optical launcher will flush when
+    // there are no more active core tracks. Restrict the number of core step
+    // iterations such that we can retrieve the distributions before flushing.
+    size_type steps = 45;
     auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
-    EXPECT_EQ(2, result.accum.generators.size());
+    // No steps ran
+    EXPECT_EQ(0, result.accum.steps);
+    EXPECT_EQ(0, result.accum.step_iters);
+    EXPECT_EQ(0, result.accum.flushes);
+    EXPECT_EQ(1, result.accum.generators.size());
 
     static real_type const expected_cherenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cherenkov_charge, result.cherenkov.charge);
@@ -271,64 +281,50 @@ TEST_F(LArSphereOffloadTest, host_distributions)
     static real_type const expected_scintillation_charge[] = {-1, 0, 1};
     EXPECT_VEC_EQ(expected_scintillation_charge, result.scintillation.charge);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW))
     {
-        EXPECT_EQ(2122951,
+        EXPECT_EQ(228154,
                   result.cherenkov.total_num_photons
                       + result.scintillation.total_num_photons);
 
-        EXPECT_EQ(21541, result.cherenkov.total_num_photons);
-        EXPECT_EQ(53, result.cherenkov.num_photons.size());
+        EXPECT_EQ(21304, result.cherenkov.total_num_photons);
         static unsigned int const expected_cherenkov_num_photons[] = {
-            337u,  504u, 1609u, 1582u, 777u, 1477u, 1251u, 433u, 282u,
-            1132u, 757u, 1132u, 515u,  45u,  452u,  409u,  339u, 523u,
-            526u,  219u, 343u,  679u,  318u, 667u,  228u,  528u, 160u,
-            485u,  83u,  382u,  3u,    423u, 248u,  265u,  124u, 124u,
-            154u,  288u, 173u,  14u,   4u,   5u,    19u,   303u, 181u,
-            13u,   102u, 193u,  470u,  91u,  144u,  21u,   5u,
+            371u, 539u,  1609u, 1582u, 1095u, 530u, 1251u, 481u, 892u, 355u,
+            757u, 1129u, 239u,  376u,  428u,  441u, 610u,  698u, 589u, 222u,
+            482u, 159u,  38u,   236u,  345u,  822u, 303u,  108u, 17u,  631u,
+            211u, 62u,   502u,  28u,   392u,  281u, 119u,  7u,   11u,  194u,
+            19u,  372u,  270u,  118u,  32u,   4u,   533u,  395u, 268u, 151u,
         };
         EXPECT_VEC_EQ(expected_cherenkov_num_photons,
                       result.cherenkov.num_photons);
 
-        EXPECT_EQ(2101410, result.scintillation.total_num_photons);
-        EXPECT_EQ(125, result.scintillation.num_photons.size());
+        EXPECT_EQ(206850, result.scintillation.total_num_photons);
         static unsigned int const expected_scintillation_num_photons[] = {
-            27991u, 38157u, 114070u, 114477u, 57893u, 103619u, 90287u, 33901u,
-            21827u, 83989u, 55095u,  84026u,  38355u, 3894u,   33219u, 30807u,
-            24182u, 41506u, 43246u,  15732u,  28341u, 47956u,  26749u, 47994u,
-            22830u, 37627u, 20074u,  38203u,  19233u, 30026u,  17229u, 30547u,
-            13618u, 23721u, 4019u,   24306u,  19916u, 19787u,  150u,   19892u,
-            17112u, 17217u, 7327u,   17185u,  1110u,  2398u,   25128u, 3256u,
-            145u,   20743u, 17817u,  17442u,  7477u,  4858u,   2406u,  4738u,
-            143u,   2071u,  206u,    6273u,   12423u, 3695u,   1933u,  255u,
-            10312u, 158u,   2214u,   409u,    660u,   18353u,  562u,   9932u,
-            14418u, 86u,    155u,    366u,    508u,   2063u,   4340u,  164u,
-            25993u, 20u,    1458u,   330u,    21221u, 4758u,   17149u, 152u,
-            18048u, 2245u,  800u,    6827u,   526u,   144u,    19621u, 3250u,
-            640u,   16117u, 1971u,   164u,    176u,   712u,    993u,   70u,
-            1233u,  150u,   882u,    848u,    1599u,  143u,    2670u,  14011u,
-            2711u,  144u,   479u,    35243u,  4100u,  157u,    8985u,  4090u,
-            21240u, 18420u, 18046u,  9600u,   6725u,
+            2678u, 3867u, 11346u, 11391u, 7849u, 3835u, 8938u, 3409u, 6309u,
+            2820u, 5504u, 8457u,  1923u,  2355u, 3423u, 3099u, 4546u, 5263u,
+            4175u, 1929u, 3525u,  1106u,  341u,  2307u, 2879u, 5919u, 2679u,
+            1900u, 219u,  4698u,  2228u,  1695u, 1796u, 3696u, 1798u, 1303u,
+            3008u, 960u,  974u,   2403u,  644u,  1932u, 109u,  1765u, 243u,
+            11u,   200u,  1251u,  519u,   384u,  15u,   654u,  560u,  1060u,
+            180u,  64u,   167u,   117u,   19u,   116u,  149u,  599u,  29u,
+            15u,   1626u, 16u,    310u,   1785u, 316u,  15u,   618u,  215u,
+            348u,  1782u, 610u,   2210u,  728u,  368u,  1797u, 18u,   68u,
+            888u,  38u,   109u,   1709u,  77u,   87u,   2958u, 20u,   19u,
+            2376u, 255u,  154u,   1997u,  369u,  54u,   1775u, 1812u, 13u,
+            120u,  1027u, 59u,    18u,    43u,   487u,  9u,    21u,   12u,
+            273u,  643u,  137u,   1795u,  66u,   116u,  607u,  11u,   199u,
+            20u,   147u,  106u,   11u,    45u,   248u,  492u,  3951u, 1176u,
+            3068u, 4u,    2446u,  212u,   2039u, 350u,
         };
         EXPECT_VEC_EQ(expected_scintillation_num_photons,
                       result.scintillation.num_photons);
-    }
-    else
-    {
-        EXPECT_EQ(22335, result.cherenkov.total_num_photons);
-        EXPECT_EQ(49, result.cherenkov.num_photons.size());
-
-        EXPECT_SOFT_EQ(
-            2101960,
-            static_cast<float>(result.scintillation.total_num_photons));
-
-        EXPECT_EQ(117, result.scintillation.num_photons.size());
     }
 }
 
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 {
-    input_.max_step_iters = 0;
+    input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 8;
     this->build_optical_collector();
 
@@ -338,7 +334,11 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
     auto result
         = this->run<MemSpace::device>(primaries, core_track_slots, steps);
 
-    EXPECT_EQ(2, result.accum.generators.size());
+    // No steps ran
+    EXPECT_EQ(0, result.accum.steps);
+    EXPECT_EQ(0, result.accum.step_iters);
+    EXPECT_EQ(0, result.accum.flushes);
+    EXPECT_EQ(1, result.accum.generators.size());
 
     static real_type const expected_cherenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cherenkov_charge, result.cherenkov.charge);
@@ -346,74 +346,65 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
     static real_type const expected_scintillation_charge[] = {-1, 0, 1};
     EXPECT_VEC_EQ(expected_scintillation_charge, result.scintillation.charge);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
     {
-        EXPECT_EQ(3562272,
+        EXPECT_EQ(416523,
                   result.cherenkov.total_num_photons
                       + result.scintillation.total_num_photons);
 
-        EXPECT_EQ(38699, result.cherenkov.total_num_photons);
-        EXPECT_EQ(82, result.cherenkov.num_photons.size());
+        EXPECT_EQ(41328, result.cherenkov.total_num_photons);
+        EXPECT_EQ(88, result.cherenkov.num_photons.size());
         static unsigned int const expected_cherenkov_num_photons[] = {
-            337u,  504u,  1609u, 1582u, 1314u, 1466u, 1164u, 880u, 777u,
-            1477u, 1251u, 433u,  398u,  1273u, 271u,  1301u, 282u, 1132u,
-            757u,  1132u, 869u,  246u,  604u,  135u,  515u,  45u,  452u,
-            409u,  35u,   665u,  470u,  1040u, 339u,  523u,  526u, 219u,
-            74u,   394u,  351u,  581u,  343u,  679u,  318u,  667u, 461u,
-            608u,  213u,  550u,  228u,  528u,  160u,  485u,  334u, 480u,
-            44u,   406u,  83u,   382u,  3u,    423u,  193u,  344u, 316u,
-            248u,  265u,  41u,   232u,  210u,  37u,   124u,  154u, 53u,
-            19u,   118u,  302u,  162u,  162u,  1u,    301u,  27u,  3u,
-            160u,
+            371u, 539u,  1609u, 1582u, 1328u, 1451u, 1084u, 894u, 1095u,
+            530u, 1251u, 481u,  399u,  1167u, 265u,  1328u, 892u, 355u,
+            757u, 1129u, 914u,  941u,  640u,  74u,   239u,  376u, 428u,
+            441u, 929u,  831u,  477u,  1117u, 610u,  698u,  589u, 222u,
+            756u, 504u,  670u,  498u,  482u,  159u,  38u,   236u, 651u,
+            49u,  502u,  428u,  345u,  822u,  303u,  108u,  323u, 473u,
+            139u, 336u,  17u,   631u,  211u,  301u,  331u,  128u, 453u,
+            62u,  502u,  28u,   190u,  211u,  5u,    326u,  392u, 9u,
+            33u,  90u,   281u,  175u,  119u,  14u,   15u,   36u,  219u,
+            29u,  22u,   2u,    91u,   332u,  179u,  39u,
         };
         EXPECT_VEC_EQ(expected_cherenkov_num_photons,
                       result.cherenkov.num_photons);
 
-        EXPECT_EQ(3523573, result.scintillation.total_num_photons);
-        EXPECT_EQ(191, result.scintillation.num_photons.size());
+        EXPECT_EQ(375195, result.scintillation.total_num_photons);
+        EXPECT_EQ(196, result.scintillation.num_photons.size());
         static unsigned int const expected_scintillation_num_photons[] = {
-            27991u, 38157u,  114070u, 114477u, 95923u, 106832u, 82858u, 66126u,
-            57893u, 103619u, 90287u,  33901u,  28955u, 88563u,  20427u, 98050u,
-            21827u, 83989u,  55095u,  84026u,  63443u, 18590u,  43852u, 8258u,
-            38355u, 3894u,   33219u,  30807u,  2363u,  48420u,  34733u, 71951u,
-            24182u, 41506u,  43246u,  15732u,  5282u,  25256u,  27512u, 43955u,
-            28341u, 47956u,  26749u,  47994u,  34426u, 44063u,  22581u, 41383u,
-            22830u, 37627u,  20074u,  38203u,  27903u, 34719u,  18699u, 32830u,
-            19233u, 30026u,  17229u,  30547u,  22604u, 27778u,  11994u, 26337u,
-            13618u, 23721u,  4019u,   24306u,  18720u, 22417u,  21616u, 18459u,
-            19787u, 317u,    19892u,  11747u,  16520u, 16590u,  10760u, 17217u,
-            2425u,  17185u,  183u,    12042u,  2856u,  313u,    2398u,  162u,
-            3256u,  181u,    6066u,   241u,    1003u,  579u,    11401u, 502u,
-            6016u,  269u,    2524u,   143u,    157u,   1274u,   18u,    6273u,
-            5298u,  1995u,   1958u,   408u,    161u,   327u,    11457u, 257u,
-            3367u,  2349u,   294u,    2716u,   215u,   478u,    700u,   638u,
-            4677u,  667u,    544u,    170u,    16u,    683u,    378u,   2103u,
-            1048u,  8963u,   3773u,   2223u,   2446u,  510u,    2535u,  155u,
-            2303u,  12407u,  1867u,   6069u,   14643u, 68u,     19850u, 2063u,
-            13u,    17011u,  2461u,   3346u,   1034u,  4914u,   2982u,  155u,
-            864u,   3400u,   7123u,   7028u,   3053u,  643u,    172u,   161u,
-            1031u,  153u,    6319u,   3720u,   1003u,  5885u,   5529u,  176u,
-            4786u,  34u,     25324u,  20567u,  3106u,  15352u,  13363u, 13176u,
-            2050u,  20835u,  17342u,  158u,    157u,   26088u,  18297u, 38u,
-            17647u, 3953u,   339u,    922u,    21243u, 9972u,   948u,
+            2678u, 3867u, 11346u, 11391u, 9567u, 10882u, 8310u,  6604u, 7849u,
+            3835u, 8938u, 3409u,  2923u,  8957u, 1886u,  10021u, 6309u, 2820u,
+            5504u, 8457u, 6232u,  6883u,  4777u, 569u,   1923u,  2355u, 3423u,
+            3099u, 6973u, 5490u,  3387u,  7760u, 4546u,  5263u,  4175u, 1929u,
+            5568u, 3973u, 4469u,  3610u,  3525u, 1106u,  341u,   2307u, 4386u,
+            306u,  3658u, 2944u,  2879u,  5919u, 2679u,  1900u,  2343u, 3457u,
+            1064u, 2522u, 219u,   4698u,  2228u, 1695u,  2562u,  2685u, 1077u,
+            3493u, 1796u, 3696u,  1798u,  2117u, 2124u,  1780u,  2758u, 1303u,
+            3008u, 960u,  1759u,  1840u,  549u,  918u,   1769u,  2403u, 1084u,
+            673u,  1151u, 640u,   2034u,  392u,  1932u,  115u,   1778u, 1552u,
+            1765u, 11u,   1501u,  602u,   261u,  200u,   519u,   223u,  1637u,
+            14u,   196u,  15u,    527u,   25u,   51u,    217u,   200u,  170u,
+            13u,   21u,   16u,    335u,   12u,   7u,     409u,   118u,  389u,
+            16u,   422u,  17u,    11u,    193u,  132u,   206u,   18u,   15u,
+            120u,  32u,   415u,   103u,   185u,  12u,    310u,   220u,  1139u,
+            36u,   1548u, 240u,   39u,    15u,   1745u,  1013u,  282u,  513u,
+            382u,  1569u, 13u,    72u,    646u,  12u,    17u,    50u,   954u,
+            918u,  147u,  492u,   790u,   1977u, 13u,    171u,   534u,  21u,
+            367u,  1102u, 368u,   16u,    492u,  622u,   187u,   16u,   2154u,
+            344u,  1797u, 151u,   44u,    44u,   1889u,  24u,    746u,  73u,
+            63u,   883u,  1946u,  171u,   23u,   329u,   2634u,  1587u, 16u,
+            49u,   192u,  2151u,  1700u,  1817u, 39u,    51u,
         };
         EXPECT_VEC_EQ(expected_scintillation_num_photons,
                       result.scintillation.num_photons);
-    }
-    else
-    {
-        EXPECT_EQ(41814, result.cherenkov.total_num_photons);
-        EXPECT_EQ(89, result.cherenkov.num_photons.size());
-
-        EXPECT_EQ(3773161, result.scintillation.total_num_photons);
-        EXPECT_EQ(202, result.scintillation.num_photons.size());
     }
 }
 
 TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
 {
-    input_.scintillation = nullptr;
-    input_.max_step_iters = 0;
+    params_.scintillation = nullptr;
+    input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 4;
     this->build_optical_collector();
 
@@ -425,22 +416,18 @@ TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.scintillation.num_photons.size());
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
     {
-        EXPECT_EQ(21060, result.cherenkov.total_num_photons);
-        EXPECT_EQ(39, result.cherenkov.num_photons.size());
-    }
-    else
-    {
-        EXPECT_EQ(16454, result.cherenkov.total_num_photons);
-        EXPECT_EQ(32, result.cherenkov.num_photons.size());
+        EXPECT_EQ(19970, result.cherenkov.total_num_photons);
+        EXPECT_EQ(38, result.cherenkov.num_photons.size());
     }
 }
 
 TEST_F(LArSphereOffloadTest, scintillation_distributions)
 {
-    input_.cherenkov = nullptr;
-    input_.max_step_iters = 0;
+    params_.cherenkov = nullptr;
+    input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 4;
     this->build_optical_collector();
 
@@ -452,9 +439,10 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     EXPECT_EQ(0, result.cherenkov.total_num_photons);
     EXPECT_EQ(0, result.cherenkov.num_photons.size());
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
     {
-        EXPECT_EQ(1672535, result.scintillation.total_num_photons);
+        EXPECT_EQ(167469, result.scintillation.total_num_photons);
         EXPECT_EQ(48, result.scintillation.num_photons.size());
 
         // No steps ran
@@ -467,13 +455,6 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
         EXPECT_EQ(0, scint.buffer_size);
         EXPECT_EQ(0, scint.num_pending);
         EXPECT_EQ(0, scint.num_generated);
-    }
-    else
-    {
-        EXPECT_SOFT_EQ(
-            1348444,
-            static_cast<float>(result.scintillation.total_num_photons));
-        EXPECT_EQ(49, result.scintillation.num_photons.size());
     }
 }
 
@@ -491,22 +472,19 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
     size_type steps = 2;
     auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
-        EXPECT_EQ(1711, result.accum.steps);
-        EXPECT_EQ(57, result.accum.step_iters);
+        constexpr unsigned int expected_steps = 116;
+        constexpr unsigned int expected_step_iters = 4;
+        EXPECT_EQ(expected_steps, result.accum.steps);
+        EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
-        ASSERT_EQ(2, result.accum.generators.size());
+        ASSERT_EQ(1, result.accum.generators.size());
 
-        auto const& cherenkov = result.accum.generators[0];
-        EXPECT_EQ(0, cherenkov.buffer_size);
-        EXPECT_EQ(0, cherenkov.num_pending);
-        EXPECT_EQ(0, cherenkov.num_generated);
-
-        auto const& scint = result.accum.generators[1];
-        EXPECT_EQ(2, scint.buffer_size);
-        EXPECT_EQ(0, scint.num_pending);
-        EXPECT_EQ(1028, scint.num_generated);
+        auto const& generator = result.accum.generators[0];
+        EXPECT_EQ(2, generator.buffer_size);
+        EXPECT_EQ(0, generator.num_pending);
+        EXPECT_EQ(109, generator.num_generated);
     }
 }
 
@@ -522,25 +500,30 @@ TEST_F(LArSphereOffloadTest, host_generate)
     size_type steps = 4;
     auto result = this->run<MemSpace::host>(primaries, core_track_slots, steps);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
-        EXPECT_SOFT_NEAR(462229, static_cast<double>(result.accum.steps), 1e-4);
-        EXPECT_EQ(49, result.accum.step_iters);
-        EXPECT_EQ(3, result.accum.flushes);
-        ASSERT_EQ(2, result.accum.generators.size());
+        unsigned int expected_steps = 19310;
+        unsigned int expected_step_iters = 2;
+        EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
+        EXPECT_EQ(expected_step_iters, result.accum.step_iters);
+        EXPECT_EQ(1, result.accum.flushes);
+        ASSERT_EQ(1, result.accum.generators.size());
 
-        auto const& cherenkov = result.accum.generators[0];
-        EXPECT_EQ(4, cherenkov.buffer_size);
-        EXPECT_EQ(0, cherenkov.num_pending);
-        EXPECT_EQ(3835, cherenkov.num_generated);
+        auto const& generator = result.accum.generators[0];
+        EXPECT_EQ(7, generator.buffer_size);
+        EXPECT_EQ(0, generator.num_pending);
+        EXPECT_EQ(18214, generator.num_generated);
 
-        auto const& scint = result.accum.generators[1];
-        EXPECT_EQ(6, scint.buffer_size);
-        EXPECT_EQ(0, scint.num_pending);
-        EXPECT_EQ(279898, scint.num_generated);
+        EXPECT_EQ(2033, result.scintillation.total_num_photons);
+        EXPECT_EQ(273, result.cherenkov.total_num_photons);
     }
-    EXPECT_EQ(0, result.scintillation.total_num_photons);
-    EXPECT_EQ(0, result.cherenkov.total_num_photons);
+    else if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_GT(result.accum.step_iters, 0);
+        EXPECT_GT(result.accum.flushes, 0);
+        EXPECT_GT(result.scintillation.total_num_photons, 0);
+        EXPECT_GT(result.cherenkov.total_num_photons, 0);
+    }
 }
 
 TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
@@ -556,21 +539,17 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     auto result
         = this->run<MemSpace::device>(primaries, core_track_slots, steps);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (reference_configuration)
     {
-        EXPECT_EQ(818, result.accum.step_iters);
-        EXPECT_EQ(2, result.accum.flushes);
-        ASSERT_EQ(2, result.accum.generators.size());
+        constexpr int ref_steps = 60;
+        EXPECT_EQ(ref_steps, result.accum.step_iters);
+        EXPECT_EQ(1, result.accum.flushes);
+        ASSERT_EQ(1, result.accum.generators.size());
 
-        auto const& cherenkov = result.accum.generators[0];
-        EXPECT_EQ(12, cherenkov.buffer_size);
-        EXPECT_EQ(0, cherenkov.num_pending);
-        EXPECT_EQ(5338, cherenkov.num_generated);
-
-        auto const& scint = result.accum.generators[1];
-        EXPECT_EQ(35, scint.buffer_size);
-        EXPECT_EQ(0, scint.num_pending);
-        EXPECT_EQ(500472, scint.num_generated);
+        auto const& generator = result.accum.generators[0];
+        EXPECT_EQ(50, generator.buffer_size);
+        EXPECT_EQ(0, generator.num_pending);
+        EXPECT_EQ(55684, generator.num_generated);
     }
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.cherenkov.total_num_photons);

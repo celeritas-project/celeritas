@@ -9,8 +9,6 @@
 #include <memory>
 #include <vector>
 
-#include "corecel/io/Label.hh"
-#include "geocel/GeoParamsInterface.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -34,15 +32,13 @@ struct LogicalVolume;
  *
  * This holds equivalent information to a Geant4 \c G4VPhysicalVolume, but with
  * \em only ORANGE data structures.
+ *
+ * \todo rename VolumeInstance
  */
 struct PhysicalVolume
 {
-    using ReplicaId = GeantPhysicalInstance::ReplicaId;
-
     //! Corresponding Geant4 physical volume
     VolumeInstanceId id;
-    //! Replica/parameterization (see GeantGeoParams::id_to_geant TODO)
-    ReplicaId replica_id;
 
     VariantTransform transform;
     std::shared_ptr<LogicalVolume const> lv;
@@ -57,6 +53,8 @@ struct PhysicalVolume
  *
  * \todo Remove the material ID; volume-to-material mapping should be done by
  * VolumeParams.
+ *
+ * \todo rename Volume
  */
 struct LogicalVolume
 {

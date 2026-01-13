@@ -17,6 +17,7 @@ namespace celeritas
 namespace inp
 {
 struct Problem;
+struct OpticalProblem;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -26,7 +27,6 @@ struct Problem;
  * - System attributes (GPU activation etc.) are set
  * - Geant4 data is imported
  * - External Geant4 data files (such as EM LOW) are loaded
- * - Optional control/diagnostic overrides are loaded
  * - Optional framework-defined adjustments are applied
  *
  * \todo Add an input option for kill_offload/disable
@@ -37,14 +37,13 @@ struct FrameworkInput
     System system;
 
     //! Configure what data to load from Geant4
-    GeantImport geant;
-    //! Load external data files (NOT YET IMPLEMENTED)
-    GeantDataImport geant_data;
-    //! Optionally add diagnostics and control parameters from an external file
-    std::optional<UpdateImport> update;
+    PhysicsFromGeant physics_import;
 
     //! User application/framework-defined adjustments
     std::function<void(Problem&)> adjust;
+
+    //! User application/framework-defined optical adjustments
+    std::function<void(OpticalProblem&)> adjust_optical;
 };
 
 //---------------------------------------------------------------------------//

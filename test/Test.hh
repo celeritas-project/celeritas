@@ -39,7 +39,13 @@ class Test : public ::testing::Test
     Test() = default;
 
     // Generate test-unique filename
-    std::string make_unique_filename(std::string_view ext = {});
+    virtual std::string make_unique_filename(std::string_view ext);
+
+    // Make a unique filename with no extension
+    std::string make_unique_filename()
+    {
+        return this->make_unique_filename({});
+    }
 
     // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
     static std::string

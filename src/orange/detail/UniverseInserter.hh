@@ -31,10 +31,12 @@ class UniverseInserter
     //!@{
     //! \name Type aliases
     using Data = HostVal<OrangeParamsData>;
-    using VecVolLabel = std::vector<VolumeInput::VariantLabel>;
-    using VecVolInst = std::vector<VolumeInstanceId>;
+    using VariantLabel = std::variant<Label, VolumeInstanceId, VolumeId>;
+    using VecVarLabel = std::vector<VariantLabel>;
     using VecLabel = std::vector<Label>;
     using SPConstVolumes = std::shared_ptr<VolumeParams const>;
+    using VolId = ImplVolumeId;
+    using SurfId = ImplSurfaceId;
     //!@}
 
   public:
@@ -46,29 +48,43 @@ class UniverseInserter
                      Data* data);
 
     // Append the number of local surfaces and volumes
-    UniverseId operator()(UniverseType type,
-                          Label univ_label,
-                          VecLabel surface_labels,
-                          VecLabel volume_labels);
+    UnivId operator()(UnivType type,
+                      Label univ_label,
+                      VecLabel surface_labels,
+                      VecLabel volume_labels);
 
     // Append the number of local surfaces and volumes
-    UniverseId operator()(UniverseType type,
-                          Label univ_label,
-                          VecLabel surface_labels,
-                          VecVolLabel volume_labels);
+    UnivId operator()(UnivType type,
+                      Label univ_label,
+                      VecLabel surface_labels,
+                      VecVarLabel volume_labels);
+
+    //!@{
+    //! \name Local-to-global mappings for the next universe being built
+
+    //! Next universe
+    UnivId next_univ_id() const { return types_.size_id(); }
+
+    //! Get the global ID for the next LocalSurfaceId{0}
+    SurfId next_surface_id() const { return SurfId{accum_surface_}; }
+
+    //! Get the global ID for the next LocalVolumeId{0}
+    VolId next_volume_id() const { return VolId{accum_volume_}; }
+
+    //!@}
 
   private:
     // Reference data
     SPConstVolumes volume_params_;
 
     // Metadata being constructed
-    VecLabel* universe_labels_;
+    VecLabel* univ_labels_;
     VecLabel* surface_labels_;
     VecLabel* volume_labels_;
 
     // Data being constructed
-    CollectionBuilder<UniverseType, MemSpace::host, UniverseId> types_;
-    CollectionBuilder<size_type, MemSpace::host, UniverseId> indices_;
+    CollectionBuilder<UnivType, MemSpace::host, UnivId> types_;
+    CollectionBuilder<size_type, MemSpace::host, UnivId> indices_;
     CollectionBuilder<size_type> surfaces_;
     CollectionBuilder<size_type> volumes_;
 
@@ -77,13 +93,13 @@ class UniverseInserter
     CollectionBuilder<VolumeInstanceId, MemSpace::host, ImplVolumeId>
         volume_instance_ids_;
 
-    EnumArray<UniverseType, size_type> num_universe_types_{};
-    size_type accum_surface_{0};
-    size_type accum_volume_{0};
+    EnumArray<UnivType, size_type> num_univ_types_{};
+    SurfId::size_type accum_surface_{0};
+    VolId::size_type accum_volume_{0};
 
-    UniverseId update_counters(UniverseType type,
-                               size_type num_surfaces,
-                               size_type num_volumes);
+    UnivId update_counters(UnivType type,
+                           size_type num_surfaces,
+                           size_type num_volumes);
 };
 
 //---------------------------------------------------------------------------//

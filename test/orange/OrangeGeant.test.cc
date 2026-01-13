@@ -8,22 +8,39 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
-#include "geocel/detail/LengthUnits.hh"
+#include "geocel/Types.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "orange/Debug.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "OrangeTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//! Avoid relying on integer size assumptions and overflow
+int vluint_to_int(vol_level_uint vl)
+{
+    if (vl == static_cast<vol_level_uint>(-1))
+        return -1;
+
+    return vl;
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 
 class GeantOrangeTest : public OrangeTestBase
@@ -40,11 +57,10 @@ class GeantOrangeTest : public OrangeTestBase
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;
     }
-
-    Constant unit_length() const final { return lengthunits::centimeter; }
 };
 
 //---------------------------------------------------------------------------//
+
 using AtlasHgtdTest
     = GenericGeoParameterizedTest<GeantOrangeTest, AtlasHgtdGeoTest>;
 
@@ -53,20 +69,143 @@ TEST_F(AtlasHgtdTest, trace)
     this->impl().test_trace();
 }
 
-TEST_F(AtlasHgtdTest, DISABLED_volume_stack)
+TEST_F(AtlasHgtdTest, volume_stack)
 {
     this->impl().test_volume_stack();
 }
 
 TEST_F(AtlasHgtdTest, detailed_track)
 {
-    // Templated test
-    AtlasHgtdGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 //---------------------------------------------------------------------------//
-using MultiLevelTest
-    = GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>;
+using FourLevelsTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, FourLevelsGeoTest>;
+
+TEST_F(FourLevelsTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(FourLevelsTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(FourLevelsTest, consecutive_compute)
+{
+    this->impl().test_consecutive_compute();
+}
+
+TEST_F(FourLevelsTest, detailed_track)
+{
+    this->impl().test_detailed_tracking();
+}
+
+//---------------------------------------------------------------------------//
+using LarSphereTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, LarSphereGeoTest>;
+
+TEST_F(LarSphereTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(LarSphereTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+//---------------------------------------------------------------------------//
+class MultiLevelTest
+    : public GenericGeoParameterizedTest<GeantOrangeTest, MultiLevelGeoTest>
+{
+};
+
+// Test the stack/volume points to see what universe and local volume they
+// translate to
+TEST_F(MultiLevelTest, univ_levels)
+{
+    std::vector<int> univ_levels;
+    std::vector<int> univ_ids;
+    std::vector<int> local_volumes;
+    for (auto xy : this->impl().get_test_points())
+    {
+        auto geo = this->make_geo_track_view().track_view();
+        geo = this->make_initializer({xy[0], xy[1], 0}, {0, 0, 1});
+        univ_levels.push_back(id_to_int(geo.univ_level()));
+        auto lsa = geo.make_lsa();
+        local_volumes.push_back(id_to_int(lsa.vol()));
+        univ_ids.push_back(id_to_int(lsa.univ()));
+    }
+    // clang-format off
+    static int const expected_univ_levels[] = {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,};
+    static int const expected_univ_id[] = {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1,};
+    static int const expected_local_volumes[] = {6, 5, 1, 4, 3, 2, 1, 4, 3, 2, 3, 2, 1, 4, 4, 2, 1, 3,};
+    // clang-format on
+    EXPECT_VEC_EQ(expected_univ_levels, univ_levels);
+    EXPECT_VEC_EQ(expected_univ_id, univ_ids);
+    EXPECT_VEC_EQ(expected_local_volumes, local_volumes);
+}
+
+// Check the explicit "local volume level" and "parent" for each impl volume
+TEST_F(MultiLevelTest, manual_volumes)
+{
+    // VolumeToString to_string(*this->volumes());
+    auto const& universe_labels = this->geometry()->universes();
+    auto const& impl_volumes = this->geometry()->impl_volumes();
+    TrackerVisitor visit_tracker{this->geometry()->host_ref()};
+
+    std::vector<std::vector<int>> local_level;
+    std::vector<std::vector<int>> local_parent;
+    std::vector<std::vector<std::string>> volume_names;
+    ImplVolumeId global_vol{0};
+    for (auto uid : range(UnivId{universe_labels.size()}))
+    {
+        auto num_local_vols = visit_tracker(
+            [](auto const& t) { return t.num_volumes(); }, uid);
+
+        std::vector<int> cur_local_level;
+        std::vector<int> cur_local_parent;
+        std::vector<std::string> cur_volume_names;
+        for (auto lv_id : range(LocalVolumeId{num_local_vols}))
+        {
+            cur_local_level.push_back(vluint_to_int(visit_tracker(
+                [lv_id](auto const& t) { return t.local_vol_level(lv_id); },
+                uid)));
+            cur_local_parent.push_back(id_to_int(visit_tracker(
+                [lv_id](auto const& t) { return t.local_parent(lv_id); }, uid)));
+            cur_volume_names.push_back(impl_volumes.at(global_vol++).name);
+        }
+        local_level.emplace_back(std::move(cur_local_level));
+        local_parent.emplace_back(std::move(cur_local_parent));
+        volume_names.emplace_back(std::move(cur_volume_names));
+    }
+    static std::vector<int> const expected_local_level[]
+        = {{-1, 1, 1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}};
+    static std::vector<int> const expected_local_parent[]
+        = {{-1, 6, 6, 6, 6, 6, -1}, {-1, 4, 4, 4, -1}, {-1, 4, 4, 4, -1}};
+    static std::vector<std::string> const expected_volume_names[]
+        = {{"[EXTERIOR]", "box", "box", "box", "box_refl", "sph", "world"},
+           {"[EXTERIOR]", "sph", "sph", "tri", "box"},
+           {"[EXTERIOR]", "sph_refl", "sph_refl", "tri_refl", "box_refl"}};
+    EXPECT_VEC_EQ(expected_local_level, local_level);
+    EXPECT_VEC_EQ(expected_local_parent, local_parent);
+    EXPECT_VEC_EQ(expected_volume_names, volume_names);
+}
+
+// Test that the reconstructed total levels are correct
+TEST_F(MultiLevelTest, volume_level)
+{
+    this->impl().test_volume_level();
+}
+
+// Test that the reconstructed volume instance hierarchy is correct
+TEST_F(MultiLevelTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
 
 TEST_F(MultiLevelTest, trace)
 {
@@ -110,15 +249,36 @@ TEST_F(PolyhedraTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-using ReplicaTest
-    = GenericGeoParameterizedTest<GeantOrangeTest, ReplicaGeoTest>;
+class ReplicaTest
+    : public GenericGeoParameterizedTest<GeantOrangeTest, ReplicaGeoTest>
+{
+  public:
+    //! Transforms cause slight disagreement from G4
+    GenericGeoTrackingTolerance tracking_tol() const override
+    {
+        auto result = GeantOrangeTest::tracking_tol();
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            // 2e-5 error during midpoint reinitialize in
+            // world_PV/fSecondArmPhys/chamber2@0
+            result.distance = 1e-4;
+        }
+        else
+        {
+            result.distance = 1e-11;
+        }
+
+        return result;
+    }
+};
 
 TEST_F(ReplicaTest, trace)
 {
     this->impl().test_trace();
 }
 
-TEST_F(ReplicaTest, DISABLED_volume_stack)
+TEST_F(ReplicaTest, volume_stack)
 {
     this->impl().test_volume_stack();
 }
@@ -208,10 +368,24 @@ TEST_F(TwoBoxesTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(TwoBoxesTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(TwoBoxesTest, reentrant_undo)
+{
+    this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesTest, tangent)
+{
+    this->impl().test_tangent();
+}
+
 TEST_F(TwoBoxesTest, track)
 {
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
+    this->impl().test_detailed_tracking();
 }
 
 //---------------------------------------------------------------------------//
@@ -230,13 +404,13 @@ TEST_F(ZnenvTest, debug)
     {
         EXPECT_JSON_EQ(
             R"json({"levels":[
-{"dir":[1.0,0.0,0.0],"pos":[0.1,1e-4,0.0],"universe":"World","volume":{"impl":"ZNTX","instance":"ZNTX_PV","local":2}},
-{"dir":[1.0,0.0,0.0],"pos":[-1.66,1e-4,0.0],"universe":"ZNTX","volume":{"impl":"ZN1","instance":"ZN1_PV","local":2}},
-{"dir":[1.0,0.0,0.0],"pos":[-1.66,-1.76,0.0],"universe":"ZN1","volume":{"impl":"ZNSL","instance":"ZNSL_PV","local":1}},
-{"dir":[1.0,0.0,0.0],"pos":[-1.66,-0.160,0.0],"universe":"ZNSL","volume":{"impl":"ZNST","instance":"ZNST_PV","local":1}},
-{"dir":[1.0,0.0,0.0],"pos":[-0.0600,-0.160,0.0],"universe":"ZNST","volume":{"impl":"ZNST","instance":"ZNST_PV","local":5}}
-],"surface":null})json",
-            StringSimplifier{3}(to_json_string(geo)));
+{"dir":[1.0,0.0,0.0],"pos":[0.1,1e-4,0.0],"universe":"World","volume":{"canonical":"ZNTX","impl":"ZNTX","instance":"ZNTX_PV@1","local":2}},
+{"dir":[1.0,0.0,0.0],"pos":[-1.66,1e-4,0.0],"universe":"ZNTX","volume":{"canonical":"ZN1","impl":"ZN1","instance":"ZN1_PV@1","local":2}},
+{"dir":[1.0,0.0,0.0],"pos":[-1.66,-1.76,0.0],"universe":"ZN1","volume":{"canonical":"ZNSL","impl":"ZNSL","instance":"ZNSL_PV@0","local":1}},
+{"dir":[1.0,0.0,0.0],"pos":[-1.66,-0.160,0.0],"universe":"ZNSL","volume":{"canonical":"ZNST","impl":"ZNST","instance":"ZNST_PV@0","local":1}},
+{"dir":[1.0,0.0,0.0],"pos":[-0.0600,-0.160,0.0],"universe":"ZNST","volume":{"canonical":"ZNST","impl":"ZNST","instance":null,"local":5}}],
+"surface":null})json",
+            StringSimplifier{3}(to_json_string(geo.track_view())));
     }
     else
     {

@@ -1,3 +1,10 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Clear cache and rebuild it every week
+#-----------------------------------------------------------------------------#
+
 name: cron_weekly
 
 on:
@@ -19,6 +26,8 @@ jobs:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-spack.yml
+    secrets:
+      codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
   all:
     if: ${{always()}}

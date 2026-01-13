@@ -28,6 +28,7 @@
 #cmakedefine01 CELERITAS_USE_GEANT4
 #cmakedefine01 CELERITAS_USE_HEPMC3
 #cmakedefine01 CELERITAS_USE_HIP
+#cmakedefine01 CELERITAS_USE_LARSOFT
 #cmakedefine01 CELERITAS_USE_MPI
 #cmakedefine01 CELERITAS_USE_OPENMP
 #cmakedefine01 CELERITAS_USE_PERFETTO
@@ -40,12 +41,15 @@
 #cmakedefine01 CELERITAS_DEVICE_DEBUG
 
 // Device-only options
+#cmakedefine01 CELERITAS_HAVE_HIPCUB
 #cmakedefine01 CELERITAS_HAVE_ROCTX
 #cmakedefine CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
 
 //---------------------------------------------------------------------------//
 // Core configuration
 //---------------------------------------------------------------------------//
+
+@CELERITAS_CODATA_CONFIG@
 
 @CELERITAS_REAL_TYPE_CONFIG@
 

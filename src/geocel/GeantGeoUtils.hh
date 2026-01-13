@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/GeantGeoUtils.hh
+//! \todo Move to g4/ subdir and/or combine with GeantGeoParams
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -31,7 +32,6 @@ class G4VTouchable;
 
 namespace celeritas
 {
-struct GeantPhysicalInstance;
 //---------------------------------------------------------------------------//
 #if CELERITAS_GEANT4_VERSION >= 0x0b0200
 //! Version-independent typedef to Geant4 touchable history
@@ -42,36 +42,35 @@ using GeantTouchableBase = G4VTouchable;
 
 //---------------------------------------------------------------------------//
 //! Wrap around a touchable to get a descriptive output.
-struct PrintableNavHistory
+struct StreamableNavHistory
 {
     G4NavigationHistory const* nav{nullptr};
 };
 
 //---------------------------------------------------------------------------//
 //! Wrap around a G4LogicalVolume to get a descriptive output.
-struct PrintableLV
+struct StreamableLV
 {
     G4LogicalVolume const* lv{nullptr};
 };
 
 // Print detailed information about the touchable history.
-std::ostream& operator<<(std::ostream&, PrintableNavHistory const&);
+std::ostream& operator<<(std::ostream&, StreamableNavHistory const&);
 
 // Print the logical volume name, ID, and address.
-std::ostream& operator<<(std::ostream&, PrintableLV const&);
+std::ostream& operator<<(std::ostream&, StreamableLV const&);
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
+// TODO: move all these to GeantGeoParams
 //---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
+// DEPRECATED: Remove in Celeritas 1.0
 void reset_geant_geometry();
 
 //---------------------------------------------------------------------------//
-// Get a view to the Geant4 LV store
-Span<G4LogicalVolume*> geant_logical_volumes();
-
-//---------------------------------------------------------------------------//
 // Get the world volume if the geometry has been set up
+// DEPRECATED: Remove in Celeritas 1.0
 G4VPhysicalVolume const* geant_world_volume();
 
 //---------------------------------------------------------------------------//
@@ -79,18 +78,10 @@ G4VPhysicalVolume const* geant_world_volume();
 G4Field const* geant_field();
 
 //---------------------------------------------------------------------------//
-// Whether the volume is a replica/parameterization
-bool is_replica(G4VPhysicalVolume const&);
-
-//---------------------------------------------------------------------------//
 // Find Geant4 logical volumes corresponding to a list of names
+// DEPRECATED: Remove in Celeritas 1.0
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
-
-//---------------------------------------------------------------------------//
-// Update a nav history to match the given volume instance stack
-void set_history(Span<GeantPhysicalInstance const> stack,
-                 G4NavigationHistory* nav);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -101,28 +92,18 @@ inline void reset_geant_geometry()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline Span<G4LogicalVolume*> geant_logical_volumes()
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
 inline std::unordered_set<G4LogicalVolume const*>
 find_geant_volumes(std::unordered_set<std::string>)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline std::ostream& operator<<(std::ostream&, PrintableNavHistory const&)
+inline std::ostream& operator<<(std::ostream&, StreamableNavHistory const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline std::ostream& operator<<(std::ostream&, PrintableLV const&)
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
-inline bool is_replica(G4VPhysicalVolume const&)
+inline std::ostream& operator<<(std::ostream&, StreamableLV const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/SoftSurfaceEqual.hh
+//! \todo Move to orange construction directory
 //---------------------------------------------------------------------------//
 #pragma once
 

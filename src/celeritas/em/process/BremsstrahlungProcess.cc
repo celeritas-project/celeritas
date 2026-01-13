@@ -24,7 +24,7 @@ namespace celeritas
 BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
                                              SPConstMaterials materials,
                                              SPConstImported process_data,
-                                             ReadData load_sb,
+                                             SBInput sb_input,
                                              Options options)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
@@ -32,12 +32,12 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
                 particles_,
                 ImportProcessClass::e_brems,
                 {pdg::electron(), pdg::positron()})
-    , load_sb_(std::move(load_sb))
+    , sb_input_(std::move(sb_input))
     , options_(options)
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
-    CELER_EXPECT(load_sb_);
+    CELER_EXPECT(sb_input_);
 }
 
 //---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
                                                  *particles_,
                                                  *materials_,
                                                  imported_.processes(),
-                                                 load_sb_));
+                                                 sb_input_));
     }
     if (imported_.has_model(pdg::electron(), IMC::e_brems_lpm))
     {

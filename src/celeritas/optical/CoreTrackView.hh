@@ -16,6 +16,7 @@
 #include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
+#include "surface/SurfacePhysicsTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
@@ -56,6 +57,9 @@ class CoreTrackView
     // Return a material view (using an existing geo view)
     inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
 
+    // Return a material view for a specific optical material
+    inline CELER_FUNCTION MaterialView material_record(OptMatId) const;
+
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView sim() const;
 
@@ -71,17 +75,14 @@ class CoreTrackView
     // Return a volume surface view from volume ID
     inline CELER_FUNCTION VolumeSurfaceView surface(VolumeId) const;
 
+    // Return a surface physics view
+    inline CELER_FUNCTION SurfacePhysicsTrackView surface_physics() const;
+
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
 
     // Get the track's index among the states
     inline CELER_FUNCTION TrackSlotId track_slot_id() const;
-
-    // Action ID for encountering a geometry boundary
-    inline CELER_FUNCTION ActionId init_boundary_action() const;
-
-    // Action ID for leaving a geometry boundary
-    inline CELER_FUNCTION ActionId post_boundary_action() const;
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
@@ -143,6 +144,9 @@ CoreTrackView::operator=(TrackInitializer const& init)
     // Initialize the physics state
     this->physics() = PhysicsTrackView::Initializer{};
 
+    // Initialize the surface state
+    this->surface_physics().reset();
+
     return *this;
 }
 
@@ -175,6 +179,18 @@ CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
     return MaterialView{params_.material, geo.impl_volume_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a material view for a specific optical material ID.
+ */
+CELER_FUNCTION auto CoreTrackView::material_record(OptMatId opt_mat) const
+    -> MaterialView
+{
+    auto material = MaterialView{params_.material, opt_mat};
+    CELER_ENSURE(material);
+    return material;
 }
 
 //---------------------------------------------------------------------------//
@@ -220,6 +236,18 @@ CELER_FUNCTION auto CoreTrackView::surface(VolumeId vol) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return a surface physics view.
+ */
+CELER_FUNCTION auto CoreTrackView::surface_physics() const
+    -> SurfacePhysicsTrackView
+{
+    return SurfacePhysicsTrackView{params_.surface_physics,
+                                   states_.surface_physics,
+                                   this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return the RNG engine.
  */
 CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
@@ -233,7 +261,7 @@ CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
  */
 CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 {
-    return SimTrackView{states_.sim, this->track_slot_id()};
+    return SimTrackView{params_.sim, states_.sim, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//
@@ -243,24 +271,6 @@ CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 {
     return track_slot_id_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the action ID for encountering a geometry boundary.
- */
-CELER_FUNCTION ActionId CoreTrackView::init_boundary_action() const
-{
-    return params_.scalars.init_boundary_action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the action ID for leaving a geometry boundary.
- */
-CELER_FUNCTION ActionId CoreTrackView::post_boundary_action() const
-{
-    return params_.scalars.post_boundary_action;
 }
 
 //---------------------------------------------------------------------------//

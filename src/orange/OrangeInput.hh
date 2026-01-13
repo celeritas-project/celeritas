@@ -2,7 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/OrangeInput.hh
+/*!
+ * \file orange/OrangeInput.hh
+ * \brief Input data structures for an ORANGE geometry.
+ *
+ * \todo This is a weird mix of input and built objects so we can't put it in
+ * \c inp . See discussion at
+ * https://github.com/celeritas-project/celeritas/pull/2045#discussion_r2437457681
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -41,7 +48,7 @@ struct OrientedBoundingZoneInput
 
 //---------------------------------------------------------------------------//
 /*!
- * Input definition for a single volume.
+ * Input definition for a single ORANGE implementation volume.
  */
 struct VolumeInput
 {
@@ -65,7 +72,7 @@ struct VolumeInput
     //! Masking priority
     ZOrder zorder{};
 
-    //! Whether the volume definition is valid
+    //! Whether the input definition is valid
     explicit operator bool() const
     {
         return (!logic.empty() || (flags & Flags::implicit_vol))
@@ -75,12 +82,37 @@ struct VolumeInput
 
 //---------------------------------------------------------------------------//
 /*!
- * Input definition a daughter universe embedded in a parent cell.
+ * Input definition a daughter universe embedded in a parent volume.
  */
 struct DaughterInput
 {
-    UniverseId universe_id;
+    UnivId univ_id;
     VariantTransform transform;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Extra metadata for a unit's "background" volume.
+ *
+ * Unlike a regular volume, the "background" represents a \em volume rather
+ * than a volume \em instance. Note that this can be an \em explicit volume
+ * (i.e., made of booleans) or \em implicit (i.e., have the lowest "Z order").
+ *
+ * This is something of a hack: the background volume in a \c
+ * orangeinp::UnitProto is annotated by setting the label to \c
+ * VolumeInstanceId{} in \c g4org::ProtoConstructor; then converted from a
+ * proto to a \c UnitInput by the \c InputBuilder, and finally in \c
+ * g4org::Converter the empty volume instance IDs are replaced by (1) the
+ * world \c VolumeInstanceId for the top-level background volume, or (2) the
+ * \c VolumeId corresponding to the unit's label.
+ */
+struct BackgroundInput
+{
+    VolumeId label;
+    LocalVolumeId volume;
+
+    //! Whether the background metadata is used
+    explicit operator bool() const { return static_cast<bool>(volume); }
 };
 
 //---------------------------------------------------------------------------//
@@ -92,11 +124,19 @@ struct DaughterInput
 struct UnitInput
 {
     using MapVolumeDaughter = std::map<LocalVolumeId, DaughterInput>;
+    using MapLocalParent = std::map<LocalVolumeId, LocalVolumeId>;
 
     std::vector<VariantSurface> surfaces;
     std::vector<VolumeInput> volumes;
-    BBox bbox;  //!< Outer bounding box
+    //! Outer bounding box
+    BBox bbox;
+
+    //! The given local volume is replaced by a transformed universe
     MapVolumeDaughter daughter_map;
+    //! The given local volume is structurally "inside" another local volume
+    MapLocalParent local_parent_map;
+    //! Metadata for the volume that represents the boundary of the unit
+    BackgroundInput background;
 
     // Unit metadata
     std::vector<Label> surface_labels;
@@ -115,7 +155,7 @@ struct RectArrayInput
     // Grid boundaries in x, y, and z
     Array<std::vector<double>, 3> grid;
 
-    // Daughters in each cell [x][y][z]
+    // Daughters in each volume [x][y][z]
     std::vector<DaughterInput> daughters;
 
     // Unit metadata
@@ -146,8 +186,14 @@ struct OrangeInput
     //! Relative and absolute error for construction and transport
     Tolerance<> tol;
 
+    //! Logic expression notation
+    LogicNotation logic{LogicNotation::postfix};
+
     //! Whether the unit definition is valid
-    explicit operator bool() const { return !universes.empty() && tol; }
+    explicit operator bool() const
+    {
+        return !universes.empty() && tol && logic != LogicNotation::size_;
+    }
 };
 
 //---------------------------------------------------------------------------//

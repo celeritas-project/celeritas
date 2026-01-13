@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
+#include <optional>
+#include <string_view>
 #include <variant>
 #include <vector>
 
+#include "corecel/OpaqueId.hh"
 #include "geocel/Types.hh"
+#include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -32,43 +35,27 @@ struct CsgUnit;
 /*!
  * Construct a general CSG universe, aka a "unit".
  *
- * A "unit" is a region of space (specified by the "boundary" object) that is
- * divided up into multiple smaller regions:
- * - A "material" (aka "media" in SCALE) is a single homogeneous CSG object
+ * A "unit" is a region of space (with an outer boundary specified by the \c
+ * BoundaryInput::interior object) that is divided up into multiple smaller
+ * regions:
+ * - A "material" (aka \em media in SCALE) is a single homogeneous CSG object
  *   filled with a particular material ID. This is equivalent to a leaf
  *   "physical volume" in a GDML/Geant4 volume hierarchy.
- * - A "daughter" (aka "hole" in SCALE) is another unit that is transformed and
- *   placed into this universe.
+ * - A "daughter" (aka \em hole in SCALE) is another unit that is transformed
+ *   and placed into this universe.
  *
- * Regarding boundary conditions: "Input" is for how the unit is *defined*:
- *
- *  ========== ==========================================================
- *   Input      Description
- *  ========== ==========================================================
- *   Implicit   Boundary implicitly truncates interior (KENO)
- *   Explicit   Interior CSG definition includes boundary (RTK)
- *  ========== ==========================================================
- *
- * Additionally, whether the universe is the top-level \em global universe (see
- * the \c ExteriorBoundary type) affects the construction.
- *
- *  ========== ==========================================================
- *   ExtBound   Description
- *  ========== ==========================================================
- *   Daughter   Boundary is already truncated by higher-level unit
- *   Global     Boundary must explicitly be represented as a volume
- *  ========== ==========================================================
- *
- * These result in different z ordering for the exterior:
- *
- *  ===== ===== ================== ========================================
- *   Inp   ExB   Resulting zorder   Description
- *  ===== ===== ================== ========================================
- *   I     N     implicit_exterior  Higher-level universe truncates
- *   X     N     implicit_exterior  Higher-level universe truncates
- *   I     Y     exterior           Global unit that truncates other regions
- *   X     Y     media              Global unit with well-connected exterior
- *  ===== ===== ================== ========================================
+ * Additional metadata about the structure can be provided when converting
+ * Geant4 geometry. When building, labels are volume instance IDs: each
+ * material and daughter is a volume placement, and the background input uses
+ * an empty instance ID as a sentinel indicating a background volume is
+ * present. (Note the "background" is structurally a \em volume, not \em
+ * instance, since it is locally the top level of the geometry.)
+ * In addition to the labels, a special \c local_parent field denotes a
+ * structural relationship between one input object and another. These will be
+ * always set when building from Geant4 but never set when building from SCALE.
+ * The value is a null ID when the parent canonical volume is rendered as the
+ * background, or the index in the list of \c materials when the parent volume
+ * is \em inlined into this unit.
  */
 class UnitProto : public ProtoInterface
 {
@@ -78,6 +65,9 @@ class UnitProto : public ProtoInterface
     using Unit = detail::CsgUnit;
     using Tol = Tolerance<>;
     using VariantLabel = std::variant<Label, VolumeInstanceId>;
+    using MaterialInputId = OpaqueId<struct MaterialInput>;
+    using LocalParent = std::optional<MaterialInputId>;
+    //!@}
 
     //! Optional "background" inside of exterior, outside of all mat/daughter
     struct BackgroundInput
@@ -95,6 +85,8 @@ class UnitProto : public ProtoInterface
         SPConstObject interior;
         GeoMatId fill;
         VariantLabel label;
+        //! Mark this material as being structurally inside another local one
+        LocalParent local_parent;
 
         // True if fully defined
         explicit inline operator bool() const;
@@ -107,6 +99,9 @@ class UnitProto : public ProtoInterface
         VariantTransform transform;  //!< Daughter-to-parent
         ZOrder zorder{ZOrder::media};  //!< Overlap control
         VariantLabel label;  //!< Placement name
+
+        //! Mark this daughter as being inside another local volume
+        LocalParent local_parent;
 
         // True if fully defined
         explicit inline operator bool() const;
@@ -132,13 +127,22 @@ class UnitProto : public ProtoInterface
         std::vector<MaterialInput> materials;
         std::vector<DaughterInput> daughters;
         BoundaryInput boundary;
-        std::string label;
-        UnitSimplification simplification{UnitSimplification::none};
+        Label label;
+
+        //!@{
+        //! \name Construction options
+
+        //! For non-global units, assume inside the boundary
+        bool remove_interior{true};
+        //! Use DeMorgan's law to remove negated joins
+        bool remove_negated_join{orange_tracking_logic()
+                                 == LogicNotation::infix};
+
+        //!@}
 
         // True if fully defined
         explicit inline operator bool() const;
     };
-    //!@}
 
   public:
     // Construct with required input data
@@ -161,10 +165,15 @@ class UnitProto : public ProtoInterface
     // Write the proto to a JSON object
     void output(JsonPimpl*) const final;
 
+    //// ACCESSORS ////
+
+    //! Get the input, primarily for unit testing
+    Input const& input() const { return input_; }
+
     //// HELPER FUNCTIONS ////
 
     // Construct a standalone unit for testing and external interface
-    Unit build(Tol const& tol, BBox const& bbox) const;
+    Unit build(Tol const& tol, BBox const& bbox, bool is_global_universe) const;
 
   private:
     Input input_;

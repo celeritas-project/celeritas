@@ -8,10 +8,11 @@
 
 #include <memory>
 
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/g4/SupportedEmStandardPhysics.hh"
+#include "celeritas/g4/SupportedOpticalPhysics.hh"
 
-#include "detail/EmStandardPhysics.hh"
-#include "detail/OpticalPhysics.hh"
 #include "detail/PhysicsListUtils.hh"
 
 namespace celeritas
@@ -24,17 +25,20 @@ EmPhysicsList::EmPhysicsList(Options const& options)
 {
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
+    ScopedStreamRedirect scoped_log(&std::cout);
+
     this->SetVerboseLevel(options.verbose);
     this->SetDefaultCutValue(
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
     // Celeritas-supported EM Physics
-    detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
+    detail::emplace_physics<SupportedEmStandardPhysics>(*this, options);
 
     if (options.optical)
     {
         // Celeritas-supported Optical Physics
-        detail::emplace_physics<detail::OpticalPhysics>(*this, options.optical);
+        detail::emplace_physics<SupportedOpticalPhysics>(*this,
+                                                         options.optical);
     }
 }
 

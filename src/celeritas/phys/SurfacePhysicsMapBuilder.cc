@@ -11,7 +11,6 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Filler.hh"
-#include "geocel/SurfaceParams.hh"
 
 namespace celeritas
 {
@@ -19,20 +18,18 @@ namespace celeritas
 /*!
  * Construct with surface data and result to modify.
  */
-SurfacePhysicsMapBuilder::SurfacePhysicsMapBuilder(SurfaceParams const& surfaces,
-                                                   HostData& data)
-    : surfaces_{surfaces}
-    , data_{data}
-    , default_surface_{surfaces_.num_surfaces()}
+SurfacePhysicsMapBuilder::SurfacePhysicsMapBuilder(
+    PhysSurfaceId::size_type num_surfaces, HostData& data)
+    : data_{data}
 {
     CELER_EXPECT(data_.surface_models.empty()
                  && data_.internal_surface_ids.empty());
 
-    resize(&data_.surface_models, this->size());
-    resize(&data_.internal_surface_ids, this->size());
+    resize(&data_.surface_models, num_surfaces);
+    resize(&data_.internal_surface_ids, num_surfaces);
 
     fill(SurfaceModelId{}, &data_.surface_models);
-    fill(InternalSurfaceId{}, &data_.internal_surface_ids);
+    fill(SubModelId{}, &data_.internal_surface_ids);
 
     CELER_ENSURE(data_);
 }
@@ -53,16 +50,10 @@ void SurfacePhysicsMapBuilder::operator()(SurfaceModel const& model)
         CELER_DISCARD(iter);
     }
 
-    // TODO: this will need updating to support multiple layers
-    InternalSurfaceId::size_type ms_index{0};
-    for (SurfaceId surface_id : model.get_surfaces())
+    SubModelId::size_type ms_index{0};
+    for (PhysSurfaceId surface_id : model.get_surfaces())
     {
-        if (!surface_id)
-        {
-            // Use "default" surface
-            surface_id = default_surface_;
-        }
-        CELER_VALIDATE(surface_id < this->size(),
+        CELER_VALIDATE(surface_id < data_.surface_models.size(),
                        << "surface physics model " << model.label()
                        << " contained invalid surface indices");
 
@@ -74,7 +65,7 @@ void SurfacePhysicsMapBuilder::operator()(SurfaceModel const& model)
                           "the same surface");
 
         // Add the model surface ID
-        data_.internal_surface_ids[surface_id] = InternalSurfaceId{ms_index++};
+        data_.internal_surface_ids[surface_id] = SubModelId{ms_index++};
     }
     CELER_VALIDATE(ms_index > 0,
                    << "surface physics model " << model.label()

@@ -14,19 +14,23 @@ else()
   set(_fixme_single DISABLE)
 endif()
 
-if(CELERITAS_DEBUG)
-  set(_disable_if_debug DISABLE)
-endif()
-
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
+  set(_needs_geant4_11 DISABLE)
 else()
   set(_optional_geant4_env ENVIRONMENT "${CELER_G4ENV}")
   set(_needs_geant4 ${_optional_geant4_env})
+  if(Geant4_VERSION VERSION_GREATER_EQUAL 11)
+    set(_needs_geant4_11 ${_optional_geant4_env})
+  else()
+    set(_needs_geant4_11 DISABLE)
+  endif()
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
+else()
+  set(_needs_hepmc LINK_LIBRARIES ${HepMC3_LIBRARIES})
 endif()
 
 if(NOT CELERITAS_USE_ROOT)
@@ -34,7 +38,6 @@ if(NOT CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-  set(_needs_not_orange DISABLE)
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
@@ -102,7 +105,7 @@ celeritas_target_link_libraries(testcel_celeritas
 )
 
 if(CELERITAS_USE_Geant4)
-  celeritas_get_g4libs(_g4_mat_libs materials digits_hits processes)
+  celeritas_get_g4libs(_g4_libs materials digits_hits processes)
 
   celeritas_add_test_library(testcel_celeritas_g4
     ext/SDTestBase.cc
@@ -111,7 +114,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_target_link_libraries(testcel_celeritas_g4
     PUBLIC
       testcel_celeritas testcel_harness Celeritas::celeritas
-      ${_g4_mat_libs} Celeritas::ExtGeant4Geo
+      ${_g4_libs} Celeritas::ExtGeant4Geo
   )
 endif()
 
@@ -153,7 +156,10 @@ celeritas_add_test(em/xs/ScreeningFunctions.test.cc)
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
 celeritas_add_test(em/BetheBloch.test.cc ${_needs_double})
 celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
+celeritas_add_test(em/ElectroNuclear.test.cc ${_needs_double}
+  ${_needs_geant4_11})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})
+celeritas_add_test(em/GammaNuclear.test.cc ${_needs_double} ${_needs_geant4_11})
 celeritas_add_test(em/KleinNishina.test.cc ${_needs_double})
 celeritas_add_test(em/LivermorePE.test.cc ${_needs_double})
 celeritas_add_test(em/MollerBhabha.test.cc ${_needs_double})
@@ -191,9 +197,6 @@ celeritas_add_test(ext/GeantImporter.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
   FILTER ${_import_filter}
 )
-celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
-  LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
-
 
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
@@ -209,24 +212,12 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 
-  set(_ltu_tests
-    "MultiLevelTest.*"
-  )
-  if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-    # Geant4 doesn't yet have independent volume instance IDs for replicas
-    list(APPEND _ltu_tests
-      "ReplicaTest.*"
-    )
-  elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    set(_ltu_tests DISABLE)
-  endif()
-
   celeritas_add_test(ext/detail/LevelTouchableUpdater.test.cc
-    LINK_LIBRARIES testcel_celeritas_g4
-    FILTER ${_ltu_tests})
+    LINK_LIBRARIES testcel_celeritas_g4)
   if(CELERITAS_REAL_TYPE STREQUAL "double")
-    # This test requires Geant4 *geometry* which is incompatible
-    # with single-precision
+    # This test requires Geant4 *test harness* which is double-precision only,
+    # incompatible with single-precision build (GeantGeoTestBase is not built in
+    # test/geocel/CMakeLists.txt unless using double precision)
     celeritas_add_test(ext/detail/NaviTouchableUpdater.test.cc
       LINK_LIBRARIES testcel_celeritas_g4 testcel_geocel)
   endif()
@@ -249,7 +240,7 @@ else()
   set(_fieldprop_filter)
 endif()
 
-celeritas_add_test(field/Fields.test.cc
+celeritas_add_device_test(field/Fields
   LINK_LIBRARIES Celeritas::Extcovfie
 )
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
@@ -307,7 +298,7 @@ celeritas_add_test(geo/GeoMaterial.test.cc
 
 #-----------------------------------------------------------------------------#
 # Global
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+if(CELERITAS_USE_Geant4)
   set(_along_step_filter
     "-Em3*:SimpleCms*:LeadBox*:Mock*"
     "Mock*"
@@ -337,20 +328,9 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
       "LeadBox*"
     )
   endif()
-elseif(CELERITAS_USE_Geant4)
-  set(_along_step_filter
-    "-Em3*:SimpleCms*:LeadBox*"
-    "Em3AlongStepTest.nofluct_nomsc"
-    "Em3AlongStepTest.fluct_nomsc"
-    "LeadBox*"
-  )
-  set(_stepper_filter
-    "-TestEm*:LeadBox*"
-    "TestEm3Compton.*"
-    "TestEm3Msc.*"
-    "TestEm3MscNofluct.*"
-    "TestEm15FieldMsc.*"
-  )
+  if(Geant4_VERSION VERSION_LESS 11.0)
+    list(REMOVE_ITEM _along_step_filter)
+  endif()
 else()
   set(_along_step_filter)
   set(_stepper_filter)
@@ -390,9 +370,9 @@ celeritas_add_test(grid/XsCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # IO
-celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc}
-  LINK_LIBRARIES ${HepMC3_LIBRARIES})
+celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc})
 celeritas_add_test(io/ImportUnits.test.cc)
+celeritas_add_test(io/JsonEventIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
@@ -400,21 +380,28 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 # Optical
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
+celeritas_add_test(optical/Generator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
 celeritas_add_test(optical/MfpBuilder.test.cc)
+celeritas_add_test(optical/Mie.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
-celeritas_add_test(optical/PrimaryGenerator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
-celeritas_add_test(optical/OpticalRootImport.test.cc ${_needs_root})
+celeritas_add_test(optical/RoughnessCalculator.test.cc)
 celeritas_add_test(optical/Scintillation.test.cc)
 celeritas_add_test(optical/WavelengthShift.test.cc ${_needs_double})
 celeritas_add_test(optical/Physics.test.cc)
 celeritas_add_test(optical/VolumeSurfaceSelector.test.cc
     LINK_LIBRARIES testcel_geocel)
+celeritas_add_test(optical/SurfacePhysics.test.cc)
+celeritas_add_test(optical/ReflectionFormSampler.test.cc)
+celeritas_add_test(optical/Fresnel.test.cc)
+celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
+celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
+celeritas_add_test(optical/SurfacePhysicsIntegration.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -514,8 +501,12 @@ add_custom_target(update-root-test-data
   COMMENT "Regenerate ROOT test data"
 )
 
+add_custom_target(debug-root-test-data
+  COMMENT "Debug ROOT test data"
+)
+
 if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
-  foreach(_filename "four-steel-slabs" "simple-cms" "lar-sphere")
+  foreach(_filename "four-steel-slabs" "simple-cms")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
     set(_output "${_basename}.root")
@@ -528,6 +519,18 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
         "${_gdml}"
         "${_basename}.geant.json"
         "${_output}"
+        "--gen-test"
+      VERBATIM
+    )
+    add_custom_command(
+      TARGET debug-root-test-data
+      POST_BUILD
+      COMMAND
+        "${CMAKE_COMMAND}" "-E" "env" ${CELER_G4ENV}
+        "$<TARGET_FILE:celer-export-geant>"
+        "${_gdml}"
+        "${_basename}.geant.json"
+        "${_basename}.json"
         "--gen-test"
       VERBATIM
     )

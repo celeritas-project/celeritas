@@ -15,30 +15,18 @@
 #if G4VERSION_NUMBER < 1070
 #    include <G4MTRunManager.hh>
 #endif
-#if G4VERSION_NUMBER >= 1070
-#    include <G4Backtrace.hh>
+
+#ifdef _OPENMP
+#    include <omp.h>
 #endif
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Clear Geant4's signal handlers that get installed on startup/activation.
- *
- * This should be called before instantiating a run manager.
- */
-void disable_geant_signal_handler()
-{
-#if G4VERSION_NUMBER >= 1070
-    CELER_LOG(debug) << "Disabling Geant4 signal handlers";
-    // Disable geant4 signal interception
-    G4Backtrace::DefaultSignals() = {};
-#endif
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the number of threads in a version-portable way.
@@ -94,15 +82,57 @@ int get_geant_thread_id()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Validate the thread ID and threading model.
+ */
+void validate_geant_threading(size_type num_streams)
+{
+    auto thread_id = get_geant_thread_id();
+    CELER_VALIDATE(thread_id >= 0,
+                   << "Geant4 ThreadID (" << thread_id
+                   << ") is invalid (perhaps local offload is being built "
+                      "on a non-worker thread?)");
+    CELER_VALIDATE(static_cast<size_type>(thread_id) < num_streams,
+                   << "Geant4 ThreadID (" << thread_id
+                   << ") is out of range for the reported number of worker "
+                      "threads ("
+                   << num_streams << ")");
+
+    // Check that OpenMP and Geant4 threading models don't collide
+    if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
+        && G4Threading::IsMultithreadedApplication())
+    {
+        auto msg = CELER_LOG(warning);
+        msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
+               "parallelism";
+        if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
+            !nt_str.empty())
+        {
+            msg << "(OMP_NUM_THREADS=" << nt_str
+                << "): CPU threads may be oversubscribed";
+        }
+        else
+        {
+            msg << ": forcing 1 Celeritas thread to Geant4 thread";
+#ifdef _OPENMP
+            omp_set_num_threads(1);
+#else
+            CELER_ASSERT_UNREACHABLE();
+#endif
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Print a particle definition name and PDG.
  */
-std::ostream& operator<<(std::ostream& os, PrintablePD const& ppd)
+std::ostream& operator<<(std::ostream& os, StreamablePD const& ppd)
 {
     if (ppd.pd)
     {
         os << '"' << ppd.pd->GetParticleName() << "\"@"
            << static_cast<void const*>(ppd.pd)
-           << " (PDG=" << ppd.pd->GetParticleDefinitionID() << ')';
+           << " (PDG = " << ppd.pd->GetPDGEncoding() << ')';
     }
     else
     {

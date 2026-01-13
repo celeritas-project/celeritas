@@ -8,29 +8,25 @@
 #pragma once
 
 #include <memory>
-#include <string_view>
+#include <string>
 
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
-
-namespace perfetto
-{
-class TracingSession;
-}  // namespace perfetto
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Flush perfetto track events without requiring a TracingSession instance.
-void flush_tracing() noexcept;
+// DEPRECATED: remove in v1.0
+[[deprecated]] inline void flush_tracing() noexcept;
 
 //---------------------------------------------------------------------------//
 /*!
- * RAII wrapper for a tracing session.
+ * Record Perfetto events during the lifetime of this object.
  *
- * Constructors will only configure and initialize the session. It needs to
- * be started explicitly by calling \c TracingSession::start
+ * This RAII class manages a Perfetto tracing session.
  * Only a single tracing mode is supported. If you are only interested in
  * application-level events (\c ScopedProfiling and \c trace_counter),
  * then the in-process mode is sufficient and is enabled by providing the
@@ -44,58 +40,61 @@ void flush_tracing() noexcept;
  * required. To start the system daemons using the perfetto backend,
  * see https://perfetto.dev/docs/quickstart/linux-tracing#capturing-a-trace
  *
- * TODO: Support multiple tracing mode.
+ * \note Profiling is disabled unless the \c CELER_ENABLE_PROFILING environment
+ * variable is set; see celeritas::ScopedProfiling.
  */
 class TracingSession
 {
   public:
+    // Flush the track events associated with the calling thread
+    static void flush() noexcept;
+
     // Configure a system session recording to a daemon
-    TracingSession() noexcept;
+    TracingSession();
 
     // Configure an in-process session recording to filename
-    explicit TracingSession(std::string_view filename) noexcept;
+    explicit TracingSession(std::string const& filename);
 
-    // Terminate the session and close open files
-    ~TracingSession();
+    // Start the profiling session (DEPRECATED: remove in v1.0)
+    //! The session is now started on construction; this is now a null-op
+    [[deprecated]] void start() noexcept {}
 
-    // Start the profiling session
-    void start() noexcept;
-
-    // Flush the track events associated with the calling thread
-    void flush() noexcept;
-
-    CELER_DELETE_COPY_MOVE(TracingSession);
+    //! Return whether profiling is enabled
+    explicit operator bool() const { return static_cast<bool>(impl_); }
 
   private:
-    static constexpr int system_fd_{-1};
-    struct Deleter
+    struct Impl;
+    struct ImplDeleter
     {
-        void operator()(perfetto::TracingSession*);
+        void operator()(Impl*) noexcept;
     };
-
-    bool started_{false};
-    std::unique_ptr<perfetto::TracingSession, Deleter> session_;
-    int fd_{system_fd_};
+    std::unique_ptr<Impl, ImplDeleter> impl_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 
-#if !CELERITAS_USE_PERFETTO
-inline void flush_tracing() noexcept {}
-inline TracingSession::TracingSession() noexcept = default;
-inline TracingSession::TracingSession(std::string_view) noexcept {}
-inline TracingSession::~TracingSession() = default;
-inline void TracingSession::start() noexcept
+inline void flush_tracing() noexcept
 {
-    CELER_DISCARD(started_);
-    CELER_DISCARD(fd_);
+    return TracingSession::flush();
+}
+
+#if !CELERITAS_USE_PERFETTO
+inline TracingSession::TracingSession() = default;
+inline TracingSession::TracingSession(std::string const& s)
+{
+    if (!s.empty())
+    {
+        CELER_LOG(warning)
+            << R"(Ignoring tracing session file: Perfetto is disabled)";
+    }
 }
 inline void TracingSession::flush() noexcept {}
-inline void TracingSession::Deleter::operator()(perfetto::TracingSession*)
+
+inline void TracingSession::ImplDeleter::operator()(Impl*) noexcept
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_UNREACHABLE;
 }
 #endif
 

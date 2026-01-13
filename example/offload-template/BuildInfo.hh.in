@@ -1,0 +1,22 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file offload-template/BuildInfo.hh.in
+//---------------------------------------------------------------------------//
+#pragma once
+
+namespace celeritas
+{
+namespace example
+{
+//---------------------------------------------------------------------------//
+
+inline constexpr char source_dir[] = "@PROJECT_SOURCE_DIR@";
+inline constexpr char build_dir[] = "@PROJECT_BINARY_DIR@";
+inline constexpr char geant4_install_dir[] = "@Geant4_DIR@";
+inline constexpr char celeritas_install_dir[] = "@Celeritas_DIR@";
+
+//---------------------------------------------------------------------------//
+}  // namespace example
+}  // namespace celeritas

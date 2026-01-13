@@ -68,7 +68,9 @@ enum class ImportProcessClass
     mu_ioni,
     mu_brems,
     mu_pair_prod,
+    electro_nuclear,
     gamma_general,  // Will be decomposed into other processes
+    gamma_nuclear,
     // Neutron
     neutron_elastic,
     size_

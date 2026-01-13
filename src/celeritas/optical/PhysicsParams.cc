@@ -7,6 +7,8 @@
 #include "PhysicsParams.hh"
 
 #include "corecel/sys/ActionRegistry.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/optical/ModelImporter.hh"
 
 #include "MaterialParams.hh"
 #include "MfpBuilder.hh"
@@ -17,6 +19,30 @@ namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data.
+ */
+std::shared_ptr<PhysicsParams>
+PhysicsParams::from_import(ImportData const& data,
+                           SPConstCoreMaterials core_materials,
+                           SPConstMaterials materials,
+                           SPActionRegistry action_reg)
+{
+    Input input;
+    input.materials = materials;
+    input.action_registry = action_reg.get();
+    ModelImporter importer{data, materials, core_materials};
+    for (auto const& model : data.optical_models)
+    {
+        if (auto builder = importer(model.model_class))
+        {
+            input.model_builders.push_back(*builder);
+        }
+    }
+    return std::make_shared<PhysicsParams>(std::move(input));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from imported and shared data.
@@ -30,7 +56,6 @@ namespace optical
  */
 PhysicsParams::PhysicsParams(Input input)
 {
-    CELER_EXPECT(!input.model_builders.empty());
     CELER_EXPECT(input.materials);
     CELER_EXPECT(input.action_registry);
 
@@ -51,7 +76,7 @@ PhysicsParams::PhysicsParams(Input input)
     HostValue data;
     data.scalars.num_models = models_.size();
     data.scalars.num_materials = input.materials->num_materials();
-    data.scalars.model_to_action = 1;
+    data.scalars.first_model_action = ActionId{1};
 
     this->build_mfps(*input.materials, data);
 
@@ -72,6 +97,11 @@ auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
 
     for (auto const& builder : model_builders)
     {
+        if (!builder)
+        {
+            // if model has no data proceed to the next model
+            continue;
+        }
         auto action_id = action_reg.next_id();
         SPConstModel model = builder(action_id);
 
@@ -82,7 +112,6 @@ auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
         models.push_back(std::move(model));
     }
 
-    CELER_ENSURE(models.size() == model_builders.size());
     return models;
 }
 

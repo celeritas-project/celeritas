@@ -49,7 +49,7 @@ auto MockTestBase::make_model_callback() const -> ModelCallback
 {
     return [this](ActionId id) {
         CELER_ASSERT(id);
-        interactions_.push_back(ModelId{id.unchecked_get() - model_to_action_});
+        interactions_.push_back(ModelId{id - first_model_action_});
     };
 }
 

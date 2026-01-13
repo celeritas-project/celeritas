@@ -45,6 +45,7 @@ void BuildOutput::output(JsonPimpl* j) const
             CO_ADD_OPT(GEANT4);
             CO_ADD_OPT(HEPMC3);
             CO_ADD_OPT(HIP);
+            CO_ADD_OPT(LARSOFT);
             CO_ADD_OPT(MPI);
             CO_ADD_OPT(OPENMP);
             CO_ADD_OPT(PERFETTO);
@@ -59,6 +60,7 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_ADD_CFG(hostname);
         CO_ADD_CFG(real_type);
         CO_ADD_CFG(units);
+        CO_ADD_CFG(constants);
         CO_ADD_CFG(openmp);
         CO_ADD_CFG(core_geo);
         CO_ADD_CFG(core_rng);
@@ -87,6 +89,11 @@ void BuildOutput::output(JsonPimpl* j) const
 #undef CO_ADD_COND_VERS
             return deps;
         }();
+
+        if constexpr (CELERITAS_USE_GEANT4)
+        {
+            cfg["geant4"] = std::string(cmake::geant4_options);
+        }
 
         if constexpr (CELERITAS_USE_VECGEOM)
         {

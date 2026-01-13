@@ -6,94 +6,203 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <optional>
+
+#include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
-#include "geocel/detail/LengthUnits.hh"
+
+#include "UnitUtils.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class GeoParamsInterface;
+class VolumeParams;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
  * Check validity of safety and volume crossings while navigating on CPU.
  *
- * Also count the number of calls to "find distance" and "find safety".
+ * This wraps a \c GeoTrackInterface and adds validation and instrumentation.
+ * It counts the number of calls to \c find_next_step and \c find_safety .
  *
- * \note This class is instantiated in GenericXTestBase.cc for geometry type X.
- * The member function definitions are in CheckedGeoTrackView.t.hh.
+ * Two flags can alter the error checking:
+ * - \c check_normal will validate the normal calculation when on a boundary
+ * - \c check_failure will throw before and after a call
+ *
+ * The only nontrivial function that can be called from an outside or failed
+ * state is initialization (with \c operator= ).
  */
-template<class GTV>
-class CheckedGeoTrackView : public GTV
+class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
 {
   public:
     //!@{
     //! \name Type aliases
-    using GeoTrackViewT = GTV;
-    using Initializer_t = typename GTV::Initializer_t;
+    using Initializer_t = GeoTrackInitializer;
+    using Real3 = Array<real_type, 3>;
+    using TrackT = GeoTrackInterface<real_type>;
+    using UPTrack = std::unique_ptr<TrackT>;
+    using SPConstGeoI = std::shared_ptr<GeoParamsInterface const>;
+    using SPConstVolumes = std::shared_ptr<VolumeParams const>;
     //!@}
 
   public:
-    //! Forward construction arguments to the original track view
-    template<class... Args>
-    CheckedGeoTrackView(Args&&... args) : GTV(std::forward<Args>(args)...)
+    //! Construct with a unique pointer to a geo track view
+    explicit CheckedGeoTrackView(UPTrack track)
+        : CheckedGeoTrackView{std::move(track), nullptr, nullptr, UnitLength{}}
     {
     }
 
-    // Initialize the state
-    CheckedGeoTrackView& operator=(GeoTrackInitializer const& init);
+    // Construct with a unique pointer to a geo track view
+    CheckedGeoTrackView(UPTrack track,
+                        SPConstVolumes volumes,
+                        SPConstGeoI geo_interface,
+                        UnitLength unit_length);
+
+    //! Access the underlying track view
+    TrackT const& track_view() const { return *t_; }
+    //! Access the underlying track view
+    TrackT& track_view() { return *t_; }
 
     //! Check volume consistency this far from the boundary
-    static constexpr real_type safety_tol()
-    {
-        return 1e-4 * lengthunits::centimeter;
-    }
+    real_type safety_tol() const { return 1e-4 * unit_length_.value; }
 
-    // Calculate or return the safety up to an infinite distance
-    real_type find_safety();
-
-    // Calculate or return the safety up to the given distance
-    real_type find_safety(real_type max_safety);
-
-    // Change the direction
-    void set_dir(Real3 const&);
-
-    // Find the distance to the next boundary
-    Propagation find_next_step();
-
-    // Find the distance to the next boundary
-    Propagation find_next_step(real_type max_distance);
-
-    // Move a linear step fraction
-    void move_internal(real_type);
-
-    // Move within the safety distance to a specific point
-    void move_internal(Real3 const& pos);
-
-    // Move to the boundary in preparation for crossing it
-    void move_to_boundary();
-
-    // Cross from one side of the current surface to the other
-    void cross_boundary();
+    //// ACCESSORS ////
 
     //! Number of calls of find_next_step
     size_type intersect_count() const { return num_intersect_; }
     //! Number of calls of find_safety
     size_type safety_count() const { return num_safety_; }
-    //! Reset the stepscounter
+    //! Reset the counters
     void reset_count() { num_intersect_ = num_safety_ = 0; }
 
+    //! Enable/disable normal checking
+    void check_normal(bool value) { check_normal_ = value; }
+    //! Whether normal checking is enabled
+    bool check_normal() const { return check_normal_; }
+
+    //! Enable/disable failure state checking
+    void check_failure(bool value) { check_failure_ = value; }
+    //! Whether failure checking is enabled
+    bool check_failure() const { return check_failure_; }
+
+    //! Canonical volume parameters (if available)
+    SPConstVolumes const& volumes() const { return volumes_; }
+    //! Geometry interface (if available)
+    SPConstGeoI const& geo_interface() const { return geo_interface_; }
+    //! Length scale
+    UnitLength unit_length() const { return unit_length_; }
+
+    //// GEO TRACK INTERFACE ////
+
+    // Initialize the state
+    CheckedGeoTrackView& operator=(GeoTrackInitializer const& init) final;
+
+    // Physical state
+    Real3 const& pos() const final { return t_->pos(); }
+    Real3 const& dir() const final { return t_->dir(); }
+
+    // Canonical volume state
+    VolumeId volume_id() const final { return t_->volume_id(); }
+    VolumeInstanceId volume_instance_id() const final
+    {
+        return t_->volume_instance_id();
+    }
+    VolumeLevelId volume_level() const final { return t_->volume_level(); }
+    void volume_instance_id(Span<VolumeInstanceId> levels) const final
+    {
+        t_->volume_instance_id(levels);
+    }
+
+    // Implementation volume ID
+    ImplVolumeId impl_volume_id() const final { return t_->impl_volume_id(); }
+
+    // State flags
+    bool is_outside() const final { return t_->is_outside(); }
+    bool failed() const final { return t_->failed(); }
+
+    // Surface state
+    bool is_on_boundary() const final { return t_->is_on_boundary(); }
+    Real3 normal() const final { return t_->normal(); }
+
+    // Calculate or return the safety up to an infinite distance
+    real_type find_safety() final;
+
+    // Calculate or return the safety up to the given distance
+    real_type find_safety(real_type max_safety) final;
+
+    // Change the direction
+    void set_dir(Real3 const&) final;
+
+    // Find the distance to the next boundary
+    Propagation find_next_step() final;
+
+    // Find the distance to the next boundary
+    Propagation find_next_step(real_type max_distance) final;
+
+    // Move a linear step fraction
+    void move_internal(real_type) final;
+
+    // Move within the safety distance to a specific point
+    void move_internal(Real3 const& pos) final;
+
+    // Move to the boundary in preparation for crossing it
+    void move_to_boundary() final;
+
+    // Cross from one side of the current surface to the other
+    void cross_boundary() final;
+
   private:
-    bool checked_internal_{false};
+    UPTrack t_;
+
+    // Metadata
+    SPConstVolumes volumes_;
+    SPConstGeoI geo_interface_;
+    UnitLength unit_length_;
+
+    // Configuration flags
+    bool check_normal_{false};
+    bool check_failure_{true};
+
+    // Counters
     size_type num_intersect_{0};
     size_type num_safety_{0};
+
+    // Temporary state
+    bool checked_internal_{false};
+    std::optional<real_type> next_boundary_;
+};
+
+class CheckedGeoError : public RuntimeError
+{
+  public:
+    using RuntimeError::RuntimeError;
 };
 
 //---------------------------------------------------------------------------//
-// DEDUCTION GUIDES
+// FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-template<class GTV>
-CheckedGeoTrackView(GTV&&) -> CheckedGeoTrackView<GTV>;
+// Get the descriptive, robust volume name based on the geo state
+std::string volume_name(GeoTrackInterface<real_type> const& geo,
+                        VolumeParams const& params);
+
+// Get a robust name using impl volume params
+std::string volume_name(GeoTrackInterface<real_type> const& geo,
+                        GeoParamsInterface const& params);
+
+// Get the descriptive, robust volume instance name based on the geo state
+std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
+                                 VolumeParams const& params);
+
+// Get the descriptive, robust volume instance name based on the geo state
+std::string unique_volume_name(GeoTrackInterface<real_type> const& geo,
+                               VolumeParams const& params);
+
+std::ostream& operator<<(std::ostream&, CheckedGeoTrackView const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

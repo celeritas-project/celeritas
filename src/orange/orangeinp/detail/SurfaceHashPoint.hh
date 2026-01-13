@@ -3,12 +3,13 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/detail/SurfaceHashPoint.hh
+//! \todo Inline into LocalSurfaceInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "orange/surf/VariantSurface.hh"
+#include "orange/surf/detail/AllSurfaces.hh"
 
 namespace celeritas
 {
@@ -20,10 +21,10 @@ namespace detail
 /*!
  * Construct a point to hash for deduplicating surfaces.
  *
- * Surfaces that *can* be soft equal *must* result in a point that is less than
- * or equal to epsilon.
+ * Surfaces that \em can be soft equal \em must have a difference in hash
+ * points that is less than or equal to epsilon.
  *
- * \todo We could potentially reduce the number of collisions by turning this
+ * \todo We could reduce the number of collisions by turning this
  * into a two- or three-dimensional point that's then hashed in an infinite
  * grid.
  */

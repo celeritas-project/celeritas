@@ -44,8 +44,17 @@ CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
     sim.add_time(sim.step_length() / constants::c_light);
 
     // Increment the step counter
-    //! \todo Add max step cut
     sim.increment_num_steps();
+
+    // Kill the track if it's reached the step limit
+    if (sim.num_steps() == sim.max_steps())
+    {
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error) << R"(Track exceeded maximum step count)";
+#endif
+        track.apply_errored();
+        return;
+    }
 
     // Update remaining MFPs to interaction
     auto phys = track.physics();

@@ -13,7 +13,9 @@
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
+#include "corecel/sys/Device.hh"
 #include "celeritas/geo/GeoFwd.hh"
+#include "celeritas/inp/Control.hh"
 #include "celeritas/user/SDParams.hh"
 
 #include "CoreTrackData.hh"
@@ -22,7 +24,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
+class AuxParamsRegistry;
+class CherenkovParams;
 class GeneratorRegistry;
+class OutputRegistry;
+class ScintillationParams;
 class SurfaceParams;
 
 namespace optical
@@ -30,6 +36,8 @@ namespace optical
 //---------------------------------------------------------------------------//
 class MaterialParams;
 class PhysicsParams;
+class SimParams;
+class SurfacePhysicsParams;
 //---------------------------------------------------------------------------//
 /*!
  * Shared parameters for the optical photon loop.
@@ -43,11 +51,16 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
+    using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
+    using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
+    using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
     using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
-    using VecLabel = std::vector<Label>;
+    using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
+    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -61,21 +74,31 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstMaterial material;
         SPConstPhysics physics;
         SPConstRng rng;
+        SPConstSim sim;
         SPConstSurface surface;
-
-        std::optional<VecLabel> detector_labels;
+        SPConstSurfacePhysics surface_physics;
+        SPConstDetectors detectors;
+        SPConstCherenkov cherenkov;  //!< Optional
+        SPConstScintillation scintillation;  //!< Optional
 
         SPActionRegistry action_reg;
+        SPOutputRegistry output_reg;
         SPGeneratorRegistry gen_reg;
+        SPAuxRegistry aux_reg;  //!< Optional, empty default
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
 
+        //! Per-process state and buffer capacities
+        inp::OpticalStateCapacity capacity;
+
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && surface && action_reg
-                   && gen_reg && max_streams;
+            return geometry && material && rng && sim && surface
+                   && surface_physics && action_reg && gen_reg && max_streams
+                   && capacity.generators > 0 && capacity.tracks > 0
+                   && capacity.primaries > 0;
         }
     };
 
@@ -98,10 +121,22 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstMaterial const& material() const { return input_.material; }
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
+    SPConstSim const& sim() const { return input_.sim; }
     SPConstSurface const& surface() const { return input_.surface; }
+    SPConstSurfacePhysics const& surface_physics() const
+    {
+        return input_.surface_physics;
+    }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
+    SPOutputRegistry const& output_reg() const { return input_.output_reg; }
+    SPAuxRegistry const& aux_reg() const { return input_.aux_reg; }
     SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
     SPConstDetectors const& detectors() const { return detectors_; }
+    SPConstCherenkov const& cherenkov() const { return input_.cherenkov; }
+    SPConstScintillation const& scintillation() const
+    {
+        return input_.scintillation;
+    }
     //!@}
 
     // Access host pointers to core data

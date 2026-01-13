@@ -6,24 +6,32 @@
 //---------------------------------------------------------------------------//
 #include "CoreParams.hh"
 
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "PhysicsParams.hh"
+#include "SimParams.hh"
 #include "action/AlongStepAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
-#include "surface/BoundaryAction.hh"
+#include "gen/CherenkovParams.hh"
+#include "gen/ScintillationParams.hh"
+#include "surface/SurfacePhysicsParams.hh"
 
 namespace celeritas
 {
@@ -48,7 +56,18 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
     ref.surface = get_ref<M>(*p.surface);
+    ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.rng = get_ref<M>(*p.rng);
+    ref.sim = get_ref<M>(*p.sim);
+    // TODO: Get detectors ref
+    if (p.cherenkov)
+    {
+        ref.cherenkov = get_ref<M>(*p.cherenkov);
+    }
+    if (p.scintillation)
+    {
+        ref.scintillation = get_ref<M>(*p.scintillation);
+    }
 
     CELER_ENSURE(ref);
     return ref;
@@ -76,15 +95,6 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     // TODO: process selection action (or constructed by physics?)
 
-    // TODO: it might make more sense to build the surface crossing action
-    // right before making the action group: re-examine once we add a surface
-    // physics manager
-    scalars.init_boundary_action = reg->next_id();
-    reg->insert(make_shared<InitBoundaryAction>(scalars.init_boundary_action));
-
-    scalars.post_boundary_action = reg->next_id();
-    reg->insert(make_shared<PostBoundaryAction>(scalars.post_boundary_action));
-
     scalars.tracking_cut_action = reg->next_id();
     reg->insert(make_shared<TrackingCutAction>(scalars.tracking_cut_action));
 
@@ -111,7 +121,9 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(material);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(surface);
+    CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
@@ -119,17 +131,36 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
-    // Build detector params based on input detector labels vector. If label
-    // returns false, create an empty label vector.
-    if (input_.detector_labels)
-    {
-        detectors_ = std::make_shared<SDParams>(*(input_.detector_labels),
-                                                *(input_.geometry));
-    }
-    else
+    // TODO: provide detectors in input, passing from core params
+    detectors_ = input_.detectors;
+    if (!detectors_)
     {
         detectors_ = std::make_shared<SDParams>();
     }
+    if (!input_.aux_reg)
+    {
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
+    }
+    if (!input_.output_reg)
+    {
+        input_.output_reg = std::make_shared<OutputRegistry>();
+        insert_system_diagnostics(*input_.output_reg);
+    }
+
+    // Save optical action diagnostic information
+    input_.output_reg->insert(std::make_shared<ActionRegistryOutput>(
+        input_.action_reg, "optical-actions"));
+
+    // Add optical sizes
+    OpticalSizes sizes;
+    sizes.streams = this->max_streams();
+    sizes.generators = input_.capacity.generators;
+    sizes.tracks = input_.capacity.tracks;
+    input_.output_reg->insert(
+        OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "optical-sizes",
+            std::move(sizes)));
 
     ScopedMem record_mem("optical::CoreParams.construct");
 

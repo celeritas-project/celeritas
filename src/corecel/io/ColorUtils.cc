@@ -13,57 +13,72 @@
 #    include <unistd.h>
 #endif
 
+#include "corecel/Assert.hh"
 #include "corecel/sys/Environment.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Get a default color based on the terminal settings
+bool default_term_color()
+{
+#ifndef _WIN32
+    // See if stderr is a user-facing terminal
+    return isatty(fileno(stderr));
+#endif
+    // Fall back to checking environment variable
+    if (auto term_str = celeritas::getenv("TERM"); !term_str.empty())
+    {
+        if (term_str.find("xterm") != std::string::npos)
+        {
+            // 'xterm' is in the TERM type, so assume it uses colors
+            return true;
+        }
+    }
+    return false;
+}
+
 //---------------------------------------------------------------------------//
 /*!
- * Whether colors are enabled (currently read-only).
+ * Get the preferred environment variable to use for color override.
+ */
+char const* color_env_var()
+{
+    auto hasenv = [](char const* key) { return std::getenv(key) != nullptr; };
+    static char const celer_env[] = "CELER_COLOR";
+    static char const gtest_env[] = "GTEST_COLOR";
+
+    if (hasenv(celer_env) || !hasenv(gtest_env))
+        return celer_env;
+    return gtest_env;
+}
+
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether colors are enabled by the environment.
+ *
+ * The \c NO_COLOR environment variable, if set to a non-empty value, disables
+ * color output. If either of the \c CELER_COLOR or \c GTEST_COLOR variables is
+ * set, that value will be used. Failing that, the default is true if \c stderr
+ * is a tty. The result of this value is used by \c ansi_color .
  */
 bool use_color()
 {
     static bool const result = [] {
-        [[maybe_unused]] FILE* stream = stderr;
-        std::string color_str = celeritas::getenv("CELER_COLOR");
-        if (color_str.empty())
+        if (auto term_str = celeritas::getenv("NO_COLOR"); !term_str.empty())
         {
-            // Don't use celeritas getenv to check gtest variable, to avoid
-            // adding it to the list of exposed variables
-            if (char const* color_cstr = std::getenv("GTEST_COLOR"))
-            {
-                color_str = std::string(color_cstr);
-            }
-        }
-        if (color_str == "0" || color_str == "no")
-        {
-            // Color is explicitly disabled
+            // See https://no-color.org
             return false;
-        }
-        if (color_str == "1" || color_str == "yes")
-        {
-            // Color is explicitly enabled
-            return true;
-        }
-#ifndef _WIN32
-        if (!isatty(fileno(stream)))
-        {
-            // This stream is not a user-facing terminal
-            return false;
-        }
-#endif
-        if (char const* term_str = std::getenv("TERM"))
-        {
-            if (std::string{term_str}.find("xterm") != std::string::npos)
-            {
-                // 'xterm' is in the TERM type, so assume it uses colors
-                return true;
-            }
         }
 
-        return false;
+        // Check one environment variable and fall back to terminal color
+        auto flag = getenv_flag_lazy(color_env_var(), default_term_color);
+        return flag.value;
     }();
-
     return result;
 }
 
@@ -78,35 +93,43 @@ bool use_color()
  *  - [x] gray
  *  - [R]ed bold
  *  - [W]hite bold
- *  - [ ] default (reset color)
+ *  - \c null reset color
+ *  - [ ] reset color
  */
-char const* color_code(char abbrev)
+char const* ansi_color(char abbrev)
 {
     if (!use_color())
         return "";
 
     switch (abbrev)
     {
-        case 'g':
-            return "\033[32m";
-        case 'b':
-            return "\033[34m";
+        case '\0':
+            [[fallthrough]];
+        case ' ':
+            return "\033[0m";
         case 'r':
             return "\033[31m";
-        case 'x':
-            return "\033[37;2m";
+        case 'g':
+            return "\033[32m";
         case 'y':
             return "\033[33m";
+        case 'b':
+            return "\033[34m";
         case 'R':
-            return "\033[31;1m";
+            return "\033[1;31m";
+        case 'G':
+            return "\033[1;32m";
+        case 'B':
+            return "\033[1;34m";
         case 'W':
-            return "\033[37;1m";
+            return "\033[1;37m";
+        case 'x':
+            return "\033[2;37m";
         default:
             return "\033[0m";
     }
 
-    // Unknown color code: ignore
-    return "";
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

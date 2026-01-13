@@ -62,9 +62,6 @@ struct LoopingThreshold
  * These are cutoff parameters based on the number of steps a track has taken.
  * Currently these are global or per particle type (with a single energy cut);
  * we should make them [energy, particle, region] for full extensibility.
- *
- * \note These params are used both by the main tracking loop \em and the
- * SimTrackView in optical physics.
  */
 template<Ownership W, MemSpace M>
 struct SimParamsData

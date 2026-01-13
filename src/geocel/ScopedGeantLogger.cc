@@ -8,7 +8,6 @@
 
 #include <cctype>
 #include <memory>
-#include <mutex>
 #include <regex>
 #include <G4String.hh>
 #include <G4Threading.hh>
@@ -203,7 +202,7 @@ enum class SGLState
 
 SGLState& sgl_state()
 {
-    G4ThreadLocal SGLState result{SGLState::inactive};
+    static G4ThreadLocal SGLState result{SGLState::inactive};
     return result;
 }
 

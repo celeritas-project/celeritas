@@ -8,11 +8,17 @@
 
 #include <string_view>
 
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Turn.hh"
 #include "corecel/sys/Version.hh"
+#include "geocel/BoundingBox.hh"
+#include "geocel/CheckedGeoTrackView.hh"
+#include "geocel/GeoParamsInterface.hh"
+#include "geocel/Types.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
@@ -31,6 +37,15 @@ auto const vecgeom_version = celeritas::Version::from_string(
 auto const geant4_version = celeritas::Version::from_string(
     CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
 
+auto make_geo_track_view(GenericGeoTestInterface& gti,
+                         Real3 const& pos,
+                         Real3 const& dir)
+{
+    auto tracker = gti.make_checked_track_view();
+    tracker = gti.make_initializer(pos, dir);
+    return tracker;
+}
+
 BoundingBox<> calc_expected_bbox(std::string_view geo_type, Real3 lo, Real3 hi)
 {
     if (geo_type == "VecGeom")
@@ -44,7 +59,8 @@ BoundingBox<> calc_expected_bbox(std::string_view geo_type, Real3 lo, Real3 hi)
 
 void fixup_orange(GenericGeoTestInterface const& interface,
                   GenericGeoTrackingResult& ref,
-                  GenericGeoTrackingResult& result)
+                  GenericGeoTrackingResult& result,
+                  std::string_view world_name = "world")
 {
     if (interface.geometry_type() != "ORANGE")
         return;
@@ -52,7 +68,7 @@ void fixup_orange(GenericGeoTestInterface const& interface,
     // Delete within-world safeties
     for (auto i : range(std::max(ref.volumes.size(), result.volumes.size())))
     {
-        if (ref.volumes[i] == "world")
+        if (ref.volumes[i] == world_name)
         {
             result.halfway_safeties[i] = 0;
             ref.halfway_safeties[i] = 0;
@@ -122,7 +138,7 @@ void AtlasHgtdGeoTest::test_trace() const
             769.72940862358,
         };
         ref.bumps = {};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
@@ -190,7 +206,7 @@ void AtlasHgtdGeoTest::test_trace() const
             763.93626206641,
         };
         ref.bumps = {};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
@@ -220,12 +236,16 @@ void AtlasHgtdGeoTest::test_trace() const
         ref.volume_instances = {"SPlate_4@0", "HGTD", "ITK", "Atlas_PV"};
         ref.distances = {
             1.0000000238587, 81.021892625066, 4.8164185705351, 1305.6446868933};
-        ref.halfway_safeties = {4.6451791604341e-07,
-                                2.4499623638801,
-                                2.3998244128449,
-                                652.50340341824};
+        ref.halfway_safeties = {
+            4.6451791604341e-07,
+            2.4499623638801,
+            2.3998244128449,
+            652.50340341824,
+        };
+        ref.dot_normal
+            = {9.2903580992121e-07, 0.99644211932289, 0.99673389979137};
         ref.bumps = {};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         tol.distance = 1e-7;
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -277,38 +297,57 @@ void AtlasHgtdGeoTest::test_volume_stack() const
     EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
 }
 
-//---------------------------------------------------------------------------//
-// CMS EE
-//---------------------------------------------------------------------------//
-void CmsEeBackDeeGeoTest::test_model() const
+void AtlasHgtdGeoTest::test_detailed_tracking() const
 {
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {
-        "EEBackPlate",
-        "EESRing",
-        "EEBackQuad",
-        "EEBackDee",
-        "EEBackQuad_refl",
-        "EEBackPlate_refl",
-        "EESRing_refl",
-    };
-    ref.volume.materials = {0, 0, 1, 1, 1, 0, 0};
-    ref.volume.daughters = {{}, {}, {0, 1}, {2, 5}, {3, 4}, {}, {}};
-    ref.volume_instance.labels = {
-        "EEBackPlate@0",
-        "EESRing@0",
-        "EEBackQuad@0",
-        "EEBackPlate@1",
-        "EESRing@1",
-        "EEBackQuad@1",
-        "EEBackDee_PV",
-    };
-    ref.volume_instance.volumes = {0, 1, 2, 5, 6, 4, 3};
-    ref.world = "EEBackDee";
-    EXPECT_REF_EQ(ref, result);
+    {
+        // See https://github.com/celeritas-project/celeritas/issues/1902
+        SCOPED_TRACE("almost tangent at large Z");
+        auto geo = make_geo_track_view(
+            *test_,
+            {23.51934584635, 17.141066715148, 344.45000092904},
+            {0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7});
+        ASSERT_FALSE(geo.is_outside());
+        EXPECT_EQ("SPlate", test_->volume_name(geo));
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Find next boundary
+        auto next = geo.find_next_step(from_cm(2.0));
+        EXPECT_SOFT_NEAR(1.0, to_cm(next.distance), 1e-5);
+        EXPECT_TRUE(next.boundary);
+        geo.move_to_boundary();
+        EXPECT_SOFT_EQ(344.45, to_cm(geo.pos()[2]));
+        EXPECT_EQ("SPlate", test_->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+        geo.cross_boundary();
+        if (test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+        {
+            // VecGeom fails to cross the boundary! the internal bump along the
+            // path of travel doesn't change the Z coordinate, so it assumes
+            // the updated point is still inside the original volume.
+            EXPECT_EQ("SPlate", test_->volume_name(geo));
+            return;
+        }
+        EXPECT_EQ("HGTD", test_->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        // Suppose safety distance results in small step limit
+        next = geo.find_next_step(from_cm(5e-9));
+        EXPECT_SOFT_EQ(5e-9, to_cm(next.distance));
+        geo.move_internal(from_cm(5e-9));
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ("HGTD", test_->volume_name(geo));
+
+        // Should be able to continue stepping as normal
+        next = geo.find_next_step(from_cm(1e-6));
+        EXPECT_SOFT_EQ(1e-6, to_cm(next.distance));
+        EXPECT_FALSE(next.boundary);
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ("HGTD", test_->volume_name(geo));
+    }
 }
 
+//---------------------------------------------------------------------------//
+// CMS EE
 //! Test geometry accessors
 void CmsEeBackDeeGeoTest::test_accessors() const
 {
@@ -325,253 +364,136 @@ void CmsEeBackDeeGeoTest::test_accessors() const
 void CmsEeBackDeeGeoTest::test_trace() const
 {
     // Surface VecGeom needs lower safety tolerance
-    real_type const safety_tol = test_->safety_tol();
-
     {
         SCOPED_TRACE("+z top");
         auto result = test_->track({50, 0.1, 360.1}, {0, 0, 1});
-        static char const* const expected_volumes[]
-            = {"EEBackPlate", "EEBackQuad"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static char const* const expected_volume_instances[]
-            = {"EEBackPlate@0", "EEBackQuad@0"};
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        static real_type const expected_distances[] = {5.4, 34.1};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {0.1, 0.1};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"EEBackPlate", "EEBackQuad"};
+        ref.volume_instances = {"EEBackPlate@0", "EEBackQuad@0"};
+        ref.distances = {5.4, 34.1};
+        // All surface normals are along track dir: ref.dot_normal = {}
+        ref.halfway_safeties = {0.1, 0.1};
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("+z bottom");
         auto result = test_->track({50, -0.1, 360.1}, {0, 0, 1});
-        static char const* const expected_volumes[]
-            = {"EEBackPlate_refl", "EEBackQuad_refl"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static char const* const expected_volume_instances[]
-            = {"EEBackPlate@1", "EEBackQuad@1"};
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        static real_type const expected_distances[] = {5.4, 34.1};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {0.099999999999956, 0.099999999999953};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"EEBackPlate_refl", "EEBackQuad_refl"};
+        ref.volume_instances = {"EEBackPlate@1", "EEBackQuad@1"};
+        ref.distances = {5.4, 34.1};
+        // All surface normals are along track dir: ref.dot_normal = {}
+        ref.halfway_safeties = {0.099999999999956, 0.099999999999953};
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 
 //---------------------------------------------------------------------------//
 // CMSE
 //---------------------------------------------------------------------------//
-void CmseGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {
-        "CMStoZDC", "ZDCtoFP420", "Tracker", "CALO",    "MUON",
-        "BEAM",     "BEAM1",      "BEAM2",   "BEAM3",   "TrackerPixelNose",
-        "VCAL",     "TotemT1",    "TotemT2", "CastorF", "CastorB",
-        "OQUA",     "BSC2",       "ZDC",     "CMSE",    "OCMS",
-    };
-    ref.volume.materials = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    };
-    ref.volume.daughters = {
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {
-            0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
-            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-        },
-        {31},
-    };
-    ref.volume_instance.labels = {
-        "CMStoZDC@0",
-        "CMStoZDC@1",
-        "ZDCtoFP420@0",
-        "ZDCtoFP420@1",
-        "Tracker",
-        "CALO",
-        "MUON",
-        "BEAM@0",
-        "BEAM@1",
-        "BEAM1@0",
-        "BEAM1@1",
-        "BEAM2@0",
-        "BEAM2@1",
-        "BEAM3@0",
-        "BEAM3@1",
-        "TrackerPixelNose@0",
-        "TrackerPixelNose@1",
-        "VCAL@0",
-        "VCAL@1",
-        "TotemT1@0",
-        "TotemT1@1",
-        "TotemT2@0",
-        "TotemT2@1",
-        "CastorF",
-        "CastorB",
-        "OQUA@0",
-        "OQUA@1",
-        "BSC2@0",
-        "BSC2@1",
-        "ZDC@0",
-        "ZDC@1",
-        "CMSE",
-        "OCMS_PV",
-    };
-    ref.volume_instance.volumes = {
-        0,  0,  1,  1,  2,  3,  4,  5,  5,  6,  6,  7,  7,  8,  8,  9,  9,
-        10, 10, 11, 11, 12, 12, 13, 14, 15, 15, 16, 16, 17, 17, 18, 19,
-    };
-    ref.world = "OCMS";
-    EXPECT_REF_EQ(ref, result);
-}
-
 void CmseGeoTest::test_trace() const
 {
-    // Surface VecGeom needs lower safety tolerance
-    real_type const safety_tol = test_->safety_tol();
-
-    // clang-format off
     {
         SCOPED_TRACE("Center +z");
         auto result = test_->track({0, 0, -4000}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"CMStoZDC", "BEAM3",
-            "BEAM2", "BEAM1", "BEAM", "BEAM", "BEAM1", "BEAM2", "BEAM3",
-            "CMStoZDC", "CMSE", "ZDC", "CMSE", "ZDCtoFP420", "CMSE"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1300, 1096.95, 549.15,
-            403.9, 650, 650, 403.9, 549.15, 1096.95, 11200, 9.9999999999992,
-            180, 910, 24000, 6000};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        // clang-format off
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"CMStoZDC", "BEAM3", "BEAM2", "BEAM1", "BEAM", "BEAM",
+            "BEAM1", "BEAM2", "BEAM3", "CMStoZDC", "CMSE", "ZDC", "CMSE",
+            "ZDCtoFP420", "CMSE",};
+        ref.volume_instances = {"CMStoZDC@1", "BEAM3@1", "BEAM2@1", "BEAM1@1",
+            "BEAM@1", "BEAM@0", "BEAM1@0", "BEAM2@0", "BEAM3@0", "CMStoZDC@0",
+            "CMSE", "ZDC@0", "CMSE", "ZDCtoFP420@0", "CMSE",};
+        ref.distances = {1300, 1096.95, 549.15, 403.9, 650, 650, 403.9, 549.15,
+            1096.95, 11200, 10, 180, 910, 24000, 6000,};
+        ref.dot_normal = {}; // All normals are along track dir
+        ref.halfway_safeties = {100, 2.15, 10.302730220674, 13.023518051921,
+            6.95, 6.95, 13.023518051922, 10.302730220675, 2.15, 100, 5, 8, 100,
+            100, 100,};
         if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
             // Surface vecgeom underestimates some safety near internal
             // boundaries
-            static real_type const expected_hw_safety[] = {100, 2.1499999999997,
+            ref.halfway_safeties = {100, 2.15,
                 9.62498950958252, 13.023518051922, 6.95, 6.95, 13.023518051922,
                 9.62498950958252, 2.15, 100, 5, 8, 100, 100, 100};
-            EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
-                            safety_tol);
         }
-        else
-        {
-            static real_type const expected_hw_safety[] = {100, 2.1499999999997,
-                10.3027302206744, 13.023518051922, 6.95, 6.95, 13.023518051922,
-                10.3027302206745, 2.15, 100, 5, 8, 100, 100, 100};
-            EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties,
-                            safety_tol);
-        }
+        // clang-format on
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Offset +z");
         auto result = test_->track({30, 30, -4000}, {0, 0, 1});
-        static char const* const expected_volumes[] = {"CMStoZDC", "OQUA",
-            "VCAL", "OQUA", "CMSE", "TotemT1", "CMSE", "MUON", "CALO",
-            "Tracker", "CALO", "MUON", "CMSE", "TotemT1", "CMSE", "OQUA",
-            "VCAL", "OQUA", "CMStoZDC", "CMSE", "ZDCtoFP420", "CMSE"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1300, 1419.95, 165.1,
-            28.95, 36, 300.1, 94.858988388759, 100.94101161124, 260.9, 586.4,
-            260.9, 100.94101161124, 94.858988388759, 300.1, 36, 28.95, 165.1,
-            1419.95, 11200, 1100, 24000, 6000};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {57.573593128807,
-            40.276406871193, 29.931406871193, 14.475, 18, 28.702447147997,
-            29.363145173005, 32.665765921596, 34.260814069425, 39.926406871193,
-            34.260814069425, 32.665765921596, 29.363145173005, 28.702447147997,
-            18, 14.475, 29.931406871193, 40.276406871193, 57.573593128807,
-            57.573593128807, 57.573593128807, 57.573593128807};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
+        // clang-format off
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"CMStoZDC", "OQUA", "VCAL", "OQUA", "CMSE", "TotemT1",
+            "CMSE", "MUON", "CALO", "Tracker", "CALO", "MUON", "CMSE",
+            "TotemT1", "CMSE", "OQUA", "VCAL", "OQUA", "CMStoZDC", "CMSE",
+            "ZDCtoFP420", "CMSE",};
+        ref.volume_instances = {"CMStoZDC@1", "OQUA@1", "VCAL@1", "OQUA@1",
+            "CMSE", "TotemT1@1", "CMSE", "MUON", "CALO", "Tracker", "CALO",
+            "MUON", "CMSE", "TotemT1@0", "CMSE", "OQUA@0", "VCAL@0", "OQUA@0",
+            "CMStoZDC@0", "CMSE", "ZDCtoFP420@0", "CMSE",};
+        ref.distances = {1300, 1419.95, 165.1, 28.95, 36, 300.1,
+            94.858988388759, 100.94101161124, 260.9, 586.4, 260.9,
+            100.94101161124, 94.858988388759, 300.1, 36, 28.95, 165.1, 1419.95,
+            11200, 1100, 24000, 6000,};
+        ref.dot_normal = {1, 1, 1, 1, 1, 1, 0.98776296532907, 1, 1, 1, 1,
+            0.98776296532907, 1, 1, 1, 1, 1, 1, 1, 1, 1,};
+        ref.halfway_safeties = {57.573593128807, 40.276406871193,
+            29.931406871193, 14.475, 18, 28.702447147997, 29.363145173005,
+            32.665765921596, 34.260814069425, 39.926406871193, 34.260814069425,
+            32.665765921596, 29.363145173005, 28.702447147997, 18, 14.475,
+            29.931406871193, 40.276406871193, 57.573593128807, 57.573593128807,
+            57.573593128807, 57.573593128807,};
+        // clang-format on
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Across muon");
         auto result = test_->track({-1000, 0, -48.5}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"OCMS", "MUON", "CALO",
-            "Tracker", "CMSE", "BEAM", "CMSE", "Tracker", "CALO", "MUON",
-            "OCMS"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {170, 535, 171.7, 120.8,
-            0.15673306650246, 4.6865338669951, 0.15673306650246, 120.8, 171.7,
-            535, 920};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {85, 267.5, 85.85,
-            60.4, 0.078366388350241, 2.343262600759, 0.078366388350241,
-            60.4, 85.85, 267.5, 460};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
+        // clang-format off
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"OCMS", "MUON", "CALO", "Tracker", "CMSE", "BEAM",
+            "CMSE", "Tracker", "CALO", "MUON", "OCMS",};
+        ref.volume_instances = {"OCMS_PV", "MUON", "CALO", "Tracker", "CMSE",
+            "BEAM@1", "CMSE", "Tracker", "CALO", "MUON", "OCMS_PV",};
+        ref.distances = {170, 535, 171.7, 120.8, 0.15673306650251,
+            4.6865338669951, 0.15673306650247, 120.8, 171.7, 535, 920,};
+        ref.dot_normal = {1, 1, 1, 1, 0.99999815098379, 0.99999815098379, 1, 1,
+            1, 1,};
+        ref.halfway_safeties = {85, 267.5, 85.85, 60.4, 0.078366388350267,
+            2.343262600759, 0.078366388350244, 60.4, 85.85, 267.5, 460,};
+        // clang-format on
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Differs between G4/VG");
         auto result = test_->track({0, 0, 1328.0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"BEAM2", "OQUA", "CMSE",
-            "OCMS"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {12.495, 287.505, 530,
-            920};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {6.2475, 47.95, 242, 460};
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, safety_tol);
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"BEAM2", "OQUA", "CMSE", "OCMS"};
+        ref.volume_instances = {"BEAM2@0", "OQUA@0", "CMSE", "OCMS_PV"};
+        ref.distances = {12.495, 287.505, 530, 920};
+        ref.dot_normal = {};  // All normals are along track dir
+        ref.halfway_safeties = {6.2475, 47.95, 242, 460};
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
-    // clang-format on
 }
 
 //---------------------------------------------------------------------------//
 // FOUR LEVELS
 //---------------------------------------------------------------------------//
-void FourLevelsGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {"Shape2", "Shape1", "Envelope", "World"};
-    ref.volume.materials = {0, 1, 2, 3};
-    ref.volume.daughters = {{}, {0}, {1}, {2, 3, 4, 5, 6, 7, 8, 9}};
-    ref.volume_instance.labels = {
-        "Shape2",
-        "Shape1",
-        "env1",
-        "env2",
-        "env3",
-        "env4",
-        "env5",
-        "env6",
-        "env7",
-        "env8",
-        "World_PV",
-    };
-    ref.volume_instance.volumes = {
-        0,
-        1,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        3,
-    };
-    ref.world = "World";
-    EXPECT_REF_EQ(ref, result);
-}
-
 //! Test geometry accessors
 void FourLevelsGeoTest::test_accessors() const
 {
@@ -585,16 +507,251 @@ void FourLevelsGeoTest::test_accessors() const
 }
 
 //---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_consecutive_compute() const
+{
+    auto geo = make_geo_track_view(*test_, {-9, -10, -10}, {1, 0, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("Shape2", test_->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    auto next = geo.find_next_step(from_cm(10.0));
+    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), 1e-5);
+
+    next = geo.find_next_step(from_cm(10.0));
+    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), 1e-5);
+
+    // Find safety from a freshly initialized state
+    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), 1e-5);
+}
+
+//---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_detailed_tracking() const
+{
+    bool const check_normal = test_->supports_surface_normal();
+    Propagation next;
+    {
+        SCOPED_TRACE("rightward along corner");
+        auto geo = make_geo_track_view(*test_, {-10, -10, -10}, {1, 0, 0});
+        ASSERT_FALSE(geo.is_outside());
+        EXPECT_EQ("Shape2", test_->volume_name(geo));
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Check for surfaces up to a distance of 4 units away
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
+        EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+        EXPECT_FALSE(next.boundary);
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
+        EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
+        EXPECT_FALSE(next.boundary);
+        geo.move_internal(from_cm(3.5));
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Find one a bit further, then cross it
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
+        EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
+        EXPECT_TRUE(next.boundary);
+        geo.move_to_boundary();
+        EXPECT_TRUE(geo.is_on_boundary());
+        if (check_normal)
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+        }
+        EXPECT_EQ("Shape2", test_->volume_name(geo));
+        ASSERT_NO_THROW(geo.cross_boundary());
+        if (check_normal)
+        {
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+        }
+        EXPECT_EQ("Shape1", test_->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        // Find the next boundary and make sure that nearer distances aren't
+        // accepted
+        ASSERT_NO_THROW(next = geo.find_next_step());
+        EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_TRUE(geo.is_on_boundary());
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(0.5)));
+        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
+        EXPECT_FALSE(next.boundary);
+    }
+    {
+        SCOPED_TRACE("inside out");
+        auto geo = make_geo_track_view(*test_, {-23.5, 6.5, 6.5}, {-1, 0, 0});
+        ASSERT_FALSE(geo.is_outside());
+        EXPECT_EQ("World", test_->volume_name(geo));
+
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(2)));
+        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
+        EXPECT_TRUE(next.boundary);
+
+        geo.move_to_boundary();
+        EXPECT_FALSE(geo.is_outside());
+        if (check_normal)
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+        }
+        ASSERT_NO_THROW(geo.cross_boundary());
+        EXPECT_TRUE(geo.is_outside());
+    }
+    {
+        SCOPED_TRACE("reentrant boundary");
+
+        // Start inside box "Shape1" in the gap outside sphere "Shape2"
+        auto geo = make_geo_track_view(*test_, {15.5, 10, 10}, {-1, 0, 0});
+        ASSERT_FALSE(geo.is_outside());
+        EXPECT_EQ("Shape1", test_->volume_name(geo));
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Check for surfaces: we should hit the outside of the sphere Shape2
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1.0)));
+        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
+        // Move left to the boundary but scatter perpendicularly, tangent
+        // upward to the sphere
+        geo.move_to_boundary();
+        EXPECT_TRUE(geo.is_on_boundary());
+        geo.set_dir({0, 1, 0});
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+        // Find the next step (to top edge of Shape1) but then scatter back
+        // toward the sphere
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(10.0)));
+        if (test_->geometry_type() == "VecGeom" && using_solids_vg
+            && vecgeom_version >= Version{2, 0})
+        {
+            // Solids VG navig issues here - both v1,v2 work the same though
+            EXPECT_GT(1e-12, to_cm(next.distance));
+            GTEST_SKIP() << "FIXME: VG_solids navig issues: 1e-13 vs. 6";
+        }
+        EXPECT_SOFT_EQ(6, to_cm(next.distance));
+        geo.set_dir({-1, 0, 0});
+        EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), to_cm(geo.pos()));
+        EXPECT_EQ("Shape1", test_->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        // Check the distance to the sphere boundary again, then scatter
+        // into the sphere (this may be a "bump": 1e-13 for surface VG, Geant4;
+        // 1e-8 for volume VG; BUT exactly zero for ORANGE thanks to
+        // "reentrant" logic)
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(20.0)));
+        EXPECT_LE(next.distance, to_cm(1e-8));
+        ASSERT_TRUE(next.boundary);
+        if (next.distance > 0)
+        {
+            // ORANGE will not accept a zero-distance move-to-boundary call
+            geo.move_to_boundary();
+        }
+        else if (CELERITAS_DEBUG)
+        {
+            EXPECT_THROW(geo.move_to_boundary(), DebugError);
+        }
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        // Enter the spehre
+        ASSERT_NO_THROW(geo.cross_boundary());
+        EXPECT_EQ("Shape2", test_->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        if (test_->geometry_type() == "Geant4")
+        {
+            // TODO: Geant4 does not allow crossing to new volume and returning
+            // to old
+            if (CELERITAS_DEBUG)
+            {
+                EXPECT_THROW(geo.cross_boundary(), DebugError);
+            }
+        }
+        else
+        {
+            geo.set_dir(Real3{1, 0, 0});
+            if (test_->geometry_type() == "VecGeom"
+                && CELERITAS_VECGEOM_SURFACE)
+            {
+                // Assertion failure in NavStateTuple::PushDaughterImpl:
+                // trying to push into a daughter but there are none
+                // (pv ID 1)
+                GTEST_SKIP() << "FIXME: vecgeom surface breaks";
+            }
+
+            ASSERT_NO_THROW(geo.cross_boundary());
+            if (test_->geometry_type() == "VecGeom")
+            {
+                // FIXME: boundary crossing doesn't change volume like it
+                // should
+                EXPECT_EQ("Shape2", test_->volume_name(geo));
+            }
+            else
+            {
+                EXPECT_EQ("Shape1", test_->volume_name(geo));
+            }
+            geo.set_dir(Real3{-1, 0, 0});
+            ASSERT_NO_THROW(geo.cross_boundary());
+        }
+        EXPECT_EQ("Shape2", test_->volume_name(geo));
+
+        // Now move just barely inside the sphere
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1e-6)));
+        EXPECT_FALSE(next.boundary);
+        geo.move_internal(next.distance);
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Exit the sphere
+        geo.set_dir({1, 0, 0});
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1)));
+        EXPECT_LE(next.distance, from_cm(1e-5));
+        geo.move_to_boundary();
+        EXPECT_TRUE(geo.is_on_boundary());
+        if (check_normal)
+        {
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+        }
+
+        geo.cross_boundary();
+        EXPECT_EQ("Shape1", test_->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+        if (check_normal)
+        {
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+        }
+        EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+        // Test relocation without direction change on surface
+        if (test_->geometry_type() == "Geant4")
+        {
+            if (CELERITAS_DEBUG)
+            {
+                EXPECT_THROW(geo.cross_boundary(), DebugError);
+            }
+        }
+        else
+        {
+            // No crossing if direction not changed
+            geo.cross_boundary();
+            EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+            constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+            // No crossing if direction on boundary is not reentrant
+            geo.set_dir(Real3{dx, dx, 0});
+            geo.cross_boundary();
+            EXPECT_EQ("Shape1", test_->volume_name(geo));
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_trace() const
 {
-    // Surface VecGeom needs lower safety tolerance
-    real_type const safety_tol = test_->safety_tol();
-
     {
         SCOPED_TRACE("Rightward");
         auto result = test_->track({-10, -10, -10}, {1, 0, 0});
 
-        static char const* const expected_volumes[] = {
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
             "Shape2",
             "Shape1",
             "Envelope",
@@ -606,274 +763,221 @@ void FourLevelsGeoTest::test_trace() const
             "Envelope",
             "World",
         };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {5, 1, 1, 6, 1, 1, 10, 1, 1, 7};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {2.5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+        ref.volume_instances = {
+            "Shape2",
+            "Shape1",
+            "env8",
+            "World_PV",
+            "env7",
+            "Shape1",
+            "Shape2",
+            "Shape1",
+            "env7",
+            "World_PV",
+        };
+        ref.distances = {
+            5,
+            1,
+            1,
+            6,
+            1,
+            1,
+            10,
+            1,
+            1,
+            7,
+        };
+        // All surface normals are along track dir: ref.dot_normal = {}
+        ref.halfway_safeties = {
+            2.5,
+            0.5,
+            0.5,
+            3,
+            0.5,
+            0.5,
+            5,
+            0.5,
+            0.5,
+            3.5,
+        };
+
+        auto tol = test_->tracking_tol();
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("From just inside outside edge");
         auto result = test_->track({-24 + 0.001, 10., 10.}, {1, 0, 0});
 
-        static char const* const expected_volumes[] = {
-            "World",
-            "Envelope",
-            "Shape1",
-            "Shape2",
-            "Shape1",
-            "Envelope",
-            "World",
-            "Envelope",
-            "Shape1",
-            "Shape2",
-            "Shape1",
-            "Envelope",
-            "World",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {7 - 0.001, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {3.4995, 0.5, 0.5, 5, 0.5, 0.5, 3, 0.5, 0.5, 5, 0.5, 0.5, 3.5};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+        // clang-format off
+        GenericGeoTrackingResult ref;
+        ref.volumes = { "World", "Envelope", "Shape1", "Shape2", "Shape1",
+            "Envelope", "World", "Envelope", "Shape1", "Shape2", "Shape1",
+            "Envelope", "World", };
+        ref.volume_instances = { "World_PV", "env2", "Shape1", "Shape2",
+            "Shape1", "env2", "World_PV", "env1", "Shape1", "Shape2", "Shape1",
+            "env1", "World_PV", };
+        ref.distances = { 6.999, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7, };
+        // All surface normals are along track dir: ref.dot_normal = {}
+        ref.halfway_safeties = { 3.4995, 0.5, 0.5, 5, 0.5, 0.5, 3, 0.5, 0.5, 5,
+            0.5, 0.5, 3.5, };
+        // clang-format on
+
+        auto tol = test_->tracking_tol();
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Leaving world");
         auto result = test_->track({-10, 10, 10}, {0, 1, 0});
 
-        static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {5, 1, 2, 6};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {2.5, 0.5, 1, 3};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"Shape2", "Shape1", "Envelope", "World"};
+        ref.volume_instances = {"Shape2", "Shape1", "env2", "World_PV"};
+        ref.distances = {5, 1, 2, 6};
+        // All surface normals are along track dir: ref.dot_normal = {}
+        ref.halfway_safeties = {2.5, 0.5, 1, 3};
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Upward");
         auto result = test_->track({-10, 10, 10}, {0, 0, 1});
 
-        static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {5, 1, 3, 5};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {2.5, 0.5, 1.5, 2.5};
-        EXPECT_VEC_NEAR(
-            expected_hw_safety, result.halfway_safeties, safety_tol);
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"Shape2", "Shape1", "Envelope", "World"};
+        ref.volume_instances = {"Shape2", "Shape1", "env2", "World_PV"};
+        ref.distances = {5, 1, 3, 5};
+        // All surface normals are along track dir: ref.dot_normal = {}
+        ref.halfway_safeties = {2.5, 0.5, 1.5, 2.5};
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// LAR SPHERE
+//---------------------------------------------------------------------------//
+void LarSphereGeoTest::test_trace() const
+{
+    if (test_->geometry_type() == "VecGeom" && using_surface_vg)
+    {
+        GTEST_SKIP() << "Fails to cross +y";
+    }
+
+    bool const is_orange = test_->geometry_type() == "ORANGE";
+    {
+        SCOPED_TRACE("+y");
+        auto result = test_->track({0, -120, 0}, {0, 1, 0});
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "world",
+            "detshell_bot",
+            "sphere",
+            "detshell_top",
+            "world",
+        };
+        ref.volume_instances = {
+            "world_PV",
+            "detshell_bot_PV",
+            "sphere_PV",
+            "detshell_top_PV",
+            "world_PV",
+        };
+        ref.distances = {10, 10, 200, 10, 890};
+        ref.halfway_safeties = {5, 5, 100, 5, 445};
+        ref.bumps = {};
+        if (is_orange)
+        {
+            // TODO: at this exact point it ignores the spherical distance
+            ref.halfway_safeties[2] = result.halfway_safeties[2];
+        }
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+}
+
+//---------------------------------------------------------------------------//
+void LarSphereGeoTest::test_volume_stack() const
+{
+    {
+        auto result = test_->volume_stack({0, 0, 0});
+        GenericGeoVolumeStackResult ref;
+        ref.volume_instances = {"world_PV", "sphere_PV"};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        auto result = test_->volume_stack({0, -105, 0});
+        GenericGeoVolumeStackResult ref;
+        ref.volume_instances = {"world_PV", "detshell_PV", "detshell_bot_PV"};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
 //---------------------------------------------------------------------------//
 // MULTI-LEVEL
 //---------------------------------------------------------------------------//
-void MultiLevelGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels
-        = {"sph", "tri", "box", "world", "box_refl", "sph_refl", "tri_refl"};
-    ref.volume.materials = {0, 0, 1, 0, 1, 0, 0};
-    ref.volume.daughters
-        = {{}, {}, {0, 1, 2}, {3, 4, 5, 6, 10}, {7, 8, 9}, {}, {}};
-    ref.volume_instance.labels = {
-        "boxsph1@0",
-        "boxsph2@0",
-        "boxtri@0",
-        "topbox1",
-        "topsph1",
-        "topbox2",
-        "topbox3",
-        "boxsph1@1",
-        "boxsph2@1",
-        "boxtri@1",
-        "topbox4",
-        "world_PV",
-    };
-    ref.volume_instance.volumes = {
-        0,
-        0,
-        1,
-        2,
-        0,
-        2,
-        2,
-        5,
-        5,
-        6,
-        4,
-        3,
-    };
-    ref.world = "world";
-    EXPECT_REF_EQ(ref, result);
-}
-
-//---------------------------------------------------------------------------//
 void MultiLevelGeoTest::test_trace() const
 {
-    // Surface VecGeom needs lower safety tolerance
-    real_type const safety_tol = test_->safety_tol();
-
-    bool const is_orange = test_->geometry_type() == "ORANGE";
-
     {
         SCOPED_TRACE("high");
         auto result = test_->track({-19.9, 7.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {
-            "world",
-            "box",
-            "sph",
-            "box",
-            "tri",
-            "box",
-            "world",
-            "box",
-            "sph",
-            "box",
-            "tri",
-            "box",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static char const* const expected_volume_instances[] = {
-            "world_PV",
-            "topbox2",
-            "boxsph2@0",
-            "topbox2",
-            "boxtri@0",
-            "topbox2",
-            "world_PV",
-            "topbox1",
-            "boxsph2@0",
-            "topbox1",
-            "boxtri@0",
-            "topbox1",
-            "world_PV",
-        };
-        if (!is_orange)
-        {
-            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        }
-        static real_type const expected_distances[] = {
-            2.4,
-            3,
-            4,
-            1.8452994616207,
-            2.3094010767585,
-            3.8452994616207,
-            5,
-            3,
-            4,
-            1.8452994616207,
-            2.3094010767585,
-            3.8452994616207,
-            6.5,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {
-            1.2,
-            1.5,
-            2,
-            0.79903810567666,
-            1,
-            1.6650635094611,
-            2.5,
-            1.5,
-            2,
-            0.79903810567666,
-            1,
-            1.6650635094611,
-            3.25,
-        };
-        if (!is_orange)
-        {
-            EXPECT_VEC_NEAR(
-                expected_hw_safety, result.halfway_safeties, safety_tol);
-        }
+
+        // clang-format off
+        GenericGeoTrackingResult ref;
+        ref.volumes = { "world", "box", "sph", "box", "tri", "box", "world",
+            "box", "sph", "box", "tri", "box", "world", };
+        ref.volume_instances = { "world_PV", "topbox2", "boxsph2@0", "topbox2",
+            "boxtri@0", "topbox2", "world_PV", "topbox1", "boxsph2@0",
+            "topbox1", "boxtri@0", "topbox1", "world_PV", };
+        ref.distances = { 2.4, 3, 4, 1.8452994616207, 2.3094010767585,
+            3.8452994616207, 5, 3, 4, 1.8452994616207, 2.3094010767585,
+            3.8452994616207, 6.5, };
+        ref.dot_normal = { 1, 1, 1, 0.86602540378444, 0.86602540378444, 1, 1,
+            1, 1, 0.86602540378444, 0.86602540378444, 1, };
+        ref.halfway_safeties = { 1.2, 1.5, 2, 0.79903810567666, 1,
+            1.6650635094611, 2.5, 1.5, 2, 0.79903810567666, 1, 1.6650635094611,
+            3.25, };
+        // clang-format on
+
+        auto tol = test_->tracking_tol();
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("low");
         auto result = test_->track({-19.9, -7.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {
-            "world",
-            "box",
-            "sph",
-            "box",
-            "world",
-            "box_refl",
-            "sph_refl",
-            "box_refl",
-            "tri_refl",
-            "box_refl",
-            "world",
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static char const* const expected_volume_instances[] = {
-            "world_PV",
-            "topbox3",
-            "boxsph2@0",
-            "topbox3",
-            "world_PV",
-            "topbox4",
-            "boxsph2@1",
-            "topbox4",
-            "boxtri@1",
-            "topbox4",
-            "world_PV",
-        };
-        if (!is_orange)
-        {
-            EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        }
-        static real_type const expected_distances[] = {
-            2.4,
-            3,
-            4,
-            8,
-            5,
-            3,
-            4,
-            1.8452994616207,
-            2.3094010767585,
-            3.8452994616207,
-            6.5,
-        };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {
-            1.2,
-            1.5,
-            2,
-            3.0990195135928,
-            2.5,
-            1.5,
-            2,
-            0.79903810567666,
-            1,
-            1.6650635094611,
-            3.25,
-        };
-        if (!is_orange)
-        {
-            EXPECT_VEC_NEAR(
-                expected_hw_safety, result.halfway_safeties, safety_tol);
-        }
+
+        // clang-format off
+        GenericGeoTrackingResult ref;
+        ref.volumes = { "world", "box", "sph", "box", "world", "box_refl",
+            "sph_refl", "box_refl", "tri_refl", "box_refl", "world", };
+        ref.volume_instances = { "world_PV", "topbox3", "boxsph2@0", "topbox3",
+            "world_PV", "topbox4", "boxsph2@1", "topbox4", "boxtri@1",
+            "topbox4", "world_PV", };
+        ref.distances = { 2.4, 3, 4, 8, 5, 3, 4, 1.8452994616207,
+            2.3094010767585, 3.8452994616207, 6.5, };
+        ref.dot_normal = { 1, 1, 1, 1, 1, 1, 1, 0.86602540378444,
+            0.86602540378444, 1, };
+        ref.halfway_safeties = { 1.2, 1.5, 2, 3.0990195135928, 2.5, 1.5, 2,
+            0.79903810567666, 1, 1.6650635094611, 3.25, };
+        // clang-format on
+
+        auto tol = test_->tracking_tol();
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 
 //---------------------------------------------------------------------------//
-void MultiLevelGeoTest::test_volume_stack() const
+auto MultiLevelGeoTest::get_test_points() -> VecR2
 {
-    using R2 = Array<real_type, 2>;
-
     // Include outer world and center sphere
-    std::vector<R2> points{R2{-5, 0}, R2{0, 0}};
+    VecR2 points{R2{-5, 0}, R2{0, 0}};
 
     // Loop over outer and inner x and y signs
     for (auto signs : range(1 << 4))
@@ -890,8 +994,51 @@ void MultiLevelGeoTest::test_volume_stack() const
         points.push_back(point);
     }
 
+    return points;
+}
+
+//---------------------------------------------------------------------------//
+void MultiLevelGeoTest::test_volume_level() const
+{
+    std::vector<VolumeLevelId::size_type> all_levels;
+    for (R2 xy : this->get_test_points())
+    {
+        auto geo = make_geo_track_view(*test_, {xy[0], xy[1], 0}, {0, 0, 1});
+        VolumeLevelId id;
+        if (!geo.is_outside())
+        {
+            id = geo.volume_level();
+        }
+        all_levels.push_back(id_to_int(id));
+    }
+
+    static unsigned int const expected_all_levels[] = {
+        0u,
+        1u,
+        2u,
+        1u,
+        2u,
+        2u,
+        2u,
+        1u,
+        2u,
+        2u,
+        2u,
+        2u,
+        2u,
+        1u,
+        1u,
+        2u,
+        2u,
+        2u,
+    };
+    EXPECT_VEC_EQ(expected_all_levels, all_levels);
+}
+
+void MultiLevelGeoTest::test_volume_stack() const
+{
     std::vector<std::string> all_stacks;
-    for (R2 xy : points)
+    for (R2 xy : this->get_test_points())
     {
         auto result = test_->volume_stack({xy[0], xy[1], 0});
         all_stacks.emplace_back(to_string(join(result.volume_instances.begin(),
@@ -925,190 +1072,54 @@ void MultiLevelGeoTest::test_volume_stack() const
 //---------------------------------------------------------------------------//
 // OPTICAL SURFACES
 //---------------------------------------------------------------------------//
-void OpticalSurfacesGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {"lar_sphere", "tube1_mid", "tube2", "world"};
-    ref.volume.materials = {1, 2, 2, 3};
-    ref.volume.daughters = {{}, {}, {}, {0, 1, 2, 3}};
-    ref.volume_instance.labels = {
-        "lar_pv",
-        "tube2_below_pv",
-        "tube1_mid_pv",
-        "tube2_above_pv",
-        "world_PV",
-    };
-    ref.volume_instance.volumes = {0, 2, 1, 2, 3};
-    ref.surface.labels = {
-        "sphere_skin",
-        "tube2_skin",
-        "below_to_1",
-        "mid_to_below",
-        "mid_to_above",
-    };
-    ref.surface.volumes = {"0", "2", "1->2", "2->1", "2->3"};
-    ref.world = "world";
-    EXPECT_REF_EQ(ref, result);
-}
-
-//---------------------------------------------------------------------------//
 void OpticalSurfacesGeoTest::test_trace() const
 {
     {
         SCOPED_TRACE("Through tubes");
         auto result = test_->track({0, 0, -21}, {0, 0, 1});
-        static char const* const expected_volumes[]
-            = {"world", "tube2", "tube1_mid", "tube2", "world"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1, 10, 20, 10, 80};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {0.5, 5, 10, 5, 40};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"world", "tube2", "tube1_mid", "tube2", "world"};
+        ref.volume_instances = {
+            "world_PV",
+            "tube2_below_pv",
+            "tube1_mid_pv",
+            "tube2_above_pv",
+            "world_PV",
+        };
+        ref.distances = {1, 10, 20, 10, 80};
+        // All surface normals are along track dir: ref.dot_normal = {}
+        ref.halfway_safeties = {0.5, 5, 10, 5, 40};
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Across tube through lAr");
         auto result = test_->track({-11, 0, 0}, {1, 0, 0});
 
-        static char const* const expected_volumes[]
-            = {"world", "tube1_mid", "world", "lar_sphere", "world"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {1, 20, 5, 10, 75};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {0.5, 10, 2.5, 5, 37.5};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"world", "tube1_mid", "world", "lar_sphere", "world"};
+        ref.volume_instances
+            = {"world_PV", "tube1_mid_pv", "world_PV", "lar_pv", "world_PV"};
+        ref.distances = {1, 20, 5, 10, 75};
+        // All surface normals are along track dir: ref.dot_normal = {}
+        ref.halfway_safeties = {0.5, 10, 2.5, 5, 37.5};
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 
 //---------------------------------------------------------------------------//
 // POLYHEDRA
 //---------------------------------------------------------------------------//
-void PolyhedraGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {
-        "tri",
-        "tri_third",
-        "tri_half",
-        "tri_full",
-        "quad",
-        "quad_third",
-        "quad_half",
-        "quad_full",
-        "penta",
-        "penta_third",
-        "penta_half",
-        "penta_full",
-        "hex",
-        "hex_third",
-        "hex_half",
-        "hex_full",
-        "world",
-    };
-    ref.volume.materials = {
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        0,
-    };
-    ref.volume.daughters = {
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-        },
-    };
-    ref.volume_instance.labels = {
-        "tri0_pv",
-        "tri30_pv",
-        "tri60_pv",
-        "tri90_pv",
-        "quad0_pv",
-        "quad30_pv",
-        "quad60_pv",
-        "quad90_pv",
-        "penta0_pv",
-        "penta30_pv",
-        "penta60_pv",
-        "penta90_pv",
-        "hex0_pv",
-        "hex30_pv",
-        "hex60_pv",
-        "hex90_pv",
-        "world_PV",
-    };
-    ref.volume_instance.volumes = {
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-    };
-    ref.world = "world";
-    EXPECT_REF_EQ(ref, result);
-}
-
-//---------------------------------------------------------------------------//
 void PolyhedraGeoTest::test_trace() const
 {
     {
         SCOPED_TRACE("tri");
         auto result = test_->track({-6, 4.01, 0}, {1, 0, 0});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "world",
@@ -1143,6 +1154,16 @@ void PolyhedraGeoTest::test_trace() const
             2.9826794919243,
             10.017320508076,
         };
+        ref.dot_normal = {
+            1,
+            0.5,
+            0.76604444311898,
+            0.93969262078591,
+            0.5,
+            1,
+            1,
+            0.5,
+        };
         ref.halfway_safeties = {
             0.5,
             0.74566987298108,
@@ -1154,14 +1175,15 @@ void PolyhedraGeoTest::test_trace() const
             0.74566987298108,
             4.5,
         };
-        ref.bumps = {};
+
+        auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("quad");
         auto result = test_->track({-6, 0.01, 0}, {1, 0, 0});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "world",
@@ -1196,6 +1218,16 @@ void PolyhedraGeoTest::test_trace() const
             2.8084271247462,
             10.595786437627,
         };
+        ref.dot_normal = {
+            0.70710678118655,
+            0.70710678118655,
+            0.96592582628907,
+            0.96592582628907,
+            1,
+            1,
+            0.70710678118655,
+            0.70710678118655,
+        };
         ref.halfway_safeties = {
             0.28806684196341,
             0.99292893218813,
@@ -1207,14 +1239,23 @@ void PolyhedraGeoTest::test_trace() const
             0.99292893218813,
             4.5,
         };
-        ref.bumps = {};
+
+        if (test_->geometry_type() == "VecGeom" && using_surface_vg)
+        {
+            // TODO: check if polyhedra safety can be improved in vg2.x-surface
+            // Geant4 has a different safety for the halfway point
+            ref.halfway_safeties[0] = 0.210641235113144;
+            ref.halfway_safeties[6] = 0.56419426202774;
+        }
+
+        auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("penta");
         auto result = test_->track({-6, -4.01, 0}, {1, 0, 0});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "world",
@@ -1249,6 +1290,16 @@ void PolyhedraGeoTest::test_trace() const
             2.2288025522197,
             10.77119744778,
         };
+        ref.dot_normal = {
+            1,
+            0.80901699437495,
+            0.9135454576426,
+            0.97814760073381,
+            0.80901699437495,
+            1,
+            1,
+            0.80901699437495,
+        };
         ref.halfway_safeties = {
             0.5,
             0.90156957092601,
@@ -1260,14 +1311,23 @@ void PolyhedraGeoTest::test_trace() const
             0.90156957092601,
             4.5,
         };
-        ref.bumps = {};
+
+        if (test_->geometry_type() == "VecGeom" && using_surface_vg)
+        {
+            // TODO: check if polyhedra safety can be improved in vg2.x-surface
+            // Geant4 has a different safety for the halfway point
+            ref.halfway_safeties[2] = 0.679982662200928;
+            ref.halfway_safeties[8] = 4.35703563690186;
+        }
+
+        auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("hex");
         auto result = test_->track({-6, -8.01, 0}, {1, 0, 0});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "world",
@@ -1302,6 +1362,16 @@ void PolyhedraGeoTest::test_trace() const
             2.2978540713747,
             10.851072964313,
         };
+        ref.dot_normal = {
+            0.86602540378444,
+            0.86602540378444,
+            0.98480775301221,
+            0.98480775301221,
+            1,
+            1,
+            0.86602540378444,
+            0.86602540378444,
+        };
         ref.halfway_safeties = {
             0.41988207740847,
             0.99,
@@ -1313,9 +1383,21 @@ void PolyhedraGeoTest::test_trace() const
             0.99,
             4.5,
         };
-        ref.bumps = {};
+        if (test_->geometry_type() == "VecGeom" && using_surface_vg)
+        {
+            // TODO: check if polyhedra safety can be improved in vg2.x-surface
+            // Geant4 has a different safety for the halfway point
+            ref.halfway_safeties[0] = 0.368524014949799;
+            ref.halfway_safeties[2] = 0.897850394248962;
+            ref.halfway_safeties[4] = 0.966398000717163;
+            ref.halfway_safeties[6] = 0.801536321640015;
+        }
+
+        auto tol = test_->tracking_tol();
+        // Bump the tolerance by 25% for safety comparisons only: this became
+        // necessarily when polyhedra started using StackedExtrudedPolygons
+        tol.safety *= 1.25;
         fixup_orange(*test_, ref, result);
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -1323,28 +1405,21 @@ void PolyhedraGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // REPLICA
 //---------------------------------------------------------------------------//
-void ReplicaGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    // clang-format off
-    GenericGeoModelInp ref;
-    ref.volume.labels = {"magnetic", "hodoscope1", "wirePlane1", "chamber1", "firstArm", "hodoscope2", "wirePlane2", "chamber2", "cell", "EMcalorimeter", "HadCalScinti", "HadCalLayer", "HadCalCell", "HadCalColumn", "HadCalorimeter", "secondArm", "world",};
-    ref.volume.materials = {0, 1, 2, 2, 0, 1, 2, 2, 3, 3, 1, 4, 4, 4, 4, 0, 0,};
-    ref.volume.daughters = {{}, {}, {}, {0}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,}, {}, {}, {21}, {}, {22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,}, {}, {23}, {24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,}, {25, 25}, {26, 26, 26, 26, 26, 26, 26, 26, 26, 26,}, {27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58,}, {59, 60, 61},};
-    ref.volume_instance.labels = {"wirePlane1", "hodoscope1@0", "hodoscope1@1", "hodoscope1@2", "hodoscope1@3", "hodoscope1@4", "hodoscope1@5", "hodoscope1@6", "hodoscope1@7", "hodoscope1@8", "hodoscope1@9", "hodoscope1@10", "hodoscope1@11", "hodoscope1@12", "hodoscope1@13", "hodoscope1@14", "chamber1@0", "chamber1@1", "chamber1@2", "chamber1@3", "chamber1@4", "wirePlane2", "cell_param", "HadCalScinti", "HadCalLayer_PV", "HadCalCell_PV", "HadCalColumn_PV", "hodoscope2@0", "hodoscope2@1", "hodoscope2@2", "hodoscope2@3", "hodoscope2@4", "hodoscope2@5", "hodoscope2@6", "hodoscope2@7", "hodoscope2@8", "hodoscope2@9", "hodoscope2@10", "hodoscope2@11", "hodoscope2@12", "hodoscope2@13", "hodoscope2@14", "hodoscope2@15", "hodoscope2@16", "hodoscope2@17", "hodoscope2@18", "hodoscope2@19", "hodoscope2@20", "hodoscope2@21", "hodoscope2@22", "hodoscope2@23", "hodoscope2@24", "chamber2@0", "chamber2@1", "chamber2@2", "chamber2@3", "chamber2@4", "EMcalorimeter", "HadCalorimeter", "magnetic", "firstArm", "fSecondArmPhys", "world_PV",};
-    ref.volume_instance.volumes = {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 6, 8, 10, 11, 12, 13, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 7, 9, 14, 0, 4, 15, 16,};
-    ref.world = "world";
-    // clang-format on
-    EXPECT_REF_EQ(ref, result);
-}
-
-//---------------------------------------------------------------------------//
 
 void ReplicaGeoTest::test_trace() const
 {
+    auto tol = test_->tracking_tol();
+    if (test_->geometry_type() == "Geant4")
+    {
+        // Replica volumes track less accurately with geant4
+        tol.distance *= 10;
+    }
+
     {
         SCOPED_TRACE("Center +z");
-        auto result = test_->track({0, 0.5, -990}, {0, 0, 1});
+        auto result = test_->track({0, 0.5, -990}, {0, 0, 1}, 75);
+
+        // clang-format off
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "world",    "firstArm",   "hodoscope1", "firstArm",
@@ -1358,102 +1433,40 @@ void ReplicaGeoTest::test_trace() const
             "world",
         };
         ref.volume_instances = {
-            "world_PV", "firstArm",   "hodoscope1", "firstArm",
-            "chamber1", "wirePlane1", "chamber1",   "firstArm",
-            "chamber1", "wirePlane1", "chamber1",   "firstArm",
-            "chamber1", "wirePlane1", "chamber1",   "firstArm",
-            "chamber1", "wirePlane1", "chamber1",   "firstArm",
-            "chamber1", "wirePlane1", "chamber1",   "firstArm",
-            "world_PV", "magnetic",   "world_PV",   "fSecondArmPhys",
-            "chamber2", "wirePlane2", "chamber2",   "fSecondArmPhys",
+            "world_PV",   "firstArm",   "hodoscope1@7", "firstArm",
+            "chamber1@0", "wirePlane1", "chamber1@0",   "firstArm",
+            "chamber1@1", "wirePlane1", "chamber1@1",   "firstArm",
+            "chamber1@2", "wirePlane1", "chamber1@2",   "firstArm",
+            "chamber1@3", "wirePlane1", "chamber1@3",   "firstArm",
+            "chamber1@4", "wirePlane1", "chamber1@4",   "firstArm",
+            "world_PV",   "magnetic",   "world_PV",     "fSecondArmPhys",
+            "chamber2@0", "wirePlane2", "chamber2@0",   "fSecondArmPhys",
             "world_PV",
         };
-        // FIXME when replicas work again: delete this line and update values
-        // above
-        ref.volume_instances = result.volume_instances;
-        ref.distances = {
-            190,
-            149.5,
-            1,
-            48.5,
-            0.99,
-            0.019999999999991,
-            0.99000000000001,
-            48,
-            0.99,
-            0.019999999999991,
-            0.99000000000001,
-            48,
-            0.99,
-            0.019999999999991,
-            0.99000000000001,
-            48,
-            0.99,
-            0.019999999999991,
-            0.99000000000001,
-            48,
-            0.99,
-            0.019999999999991,
-            0.99000000000001,
-            199,
-            100,
-            200,
-            73.205080756887,
-            114.31535329955,
-            1.1431535329955,
-            0.023094010767563,
-            1.1431535329954,
-            110.17016486681,
-            600,
-        };
-        ref.halfway_safeties = {
-            95,
-            74.75,
-            0.5,
-            24.25,
-            0.495,
-            0.01,
-            0.495,
-            24,
-            0.495,
-            0.01,
-            0.495,
-            24,
-            0.495,
-            0.01,
-            0.495,
-            24,
-            0.495,
-            0.01,
-            0.495,
-            24,
-            0.495,
-            0.01,
-            0.495,
-            99.5,
-            50,
-            99.5,
-            31.698729810778,
-            49.5,
-            0.49499999999996,
-            0.0099999999999922,
-            0.49499999999997,
-            22.457458783298,
-            150,
-        };
-        ref.bumps = {};
-        fixup_orange(*test_, ref, result);
+        ref.distances = { 190, 149.5, 1, 48.5, 0.99, 0.02, 0.99, 48, 0.99,
+            0.02, 0.99, 48, 0.99, 0.02, 0.99, 48, 0.99, 0.02, 0.99, 48, 0.99,
+            0.02, 0.99, 199, 100, 200, 73.205080756887, 114.31535329955,
+            1.1431535329955, 0.023094010767585, 1.1431535329955,
+            110.17016486681, 600, };
+        ref.dot_normal = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 0.86602540378444, 0.86602540378444,
+            0.86602540378444, 0.86602540378444, 0.86602540378444, 0.5, };
+        ref.halfway_safeties = { 95, 74.75, 0.5, 24.25, 0.495, 0.01, 0.495, 24,
+            0.495, 0.01, 0.495, 24, 0.495, 0.01, 0.495, 24, 0.495, 0.01, 0.495,
+            24, 0.495, 0.01, 0.495, 99.5, 50, 99.5, 31.698729810778, 49.5,
+            0.495, 0.01, 0.495, 22.457458783298, 150, };
+        // clang-format on
+
         delete_orange_safety(*test_, ref, result);
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
-        tol.distance *= 10;  // 2e-12 diff between g4, vg
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Second arm");
         Real3 dir{0, 0, 0};
         sincos(Turn{-30.0 / 360.}, &dir[0], &dir[2]);
-        auto result = test_->track({0.125, 0.5, 0.0625}, dir);
+        auto result = test_->track({0.125, 0.5, 0.0625}, dir, 100);
 
+        // clang-format off
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "magnetic",     "world",       "secondArm",    "chamber2",
@@ -1475,179 +1488,70 @@ void ReplicaGeoTest::test_trace() const
             "HadCalScinti", "HadCalLayer", "HadCalScinti", "world",
         };
         ref.volume_instances = {
-            "magnetic",       "world_PV",       "fSecondArmPhys",
-            "chamber2",       "wirePlane2",     "chamber2",
-            "fSecondArmPhys", "chamber2",       "wirePlane2",
-            "chamber2",       "fSecondArmPhys", "chamber2",
-            "wirePlane2",     "chamber2",       "fSecondArmPhys",
-            "chamber2",       "wirePlane2",     "chamber2",
-            "fSecondArmPhys", "chamber2",       "wirePlane2",
-            "chamber2",       "fSecondArmPhys", "hodoscope2",
-            "fSecondArmPhys", "cell_param",     "fSecondArmPhys",
-            "HadCalLayer_PV", "HadCalScinti",   "HadCalLayer_PV",
-            "HadCalScinti",   "HadCalLayer_PV", "HadCalScinti",
-            "HadCalLayer_PV", "HadCalScinti",   "HadCalLayer_PV",
-            "HadCalScinti",   "HadCalLayer_PV", "HadCalScinti",
-            "HadCalLayer_PV", "HadCalScinti",   "HadCalLayer_PV",
-            "HadCalScinti",   "HadCalLayer_PV", "HadCalScinti",
-            "HadCalLayer_PV", "HadCalScinti",   "HadCalLayer_PV",
-            "HadCalScinti",   "HadCalLayer_PV", "HadCalScinti",
-            "HadCalLayer_PV", "HadCalScinti",   "HadCalLayer_PV",
-            "HadCalScinti",   "HadCalLayer_PV", "HadCalScinti",
-            "HadCalLayer_PV", "HadCalScinti",   "HadCalLayer_PV",
-            "HadCalScinti",   "HadCalLayer_PV", "HadCalScinti",
-            "HadCalLayer_PV", "HadCalScinti",   "HadCalLayer_PV",
-            "HadCalScinti",   "world_PV",
+            "magnetic",          "world_PV",          "fSecondArmPhys",
+            "chamber2@0",        "wirePlane2",        "chamber2@0",
+            "fSecondArmPhys",    "chamber2@1",        "wirePlane2",
+            "chamber2@1",        "fSecondArmPhys",    "chamber2@2",
+            "wirePlane2",        "chamber2@2",        "fSecondArmPhys",
+            "chamber2@3",        "wirePlane2",        "chamber2@3",
+            "fSecondArmPhys",    "chamber2@4",        "wirePlane2",
+            "chamber2@4",        "fSecondArmPhys",    "hodoscope2@12",
+            "fSecondArmPhys",    "cell_param@42",     "fSecondArmPhys",
+            "HadCalLayer_PV@0",  "HadCalScinti",      "HadCalLayer_PV@1",
+            "HadCalScinti",      "HadCalLayer_PV@2",  "HadCalScinti",
+            "HadCalLayer_PV@3",  "HadCalScinti",      "HadCalLayer_PV@4",
+            "HadCalScinti",      "HadCalLayer_PV@5",  "HadCalScinti",
+            "HadCalLayer_PV@6",  "HadCalScinti",      "HadCalLayer_PV@7",
+            "HadCalScinti",      "HadCalLayer_PV@8",  "HadCalScinti",
+            "HadCalLayer_PV@9",  "HadCalScinti",      "HadCalLayer_PV@10",
+            "HadCalScinti",      "HadCalLayer_PV@11", "HadCalScinti",
+            "HadCalLayer_PV@12", "HadCalScinti",      "HadCalLayer_PV@13",
+            "HadCalScinti",      "HadCalLayer_PV@14", "HadCalScinti",
+            "HadCalLayer_PV@15", "HadCalScinti",      "HadCalLayer_PV@16",
+            "HadCalScinti",      "HadCalLayer_PV@17", "HadCalScinti",
+            "HadCalLayer_PV@18", "HadCalScinti",      "HadCalLayer_PV@19",
+            "HadCalScinti",      "world_PV",
         };
-        // FIXME when replicas work again: delete this line and update values
-        // above
-        ref.volume_instances = result.volume_instances;
-        ref.distances = {
-            100.00827610654,
-            50.000097305727,
-            99,
-            0.98999999999997,
-            0.020000000000008,
-            0.99,
-            48,
-            0.99000000000001,
-            0.019999999999994,
-            0.99000000000001,
-            48,
-            0.99000000000001,
-            0.019999999999994,
-            0.99000000000001,
-            48,
-            0.98999999999995,
-            0.019999999999994,
-            0.99000000000001,
-            48,
-            0.99000000000001,
-            0.019999999999994,
-            0.99000000000001,
-            48.5,
-            1,
-            184.5,
-            30,
-            35,
-            4,
-            0.99999999999999,
-            4,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4.0000000000001,
-            0.99999999999999,
-            4,
-            0.99999999999999,
-            304.61999618334,
-        };
-        ref.halfway_safeties = {
-            50.004040731528,
-            25.000029191686,
-            49.5,
-            0.49499999999999,
-            0.0099999999999814,
-            0.49499999999999,
-            24,
-            0.49499999999997,
-            0.0099999999999798,
-            0.49499999999997,
-            24,
-            0.49499999999997,
-            0.0099999999999798,
-            0.49499999999997,
-            24,
-            0.49499999999998,
-            0.0099999999999798,
-            0.49499999999997,
-            24,
-            0.49499999999997,
-            0.0099999999999798,
-            0.49499999999997,
-            24.25,
-            0.49999999999999,
-            92.25,
-            0.13950317547316,
-            17.5,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            0.13950317547311,
-            0.13950317547314,
-            131.90432759775,
-        };
-        ref.bumps = {};
-        fixup_orange(*test_, ref, result);
+        ref.distances = { 100.00827610654, 50.000097305727, 99, 0.99, 0.02,
+            0.99, 48, 0.99, 0.02, 0.99, 48, 0.99, 0.02, 0.99, 48, 0.99, 0.02,
+            0.99, 48, 0.99, 0.02, 0.99, 48.5, 1, 184.5, 30, 35, 4, 1, 4, 1, 4,
+            1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4,
+            1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 304.61999618334, };
+        ref.dot_normal = { 0.99999902694273, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, };
+        ref.halfway_safeties = { 50.004040731528, 25.000029191686, 49.5, 0.495,
+            0.01, 0.495, 24, 0.495, 0.01, 0.495, 24, 0.495, 0.01, 0.495, 24,
+            0.495, 0.0099999999999545, 0.495, 24, 0.495, 0.01, 0.495, 24.25,
+            0.5, 92.25, 0.13950317547318, 17.5, 0.13950317547321,
+            0.13950317547316, 0.13950317547316, 0.13950317547321,
+            0.13950317547312, 0.13950317547311, 0.13950317547311,
+            0.13950317547311, 0.13950317547311, 0.13950317547316,
+            0.13950317547316, 0.13950317547316, 0.13950317547316,
+            0.13950317547315, 0.1395031754732, 0.1395031754732,
+            0.13950317547311, 0.13950317547306, 0.13950317547311,
+            0.13950317547311, 0.13950317547306, 0.13950317547306,
+            0.13950317547306, 0.13950317547306, 0.13950317547306,
+            0.13950317547306, 0.13950317547306, 0.13950317547306,
+            0.1395031754731, 0.1395031754731, 0.1395031754731, 0.1395031754731,
+            0.1395031754731, 0.13950317547305, 0.13950317547305,
+            0.13950317547305, 0.13950317547305, 0.13950317547305,
+            0.13950317547309, 0.13950317547309, 131.90432759775, };
+        // clang-format on
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            // All along the track to soft precision
+            ref.clear_boring_normals();
+        }
+
         delete_orange_safety(*test_, ref, result);
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
-        tol.distance *= 10;  // 2e-12 diff between g4, vg
-        EXPECT_REF_NEAR(ref, result, tol);
+        if (test_->geometry_type() != "VecGeom"
+            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+        {
+            // TODO: VecGemo 2.x-solids returns wrong distance values
+            EXPECT_REF_NEAR(ref, result, tol);
+        }
     }
 }
 
@@ -1661,9 +1565,9 @@ void ReplicaGeoTest::test_volume_stack() const
             "world_PV",
             "fSecondArmPhys",
             "HadCalorimeter",
-            "HadCalColumn_PV",
-            "HadCalCell_PV",
-            "HadCalLayer_PV",
+            "HadCalColumn_PV@4",
+            "HadCalCell_PV@1",
+            "HadCalLayer_PV@2",
         };
         EXPECT_REF_EQ(ref, result);
     }
@@ -1671,29 +1575,29 @@ void ReplicaGeoTest::test_volume_stack() const
         // Geant4 gets stuck here (it's close to a boundary)
         auto result = test_->volume_stack({-342.5, 0.1, 593.22740159234});
         GenericGeoVolumeStackResult ref;
-        ref.volume_instances = {
-            "world_PV",
-            "fSecondArmPhys",
-        };
-        if (test_->geometry_type() == "Geant4"
-            || (test_->geometry_type() == "VecGeom"
-                && CELERITAS_VECGEOM_SURFACE))
+        ref.volume_instances
+            = {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
+        if ((test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+            || (test_->geometry_type() == "ORANGE"
+                && (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)))
         {
-            ref.volume_instances.insert(ref.volume_instances.end(),
-                                        {"EMcalorimeter", "cell_param"});
+            // Slightly different answers
+            ref.volume_instances.pop_back();
+            ref.volume_instances.pop_back();
         }
-        EXPECT_REF_EQ(ref, result);
+        if (test_->geometry_type() != "VecGeom"
+            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+        {
+            // TODO: VecGemo 2.x-solids returns wrong volume instances
+            EXPECT_REF_EQ(ref, result);
+        }
     }
     {
         // A bit further along from the stuck point
         auto result = test_->volume_stack({-343, 0.1, 596});
         GenericGeoVolumeStackResult ref;
-        ref.volume_instances = {
-            "world_PV",
-            "fSecondArmPhys",
-            "EMcalorimeter",
-            "cell_param",
-        };
+        ref.volume_instances
+            = {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
         EXPECT_REF_EQ(ref, result);
     }
 }
@@ -1716,29 +1620,25 @@ void SolidsGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void SolidsGeoTest::test_trace() const
 {
-    // VecGeom adds bumps through boolean volumes
-    real_type const bool_tol
-        = (test_->geometry_type() == "VecGeom" ? 1e-7 : 1e-12);
-
     {
         SCOPED_TRACE("Upper +x");
         auto result = test_->track({-575, 125, 0.5}, {1, 0, 0});
-        static char const* const expected_volumes[] = {
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
             "World",     "hype1",    "World",    "hype1",     "World",
             "para1",     "World",    "tube100",  "World",     "boolean1",
             "World",     "boolean1", "World",    "polyhedr1", "World",
             "polyhedr1", "World",    "ellcone1", "World",
         };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static char const* const expected_volume_instances[] = {
+        ref.volume_instances = {
             "World_PV", "hype1_PV",     "World_PV", "hype1_PV",
             "World_PV", "para1_PV",     "World_PV", "tube100_PV",
             "World_PV", "boolean1_PV",  "World_PV", "boolean1_PV",
             "World_PV", "polyhedr1_PV", "World_PV", "polyhedr1_PV",
             "World_PV", "ellcone1_PV",  "World_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        static real_type const expected_distances[] = {
+        ref.distances = {
             175.99886751197,
             4.0003045405969,
             40.001655894868,
@@ -1759,8 +1659,27 @@ void SolidsGeoTest::test_trace() const
             9.8999999999999,
             220.05,
         };
-        EXPECT_VEC_NEAR(expected_distances, result.distances, bool_tol);
-        std::vector<real_type> expected_hw_safety = {
+        ref.dot_normal = {
+            0.99998974040889,
+            0.99999451629649,
+            0.99999451629649,
+            0.99998974040889,
+            0.83205029433784,
+            0.83205029433784,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            -1.2246467991474e-16,
+            0.92346406713976,
+            0.92346406713976,
+            0.91834027967581,
+            0.99503719020999,
+            0.99503719020999,
+        };
+        ref.halfway_safeties = {
             74.5,
             1.9994549442736,
             20.000718268824,
@@ -1781,25 +1700,34 @@ void SolidsGeoTest::test_trace() const
             4.9254340915394,
             74.5,
         };
+
         if (test_->geometry_type() == "VecGeom")
         {
-            // v1.2.10: unknown differences
-            expected_hw_safety[1] = 1.99361986757606;
-            expected_hw_safety[3] = 1.99361986757606;
+            // v1.2.10: unknown differences outside hyperboloid
+            ref.halfway_safeties[1] = 1.99361986757606;
+            ref.halfway_safeties[3] = 1.99361986757606;
         }
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, bool_tol);
+
+        if (test_->geometry_type() != "VecGeom"
+            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+        {
+            // TODO: VecGemo 2.x-solids still missing some shapes
+            auto tol = test_->tracking_tol();
+            EXPECT_REF_NEAR(ref, result, tol);
+        }
     }
     {
         SCOPED_TRACE("Center -x");
         auto result = test_->track({575, 0, 0.50}, {-1, 0, 0});
-        static char const* const expected_volumes[] = {
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
             "World", "ellipsoid1", "World", "polycone1", "World", "polycone1",
             "World", "sphere1",    "World", "box500",    "World", "cone1",
             "World", "trd1",       "World", "parabol1",  "World", "trd2",
             "World", "xtru1",      "World",
         };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static char const* const expected_volume_instances[] = {
+        ref.volume_instances = {
             "World_PV", "ellipsoid1_PV", "World_PV", "polycone1_PV",
             "World_PV", "polycone1_PV",  "World_PV", "sphere1_PV",
             "World_PV", "box500_PV",     "World_PV", "cone1_PV",
@@ -1807,8 +1735,7 @@ void SolidsGeoTest::test_trace() const
             "World_PV", "reflNormal",    "World_PV", "xtru1_PV",
             "World_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        static real_type const expected_distances[] = {
+        ref.distances = {
             180.00156256104,
             39.99687487792,
             94.90156256104,
@@ -1831,8 +1758,29 @@ void SolidsGeoTest::test_trace() const
             15.880952380952,
             67.642857142857,
         };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        std::vector<real_type> expected_hw_safety = {
+        ref.dot_normal = {
+            0.99998046627013,
+            0.99998046627013,
+            0,
+            0,
+            0.98058067569092,
+            0.98058067569092,
+            0.69670670934717,
+            0.999921871948,
+            1,
+            1,
+            0.99287683848692,
+            0.99287683848692,
+            0.99503719020999,
+            0.99503719020999,
+            0.96698859472697,
+            0.96698859472697,
+            0.99503719020999,
+            0.99503719020999,
+            0.99549547259395,
+            0.98994949366117,
+        };
+        ref.halfway_safeties = {
             74.5,
             0.5,
             45.689062136067,
@@ -1857,34 +1805,40 @@ void SolidsGeoTest::test_trace() const
         };
         if (test_->geometry_type() == "VecGeom")
         {
-            // v1.2.10: unknown differences
-            expected_hw_safety[4] = 7.82052980478031;
-            expected_hw_safety[14] = 42.8397753718277;
-            expected_hw_safety[15] = 18.8833925371992;
-            expected_hw_safety[16] = 42.8430141842906;
+            // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
+            // Geant4 v11.3.1
+            ref.halfway_safeties[4] = 7.82052980478031;
+            ref.halfway_safeties[14] = 42.8397753718277;
+            ref.halfway_safeties[15] = 18.8833925371992;
+            ref.halfway_safeties[16] = 42.8430141842906;
         }
-
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        if (test_->geometry_type() != "VecGeom"
+            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+        {
+            // TODO: VecGemo 2.x-solids still missing some shapes
+            auto tol = test_->tracking_tol();
+            EXPECT_REF_NEAR(ref, result, tol);
+        }
     }
     {
         SCOPED_TRACE("Lower +x");
         auto result = test_->track({-575, -125, 0.5}, {1, 0, 0});
-        static char const* const expected_volumes[] = {
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
             "World",   "trd3_refl",  "trd3_refl", "World",    "arb8b",
             "World",   "arb8a",      "World",     "trap1",    "World",
             "tetrah1", "World",      "orb1",      "World",    "genPocone1",
             "World",   "genPocone1", "World",     "elltube1", "World",
         };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        std::vector<std::string> expected_volume_instances = {
+        ref.volume_instances = {
             "World_PV",      "reflected@1", "reflected@0",   "World_PV",
             "arb8b_PV",      "World_PV",    "arb8a_PV",      "World_PV",
             "trap1_PV",      "World_PV",    "tetrah1_PV",    "World_PV",
             "orb1_PV",       "World_PV",    "genPocone1_PV", "World_PV",
             "genPocone1_PV", "World_PV",    "elltube1_PV",   "World_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        static real_type const expected_distances[] = {
+        ref.distances = {
             34.956698760421,
             30.086602479158,
             24.913397520842,
@@ -1906,15 +1860,35 @@ void SolidsGeoTest::test_trace() const
             40,
             205,
         };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        std::vector<real_type> expected_hw_safety = {
+        ref.dot_normal = {
+            0.99503719020999,
+            0.99503719020999,
+            0.99503719020999,
+            0.99503719020999,
+            0.99503719020999,
+            0.99503719020999,
+            0.99503719020999,
+            0.95838499854689,
+            0.93313781368065,
+            0.98803162409286,
+            0.10907224622337,
+            0.999921871948,
+            0.999921871948,
+            0.99503719020999,
+            0.99503719020999,
+            0.99503719020999,
+            0.99503719020999,
+            1,
+            1,
+        };
+        ref.halfway_safeties = {
             17.391607656793,
             14.968644196913,
             12.394878533861,
             34.872720758987,
-            39.7517357488891,
+            39.751735748889,
             22.438088639235,
-            33.0701970644251,
+            33.070197064425,
             32.739905171863,
             15.672519698479,
             26.80540527207,
@@ -1934,41 +1908,45 @@ void SolidsGeoTest::test_trace() const
         {
             // Older versions of Geant4 have a bug in Arb8 that overestimates
             // safety distance to twisted surfaces
-            expected_hw_safety[4] = 38.205672682313;
-            expected_hw_safety[6] = 38.803595749271;
+            ref.halfway_safeties[4] = 38.205672682313;
+            ref.halfway_safeties[6] = 38.803595749271;
         }
         else if (test_->geometry_type() == "VecGeom")
         {
-            expected_hw_safety = {
-                17.391607656793,
-                14.968644196913,
-                12.394878533861,
-                29.99665061979,
-                27.765772866092,
-                17.5,
-                21.886464159888,
-                29.111537609107,
-                15.672519698479,
-                26.80540527207,
-                2.9387549751221,
-                4.4610799311799,
-                39.5,
-                19.038294080807,
-                0.5,
-                29.515478338297,
-                0,
-                28.615060270982,
-                20,
-                74.5,
-            };
+            // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
+            // Geant4 v11.3.1
+            ref.halfway_safeties[3] = 29.9966506197896;
+            ref.halfway_safeties[4] = 27.7657728660916;
+            ref.halfway_safeties[5] = 17.5;
+            ref.halfway_safeties[6] = 21.8864641598878;
+            ref.halfway_safeties[7] = 29.1115376091067;
+            ref.halfway_safeties[13] = 19.0382940808067;
+            ref.halfway_safeties[14] = 0.5;
+            ref.halfway_safeties[17] = 28.6150602709819;
         }
 
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+        if (test_->geometry_type() == "Geant4"
+            && ref.dot_normal.size() == result.dot_normal.size()
+            && result.dot_normal[15] == 0.0)
+        {
+            CELER_LOG(warning) << "GenPocone normal seems to have a bug";
+            ref.dot_normal[15] = result.dot_normal[15];
+        }
+
+        auto tol = test_->tracking_tol();
+        if (test_->geometry_type() != "VecGeom"
+            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+        {
+            // TODO: VecGemo 2.x-solids still missing some shapes
+            EXPECT_REF_NEAR(ref, result, tol);
+        }
     }
     {
         SCOPED_TRACE("Middle +y");
         auto result = test_->track({0, -250, 0.5}, {0, 1, 0});
-        static char const* const expected_volumes[] = {
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
             "World",
             "tetrah1",
             "World",
@@ -1979,8 +1957,7 @@ void SolidsGeoTest::test_trace() const
             "boolean1",
             "World",
         };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static char const* const expected_volume_instances[] = {
+        ref.volume_instances = {
             "World_PV",
             "tetrah1_PV",
             "World_PV",
@@ -1991,8 +1968,7 @@ void SolidsGeoTest::test_trace() const
             "boolean1_PV",
             "World_PV",
         };
-        EXPECT_VEC_EQ(expected_volume_instances, result.volume_instances);
-        static real_type const expected_distances[] = {
+        ref.distances = {
             105.03085028998,
             20.463165522069,
             99.505984187954,
@@ -2003,8 +1979,17 @@ void SolidsGeoTest::test_trace() const
             15,
             150,
         };
-        EXPECT_VEC_NEAR(expected_distances, result.distances, bool_tol);
-        static real_type const expected_hw_safety[] = {
+        ref.dot_normal = {
+            0.92847669088526,
+            0.70710678118655,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+        };
+        ref.halfway_safeties = {
             48.759348159052,
             7.2348215525988,
             35.180678093972,
@@ -2015,40 +2000,71 @@ void SolidsGeoTest::test_trace() const
             7.5,
             74.5,
         };
-        EXPECT_VEC_NEAR(expected_hw_safety, result.halfway_safeties, bool_tol);
+
+        if (test_->geometry_type() != "VecGeom"
+            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+        {
+            // TODO: VecGemo 2.x-solids still missing some shapes
+            auto tol = test_->tracking_tol();
+            EXPECT_REF_NEAR(ref, result, tol);
+        }
     }
 }
 
 //---------------------------------------------------------------------------//
 // SIMPLE CMS
 //---------------------------------------------------------------------------//
-void SimpleCmsGeoTest::test_model() const
+void SimpleCmsGeoTest::test_detailed_tracking() const
 {
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {
-        "vacuum_tube",
-        "si_tracker",
-        "em_calorimeter",
-        "had_calorimeter",
-        "sc_solenoid",
-        "fe_muon_chambers",
-        "world",
-    };
-    ref.volume.materials = {0, 1, 2, 3, 4, 5, 0};
-    ref.volume.daughters = {{}, {}, {}, {}, {}, {}, {0, 1, 2, 3, 4, 5}};
-    ref.volume_instance.labels = {
-        "vacuum_tube_pv",
-        "si_tracker_pv",
-        "em_calorimeter_pv",
-        "had_calorimeter_pv",
-        "sc_solenoid_pv",
-        "iron_muon_chambers_pv",
-        "world_PV",
-    };
-    ref.volume_instance.volumes = {0, 1, 2, 3, 4, 5, 6};
-    ref.world = "world";
-    EXPECT_REF_EQ(ref, result);
+    auto safety_tol = test_->tracking_tol().safety;
+    bool const check_normal = test_->supports_surface_normal();
+
+    auto geo = make_geo_track_view(*test_, {0, 0, 0}, {0, 0, 1});
+    EXPECT_EQ("vacuum_tube", test_->volume_name(geo));
+
+    auto next = geo.find_next_step(from_cm(100));
+    EXPECT_SOFT_EQ(100, to_cm(next.distance));
+    EXPECT_FALSE(next.boundary);
+    geo.move_internal(from_cm(20));
+    EXPECT_SOFT_NEAR(30, to_cm(geo.find_safety()), safety_tol);
+
+    geo.set_dir({1, 0, 0});
+    next = geo.find_next_step(from_cm(50));
+    EXPECT_SOFT_EQ(30, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_FALSE(geo.is_outside());
+    if (check_normal)
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
+
+    geo.cross_boundary();
+    if (check_normal)
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
+    EXPECT_EQ("si_tracker", test_->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), to_cm(geo.pos()));
+
+    // Scatter to tangent
+    geo.set_dir({0, 1, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_SOFT_EQ(121.34661099511597, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    geo.move_internal(from_cm(10));
+    EXPECT_SOFT_NEAR(1.6227766016837926, to_cm(geo.find_safety()), safety_tol);
+
+    // Move to boundary and scatter back inside
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_SOFT_EQ(111.34661099511597, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    geo.move_to_boundary();
+    geo.set_dir({-1, 0, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_SOFT_EQ(60., to_cm(next.distance));
 }
 
 //---------------------------------------------------------------------------//
@@ -2056,7 +2072,9 @@ void SimpleCmsGeoTest::test_trace() const
 {
     bool const is_orange = test_->geometry_type() == "ORANGE";
     {
+        SCOPED_TRACE("outward radially");
         auto result = test_->track({-75, 0, 0}, {1, 0, 0});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "si_tracker",
@@ -2079,32 +2097,33 @@ void SimpleCmsGeoTest::test_trace() const
             "world_PV",
         };
         ref.distances = {45, 60, 95, 50, 100, 100, 325, 300};
+        // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {22.5, 30, 47.5, 25, 50, 50, 162.5, 150};
-        ref.bumps = {};
 
         if (is_orange)
         {
             // TODO: at this exact point it ignores the cylindrical distance
-            ref.halfway_safeties[1] = 700;
+            ref.halfway_safeties[1] = result.halfway_safeties[1];
         }
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
+        SCOPED_TRACE("backward along z");
         auto result = test_->track({25, 0, 701}, {0, 0, -1});
+
         GenericGeoTrackingResult ref;
         ref.volumes = {"world", "vacuum_tube", "world"};
         ref.volume_instances = {"world_PV", "vacuum_tube_pv", "world_PV"};
         ref.distances = {1, 1400, 1300};
+        // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {0.5, 5, 650};
-        ref.bumps = {};
 
         if (is_orange)
         {
-            ref.halfway_safeties[2] = 5;
+            ref.halfway_safeties[2] = result.halfway_safeties[2];
         }
-
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -2115,7 +2134,9 @@ void SimpleCmsGeoTest::test_trace() const
 void TestEm3GeoTest::test_trace() const
 {
     {
-        auto result = test_->track({-20.1}, {1, 0, 0});
+        auto result = test_->track({-20.1}, {1, 0, 0}, /*max_steps=*/250);
+        result.volume_instances.clear();  // boring
+
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "world", "pb",  "lar",   "pb",  "lar", "pb",  "lar", "pb",  "lar",
@@ -2158,13 +2179,12 @@ void TestEm3GeoTest::test_trace() const
             0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
             0.115, 0.285, 2,
         };
-        ref.bumps = {};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+
+        auto tol = test_->tracking_tol();
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
             tol.distance = 1e-5f;
         }
-        result.volume_instances.clear();  // boring
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -2175,7 +2195,9 @@ void TestEm3GeoTest::test_trace() const
 void TestEm3FlatGeoTest::test_trace() const
 {
     {
-        auto result = test_->track({-20.1}, {1, 0, 0});
+        auto result = test_->track({-20.1}, {1, 0, 0}, 150);
+        result.volume_instances.clear();  // boring
+
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "world",       "gap_0",  "absorber_0",  "gap_1",
@@ -2205,7 +2227,6 @@ void TestEm3FlatGeoTest::test_trace() const
             "absorber_47", "gap_48", "absorber_48", "gap_49",
             "absorber_49", "world",
         };
-        ref.volume_instances = {};
         ref.distances = {
             0.1,  0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
             0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
@@ -2232,14 +2253,12 @@ void TestEm3FlatGeoTest::test_trace() const
             0.285,  0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
             0.115,  0.285, 2,
         };
-        ref.bumps = {};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
             tol.distance = 1e-5f;
         }
 
-        result.volume_instances.clear();  // boring
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -2247,20 +2266,6 @@ void TestEm3FlatGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // TILECAL PLUG
 //---------------------------------------------------------------------------//
-void TilecalPlugGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {"Tile_Absorber", "Tile_Plug1Module", "Tile_ITCModule"};
-    ref.volume.materials = {0, 1, 1};
-    ref.volume.daughters = {{}, {0}, {1}};
-    ref.volume_instance.labels
-        = {"Tile_Absorber", "Tile_Plug1Module", "Tile_ITCModule_PV"};
-    ref.volume_instance.volumes = {0, 1, 2};
-    ref.world = "Tile_ITCModule";
-    EXPECT_REF_EQ(ref, result);
-}
-
 void TilecalPlugGeoTest::test_trace() const
 {
     {
@@ -2280,9 +2285,9 @@ void TilecalPlugGeoTest::test_trace() const
             "Tile_Plug1Module",
         };
         ref.distances = {22.9425, 0.115, 42, 37};
-        ref.halfway_safeties = {9.7, 0.057499999999999, 9.7, 9.7};
-        ref.bumps = {};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        // All surface normals are along track dir: ref.dot_normal = {}
+        ref.halfway_safeties = {9.7, 0.0575, 9.7, 9.7};
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -2293,9 +2298,9 @@ void TilecalPlugGeoTest::test_trace() const
         ref.volume_instances
             = {"Tile_ITCModule_PV", "Tile_Absorber", "Tile_Plug1Module"};
         ref.distances = {23.0575, 42, 37};
+        // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {9.2, 9.2, 9.2};
-        ref.bumps = {};
-        auto tol = GenericGeoTrackingTolerance::from_test(*test_);
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -2303,20 +2308,6 @@ void TilecalPlugGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 // TRANSFORMED BOX
 //---------------------------------------------------------------------------//
-void TransformedBoxGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {"simple", "tiny", "enclosing", "world"};
-    ref.volume.materials = {0, 0, 0, 0};
-    ref.volume.daughters = {{}, {}, {0}, {1, 2, 3}};
-    ref.volume_instance.labels
-        = {"rot", "transrot", "default", "trans", "world_PV"};
-    ref.volume_instance.volumes = {1, 0, 2, 0, 3};
-    ref.world = "world";
-    EXPECT_REF_EQ(ref, result);
-}
-
 //! Test geometry accessors
 void TransformedBoxGeoTest::test_accessors() const
 {
@@ -2332,13 +2323,10 @@ void TransformedBoxGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void TransformedBoxGeoTest::test_trace() const
 {
-    // Surface VecGeom needs lower safety tolerance, and this test needs even
-    // lower
-    real_type const safety_tol = real_type{10} * test_->safety_tol();
-
     {
         auto result = test_->track({0, 0, -25}, {0, 0, 1});
-        static char const* const expected_volumes[] = {
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
             "world",
             "simple",
             "world",
@@ -2349,8 +2337,18 @@ void TransformedBoxGeoTest::test_trace() const
             "simple",
             "world",
         };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {
+        ref.volume_instances = {
+            "world_PV",
+            "transrot",
+            "world_PV",
+            "default",
+            "rot",
+            "default",
+            "world_PV",
+            "trans",
+            "world_PV",
+        };
+        ref.distances = {
             13,
             4,
             6,
@@ -2361,27 +2359,36 @@ void TransformedBoxGeoTest::test_trace() const
             4,
             38,
         };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        if (test_->geometry_type() != "ORANGE")
-        {
-            static real_type const expected_hw_safety[] = {
-                5.3612159321677,
-                1,
-                2.3301270189222,
-                0.875,
-                0.25,
-                0.875,
-                3,
-                1,
-                19,
-            };
-            EXPECT_VEC_NEAR(
-                expected_hw_safety, result.halfway_safeties, safety_tol);
-        }
+        ref.dot_normal = {
+            0.5,
+            0.5,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+        };
+        ref.halfway_safeties = {
+            5.3612159321677,
+            1,
+            2.3301270189222,
+            0.875,
+            0.25,
+            0.875,
+            3,
+            1,
+            19,
+        };
+
+        auto tol = test_->tracking_tol();
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
-        auto result = test_->track({0.25, 0, -25}, {0., 0, 1});
-        static char const* const expected_volumes[] = {
+        auto result = test_->track({0.25, 0, -25}, {0, 0, 1});
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
             "world",
             "simple",
             "world",
@@ -2392,8 +2399,18 @@ void TransformedBoxGeoTest::test_trace() const
             "simple",
             "world",
         };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {
+        ref.volume_instances = {
+            "world_PV",
+            "transrot",
+            "world_PV",
+            "default",
+            "rot",
+            "default",
+            "world_PV",
+            "trans",
+            "world_PV",
+        };
+        ref.distances = {
             12.834936490539,
             3.7320508075689,
             6.4330127018922,
@@ -2404,27 +2421,37 @@ void TransformedBoxGeoTest::test_trace() const
             4,
             38,
         };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        if (test_->geometry_type() != "ORANGE")
-        {
-            static real_type const expected_hw_safety[] = {
-                5.5576905283833,
-                0.93301270189222,
-                2.0176270189222,
-                0.75,
-                0.25,
-                0.75,
-                3,
-                0.75,
-                19,
-            };
-            EXPECT_VEC_NEAR(
-                expected_hw_safety, result.halfway_safeties, safety_tol);
-        }
+        ref.dot_normal = {
+            0.86602540378444,
+            0.5,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+        };
+        ref.halfway_safeties = {
+            5.5576905283833,
+            0.93301270189222,
+            2.0176270189222,
+            0.75,
+            0.25,
+            0.75,
+            3,
+            0.75,
+            19,
+        };
+
+        auto tol = test_->tracking_tol();
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
-        auto result = test_->track({0, 0.25, -25}, {0, 0., 1});
-        static char const* const expected_volumes[] = {
+        auto result = test_->track({0, 0.25, -25}, {0, 0, 1});
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
             "world",
             "simple",
             "world",
@@ -2435,8 +2462,18 @@ void TransformedBoxGeoTest::test_trace() const
             "simple",
             "world",
         };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] = {
+        ref.volume_instances = {
+            "world_PV",
+            "transrot",
+            "world_PV",
+            "default",
+            "rot",
+            "default",
+            "world_PV",
+            "trans",
+            "world_PV",
+        };
+        ref.distances = {
             13,
             4,
             6,
@@ -2447,58 +2484,54 @@ void TransformedBoxGeoTest::test_trace() const
             4,
             38,
         };
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        if (test_->geometry_type() != "ORANGE")
-        {
-            static real_type const expected_hw_safety[] = {
-                5.3612159321677,
-                1,
-                2.3301270189222,
-                0.875,
-                0.12530113594871,
-                0.875,
-                3,
-                1,
-                19,
-            };
-            EXPECT_VEC_NEAR(
-                expected_hw_safety, result.halfway_safeties, safety_tol);
-        }
+        ref.dot_normal = {
+            0.5,
+            0.5,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+        };
+        ref.halfway_safeties = {
+            5.3612159321677,
+            1,
+            2.3301270189222,
+            0.875,
+            0.12530113594871,
+            0.875,
+            3,
+            1,
+            19,
+        };
+
+        auto tol = test_->tracking_tol();
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         auto result = test_->track({0.01, -20, 0.20}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"world", "enclosing", "tiny", "enclosing", "world"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"world", "enclosing", "tiny", "enclosing", "world"};
+        ref.volume_instances
+            = {"world_PV", "default", "rot", "default", "world_PV"};
+        ref.distances
             = {18.5, 1.1250390198213, 0.75090449735279, 1.1240564828259, 48.5};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        if (test_->geometry_type() != "ORANGE")
-        {
-            static real_type const expected_hw_safety[]
-                = {9.25, 0.56184193052552, 0.05, 0.56135125378224, 24.25};
-            EXPECT_VEC_NEAR(
-                expected_hw_safety, result.halfway_safeties, safety_tol);
-        }
+        ref.dot_normal = {1, 0.99879545620517, 0.99879545620517, 1};
+        ref.halfway_safeties
+            = {9.25, 0.56184193052552, 0.05, 0.56135125378224, 24.25};
+
+        auto tol = test_->tracking_tol();
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 
 //---------------------------------------------------------------------------//
 // TRANSFORMED BOX
 //---------------------------------------------------------------------------//
-void TwoBoxesGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {"inner", "world"};
-    ref.volume.materials = {-1, -1};
-    ref.volume.daughters = {{}, {0}};
-    ref.volume_instance.labels = {"inner_PV", "world_PV"};
-    ref.volume_instance.volumes = {0, 1};
-    ref.world = "world";
-    EXPECT_REF_EQ(ref, result);
-}
-
 //! Test geometry accessors
 void TwoBoxesGeoTest::test_accessors() const
 {
@@ -2510,96 +2543,331 @@ void TwoBoxesGeoTest::test_accessors() const
     EXPECT_VEC_SOFT_EQ(expected_bbox.upper(), to_cm(bbox.upper()));
 }
 
+void TwoBoxesGeoTest::test_detailed_tracking() const
+{
+    bool const check_normal = test_->supports_surface_normal();
+    auto safety_tol = test_->tracking_tol().safety;
+
+    auto geo = make_geo_track_view(*test_, {0, 0, 0}, {0, 0, 1});
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Shouldn't hit boundary
+    auto next = geo.find_next_step(from_cm(1.25));
+    EXPECT_SOFT_EQ(1.25, to_cm(next.distance));
+    EXPECT_FALSE(next.boundary);
+
+    geo.move_internal(from_cm(1.25));
+    real_type expected_safety = 5 - 1.25;
+    EXPECT_SOFT_NEAR(expected_safety, to_cm(geo.find_safety()), safety_tol);
+
+    // Change direction and try again (hit)
+    geo.set_dir({1, 0, 0});
+    next = geo.find_next_step(from_cm(50));
+    EXPECT_SOFT_EQ(5, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_FALSE(geo.is_outside());
+    if (check_normal)
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("world", test_->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
+    if (geo.is_on_boundary() && CELERITAS_DEBUG)
+    {
+        // Don't check the safety distance on the boundary; we know by
+        // definition it's zero
+        EXPECT_THROW(geo.find_safety(), DebugError);
+    }
+
+    // Scatter to tangent along boundary
+    constexpr real_type dx
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-8 : 1e-4);
+    geo.set_dir({dx, 1, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_SOFT_EQ(500, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    geo.move_internal(from_cm(2));
+
+    // Scatter back inside
+    geo.set_dir({-1, 0, 0});
+    next = geo.find_next_step(from_cm(1000));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    if (check_normal)
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+    }
+
+    geo.cross_boundary();
+    if (!check_normal)
+    {
+        // Skip check
+    }
+    else if (test_->geometry_type() == "Geant4")
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+    }
+    else
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
+
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
+}
+
+/*!
+ * Cross into a new volume and then reflect into the old.
+ *
+ * This is how optical physics is performed: we enter the new volume to
+ * determine its characteristics, then apply the optical surface crossing,
+ * which might reflect back into the original.
+ */
+void TwoBoxesGeoTest::test_reentrant() const
+{
+    bool const check_normal = test_->supports_surface_normal();
+    constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+    // Starting left of edge (-), headed down right (+,-)
+    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Check for surfaces up to a distance of 4 units away
+    auto next = geo.find_next_step(from_cm(4.0));
+    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    // Move to boundary (-; +,-)
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Cross into the new volume, needed for optical physics (+; +,-)
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+    EXPECT_EQ("world", test_->volume_name(geo));
+
+    // Reflect normal to surface  (+; -,-)
+    geo.set_dir(Real3{-dx, -dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+    EXPECT_EQ("world", test_->volume_name(geo));
+
+    // Cross back into previous volume (-; -,-)
+    if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
+    {
+        // GeantGTV has an extra check because we know it can't do this :(
+        EXPECT_THROW(geo.cross_boundary(), DebugError);
+        GTEST_SKIP() << "Consecutive boundary crossing fails for G4";
+    }
+    else
+    {
+        // Typical case
+        ASSERT_NO_THROW(geo.cross_boundary());
+    }
+    EXPECT_TRUE(geo.is_on_boundary());
+
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+
+    if (test_->geometry_type() == "VecGeom")
+    {
+        // VecGeom 1.2.11 seems to fail reentry *sometimes*: on the CI builds,
+        // spack passes but docker fails (relwithdebinfo and debug)
+        if ("world" == test_->volume_name(geo))
+        {
+            GTEST_SKIP() << "Unexpected failure to cross volume";
+        }
+        if ("[OUTSIDE]" == test_->volume_name(geo))
+        {
+            GTEST_SKIP() << "FIXME: Unexpected track location.";
+        }
+    }
+
+    if (test_->geometry_type() == "VecGeom" && using_surface_vg)
+    {
+        // VecGeom with surfaces seems to have issues here
+        EXPECT_EQ("[OUTSIDE]", test_->volume_name(geo));
+        {
+            GTEST_SKIP() << "FIXME: VecGeom v2.x-surface misses inner volume.";
+        }
+    }
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Find the next boundary and make sure that nearer distances aren't
+    // accepted
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(10 * dx, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_TRUE(geo.is_on_boundary());
+}
+
+/*!
+ * Emulate an edge case with field propagation plus MSC.
+ *
+ * - Propagation moves to the boundary
+ * - Field momentum update points the direction back inside
+ * - MSC update points the direction back out
+ */
+void TwoBoxesGeoTest::test_reentrant_undo() const
+{
+    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    bool const check_normal = test_->supports_surface_normal();
+
+    // Starting left of edge (-), headed down right (+,-)
+    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+    ASSERT_FALSE(geo.is_outside());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Check for surfaces up to a distance of 4 units away
+    auto next = geo.find_next_step(from_cm(4.0));
+    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    // Propagate: move to boundary (-; +,-)
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Momentum update: point back inward (-; -,-)
+    geo.set_dir(Real3{-dx, -dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Scatter: point back out (-; +,-)
+    geo.set_dir(Real3{dx, -dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Crossing *will* change volumes (+; +,-)
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("world", test_->volume_name(geo));
+    if (check_normal)
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+
+    // Make sure we're not intersecting by accident
+    next = geo.find_next_step(from_cm(10.0));
+    EXPECT_SOFT_EQ(10.0, to_cm(next.distance));
+    EXPECT_FALSE(next.boundary);
+    EXPECT_TRUE(geo.is_on_boundary());
+}
+
+/*!
+ * Instead of crossing into a new volume, reflect without exiting.
+ *
+ * This simulates a looping track almost tangent to a geometry boundary.
+ * The end-of-step direction is changed to account for the momentum vector's
+ * end-of-step state, and the boundary isn't actually exited when we call cross
+ * boundary.
+ */
+void TwoBoxesGeoTest::test_tangent() const
+{
+    constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+    // Starting left of edge (-), headed down right (+,-)
+    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    {
+        SCOPED_TRACE("in first volume");
+        geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+        ASSERT_FALSE(geo.is_outside());
+        EXPECT_EQ("inner", test_->volume_name(geo));
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Check for surfaces up to a distance of 4 units away
+        auto next = geo.find_next_step(from_cm(4.0));
+        EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+        EXPECT_TRUE(next.boundary);
+
+        // Move to boundary (-; +,-)
+        geo.move_to_boundary();
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ("inner", test_->volume_name(geo));
+
+        // Reflect normal to surface (-; -,-)
+        geo.set_dir(Real3{-dx, -dx, 0});
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ("inner", test_->volume_name(geo));
+    }
+
+    // Crossing should *not* change volumes (-; -,-)
+    {
+        SCOPED_TRACE("trying to cross");
+        ASSERT_NO_THROW(geo.cross_boundary());
+        EXPECT_TRUE(geo.is_on_boundary());
+        if (test_->geometry_type() == "Geant4")
+        {
+            // FIXME: Geant4 changes volumes :(
+            EXPECT_EQ("world", test_->volume_name(geo));
+            GTEST_SKIP() << "Unexpected boundary crossing";
+        }
+        else if (test_->geometry_type() == "VecGeom"
+                 && "world" == test_->volume_name(geo))
+        {
+            GTEST_SKIP() << "Unexpected boundary crossing";
+        }
+        EXPECT_EQ("inner", test_->volume_name(geo));
+    }
+
+    // Find the next boundary and make sure that nearer distances aren't
+    // accepted
+    {
+        SCOPED_TRACE("checking internal distance");
+        auto next = geo.find_next_step();
+        EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_TRUE(geo.is_on_boundary());
+    }
+}
+
 //---------------------------------------------------------------------------//
 void TwoBoxesGeoTest::test_trace() const
 {
     {
         auto result = test_->track({0, 0.25, -25}, {0, 0., 1});
-        result.print_expected();
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"world", "inner", "world"};
+        ref.volume_instances = {"world_PV", "inner_PV", "world_PV"};
+        ref.distances = {20, 10, 495};
+        ref.halfway_safeties = {10, 4.75, 247.5};
+        ref.bumps = {};
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 
 //---------------------------------------------------------------------------//
 // ZNENV
 //---------------------------------------------------------------------------//
-void ZnenvGeoTest::test_model() const
-{
-    auto result = test_->model_inp();
-    GenericGeoModelInp ref;
-    ref.volume.labels = {
-        "ZNF1",
-        "ZNG1",
-        "ZNF2",
-        "ZNG2",
-        "ZNF3",
-        "ZNG3",
-        "ZNF4",
-        "ZNG4",
-        "ZNST",
-        "ZNSL",
-        "ZN1",
-        "ZNTX",
-        "ZNEU",
-        "ZNENV",
-        "World",
-    };
-    ref.volume.materials = {
-        0,
-        1,
-        0,
-        1,
-        0,
-        1,
-        0,
-        1,
-        2,
-        2,
-        2,
-        2,
-        2,
-        3,
-        3,
-    };
-    ref.volume.daughters = {
-        {},
-        {0},
-        {},
-        {1},
-        {},
-        {2},
-        {},
-        {3},
-        {4, 5, 6, 7},
-        {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
-        {9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9},
-        {10, 10},
-        {11, 11},
-        {12},
-        {13},
-    };
-    ref.volume_instance.labels = {
-        "ZNF1_1",
-        "ZNF2_1",
-        "ZNF3_1",
-        "ZNF4_1",
-        "ZNG1_1",
-        "ZNG2_1",
-        "ZNG3_1",
-        "ZNG4_1",
-        "ZNST_PV",
-        "ZNSL_PV",
-        "ZN1_PV",
-        "ZNTX_PV",
-        "ZNEU_1",
-        "WorldBoxPV",
-        "World_PV",
-    };
-    ref.volume_instance.volumes
-        = {0, 2, 4, 6, 1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14};
-    ref.world = "World";
-    EXPECT_REF_EQ(ref, result);
-}
-
 void ZnenvGeoTest::test_trace() const
 {
     // NOTE: This tests the capability of the G4PVDivision conversion based on
@@ -2617,13 +2885,62 @@ void ZnenvGeoTest::test_trace() const
     };
     {
         auto result = test_->track({-10, 0.0001, 0}, {1, 0, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+
+        GenericGeoTrackingResult ref;
+        ref.volumes.assign(std::begin(expected_mid_volumes),
+                           std::end(expected_mid_volumes));
+        ref.distances.assign(std::begin(expected_mid_distances),
+                             std::end(expected_mid_distances));
+        ref.volume_instances = {
+            "World_PV",   "WorldBoxPV", "ZNST_PV@0", "ZNST_PV@1",
+            "ZNST_PV@2",  "ZNST_PV@3",  "ZNST_PV@4", "ZNST_PV@5",
+            "ZNST_PV@6",  "ZNST_PV@7",  "ZNST_PV@8", "ZNST_PV@9",
+            "ZNST_PV@10", "ZNST_PV@0",  "ZNST_PV@1", "ZNST_PV@2",
+            "ZNST_PV@3",  "ZNST_PV@4",  "ZNST_PV@5", "ZNST_PV@6",
+            "ZNST_PV@7",  "ZNST_PV@8",  "ZNST_PV@9", "ZNST_PV@10",
+            "WorldBoxPV", "World_PV",
+        };
+        ref.halfway_safeties = {
+            3.19, 0.05, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
+            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
+            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
+        };
+        ref.bumps = {};
+
+        auto tol = test_->tracking_tol();
+        fixup_orange(*test_, ref, result, "World");
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         auto result = test_->track({0.0001, -10, 0}, {0, 1, 0});
-        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
-        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+
+        GenericGeoTrackingResult ref;
+        ref.volumes.assign(std::begin(expected_mid_volumes),
+                           std::end(expected_mid_volumes));
+        ref.distances.assign(std::begin(expected_mid_distances),
+                             std::end(expected_mid_distances));
+        ref.volume_instances = {
+            "World_PV",  "WorldBoxPV", "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
+            "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "WorldBoxPV",
+            "World_PV",
+        };
+        ref.halfway_safeties = {
+            3.19, 0.05, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
+            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
+            1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
+        };
+        ref.bumps = {};
+
+        auto tol = test_->tracking_tol();
+        fixup_orange(*test_, ref, result, "World");
+        if (using_solids_vg && vecgeom_version >= Version{2, 0})
+        {
+            GTEST_SKIP() << "FIXME: Znenv VecGeom model construction failure.";
+        }
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 

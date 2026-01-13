@@ -31,23 +31,20 @@ using ElementId = OpaqueId<struct ElementRecord>;
 //! Zero-indexed counter for the initiating event for a track
 using EventId = OpaqueId<struct Event_>;
 
-//! Unique identifier for an event used by external applications
-using UniqueEventId = OpaqueId<struct Event_, std::uint64_t>;
-
-//! Opaque index to IsotopeRecord in a vector
+//! Opaque index to NuclideRecord in a vector
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
-
-//! Opaque index of a material modified by physics options
-using PhysMatId = OpaqueId<struct PhysicsMaterial_>;
 
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<struct Model_>;
 
 //! Opaque index to a material with optical properties
-using OptMatId = OpaqueId<struct OpticalMaterial_>;
+using OptMatId = OpaqueId<struct OpticalMaterial_, unsigned int>;
 
 //! Opaque index to ParticleRecord in a vector: represents a particle type
 using ParticleId = OpaqueId<struct Particle_>;
+
+//! Opaque index of a material modified by physics options
+using PhysMatId = OpaqueId<struct PhysicsMaterial_>;
 
 //! Unique ID (for an event) of a track among all primaries
 using PrimaryId = OpaqueId<struct Primary_>;
@@ -55,8 +52,17 @@ using PrimaryId = OpaqueId<struct Primary_>;
 //! Opaque index of physics process
 using ProcessId = OpaqueId<struct Process_>;
 
+//! Opaque index into internal physics data within a single model
+using SubModelId = OpaqueId<struct SubModel_>;
+
+//! Opaque index of surface physics models
+using SurfaceModelId = OpaqueId<struct SurfaceModel_>;
+
 //! Unique ID (for an event) of a track among all primaries and secondaries
 using TrackId = OpaqueId<struct Track_>;
+
+//! Unique identifier for an event used by external applications
+using UniqueEventId = OpaqueId<struct Event_, std::uint64_t>;
 
 //---------------------------------------------------------------------------//
 // (detailed type aliases)
@@ -64,9 +70,6 @@ using TrackId = OpaqueId<struct Track_>;
 
 //! Opaque index of particle-nucleon cascade channel
 using ChannelId = OpaqueId<struct Channel_>;
-
-//! Opaque index for mapping volume-specific "sensitive detector" objects
-using DetectorId = OpaqueId<struct Detector_>;
 
 //! Opaque index to one elemental component datum in a particular material
 using ElementComponentId = OpaqueId<struct MatElementComponent>;
@@ -80,8 +83,14 @@ using ParticleProcessId = OpaqueId<ProcessId>;
 //! Opaque index of a model applicable to a single particle type
 using ParticleModelId = OpaqueId<ModelId>;
 
+//! Opaque index of subsurface interface with physics models
+using PhysSurfaceId = OpaqueId<struct PhysSurface_, unsigned int>;
+
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell_>;
+
+//! Opaque index of surface within a specific physics model
+using SurfaceModelId = OpaqueId<struct SurfaceModel_>;
 
 //! Opaque index of a uniform grid
 using UniformGridId = OpaqueId<struct UniformGridRecord>;
@@ -209,22 +218,31 @@ enum class WlsTimeProfile
 };
 
 //---------------------------------------------------------------------------//
-//! Interpolation for physics grids
-enum class InterpolationType
-{
-    linear,
-    poly_spline,  //!< Piecewise polynomial interpolation
-    cubic_spline,  //!< Cubic spline interpolation with \f$ C^2 \f$ continuity
-    size_
-};
-
-//---------------------------------------------------------------------------//
 //! Cylindrical coordinates indices
 enum class CylAxis
 {
     r = 0,
     phi,
     z,
+    size_
+};
+
+//---------------------------------------------------------------------------//
+//! Muon-catalyzed fusion atoms
+enum class MucfMuonicAtom
+{
+    deuterium,
+    tritium,
+    size_
+};
+
+//---------------------------------------------------------------------------//
+//! Muon-catalyzed fusion molecules
+enum class MucfMuonicMolecule
+{
+    deuterium_deuterium,
+    deuterium_tritium,
+    tritium_tritium,
     size_
 };
 
@@ -273,9 +291,6 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
-
-// Get a string corresponding to the interpolation method
-char const* to_cstring(InterpolationType value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

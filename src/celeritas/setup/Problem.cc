@@ -7,7 +7,6 @@
 #include "Problem.hh"
 
 #include <optional>
-#include <set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -15,12 +14,15 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/VariantUtils.hh"
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -42,8 +44,10 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Diagnostics.hh"
@@ -54,16 +58,26 @@
 #include "celeritas/inp/Problem.hh"
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/inp/Tracking.hh"
+#include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/io/JsonEventWriter.hh"
+#include "celeritas/io/OffloadWriter.hh"
 #include "celeritas/io/RootCoreParamsOutput.hh"
+#include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
-#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/SimParams.hh"
+#include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
+#include "celeritas/optical/gen/DirectGeneratorAction.hh"
+#include "celeritas/optical/gen/GeneratorAction.hh"
+#include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
+#include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -73,6 +87,7 @@
 #include "celeritas/track/StatusChecker.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
+#include "celeritas/user/ActionTimes.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/SlotDiagnostic.hh"
@@ -107,7 +122,7 @@ auto build_physics_processes(inp::EmPhysics const& em,
         if (!result.back())
         {
             // Deliberately ignored process
-            CELER_LOG(debug) << "Ignored process class " << pc;
+            CELER_LOG(debug) << "Ignored process class " << to_cstring(pc);
             result.pop_back();
         }
     }
@@ -125,8 +140,6 @@ auto build_physics(inp::Problem const& p,
                    CoreParams::Input const& params,
                    ImportData const& imported)
 {
-    CELER_ASSUME(p.physics.em);
-
     PhysicsParams::Input input;
     input.particles = params.particle;
     input.materials = params.material;
@@ -166,7 +179,7 @@ auto build_physics(inp::Problem const& p,
         = imported.em_params.msc_muhad_step_algorithm;
 
     // Build processes
-    input.processes = build_physics_processes(*p.physics.em, params, imported);
+    input.processes = build_physics_processes(p.physics.em, params, imported);
 
     return std::make_shared<PhysicsParams>(std::move(input));
 }
@@ -213,7 +226,8 @@ auto build_track_init(inp::Control const& c, size_type num_streams)
         {
             input.track_order = TrackOrder::none;
         }
-        CELER_LOG(debug) << "Set default track order " << input.track_order;
+        CELER_LOG(debug) << "Set default track order "
+                         << to_cstring(input.track_order);
     }
 
     return std::make_shared<TrackInitParams>(std::move(input));
@@ -285,39 +299,51 @@ auto build_along_step(inp::Field const& var_field,
 /*!
  * Construct optical parameters.
  */
-auto build_optical_params(CoreParams const& core, ImportData const& imported)
+auto build_optical_params(inp::Problem const& p,
+                          CoreParams const& core,
+                          ImportData const& imported)
 {
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
                       "materials are present");
 
     optical::CoreParams::Input params;
+    CELER_ASSERT(p.control.optical_capacity);
+    params.capacity = *p.control.optical_capacity;
     params.geometry = core.geometry();
     params.material = optical::MaterialParams::from_import(
         imported, *core.geomaterial(), *core.material());
     // TODO: unique RNG streams for optical loop
     params.rng = core.rng();
+    params.sim
+        = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
     params.surface = core.surface();
     params.action_reg = std::make_shared<ActionRegistry>();
     params.gen_reg = std::make_shared<GeneratorRegistry>();
+    params.output_reg = core.output_reg();
+    params.aux_reg = core.aux_reg();
     params.max_streams = core.max_streams();
+
+    // Construct optical physics models
+    params.physics = optical::PhysicsParams::from_import(
+        imported, core.material(), params.material, params.action_reg);
+
+    // Construct optical surface physics models
+    CELER_ASSERT(p.physics.optical);
+    params.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
+        params.action_reg.get(), p.physics.optical.surfaces);
+
+    // Add photon generating processes
+    if (p.physics.optical.cherenkov)
     {
-        // Construct optical physics models
-        optical::PhysicsParams::Input pp_inp;
-        pp_inp.materials = params.material;
-        pp_inp.action_registry = params.action_reg.get();
-        optical::ModelImporter importer{
-            imported, params.material, core.material()};
-        for (auto const& model : imported.optical_models)
-        {
-            if (auto builder = importer(model.model_class))
-            {
-                pp_inp.model_builders.push_back(*builder);
-            }
-        }
-        params.physics
-            = std::make_shared<optical::PhysicsParams>(std::move(pp_inp));
+        params.cherenkov = std::make_shared<CherenkovParams>(*params.material);
     }
+    if (p.physics.optical.scintillation)
+    {
+        params.scintillation
+            = ScintillationParams::from_import(imported, core.particle());
+    }
+
     //! \todo Get sensitive detectors
 
     CELER_ENSURE(params);
@@ -329,28 +355,17 @@ auto build_optical_params(CoreParams const& core, ImportData const& imported)
 /*!
  * Construct optical tracking offload.
  */
-auto build_optical_offload(inp::Problem const& p,
-                           CoreParams const& params,
-                           ImportData const& imported)
+auto build_optical_offload(
+    inp::Problem const& p,
+    CoreParams const& params,
+    std::shared_ptr<optical::CoreParams> const& optical_params)
 {
-    OpticalCollector::Input oc_inp;
-    oc_inp.optical_params = build_optical_params(params, imported);
+    CELER_VALIDATE(optical_params->cherenkov()
+                       || optical_params->scintillation(),
+                   << "failed to construct optical offload procesess");
 
-    // Add photon generating processes
-    CELER_ASSERT(p.physics.optical);
-    inp::OpticalPhysics const& opt = *p.physics.optical;
-    if (opt.cherenkov)
-    {
-        oc_inp.cherenkov = std::make_shared<CherenkovParams>(
-            *oc_inp.optical_params->material());
-    }
-    if (opt.scintillation)
-    {
-        oc_inp.scintillation
-            = ScintillationParams::from_import(imported, params.particle());
-        CELER_VALIDATE(oc_inp.scintillation,
-                       << "failed to construct scintillation process");
-    }
+    OpticalCollector::Input oc_inp;
+    oc_inp.optical_params = optical_params;
 
     // Map from optical capacity
     CELER_ASSERT(p.control.optical_capacity);
@@ -359,7 +374,17 @@ auto build_optical_offload(inp::Problem const& p,
     oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
     oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
     oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
-    oc_inp.max_step_iters = p.tracking.limits.optical_step_iters;
+    oc_inp.action_times = [&p] {
+        if (!celeritas::device())
+        {
+            return true;
+        }
+        if (p.control.device_debug)
+        {
+            return p.control.device_debug->sync_stream;
+        }
+        return false;
+    }();
 
     CELER_ENSURE(oc_inp);
 
@@ -460,7 +485,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     // Construct simulation params
     params.sim = std::make_shared<SimParams>([&] {
         auto input = SimParams::Input::from_import(
-            imported, params.particle, p.tracking.limits.field_substeps);
+            imported, params.particle, p.tracking.limits);
         return input;
     }());
 
@@ -493,8 +518,6 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     result.core_params = core_params;
 
     //// DIAGNOSTICS ////
-
-    result.output_file = p.diagnostics.output_file;
 
     // TODO: timers, counters, perfetto_file
 
@@ -572,7 +595,28 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         // TODO: this is only implemented in accel::SharedParams, not in
         // celeritas core: should hook this into the to-be-updated
         // "primary" mechanism
-        result.offload_file = ef.offload;
+        if (!ef.offload.empty())
+        {
+            std::unique_ptr<EventWriterInterface> writer;
+            if (ends_with(ef.offload, ".jsonl"))
+            {
+                writer.reset(
+                    new JsonEventWriter(ef.offload, core_params->particle()));
+            }
+            else if (ends_with(ef.offload, ".root"))
+            {
+                writer.reset(new RootEventWriter(
+                    std::make_shared<RootFileManager>(ef.offload.c_str()),
+                    core_params->particle()));
+            }
+            else
+            {
+                writer.reset(
+                    new EventWriter(ef.offload, core_params->particle()));
+            }
+            result.offload_writer
+                = std::make_shared<OffloadWriter>(std::move(writer));
+        }
     }
 
     //// STEP COLLECTORS ////
@@ -598,8 +642,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.scoring.sd)
     {
-        result.geant_sd = std::make_shared<GeantSd>(core_params->geometry(),
-                                                    *core_params->particle(),
+        result.geant_sd = std::make_shared<GeantSd>(*core_params->particle(),
                                                     *p.scoring.sd,
                                                     core_params->max_streams());
         step_interfaces.push_back(result.geant_sd);
@@ -607,10 +650,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.scoring.simple_calo)
     {
-        auto simple_calo
-            = std::make_shared<SimpleCalo>(p.scoring.simple_calo->volumes,
-                                           *core_params->geometry(),
-                                           num_streams);
+        auto simple_calo = std::make_shared<SimpleCalo>(
+            p.scoring.simple_calo->volumes, num_streams);
 
         // Add to step interfaces
         step_interfaces.push_back(simple_calo);
@@ -627,25 +668,181 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.control.optical_capacity)
     {
-        CELER_VALIDATE(p.physics.optical,
-                       << "optical physics options are required to construct "
-                          "an optical tracking loop");
-
         if (core_params->surface()->empty())
         {
             CELER_LOG(warning) << "Problem contains optical physics without "
-                                  "any surface definitions";
+                                  "any geometry surface definitions: default "
+                                  "physics will be used for all surfaces";
         }
+        // Construct the optical params from the core params
+        auto optical_params = build_optical_params(p, *core_params, imported);
 
+        // Construct the optical offload and generation actions
         result.optical_collector
-            = build_optical_offload(p, *core_params, imported);
+            = build_optical_offload(p, *core_params, optical_params);
     }
+    else
+    {
+        CELER_VALIDATE(imported.optical_models.empty(),
+                       << "optical physics models were imported but no "
+                          "optical capacity was set. Either define optical "
+                          "tracking loop parameters, or ignore optical "
+                          "physics");
+    }
+
+    // Construct the action sequence
+    result.actions = [&] {
+        ActionSequence::Options opt;
+        auto const& action_reg = core_params->action_reg();
+        if (!celeritas::device()
+            || (p.control.device_debug && p.control.device_debug->sync_stream))
+        {
+            // Create aux data to accumulate action times
+            opt.action_times = ActionTimes::make_and_insert(
+                action_reg, core_params->aux_reg(), "action-times");
+        }
+        return std::make_shared<ActionSequence>(*action_reg, std::move(opt));
+    }();
 
     if (result.root_manager)
     {
         write_to_root(*core_params->action_reg(), result.root_manager.get());
     }
 
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create optical "core params" from a problem definition and import data.
+ *
+ * This constructs the optical params \em without additionally constructing the
+ * core params.
+ */
+OpticalProblemLoaded
+problem(inp::OpticalProblem const& p, ImportData const& imported)
+{
+    CELER_LOG(status) << "Initializing problem";
+
+    ScopedMem record_mem("setup::problem");
+    ScopedProfiling profile_this{"setup::problem"};
+
+    CELER_VALIDATE(!imported.optical_materials.empty(),
+                   << "an optical tracking loop was requested but no optical "
+                      "materials are present");
+
+    optical::CoreParams::Input pi;
+
+    // Per-process state sizes
+    pi.capacity = p.capacity;
+
+    // Create action manager and generator registry
+    pi.action_reg = std::make_shared<ActionRegistry>();
+    pi.gen_reg = std::make_shared<GeneratorRegistry>();
+
+    // Load geometry and model
+    if (auto* filename = std::get_if<std::string>(&p.model.geometry))
+    {
+        CELER_VALIDATE(!filename->empty(),
+                       << "empty filename in problem.model.geometry");
+    }
+    auto loaded_model = setup::model(p.model);
+    pi.geometry = std::move(loaded_model.geometry);
+    pi.surface = std::move(loaded_model.surface);
+    CELER_VALIDATE(pi.surface && !pi.surface->disabled(),
+                   << "surfaces are required for optical physics");
+    if (pi.surface->empty())
+    {
+        CELER_LOG(warning) << "Problem contains optical physics without any "
+                              "geometry surface definitions: default physics "
+                              "will be used for all surfaces";
+    }
+
+    // Create materials and geometry/material coupling
+    auto material = MaterialParams::from_import(imported);
+    auto geomaterial = GeoMaterialParams::from_import(
+        imported, pi.geometry, loaded_model.volume, material);
+
+    // Create optical materials
+    pi.material = optical::MaterialParams::from_import(
+        imported, *geomaterial, *material);
+
+    // Construct RNG params
+    pi.rng = std::make_shared<RngParams>(p.seed);
+
+    // Construct simulation params
+    pi.sim = std::make_shared<optical::SimParams>(p.limits);
+
+    // Set up streams
+    CELER_VALIDATE(p.num_streams > 0,
+                   << "p.num_streams must be manually set before setup");
+    pi.max_streams = p.num_streams;
+    if (auto& device = celeritas::device())
+    {
+        device.create_streams(pi.max_streams);
+    }
+
+    // Construct optical bulk physics models
+    pi.physics = optical::PhysicsParams::from_import(
+        imported, material, pi.material, pi.action_reg);
+
+    // Construct optical surface physics models
+    pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
+        pi.action_reg.get(), p.physics.surfaces);
+
+    // Add photon generating processes
+    if (p.physics.cherenkov)
+    {
+        pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
+    }
+    if (p.physics.scintillation)
+    {
+        auto particle = ParticleParams::from_import(imported);
+        pi.scintillation = ScintillationParams::from_import(imported, particle);
+        CELER_ASSERT(pi.scintillation);
+    }
+
+    //! \todo Get sensitive detectors
+
+    CELER_ASSERT(pi);
+    auto params = std::make_shared<optical::CoreParams>(std::move(pi));
+
+    // Construct the optical generator
+    std::visit(Overload{
+                   [&](inp::OpticalEmGenerator) {
+                       CELER_VALIDATE(false,
+                                      << "OpticalEmGenerator cannot be used "
+                                         "with only optical physics enabled");
+                   },
+                   [&](inp::OpticalOffloadGenerator) {
+                       optical::GeneratorAction::make_and_insert(
+                           *params, p.capacity.generators);
+                   },
+                   [&](inp::OpticalPrimaryGenerator opg) {
+                       optical::PrimaryGeneratorAction::make_and_insert(
+                           *params, std::move(opg));
+                   },
+                   [&](inp::OpticalDirectGenerator) {
+                       optical::DirectGeneratorAction::make_and_insert(*params);
+                   },
+               },
+               p.generator);
+
+    OpticalProblemLoaded result;
+
+    // Build the optical transporter \em after all optical actions have been
+    // added to the registry
+    optical::Transporter::Input ti;
+    if (p.timers.action)
+    {
+        // Create aux data to accumulate optical action times
+        ti.action_times = ActionTimes::make_and_insert(
+            params->action_reg(), params->aux_reg(), "optical-action-times");
+    }
+    ti.params = std::move(params);
+    result.transporter = std::make_shared<optical::Transporter>(std::move(ti));
+
+    CELER_ENSURE(result.transporter);
     return result;
 }
 

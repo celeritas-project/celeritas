@@ -23,7 +23,6 @@ class ScopedGeantExceptionHandler;
 
 namespace app
 {
-class ExceptionHandler;
 class GeantDiagnostics;
 //---------------------------------------------------------------------------//
 /*!
@@ -62,14 +61,12 @@ class RunAction final : public G4UserRunAction
     SPParams params_;
     SPTransporter transport_;
     SPDiagnostics diagnostics_;
-    std::shared_ptr<ExceptionHandler> exception_handler_;
     bool init_shared_;
     Stopwatch get_transport_time_;
-    G4VExceptionHandler* orig_eh_{nullptr};
 
     // Thread-local Geant4 logging and exception redirect
     std::unique_ptr<ScopedGeantLogger> scoped_log_;
-    std::unique_ptr<ScopedGeantExceptionHandler> scoped_except_;
+    std::shared_ptr<ScopedGeantExceptionHandler> local_eh_;
 };
 
 //---------------------------------------------------------------------------//

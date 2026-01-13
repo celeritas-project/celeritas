@@ -24,6 +24,7 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
+  CheckedGeoTrackView.cc
   LazyGeantGeoManager.cc
   GeantImportVolumeResult.cc
   GenericGeoResults.cc
@@ -33,7 +34,6 @@ set(SOURCES
   VolumeTestBase.cc
 )
 
-set(PRIVATE_DEPS ${testcel_core} Celeritas::ExtGeant4Geo)
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   list(APPEND SOURCES
     g4/GeantGeoTestBase.cc
@@ -43,14 +43,13 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     vg/VecgeomTestBase.cc
   )
-  list(APPEND PRIVATE_DEPS Celeritas::ExtVecGeom)
 endif()
 
 celeritas_add_test_library(testcel_geocel ${SOURCES})
 
 celeritas_target_link_libraries(testcel_geocel
   PUBLIC testcel_harness Celeritas::geocel
-  PRIVATE ${PRIVATE_DEPS}
+  PRIVATE testcel_core Celeritas::ExtGeant4Geo Celeritas::ExtVecGeom
 )
 
 #-----------------------------------------------------------------------------#
@@ -71,52 +70,62 @@ celeritas_add_test(BoundingBox.test.cc
 celeritas_add_test(Surface.test.cc)
 celeritas_add_test(Volume.test.cc)
 
-celeritas_add_test(random/IsotropicDistribution.test.cc)
-celeritas_add_test(random/UniformBoxDistribution.test.cc)
-
 #-----------------------------------------------------------------------------#
 # VecGeom
 
 if(CELERITAS_USE_VecGeom)
   # Vecgeom uses global counters that interfere with copying data to GPU and
-  # change the internal numbering.
-  set(_vecgeom_tests)
-  if(VecGeom_GDML_FOUND)
-    list(APPEND _vecgeom_tests
-      "TwoBoxesVgdmlTest.*"
-      "SimpleCmsVgdmlTest.*"
-      "FourLevelsVgdmlTest.*"
-      # Polyhedra doesn't work because of anonymous position tags
+  # change the internal numbering. Run all tests separately using a filter,
+  # first constructing a list of tests that *could* be run.
+  set(_vgdml_tests
+    "TwoBoxesVgdml"
+  )
+  set(_g4vg_tests
+    "AtlasHgtd"
+    "CmsEeBackDee"
+    "Cmse"
+    "FourLevels"
+    "LarSphere"
+    "MultiLevel"
+    "Polyhedra"
+    "Replica"
+    "SimpleCms"
+    "Solids"
+    "TransformedBox"
+    "Znenv"
+  )
+  set(_vecgeom_test_filter FILTER)
+  foreach(_test IN LISTS _vgdml_tests _g4vg_tests)
+    list(APPEND _vecgeom_test_filter "${_test}Test.*")
+  endforeach()
+
+  # Now build a list of tests that *can't* successfully run
+  set(_vecgeom_disable)
+  if(NOT VecGeom_GDML_FOUND)
+    list(APPEND _vecgeom_disable ${_vgdml_tests})
+  endif()
+
+  if(NOT CELERITAS_USE_Geant4)
+    list(APPEND _vecgeom_disable ${_g4vg_tests})
+  elseif(CELERITAS_VecGeom_SURFACE)
+    list(APPEND _vecgeom_disable
+      Solids # Missing shapes
     )
-    if(NOT VecGeom_SURF_FOUND)
-      list(APPEND _vecgeom_tests "SolidsVgdmlTest.*" "MultiLevelVgdmlTest.*")
-    endif()
   endif()
-  if(CELERITAS_USE_Geant4)
-    list(APPEND _vecgeom_tests
-      "AtlasHgtdTest.*"
-      "CmseTest.*"
-      "CmsEeBackDeeTest.*"
-      "FourLevelsTest.*"
-      "MultiLevelTest.*"
-      "PolyhedraTest.*"
-      "ReplicaTest.*"
-      "TransformedBoxTest.*"
-      "ZnenvTest.*"
+
+  if(_vecgeom_disable)
+    # Turn list of tests into (A|B|C)
+    list(JOIN _vecgeom_disable "|" _joined_bits)
+    list(APPEND _vecgeom_test_filter
+      DISABLE_FILTER_REGEX "^(${_joined_bits})Test.*"
     )
-    if(NOT VecGeom_SURF_FOUND)
-      list(APPEND _vecgeom_tests "SolidsTest.*")
-    endif()
   endif()
-  if(NOT _vecgeom_tests)
-    # Bad: no way of setting up geometry!
-    set(_vecgeom_tests DISABLE)
-  endif()
+
   celeritas_add_device_test(vg/Vecgeom
     LINK_LIBRARIES
       VecGeom::vecgeom Celeritas::ExtGeant4Geo Celeritas::ExtThrust
       nlohmann_json::nlohmann_json
-    FILTER ${_vecgeom_tests}
+    ${_vecgeom_test_filter}
     ${_fixme_cgs}
   )
 endif()
@@ -135,6 +144,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   # These all require the Geant4 geometry wrappers which only are built when
   # double-precision is enabled
   celeritas_add_test(g4/GeantGeo.test.cc)
+  celeritas_add_test(g4/GeantNavHistoryUpdater.test.cc)
   celeritas_add_test(GeantGeoUtils.test.cc)
 endif()
 list(POP_BACK CELERITASTEST_LINK_LIBRARIES)

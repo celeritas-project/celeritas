@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "LazyGeantGeoManager.hh"
 
-#include <iostream>
-
 #include "corecel/io/StringUtils.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
@@ -85,9 +83,7 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
             // This is called *unless* the user has manually cleared the
             // secondary geometry and reloads from the same Geant4 geo
             pgeant_geo.lazy_update(basename, [&]() {
-                std::clog << "Loading Geant4 geometry at " << filename;
                 auto result = this->build_geant_geo(filename);
-                std::clog << " ... done" << std::endl;
                 auto volumes = std::make_shared<VolumeParams const>(
                     result->make_model_input().volumes);
                 persistent_volumes().set(basename, std::move(volumes));
@@ -165,18 +161,6 @@ auto LazyGeantGeoManager::volumes() const -> SPConstVolumes
         return pgg.value();
     }
     return nullptr;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reset the secondary geometry manually.
- *
- * This is needed by AllGeoTypedTestBase, where multiple versions of the same
- * Geant4 geometry are loaded in a single test.
- */
-void LazyGeantGeoManager::clear_lazy_geo()
-{
-    persistent_geo().clear();
 }
 
 //---------------------------------------------------------------------------//

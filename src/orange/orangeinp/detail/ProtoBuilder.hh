@@ -24,19 +24,11 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Manage data about the universe construction.
+ * Manage data and state during the universe construction.
  *
- * On construction this builds a breadth-first ordered list of protos:
- * the input "global" universe will always be at the front of the list, and
- * universes may only depend on a universe with a larger ID.
- *
- * This is passed to \c ProtoInterface::build. It acts like a two-way map
- * between universe IDs and pointers to Proto interfaces. It \em must not
- * exceed the lifetime of any of the protos.
- *
- * The bounding box for a universe starts as "null" and is expanded by the
- * universes that use it: this allows, for example, different masked components
- * of an array to be used in multiple universes.
+ * This is a helper class passed to UnitProto::build which manages data for the
+ * UnitProto -> OrangeInput build process. It also maintains the universe ID
+ * of the current universe being constructed.
  */
 class ProtoBuilder
 {
@@ -44,7 +36,7 @@ class ProtoBuilder
     //!@{
     //! \name Type aliases
     using Tol = Tolerance<>;
-    using SaveUnivJson = std::function<void(UniverseId, JsonPimpl&&)>;
+    using SaveUnivJson = std::function<void(UnivId, JsonPimpl&&)>;
     //!@}
 
     //! Input options for construction
@@ -67,16 +59,16 @@ class ProtoBuilder
     bool save_json() const { return static_cast<bool>(save_json_); }
 
     // Find a universe ID
-    inline UniverseId find_universe_id(ProtoInterface const*) const;
+    inline UnivId find_universe_id(ProtoInterface const*) const;
 
-    // Get the next universe ID
-    inline UniverseId next_id() const;
+    // Get the UniverseId of the universe currently being built
+    inline UnivId current_uid() const;
 
-    // Get the bounding box of a universe
-    inline BBox const& bbox(UniverseId) const;
-
-    // Expand the bounding box of a universe
-    void expand_bbox(UniverseId, BBox const& local_box);
+    // Whether or not the current universe is the global universe
+    bool is_global_universe() const
+    {
+        return this->current_uid() == orange_global_univ;
+    }
 
     // Save debugging data for a universe
     void save_json(JsonPimpl&&) const;
@@ -88,7 +80,10 @@ class ProtoBuilder
     OrangeInput* inp_;
     ProtoMap const& protos_;
     SaveUnivJson save_json_;
-    std::vector<BBox> bboxes_;
+    size_type num_univs_;
+
+    // State variables
+    size_type num_univs_inserted_{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -97,28 +92,19 @@ class ProtoBuilder
 /*!
  * Find a universe ID.
  */
-UniverseId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
+UnivId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
 {
     return protos_.find(p);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the next universe ID.
+ * Get the UniverseId of the universe currently being built.
  */
-UniverseId ProtoBuilder::next_id() const
+UnivId ProtoBuilder::current_uid() const
 {
-    return id_cast<UniverseId>(inp_->universes.size());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the bounding box of a universe.
- */
-BBox const& ProtoBuilder::bbox(UniverseId univ_id) const
-{
-    CELER_EXPECT(univ_id < bboxes_.size());
-    return bboxes_[univ_id.get()];
+    CELER_EXPECT(num_univs_inserted_ < num_univs_);
+    return UnivId{num_univs_ - num_univs_inserted_ - 1};
 }
 
 //---------------------------------------------------------------------------//

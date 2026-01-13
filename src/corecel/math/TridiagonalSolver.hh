@@ -21,13 +21,15 @@ namespace celeritas
  *
  * This is a simplified form of Gaussian elimination that can solve a
  * tridiagonal system \f$ \mathbf{T} \mathbf{x} = \mathbf{b} \f$ in O(n) time.
+ *
+ * The class is meant for use during setup (originally for the calculation of
+ * spline coefficients) and cannot be used on device.
  */
 class TridiagonalSolver
 {
   public:
     //!@{
     //! \name Type aliases
-    using Real3 = Array<real_type, 3>;
     using Coeffs = std::vector<Real3>;
     using SpanConstReal = Span<real_type const>;
     using SpanReal = Span<real_type>;

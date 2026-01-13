@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "celeritas/inp/Grid.hh"
+#include "corecel/inp/Grid.hh"
 
 namespace celeritas
 {
@@ -27,7 +27,9 @@ enum class ImportModelClass
     rayleigh,
     wls,
     wls2,
+    mie,
     size_
+
 };
 
 //---------------------------------------------------------------------------//

@@ -6,14 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 
-#include <string_view>
-
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
-#include "corecel/cont/Span.hh"
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
@@ -53,30 +51,19 @@ auto const vecgeom_version
 }  // namespace
 
 //---------------------------------------------------------------------------//
-// TEST HARNESSES
+// VGDML TESTS
 //---------------------------------------------------------------------------//
-class VecgeomTestBaseImpl : public VecgeomTestBase
-{
-  public:
-    using SpanStringView = Span<std::string_view const>;
 
-    virtual SpanStringView expected_log_levels() const { return {}; }
-
-    //! Get the safety tolerance: lower for surface geo
-    real_type safety_tol() const override
-    {
-        if (CELERITAS_VECGEOM_SURFACE)
-            return 5e-5;
-        return VecgeomTestBase::safety_tol();
-    }
-};
-
-//! Load a geometry using VecGeom's GDML reader
-class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
+//! Load a geometry using VecGeom's semi-deprecated GDML reader
+class VecgeomVgdmlTestBase : public VecgeomTestBase
 {
   public:
     SPConstGeo build_geometry() const final
     {
+        using namespace celeritas::cmake;
+        cout << color_code('x') << "VecGeom " << cmake::vecgeom_version << " ("
+             << vecgeom_options << ") using VGDML" << color_code(' ') << endl;
+
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
         std::string filename{this->gdml_basename()};
@@ -89,82 +76,157 @@ class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
     }
 };
 
-//! Load a geometry using G4VG
-class VecgeomGeantTestBase : public VecgeomTestBaseImpl
+class TwoBoxesVgdmlTest
+    : public GenericGeoParameterizedTest<VecgeomVgdmlTestBase, TwoBoxesGeoTest>
 {
-  public:
-    using GeantVolResult = GeantImportVolumeResult;
-
-    //! Construct via persistent geant_geo; see LazyGeantGeoManager
-    SPConstGeo build_geometry() const final
-    {
-        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
-                                    LogLevel::warning};
-        auto result = VecgeomTestBaseImpl::build_geometry();
-        EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
-            << scoped_log_;
-        return result;
-    }
-
-    //! Test conversion for Geant4 geometry
-    GeantVolResult get_import_geant_volumes()
-    {
-        return GeantVolResult::from_import(*this->geometry());
-    }
-
-    //! Test conversion for Geant4 geometry
-    GeantVolResult get_direct_geant_volumes()
-    {
-        return GeantVolResult::from_pointers(*this->geometry());
-    }
-
-    SpanStringView expected_log_levels() const override { return {}; }
 };
 
-//---------------------------------------------------------------------------//
-// VGDML TESTS
-//---------------------------------------------------------------------------//
-
-using FourLevelsVgdmlTest
-    = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, FourLevelsGeoTest>;
-
-TEST_F(FourLevelsVgdmlTest, accessors)
+TEST_F(TwoBoxesVgdmlTest, accessors)
 {
     this->impl().test_accessors();
 }
 
-TEST_F(FourLevelsVgdmlTest, consecutive_compute)
+TEST_F(TwoBoxesVgdmlTest, detailed_track)
 {
-    auto geo = this->make_geo_track_view({-9, -10, -10}, {1, 0, 0});
-    ASSERT_FALSE(geo.is_outside());
-    EXPECT_EQ("Shape2", this->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
-
-    auto next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
-
-    next = geo.find_next_step(from_cm(10.0));
-    EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
-
-    // Find safety from a freshly initialized state
-    geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), safety_tol());
+    this->impl().test_detailed_tracking();
 }
 
-TEST_F(FourLevelsVgdmlTest, detailed_track)
+TEST_F(TwoBoxesVgdmlTest, reentrant)
 {
-    // Templated test
-    FourLevelsGeoTest::test_detailed_tracking(this);
+    this->impl().test_reentrant();
 }
 
-TEST_F(FourLevelsVgdmlTest, trace)
+TEST_F(TwoBoxesVgdmlTest, reentrant_undo)
+{
+    this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesVgdmlTest, tangent)
+{
+    this->impl().test_tangent();
+}
+
+TEST_F(TwoBoxesVgdmlTest, trace)
 {
     this->impl().test_trace();
 }
 
-TEST_F(FourLevelsVgdmlTest, safety)
+//---------------------------------------------------------------------------//
+// G4VG TESTS
+//---------------------------------------------------------------------------//
+
+using GeantVecgeomTest = VecgeomTestBase;
+
+//---------------------------------------------------------------------------//
+
+using AtlasHgtdTest
+    = GenericGeoParameterizedTest<GeantVecgeomTest, AtlasHgtdGeoTest>;
+
+TEST_F(AtlasHgtdTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(AtlasHgtdTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+TEST_F(AtlasHgtdTest, detailed_track)
+{
+    this->impl().test_detailed_tracking();
+}
+
+//---------------------------------------------------------------------------//
+
+using CmsEeBackDeeTest
+    = GenericGeoParameterizedTest<GeantVecgeomTest, CmsEeBackDeeGeoTest>;
+
+TEST_F(CmsEeBackDeeTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(CmsEeBackDeeTest, trace)
+{
+    this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+
+using CmseTest = GenericGeoParameterizedTest<GeantVecgeomTest, CmseGeoTest>;
+
+TEST_F(CmseTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(CmseTest, imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-550, 0, -4000});
+    inp.upper_right = from_cm({550, 0, 2000});
+    inp.rightward = {0.0, 0.0, 1.0};
+    inp.vertical_pixels = 8;
+
+    std::string prefix = "vg";
+    if (VecgeomParams::use_surface_tracking())
+    {
+        prefix += "surf";
+    }
+
+    write_image(ImageParams{inp}, prefix + "-cmse.jsonl");
+}
+
+//---------------------------------------------------------------------------//
+
+using FourLevelsTest
+    = GenericGeoParameterizedTest<GeantVecgeomTest, FourLevelsGeoTest>;
+
+TEST_F(FourLevelsTest, accessors)
+{
+    this->impl().test_accessors();
+}
+
+TEST_F(FourLevelsTest, consecutive_compute)
+{
+    this->impl().test_consecutive_compute();
+}
+
+TEST_F(FourLevelsTest, detailed_track)
+{
+    this->impl().test_detailed_tracking();
+}
+
+TEST_F(FourLevelsTest, levels)
+{
+    auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
+    EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->unique_volume_name(geo));
+    geo.find_next_step();
+    geo.move_to_boundary();
+    geo.cross_boundary();
+
+    EXPECT_EQ("World_PV/env1/Shape1", this->unique_volume_name(geo));
+    geo.find_next_step();
+    geo.move_to_boundary();
+    geo.cross_boundary();
+
+    EXPECT_EQ("World_PV/env1", this->unique_volume_name(geo));
+    geo.find_next_step();
+    geo.move_to_boundary();
+    geo.cross_boundary();
+
+    EXPECT_EQ("World_PV", this->unique_volume_name(geo));
+    geo.find_next_step();
+    geo.move_to_boundary();
+    geo.cross_boundary();
+
+    EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
+}
+
+TEST_F(FourLevelsTest, safety)
 {
     auto geo = this->make_geo_track_view();
     std::vector<real_type> safeties;
@@ -183,6 +245,8 @@ TEST_F(FourLevelsVgdmlTest, safety)
         }
     }
 
+    auto const safety_tol = this->tracking_tol().safety;
+
     static double const expected_safeties[] = {
         2.9,
         0.9,
@@ -196,14 +260,19 @@ TEST_F(FourLevelsVgdmlTest, safety)
         1.1,
         3.1,
     };
-    EXPECT_VEC_NEAR(expected_safeties, safeties, safety_tol());
+    EXPECT_VEC_NEAR(expected_safeties, safeties, safety_tol);
 
     static double const expected_lim_safeties[]
         = {1.5, 0.9, 0.1, 1.5, 1.5, 1.5, 1.3626933041054, 1.5, 0.1, 1.1, 1.5};
-    EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, safety_tol());
+    EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, safety_tol);
 }
 
-TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
+TEST_F(FourLevelsTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 {
     using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
 
@@ -239,44 +308,103 @@ TEST_F(FourLevelsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
 }
 
 //---------------------------------------------------------------------------//
+using LarSphereTest
+    = GenericGeoParameterizedTest<GeantVecgeomTest, LarSphereGeoTest>;
 
-using MultiLevelVgdmlTest
-    = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, MultiLevelGeoTest>;
+TEST_F(LarSphereTest, trace)
+{
+    this->impl().test_trace();
+}
 
-TEST_F(MultiLevelVgdmlTest, volume_stack)
+TEST_F(LarSphereTest, volume_stack)
 {
     this->impl().test_volume_stack();
 }
 
-TEST_F(MultiLevelVgdmlTest, trace)
+//---------------------------------------------------------------------------//
+
+using MultiLevelTest
+    = GenericGeoParameterizedTest<VecgeomTestBase, MultiLevelGeoTest>;
+
+TEST_F(MultiLevelTest, trace)
+{
+    TestImpl(this).test_trace();
+}
+
+TEST_F(MultiLevelTest, volume_level)
+{
+    this->impl().test_volume_level();
+}
+
+TEST_F(MultiLevelTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+//---------------------------------------------------------------------------//
+
+using PolyhedraTest
+    = GenericGeoParameterizedTest<GeantVecgeomTest, PolyhedraGeoTest>;
+
+TEST_F(PolyhedraTest, trace)
 {
     TestImpl(this).test_trace();
 }
 
 //---------------------------------------------------------------------------//
-
-using SimpleCmsVgdmlTest
-    = GenericGeoParameterizedTest<VecgeomVgdmlTestBase, SimpleCmsGeoTest>;
-
-TEST_F(SimpleCmsVgdmlTest, accessors)
+class ReplicaTest
+    : public GenericGeoParameterizedTest<GeantVecgeomTest, ReplicaGeoTest>
 {
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
-    EXPECT_EQ(7, geom.impl_volumes().size());
-}
+    //! Get the safety tolerance: lower for surface geo
+    GenericGeoTrackingTolerance tracking_tol() const override
+    {
+        auto result = VecgeomTestBase::tracking_tol();
 
-TEST_F(SimpleCmsVgdmlTest, trace)
+        // ~1e-12 discrepancy for some traces (when avx2 is enabled?)
+        result.distance *= 10;
+
+        if (CELERITAS_VECGEOM_SURFACE)
+        {
+            result.safety = 5e-5;
+        }
+        return result;
+    }
+};
+
+TEST_F(ReplicaTest, trace)
 {
+    if (using_solids_vg && vecgeom_version >= Version{2, 0})
+    {
+        // VecGeom 2.x-solid has small discrepancies in replica tracking
+        GTEST_SKIP() << "FIXME: VecGeom 2.x-solid: check ReplicaTest geom "
+                        "construction.";
+    }
     this->impl().test_trace();
 }
 
-TEST_F(SimpleCmsVgdmlTest, detailed_track)
+TEST_F(ReplicaTest, volume_stack)
 {
-    // Templated test
-    SimpleCmsGeoTest::test_detailed_tracking(this);
+    this->impl().test_volume_stack();
 }
 
-TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
+//---------------------------------------------------------------------------//
+
+using SimpleCmsTest
+    = GenericGeoParameterizedTest<VecgeomTestBase, SimpleCmsGeoTest>;
+
+TEST_F(SimpleCmsTest, accessors)
+{
+    auto const& geom = *this->geometry();
+    EXPECT_EQ(2, geom.num_volume_levels());
+    EXPECT_EQ(7, geom.impl_volumes().size());
+}
+
+TEST_F(SimpleCmsTest, detailed_track)
+{
+    this->impl().test_detailed_tracking();
+}
+
+TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_CUDA(device))
 {
     using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
 
@@ -350,262 +478,41 @@ TEST_F(SimpleCmsVgdmlTest, TEST_IF_CELERITAS_CUDA(device))
     EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
 }
 
-//---------------------------------------------------------------------------//
-
-class SolidsVgdmlTest
-    : public GenericGeoParameterizedTest<VecgeomVgdmlTestBase, SolidsGeoTest>
-{
-    SpanStringView expected_log_levels() const final
-    {
-        if (vecgeom_version >= Version{2})
-        {
-            static std::string_view const levels[] = {"warning", "warning"};
-            return make_span(levels);
-        }
-        else
-        {
-            return {};
-        }
-    }
-};
-
-TEST_F(SolidsVgdmlTest, DISABLED_dump)
-{
-    this->geometry();
-    auto const& geomgr = vecgeom::GeoManager::Instance();
-    auto const* world = geomgr.GetWorld();
-    CELER_ASSERT(world);
-    world->PrintContent();
-}
-
-TEST_F(SolidsVgdmlTest, accessors)
-{
-    if (vecgeom_version <= Version(1, 1, 17))
-    {
-        FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
-    }
-
-    auto const& geom = *this->geometry();
-    EXPECT_EQ(2, geom.max_depth());
-
-    if (vecgeom_version < Version(1, 2, 2))
-    {
-        ADD_FAILURE()
-            << "VecGeom " << vecgeom_version
-            << " is missing features: upgrade to 1.2.2 to pass this test";
-    }
-
-    auto const& bbox = geom.bbox();
-    EXPECT_VEC_SOFT_EQ((Real3{-600.001, -300.001, -75.001}),
-                       to_cm(bbox.lower()));
-    EXPECT_VEC_SOFT_EQ((Real3{600.001, 300.001, 75.001}), to_cm(bbox.upper()));
-}
-
-TEST_F(SolidsVgdmlTest, output)
-{
-    GeoParamsOutput out(this->geometry());
-    EXPECT_EQ("geometry", out.label());
-
-    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl@0"]}})json",
-            to_string(out));
-    }
-}
-
-TEST_F(SolidsVgdmlTest, reflected_vol)
-{
-    auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
-    auto const& label
-        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
-    // Note: through GDML there is only one trd3_refl
-    EXPECT_EQ("trd3_refl", label.name);
-    EXPECT_FALSE(ends_with(label.ext, "_refl"));
-}
-
-//---------------------------------------------------------------------------//
-
-class TwoBoxesVgdmlTest
-    : public GenericGeoParameterizedTest<VecgeomVgdmlTestBase, TwoBoxesGeoTest>
-{
-};
-
-TEST_F(TwoBoxesVgdmlTest, accessors)
-{
-    this->impl().test_accessors();
-}
-
-TEST_F(TwoBoxesVgdmlTest, track)
-{
-    // Templated test
-    TwoBoxesGeoTest::test_detailed_tracking(this);
-}
-
-//---------------------------------------------------------------------------//
-// G4VG TESTS
-//---------------------------------------------------------------------------//
-using AtlasHgtdTest
-    = GenericGeoParameterizedTest<VecgeomGeantTestBase, AtlasHgtdGeoTest>;
-
-TEST_F(AtlasHgtdTest, trace)
-{
-    this->impl().test_trace();
-}
-
-TEST_F(AtlasHgtdTest, volume_stack)
-{
-    this->impl().test_volume_stack();
-}
-
-TEST_F(AtlasHgtdTest, detailed_track)
-{
-    // Templated test
-    AtlasHgtdGeoTest::test_detailed_tracking(this);
-}
-
-//---------------------------------------------------------------------------//
-
-using CmsEeBackDeeTest
-    = GenericGeoParameterizedTest<VecgeomGeantTestBase, CmsEeBackDeeGeoTest>;
-
-TEST_F(CmsEeBackDeeTest, accessors)
-{
-    this->impl().test_accessors();
-}
-
-TEST_F(CmsEeBackDeeTest, trace)
+TEST_F(SimpleCmsTest, trace)
 {
     this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
-
-using CmseTest = GenericGeoParameterizedTest<VecgeomGeantTestBase, CmseGeoTest>;
-
-TEST_F(CmseTest, trace)
-{
-    this->impl().test_trace();
-}
-
-TEST_F(CmseTest, imager)
-{
-    SafetyImager write_image{this->geometry()};
-
-    ImageInput inp;
-    inp.lower_left = from_cm({-550, 0, -4000});
-    inp.upper_right = from_cm({550, 0, 2000});
-    inp.rightward = {0.0, 0.0, 1.0};
-    inp.vertical_pixels = 8;
-
-    std::string prefix = "vg";
-    if (VecgeomParams::use_surface_tracking())
-    {
-        prefix += "surf";
-    }
-
-    write_image(ImageParams{inp}, prefix + "-cmse.jsonl");
-}
-
-//---------------------------------------------------------------------------//
-
-using FourLevelsTest
-    = GenericGeoParameterizedTest<VecgeomGeantTestBase, FourLevelsGeoTest>;
-
-TEST_F(FourLevelsTest, accessors)
-{
-    this->impl().test_accessors();
-}
-
-TEST_F(FourLevelsTest, trace)
-{
-    this->impl().test_trace();
-}
-
-TEST_F(FourLevelsTest, levels)
-{
-    auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-    EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("World_PV/env1/Shape1", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("World_PV/env1", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("World_PV", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
-}
-
-//---------------------------------------------------------------------------//
-
-using MultiLevelTest
-    = GenericGeoParameterizedTest<VecgeomGeantTestBase, MultiLevelGeoTest>;
-
-TEST_F(MultiLevelTest, volume_stack)
-{
-    this->impl().test_volume_stack();
-}
-
-TEST_F(MultiLevelTest, trace)
-{
-    this->impl().test_trace();
-}
-
-//---------------------------------------------------------------------------//
-
-using PolyhedraTest
-    = GenericGeoParameterizedTest<VecgeomGeantTestBase, PolyhedraGeoTest>;
-
-TEST_F(PolyhedraTest, trace)
-{
-    TestImpl(this).test_trace();
-}
-
-//---------------------------------------------------------------------------//
-class ReplicaTest
-    : public GenericGeoParameterizedTest<VecgeomGeantTestBase, ReplicaGeoTest>
-{
-    real_type safety_tol() const final
-    {
-        if (CELERITAS_VECGEOM_SURFACE)
-            return 1e-5;
-        return 1e-10;
-    }
-};
-
-TEST_F(ReplicaTest, trace)
-{
-    this->impl().test_trace();
-}
-
-TEST_F(ReplicaTest, volume_stack)
-{
-    this->impl().test_volume_stack();
-}
-
-//---------------------------------------------------------------------------//
-
 class SolidsTest
-    : public GenericGeoParameterizedTest<VecgeomGeantTestBase, SolidsGeoTest>
+    : public GenericGeoParameterizedTest<GeantVecgeomTest, SolidsGeoTest>
 {
   public:
+    static void SetUpTestSuite()
+    {
+        if (vecgeom_version < Version(1, 2, 2))
+        {
+            ADD_FAILURE()
+                << "VecGeom " << vecgeom_version
+                << " is missing features: upgrade to 1.2.2 to pass this test";
+        }
+    }
+
     // trd_refl is in the GDML *and* generated by ReflFactory
     SpanStringView expected_log_levels() const final
     {
         static std::string_view const levels[] = {"error"};
         return make_span(levels);
+    }
+
+    // VecGeom volume 1.2.10 boolean tracking disagrees ~1e-7 from Geant4
+    GenericGeoTrackingTolerance tracking_tol() const override
+    {
+        auto result = VecgeomTestBase::tracking_tol();
+
+        result.distance = 1e-7;
+        result.safety = 1e-7;
+        return result;
     }
 };
 
@@ -618,18 +525,6 @@ TEST_F(SolidsTest, DISABLED_dump)
 
 TEST_F(SolidsTest, accessors)
 {
-    if (vecgeom_version <= Version(1, 1, 17))
-    {
-        FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
-    }
-
-    if (vecgeom_version < Version(1, 2, 2))
-    {
-        ADD_FAILURE()
-            << "VecGeom " << vecgeom_version
-            << " is missing features: upgrade to 1.2.2 to pass this test";
-    }
-
     TestImpl(this).test_accessors();
 }
 
@@ -656,7 +551,7 @@ TEST_F(SolidsTest, output)
 TEST_F(SolidsTest, geant_volumes)
 {
     {
-        auto result = this->get_import_geant_volumes();
+        auto result = GeantImportVolumeResult::from_import(*this->geometry());
         static int const expected_volumes[] = {
             0,  1,  2,  3,  4,  5,  6,  7,  -1, 8,  9,  14, 15,
             16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29,
@@ -664,17 +559,6 @@ TEST_F(SolidsTest, geant_volumes)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_labels.size())
             << repr(result.missing_labels);
-    }
-    {
-        auto result = this->get_direct_geant_volumes();
-        static int const expected_volumes[] = {
-            0,  1,  2,  3,  4,  5,  6,  7,  -2, 8,  9,  14, 15,
-            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29,
-        };
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-
-        static char const* const expected_missing[] = {"trd3"};
-        EXPECT_VEC_EQ(expected_missing, result.missing_labels);
     }
 }
 
@@ -710,7 +594,7 @@ TEST_F(SolidsTest, imager)
 
 //---------------------------------------------------------------------------//
 using TransformedBoxTest
-    = GenericGeoParameterizedTest<VecgeomGeantTestBase, TransformedBoxGeoTest>;
+    = GenericGeoParameterizedTest<GeantVecgeomTest, TransformedBoxGeoTest>;
 
 TEST_F(TransformedBoxTest, accessors)
 {
@@ -723,8 +607,7 @@ TEST_F(TransformedBoxTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-using ZnenvTest
-    = GenericGeoParameterizedTest<VecgeomGeantTestBase, ZnenvGeoTest>;
+using ZnenvTest = GenericGeoParameterizedTest<GeantVecgeomTest, ZnenvGeoTest>;
 
 TEST_F(ZnenvTest, trace)
 {

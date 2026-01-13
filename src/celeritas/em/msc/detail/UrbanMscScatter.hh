@@ -38,10 +38,10 @@ namespace detail
 /*!
  * Sample angular change and lateral displacement with the Urban multiple
  * scattering model.
-
- * \note This code performs the same method as in
- * \c G4VMultipleScattering::AlongStepDoIt
- * and \c G4UrbanMscModel::SampleScattering of the Geant4 10.7 release.
+ *
+ * This code performs the same method as in \c
+ * G4VMultipleScattering::AlongStepDoIt and \c
+ * G4UrbanMscModel::SampleScattering of the Geant4 10.7 release.
  */
 class UrbanMscScatter
 {

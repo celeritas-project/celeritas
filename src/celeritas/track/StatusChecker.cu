@@ -23,7 +23,7 @@ namespace celeritas
 /*!
  * Execute with with the last action's ID and the state.
  */
-void StatusChecker::launch_impl(
+void StatusChecker::step_impl(
     CoreParams const& params,
     CoreState<MemSpace::device>& state,
     StatusStateRef<MemSpace::device> const& aux_state) const

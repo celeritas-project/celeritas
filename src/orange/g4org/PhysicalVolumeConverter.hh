@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "geocel/detail/LengthUnits.hh"
+#include "corecel/Config.hh"
 
 #include "Volume.hh"
 
@@ -18,6 +18,11 @@ class G4VPhysicalVolume;
 namespace celeritas
 {
 class GeantGeoParams;
+namespace inp
+{
+struct OrangeGeoFromGeant;
+}
+
 namespace g4org
 {
 //---------------------------------------------------------------------------//
@@ -34,20 +39,12 @@ class PhysicalVolumeConverter
     //! \name Type aliases
     using arg_type = G4VPhysicalVolume const&;
     using result_type = PhysicalVolume;
+    using Options = inp::OrangeGeoFromGeant;
     //!@}
-
-    //! Input options for the conversion
-    struct Options
-    {
-        //! Write output about volumes being converted
-        bool verbose{false};
-        //! Scale factor, customizable for unit testing
-        double scale{celeritas::lengthunits::millimeter};
-    };
 
   public:
     // Construct with options and parent geometry
-    PhysicalVolumeConverter(GeantGeoParams const& geo, Options options);
+    PhysicalVolumeConverter(GeantGeoParams const& geo, Options const& options);
 
     // Default destructor
     ~PhysicalVolumeConverter();
@@ -63,6 +60,25 @@ class PhysicalVolumeConverter
     std::unique_ptr<Data> data_;
 };
 
+//---------------------------------------------------------------------------//
+#if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
+struct PhysicalVolumeConverter::PhysicalVolumeConverter::Data
+{
+};
+
+inline PhysicalVolumeConverter::PhysicalVolumeConverter(GeantGeoParams const&,
+                                                        Options const&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline PhysicalVolumeConverter::~PhysicalVolumeConverter() {}
+
+inline auto PhysicalVolumeConverter::operator()(arg_type) -> result_type
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace g4org
 }  // namespace celeritas

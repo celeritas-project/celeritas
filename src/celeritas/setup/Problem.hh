@@ -14,11 +14,19 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 namespace inp
 {
+struct OpticalProblem;
 struct Problem;
 }  // namespace inp
 
+namespace optical
+{
+class Transporter;
+}  // namespace optical
+
+class ActionSequence;
 class CoreParams;
 class GeantSd;
+class OffloadWriter;
 class OpticalCollector;
 class RootFileManager;
 class StepCollector;
@@ -38,30 +46,38 @@ struct ProblemLoaded
 
     //! Step collector
     std::shared_ptr<StepCollector> step_collector;
-    //! Optical offload management
+    //! Combined EM and optical offload management
     std::shared_ptr<OpticalCollector> optical_collector;
     //! Geant4 SD interface
     std::shared_ptr<GeantSd> geant_sd;
     //! ROOT file manager
     std::shared_ptr<RootFileManager> root_manager;
-
+    //! Action sequence
+    std::shared_ptr<ActionSequence> actions;
     //!@}
 
     //!@{
     //! \name Temporary: to be used downstream
-    //! \todo These should be refactored: should be built in Problem
 
     //! Write offloaded primaries
-    std::string offload_file;
-    //! Write diagnostic output
-    std::string output_file;
-
+    std::shared_ptr<OffloadWriter> offload_writer;
     //!@}
+};
+
+//---------------------------------------------------------------------------//
+//! Result from loaded optical standalone input to be used in front-end apps
+struct OpticalProblemLoaded
+{
+    //! Optical-only problem setup
+    std::shared_ptr<optical::Transporter> transporter;
 };
 
 //---------------------------------------------------------------------------//
 // Set up the problem
 ProblemLoaded problem(inp::Problem const& p, ImportData const& imported);
+// Set up the optical-only problem
+OpticalProblemLoaded
+problem(inp::OpticalProblem const& p, ImportData const& imported);
 
 //---------------------------------------------------------------------------//
 }  // namespace setup

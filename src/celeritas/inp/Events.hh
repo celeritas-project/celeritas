@@ -8,8 +8,10 @@
 
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/inp/Distributions.hh"
 #include "geocel/Types.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -19,63 +21,41 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
-//! Generate at a single point
-struct PointShape
-{
-    Real3 pos{0, 0, 0};
-};
+//! Generate at a single energy value [MeV]
+using MonoenergeticDistribution = DeltaDistribution<double>;
 
-//! Sample uniformly in a box
-struct UniformBoxShape
-{
-    Real3 lower{0, 0, 0};
-    Real3 upper{0, 0, 0};
-};
+//! Choose an energy distribution for the primary generator
+using EnergyDistribution
+    = std::variant<MonoenergeticDistribution, NormalDistribution>;
+
+//---------------------------------------------------------------------------//
+//! Generate at a single point
+using PointDistribution = DeltaDistribution<Array<double, 3>>;
+
+// TODO: cylinder shape
+// TODO: shape with volume rejection
 
 //! Choose a spatial distribution for the primary generator
-using ShapeDistribution = std::variant<PointShape, UniformBoxShape>;
+using ShapeDistribution
+    = std::variant<PointDistribution, UniformBoxDistribution>;
 
 //---------------------------------------------------------------------------//
-//! Generate angles isotropically
-struct IsotropicAngle
-{
-};
-
 //! Generate angles in a single direction
-struct MonodirectionalAngle
-{
-    Real3 dir{0, 0, 1};
-};
+using MonodirectionalDistribution = DeltaDistribution<Array<double, 3>>;
 
 //! Choose an angular distribution for the primary generator
-using AngleDistribution = std::variant<IsotropicAngle, MonodirectionalAngle>;
-
-//---------------------------------------------------------------------------//
-//! Generate primaries at a single energy value
-struct Monoenergetic
-{
-    units::MevEnergy energy;
-};
-
-//! Choose an angular distribution for the primary generator
-using EnergyDistribution = Monoenergetic;
+using AngleDistribution
+    = std::variant<MonodirectionalDistribution, IsotropicDistribution>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate from a hardcoded distribution of primary particles.
- *
- * \todo Units?
  */
 struct PrimaryGenerator
 {
-    //! Number of events to generate
-    size_type num_events{};
-    //! Number of primaries per event
-    size_type primaries_per_event{};
-
-    //! Distribution for sampling source position
+    //! Distribution for sampling spatial component (position)
     ShapeDistribution shape;
-    //! Distribution for sampling source direction
+    //! Distribution for sampling angular component (direction)
     AngleDistribution angle;
     //! Distribution for sampling source energy
     EnergyDistribution energy;
@@ -85,28 +65,81 @@ struct PrimaryGenerator
 /*!
  * Generate particles in the core stepping loop.
  *
- * \todo Allow programmatic setting from particle ID as well
+ * \todo move num_events to StandaloneInput
+ * \todo Allow programmatic setting from particle ID as well:
  * \code using Particle = std::variant<PDGNumber, ParticleId>; \endcode
  */
 struct CorePrimaryGenerator : PrimaryGenerator
 {
+    //! Number of events to generate
+    size_type num_events{};
+    //! Number of primaries per event
+    size_type primaries_per_event{};
+
     //! Random number seed
     unsigned int seed{};
     //! Sample evenly from this vector of particle types
     std::vector<PDGNumber> pdg;
+
+    //! True if there's at least one primary
+    explicit operator bool() const
+    {
+        return num_events > 0 && primaries_per_event > 0 && !pdg.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical photon primary particles.
  *
- * \todo Optionally sample within a set of volumes for shape distribution?
- * \todo Time? Polarization?
+ * \note The sampled optical photon primaries are unpolarized.
  */
-using OpticalPrimaryGenerator = PrimaryGenerator;
+struct OpticalPrimaryGenerator : PrimaryGenerator
+{
+    //! Total number of primaries
+    size_type primaries{};
+
+    //! True if there's at least one primary
+    explicit operator bool() const { return primaries > 0; }
+};
 
 //---------------------------------------------------------------------------//
-//! Sample random events from an input file
+/*!
+ * Generate optical photons from EM particles in Celeritas.
+ */
+struct OpticalEmGenerator
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate optical photons from offloaded distribution data.
+ */
+struct OpticalOffloadGenerator
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate optical photons directly from optical track initializers.
+ */
+struct OpticalDirectGenerator
+{
+};
+
+//---------------------------------------------------------------------------//
+//! Mechanism for generating optical photons
+using OpticalGenerator = std::variant<OpticalEmGenerator,
+                                      OpticalOffloadGenerator,
+                                      OpticalPrimaryGenerator,
+                                      OpticalDirectGenerator>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample random events from an input file.
+ *
+ * \todo move num_events to StandaloneInput
+ */
 struct SampleFileEvents
 {
     //! Total number of events to sample

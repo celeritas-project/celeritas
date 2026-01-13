@@ -10,6 +10,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
 
 #include "celeritas_test.hh"
@@ -50,16 +52,13 @@ TEST(EnvironmentTest, local)
 
 TEST(EnvironmentTest, global)
 {
+    environment() = {};
     EXPECT_EQ("", getenv("ENVTEST_EMPTY"));
 
     EXPECT_EQ((GetenvFlagResult{false, false}),
               getenv_flag("ENVTEST_ZERO", false));
     EXPECT_EQ((GetenvFlagResult{true, false}),
               getenv_flag("ENVTEST_ONE", false));
-    EXPECT_EQ((GetenvFlagResult{false, true}),
-              getenv_flag("ENVTEST_EMPTY", false));
-    EXPECT_EQ((GetenvFlagResult{true, true}),
-              getenv_flag("ENVTEST_EMPTY", true));
     EXPECT_EQ((GetenvFlagResult{true, true}),
               getenv_flag("ENVTEST_NEW_T", true));
     EXPECT_EQ((GetenvFlagResult{false, true}),
@@ -76,6 +75,91 @@ TEST(EnvironmentTest, global)
               getenv_flag("ENVTEST_FALSE", false));
     EXPECT_EQ((GetenvFlagResult{true, false}),
               getenv_flag("ENVTEST_TRUE", false));
+
+    environment().insert({"ENVTEST_AUTO", "auto"});
+    EXPECT_EQ((GetenvFlagResult{true, true}),
+              getenv_flag("ENVTEST_AUTO", true));
+    EXPECT_EQ((GetenvFlagResult{false, true}),
+              getenv_flag("ENVTEST_AUTO", false));
+
+    {
+        // Empty should act like auto
+        ScopedLogStorer scoped_log_{&world_logger()};
+        EXPECT_EQ((GetenvFlagResult{false, true}),
+                  getenv_flag("ENVTEST_EMPTY", false));
+        EXPECT_EQ((GetenvFlagResult{true, true}),
+                  getenv_flag("ENVTEST_EMPTY", true));
+        static char const* const expected_log_messages[] = {
+            R"(Already-set but empty environment value 'ENVTEST_EMPTY' is being ignored)",
+            R"(Already-set but empty environment value 'ENVTEST_EMPTY' is being ignored)"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning", "warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    }
+    {
+        // Invalid flag should also act like auto
+        ScopedLogStorer scoped_log_{&world_logger()};
+        environment().insert({"ENVTEST_NOTAFLAG", "notaflag"});
+        EXPECT_EQ((GetenvFlagResult{false, true}),
+                  getenv_flag("ENVTEST_NOTAFLAG", false));
+        EXPECT_EQ((GetenvFlagResult{true, true}),
+                  getenv_flag("ENVTEST_NOTAFLAG", true));
+        static char const* const expected_log_messages[] = {
+            R"(Invalid environment value ENVTEST_NOTAFLAG=notaflag (expected a flag): using default=0)",
+            R"(Invalid environment value ENVTEST_NOTAFLAG=notaflag (expected a flag): using default=1)"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning", "warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    }
+}
+
+TEST(EnvironmentTest, lazy)
+{
+    environment() = {};
+
+    // Set did_call to true and return its previous value
+    bool did_call{false};
+    auto get_default_false = [&did_call] {
+        did_call = true;
+        return false;
+    };
+    auto get_default_true = [&did_call] {
+        did_call = true;
+        return true;
+    };
+
+    EXPECT_EQ((GetenvFlagResult{false, false}),
+              getenv_flag_lazy("ENVTEST_ZERO", get_default_false));
+    EXPECT_FALSE(did_call);
+    EXPECT_EQ((GetenvFlagResult{false, true}),
+              getenv_flag_lazy("ENVTEST_NEW_F", get_default_false));
+    EXPECT_TRUE(did_call);
+    did_call = false;
+    EXPECT_EQ((GetenvFlagResult{true, true}),
+              getenv_flag_lazy("ENVTEST_NEW_T", get_default_true));
+    EXPECT_TRUE(did_call);
+    did_call = false;
+    EXPECT_EQ((GetenvFlagResult{true, false}),
+              getenv_flag_lazy("ENVTEST_NEW_T", get_default_true));
+    EXPECT_FALSE(did_call);
+}
+
+TEST(EnvironmentTest, global_overrides)
+{
+    auto& env = environment();
+
+    // Reset already-read variables
+    env = {};
+    // Override a system environment variable
+    EXPECT_TRUE(env.insert({"ENVTEST_ONE", "f"}));
+    // Check that getenv_flag works
+    EXPECT_EQ((GetenvFlagResult{false, false}),
+              getenv_flag("ENVTEST_ONE", true));
+
+    // This should pull from the system environment and store the saved result
+    EXPECT_EQ((GetenvFlagResult{false, false}),
+              getenv_flag("ENVTEST_ZERO", true));
+    EXPECT_TRUE(env.find("ENVTEST_ZERO") != env.cend());
 }
 
 TEST(EnvironmentTest, merge)
@@ -86,7 +170,16 @@ TEST(EnvironmentTest, merge)
     Environment input;
     input.insert({"FOO", "foo2"});
     input.insert({"BAZ", "baz"});
-    sys.merge(input);
+    {
+        ScopedLogStorer scoped_log_{&world_logger()};
+        sys.merge(input);
+        static char const* const expected_log_messages[] = {
+            R"(Ignoring new environment variable FOO=foo2: using existing value 'foo')",
+        };
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    }
 
     std::ostringstream os;
     os << sys;

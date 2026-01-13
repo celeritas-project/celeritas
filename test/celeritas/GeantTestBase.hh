@@ -60,10 +60,10 @@ class GeantTestBase : public ImportedDataTestBase
 
 //---------------------------------------------------------------------------//
 //! Print the current configuration
-struct PrintableBuildConf
+struct StreamableBuildConf
 {
 };
-std::ostream& operator<<(std::ostream& os, PrintableBuildConf const&);
+std::ostream& operator<<(std::ostream& os, StreamableBuildConf const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

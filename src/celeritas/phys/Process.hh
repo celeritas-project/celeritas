@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {

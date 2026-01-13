@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <set>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -19,6 +20,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Quantity.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 
 #include "Join.hh"
 
@@ -339,6 +341,34 @@ struct ReprTraits<std::pair<T1, T2>>
     }
 };
 
+//! Specialization for AtomicNumber
+template<>
+struct ReprTraits<AtomicNumber>
+{
+    using RT = ReprTraits<int>;
+
+    static void print_type(std::ostream& os, char const* name = nullptr)
+    {
+        os << "AtomicNumber";
+        if (name)
+        {
+            os << ' ' << name;
+        }
+    }
+
+    static void init(std::ostream& os) { RT::init(os); }
+
+    static void print_value(std::ostream& os, AtomicNumber const& value)
+    {
+        os << '{';
+        if (value)
+        {
+            RT::print_value(os, value.unchecked_get());
+        }
+        os << '}';
+    }
+};
+
 //! Specialization for OpaqueId
 template<class V, class S>
 struct ReprTraits<OpaqueId<V, S>>
@@ -443,6 +473,17 @@ struct ReprTraits<std::vector<T, A>>
     static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_container_type<value_type>(os, "std::vector", name);
+    }
+};
+
+template<class T>
+struct ReprTraits<std::set<T>> : public ContainerReprTraits<std::set<T>>
+{
+    using value_type = std::decay_t<T>;
+
+    static void print_type(std::ostream& os, char const* name = nullptr)
+    {
+        detail::print_container_type<value_type>(os, "std::set", name);
     }
 };
 

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "ImportedDataTestBase.hh"
 
+#include "geocel/SurfaceParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/io/ImportData.hh"
@@ -13,8 +14,10 @@
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
+#include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsOptions.hh"
@@ -174,6 +177,34 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
     }
 
     return std::make_shared<optical::PhysicsParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_optical_sim() -> SPConstOpticalSim
+{
+    return std::make_shared<optical::SimParams>(inp::OpticalTrackingLimits{});
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_optical_surface_physics()
+    -> SPConstOpticalSurfacePhysics
+{
+    inp::SurfacePhysics input;
+
+    // TODO: better input construction when we have actual data to import
+    for (auto s : range(PhysSurfaceId{this->surface()->num_surfaces() + 1}))
+    {
+        input.materials.push_back(std::vector<OptMatId>{});
+        input.roughness.polished.emplace(s, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(s, inp::FresnelReflection{});
+        input.interaction.dielectric.emplace(
+            s,
+            inp::DielectricInteraction::from_dielectric(
+                inp::ReflectionForm::from_spike()));
+    }
+
+    return std::make_shared<optical::SurfacePhysicsParams>(
+        this->optical_action_reg().get(), input);
 }
 
 //---------------------------------------------------------------------------//

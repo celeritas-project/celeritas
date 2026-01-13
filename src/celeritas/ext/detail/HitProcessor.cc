@@ -7,7 +7,6 @@
 #include "HitProcessor.hh"
 
 #include <cstddef>
-#include <string>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4LogicalVolume.hh>
@@ -28,14 +27,13 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/g4/Convert.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
 #include "LevelTouchableUpdater.hh"
-#include "NaviTouchableUpdater.hh"
 #include "../GeantUnits.hh"
 
 namespace celeritas
@@ -61,7 +59,7 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
         out, step_index, StepPoint::pre);
     auto post = LevelTouchableUpdater::volume_instances(
         out, step_index, StepPoint::post);
-    for (auto i : range(out.volume_instance_depth))
+    for (auto i : range(out.num_volume_levels))
     {
         if (pre[i] != post[i])
         {
@@ -91,7 +89,6 @@ get_step_status(DetectorStepOutput const& out, size_type step_index)
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
-                           SPConstCoreGeo const& geo,
                            VecParticle const& particles,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
@@ -103,7 +100,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
           && selection.points[StepPoint::post].volume_instance_ids}
 {
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
-    CELER_EXPECT(geo);
 
     // Even though this is created locally, all threads should be doing the
     // same thing
@@ -147,22 +143,12 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         }
         if (locate_touchable[p] && !update_touchable_)
         {
-            // Create touchable updater
-            if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-            {
-                // ORANGE doesn't yet support level reconstruction: see
-                // GeantSd.cc
-                CELER_EXPECT(selection.points[p].pos
-                             && selection.points[p].dir);
-                update_touchable_ = std::make_unique<NaviTouchableUpdater>(
-                    detector_volumes_);
-            }
-            else
-            {
-                CELER_EXPECT(selection.points[p].volume_instance_ids);
-                update_touchable_
-                    = std::make_unique<LevelTouchableUpdater>(geo);
-            }
+            CELER_EXPECT(selection.points[p].volume_instance_ids);
+            // FIXME: pass geant geo into this constructor
+            auto ggeo = ::celeritas::global_geant_geo().lock();
+            CELER_ASSERT(ggeo);
+            update_touchable_
+                = std::make_unique<LevelTouchableUpdater>(std::move(ggeo));
         }
     }
 

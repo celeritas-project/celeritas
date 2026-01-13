@@ -15,7 +15,7 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 set(_harness_sources
   AssertionHelper.cc
   Test.cc
-  testdetail/JsonComparer.json.cc
+  testdetail/JsonComparer.cc
   testdetail/NonMasterResultPrinter.cc
   testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
@@ -41,7 +41,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
   )
 endif()
 
-
 #-----------------------------------------------------------------------------#
 # TEST OPTIONS
 #-----------------------------------------------------------------------------#
@@ -60,6 +59,13 @@ else()
   set(_fixme_cgs DISABLE)
 endif()
 
+# Set up Geant4 environment variables for testing
+if(CELERITAS_USE_Geant4)
+  # Set environment variables from Geant4-exported configuration or
+  # environment currently used only for CTest setup
+  celeritas_get_g4env(CELER_G4ENV)
+endif()
+
 #-----------------------------------------------------------------------------#
 
 add_subdirectory(corecel)
@@ -69,6 +75,10 @@ add_subdirectory(celeritas)
 
 if(CELERITAS_USE_Geant4)
   add_subdirectory(accel)
+endif()
+
+if(CELERITAS_USE_LArSoft)
+  add_subdirectory(larceler)
 endif()
 
 celeritas_setup_tests(SERIAL PREFIX testdetail)

@@ -12,8 +12,8 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/grid/XsGridData.hh"
-#include "celeritas/inp/Grid.hh"
 
 #include "Test.hh"
 

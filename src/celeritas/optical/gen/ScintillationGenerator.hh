@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/ExponentialDistribution.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
@@ -86,7 +87,6 @@ class ScintillationGenerator
     UniformRealDist sample_phi_;
     NormalDistribution<real_type> sample_lambda_;
 
-    bool is_neutral_{};
     units::LightSpeed delta_speed_{};
     Real3 delta_pos_{};
 };
@@ -105,7 +105,6 @@ ScintillationGenerator::ScintillationGenerator(
     , shared_(shared)
     , sample_cost_(-1, 1)
     , sample_phi_(0, real_type(2 * constants::pi))
-    , is_neutral_{dist_.charge == zero_quantity()}
 {
     if (shared_.scintillation_by_particle())
     {
@@ -157,14 +156,37 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         return shared_.scint_records[mat.components[component_idx]];
     }();
 
-    // Sample a photon for a single scintillation component, reusing the
-    // "spare" value that the wavelength sampler might have stored
-    sample_lambda_
-        = NormalDistribution{component.lambda_mean, component.lambda_sigma};
+    real_type energy_val{};
+    if (!component.energy_cdf)
+    {
+        // Sample a photon for a single scintillation component, reusing the
+        // "spare" value that the wavelength sampler might have stored
+        CELER_ASSERT(component.lambda_mean > 0);
+        sample_lambda_ = NormalDistribution{component.lambda_mean,
+                                            component.lambda_sigma};
+        real_type wavelength;
+        do
+        {
+            // Rejecting the case of very large sigma and/or very small lambda
+            wavelength = sample_lambda_(rng);
+        } while (CELER_UNLIKELY(wavelength <= 0));
+        energy_val = value_as<units::MevEnergy>(
+            detail::wavelength_to_energy(wavelength));
+    }
+    else
+    {
+        // If the scintillation spectrum is provided use grid-based sampling
+        NonuniformGridCalculator calc_cdf(
+            shared_.energy_cdfs[component.energy_cdf], shared_.reals);
+
+        NonuniformGridCalculator calc_energy = calc_cdf.make_inverse();
+        energy_val = calc_energy(generate_canonical(rng));
+    }
+
     ExponentialDist sample_time(real_type{1} / component.fall_time);
 
     TrackInitializer photon;
-    photon.energy = detail::wavelength_to_energy(sample_lambda_(rng));
+    photon.energy = Energy{energy_val};
 
     // Sample direction
     real_type cost = sample_cost_(rng);
@@ -185,10 +207,28 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         // Enforce orthogonality
         return make_unit_vector(make_orthogonal(pol, photon.direction));
     }();
-    CELER_ASSERT(soft_zero(dot_product(photon.polarization, photon.direction)));
+    CELER_ASSERT(is_soft_orthogonal(photon.polarization, photon.direction));
 
-    // Sample position: endpoint (collision site) if neutral, else uniform
-    real_type u = is_neutral_ ? 1 : UniformRealDist{}(rng);
+    // Sample the position
+    real_type u = [&rng, &p = dist_.continuous_edep_fraction] {
+        // The number of photons generated along the step (continuous energy
+        // loss) and at the interaction site (local energy deposition) is
+        // proportional to their respective energy contributions. If both
+        // components are present, sample where to generate using the fraction
+        // of the energy deposited along the step. The following condition is
+        // statistically equivalent to sampling \c
+        // BernoulliDistribution{p}(rng), but it avoids generating a random
+        // number in the expected case where the probability is exactly zero or
+        // one, while remaining correct if energy is deposited both along the
+        // step and at the endpoint.
+        if (p == 1 || (p != 0 && BernoulliDistribution{p}(rng)))
+        {
+            // Sample uniformly along the step
+            return UniformRealDist{}(rng);
+        }
+        // Generate the photon at the discrete interaction site
+        return real_type(1);
+    }();
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);
 

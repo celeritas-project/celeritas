@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
@@ -46,7 +47,8 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
 {
     CELER_EXPECT([track] {
         auto sim = track.sim();
-        return sim.post_step_action() == track.init_boundary_action()
+        return sim.post_step_action()
+                   == track.surface_physics().scalars().init_boundary_action
                && sim.status() == TrackStatus::alive;
     }());
 
@@ -57,6 +59,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     // pre-volume information
     VolumeSurfaceSelector select_surface{track.surface(),
                                          geo.volume_instance_id()};
+    OptMatId pre_volume_material = track.material_record().material_id();
 
     // Move the particle across the boundary
     geo.cross_boundary();
@@ -66,20 +69,48 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         return;
     }
 
+    OptMatId post_volume_material = track.material_record().material_id();
+    auto surface_physics = track.surface_physics();
+
     // Find oriented surface after crossing boundary using post-volume
     // information
-    if (auto oriented_surface
-        = select_surface(track.surface(), geo.volume_instance_id()))
+    auto oriented_surface
+        = select_surface(track.surface(), geo.volume_instance_id());
+    if (!oriented_surface)
     {
-        // initialize surface state
-        track.sim().post_step_action(track.post_boundary_action());
+        // Kill the track if the post-volume doesn't have a valid optical
+        // material and there's no surface
+        if (!post_volume_material)
+        {
+            track.sim().status(TrackStatus::killed);
+            return;
+        }
+
+        // Use default surface data
+        oriented_surface.surface = surface_physics.scalars().default_surface;
+        oriented_surface.orientation = SubsurfaceDirection::forward;
     }
-    else
+
+    // Enforce surface normal convention, swapping normal if geometry returns
+    // one not entering the surface
+    Real3 global_normal = geo.normal();
+    if (!is_entering_surface(geo.dir(), global_normal))
     {
-        // If there's no surface, mark photon as killed
-        // TODO: Add default behavior
-        track.sim().status(TrackStatus::killed);
+        global_normal = -global_normal;
     }
+
+    surface_physics
+        = SurfacePhysicsTrackView::Initializer{oriented_surface.surface,
+                                               oriented_surface.orientation,
+                                               global_normal,
+                                               pre_volume_material,
+                                               post_volume_material};
+
+    CELER_ASSERT(
+        is_entering_surface(geo.dir(), surface_physics.global_normal()));
+
+    track.sim().post_step_action(
+        surface_physics.scalars().surface_stepping_action);
 }
 
 //---------------------------------------------------------------------------//

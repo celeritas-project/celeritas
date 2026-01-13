@@ -36,7 +36,7 @@ CMake configuration utility functions for Celeritas, primarily for option setup.
   Add an configurable cache option ``CELERITAS_USE_<package>`` that searches for
   the package to decide its default value.
 
-    celeritas_optional_package(<package> [<find_package>] <docstring>)
+    celeritas_optional_package(<package> <docstring>)
 
   This won't be used for all Celeritas options or even all external dependent
   packages. If given, the ``<find_package>`` package name will searched for
@@ -170,7 +170,8 @@ endmacro()
 
 #-----------------------------------------------------------------------------#
 
-function(celeritas_to_onoff varname)
+# Convert to on/off option: e.g., celeritas_set_onoff(USE_THING ${THING_FOUND})
+function(celeritas_set_onoff varname)
   if(ARGC GREATER 1 AND ARGV1)
     set(${varname} ON PARENT_SCOPE)
   else()
@@ -217,19 +218,9 @@ endmacro()
 # Note: this is a macro so that `find_package` variables stay in the global
 # scope.
 macro(celeritas_optional_package package)
-  if("${ARGC}" EQUAL 2)
-    set(_findpkg "${package}")
-    set(_findversion)
-    set(_docstring "${ARGV1}")
-  else()
-    set(_findpkg "${ARGV1}")
-    set(_findversion)
-    if(_findpkg MATCHES "([^@]+)@([^@]+)")
-      set(_findpkg ${CMAKE_MATCH_1})
-      set(_findversion ${CMAKE_MATCH_2})
-    endif()
-    set(_docstring "${ARGV2}")
-  endif()
+  set(_findpkg "${package}")
+  set(_findversion)
+  set(_docstring "${ARGV1}")
 
   set(_var "CELERITAS_USE_${package}")
   if(DEFINED "${_var}")
@@ -241,7 +232,7 @@ macro(celeritas_optional_package package)
       find_package(${_findpkg} ${_findversion} QUIET)
       set(_reset_found ON)
     endif()
-    celeritas_to_onoff(_val ${${_findpkg}_FOUND})
+    celeritas_set_onoff(_val ${${_findpkg}_FOUND})
     message(STATUS "Set ${_var}=${_val} based on package availability")
     if(_reset_found)
       unset(${_findpkg}_FOUND)
@@ -257,6 +248,7 @@ endmacro()
 macro(celeritas_force_package package value)
   set(_var "CELERITAS_USE_${package}")
   set(${_var} ${value})
+  message(VERBOSE "Celeritas: forced ${_var}=${value}")
   # Append to list of components
   _celeritas_append_optional_component(${package} "${value}")
   # Append to list of forced packages for export
@@ -289,25 +281,21 @@ function(celeritas_check_python_module varname module)
     # We've already checked for this module
     set(_found "${${_cache_name}}")
   else()
-    message(STATUS "Check Python module ${module}")
-    set(_cmd
-      "${CMAKE_COMMAND}" -E env "PYTHONPATH=${CELERITAS_PYTHONPATH}"
-      "${Python_EXECUTABLE}" -c "import ${module}"
-    )
     execute_process(COMMAND
-      ${_cmd}
+      "${CMAKE_COMMAND}" -E env "PYTHONPATH=${CELERITAS_PYTHONPATH}"
+        "${Python_EXECUTABLE}" -c
+        "import ${module}; print(getattr(${module}, '__file__', 'builtin'))"
+      OUTPUT_VARIABLE _found
+      OUTPUT_STRIP_TRAILING_WHITESPACE
       RESULT_VARIABLE _result
       ERROR_QUIET # hide error message if module unavailable
     )
-    # Note: use JSON-compatible T/F representation
-    if(_result)
-      set(_msg "not found")
-      set(_found false)
+    if(NOT _result)
+      message(STATUS "Found Python module ${module}: ${_found}")
     else()
-      set(_msg "found")
-      set(_found true)
+      set(_found "${module}-NOTFOUND")
+      message(STATUS "Looked for Python module ${module}: NOTFOUND")
     endif()
-    message(STATUS "Check Python module ${module} -- ${_msg}")
     set(${_cache_name} "${_found}" CACHE INTERNAL
       "Whether Python module ${module} is available")
   endif()
@@ -356,7 +344,11 @@ function(celeritas_define_options var doc)
 
   if(_val STREQUAL "")
     # Dynamic default option: set as core variable in parent scope
-    list(GET ${var}_OPTIONS 0 _default)
+    if(DEFINED ${var}_OPTION_DEFAULT)
+      set(_default ${${var}_OPTION_DEFAULT})
+    else()
+      list(GET ${var}_OPTIONS 0 _default)
+    endif()
     set(${var} "${_default}" PARENT_SCOPE)
     set(_val "${_default}")
     if(NOT "${_val}" STREQUAL "${${_last_var}}")

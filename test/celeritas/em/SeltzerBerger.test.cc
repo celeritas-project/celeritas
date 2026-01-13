@@ -12,10 +12,10 @@
 #include "celeritas/em/interactor/SeltzerBergerInteractor.hh"
 #include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
 #include "celeritas/em/model/SeltzerBergerModel.hh"
-#include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
@@ -51,8 +51,9 @@ class SeltzerBergerTest : public InteractorHostTestBase
         data_.electron_mass = particles.get(data_.ids.electron).mass();
 
         // Set up shared material data
+        AtomicNumber const z_cu{29};
         MaterialParams::Input mat_inp;
-        mat_inp.elements = {{AtomicNumber{29}, AmuMass{63.546}, {}, "Cu"}};
+        mat_inp.elements = {{z_cu, AmuMass{63.546}, {}, "Cu"}};
         mat_inp.materials = {
             {native_value_from(MolCcDensity{0.141}),
              293.0,
@@ -61,10 +62,6 @@ class SeltzerBergerTest : public InteractorHostTestBase
              "Cu"},
         };
         this->set_material_params(mat_inp);
-
-        // Set up Seltzer-Berger cross section data
-        std::string data_path = this->test_data_path("celeritas", "");
-        SeltzerBergerReader read_element_data(data_path.c_str());
 
         // Create mock import data
         {
@@ -80,13 +77,17 @@ class SeltzerBergerTest : public InteractorHostTestBase
                 {std::move(ip_electron), std::move(ip_positron)});
         }
 
+        SeltzerBergerReader read_sb(this->test_data_path("celeritas", ""));
+        inp::SeltzerBergerModel model_inp;
+        model_inp.atomic_xs = {{z_cu, read_sb(z_cu)}};
+
         // Construct SeltzerBergerModel and set host data
         model_
             = std::make_shared<SeltzerBergerModel>(ActionId{0},
                                                    *this->particle_params(),
                                                    *this->material_params(),
                                                    this->imported_processes(),
-                                                   read_element_data);
+                                                   std::move(model_inp));
         data_ = model_->host_ref();
 
         // Set cutoffs

@@ -13,8 +13,8 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/NonuniformGridData.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/Grid.hh"
 
 #include "NonuniformGridBuilder.hh"
 
@@ -79,7 +79,7 @@ auto NonuniformGridInserter<Index>::operator()(inp::Grid const& grid) -> Index
 
 //---------------------------------------------------------------------------//
 /*!
- * Add an empty grid.
+ * Add an empty grid for disabled models.
  *
  * Useful for when there's no imported grid present for a given material.
  */

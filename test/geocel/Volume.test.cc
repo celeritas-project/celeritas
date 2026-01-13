@@ -5,6 +5,8 @@
 //! \file geocel/Volume.test.cc
 //! Test VolumeParams and related utilities
 //---------------------------------------------------------------------------//
+#include <unordered_map>
+
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
 #include "geocel/Types.hh"
@@ -105,7 +107,7 @@ TEST_F(NoVolumeTest, params)
     EXPECT_TRUE(params.empty());
     EXPECT_EQ(0, params.num_volumes());
     EXPECT_EQ(VolumeId{}, params.world());
-    EXPECT_EQ(0, params.depth());
+    EXPECT_EQ(0, params.num_volume_levels());
 }
 
 TEST_F(NoVolumeTest, volume_to_string)
@@ -132,7 +134,7 @@ TEST_F(SingleVolumeTest, params)
     EXPECT_EQ(1, params.num_volumes());
     EXPECT_EQ(0, params.num_volume_instances());
     EXPECT_EQ(VolumeId{0}, params.world());
-    EXPECT_EQ(0, params.depth());
+    EXPECT_EQ(1, params.num_volume_levels());
     EXPECT_EQ(1, params.volume_labels().size());
     EXPECT_EQ(0, params.volume_instance_labels().size());
 
@@ -188,6 +190,7 @@ using ComplexVolumeTest = ComplexVolumeTestBase;
 TEST_F(ComplexVolumeTest, params)
 {
     VolumeParams const& params = this->volumes();
+    EXPECT_EQ(4, params.num_volume_levels());
 
     static std::string const expected_volume_labels[]
         = {"A", "B", "C", "D", "E"};

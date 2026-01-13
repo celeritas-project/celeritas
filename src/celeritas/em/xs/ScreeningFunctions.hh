@@ -56,14 +56,21 @@ struct BhwlScreeningFactors
  * The calculated screening functions are:
  * \f[
    \begin{aligned}
-   \varphi_1(\gamma) &= 20.863 - 2 \ln \left( 1 + (0.55846\gamma)^2 \right)
-     - 4 \left( 1 - 0.6 \exp(-0.9\gamma) - 0.4 \exp(-1.5\gamma) \right), \\
-   \varphi_2(\gamma) = \varphi_1(\gamma)
-     - \frac{2}{3} \left( 1 + 6.5\gamma + 6\gamma^2 \right)^{-1}, \\
-   \psi_1(\epsilon) &= 28.340 - 2 \ln \left( 1 + (3.621\epsilon)^2 \right)
-     - 4 \left( 1 - 0.7 \exp(-8\epsilon) - 0.3 \exp(-29.2\epsilon) \right),
-   \psi_2(\epsilon) &= \psi_1(\epsilon)
-     - \frac{2}{3} \left( 1 + 40\epsilon + 400\epsilon^2 \right)^{-1}.
+     \varphi_1(\gamma)
+     &= 20.863 - 2 \ln \left( 1 + (0.55846\gamma)^2 \right)
+       - 4 \left( 1 - 0.6 \exp(-0.9\gamma) - 0.4 \exp(-1.5\gamma) \right),
+   \\
+     \varphi_2(\gamma)
+     &= \varphi_1(\gamma)
+       - \frac{2}{3} \left( 1 + 6.5\gamma + 6\gamma^2 \right)^{-1},
+   \\
+     \psi_1(\epsilon)
+     &= 28.340 - 2 \ln \left( 1 + (3.621\epsilon)^2 \right)
+       - 4 \left( 1 - 0.7 \exp(-8\epsilon) - 0.3 \exp(-29.2\epsilon) \right),
+   \\
+     \psi_2(\epsilon)
+     &= \psi_1(\epsilon)
+       - \frac{2}{3} \left( 1 + 40\epsilon + 400\epsilon^2 \right)^{-1}.
    \end{aligned}
  * \f]
  *
