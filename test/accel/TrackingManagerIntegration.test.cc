@@ -594,7 +594,8 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
         EXPECT_EQ(is_running_events(), static_cast<bool>(local_transporter));
         EXPECT_TRUE(shared_params) << "Celeritas was not enabled";
 
-        auto const& optical_collector = shared_params.optical_collector();
+        auto const& optical_collector
+            = shared_params.problem_loaded().optical_collector;
         EXPECT_TRUE(optical_collector) << "optical offloading was not enabled";
         if (local_transporter && optical_collector)
         {
