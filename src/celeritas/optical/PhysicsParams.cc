@@ -7,6 +7,8 @@
 #include "PhysicsParams.hh"
 
 #include "corecel/sys/ActionRegistry.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/optical/ModelImporter.hh"
 
 #include "MaterialParams.hh"
 #include "MfpBuilder.hh"
@@ -17,6 +19,30 @@ namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data.
+ */
+std::shared_ptr<PhysicsParams>
+PhysicsParams::from_import(ImportData const& data,
+                           SPConstCoreMaterials core_materials,
+                           SPConstMaterials materials,
+                           SPActionRegistry action_reg)
+{
+    Input input;
+    input.materials = materials;
+    input.action_registry = action_reg.get();
+    ModelImporter importer{data, materials, core_materials};
+    for (auto const& model : data.optical_models)
+    {
+        if (auto builder = importer(model.model_class))
+        {
+            input.model_builders.push_back(*builder);
+        }
+    }
+    return std::make_shared<PhysicsParams>(std::move(input));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from imported and shared data.

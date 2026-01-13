@@ -16,6 +16,8 @@
 namespace celeritas
 {
 class ActionRegistry;
+struct ImportData;
+class MaterialParams;
 
 namespace optical
 {
@@ -27,7 +29,10 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
   public:
     //!@{
     //! \name Type aliases
+    using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPConstModel = std::shared_ptr<Model const>;
+    using SPConstCoreMaterials
+        = std::shared_ptr<celeritas::MaterialParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
 
     using VecModels = std::vector<SPConstModel>;
@@ -44,6 +49,12 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     };
 
   public:
+    // Construct with imported data, material params, and action registry
+    static std::shared_ptr<PhysicsParams> from_import(ImportData const&,
+                                                      SPConstCoreMaterials,
+                                                      SPConstMaterials,
+                                                      SPActionRegistry);
+
     // Construct from models
     explicit PhysicsParams(Input input);
 

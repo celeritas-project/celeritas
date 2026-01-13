@@ -15,21 +15,12 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/Ref.hh"
-#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
 #include "corecel/random/params/RngParams.hh"  // IWYU pragma: keep
 #include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/ActionRegistryOutput.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"
-#include "corecel/sys/Environment.hh"
-#include "corecel/sys/EnvironmentIO.json.hh"
-#include "corecel/sys/KernelRegistry.hh"
-#include "corecel/sys/KernelRegistryIO.json.hh"
-#include "corecel/sys/MemRegistry.hh"
-#include "corecel/sys/MemRegistryIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
@@ -332,18 +323,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     }
 
     // Save system diagnostic information
-    input_.output_reg->insert(OutputInterfaceAdapter<Device>::from_const_ref(
-        OutputInterface::Category::system, "device", celeritas::device()));
-    input_.output_reg->insert(
-        OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
-            OutputInterface::Category::system,
-            "kernels",
-            celeritas::kernel_registry()));
-    input_.output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
-        OutputInterface::Category::system, "memory", celeritas::mem_registry()));
-    input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
-        OutputInterface::Category::system, "environ", celeritas::environment()));
-    input_.output_reg->insert(std::make_shared<BuildOutput>());
+    insert_system_diagnostics(*input_.output_reg);
+
+    // Save core sizes
     input_.output_reg->insert(
         OutputInterfaceAdapter<detail::CoreSizes>::from_rvalue_ref(
             OutputInterface::Category::internal,

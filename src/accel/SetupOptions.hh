@@ -125,10 +125,8 @@ struct OpticalSetupOptions
     inp::OpticalStateCapacity capacity;
     //! Optical photon generation mechanism
     inp::OpticalGenerator generator;
-    //! Limit on number of steps per track before killing
-    size_type max_steps{inp::TrackingLimits::unlimited};
-    //! Limit on number of optical step iterations before aborting
-    size_type max_step_iters{inp::TrackingLimits::unlimited};
+    //! Limits for the optical stepping loop
+    inp::OpticalTrackingLimits limits;
 };
 
 //---------------------------------------------------------------------------//
