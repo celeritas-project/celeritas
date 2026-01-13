@@ -225,11 +225,15 @@ void AtlasHgtdGeoTest::test_trace() const
         // See https://github.com/celeritas-project/celeritas/issues/1902
         // in HGTD::HGTDSupportPlate, on boundary, taking small step
         SCOPED_TRACE("tangent at far away point");
+
+        auto tol = test_->tracking_tol();
+        tol.distance = 1e-7;
+
         Real3 pos{24.097769534015998, 17.956803215217408, 344.45};
         Real3 dir{
             0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
         axpy(real_type{-1}, dir, &pos);
-        auto result = test_->track(pos, dir, /* max steps = */ 10);
+        auto result = test_->track(pos, dir, tol, /* max steps = */ 10);
 
         GenericGeoTrackingResult ref;
         ref.volumes = {"SPlate", "HGTD", "ITK", "Atlas"};
@@ -245,8 +249,6 @@ void AtlasHgtdGeoTest::test_trace() const
         ref.dot_normal
             = {9.2903580992121e-07, 0.99644211932289, 0.99673389979137};
         ref.bumps = {};
-        auto tol = test_->tracking_tol();
-        tol.distance = 1e-7;
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
