@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "geocel/BoundingBox.hh"
+#include "celeritas/setup/FrameworkInput.hh"
 
 #include "Types.hh"
 
@@ -21,11 +22,6 @@ class G4VPhysicalVolume;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-namespace detail
-{
-class OffloadWriter;
-}  // namespace detail
-
 namespace optical
 {
 class Transporter;
@@ -36,6 +32,7 @@ class CoreParams;
 class CoreStateInterface;
 class GeantGeoParams;
 class GeantSd;
+class OffloadWriter;
 class OpticalCollector;
 class OutputRegistry;
 class StepCollector;
@@ -136,23 +133,20 @@ class SharedParams
 
     using SPActionSequence = std::shared_ptr<ActionSequence>;
     using SPGeantSd = std::shared_ptr<GeantSd>;
-    using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+    using SPOffloadWriter = std::shared_ptr<OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPTimeOutput = std::shared_ptr<TimeOutput>;
     using SPState = std::shared_ptr<CoreStateInterface>;
-    using SPOpticalCollector = std::shared_ptr<OpticalCollector>;
-    using SPOpticalTransporter = std::shared_ptr<optical::Transporter>;
-    using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
     using BBox = BoundingBox<double>;
 
     //! Initialization status and integration mode
     Mode mode() const { return mode_; }
 
-    // Optical properties (only if using optical physics)
-    inline SPOpticalCollector const& optical_collector() const;
+    // Access core Celeritas loaded problem data
+    inline setup::ProblemLoaded const& problem_loaded() const;
 
-    // Optical params (only if using optical physics)
-    inline SPOpticalTransporter const& optical_transporter() const;
+    // Access optical Celeritas loaded problem data
+    inline setup::OpticalProblemLoaded const& optical_problem_loaded() const;
 
     // Action sequence
     inline SPActionSequence const& actions() const;
@@ -184,16 +178,8 @@ class SharedParams
 
     // Created during initialization
     Mode mode_{Mode::uninitialized};
-    SPConstGeantGeoParams geant_geo_;
-    std::shared_ptr<CoreParams> params_;
-    SPOpticalCollector optical_collector_;
-    SPOpticalTransporter optical_transporter_;
-    SPActionSequence actions_;
-    std::shared_ptr<GeantSd> geant_sd_;
-    std::shared_ptr<StepCollector> step_collector_;
+    setup::FrameworkLoaded loaded_;
     VecG4PD offload_particles_;
-    std::string output_filename_;
-    SPOffloadWriter offload_writer_;
     std::vector<std::shared_ptr<CoreStateInterface>> states_;
     SPOutputRegistry output_reg_;
     SPTimeOutput timer_;
@@ -223,8 +209,10 @@ void SharedParams::Initialize(SetupOptions const& options)
 auto SharedParams::Params() -> SPParams const&
 {
     CELER_EXPECT(mode_ == Mode::enabled);
-    CELER_ENSURE(params_);
-    return params_;
+    CELER_EXPECT(std::holds_alternative<setup::ProblemLoaded>(loaded_.problem));
+    auto const& p = std::get<setup::ProblemLoaded>(loaded_.problem);
+    CELER_ENSURE(p.core_params);
+    return p.core_params;
 }
 
 //---------------------------------------------------------------------------//
@@ -236,8 +224,8 @@ auto SharedParams::Params() -> SPParams const&
 auto SharedParams::Params() const -> SPConstParams
 {
     CELER_EXPECT(mode_ == Mode::enabled);
-    CELER_ENSURE(params_);
-    return params_;
+    CELER_ENSURE(this->problem_loaded().core_params);
+    return this->problem_loaded().core_params;
 }
 
 //---------------------------------------------------------------------------//
@@ -252,22 +240,26 @@ auto SharedParams::OffloadParticles() const -> VecG4PD const&
 
 //---------------------------------------------------------------------------//
 /*!
- * Optical transporter: null if Celeritas optical physics is disabled.
+ * Access Celeritas loaded core problem data.
  */
-auto SharedParams::optical_transporter() const -> SPOpticalTransporter const&
+auto SharedParams::problem_loaded() const -> setup::ProblemLoaded const&
 {
     CELER_EXPECT(*this);
-    return optical_transporter_;
+    CELER_EXPECT(std::holds_alternative<setup::ProblemLoaded>(loaded_.problem));
+    return std::get<setup::ProblemLoaded>(loaded_.problem);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Optical data: null if Celeritas optical physics is disabled.
+ * Access Celeritas loaded optical problem data.
  */
-auto SharedParams::optical_collector() const -> SPOpticalCollector const&
+auto SharedParams::optical_problem_loaded() const
+    -> setup::OpticalProblemLoaded const&
 {
     CELER_EXPECT(*this);
-    return optical_collector_;
+    CELER_EXPECT(
+        std::holds_alternative<setup::OpticalProblemLoaded>(loaded_.problem));
+    return std::get<setup::OpticalProblemLoaded>(loaded_.problem);
 }
 
 //---------------------------------------------------------------------------//
@@ -279,7 +271,7 @@ auto SharedParams::optical_collector() const -> SPOpticalCollector const&
 auto SharedParams::hit_manager() const -> SPGeantSd const&
 {
     CELER_EXPECT(*this);
-    return geant_sd_;
+    return this->problem_loaded().geant_sd;
 }
 
 //---------------------------------------------------------------------------//
@@ -289,7 +281,7 @@ auto SharedParams::hit_manager() const -> SPGeantSd const&
 auto SharedParams::actions() const -> SPActionSequence const&
 {
     CELER_EXPECT(*this);
-    return actions_;
+    return this->problem_loaded().actions;
 }
 
 //---------------------------------------------------------------------------//
@@ -299,7 +291,7 @@ auto SharedParams::actions() const -> SPActionSequence const&
 auto SharedParams::offload_writer() const -> SPOffloadWriter const&
 {
     CELER_EXPECT(*this);
-    return offload_writer_;
+    return this->problem_loaded().offload_writer;
 }
 
 //---------------------------------------------------------------------------//

@@ -47,7 +47,7 @@ class PrimaryGeneratorAction final : public GeneratorBase
   public:
     // Construct and add to core params
     static std::shared_ptr<PrimaryGeneratorAction>
-    make_and_insert(::celeritas::CoreParams const&, CoreParams const&, Input&&);
+    make_and_insert(CoreParams const&, Input&&);
 
     // Construct with IDs and distributions
     PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);

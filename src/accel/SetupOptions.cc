@@ -126,9 +126,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
     if (so.optical)
     {
         p.control.optical_capacity = so.optical->capacity;
-        p.physics.optical_generator = so.optical->generator;
-        p.tracking.optical_limits.steps = so.optical->max_steps;
-        p.tracking.optical_limits.step_iters = so.optical->max_step_iters;
+        p.tracking.optical_limits = so.optical->limits;
     }
 
     if (so.track_order != TrackOrder::size_)
@@ -219,6 +217,45 @@ void ProblemSetup::operator()(inp::Problem& p) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * FrameworkInput adapter function for optical-only offload.
+ */
+struct OpticalProblemSetup
+{
+    SetupOptions const& so;
+
+    void operator()(inp::OpticalProblem&) const;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set a Celeritas optical problem input definition.
+ */
+void OpticalProblemSetup::operator()(inp::OpticalProblem& p) const
+{
+    if (!so.geometry_file.empty())
+    {
+        p.model.geometry = so.geometry_file;
+    }
+
+    p.num_streams = [&so = this->so] {
+        if (so.get_num_streams)
+        {
+            return so.get_num_streams();
+        }
+        return celeritas::get_geant_num_threads();
+    }();
+
+    CELER_ASSERT(so.optical);
+    p.generator = so.optical->generator;
+    p.capacity = so.optical->capacity;
+    p.limits = so.optical->limits;
+    p.seed = CLHEP::HepRandom::getTheSeed();
+    p.timers.action = so.action_times;
+    p.output_file = so.output_file;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -296,7 +333,18 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     result.physics_import.data_selection.particles = selection;
     result.physics_import.data_selection.processes = selection;
 
-    result.adjust = ProblemSetup{so};
+    if (!so.optical
+        || std::holds_alternative<inp::OpticalEmGenerator>(
+            so.optical->generator))
+    {
+        result.adjust = ProblemSetup{so};
+    }
+    else
+    {
+        // Optical-only offload
+        result.adjust_optical = OpticalProblemSetup{so};
+    }
+
     return result;
 }
 
