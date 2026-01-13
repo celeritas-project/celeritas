@@ -71,10 +71,16 @@ class CollectionMirror final : public ParamsDataInterface<P>
     explicit operator bool() const { return static_cast<bool>(host_); }
 
     //! Access data on host
-    HostRef const& host_ref() const final { return host_ref_; }
+    CELER_FORCEINLINE HostRef const& host_ref() const final
+    {
+        return host_ref_;
+    }
 
     //! Access data on device, if the device is enabled
-    DeviceRef const& device_ref() const final { return device_ref_; }
+    CELER_FORCEINLINE DeviceRef const& device_ref() const final
+    {
+        return device_ref_;
+    }
 
     using ParamsDataInterface<P>::ref;
 

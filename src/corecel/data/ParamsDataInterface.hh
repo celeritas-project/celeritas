@@ -17,6 +17,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Interface class for accessing "collection groups" of parameter data.
+ *
+ * This class provides typedefs to host and devie data, and a templated
+ * switching function that dispatches to "virtual" functions.
+ *
+ * \note Mark child implementations of the host/device ref functions as \c
+ * final to optimize out any virtual function calls.
  */
 template<template<Ownership, MemSpace> class P>
 class ParamsDataInterface
