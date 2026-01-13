@@ -12,33 +12,23 @@ Celeritas is a GPU-accelerated HEP detector physics library for HL-LHC, integrat
 - **accel/**: Geant4 integration layer (offload mechanisms, tracking managers)
 
 ### Data Flow Pattern
-Celeritas uses a **params/states** architecture:
+Celeritas separates *shared* data from *state* data:
 - **Params**: Immutable problem setup data (physics tables, geometry) - constructed once
 - **States**: Mutable per-track data (particle states, RNG states) - one per concurrent event/track
 - Data exists in **host** and **device** memory spaces with explicit ownership (`value`, `reference`, `const_reference`)
 
-Example structure:
-```cpp
-template<Ownership W, MemSpace M>
-struct FooData {
-    Collection<Bar, W, M> items;  // GPU-compatible data
-};
-using FooHostRef = FooData<Ownership::const_reference, MemSpace::host>;
-using FooDeviceRef = FooData<Ownership::const_reference, MemSpace::device>;
-```
+To support GPU execution, it uses data-oriented design but with object-oriented interfaces (`View`s).
 
 ## Build & Test Workflow
 
 ### Quick Start
+
+Use a standard cmake workflow:
 ```bash
-./scripts/build.sh dev  # Configure, build, test with development preset
-# Or manually (any IDE works):
 cmake --preset=base
 cmake --build --preset=base
 ctest --preset=base
 ```
-
-**Recommended**: Use `./scripts/build.sh` for development - it automates environment setup, CMake presets linking, and ccache. Edit `CMakeUserPresets.json` (symlinked to `scripts/cmake-presets/<hostname>.json`) for custom configs. Any IDE or manual CMake workflow also works fine.
 
 ### Testing
 - Unit tests in `test/` mirror `src/` structure
@@ -91,9 +81,9 @@ CELER_FUNCTION real_type calculate(Real3 const& pos) { /* ... */ }
 
 ### Action/Executor/Interactor Paradigm
 The stepping loop uses a three-layer pattern:
-- **Action**: Implements `CoreStepActionInterface`, defines when to run (`order()`), and launches kernels for host/device via `step()` methods
+- **Action**: Implements `StepActionInterface`, defines when to run (`order()`), and launches kernels for host/device via `step()` methods
 - **Executor**: Wraps the interactor and handles track-level logic (e.g., `make_action_track_executor` filters by `action_id`)
-- **Interactor**: Pure physics functor that operates on a single track (`CoreTrackView`) and returns an `Interaction`
+- **Interactor**: Pure physics functor that operates on a minimal physics information (e.g., `MaterialView`) and returns an `Interaction`
 
 Example flow:
 ```cpp
@@ -110,10 +100,11 @@ See `src/celeritas/em/model/KleinNishinaModel.{cc,cu}` for a complete example.
 Physics models build device-compatible data using "inserter" classes during construction. Inserters efficiently populate `Collection` objects with deduplication and proper memory layout:
 ```cpp
 class XsGridInserter {
-    DedupeCollectionBuilder<real_type> reals_;  // Deduplicates identical data
-    CollectionBuilder<XsGridRecord> grids_;     // Sequential insertion
 public:
     GridId operator()(inp::XsGrid const& grid); // Returns ID for referencing
+private:
+    DedupeCollectionBuilder<real_type> reals_;  // Deduplicates identical data
+    CollectionBuilder<XsGridRecord> grids_;     // Sequential insertion
 };
 ```
 See `src/celeritas/grid/XsGridInserter.hh` and `src/celeritas/em/model/detail/LivermoreXsInserter.hh`.
@@ -133,18 +124,15 @@ struct MyParamsData {
     Collection<ElementComponent, W, M> components;  // Backend storage
     Collection<double, W, M> reals;             // Backend reals
     // Each Material has ItemRange<ElementComponent> referencing components
+    // Templated operator= enables copying across memory spaces
+    // Boolean operator validates initialization and copying
 };
 ```
 
 Collections power the params/states architecture: build on host with `Ownership::value`, copy to device, then access via `const_reference` (params) or `reference` (states). See `src/corecel/data/Collection.hh` for details.
 
 ### Avoid NVCC When Possible
-Most development doesn't involve CUDA code. Kernels (`__global__`) must be in `.cu` files, but CUDA API calls (e.g., `cudaMalloc`) can be in `.cc` files. Include `corecel/DeviceRuntimeApi.hh` for platform-agnostic device APIs. This improves compile times and error messages.
-
-### Memory Management
-- Device allocations go through `DeviceVector<T>` or `Collection` types
-- Use `make_ref()` to create reference wrappers from value types
-- Use `make_host_val()` to copy device data to host (debugging only - expensive!)
+Most development doesn't involve CUDA code. Kernels (`__global__`) must be in `.cu` files, but CUDA API calls (e.g., `cudaMalloc`) can be in `.cc` files. Include `corecel/DeviceRuntimeApi.hh` for platform-agnostic device APIs. Memory management is implemented with the `Collection` types.
 
 ### Test Requirements
 Every class needs a unit test with cyclomatic complexity coverage. Detail classes (in `detail/` namespaces) are exempt but still recommended.
@@ -154,6 +142,9 @@ Every class needs a unit test with cyclomatic complexity coverage. Detail classe
 ### Geant4 Integration (accel/)
 Users integrate via `SharedParams`, `TrackingManagerConstructor`, and run actions (`BeginOfRunAction`, `EndOfRunAction`). See `example/accel/` for templates. Use `celeritas_target_link_libraries()` instead of `target_link_libraries()` to handle VecGeom RDC linking.
 
+### Standalone Execution (app/)
+EM-only execution is used for performance testing and verification via `celer-sim`.
+
 ### Geometry
 Supports ORANGE (native), VecGeom, and Geant4 geometries. GDML is the standard interchange format. Geometry loads through `inp::Model` (see `geocel/inp/Model.hh`).
 
@@ -162,7 +153,7 @@ Supports ORANGE (native), VecGeom, and Geant4 geometries. GDML is the standard i
 - Doxygen comments go next to **definitions**, not declarations
 - Document `operator()` behavior in class comment, not operator itself
 - Use `\citep{author-keyword-year}` for references (maintained in Zotero at `doc/_static/zotero.bib`)
-- Public constants need units and paper citations
+- Physics constants need units and paper citations
 
 ## Development Tools
 
@@ -172,18 +163,12 @@ Supports ORANGE (native), VecGeom, and Geant4 geometries. GDML is the standard i
 
 ## Common Pitfalls
 
-- Don't use bare `new`/`delete` - use smart pointers or Celeritas allocators
 - Never copy-paste code - refactor into reusable functors
-- VecGeom changes behavior when compiled with NVCC - manage includes carefully
-- Thrust device containers (e.g., `thrust::device_vector<T>(size)`) launch kernels implicitly - won't compile in `.cc` files
 - Failing to mark functions `CELER_FUNCTION` will cause "call to __host__ function from __device__" errors
 
 ## External Dependencies
 
 Key dependencies (see `CMakeLists.txt` for versions):
-- Geant4 ≥11.0.4 (10.5+ with limitations)
-- VecGeom 1.2.10 (default geometry, requires matching CUDA arch)
+- Geant4
 - GoogleTest (tests), CLI11 (apps), nlohmann_json (I/O)
-- Optional: ROOT, HepMC3, DD4hep, MPI, OpenMP, Perfetto
-
-Use Spack for dependency management: `spack env create celeritas scripts/spack.yaml`.
+- Optional: VecGeom, ROOT, HepMC3, DD4hep, MPI, OpenMP, Perfetto
