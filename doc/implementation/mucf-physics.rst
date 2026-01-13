@@ -134,9 +134,9 @@ Interactors reserved for sampling final states of the outgoing secondaries.
 .. doxygenclass:: celeritas::DTMixMucfExecutor
 
 Most of the data is material-dependent, and thus can be calculated and cached
-during model construction. This is done by the ``DTMixMaterialCalculator``.
+during model construction. This is done by the ``MucfMaterialInserter``.
 
-.. doxygenclass:: celeritas::detail::DTMixMaterialCalculator
+.. doxygenclass:: celeritas::detail::MucfMaterialInserter
 .. doxygenclass:: celeritas::DTMixMucfExecutor
 .. doxygenclass:: celeritas::DDMucfInteractor
 .. doxygenclass:: celeritas::DTMucfInteractor
