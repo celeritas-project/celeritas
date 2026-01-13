@@ -59,12 +59,10 @@ auto make_state(StreamId stream, size_type size)
  * Construct and add to core params.
  */
 std::shared_ptr<GeneratorAction>
-GeneratorAction::make_and_insert(::celeritas::CoreParams const& core_params,
-                                 CoreParams const& params,
-                                 size_type capacity)
+GeneratorAction::make_and_insert(CoreParams const& params, size_type capacity)
 {
     ActionRegistry& actions = *params.action_reg();
-    AuxParamsRegistry& aux = *core_params.aux_reg();
+    AuxParamsRegistry& aux = *params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
     auto result = std::make_shared<GeneratorAction>(
         actions.next_id(), aux.next_id(), gen.next_id(), capacity);

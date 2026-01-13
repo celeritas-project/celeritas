@@ -26,11 +26,11 @@ namespace celeritas
 namespace detail
 {
 class HitProcessor;
-class OffloadWriter;
 }  // namespace detail
 
 struct SetupOptions;
 class CoreStateInterface;
+class OffloadWriter;
 class OpticalCollector;
 class ParticleParams;
 class SharedParams;
@@ -102,7 +102,7 @@ class LocalTransporter final : public LocalOffloadInterface
   private:
     //// TYPES ////
 
-    using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+    using SPOffloadWriter = std::shared_ptr<OffloadWriter>;
     using BBox = BoundingBox<double>;
 
     struct BufferAccum

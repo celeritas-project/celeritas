@@ -68,7 +68,7 @@
       <material name="Polystyrene"/>
       <sensitive type="calorimeter"/>
       <box      x="60*cm" y="60*cm" z="2.5*cm"/>
-      <position x="0"     y="0"     z="151.25*cm"/>
+      <position x="0"     y="0"     z="151.75*cm"/>
       <rotation x="0"     y="0"     z="0"/>
     </detector>
   </detectors>

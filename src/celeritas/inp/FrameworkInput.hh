@@ -17,6 +17,7 @@ namespace celeritas
 namespace inp
 {
 struct Problem;
+struct OpticalProblem;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -40,6 +41,9 @@ struct FrameworkInput
 
     //! User application/framework-defined adjustments
     std::function<void(Problem&)> adjust;
+
+    //! User application/framework-defined optical adjustments
+    std::function<void(OpticalProblem&)> adjust_optical;
 };
 
 //---------------------------------------------------------------------------//
