@@ -74,6 +74,7 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
     auto const molecule_spin = select_molecule_spin(rng);
 
     // Find muCF material ID from PhysMatId
+    // Make this a View if ever used beyond this executor
     auto find = [&](PhysMatId matid) -> MuCfMatId {
         CELER_EXPECT(matid);
         for (auto i : range(data.mucfmatid_to_matid.size()))

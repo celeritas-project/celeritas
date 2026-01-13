@@ -32,7 +32,8 @@ class MucfMaterialInserter
   private:
     //// DATA ////
 
-    using CycleTimesArray = EnumArray<MucfMuonicMolecule, Array<real_type, 2>>;
+    using MoleculeCycles = Array<real_type, 2>;
+    using CycleTimesArray = EnumArray<MucfMuonicMolecule, MoleculeCycles>;
     using LhdArray = EnumArray<MucfMuonicAtom, real_type>;
     using EquilibriumArray = EnumArray<MucfIsoprotologueMolecule, real_type>;
     using AtomicMassNumber = AtomicNumber;
@@ -42,6 +43,9 @@ class MucfMaterialInserter
     // DTMixMucfModel host data references populated by operator()
     CollectionBuilder<PhysMatId, MemSpace::host, MuCfMatId> mucfmatid_to_matid_;
     CollectionBuilder<CycleTimesArray, MemSpace::host, MuCfMatId> cycle_times_;
+    // Temporary quantities needed for calculating the model data
+    LhdArray lhd_densities_;
+    EquilibriumArray equilibrium_densities_;
 
     //// HELPER FUNCTIONS ////
 

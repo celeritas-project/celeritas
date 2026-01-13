@@ -33,10 +33,6 @@ MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data)
  */
 bool MucfMaterialInserter::operator()(MaterialView const& material)
 {
-    LhdArray lhd_densities;
-    EquilibriumArray eq_densities;
-    CycleTimesArray cycle_times;
-
     for (auto elcompid : range(material.num_elements()))
     {
         auto const& element_view
@@ -75,9 +71,14 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
             return false;
         }
 
-        // Calculate and insert material-dependent muCF properties
+        // Temporary data needed to calculate model data, such as cycle times
+        lhd_densities_ = this->calc_lhd_densities(element_view);
+        equilibrium_densities_ = this->calc_equilibrium_densities(element_view);
+
+        // Calculate and insert muCF material data into model data
         mucfmatid_to_matid_.push_back(material.material_id());
-        cycle_times_.push_back(calc_cycle_times(element_view, has_isotope));
+        cycle_times_.push_back(
+            this->calc_cycle_times(element_view, has_isotope));
         //! \todo Store mean atom spin flip and transfer times
     }
     return true;
@@ -187,9 +188,10 @@ MucfMaterialInserter::calc_cycle_times(ElementView const& element,
  *
  * Cycle times for dd molecules come from F = 0 and F = 1 spin states.
  */
-Array<real_type, 2> MucfMaterialInserter::calc_dd_cycle(ElementView const&)
+MucfMaterialInserter::MoleculeCycles
+MucfMaterialInserter::calc_dd_cycle(ElementView const&)
 {
-    Array<real_type, 2> result;
+    MoleculeCycles result;
 
     //! \todo Implement
 
@@ -205,9 +207,10 @@ Array<real_type, 2> MucfMaterialInserter::calc_dd_cycle(ElementView const&)
  *
  * Cycle times for dt molecules come from F = 1/2 and F = 3/2 spin states.
  */
-Array<real_type, 2> MucfMaterialInserter::calc_dt_cycle(ElementView const&)
+MucfMaterialInserter::MoleculeCycles
+MucfMaterialInserter::calc_dt_cycle(ElementView const&)
 {
-    Array<real_type, 2> result;
+    MoleculeCycles result;
 
     //! \todo Implement
 
@@ -223,9 +226,10 @@ Array<real_type, 2> MucfMaterialInserter::calc_dt_cycle(ElementView const&)
  *
  * Cycle times for tt molecules come only from the F = 1/2 spin state.
  */
-Array<real_type, 2> MucfMaterialInserter::calc_tt_cycle(ElementView const&)
+MucfMaterialInserter::MoleculeCycles
+MucfMaterialInserter::calc_tt_cycle(ElementView const&)
 {
-    Array<real_type, 2> result;
+    MoleculeCycles result;
 
     //! \todo Implement
 
