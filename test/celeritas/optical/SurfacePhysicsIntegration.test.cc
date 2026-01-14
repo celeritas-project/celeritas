@@ -256,8 +256,8 @@ class SurfacePhysicsIntegrationTest : public GeantTestBase
     //! Run over a set of angles and collect the results
     SurfaceTestResults run(std::vector<real_type> const& angles)
     {
-        auto generate = DirectGeneratorAction::make_and_insert(
-            *this->core(), *this->optical_params());
+        auto generate
+            = DirectGeneratorAction::make_and_insert(*this->optical_params());
 
         this->make_collector();
         this->build_transporter();

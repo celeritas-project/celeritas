@@ -21,6 +21,7 @@
 #include "celeritas/TypesIO.json.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
+#include "celeritas/inp/Control.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/user/RootStepWriterIO.json.hh"
 
@@ -90,10 +91,17 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_REQUIRED(use_device);
-    LDIO_LOAD_DEFAULT(num_track_slots, v.use_device ? 1048576 : 4096);
+
+    // Get default capacities *integrated* over streams
+    auto capacity = inp::CoreStateCapacity::from_default(v.use_device);
+
+    LDIO_LOAD_DEFAULT(num_track_slots, capacity.tracks);
     LDIO_LOAD_OPTION(max_steps);
-    LDIO_LOAD_DEFAULT(initializer_capacity, 16 * v.num_track_slots);
-    LDIO_LOAD_OPTION(secondary_stack_factor);
+    LDIO_LOAD_DEFAULT(initializer_capacity, capacity.initializers);
+    CELER_ASSERT(capacity.secondaries);
+    LDIO_LOAD_DEFAULT(
+        secondary_stack_factor,
+        static_cast<real_type>(*capacity.secondaries) / capacity.tracks);
     LDIO_LOAD_OPTION(interpolation);
     LDIO_LOAD_OPTION(poly_spline_order);
     LDIO_LOAD_OPTION(action_times);

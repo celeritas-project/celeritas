@@ -33,14 +33,12 @@ namespace optical
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
-    ::celeritas::CoreParams const& core_params,
-    CoreParams const& params,
-    Input&& input)
+std::shared_ptr<PrimaryGeneratorAction>
+PrimaryGeneratorAction::make_and_insert(CoreParams const& params, Input&& input)
 {
     CELER_EXPECT(input);
     ActionRegistry& actions = *params.action_reg();
-    AuxParamsRegistry& aux = *core_params.aux_reg();
+    AuxParamsRegistry& aux = *params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
     auto result = std::make_shared<PrimaryGeneratorAction>(
         actions.next_id(), aux.next_id(), gen.next_id(), std::move(input));

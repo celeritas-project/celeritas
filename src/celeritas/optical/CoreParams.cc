@@ -6,13 +6,18 @@
 //---------------------------------------------------------------------------//
 #include "CoreParams.hh"
 
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
 
@@ -132,6 +137,30 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     {
         detectors_ = std::make_shared<SDParams>();
     }
+    if (!input_.aux_reg)
+    {
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
+    }
+    if (!input_.output_reg)
+    {
+        input_.output_reg = std::make_shared<OutputRegistry>();
+        insert_system_diagnostics(*input_.output_reg);
+    }
+
+    // Save optical action diagnostic information
+    input_.output_reg->insert(std::make_shared<ActionRegistryOutput>(
+        input_.action_reg, "optical-actions"));
+
+    // Add optical sizes
+    OpticalSizes sizes;
+    sizes.streams = this->max_streams();
+    sizes.generators = input_.capacity.generators;
+    sizes.tracks = input_.capacity.tracks;
+    input_.output_reg->insert(
+        OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "optical-sizes",
+            std::move(sizes)));
 
     ScopedMem record_mem("optical::CoreParams.construct");
 

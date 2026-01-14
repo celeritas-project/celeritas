@@ -146,8 +146,9 @@
       "hidden": true,
       "description": "Enable coverage using GCC/LLVM",
       "cacheVariables": {
-        "CELERITAS_C_FLAGS":    {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage"},
-        "CELERITAS_CXX_FLAGS":  {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage"},
+        "CELERITAS_DEBUG": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_C_FLAGS": {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage"},
+        "CELERITAS_CXX_FLAGS": {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage;-DCELERITAS_GCOV"},
         "CELERITAS_LINK_FLAGS": {"type": "STRING", "value": "-fprofile-arcs"}
       }
     },
