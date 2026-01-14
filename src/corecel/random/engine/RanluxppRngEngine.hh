@@ -260,9 +260,6 @@ RanluxppRngEngine::branch()
     // Create a new state
     RanluxppRngState new_state = *state_;
 
-    // Copy the current state into the new state
-    new_state.value.number = (*state_).value.number;
-
     // Advance the RNG
     this->advance(*state_);
 
