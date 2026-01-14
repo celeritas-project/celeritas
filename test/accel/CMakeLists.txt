@@ -102,13 +102,16 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
+#-----------------------------------------------------------------------------#
+# Disable MT Geant4 geometry for optical physics
+#-----------------------------------------------------------------------------#
+
 set(_optical_rm_type "serial")
 if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
   list(APPEND _optical_rm_type "mt")
 endif()
 
-# Test with optical physics, except that currently trying to use Geant4
-# navigation for the optical tracks wreaks havoc
+# Test optical
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphereOptical run
   OFFLOAD cpu gpu g4
@@ -118,6 +121,13 @@ celeritas_add_integration_tests(
 # Test with optical physics offloading distributions
 celeritas_add_integration_tests(
   UserActionIntegration LarSphereOpticalOffload run
+  OFFLOAD cpu gpu g4
+  RMTYPE ${_optical_rm_type}
+)
+
+# Test optical surface physics
+celeritas_add_integration_tests(
+  TrackingManagerIntegration OpticalSurfaces run
   OFFLOAD cpu gpu g4
   RMTYPE ${_optical_rm_type}
 )

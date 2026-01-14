@@ -29,21 +29,16 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/io/StringUtils.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/Environment.hh"
-#include "corecel/sys/EnvironmentIO.json.hh"
-#include "corecel/sys/KernelRegistry.hh"
-#include "corecel/sys/MemRegistry.hh"
-#include "corecel/sys/MemRegistryIO.json.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -60,12 +55,10 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/FrameworkInput.hh"
 #include "celeritas/inp/Scoring.hh"
-#include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/JsonEventWriter.hh"
-#include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/Transporter.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -82,7 +75,6 @@
 #include "TimeOutput.hh"
 
 #include "detail/IntegrationSingleton.hh"
-#include "detail/OffloadWriter.hh"
 
 namespace celeritas
 {
@@ -282,35 +274,24 @@ SharedParams::SharedParams(SetupOptions const& options)
                                  ? *options.offload_particles
                                  : default_offload_particles();
     }
-
     if (mode_ != Mode::enabled)
     {
         // Stop initializing but create output registry for diagnostics
         output_reg_ = std::make_shared<OutputRegistry>();
-        output_filename_ = options.output_file;
+        loaded_.output_file = options.output_file;
 
         // Create the timing output
         timer_
             = std::make_shared<TimeOutput>(celeritas::get_geant_num_threads());
 
-        if (!output_filename_.empty())
+        if (!loaded_.output_file.empty())
         {
             CELER_LOG(debug)
                 << R"(Constructing output registry for no-offload run)";
 
             // Celeritas core params didn't add system metadata: do it
             // ourselves to save system diagnostic information
-            output_reg_->insert(
-                OutputInterfaceAdapter<MemRegistry>::from_const_ref(
-                    OutputInterface::Category::system,
-                    "memory",
-                    celeritas::mem_registry()));
-            output_reg_->insert(
-                OutputInterfaceAdapter<Environment>::from_const_ref(
-                    OutputInterface::Category::system,
-                    "environ",
-                    celeritas::environment()));
-            output_reg_->insert(std::make_shared<BuildOutput>());
+            insert_system_diagnostics(*output_reg_);
             output_reg_->insert(timer_);
         }
 
@@ -319,60 +300,40 @@ SharedParams::SharedParams(SetupOptions const& options)
 
     // Construct input and then build the problem setup
     auto framework_inp = to_inp(options);
-    auto loaded = setup::framework_input(framework_inp);
-    params_ = std::move(loaded.problem.core_params);
-    CELER_ASSERT(params_);
-    output_filename_ = loaded.problem.output_file;
-
-    if (auto const& opt = options.optical)
-    {
-        if (std::holds_alternative<inp::OpticalOffloadGenerator>(opt->generator))
-        {
-            optical_transporter_
-                = std::move(loaded.problem.optical_transporter);
-            CELER_ASSERT(optical_transporter_);
-        }
-        else if (std::holds_alternative<inp::OpticalEmGenerator>(opt->generator))
-        {
-            optical_collector_ = std::move(loaded.problem.optical_collector);
-            CELER_ASSERT(optical_collector_);
-        }
-        else
-        {
-            CELER_VALIDATE(false,
-                           << "invalid optical photon generation mechanism");
-        }
-    }
-
-    // Save action sequence
-    actions_ = std::move(loaded.problem.actions);
-    CELER_ASSERT(actions_);
+    loaded_ = setup::framework_input(framework_inp);
 
     // Load geant4 geometry adapter and save as "global"
-    CELER_ASSERT(loaded.geo);
-    geant_geo_ = std::move(loaded.geo);
-    celeritas::global_geant_geo(geant_geo_);
-
-    // Save built attributes
-    output_reg_ = params_->output_reg();
-    geant_sd_ = std::move(loaded.problem.geant_sd);
-    step_collector_ = std::move(loaded.problem.step_collector);
-
-    // Translate supported particles
-    verify_offload(
-        offload_particles_, *params_->particle(), *params_->physics());
+    CELER_ASSERT(loaded_.geo);
+    celeritas::global_geant_geo(loaded_.geo);
 
     // Create bounding box from navigator geometry
-    bbox_ = geant_geo_->get_clhep_bbox();
+    bbox_ = loaded_.geo->get_clhep_bbox();
 
-    // Create streams
-    this->set_num_streams(params_->max_streams());
+    std::visit(
+        Overload{
+            [&](setup::ProblemLoaded const& p) {
+                // Translate supported particles
+                verify_offload(offload_particles_,
+                               *p.core_params->particle(),
+                               *p.core_params->physics());
+
+                // Set streams and output registry from core params
+                output_reg_ = p.core_params->output_reg();
+                this->set_num_streams(p.core_params->max_streams());
+            },
+            [&](setup::OpticalProblemLoaded const& p) {
+                // Set streams and output registry from optical params
+                output_reg_ = p.transporter->params()->output_reg();
+                this->set_num_streams(p.transporter->params()->max_streams());
+            },
+        },
+        loaded_.problem);
 
     // Add timing output
-    timer_ = std::make_shared<TimeOutput>(params_->max_streams());
+    timer_ = std::make_shared<TimeOutput>(this->num_streams());
     output_reg_->insert(timer_);
 
-    if (output_filename_ != "-")
+    if (loaded_.output_file != "-")
     {
         // Write output after params are constructed before anything can go
         // wrong
@@ -382,29 +343,6 @@ SharedParams::SharedParams(SetupOptions const& options)
     {
         CELER_LOG(debug)
             << R"(Skipping 'startup' JSON output since writing to stdout)";
-    }
-
-    if (auto const& offload_file = loaded.problem.offload_file;
-        !offload_file.empty())
-    {
-        std::unique_ptr<EventWriterInterface> writer;
-        if (ends_with(offload_file, ".jsonl"))
-        {
-            writer.reset(
-                new JsonEventWriter(offload_file, params_->particle()));
-        }
-        else if (ends_with(offload_file, ".root"))
-        {
-            writer.reset(new RootEventWriter(
-                std::make_shared<RootFileManager>(offload_file.c_str()),
-                params_->particle()));
-        }
-        else
-        {
-            writer.reset(new EventWriter(offload_file, params_->particle()));
-        }
-        offload_writer_
-            = std::make_shared<detail::OffloadWriter>(std::move(writer));
     }
 
     CELER_ENSURE(*this);
@@ -526,7 +464,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
  */
 void SharedParams::try_output() const
 {
-    std::string filename = output_filename_;
+    std::string filename = loaded_.output_file;
     if (filename.empty())
     {
         CELER_LOG(debug) << "Skipping output: SetupOptions::output_file is "
