@@ -275,9 +275,13 @@ TYPED_TEST(TrackInitTest, extend_primaries)
         this->insert_primaries(this->state(), make_span(primaries));
         RunResult::from_state(this->state());
         if constexpr (TestFixture::M == MemSpace::device)
+        {
             EXPECT_EQ(0, this->state().sync_get_counters().num_initializers);
+        }
         else if constexpr (TestFixture::M == MemSpace::host)
+        {
             EXPECT_EQ(0, this->state().counters().num_initializers);
+        }
     }
     {
         // Now initialize after adding
@@ -514,10 +518,14 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     auto primaries = this->make_primaries(num_primaries);
     this->extend_from_primaries(make_span(primaries));
     if constexpr (TestFixture::M == MemSpace::device)
+    {
         EXPECT_EQ(num_primaries,
                   this->state().sync_get_counters().num_initializers);
+    }
     else if constexpr (TestFixture::M == MemSpace::host)
+    {
         EXPECT_EQ(num_primaries, this->state().counters().num_initializers);
+    }
     auto apply_actions = [&actions, this] {
         for (auto const& ea_interface : actions)
         {
