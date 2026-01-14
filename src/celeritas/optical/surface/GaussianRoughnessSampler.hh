@@ -106,7 +106,7 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
 
     CELER_ASSERT(cos_alpha >= 0);
 
-    // Rotate normal by alpha and then sample azimuth rotation uniformly
+    // Rotate normal by alpha and then sample azimuthal rotation uniformly
     return ExitingDirectionSampler{cos_alpha, normal_}(rng);
 }
 

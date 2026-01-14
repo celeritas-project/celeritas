@@ -7,6 +7,7 @@
 #include "SurfacePhysicsIntegrationTestBase.hh"
 
 #include "geocel/UnitUtils.hh"
+#include "celeritas/optical/TrackInitializer.hh"
 
 namespace celeritas
 {
@@ -96,9 +97,9 @@ void SurfacePhysicsIntegrationTestBase::run_step(real_type angle)
         100,
         TrackInitializer{units::MevEnergy{3e-6},
                          from_cm(Real3{0, 49, 0}),
-                         Real3{sin_theta, cos_theta, 0},
-                         Real3{0, 0, 1},
-                         0,
+                         Real3{sin_theta, cos_theta, 0},  // direction
+                         Real3{0, 0, 1},  // polarization
+                         0,  // time
                          ImplVolumeId{0}});
 
     generate_->insert(*state_, make_span(inits));

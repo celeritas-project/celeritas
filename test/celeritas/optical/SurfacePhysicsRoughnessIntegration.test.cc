@@ -70,7 +70,7 @@ class SurfacePhysicsRoughnessIntegrationTest
 
             for ([[maybe_unused]] auto i : range(loops))
             {
-                this->run_step(0);
+                this->run_step(0);  // along x = 0
             }
 
             EXPECT_EQ(0, collect_.num_failed);
