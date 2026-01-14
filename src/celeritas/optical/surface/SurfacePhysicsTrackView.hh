@@ -237,6 +237,7 @@ CELER_FUNCTION void SurfacePhysicsTrackView::facet_normal(Real3 const& normal)
 {
     CELER_EXPECT(this->is_crossing_boundary());
     CELER_EXPECT(is_soft_unit_vector(normal));
+    CELER_EXPECT(dot_product(normal, this->global_normal()) >= 0);
     states_.facet_normal[track_id_] = normal;
 }
 

@@ -106,6 +106,8 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
         // Transform to polar angle using rejection
     } while (sin_alpha < f_max_ && RejectionSampler{sin_alpha, f_max_}(rng));
 
+    CELER_ASSERT(cos_alpha >= 0);
+
     // Rotate normal by alpha and then sample azimuth rotation uniformly
     return ExitingDirectionSampler{cos_alpha, normal_}(rng);
 }
