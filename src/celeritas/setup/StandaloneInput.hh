@@ -20,8 +20,9 @@ class GeantGeoParams;
 
 namespace inp
 {
+struct OpticalStandaloneInput;
 struct StandaloneInput;
-}
+}  // namespace inp
 namespace setup
 {
 //---------------------------------------------------------------------------//
@@ -40,8 +41,21 @@ struct StandaloneLoaded
 };
 
 //---------------------------------------------------------------------------//
+//! Result from loaded optical-only standalone input for front-end apps
+struct OpticalStandaloneLoaded
+{
+    //! Problem setup
+    OpticalProblemLoaded problem;
+    //! Loaded Geant4 geometry
+    std::shared_ptr<GeantGeoParams> geant_geo;
+};
+
+//---------------------------------------------------------------------------//
 // Completely set up a Celeritas problem from a standalone input
 StandaloneLoaded standalone_input(inp::StandaloneInput& si);
+
+// Completely set up a Celeritas optical-only problem from a standalone input
+OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si);
 
 //---------------------------------------------------------------------------//
 }  // namespace setup

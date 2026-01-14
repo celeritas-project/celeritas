@@ -18,6 +18,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"  // IWYU pragma: keep
 #include "celeritas/optical/CoreState.hh"  // IWYU pragma: keep
+#include "celeritas/optical/Runner.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"

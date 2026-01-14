@@ -20,6 +20,7 @@ struct Problem;
 
 namespace optical
 {
+class GeneratorBase;
 class Transporter;
 }  // namespace optical
 
@@ -70,6 +71,8 @@ struct OpticalProblemLoaded
 {
     //! Optical-only problem setup
     std::shared_ptr<optical::Transporter> transporter;
+    //! Optical photon generation action
+    std::shared_ptr<optical::GeneratorBase> generator;
 };
 
 //---------------------------------------------------------------------------//
