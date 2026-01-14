@@ -57,7 +57,7 @@ class GaussianRoughnessSampler
     inline CELER_FUNCTION Real3 operator()(Engine& rng);
 
   private:
-    Real3 const& normal_;
+    Real3 normal_;
     NormalDistribution<real_type> sample_alpha_;
     real_type f_max_;
 };
@@ -103,8 +103,6 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
 
         // Transform to polar angle using rejection
     } while (sin_alpha < f_max_ && RejectionSampler{sin_alpha, f_max_}(rng));
-
-    CELER_ASSERT(cos_alpha >= 0);
 
     // Rotate normal by alpha and then sample azimuthal rotation uniformly
     return ExitingDirectionSampler{cos_alpha, normal_}(rng);
