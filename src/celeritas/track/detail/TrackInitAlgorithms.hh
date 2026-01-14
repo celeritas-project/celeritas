@@ -39,10 +39,9 @@ struct IsNeutralStencil
 
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
-size_type
-remove_if_alive(TrackInitStateData<Ownership::reference, MemSpace::host> const&,
-                StreamId);
-size_type remove_if_alive(
+void remove_if_alive(
+    TrackInitStateData<Ownership::reference, MemSpace::host> const&, StreamId);
+void remove_if_alive(
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
     StreamId);
 
@@ -72,7 +71,7 @@ void partition_initializers(
 // DEVICE-DISABLED IMPLEMENTATION
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline size_type remove_if_alive(
+inline void remove_if_alive(
     TrackInitStateData<Ownership::reference, MemSpace::device> const&, StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");

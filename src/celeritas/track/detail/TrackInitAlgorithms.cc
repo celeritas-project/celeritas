@@ -24,7 +24,7 @@ namespace detail
  *
  * \return New size of the vacancy vector
  */
-size_type remove_if_alive(
+void remove_if_alive(
     TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
     StreamId)
 {
@@ -33,7 +33,7 @@ size_type remove_if_alive(
     auto* stop
         = std::remove_if(start, start + init.vacancies.size(), LogicalNot{});
     counters->num_vacancies = stop - start;
-    return stop - start;
+    return;
 }
 
 //---------------------------------------------------------------------------//

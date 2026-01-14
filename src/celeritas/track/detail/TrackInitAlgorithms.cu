@@ -71,13 +71,17 @@ struct NotNull
  * Remove all elements in the vacancy vector that were flagged as active
  * tracks.
  */
-size_type remove_if_alive(
+void remove_if_alive(
     TrackInitStateData<Ownership::reference, MemSpace::device> const& init,
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"remove-if-alive"};
 #if CELER_USE_THRUST
+    auto& stream = device().stream(stream_id);
     auto start = device_pointer_cast(init.vacancies.data());
+    auto counters = device_pointer_cast(init.counters.data());
+    auto host_counters
+        = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
     auto end = thrust::remove_if(thrust_execute_on(stream_id),
                                  start,
                                  start + init.vacancies.size(),
@@ -85,7 +89,15 @@ size_type remove_if_alive(
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // New size of the vacancy vector
-    return end - start;
+    host_counters.num_vacancies = end - start;
+    copy_bytes(MemSpace::device,
+               counters.get(),
+               MemSpace::host,
+               &host_counters,
+               sizeof(CoreStateCounters),
+               stream_id);
+    stream.sync();
+    return;
 #else
     auto& stream = device().stream(stream_id);
     // Calling with nullptr causes the function to return the amount of working
@@ -114,11 +126,7 @@ size_type remove_if_alive(
                                            stream.get());
     CELER_DISCARD(cub_error_code);
     CELER_DEVICE_API_CALL(PeekAtLastError());
-
-    auto result = ItemCopier<size_type>{stream_id}(&(counters->num_vacancies));
-
-    stream.sync();
-    return result;
+    return;
 #endif
 }
 
