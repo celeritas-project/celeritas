@@ -83,22 +83,16 @@ struct XorwowRngInitializer
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Initializes an RNG state.
- */
-struct XorwowRngStateInitializer
-{
-    Array<XorwowUInt, 5> xorstate;  //! x, y, z, w, v
-    XorwowUInt weylstate;
-};
-
-//---------------------------------------------------------------------------//
 //! Individual RNG state
 struct XorwowState
 {
     Array<XorwowUInt, 5> xorstate;  //!< x, y, z, w, v
     XorwowUInt weylstate;  //!< d
 };
+
+//---------------------------------------------------------------------------//
+//! Initializes an RNG state for a branched RNG
+using XorwowRngStateInitializer = XorwowState;
 
 //---------------------------------------------------------------------------//
 /*!
