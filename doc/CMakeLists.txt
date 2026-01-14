@@ -267,6 +267,7 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/executor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/model/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/process/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/neutron/interactor/detail/*.hh"

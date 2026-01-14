@@ -21,7 +21,10 @@ namespace celeritas
 /*!
  * Muon-catalyzed fusion of \f$ (dd)_\mu \f$ molecules.
  *
- * This is an \em at-rest interaction.
+ * Fusion channels:
+ * - \f$ ^3\text{He} + \mu + n \f$
+ * - \f$ (^3\text{He})_\mu + n \f$
+ * - \f$ ^3\text{H} + \mu + p \f$
  */
 class DDMucfInteractor
 {

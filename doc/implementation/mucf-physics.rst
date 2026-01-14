@@ -72,8 +72,8 @@ sticking factor and the fusion cycle time are the main conditions that define
 how many fusion cycles a muon can undergo. The fusion cycle time depends on the
 d-t mixture, its temperature, and on the final spin of the molecule. Only muonic
 molecules where the total spin :math:`F = I_N \pm 1/2` is on, or has a
-projection onto the total angular momentum J = 1 are reactive. The spin states
-of the three possible muonic molecules are summarized in table
+projection onto the total angular momentum :math:`J = 1` are reactive. The spin
+states of the three possible muonic molecules are summarized in table
 :numref:`muon_spin_states`.
 
 
@@ -108,35 +108,36 @@ enabling the ``mucf_physics`` option in
 Geant4 integration
 ------------------
 
-For integration interfaces, if ``mucf_physics`` option in
-:cpp:class:`celeritas::ext::GeantPhysicsOptions` is enabled, the muon-catalyzed
-fusion data is constructed when the ``G4MuonMinusAtomicCapture`` process is
-registered.
-
-.. todo:: Add process/model/executor details
+For integration interfaces, enabling the ``mucf_physics`` option in
+:cpp:class:`celeritas::ext::GeantPhysicsOptions` will check if the
+``G4MuonMinusAtomicCapture`` process is registered in the Geant4's Physics List.
+If the process is present, the :cpp:class:`celeritas::inp::MucfPhysics` will be
+populated, and the :cpp:class:`celeritas::MucfProcess` will be initialized.
 
 Code implementation
 ===================
 
-The ``MucfProcess`` process only has the model ``DTMixMucfModel`` attached to
-it, responsible for deuterium-tritium mixtures. It can simulate materials from
-near absolute zero to 1500 kelvin, and it is an *at rest* model that encompasses
-the full cycle---atom formation, molecule formation, and fusion.
+The :cpp:class:`celeritas::MucfProcess` process has only the
+:cpp:class:`celeritas::DTMixMucfModel` attached to it, responsible for
+deuterium-tritium mixtures. It can simulate materials from near absolute zero to
+1500 kelvin. It is an *at rest* model that encompasses the full cycle---atom
+formation, molecule formation, and fusion.
+
+.. doxygenclass:: celeritas::MucfProcess
+.. doxygenclass:: celeritas::DTMixMucfModel
+
+Most of the data is material-dependent, being calculated and cached during model
+construction. All of the cached quantities are calculated and added to
+host/device data via :cpp:class:`celeritas::detail::MucfMaterialInserter`.
+
+.. doxygenclass:: celeritas::detail::MucfMaterialInserter
+
+The main cycle is managed by the model's
+:cpp:class:`celeritas::DTMixMucfExecutor`, with the Interactors reserved for
+sampling final states of the outgoing secondaries.
 
 .. note:: Only reactive channels are implemented.
 
-.. doxygenclass:: celeritas::MucfProcess
-
-The main cycle is managed by the ``DTMixMucfExecutor``, with the
-Interactors reserved for sampling final states of the outgoing secondaries.
-
-.. doxygenclass:: celeritas::DTMixMucfModel
-.. doxygenclass:: celeritas::DTMixMucfExecutor
-
-Most of the data is material-dependent, and thus can be calculated and cached
-during model construction. This is done by the ``MucfMaterialInserter``.
-
-.. doxygenclass:: celeritas::DTMixMucfExecutor
 .. doxygenclass:: celeritas::DDMucfInteractor
 .. doxygenclass:: celeritas::DTMucfInteractor
 .. doxygenclass:: celeritas::TTMucfInteractor

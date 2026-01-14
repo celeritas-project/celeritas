@@ -21,7 +21,9 @@ namespace celeritas
 /*!
  * Muon-catalyzed fusion of \f$ (tt)_\mu \f$ molecules.
  *
- * This is an \em at-rest interaction.
+ * Fusion channels:
+ * - \f$ \alpha + \mu + n + n \f$
+ * - \f$ (\alpha)_\mu + n + n \f$
  */
 class TTMucfInteractor
 {
