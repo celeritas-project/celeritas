@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "SurfacePhysicsIntegrationTestBase.hh"
 
+#include "geocel/UnitUtils.hh"
+
 namespace celeritas
 {
 namespace optical

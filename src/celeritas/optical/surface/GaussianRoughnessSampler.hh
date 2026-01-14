@@ -9,10 +9,8 @@
 #include <cmath>
 
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
-#include "celeritas/Constants.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 
 namespace celeritas

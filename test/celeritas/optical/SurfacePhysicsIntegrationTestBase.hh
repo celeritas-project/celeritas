@@ -10,30 +10,19 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/cont/ArrayIO.hh"
-#include "corecel/data/AuxInterface.hh"
-#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/sys/ActionGroups.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/KernelLauncher.hh"
-#include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/CoreTrackView.hh"
-#include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/Transporter.hh"
-#include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
-#include "celeritas/optical/gen/OffloadData.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
-#include "celeritas/phys/GeneratorRegistry.hh"
-#include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/TrackFunctors.hh"
-#include "celeritas/track/Utils.hh"
 
 namespace celeritas
 {
