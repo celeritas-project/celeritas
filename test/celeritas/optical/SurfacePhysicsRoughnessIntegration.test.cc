@@ -62,17 +62,17 @@ class SurfacePhysicsRoughnessIntegrationTest
      */
     void run(size_type loops, std::vector<size_type> const& expected)
     {
+        this->create_collector<CollectResults>(collect_);
+
+        this->initialize_run();
+
+        for ([[maybe_unused]] auto i : range(loops))
+        {
+            this->run_step(0);  // along x = 0
+        }
+
         if (reference_configuration)
         {
-            this->create_collector<CollectResults>(collect_);
-
-            this->initialize_run();
-
-            for ([[maybe_unused]] auto i : range(loops))
-            {
-                this->run_step(0);  // along x = 0
-            }
-
             EXPECT_EQ(0, collect_.num_failed);
             EXPECT_VEC_EQ(expected, collect_.reflection_cosine.counts());
         }

@@ -107,9 +107,9 @@ class SurfacePhysicsInteractionIntegrationTest
     void reference_run(std::vector<real_type> const& angles,
                        SurfaceTestResults const& expected)
     {
+        auto result = this->run(angles);
         if (reference_configuration)
         {
-            auto result = this->run(angles);
             EXPECT_EQ(expected.num_reflected, result.num_reflected);
             EXPECT_EQ(expected.num_refracted, result.num_refracted);
             EXPECT_EQ(expected.num_absorbed, result.num_absorbed);
