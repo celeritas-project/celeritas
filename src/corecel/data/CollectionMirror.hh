@@ -97,15 +97,16 @@ CollectionMirror<P>::CollectionMirror(HostValue&& host)
 {
     if (CELER_UNLIKELY(!host_))
     {
-        CELER_DEBUG_FAIL("incomplete host data or bad copy/move operator",
-                         precondition);
+        CELER_DEBUG_FAIL("incomplete host data or bad copy", precondition);
     }
 
     host_ref_ = host_;
+
     if (celeritas::device())
     {
         if constexpr (!CELER_USE_DEVICE)
         {
+            // Mark unreachable for optimization and coverage
             CELER_ASSERT_UNREACHABLE();
         }
 
