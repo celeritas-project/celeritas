@@ -98,12 +98,17 @@ CollectionMirror<P>::CollectionMirror(HostValue&& host)
     if (CELER_UNLIKELY(!host_))
     {
         CELER_DEBUG_FAIL("incomplete host data or bad copy/move operator",
-                         precondition);  // GCOVR_EXCL_BR_SOURCE
+                         precondition);
     }
 
     host_ref_ = host_;
     if (celeritas::device())
-    {  // GCOVR_EXCL_BR_SOURCE
+    {
+        if constexpr (!CELER_USE_DEVICE)
+        {
+            CELER_ASSERT_UNREACHABLE();
+        }
+
         // Copy data to device and save reference
         device_ = host_;
         device_ref_ = device_;
