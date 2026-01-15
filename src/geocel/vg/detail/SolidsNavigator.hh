@@ -18,6 +18,9 @@
 #include "corecel/Types.hh"
 #include "geocel/vg/VecgeomTypes.hh"
 
+#include "ScopedVgNavState.hh"
+#include "VgNavStateWrapper.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -34,7 +37,12 @@ class SolidsNavigator
 {
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-    using NavState = VgNavState;
+
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    using NavState = vecgeom::NavStatePath;
+#else
+    using NavState = detail::VgNavStateWrapper;
+#endif
 
     //-----------------------------------------------------------------------//
     // Locate a point in the geometry hierarchy
@@ -45,21 +53,24 @@ class SolidsNavigator
                   bool top,
                   VgPlacedVol const* exclude = nullptr)
     {
+        ScopedVgNavState temp_nav{nav};
         if (exclude)
         {
             // Exclude the volume from the search
             vecgeom::GlobalLocator::LocateGlobalPointExclVolume(
-                vol, exclude, point, nav, top);
+                vol, exclude, point, temp_nav, top);
         }
         else
         {
             // TODO: eliminate this branch by always using Excl
             // Locate the point in the volume hierarchy
-            vecgeom::GlobalLocator::LocateGlobalPoint(vol, point, nav, top);
+            vecgeom::GlobalLocator::LocateGlobalPoint(
+                vol, point, temp_nav, top);
         }
     }
 
     //-----------------------------------------------------------------------//
+    // FIXME: this *crosses* the volume
     CELER_FUNCTION static vg_real_type
     ComputeStepAndNextVolume(VgReal3 const& glpos,
                              VgReal3 const& gldir,
@@ -70,10 +81,10 @@ class SolidsNavigator
         auto* curr_volume = in_state.Top()->GetLogicalVolume();
 
         // simple dispatch implementation
+        ScopedVgNavState temp_out_state{out_state};
         auto* navigator = curr_volume->GetNavigator();
         real_type step = navigator->ComputeStepAndPropagatedState(
-            glpos, gldir, step_limit, in_state, out_state);
-        out_state.SetLastExited({});
+            glpos, gldir, step_limit, in_state, temp_out_state);
 
         return step;
     }
@@ -96,54 +107,10 @@ class SolidsNavigator
 
     //-----------------------------------------------------------------------//
     // Relocate a state that was returned from ComputeStepAndNextVolume
-    CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& glpos,
-                                                    VgReal3 const& gldir,
-                                                    NavState& curr,
-                                                    NavState& next)
-    {
-        VgPlacedVol const* pvol = curr.Top();
-        curr.Pop();
-        LocatePointIn(curr.Top(), glpos, curr, false, pvol);
-
-        // try to use a point in next volume
-        // Push the point inside the next volume.
-        static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
-        VgReal3 pushed = glpos + kBoundaryPush * gldir;
-        LocatePointIn(next.Top(), pushed, next, false, nullptr);
-
-        if (curr.Top() != nullptr)
-        {
-            while (curr.Top()->IsAssembly())
-            {
-                curr.Pop();
-            }
-            CELER_ASSERT(!curr.Top()
-                              ->GetLogicalVolume()
-                              ->GetUnplacedVolume()
-                              ->IsAssembly());
-        }
-    }
-
     CELER_FUNCTION static void
-    RelocatePoint(VgReal3 const& localpoint, NavState& path)
+    RelocateToNextVolume(VgReal3 const&, VgReal3 const&, NavState&)
     {
-        VgPlacedVol const* currentmother = path.Top();
-        VgReal3 transformed = localpoint;
-        do
-        {
-            path.Pop();
-            transformed = currentmother->GetTransformation()->InverseTransform(
-                transformed);
-            currentmother = path.Top();
-        } while (currentmother
-                 && (currentmother->IsAssembly()
-                     || !currentmother->UnplacedContains(transformed)));
-
-        if (currentmother)
-        {
-            path.Pop();
-            return LocatePointIn(currentmother, transformed, path, false);
-        }
+        // Relocation is done previously :(
     }
 };
 

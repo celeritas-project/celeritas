@@ -728,6 +728,26 @@ CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
 #endif
 }
 
+/*!
+ * Calculate the largest integer not greater than value.
+ */
+CELER_FORCEINLINE_FUNCTION float floor(float value)
+{
+    return ::floorf(value);
+}
+
+/*!
+ * Calculate the largest integer not greater than value.
+ */
+CELER_FORCEINLINE_FUNCTION double floor(double value)
+{
+#ifdef CELER_DEVICE_SOURCE
+    return ::floor(value);
+#else
+    return std::floor(value);
+#endif
+}
+
 #if defined(CELER_DEVICE_SOURCE)
 // CUDA/HIP define ::sinpi, ::sincos, ... (in global namespace)
 #    define CELER_SINCOS_MANGLED(FUNC) ::FUNC

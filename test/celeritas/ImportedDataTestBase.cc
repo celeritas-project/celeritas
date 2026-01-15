@@ -14,6 +14,7 @@
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
@@ -176,6 +177,12 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
     }
 
     return std::make_shared<optical::PhysicsParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_optical_sim() -> SPConstOpticalSim
+{
+    return std::make_shared<optical::SimParams>(inp::OpticalTrackingLimits{});
 }
 
 //---------------------------------------------------------------------------//

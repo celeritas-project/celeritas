@@ -8,6 +8,8 @@
 
 #include <memory>
 
+#include "corecel/Config.hh"
+
 #include "Volume.hh"
 
 class G4LogicalVolume;
@@ -16,11 +18,13 @@ class G4VPhysicalVolume;
 namespace celeritas
 {
 class GeantGeoParams;
+namespace inp
+{
+struct OrangeGeoFromGeant;
+}
+
 namespace g4org
 {
-//---------------------------------------------------------------------------//
-struct Options;
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct a "physical volume" and its children from a Geant4 object.
@@ -35,6 +39,7 @@ class PhysicalVolumeConverter
     //! \name Type aliases
     using arg_type = G4VPhysicalVolume const&;
     using result_type = PhysicalVolume;
+    using Options = inp::OrangeGeoFromGeant;
     //!@}
 
   public:
@@ -55,6 +60,25 @@ class PhysicalVolumeConverter
     std::unique_ptr<Data> data_;
 };
 
+//---------------------------------------------------------------------------//
+#if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
+struct PhysicalVolumeConverter::PhysicalVolumeConverter::Data
+{
+};
+
+inline PhysicalVolumeConverter::PhysicalVolumeConverter(GeantGeoParams const&,
+                                                        Options const&)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline PhysicalVolumeConverter::~PhysicalVolumeConverter() {}
+
+inline auto PhysicalVolumeConverter::operator()(arg_type) -> result_type
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
 //---------------------------------------------------------------------------//
 }  // namespace g4org
 }  // namespace celeritas

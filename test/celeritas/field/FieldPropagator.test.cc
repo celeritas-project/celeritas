@@ -61,30 +61,11 @@ constexpr bool using_solids_vg = !CELERITAS_VECGEOM_SURFACE
 
 class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
 {
-    using CGBase = CoreGeoTestBase;
-    using FBase = FieldTestBase;
-
-  public:
-    //!@{
-    //! \name Type aliases
-    using CGeoTrackView = CheckedGeoTrackView;
-    //!@}
-
   protected:
-    //! Get a single-thread host track view
-    CGeoTrackView make_geo_track_view()
-    {
-        CGeoTrackView result{
-            std::make_unique<WrappedGeoTrack>(CGBase::make_geo_track_view())};
-        // TODO: VecGeom does not yet support surface normals
-        result.check_normal(CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM);
-        return result;
-    }
-
     //! Get and initialize a single-thread host track view
-    CGeoTrackView make_geo_track_view(Real3 const& pos, Real3 const& dir)
+    CheckedGeoTrackView make_geo_track_view(Real3 const& pos, Real3 const& dir)
     {
-        auto result = this->make_geo_track_view();
+        auto result = this->make_checked_track_view();
         result = this->make_initializer(pos, dir);
         return result;
     }
@@ -326,7 +307,7 @@ TEST_F(TwoBoxesTest, gamma_interior)
     }
     // Move to boundary
     {
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
 
@@ -340,14 +321,14 @@ TEST_F(TwoBoxesTest, gamma_interior)
     }
     // Cross boundary
     {
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
     }
     // Move in new region
     {
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
 
@@ -574,7 +555,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
     {
         SCOPED_TRACE("Cross boundary");
 
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -582,7 +563,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
     {
         SCOPED_TRACE("Small step from boundary");
 
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         EXPECT_TRUE(geo.is_on_boundary());
 
         // Starting on the boundary, take a step smaller than driver's minimum
@@ -625,7 +606,7 @@ TEST_F(TwoBoxesTest, electron_tangent)
         SCOPED_TRACE("Short step tangent to boundary");
 
         constexpr real_type quarter = 0.51 * pi;
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(real_type{0.02 * pi});
@@ -654,7 +635,7 @@ TEST_F(TwoBoxesTest, electron_cross)
     {
         SCOPED_TRACE("Exit (twelfth of a turn)");
 
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(pi);
@@ -668,7 +649,7 @@ TEST_F(TwoBoxesTest, electron_cross)
     {
         SCOPED_TRACE("Cross boundary");
 
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -676,7 +657,7 @@ TEST_F(TwoBoxesTest, electron_cross)
     {
         SCOPED_TRACE("Reenter (1/3 turn)");
 
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(circ);
@@ -690,7 +671,7 @@ TEST_F(TwoBoxesTest, electron_cross)
     {
         SCOPED_TRACE("Cross boundary");
 
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         geo.cross_boundary();
         EXPECT_EQ("inner", this->volume_name(geo));
     }
@@ -699,7 +680,7 @@ TEST_F(TwoBoxesTest, electron_cross)
 
         FieldDriverOptions driver_options;
         driver_options.max_substeps = 100;
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
         auto result = propagate(7. / 12. * circ);
@@ -803,7 +784,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
             EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
 
-        geo.cross_boundary();
+        EXPECT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("world", this->volume_name(geo));
     }
     {
@@ -832,7 +813,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
             EXPECT_NORMAL_EQUIV((Real3{0, 1, 0}), geo.normal());
         }
 
-        geo.cross_boundary();
+        EXPECT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("world", this->volume_name(geo));
     }
     {
@@ -854,7 +835,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         {
             EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
         }
-        geo.cross_boundary();
+        EXPECT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("world", this->volume_name(geo));
     }
 }
@@ -873,7 +854,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
     static constexpr Real3 first_pos
         = {-0.098753281951459, 0.43330671122068, 0};
 
-    auto geo = this->make_geo_track_view();
+    auto geo = this->make_checked_track_view();
     auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
     auto propagate = [&](real_type start_delta, real_type move_delta) {
@@ -1034,7 +1015,7 @@ TEST_F(TwoBoxesTest,
             Real3 dir{-sintheta, costheta, 0};
             this->make_geo_track_view(pos, dir);
         }
-        auto geo = this->make_geo_track_view();
+        auto geo = this->make_checked_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
 
         EXPECT_SOFT_EQ(radius,

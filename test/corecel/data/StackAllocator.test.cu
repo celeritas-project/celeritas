@@ -37,7 +37,7 @@ __global__ void sa_test_kernel(SATestInput const input, SATestOutput* output)
         return;
 
     StackAllocatorMock allocate(input.sa_data);
-    for (int i = 0; i < input.num_iters; ++i)
+    for (unsigned int i = 0; i != input.num_iters; ++i)
     {
         MockSecondary* secondaries = allocate(input.alloc_size);
         if (!secondaries)
@@ -46,12 +46,12 @@ __global__ void sa_test_kernel(SATestInput const input, SATestOutput* output)
         }
 
         atomic_add(&output->num_allocations, input.alloc_size);
-        for (int j = 0; j < input.alloc_size; ++j)
+        for (unsigned int j = 0; j != input.alloc_size; ++j)
         {
             if (secondaries[j].mock_id != -1)
             {
                 // Initialization failed (in-place new not called)
-                atomic_add(&output->num_errors, 1);
+                atomic_add(&output->num_errors, 1u);
             }
 
             // Initialize the secondary

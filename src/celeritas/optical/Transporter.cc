@@ -18,6 +18,7 @@
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
+#include "SimParams.hh"
 
 namespace celeritas
 {
@@ -93,10 +94,12 @@ void Transporter::transport_impl(CoreState<M>& state) const
         }
 
         num_steps += counters.num_active;
-        if (CELER_UNLIKELY(++num_step_iters == data_.max_step_iters))
+        if (CELER_UNLIKELY(++num_step_iters
+                           == this->params()->sim()->max_step_iters()))
         {
             CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << data_.max_step_iters
+                << "Exceeded step count of "
+                << this->params()->sim()->max_step_iters()
                 << ": aborting optical transport loop with "
                 << counters.num_generated << " generated tracks, "
                 << counters.num_active << " active tracks, "

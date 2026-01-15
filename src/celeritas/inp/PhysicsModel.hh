@@ -8,10 +8,9 @@
 
 #include <map>
 
+#include "corecel/inp/Grid.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/phys/AtomicNumber.hh"
-
-#include "Grid.hh"
 
 namespace celeritas
 {

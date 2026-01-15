@@ -9,8 +9,6 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
 #include "EnumStringMapper.hh"
 #include "JsonPimpl.hh"
 

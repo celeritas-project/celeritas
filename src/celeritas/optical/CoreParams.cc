@@ -6,19 +6,25 @@
 //---------------------------------------------------------------------------//
 #include "CoreParams.hh"
 
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "PhysicsParams.hh"
+#include "SimParams.hh"
 #include "action/AlongStepAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
@@ -52,6 +58,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.surface = get_ref<M>(*p.surface);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.rng = get_ref<M>(*p.rng);
+    ref.sim = get_ref<M>(*p.sim);
     // TODO: Get detectors ref
     if (p.cherenkov)
     {
@@ -114,6 +121,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(material);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(action_reg);
@@ -129,6 +137,30 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     {
         detectors_ = std::make_shared<SDParams>();
     }
+    if (!input_.aux_reg)
+    {
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
+    }
+    if (!input_.output_reg)
+    {
+        input_.output_reg = std::make_shared<OutputRegistry>();
+        insert_system_diagnostics(*input_.output_reg);
+    }
+
+    // Save optical action diagnostic information
+    input_.output_reg->insert(std::make_shared<ActionRegistryOutput>(
+        input_.action_reg, "optical-actions"));
+
+    // Add optical sizes
+    OpticalSizes sizes;
+    sizes.streams = this->max_streams();
+    sizes.generators = input_.capacity.generators;
+    sizes.tracks = input_.capacity.tracks;
+    input_.output_reg->insert(
+        OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "optical-sizes",
+            std::move(sizes)));
 
     ScopedMem record_mem("optical::CoreParams.construct");
 

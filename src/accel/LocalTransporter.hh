@@ -26,11 +26,11 @@ namespace celeritas
 namespace detail
 {
 class HitProcessor;
-class OffloadWriter;
 }  // namespace detail
 
 struct SetupOptions;
 class CoreStateInterface;
+class OffloadWriter;
 class OpticalCollector;
 class ParticleParams;
 class SharedParams;
@@ -90,9 +90,6 @@ class LocalTransporter final : public LocalOffloadInterface
     // Offload this track
     void Push(G4Track&);
 
-    // Set the event ID and reseed the Celeritas RNG (remove in v0.6)
-    [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
-
     // Access core state data for user diagnostics
     CoreStateInterface const& GetState() const;
 
@@ -105,7 +102,7 @@ class LocalTransporter final : public LocalOffloadInterface
   private:
     //// TYPES ////
 
-    using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
+    using SPOffloadWriter = std::shared_ptr<OffloadWriter>;
     using BBox = BoundingBox<double>;
 
     struct BufferAccum

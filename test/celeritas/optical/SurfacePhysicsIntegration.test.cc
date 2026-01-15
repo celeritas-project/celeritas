@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
@@ -39,13 +41,16 @@ namespace optical
 {
 namespace test
 {
-// Reference results:
-// - Double precision
-// - Orange geometry (requires valid surface normals and relocation on
-// boundary)
+/*!
+ * Reference results:
+ * - Double precision
+ * - Orange geometry (requires valid surface normals and relocation on
+ *   boundary)
+ */
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE));
+       && (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+       && (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW));
 
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
@@ -251,8 +256,8 @@ class SurfacePhysicsIntegrationTest : public GeantTestBase
     //! Run over a set of angles and collect the results
     SurfaceTestResults run(std::vector<real_type> const& angles)
     {
-        auto generate = DirectGeneratorAction::make_and_insert(
-            *this->core(), *this->optical_params());
+        auto generate
+            = DirectGeneratorAction::make_and_insert(*this->optical_params());
 
         this->make_collector();
         this->build_transporter();

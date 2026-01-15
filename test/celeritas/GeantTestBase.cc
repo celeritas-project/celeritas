@@ -52,8 +52,8 @@ bool GeantTestBase::is_ci_build()
 {
     if (!(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
           && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
-          && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
-        && cstring_equal(cmake::core_rng, "xorwow"))
+          && CELERITAS_UNITS == CELERITAS_UNITS_CGS
+          && cstring_equal(cmake::core_rng, "xorwow")))
     {
         // Config options are different
         return false;

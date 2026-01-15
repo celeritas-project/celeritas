@@ -13,8 +13,8 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
-#include "celeritas/inp/Grid.hh"
 
 #include "celeritas_test.hh"
 

@@ -49,7 +49,7 @@ celeritas_add_test_library(testcel_geocel ${SOURCES})
 
 celeritas_target_link_libraries(testcel_geocel
   PUBLIC testcel_harness Celeritas::geocel
-  PRIVATE Celeritas::ExtGeant4Geo Celeritas::ExtVecGeom
+  PRIVATE testcel_core Celeritas::ExtGeant4Geo Celeritas::ExtVecGeom
 )
 
 #-----------------------------------------------------------------------------#
@@ -70,9 +70,6 @@ celeritas_add_test(BoundingBox.test.cc
 celeritas_add_test(Surface.test.cc)
 celeritas_add_test(Volume.test.cc)
 
-celeritas_add_test(random/IsotropicDistribution.test.cc)
-celeritas_add_test(random/UniformBoxDistribution.test.cc)
-
 #-----------------------------------------------------------------------------#
 # VecGeom
 
@@ -81,19 +78,17 @@ if(CELERITAS_USE_VecGeom)
   # change the internal numbering. Run all tests separately using a filter,
   # first constructing a list of tests that *could* be run.
   set(_vgdml_tests
-    "FourLevelsVgdml"
-    "MultiLevelVgdml"
-    "SimpleCmsVgdml"
-    "SolidsVgdml"
     "TwoBoxesVgdml"
   )
   set(_g4vg_tests
     "CmsEeBackDee"
     "Cmse"
     "FourLevels"
+    "LarSphere"
     "MultiLevel"
     "Polyhedra"
     "Replica"
+    "SimpleCms"
     "Solids"
     "TransformedBox"
     "Znenv"
@@ -106,14 +101,7 @@ if(CELERITAS_USE_VecGeom)
   # Now build a list of tests that *can't* successfully run
   set(_vecgeom_disable)
   if(NOT VecGeom_GDML_FOUND)
-    list(APPEND _vecgeom_disable
-      ".*Vgdml"
-    )
-  elseif(CELERITAS_VecGeom_SURFACE)
-    list(APPEND _vecgeom_disable
-      MultiLevelVgdml # Scaling used to create mirror symmetry
-      SolidsVgdml # Missing shapes
-    )
+    list(APPEND _vecgeom_disable ${_vgdml_tests})
   endif()
 
   if(NOT CELERITAS_USE_Geant4)

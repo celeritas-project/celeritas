@@ -11,13 +11,15 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/random/data/DistributionData.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
 #include "GeneratorBase.hh"
-#include "GeneratorData.hh"
 #include "OffloadData.hh"
+#include "PrimaryGeneratorData.hh"
 
 namespace celeritas
 {
@@ -45,7 +47,7 @@ class PrimaryGeneratorAction final : public GeneratorBase
   public:
     // Construct and add to core params
     static std::shared_ptr<PrimaryGeneratorAction>
-    make_and_insert(::celeritas::CoreParams const&, CoreParams const&, Input&&);
+    make_and_insert(CoreParams const&, Input&&);
 
     // Construct with IDs and distributions
     PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);
@@ -73,6 +75,7 @@ class PrimaryGeneratorAction final : public GeneratorBase
     //// DATA ////
 
     PrimaryDistributionData data_;
+    CollectionMirror<DistributionParamsData> params_;
 
     //// HELPER FUNCTIONS ////
 

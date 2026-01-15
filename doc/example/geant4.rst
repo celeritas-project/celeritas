@@ -22,11 +22,6 @@ The key components are global :cpp:struct:`celeritas::SetupOptions` and
 :cpp:class:`celeritas::SharedParams`, integrated with
 :cpp:class:`celeritas::TrackingManagerIntegration`.
 
-.. todo::
-   The deprecated SimpleOffload class is used in two of these examples. Update
-   them using the newer integration and add description for user action
-   integration when implemented.
-
 .. _example_cmake:
 
 CMake infrastructure

@@ -48,7 +48,6 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     // Create launch action with optical params+state and access to aux data
     detail::OpticalLaunchAction::Input la_inp;
     la_inp.num_track_slots = inp.num_track_slots;
-    la_inp.max_step_iters = inp.max_step_iters;
     la_inp.auto_flush = inp.auto_flush;
     la_inp.action_times = action_times_;
     la_inp.optical_params = inp.optical_params;
@@ -56,17 +55,18 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
                                                            std::move(la_inp));
 
     // Create core action to gather pre-step data for populating distributions
-    gather_ = OffloadGatherAction::make_and_insert(core);
+    pre_gather_
+        = OffloadGatherAction<StepActionOrder::pre>::make_and_insert(core);
 
     // Create optical action to generate Cherenkov or scintillation photons
-    generate_ = optical::GeneratorAction::make_and_insert(
-        core, *inp.optical_params, inp.buffer_capacity);
+    generate_ = optical::GeneratorAction::make_and_insert(*inp.optical_params,
+                                                          inp.buffer_capacity);
 
     if (inp.optical_params->cherenkov())
     {
         // Create core action to generate Cherenkov optical distributions
         OffloadAction<GT::cherenkov>::Input oa_inp;
-        oa_inp.step_id = gather_->aux_id();
+        oa_inp.pre_step_id = pre_gather_->aux_id();
         oa_inp.gen_id = generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();
@@ -76,9 +76,15 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     }
     if (inp.optical_params->scintillation())
     {
+        // Create core action to gather post-along-step state data
+        pre_post_gather_
+            = OffloadGatherAction<StepActionOrder::pre_post>::make_and_insert(
+                core);
+
         // Create action to generate scintillation optical distributions
         OffloadAction<GT::scintillation>::Input oa_inp;
-        oa_inp.step_id = gather_->aux_id();
+        oa_inp.pre_step_id = pre_gather_->aux_id();
+        oa_inp.pre_post_step_id = pre_post_gather_->aux_id();
         oa_inp.gen_id = generate_->aux_id();
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/optical/Types.hh"
 
 namespace celeritas
@@ -33,6 +34,9 @@ struct OffloadTraits<GeneratorType::cherenkov>
     //! Optical offload executor
     using Executor = CherenkovOffloadExecutor;
 
+    //! Step action order
+    static constexpr StepActionOrder order = StepActionOrder::pre_post;
+
     //! Label of the offload action
     static constexpr char const label[] = "cherenkov-offload";
 
@@ -49,6 +53,9 @@ struct OffloadTraits<GeneratorType::scintillation>
 
     //! Optical offload executor
     using Executor = ScintOffloadExecutor;
+
+    //! Step action order
+    static constexpr StepActionOrder order = StepActionOrder::user_post;
 
     //! Label of the offload action
     static constexpr char const label[] = "scintillation-offload";

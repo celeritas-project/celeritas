@@ -12,6 +12,7 @@
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Label.hh"
 #include "geocel/Types.hh"
+#include "geocel/UnitUtils.hh"
 #include "orange/Debug.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
@@ -34,8 +35,8 @@ class OrangeTest : public OrangeGeoTestBase
   protected:
     using Initializer_t = GeoTrackInitializer;
 
-    //! Length scale is hardcoded into JSON files
-    Constant unit_length() const override { return Constant{1}; }
+    //! Length scale is hardcoded into construction
+    UnitLength unit_length() const override { return {Constant{1}, "length"}; }
 
     //! Shortcut to get the surface ID
     ImplSurfaceId impl_surface_id(WrappedGeoTrack const& geo) const

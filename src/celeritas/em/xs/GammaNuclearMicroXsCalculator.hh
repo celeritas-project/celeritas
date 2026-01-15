@@ -38,8 +38,8 @@ class GammaNuclearMicroXsCalculator
     inline CELER_FUNCTION BarnXs operator()(ElementId el_id) const;
 
   private:
-    // Shared constant physics properties
-    ParamsRef const& shared_;
+    // Shared cross section data
+    ParamsRef const& data_;
     // Incident photon energy
     real_type const inc_energy_;
 };
@@ -52,25 +52,36 @@ class GammaNuclearMicroXsCalculator
  */
 CELER_FUNCTION
 GammaNuclearMicroXsCalculator::GammaNuclearMicroXsCalculator(
-    ParamsRef const& shared, Energy energy)
-    : shared_(shared), inc_energy_(energy.value())
+    ParamsRef const& data, Energy energy)
+    : data_(data), inc_energy_(energy.value())
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute microscopic (element) cross section
+ * Compute microscopic gamma-nuclear cross section at the given gamma energy.
  */
 CELER_FUNCTION
 auto GammaNuclearMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
 {
-    CELER_EXPECT(el_id < shared_.micro_xs.size());
+    NonuniformGridRecord grid;
 
-    // Get element cross section data
-    NonuniformGridRecord grid = shared_.micro_xs[el_id];
+    // Use G4PARTICLEXS gamma-nuclear cross sections at low energy and CHIPS
+    // parameterized cross sections at high energy.
+
+    if (inc_energy_ <= data_.reals[data_.xs_iaea[el_id].grid.back()])
+    {
+        CELER_EXPECT(el_id < data_.xs_iaea.size());
+        grid = data_.xs_iaea[el_id];
+    }
+    else
+    {
+        CELER_EXPECT(el_id < data_.xs_chips.size());
+        grid = data_.xs_chips[el_id];
+    }
 
     // Calculate micro cross section at the given energy
-    NonuniformGridCalculator calc_xs(grid, shared_.reals);
+    NonuniformGridCalculator calc_xs(grid, data_.reals);
     real_type result = calc_xs(inc_energy_);
 
     return BarnXs{result};

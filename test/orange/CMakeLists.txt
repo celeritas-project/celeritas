@@ -120,11 +120,11 @@ celeritas_add_test(surf/SurfaceSimplifier.test.cc)
 celeritas_add_device_test(surf/LocalSurfaceVisitor)
 
 # Surface details
-celeritas_add_test(surf/detail/QuadraticSolver.test.cc)
-celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
-celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
-celeritas_add_test(surf/detail/InvoluteSolver.test.cc)
 celeritas_add_test(surf/detail/InvolutePoint.test.cc)
+celeritas_add_test(surf/detail/InvoluteSolver.test.cc)
+celeritas_add_test(surf/detail/QuadraticSolver.test.cc)
+celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
+celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Universe
@@ -143,15 +143,16 @@ celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Geant4 construction
-if(CELERITAS_USE_Geant4)
-  celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
-  celeritas_add_test(g4org/ProtoConstructor.test.cc)
-  celeritas_add_test(g4org/SolidConverter.test.cc
-    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
-  celeritas_add_test(g4org/Transformer.test.cc
-    LINK_LIBRARIES Celeritas::ExtGeant4Geo)
-endif()
 
 celeritas_add_test(g4org/Converter.test.cc ${_needs_g4org})
+celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc  ${_needs_g4org})
+celeritas_add_test(g4org/ProtoConstructor.test.cc  ${_needs_g4org})
+
+if(CELERITAS_USE_Geant4)
+  # Tests that directly include G4 headers
+  list(APPEND CELERITASTEST_LINK_LIBRARIES Celeritas::ExtGeant4Geo)
+  celeritas_add_test(g4org/SolidConverter.test.cc)
+  celeritas_add_test(g4org/Transformer.test.cc)
+endif()
 
 #-----------------------------------------------------------------------------#

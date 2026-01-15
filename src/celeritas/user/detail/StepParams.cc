@@ -6,11 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "StepParams.hh"
 
-#include <vector>
-
-#include "corecel/data/AuxStateData.hh"
-#include "corecel/data/AuxStateVec.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Label.hh"
 #include "geocel/VolumeCollectionBuilder.hh"
 #include "geocel/VolumeParams.hh"
@@ -132,36 +127,6 @@ StepParams::StepParams(AuxId aux_id,
 
     CELER_ASSERT((has_det == HasDetectors::all) == this->has_detectors());
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Build state data for a stream.
- */
-auto StepParams::create_state(MemSpace m, StreamId stream, size_type size) const
-    -> UPState
-{
-    return make_aux_state<StepStateData>(*this, m, stream, size);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access the step state from a state vector.
- */
-template<MemSpace M>
-StepStateData<Ownership::reference, M>&
-StepParams::state_ref(AuxStateVec& aux) const
-{
-    using StateT = AuxStateData<StepStateData, M>;
-    return get<StateT>(aux, aux_id_).ref();
-}
-
-//---------------------------------------------------------------------------//
-// EXPLICIT TEMPLATE INSTANTIATION
-//---------------------------------------------------------------------------//
-
-template HostRef<StepStateData>& StepParams::state_ref(AuxStateVec&) const;
-
-template DeviceRef<StepStateData>& StepParams::state_ref(AuxStateVec&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

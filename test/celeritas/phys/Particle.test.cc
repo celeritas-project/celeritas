@@ -193,8 +193,6 @@ TEST_F(ParticleTestHost, electron)
 
     // Stop the particle
     EXPECT_FALSE(particle.is_stopped());
-    particle.subtract_energy(MevEnergy{0.25});
-    EXPECT_REAL_EQ(0.25, particle.energy().value());
     particle.energy(zero_quantity());
     EXPECT_TRUE(particle.is_stopped());
     EXPECT_REAL_EQ(0.0, particle.energy().value());

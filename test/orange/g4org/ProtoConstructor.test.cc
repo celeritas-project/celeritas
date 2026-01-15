@@ -40,6 +40,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
   protected:
     using Unit = orangeinp::detail::CsgUnit;
     using Tol = Tolerance<>;
+    using Options = inp::OrangeGeoFromGeant;
 
     std::shared_ptr<UnitProto> load(std::string const& basename)
     {
@@ -129,7 +130,8 @@ class ProtoConstructorTest : public GeantLoadTestBase
         return proto->build(
             tol_,
             id == UnivId{0} ? BBox{}
-                            : BBox{{-1000, -1000, -1000}, {1000, 1000, 1000}});
+                            : BBox{{-1000, -1000, -1000}, {1000, 1000, 1000}},
+            id == UnivId{0});
     }
 
     Tolerance<> tol_ = Tol::from_relative(1e-5);

@@ -202,7 +202,7 @@ inp::Problem load_problem(RunnerInput const& ri)
             sc.generators = ri.optical.buffer_capacity;
             return sc;
         }();
-        p.tracking.limits.optical_step_iters = ri.optical.max_steps;
+        p.tracking.optical_limits.step_iters = ri.optical.max_steps;
 
         // NOTE: optical physics setup is applied to g4 physics list and
         // then copied from import data (i.e., you can't currently disable it
@@ -291,7 +291,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     // loading events
     auto num_events = std::visit(
         Overload{
-            [](inp::PrimaryGenerator const& pg) { return pg.num_events; },
+            [](inp::CorePrimaryGenerator const& pg) { return pg.num_events; },
             [](inp::SampleFileEvents const& sfe) { return sfe.num_events; },
             [](inp::ReadFileEvents const& rfe) {
                 if (ends_with(rfe.event_file, ".jsonl"))

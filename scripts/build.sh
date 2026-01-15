@@ -20,7 +20,7 @@
 set -e
 
 # Print a colorful message to stderr
-log() {
+celerlog() {
   level=$1
   message=$2
 
@@ -39,6 +39,10 @@ log() {
   printf "\033[%sm%s:\033[0m %s\n" "${color}" "${level}" "${message}" >&2
 }
 
+log() {
+  celerlog "$@"
+}
+
 # Get the hostname, trying to account for being on a compute node or cluster
 fancy_hostname() {
   sys=${LMOD_SYSTEM_NAME}
@@ -55,6 +59,38 @@ fancy_hostname() {
   printf '%s\n' "${sys}"
 }
 
+# Determine the environment script for the given hostname
+get_system_env() {
+  ENV_SCRIPT="${CELER_SOURCE_DIR}/scripts/env/$1.sh"
+  if [ ! -f "${ENV_SCRIPT}" ]; then
+    log debug "No environment script exists at ${ENV_SCRIPT}"
+  else
+    log info "Found environment script at ${ENV_SCRIPT}"
+    printf '%s\n' "${ENV_SCRIPT}"
+  fi
+}
+
+# Source a script safely (make sure this is not executed as a subshell)
+source_script() {
+  set +e
+  if ! . "$1"; then
+    log error "Failed to source '$1'"
+    exit 1
+  fi
+  set -e
+}
+
+# Allow downstream scripts (e.g., excl) to load additional source files
+load_system_env() {
+  env_script_="$(get_system_env "${1}")"
+  if [ -z "${env_script_}" ]; then
+    log error "Failed to find environment script for '$1'"
+    return 1
+  else
+    source_script "${env_script_}"
+  fi
+}
+
 # Link the presets file
 ln_presets() {
   src="scripts/cmake-presets/$1.json"
@@ -62,11 +98,15 @@ ln_presets() {
 
   # Return early if it exists
   if [ -L "${dst}" ]; then
-    src="$(readlink "${dst}" 2>/dev/null || printf "<unknown>")"
-    log debug "CMake preset already exists: ${dst} -> ${src}"
-    return
+    actual="$(readlink "${dst}" 2>/dev/null || printf "<unknown>")"
+    if [ "${src}" = "${actual}" ]; then
+      log debug "CMake preset already exists: ${dst} -> ${actual}"
+      return
+    else
+      log warning "${dst} points to ${actual}, not ${src}: overwriting"
+    fi
   elif [ -e "${dst}" ]; then
-    log debug "CMake preset already exists: ${dst}"
+    log warning "${PWD}/${dst} already exists but is not a symlink (should link to ${src})"
     return
   fi
 
@@ -77,7 +117,7 @@ ln_presets() {
     git add "${src}" || log error "Could not stage presets"
   fi
   log info "Linking presets to ${dst}"
-  ln -s "${src}" "${dst}"
+  ln -f -s "${src}" "${dst}"
 }
 
 # Check if ccache is full and warn user
@@ -101,39 +141,91 @@ check_ccache_usage() {
   fi
 }
 
+# Find a command in PATH, suppressing error messages
+find_command() {
+  command -v "$1" 2>/dev/null || printf ""
+}
+
 # Auto-detect and configure ccache if available
 setup_ccache() {
-  if CCACHE_PROGRAM="$(command -v ccache 2>/dev/null)"; then
+  CCACHE_PROGRAM="$(find_command ccache)"
+  if [ -n "${CCACHE_PROGRAM}" ]; then
     log info "Using ccache: ${CCACHE_PROGRAM}"
     check_ccache_usage
-    [ -n "${CCACHE_PROGRAM}" ] && export CCACHE_PROGRAM
+    export CCACHE_PROGRAM
   fi
 }
 
 # Check if pre-commit hook is installed and install if missing
 install_precommit_if_git() {
-  if git_dir=$(git rev-parse --git-dir 2>/dev/null); then
-    :
-  else
+  if ! git_hook_path="$(git rev-parse --git-path hooks/pre-commit 2>/dev/null)"; then
     log debug "Not in a git repository, skipping pre-commit check"
     return 1
   fi
+  log debug "Checking for pre-commit hooks at '${git_hook_path}'"
 
-  if [ ! -f "${git_dir}/hooks/pre-commit" ]; then
+  if [ ! -f "${git_hook_path}" ]; then
     log info "Pre-commit hook not found, installing commit hooks"
     ./scripts/dev/install-commit-hooks.sh
   fi
   return 0
 }
 
+# Determine the RC file for the current shell
+get_shell_rc_file() {
+  shell_name=$(basename "${SHELL}")
+  case "${shell_name}" in
+    bash) printf '%s\n' "${HOME}/.bashrc" ;;
+    zsh) printf '%s\n' "${HOME}/.zshrc" ;;
+    ksh) printf '%s\n' "${HOME}/.kshrc" ;;
+    *) log warning "Unknown shell: ${shell_name}"; printf '%s\n' "${HOME}/.bashrc" ;;
+  esac
+}
+
+sentinel_marker_='celeritas-build-env'
+
+# Check if sentinel marker exists in rc file
+has_sentinel() {
+  rc_file=$1
+  if [ ! -f "${rc_file}" ]; then
+    return 1
+  fi
+  grep -q "${sentinel_marker_}" "${rc_file}" 2>/dev/null
+}
+
+# Install environment sourcing to shell rc file
+install_shell_env() {
+  rc_file=$1
+
+  if has_sentinel "${rc_file}"; then
+    log debug "Skipping modification of ${rc_file}: sentinel exists"
+    return 1
+  fi
+
+  log info "Installing environment sourcing to ${rc_file}"
+  cat >> "${rc_file}" <<EOF
+# >>> ${sentinel_marker_} >>>
+load_system_env() {
+  CELER_SOURCE_DIR="${CELER_SOURCE_DIR}"
+  if [ -d "\${CELER_SOURCE_DIR}" ]; then
+    . "\${CELER_SOURCE_DIR}/scripts/env/\$1.sh"
+  fi
+}
+load_system_env "${SYSTEM_NAME}"
+# <<< ${sentinel_marker_} <<<
+EOF
+}
+
 #-----------------------------------------------------------------------------#
 
-# Run everything from the parent directory of this script (i.e. the Celeritas
-# source dir)
-cd "$(dirname "$0")"/..
+# Determine the source directory from the build script
+export CELER_SOURCE_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
+
+# Run everything from the Celeritas work tree
+cd ${CELER_SOURCE_DIR}
 
 # Determine system name, failing on an empty string
-SYSTEM_NAME=$(fancy_hostname)
+SYSTEM_NAME="$(fancy_hostname)"
 if [ -z "${SYSTEM_NAME}" ]; then
   log warning "Could not determine SYSTEM_NAME from LMOD_SYSTEM_NAME or HOSTNAME"
   log error "Empty SYSTEM_NAME, needed to load environment and presets"
@@ -141,20 +233,40 @@ if [ -z "${SYSTEM_NAME}" ]; then
 fi
 
 # Check whether cmake/pre-commit change from environment
-OLD_CMAKE="$(command -v cmake 2>/dev/null || printf '')"
-OLD_PRE_COMMIT="$(command -v pre-commit 2>/dev/null || printf '')"
+OLD_CMAKE="$(find_command cmake)"
+OLD_PRE_COMMIT="$(find_command pre-commit)"
+OLD_XDG_CACHE_HOME="${XDG_CACHE_HOME}"
 
-# Load environment paths
-ENV_SCRIPT="scripts/env/${SYSTEM_NAME}.sh"
-if [ -f "${ENV_SCRIPT}" ]; then
-  log info "Sourcing environment script at ${ENV_SCRIPT}"
-  . "${ENV_SCRIPT}"
-else
-  log debug "No environment script exists at ${ENV_SCRIPT}"
+# Load environment paths using the system name
+ENV_SCRIPT="$(get_system_env "${SYSTEM_NAME}")"
+if [ -n "${ENV_SCRIPT}" ]; then
+  source_script "${ENV_SCRIPT}"
 fi
+CMAKE="$(find_command cmake)"
 
-NEW_CMAKE="$(command -v cmake 2>/dev/null || printf 'cmake unavailable')"
-NEW_PRE_COMMIT="$(command -v pre-commit 2>/dev/null || printf '')"
+# Check whether the environment changed
+needs_env=false
+if [ "$(find_command pre-commit)" != "${OLD_PRE_COMMIT}" ]; then
+  log warning "Local environment script uses a different pre-commit than your \$PATH"
+  needs_env=true
+fi
+if [ "${CMAKE}" != "${OLD_CMAKE}" ]; then
+  log warning "Local environment script uses a different CMake than your \$PATH"
+  needs_env=true
+fi
+if [ "${OLD_XDG_CACHE_HOME}" != "${XDG_CACHE_HOME}" ]; then
+  log warning "Cache directory changed from XDG_CACHE_HOME=${OLD_XDG_CACHE_HOME} to ${XDG_CACHE_HOME}"
+  needs_env=true
+fi
+if ${needs_env}; then
+  rc_file="$(get_shell_rc_file)"
+  if install_shell_env "${rc_file}" "${ENV_SCRIPT}"; then
+    needs_env=false
+  else
+    log warning "Please manually add the following to ${rc_file}:"
+    printf ' . %s\n' "${ENV_SCRIPT}" >&2
+  fi
+fi
 
 # Link preset file
 ln_presets "${SYSTEM_NAME}"
@@ -163,16 +275,16 @@ ln_presets "${SYSTEM_NAME}"
 setup_ccache
 
 # Check arguments and give presets if missing
-if [ $# -eq 0 ]; then
+if [ $# -eq 0 ] ; then
   printf '%s\n' "Usage: $0 PRESET [config_args...]" >&2
-  if command -v cmake >/dev/null 2>&1; then
-    if cmake --list-presets >&2 ; then
-      log info "Try using the '${SYSTEM_NAME}' or 'dev' presets ('base'), or 'default' if not"
-    else
-      log error "CMake may be too old or JSON file may be broken"
-    fi
-  else
+  if [ -z "${CMAKE}" ]; then
     log error "cmake unavailable: cannot call --list-presets"
+    exit 1
+  fi
+  if "${CMAKE}" --list-presets >&2 ; then
+    log info "Try using the '${SYSTEM_NAME}' or 'dev' presets ('base'), or 'default' if not"
+  else
+    log error "CMake may be too old or JSON file may be broken"
   fi
   exit 2
 fi
@@ -180,28 +292,26 @@ CMAKE_PRESET=$1
 shift
 
 # Configure, build, and test
-log info "Configuring with verbosity"
+log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"
 cmake --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
-log info "Building"
+log info "Building with --preset=${CMAKE_PRESET}"
 if cmake --build --preset="${CMAKE_PRESET}"; then
-  log info "Testing"
+  log info "Testing with --preset=${CMAKE_PRESET} --timeout 15"
   if ctest --preset="${CMAKE_PRESET}" --timeout 15; then
     log info "Celeritas was successfully built and tested for development!"
   else
     log warning "Celeritas built but some tests failed"
     log info "Ask the Celeritas team whether the failures indicate an actual error"
+    log info "Provide the system configuration:"
+    cmake --build-target get-config --preset=${CMAKE_PRESET}
   fi
 
   install_precommit_if_git
-  if [ "${NEW_PRE_COMMIT}" != "${OLD_PRE_COMMIT}" ]; then
-    log warning "Local environment script uses a different pre-commit than your \$PATH:"
-    log info "Recommend adding '. ${PWD}/${ENV_SCRIPT}' to your shell rc"
-  fi
-
-  if [ "${NEW_CMAKE}" != "${OLD_CMAKE}" ]; then
-    log warning "Local environment script uses a different CMake than your \$PATH:"
-    log info "Recommend adding '. ${PWD}/${ENV_SCRIPT}' to your shell rc"
-  fi
 else
   log error "build failed: check configuration and build errors above"
+fi
+
+if ${needs_env}; then
+  log warning "Environment changed: please manually add the following to ${rc_file}:"
+  printf ' . %s\n' "${ENV_SCRIPT}" >&2
 fi

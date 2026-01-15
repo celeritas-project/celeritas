@@ -97,7 +97,7 @@ void put_json_line(nlohmann::json const& j)
  */
 void put_json_line(OutputInterface const& oi)
 {
-    return put_json_line(json_pimpl_output(oi));
+    return put_json_line(output_to_json(oi));
 }
 
 //---------------------------------------------------------------------------//
@@ -336,7 +336,7 @@ void run(std::string const& filename)
                 {"device", device()},
                 {"kernels", kernel_registry()},
                 {"environment", environment()},
-                {"build", json_pimpl_output(BuildOutput{})},
+                {"build", output_to_json(BuildOutput{})},
             },
         },
     }));

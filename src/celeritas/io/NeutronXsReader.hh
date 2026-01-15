@@ -8,11 +8,11 @@
 
 #include <string>
 
+#include "corecel/inp/Grid.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/UnitUtils.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/inp/Grid.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 namespace celeritas

@@ -49,18 +49,3 @@ class to integrate Celeritas by manually intercepting tracks with a
 
 .. doxygenclass:: celeritas::UserActionIntegration
    :members:
-
-The :cpp:class:`celeritas::SimpleOffload` class is a slightly lower level
-interface for
-offloading tracks to Celeritas in a multithreaded or serial application. The
-class names correspond to user actions and ``ActionInitialization``. It
-requires a few app-owned pieces such as :cpp:class:`celeritas::SharedParams`
-and :cpp:class:`celeritas::LocalTransporter` to be owned by
-the calling application; the options described below must also be set up and
-provided.
-
-.. deprecated:: v0.6
-
-   Use the :cpp:class:`celeritas::TrackingManagerIntegration` class.
-
-.. doxygenclass:: celeritas::SimpleOffload

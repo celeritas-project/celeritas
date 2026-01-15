@@ -26,6 +26,8 @@ jobs:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-spack.yml
+    secrets:
+      codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
   all:
     if: ${{always()}}

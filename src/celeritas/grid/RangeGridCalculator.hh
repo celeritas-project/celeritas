@@ -15,8 +15,8 @@
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/grid/UniformGridData.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/inp/Grid.hh"
 
 namespace celeritas
 {
@@ -40,6 +40,10 @@ namespace celeritas
  * points is less than 5, linear interpolation will be used instead.
  *
  * \todo support polynomial interpolation as well?
+ *
+ * \todo The calculated range does not account for "tracking cuts" (hard limits
+ * below which tracks are killed). The range should be adjusted so that the
+ * lower integral limit is the energy cutoff \c T_c.
  */
 class RangeGridCalculator
 {

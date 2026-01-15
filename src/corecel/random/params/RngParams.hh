@@ -14,6 +14,8 @@
 #    include "CuHipRngParams.hh"
 #elif (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
 #    include "XorwowRngParams.hh"
+#elif (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
+#    include "RanluxppRngParams.hh"
 #endif
 
 #include "RngParamsFwd.hh"
