@@ -9,6 +9,8 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/optical/TrackInitializer.hh"
 
+using ::celeritas::test::from_cm;
+
 namespace celeritas
 {
 namespace optical
@@ -88,10 +90,11 @@ void SurfacePhysicsIntegrationTestBase::initialize_run()
 }
 
 //---------------------------------------------------------------------------//
-void SurfacePhysicsIntegrationTestBase::run_step(real_type angle)
+void SurfacePhysicsIntegrationTestBase::run_step(RealTurn angle)
 {
-    real_type sin_theta = std::sin(angle);
-    real_type cos_theta = std::cos(angle);
+    real_type sin_theta;
+    real_type cos_theta;
+    sincos(angle, &sin_theta, &cos_theta);
 
     std::vector<TrackInitializer> inits(
         100,

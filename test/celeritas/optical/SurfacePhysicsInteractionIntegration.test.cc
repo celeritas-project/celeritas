@@ -5,6 +5,8 @@
 //! \file celeritas/optical/SurfacePhysicsInteractionIntegration.test.cc
 //---------------------------------------------------------------------------//
 
+#include "corecel/math/Turn.hh"
+
 #include "SurfacePhysicsIntegrationTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -14,7 +16,7 @@ namespace optical
 {
 namespace test
 {
-using namespace ::celeritas::test;
+constexpr Turn degree{real_type{1} / 360};
 //---------------------------------------------------------------------------//
 /*!
  * Counters for photon status after a run at a single angle.
@@ -81,7 +83,7 @@ class SurfacePhysicsInteractionIntegrationTest
     : public SurfacePhysicsIntegrationTestBase
 {
   public:
-    SurfaceTestResults run(std::vector<real_type> const& angles)
+    SurfaceTestResults run(std::vector<RealTurn> const& angles)
     {
         this->create_collector<CollectResults>(collect_);
 
@@ -89,11 +91,11 @@ class SurfacePhysicsInteractionIntegrationTest
 
         // Run over angles
         SurfaceTestResults results;
-        for (auto deg_angle : angles)
+        for (auto angle : angles)
         {
             collect_.reset();
 
-            this->run_step(deg_angle * constants::pi / 180);
+            this->run_step(angle);
 
             EXPECT_EQ(0, collect_.num_failed);
             results.num_absorbed.push_back(collect_.num_absorbed);
@@ -104,7 +106,7 @@ class SurfacePhysicsInteractionIntegrationTest
         return results;
     }
 
-    void reference_run(std::vector<real_type> const& angles,
+    void reference_run(std::vector<RealTurn> const& angles,
                        SurfaceTestResults const& expected)
     {
         auto result = this->run(angles);
@@ -220,7 +222,7 @@ class SurfacePhysicsIntegrationFresnelTest
 // Only back-scattering
 TEST_F(SurfacePhysicsIntegrationBackscatterTest, backscatter)
 {
-    std::vector<real_type> angles{0, 30, 60};
+    std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
 
     SurfaceTestResults expected;
     expected.num_reflected = {100, 100, 100};
@@ -234,7 +236,7 @@ TEST_F(SurfacePhysicsIntegrationBackscatterTest, backscatter)
 // Only absorption
 TEST_F(SurfacePhysicsIntegrationAbsorbTest, absorb)
 {
-    std::vector<real_type> angles{0, 30, 60};
+    std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
 
     SurfaceTestResults expected;
     expected.num_refracted = {0, 0, 0};
@@ -248,7 +250,7 @@ TEST_F(SurfacePhysicsIntegrationAbsorbTest, absorb)
 // Only transmission
 TEST_F(SurfacePhysicsIntegrationTransmitTest, transmit)
 {
-    std::vector<real_type> angles{0, 30, 60};
+    std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
 
     SurfaceTestResults expected;
     expected.num_refracted = {100, 100, 100};
@@ -262,25 +264,25 @@ TEST_F(SurfacePhysicsIntegrationTransmitTest, transmit)
 // Fresnel reflection / refraction
 TEST_F(SurfacePhysicsIntegrationFresnelTest, fresnel)
 {
-    std::vector<real_type> angles{
-        0,
-        10,
-        20,
-        30,
-        40,
-        41,
-        42,
-        43,
-        44,
-        45,
-        46,
-        47,
-        48,
-        49,
-        50,
-        60,
-        70,
-        80,
+    std::vector<RealTurn> angles{
+        RealTurn{0},
+        10 * degree,
+        20 * degree,
+        30 * degree,
+        40 * degree,
+        41 * degree,
+        42 * degree,
+        43 * degree,
+        44 * degree,
+        45 * degree,
+        46 * degree,
+        47 * degree,
+        48 * degree,
+        49 * degree,
+        50 * degree,
+        60 * degree,
+        70 * degree,
+        80 * degree,
     };
 
     SurfaceTestResults expected;

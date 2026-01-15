@@ -4,8 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/SurfacePhysicsRoughnessIntegration.test.cc
 //---------------------------------------------------------------------------//
-#include <memory>
-
+#include "corecel/math/Turn.hh"
 #include "corecel/random/Histogram.hh"
 
 #include "SurfacePhysicsIntegrationTestBase.hh"
@@ -17,7 +16,8 @@ namespace optical
 {
 namespace test
 {
-using namespace ::celeritas::test;
+using ::celeritas::test::Histogram;
+
 //---------------------------------------------------------------------------//
 /*!
  * Collect results based on the track's direction dot produced with respect to
@@ -68,7 +68,7 @@ class SurfacePhysicsRoughnessIntegrationTest
 
         for ([[maybe_unused]] auto i : range(loops))
         {
-            this->run_step(0);  // along x = 0
+            this->run_step(RealTurn(0.0));  // along x = 0
         }
 
         if (reference_configuration)

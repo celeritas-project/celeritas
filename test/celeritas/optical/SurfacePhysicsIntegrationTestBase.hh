@@ -11,6 +11,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/math/Turn.hh"
 #include "corecel/sys/ActionGroups.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/GeantTestBase.hh"
@@ -41,7 +42,6 @@ constexpr bool reference_configuration
        && (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
        && (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW));
 
-using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
 /*!
  * Template class for capturing photons after a surface interaction and scoring
@@ -109,7 +109,8 @@ class CollectResultsAction final : public OpticalStepActionInterface,
  * collect action is used to capture photons immediately after a surface
  * interaction and log them in an appropriate functor.
  */
-class SurfacePhysicsIntegrationTestBase : public GeantTestBase
+class SurfacePhysicsIntegrationTestBase
+    : public ::celeritas::test::GeantTestBase
 {
   public:
     std::string_view gdml_basename() const override { return "optical-box"; }
@@ -123,7 +124,7 @@ class SurfacePhysicsIntegrationTestBase : public GeantTestBase
     void initialize_run();
 
     //! Run a single set of photons at the given angle
-    void run_step(real_type angle);
+    void run_step(RealTurn angle);
 
     //! Create a collector action for the given functor
     template<class C>
