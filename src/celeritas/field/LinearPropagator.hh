@@ -55,13 +55,6 @@ CELER_FUNCTION auto LinearPropagator<GTV>::operator()(real_type dist)
     CELER_EXPECT(dist > 0);
 
     result_type result = geo_.find_next_step(dist);
-    if (CELER_UNLIKELY(geo_.failed()))
-    {
-        // Mark as looping: update momentum and bump
-        result.looping = true;
-        result.distance = 0;
-        return result;
-    }
 
     if (result.boundary)
     {
