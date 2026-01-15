@@ -112,6 +112,10 @@ std::string const& getenv(std::string const& key);
 // Thread-safe flag access to environment variables
 GetenvFlagResult getenv_flag(std::string const& key, bool default_val);
 
+// Thread-safe flag access to environment variables with lazy function default
+GetenvFlagResult
+getenv_flag_lazy(std::string const& key, std::function<bool()> const&);
+
 // Write the accessed environment variables to a stream
 std::ostream& operator<<(std::ostream&, Environment const&);
 

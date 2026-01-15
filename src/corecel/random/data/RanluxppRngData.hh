@@ -72,6 +72,16 @@ struct RanluxppRngState
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initializes an RNG state.
+ */
+struct RanluxppRngStateInitializer
+{
+    //! Ranluxpp state number and carry bit
+    RanluxppNumber value;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Initializer object for the Ranluxpp engine
  */
 struct RanluxppInitializer

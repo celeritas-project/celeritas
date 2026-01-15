@@ -294,9 +294,6 @@ G4RunManager& IntegrationTestBase::run_manager()
         };
         CELER_ASSERT(rm);
 
-        // Disable signal handling
-        disable_geant_signal_handler();
-
         // Set up detector
         rm->SetUserInitialization(new DetectorConstruction{
             this->test_data_path("geocel", basename + ".gdml"),
@@ -385,6 +382,26 @@ auto IntegrationTestBase::make_sens_det(std::string const&) -> UPSensDet
     return nullptr;
 }
 
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
+{
+    // Set default optical physics
+    auto& optical = phys_inp.optical;
+    optical = {};
+    EXPECT_TRUE(optical);
+    EXPECT_TRUE(optical.cherenkov);
+    EXPECT_TRUE(optical.scintillation);
+
+    // Disable WLS which isn't yet working (reemission) in Celeritas
+    using WLSO = WavelengthShiftingOptions;
+    optical.wavelength_shifting = WLSO::deactivated();
+    optical.wavelength_shifting2 = WLSO::deactivated();
+}
+
+//---------------------------------------------------------------------------//
+// TEST PROBLEM MIXINS
 //---------------------------------------------------------------------------//
 /*!
  * Create physics list: default is EM only using make_physics_input.

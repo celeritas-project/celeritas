@@ -110,6 +110,14 @@ class IntegrationTestBase : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+void enable_optical_physics(IntegrationTestBase::PhysicsInput&);
+
+//---------------------------------------------------------------------------//
+// TEST PROBLEM MIXINS
+//---------------------------------------------------------------------------//
 //! Generate LAr sphere geometry with 10 MeV electrons and functional hit call
 class LarSphereIntegrationMixin : virtual public IntegrationTestBase
 {

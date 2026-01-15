@@ -43,7 +43,7 @@ jobs:
           - buildtype: "debug"
             image: "ubuntu-rocm" # Debug device code breaks HIP optimizer
         include:
-          - buildtype: "reldeb"
+          - buildtype: "ndebug"
             geometry: "vecgeom"
             special: "codecov"
             geant: "11.3"
@@ -132,6 +132,12 @@ jobs:
 
       - name: Install Celeritas
         id: install
+        if: >-
+          ${{
+            !cancelled()
+            && steps.build.outcome == 'success'
+            && matrix.special != 'codecov'
+          }}
         working-directory: build
         run: |
           echo "::group::Install"
