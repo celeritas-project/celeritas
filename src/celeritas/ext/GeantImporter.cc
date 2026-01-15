@@ -7,7 +7,6 @@
 #include "GeantImporter.hh"
 
 #include <algorithm>
-#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -185,13 +184,14 @@ struct ProcessFilter
 //! Map particles defined in \c G4MaterialConstPropertyIndex .
 auto& optical_particles_map()
 {
-    static std::unordered_map<std::string, PDGNumber> const map
-        = {{"PROTON", pdg::proton()},
-           {"DEUTERON", pdg::deuteron()},
-           {"TRITON", pdg::triton()},
-           {"ALPHA", pdg::alpha()},
-           {"ION", pdg::ion()},
-           {"ELECTRON", pdg::electron()}};
+    static std::unordered_map<std::string, PDGNumber> const map = {
+        {"PROTON", pdg::proton()},
+        {"DEUTERON", pdg::deuteron()},
+        {"TRITON", pdg::triton()},
+        {"ALPHA", pdg::alpha()},
+        {"ION", pdg::ion()},
+        {"ELECTRON", pdg::electron()},
+    };
     return map;
 }
 
@@ -690,7 +690,10 @@ import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
         get_property(
             &optical.mie.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
 
-        CELER_ASSERT(optical);
+        CELER_VALIDATE(optical,
+                       << "failed to load valid optical material data for "
+                          "OptMatId{"
+                       << opt_mat_id.get() << "} = " << material->GetName());
     }
 
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
