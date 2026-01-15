@@ -574,7 +574,12 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         }
     }
 
-    static logic_int const nowhere_logic[] = {logic::ltrue, logic::lnot};
+    static auto const nowhere_logic = []() -> std::array<logic_int, 2> {
+        if (orange_tracking_logic() == LogicNotation::postfix)
+            return {logic::ltrue, logic::lnot};
+        else
+            return {logic::lnot, logic::ltrue};
+    }();
 
     auto input_logic = make_span(v.logic);
     if (v.zorder == ZOrder::background)
