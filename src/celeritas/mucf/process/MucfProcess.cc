@@ -8,8 +8,10 @@
 
 #include <memory>
 
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mucf/model/DTMixMucfModel.hh"
 #include "celeritas/phys/Model.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {

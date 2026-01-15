@@ -14,9 +14,11 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/inp/MucfPhysics.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mucf/executor/DTMixMucfExecutor.hh"  // IWYU pragma: associated
 #include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 #include "detail/MucfMaterialInserter.hh"
 

@@ -7,12 +7,13 @@
 #pragma once
 
 #include "celeritas/Types.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Process.hh"
 
 namespace celeritas
 {
+class MaterialParams;
+class ParticleParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Muon-catalyzed fusion of muonic dd, dt, or tt molecules.
@@ -43,7 +44,7 @@ class MucfProcess final : public Process
     EnergyLossGrid energy_loss(Applicability) const final;
 
     //! Whether the integral method can be used to sample interaction length
-    bool supports_integral_xs() const final { return true; }  //! \todo Check
+    bool supports_integral_xs() const final { return false; }
 
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return true; }

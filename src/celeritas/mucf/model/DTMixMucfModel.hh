@@ -6,15 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mucf/data/DTMixMucfData.hh"
-#include "celeritas/mucf/executor/DTMixMucfExecutor.hh"  // IWYU pragma: associated
-#include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
 #include "celeritas/phys/Model.hh"
-#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {
+class MaterialParams;
+class ParticleParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Muon-catalyzed fusion model for dd, dt, and tt molecules.
