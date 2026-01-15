@@ -20,6 +20,7 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Device.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
@@ -27,6 +28,7 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/Control.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
@@ -185,12 +187,16 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.rng = this->rng();
     inp.surface = this->core()->surface();
     inp.action_reg = this->optical_action_reg();
+    inp.output_reg = this->core()->output_reg();
     inp.gen_reg = std::make_shared<GeneratorRegistry>();
+    inp.aux_reg = this->core()->aux_reg();
     inp.physics = this->optical_physics();
     inp.sim = this->optical_sim();
     inp.surface_physics = this->optical_surface_physics();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
+    inp.capacity = inp::OpticalStateCapacity::from_default(
+        celeritas::Device::num_devices());
 
     CELER_ENSURE(inp);
     return inp;

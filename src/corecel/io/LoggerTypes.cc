@@ -56,7 +56,7 @@ char const* to_color_code(LogLevel lev)
     };
     // clang-format on
 
-    return color_code(c);
+    return ansi_color(c);
 }
 
 //---------------------------------------------------------------------------//

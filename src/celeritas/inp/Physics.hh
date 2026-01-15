@@ -57,6 +57,8 @@ struct EmPhysics
 /*!
  * Optical physics processes, options, and surface definitions.
  *
+ * If scintillation or Cherenkov is enabled, optical photons will be generated.
+ *
  * \todo Move cherenkov/scintillation to a OpticalGenPhysics class.
  */
 struct OpticalPhysics
@@ -110,8 +112,6 @@ struct Physics
 
     //! Physics for optical photons
     OpticalPhysics optical;
-    //! Optical photon generation mechanism
-    OpticalGenerator optical_generator;
 };
 
 //---------------------------------------------------------------------------//

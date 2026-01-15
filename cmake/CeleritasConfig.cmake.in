@@ -98,6 +98,10 @@ elseif(CELERITAS_USE_HIP)
   find_dependency(hip REQUIRED QUIET)
 endif()
 
+if(CELERITAS_USE_DD4hep)
+  find_dependency(DD4hep REQUIRED)
+endif()
+
 if(CELERITAS_USE_Geant4)
   # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
   # Save and restore include directories around the call -- even though as a
@@ -108,6 +112,10 @@ if(CELERITAS_USE_Geant4)
 
   # Re-establish policy if Geant4 11.1/.2's PTL overwrote it
   cmake_policy(VERSION 3.10...4.0)
+endif()
+
+if(CELERITAS_USE_G4VG AND NOT CELERITAS_BUILTIN_G4VG)
+  find_dependency(G4VG @G4VG_VERSION@ REQUIRED)
 endif()
 
 if(CELERITAS_USE_HepMC3)
@@ -161,14 +169,6 @@ if(CELERITAS_USE_VecGeom)
       "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
     )
   endif()
-
-  if(CELERITAS_USE_Geant4 AND NOT CELERITAS_BUILTIN_G4VG)
-    find_dependency(G4VG @G4VG_VERSION@ REQUIRED)
-  endif()
-endif()
-
-if(CELERITAS_USE_DD4hep)
-  find_dependency(DD4hep REQUIRED)
 endif()
 
 cmake_policy(POP)
