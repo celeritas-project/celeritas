@@ -295,6 +295,10 @@ else()
   set(_geo_mat_filter DISABLE)
 endif()
 
+if(CELERITAS_VecGeom_SURFACE)
+  set(_fails_vgsurf DISABLE)
+endif()
+
 celeritas_add_test(geo/GeoMaterial.test.cc
   FILTER ${_geo_mat_filter}
   ${_optional_geant4_env})
@@ -405,7 +409,8 @@ celeritas_add_test(optical/Fresnel.test.cc)
 celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
 celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
 celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4})
-celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
+  ${_needs_geant4} ${_fails_vgsurf})
 
 #-----------------------------------------------------------------------------#
 # Mat
