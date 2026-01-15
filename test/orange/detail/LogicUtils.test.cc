@@ -35,6 +35,21 @@ std::vector<logic_int> infix_to_postfix(std::vector<logic_int> infix)
     return convert_to_postfix(make_span(infix));
 }
 
+OrangeInput
+make_input_with_logic(std::vector<logic_int> logic, LogicNotation notation)
+{
+    OrangeInput input;
+    UnitInput unit;
+    VolumeInput volume;
+    volume.logic = std::move(logic);
+    volume.zorder = ZOrder::media;
+    unit.volumes.push_back(std::move(volume));
+    input.universes.push_back(std::move(unit));
+    input.logic = notation;
+    input.tol = Tolerance<>::from_default();
+    return input;
+}
+
 TEST(NotationConverter, basic)
 {
     auto round_trip = [](std::string_view postfix, std::string_view infix) {
@@ -65,6 +80,33 @@ TEST(NotationConverter, basic)
     round_trip("0 1 ~ & 2 & 3 ~ | 4 & 5 ~ & 6 7 & 8 ~ & 9 & 10 ~ & 11 ~ & ~ |",
                "( ( ( 0 & ~ 1 & 2 ) | ~ 3 ) & 4 & ~ 5 ) | ~ ( 6 & 7 & ~ 8 & 9 "
                "& ~ 10 & ~ 11 )");
+}
+
+TEST(NotationConverter, demorgan_postfix_to_infix)
+{
+    auto input = make_input_with_logic(string_to_logic("0 1 | ~"),
+                                       LogicNotation::postfix);
+    convert_logic(input, LogicNotation::infix);
+    auto& unit = std::get<UnitInput>(input.universes.front());
+    auto postfix = convert_to_postfix(make_span(unit.volumes.front().logic));
+    EXPECT_EQ(logic_to_string(postfix), "0 ~ 1 ~ &");
+}
+
+TEST(NotationConverter, demorgan_infix_to_infix)
+{
+    std::vector<logic_int> infix = {
+        logic::lnot,
+        logic::lopen,
+        logic_int{0},
+        logic::lor,
+        logic_int{1},
+        logic::lclose,
+    };
+    auto input = make_input_with_logic(std::move(infix), LogicNotation::infix);
+    convert_logic(input, LogicNotation::infix);
+    auto& unit = std::get<UnitInput>(input.universes.front());
+    auto postfix = convert_to_postfix(make_span(unit.volumes.front().logic));
+    EXPECT_EQ(logic_to_string(postfix), "0 ~ 1 ~ &");
 }
 
 //---------------------------------------------------------------------------//
