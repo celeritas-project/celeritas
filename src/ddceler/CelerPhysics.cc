@@ -12,6 +12,7 @@
 #include <DDG4/Geant4ActionPhase.h>
 #include <DDG4/Geant4Kernel.h>
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Field.hh"
 #include "accel/TrackingManagerIntegration.hh"
@@ -71,11 +72,11 @@ SetupOptions CelerPhysics::make_options()
 
     // Validate configuration parameters
     CELER_VALIDATE(max_num_tracks_ > 0,
-                   << "MaxNumTracks must be set to a positive value (got "
-                   << max_num_tracks_ << ")");
+                   << "invalid MaxNumTracks=" << max_num_tracks_
+                   << "(should be positive)");
     CELER_VALIDATE(init_capacity_ > 0,
-                   << "InitCapacity must be set to a positive value (got "
-                   << init_capacity_ << ")");
+                   << "invalid InitCapacity=" << init_capacity_
+                   << " (should be positive)");
 
     opts.max_num_tracks = max_num_tracks_;
     opts.initializer_capacity = init_capacity_;
@@ -88,7 +89,7 @@ SetupOptions CelerPhysics::make_options()
 
     // Get the field from DD4hep detector description and validate its type
     auto& detector = context()->detectorDescription();
-    auto field = detector.field();
+    auto&& field = detector.field();
     auto* overlaid_obj = field.data<OverlayedField::Object>();
 
     // Validate field configuration: no electric components
@@ -130,13 +131,8 @@ SetupOptions CelerPhysics::make_options()
 
     // Get field tracking parameters from DD4hep FieldSetup action
     // These parameters are set in the steering file (runner.field.*)
-    FieldDriverOptions driver_options;
-
-    auto& kernel = context()->kernel();
-    auto* config_phase = kernel.getPhase("configure");
-
     dd4hep::sim::Geant4Action* field_action = nullptr;
-    if (config_phase)
+    if (auto* config_phase = context()->kernel().getPhase("configure"))
     {
         // Find the MagFieldTrackingSetup action in the configure phase
         for (auto const& [action, callback] : config_phase->members())
@@ -149,6 +145,7 @@ SetupOptions CelerPhysics::make_options()
         }
     }
 
+    FieldDriverOptions driver_options;
     if (field_action)
     {
         driver_options = load_driver_options(field_action);
