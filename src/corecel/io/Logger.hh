@@ -51,7 +51,7 @@
  * \def CELER_LOG_LOCAL
  *
  * Like \c CELER_LOG but for code paths that may only happen on a single
- * process or thread. Use sparingly because this can be very verbose. This is
+ * process or thread. Use sparingly because this can be very verbose. This
  * should be used for error messages from an event or
  * track at runtime.
  */

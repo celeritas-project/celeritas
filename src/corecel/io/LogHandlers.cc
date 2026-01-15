@@ -75,7 +75,7 @@ void LocalMpiHandler::operator()(LogProvenance prov,
     os << color_code('W') << "rank " << rank_ << ": ";
     StreamLogHandler{os}(prov, lev, msg);
 
-    os_ << std::move(os).str();
+    os_ << std::move(os).str() << std::flush;
 }
 
 //---------------------------------------------------------------------------//
