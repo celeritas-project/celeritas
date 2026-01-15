@@ -61,6 +61,7 @@ class RanluxppRngEngine
     using Initializer_t = RanluxppInitializer;
     using ParamsRef = NativeCRef<RanluxppRngParamsData>;
     using StateRef = NativeRef<RanluxppRngStateData>;
+    using RngStateInitializer_t = RanluxppRngStateInitializer;
     //@}
 
   public:
@@ -83,21 +84,28 @@ class RanluxppRngEngine
         return celeritas::numeric_limits<result_type>::max();
     }
 
-    // Initialize state with the given seed.
+    // Initialize state with the given seed initializer
     inline CELER_FUNCTION RanluxppRngEngine&
     operator=(Initializer_t const& init);
 
-    // Generate a 32-bit random integer
+    // Initialize state with the given state initializer
+    inline CELER_FUNCTION RanluxppRngEngine&
+    operator=(RngStateInitializer_t const& state_init);
+
+    // Generate a 32-bit random integer.
     inline CELER_FUNCTION result_type operator()();
 
     // Advance the state \c count times.
     inline CELER_FUNCTION void discard(RanluxppUInt count);
 
+    // Initialize a state for a new spawned RNG.
+    inline CELER_FUNCTION RngStateInitializer_t branch();
+
   private:
     /// IMPLEMENTATION ///
 
-    // Produce the next block of random bits.
-    inline CELER_FUNCTION void advance();
+    // Produce the next block of random bits for the given state.
+    inline CELER_FUNCTION void advance(RanluxppRngState& state);
 
     /// DATA ///
     static constexpr int offset_ = 48;
@@ -155,6 +163,17 @@ RanluxppRngEngine::operator=(Initializer_t const& init)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize state for the given state initializer.
+ */
+inline CELER_FUNCTION RanluxppRngEngine&
+RanluxppRngEngine::operator=(RngStateInitializer_t const& state_init)
+{
+    (*state_).value = state_init.value;
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Skip `n` random numbers without generating them.
  */
 CELER_FUNCTION void RanluxppRngEngine::discard(RanluxppUInt n)
@@ -201,7 +220,7 @@ CELER_FUNCTION auto RanluxppRngEngine::operator()() -> result_type
 {
     if (state_->position + offset_ > params_.max_position)
     {
-        this->advance();
+        this->advance(*state_);
     }
 
     // Extract the Nth word from the state
@@ -224,14 +243,51 @@ CELER_FUNCTION auto RanluxppRngEngine::operator()() -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize a state for a new spawned RNG.
+ *
+ * \par Branching
+ * Branching is performed in two steps.  First, the state of the new RNG
+ * (\f$x^{\prime}\f$) is initialized as
+ * \f[
+ *      x^{i,\prime}_j = x^i_j ^ x^{i+1}_j \, .
+ * \f]
+ * Second, to decorrelate the new RNG from this RNG, the new RNG is
+ * advanced forward to the next block
+ */
+CELER_FUNCTION RanluxppRngEngine::RngStateInitializer_t
+RanluxppRngEngine::branch()
+{
+    // Create a new state
+    RanluxppRngState new_state = *state_;
+
+    // Advance the RNG
+    this->advance(*state_);
+
+    // XOR the new state with the updated and advanced state
+    for (auto i : celeritas::range(9))
+    {
+        new_state.value.number[i] ^= (*state_).value.number[i];
+    }
+
+    // Advance the new rng to decorrelate it
+    this->advance(new_state);
+
+    // Create and return the state initializer
+    RngStateInitializer_t initializer{new_state.value};
+
+    return initializer;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Advance to the next state (block of random bits).
  */
-CELER_FUNCTION void RanluxppRngEngine::advance()
+CELER_FUNCTION void RanluxppRngEngine::advance(RanluxppRngState& state)
 {
-    RanluxppArray9 lcg = celeritas::detail::to_lcg(state_->value);
+    RanluxppArray9 lcg = celeritas::detail::to_lcg(state.value);
     lcg = celeritas::detail::compute_mod_multiply(params_.advance_state, lcg);
-    state_->value = celeritas::detail::to_ranlux(lcg);
-    state_->position = 0;
+    state.value = celeritas::detail::to_ranlux(lcg);
+    state.position = 0;
 }
 
 //---------------------------------------------------------------------------//
