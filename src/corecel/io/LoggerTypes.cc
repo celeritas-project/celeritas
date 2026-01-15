@@ -39,7 +39,7 @@ char const* to_cstring(LogLevel lev)
 /*!
  * Get an ANSI color code appropriate to each log level.
  */
-char const* to_color_code(LogLevel lev)
+char const* to_ansi_color(LogLevel lev)
 {
     // clang-format off
     char c = ' ';

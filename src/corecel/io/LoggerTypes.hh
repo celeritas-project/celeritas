@@ -51,7 +51,7 @@ char const* to_cstring(LogLevel);
 
 //---------------------------------------------------------------------------//
 // Get an ANSI color code appropriate to each log level
-char const* to_color_code(LogLevel);
+char const* to_ansi_color(LogLevel);
 
 //---------------------------------------------------------------------------//
 // Get a log level from an environment variable

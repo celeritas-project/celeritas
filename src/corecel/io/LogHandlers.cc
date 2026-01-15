@@ -35,7 +35,7 @@ void StreamLogHandler::operator()(LogProvenance prov,
         os_ << color_code(' ') << ": ";
     }
 
-    os_ << to_color_code(lev) << to_cstring(lev) << ": " << color_code(' ');
+    os_ << to_ansi_color(lev) << to_cstring(lev) << ": " << color_code(' ');
     os_ << std::move(msg) << std::endl;
 }
 
