@@ -107,7 +107,7 @@ doxygen_add_docs(doxygen
 )
 
 #-----------------------------------------------------------------------------#
-# USER MANUAL (Sphinx/Breathe)
+# USER MANUAL
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_PYTHONPATH_RERUN)
@@ -184,7 +184,8 @@ function(celeritas_build_latex input output)
 endfunction()
 
 #-----------------------------------------------------------------------------#
-# USER DOXYGEN
+# USER MANUAL: Doxygen setup
+
 function(_set_jsonbool varname)
   if(ARGC GREATER 1 AND ARGV1)
     set(${varname} true PARENT_SCOPE)
@@ -273,6 +274,7 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/model/*.hh"
   "${PROJECT_SOURCE_DIR}/test/*.hh"
 )
+
 # IMPORTANT: the target name and USE_STAMP_FILE generate a dependency used by
 # the downstream sphinx docs when Breathe is available
 doxygen_add_docs(doxygen_xml
@@ -283,7 +285,7 @@ doxygen_add_docs(doxygen_xml
 )
 
 #-----------------------------------------------------------------------------#
-# GRAPHICS PROCESSING
+# USER MANUAL: graphics generation (GraphViz)
 
 # Note that *all* dot files must be present at the same time to prevent
 # errors when doing separate HTML/PDF builds: the doctrees directory caches the
@@ -329,7 +331,7 @@ foreach(_inp IN LISTS _dot_input)
 endforeach()
 
 #-----------------------------------------------------------------------------#
-# RST PROCESSING
+# USER MANUAL: Sphinx RST pre-processing
 
 if(Sphinx_FOUND)
   file(GLOB_RECURSE _sphinx_deps "${CMAKE_CURRENT_SOURCE_DIR}/*.rst")
@@ -348,7 +350,8 @@ celeritas_build_sphinx(dummy "${_doctree_env}" "${_sphinx_deps}")
 add_custom_target(doc_preprocess DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doctree_env}")
 
 #-----------------------------------------------------------------------------#
-# HTML
+# USER MANUAL: Sphinx HTML generation
+
 set(_doc_html "html/index.html")
 celeritas_build_sphinx(html "${_doc_html}" "${_doctree_env}")
 add_custom_target(doc DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_doc_html}")
@@ -359,7 +362,7 @@ install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
 )
 
 #-----------------------------------------------------------------------------#
-# PDF
+# USER MANUAL: Sphinx PDF generation
 
 set(_doc_tex "latex/Celeritas.tex")
 celeritas_build_sphinx(latex "${_doc_tex}" "${_doctree_env}")

@@ -31,10 +31,8 @@ This will be replaced by other utilities in conjunction with the
 Utility interfaces
 ^^^^^^^^^^^^^^^^^^
 
-.. doxygenclass:: celeritas::MakeMTSelfLogger
-
-.. doxygenclass:: celeritas::MakeMTWorldLogger
+.. doxygenfunction:: celeritas::MakeMTSelfLogger
+.. doxygenfunction:: celeritas::MakeMTWorldLogger
 
 .. doxygenclass:: celeritas::ScopedGeantLogger
-
 .. doxygenclass:: celeritas::ScopedGeantExceptionHandler

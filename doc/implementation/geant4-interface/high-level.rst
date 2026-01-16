@@ -10,8 +10,8 @@ The high-level integration classes are the easiest way to add Celeritas to a
 Geant4 application. Under the hood, it contains a singleton class instance that
 sets up the UI commands (see :cpp:class:`celeritas::SetupOptionsMessenger`),
 MPI (if configured), and Celeritas logging (redirecting "world" logging with
-:cpp:function:`celeritas::MakeMTWorldLogger` and "self" logging with
-:cpp:function:`celeritas::MakeMTSelfLogger`) .
+:cpp:func:`celeritas::MakeMTWorldLogger` and "self" logging with
+:cpp:func:`celeritas::MakeMTSelfLogger`) .
 
 .. doxygenclass:: celeritas::IntegrationBase
 
