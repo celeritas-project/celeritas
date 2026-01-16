@@ -50,15 +50,11 @@ void IntegrationBase::EndOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
 
-    // Record the run time
-    auto time = singleton.stop_timer();
-
     // Remove local transporter
     singleton.finalize_local_transporter();
 
     if (G4Threading::IsMasterThread())
     {
-        singleton.shared_params().timer()->RecordTotalTime(time);
         singleton.finalize_shared_params();
     }
 }
@@ -106,6 +102,31 @@ CoreStateInterface& IntegrationBase::GetState()
         ExceptionConverter{"celer.get.state"});
 
     return singleton.local_transporter().GetState();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Start the run.
+ *
+ * This handles shared/local setup and calls verify_setup if offload is
+ * enabled.
+ */
+void IntegrationBase::BeginOfRunAction(G4Run const*)
+{
+    auto& singleton = IntegrationSingleton::instance();
+
+    if (G4Threading::IsMasterThread())
+    {
+        singleton.initialize_shared_params();
+    }
+
+    bool enable_offload = singleton.initialize_local_transporter();
+
+    if (enable_offload)
+    {
+        // Allow derived classes to perform their specific verification
+        this->verify_setup();
+    }
 }
 
 //---------------------------------------------------------------------------//

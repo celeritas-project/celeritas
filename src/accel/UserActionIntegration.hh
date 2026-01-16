@@ -50,9 +50,6 @@ class UserActionIntegration final : public IntegrationBase
     // Access the singleton
     static UserActionIntegration& Instance();
 
-    // Start the run
-    void BeginOfRunAction(G4Run const* run) final;
-
     // Send Celeritas the event ID
     void BeginOfEventAction(G4Event const* event);
 
@@ -67,6 +64,9 @@ class UserActionIntegration final : public IntegrationBase
     UserActionIntegration();
 
     Stopwatch get_event_time_;
+
+    // Verify setup after initialization (called if offload is enabled)
+    void verify_setup() final;
 };
 
 //---------------------------------------------------------------------------//

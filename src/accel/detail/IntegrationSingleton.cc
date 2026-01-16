@@ -186,6 +186,7 @@ void IntegrationSingleton::initialize_shared_params()
 
     if (G4Threading::IsMasterThread())
     {
+        Stopwatch get_setup_time;
         failed_setup_ = false;
         CELER_LOG(debug) << "Initializing shared params";
         CELER_TRY_HANDLE(
@@ -201,9 +202,16 @@ void IntegrationSingleton::initialize_shared_params()
                 // threads, or user called initialization after run manager
                 this->update_logger();
 
+                // Perform initialization
                 params_.Initialize(options_);
+
+                // Record the setup time after initialization
+                params_.timer()->RecordSetupTime(get_setup_time());
             },
             call_g4exception);
+
+        // Start the run timer
+        get_time_ = {};
     }
     else
     {
@@ -330,11 +338,13 @@ void IntegrationSingleton::finalize_shared_params()
     {
         return;
     }
+
     CELER_LOG(status) << "Finalizing Celeritas";
     CELER_TRY_HANDLE(
         {
             CELER_VALIDATE(params_,
                            << "params cannot be finalized more than once");
+            params_.timer()->RecordTotalTime(get_time_());
             params_.Finalize();
         },
         ExceptionConverter("celer.finalize.global"));

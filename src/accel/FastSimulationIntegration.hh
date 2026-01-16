@@ -35,12 +35,12 @@ class FastSimulationIntegration final : public IntegrationBase
     // Access the public-facing integration singleton
     static FastSimulationIntegration& Instance();
 
-    // Start the run
-    void BeginOfRunAction(G4Run const* run) final;
-
   private:
     // Tracking manager can only be created privately
     FastSimulationIntegration();
+
+    // Verify fast simulation setup
+    void verify_setup() final;
 };
 
 //---------------------------------------------------------------------------//

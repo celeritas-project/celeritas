@@ -52,7 +52,7 @@ class IntegrationBase
     [[deprecated]] void Build() {}
 
     // Start the run
-    virtual void BeginOfRunAction(G4Run const* run) = 0;
+    void BeginOfRunAction(G4Run const* run);
 
     // End the run
     void EndOfRunAction(G4Run const* run);
@@ -69,6 +69,9 @@ class IntegrationBase
     IntegrationBase();
     ~IntegrationBase() = default;
     CELER_DEFAULT_COPY_MOVE(IntegrationBase);
+
+    // Verify setup after initialization (called if offload is enabled)
+    virtual void verify_setup() = 0;
 };
 
 //---------------------------------------------------------------------------//

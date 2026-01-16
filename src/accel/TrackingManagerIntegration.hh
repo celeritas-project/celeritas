@@ -40,12 +40,12 @@ class TrackingManagerIntegration final : public IntegrationBase
     // Access the public-facing integration singleton
     static TrackingManagerIntegration& Instance();
 
-    // Start the run
-    void BeginOfRunAction(G4Run const* run) final;
-
   private:
     // Tracking manager can only be created privately
     TrackingManagerIntegration();
+
+    // Verify tracking manager setup
+    void verify_setup() final;
 };
 
 //---------------------------------------------------------------------------//
