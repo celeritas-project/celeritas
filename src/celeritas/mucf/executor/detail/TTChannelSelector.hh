@@ -29,7 +29,7 @@ class TTChannelSelector
 
   public:
     //! Construct with args; \todo Update documentation
-    inline TTChannelSelector(/* args */);
+    inline CELER_FUNCTION TTChannelSelector(/* args */);
 
     // Select fusion channel to be used by the interactor
     template<class Engine>
@@ -44,7 +44,7 @@ class TTChannelSelector
  *
  * \todo Update documentation
  */
-TTChannelSelector::TTChannelSelector(/* args */)
+CELER_FUNCTION TTChannelSelector::TTChannelSelector(/* args */)
 {
     //! \todo Implement
     CELER_NOT_IMPLEMENTED("Mucf tt fusion channel selection");
@@ -57,8 +57,7 @@ TTChannelSelector::TTChannelSelector(/* args */)
  * \sa celeritas::TTMucfInteractor
  */
 template<class Engine>
-inline CELER_FUNCTION TTChannelSelector::Channel
-TTChannelSelector::operator()(Engine&)
+CELER_FUNCTION TTChannelSelector::Channel TTChannelSelector::operator()(Engine&)
 {
     Channel result{Channel::size_};
 

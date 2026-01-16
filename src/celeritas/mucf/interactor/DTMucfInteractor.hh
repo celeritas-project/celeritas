@@ -70,6 +70,7 @@ class DTMucfInteractor
 /*!
  * Construct with shared and state data.
  */
+CELER_FUNCTION
 DTMucfInteractor::DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
                                    Channel const channel,
                                    StackAllocator<Secondary>& allocate)

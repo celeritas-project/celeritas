@@ -24,7 +24,7 @@ class DTMixMuonicMoleculeSelector
 {
   public:
     //! Construct with args; \todo Update documentation
-    inline DTMixMuonicMoleculeSelector(/* args */);
+    inline CELER_FUNCTION DTMixMuonicMoleculeSelector(/* args */);
 
     // Select muonic molecule
     template<class Engine>
@@ -39,6 +39,7 @@ class DTMixMuonicMoleculeSelector
  *
  * \todo Update documentation
  */
+CELER_FUNCTION
 DTMixMuonicMoleculeSelector::DTMixMuonicMoleculeSelector(/* args */)
 {
     //! \todo Implement
@@ -50,7 +51,7 @@ DTMixMuonicMoleculeSelector::DTMixMuonicMoleculeSelector(/* args */)
  * Return selected muonic molecule.
  */
 template<class Engine>
-inline CELER_FUNCTION MucfMuonicMolecule
+CELER_FUNCTION MucfMuonicMolecule
 DTMixMuonicMoleculeSelector::operator()(Engine&)
 {
     MucfMuonicMolecule result{MucfMuonicMolecule::size_};

@@ -29,7 +29,7 @@ class DTChannelSelector
 
   public:
     //! Construct with args; \todo Update documentation
-    inline DTChannelSelector(/* args */);
+    inline CELER_FUNCTION DTChannelSelector(/* args */);
 
     // Select fusion channel to be used by the interactor
     template<class Engine>
@@ -44,7 +44,7 @@ class DTChannelSelector
  *
  * \todo Update documentation
  */
-DTChannelSelector::DTChannelSelector(/* args */)
+CELER_FUNCTION DTChannelSelector::DTChannelSelector(/* args */)
 {
     CELER_NOT_IMPLEMENTED("Mucf dt fusion channel selection");
 }
@@ -56,8 +56,7 @@ DTChannelSelector::DTChannelSelector(/* args */)
  * \sa celeritas::DTMucfInteractor
  */
 template<class Engine>
-inline CELER_FUNCTION DTChannelSelector::Channel
-DTChannelSelector::operator()(Engine&)
+CELER_FUNCTION DTChannelSelector::Channel DTChannelSelector::operator()(Engine&)
 {
     Channel result{Channel::size_};
 

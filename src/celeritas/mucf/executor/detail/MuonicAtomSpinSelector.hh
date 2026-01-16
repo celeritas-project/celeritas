@@ -40,6 +40,7 @@ class MuonicAtomSpinSelector
 /*!
  * Construct with muonic atom.
  */
+CELER_FUNCTION
 MuonicAtomSpinSelector::MuonicAtomSpinSelector(MucfMuonicAtom atom)
     : atom_(atom)
 {

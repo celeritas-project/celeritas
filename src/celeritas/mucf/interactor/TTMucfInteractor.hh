@@ -70,6 +70,7 @@ class TTMucfInteractor
 /*!
  * Construct with shared and state data.
  */
+CELER_FUNCTION
 TTMucfInteractor::TTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
                                    Channel const channel,
                                    StackAllocator<Secondary>& allocate)
@@ -81,7 +82,7 @@ TTMucfInteractor::TTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample a dt muonic molecule fusion.
+ * Sample a tt muonic molecule fusion.
  */
 template<class Engine>
 CELER_FUNCTION Interaction TTMucfInteractor::operator()(Engine& rng)

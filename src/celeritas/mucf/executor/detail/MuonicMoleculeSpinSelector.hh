@@ -40,7 +40,7 @@ class MuonicMoleculeSpinSelector
 /*!
  * Construct with muonic molecule.
  */
-MuonicMoleculeSpinSelector::MuonicMoleculeSpinSelector(
+CELER_FUNCTION MuonicMoleculeSpinSelector::MuonicMoleculeSpinSelector(
     MucfMuonicMolecule molecule)
     : molecule_(molecule)
 {
