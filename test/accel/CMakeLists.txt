@@ -116,6 +116,13 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
+# Test that the UI integration fails if options aren't set
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LarSphere no_set_options
+  OFFLOAD cpu
+  RMTYPE serial mt
+)
+
 # Test optical
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphereOptical run
