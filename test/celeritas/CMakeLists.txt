@@ -408,9 +408,9 @@ celeritas_add_test(optical/ReflectionFormSampler.test.cc)
 celeritas_add_test(optical/Fresnel.test.cc)
 celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
 celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
-celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
-  ${_needs_geant4} ${_fails_vgsurf})
+  ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat
