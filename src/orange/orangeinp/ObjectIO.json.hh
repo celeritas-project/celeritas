@@ -25,7 +25,6 @@ template<OperatorToken Op>
 class JoinObjects;
 class NegatedObject;
 class PolyCone;
-class PolyPrism;
 class RevolvedPolygon;
 class ShapeBase;
 class SolidBase;
@@ -67,7 +66,6 @@ template<OperatorToken Op>
 void to_json(nlohmann::json& j, JoinObjects<Op> const&);
 void to_json(nlohmann::json& j, NegatedObject const&);
 void to_json(nlohmann::json& j, PolyCone const&);
-void to_json(nlohmann::json& j, PolyPrism const&);
 void to_json(nlohmann::json& j, RevolvedPolygon const&);
 void to_json(nlohmann::json& j, ShapeBase const&);
 void to_json(nlohmann::json& j, SolidBase const&);
