@@ -186,6 +186,7 @@ void IntegrationSingleton::initialize_shared_params()
 
     if (G4Threading::IsMasterThread())
     {
+        failed_setup_ = false;
         CELER_LOG(debug) << "Initializing shared params";
         CELER_TRY_HANDLE(
             {
@@ -218,7 +219,8 @@ void IntegrationSingleton::initialize_shared_params()
             call_g4exception);
     }
 
-    CELER_ENSURE(params_);
+    failed_setup_ = call_g4exception.forwarded();
+    CELER_ENSURE(params_ || failed_setup_);
 }
 
 //---------------------------------------------------------------------------//
@@ -232,7 +234,12 @@ void IntegrationSingleton::initialize_shared_params()
  */
 bool IntegrationSingleton::initialize_local_transporter()
 {
-    CELER_EXPECT(params_);
+    if (CELER_UNLIKELY(failed_setup_))
+    {
+        CELER_LOG_LOCAL(debug) << "Skipping local initialization due to "
+                                  "failure";
+        return false;
+    }
 
     if (params_.mode() == OffloadMode::disabled)
     {
@@ -280,6 +287,10 @@ bool IntegrationSingleton::initialize_local_transporter()
  */
 void IntegrationSingleton::finalize_local_transporter()
 {
+    if (CELER_UNLIKELY(failed_setup_))
+    {
+        return;
+    }
     CELER_EXPECT(params_);
 
     if (params_.mode() != OffloadMode::enabled)
@@ -315,6 +326,10 @@ void IntegrationSingleton::finalize_local_transporter()
  */
 void IntegrationSingleton::finalize_shared_params()
 {
+    if (CELER_UNLIKELY(failed_setup_))
+    {
+        return;
+    }
     CELER_LOG(status) << "Finalizing Celeritas";
     CELER_TRY_HANDLE(
         {

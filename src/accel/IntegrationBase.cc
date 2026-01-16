@@ -48,8 +48,6 @@ OffloadMode IntegrationBase::GetMode() const
  */
 void IntegrationBase::EndOfRunAction(G4Run const*)
 {
-    CELER_LOG(status) << "Finalizing Celeritas";
-
     auto& singleton = IntegrationSingleton::instance();
 
     // Record the run time

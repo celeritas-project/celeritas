@@ -110,6 +110,7 @@ class IntegrationSingleton
     std::unique_ptr<SetupOptionsMessenger> messenger_;
     Stopwatch get_time_;
     bool have_created_logger_{false};
+    bool failed_setup_{false};
 
     //// PRIVATE MEMBER FUNCTIONS ////
 
