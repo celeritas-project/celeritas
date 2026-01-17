@@ -75,49 +75,49 @@ class ExceptionLogger
   public:
     using VecStr = std::vector<std::string>;
 
+    //! Initialize with total number of exceptions to log
+    explicit ExceptionLogger(size_type total_count) : size_(total_count) {}
+
     void operator()(VecStr const& msg_stack)
     {
         CELER_EXPECT(!msg_stack.empty());
 
         if (msg_stack.front() == last_msg_)
         {
-            ++ignored_counter_;
+            ++num_ignored_;
         }
         else
         {
-            flush_suppressed();
+            this->flush_suppressed();
             last_msg_ = msg_stack.front();
 
-            auto log_msg = CELER_LOG_LOCAL(critical);
-            log_msg << "Suppressed exception from parallel thread: "
-                    << join(msg_stack.begin(), msg_stack.end(), "\n... from ");
+            CELER_LOG_LOCAL(critical)
+                << '[' << index_ + 1 << '/' << size_ << "]: "
+                << join(msg_stack.begin(), msg_stack.end(), "\n    ...from ");
         }
+        ++index_;
     }
 
     // Flush any suppressed messages before destruction
-    ~ExceptionLogger() noexcept
-    {
-        try
-        {
-            flush_suppressed();
-        }
-        // NOLINTNEXTLINE(bugprone-empty-catch)
-        catch (...)
-        {
-        }
-    }
+    ~ExceptionLogger() noexcept { this->flush_suppressed(); }
 
   private:
     std::string last_msg_;
-    size_type ignored_counter_{0};
+    size_type index_{0};
+    size_type size_{0};
+    size_type num_ignored_{0};
 
     void flush_suppressed()
     {
-        if (ignored_counter_ > 0)
+        if (num_ignored_ > 0)
         {
-            CELER_LOG_LOCAL(warning)
-                << "Suppressed " << ignored_counter_ << " similar exceptions";
-            ignored_counter_ = 0;
+            // Count should be the
+            CELER_ASSERT(num_ignored_ < index_);
+            auto previous = index_ - num_ignored_;
+            CELER_LOG_LOCAL(critical)
+                << '[' << previous + 1 << "-" << index_ << '/' << size_
+                << "]: identical root cause to exception " << previous;
+            num_ignored_ = 0;
         }
     }
 };
@@ -129,7 +129,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Throw the first exception and log all the rest.
+ * Log all exceptions and rethrow the first on the list.
  */
 [[noreturn]] void log_and_rethrow_impl(MultiExceptionHandler&& exceptions)
 {
@@ -137,9 +137,9 @@ namespace detail
     auto exc_vec = std::move(exceptions).release();
 
     ExceptionStackUnwinder unwind_stack;
-    ExceptionLogger log_exception;
+    ExceptionLogger log_exception{exc_vec.size()};
 
-    for (auto eptr_iter = exc_vec.begin() + 1; eptr_iter != exc_vec.end();
+    for (auto eptr_iter = exc_vec.begin(); eptr_iter != exc_vec.end();
          ++eptr_iter)
     {
         try
