@@ -298,9 +298,16 @@ TEST_F(LarSphere, no_set_options)
     CELER_LOG(status) << "Run two events";
     rm.BeamOn(2);
 
-    static char const* const expected_exceptions[] = {
+    std::vector<std::string> expected_exceptions = {
         "SetOptions or UI entries were not completely set before BeginRun",
     };
+    if (!G4Threading::IsMultithreadedApplication())
+    {
+        // Geant4 still starts the first local event if an error happens during
+        // BeginOfRun
+        expected_exceptions.push_back(
+            R"(Celeritas was not initialized properly (maybe BeginOfRunAction was not called?))");
+    }
     EXPECT_VEC_EQ(expected_exceptions, exceptions_);
 }
 
