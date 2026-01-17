@@ -28,7 +28,7 @@ void StepDiagnostic::step(CoreParams const& params, CoreStateDevice& state) cons
     auto& step_state = state.aux_data<StepStateData>(aux_id_);
 
     // Accumulate counters
-    this->accum_counters(state.counters(), step_state.host_data);
+    this->accum_counters(state.sync_get_counters(), step_state.host_data);
 
     // Create a functor that gathers data from a single track slot
     auto execute = make_active_track_executor(
