@@ -372,8 +372,8 @@ TEST_F(StepperOrderTest, warm_up)
 
     EXPECT_EQ(0, dumstate.action_order.size());
     step.warm_up();
-    EXPECT_EQ(0, step.state().counters().num_active);
-    EXPECT_EQ(0, step.state().counters().num_alive);
+    EXPECT_EQ(0, step.state().sync_get_counters().num_active);
+    EXPECT_EQ(0, step.state().sync_get_counters().num_alive);
 
     static char const* const expected_action_order[]
         = {"user_start", "user_pre", "user_post"};

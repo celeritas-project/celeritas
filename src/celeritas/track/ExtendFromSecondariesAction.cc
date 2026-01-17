@@ -51,12 +51,11 @@ void ExtendFromSecondariesAction::step(CoreParams const& params,
 /*!
  * Initialize track states.
  */
+template<MemSpace M>
 void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
-                                            CoreStateHost& core_state) const
+                                            CoreState<M>& core_state) const
 {
-    TrackInitStateData<Ownership::reference, MemSpace::host>& init
-        = core_state.ref().init;
-    auto& counters = core_state.counters();
+    TrackInitStateData<Ownership::reference, M>& init = core_state.ref().init;
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
@@ -71,6 +70,7 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
+    auto counters = core_state.sync_get_counters();
     counters.num_secondaries = detail::exclusive_scan_counts(
         init.secondary_counts, core_state.stream_id());
 
@@ -95,6 +95,8 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
 
     // Launch a kernel to create track initializers from secondaries
     counters.num_alive = core_state.size() - counters.num_vacancies;
+    core_state.sync_put_counters(counters);
+
     this->process_secondaries(core_params, core_state);
 }
 
@@ -123,7 +125,7 @@ void ExtendFromSecondariesAction::process_secondaries(
     detail::ProcessSecondariesExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        core_state.counters()};
+        core_state.sync_get_counters()};
     launch_action(*this, core_params, core_state, execute);
 }
 
@@ -132,12 +134,6 @@ void ExtendFromSecondariesAction::process_secondaries(
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void ExtendFromSecondariesAction::begin_run(CoreParams const&, CoreStateDevice&)
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-void ExtendFromSecondariesAction::step_impl(CoreParams const&,
-                                            CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

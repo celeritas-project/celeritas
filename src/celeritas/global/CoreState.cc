@@ -55,19 +55,18 @@ CoreState<M>::CoreState(CoreParams const& params,
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
 
+    auto counters = CoreStateCounters{};
+    counters.num_vacancies = num_track_slots;
+    this->sync_put_counters(counters);
+
     if constexpr (M == MemSpace::device)
     {
-        auto counters = CoreStateCounters{};
-        counters.num_vacancies = num_track_slots;
-        this->sync_put_counters(counters);
         device_ref_vec_ = DeviceVector<Ref>(1);
         device_ref_vec_.copy_to_device({&this->ref(), 1});
         ptr_ = make_observer(device_ref_vec_);
     }
     else if constexpr (M == MemSpace::host)
     {
-        auto& counters = this->counters();
-        counters.num_vacancies = num_track_slots;
         ptr_ = make_observer(&this->ref());
     }
 
@@ -120,18 +119,7 @@ CoreState<M>::~CoreState()
 template<MemSpace M>
 void CoreState<M>::warming_up(bool new_state)
 {
-    size_type num_active;
-    if constexpr (M == MemSpace::host)
-    {
-        auto& counters = this->counters();
-        num_active = counters.num_active;
-    }
-    else if constexpr (M == MemSpace::device)
-    {
-        auto counters = this->sync_get_counters();
-        num_active = counters.num_active;
-    }
-    CELER_EXPECT(!new_state || num_active == 0);
+    CELER_EXPECT(!new_state || this->sync_get_counters().num_active == 0);
     warming_up_ = new_state;
 }
 
@@ -150,60 +138,50 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
     return {thread_offsets[action_id], thread_offsets[action_id + 1]};
 }
 
-#if CELER_USE_DEVICE
+// #if CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
- * Copy the core state counters from the device to the host. Since the entire
- * sequence of actions in a step are performed on the device, this is typically
- * done at the end of a step.
+ * Copy the core state counters from the device to the host. For host-only
+ * code, the counters reside on the host, so this just returns a
+ * CoreStateCounters object. Note that it does not return a reference, so
+ * sync_put_counters() must be used if any counters change.
  */
 template<MemSpace M>
-CoreStateCounters const CoreState<M>::sync_get_counters() const
+CoreStateCounters CoreState<M>::sync_get_counters() const
 {
+    auto* counters
+        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
+    CELER_ASSERT(counters);
     if constexpr (M == MemSpace::device)
     {
-        auto counters = device_pointer_cast(this->ref().init.counters.data());
-        auto& stream = device().stream(stream_id());
         auto result
-            = ItemCopier<CoreStateCounters>{stream_id()}(counters.get());
-        stream.sync();
+            = ItemCopier<CoreStateCounters>{this->stream_id()}(counters);
+        device().stream(this->stream_id()).sync();
         return result;
     }
-    else if constexpr (M == MemSpace::host)
-    {
-        CELER_ASSERT_UNREACHABLE();
-        return CoreStateCounters{};
-    }
+    return *counters;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy the core state counters from the host to the device. This function is a
- * placeholder function until the corresponding host code that updates the Core
- * State counters can be moved to device functions.
+ * Copy the core state counters from the host to the device. For host-only
+ * code, this function copies a CoreStateCounter object into the CoreState
+ * object, which is needed when any of the counters change, because
+ * sync_get_counters() doesn't return a reference.
  */
 template<MemSpace M>
-void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
+void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 {
+    auto* counters
+        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
+    CELER_ASSERT(counters);
+    Copier<CoreStateCounters, M> copy{{counters, 1}, this->stream_id()};
+    copy(MemSpace::host, {&host_counters, 1});
     if constexpr (M == MemSpace::device)
     {
-        auto counters = device_pointer_cast(this->ref().init.counters.data());
-        auto& stream = device().stream(stream_id());
-        copy_bytes(MemSpace::device,
-                   counters.get(),
-                   MemSpace::host,
-                   &host_counters,
-                   sizeof(CoreStateCounters),
-                   stream_id());
-        stream.sync();
+        device().stream(this->stream_id()).sync();
     }
-    else if constexpr (M == MemSpace::host)
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
-    return;
 }
-#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -216,18 +194,9 @@ void CoreState<M>::sync_put_counters(CoreStateCounters& host_counters)
 template<MemSpace M>
 void CoreState<M>::reset()
 {
-    if constexpr (M == MemSpace::host)
-    {
-        auto& counters = this->counters();
-        counters = CoreStateCounters{};
-        counters.num_vacancies = this->size();
-    }
-    else if constexpr (M == MemSpace::device)
-    {
-        auto counters = CoreStateCounters{};
-        counters.num_vacancies = this->size();
-        sync_put_counters(counters);
-    }
+    auto counters = CoreStateCounters{};
+    counters.num_vacancies = this->size();
+    sync_put_counters(counters);
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);
@@ -235,21 +204,6 @@ void CoreState<M>::reset()
     // Mark all the track slots as empty
     fill_sequence(&this->ref().init.vacancies, this->stream_id());
 }
-
-//---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-template<MemSpace M>
-CoreStateCounters const CoreState<M>::sync_get_counters() const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-template<MemSpace M>
-void CoreState<M>::sync_put_counters(CoreStateCounters&)
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
