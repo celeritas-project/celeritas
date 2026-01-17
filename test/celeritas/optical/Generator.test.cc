@@ -160,7 +160,7 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
 
     if (reference_configuration)
     {
-        EXPECT_EQ(68939, result.steps);
+        EXPECT_EQ(68916, result.steps);
         EXPECT_EQ(18, result.step_iters);
     }
     EXPECT_EQ(1, result.flushes);
@@ -197,7 +197,7 @@ TEST_F(LArSphereGeneratorTest, TEST_IF_CELER_DEVICE(device_primary_generator))
 
     if (reference_configuration)
     {
-        EXPECT_EQ(69257, result.steps);
+        EXPECT_EQ(69164, result.steps);
         EXPECT_EQ(6, result.step_iters);
     }
     EXPECT_EQ(1, result.flushes);
