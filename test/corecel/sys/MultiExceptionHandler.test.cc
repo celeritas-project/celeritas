@@ -110,7 +110,7 @@ test.cc:1: failure
         R"([2/5]: test.cc:2:
 celeritas: internal assertion failed: false
     ...from context 0)",
-        "[3-5/5]: identical root cause to exception 2",
+        "[3-5/5]: identical root cause to exception [2/5]",
     };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages()) << scoped_log_;
     static char const* const expected_log_levels[]

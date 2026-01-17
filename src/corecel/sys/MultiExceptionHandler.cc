@@ -116,7 +116,8 @@ class ExceptionLogger
             auto previous = index_ - num_ignored_;
             CELER_LOG_LOCAL(critical)
                 << '[' << previous + 1 << "-" << index_ << '/' << size_
-                << "]: identical root cause to exception " << previous;
+                << "]: identical root cause to exception [" << previous << '/'
+                << size_ << ']';
             num_ignored_ = 0;
         }
     }
