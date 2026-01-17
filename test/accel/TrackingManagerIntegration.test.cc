@@ -178,7 +178,7 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
                          step->GetTrack()->GetWeight());
     }
 
-    // Fail when GeantExceptionHandler catches a celeritas RuntimeError
+    //! Check wrapped RuntimeError caught by GeantExceptionHandler
     void caught_g4_runtime_error(RuntimeError const& e) override
     {
         if (!catch_exceptions_)
@@ -193,8 +193,9 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
         static std::regex extract_error{R"(runtime error:\s*(.+?)(?:\n|$))"};
         std::smatch match;
         std::string what = e.what();
-        if (std::regex_search(what, match, extract_error) && match.size() > 1)
+        if (std::regex_search(what, match, extract_error))
         {
+            CELER_ASSERT(match.size() > 1);
             exceptions_.push_back(match[1].str());
         }
         else
