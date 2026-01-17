@@ -87,8 +87,8 @@ void partition_initializers(
 {
     // Partition the indices based on the track initializer charge
     auto* start = init.indices.data().get();
-    auto* counters = init.counters.data().get();
     auto* end = start + count;
+    auto* counters = init.counters.data().get();
     auto* stencil = init.initializers.data().get() + counters->num_initializers
                     - count;
     std::stable_partition(

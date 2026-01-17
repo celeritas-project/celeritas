@@ -11,7 +11,6 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"

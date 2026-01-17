@@ -16,7 +16,6 @@
 
 #include "detail/LocateAliveExecutor.hh"
 #include "detail/ProcessSecondariesExecutor.hh"
-#include "detail/TrackInitAlgorithms.hh"
 
 namespace celeritas
 {

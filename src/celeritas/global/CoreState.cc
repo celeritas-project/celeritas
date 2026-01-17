@@ -138,7 +138,6 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
     return {thread_offsets[action_id], thread_offsets[action_id + 1]};
 }
 
-// #if CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Copy the core state counters from the device to the host. For host-only
@@ -211,5 +210,4 @@ void CoreState<M>::reset()
 template class CoreState<MemSpace::host>;
 template class CoreState<MemSpace::device>;
 //---------------------------------------------------------------------------//
-
 }  // namespace celeritas

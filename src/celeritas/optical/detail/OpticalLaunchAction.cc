@@ -134,7 +134,7 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
     CELER_ASSERT(state.size() > 0);
 
-    auto core_counters = core_state.sync_get_counters();
+    auto const core_counters = core_state.sync_get_counters();
     auto const& counters = state.counters();
 
     if ((counters.num_pending < data_.auto_flush
@@ -148,7 +148,6 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
 
     // Transport pending optical tracks
     (*transport_)(state);
-    core_state.sync_put_counters(core_counters);
 }
 
 //---------------------------------------------------------------------------//
