@@ -79,17 +79,11 @@ class IntegrationSingleton
 
     //// HELPERS ////
 
-    // Construct shared params on master (or single) thread
-    void initialize_shared_params();
+    // Initialize shared params and thread-local transporter
+    bool initialize_offload();
 
-    // Construct thread-local transporter
-    bool initialize_local_transporter();
-
-    // Destroy local transporter
-    void finalize_local_transporter();
-
-    // Destroy params
-    void finalize_shared_params();
+    // Destroy local transporter and shared params
+    void finalize_offload();
 
   private:
     //// TYPES ////
@@ -119,6 +113,18 @@ class IntegrationSingleton
 
     // Set up or update logging if the run manager is enabled
     void update_logger();
+
+    // Initialize shared params implementation
+    void initialize_master_impl();
+    // Initialize worker thread implementation
+    void initialize_worker_impl();
+    // Initialize local transporter implementation
+    void initialize_local_impl();
+
+    // Finalize local transporter implementation
+    void finalize_local_impl();
+    // Finalize shared params implementation
+    void finalize_shared_impl();
 };
 
 //---------------------------------------------------------------------------//

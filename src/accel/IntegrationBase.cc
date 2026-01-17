@@ -11,7 +11,6 @@
 #include "corecel/Assert.hh"
 
 #include "ExceptionConverter.hh"
-#include "TimeOutput.hh"
 
 #include "detail/IntegrationSingleton.hh"
 
@@ -44,19 +43,34 @@ OffloadMode IntegrationBase::GetMode() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Start the run.
+ *
+ * This handles shared/local setup and calls verify_setup if offload is
+ * enabled.
+ */
+void IntegrationBase::BeginOfRunAction(G4Run const*)
+{
+    auto& singleton = IntegrationSingleton::instance();
+
+    // Initialize shared params and local transporter
+    bool enable_offload = singleton.initialize_offload();
+
+    if (enable_offload)
+    {
+        // Allow derived classes to perform their specific verification
+        this->verify_setup();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * End the run.
  */
 void IntegrationBase::EndOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
 
-    // Remove local transporter
-    singleton.finalize_local_transporter();
-
-    if (G4Threading::IsMasterThread())
-    {
-        singleton.finalize_shared_params();
-    }
+    singleton.finalize_offload();
 }
 
 //---------------------------------------------------------------------------//
@@ -102,31 +116,6 @@ CoreStateInterface& IntegrationBase::GetState()
         ExceptionConverter{"celer.get.state"});
 
     return singleton.local_transporter().GetState();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Start the run.
- *
- * This handles shared/local setup and calls verify_setup if offload is
- * enabled.
- */
-void IntegrationBase::BeginOfRunAction(G4Run const*)
-{
-    auto& singleton = IntegrationSingleton::instance();
-
-    if (G4Threading::IsMasterThread())
-    {
-        singleton.initialize_shared_params();
-    }
-
-    bool enable_offload = singleton.initialize_local_transporter();
-
-    if (enable_offload)
-    {
-        // Allow derived classes to perform their specific verification
-        this->verify_setup();
-    }
 }
 
 //---------------------------------------------------------------------------//
