@@ -118,12 +118,16 @@ celeritas: internal assertion failed: false
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-// Failure case can't be tested as part of the rest of the suite
-TEST_F(MultiExceptionHandlerTest, DISABLED_uncaught)
+// Test that uncaught exceptions terminate the program
+TEST_F(MultiExceptionHandlerTest, uncaught)
 {
-    MultiExceptionHandler catchme;
-    CELER_TRY_HANDLE(CELER_VALIDATE(false, << "derp"), catchme);
-    // Program will terminate when catchme leaves scope
+    EXPECT_DEATH(
+        {
+            MultiExceptionHandler catchme;
+            CELER_TRY_HANDLE(CELER_VALIDATE(false, << "derp"), catchme);
+            // Program will terminate when catchme leaves scope
+        },
+        "failed to clear exceptions from MultiExceptionHandler");
 }
 
 //---------------------------------------------------------------------------//
