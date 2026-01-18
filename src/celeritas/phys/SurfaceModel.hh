@@ -54,7 +54,7 @@ class SurfaceModel
     std::string_view label() const { return label_; }
 
   protected:
-    // Construct with label and model ID
+    // Construct with static label and model ID
     SurfaceModel(SurfaceModelId, std::string_view);
 
     //!@{
