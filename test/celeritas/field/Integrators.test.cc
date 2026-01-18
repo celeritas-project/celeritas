@@ -156,7 +156,7 @@ TEST_F(IntegratorsTest, host_helix)
 TEST_F(IntegratorsTest, host_classical_rk4)
 {
     // Construct a uniform magnetic field
-    UniformField field({0, 0, param.field_value});
+    UniformField field(Real3{0, 0, param.field_value});
 
     // Test the classical 4th order Runge-Kutta integrate
     this->run_integration<UniformField, RungeKuttaIntegrator>(field);
@@ -166,7 +166,7 @@ TEST_F(IntegratorsTest, host_classical_rk4)
 TEST_F(IntegratorsTest, host_dormand_prince_547)
 {
     // Construct a uniform magnetic field
-    UniformField field({0, 0, param.field_value});
+    UniformField field(Real3{0, 0, param.field_value});
 
     // Test the Dormand-Prince 547(M) integrate
     this->run_integration<UniformField, DormandPrinceIntegrator>(field);

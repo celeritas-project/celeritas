@@ -10,6 +10,7 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/field/UniformFieldData.hh"
+#include "celeritas/track/TrackFunctors.hh"
 
 namespace celeritas
 {
