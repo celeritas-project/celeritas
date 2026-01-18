@@ -7,6 +7,7 @@
 #include "MultiExceptionHandler.hh"
 
 #include <cstring>
+#include <iostream>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
@@ -74,6 +75,7 @@ class ExceptionLogger
 {
   public:
     using VecStr = std::vector<std::string>;
+    using size_type = std::size_t;
 
     //! Initialize with total number of exceptions to log
     explicit ExceptionLogger(size_type total_count) : size_(total_count) {}
@@ -99,7 +101,19 @@ class ExceptionLogger
     }
 
     // Flush any suppressed messages before destruction
-    ~ExceptionLogger() noexcept { this->flush_suppressed(); }
+    ~ExceptionLogger() noexcept
+    {
+        try
+        {
+            this->flush_suppressed();
+        }
+        catch (std::exception const& e)
+        {
+            std::clog
+                << R"(failed to print suppressed exceptions during ExceptionLogger teardown: )"
+                << e.what() << std::endl;
+        }
+    }
 
   private:
     std::string last_msg_;
@@ -183,8 +197,8 @@ namespace detail
             CELER_LOG_LOCAL(critical) << "(unknown exception)";
         }
     }
-    CELER_LOG(critical) << "failed to clear exceptions from "
-                           "MultiExceptionHandler";
+    CELER_LOG(critical)
+        << R"(failed to clear exceptions from MultiExceptionHandler)";
     std::terminate();
 }
 
