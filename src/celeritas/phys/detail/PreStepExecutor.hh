@@ -102,7 +102,11 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
     // Initialize along-step action based on particle charge:
     // This should eventually be dependent on region, energy, etc.
     sim.along_step_action([&particle, &scalars = track.core_scalars()] {
-        if (particle.charge() == zero_quantity())
+        if (particle.is_stopped())
+        {
+            return ActionId{};
+        }
+        else if (particle.charge() == zero_quantity())
         {
             return scalars.along_step_neutral_action;
         }

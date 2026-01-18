@@ -39,12 +39,12 @@ class CylMapField
     //! \name Type aliases
     using real_type = cylmap_real_type;
     using Real3 = Array<celeritas::real_type, 3>;
-    using FieldParamsRef = NativeCRef<CylMapFieldParamsData>;
+    using ParamsRef = NativeCRef<CylMapFieldParamsData>;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit CylMapField(FieldParamsRef const& shared);
+    inline CELER_FUNCTION explicit CylMapField(ParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
@@ -52,7 +52,7 @@ class CylMapField
 
   private:
     // Shared constant field map
-    FieldParamsRef const& params_;
+    ParamsRef const& params_;
 
     NonuniformGrid<real_type> const grid_r_;
     NonuniformGrid<real_type> const grid_phi_;
@@ -66,7 +66,7 @@ class CylMapField
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-CylMapField::CylMapField(FieldParamsRef const& params)
+CylMapField::CylMapField(ParamsRef const& params)
     : params_{params}
     , grid_r_{params_.grids.axes[CylAxis::r], params_.grids.storage}
     , grid_phi_{params_.grids.axes[CylAxis::phi], params_.grids.storage}
