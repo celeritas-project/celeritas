@@ -45,7 +45,7 @@ class TrackingManagerIntegration final : public IntegrationBase
     TrackingManagerIntegration();
 
     // Verify tracking manager setup
-    void verify_setup() final;
+    void verify_local_setup() final;
 };
 
 //---------------------------------------------------------------------------//

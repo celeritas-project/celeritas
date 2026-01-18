@@ -29,13 +29,10 @@ FastSimulationIntegration& FastSimulationIntegration::Instance()
 /*!
  * Verify fast simulation setup.
  */
-void FastSimulationIntegration::verify_setup()
+void FastSimulationIntegration::verify_local_setup()
 {
-    CELER_LOG(debug) << "Verifying fast simulation";
-
     // TODO: Loop through regions to ensure at least one has a
     // celeritas::FastSimulationModel
-    CELER_TRY_HANDLE({}, ExceptionConverter{"celer.init.verify"});
 }
 
 //---------------------------------------------------------------------------//

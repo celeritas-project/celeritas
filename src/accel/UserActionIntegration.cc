@@ -107,7 +107,7 @@ UserActionIntegration::UserActionIntegration() = default;
 /*!
  * No verification is performed by the user action.
  */
-void UserActionIntegration::verify_setup() {}
+void UserActionIntegration::verify_local_setup() {}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -150,7 +150,7 @@ TrackingManagerIntegration& TrackingManagerIntegration::Instance()
 /*!
  * Verify tracking manager setup.
  */
-void TrackingManagerIntegration::verify_setup()
+void TrackingManagerIntegration::verify_local_setup()
 {
     CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
                    << "the current version of Geant4 (" << G4VERSION_NUMBER
@@ -166,14 +166,12 @@ void TrackingManagerIntegration::verify_setup()
                        : SharedParams::default_offload_particles();
 
     // Set tracking manager on workers when Celeritas is not fully disabled
-    CELER_LOG(debug) << "Verifying tracking manager";
-    CELER_TRY_HANDLE(
-        verify_tracking_managers(
-            make_span(singleton.shared_params().OffloadParticles()),
-            make_span(offload_particles),
-            singleton.shared_params(),
-            singleton.local_offload()),
-        ExceptionConverter{"celer.init.verify"});
+    CELER_LOG(debug) << "Verifying tracking managers";
+    verify_tracking_managers(
+        make_span(singleton.shared_params().OffloadParticles()),
+        make_span(offload_particles),
+        singleton.shared_params(),
+        singleton.local_offload());
 }
 
 //---------------------------------------------------------------------------//

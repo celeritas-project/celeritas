@@ -58,7 +58,8 @@ void IntegrationBase::BeginOfRunAction(G4Run const*)
     if (enable_offload)
     {
         // Allow derived classes to perform their specific verification
-        this->verify_setup();
+        CELER_TRY_HANDLE(this->verify_local_setup(),
+                         ExceptionConverter{"celer.init.verify"});
     }
 }
 

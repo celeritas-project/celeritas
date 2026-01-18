@@ -66,7 +66,7 @@ class UserActionIntegration final : public IntegrationBase
     Stopwatch get_event_time_;
 
     // Verify setup after initialization (called if offload is enabled)
-    void verify_setup() final;
+    void verify_local_setup() final;
 };
 
 //---------------------------------------------------------------------------//

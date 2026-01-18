@@ -70,8 +70,8 @@ class IntegrationBase
     ~IntegrationBase() = default;
     CELER_DEFAULT_COPY_MOVE(IntegrationBase);
 
-    // Verify setup after initialization (called if offload is enabled)
-    virtual void verify_setup() = 0;
+    //! Verify setup after initialization (called if thread is doing offload)
+    virtual void verify_local_setup() = 0;
 };
 
 //---------------------------------------------------------------------------//

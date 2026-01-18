@@ -40,7 +40,7 @@ class FastSimulationIntegration final : public IntegrationBase
     FastSimulationIntegration();
 
     // Verify fast simulation setup
-    void verify_setup() final;
+    void verify_local_setup() final;
 };
 
 //---------------------------------------------------------------------------//
