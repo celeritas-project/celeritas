@@ -6,18 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
-#include "corecel/math/Quantity.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "../AlongStep.hh"
+#include "ElossApplier.hh"  // IWYU pragma: associated
+#include "LinearTrackPropagator.hh"  // IWYU pragma: associated
+#include "MscApplier.hh"  // IWYU pragma: associated
+#include "MscStepLimitApplier.hh"  // IWYU pragma: associated
+#include "PropagationApplier.hh"  // IWYU pragma: associated
+#include "TimeUpdater.hh"  // IWYU pragma: associated
+#include "TrackUpdater.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class CoreTrackView;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -53,6 +53,32 @@ struct NoELoss
         return zero_quantity();
     }
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform the along-step action using helper functions.
+ */
+struct AlongStepNeutralExecutor
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView& track);
+
+    NoMsc msc;
+    LinearTrackPropagator propagate_track;
+    NoELoss eloss;
+};
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+CELER_FUNCTION void AlongStepNeutralExecutor::operator()(CoreTrackView& track)
+{
+    MscStepLimitApplier{msc}(track);
+    PropagationApplier{propagate_track}(track);
+    MscApplier{msc}(track);
+    TimeUpdater{}(track);
+    ElossApplier{eloss}(track);
+    TrackUpdater{}(track);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
