@@ -1,0 +1,35 @@
+spack:
+  include:
+  - ../spack-packages.yaml
+  specs:
+  # Packages required for a *truly minimal* build
+  - cli11
+  - cmake
+  - nlohmann-json
+  # ... plus packages required for *basic* realistic development
+  - geant4@11.3
+  - git
+  - googletest
+  - py-pre-commit
+  - python
+  # ... plus *recommended* options
+  - covfie
+  - g4vg
+  - hepmc3
+  - ninja
+  - vecgeom@1
+  - root
+  # documentation
+  - doxygen
+  - py-breathe
+  - py-furo
+  - py-sphinx
+  - py-sphinxcontrib-bibtex
+  # experimental
+  - dd4hep
+  - mpi
+  # R&D repositories
+  - git-lfs
+  view: true
+  concretizer:
+    unify: true
