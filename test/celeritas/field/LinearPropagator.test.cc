@@ -109,7 +109,7 @@ TEST_F(LinearPropagatorTest, simple_cms)
         LinearPropagator propagate(geo);
 
         // Move to result boundary (infinite max distance)
-        Propagation result = propagate();
+        Propagation result = propagate(numeric_limits<real_type>::infinity());
         EXPECT_SOFT_EQ(20, to_cm(result.distance));
         EXPECT_TRUE(result.boundary);
         geo.cross_boundary();
