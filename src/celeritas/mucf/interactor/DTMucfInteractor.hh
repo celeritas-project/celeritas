@@ -53,7 +53,7 @@ class DTMucfInteractor
     // Allocate space for secondary particles
     StackAllocator<Secondary>& allocate_;
     // Number of secondaries per channel
-    static constexpr EnumArray<Channel, size_type> num_secondaries_{
+    EnumArray<Channel, size_type> num_secondaries_{
         3,  // alpha_muon_neutron
         2  // muonicalpha_neutron
     };
