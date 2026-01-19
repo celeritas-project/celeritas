@@ -1,13 +1,12 @@
 # Celeritas AI Agent Instructions
-
 Celeritas is a GPU-accelerated HEP detector physics library for HL-LHC, integrating with Geant4. It's a C++17 codebase with CUDA/HIP device support.
 
 ## Architecture Overview
 
 ### Core Components (src/)
 - **corecel/**: GPU abstractions, data structures, utilities (host-device compatible code)
-- **orange/**: ORANGE geometry engine (native Celeritas geometry)
 - **geocel/**: Geometry cell interfaces (ORANGE, VecGeom, Geant4 adapters)
+- **orange/**: ORANGE geometry engine (native Celeritas geometry)
 - **celeritas/**: Core physics (EM processes, particles, materials, stepping loop)
 - **accel/**: Geant4 integration layer (offload mechanisms, tracking managers)
 
@@ -22,19 +21,19 @@ To support GPU execution, it uses data-oriented design but with object-oriented 
 ## Build & Test Workflow
 
 ### Quick Start
-
-Use a standard cmake workflow:
+Use a standard CMake workflow:
 ```bash
-cmake --preset=base
-cmake --build --preset=base
-ctest --preset=base
+cmake -B build -G Ninja
+cd build
+ninja
+ctest
 ```
 
 ### Testing
 - Unit tests in `test/` mirror `src/` structure
-- Use `ctest --preset=<preset>-unit` for unit tests, `-app` for app tests
-- GPU tests may run serially (controlled by `CELERITAS_TEST_RESOURCE_LOCK`)
-- Test naming: `TEST_IF_CELER_DEVICE(name)` for GPU-only, `TEST_IF_CELERITAS_DEBUG(name)` for assertion-dependent tests
+- Uses GoogleTest with base-class test harness and custom helper macros
+- Unit test for class ``celeritas::A::Foo`` should be defined in namespace
+  ``celeritas::A::test``
 
 ## Code Conventions
 
@@ -43,14 +42,15 @@ ctest --preset=base
 - `.cc`: Host-only C++ (compiled by gcc/clang)
 - `.cu`: CUDA kernels and launch code (compiled by nvcc, but should be HIP-compatible via macros)
 - `.device.hh/.device.cc`: Requires CUDA/HIP runtime but compilable by host compiler
-- `.test.cc`: Unit tests (GoogleTest)
+- `.test.cc`: Unit tests
+
+Most development doesn't involve CUDA/HIP code: only kernel launches (device execution) should be in `.cu` files.
 
 ### Host-Device Compatibility
 Use these macros (from `corecel/Macros.hh`):
 - `CELER_FUNCTION`: Mark functions callable from both host and device
 - `CELER_FORCEINLINE_FUNCTION`: Force-inline version
 - `CELER_CONSTEXPR_FUNCTION`: Compile-time + host/device
-- `CELER_LAUNCH_KERNEL(name, threads, stream, ...)`: Launch device kernels
 
 Example:
 ```cpp
@@ -131,9 +131,6 @@ struct MyParamsData {
 
 Collections power the params/states architecture: build on host with `Ownership::value`, copy to device, then access via `const_reference` (params) or `reference` (states). See `src/corecel/data/Collection.hh` for details.
 
-### Avoid NVCC When Possible
-Most development doesn't involve CUDA code. Kernels (`__global__`) must be in `.cu` files, but CUDA API calls (e.g., `cudaMalloc`) can be in `.cc` files. Include `corecel/DeviceRuntimeApi.hh` for platform-agnostic device APIs. Memory management is implemented with the `Collection` types.
-
 ### Test Requirements
 Every class needs a unit test with cyclomatic complexity coverage. Detail classes (in `detail/` namespaces) are exempt but still recommended.
 
@@ -163,12 +160,12 @@ Supports ORANGE (native), VecGeom, and Geant4 geometries. GDML is the standard i
 
 ## Common Pitfalls
 
-- Never copy-paste code - refactor into reusable functors
-- Failing to mark functions `CELER_FUNCTION` will cause "call to __host__ function from __device__" errors
+- Never copy-paste code: instead, refactor into reusable functors
+- Failing to mark functions `CELER_FUNCTION` will cause `call to __host__ function from __device__` errors
 
 ## External Dependencies
 
-Key dependencies (see `CMakeLists.txt` for versions):
+Key dependencies (see `scripts/spack-packages.yaml` for versions):
 - Geant4
 - GoogleTest (tests), CLI11 (apps), nlohmann_json (I/O)
 - Optional: VecGeom, ROOT, HepMC3, DD4hep, MPI, OpenMP, Perfetto
