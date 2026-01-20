@@ -15,7 +15,6 @@ Interface utilities
 
 .. celerstruct:: AlongStepFactoryInput
 
-.. doxygenfunction:: celeritas::MakeMTLogger
 .. doxygenclass:: celeritas::ExceptionConverter
 .. doxygenclass:: celeritas::AlongStepFactoryInterface
 

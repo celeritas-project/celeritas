@@ -169,7 +169,7 @@ TEST_F(LoggerTest, level_from_env)
 {
     auto set_level = [](std::string const& key, std::string const& val) {
         environment().insert({key, val});
-        return log_level_from_env(key);
+        return getenv_loglevel(key, LogLevel::size_);
     };
 
     EXPECT_EQ(LogLevel::debug, set_level("CELER_TEST_ENV_0", "debug"));
