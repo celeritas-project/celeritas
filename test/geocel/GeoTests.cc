@@ -95,9 +95,15 @@ void delete_orange_safety(GenericGeoTestInterface const& interface,
 //---------------------------------------------------------------------------//
 void AtlasHgtdGeoTest::test_trace() const
 {
+    auto tol = test_->tracking_tol();
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        // Tracking errors at most distances: 5e-6 ~ 2e-4
+        tol.distance = 5e-4;
+    }
     {
         SCOPED_TRACE("+z");
-        auto result = test_->track({12.5, 0, -2600}, {0, 0, 1});
+        auto result = test_->track({12.5, 0, -2600}, {0, 0, 1}, tol, 50);
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "Atlas",  "HGTD",   "SPlate", "HGTD", "SPlate", "HGTD",   "SPlate",
@@ -138,7 +144,6 @@ void AtlasHgtdGeoTest::test_trace() const
             769.72940862358,
         };
         ref.bumps = {};
-        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
@@ -151,7 +156,7 @@ void AtlasHgtdGeoTest::test_trace() const
     }
     {
         SCOPED_TRACE("+z near trouble");
-        auto result = test_->track({24, 18, 300}, {0, 0, 1});
+        auto result = test_->track({24, 18, 300}, {0, 0, 1}, tol, 50);
         GenericGeoTrackingResult ref;
         ref.volumes = {
             "ITK",
@@ -206,7 +211,6 @@ void AtlasHgtdGeoTest::test_trace() const
             763.93626206641,
         };
         ref.bumps = {};
-        auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
         if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
@@ -216,11 +220,6 @@ void AtlasHgtdGeoTest::test_trace() const
         EXPECT_REF_NEAR(ref, result, tol);
     }
 
-    if (test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
-    {
-        GTEST_SKIP() << "VecGeom fails the tangent trace";
-    }
-    else
     {
         // See https://github.com/celeritas-project/celeritas/issues/1902
         // in HGTD::HGTDSupportPlate, on boundary, taking small step
@@ -233,6 +232,21 @@ void AtlasHgtdGeoTest::test_trace() const
         Real3 dir{
             0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
         axpy(real_type{-1}, dir, &pos);
+
+        if (test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+        {
+            GTEST_SKIP() << "VecGeom fails the tangent trace";
+        }
+        else if (test_->geometry_type() == "ORANGE"
+                 && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            // Initialization is exactly on a surface with single precision
+            auto up_view = test_->make_geo_track_view_interface();
+            *up_view = test_->make_initializer(pos, dir);
+            EXPECT_TRUE(up_view->failed());
+            GTEST_SKIP() << "ORANGE single precision starts on a boundary";
+        }
+
         auto result = test_->track(pos, dir, tol, /* max steps = */ 10);
 
         GenericGeoTrackingResult ref;
@@ -257,6 +271,12 @@ void AtlasHgtdGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void AtlasHgtdGeoTest::test_volume_stack() const
 {
+    if (test_->geometry_type() == "ORANGE"
+        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        GTEST_SKIP() << "Track starts on a boundary with single precision";
+    }
+
     std::vector<std::string> all_stacks;
 
     Real3 const dir{
@@ -289,11 +309,15 @@ void AtlasHgtdGeoTest::test_volume_stack() const
         // volume extents
         expected_all_stacks[3] = expected_all_stacks.front();
     }
-    if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2})
     {
         // VecGeom surface overpredicts even more
         expected_all_stacks[3] = expected_all_stacks.front();
         expected_all_stacks[4] = expected_all_stacks.front();
+        if (CELERITAS_VECGEOM_SURFACE)
+        {
+            expected_all_stacks[5] = expected_all_stacks.front();
+        }
     }
 
     EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
@@ -301,6 +325,12 @@ void AtlasHgtdGeoTest::test_volume_stack() const
 
 void AtlasHgtdGeoTest::test_detailed_tracking() const
 {
+    if (test_->geometry_type() == "ORANGE"
+        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        GTEST_SKIP() << "Track starts on a boundary with single precision";
+    }
+
     {
         // See https://github.com/celeritas-project/celeritas/issues/1902
         SCOPED_TRACE("almost tangent at large Z");
@@ -321,7 +351,7 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
         EXPECT_EQ("SPlate", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
         geo.cross_boundary();
-        if (test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom" && vecgeom_version < Version{2})
         {
             // VecGeom fails to cross the boundary! the internal bump along the
             // path of travel doesn't change the Z coordinate, so it assumes

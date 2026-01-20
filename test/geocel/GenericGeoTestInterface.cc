@@ -198,20 +198,24 @@ auto GenericGeoTestInterface::track(Real3 const& pos_cm,
 auto GenericGeoTestInterface::volume_stack(Real3 const& pos)
     -> VolumeStackResult
 {
+    VolumeStackResult result;
+
     CheckedGeoTrackView geo{this->make_geo_track_view_interface()};
-    geo = this->make_initializer(pos, Real3{0, 0, 1});
+    GGTI_EXPECT_NO_THROW(geo = this->make_initializer(pos, Real3{0, 0, 1}));
 
     auto vlev = geo.volume_level();
     if (!vlev)
     {
-        return {};
+        return result;
     }
     std::vector<VolumeInstanceId> inst_ids(vlev.get() + 1);
     geo.volume_instance_id(make_span(inst_ids));
 
-    return VolumeStackResult::from_span(
+    result = VolumeStackResult::from_span(
         this->get_test_volumes()->volume_instance_labels(),
         make_span(inst_ids));
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
