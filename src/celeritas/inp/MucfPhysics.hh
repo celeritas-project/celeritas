@@ -11,9 +11,8 @@
 
 #include "corecel/inp/Grid.hh"
 #include "corecel/math/Quantity.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/mucf/Types.hh"
-
-#include "UnitTypes.hh"
 
 namespace celeritas
 {
