@@ -213,9 +213,12 @@ Compatibility fixes that do not cause newer versions to fail are welcome.
 
 <!-- This section should be kept in sync with the doc/development files -->
 
-See the [contribution guide][contributing-guidelines] for the contribution process,
+See
+[the contribution guide][contributing-guidelines] for the contribution process,
 [the development guidelines][development-guidelines] for further
-details on coding in Celeritas, and [the administration guidelines][administration-guidelines] for community standards and roles.
+details on coding in Celeritas, and
+[the administration guidelines][administration-guidelines] for community
+standards and roles.
 The [AGENTS.md file][agents.md] contains instructions for AI tools but is also
 a good quick-start guide for humans.
 

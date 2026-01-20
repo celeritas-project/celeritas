@@ -39,7 +39,7 @@ ctest
 
 ### File Extensions
 - `.hh`: Host-device compatible C++ headers (use `CELER_FUNCTION` macros)
-- `.cc`: Host-only C++ (compiled by gcc/clang)
+- `.cc`: Host-only C++
 - `.cu`: CUDA kernels and launch code (compiled by nvcc, but should be HIP-compatible via macros)
 - `.device.hh/.device.cc`: Requires CUDA/HIP runtime but compilable by host compiler
 - `.test.cc`: Unit tests
