@@ -49,7 +49,11 @@ class BVHNavigator
     using NavState = detail::VgNavStateWrapper;
 #endif
 
-    static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
+#ifdef VECGEOM_FLOAT_PRECISION
+    static constexpr vg_real_type kBoundaryPush = 10 * 1e-3f;
+#else
+    static constexpr vg_real_type kBoundaryPush = 10 * 1e-9;
+#endif
 
     //! Update path (which must be reset in advance)
     CELER_FUNCTION static void

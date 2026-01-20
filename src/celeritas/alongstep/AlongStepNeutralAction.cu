@@ -12,7 +12,6 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepNeutralImpl.hh"
-#include "detail/LinearPropagatorFactory.hh"
 
 namespace celeritas
 {
@@ -23,13 +22,11 @@ namespace celeritas
 void AlongStepNeutralAction::step(CoreParams const& params,
                                   CoreStateDevice& state) const
 {
-    auto execute = make_along_step_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        this->action_id(),
-        AlongStep{detail::NoMsc{},
-                  detail::LinearPropagatorFactory{},
-                  detail::NoELoss{}});
+    auto execute
+        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
+                                         state.ptr(),
+                                         this->action_id(),
+                                         detail::AlongStepNeutralExecutor{});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(*this, params, state, execute);
 }

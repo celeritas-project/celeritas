@@ -10,6 +10,8 @@
 #include <ostream>
 #include <sstream>
 
+#include "corecel/sys/MpiCommunicator.hh"
+
 #include "ColorUtils.hh"
 
 namespace celeritas
@@ -33,7 +35,7 @@ void StreamLogHandler::operator()(LogProvenance prov,
         os_ << color_code(' ') << ": ";
     }
 
-    os_ << to_color_code(lev) << to_cstring(lev) << ": " << color_code(' ');
+    os_ << to_ansi_color(lev) << to_cstring(lev) << ": " << color_code(' ');
     os_ << std::move(msg) << std::endl;
 }
 
@@ -52,6 +54,28 @@ void MutexedStreamLogHandler::operator()(LogProvenance prov,
     static std::mutex log_mutex;
     std::lock_guard<std::mutex> scoped_lock{log_mutex};
     os_ << std::move(temp_os).str() << std::flush;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with long-lived reference to a stream.
+ */
+LocalMpiHandler::LocalMpiHandler(std::ostream& os, MpiCommunicator const& comm)
+    : os_{os}, rank_(comm.rank())
+{
+}
+
+// Write with processor ID
+void LocalMpiHandler::operator()(LogProvenance prov,
+                                 LogLevel lev,
+                                 std::string msg) const
+{
+    // Buffer to reduce I/O contention in MPI runner
+    std::ostringstream os;
+    os << color_code('W') << "rank " << rank_ << ": ";
+    StreamLogHandler{os}(prov, lev, msg);
+
+    os_ << std::move(os).str() << std::flush;
 }
 
 //---------------------------------------------------------------------------//
