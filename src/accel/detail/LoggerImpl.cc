@@ -69,7 +69,7 @@ std::ostream& operator<<(std::ostream& os, CleanedProvenance ssd)
  */
 std::ostream& operator<<(std::ostream& os, ColorfulLogMessage clm)
 {
-    os << to_color_code(clm.lev) << to_cstring(clm.lev);
+    os << to_ansi_color(clm.lev) << to_cstring(clm.lev);
     if (!clm.prov.file.empty())
     {
         os << color_code('x') << "@"

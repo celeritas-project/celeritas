@@ -328,6 +328,7 @@ CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
  */
 CELER_FUNCTION VolumeLevelId VecgeomTrackView::volume_level() const
 {
+    CELER_EXPECT(!this->is_outside());
     auto result = id_cast<VolumeLevelId>(vgstate_.GetLevel());
     CELER_ENSURE(result < params_.scalars.num_volume_levels);
     return result;

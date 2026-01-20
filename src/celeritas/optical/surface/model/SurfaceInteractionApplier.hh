@@ -18,7 +18,7 @@ namespace optical
 /*!
  * Wrap a surface interaction executor and apply it to a track.
  *
- * The functor \c F must take a \c CoreTrackview and return a \c
+ * The functor \c F must take a \c CoreTrackView and return a \c
  * SurfaceInteraction.
  */
 template<class F>

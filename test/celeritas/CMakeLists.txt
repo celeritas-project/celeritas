@@ -40,8 +40,10 @@ endif()
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  set(_needs_orange DISABLE)
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  set(_needs_orange DISABLE)
   set(_core_geo_libs testcel_geocel ${Geant4_LIBRARIES})
 endif()
 
@@ -82,6 +84,7 @@ celeritas_add_test_library(testcel_celeritas
   optical/OpticalMockTestBase.cc
   optical/OpticalTestBase.cc
   optical/InteractorHostTestBase.cc
+  optical/SurfacePhysicsIntegrationTestBase.cc
   optical/ValidationUtils.cc
   phys/InteractionIO.cc
   phys/InteractorHostTestBase.cc
@@ -292,6 +295,10 @@ else()
   set(_geo_mat_filter DISABLE)
 endif()
 
+if(CELERITAS_VecGeom_SURFACE)
+  set(_fails_vgsurf DISABLE)
+endif()
+
 celeritas_add_test(geo/GeoMaterial.test.cc
   FILTER ${_geo_mat_filter}
   ${_optional_geant4_env})
@@ -401,7 +408,9 @@ celeritas_add_test(optical/ReflectionFormSampler.test.cc)
 celeritas_add_test(optical/Fresnel.test.cc)
 celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
 celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
-celeritas_add_test(optical/SurfacePhysicsIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
+celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
+  ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat
