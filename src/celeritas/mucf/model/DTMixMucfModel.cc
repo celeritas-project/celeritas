@@ -30,17 +30,23 @@ namespace
 /*!
  * Assign particle IDs from \c ParticleParams .
  */
-static MucfParticleIds from_params(ParticleParams const& particles)
+static std::pair<MucfParticleIds, MucfParticleMasses>
+from_params(ParticleParams const& particles)
 {
     using PairStrPdg = std::pair<std::string, PDGNumber>;
     std::vector<PairStrPdg> missing;
-    MucfParticleIds result;
-
+    MucfParticleIds ids;
+    MucfParticleMasses masses;
 #define MP_ADD(MEMBER)                               \
-    result.MEMBER = particles.find(pdg::MEMBER());   \
-    if (!result.MEMBER)                              \
+    ids.MEMBER = particles.find(pdg::MEMBER());      \
+    if (!ids.MEMBER)                                 \
     {                                                \
         missing.push_back({#MEMBER, pdg::MEMBER()}); \
+    }                                                \
+    else                                             \
+    {                                                \
+        auto p_view = particles.get(ids.MEMBER);     \
+        masses.MEMBER = p_view.mass();               \
     }
 
     MP_ADD(mu_minus);
@@ -50,11 +56,11 @@ static MucfParticleIds from_params(ParticleParams const& particles)
     MP_ADD(he3);
     MP_ADD(muonic_deuteron);
     MP_ADD(muonic_triton);
+    MP_ADD(muonic_alpha);
 
     //! \todo Decide whether to implement these PDGs in PDGNumber.hh
 #if 0
     MP_ADD(muonic_hydrogen);
-    MP_ADD(muonic_alpha);
     MP_ADD(muonic_he3);
 #endif
 
@@ -67,7 +73,7 @@ static MucfParticleIds from_params(ParticleParams const& particles)
                                       os << p.first << " (PDG "
                                          << p.second.unchecked_get() << ')';
                                   }));
-    return result;
+    return {ids, masses};
 
 #undef MP_ADD
 }
@@ -106,7 +112,9 @@ DTMixMucfModel::DTMixMucfModel(ActionId id,
     CELER_EXPECT(inp_data);
 
     HostVal<DTMixMucfData> host_data;
-    host_data.particles = from_params(particles);
+    auto [ids, masses] = from_params(particles);
+    host_data.particle_ids = ids;
+    host_data.particle_masses = masses;
 
     // Copy muon energy CDF data using NonuniformGridBuilder
     NonuniformGridBuilder build_grid_record{&host_data.reals};
@@ -136,7 +144,7 @@ DTMixMucfModel::DTMixMucfModel(ActionId id,
 auto DTMixMucfModel::applicability() const -> SetApplicability
 {
     Applicability applic;
-    applic.particle = this->host_ref().particles.mu_minus;
+    applic.particle = this->host_ref().particle_ids.mu_minus;
     // At-rest model
     applic.lower = zero_quantity();
     applic.upper = zero_quantity();
