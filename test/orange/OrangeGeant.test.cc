@@ -60,6 +60,26 @@ class GeantOrangeTest : public OrangeTestBase
 };
 
 //---------------------------------------------------------------------------//
+
+using AtlasHgtdTest
+    = GenericGeoParameterizedTest<GeantOrangeTest, AtlasHgtdGeoTest>;
+
+TEST_F(AtlasHgtdTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(AtlasHgtdTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+TEST_F(AtlasHgtdTest, detailed_track)
+{
+    this->impl().test_detailed_tracking();
+}
+
+//---------------------------------------------------------------------------//
 using FourLevelsTest
     = GenericGeoParameterizedTest<GeantOrangeTest, FourLevelsGeoTest>;
 

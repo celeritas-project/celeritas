@@ -484,8 +484,9 @@ if(CELERITAS_USE_ROOT)
     )
   endif()
   if(NOT ROOT_FOUND)
-    # ROOT requirement is due to missing CMake commands in old versions
-    find_package(ROOT 6.24 REQUIRED)
+    # ROOT requirement is due to missing CMake commands in < 6.24
+    # and Python3 compatibility in 6.28
+    find_package(ROOT 6.28 REQUIRED)
   endif()
   if(ROOT_CXX_STANDARD AND CMAKE_CXX_STANDARD
      AND NOT (ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD))

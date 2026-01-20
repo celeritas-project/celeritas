@@ -7,7 +7,9 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 
 #include <regex>
+#include <string>
 
+#include "corecel/Assert.hh"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 
@@ -22,7 +24,15 @@ namespace test
 class MockContextException : public std::exception
 {
   public:
-    char const* what() const noexcept final { return "some context"; }
+    explicit MockContextException(std::string msg = "some context")
+        : msg_(std::move(msg))
+    {
+    }
+
+    char const* what() const noexcept final { return msg_.c_str(); }
+
+  private:
+    std::string msg_;
 };
 
 //---------------------------------------------------------------------------//
@@ -35,6 +45,7 @@ class MultiExceptionHandlerTest : public ::celeritas::test::Test
     ScopedLogStorer scoped_log_;
 };
 
+// Test that a single error throws as expected
 TEST_F(MultiExceptionHandlerTest, single)
 {
     MultiExceptionHandler capture_exception;
@@ -46,11 +57,13 @@ TEST_F(MultiExceptionHandlerTest, single)
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)), RuntimeError);
 }
 
+//! Test that four different messages all show up
 TEST_F(MultiExceptionHandlerTest, multi)
 {
     MultiExceptionHandler capture_exception;
-    CELER_TRY_HANDLE(CELER_RUNTIME_THROW("runtime", "first exception", ""),
-                     capture_exception);
+    CELER_TRY_HANDLE(
+        throw RuntimeError({"runtime", "first exception", "", "test.cc", 0}),
+        capture_exception);
     for (auto i : range(3))
     {
         DebugErrorDetails deets{
@@ -60,54 +73,61 @@ TEST_F(MultiExceptionHandlerTest, multi)
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)), RuntimeError);
 
     static char const* const expected_log_messages[] = {
-        R"(Suppressed exception from parallel thread: test.cc:0:
-celeritas: internal assertion failed: false)",
-        R"(Suppressed exception from parallel thread: test.cc:1:
-celeritas: internal assertion failed: false)",
-        R"(Suppressed exception from parallel thread: test.cc:2:
-celeritas: internal assertion failed: false)",
+        "[1/4]: runtime error: first exception\ntest.cc: failure",
+        "[2/4]: test.cc:0:\nceleritas: internal assertion failed: false",
+        "[3/4]: test.cc:1:\nceleritas: internal assertion failed: false",
+        "[4/4]: test.cc:2:\nceleritas: internal assertion failed: false",
     };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     static char const* const expected_log_levels[]
-        = {"critical", "critical", "critical"};
+        = {"critical", "critical", "critical", "critical"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
+//! Test that similar messages are suppressed
 TEST_F(MultiExceptionHandlerTest, multi_nested)
 {
     MultiExceptionHandler capture_exception;
     CELER_TRY_HANDLE_CONTEXT(
-        CELER_RUNTIME_THROW("runtime", "first exception", ""),
+        throw RuntimeError({"runtime", "it just got real", "", "test.cc", 1}),
         capture_exception,
         MockContextException{});
-    DebugErrorDetails deets{DebugErrorType::internal, "false", "test.cc", 2};
     for (auto i = 0; i < 4; ++i)
     {
-        CELER_TRY_HANDLE_CONTEXT(throw DebugError(std::move(deets)),
-                                 capture_exception,
-                                 MockContextException{});
+        CELER_TRY_HANDLE_CONTEXT(
+            throw DebugError({DebugErrorType::internal, "false", "test.cc", 2}),
+            capture_exception,
+            MockContextException{"context " + std::to_string(i)});
     }
 
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)),
                  MockContextException);
 
     static char const* const expected_log_messages[] = {
-        R"(Suppressed exception from parallel thread: test.cc:2:
+        R"([1/5]: runtime error: it just got real
+test.cc:1: failure
+    ...from some context)",
+        R"([2/5]: test.cc:2:
 celeritas: internal assertion failed: false
-... from some context)",
-        "Suppressed 3 similar exceptions",
+    ...from context 0)",
+        "[3-5/5]: identical root cause to exception [2/5]",
     };
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {"critical", "warning"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages()) << scoped_log_;
+    static char const* const expected_log_levels[]
+        = {"critical", "critical", "critical"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-// Failure case can't be tested as part of the rest of the suite
-TEST_F(MultiExceptionHandlerTest, DISABLED_uncaught)
+// Test that uncaught exceptions terminate the program
+TEST_F(MultiExceptionHandlerTest, uncaught)
 {
-    MultiExceptionHandler catchme;
-    CELER_TRY_HANDLE(CELER_VALIDATE(false, << "derp"), catchme);
-    // Program will terminate when catchme leaves scope
+    EXPECT_DEATH(
+        {
+            MultiExceptionHandler catchme;
+            CELER_TRY_HANDLE(CELER_VALIDATE(false, << "derp"), catchme);
+            // Program will terminate when catchme leaves scope
+        },
+        "failed to clear exceptions from MultiExceptionHandler");
 }
 
 //---------------------------------------------------------------------------//

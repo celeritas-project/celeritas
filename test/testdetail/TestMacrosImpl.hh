@@ -281,15 +281,24 @@ struct IsContainer<std::string> : std::false_type
 {
 };
 
+template<>
+struct IsContainer<std::string_view> : std::false_type
+{
+};
+
 template<class T>
 struct IsContainer<T, std::void_t<typename T::const_iterator>> : std::true_type
 {
 };
 
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 struct IsContainer<T[N]> : std::true_type
 {
 };
+
+//! Whether a type is a container
+template<class T>
+inline constexpr bool IsContainer_v = IsContainer<T>::value;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -311,6 +320,12 @@ template<class T>
 using ValueTypeT = typename ValueType<T>::type;
 
 //---------------------------------------------------------------------------//
+
+//! Whether a container *holds* another container
+template<class T>
+inline constexpr bool IsNestedContainer_v = IsContainer_v<ValueTypeT<T>>;
+
+//---------------------------------------------------------------------------//
 /*!
  * Recursively get the underlying scalar type of a container.
  */
@@ -321,7 +336,7 @@ struct ScalarValueType
 };
 
 template<class T>
-struct ScalarValueType<T, std::enable_if_t<IsContainer<T>::value>>
+struct ScalarValueType<T, std::enable_if_t<IsContainer_v<T>>>
 {
     using type = typename ScalarValueType<ValueTypeT<T>>::type;
 };
@@ -403,8 +418,8 @@ template<class ContainerE, class ContainerA, class BinaryOp>
                                               char const* actual_expr,
                                               BinaryOp comp)
 {
-    if constexpr (IsContainer<ValueTypeT<ContainerE>>::value
-                  && IsContainer<ValueTypeT<ContainerA>>::value)
+    if constexpr (IsNestedContainer_v<ContainerE>
+                  && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));
@@ -598,8 +613,8 @@ template<class ContainerE, class ContainerA>
                                    ContainerE const& expected,
                                    ContainerA const& actual)
 {
-    if constexpr (IsContainer<ValueTypeT<ContainerE>>::value
-                  && IsContainer<ValueTypeT<ContainerA>>::value)
+    if constexpr (IsNestedContainer_v<ContainerE>
+                  && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));
@@ -722,7 +737,7 @@ template<class ContainerE, class ContainerA, class T>
  * Compare two vectors of reference values using a tolerance.
  */
 template<class ContainerE, class ContainerA, class Tol>
-std::enable_if_t<IsContainer<ContainerE>::value && IsContainer<ContainerA>::value,
+std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>,
                  ::testing::AssertionResult>
 IsRefEq(char const* expr1,
         char const* expr2,
@@ -784,7 +799,7 @@ IsRefEq(char const* expr1,
  * Compare two vectors of reference values without a special tolerance.
  */
 template<class ContainerE, class ContainerA>
-std::enable_if_t<IsContainer<ContainerE>::value && IsContainer<ContainerA>::value,
+std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>,
                  ::testing::AssertionResult>
 IsRefEq(char const* expr1,
         char const* expr2,

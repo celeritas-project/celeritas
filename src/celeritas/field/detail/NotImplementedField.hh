@@ -27,12 +27,12 @@ class NotImplementedField
     //! \name Type aliases
     using real_type = float;
     using Real3 = Array<celeritas::real_type, 3>;
-    using FieldParamsRef = NativeCRef<CartMapFieldParamsData>;
+    using ParamsRef = NativeCRef<CartMapFieldParamsData>;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit NotImplementedField(FieldParamsRef const&);
+    inline CELER_FUNCTION explicit NotImplementedField(ParamsRef const&);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
@@ -40,7 +40,7 @@ class NotImplementedField
 };
 
 CELER_FUNCTION
-NotImplementedField::NotImplementedField(FieldParamsRef const&)
+NotImplementedField::NotImplementedField(ParamsRef const&)
 {
     CELER_NOT_CONFIGURED("covfie");
 }

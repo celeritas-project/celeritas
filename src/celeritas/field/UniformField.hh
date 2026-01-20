@@ -8,6 +8,7 @@
 
 #include "corecel/cont/Array.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/field/UniformFieldData.hh"
 
 namespace celeritas
 {
@@ -21,8 +22,16 @@ namespace celeritas
 class UniformField
 {
   public:
+    using ParamsRef = NativeCRef<UniformFieldParamsData>;
+
     //! Construct with a field vector
     explicit CELER_FUNCTION UniformField(Real3 const& value) : value_(value) {}
+
+    //! Construct with field params
+    explicit CELER_FUNCTION UniformField(ParamsRef const& params)
+        : value_(params.field)
+    {
+    }
 
     //! Return the field at the given position
     CELER_FUNCTION Real3 const& operator()(Real3 const&) const

@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Turn.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/BoundingBox.hh"
@@ -88,6 +89,294 @@ void delete_orange_safety(GenericGeoTestInterface const& interface,
 
 //---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+// ATLAS HGTD
+//---------------------------------------------------------------------------//
+void AtlasHgtdGeoTest::test_trace() const
+{
+    auto tol = test_->tracking_tol();
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        // Tracking errors at most distances: 5e-6 ~ 2e-4
+        tol.distance = 5e-4;
+    }
+    {
+        SCOPED_TRACE("+z");
+        auto result = test_->track({12.5, 0, -2600}, {0, 0, 1}, tol, 50);
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "Atlas",  "HGTD",   "SPlate", "HGTD", "SPlate", "HGTD",   "SPlate",
+            "HGTD",   "SPlate", "HGTD",   "ITK",  "HGTD",   "SPlate", "HGTD",
+            "SPlate", "HGTD",   "SPlate", "HGTD", "SPlate", "HGTD",   "Atlas",
+        };
+        ref.volume_instances = {
+            "Atlas_PV",   "HGTD", "SPlate_7@1", "HGTD", "SPlate_6@1", "HGTD",
+            "SPlate_5@1", "HGTD", "SPlate_4@1", "HGTD", "ITK",        "HGTD",
+            "SPlate_4@0", "HGTD", "SPlate_5@0", "HGTD", "SPlate_6@0", "HGTD",
+            "SPlate_7@0", "HGTD", "Atlas_PV",
+        };
+        ref.distances = {
+            2245.5, 6.75, 0.1, 0.6, 0.1, 1.7, 0.1, 0.6, 0.1,  2.45,   684,
+            2.45,   0.1,  0.6, 0.1, 1.7, 0.1, 0.6, 0.1, 6.75, 2250.1,
+        };
+        ref.halfway_safeties = {
+            771.8918204645,
+            1.5,
+            0.05,
+            0.3,
+            0.05,
+            0.85,
+            0.05,
+            0.3,
+            0.05,
+            1.225,
+            9.62,
+            1.225,
+            0.05,
+            0.3,
+            0.05,
+            0.85,
+            0.05,
+            0.3,
+            0.05,
+            1.5,
+            769.72940862358,
+        };
+        ref.bumps = {};
+        delete_orange_safety(*test_, ref, result);
+        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+        {
+            // World safety differs
+            ref.halfway_safeties[0] = 725.849243164062;
+            ref.halfway_safeties[20] = 723.549255371094;
+        }
+
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+    {
+        SCOPED_TRACE("+z near trouble");
+        auto result = test_->track({24, 18, 300}, {0, 0, 1}, tol, 50);
+        GenericGeoTrackingResult ref;
+        ref.volumes = {
+            "ITK",
+            "HGTD",
+            "SPlate",
+            "HGTD",
+            "SPlate",
+            "HGTD",
+            "SPlate",
+            "HGTD",
+            "SPlate",
+            "HGTD",
+            "Atlas",
+        };
+        ref.volume_instances = {
+            "ITK",
+            "HGTD",
+            "SPlate_4@0",
+            "HGTD",
+            "SPlate_5@0",
+            "HGTD",
+            "SPlate_6@0",
+            "HGTD",
+            "SPlate_7@0",
+            "HGTD",
+            "Atlas_PV",
+        };
+        ref.distances = {
+            42,  // enter HGTD at z=342
+            2.45,  // enter HGTDSupportPlate at z=344.45
+            0.1,  // leave into HGTD at z=344.55
+            0.6,
+            0.1,
+            1.7,
+            0.1,
+            0.6,
+            0.1,
+            6.75,
+            2250.1,
+        };
+        ref.halfway_safeties = {
+            21,
+            1.225,
+            0.05,
+            0.3,
+            0.05,
+            0.85,
+            0.05,
+            0.3,
+            0.05,
+            3.375,
+            763.93626206641,
+        };
+        ref.bumps = {};
+        delete_orange_safety(*test_, ref, result);
+        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+        {
+            // World safety differs
+            ref.halfway_safeties[10] = 723.549255371094;
+        }
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+
+    {
+        // See https://github.com/celeritas-project/celeritas/issues/1902
+        // in HGTD::HGTDSupportPlate, on boundary, taking small step
+        SCOPED_TRACE("tangent at far away point");
+
+        auto tol = test_->tracking_tol();
+        tol.distance = 1e-7;
+
+        Real3 pos{24.097769534015998, 17.956803215217408, 344.45};
+        Real3 dir{
+            0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
+        axpy(real_type{-1}, dir, &pos);
+
+        if (test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+        {
+            GTEST_SKIP() << "VecGeom fails the tangent trace";
+        }
+        else if (test_->geometry_type() == "ORANGE"
+                 && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            // Initialization is exactly on a surface with single precision
+            auto up_view = test_->make_geo_track_view_interface();
+            *up_view = test_->make_initializer(pos, dir);
+            EXPECT_TRUE(up_view->failed());
+            GTEST_SKIP() << "ORANGE single precision starts on a boundary";
+        }
+
+        auto result = test_->track(pos, dir, tol, /* max steps = */ 10);
+
+        GenericGeoTrackingResult ref;
+        ref.volumes = {"SPlate", "HGTD", "ITK", "Atlas"};
+        ref.volume_instances = {"SPlate_4@0", "HGTD", "ITK", "Atlas_PV"};
+        ref.distances = {
+            1.0000000238587, 81.021892625066, 4.8164185705351, 1305.6446868933};
+        ref.halfway_safeties = {
+            4.6451791604341e-07,
+            2.4499623638801,
+            2.3998244128449,
+            652.50340341824,
+        };
+        ref.dot_normal
+            = {9.2903580992121e-07, 0.99644211932289, 0.99673389979137};
+        ref.bumps = {};
+        delete_orange_safety(*test_, ref, result);
+        EXPECT_REF_NEAR(ref, result, tol);
+    }
+}
+
+//---------------------------------------------------------------------------//
+void AtlasHgtdGeoTest::test_volume_stack() const
+{
+    if (test_->geometry_type() == "ORANGE"
+        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        GTEST_SKIP() << "Track starts on a boundary with single precision";
+    }
+
+    std::vector<std::string> all_stacks;
+
+    Real3 const dir{
+        0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
+
+    for (real_type dx : {-1.0, -1e-3, -1e-5, 1e-5, 1e-3, 1.0})
+    {
+        // Near z=344.45 is inside HGTDSupportPlate
+        Real3 pos{24.097769534015998, 17.956803215217408, 344.45};
+        axpy(dx, dir, &pos);
+
+        auto result = test_->volume_stack(pos);
+        all_stacks.emplace_back(to_string(join(result.volume_instances.begin(),
+                                               result.volume_instances.end(),
+                                               ",")));
+    }
+
+    // NOTE: Geant4 returns SPlate for dx=1e-6, whereas VecGeom returns HGTD
+    std::vector<std::string> expected_all_stacks = {
+        "Atlas_PV,ITK,HGTD,SPlate_4@0",
+        "Atlas_PV,ITK,HGTD,SPlate_4@0",
+        "Atlas_PV,ITK,HGTD,SPlate_4@0",
+        "Atlas_PV,ITK,HGTD",
+        "Atlas_PV,ITK,HGTD",
+        "Atlas_PV,ITK,HGTD",
+    };
+    if (test_->geometry_type() == "Geant4")
+    {
+        // Geant4 navigation (probably "skin" checks) overpredicts the
+        // volume extents
+        expected_all_stacks[3] = expected_all_stacks.front();
+    }
+    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2})
+    {
+        // VecGeom surface overpredicts even more
+        expected_all_stacks[3] = expected_all_stacks.front();
+        expected_all_stacks[4] = expected_all_stacks.front();
+        if (CELERITAS_VECGEOM_SURFACE)
+        {
+            expected_all_stacks[5] = expected_all_stacks.front();
+        }
+    }
+
+    EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
+}
+
+void AtlasHgtdGeoTest::test_detailed_tracking() const
+{
+    if (test_->geometry_type() == "ORANGE"
+        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        GTEST_SKIP() << "Track starts on a boundary with single precision";
+    }
+
+    {
+        // See https://github.com/celeritas-project/celeritas/issues/1902
+        SCOPED_TRACE("almost tangent at large Z");
+        auto geo = make_geo_track_view(
+            *test_,
+            {23.51934584635, 17.141066715148, 344.45000092904},
+            {0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7});
+        ASSERT_FALSE(geo.is_outside());
+        EXPECT_EQ("SPlate", test_->volume_name(geo));
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        // Find next boundary
+        auto next = geo.find_next_step(from_cm(2.0));
+        EXPECT_SOFT_NEAR(1.0, to_cm(next.distance), 1e-5);
+        EXPECT_TRUE(next.boundary);
+        geo.move_to_boundary();
+        EXPECT_SOFT_EQ(344.45, to_cm(geo.pos()[2]));
+        EXPECT_EQ("SPlate", test_->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+        geo.cross_boundary();
+        if (test_->geometry_type() == "VecGeom" && vecgeom_version < Version{2})
+        {
+            // VecGeom fails to cross the boundary! the internal bump along the
+            // path of travel doesn't change the Z coordinate, so it assumes
+            // the updated point is still inside the original volume.
+            EXPECT_EQ("SPlate", test_->volume_name(geo));
+            return;
+        }
+        EXPECT_EQ("HGTD", test_->volume_name(geo));
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        // Suppose safety distance results in small step limit
+        next = geo.find_next_step(from_cm(5e-9));
+        EXPECT_SOFT_EQ(5e-9, to_cm(next.distance));
+        geo.move_internal(from_cm(5e-9));
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ("HGTD", test_->volume_name(geo));
+
+        // Should be able to continue stepping as normal
+        next = geo.find_next_step(from_cm(1e-6));
+        EXPECT_SOFT_EQ(1e-6, to_cm(next.distance));
+        EXPECT_FALSE(next.boundary);
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ("HGTD", test_->volume_name(geo));
+    }
+}
 
 //---------------------------------------------------------------------------//
 // CMS EE
