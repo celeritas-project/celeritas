@@ -40,7 +40,7 @@ class SmearRoughnessSampler
     inline CELER_FUNCTION Real3 operator()(Engine& rng) const;
 
   private:
-    Real3 const& normal_;
+    Real3 normal_;
     real_type roughness_;
     PowerDistribution<> sample_r_{2};
 };
