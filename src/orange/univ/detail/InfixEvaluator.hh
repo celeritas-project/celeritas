@@ -112,9 +112,8 @@ CELER_FUNCTION bool InfixEvaluator::operator()(F&& eval_sense) const
             CELER_EXPECT(!logic::is_operator_token(logic_[i + 1])
                          || logic_[i + 1] == logic::ltrue);
             auto const& operand = logic_[++i];
-            result = operand == logic::ltrue
-                         ? false
-                         : !static_cast<bool>(eval_sense(FaceId{operand}));
+            result = !((operand == logic::ltrue)
+                       || static_cast<bool>(eval_sense(FaceId{operand})));
         }
         ++i;
     }
