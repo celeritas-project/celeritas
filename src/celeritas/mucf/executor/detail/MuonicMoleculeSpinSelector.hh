@@ -55,8 +55,6 @@ CELER_FUNCTION MuonicMoleculeSpinSelector::MuonicMoleculeSpinSelector(
 template<class Engine>
 CELER_FUNCTION size_type MuonicMoleculeSpinSelector::operator()(Engine&)
 {
-    size_type result{};
-
     //! \todo switch on molecule_
     CELER_ASSERT_UNREACHABLE();
 }
