@@ -109,6 +109,20 @@ std::vector<MucfAtomTransferRate> mucf_atom_transfer_rates()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize with hardcoded values.
+ */
+MucfScalars MucfScalars::from_default()
+{
+    MucfScalars result;
+    result.protium = AmuMass{1.007825031898};
+    result.deuterium = AmuMass{2.014101777844};
+    result.tritium = AmuMass{3.016049281320};
+    result.liquid_hydrogen_density = InvCcDensity{4.25e22};
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct hardcoded muon-catalyzed fusion physics data.
  *
  * \todo Official tables are implemented directly in C++ in NK Labs Geant4

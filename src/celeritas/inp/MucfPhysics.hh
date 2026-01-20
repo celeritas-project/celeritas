@@ -10,8 +10,10 @@
 #include <vector>
 
 #include "corecel/inp/Grid.hh"
-#include "celeritas/Quantities.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/mucf/Types.hh"
+
+#include "UnitTypes.hh"
 
 namespace celeritas
 {
@@ -25,22 +27,17 @@ namespace inp
  */
 struct MucfScalars
 {
-    // Atomic masses
-    units::AmuMass protium;  //!< Protium atomic mass [AMU]
-    units::AmuMass deuterium;  //!< Deuterium atomic mass [AMU]
-    units::AmuMass tritium;  //!< Tritium atomic mass [AMU]
-    units::InvCcDensity liquid_hydrogen_density;  //!< LHD unit [1/cm^3]
+    using AmuMass = Quantity<units::Amu, double>;
+    using InvCcDensity = Quantity<units::InvCentimeterCubed, double>;
 
-    //! Initialize with hardcoded values
-    static MucfScalars from_default()
-    {
-        MucfScalars result;
-        result.protium = units::AmuMass{1.007825031898};
-        result.deuterium = units::AmuMass{2.014101777844};
-        result.tritium = units::AmuMass{3.016049281320};
-        result.liquid_hydrogen_density = units::InvCcDensity{4.25e22};
-        return result;
-    }
+    // Atomic masses
+    AmuMass protium;  //!< Protium atomic mass [AMU]
+    AmuMass deuterium;  //!< Deuterium atomic mass [AMU]
+    AmuMass tritium;  //!< Tritium atomic mass [AMU]
+    InvCcDensity liquid_hydrogen_density;  //!< LHD unit [1/cm^3]
+
+    // Initialize with hardcoded values
+    static MucfScalars from_default();
 };
 
 //---------------------------------------------------------------------------//
