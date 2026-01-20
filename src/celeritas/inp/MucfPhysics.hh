@@ -10,12 +10,43 @@
 #include <vector>
 
 #include "corecel/inp/Grid.hh"
-#include "celeritas/Types.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/UnitTypes.hh"
+#include "celeritas/mucf/Types.hh"
 
 namespace celeritas
 {
 namespace inp
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Muon-catalyzed fusion scalars.
+ *
+ * Default values are the same used by Acceleron.
+ */
+struct MucfScalars
+{
+    using AmuMass = Quantity<units::Amu, double>;
+    using InvCcDensity = Quantity<units::InvCentimeterCubed, double>;
+
+    // Atomic masses
+    AmuMass protium;  //!< Protium atomic mass [AMU]
+    AmuMass deuterium;  //!< Deuterium atomic mass [AMU]
+    AmuMass tritium;  //!< Tritium atomic mass [AMU]
+    InvCcDensity liquid_hydrogen_density;  //!< LHD unit [1/cm^3]
+
+    //! Whether scalars have been defined
+    explicit operator bool() const
+    {
+        return protium > zero_quantity() && deuterium > zero_quantity()
+               && tritium > zero_quantity()
+               && liquid_hydrogen_density > zero_quantity();
+    }
+
+    // Initialize with hardcoded values
+    static MucfScalars from_default();
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Muon-catalyzed fusion mean cycle rate data.
@@ -68,6 +99,9 @@ struct MucfCycleRate
 struct MucfAtomTransferRate
 {
     //! \todo Implement
+
+    //! True if data is assigned \todo Implement
+    explicit operator bool() const { return true; }
 };
 
 //---------------------------------------------------------------------------//
@@ -91,6 +125,9 @@ struct MucfAtomTransferRate
 struct MucfAtomSpinFlipRate
 {
     //! \todo Implement
+
+    //! True if data is assigned \todo Implement
+    explicit operator bool() const { return true; }
 };
 
 //---------------------------------------------------------------------------//
@@ -98,7 +135,8 @@ struct MucfAtomSpinFlipRate
  * Muon-catalyzed fusion physics options and data import.
  *
  * Minimum requirements for muon-catalyzed fusion:
- * - Muon energy CDF data, required for sampling the outgoing muCF muon, and
+ * - Muon energy CDF data, required for sampling the outgoing muCF muon,
+ * and
  * - Mean cycle rate data for dd, dt, and tt muonic molecules.
  *
  * Muonic atom transfer and muonic atom spin flip are secondary effects and not
@@ -109,15 +147,16 @@ struct MucfPhysics
     template<class T>
     using Vec = std::vector<T>;
 
-    Grid muon_energy_cdf;  //!< CDF for outgoing muCF muon
+    MucfScalars scalars;
+    Grid muon_energy_cdf;  //!< CDF for sampling the outgoing muCF muon
     Vec<MucfCycleRate> cycle_rates;  //!< Mean cycle rates for muonic molecules
-    Vec<MucfAtomTransferRate> atom_transfer;  //!< Muon atom transfer rates
-    Vec<MucfAtomSpinFlipRate> atom_spin_flip;  //!< Muon atom spin flip rates
+    Vec<MucfAtomTransferRate> atom_transfer;  //!< Muonic atom transfer rates
+    Vec<MucfAtomSpinFlipRate> atom_spin_flip;  //!< Muonic atom spin flip rates
 
     //! Whether muon-catalyzed fusion physics is enabled
     explicit operator bool() const
     {
-        return muon_energy_cdf && !cycle_rates.empty();
+        return scalars && muon_energy_cdf && !cycle_rates.empty();
     }
 
     //! Construct hardcoded muon-catalyzed fusion physics data
