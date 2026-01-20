@@ -380,11 +380,11 @@ void IntegrationSingleton::update_logger()
         }
         else
         {
-            if (auto* handle
-                = celeritas::world_logger().handle().target<MtSelfWriter>())
+            if (celeritas::world_logger().handle().target<MtSelfWriter>())
             {
-                // Update thread count
-                *handle = MtSelfWriter{get_geant_num_threads(*run_man)};
+                // Update thread count by replacing log handle
+                celeritas::world_logger().handle(
+                    MtSelfWriter{get_geant_num_threads(*run_man)});
             }
         }
     }

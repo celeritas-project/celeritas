@@ -2132,15 +2132,27 @@ TEST_F(OpticalSurfaces, surfaces)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MucfBox, run)
+TEST_F(MucfBox, static_data)
 {
     auto const& mucf = this->imported_data().mucf_physics;
     EXPECT_TRUE(mucf);
 
-    static double const expected_muon_energy_cdf_y[] = {1, 1};
-    EXPECT_EQ(2, mucf.muon_energy_cdf.x.size());
-    EXPECT_VEC_EQ(expected_muon_energy_cdf_y, mucf.muon_energy_cdf.y);
+    auto average = [](inp::Grid::VecDbl const& data) -> double {
+        double sum{0};
+        for (auto y : data)
+        {
+            sum += y;
+        }
+        return sum / data.size();
+    };
 
+    static size_t const expected_muon_energy_cdf_size = 21;
+    EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.x.size());
+    EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.y.size());
+    EXPECT_SOFT_EQ(0.55157437567861023, average(mucf.muon_energy_cdf.x));
+    EXPECT_SOFT_EQ(11.250286274435437, average(mucf.muon_energy_cdf.y));
+
+    // Dummy data
     auto const& cycle_f0 = mucf.cycle_rates[0];
     static double const expected_cycle_rate_f0_y[] = {2, 2};
     EXPECT_TRUE(cycle_f0);

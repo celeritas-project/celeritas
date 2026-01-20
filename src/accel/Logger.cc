@@ -92,7 +92,8 @@ Logger MakeMTWorldLogger(G4RunManager const& runman)
             handle = write_mt_world;
         }
     }
-    return Logger::from_handle_env(std::move(handle), "CELER_LOG");
+    return Logger{std::move(handle),
+                  getenv_loglevel("CELER_LOG", LogLevel::status)};
 }
 
 //---------------------------------------------------------------------------//
@@ -122,7 +123,8 @@ Logger MakeMTSelfLogger(G4RunManager const& runman)
     {
         handle = detail::MtSelfWriter{get_geant_num_threads(runman)};
     }
-    return Logger::from_handle_env(std::move(handle), "CELER_LOG_LOCAL");
+    return Logger{std::move(handle),
+                  getenv_loglevel("CELER_LOG_LOCAL", LogLevel::warning)};
 }
 
 //---------------------------------------------------------------------------//

@@ -15,6 +15,8 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// TYPES
+//---------------------------------------------------------------------------//
 /*!
  * Enumeration for how important a log message is.
  */
@@ -30,16 +32,7 @@ enum class LogLevel
     size_  //!< Sentinel value for looping over log levels
 };
 
-//---------------------------------------------------------------------------//
-// Get the plain text equivalent of the log level above
-char const* to_cstring(LogLevel);
-
-//---------------------------------------------------------------------------//
-// Get an ANSI color code appropriate to each log level
-char const* to_color_code(LogLevel);
-
-//---------------------------------------------------------------------------//
-//! Stand-in for a more complex class for the "provenance" of data
+//! Origin of a log message
 struct LogProvenance
 {
     std::string_view file;  //!< Originating file
@@ -48,6 +41,21 @@ struct LogProvenance
 
 //! Type for handling a log message
 using LogHandler = std::function<void(LogProvenance, LogLevel, std::string)>;
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Get the plain text equivalent of the log level above
+char const* to_cstring(LogLevel);
+
+//---------------------------------------------------------------------------//
+// Get an ANSI color code appropriate to each log level
+char const* to_ansi_color(LogLevel);
+
+//---------------------------------------------------------------------------//
+// Get a log level from an environment variable
+LogLevel getenv_loglevel(std::string const&, LogLevel default_lev);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
