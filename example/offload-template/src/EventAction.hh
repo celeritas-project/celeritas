@@ -31,7 +31,8 @@ class EventAction final : public G4UserEventAction
     //!@}
 
   public:
-    // From MakeCelerOptions during setup on master, set the step diagnostic
+    // From MakeCelerOptions during setup on main thread, set the step
+    // diagnostic
     static void SetStepDiagnostic(SPStepDiagnostic&&);
     // During problem destruction, clear the diagnostic
     static void ClearStepDiagnostic();

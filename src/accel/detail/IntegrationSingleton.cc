@@ -234,7 +234,7 @@ bool IntegrationSingleton::initialize_offload()
 
 //---------------------------------------------------------------------------//
 /*!
- * Finalize thread-local transporter and (if master thread) shared params.
+ * Finalize thread-local transporter and (if main thread) shared params.
  */
 void IntegrationSingleton::finalize_offload()
 {
@@ -255,7 +255,7 @@ void IntegrationSingleton::finalize_offload()
         }
     }
 
-    // Finalize shared params on master thread
+    // Finalize shared params on main thread
     if (G4Threading::IsMasterThread())
     {
         CELER_TRY_HANDLE(this->finalize_shared_impl(),

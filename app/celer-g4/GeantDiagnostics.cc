@@ -53,7 +53,7 @@ auto GeantDiagnostics::queued_output() -> VecOutputInterface&
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from shared Celeritas params on the master thread.
+ * Construct from shared Celeritas params on the main thread.
  */
 GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 {

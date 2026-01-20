@@ -34,7 +34,7 @@ void write_serial(LogProvenance prov, LogLevel lev, std::string msg)
 }
 
 //---------------------------------------------------------------------------//
-//! Tag a singular output with worker/master: should usually be master
+//! Tag a singular output with worker/main: should usually be main
 void write_mt_world(LogProvenance prov, LogLevel lev, std::string msg)
 {
     if (G4Threading::G4GetThreadId() > 0)
@@ -88,7 +88,7 @@ Logger MakeMTWorldLogger(G4RunManager const& runman)
         }
         else
         {
-            // Only master and the first worker write
+            // Only main (and the first worker in MT mode) write
             handle = write_mt_world;
         }
     }

@@ -12,6 +12,7 @@ sets up the UI commands (see :cpp:class:`celeritas::SetupOptionsMessenger`),
 MPI (if configured), and Celeritas logging.
 
 .. doxygenclass:: celeritas::IntegrationBase
+   :members:
 
 Tracking manager
 ----------------

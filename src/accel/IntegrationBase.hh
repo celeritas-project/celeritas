@@ -27,9 +27,6 @@ class CoreParams;
  * The \c GetParams and \c GetState methods may only be used during a run with
  * Celeritas offloading enabled.
  *
- * \note It cannot be accessed before the Geant4 run manager is created (this
- * requirement may be relaxed in the future).
- *
  * \sa celeritas::UserActionIntegration
  * \sa celeritas::TrackingManagerIntegration
  *
@@ -39,11 +36,10 @@ class CoreParams;
 class IntegrationBase
 {
   public:
+    //// USER INTEGRATION POINTS ////
+
     // Set options before starting the run
     void SetOptions(SetupOptions&& opts);
-
-    // Access Celeritas offload mode type after options are set
-    OffloadMode GetMode() const;
 
     // REMOVE in v0.7
     [[deprecated]] void BuildForMaster() {}
@@ -57,7 +53,10 @@ class IntegrationBase
     // End the run
     void EndOfRunAction(G4Run const* run);
 
-    //// ACCESSORS ////
+    //// LOW-LEVEL ACCESSORS ////
+
+    // Access Celeritas offload mode type after options are set
+    OffloadMode GetMode() const;
 
     // Access Celeritas shared params
     CoreParams const& GetParams();
