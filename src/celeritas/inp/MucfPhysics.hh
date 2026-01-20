@@ -36,6 +36,14 @@ struct MucfScalars
     AmuMass tritium;  //!< Tritium atomic mass [AMU]
     InvCcDensity liquid_hydrogen_density;  //!< LHD unit [1/cm^3]
 
+    //! Whether scalars have been defined
+    explicit operator bool() const
+    {
+        return protium > zero_quantity() && deuterium > zero_quantity()
+               && tritium > zero_quantity()
+               && liquid_hydrogen_density > zero_quantity();
+    }
+
     // Initialize with hardcoded values
     static MucfScalars from_default();
 };
@@ -149,7 +157,7 @@ struct MucfPhysics
     //! Whether muon-catalyzed fusion physics is enabled
     explicit operator bool() const
     {
-        return muon_energy_cdf && !cycle_rates.empty();
+        return scalars && muon_energy_cdf && !cycle_rates.empty();
     }
 
     //! Construct hardcoded muon-catalyzed fusion physics data
