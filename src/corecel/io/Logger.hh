@@ -6,10 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
 #include <utility>
 
-#include "corecel/Config.hh"
+#include "corecel/Macros.hh"
 
 #include "LoggerTypes.hh"
 
@@ -52,8 +51,8 @@
  * \def CELER_LOG_LOCAL
  *
  * Like \c CELER_LOG but for code paths that may only happen on a single
- * process or thread. Use sparingly because this can be very verbose. This is
- * typically used only for error messages coming from an a event or
+ * process or thread. Use sparingly because this can be very verbose. This
+ * should be used for error messages from an event or
  * track at runtime.
  */
 #define CELER_LOG_LOCAL(LEVEL)                        \
@@ -89,7 +88,7 @@ class MpiCommunicator;
  * each process: rank 0 will have a handler that outputs to screen, and the
  * other ranks will have a "null" handler that suppresses all log output.
  *
- * \todo For v1.0, replace the back-end with \c spdlog to reduce maintenance
+ * \todo Replace the back-end with \c spdlog to reduce maintenance
  * burden and improve flexibility.
  */
 class Logger
@@ -104,13 +103,16 @@ class Logger
     //! Get the default log level
     static constexpr LogLevel default_level() { return LogLevel::status; }
 
-    // Create a logger from a handle and level environment variable
-    static Logger from_handle_env(LogHandler&& handle, std::string const& key);
+    // Construct a null logger
+    Logger() = default;
 
-    // Construct from an output handle
+    // Construct a logger with handle and default level
     explicit Logger(LogHandler&& handle);
 
-    // Create a logger that flushes its contents when it destructs
+    // Construct a logger with handle and level
+    Logger(LogHandler&& handle, LogLevel min_lev);
+
+    // Create a log message that flushes its contents when it destructs
     inline Message operator()(LogProvenance&& prov, LogLevel lev) const;
 
     //! Set the minimum logging verbosity
@@ -122,8 +124,8 @@ class Logger
     //! Access the log handle
     LogHandler const& handle() const { return handle_; }
 
-    //! Access the log handle (mutable, try to avoid using?)
-    LogHandler& handle() { return handle_; }
+    //! Set the log handle (null disables logger)
+    void handle(LogHandler&& handle) { handle_ = std::move(handle); }
 
   private:
     LogHandler handle_;
@@ -153,13 +155,6 @@ auto Logger::operator()(LogProvenance&& prov, LogLevel lev) const -> Message
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-// Get the log level from an environment variable
-LogLevel log_level_from_env(std::string const&, LogLevel default_lev);
-LogLevel log_level_from_env(std::string const&);
-
-// Create loggers with reasonable default behaviors.
-Logger make_default_world_logger();
-Logger make_default_self_logger();
 
 // Parallel logger (print only on "main" process)
 Logger& world_logger();
