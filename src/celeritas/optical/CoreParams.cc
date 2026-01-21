@@ -59,7 +59,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.sim = get_ref<M>(*p.sim);
     ref.surface = get_ref<M>(*p.surface);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
-    ref.detectors = get_ref<M>(*p.detectors);
+    // TODO: Get detectors ref
     if (p.cherenkov)
     {
         ref.cherenkov = get_ref<M>(*p.cherenkov);
@@ -124,7 +124,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(surface_physics);
-    CP_VALIDATE_INPUT(detectors);
+    // TODO: input and validate detectors
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
