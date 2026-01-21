@@ -11,8 +11,7 @@
 #include <utility>
 
 #include "corecel/Macros.hh"
-
-#include "../LoggerTypes.hh"
+#include "corecel/io/LoggerTypes.hh"
 
 namespace celeritas
 {

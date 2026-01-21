@@ -47,14 +47,14 @@ struct SetupOptions;
  * The \c CeleritasDisabled accessor queries the \c CELER_DISABLE environment
  * variable as a global option for disabling Celeritas offloading.
  *
- * This should be instantiated on the master thread during problem setup,
+ * This should be instantiated on the main thread during problem setup,
  * preferably as a shared pointer. The shared pointer should be
  * passed to a thread-local \c LocalTransporter instance. At the beginning of
  * the run, after Geant4 has initialized physics data, the \c Initialize method
- * must be called first on the "master" thread to populate the Celeritas data
+ * must be called on the main thread to populate the Celeritas data
  * structures (geometry, physics). \c InitializeWorker must subsequently be
- * invoked on all worker threads to set up thread-local data (specifically,
- * CUDA device initialization).
+ * invoked on all worker threads to set up thread-local data (including
+ * CUDA device initialization and objects that require Geant4 allocators).
  *
  * Some low-level objects, such as the output diagnostics and Geant4 geometry
  * wrapper, can be created independently of Celeritas being enabled.
@@ -99,16 +99,16 @@ class SharedParams
     // Construct in an uninitialized state
     SharedParams() = default;
 
-    // Construct Celeritas using Geant4 data on the master thread.
+    // Construct Celeritas using Geant4 data on the main thread.
     explicit SharedParams(SetupOptions const& options);
 
-    // Initialize shared data on the "master" thread
+    // Initialize shared data on the main thread
     inline void Initialize(SetupOptions const& options);
 
     // On worker threads, set up data with thread storage duration
     void InitializeWorker(SetupOptions const& options);
 
-    // Write (shared) diagnostic output and clear shared data on master
+    // Write (shared) diagnostic output and clear shared data on main thread
     void Finalize();
 
     //!@}

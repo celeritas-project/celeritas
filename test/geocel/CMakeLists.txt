@@ -81,6 +81,7 @@ if(CELERITAS_USE_VecGeom)
     "TwoBoxesVgdml"
   )
   set(_g4vg_tests
+    "AtlasHgtd"
     "CmsEeBackDee"
     "Cmse"
     "FourLevels"

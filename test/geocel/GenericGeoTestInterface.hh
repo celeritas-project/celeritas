@@ -43,6 +43,7 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //!@{
     //! \name Type aliases
     using TrackingResult = GenericGeoTrackingResult;
+    using TrackingTol = GenericGeoTrackingTolerance;
     using VolumeStackResult = GenericGeoVolumeStackResult;
     using GeoTrackView = GeoTrackInterface<real_type>;
     using UPGeoTrack = std::unique_ptr<GeoTrackView>;
@@ -52,6 +53,12 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //// TESTS ////
 
     // Track until exiting the geometry
+    TrackingResult track(Real3 const& pos_cm,
+                         Real3 const& dir,
+                         TrackingTol const& tol,
+                         int max_steps);
+
+    // Track until exiting the geometry (default test tol)
     TrackingResult
     track(Real3 const& pos_cm, Real3 const& dir, int max_steps = 50);
 

@@ -23,7 +23,7 @@
 
 #include "detail/ElossApplier.hh"
 #include "detail/FluctELoss.hh"  // IWYU pragma: associated
-#include "detail/LinearPropagatorFactory.hh"
+#include "detail/LinearTrackPropagator.hh"
 #include "detail/MeanELoss.hh"  // IWYU pragma: associated
 #include "detail/MscApplier.hh"
 #include "detail/MscStepLimitApplier.hh"
@@ -95,7 +95,7 @@ void AlongStepGeneralLinearAction::step(CoreParams const& params,
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{LinearPropagatorFactory{}}(track);
+        PropagationApplier{LinearTrackPropagator{}}(track);
         if (this->has_msc())
         {
             MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);

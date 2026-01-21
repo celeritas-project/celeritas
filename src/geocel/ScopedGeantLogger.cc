@@ -105,20 +105,41 @@ G4int log_impl(celeritas::Logger& log, G4String const& str, LogLevel level)
 }
 
 //---------------------------------------------------------------------------//
+//! Thread-local flags for ownership/usability of the Geant4 logger
+enum class SGLState
+{
+    inactive,
+    active,
+    disabled
+};
+
+SGLState& sgl_state()
+{
+    static G4ThreadLocal SGLState result{SGLState::inactive};
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
 /*!
  * Send Geant4 log messages to Celeritas' world logger.
  */
-class GeantLoggerAdapter final : public G4coutDestination
+class ScopedGeantLogger::StreamDestination final : public G4coutDestination
 {
   public:
     // Assign to Geant handlers on construction
-    explicit GeantLoggerAdapter(Logger&);
-    CELER_DELETE_COPY_MOVE(GeantLoggerAdapter);
-    ~GeantLoggerAdapter() final;
+    explicit StreamDestination(Logger&);
+    CELER_DELETE_COPY_MOVE(StreamDestination);
+    ~StreamDestination() final;
 
     // Handle error messages
     G4int ReceiveG4cout(G4String const& str) final;
     G4int ReceiveG4cerr(G4String const& str) final;
+
+    // Access logger from ScopedGeantLogger cleanup
+    Logger& logger() { return celer_log_; }
 
   private:
     Logger& celer_log_;
@@ -134,7 +155,7 @@ class GeantLoggerAdapter final : public G4coutDestination
  *
  * Note that all these buffers, and the UI pointers, are thread-local.
  */
-GeantLoggerAdapter::GeantLoggerAdapter(Logger& celer_log)
+ScopedGeantLogger::StreamDestination::StreamDestination(Logger& celer_log)
     : celer_log_{celer_log}
 {
     // Make sure UI pointer has been instantiated, since its constructor
@@ -163,7 +184,7 @@ GeantLoggerAdapter::GeantLoggerAdapter(Logger& celer_log)
 /*!
  * Restore iostream buffers on destruction.
  */
-GeantLoggerAdapter::~GeantLoggerAdapter()
+ScopedGeantLogger::StreamDestination::~StreamDestination()
 {
 #if CELER_G4SSBUF
     G4coutbuf.SetDestination(saved_cout_);
@@ -177,7 +198,7 @@ GeantLoggerAdapter::~GeantLoggerAdapter()
 /*!
  * Process stdout message.
  */
-G4int GeantLoggerAdapter::ReceiveG4cout(G4String const& str)
+G4int ScopedGeantLogger::StreamDestination::ReceiveG4cout(G4String const& str)
 {
     return log_impl(celer_log_, str, LogLevel::diagnostic);
 }
@@ -186,28 +207,10 @@ G4int GeantLoggerAdapter::ReceiveG4cout(G4String const& str)
 /*!
  * Process stderr message.
  */
-G4int GeantLoggerAdapter::ReceiveG4cerr(G4String const& str)
+G4int ScopedGeantLogger::StreamDestination::ReceiveG4cerr(G4String const& str)
 {
     return log_impl(celer_log_, str, LogLevel::info);
 }
-
-//---------------------------------------------------------------------------//
-//! Thread-local flags for ownership/usability of the Geant4 logger
-enum class SGLState
-{
-    inactive,
-    active,
-    disabled
-};
-
-SGLState& sgl_state()
-{
-    static G4ThreadLocal SGLState result{SGLState::inactive};
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
 
 //---------------------------------------------------------------------------//
 //! Enable and disable to avoid recursion with accel/Logger
@@ -236,8 +239,20 @@ ScopedGeantLogger::ScopedGeantLogger(Logger& celer_log)
     auto& state = sgl_state();
     if (state == SGLState::inactive)
     {
+        celer_log(CELER_CODE_PROVENANCE, LogLevel::debug)
+            << "Activating ScopedGeantLogger";
+
         state = SGLState::active;
-        logger_ = std::make_unique<GeantLoggerAdapter>(celer_log);
+        logger_ = std::make_unique<StreamDestination>(celer_log);
+    }
+    else
+    {
+        celer_log(CELER_CODE_PROVENANCE, LogLevel::debug)
+            << R"(Ignoring ScopedGeantLogger initialization because )"
+            << (state == SGLState::active
+                    ? R"(Geant4 is already being redirected on this thread)"
+                : state == SGLState::disabled ? R"(log redirection is disabled)"
+                                              : "<unreachable>");
     }
 }
 
@@ -261,7 +276,12 @@ ScopedGeantLogger::~ScopedGeantLogger()
     {
         state = SGLState::inactive;
     }
-    logger_.reset();
+    if (logger_)
+    {
+        logger_->logger()(CELER_CODE_PROVENANCE, LogLevel::debug)
+            << "Resetting ScopedGeantLogger";
+        logger_.reset();
+    }
 }
 
 //---------------------------------------------------------------------------//

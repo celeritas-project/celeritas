@@ -30,12 +30,12 @@ class RZMapField
     //!@{
     //! \name Type aliases
     using Real3 = Array<real_type, 3>;
-    using FieldParamsRef = NativeCRef<RZMapFieldParamsData>;
+    using ParamsRef = NativeCRef<RZMapFieldParamsData>;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit RZMapField(FieldParamsRef const& shared);
+    inline CELER_FUNCTION explicit RZMapField(ParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
@@ -43,7 +43,7 @@ class RZMapField
 
   private:
     // Shared constant field map
-    FieldParamsRef const& params_;
+    ParamsRef const& params_;
 
     UniformGrid const grid_r_;
     UniformGrid const grid_z_;
@@ -56,7 +56,7 @@ class RZMapField
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-RZMapField::RZMapField(FieldParamsRef const& params)
+RZMapField::RZMapField(ParamsRef const& params)
     : params_(params)
     , grid_r_(params_.grids.data_r)
     , grid_z_(params_.grids.data_z)

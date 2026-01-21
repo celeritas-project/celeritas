@@ -253,7 +253,7 @@ bool SharedParams::KillOffloadTracks()
  *
  * This is a separate step from construction because it has to happen at the
  * beginning of the run, not when user classes are created. It should be called
- * from the "master" thread (for MT mode) or from the main thread (for Serial),
+ * from the main thread ("master" when MT),
  * and it must complete before any worker thread tries to access the shared
  * data.
  */

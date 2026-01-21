@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct Celeritas-supported optical physics.
+ * Construct Celeritas-supported optical physics processes.
  */
 class SupportedOpticalPhysics : public G4VPhysicsConstructor
 {

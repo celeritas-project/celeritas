@@ -137,7 +137,7 @@ TEST_F(RoughnessSamplerTest, gaussian)
     // A "very rough" crystal in the UNIFIED paper has sigma_alpha of 0.2053
     // (note that the paper gives the value in degrees), having at most a
     // deflection angle cosine of ~0.76 (40 degrees)
-    for (real_type sigma_alpha : {0.01, 0.05, 0.1, 0.2053, 0.4})
+    for (real_type sigma_alpha : {0.01, 0.05, 0.1, 0.2053, 0.4, 0.6})
     {
         GaussianRoughnessSampler sample_normal{normal, sigma_alpha};
 
@@ -149,11 +149,12 @@ TEST_F(RoughnessSamplerTest, gaussian)
     }
 
     static SampledHistogram const expected[] = {
-        {{0, 0, 0, 0, 5}, 21.7884},
-        {{0, 0, 0, 0, 5}, 21.9014},
-        {{0, 0, 0, 0, 5}, 21.9502},
-        {{0, 0, 0, 0.034, 4.966}, 20.192},
-        {{0.0105, 0.051, 0.235, 0.971, 3.7325}, 15.1376},
+        {{0, 0, 0, 0, 5}, 21.8074},
+        {{0, 0, 0, 0, 5}, 22.0256},
+        {{0, 0, 0, 0, 5}, 22.4858},
+        {{0, 0, 0.0005, 0.037, 4.9625}, 22.3334},
+        {{0.011, 0.051, 0.2305, 0.967, 3.7405}, 15.1088},
+        {{0.174, 0.366, 0.7145, 1.298, 2.4475}, 11.5844},
     };
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
