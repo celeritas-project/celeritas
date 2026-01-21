@@ -26,6 +26,10 @@ class SharedParams;
        // Transport any tracks left in the buffer
        celeritas::ExceptionConverter call_g4exception{"celer.event.flush"};
        CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+
+       // Debug error checking
+       CELER_ENSURE(transport_.GetBufferSize() == 0
+                    || call_g4exception.forwarded());
    }
  * \endcode
  */
@@ -39,11 +43,15 @@ class ExceptionConverter
     inline explicit ExceptionConverter(char const* err_code);
 
     // Capture the current exception and convert it to a G4Exception call
-    void operator()(std::exception_ptr p) const;
+    void operator()(std::exception_ptr p);
+
+    //! Whether an exception was passed to G4Exception
+    bool forwarded() const { return forwarded_; }
 
   private:
     char const* err_code_;
     SharedParams const* params_{nullptr};
+    bool forwarded_{false};
 
     void convert_device_exceptions(std::exception_ptr p) const;
 };

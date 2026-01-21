@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "Problem.hh"
 
+#include <memory>
 #include <optional>
 #include <utility>
 #include <variant>
@@ -297,7 +298,9 @@ auto build_along_step(inp::Field const& var_field,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct optical parameters.
+ * Construct optical parameters from EM parameters.
+ *
+ * \todo build unique RNG streams for optical loop
  */
 auto build_optical_params(inp::Problem const& p,
                           CoreParams const& core,
@@ -306,49 +309,107 @@ auto build_optical_params(inp::Problem const& p,
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
                       "materials are present");
+    CELER_EXPECT(p.physics.optical);
+    CELER_EXPECT(p.control.optical_capacity);
 
-    optical::CoreParams::Input params;
-    CELER_ASSERT(p.control.optical_capacity);
-    params.capacity = *p.control.optical_capacity;
-    params.geometry = core.geometry();
-    params.material = optical::MaterialParams::from_import(
+    optical::CoreParams::Input pi;
+
+    // Registries
+    pi.action_reg = std::make_shared<ActionRegistry>();
+    pi.output_reg = core.output_reg();
+    pi.gen_reg = std::make_shared<GeneratorRegistry>();
+    pi.aux_reg = core.aux_reg();
+
+    // Geometry, physics, core
+    pi.geometry = core.geometry();
+    pi.material = optical::MaterialParams::from_import(
         imported, *core.geomaterial(), *core.material());
-    // TODO: unique RNG streams for optical loop
-    params.rng = core.rng();
-    params.sim
-        = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
-    params.surface = core.surface();
-    params.action_reg = std::make_shared<ActionRegistry>();
-    params.gen_reg = std::make_shared<GeneratorRegistry>();
-    params.output_reg = core.output_reg();
-    params.aux_reg = core.aux_reg();
-    params.max_streams = core.max_streams();
+    pi.physics = optical::PhysicsParams::from_import(
+        imported, core.material(), pi.material, pi.action_reg);
+    pi.rng = core.rng();
+    pi.sim = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
+    pi.surface = core.surface();
+    pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
+        pi.action_reg.get(), p.physics.optical.surfaces);
+    // TODO: copy detectors from core
 
-    // Construct optical physics models
-    params.physics = optical::PhysicsParams::from_import(
-        imported, core.material(), params.material, params.action_reg);
-
-    // Construct optical surface physics models
-    CELER_ASSERT(p.physics.optical);
-    params.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
-        params.action_reg.get(), p.physics.optical.surfaces);
-
-    // Add photon generating processes
+    // Photon generating processes
     if (p.physics.optical.cherenkov)
     {
-        params.cherenkov = std::make_shared<CherenkovParams>(*params.material);
+        pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
     if (p.physics.optical.scintillation)
     {
-        params.scintillation
+        pi.scintillation
             = ScintillationParams::from_import(imported, core.particle());
     }
 
-    //! \todo Get sensitive detectors
+    // Streams and capacities
+    pi.max_streams = core.max_streams();
+    pi.capacity = *p.control.optical_capacity;
 
-    CELER_ENSURE(params);
+    CELER_ENSURE(pi);
+    return std::make_shared<optical::CoreParams>(std::move(pi));
+}
 
-    return std::make_shared<optical::CoreParams>(std::move(params));
+//---------------------------------------------------------------------------//
+/*!
+ * Construct optical parameters from optical problem definition.
+ */
+auto build_optical_params(inp::OpticalProblem const& p,
+                          ModelLoaded&& loaded_model,
+                          ImportData const& imported)
+{
+    CELER_VALIDATE(!imported.optical_materials.empty(),
+                   << "an optical tracking loop was requested but no optical "
+                      "materials are present");
+
+    // Create materials and geometry/material coupling
+    auto material = MaterialParams::from_import(imported);
+    auto geomaterial = GeoMaterialParams::from_import(
+        imported, loaded_model.geometry, loaded_model.volume, material);
+
+    optical::CoreParams::Input pi;
+
+    // Registries
+    pi.action_reg = std::make_shared<ActionRegistry>();
+    pi.output_reg = nullptr;
+    pi.gen_reg = std::make_shared<GeneratorRegistry>();
+    pi.aux_reg = nullptr;  // TODO: require instead of building in CP
+
+    // Geometry, materials, physics
+    pi.geometry = std::move(loaded_model.geometry);
+    pi.material = optical::MaterialParams::from_import(
+        imported, *geomaterial, *material);
+    pi.physics = optical::PhysicsParams::from_import(
+        imported, material, pi.material, pi.action_reg);
+    pi.rng = std::make_shared<RngParams>(p.seed);
+    pi.sim = std::make_shared<optical::SimParams>(p.limits);
+    pi.surface = std::move(loaded_model.surface);
+    pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
+        pi.action_reg.get(), p.physics.surfaces);
+    // TODO: save loaded detectors
+
+    // Streams and capacities
+    pi.max_streams = p.num_streams;
+    pi.capacity = p.capacity;
+
+    // Photon generating processes are needed to offload via Geant4 optical
+    if (p.physics.cherenkov)
+    {
+        pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
+    }
+    if (p.physics.scintillation)
+    {
+        auto particle = ParticleParams::from_import(imported);
+        pi.scintillation = ScintillationParams::from_import(imported, particle);
+        CELER_ASSERT(pi.scintillation);
+    }
+
+    std::move(loaded_model) = {};
+
+    CELER_ENSURE(pi);
+    return std::make_shared<optical::CoreParams>(std::move(pi));
 }
 
 //---------------------------------------------------------------------------//
@@ -453,6 +514,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
             }
             params.surface = std::make_shared<SurfaceParams>();
         }
+        // TODO: save detectors to params
     }
 
     // Load materials
@@ -731,15 +793,6 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
                    << "an optical tracking loop was requested but no optical "
                       "materials are present");
 
-    optical::CoreParams::Input pi;
-
-    // Per-process state sizes
-    pi.capacity = p.capacity;
-
-    // Create action manager and generator registry
-    pi.action_reg = std::make_shared<ActionRegistry>();
-    pi.gen_reg = std::make_shared<GeneratorRegistry>();
-
     // Load geometry and model
     if (auto* filename = std::get_if<std::string>(&p.model.geometry))
     {
@@ -747,65 +800,26 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
                        << "empty filename in problem.model.geometry");
     }
     auto loaded_model = setup::model(p.model);
-    pi.geometry = std::move(loaded_model.geometry);
-    pi.surface = std::move(loaded_model.surface);
-    CELER_VALIDATE(pi.surface && !pi.surface->disabled(),
+    CELER_VALIDATE(loaded_model.surface && !loaded_model.surface->disabled(),
                    << "surfaces are required for optical physics");
-    if (pi.surface->empty())
+    if (loaded_model.surface->empty())
     {
         CELER_LOG(warning) << "Problem contains optical physics without any "
                               "geometry surface definitions: default physics "
                               "will be used for all surfaces";
     }
 
-    // Create materials and geometry/material coupling
-    auto material = MaterialParams::from_import(imported);
-    auto geomaterial = GeoMaterialParams::from_import(
-        imported, pi.geometry, loaded_model.volume, material);
-
-    // Create optical materials
-    pi.material = optical::MaterialParams::from_import(
-        imported, *geomaterial, *material);
-
-    // Construct RNG params
-    pi.rng = std::make_shared<RngParams>(p.seed);
-
-    // Construct simulation params
-    pi.sim = std::make_shared<optical::SimParams>(p.limits);
-
     // Set up streams
     CELER_VALIDATE(p.num_streams > 0,
                    << "p.num_streams must be manually set before setup");
-    pi.max_streams = p.num_streams;
     if (auto& device = celeritas::device())
     {
-        device.create_streams(pi.max_streams);
+        device.create_streams(p.num_streams);
     }
 
-    // Construct optical bulk physics models
-    pi.physics = optical::PhysicsParams::from_import(
-        imported, material, pi.material, pi.action_reg);
-
-    // Construct optical surface physics models
-    pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
-        pi.action_reg.get(), p.physics.surfaces);
-
-    // Add photon generating processes
-    if (p.physics.cherenkov)
-    {
-        pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
-    }
-    if (p.physics.scintillation)
-    {
-        auto particle = ParticleParams::from_import(imported);
-        pi.scintillation = ScintillationParams::from_import(imported, particle);
-        CELER_ASSERT(pi.scintillation);
-    }
-
-    //! \todo Get sensitive detectors
-
-    CELER_ASSERT(pi);
-    auto params = std::make_shared<optical::CoreParams>(std::move(pi));
+    // Build optical params
+    auto params = build_optical_params(p, std::move(loaded_model), imported);
+    CELER_ASSERT(params);
 
     // Construct the optical generator
     std::visit(Overload{
