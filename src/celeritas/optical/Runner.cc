@@ -27,6 +27,7 @@ Runner::Runner(inp::OpticalStandaloneInput&& osi)
     CELER_VALIDATE(osi.problem.num_streams == 1,
                    << "standalone optical runner expects a single stream");
     StreamId stream_id{0};
+    auto num_tracks = osi.problem.capacity.tracks;
 
     // Set up the problem from the input
     auto loaded = setup::standalone_input(osi);
@@ -38,7 +39,6 @@ Runner::Runner(inp::OpticalStandaloneInput&& osi)
     CELER_ASSERT(stream_id < this->params()->max_streams());
 
     // Allocate state data
-    auto num_tracks = osi.problem.capacity.tracks;
     auto memspace = celeritas::device() ? MemSpace::device : MemSpace::host;
     if (memspace == MemSpace::device)
     {
@@ -55,6 +55,8 @@ Runner::Runner(inp::OpticalStandaloneInput&& osi)
     CELER_ASSERT(this->params()->aux_reg());
     state_->aux() = std::make_shared<AuxStateVec>(
         *this->params()->aux_reg(), memspace, stream_id, num_tracks);
+
+    std::move(osi) = {};
 }
 
 //---------------------------------------------------------------------------//
