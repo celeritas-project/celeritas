@@ -20,6 +20,7 @@
 #include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
+#include "celeritas/user/SDParams.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
@@ -124,7 +125,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(surface_physics);
-    // TODO: input and validate detectors
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
@@ -132,6 +132,11 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
+    // TODO: require and validate detectors
+    if (!input_.detectors)
+    {
+        input_.detectors = std::make_shared<SDParams>();
+    }
     if (!input_.aux_reg)
     {
         input_.aux_reg = std::make_shared<AuxParamsRegistry>();

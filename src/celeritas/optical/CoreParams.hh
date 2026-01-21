@@ -13,7 +13,6 @@
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/inp/Control.hh"
-#include "celeritas/user/SDParams.hh"
 
 #include "CoreTrackData.hh"
 
@@ -27,6 +26,7 @@ class GeneratorRegistry;
 class OutputRegistry;
 class ScintillationParams;
 class SurfaceParams;
+class SDParams;
 
 namespace optical
 {
@@ -44,6 +44,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
   public:
     //!@{
     //! \name Type aliases
+    using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
+    using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
+    using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
+
     using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
@@ -55,11 +60,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
-
-    using SPActionRegistry = std::shared_ptr<ActionRegistry>;
-    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
-    using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
-    using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
