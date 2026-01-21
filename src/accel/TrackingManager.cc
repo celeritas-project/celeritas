@@ -123,7 +123,7 @@ void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 /*!
  * Offload the incoming track to Celeritas.
  *
- * This will \em not be called in the master thread of an MT run.
+ * This will \em not be called in the "master" thread of an MT run.
  */
 void TrackingManager::HandOverOneTrack(G4Track* track)
 {

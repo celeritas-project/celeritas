@@ -196,7 +196,7 @@ void GeantSd::setup_volumes(inp::GeantSd const& setup)
         {
             if (G4VSensitiveDetector* sd = lv->GetSensitiveDetector())
             {
-                // Sensitive detector is attached to the master thread
+                // Sensitive detector is attached to the main thread
                 insert_volume(lv, sd);
             }
         }

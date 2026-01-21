@@ -30,9 +30,9 @@ class LocalTransporter;
  * This thread-local manager points to a corresponding thread-local
  * transporter.
  *
- * Because physics initialization also happens on the master MT thread, where
- * no events are processed, a custom tracking manager \em also exists for that
- * thread. In that case, the local transporter should be null.
+ * The \c TrackingManagerConstructor class creates an instance of this class
+ * for every worker thread (or the main thread when using a serial run
+ * manager.)
  *
  * \note As of Geant4 11.3, instances of this class (one per thread) will never
  * be deleted.

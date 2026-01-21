@@ -66,7 +66,7 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 
     if (init_shared_)
     {
-        // This worker (or master thread) is responsible for initializing
+        // This is the main thread responsible for initializing
         // celeritas: initialize shared data and setup GPU on all threads
         CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
         CELER_ASSERT(*params_);

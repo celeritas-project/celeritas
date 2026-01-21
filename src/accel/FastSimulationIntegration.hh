@@ -18,16 +18,13 @@ namespace celeritas
  * application. To use this class in your Geant4 application to offload tracks
  * to Celeritas:
  *
- * - Add the \c FastSimulationModel to regions of interest.
  * - Use \c SetOptions to set up options before \c G4RunManager::Initialize:
  *   usually in \c main for simple applications.
+ * - In your \c G4VUserDetectorConstruction::ConstructSDandField, called during
+ * initialization, attach the \c FastSimulationModel to regions of interest
  * - Call \c BeginOfRunAction and \c EndOfRunAction from \c UserRunAction
  *
- * The \c CELER_DISABLE environment variable, if set and non-empty, will
- * disable offloading so that Celeritas will not be built nor kill tracks.
- *
- * The method names correspond to methods in Geant4 User Actions and \em must
- * be called from all threads, both worker and master.
+ * See further documentation in \c celeritas::IntegrationBase.
  */
 class FastSimulationIntegration final : public IntegrationBase
 {
@@ -35,12 +32,12 @@ class FastSimulationIntegration final : public IntegrationBase
     // Access the public-facing integration singleton
     static FastSimulationIntegration& Instance();
 
-    // Start the run
-    void BeginOfRunAction(G4Run const* run) final;
-
   private:
     // Tracking manager can only be created privately
     FastSimulationIntegration();
+
+    // Verify fast simulation setup
+    void verify_local_setup() final;
 };
 
 //---------------------------------------------------------------------------//

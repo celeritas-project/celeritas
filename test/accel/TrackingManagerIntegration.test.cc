@@ -8,12 +8,16 @@
 
 #include <atomic>
 #include <functional>
+#include <mutex>
+#include <regex>
+#include <string_view>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4UImanager.hh>
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
+#include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"
@@ -31,9 +35,11 @@
 #include "accel/detail/IntegrationSingleton.hh"
 
 #include "IntegrationTestBase.hh"
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 using TMI = celeritas::TrackingManagerIntegration;
+using namespace std::string_view_literals;
 
 namespace celeritas
 {
@@ -137,10 +143,11 @@ class TMITestBase : virtual public IntegrationTestBase
 };
 
 //---------------------------------------------------------------------------//
-// LAR SPHERE
+// LAR SPHERE (EM only)
 //---------------------------------------------------------------------------//
 class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
 {
+  public:
     void BeginOfEventAction(G4Event const* event) override
     {
         if (event->GetEventID() == 1)
@@ -170,6 +177,47 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
                          step->GetTrack()->GetWeight());
     }
+
+    //! Check wrapped RuntimeError caught by GeantExceptionHandler
+    void caught_g4_runtime_error(RuntimeError const& e) override
+    {
+        if (!check_runtime_errors_)
+        {
+            // Let the base class manage and fail on the caught error
+            return TMITestBase::caught_g4_runtime_error(e);
+        }
+        CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
+
+        static std::recursive_mutex exc_mutex;
+        std::lock_guard scoped_lock{exc_mutex};
+
+        static std::regex extract_error{R"(runtime error:\s*(.+?)(?:\n|$))"};
+        std::smatch match;
+        std::string what = e.what();
+        if (std::regex_search(what, match, extract_error))
+        {
+            CELER_ASSERT(match.size() > 1);
+            exceptions_.push_back(match[1].str());
+        }
+        else
+        {
+            exceptions_.push_back(std::move(what));
+        }
+    }
+
+    void TearDown() override
+    {
+        if (!exceptions_.empty())
+        {
+            FAIL() << exceptions_.size()
+                   << " runtime errors were caught but not checked";
+        }
+    }
+
+    //! Append caught exceptions in this local test rather than failing
+    bool check_runtime_errors_{false};
+    //! Exceptions that were caught by this test suite's error handler
+    std::vector<std::string> exceptions_;
 };
 
 /*!
@@ -246,6 +294,35 @@ TEST_F(LarSphere, run_ui)
     ui.ApplyCommand("/run/beamOn 2");
 
     EXPECT_EQ(get_geant_num_threads(rm), check_count.load());
+}
+
+/*!
+ * Check that omitting the SetOptions call causes the expected errors.
+ */
+TEST_F(LarSphere, no_set_options)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance();
+    check_runtime_errors_ = true;
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+    EXPECT_EQ(0, exceptions_.size());
+    CELER_LOG(status) << "Run two events";
+    rm.BeamOn(2);
+
+    std::vector<std::string> expected_exceptions = {
+        "SetOptions or UI entries were not completely set before BeginRun",
+    };
+    if (!G4Threading::IsMultithreadedApplication())
+    {
+        // Geant4 still starts the first local event if an error happens during
+        // BeginOfRun
+        expected_exceptions.push_back(
+            R"(Celeritas was not initialized properly (maybe BeginOfRunAction was not called?))");
+    }
+    EXPECT_VEC_EQ(expected_exceptions, exceptions_);
+    exceptions_.clear();
 }
 
 //---------------------------------------------------------------------------//
