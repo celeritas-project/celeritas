@@ -394,7 +394,13 @@ struct JsonPimpl;
 
 //---------------------------------------------------------------------------//
 /*!
- * Error thrown by Celeritas assertions.
+ * Error thrown by Celeritas assertions and debug failures.
+ *
+ * This class contains additional user-accessible context for the source of the
+ * error, the failing condition, etc., allowing detailed exception output or
+ * forwarding the exception details through other interfaces such as
+ * G4Exception. Since a \c DebugError indicates a \em programming bug, it
+ * inherits from \c std::logic_error.
  */
 class DebugError : public std::logic_error
 {
@@ -416,6 +422,11 @@ class DebugError : public std::logic_error
 //---------------------------------------------------------------------------//
 /*!
  * Error thrown by working code from unexpected runtime conditions.
+ *
+ * The runtime error contains additional user-accessible context for the source
+ * of the error, the failing condition, etc. Since it indicates an error with
+ * user input or other system conditions, it inherits from \c
+ * std::runtime_error.
  */
 class RuntimeError : public std::runtime_error
 {
@@ -445,10 +456,10 @@ class RuntimeError : public std::runtime_error
 /*!
  * Base class for writing arbitrary exception context to JSON.
  *
- * This can be overridden in higher-level parts of the code for specific needs
+ * This can be subclassed in higher-level parts of the code for specific needs
  * (e.g., writing thread, event, and track contexts in Celeritas solver
  * kernels). Note that in order for derived classes to work with
- * `std::throw_with_nested`, they *MUST NOT* be `final`.
+ * \c std::throw_with_nested, they <em>MUST NOT</em> be \c final.
  */
 class RichContextException : public std::exception
 {

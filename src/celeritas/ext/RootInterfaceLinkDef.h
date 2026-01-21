@@ -51,10 +51,11 @@
 #pragma link C++ class celeritas::inp::Grid+;
 #pragma link C++ class celeritas::inp::GridReflection+;
 #pragma link C++ class celeritas::inp::Interpolation+;
-#pragma link C++ class celeritas::inp::MucfPhysics+;
-#pragma link C++ class celeritas::inp::MucfCycleRate+;
 #pragma link C++ class celeritas::inp::MucfAtomTransferRate+;
 #pragma link C++ class celeritas::inp::MucfAtomSpinFlipRate+;
+#pragma link C++ class celeritas::inp::MucfCycleRate+;
+#pragma link C++ class celeritas::inp::MucfPhysics+;
+#pragma link C++ class celeritas::inp::MucfScalars+;
 #pragma link C++ class celeritas::inp::MuPairProductionEnergyTransferTable+;
 #pragma link C++ class celeritas::inp::NoRoughness+;
 #pragma link C++ class celeritas::inp::OpticalPhysics+;
@@ -82,6 +83,9 @@
 // Quantities
 #pragma link C++ class celeritas::Quantity<celeritas::units::EElectron,double>+;
 #pragma link C++ class celeritas::Quantity<celeritas::units::MevPerCsq,double>+;
+#pragma link C++ class celeritas::Quantity<celeritas::units::Amu,double>+;
+#pragma link C++ class celeritas::Quantity<celeritas::units::InvCentimeterCubed,double>+;
+
 
 // Event data used by Geant4/Celeritas offloading applications
 #pragma link C++ class celeritas::EventData+;
