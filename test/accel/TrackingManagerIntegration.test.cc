@@ -181,8 +181,9 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
     //! Check wrapped RuntimeError caught by GeantExceptionHandler
     void caught_g4_runtime_error(RuntimeError const& e) override
     {
-        if (!catch_exceptions_)
+        if (!check_runtime_errors_)
         {
+            // Let the base class manage and fail on the caught error
             return TMITestBase::caught_g4_runtime_error(e);
         }
         CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
@@ -204,7 +205,18 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
         }
     }
 
-    bool catch_exceptions_{false};
+    void TearDown() override
+    {
+        if (!exceptions_.empty())
+        {
+            FAIL() << exceptions_.size()
+                   << " runtime errors were caught but not checked";
+        }
+    }
+
+    //! Append caught exceptions in this local test rather than failing
+    bool check_runtime_errors_{false};
+    //! Exceptions that were caught by this test suite's error handler
     std::vector<std::string> exceptions_;
 };
 
@@ -291,7 +303,7 @@ TEST_F(LarSphere, no_set_options)
 {
     auto& rm = this->run_manager();
     TMI::Instance();
-    catch_exceptions_ = true;
+    check_runtime_errors_ = true;
 
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
@@ -310,6 +322,7 @@ TEST_F(LarSphere, no_set_options)
             R"(Celeritas was not initialized properly (maybe BeginOfRunAction was not called?))");
     }
     EXPECT_VEC_EQ(expected_exceptions, exceptions_);
+    exceptions_.clear();
 }
 
 //---------------------------------------------------------------------------//
