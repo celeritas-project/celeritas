@@ -375,7 +375,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.action_reg = std::make_shared<ActionRegistry>();
     pi.output_reg = nullptr;
     pi.gen_reg = std::make_shared<GeneratorRegistry>();
-    pi.aux_reg = std::make_shared<AuxParamsRegistry>();
+    pi.aux_reg = nullptr;  // TODO: require instead of building in CP
 
     // Geometry, materials, physics
     pi.geometry = std::move(loaded_model.geometry);
@@ -394,8 +394,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.max_streams = p.num_streams;
     pi.capacity = p.capacity;
 
-    // Photon generating processes
-    // TODO: are these needed for offload-only??
+    // Photon generating processes are needed to offload via Geant4 optical
     if (p.physics.cherenkov)
     {
         pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
@@ -820,6 +819,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
 
     // Build optical params
     auto params = build_optical_params(p, std::move(loaded_model), imported);
+    CELER_ASSERT(params);
 
     // Construct the optical generator
     std::visit(Overload{
