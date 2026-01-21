@@ -56,6 +56,7 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                        CoreState<M>& core_state) const
 {
     auto counters = core_state.sync_get_counters();
+
     // The number of new tracks to initialize is the smaller of the number of
     // empty slots in the track vector and the number of track initializers
     size_type num_new_tracks
@@ -74,6 +75,7 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                            num_new_tracks,
                                            core_state.stream_id());
         }
+
         // Launch a kernel to initialize tracks
         this->step_impl(core_params, core_state, num_new_tracks);
 

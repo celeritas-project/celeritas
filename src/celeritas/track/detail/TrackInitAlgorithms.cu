@@ -90,12 +90,9 @@ void remove_if_alive(
 
     // New size of the vacancy vector
     host_counters.num_vacancies = end - start;
-    copy_bytes(MemSpace::device,
-               counters.get(),
-               MemSpace::host,
-               &host_counters,
-               sizeof(CoreStateCounters),
-               stream_id);
+    Copier<CoreStateCounters, MemSpace::device> copy{{counters.get(), 1},
+                                                     stream_id};
+    copy(MemSpace::host, {&host_counters, 1});
     stream.sync();
     return;
 #else
@@ -213,8 +210,10 @@ void partition_initializers(
     // Partition the indices based on the track initializer charge
     auto start = device_pointer_cast(init.indices.data());
     auto end = start + count;
+    auto counters = device_pointer_cast(init.counters.data());
+    auto cpucntrs = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
     auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
-                   + init.counters.num_initializers - count;
+                   + cpucntrs.num_initializers - count;
     thrust::stable_partition(
         thrust_execute_on(stream_id),
         start,
@@ -262,8 +261,6 @@ void partition_initializers(
     // because the indices are always sequential from zero
     auto start = thrust::make_counting_iterator<size_type>(0);
     auto data = device_pointer_cast(init.indices.data());
-    // Allocate storage for the number of neutral tracks (unused by celeritas)
-    DeviceVector<size_type> num_neutral{1, stream_id};
     auto cub_error_code
         = cub::DevicePartition::Flagged(nullptr,
                                         temp_storage_bytes,

@@ -96,7 +96,6 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
     // Launch a kernel to create track initializers from secondaries
     counters.num_alive = core_state.size() - counters.num_vacancies;
     core_state.sync_put_counters(counters);
-
     this->process_secondaries(core_params, core_state);
 }
 
@@ -123,9 +122,7 @@ void ExtendFromSecondariesAction::process_secondaries(
 {
     //! \todo Wrap with a regular track executor but without remapping slots?
     detail::ProcessSecondariesExecutor execute{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        core_state.sync_get_counters()};
+        core_params.ptr<MemSpace::native>(), core_state.ptr()};
     launch_action(*this, core_params, core_state, execute);
 }
 

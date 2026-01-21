@@ -61,19 +61,16 @@ RunResult RunResult::from_state(CoreState<M>& state)
     // Copy track initializer data to host
     HostVal<TrackInitStateData> data;
     data = state.ref().init;
-    size_type num_vacancies, num_initializers;
-
-    num_vacancies = state.sync_get_counters().num_vacancies;
-    num_initializers = state.sync_get_counters().num_initializers;
 
     // Store the IDs of the vacant track slots
-    for (auto tid : range(TrackSlotId{num_vacancies}))
+    for (auto tid : range(TrackSlotId{state.sync_get_counters().num_vacancies}))
     {
         result.vacancies.push_back(id_to_int(data.vacancies[tid]));
     }
 
     // Store the track IDs of the initializers
-    for (auto init_id : range(ItemId<TrackInitializer>{num_initializers}))
+    for (auto init_id : range(ItemId<TrackInitializer>{
+             state.sync_get_counters().num_initializers}))
     {
         auto const& init = data.initializers[init_id];
         result.init_ids.push_back(id_to_int(init.sim.track_id));

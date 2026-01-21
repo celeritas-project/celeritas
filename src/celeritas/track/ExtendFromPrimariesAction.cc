@@ -208,10 +208,8 @@ void ExtendFromPrimariesAction::process_primaries(
     PrimaryStateData<MemSpace::host> const& pstate) const
 {
     auto primaries = pstate.primaries();
-    detail::ProcessPrimariesExecutor execute{params.ptr<MemSpace::native>(),
-                                             state.ptr(),
-                                             state.sync_get_counters(),
-                                             primaries};
+    detail::ProcessPrimariesExecutor execute{
+        params.ptr<MemSpace::native>(), state.ptr(), primaries};
     return launch_action(*this, primaries.size(), params, state, execute);
 }
 

@@ -62,9 +62,7 @@ void ExtendFromSecondariesAction::process_secondaries(
     using Executor = detail::ProcessSecondariesExecutor;
     static ActionLauncher<Executor> launch(*this, "process-secondaries");
     launch(core_state,
-           Executor{core_params.ptr<MemSpace::native>(),
-                    core_state.ptr(),
-                    core_state.sync_get_counters()});
+           Executor{core_params.ptr<MemSpace::native>(), core_state.ptr()});
 }
 
 //---------------------------------------------------------------------------//
