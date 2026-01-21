@@ -20,6 +20,7 @@
 #include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
+#include "celeritas/user/SDParams.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
@@ -55,10 +56,10 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.geometry = get_ref<M>(*p.geometry);
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
-    ref.surface = get_ref<M>(*p.surface);
-    ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.rng = get_ref<M>(*p.rng);
     ref.sim = get_ref<M>(*p.sim);
+    ref.surface = get_ref<M>(*p.surface);
+    ref.surface_physics = get_ref<M>(*p.surface_physics);
     // TODO: Get detectors ref
     if (p.cherenkov)
     {
@@ -131,11 +132,10 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
-    // TODO: provide detectors in input, passing from core params
-    detectors_ = input_.detectors;
-    if (!detectors_)
+    // TODO: require and validate detectors
+    if (!input_.detectors)
     {
-        detectors_ = std::make_shared<SDParams>();
+        input_.detectors = std::make_shared<SDParams>();
     }
     if (!input_.aux_reg)
     {
