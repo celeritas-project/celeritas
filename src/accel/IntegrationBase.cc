@@ -20,7 +20,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //!@{
-//! User integration points
+//! \name User integration points
 
 /*!
  * Set options before starting the run.
@@ -67,7 +67,7 @@ void IntegrationBase::EndOfRunAction(G4Run const*)
 //!@}
 //---------------------------------------------------------------------------//
 //!@{
-//! Low-level Celeritas accessors
+//! \name Low-level Celeritas accessors
 
 /*!
  * Access whether Celeritas is set up, enabled, or uninitialized.
