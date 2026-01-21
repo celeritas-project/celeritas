@@ -6,14 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <optional>
-
 #include "corecel/Assert.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
-#include "corecel/sys/Device.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/user/SDParams.hh"
@@ -54,13 +51,15 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
-    using SPActionRegistry = std::shared_ptr<ActionRegistry>;
-    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
-    using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
-    using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstDetectors = std::shared_ptr<SDParams const>;
+
     using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
+
+    using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
+    using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
+    using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -70,6 +69,13 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     struct Input
     {
+        // Registries
+        SPActionRegistry action_reg;
+        SPOutputRegistry output_reg;
+        SPGeneratorRegistry gen_reg;
+        SPAuxRegistry aux_reg;  //!< Optional, empty default
+
+        // Problem definition and state
         SPConstCoreGeo geometry;
         SPConstMaterial material;
         SPConstPhysics physics;
@@ -78,13 +84,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstSurface surface;
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;
+
         SPConstCherenkov cherenkov;  //!< Optional
         SPConstScintillation scintillation;  //!< Optional
-
-        SPActionRegistry action_reg;
-        SPOutputRegistry output_reg;
-        SPGeneratorRegistry gen_reg;
-        SPAuxRegistry aux_reg;  //!< Optional, empty default
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
@@ -131,7 +133,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
     SPAuxRegistry const& aux_reg() const { return input_.aux_reg; }
     SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
-    SPConstDetectors const& detectors() const { return detectors_; }
+    SPConstDetectors const& detectors() const { return input_.detectors; }
     SPConstCherenkov const& cherenkov() const { return input_.cherenkov; }
     SPConstScintillation const& scintillation() const
     {
@@ -156,8 +158,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     // Copy of DeviceRef in device memory
     DeviceVector<DeviceRef> device_ref_vec_;
-
-    SPConstDetectors detectors_;
 };
 
 //---------------------------------------------------------------------------//
