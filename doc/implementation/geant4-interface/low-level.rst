@@ -1,13 +1,13 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
 
-Low-level Celeritas integration
-===============================
+Low-level integration utilities
+-------------------------------
 
-This subsection contains details of importing Geant4 data into Celeritas.
+This subsection contains details of integrating Geant4 with Celeritas.
 
-Geant4 geometry utilities
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Geometry utilities
+^^^^^^^^^^^^^^^^^^
 
 These utility classes are used to set up the Geant4 global geometry state.
 
@@ -16,11 +16,23 @@ These utility classes are used to set up the Geant4 global geometry state.
 .. doxygenfunction:: celeritas::save_gdml
 .. doxygenfunction:: celeritas::find_geant_volumes
 
-Geant4 physics interfaces
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Physics interfaces
+^^^^^^^^^^^^^^^^^^
 
 This will be replaced by other utilities in conjunction with the
 :ref:`problem input <input>`.
 
 .. doxygenclass:: celeritas::GeantImporter
 .. doxygenclass:: celeritas::GeantSetup
+
+
+.. _g4_utils:
+
+Utility interfaces
+^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: celeritas::MakeMTSelfLogger
+.. doxygenfunction:: celeritas::MakeMTWorldLogger
+
+.. doxygenclass:: celeritas::ScopedGeantLogger
+.. doxygenclass:: celeritas::ScopedGeantExceptionHandler

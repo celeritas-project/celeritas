@@ -4,17 +4,19 @@
 .. _api_accel_high_level:
 
 High level interfaces
-=====================
+---------------------
 
 The high-level integration classes are the easiest way to add Celeritas to a
 Geant4 application. Under the hood, it contains a singleton class instance that
 sets up the UI commands (see :cpp:class:`celeritas::SetupOptionsMessenger`),
-MPI (if configured), and Celeritas logging.
+MPI (if configured), and Celeritas logging (redirecting "world" logging with
+:cpp:func:`celeritas::MakeMTWorldLogger` and "self" logging with
+:cpp:func:`celeritas::MakeMTSelfLogger`) .
 
 .. doxygenclass:: celeritas::IntegrationBase
 
 Tracking manager
-----------------
+^^^^^^^^^^^^^^^^
 
 Using Celeritas to "offload" all electrons, photons, and gammas from Geant4 can
 be done using the new-ish Geant4 interface :cpp:class:`G4VTrackingManager`
@@ -31,7 +33,7 @@ See :ref:`example_template` for a template of adding to a user application.
    :members:
 
 Fast simulation
----------------
+^^^^^^^^^^^^^^^
 
 It is currently *not* recommended to offload tracks on a per-region basis, since
 tracks exiting that region remain in Celeritas and on GPU.
@@ -41,7 +43,7 @@ tracks exiting that region remain in Celeritas and on GPU.
    :members:
 
 User action
------------
+^^^^^^^^^^^
 
 For compatibility with older versions of Geant4, you may use the following
 class to integrate Celeritas by manually intercepting tracks with a
