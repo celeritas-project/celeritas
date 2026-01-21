@@ -8,7 +8,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
@@ -47,7 +46,6 @@ struct InitTracksExecutor
     ParamsPtr params;
     StatePtr state;
     size_type num_init{};
-    CoreStateCounters counters;
 
     //// FUNCTIONS ////
 
@@ -68,7 +66,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     CELER_EXPECT(tid < num_init);
 
     auto const& data = state->init;
-
+    auto counters = state->init.counters.data().get();
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a
@@ -79,9 +77,9 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
             // Get the index into the track initializer or parent track slot ID
             // array from the sorted indices
             return data.indices[TrackSlotId(index_before(num_init, tid))]
-                   + counters.num_initializers - num_init;
+                   + counters->num_initializers - num_init;
         }
-        return index_before(counters.num_initializers, tid);
+        return index_before(counters->num_initializers, tid);
     }())];
 
     // View to the new track to be initialized
@@ -95,11 +93,11 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
             }
             // Get the vacancy from the back of the track state
             return data.vacancies[TrackSlotId(
-                index_before(counters.num_vacancies, tid))];
+                index_before(counters->num_vacancies, tid))];
         }()};
 
     // Clear parent IDs if new primaries were added this step
-    if (counters.num_generated)
+    if (counters->num_generated)
     {
         init.geo.parent = {};
     }

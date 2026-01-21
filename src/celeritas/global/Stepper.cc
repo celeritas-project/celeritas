@@ -107,14 +107,14 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 void Stepper<M>::warm_up()
 {
-    CELER_VALIDATE(state_->counters().num_active == 0,
+    CELER_VALIDATE(state_->sync_get_counters().num_active == 0,
                    << "cannot warm up when state has active tracks");
 
     ScopedProfiling profile_this{"warmup"};
     state_->warming_up(true);
     ScopeExit on_exit_{[this] { state_->warming_up(false); }};
     actions_->step(*params_, *state_);
-    CELER_ENSURE(state_->counters().num_active == 0);
+    CELER_ENSURE(state_->sync_get_counters().num_active == 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -128,9 +128,11 @@ template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
     ScopedProfiling profile_this{"step"};
-    auto& counters = state_->counters();
+    auto counters = state_->sync_get_counters();
     counters.num_generated = 0;
+    state_->sync_put_counters(counters);
     actions_->step(*params_, *state_);
+    counters = state_->sync_get_counters();
 
     // Get the number of track initializers and active tracks
     result_type result;
@@ -164,7 +166,9 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    state_->counters().num_pending = primaries.size();
+    auto counters = state_->sync_get_counters();
+    counters.num_pending = primaries.size();
+    state_->sync_put_counters(counters);
     primaries_action_->insert(*params_, *state_, primaries);
 
     return (*this)();
@@ -180,7 +184,8 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 template<MemSpace M>
 void Stepper<M>::kill_active()
 {
-    CELER_LOG_LOCAL(error) << "Killing " << state_->counters().num_active
+    CELER_LOG_LOCAL(error) << "Killing "
+                           << state_->sync_get_counters().num_active
                            << " active tracks";
     detail::kill_active(*params_, *state_);
 }
