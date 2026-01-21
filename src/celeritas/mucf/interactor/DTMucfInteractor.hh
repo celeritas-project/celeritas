@@ -66,7 +66,7 @@ class DTMucfInteractor
         return units::MevEnergy{17.6};
     }
 
-    // Neutron kinetic energy
+    // Outgoing neutron kinetic energy
     inline CELER_FUNCTION units::MevEnergy neutron_kinetic_energy() const
     {
         return units::MevEnergy{14.1};
@@ -81,7 +81,7 @@ class DTMucfInteractor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with shared and state data.
+ * Construct with shared data and channel selection.
  */
 CELER_FUNCTION
 DTMucfInteractor::DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
@@ -111,54 +111,70 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
+    size_type const neutron_idx{0};  // Both channels
+    size_type const muon_idx{1}, alpha_idx{2};  // Channel::alpha_muon_neutron
+    size_type const muonicalpha_idx{1};  // Channel::muonicalpha_neutron
+
     IsotropicDistribution sample_isotropic;
     NonuniformGridCalculator sample_muon_energy(data_.muon_energy_cdf,
                                                 data_.reals);
 
     // Neutron is the same on both cases: 14.1 MeV with random direction
-    secondaries[0].particle_id = data_.particle_ids.neutron;
-    secondaries[0].energy = this->neutron_kinetic_energy();
-    secondaries[0].direction = sample_isotropic(rng);
+    secondaries[neutron_idx].particle_id = data_.particle_ids.neutron;
+    secondaries[neutron_idx].energy = this->neutron_kinetic_energy();
+    secondaries[neutron_idx].direction = sample_isotropic(rng);
 
     switch (channel_)
     {
         case Channel::alpha_muon_neutron: {
             // Muon: Final state sampled from CDF
-            secondaries[1].particle_id = data_.particle_ids.mu_minus;
-            secondaries[1].direction = sample_isotropic(rng);
-            secondaries[1].energy = units::MevEnergy{
+            secondaries[muon_idx].particle_id = data_.particle_ids.mu_minus;
+            secondaries[muon_idx].direction = sample_isotropic(rng);
+            secondaries[muon_idx].energy = units::MevEnergy{
                 sample_muon_energy(generate_canonical(rng))};
 
-            // Alpha: Final state calculated via energy/momentum conservation:
+            // Alpha: Final state calculated via energy/momentum conservation
+
             // E_alpha = E_total - E_neutron - E_muon
+            auto const alpha_energy = this->total_fusion_energy()
+                                      - secondaries[neutron_idx].energy
+                                      - secondaries[muon_idx].energy;
             // p_alpha = - (p_neutron + p_muon)
             auto const neutron_momentum_mag = this->calc_momentum(
-                secondaries[0].energy, data_.particle_masses.neutron);
+                secondaries[neutron_idx].energy, data_.particle_masses.neutron);
             auto const muon_momentum_mag = this->calc_momentum(
-                secondaries[1].energy, data_.particle_masses.mu_minus);
-            Real3 alpha_momentum_vec;
+                secondaries[muon_idx].energy, data_.particle_masses.mu_minus);
+            auto const inv_alpha_momentum_mag
+                = real_type{1}
+                  / this->calc_momentum(alpha_energy,
+                                        data_.particle_masses.alpha);
+
+            Real3 alpha_dir;
             for (auto i : range(3))
             {
-                alpha_momentum_vec[i]
-                    = -(secondaries[0].direction[i] * neutron_momentum_mag
-                        + secondaries[1].direction[i] * muon_momentum_mag);
+                alpha_dir[i] = -(secondaries[neutron_idx].direction[i]
+                                     * neutron_momentum_mag
+                                 + secondaries[muon_idx].direction[i]
+                                       * muon_momentum_mag)
+                               * inv_alpha_momentum_mag;
             }
 
-            secondaries[2].particle_id = data_.particle_ids.alpha;
-            secondaries[2].direction = make_unit_vector(alpha_momentum_vec);
-            secondaries[2].energy = this->total_fusion_energy()
-                                    - secondaries[0].energy
-                                    - secondaries[1].energy;
+            secondaries[alpha_idx].particle_id = data_.particle_ids.alpha;
+            secondaries[alpha_idx].direction = alpha_dir;
+            secondaries[alpha_idx].energy = alpha_energy;
             break;
         }
 
         case Channel::muonicalpha_neutron: {
             // Muonic alpha: Equal and opposite momentum to neutron
-            secondaries[1].particle_id = data_.particle_ids.muonic_alpha;
-            secondaries[1].energy = secondaries[0].energy;
+            secondaries[muonicalpha_idx].particle_id
+                = data_.particle_ids.muonic_alpha;
+            secondaries[muonicalpha_idx].energy
+                = secondaries[neutron_idx].energy;
             for (auto i : range(3))
             {
-                secondaries[1].direction[i] = -secondaries[0].direction[i];
+                secondaries[muonicalpha_idx].direction[i]
+                    = -secondaries[neutron_idx].direction[i];
             }
             break;
         }
@@ -167,7 +183,7 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
             CELER_ASSERT_UNREACHABLE();
     }
 
-    // Kill primary and generate secondaries
+    // Kill muon primary and generate fusion secondaries
     Interaction result = Interaction::from_absorption();
     result.secondaries = {secondaries, num_secondaries_[channel_]};
     return result;
@@ -175,7 +191,8 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate momentum magnitude from particle energy and mass.
+ * Calculate momentum magnitude from particle energy and mass via
+ * \f$ p = \sqrt{K^2 + 2mK} \f$
  */
 CELER_FUNCTION real_type DTMucfInteractor::calc_momentum(
     units::MevEnergy energy, units::MevMass mass) const

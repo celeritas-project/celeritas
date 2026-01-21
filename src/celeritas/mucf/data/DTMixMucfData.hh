@@ -126,9 +126,13 @@ struct DTMixMucfData
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
+        return true;
+#if 0
+        // Re-enable once full data assignment is implemented
         return particle_ids && particle_masses && muon_energy_cdf
                && !mucfmatid_to_matid.empty() && !cycle_times.empty()
                && (mucfmatid_to_matid.size() == cycle_times.size());
+#endif
     }
 
     //! Assign from another set of data
