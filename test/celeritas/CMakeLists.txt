@@ -378,10 +378,60 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Optical
+
+function(celeritas_standalone_optical_add_tests basename suite test backend)
+  set(_target "${CELERITASTEST_DIR}_${basename}")
+
+  if(NOT TARGET "${_target}")
+    add_executable(${_target} "optical/${basename}.test.cc")
+    set_property(TARGET ${_target} PROPERTY OUTPUT_NAME "${basename}")
+
+    celeritas_target_link_libraries(${_target}
+      ${CELERITASTEST_LINK_LIBRARIES}
+      ${_g4_libs}
+      testcel_harness
+    )
+  endif()
+
+  set(_test_name "celeritas/optical/${basename}:${suite}.${test}:${backend}")
+  add_test(
+    NAME "${_test_name}"
+    COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
+  )
+
+  set(_labels "unit")
+  if("${backend}" STREQUAL "cpu")
+    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+      list(APPEND _env "CELER_DISABLE_DEVICE=1")
+    endif()
+  elseif("${backend}" STREQUAL "gpu")
+    list(APPEND _extra_props RESOURCE_LOCK gpu)
+    list(APPEND _labels gpu)
+  else()
+    message(SEND_ERROR "Invalid backend type ${backend}")
+  endif()
+
+  set_tests_properties("${_test_name}" PROPERTIES
+    ENVIRONMENT "${_env}"
+    LABELS "${_labels}"
+    ${_extra_props}
+    ${ARGN}
+  )
+endfunction()
+
+function(celeritas_add_optical_tests basename suite test)
+  foreach(_backend IN ITEMS cpu gpu)
+    celeritas_standalone_optical_add_tests(${basename} ${suite} ${test}
+      ${_backend})
+  endforeach()
+endfunction()
+
+celeritas_add_optical_tests(Generator LArSphereGeneratorTest primary)
+celeritas_add_optical_tests(Generator LArSphereGeneratorTest direct)
+celeritas_add_optical_tests(Generator LArSphereGeneratorTest offload)
+
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
-celeritas_add_test(optical/Generator.test.cc GPU ${_needs_geant4})
-celeritas_add_test(optical/Runner.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
