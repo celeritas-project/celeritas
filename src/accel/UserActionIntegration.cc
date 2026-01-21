@@ -31,30 +31,6 @@ UserActionIntegration& UserActionIntegration::Instance()
 
 //---------------------------------------------------------------------------//
 /*!
- * Start the run.
- */
-void UserActionIntegration::BeginOfRunAction(G4Run const*)
-{
-    Stopwatch get_setup_time;
-
-    auto& singleton = detail::IntegrationSingleton::instance();
-
-    if (G4Threading::IsMasterThread())
-    {
-        singleton.initialize_shared_params();
-    }
-
-    singleton.initialize_local_transporter();
-
-    if (G4Threading::IsMasterThread())
-    {
-        singleton.shared_params().timer()->RecordSetupTime(get_setup_time());
-        singleton.start_timer();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Send Celeritas the event ID.
  */
 void UserActionIntegration::BeginOfEventAction(G4Event const* event)
@@ -126,6 +102,12 @@ void UserActionIntegration::EndOfEventAction(G4Event const*)
  * Only allow the singleton to construct.
  */
 UserActionIntegration::UserActionIntegration() = default;
+
+//---------------------------------------------------------------------------//
+/*!
+ * No verification is performed by the user action.
+ */
+void UserActionIntegration::verify_local_setup() {}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

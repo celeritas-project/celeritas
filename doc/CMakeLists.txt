@@ -137,6 +137,10 @@ else()
   mark_as_advanced(CELERITAS_SPHINX_ARGS)
 
   celeritas_get_pyenv(CELER_PYTHONENV)
+  # Build sphinx docs:
+  # - type: html, pdf, dummy
+  # - output: relative path of main output file (index.html, Celeritas.tex)
+  # - depends: list of file dependencies
   function(celeritas_build_sphinx type output depends)
     if(NOT type STREQUAL "dummy")
       set(_comment "Building Sphinx ${type} documentation: doc/${output}")

@@ -34,7 +34,7 @@ EventAction::SPStepDiagnostic& step_diagnostic()
 
 //---------------------------------------------------------------------------//
 /*!
- * From MakeCelerOptions during setup on master, set the step diagnostic.
+ * From MakeCelerOptions during initialization, set the step diagnostic.
  *
  * This should only be called once from the main thread during BeginRun via
  * MakeCelerOptions.

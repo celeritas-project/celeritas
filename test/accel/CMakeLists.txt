@@ -10,6 +10,7 @@ endif()
 include(CeleritasG4Tests)
 
 #-----------------------------------------------------------------------------#
+# Library
 celeritas_get_g4libs(_g4_libs
   global track tracking run event intercoms digits_hits geometry tasking
 )
@@ -29,6 +30,14 @@ celeritas_setup_tests(SERIAL
   LINK_LIBRARIES
     testcel_accel testcel_celeritas testcel_core Celeritas::accel
 )
+
+#-----------------------------------------------------------------------------#
+# Variables
+
+set(_optical_rm_type "serial")
+if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
+  list(APPEND _optical_rm_type "mt")
+endif()
 
 #-----------------------------------------------------------------------------#
 # TESTS
@@ -81,18 +90,23 @@ endfunction()
 
 foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration)
   # Add every combination of test for LArSphere.run
-  celeritas_add_integration_tests(${_basename} LarSphere run)
+  celeritas_add_integration_tests(
+    ${_basename} LarSphere run
+  )
 
   # Do TestEm3 only with celeritas cpu/gpu and serial run manager
-  celeritas_add_integration_tests(${_basename} TestEm3 run
+  celeritas_add_integration_tests(
+    ${_basename} TestEm3 run
     OFFLOAD cpu gpu
     RMTYPE serial
   )
-  # Test OpNovice
+
+  # Test OpNovice with optical-friendly run manager types
   celeritas_add_integration_tests(
     ${_basename} OpNoviceOptical run
     OFFLOAD cpu gpu g4
-    RMTYPE ${_optical_rm_type})
+    RMTYPE ${_optical_rm_type}
+  )
 endforeach()
 
 # Test that the UI integration works (and ignores if Celeritas is disabled)
@@ -102,14 +116,12 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
-#-----------------------------------------------------------------------------#
-# Disable MT Geant4 geometry for optical physics
-#-----------------------------------------------------------------------------#
-
-set(_optical_rm_type "serial")
-if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
-  list(APPEND _optical_rm_type "mt")
-endif()
+# Test that the UI integration fails if options aren't set
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LarSphere no_set_options
+  OFFLOAD cpu
+  RMTYPE serial mt
+)
 
 # Test optical
 celeritas_add_integration_tests(

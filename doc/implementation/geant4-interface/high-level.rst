@@ -14,6 +14,7 @@ MPI (if configured), and Celeritas logging (redirecting "world" logging with
 :cpp:func:`celeritas::MakeMTSelfLogger`) .
 
 .. doxygenclass:: celeritas::IntegrationBase
+   :members:
 
 Tracking manager
 ^^^^^^^^^^^^^^^^
