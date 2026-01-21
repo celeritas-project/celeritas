@@ -64,7 +64,8 @@ struct AlongStepFactoryInput;
  *   are never set.
  *
  * The \c force_volumes option can be used for unusual cases (i.e., when using
- * a custom run manager) that do not define SDs on the "master" thread.
+ * a custom run manager) that do not define the same SDs on the main thread
+ * as on worker threads.
  * Similarly, the \c skip_volumes option allows optimized GPU-defined SDs to be
  * used in place of a Geant4 callback. For both options, the \c
  * FindVolumes helper function can be used to determine LV pointers from
@@ -125,10 +126,8 @@ struct OpticalSetupOptions
     inp::OpticalStateCapacity capacity;
     //! Optical photon generation mechanism
     inp::OpticalGenerator generator;
-    //! Limit on number of steps per track before killing
-    size_type max_steps{inp::TrackingLimits::unlimited};
-    //! Limit on number of optical step iterations before aborting
-    size_type max_step_iters{inp::TrackingLimits::unlimited};
+    //! Limits for the optical stepping loop
+    inp::OpticalTrackingLimits limits;
 };
 
 //---------------------------------------------------------------------------//
@@ -209,7 +208,7 @@ struct SetupOptions
     //! Maximum number of track initializers (primaries+secondaries)
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
-    real_type secondary_stack_factor{2.0};
+    real_type secondary_stack_factor{};
     //! Number of tracks to buffer before offloading (if unset: max num tracks)
     size_type auto_flush{};
     //!@}
@@ -290,10 +289,6 @@ inp::GeantSd to_inp(SDSetupOptions const& so);
 
 // Construct a framework input
 inp::FrameworkInput to_inp(SetupOptions const& so);
-
-// Get runtime-dependent default capacity values
-inp::CoreStateCapacity
-get_default(SetupOptions const& so, size_type num_streams);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

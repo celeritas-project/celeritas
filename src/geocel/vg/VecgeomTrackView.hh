@@ -328,6 +328,7 @@ CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
  */
 CELER_FUNCTION VolumeLevelId VecgeomTrackView::volume_level() const
 {
+    CELER_EXPECT(!this->is_outside());
     auto result = id_cast<VolumeLevelId>(vgstate_.GetLevel());
     CELER_ENSURE(result < params_.scalars.num_volume_levels);
     return result;
@@ -493,7 +494,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
         // Soft equivalence between distance and max step is because the
         // BVH navigator subtracts and then re-adds a bump distance to the
         // step
-        CELER_ASSERT(soft_equal(next_step_, max_step));
+        CELER_ASSERT(soft_equal(next_step_, max(max_step, this->extra_push())));
         next_step_ = max_step;
     }
 

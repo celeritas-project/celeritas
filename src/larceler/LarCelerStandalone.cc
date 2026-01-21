@@ -14,8 +14,8 @@
 
 #include "corecel/Assert.hh"
 
-#include "larceler/LarStandaloneRunner.hh"
-#include "larceler/inp/LarStandaloneRunner.hh"
+#include "LarStandaloneRunner.hh"
+#include "inp/LarStandaloneRunner.hh"
 
 namespace celeritas
 {
@@ -46,6 +46,8 @@ auto LarCelerStandalone::executeEvent(VecSED const& edeps) -> UPVecBTR
 {
     CELER_EXPECT(runner_);
     CELER_EXPECT(!edeps.empty());
+
+    using VecBTR = LarStandaloneRunner::VecBTR;
 
     // Calculate detector responsors for the input steps
     auto& run = *runner_;

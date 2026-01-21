@@ -23,7 +23,14 @@ TEST(ConstructionTest, should_work_always)
 {
     DeviceAllocation alloc;
     EXPECT_EQ(0, alloc.size());
+    EXPECT_EQ(nullptr, alloc.data());
     EXPECT_TRUE(alloc.empty());
+    EXPECT_EQ(StreamId{}, alloc.stream_id());
+
+    DeviceAllocation alloc2;
+    swap(alloc, alloc2);
+    EXPECT_TRUE(alloc.empty());
+    EXPECT_TRUE(alloc.device_ref().empty());
 }
 
 #if !CELER_USE_DEVICE

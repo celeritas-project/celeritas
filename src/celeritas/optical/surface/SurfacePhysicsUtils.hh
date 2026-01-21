@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/Collection.hh"
-#include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayOperators.hh"
+#include "corecel/Macros.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/optical/Types.hh"
+
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
+#endif
 
 namespace celeritas
 {
@@ -96,8 +99,20 @@ class EnteringSurfaceNormalSampler
     CELER_FUNCTION Real3 operator()(Engine& rng)
     {
         Real3 local_normal;
+        int loop_guard{256};
         do
         {
+            --loop_guard;
+#if !CELER_DEVICE_COMPILE
+            CELER_VALIDATE(
+                loop_guard > 0,
+                << "failed to sample a microfacet direction into which "
+                << repr(dir_) << " is entering (last normal sampled: "
+                << repr(local_normal) << ")");
+#else
+            if (CELER_UNLIKELY(loop_guard == 0))
+                return {0, 0, 0};
+#endif
             local_normal = sample_normal_(rng);
         } while (!is_entering_surface(local_normal, dir_));
         return local_normal;

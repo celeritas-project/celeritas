@@ -32,6 +32,12 @@ void debug_clog(LogProvenance, LogLevel lev, std::string msg)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct null storer for disassociating before destruction.
+ */
+ScopedLogStorer::ScopedLogStorer() = default;
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct reference to log to temporarily replace.
  */
 ScopedLogStorer::ScopedLogStorer(Logger* orig, LogLevel min_level)
@@ -41,9 +47,7 @@ ScopedLogStorer::ScopedLogStorer(Logger* orig, LogLevel min_level)
     CELER_EXPECT(min_level != LogLevel::size_);
     // Create a new logger that calls our operator(), replace orig and store
     saved_logger_ = std::make_unique<Logger>(
-        std::exchange(*logger_, Logger{std::ref(*this)}));
-    // Catch everything, keep only what we want
-    logger_->level(LogLevel::debug);
+        std::exchange(*logger_, Logger{std::ref(*this), LogLevel::debug}));
 }
 
 //---------------------------------------------------------------------------//
@@ -74,7 +78,7 @@ void ScopedLogStorer::operator()(LogProvenance prov,
                                  std::string msg)
 {
     static LogLevel const debug_level
-        = log_level_from_env("CELER_LOG_SCOPED", LogLevel::warning);
+        = getenv_loglevel("CELER_LOG_SCOPED", LogLevel::warning);
     if (lev >= debug_level)
     {
         if (getenv_flag("CELER_LOG_SCOPED_VERBOSE", false).value)

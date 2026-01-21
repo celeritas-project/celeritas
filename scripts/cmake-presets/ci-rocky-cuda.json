@@ -74,11 +74,12 @@
       }
     },
     {
-      "name": "reldeb-vecgeom-codecov",
-      "description": "Build with RelWithDebInfo, VecGeom and code coverage (no CUDA)",
-      "inherits": [".reldeb", ".vecgeom", ".gcov", "base"],
+      "name": "ndebug-vecgeom-codecov",
+      "description": "Build with code coverage with vecgeom (no CUDA, no assertions)",
+      "inherits": [".gcov", ".ndebug", ".vecgeom", "base"],
       "cacheVariables": {
-        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_FLAGS": null
       }
     }
   ],

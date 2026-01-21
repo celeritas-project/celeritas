@@ -26,6 +26,26 @@ constexpr bool using_solids_vg = CELERITAS_VECGEOM_VERSION
 
 //---------------------------------------------------------------------------//
 /*!
+ * Test the ATLAS HGTD (translated distant pancakes).
+ */
+class AtlasHgtdGeoTest
+{
+  public:
+    static std::string_view gdml_basename() { return "atlas-hgtd"; }
+
+    //! Construct with a reference to the GoogleTest
+    AtlasHgtdGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
+
+    void test_trace() const;
+    void test_volume_stack() const;
+    void test_detailed_tracking() const;
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Test the CMS EE (reflecting) geometry.
  */
 class CmsEeBackDeeGeoTest

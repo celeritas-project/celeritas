@@ -132,8 +132,7 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
     if (result.action != Interaction::Action::absorbed)
     {
         // Update direction
-        auto geo = track.geometry();
-        geo.set_dir(result.direction);
+        track.geometry().set_dir(result.direction);
     }
     else
     {
@@ -141,11 +140,13 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
         sim.status(TrackStatus::killed);
     }
 
-    real_type deposition = result.energy_deposition.value();
+    using Energy = units::MevEnergy;
+    using MassCSq = units::MevMass;
+
+    real_type deposition = value_as<Energy>(result.energy_deposition);
     auto cutoff = track.cutoff();
     if (cutoff.apply_post_interaction())
     {
-        // Kill secondaries with energies below the production cut
         for (auto& secondary : result.secondaries)
         {
             if (cutoff.apply(secondary))
@@ -153,20 +154,28 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
                 // Secondary is an electron, positron or gamma with energy
                 // below the production cut -- deposit the energy locally
                 // and clear the secondary
-                deposition += secondary.energy.value() * sim.weight();
+                deposition += value_as<Energy>(secondary.energy) * sim.weight();
                 auto sec_par = track.particle_record(secondary.particle_id);
                 if (sec_par.is_antiparticle())
                 {
                     // Conservation of energy for positrons
-                    deposition += 2 * sec_par.mass().value();
+                    deposition += 2 * value_as<MassCSq>(sec_par.mass());
                 }
                 secondary = {};
             }
         }
     }
+
+    // Deposit energy and save secondaries
     auto phys = track.physics_step();
-    phys.deposit_energy(units::MevEnergy{deposition});
-    phys.secondaries(result.secondaries);
+    if (deposition > 0)
+    {
+        phys.deposit_energy(Energy{deposition});
+    }
+    if (!result.secondaries.empty())
+    {
+        phys.secondaries(result.secondaries);
+    }
 }
 
 //---------------------------------------------------------------------------//

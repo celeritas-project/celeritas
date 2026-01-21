@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -14,8 +16,15 @@ namespace celeritas
 bool use_color();
 
 //---------------------------------------------------------------------------//
-// Get an ANSI color code: [y]ellow / [r]ed / [ ]default / ...
-char const* color_code(char abbrev);
+// Get an ANSI color code: [y]ellow / [r]ed / [\0]reset / ...
+char const* ansi_color(char abbrev = '\0');
+
+//---------------------------------------------------------------------------//
+// DEPRECATED (remove in v1.0): get an ANSI color code
+CELER_FORCEINLINE char const* color_code(char abbrev)
+{
+    return ansi_color(abbrev);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

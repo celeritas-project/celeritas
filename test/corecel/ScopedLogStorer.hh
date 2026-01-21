@@ -53,7 +53,7 @@ class ScopedLogStorer
     explicit ScopedLogStorer(Logger* orig);
 
     // Construct null storer for disassociating before destruction
-    ScopedLogStorer() = default;
+    ScopedLogStorer();
 
     // Restore original logger on destruction
     ~ScopedLogStorer();

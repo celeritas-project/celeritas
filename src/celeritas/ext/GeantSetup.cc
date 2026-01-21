@@ -19,9 +19,6 @@
 #include <G4VPhysicalVolume.hh>
 #include <G4VSensitiveDetector.hh>
 #include <G4VUserDetectorConstruction.hh>
-#if G4VERSION_NUMBER >= 1070
-#    include <G4Backtrace.hh>
-#endif
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
 #endif
@@ -88,9 +85,6 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
                        << "Geant4 cannot be 'run' more than once per "
                           "execution");
         ++geant_launch_count;
-
-        // Disable signal handling
-        disable_geant_signal_handler();
 
 #if G4VERSION_NUMBER >= 1100
         run_manager_.reset(

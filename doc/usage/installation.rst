@@ -54,6 +54,7 @@ internet if required but not available on the user's system.
 
    CLI11_, Runtime*, "Command line parsing"
    CUDA_, Runtime, "GPU computation"
+   DD4hep_, Runtime, "HEP detector framework integration"
    Geant4_, Runtime, "Physics data and user integration"
    G4EMLOW_, Runtime, "EM physics model data"
    G4VG_, Runtime, "Geant4-to-VecGeom translation"
@@ -83,6 +84,7 @@ internet if required but not available on the user's system.
 .. _CLI11: https://cliutils.github.io/CLI11/book/
 .. _CMake: https://cmake.org
 .. _CUDA: https://developer.nvidia.com/cuda-toolkit
+.. _DD4hep: https://dd4hep.web.cern.ch
 .. _Doxygen: https://www.doxygen.nl
 .. _G4VG: https://github.com/celeritas-project/g4vg
 .. _G4EMLOW: https://geant4.web.cern.ch/support/download
@@ -233,7 +235,7 @@ It includes environment files for quickly getting started on systems including N
    $ cd celeritas
    $ ./scripts/build.sh base
 
-You can, of course, manually build as a
+You can, of course, build manually:
 
 .. code-block:: console
 
@@ -245,7 +247,7 @@ You can, of course, manually build as a
 
 .. _zip file: https://github.com/celeritas-project/celeritas/archive/refs/heads/develop.zip
 .. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/
-.. _ExCL: https://docs.olcf.ornl.gov/systems/excl_user_guide.html
+.. _ExCL: https://docs.excl.ornl.gov
 .. _Frontier: https://docs.olcf.ornl.gov/systems/frontier_user_guide.html
 .. _JLSE: https://www.jlse.anl.gov/
 

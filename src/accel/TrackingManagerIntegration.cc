@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "TrackingManagerIntegration.hh"
 
-#include <memory>
 #include <set>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
@@ -19,12 +18,10 @@
 #endif
 
 #include "corecel/io/Join.hh"
-#include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 
 #include "ExceptionConverter.hh"
-#include "TimeOutput.hh"
 #include "TrackingManagerConstructor.hh"
 
 #include "detail/IntegrationSingleton.hh"
@@ -151,50 +148,30 @@ TrackingManagerIntegration& TrackingManagerIntegration::Instance()
 
 //---------------------------------------------------------------------------//
 /*!
- * Start the run, initializing Celeritas options.
+ * Verify tracking manager setup.
  */
-void TrackingManagerIntegration::BeginOfRunAction(G4Run const*)
+void TrackingManagerIntegration::verify_local_setup()
 {
     CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
                    << "the current version of Geant4 (" << G4VERSION_NUMBER
                    << ") is too old to support the tracking manager offload "
                       "interface (11.0 or higher is required)");
 
-    Stopwatch get_setup_time;
-
     auto& singleton = detail::IntegrationSingleton::instance();
 
-    if (G4Threading::IsMasterThread())
-    {
-        singleton.initialize_shared_params();
-    }
+    // Set particle offloading based on user options
+    auto const& user_offload = singleton.setup_options().offload_particles;
+    auto const& offload_particles
+        = user_offload ? *user_offload
+                       : SharedParams::default_offload_particles();
 
-    bool enable_offload = singleton.initialize_local_transporter();
-
-    if (enable_offload)
-    {
-        // Set particle offloading based on user options
-        auto const& user_offload = singleton.setup_options().offload_particles;
-        auto const& offload_particles
-            = user_offload ? *user_offload
-                           : SharedParams::default_offload_particles();
-
-        // Set tracking manager on workers when Celeritas is not fully disabled
-        CELER_LOG(debug) << "Verifying tracking manager";
-        CELER_TRY_HANDLE(
-            verify_tracking_managers(
-                make_span(singleton.shared_params().OffloadParticles()),
-                make_span(offload_particles),
-                singleton.shared_params(),
-                singleton.local_offload()),
-            ExceptionConverter{"celer.init.verify"});
-    }
-
-    if (G4Threading::IsMasterThread())
-    {
-        singleton.shared_params().timer()->RecordSetupTime(get_setup_time());
-        singleton.start_timer();
-    }
+    // Set tracking manager on workers when Celeritas is not fully disabled
+    CELER_LOG(debug) << "Verifying tracking managers";
+    verify_tracking_managers(
+        make_span(singleton.shared_params().OffloadParticles()),
+        make_span(offload_particles),
+        singleton.shared_params(),
+        singleton.local_offload());
 }
 
 //---------------------------------------------------------------------------//

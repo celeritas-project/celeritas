@@ -40,8 +40,10 @@ endif()
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  set(_needs_orange DISABLE)
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  set(_needs_orange DISABLE)
   set(_core_geo_libs testcel_geocel ${Geant4_LIBRARIES})
 endif()
 
@@ -82,6 +84,7 @@ celeritas_add_test_library(testcel_celeritas
   optical/OpticalMockTestBase.cc
   optical/OpticalTestBase.cc
   optical/InteractorHostTestBase.cc
+  optical/SurfacePhysicsIntegrationTestBase.cc
   optical/ValidationUtils.cc
   phys/InteractionIO.cc
   phys/InteractorHostTestBase.cc
@@ -292,13 +295,17 @@ else()
   set(_geo_mat_filter DISABLE)
 endif()
 
+if(CELERITAS_VecGeom_SURFACE)
+  set(_fails_vgsurf DISABLE)
+endif()
+
 celeritas_add_test(geo/GeoMaterial.test.cc
   FILTER ${_geo_mat_filter}
   ${_optional_geant4_env})
 
 #-----------------------------------------------------------------------------#
 # Global
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+if(CELERITAS_USE_Geant4)
   set(_along_step_filter
     "-Em3*:SimpleCms*:LeadBox*:Mock*"
     "Mock*"
@@ -328,20 +335,9 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
       "LeadBox*"
     )
   endif()
-elseif(CELERITAS_USE_Geant4)
-  set(_along_step_filter
-    "-Em3*:SimpleCms*:LeadBox*"
-    "Em3AlongStepTest.nofluct_nomsc"
-    "Em3AlongStepTest.fluct_nomsc"
-    "LeadBox*"
-  )
-  set(_stepper_filter
-    "-TestEm*:LeadBox*"
-    "TestEm3Compton.*"
-    "TestEm3Msc.*"
-    "TestEm3MscNofluct.*"
-    "TestEm15FieldMsc.*"
-  )
+  if(Geant4_VERSION VERSION_LESS 11.0)
+    list(REMOVE_ITEM _along_step_filter)
+  endif()
 else()
   set(_along_step_filter)
   set(_stepper_filter)
@@ -412,7 +408,9 @@ celeritas_add_test(optical/ReflectionFormSampler.test.cc)
 celeritas_add_test(optical/Fresnel.test.cc)
 celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
 celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
-celeritas_add_test(optical/SurfacePhysicsIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
+celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
+  ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat

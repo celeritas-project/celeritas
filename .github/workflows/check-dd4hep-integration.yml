@@ -1,0 +1,56 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Check that dd4hep plugin builds and runs on EIC containers
+#-----------------------------------------------------------------------------#
+
+name: Check dd4hep integration
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  check-dd4hep-integration:
+    container: ghcr.io/eic/eic_ci:nightly
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l -o pipefail {0}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+      - name: Configure
+        run: |
+          eic-info
+          cmake --log-level=verbose -S . -B build \
+            -DCELERITAS_USE_DD4hep=ON -DCMAKE_INSTALL_PREFIX=install
+      - name: Build and install
+        id: build
+        working-directory: build
+        run: |
+          cmake --build . -j8
+          cmake --install .
+
+      - name: Run preshower simulation
+        working-directory: example/ddceler
+        run: |
+          ./run-preshower.sh celeritas \
+            --numberOfEvents 3 \
+            --random.seed=1 \
+            --random.enableEventSeed
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if:
+          ${{
+            !cancelled()
+            && steps.build.outcome == 'success'
+          }}
+        with:
+          name: simulation-artifacts
+          path: example/ddceler/output/**

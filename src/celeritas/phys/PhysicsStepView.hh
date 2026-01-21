@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "corecel/math/Quantity.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/em/interactor/AtomicRelaxationHelper.hh"
 
@@ -67,6 +68,11 @@ class PhysicsStepView
 
     // Accumulate into local step's energy deposition
     inline CELER_FUNCTION void deposit_energy(Energy);
+
+    // Accumulate into local step's energy deposition from particle
+    template<class PTV>
+    inline CELER_FUNCTION void
+    deposit_energy_from(Energy deposited, PTV&& particle);
 
     // Set secondaries during an interaction
     inline CELER_FUNCTION void secondaries(Span<Secondary>);
@@ -184,9 +190,22 @@ CELER_FUNCTION void PhysicsStepView::reset_energy_deposition_debug()
  */
 CELER_FUNCTION void PhysicsStepView::deposit_energy(Energy energy)
 {
-    CELER_EXPECT(energy >= zero_quantity());
-    // TODO: save a memory read/write by skipping if energy is zero?
+    CELER_EXPECT(energy > zero_quantity());
     this->state().energy_deposition += energy.value();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Deposit energy from the particle.
+ */
+template<class PTV>
+inline CELER_FUNCTION void
+PhysicsStepView::deposit_energy_from(Energy deposited, PTV&& particle)
+{
+    CELER_EXPECT(deposited > zero_quantity());
+    CELER_EXPECT(deposited <= particle.energy());
+    this->deposit_energy(deposited);
+    particle.energy(particle.energy() - deposited);
 }
 
 //---------------------------------------------------------------------------//

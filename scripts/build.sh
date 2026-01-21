@@ -105,8 +105,8 @@ ln_presets() {
     else
       log warning "${dst} points to ${actual}, not ${src}: overwriting"
     fi
-  elif [ -e "${src}" ]; then
-    log warning "${dst} already exists but is not a symlink to ${src}"
+  elif [ -e "${dst}" ]; then
+    log warning "${PWD}/${dst} already exists but is not a symlink (should link to ${src})"
     return
   fi
 
@@ -277,7 +277,7 @@ setup_ccache
 # Check arguments and give presets if missing
 if [ $# -eq 0 ] ; then
   printf '%s\n' "Usage: $0 PRESET [config_args...]" >&2
-  if [ -n "${CMAKE}" ]; then
+  if [ -z "${CMAKE}" ]; then
     log error "cmake unavailable: cannot call --list-presets"
     exit 1
   fi

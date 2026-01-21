@@ -68,8 +68,8 @@ DetectorConstruction::DetectorConstruction(SPParams params)
 /*!
  * Load geometry and sensitive detector volumes.
  *
- * This should only be called once from the master thread, toward the very
- * beginning of the program.
+ * This will be called only once, from the manager/single thread, during
+ * Geant4 initialization.
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {

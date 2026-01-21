@@ -31,8 +31,6 @@ namespace celeritas
  * \f[
     r = r_\mathrm{min} \sqrt{\frac{E}{E_\mathrm{min}}}
  * \f]
- *
- * \todo Construct with \c UniformGridRecord
  */
 class RangeCalculator
 {

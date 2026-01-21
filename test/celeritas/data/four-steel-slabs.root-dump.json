@@ -569,6 +569,25 @@
   },
   "mucf_physics" : {
     "_typename" : "celeritas::inp::MucfPhysics",
+    "scalars" : {
+      "_typename" : "celeritas::inp::MucfScalars",
+      "protium" : {
+        "_typename" : "celeritas::Quantity<celeritas::units::Amu,double>",
+        "value_" : 0
+      },
+      "deuterium" : {
+        "_typename" : "celeritas::Quantity<celeritas::units::Amu,double>",
+        "value_" : 0
+      },
+      "tritium" : {
+        "_typename" : "celeritas::Quantity<celeritas::units::Amu,double>",
+        "value_" : 0
+      },
+      "liquid_hydrogen_density" : {
+        "_typename" : "celeritas::Quantity<celeritas::units::InvCentimeterCubed,double>",
+        "value_" : 0
+      }
+    },
     "muon_energy_cdf" : {
       "_typename" : "celeritas::inp::Grid",
       "x" : [],

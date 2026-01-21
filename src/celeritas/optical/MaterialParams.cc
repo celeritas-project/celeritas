@@ -52,43 +52,32 @@ MaterialParams::from_import(ImportData const& data,
         inp.properties.push_back(opt_mat.properties);
     }
 
-    // Construct volume-to-optical mapping
-    inp.volume_to_mat.reserve(geo_mat.num_volumes());
-    bool has_opt_mat{false};
-    for (auto impl_id : range(ImplVolumeId{geo_mat.num_volumes()}))
+    // Construct impl-volume-to-optical mapping
+    inp.volume_to_mat.assign(geo_mat.num_volumes(), OptMatId{});
+    inp.optical_to_core.assign(inp.properties.size(), PhysMatId{});
+
+    std::unordered_set<OptMatId> all_optmat;
+    for (auto iv_id : range(ImplVolumeId{geo_mat.num_volumes()}))
     {
-        OptMatId optmat;
-        if (PhysMatId matid = geo_mat.material_id(impl_id))
+        if (PhysMatId matid = geo_mat.material_id(iv_id))
         {
             auto mat_view = mat.get(matid);
-            optmat = mat_view.optical_material_id();
+            OptMatId optmat = mat_view.optical_material_id();
             if (optmat)
             {
-                has_opt_mat = true;
+                CELER_ASSERT(optmat < inp.optical_to_core.size());
+                all_optmat.insert(optmat);
+                inp.optical_to_core[optmat.get()] = matid;
+                inp.volume_to_mat[iv_id.get()] = optmat;
             }
         }
-        inp.volume_to_mat.push_back(optmat);
     }
-
-    CELER_VALIDATE(has_opt_mat,
+    CELER_VALIDATE(!all_optmat.empty(),
                    << "no volumes have associated optical materials");
-    CELER_ENSURE(inp.volume_to_mat.size() == geo_mat.num_volumes());
 
-    // Construct optical to core material mapping
-    inp.optical_to_core
-        = std::vector<PhysMatId>(inp.properties.size(), PhysMatId{});
-    for (auto core_id : range(PhysMatId{mat.num_materials()}))
-    {
-        if (auto opt_mat_id = mat.get(core_id).optical_material_id())
-        {
-            CELER_EXPECT(opt_mat_id < inp.optical_to_core.size());
-            CELER_EXPECT(!inp.optical_to_core[opt_mat_id.get()]);
-            inp.optical_to_core[opt_mat_id.get()] = core_id;
-        }
-    }
-
-    CELER_ENSURE(std::all_of(
-        inp.optical_to_core.begin(), inp.optical_to_core.end(), Identity{}));
+    CELER_LOG(info) << "Constructed " << inp.properties.size()
+                    << " optical materials with " << all_optmat.size()
+                    << " present in the geometry";
 
     return std::make_shared<MaterialParams>(std::move(inp));
 }

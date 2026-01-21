@@ -37,7 +37,7 @@ DetectorConstruction::DetectorConstruction(std::string const& filename,
 /*!
  * Load geometry and sensitive detector volumes.
  *
- * This should only be called once from the master thread, toward the very
+ * This should only be called once from the main thread, toward the very
  * beginning of the program.
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()
