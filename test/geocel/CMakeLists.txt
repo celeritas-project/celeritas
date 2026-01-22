@@ -34,7 +34,7 @@ set(SOURCES
   VolumeTestBase.cc
 )
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+if(CELERITAS_USE_Geant4)
   list(APPEND SOURCES
     g4/GeantGeoTestBase.cc
   )
@@ -67,6 +67,8 @@ celeritas_setup_tests(SERIAL
 celeritas_add_test(BoundingBox.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
+
+# These tests verify both Params and View
 celeritas_add_test(Surface.test.cc)
 celeritas_add_test(Volume.test.cc)
 
@@ -138,15 +140,11 @@ celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4})
 
 if(CELERITAS_USE_Geant4)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
-endif()
-
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  # These all require the Geant4 geometry wrappers which only are built when
-  # double-precision is enabled
+  celeritas_add_test(GeantGeoUtils.test.cc)
   celeritas_add_test(g4/GeantGeo.test.cc)
   celeritas_add_test(g4/GeantNavHistoryUpdater.test.cc)
-  celeritas_add_test(GeantGeoUtils.test.cc)
 endif()
+
 list(POP_BACK CELERITASTEST_LINK_LIBRARIES)
 
 #-----------------------------------------------------------------------------#

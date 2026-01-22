@@ -1659,7 +1659,7 @@ void ReplicaGeoTest::test_volume_stack() const
         EXPECT_REF_EQ(ref, result);
     }
     {
-        using R2 = Array<double, 2>;
+        using R2 = Array<real_type, 2>;
 
         static R2 const points[] = {
             {-435, 550},

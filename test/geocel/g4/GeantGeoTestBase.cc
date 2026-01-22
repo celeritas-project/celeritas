@@ -7,6 +7,7 @@
 #include "GeantGeoTestBase.hh"
 
 #include "geocel/GenericGeoTestBase.t.hh"
+#include "geocel/g4/GeantGeoTrackView.hh"
 
 namespace celeritas
 {

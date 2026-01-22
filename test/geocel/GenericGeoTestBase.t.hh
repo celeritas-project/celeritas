@@ -95,7 +95,17 @@ auto GenericGeoTestBase<HP>::geometry() const -> SPConstGeo const&
 template<class HP>
 auto GenericGeoTestBase<HP>::make_geo_track_view_interface() -> UPGeoTrack
 {
-    return std::make_unique<WrappedGeoTrack>(this->make_geo_track_view());
+    if constexpr (std::is_same_v<real_type,
+                                 typename TraitsT::TrackView::real_type>)
+    {
+        return std::make_unique<WrappedGeoTrack>(this->make_geo_track_view());
+    }
+    else
+    {
+        CELER_NOT_CONFIGURED(
+            "geometry track view compatible with current real_type");
+        return nullptr;
+    }
 }
 
 //---------------------------------------------------------------------------//
