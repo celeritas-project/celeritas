@@ -14,9 +14,10 @@ namespace celeritas
 /*!
  * Counters for within-step track initialization and activity.
  *
- * These counters are updated *by value on the host at every step* so they
- * should not be stored in TrackInitStateData because then the device-memory
- * copy will not be synchronized.
+ * When running device code, these counters are now updated on the device
+ * throughout the step, so they are stored in TrackInitStateData. They need to
+ * be synchronized between the host and device before and after the step to
+ * maintain consistency.
  *
  * For all user \c StepActionOrder (TODO: this may change if we add a
  * "user_end"), all but the secondaries/alive
@@ -48,6 +49,11 @@ struct CoreStateCounters
     //! \name Set after secondaries are generated
     size_type num_secondaries{0};  //!< Number of secondaries produced
     size_type num_alive{0};  //!< Number of alive tracks at end
+    //!@}
+
+    //!@{
+    //! \name Set by CUDA CUB when partitioning the tracks, unused by celeritas
+    size_type num_neutral{0};  //!< Number of neutral tracks
     //!@}
 };
 

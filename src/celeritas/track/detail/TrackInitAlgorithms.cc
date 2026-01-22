@@ -24,14 +24,16 @@ namespace detail
  *
  * \return New size of the vacancy vector
  */
-size_type remove_if_alive(
-    StateCollection<TrackSlotId, Ownership::reference, MemSpace::host> const&
-        vacancies,
+void remove_if_alive(
+    TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
     StreamId)
 {
-    auto* start = vacancies.data().get();
-    auto* stop = std::remove_if(start, start + vacancies.size(), LogicalNot{});
-    return stop - start;
+    auto* start = init.vacancies.data().get();
+    auto* counters = init.counters.data().get();
+    auto* stop
+        = std::remove_if(start, start + init.vacancies.size(), LogicalNot{});
+    counters->num_vacancies = stop - start;
+    return;
 }
 
 //---------------------------------------------------------------------------//
@@ -80,15 +82,15 @@ size_type exclusive_scan_counts(
 void partition_initializers(
     CoreParams const& params,
     TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
-    CoreStateCounters const& counters,
     size_type count,
     StreamId)
 {
     // Partition the indices based on the track initializer charge
-    auto start = init.indices.data().get();
-    auto end = start + count;
-    auto stencil = init.initializers.data().get() + counters.num_initializers
-                   - count;
+    auto* start = init.indices.data().get();
+    auto* end = start + count;
+    auto* counters = init.counters.data().get();
+    auto* stencil = init.initializers.data().get() + counters->num_initializers
+                    - count;
     std::stable_partition(
         start, end, IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
 }
