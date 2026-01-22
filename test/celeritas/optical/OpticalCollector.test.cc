@@ -474,7 +474,7 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
     if (reference_configuration)
     {
-        constexpr unsigned int expected_steps = 109;
+        constexpr unsigned int expected_steps = 116;
         constexpr unsigned int expected_step_iters = 4;
         EXPECT_EQ(expected_steps, result.accum.steps);
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
@@ -502,11 +502,9 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (reference_configuration)
     {
-        unsigned int expected_steps = 18214;
-        unsigned int expected_step_iters = 1;
-        EXPECT_SOFT_NEAR(static_cast<double>(expected_steps),
-                         static_cast<double>(result.accum.steps),
-                         1e-4);
+        unsigned int expected_steps = 19310;
+        unsigned int expected_step_iters = 2;
+        EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());

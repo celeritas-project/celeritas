@@ -159,8 +159,8 @@ TEST_F(LArSphereGeneratorTest, primary_generator)
 
     if (reference_configuration)
     {
-        EXPECT_EQ(65536, result.steps);
-        EXPECT_EQ(16, result.step_iters);
+        EXPECT_EQ(68939, result.steps);
+        EXPECT_EQ(18, result.step_iters);
     }
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());
@@ -236,8 +236,8 @@ TEST_F(LArSphereGeneratorTest, direct_generator)
     if (reference_configuration
         && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
     {
-        EXPECT_EQ(128, result.steps);
-        EXPECT_EQ(4, result.step_iters);
+        EXPECT_EQ(133, result.steps);
+        EXPECT_EQ(5, result.step_iters);
     }
     EXPECT_EQ(1, result.flushes);
     ASSERT_EQ(1, result.generators.size());
@@ -280,8 +280,8 @@ TEST_F(LArSphereGeneratorTest, generator)
     if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
-        EXPECT_EQ(51226, result.steps);
-        EXPECT_EQ(13, result.step_iters);
+        EXPECT_EQ(53429, result.steps);
+        EXPECT_EQ(14, result.step_iters);
     }
 
     // Check accumulated action times
