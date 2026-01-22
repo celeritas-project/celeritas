@@ -410,10 +410,11 @@ function(celeritas_standalone_optical_add_tests basename suite test backend)
     COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
   )
 
+  set(_env ${CELER_G4ENV})
   set(_labels "unit")
   if("${backend}" STREQUAL "cpu")
     if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-      list(APPEND _test_props ENVIRONMENT "CELER_DISABLE_DEVICE=1")
+      list(APPEND _env "CELER_DISABLE_DEVICE=1")
     endif()
   elseif("${backend}" STREQUAL "gpu")
     list(APPEND _test_props RESOURCE_LOCK gpu)
@@ -423,6 +424,7 @@ function(celeritas_standalone_optical_add_tests basename suite test backend)
   endif()
 
   set_tests_properties("${_test_name}" PROPERTIES
+    ENVIRONMENT "${_env}"
     LABELS "${_labels}"
     ${_test_props}
   )
