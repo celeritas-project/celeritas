@@ -390,7 +390,7 @@ function(celeritas_standalone_add_tests basename suite test backend)
   string(REPLACE "/" "_" _output_name "${basename}")
   set(_target "${CELERITASTEST_DIR}_${_output_name}")
 
-  if(NOT CELERITAS_USE_Geant4)
+  if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "Geant4")
     list(APPEND _test_props DISABLED TRUE)
   endif()
 
