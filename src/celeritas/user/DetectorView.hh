@@ -2,13 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/SDView.hh
+//! \file celeritas/user/DetectorView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "geocel/Types.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/user/SDData.hh"
+#include "celeritas/user/DetectorData.hh"
 
 namespace celeritas
 {
@@ -16,17 +16,17 @@ namespace celeritas
 /*!
  * Access sensitive detector properties.
  */
-class SDView
+class DetectorView
 {
   public:
     //!@{
     //! \name Type aliases
-    using ParamsRef = NativeCRef<SDParamsData>;
+    using ParamsRef = NativeCRef<DetectorParamsData>;
     //!@}
 
   public:
     // Construct with shared data
-    explicit inline CELER_FUNCTION SDView(ParamsRef const& params);
+    explicit inline CELER_FUNCTION DetectorView(ParamsRef const& params);
 
     // Get the detector ID of a volume
     inline DetectorId CELER_FUNCTION detector_id(ImplVolumeId iv_id);
@@ -40,7 +40,7 @@ class SDView
  * Construct with shared data.
  */
 CELER_FUNCTION
-SDView::SDView(ParamsRef const& params) : params_(params)
+DetectorView::DetectorView(ParamsRef const& params) : params_(params)
 {
     CELER_EXPECT(params_);
 }
@@ -49,7 +49,7 @@ SDView::SDView(ParamsRef const& params) : params_(params)
 /*!
  * Get the detector ID of a volume.
  */
-CELER_FUNCTION DetectorId SDView::detector_id(ImplVolumeId iv_id)
+CELER_FUNCTION DetectorId DetectorView::detector_id(ImplVolumeId iv_id)
 {
     return params_.detectors[iv_id];
 }

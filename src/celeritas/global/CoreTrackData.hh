@@ -21,7 +21,7 @@
 #include "celeritas/phys/PhysicsData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
-#include "celeritas/user/SDData.hh"
+#include "celeritas/user/DetectorData.hh"
 
 #include "CoreTrackDataFwd.hh"
 
@@ -75,7 +75,7 @@ struct CoreParamsData
     RngParamsData<W, M> rng;
     SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
-    SDParamsData<W, M> detectors;
+    DetectorParamsData<W, M> detectors;
     TrackInitParamsData<W, M> init;
     WentzelOKVIData<W, M> wentzel;
 

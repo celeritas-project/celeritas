@@ -2,10 +2,10 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/SDParams.test.cc
+//! \file celeritas/user/DetectorParams.test.cc
 //---------------------------------------------------------------------------//
 
-#include "celeritas/user/SDParams.hh"
+#include "celeritas/user/DetectorParams.hh"
 
 #include <memory>
 #include <string_view>
@@ -28,7 +28,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class SDParamsTest : public OnlyGeoTestBase
+class DetectorParamsTest : public OnlyGeoTestBase
 {
   public:
     using VecStr = std::vector<std::string>;
@@ -59,22 +59,22 @@ class SDParamsTest : public OnlyGeoTestBase
     }
 };
 
-TEST_F(SDParamsTest, no_label_test)
+TEST_F(DetectorParamsTest, no_label_test)
 {
     auto const& geo = *this->geometry();
     inp::Detectors detectors;
-    SDParams params(geo, detectors);
+    DetectorParams params(geo, detectors);
     EXPECT_EQ(0, params.size());
 }
 
-TEST_F(SDParamsTest, detector_test)
+TEST_F(DetectorParamsTest, detector_test)
 {
     VecStr detector_labels = {"gap_10", "absorber_40", "absorber_31"};
 
     auto const& geo = *this->geometry();
     auto const& impl_volumes = this->geometry()->impl_volumes();
 
-    SDParams params(geo, this->find_volumes(detector_labels));
+    DetectorParams params(geo, this->find_volumes(detector_labels));
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(3, params.size());
 

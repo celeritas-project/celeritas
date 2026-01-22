@@ -12,7 +12,7 @@
 #include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/user/SDData.hh"
+#include "celeritas/user/DetectorData.hh"
 
 #include "CoreTrackDataFwd.hh"
 #include "MaterialData.hh"
@@ -56,7 +56,7 @@ struct CoreParamsData
     SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
     SurfacePhysicsParamsData<W, M> surface_physics;
-    SDParamsData<W, M> detectors;
+    DetectorParamsData<W, M> detectors;
     CherenkovData<W, M> cherenkov;
     ScintillationData<W, M> scintillation;
 

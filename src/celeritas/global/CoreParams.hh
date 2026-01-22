@@ -28,7 +28,7 @@ class MpiCommunicator;
 class OutputRegistry;
 class ParticleParams;
 class PhysicsParams;
-class SDParams;
+class DetectorParams;
 class SimParams;
 class SurfaceParams;
 class TrackInitParams;
@@ -61,7 +61,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPConstVolume = std::shared_ptr<VolumeParams const>;
-    using SPConstDetectors = std::shared_ptr<SDParams const>;
+    using SPConstDetectors = std::shared_ptr<DetectorParams const>;
 
     using SPConstWentzelOKVI = std::shared_ptr<WentzelOKVIParams const>;
 

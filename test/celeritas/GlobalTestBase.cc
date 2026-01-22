@@ -151,7 +151,7 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
     celeritas::global_volumes(volume_);
     surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
 
-    detector_ = std::make_shared<SDParams>(*core_geo, mi.detectors);
+    detector_ = std::make_shared<DetectorParams>(*core_geo, mi.detectors);
     CELER_LOG(debug) << "Built SD params with "
                      << mi.detectors.detectors.size() << " detectors";
 
@@ -225,7 +225,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     {
         surface_ = std::make_shared<SurfaceParams>();
         volume_ = std::make_shared<VolumeParams>();
-        detector_ = std::make_shared<SDParams>();
+        detector_ = std::make_shared<DetectorParams>();
     }
 
     CoreParams::Input inp;

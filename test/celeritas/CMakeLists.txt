@@ -111,7 +111,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_get_g4libs(_g4_libs materials digits_hits processes)
 
   celeritas_add_test_library(testcel_celeritas_g4
-    ext/SDTestBase.cc
+    ext/SensDetTestBase.cc
     ext/SimpleSensitiveDetector.cc
   )
   celeritas_target_link_libraries(testcel_celeritas_g4
@@ -487,7 +487,7 @@ if(CELERITAS_CORE_GEO STREQUAL "Geant4")
 endif()
 
 
-celeritas_add_test(user/SDParams.test.cc)
+celeritas_add_test(user/DetectorParams.test.cc)
 celeritas_add_test(user/DetectorSteps.test.cc GPU)
 celeritas_add_test(user/Diagnostic.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo} ${_needs_double}

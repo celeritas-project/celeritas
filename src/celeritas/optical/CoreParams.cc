@@ -20,7 +20,7 @@
 #include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
-#include "celeritas/user/SDParams.hh"
+#include "celeritas/user/DetectorParams.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"

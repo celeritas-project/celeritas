@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/SDData.hh
+//! \file celeritas/user/DetectorData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 template<Ownership W, MemSpace M>
-struct SDParamsData
+struct DetectorParamsData
 {
     //// DATA ////
 
@@ -29,7 +29,7 @@ struct SDParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    SDParamsData& operator=(SDParamsData<W2, M2> const& other)
+    DetectorParamsData& operator=(DetectorParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         detectors = other.detectors;

@@ -18,7 +18,7 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/optical/CoreParams.hh"
-#include "celeritas/user/SDParams.hh"
+#include "celeritas/user/DetectorParams.hh"
 
 #include "Test.hh"
 
@@ -91,7 +91,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using SPConstTrackInit = SP<TrackInitParams const>;
     using SPConstSurface = SP<SurfaceParams const>;
     using SPConstVolume = SP<VolumeParams const>;
-    using SPConstSensDet = SP<SDParams const>;
+    using SPConstSensDet = SP<DetectorParams const>;
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;

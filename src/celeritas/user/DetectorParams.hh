@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/SDParams.hh
+//! \file celeritas/user/DetectorParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,7 @@
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/inp/Model.hh"
 
-#include "SDData.hh"
+#include "DetectorData.hh"
 
 namespace celeritas
 {
@@ -24,7 +24,7 @@ namespace celeritas
  *
  * \note See \c celeritas::VolumeIdBuilder for how to construct these easily.
  */
-class SDParams final : public ParamsDataInterface<SDParamsData>
+class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
 {
   public:
     //!@{
@@ -34,10 +34,10 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
 
   public:
     //! Construct without detectors
-    SDParams() = default;
+    DetectorParams() = default;
 
     // Construct from detector input and geometry reference
-    SDParams(GeoParamsInterface const& geo, inp::Detectors detectors);
+    DetectorParams(GeoParamsInterface const& geo, inp::Detectors detectors);
 
     //! Whether any detectors are present
     bool empty() const { return !static_cast<bool>(mirror_); }
@@ -68,7 +68,7 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     //!@}
 
   private:
-    CollectionMirror<SDParamsData> mirror_;
+    CollectionMirror<DetectorParamsData> mirror_;
     inp::Detectors detectors_;
 };
 

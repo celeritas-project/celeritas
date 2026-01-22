@@ -45,7 +45,7 @@
 #include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/SortTracksAction.hh"
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
-#include "celeritas/user/SDParams.hh"
+#include "celeritas/user/DetectorParams.hh"
 
 #include "ActionInterface.hh"
 

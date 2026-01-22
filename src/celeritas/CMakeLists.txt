@@ -154,10 +154,10 @@ list(APPEND SOURCES
   track/SortTracksAction.cc
   track/TrackInitParams.cc
   user/ActionTimes.cc
+  user/DetectorParams.cc
   user/DetectorSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc
-  user/SDParams.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc

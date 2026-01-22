@@ -9,7 +9,7 @@
 #include "corecel/random/engine/RngEngine.hh"
 #include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/user/SDView.hh"
+#include "celeritas/user/DetectorView.hh"
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"
@@ -80,7 +80,7 @@ class CoreTrackView
     inline CELER_FUNCTION SurfacePhysicsTrackView surface_physics() const;
 
     // Return a sensitive detector view
-    inline CELER_FUNCTION SDView detectors() const;
+    inline CELER_FUNCTION DetectorView detectors() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -254,9 +254,9 @@ CELER_FUNCTION auto CoreTrackView::surface_physics() const
 /*!
  * Return a sensitive detector view.
  */
-CELER_FUNCTION auto CoreTrackView::detectors() const -> SDView
+CELER_FUNCTION auto CoreTrackView::detectors() const -> DetectorView
 {
-    return SDView{params_.detectors};
+    return DetectorView{params_.detectors};
 }
 
 //---------------------------------------------------------------------------//

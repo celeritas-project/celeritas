@@ -14,7 +14,7 @@
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
-#include "celeritas/user/SDParams.hh"
+#include "celeritas/user/DetectorParams.hh"
 
 namespace celeritas
 {
@@ -119,7 +119,8 @@ ModelLoaded model(inp::Model const& m)
     result.surface
         = std::make_shared<SurfaceParams>(m.surfaces, *result.volume);
 
-    result.detector = std::make_shared<SDParams>(*result.geometry, m.detectors);
+    result.detector
+        = std::make_shared<DetectorParams>(*result.geometry, m.detectors);
 
     return result;
 }
