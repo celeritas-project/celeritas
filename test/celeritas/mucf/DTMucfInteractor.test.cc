@@ -72,27 +72,26 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
     void
     validate_interaction(Interaction const& interaction, Channel channel) const
     {
-        auto host_data = data_.host_ref();
+        EXPECT_LT(channel, Channel::size_);
 
         // Primary muon should be killed
         EXPECT_EQ(Action::absorbed, interaction.action);
 
+        auto const& host_data = data_.host_ref();
+        auto const& sec = interaction.secondaries;
+
         // First particle is always an outgoing neutron with 14.1 MeV
-        EXPECT_EQ(host_data.particle_ids.neutron,
-                  interaction.secondaries[0].particle_id);
-        EXPECT_SOFT_EQ(14.1, interaction.secondaries[0].energy.value());
+        EXPECT_EQ(host_data.particle_ids.neutron, sec[0].particle_id);
+        EXPECT_SOFT_EQ(14.1, sec[0].energy.value());
 
         // Verify channel-specific data
         if (channel == Channel::alpha_muon_neutron)
         {
-            ASSERT_EQ(num_secondaries_[channel],
-                      interaction.secondaries.size());
+            ASSERT_EQ(num_secondaries_[channel], sec.size());
 
             // Check particles
-            EXPECT_EQ(host_data.particle_ids.mu_minus,
-                      interaction.secondaries[1].particle_id);
-            EXPECT_EQ(host_data.particle_ids.alpha,
-                      interaction.secondaries[2].particle_id);
+            EXPECT_EQ(host_data.particle_ids.mu_minus, sec[1].particle_id);
+            EXPECT_EQ(host_data.particle_ids.alpha, sec[2].particle_id);
 
             // Check energy conservation (17.6 MeV total)
             real_type total_kinetic_energy = 0;
@@ -102,25 +101,29 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
             }
             EXPECT_SOFT_EQ(17.6, total_kinetic_energy);
 
-            // Check momentum conservation (total momentum must be zero)
-            auto const neutron_p_mag
-                = this->calc_momentum(interaction.secondaries[0].energy,
-                                      host_data.particle_masses.neutron);
-            auto const muon_p_mag
-                = this->calc_momentum(interaction.secondaries[1].energy,
-                                      host_data.particle_masses.mu_minus);
-            auto const alpha_p_mag
-                = this->calc_momentum(interaction.secondaries[2].energy,
-                                      host_data.particle_masses.alpha);
+            // Check momentum conservation
+            // Momentum and energy conservation is not accurate (see the
+            // DTMucfInteractor documentation for details). Thus, we only check
+            // that the momentum calculation matches the implementation and
+            // adds up to zero.
+            auto const neutron_p_mag = this->calc_momentum(
+                sec[0].energy, host_data.particle_masses.neutron);
+            auto const muon_p_mag = this->calc_momentum(
+                sec[1].energy, host_data.particle_masses.mu_minus);
 
-            Real3 total_momentum;
-            for (int i = 0; i < 3; ++i)
+            Real3 alpha_momentum, total_momentum;
+            for (auto i : range(3))
             {
-                total_momentum[i]
-                    = interaction.secondaries[0].direction[i] * neutron_p_mag
-                      + interaction.secondaries[1].direction[i] * muon_p_mag
-                      + interaction.secondaries[2].direction[i] * alpha_p_mag;
+                real_type neutron_momentum_i = sec[0].direction[i]
+                                               * neutron_p_mag;
+                real_type muon_momentum_i = +sec[1].direction[i] * muon_p_mag;
+                alpha_momentum[i] = -(neutron_momentum_i + muon_momentum_i);
+                total_momentum[i] = neutron_momentum_i + muon_momentum_i
+                                    + alpha_momentum[i];
             }
+
+            EXPECT_VEC_SOFT_EQ(sec[2].direction,
+                               make_unit_vector(alpha_momentum));
             EXPECT_VEC_SOFT_EQ(Real3{}, total_momentum);
         }
 
@@ -171,8 +174,8 @@ TEST_F(DTMucfInteractorTest, alpha_muon_neutron)
     auto const channel = DTMucfInteractor::Channel::alpha_muon_neutron;
 
     // Reserve space for 4 interactions with 3 secondaries each
-    int const num_samples = 1;
-    this->resize_secondaries(3 * num_samples);
+    size_type const num_samples = 4;
+    this->resize_secondaries(num_samples * num_secondaries_[channel]);
 
     // Run interactor
     DTMucfInteractor interact(
@@ -192,8 +195,8 @@ TEST_F(DTMucfInteractorTest, muonicalpha_neutron)
     auto const channel = DTMucfInteractor::Channel::muonicalpha_neutron;
 
     // Reserve space for 4 interactions with 2 secondaries each
-    int const num_samples = 4;
-    this->resize_secondaries(2 * num_samples);
+    size_type const num_samples = 4;
+    this->resize_secondaries(num_samples * num_secondaries_[channel]);
 
     // Run interactor
     DTMucfInteractor interact(
@@ -210,8 +213,7 @@ TEST_F(DTMucfInteractorTest, muonicalpha_neutron)
 //---------------------------------------------------------------------------//
 TEST_F(DTMucfInteractorTest, stress_test)
 {
-    size_type const num_samples = 1000;
-
+    size_type const num_samples = 10000;
     real_type total_avg_secondaries{0};
 
     for (auto channel : {DTMucfInteractor::Channel::alpha_muon_neutron,

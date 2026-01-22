@@ -99,13 +99,21 @@ DTMucfInteractor::DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
  *
  * \note Since secondaries come from an at rest interaction, their final state
  * is a simple combination of random direction + momentum conservation.
+ *
+ * \warning This implementation likely has an incorrect energy and momentum
+ * conservation implementation. Acceleron assumes an isotropic direction for
+ * both neutron and muon in the \f$ \alpha + \mu + n \f$ channel, which leads
+ * to the alpha particle either conserving energy or momentum but not both
+ * simultaneously. A likely correct solution involves calculating a phase-space
+ * for the muon direction based on its sampled energy \em and the neutron
+ * direction.
  */
 template<class Engine>
 CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
 {
     // Allocate space for the final fusion channel
-    Secondary* secondaries = allocate_(num_secondaries_[channel_]);
-    if (secondaries == nullptr)
+    Secondary* sec = allocate_(num_secondaries_[channel_]);
+    if (sec == nullptr)
     {
         // Failed to allocate space for secondaries
         return Interaction::from_failure();
@@ -120,61 +128,52 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
                                                 data_.reals);
 
     // Neutron is the same on both cases: 14.1 MeV with random direction
-    secondaries[neutron_idx].particle_id = data_.particle_ids.neutron;
-    secondaries[neutron_idx].energy = this->neutron_kinetic_energy();
-    secondaries[neutron_idx].direction = sample_isotropic(rng);
+    sec[neutron_idx].particle_id = data_.particle_ids.neutron;
+    sec[neutron_idx].energy = this->neutron_kinetic_energy();
+    sec[neutron_idx].direction = sample_isotropic(rng);
 
     switch (channel_)
     {
         case Channel::alpha_muon_neutron: {
-            // Muon: Final state sampled from CDF
-            secondaries[muon_idx].particle_id = data_.particle_ids.mu_minus;
-            secondaries[muon_idx].direction = sample_isotropic(rng);
-            secondaries[muon_idx].energy = units::MevEnergy{
+            // Muon: random direction with energy sampled from its CDF
+            sec[muon_idx].particle_id = data_.particle_ids.mu_minus;
+            sec[muon_idx].direction = sample_isotropic(rng);
+            sec[muon_idx].energy = units::MevEnergy{
                 sample_muon_energy(generate_canonical(rng))};
 
             // Alpha: Final state calculated via energy/momentum conservation
+            sec[alpha_idx].particle_id = data_.particle_ids.alpha;
 
             // E_alpha = E_total - E_neutron - E_muon
-            auto const alpha_energy = this->total_fusion_energy()
-                                      - secondaries[neutron_idx].energy
-                                      - secondaries[muon_idx].energy;
-            // p_alpha = - (p_neutron + p_muon)
-            auto const neutron_momentum_mag = this->calc_momentum(
-                secondaries[neutron_idx].energy, data_.particle_masses.neutron);
-            auto const muon_momentum_mag = this->calc_momentum(
-                secondaries[muon_idx].energy, data_.particle_masses.mu_minus);
-            auto const inv_alpha_momentum_mag
-                = real_type{1}
-                  / this->calc_momentum(alpha_energy,
-                                        data_.particle_masses.alpha);
+            sec[alpha_idx].energy = this->total_fusion_energy()
+                                    - sec[neutron_idx].energy
+                                    - sec[muon_idx].energy;
 
-            Real3 alpha_dir;
+            // p_alpha = - (p_neutron + p_muon)
+            auto const neutron_momentum = this->calc_momentum(
+                sec[neutron_idx].energy, data_.particle_masses.neutron);
+            auto const muon_momentum = this->calc_momentum(
+                sec[muon_idx].energy, data_.particle_masses.mu_minus);
+
+            Real3 alpha_momentum_vec;
             for (auto i : range(3))
             {
-                alpha_dir[i] = -(secondaries[neutron_idx].direction[i]
-                                     * neutron_momentum_mag
-                                 + secondaries[muon_idx].direction[i]
-                                       * muon_momentum_mag)
-                               * inv_alpha_momentum_mag;
+                alpha_momentum_vec[i]
+                    = -(sec[neutron_idx].direction[i] * neutron_momentum
+                        + sec[muon_idx].direction[i] * muon_momentum);
             }
-
-            secondaries[alpha_idx].particle_id = data_.particle_ids.alpha;
-            secondaries[alpha_idx].direction = alpha_dir;
-            secondaries[alpha_idx].energy = alpha_energy;
+            sec[alpha_idx].direction = make_unit_vector(alpha_momentum_vec);
             break;
         }
 
         case Channel::muonicalpha_neutron: {
             // Muonic alpha: Equal and opposite momentum to neutron
-            secondaries[muonicalpha_idx].particle_id
-                = data_.particle_ids.muonic_alpha;
-            secondaries[muonicalpha_idx].energy
-                = secondaries[neutron_idx].energy;
+            sec[muonicalpha_idx].particle_id = data_.particle_ids.muonic_alpha;
+            sec[muonicalpha_idx].energy = sec[neutron_idx].energy;
             for (auto i : range(3))
             {
-                secondaries[muonicalpha_idx].direction[i]
-                    = -secondaries[neutron_idx].direction[i];
+                sec[muonicalpha_idx].direction[i]
+                    = -sec[neutron_idx].direction[i];
             }
             break;
         }
@@ -185,7 +184,7 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
 
     // Kill muon primary and generate fusion secondaries
     Interaction result = Interaction::from_absorption();
-    result.secondaries = {secondaries, num_secondaries_[channel_]};
+    result.secondaries = {sec, num_secondaries_[channel_]};
     return result;
 }
 
