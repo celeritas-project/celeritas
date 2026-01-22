@@ -42,6 +42,8 @@ class Runner
     //!@{
     //! \name Type aliases
     using SPConstParams = std::shared_ptr<CoreParams const>;
+    using DirectGeneratorData = DirectGeneratorAction::SpanConstData;
+    using OffloadGeneratorData = GeneratorAction::SpanConstData;
     //!@}
 
     struct Result
@@ -58,10 +60,10 @@ class Runner
     Result operator()();
 
     // Transport tracks generated directly from track initializers
-    Result operator()(DirectGeneratorAction::SpanConstData);
+    Result operator()(DirectGeneratorData);
 
     // Transport tracks generated through scintillation or Cherenkov
-    Result operator()(GeneratorAction::SpanConstData);
+    Result operator()(OffloadGeneratorData);
 
     //! Access the shared params
     SPConstParams const& params() const

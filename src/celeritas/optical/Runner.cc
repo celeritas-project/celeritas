@@ -61,7 +61,7 @@ Runner::Runner(inp::OpticalStandaloneInput&& osi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport tracks generated with a primary generator
+ * Transport tracks generated with a primary generator.
  */
 auto Runner::operator()() -> Result
 {
@@ -80,9 +80,9 @@ auto Runner::operator()() -> Result
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport tracks generated directly from track initializers
+ * Transport tracks generated directly from track initializers.
  */
-auto Runner::operator()(DirectGeneratorAction::SpanConstData data) -> Result
+auto Runner::operator()(DirectGeneratorData data) -> Result
 {
     auto generate
         = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
@@ -99,9 +99,9 @@ auto Runner::operator()(DirectGeneratorAction::SpanConstData data) -> Result
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport tracks generated through scintillation or Cherenkov
+ * Transport tracks generated through scintillation or Cherenkov.
  */
-auto Runner::operator()(GeneratorAction::SpanConstData data) -> Result
+auto Runner::operator()(OffloadGeneratorData data) -> Result
 {
     auto generate = std::dynamic_pointer_cast<optical::GeneratorAction const>(
         problem_.generator);
