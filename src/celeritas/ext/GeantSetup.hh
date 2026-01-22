@@ -11,8 +11,6 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Assert.hh"
-
 #include "GeantPhysicsOptions.hh"
 
 // Geant4 forward declarations
@@ -45,9 +43,18 @@ class GeantSetup
     using SPGeantGeo = std::shared_ptr<GeantGeoParams>;
     //!@}
 
+    //! Build sensitive detectors for unit testing
+    enum class Sd
+    {
+        none,
+        dummy
+    };
+
   public:
     // Construct from a GDML file and physics options
-    GeantSetup(std::string const& gdml_filename, Options options);
+    GeantSetup(std::string const& gdml_filename,
+               Options options,
+               Sd build_sd = Sd::none);
 
     // Default constructor
     GeantSetup() = default;

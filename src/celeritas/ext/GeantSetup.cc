@@ -62,7 +62,9 @@ class GdmlSensitiveDetector final : public G4VSensitiveDetector
 /*!
  * Construct from a GDML file and physics options.
  */
-GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
+GeantSetup::GeantSetup(std::string const& gdml_filename,
+                       Options options,
+                       Sd build_sd_opt)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
     ScopedProfiling profile_this{"initialize-geant"};
@@ -103,16 +105,18 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     {
         CELER_LOG(status) << "Initializing Geant4 geometry and physics list";
 
-        // Load GDML and reference the world pointer
-        // TODO: pass GdmlLoader options through SetupOptions
-
         // Construct the geometry
-        // auto detector = std::make_unique<DetectorConstruction>(world);
-        auto build_sd_functor = [](std::string const& name) {
-            return std::make_unique<GdmlSensitiveDetector>(name);
-        };
-        auto detector = std::make_unique<DetectorConstruction>(
-            gdml_filename, build_sd_functor);
+        DetectorConstruction::SDBuilder make_sd;
+        if (build_sd_opt == Sd::dummy)
+        {
+            make_sd = [](std::string const& name) {
+                return std::make_unique<GdmlSensitiveDetector>(name);
+            };
+        }
+        auto detector
+            = std::make_unique<DetectorConstruction>(gdml_filename, make_sd);
+        // Transfer ownership to geant4 but keep a reference to the builder,
+        // which creates the geometry during run manager initialize
         p_detector = detector.get();
         run_manager_->SetUserInitialization(detector.release());
 
