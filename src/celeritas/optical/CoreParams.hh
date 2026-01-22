@@ -22,11 +22,11 @@ namespace celeritas
 class ActionRegistry;
 class AuxParamsRegistry;
 class CherenkovParams;
+class DetectorParams;
 class GeneratorRegistry;
 class OutputRegistry;
 class ScintillationParams;
 class SurfaceParams;
-class SDParams;
 
 namespace optical
 {
@@ -56,7 +56,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
-    using SPConstDetectors = std::shared_ptr<SDParams const>;
+    using SPConstDetectors = std::shared_ptr<DetectorParams const>;
 
     using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;

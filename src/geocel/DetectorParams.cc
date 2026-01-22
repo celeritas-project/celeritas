@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/SDParams.cc
+//! \file geocel/DetectorParams.cc
 //---------------------------------------------------------------------------//
-#include "SDParams.hh"
+#include "DetectorParams.hh"
 
 #include <unordered_map>
 
@@ -18,7 +18,8 @@ namespace celeritas
 /*!
  * Construct from list of volume labels.
  */
-SDParams::SDParams(GeoParamsInterface const& geo, VecVolId&& volume_ids)
+DetectorParams::DetectorParams(GeoParamsInterface const& geo,
+                               VecVolId&& volume_ids)
     : volume_ids_{std::move(volume_ids)}
 {
     CELER_EXPECT(!volume_ids_.empty());
@@ -31,7 +32,7 @@ SDParams::SDParams(GeoParamsInterface const& geo, VecVolId&& volume_ids)
                                [num_impl_volumes](VolumeId id) {
                                    return id < num_impl_volumes;
                                }),
-                   << "invalid volume IDs given to SDParams");
+                   << "invalid volume IDs given to DetectorParams");
 
     std::unordered_map<VolumeId, DetectorId> detector_map;
     for (auto didx : range<DetectorId::size_type>(volume_ids_.size()))
@@ -40,7 +41,7 @@ SDParams::SDParams(GeoParamsInterface const& geo, VecVolId&& volume_ids)
     }
 
     mirror_ = CollectionMirror{[&] {
-        HostVal<SDParamsData> host_data;
+        HostVal<DetectorParamsData> host_data;
         host_data.detector = build_volume_collection<DetectorId>(
             geo, VolumeMapFiller{detector_map});
         CELER_ENSURE(host_data);

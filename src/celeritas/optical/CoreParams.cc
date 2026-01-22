@@ -14,13 +14,13 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
-#include "celeritas/user/SDParams.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
@@ -135,7 +135,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // TODO: require and validate detectors
     if (!input_.detectors)
     {
-        input_.detectors = std::make_shared<SDParams>();
+        input_.detectors = std::make_shared<DetectorParams>();
     }
     if (!input_.aux_reg)
     {
