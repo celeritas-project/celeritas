@@ -25,17 +25,6 @@ TEST(SplitMix64Test, host)
     EXPECT_EQ(9350289611492784363ul, sm());
 }
 
-TEST(SplitMix64Test, TEST_IF_CELER_DEVICE(device))
-{
-    celeritas::SplitMix64 sm(12345);
-
-    EXPECT_EQ(2454886589211414944ul, sm());
-    EXPECT_EQ(3778200017661327597ul, sm());
-    EXPECT_EQ(2205171434679333405ul, sm());
-    EXPECT_EQ(3248800117070709450ul, sm());
-    EXPECT_EQ(9350289611492784363ul, sm());
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
