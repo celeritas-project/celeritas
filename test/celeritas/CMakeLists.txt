@@ -386,16 +386,17 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 #-----------------------------------------------------------------------------#
 # Optical
 
-function(celeritas_standalone_optical_add_tests basename suite test backend)
-  set(_target "${CELERITASTEST_DIR}_${basename}")
+function(celeritas_standalone_add_tests basename suite test backend)
+  string(REPLACE "/" "_" _output_name "${basename}")
+  set(_target "${CELERITASTEST_DIR}_${_output_name}")
 
   if(NOT CELERITAS_USE_Geant4)
     list(APPEND _test_props DISABLED TRUE)
   endif()
 
   if(NOT TARGET "${_target}")
-    add_executable(${_target} "optical/${basename}.test.cc")
-    set_property(TARGET ${_target} PROPERTY OUTPUT_NAME "${basename}")
+    add_executable(${_target} "${basename}.test.cc")
+    set_property(TARGET ${_target} PROPERTY OUTPUT_NAME "${_output_name}")
 
     celeritas_target_link_libraries(${_target}
       ${CELERITASTEST_LINK_LIBRARIES}
@@ -404,7 +405,7 @@ function(celeritas_standalone_optical_add_tests basename suite test backend)
     )
   endif()
 
-  set(_test_name "celeritas/optical/${basename}:${suite}.${test}:${backend}")
+  set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
   add_test(
     NAME "${_test_name}"
     COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
@@ -412,6 +413,7 @@ function(celeritas_standalone_optical_add_tests basename suite test backend)
 
   set(_env ${CELER_G4ENV})
   set(_labels "unit")
+
   if("${backend}" STREQUAL "cpu")
     if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
       list(APPEND _env "CELER_DISABLE_DEVICE=1")
@@ -430,16 +432,16 @@ function(celeritas_standalone_optical_add_tests basename suite test backend)
   )
 endfunction()
 
-function(celeritas_add_optical_tests basename suite test)
+function(celeritas_add_standalone_tests basename suite test)
   foreach(_backend IN ITEMS cpu gpu)
-    celeritas_standalone_optical_add_tests(${basename} ${suite} ${test}
+    celeritas_standalone_add_tests(${basename} ${suite} ${test}
       ${_backend})
   endforeach()
 endfunction()
 
-celeritas_add_optical_tests(Generator LArSphereGeneratorTest primary)
-celeritas_add_optical_tests(Generator LArSphereGeneratorTest direct)
-celeritas_add_optical_tests(Generator LArSphereGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
