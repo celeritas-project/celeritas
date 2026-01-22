@@ -23,7 +23,7 @@ class SplitMix64
 {
   public:
     // Construct the SplitMix64 class with the given seed
-    inline explicit SplitMix64(std::uint64_t seed);
+    inline CELER_FUNCTION explicit SplitMix64(std::uint64_t seed);
 
     // Produce a random number
     inline CELER_FUNCTION std::uint64_t operator()();
@@ -37,7 +37,7 @@ class SplitMix64
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct the SplitMix64 engine with the given seed
+ * Construct the SplitMix64 engine with the given seed.
  */
 SplitMix64::SplitMix64(std::uint64_t seed) : state_(seed)
 {
