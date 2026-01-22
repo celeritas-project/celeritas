@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueIdIO.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/GlobalTestBase.hh"
@@ -58,7 +59,7 @@ class SDParamsTest : public OnlyGeoTestBase
     }
 };
 
-TEST_F(SDParamsTest, TEST_IF_CELERITAS_DEBUG(no_label_test))
+TEST_F(SDParamsTest, no_label_test)
 {
     auto const& geo = *this->geometry();
     inp::Detectors detectors;
@@ -77,27 +78,24 @@ TEST_F(SDParamsTest, detector_test)
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(3, params.size());
 
-    for (auto iv_id :
-         range(ImplVolumeId{static_cast<size_type>(impl_volumes.size())}))
+    for (auto iv_id : range(id_cast<ImplVolumeId>(impl_volumes.size())))
     {
         auto det_id = params.volume_to_detector_id(iv_id);
         if (det_id)
         {
             EXPECT_EQ(detector_labels[det_id.get()],
-                      this->geometry()->impl_volumes().at(iv_id).name);
+                      impl_volumes.at(iv_id).name);
 
-            std::vector<VolumeId> vol_ids
-                = params.detector_to_volume_id(det_id);
-            auto vol_id = id_cast<VolumeId>(iv_id.get());
-            EXPECT_NE(std::find_if(vol_ids.begin(),
-                                   vol_ids.end(),
-                                   [vol_id](VolumeId const& v_id) {
-                                       return v_id.get() == vol_id.get();
-                                   }),
-                      vol_ids.end());
+            auto vol_id = geo.volume_id(iv_id);
+            auto const& det_vols = params.detector_to_volume_id(det_id);
+            EXPECT_TRUE(std::find(det_vols.begin(), det_vols.end(), vol_id)
+                        != det_vols.end())
+                << "did not find volume " << vol_id
+                << " in list of volumes for detector " << det_id;
         }
     }
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
