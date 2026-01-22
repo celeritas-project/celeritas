@@ -8,9 +8,8 @@
 
 #include <unordered_map>
 
-#include "corecel/data/CollectionBuilder.hh"
-#include "geocel/GeoParamsInterface.hh"
-#include "geocel/VolumeCollectionBuilder.hh"
+#include "GeoParamsInterface.hh"
+#include "VolumeCollectionBuilder.hh"
 
 namespace celeritas
 {
@@ -42,7 +41,7 @@ DetectorParams::DetectorParams(GeoParamsInterface const& geo,
 
     mirror_ = CollectionMirror{[&] {
         HostVal<DetectorParamsData> host_data;
-        host_data.detector = build_volume_collection<DetectorId>(
+        host_data.detectors = build_volume_collection<DetectorId>(
             geo, VolumeMapFiller{detector_map});
         CELER_ENSURE(host_data);
         return host_data;
