@@ -389,6 +389,10 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 function(celeritas_standalone_optical_add_tests basename suite test backend)
   set(_target "${CELERITASTEST_DIR}_${basename}")
 
+  if(NOT CELERITAS_USE_Geant4)
+    list(APPEND _test_props DISABLED TRUE)
+  endif()
+
   if(NOT TARGET "${_target}")
     add_executable(${_target} "optical/${basename}.test.cc")
     set_property(TARGET ${_target} PROPERTY OUTPUT_NAME "${basename}")
@@ -409,20 +413,18 @@ function(celeritas_standalone_optical_add_tests basename suite test backend)
   set(_labels "unit")
   if("${backend}" STREQUAL "cpu")
     if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-      list(APPEND _env "CELER_DISABLE_DEVICE=1")
+      list(APPEND _test_props ENVIRONMENT "CELER_DISABLE_DEVICE=1")
     endif()
   elseif("${backend}" STREQUAL "gpu")
-    list(APPEND _extra_props RESOURCE_LOCK gpu)
+    list(APPEND _test_props RESOURCE_LOCK gpu)
     list(APPEND _labels gpu)
   else()
     message(SEND_ERROR "Invalid backend type ${backend}")
   endif()
 
   set_tests_properties("${_test_name}" PROPERTIES
-    ENVIRONMENT "${_env}"
     LABELS "${_labels}"
-    ${_extra_props}
-    ${ARGN}
+    ${_test_props}
   )
 endfunction()
 
