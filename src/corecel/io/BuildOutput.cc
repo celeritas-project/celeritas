@@ -66,7 +66,21 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_ADD_CFG(core_rng);
         CO_ADD_CFG(gpu_architectures);
 #undef CO_ADD_CFG
-        cfg["debug"] = bool(CELERITAS_DEBUG);
+        if constexpr (CELER_USE_DEVICE)
+        {
+            // Be specific about host/device debug options
+            std::vector<std::string> v;
+            if (CELERITAS_DEBUG)
+                v.push_back("host");
+            if (CELERITAS_DEVICE_DEBUG)
+                v.push_back("device");
+            cfg["debug"] = std::move(v);
+        }
+        else
+        {
+            // Only a boolean option is needed
+            cfg["debug"] = bool(CELERITAS_DEBUG);
+        }
 
         cfg["versions"] = [] {
             auto deps = nlohmann::json::object();
