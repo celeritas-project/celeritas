@@ -12,7 +12,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
-#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
