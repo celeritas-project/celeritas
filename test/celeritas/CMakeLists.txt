@@ -381,9 +381,70 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Optical
+
+function(celeritas_standalone_add_tests basename suite test backend)
+  string(REPLACE "/" "_" _output_name "${basename}")
+  set(_target "${CELERITASTEST_DIR}_${_output_name}")
+
+  if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "Geant4")
+    list(APPEND _test_props DISABLED TRUE)
+  endif()
+
+  if(NOT TARGET "${_target}")
+    add_executable(${_target} "${basename}.test.cc")
+    set_property(TARGET ${_target} PROPERTY OUTPUT_NAME "${_output_name}")
+
+    celeritas_target_link_libraries(${_target}
+      ${CELERITASTEST_LINK_LIBRARIES}
+      ${_g4_libs}
+      testcel_harness
+    )
+  endif()
+
+  set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
+  add_test(
+    NAME "${_test_name}"
+    COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
+  )
+
+  set(_env ${CELER_G4ENV})
+  set(_labels "unit")
+
+  if("${backend}" STREQUAL "cpu")
+    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+      list(APPEND _env "CELER_DISABLE_DEVICE=1")
+    endif()
+  elseif("${backend}" STREQUAL "gpu")
+    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+      list(APPEND _test_props RESOURCE_LOCK gpu)
+      list(APPEND _labels gpu)
+    else()
+      list(APPEND _test_props DISABLED TRUE)
+    endif()
+  else()
+    message(SEND_ERROR "Invalid backend type ${backend}")
+  endif()
+
+  set_tests_properties("${_test_name}" PROPERTIES
+    ENVIRONMENT "${_env}"
+    LABELS "${_labels}"
+    ${_test_props}
+  )
+endfunction()
+
+function(celeritas_add_standalone_tests basename suite test)
+  foreach(_backend IN ITEMS cpu gpu)
+    celeritas_standalone_add_tests(${basename} ${suite} ${test}
+      ${_backend})
+  endforeach()
+endfunction()
+
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
+
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
-celeritas_add_test(optical/Generator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)

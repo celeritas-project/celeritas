@@ -118,6 +118,7 @@ list(APPEND SOURCES
   optical/MaterialParams.cc
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
+  optical/Runner.cc
   optical/SimParams.cc
   optical/Transporter.cc
   optical/Types.cc
