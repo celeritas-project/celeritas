@@ -39,7 +39,7 @@ class SplitMix64
 /*!
  * Construct the SplitMix64 engine with the given seed.
  */
-SplitMix64::SplitMix64(std::uint64_t seed) : state_(seed)
+CELER_FUNCTION SplitMix64::SplitMix64(std::uint64_t seed) : state_(seed)
 {
     /* * */
 }
