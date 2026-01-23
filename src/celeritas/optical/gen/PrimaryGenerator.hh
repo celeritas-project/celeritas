@@ -41,6 +41,7 @@ class PrimaryGenerator
   private:
     NativeCRef<DistributionParamsData> const& params_;
     PrimaryDistributionData const& data_;
+    IsotropicDistribution<real_type> sample_polarization_;
 };
 
 //---------------------------------------------------------------------------//
@@ -73,12 +74,6 @@ PrimaryGenerator::operator()(Generator& rng)
 {
     DistributionVisitor visit{params_};
 
-    // Note that the isotropics distribution is constructed locally rather than
-    // as class data to work around a (possibly RDC related?) bug causing
-    // failures in the device geometry tests (see
-    // https://github.com/celeritas-project/celeritas/pull/2197#issuecomment-3786761444)
-    IsotropicDistribution<real_type> sample_polarization;
-
     optical::TrackInitializer result;
     result.energy = units::MevEnergy{sample_with(visit, data_.energy, rng)};
     result.position = sample_with(visit, data_.shape, rng);
@@ -86,7 +81,7 @@ PrimaryGenerator::operator()(Generator& rng)
     do
     {
         result.polarization = make_unit_vector(
-            make_orthogonal(sample_polarization(rng), result.direction));
+            make_orthogonal(sample_polarization_(rng), result.direction));
     } while (CELER_UNLIKELY(
         !is_soft_orthogonal(result.polarization, result.direction)));
 
