@@ -16,6 +16,13 @@ else()
   set(_fixme_cgs DISABLE)
 endif()
 
+if(CELERITAS_REAL_TYPE STREQUAL "double")
+  set(_needs_double)
+else()
+  # Geant4 geo navigation requires double precision
+  set(_needs_double DISABLE)
+endif()
+
 if(NOT CELERITAS_USE_PNG)
   set(_needs_png DISABLE)
 endif()
@@ -143,7 +150,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(Detector.test.cc)
   celeritas_add_test(GeantGeoUtils.test.cc)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
-  celeritas_add_test(g4/GeantGeo.test.cc)
+  celeritas_add_test(g4/GeantGeo.test.cc ${_needs_double})
   celeritas_add_test(g4/GeantNavHistoryUpdater.test.cc)
 endif()
 
