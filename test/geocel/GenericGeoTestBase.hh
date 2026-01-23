@@ -83,6 +83,7 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
   private:
     template<Ownership W, MemSpace M>
     using StateData = typename TraitsT::template StateData<W, M>;
+    // Use host store normally, or placeholder if not configured
     using HostStateStore
         = std::conditional_t<is_geometry_configured_v<G>,
                              CollectionStateStore<StateData, MemSpace::host>,

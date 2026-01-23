@@ -69,7 +69,6 @@ celeritas_add_test(BoundingBox.test.cc
 )
 
 # These tests verify both Params and View
-celeritas_add_test(Detector.test.cc)
 celeritas_add_test(Surface.test.cc)
 celeritas_add_test(Volume.test.cc)
 
@@ -140,8 +139,10 @@ list(APPEND CELERITASTEST_LINK_LIBRARIES Celeritas::ExtGeant4Geo)
 celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4})
 
 if(CELERITAS_USE_Geant4)
-  celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
+  # Tests that depend on GeantGeoTestBase will not link without it
+  celeritas_add_test(Detector.test.cc)
   celeritas_add_test(GeantGeoUtils.test.cc)
+  celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
   celeritas_add_test(g4/GeantGeo.test.cc)
   celeritas_add_test(g4/GeantNavHistoryUpdater.test.cc)
 endif()
