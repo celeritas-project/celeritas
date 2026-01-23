@@ -21,7 +21,7 @@
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 
 #if !CELER_DEVICE_SOURCE
 #    include "corecel/cont/ArrayIO.hh"

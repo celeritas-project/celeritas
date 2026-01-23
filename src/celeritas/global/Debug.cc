@@ -10,7 +10,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 

@@ -12,7 +12,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "geocel/Types.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "Types.hh"
