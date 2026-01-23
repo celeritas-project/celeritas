@@ -9,12 +9,9 @@
 #include <string>
 #include <vector>
 
-#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/GlobalTestBase.hh"
-#include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
 
 #include "HeuristicGeoData.hh"
@@ -78,9 +75,10 @@ class HeuristicGeoTestBase : public OnlyGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
-//! Run on device
-void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const&,
-                            DeviceRef<HeuristicGeoStateData> const&);
+//! Run on host device
+void heuristic_test_execute(HeuristicGeoParamsPtr<MemSpace::device> params,
+                            HeuristicGeoStatePtr<MemSpace::device> state,
+                            size_type size);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
@@ -95,23 +96,33 @@ auto HeuristicGeoTestBase::run_impl(size_type num_states, size_type num_steps)
     CELER_LOG(status) << "Running heuristic test on " << to_cstring(M);
     if constexpr (M == MemSpace::host)
     {
-        HeuristicGeoExecutor execute{params, state.ref()};
+        HeuristicGeoExecutor execute{make_observer(&params),
+                                     make_observer(&state.ref())};
         for (auto tid : range(TrackSlotId{num_states}))
         {
             for ([[maybe_unused]] auto step : range(num_steps))
             {
-                execute.state.step = step;
+                execute.state_ptr->step = step;
                 execute(tid);
             }
         }
     }
     else
     {
+        // Create device vectors to hold params and state refs
+        DeviceVector<DeviceCRef<HeuristicGeoParamsData>> params_vec(1);
+        DeviceVector<DeviceRef<HeuristicGeoStateData>> state_vec(1);
+
+        params_vec.copy_to_device({&params, 1});
+
         auto state_ref = state.ref();
         for ([[maybe_unused]] auto step : range(num_steps))
         {
             state_ref.step = step;
-            heuristic_test_execute(params, state_ref);
+            state_vec.copy_to_device({&state_ref, 1});
+            heuristic_test_execute(make_observer(params_vec),
+                                   make_observer(state_vec),
+                                   num_states);
         }
     }
 
@@ -196,8 +207,9 @@ auto HeuristicGeoTestBase::get_avg_path_impl(VecReal const& path,
 // DEVICE KERNEL EXECUTION
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const&,
-                            DeviceRef<HeuristicGeoStateData> const&)
+void heuristic_test_execute(HeuristicGeoParamsPtr<MemSpace::device>,
+                            HeuristicGeoStatePtr<MemSpace::device>,
+                            size_type)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
