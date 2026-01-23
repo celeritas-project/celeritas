@@ -65,6 +65,11 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 
+set(_geo_src geo/HeuristicGeoTestBase.cc)
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  list(APPEND _geo_src geo/HeuristicGeoTestBase.cu)
+endif()
+
 celeritas_add_test_library(testcel_celeritas
   GeantTestBase.cc
   GlobalTestBase.cc
@@ -97,6 +102,7 @@ celeritas_add_test_library(testcel_celeritas
   user/ExampleMctruth.cc
   user/MctruthTestBase.cc
   user/SimpleLoopTestBase.cc
+  ${_geo_src}
 )
 
 celeritas_target_link_libraries(testcel_celeritas
@@ -260,14 +266,7 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 #-----------------------------------------------------------------------------#
 # Geo
 
-set(_geo_args GPU ${_needs_double} ${_fixme_cgs}
-  LINK_LIBRARIES ${_all_geo_libs}
-  SOURCES geo/HeuristicGeoTestBase.cc
-)
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND _geo_args geo/HeuristicGeoTestBase.cu)
-endif()
-celeritas_add_test(geo/Geometry.test.cc ${_geo_args}
+celeritas_add_test(geo/Geometry.test.cc  GPU ${_needs_double} ${_fixme_cgs}
   FILTER "SimpleCms*" "TestEm3*" "ThreeSpheres*")
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
