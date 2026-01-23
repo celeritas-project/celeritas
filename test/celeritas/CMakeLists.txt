@@ -65,12 +65,7 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 
-set(_geo_src geo/HeuristicGeoTestBase.cc)
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND _geo_src geo/HeuristicGeoTestBase.cu)
-endif()
-
-celeritas_add_test_library(testcel_celeritas
+set(_sources
   GeantTestBase.cc
   GlobalTestBase.cc
   ImportedDataTestBase.cc
@@ -102,8 +97,10 @@ celeritas_add_test_library(testcel_celeritas
   user/ExampleMctruth.cc
   user/MctruthTestBase.cc
   user/SimpleLoopTestBase.cc
-  ${_geo_src}
 )
+celeritas_polysource_append(_sources track/MockInteractAction)
+celeritas_polysource_append(_sources geo/HeuristicGeoTestBase)
+celeritas_add_test_library(testcel_celeritas ${_sources})
 
 celeritas_target_link_libraries(testcel_celeritas
   PUBLIC
@@ -449,19 +446,7 @@ celeritas_add_test(random/RngReseed.test.cc)
 celeritas_add_test(track/Sim.test.cc ${_needs_geant4})
 celeritas_add_test(track/StatusChecker.test.cc GPU)
 celeritas_add_test(track/TrackSort.test.cc GPU ${_needs_geant4})
-
-set(_trackinit_sources
-  track/MockInteractAction.cc
-)
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND _trackinit_sources
-    track/MockInteractAction.cu
-  )
-endif()
-
-celeritas_add_test(track/TrackInit.test.cc
-  GPU SOURCES ${_trackinit_sources}
-)
+celeritas_add_test(track/TrackInit.test.cc GPU)
 
 #-----------------------------------------------------------------------------#
 # User
