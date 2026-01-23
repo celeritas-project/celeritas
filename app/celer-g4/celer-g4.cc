@@ -141,10 +141,12 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
     celeritas::TracingSession tracing{setup.input().tracing_file};
 
     // Set up loggers
-    world_logger() = Logger::from_handle_env(make_world_handler(), "CELER_LOG");
-    self_logger() = Logger::from_handle_env(
-        make_self_handler(get_geant_num_threads(*run_manager)),
-        "CELER_LOG_LOCAL");
+    world_logger() = Logger{make_world_handler(),
+                            getenv_loglevel("CELER_LOG", LogLevel::status)};
+
+    self_logger()
+        = Logger{make_self_handler(get_geant_num_threads(*run_manager)),
+                 getenv_loglevel("CELER_LOG_LOCAL", LogLevel::warning)};
 
     // Redirect Geant4 output and exceptions through Celeritas objects
     ScopedGeantLogger scoped_logger;

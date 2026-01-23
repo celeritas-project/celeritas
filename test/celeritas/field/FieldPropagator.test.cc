@@ -26,8 +26,8 @@
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformZField.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 

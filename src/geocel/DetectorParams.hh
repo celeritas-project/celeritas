@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/SDParams.hh
+//! \file geocel/DetectorParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
-#include "SDData.hh"
+#include "DetectorData.hh"
 
 namespace celeritas
 {
@@ -25,7 +25,7 @@ class GeoParamsInterface;
  *
  * \note See \c celeritas::VolumeIdBuilder for how to construct these easily.
  */
-class SDParams final : public ParamsDataInterface<SDParamsData>
+class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
 {
   public:
     //!@{
@@ -35,10 +35,10 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
 
   public:
     //! Default constructor: no detectors
-    SDParams() = default;
+    DetectorParams() = default;
 
     //! Construct from canonical volume IDs
-    SDParams(GeoParamsInterface const& geo, VecVolId&& volume_ids);
+    DetectorParams(GeoParamsInterface const& geo, VecVolId&& volume_ids);
 
     //! Whether any detectors are present
     bool empty() const { return !static_cast<bool>(mirror_); }
@@ -49,7 +49,7 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
     //! Access detector ID based on implementation volume ID
     DetectorId volume_to_detector_id(ImplVolumeId iv_id)
     {
-        return host_ref().detector[iv_id];
+        return host_ref().detectors[iv_id];
     }
 
     //! Access volume ID based on detector ID
@@ -70,7 +70,7 @@ class SDParams final : public ParamsDataInterface<SDParamsData>
 
   private:
     VecVolId volume_ids_;
-    CollectionMirror<SDParamsData> mirror_;
+    CollectionMirror<DetectorParamsData> mirror_;
 };
 
 //---------------------------------------------------------------------------//

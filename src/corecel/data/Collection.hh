@@ -21,11 +21,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Forward declare DedupeCollectionBuilder for use as a friend class
-template<class T, class Id>
-class DedupeCollectionBuilder;
-
-//---------------------------------------------------------------------------//
 /*!
  * \page collections Collection: a data portability class
  *
@@ -69,8 +64,7 @@ class DedupeCollectionBuilder;
  * - Define an operator bool that is true if and only if the class data is
  *   assigned and consistent
  * - Define a \em templated assignment operator on "other" Ownership and
- MemSpace
- *   which assigns every member to the right-hand-side's member
+ *   MemSpace which assigns every member to the right-hand-side's member
  *
  * Additionally, a \c StateData collection group must define
  * - A member function \c size() returning the number of entries (i.e. number
@@ -109,6 +103,10 @@ class DedupeCollectionBuilder;
  * item. These often need to reference a variable-sized range of data and do so
  * by storing an \c ItemRange or \c ItemMap . These two types are offsets into
  * "backend" data stored by a collection group.
+ *
+ * Finally, note that the templated type aliases \c HostVal, \c HostCRef,
+ * \c DeviceRef, etc. are useful for functions that are specialized on
+ MemSpace.
  */
 
 //! Opaque ID representing a single element of a container.
@@ -233,6 +231,11 @@ class ItemMap
     //// DATA ////
     Range<T2> range_;
 };
+
+//---------------------------------------------------------------------------//
+// Forward declare DedupeCollectionBuilder for use as a friend class
+template<class T, class Id>
+class DedupeCollectionBuilder;
 
 // Forward-declare collection builder, needed for GCC7
 template<class T2, MemSpace M2, class Id2>

@@ -2,37 +2,56 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/SDData.hh
+//! \file celeritas/optical/surface/model/SmearRoughnessData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/optical/surface/SurfaceModel.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<Ownership W, MemSpace M>
-struct SDParamsData
+namespace optical
 {
-    //// DATA ////
+//---------------------------------------------------------------------------//
+/*!
+ * Storage for uniform smear roughness model data.
+ */
+template<Ownership W, MemSpace M>
+struct SmearRoughnessData
+{
+    //!@{
+    //! \name Type aliases
+    template<class T>
+    using SurfaceItems = Collection<T, W, M, SubModelId>;
+    //!@}
 
-    //! Mapping for volume -> sensitive detector
-    Collection<DetectorId, W, M, ImplVolumeId> detector;
+    //// DATA /////
 
-    //! Whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const { return !detector.empty(); }
+    SurfaceItems<real_type> roughness;
+
+    //// METHODS ////
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !roughness.empty();
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    SDParamsData& operator=(SDParamsData<W2, M2> const& other)
+    SmearRoughnessData<W, M>& operator=(SmearRoughnessData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        detector = other.detector;
+
+        roughness = other.roughness;
+
         return *this;
     }
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

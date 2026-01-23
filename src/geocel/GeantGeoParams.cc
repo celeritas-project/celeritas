@@ -27,20 +27,16 @@
 #include <G4Version.hh>
 #include <G4VisExtent.hh>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/inp/Model.hh"
 
 #include "GeantGdmlLoader.hh"
 #include "GeantGeoUtils.hh"
-#include "GeantUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated

@@ -103,5 +103,59 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Completely set up a Celeritas optical-only problem from a standalone input.
+ */
+OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
+{
+    // Set up system
+    setup::system(si.system);
+
+    // Get optical physics options and deactivate everything else
+    GeantPhysicsOptions gpo = GeantPhysicsOptions::deactivated();
+    gpo.optical = si.geant_setup;
+
+    // Take geometry file name from problem and set up Geant4
+    auto const& geometry = si.problem.model.geometry;
+    CELER_ASSUME(std::holds_alternative<std::string>(geometry));
+    GeantSetup geant_setup(std::get<std::string>(geometry), gpo);
+
+    // Load geometry, surfaces, regions from Geant4 world pointer
+    CELER_ASSERT(geant_setup.geo_params());
+    si.problem.model = geant_setup.geo_params()->make_model_input();
+
+    // Import optical physics data from Geant4
+    ImportData imported;
+    inp::PhysicsFromGeant pfg;
+    pfg.data_selection.particles = GeantImportDataSelection::optical;
+    pfg.data_selection.processes = GeantImportDataSelection::optical;
+    setup::physics_from(pfg, imported);
+
+    // Copy optical physics from import data
+    si.problem.physics = imported.optical_physics;
+
+    // TODO: Where should these processes be enabled by the user?
+    // inp::OpticalPhysics?  inp::GeantSetup (GeantPhysicsOptions)?
+    // inp::PhysicsFromGeant? Which is meant to be user input and which is
+    // loaded during setup, or are some a combination of both?
+
+    // Manually enable Cherenkov and scintillation if set in input since only
+    // optical photon processes are imported from Geant4
+    if (std::holds_alternative<inp::OpticalOffloadGenerator>(
+            si.problem.generator))
+    {
+        si.problem.physics.cherenkov = si.geant_setup.cherenkov.enable;
+        si.problem.physics.scintillation = si.geant_setup.scintillation.enable;
+    }
+
+    // Set up optical core params and save geometry
+    OpticalStandaloneLoaded result;
+    result.problem = setup::problem(si.problem, imported);
+    result.geant_geo = geant_setup.geo_params();
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace setup
 }  // namespace celeritas

@@ -38,7 +38,6 @@ struct ProcessPrimariesExecutor
 
     ParamsPtr params;
     StatePtr state;
-    CoreStateCounters counters;
 
     Span<Primary const> primaries;
 
@@ -55,7 +54,8 @@ struct ProcessPrimariesExecutor
 CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < primaries.size());
-    CELER_EXPECT(primaries.size() <= counters.num_initializers + tid.get());
+    auto counters = state->init.counters.data().get();
+    CELER_EXPECT(primaries.size() <= counters->num_initializers + tid.get());
 
     Primary const& primary = primaries[tid.unchecked_get()];
 
@@ -73,7 +73,7 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     ti.particle.energy = primary.energy;
 
     // Store the initializer
-    size_type idx = counters.num_initializers - primaries.size() + tid.get();
+    size_type idx = counters->num_initializers - primaries.size() + tid.get();
     state->init.initializers[ItemId<TrackInitializer>(idx)] = ti;
 }
 

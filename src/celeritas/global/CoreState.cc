@@ -52,7 +52,9 @@ CoreState<M>::CoreState(CoreParams const& params,
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
 
-    counters_.num_vacancies = num_track_slots;
+    auto counters = CoreStateCounters{};
+    counters.num_vacancies = num_track_slots;
+    this->sync_put_counters(counters);
 
     if constexpr (M == MemSpace::device)
     {
@@ -114,7 +116,7 @@ CoreState<M>::~CoreState()
 template<MemSpace M>
 void CoreState<M>::warming_up(bool new_state)
 {
-    CELER_EXPECT(!new_state || counters_.num_active == 0);
+    CELER_EXPECT(!new_state || this->sync_get_counters().num_active == 0);
     warming_up_ = new_state;
 }
 
@@ -135,17 +137,62 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Copy the core state counters from the device to the host. For host-only
+ * code, the counters reside on the host, so this just returns a
+ * CoreStateCounters object. Note that it does not return a reference, so
+ * sync_put_counters() must be used if any counters change.
+ */
+template<MemSpace M>
+CoreStateCounters CoreState<M>::sync_get_counters() const
+{
+    auto* counters
+        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
+    CELER_ASSERT(counters);
+    if constexpr (M == MemSpace::device)
+    {
+        auto result
+            = ItemCopier<CoreStateCounters>{this->stream_id()}(counters);
+        device().stream(this->stream_id()).sync();
+        return result;
+    }
+    return *counters;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy the core state counters from the host to the device. For host-only
+ * code, this function copies a CoreStateCounter object into the CoreState
+ * object, which is needed when any of the counters change, because
+ * sync_get_counters() doesn't return a reference.
+ */
+template<MemSpace M>
+void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
+{
+    auto* counters
+        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
+    CELER_ASSERT(counters);
+    Copier<CoreStateCounters, M> copy{{counters, 1}, this->stream_id()};
+    copy(MemSpace::host, {&host_counters, 1});
+    if constexpr (M == MemSpace::device)
+    {
+        device().stream(this->stream_id()).sync();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Reset the state data.
  *
  * This clears the state counters and initializes the necessary state data so
- * the state can be reused for a new event. This should only be necessary if
+ * the state can be reused for a new event. This should be necessary only if
  * the previous event aborted early.
  */
 template<MemSpace M>
 void CoreState<M>::reset()
 {
-    counters_ = CoreStateCounters{};
-    counters_.num_vacancies = this->size();
+    auto counters = CoreStateCounters{};
+    counters.num_vacancies = this->size();
+    sync_put_counters(counters);
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);

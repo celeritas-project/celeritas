@@ -69,7 +69,7 @@ std::ostream& operator<<(std::ostream& os, CleanedProvenance ssd)
  */
 std::ostream& operator<<(std::ostream& os, ColorfulLogMessage clm)
 {
-    os << to_color_code(clm.lev) << to_cstring(clm.lev);
+    os << to_ansi_color(clm.lev) << to_cstring(clm.lev);
     if (!clm.prov.file.empty())
     {
         os << color_code('x') << "@"
@@ -116,7 +116,7 @@ void MtSelfWriter::operator()(LogProvenance prov,
     }
     else
     {
-        // Logging "local" message from the master thread!
+        // Logging "local" message from the master thread
         cerr << color_code('W') << "[M!] ";
     }
     cerr << ColorfulLogMessage{prov, lev, msg} << std::endl;

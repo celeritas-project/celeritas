@@ -84,13 +84,14 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstSim sim;
+        SPConstVolume volume;
         SPConstSurface surface;
         SPConstTrackInit init;
-        SPConstVolume volume;
-        SPConstWentzelOKVI wentzel;  //!< Optional (TODO: move to EM physics)
+        SPConstWentzelOKVI wentzel;  //!< TODO: move to EM physics
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
+
         SPAuxRegistry aux_reg;  //!< Optional, empty default
         SPConstMpiCommunicator mpi_comm;  //!< Optional, world_comm default
 
@@ -126,9 +127,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
     SPConstSim const& sim() const { return input_.sim; }
+    SPConstVolume const& volume() const { return input_.volume; }
     SPConstSurface const& surface() const { return input_.surface; }
     SPConstTrackInit const& init() const { return input_.init; }
-    SPConstVolume const& volume() const { return input_.volume; }
     SPConstWentzelOKVI const& wentzel() const { return input_.wentzel; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }

@@ -24,11 +24,9 @@ void ExtendFromPrimariesAction::process_primaries(
     PrimaryStateData<MemSpace::device> const& pstate) const
 {
     auto primaries = pstate.primaries();
+    auto counters = state.sync_get_counters();
     detail::ProcessPrimariesExecutor execute_thread{
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        state.counters(),
-        primaries};
+        params.ptr<MemSpace::native>(), state.ptr(), primaries};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
     if (!primaries.empty())
     {
