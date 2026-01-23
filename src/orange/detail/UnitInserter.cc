@@ -7,6 +7,7 @@
 #include "UnitInserter.hh"
 
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <regex>
 #include <set>
