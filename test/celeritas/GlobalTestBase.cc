@@ -152,7 +152,7 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
         = std::make_shared<SurfaceParams>(std::move(mi.surfaces), *volume_);
     detector_
         = std::make_shared<DetectorParams>(std::move(mi.detectors), *volume_);
-    CELER_LOG(debug) << "Built SD params with " << detector_->size()
+    CELER_LOG(debug) << "Built SD params with " << detector_->num_detectors()
                      << " detectors";
 
     return core_geo;

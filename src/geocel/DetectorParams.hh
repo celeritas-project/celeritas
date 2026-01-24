@@ -40,12 +40,14 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
     // Construct from detector input and volume params reference
     DetectorParams(inp::Detectors detectors, VolumeParams const& volumes);
 
-    //! Whether the detector mapping is valid (even if no detectors are
-    //! present)
+    //! Whether detector mapping is disabled (no volumes specified)
     bool empty() const { return !static_cast<bool>(mirror_); }
 
     //! Number of detectors
-    DetectorId::size_type size() const { return detectors_.detectors.size(); }
+    DetectorId::size_type num_detectors() const
+    {
+        return detectors_.detectors.size();
+    }
 
     //! Get detector metadata
     DetectorMap const& detector_labels() const { return det_labels_; }
@@ -76,7 +78,7 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
 //---------------------------------------------------------------------------//
 std::vector<VolumeId> const& DetectorParams::volume_id(DetectorId det_id) const
 {
-    CELER_EXPECT(det_id < this->size());
+    CELER_EXPECT(det_id < this->num_detectors());
     return detectors_.detectors[det_id.get()].volumes;
 }
 

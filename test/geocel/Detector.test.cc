@@ -53,9 +53,17 @@ class DetectorTest : public ComplexVolumeTestBase
 
 TEST_F(DetectorTest, empty)
 {
-    DetectorParams params({}, this->volumes());
+    DetectorParams params;
     EXPECT_TRUE(params.empty());
-    EXPECT_EQ(0, params.size());
+    EXPECT_EQ(0, params.num_detectors());
+    EXPECT_TRUE(params.detector_labels().empty());
+}
+
+TEST_F(DetectorTest, no_detectors)
+{
+    DetectorParams params({}, this->volumes());
+    EXPECT_FALSE(params.empty());
+    EXPECT_EQ(0, params.num_detectors());
     EXPECT_TRUE(params.detector_labels().empty());
 }
 
@@ -99,7 +107,7 @@ TEST_F(DetectorTest, multi_vol)
     DetectorParams params(std::move(dets), this->volumes());
 
     EXPECT_FALSE(params.empty());
-    EXPECT_EQ(1, params.size());
+    EXPECT_EQ(1, params.num_detectors());
     EXPECT_EQ(1, params.detector_labels().size());
 
     // Helper to get detector ID by label
@@ -154,7 +162,7 @@ TEST_F(DetectorTest, multi_det)
     DetectorParams params(std::move(dets), this->volumes());
 
     EXPECT_FALSE(params.empty());
-    EXPECT_EQ(3, params.size());
+    EXPECT_EQ(3, params.num_detectors());
     EXPECT_EQ(3, params.detector_labels().size());
 
     // Helper to get detector ID by label
@@ -182,7 +190,7 @@ TEST_F(DetectorTest, multi_det)
 
     // Check reverse mappings by iteration
     auto const& vols = this->volumes();
-    for (DetectorId det_id : range(DetectorId{params.size()}))
+    for (DetectorId det_id : range(DetectorId{params.num_detectors()}))
     {
         auto const& det_vols = params.volume_id(det_id);
         for (VolumeId vol_id : range(VolumeId{vols.num_volumes()}))

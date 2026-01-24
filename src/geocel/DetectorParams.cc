@@ -35,7 +35,7 @@ DetectorParams::DetectorParams(inp::Detectors idets,
 
     // Map volumes to detectors and validate
     std::vector<DetectorId> dets(volumes.num_volumes(), DetectorId{});
-    for (DetectorId det_id : range(DetectorId{this->size()}))
+    for (DetectorId det_id : range(DetectorId{this->num_detectors()}))
     {
         auto const& detector = detectors_.detectors[det_id.get()];
         for (VolumeId vol_id : detector.volumes)
