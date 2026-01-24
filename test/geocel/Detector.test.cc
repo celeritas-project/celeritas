@@ -57,9 +57,9 @@ class DetectorParamsTest : public GeantGeoTestBase
 
 TEST_F(DetectorParamsTest, no_label_test)
 {
-    auto const& geo = *this->geometry();
+    auto const& vols = *this->volumes();
     inp::Detectors detectors;
-    DetectorParams params(geo, detectors);
+    DetectorParams params(vols, detectors);
     EXPECT_EQ(0, params.size());
 }
 
@@ -67,23 +67,18 @@ TEST_F(DetectorParamsTest, detector_test)
 {
     VecStr detector_labels = {"gap_10", "absorber_40", "absorber_31"};
 
-    auto const& geo = *this->geometry();
-    auto const& impl_volumes = this->geometry()->impl_volumes();
+    auto const& vols = *this->volumes();
 
-    DetectorParams params(geo, this->find_volumes(detector_labels));
+    DetectorParams params(vols, this->find_volumes(detector_labels));
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(3, params.size());
 
-    for (auto iv_id : range(ImplVolumeId{impl_volumes.size()})
+    for (auto vol_id : range(VolumeId{vols.num_volumes()}))
     {
-        auto det_id = params.volume_to_detector_id(iv_id);
+        auto det_id = params.detector_id(vol_id);
         if (det_id)
         {
-            EXPECT_EQ(detector_labels[det_id.get()],
-                      impl_volumes.at(iv_id).name);
-
-            auto vol_id = geo.volume_id(iv_id);
-            auto const& det_vols = params.detector_to_volume_id(det_id);
+            auto const& det_vols = params.volume_id(det_id);
             EXPECT_TRUE(std::find(det_vols.begin(), det_vols.end(), vol_id)
                         != det_vols.end())
                 << "did not find volume " << vol_id

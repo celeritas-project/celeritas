@@ -29,7 +29,7 @@ class DetectorView
     explicit inline CELER_FUNCTION DetectorView(ParamsRef const& params);
 
     // Get the detector ID of a volume
-    inline DetectorId CELER_FUNCTION detector_id(ImplVolumeId iv_id);
+    inline DetectorId CELER_FUNCTION detector_id(VolumeId vol_id) const;
 
   private:
     ParamsRef const& params_;
@@ -49,9 +49,9 @@ DetectorView::DetectorView(ParamsRef const& params) : params_(params)
 /*!
  * Get the detector ID of a volume.
  */
-CELER_FUNCTION DetectorId DetectorView::detector_id(ImplVolumeId iv_id)
+CELER_FUNCTION DetectorId DetectorView::detector_id(VolumeId vol_id) const
 {
-    return params_.detectors[iv_id];
+    return params_.detector_ids[vol_id];
 }
 
 //---------------------------------------------------------------------------//

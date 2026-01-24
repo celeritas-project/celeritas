@@ -13,11 +13,12 @@
 #include "corecel/data/ParamsDataInterface.hh"
 
 #include "DetectorData.hh"
-#include "GeoParamsInterface.hh"
 #include "inp/Model.hh"
 
 namespace celeritas
 {
+class VolumeParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Map Geant4 sensitive detectors to distinct detector IDs.
@@ -36,8 +37,8 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
     //! Construct without detectors
     DetectorParams() = default;
 
-    // Construct from detector input and geometry reference
-    DetectorParams(GeoParamsInterface const& geo, inp::Detectors detectors);
+    // Construct from detector input and volume params reference
+    DetectorParams(VolumeParams const& volumes, inp::Detectors detectors);
 
     //! Whether any detectors are present
     bool empty() const { return !static_cast<bool>(mirror_); }
@@ -45,18 +46,11 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
     //! Number of detectors
     DetectorId::size_type size() const { return detectors_.detectors.size(); }
 
-    //! Access detector ID based on implementation volume ID
-    DetectorId volume_to_detector_id(ImplVolumeId iv_id)
-    {
-        return host_ref().detectors[iv_id];
-    }
+    // Access detector ID based on volume ID
+    inline DetectorId detector_id(VolumeId vol_id) const;
 
-    //! Access volume ID based on detector ID
-    std::vector<VolumeId> const& detector_to_volume_id(DetectorId det_id)
-    {
-        CELER_EXPECT(det_id < this->size());
-        return detectors_.detectors[det_id.get()].volumes;
-    }
+    // Access volume ID based on detector ID
+    inline std::vector<VolumeId> const& volume_id(DetectorId det_id) const;
 
     //!@{
     //! \name Data interface
@@ -71,6 +65,20 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
     CollectionMirror<DetectorParamsData> mirror_;
     inp::Detectors detectors_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+std::vector<VolumeId> const& DetectorParams::volume_id(DetectorId det_id) const
+{
+    CELER_EXPECT(det_id < this->size());
+    return detectors_.detectors[det_id.get()].volumes;
+}
+
+DetectorId DetectorParams::detector_id(VolumeId vol_id) const
+{
+    return host_ref().detector_ids[vol_id];
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

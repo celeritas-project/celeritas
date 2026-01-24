@@ -6,10 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "DetectorParams.hh"
 
-#include <unordered_map>
+#include "corecel/data/CollectionBuilder.hh"
+#include "geocel/Types.hh"
 
-#include "GeoParamsInterface.hh"
-#include "VolumeCollectionBuilder.hh"
+#include "VolumeParams.hh"
 
 namespace celeritas
 {
@@ -17,36 +17,33 @@ namespace celeritas
 /*!
  * Construct from geometry and detector input.
  */
-DetectorParams::DetectorParams(GeoParamsInterface const& geo,
-                               inp::Detectors detectors)
-    : detectors_{std::move(detectors)}
+DetectorParams::DetectorParams(VolumeParams const& volumes,
+                               inp::Detectors idets)
+    : detectors_{std::move(idets)}
 {
-    // Map labels to volume IDs
-    auto const num_impl_volumes = geo.impl_volumes().size();
-    for (auto& detector : detectors_.detectors)
+    // Map volumes to detectors and validate
+    std::vector<DetectorId> dets(volumes.num_volumes(), DetectorId{});
+    for (DetectorId det_id : range(DetectorId{this->size()}))
     {
-        CELER_VALIDATE(std::all_of(detector.volumes.begin(),
-                                   detector.volumes.end(),
-                                   [num_impl_volumes](VolumeId id) {
-                                       return id < num_impl_volumes;
-                                   }),
-                       << "invalid volume IDs given to DetectorParams");
-    }
-
-    std::unordered_map<VolumeId, DetectorId> detector_map;
-    for (auto det_id : range(DetectorId{this->size()}))
-    {
-        auto& detector = detectors_.detectors[det_id.get()];
-        for (auto& volume : detector.volumes)
+        auto const& detector = detectors_.detectors[det_id.get()];
+        for (VolumeId vol_id : detector.volumes)
         {
-            detector_map[volume] = det_id;
+            CELER_VALIDATE(vol_id < dets.size(),
+                           << "out-of-range volume ID "
+                           << vol_id.unchecked_get() << " in detector "
+                           << detector.label);
+            CELER_VALIDATE(!dets[vol_id.get()],
+                           << "volume " << vol_id.unchecked_get()
+                           << " assigned to multiple detectors");
+            dets[vol_id.get()] = det_id;
         }
     }
 
-    mirror_ = CollectionMirror{[&] {
+    mirror_ = CollectionMirror{[&dets] {
         HostVal<DetectorParamsData> host_data;
-        host_data.detectors = build_volume_collection<DetectorId>(
-            geo, VolumeMapFiller{detector_map});
+
+        CollectionBuilder{&host_data.detector_ids}.insert_back(dets.begin(),
+                                                               dets.end());
         CELER_ENSURE(host_data);
         return host_data;
     }()};
