@@ -10,6 +10,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
@@ -29,7 +30,7 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
   public:
     //!@{
     //! \name Type aliases
-    using VecVolId = std::vector<VolumeId>;
+    using SpanVol = Span<VolumeId const>;
     using DetectorMap = LabelIdMultiMap<DetectorId>;
     //!@}
 
@@ -52,11 +53,11 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
     //! Get detector metadata
     DetectorMap const& detector_labels() const { return det_labels_; }
 
-    // Access detector ID based on volume ID
+    // Find the detector ID for a given volume, if any
     inline DetectorId detector_id(VolumeId vol_id) const;
 
-    // Access volume ID based on detector ID
-    inline std::vector<VolumeId> const& volume_id(DetectorId det_id) const;
+    // Find all volumes assigned to a detector.
+    inline SpanVol volume_ids(DetectorId det_id) const;
 
     //!@{
     //! \name Data interface
@@ -76,15 +77,22 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-std::vector<VolumeId> const& DetectorParams::volume_id(DetectorId det_id) const
-{
-    CELER_EXPECT(det_id < this->num_detectors());
-    return detectors_.detectors[det_id.get()].volumes;
-}
-
+/*!
+ * Find the detector ID for a given volume, if any.
+ */
 DetectorId DetectorParams::detector_id(VolumeId vol_id) const
 {
     return host_ref().detector_ids[vol_id];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find all volumes assigned to a detector.
+ */
+auto DetectorParams::volume_ids(DetectorId det_id) const -> SpanVol
+{
+    CELER_EXPECT(det_id < this->num_detectors());
+    return make_span(detectors_.detectors[det_id.get()].volumes);
 }
 
 //---------------------------------------------------------------------------//

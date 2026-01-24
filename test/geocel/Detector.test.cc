@@ -129,7 +129,7 @@ TEST_F(DetectorTest, multi_vol)
     EXPECT_FALSE(params.detector_id(this->vol_id("E")));
 
     // Check reverse mapping by iteration
-    auto const& tracker_vols = params.volume_id(tracker_id);
+    auto tracker_vols = params.volume_ids(tracker_id);
     EXPECT_EQ(3, tracker_vols.size());
     for (VolumeId vol_id : range(VolumeId{this->volumes().num_volumes()}))
     {
@@ -192,7 +192,7 @@ TEST_F(DetectorTest, multi_det)
     auto const& vols = this->volumes();
     for (DetectorId det_id : range(DetectorId{params.num_detectors()}))
     {
-        auto const& det_vols = params.volume_id(det_id);
+        auto det_vols = params.volume_ids(det_id);
         for (VolumeId vol_id : range(VolumeId{vols.num_volumes()}))
         {
             bool is_in_detector = params.detector_id(vol_id) == det_id;
