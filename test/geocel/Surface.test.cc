@@ -4,8 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file geocel/Surface.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/Config.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
