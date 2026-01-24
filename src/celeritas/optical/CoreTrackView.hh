@@ -7,9 +7,9 @@
 #pragma once
 
 #include "corecel/random/engine/RngEngine.hh"
+#include "geocel/DetectorView.hh"
 #include "geocel/VolumeSurfaceView.hh"
-#include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/user/DetectorView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"

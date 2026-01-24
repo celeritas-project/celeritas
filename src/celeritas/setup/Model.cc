@@ -9,12 +9,12 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/GeantGeoParams.hh"  // IWYU pragma: keep
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
-#include "celeritas/user/DetectorParams.hh"
 
 namespace celeritas
 {

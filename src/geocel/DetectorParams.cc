@@ -2,13 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/DetectorParams.cc
+//! \file geocel/DetectorParams.cc
 //---------------------------------------------------------------------------//
 #include "DetectorParams.hh"
 
 #include <unordered_map>
 
-#include "geocel/VolumeCollectionBuilder.hh"
+#include "GeoParamsInterface.hh"
+#include "VolumeCollectionBuilder.hh"
 
 namespace celeritas
 {

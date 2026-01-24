@@ -28,6 +28,27 @@ constexpr bool using_vecgeom_solid = !CELERITAS_VECGEOM_SURFACE
                                             == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
+// FORWARD DECLARATIONS
+//---------------------------------------------------------------------------//
+
+template<Ownership W, MemSpace M>
+struct HeuristicGeoParamsData;
+
+template<Ownership W, MemSpace M>
+struct HeuristicGeoStateData;
+
+//---------------------------------------------------------------------------//
+// TYPE ALIASES
+//---------------------------------------------------------------------------//
+//! Pointer to heuristic geo params in native memory space
+template<MemSpace M>
+using HeuristicGeoParamsPtr = CRefPtr<HeuristicGeoParamsData, M>;
+
+//! Pointer to heuristic geo state in native memory space
+template<MemSpace M>
+using HeuristicGeoStatePtr = RefPtr<HeuristicGeoStateData, M>;
+
+//---------------------------------------------------------------------------//
 // DATA
 //---------------------------------------------------------------------------//
 struct HeuristicGeoScalars

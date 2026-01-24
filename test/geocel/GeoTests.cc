@@ -773,6 +773,32 @@ void FourLevelsGeoTest::test_detailed_tracking() const
             EXPECT_EQ("Shape1", test_->volume_name(geo));
         }
     }
+    {
+        SCOPED_TRACE("unique volume names");
+        auto geo = make_geo_track_view(*test_, {10.0, 10.0, 10.0}, {1, 0, 0});
+        EXPECT_EQ("World_PV/env1/Shape1/Shape2",
+                  test_->unique_volume_name(geo));
+        geo.find_next_step();
+        geo.move_to_boundary();
+        geo.cross_boundary();
+
+        EXPECT_EQ("World_PV/env1/Shape1", test_->unique_volume_name(geo));
+        geo.find_next_step();
+        geo.move_to_boundary();
+        geo.cross_boundary();
+
+        EXPECT_EQ("World_PV/env1", test_->unique_volume_name(geo));
+        geo.find_next_step();
+        geo.move_to_boundary();
+        geo.cross_boundary();
+
+        EXPECT_EQ("World_PV", test_->unique_volume_name(geo));
+        geo.find_next_step();
+        geo.move_to_boundary();
+        geo.cross_boundary();
+
+        EXPECT_EQ("[OUTSIDE]", test_->unique_volume_name(geo));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -1620,7 +1646,7 @@ void ReplicaGeoTest::test_volume_stack() const
         if (test_->geometry_type() != "VecGeom"
             || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
         {
-            // TODO: VecGemo 2.x-solids returns wrong volume instances
+            // TODO: VecGeom 2.x-solids returns wrong volume instances
             EXPECT_REF_EQ(ref, result);
         }
     }
@@ -1631,6 +1657,38 @@ void ReplicaGeoTest::test_volume_stack() const
         ref.volume_instances
             = {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
         EXPECT_REF_EQ(ref, result);
+    }
+    {
+        using R2 = Array<real_type, 2>;
+
+        static R2 const points[] = {
+            {-435, 550},
+            {-460, 550},
+            {-400, 650},
+            {-450, 650},
+            {-450, 700},
+        };
+
+        std::vector<std::string> all_vol_inst;
+        for (R2 xz : points)
+        {
+            Real3 pos{xz[0], 0.01, xz[1]};
+            auto result = test_->volume_stack(pos);
+            all_vol_inst.emplace_back(
+                to_string(join(result.volume_instances.begin(),
+                               result.volume_instances.end(),
+                               ",")));
+        }
+
+        std::vector<std::string> expected_all_vol_inst = {
+            "world_PV,fSecondArmPhys,EMcalorimeter,cell_param@14",
+            "world_PV,fSecondArmPhys,EMcalorimeter,cell_param@6",
+            R"(world_PV,fSecondArmPhys,HadCalorimeter,HadCalColumn_PV@4,HadCalCell_PV@1,HadCalLayer_PV@2)",
+            R"(world_PV,fSecondArmPhys,HadCalorimeter,HadCalColumn_PV@2,HadCalCell_PV@1,HadCalLayer_PV@7)",
+            R"(world_PV,fSecondArmPhys,HadCalorimeter,HadCalColumn_PV@3,HadCalCell_PV@1,HadCalLayer_PV@16)",
+        };
+
+        EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
     }
 }
 

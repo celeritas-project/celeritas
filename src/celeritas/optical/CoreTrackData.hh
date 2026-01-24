@@ -9,10 +9,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/random/data/RngData.hh"
+#include "geocel/DetectorData.hh"
 #include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/user/DetectorData.hh"
 
 #include "CoreTrackDataFwd.hh"
 #include "MaterialData.hh"

@@ -16,6 +16,13 @@ else()
   set(_fixme_cgs DISABLE)
 endif()
 
+if(CELERITAS_REAL_TYPE STREQUAL "double")
+  set(_needs_double)
+else()
+  # Geant4 geo navigation requires double precision
+  set(_needs_double DISABLE)
+endif()
+
 if(NOT CELERITAS_USE_PNG)
   set(_needs_png DISABLE)
 endif()
@@ -34,7 +41,7 @@ set(SOURCES
   VolumeTestBase.cc
 )
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+if(CELERITAS_USE_Geant4)
   list(APPEND SOURCES
     g4/GeantGeoTestBase.cc
   )
@@ -67,6 +74,8 @@ celeritas_setup_tests(SERIAL
 celeritas_add_test(BoundingBox.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
+
+# These tests verify both Params and View
 celeritas_add_test(Surface.test.cc)
 celeritas_add_test(Volume.test.cc)
 
@@ -137,16 +146,14 @@ list(APPEND CELERITASTEST_LINK_LIBRARIES Celeritas::ExtGeant4Geo)
 celeritas_add_test(GeantGdmlLoader.test.cc ${_needs_geant4})
 
 if(CELERITAS_USE_Geant4)
+  # Tests that depend on GeantGeoTestBase will not link without it
+  celeritas_add_test(Detector.test.cc)
+  celeritas_add_test(GeantGeoUtils.test.cc)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
+  celeritas_add_test(g4/GeantGeo.test.cc ${_needs_double})
+  celeritas_add_test(g4/GeantNavHistoryUpdater.test.cc)
 endif()
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  # These all require the Geant4 geometry wrappers which only are built when
-  # double-precision is enabled
-  celeritas_add_test(g4/GeantGeo.test.cc)
-  celeritas_add_test(g4/GeantNavHistoryUpdater.test.cc)
-  celeritas_add_test(GeantGeoUtils.test.cc)
-endif()
 list(POP_BACK CELERITASTEST_LINK_LIBRARIES)
 
 #-----------------------------------------------------------------------------#

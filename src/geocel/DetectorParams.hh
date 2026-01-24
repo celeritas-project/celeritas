@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/DetectorParams.hh
+//! \file geocel/DetectorParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,10 +11,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "geocel/GeoParamsInterface.hh"
-#include "geocel/inp/Model.hh"
 
 #include "DetectorData.hh"
+#include "GeoParamsInterface.hh"
+#include "inp/Model.hh"
 
 namespace celeritas
 {

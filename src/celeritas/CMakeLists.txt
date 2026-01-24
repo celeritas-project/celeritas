@@ -118,6 +118,7 @@ list(APPEND SOURCES
   optical/MaterialParams.cc
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
+  optical/Runner.cc
   optical/SimParams.cc
   optical/Transporter.cc
   optical/Types.cc
@@ -154,7 +155,6 @@ list(APPEND SOURCES
   track/SortTracksAction.cc
   track/TrackInitParams.cc
   user/ActionTimes.cc
-  user/DetectorParams.cc
   user/DetectorSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc

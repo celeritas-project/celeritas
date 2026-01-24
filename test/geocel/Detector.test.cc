@@ -2,10 +2,8 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/DetectorParams.test.cc
+//! \file geocel/Detector.test.cc
 //---------------------------------------------------------------------------//
-
-#include "celeritas/user/DetectorParams.hh"
 
 #include <memory>
 #include <string_view>
@@ -14,21 +12,19 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueIdIO.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
-#include "celeritas/GlobalTestBase.hh"
-#include "celeritas/OnlyCoreTestBase.hh"
-#include "celeritas/OnlyGeoTestBase.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
 
 #include "celeritas_test.hh"
+#include "g4/GeantGeoTestBase.hh"
 
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-class DetectorParamsTest : public OnlyGeoTestBase
+class DetectorParamsTest : public GeantGeoTestBase
 {
   public:
     using VecStr = std::vector<std::string>;

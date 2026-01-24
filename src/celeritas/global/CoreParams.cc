@@ -23,6 +23,7 @@
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
@@ -45,7 +46,6 @@
 #include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/SortTracksAction.hh"
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
-#include "celeritas/user/DetectorParams.hh"
 
 #include "ActionInterface.hh"
 

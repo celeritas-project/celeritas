@@ -2,19 +2,28 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/g4/GeantGeoTestBase.cc
+//! \file corecel/random/SplitMix64.test.cc
 //---------------------------------------------------------------------------//
-#include "GeantGeoTestBase.hh"
+#include "corecel/random/engine/SplitMix64.hh"
 
-#include "geocel/GenericGeoTestBase.t.hh"  // IWYU pragma: keep
-#include "geocel/g4/GeantGeoTrackView.hh"  // IWYU pragma: keep
+#include "celeritas_test.hh"
 
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-template class GenericGeoTestBase<GeantGeoParams>;
+
+TEST(SplitMix64Test, host)
+{
+    celeritas::SplitMix64 sm(12345);
+
+    EXPECT_EQ(2454886589211414944ul, sm());
+    EXPECT_EQ(3778200017661327597ul, sm());
+    EXPECT_EQ(2205171434679333405ul, sm());
+    EXPECT_EQ(3248800117070709450ul, sm());
+    EXPECT_EQ(9350289611492784363ul, sm());
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

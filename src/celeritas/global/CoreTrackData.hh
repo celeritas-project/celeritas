@@ -10,6 +10,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/random/data/RngData.hh"
+#include "geocel/DetectorData.hh"
 #include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
@@ -21,7 +22,6 @@
 #include "celeritas/phys/PhysicsData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
-#include "celeritas/user/DetectorData.hh"
 
 #include "CoreTrackDataFwd.hh"
 

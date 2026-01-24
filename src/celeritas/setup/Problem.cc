@@ -821,28 +821,32 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
     auto params = build_optical_params(p, std::move(loaded_model), imported);
     CELER_ASSERT(params);
 
-    // Construct the optical generator
-    std::visit(Overload{
-                   [&](inp::OpticalEmGenerator) {
-                       CELER_VALIDATE(false,
-                                      << "OpticalEmGenerator cannot be used "
-                                         "with only optical physics enabled");
-                   },
-                   [&](inp::OpticalOffloadGenerator) {
-                       optical::GeneratorAction::make_and_insert(
-                           *params, p.capacity.generators);
-                   },
-                   [&](inp::OpticalPrimaryGenerator opg) {
-                       optical::PrimaryGeneratorAction::make_and_insert(
-                           *params, std::move(opg));
-                   },
-                   [&](inp::OpticalDirectGenerator) {
-                       optical::DirectGeneratorAction::make_and_insert(*params);
-                   },
-               },
-               p.generator);
-
     OpticalProblemLoaded result;
+
+    using SPGeneratorBase = std::shared_ptr<optical::GeneratorBase>;
+
+    // Construct the optical generator
+    result.generator = std::visit(
+        Overload{
+            [&](inp::OpticalEmGenerator) -> SPGeneratorBase {
+                CELER_VALIDATE(false,
+                               << "OpticalEmGenerator cannot be used "
+                                  "with only optical physics enabled");
+                return nullptr;
+            },
+            [&](inp::OpticalOffloadGenerator) -> SPGeneratorBase {
+                return optical::GeneratorAction::make_and_insert(
+                    *params, p.capacity.generators);
+            },
+            [&](inp::OpticalPrimaryGenerator opg) -> SPGeneratorBase {
+                return optical::PrimaryGeneratorAction::make_and_insert(
+                    *params, std::move(opg));
+            },
+            [&](inp::OpticalDirectGenerator) -> SPGeneratorBase {
+                return optical::DirectGeneratorAction::make_and_insert(*params);
+            },
+        },
+        p.generator);
 
     // Build the optical transporter \em after all optical actions have been
     // added to the registry

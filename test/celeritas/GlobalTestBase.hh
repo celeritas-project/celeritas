@@ -14,11 +14,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/LazyGeantGeoManager.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/optical/CoreParams.hh"
-#include "celeritas/user/DetectorParams.hh"
 
 #include "Test.hh"
 

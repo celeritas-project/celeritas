@@ -27,6 +27,7 @@
 #include "geocel/ScopedGeantLogger.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
+#include "geocel/g4/GeantGeoTrackView.hh"  // IWYU pragma: keep
 #include "geocel/inp/Model.hh"  // IWYU pragma: keep
 #include "geocel/rasterize/SafetyImager.hh"
 
@@ -429,32 +430,6 @@ TEST_F(FourLevelsTest, safety)
     EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
 }
 
-TEST_F(FourLevelsTest, levels)
-{
-    auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-    EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("World_PV/env1/Shape1", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("World_PV/env1", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("World_PV", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
-}
-
 //---------------------------------------------------------------------------//
 using LarSphereTest
     = GenericGeoParameterizedTest<GeantGeoTest, LarSphereGeoTest>;
@@ -801,49 +776,6 @@ TEST_F(ReplicaTest, trace)
 TEST_F(ReplicaTest, volume_stack)
 {
     this->impl().test_volume_stack();
-}
-
-TEST_F(ReplicaTest, level_strings)
-{
-    using R2 = Array<double, 2>;
-
-    auto const& vol_inst = this->volumes()->volume_instance_labels();
-
-    static R2 const points[] = {
-        {-435, 550},
-        {-460, 550},
-        {-400, 650},
-        {-450, 650},
-        {-450, 700},
-    };
-
-    std::vector<std::string> all_vol_inst;
-    for (R2 xz : points)
-    {
-        auto geo = this->make_geo_track_view({xz[0], 0.0, xz[1]}, {1, 0, 0});
-
-        auto depth = geo.volume_level();
-        CELER_ASSERT(depth && depth >= VolumeLevelId{0});
-        std::vector<VolumeInstanceId> inst_ids(depth.get() + 1);
-        geo.volume_instance_id(make_span(inst_ids));
-        std::vector<std::string> names(inst_ids.size());
-        for (auto i : range(inst_ids.size()))
-        {
-            Label lab = vol_inst.at(inst_ids[i]);
-            names[i] = to_string(lab);
-        }
-        all_vol_inst.push_back(to_string(repr(names)));
-    }
-
-    static char const* const expected_all_vol_inst[] = {
-        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@14"})",
-        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@6"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@4", "HadCalCell_PV@1", "HadCalLayer_PV@2"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@2", "HadCalCell_PV@1", "HadCalLayer_PV@7"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@3", "HadCalCell_PV@1", "HadCalLayer_PV@16"})",
-    };
-
-    EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
 }
 
 //---------------------------------------------------------------------------//

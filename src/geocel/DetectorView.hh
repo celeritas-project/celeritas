@@ -2,13 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/DetectorView.hh
+//! \file geocel/DetectorView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "geocel/Types.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/user/DetectorData.hh"
+
+#include "DetectorData.hh"
 
 namespace celeritas
 {

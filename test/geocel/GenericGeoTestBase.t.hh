@@ -11,10 +11,7 @@
 
 #include <memory>
 
-#include "corecel/math/ArrayOperators.hh"
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "geocel/Types.hh"
 
 #include "PersistentSP.hh"
 
@@ -22,11 +19,6 @@ namespace celeritas
 {
 namespace test
 {
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_VERSION
-                                  && CELERITAS_VECGEOM_SURFACE;
-constexpr bool using_solids_vg = CELERITAS_VECGEOM_VERSION
-                                 && !CELERITAS_VECGEOM_SURFACE;
-
 //---------------------------------------------------------------------------//
 //! Default constructor
 template<class HP>
@@ -95,7 +87,17 @@ auto GenericGeoTestBase<HP>::geometry() const -> SPConstGeo const&
 template<class HP>
 auto GenericGeoTestBase<HP>::make_geo_track_view_interface() -> UPGeoTrack
 {
-    return std::make_unique<WrappedGeoTrack>(this->make_geo_track_view());
+    if constexpr (std::is_same_v<real_type,
+                                 typename TraitsT::TrackView::real_type>)
+    {
+        return std::make_unique<WrappedGeoTrack>(this->make_geo_track_view());
+    }
+    else
+    {
+        CELER_NOT_CONFIGURED(
+            "geometry track view compatible with current real_type");
+        return nullptr;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -112,6 +114,17 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
     CELER_EXPECT(tsid < host_state_.size());
     return WrappedGeoTrack{
         this->geometry()->host_ref(), host_state_.ref(), tsid};
+}
+
+//---------------------------------------------------------------------------//
+//! Get and initialize a single-thread host track view
+template<class HP>
+auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos_cm, Real3 dir)
+    -> WrappedGeoTrack
+{
+    auto tv = this->make_geo_track_view();
+    tv = this->make_initializer(pos_cm, dir);
+    return tv;
 }
 
 //---------------------------------------------------------------------------//

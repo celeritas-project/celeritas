@@ -50,6 +50,14 @@
       }
     },
     {
+      "name": "dreldeb",
+      "displayName": "Build with optimizations, and enable all debugging (VecGeom)",
+      "inherits": [".base", ".reldeb"],
+      "cacheVariables": {
+        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
       "name": "release-orange",
       "displayName": "Build with full optimizations (ORANGE)",
       "inherits": [".orange", "release"]

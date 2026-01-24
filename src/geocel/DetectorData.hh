@@ -2,24 +2,28 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/DetectorData.hh
+//! \file geocel/DetectorData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/Types.hh"
+#include "geocel/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Sensitive detector mapping for geometry
 template<Ownership W, MemSpace M>
 struct DetectorParamsData
 {
+    template<class T>
+    using ImplVolumeItems = Collection<T, W, M, ImplVolumeId>;
+
     //// DATA ////
 
-    //! Mapping for volume -> sensitive detector
-    Collection<DetectorId, W, M, ImplVolumeId> detectors;
+    //! Map implementation volume -> sensitive detector
+    ImplVolumeItems<DetectorId> detectors;
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
