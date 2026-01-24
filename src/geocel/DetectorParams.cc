@@ -23,7 +23,6 @@ DetectorParams::DetectorParams(GeoParamsInterface const& geo,
 {
     // Map labels to volume IDs
     auto const num_impl_volumes = geo.impl_volumes().size();
-
     for (auto& detector : detectors_.detectors)
     {
         CELER_VALIDATE(std::all_of(detector.volumes.begin(),
@@ -35,7 +34,7 @@ DetectorParams::DetectorParams(GeoParamsInterface const& geo,
     }
 
     std::unordered_map<VolumeId, DetectorId> detector_map;
-    for (auto det_id : range(id_cast<DetectorId>(detectors_.detectors.size())))
+    for (auto det_id : range(DetectorId{this->size()}))
     {
         auto& detector = detectors_.detectors[det_id.get()];
         for (auto& volume : detector.volumes)

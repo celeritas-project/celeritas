@@ -74,7 +74,7 @@ TEST_F(DetectorParamsTest, detector_test)
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(3, params.size());
 
-    for (auto iv_id : range(id_cast<ImplVolumeId>(impl_volumes.size())))
+    for (auto iv_id : range(ImplVolumeId{impl_volumes.size()})
     {
         auto det_id = params.volume_to_detector_id(iv_id);
         if (det_id)
