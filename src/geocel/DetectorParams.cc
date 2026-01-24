@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "DetectorParams.hh"
 
+#include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "geocel/Types.hh"
 
@@ -17,10 +18,21 @@ namespace celeritas
 /*!
  * Construct from geometry and detector input.
  */
-DetectorParams::DetectorParams(VolumeParams const& volumes,
-                               inp::Detectors idets)
+DetectorParams::DetectorParams(inp::Detectors idets,
+                               VolumeParams const& volumes)
     : detectors_{std::move(idets)}
 {
+    CELER_EXPECT(!volumes.empty());
+
+    // Build label mapping
+    std::vector<Label> labels;
+    labels.reserve(detectors_.detectors.size());
+    for (auto const& detector : detectors_.detectors)
+    {
+        labels.push_back(detector.label);
+    }
+    det_labels_ = DetectorMap{std::move(labels)};
+
     // Map volumes to detectors and validate
     std::vector<DetectorId> dets(volumes.num_volumes(), DetectorId{});
     for (DetectorId det_id : range(DetectorId{this->size()}))
@@ -47,6 +59,8 @@ DetectorParams::DetectorParams(VolumeParams const& volumes,
         CELER_ENSURE(host_data);
         return host_data;
     }()};
+
+    CELER_ENSURE(det_labels_.size() == detectors_.detectors.size());
 }
 
 //---------------------------------------------------------------------------//

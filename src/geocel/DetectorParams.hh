@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
@@ -22,8 +23,6 @@ class VolumeParams;
 //---------------------------------------------------------------------------//
 /*!
  * Map Geant4 sensitive detectors to distinct detector IDs.
- *
- * \note See \c celeritas::VolumeIdBuilder for how to construct these easily.
  */
 class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
 {
@@ -31,20 +30,25 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
     //!@{
     //! \name Type aliases
     using VecVolId = std::vector<VolumeId>;
+    using DetectorMap = LabelIdMultiMap<DetectorId>;
     //!@}
 
   public:
-    //! Construct without detectors
+    //! Construct without detectors or volumes
     DetectorParams() = default;
 
     // Construct from detector input and volume params reference
-    DetectorParams(VolumeParams const& volumes, inp::Detectors detectors);
+    DetectorParams(inp::Detectors detectors, VolumeParams const& volumes);
 
-    //! Whether any detectors are present
+    //! Whether the detector mapping is valid (even if no detectors are
+    //! present)
     bool empty() const { return !static_cast<bool>(mirror_); }
 
     //! Number of detectors
     DetectorId::size_type size() const { return detectors_.detectors.size(); }
+
+    //! Get detector metadata
+    DetectorMap const& detector_labels() const { return det_labels_; }
 
     // Access detector ID based on volume ID
     inline DetectorId detector_id(VolumeId vol_id) const;
@@ -64,6 +68,7 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
   private:
     CollectionMirror<DetectorParamsData> mirror_;
     inp::Detectors detectors_;
+    DetectorMap det_labels_;
 };
 
 //---------------------------------------------------------------------------//

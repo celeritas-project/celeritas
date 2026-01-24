@@ -14,7 +14,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/data/AuxParamsRegistry.hh"
-#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -147,13 +146,14 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
     }
 
     auto mi = model_geo->make_model_input();
-    volume_ = std::make_shared<VolumeParams>(mi.volumes);
+    volume_ = std::make_shared<VolumeParams>(std::move(mi.volumes));
     celeritas::global_volumes(volume_);
-    surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
-
-    detector_ = std::make_shared<DetectorParams>(*core_geo, mi.detectors);
-    CELER_LOG(debug) << "Built SD params with "
-                     << mi.detectors.detectors.size() << " detectors";
+    surface_
+        = std::make_shared<SurfaceParams>(std::move(mi.surfaces), *volume_);
+    detector_
+        = std::make_shared<DetectorParams>(std::move(mi.detectors), *volume_);
+    CELER_LOG(debug) << "Built SD params with " << detector_->size()
+                     << " detectors";
 
     return core_geo;
 }

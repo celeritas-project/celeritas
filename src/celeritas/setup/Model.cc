@@ -120,7 +120,7 @@ ModelLoaded model(inp::Model const& m)
         = std::make_shared<SurfaceParams>(m.surfaces, *result.volume);
 
     result.detector
-        = std::make_shared<DetectorParams>(*result.geometry, m.detectors);
+        = std::make_shared<DetectorParams>(m.detectors, *result.volume);
 
     return result;
 }

@@ -5,6 +5,7 @@
 //! \file geocel/Detector.test.cc
 //---------------------------------------------------------------------------//
 
+#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "geocel/DetectorParams.hh"
 #include "geocel/DetectorView.hh"
 #include "geocel/VolumeParams.hh"
@@ -52,16 +53,14 @@ class DetectorTest : public ComplexVolumeTestBase
 
 TEST_F(DetectorTest, empty)
 {
-    auto const& vols = this->volumes();
-    DetectorParams params(vols, {});
+    DetectorParams params({}, this->volumes());
     EXPECT_TRUE(params.empty());
     EXPECT_EQ(0, params.size());
+    EXPECT_TRUE(params.detector_labels().empty());
 }
 
 TEST_F(DetectorTest, errors)
 {
-    auto const& vols = this->volumes();
-
     // Test out-of-range volume ID
     {
         inp::Detectors dets;
@@ -70,7 +69,8 @@ TEST_F(DetectorTest, errors)
         detector.volumes.push_back(VolumeId{999});
         dets.detectors.push_back(std::move(detector));
 
-        EXPECT_THROW(DetectorParams(vols, std::move(dets)), RuntimeError);
+        EXPECT_THROW(DetectorParams(std::move(dets), this->volumes()),
+                     RuntimeError);
     }
 
     // Test duplicate volume assignment
@@ -86,7 +86,8 @@ TEST_F(DetectorTest, errors)
         det2.volumes.push_back(VolumeId{0});  // Same volume as det1
         dets.detectors.push_back(std::move(det2));
 
-        EXPECT_THROW(DetectorParams(vols, std::move(dets)), RuntimeError);
+        EXPECT_THROW(DetectorParams(std::move(dets), this->volumes()),
+                     RuntimeError);
     }
 }
 
@@ -95,14 +96,21 @@ TEST_F(DetectorTest, multi_vol)
     // Single detector covering multiple volumes
     auto dets = this->make_detectors({{"tracker", {"B", "C", "D"}}});
 
-    auto const& vols = this->volumes();
-    DetectorParams params(vols, std::move(dets));
+    DetectorParams params(std::move(dets), this->volumes());
 
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(1, params.size());
+    EXPECT_EQ(1, params.detector_labels().size());
 
-    // Check detector ID
-    DetectorId tracker_id{0};
+    // Helper to get detector ID by label
+    auto det_id = [&params](std::string const& label) {
+        return params.detector_labels().find_unique(label);
+    };
+
+    // Test label lookup
+    EXPECT_EQ("tracker", params.detector_labels().at(det_id("tracker")));
+    auto tracker_id = det_id("tracker");
+    EXPECT_TRUE(tracker_id);
 
     EXPECT_EQ(tracker_id, params.detector_id(this->vol_id("B")));
     EXPECT_EQ(tracker_id, params.detector_id(this->vol_id("C")));
@@ -112,10 +120,10 @@ TEST_F(DetectorTest, multi_vol)
     EXPECT_FALSE(params.detector_id(this->vol_id("A")));
     EXPECT_FALSE(params.detector_id(this->vol_id("E")));
 
-    // Check reverse mapping by iterating over all volumes
+    // Check reverse mapping by iteration
     auto const& tracker_vols = params.volume_id(tracker_id);
     EXPECT_EQ(3, tracker_vols.size());
-    for (VolumeId vol_id : range(VolumeId{vols.num_volumes()}))
+    for (VolumeId vol_id : range(VolumeId{this->volumes().num_volumes()}))
     {
         bool is_in_tracker = params.detector_id(vol_id) == tracker_id;
         bool is_in_list
@@ -143,16 +151,28 @@ TEST_F(DetectorTest, multi_det)
         {"muon", {"D", "E"}},  // Two volumes
     });
 
-    auto const& vols = this->volumes();
-    DetectorParams params(vols, std::move(dets));
+    DetectorParams params(std::move(dets), this->volumes());
 
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(3, params.size());
+    EXPECT_EQ(3, params.detector_labels().size());
 
-    // Check detector IDs
-    DetectorId calo_id{0};
-    DetectorId tracker_id{1};
-    DetectorId muon_id{2};
+    // Helper to get detector ID by label
+    auto det_id = [&params](std::string const& label) {
+        return params.detector_labels().find_unique(label);
+    };
+
+    // Test label lookups
+    auto calo_id = det_id("calorimeter");
+    auto tracker_id = det_id("tracker");
+    auto muon_id = det_id("muon");
+    EXPECT_TRUE(calo_id);
+    EXPECT_TRUE(tracker_id);
+    EXPECT_TRUE(muon_id);
+
+    EXPECT_EQ("calorimeter", params.detector_labels().at(calo_id));
+    EXPECT_EQ("tracker", params.detector_labels().at(tracker_id));
+    EXPECT_EQ("muon", params.detector_labels().at(muon_id));
 
     EXPECT_EQ(calo_id, params.detector_id(this->vol_id("A")));
     EXPECT_EQ(calo_id, params.detector_id(this->vol_id("B")));
@@ -161,6 +181,7 @@ TEST_F(DetectorTest, multi_det)
     EXPECT_EQ(muon_id, params.detector_id(this->vol_id("E")));
 
     // Check reverse mappings by iteration
+    auto const& vols = this->volumes();
     for (DetectorId det_id : range(DetectorId{params.size()}))
     {
         auto const& det_vols = params.volume_id(det_id);
