@@ -39,32 +39,11 @@
 
 namespace celeritas
 {
-namespace
-{
-
-//---------------------------------------------------------------------------//
-//! Placeholder SD class for generating model data from GDML
-class GdmlSensitiveDetector final : public G4VSensitiveDetector
-{
-  public:
-    GdmlSensitiveDetector(std::string const& name) : G4VSensitiveDetector{name}
-    {
-    }
-
-    void Initialize(G4HCofThisEvent*) final {}
-    bool ProcessHits(G4Step*, G4TouchableHistory*) final { return false; }
-};
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a GDML file and physics options.
  */
-GeantSetup::GeantSetup(std::string const& gdml_filename,
-                       Options options,
-                       Sd build_sd_opt)
+GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
     ScopedProfiling profile_this{"initialize-geant"};
@@ -107,16 +86,8 @@ GeantSetup::GeantSetup(std::string const& gdml_filename,
 
         // Construct the geometry
         DetectorConstruction::SDBuilder make_sd;
-        if (build_sd_opt == Sd::dummy)
-        {
-            make_sd = [](std::string const& name) {
-                return std::make_unique<GdmlSensitiveDetector>(name);
-            };
-        }
         auto detector
             = std::make_unique<DetectorConstruction>(gdml_filename, make_sd);
-        // Transfer ownership to geant4 but keep a reference to the builder,
-        // which creates the geometry during run manager initialize
         p_detector = detector.get();
         run_manager_->SetUserInitialization(detector.release());
 
