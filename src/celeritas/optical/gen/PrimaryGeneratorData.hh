@@ -8,8 +8,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/random/Types.hh"
-#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -22,7 +20,6 @@ namespace optical
 struct PrimaryDistributionData
 {
     size_type num_photons{};
-    PrimaryId primary;  //!< For correlating to G4 tracks (test use)
     OnedDistributionId energy;
     ThreedDistributionId angle;
     ThreedDistributionId shape;

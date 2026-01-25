@@ -67,7 +67,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
     DistributionInserter insert(host_params);
 
     data_.num_photons = inp.primaries;
-    data_.primary = {};  // No associated G4 primary for standalone generation
     data_.energy = std::visit(insert, inp.energy);
     data_.angle = std::visit(insert, inp.angle);
     data_.shape = std::visit(insert, inp.shape);
