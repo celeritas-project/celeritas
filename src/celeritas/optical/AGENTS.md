@@ -71,10 +71,12 @@ Optical photons originate from multiple sources:
 - Can specify primary ID explicitly (defaults to invalid)
 - **Path**: `gen/PrimaryGenerator.{hh,cc}`, `gen/PrimaryGeneratorAction.{hh,cc}`
 
-### 5. Geant4 Offload
-- Photons generated from main stepping loop distributions
-- Stored in `GeneratorDistributionData` with primary ID
-- Actions: `GeneratorAction`, `OffloadAction`, `OffloadGatherAction`
+### 5. Direct Generation (`DirectGenerator`)
+- Direct initialization from pre-built `TrackInitializer` buffers
+- Used for Geant4 offload: buffers populated by offload actions, consumed by direct generator
+- Initializers stored in `DirectGeneratorStateData` and processed from back to front
+- Includes primary ID from originating Geant4 track
+- **Path**: `gen/DirectGeneratorData.hh`, `gen/detail/DirectGeneratorExecutor.hh`
 
 ## Primary ID Tracking
 
