@@ -297,7 +297,12 @@ TEST_F(LarSphereOpticalOffload, run)
 //---------------------------------------------------------------------------//
 class LSOOTrackingAction final : public G4UserTrackingAction
 {
+  public:
     void PreUserTrackingAction(G4Track const* track) final;
+    std::size_t num_pushed() const { return num_pushed_; }
+
+  private:
+    std::size_t num_pushed_{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -309,10 +314,16 @@ class LarSphereOpticalTrackOffload : public LarSphere
   public:
     PhysicsInput make_physics_input() const override;
     SetupOptions make_setup_options() override;
+    void EndOfRunAction(G4Run const* run) override;
     UPTrackAction make_tracking_action() override
     {
-        return std::make_unique<LSOOTrackingAction>();
+        auto act = std::make_unique<LSOOTrackingAction>();
+        tracking_.push_back(act.get());
+        return act;
     }
+
+  private:
+    std::vector<LSOOTrackingAction*> tracking_;
 };
 
 //---------------------------------------------------------------------------//
@@ -382,6 +393,7 @@ void LSOOTrackingAction::PreUserTrackingAction(G4Track const* track)
             = detail::IntegrationSingleton::local_optical_track_offload();
         if (opt_local)
         {
+            ++num_pushed_;
             auto* mutable_track = const_cast<G4Track*>(track);
             opt_local.Push(*mutable_track);
             mutable_track->SetTrackStatus(fStopAndKill);
@@ -391,10 +403,30 @@ void LSOOTrackingAction::PreUserTrackingAction(G4Track const* track)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Test that the optical track offload was successful.
+ */
+void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
+{
+    if (G4Threading::IsMasterThread())
+    {
+        std::size_t pushed{0};
+        for (auto* ta : tracking_)
+        {
+            pushed += ta->num_pushed();
+        }
+        EXPECT_EQ(pushed, 150459);
+    }
+
+    // Continue cleanup and other checks at end of run
+    LarSphere::EndOfRunAction(run);
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(LarSphereOpticalTrackOffload, run)
 {
     auto& rm = this->run_manager();
-    rm.SetNumberOfThreads(1);
+    rm.SetNumberOfThreads(2);
     UAI::Instance().SetOptions(this->make_setup_options());
 
     rm.Initialize();
