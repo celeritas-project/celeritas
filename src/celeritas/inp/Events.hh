@@ -99,8 +99,6 @@ struct OpticalPrimaryGenerator : PrimaryGenerator
 {
     //! Total number of primaries
     size_type primaries{};
-    //! ID to assign all primaries
-    PrimaryId primary_id;
 
     //! True if there's at least one primary
     explicit operator bool() const { return primaries > 0; }

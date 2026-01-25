@@ -106,17 +106,13 @@ class LArSphereGeneratorTest : public Test
 
 TEST_F(LArSphereGeneratorTest, primary)
 {
-    // Create primary generator input with specific primary ID for testing
-    // correlation between generated optical photons and originating primaries
-    PrimaryId test_primary_id{42};
-    osi_.problem.generator = [&test_primary_id] {
+    // Create primary generator input
+    osi_.problem.generator = [] {
         inp::OpticalPrimaryGenerator gen;
         gen.primaries = 65536;
-        gen.primary_id = test_primary_id;
         gen.energy = inp::MonoenergeticDistribution{1e-5};
         gen.angle = inp::IsotropicDistribution{};
         gen.shape = inp::PointDistribution{{0, 0, 0}};
-        CELER_ENSURE(gen);
         return gen;
     }();
 
