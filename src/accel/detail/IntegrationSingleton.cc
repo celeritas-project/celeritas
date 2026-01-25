@@ -133,7 +133,7 @@ LocalOpticalTrackOffload& IntegrationSingleton::local_optical_track_offload()
     }
     auto* lt = dynamic_cast<LocalOpticalTrackOffload*>(offload.get());
     CELER_VALIDATE(lt,
-                   << "Cannot access LocalOpticalTrtackOffload when "
+                   << "Cannot access LocalOpticalTrackOffload when "
                       "LocalTransporter is being used");
     return *lt;
 }
@@ -144,10 +144,9 @@ LocalOpticalTrackOffload& IntegrationSingleton::local_optical_track_offload()
  */
 LocalOffloadInterface& IntegrationSingleton::local_offload()
 {
-    CELER_VALIDATE(!(this->optical_track_offload() && this->optical_offload()),
-                   << "Cannot enable both optical generator offload and "
-                      "optical "
-                      "track offload at the same time");
+    CELER_VALIDATE(
+        !(this->optical_track_offload() && this->optical_offload()),
+        << R"(Cannot enable both optical generator offload and optical track offload at the same time)");
 
     if (this->optical_track_offload())
     {
