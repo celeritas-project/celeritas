@@ -27,6 +27,7 @@ struct WlsDistributionData
     units::MevEnergy energy;
     real_type time{};  //!< Post-step time
     Real3 position{};
+    PrimaryId primary;  //!< For correlating to G4 tracks
     OptMatId material;
 
     //! Check whether the data are assigned

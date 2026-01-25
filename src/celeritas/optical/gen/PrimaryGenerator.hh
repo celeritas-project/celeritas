@@ -78,6 +78,7 @@ PrimaryGenerator::operator()(Generator& rng)
     result.energy = units::MevEnergy{sample_with(visit, data_.energy, rng)};
     result.position = sample_with(visit, data_.shape, rng);
     result.direction = sample_with(visit, data_.angle, rng);
+    result.primary = {};  // No associated Geant4 primary
     do
     {
         result.polarization = make_unit_vector(
