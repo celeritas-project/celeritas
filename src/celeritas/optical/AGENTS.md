@@ -126,29 +126,14 @@ Example: `AbsorptionModel` → `AbsorptionExecutor` → absorption physics
 - Tracks buffer space requirements
 - Coordinates generation across actions
 
-## Testing Considerations
-
-When writing tests:
-- Use `TrackInitializer` with appropriate primary ID
-- For offload tests: set specific `PrimaryId` values
-- Check test files for examples:
-  - `test/celeritas/optical/Generator.test.cc`
-  - `test/celeritas/optical/SurfacePhysicsIntegrationTestBase.cc`
-
 ## Important Differences from Main Stepping
 
 1. **No particle types**: Only optical photons (single particle type)
 2. **Simplified state**: No secondary storage, simplified initialization
 3. **Direct generation**: Photons created directly, not from secondaries stack
 4. **Surface-dominated**: Optical surfaces are primary interaction mode
-5. **Wavelength-dependent**: Material properties vary with photon energy
 
 ## Geometry Integration
-
-Supports same geometry engines as main Celeritas:
-- **ORANGE**: Native Celeritas geometry
-- **VecGeom**: GPU-compatible CSG/GDML
-- **Geant4**: Via navigator adapter
 
 Optical materials (`OpticalMaterialParams`) map to geometry volumes.
 
@@ -184,7 +169,7 @@ src/celeritas/optical/
 2. **Validity**: Use `explicit operator bool()` for validation
 3. **Assignment**: Support cross-memory-space assignment via templated `operator=`
 4. **Collections**: Use `ItemId<T>`, `ItemRange<T>` for type-safe indexing
-5. **Units**: Energy is `units::MevEnergy`, positions are `Real3` in cm
+5. **Units**: Energy is `units::MevEnergy`, positions are `Real3` in cm by default
 
 ## Related Documentation
 
@@ -195,15 +180,12 @@ src/celeritas/optical/
 
 ## Common Pitfalls
 
-1. **Forgetting primary field**: Always initialize `primary` in `TrackInitializer`
-2. **Missing CELER_FUNCTION**: Host-device code requires proper macros
-3. **Memory space mismatch**: Ensure params/state memory spaces are compatible
-4. **Invalid IDs**: Check ID validity with `explicit operator bool()`
-5. **Aggregate initialization**: Field order matters! Check structure definitions
+1. **Missing CELER_FUNCTION**: Host-device code requires proper macros
+2. **Data/execution inconsistency**: Check that input, data, views, initializers, and executors match
+3. **Aggregate initialization**: Field order matters! Check structure definitions.
 
 ## Future Work / TODO
 
 - Correlate optical photon detection with originating primaries
 - Enhanced optical photon scoring and output
 - Multi-event buffer management optimization
-- Optical physics validation against Geant4
