@@ -68,7 +68,8 @@ auto Runner::operator()() -> Result
     auto generate
         = std::dynamic_pointer_cast<optical::PrimaryGeneratorAction const>(
             problem_.generator);
-    CELER_ASSERT(generate);
+    CELER_VALIDATE(generate,
+                   << "runner call does not match input generator type");
 
     // Set the number of pending tracks
     generate->insert(*state_);
@@ -87,7 +88,8 @@ auto Runner::operator()(SpanConstTrackInit data) -> Result
     auto generate
         = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
             problem_.generator);
-    CELER_ASSERT(generate);
+    CELER_VALIDATE(generate,
+                   << "runner call does not match input generator type");
 
     // Insert track initializers
     generate->insert(*state_, data);
@@ -105,8 +107,8 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
 {
     auto generate = std::dynamic_pointer_cast<optical::GeneratorAction const>(
         problem_.generator);
-    CELER_ASSERT(generate);
-
+    CELER_VALIDATE(generate,
+                   << "runner call does not match input generator type");
     // Insert optical distributions
     generate->insert(*state_, data);
 

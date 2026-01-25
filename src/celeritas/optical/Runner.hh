@@ -8,8 +8,6 @@
 
 #include <memory>
 
-#include "corecel/Types.hh"
-#include "celeritas/Types.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/setup/StandaloneInput.hh"
 #include "celeritas/user/ActionTimes.hh"
