@@ -839,6 +839,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
                    [&](inp::OpticalDirectGenerator) {
                        optical::DirectGeneratorAction::make_and_insert(*params);
                    },
+                   [&](inp::OpticalTrackOffload) {},
                },
                p.generator);
 

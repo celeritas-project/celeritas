@@ -134,9 +134,10 @@ struct OpticalTrackOffload
 struct OpticalDirectGenerator
 {
 };
+
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical photons track.
+ * Generate with individual optical photon tracks copied from CPU.
  */
 struct OpticalTrackOffload
 {

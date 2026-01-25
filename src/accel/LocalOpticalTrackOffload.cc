@@ -32,16 +32,16 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
                       "Celeritas "
                       "offloading is disabled");
 
-    // Check the thread ID and MT model
-    validate_geant_threading(params.Params()->max_streams());
-
     // Save a pointer to the optical transporter
-    transport_ = params.optical_transporter();
+    transport_ = params.optical_problem_loaded().transporter;
 
     CELER_ASSERT(transport_);
     CELER_ASSERT(transport_->params());
 
     auto const& optical_params = *transport_->params();
+
+    // Check the thread ID and MT model
+    validate_geant_threading(optical_params.max_streams());
 
     CELER_EXPECT(options.optical);
     auto const& capacity = options.optical->capacity;
@@ -63,10 +63,10 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
     }
 
     // Allocate auxiliary data
-    if (params.Params()->aux_reg())
+    if (optical_params.aux_reg())
     {
         state_->aux() = std::make_shared<AuxStateVec>(
-            *params.Params()->aux_reg(), memspace, stream_id, capacity.tracks);
+            *optical_params.aux_reg(), memspace, stream_id, capacity.tracks);
     }
 
     CELER_ENSURE(*this);

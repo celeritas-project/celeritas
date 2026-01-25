@@ -108,7 +108,7 @@ void TrackingManagerConstructor::ConstructProcess()
         shared_ && get_local_,
         << R"(invalid null inputs given to TrackingManagerConstructor)");
 
-    LocalTransporter* transporter{nullptr};
+    TrackOffloadInterface* transporter{nullptr};
 
     if (G4Threading::IsWorkerThread()
         || !G4Threading::IsMultithreadedApplication())
