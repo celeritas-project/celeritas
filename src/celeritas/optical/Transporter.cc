@@ -64,7 +64,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
     size_type num_step_iters{0};
     size_type num_steps{0};
 
-    auto const& counters = state.counters();
+    auto counters = state.sync_get_counters();
 
     // Store a pointer to aux data for timing results
     std::vector<double>* accum_time = nullptr;
@@ -111,6 +111,9 @@ void Transporter::transport_impl(CoreState<M>& state) const
             state.reset();
             break;
         }
+        // No longer have a reference to the counters, so need to retrieve the
+        // updated values
+        counters = state.sync_get_counters();
     }
 
     // Update statistics
