@@ -11,7 +11,11 @@ Celeritas is a GPU-accelerated HEP detector physics library for HL-LHC, integrat
 - **accel/**: Geant4 integration layer (offload mechanisms, tracking managers)
 
 ### Data Flow Pattern
-Celeritas separates *shared* data from *state* data:
+- Input data (`**/inp/*`, `celeritas::inp` namespace) is constructed by the user (some legacy input data lives in `celeritas/io/ImportData`) and should be named as the class it constructs
+- Defaults and setup occur in `**/setup/*`, `celeritas::setup` namespace (this is a work in progress)
+- Class constructors should ensure the class completes in a valid state with all needed runtime data
+
+Celeritas separates *shared* runtime data from *state* data:
 - **Params**: Immutable problem setup data (physics tables, geometry) - constructed once
 - **States**: Mutable per-track data (particle states, RNG states) - one per concurrent event/track
 - Data exists in **host** and **device** memory spaces with explicit ownership (`value`, `reference`, `const_reference`)
@@ -34,6 +38,9 @@ ctest
 - Uses GoogleTest with base-class test harness and custom helper macros
 - Unit test for class ``celeritas::A::Foo`` should be defined in namespace
   ``celeritas::A::test``
+- Some Geant4-based tests cannot be run directly as executables and *must* be run through ctest
+ - Required environment variables are set by CTest
+ - Test suites are run individually because Geant4 physics cannot be reloaded in an execution
 
 ## Code Conventions
 
