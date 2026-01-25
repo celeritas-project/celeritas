@@ -9,7 +9,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/optical/TrackInitializer.hh"
-#include "celeritas/optical/Types.hh"
+#include "celeritas/phys/GeneratorInterface.hh"
 
 namespace celeritas
 {
