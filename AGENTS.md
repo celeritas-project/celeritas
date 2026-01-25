@@ -38,6 +38,9 @@ ctest
 - Uses GoogleTest with base-class test harness and custom helper macros
 - Unit test for class ``celeritas::A::Foo`` should be defined in namespace
   ``celeritas::A::test``
+- Some Geant4-based tests cannot be run directly as executables and *must* be run through ctest
+ - Required environment variables are set by CTest
+ - Test suites are run individually because Geant4 physics cannot be reloaded in an execution
 
 ## Code Conventions
 
