@@ -138,6 +138,8 @@ struct MyParamsData {
 
 Collections power the params/states architecture: build on host with `Ownership::value`, copy to device, then access via `const_reference` (params) or `reference` (states). See `src/corecel/data/Collection.hh` for details.
 
+State collections must have *resize* operators that allocate for the multiple track slots.
+
 ### Test Requirements
 Every class needs a unit test with cyclomatic complexity coverage. Detail classes (in `detail/` namespaces) are exempt but still recommended.
 
@@ -168,6 +170,11 @@ Supports ORANGE (native), VecGeom, and Geant4 geometries. GDML is the standard i
 ## Common Pitfalls
 
 - Never copy-paste code: instead, refactor into reusable functors
+- Ensure consistency between setup, runtime data, and execution code:
+  * problem input,
+  * data (members, bool validators, assignment, and resizing),
+  * views (and initializers), and
+  * executors (and interactors if applicable)
 - Failing to mark functions `CELER_FUNCTION` will cause `call to __host__ function from __device__` errors
 
 ## External Dependencies
