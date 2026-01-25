@@ -66,8 +66,8 @@ template<Ownership W, MemSpace M>
 struct CoreParamsData
 {
     GeoParamsData<W, M> geometry;
-    GeoMaterialParamsData<W, M> geo_mats;
     MaterialParamsData<W, M> materials;
+    GeoMaterialParamsData<W, M> geo_mats;
     ParticleParamsData<W, M> particles;
     CutoffParamsData<W, M> cutoffs;
     PhysicsParamsData<W, M> physics;
@@ -82,7 +82,8 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && geo_mats && materials && particles && cutoffs
+        // OPTIONAL: surface, volumes
+        return geometry && materials && geo_mats && particles && cutoffs
                && physics && rng && sim && init && scalars;
     }
 
@@ -92,8 +93,8 @@ struct CoreParamsData
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
-        geo_mats = other.geo_mats;
         materials = other.materials;
+        geo_mats = other.geo_mats;
         particles = other.particles;
         cutoffs = other.cutoffs;
         physics = other.physics;

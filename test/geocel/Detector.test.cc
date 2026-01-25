@@ -2,31 +2,26 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/SDParams.test.cc
+//! \file geocel/Detector.test.cc
 //---------------------------------------------------------------------------//
-
-#include "celeritas/user/SDParams.hh"
-
 #include <memory>
 #include <string_view>
 #include <vector>
 #include <gtest/gtest.h>
 
 #include "corecel/Assert.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/VolumeParams.hh"
-#include "celeritas/GlobalTestBase.hh"
-#include "celeritas/OnlyCoreTestBase.hh"
-#include "celeritas/OnlyGeoTestBase.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
 
 #include "celeritas_test.hh"
+#include "g4/GeantGeoTestBase.hh"
 
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-class SDParamsTest : public OnlyGeoTestBase
+class DetectorParamsTest : public GeantGeoTestBase
 {
   public:
     using VecStr = std::vector<std::string>;
@@ -54,9 +49,9 @@ class SDParamsTest : public OnlyGeoTestBase
     }
 };
 
-TEST_F(SDParamsTest, empty_constructor_test)
+TEST_F(DetectorParamsTest, empty_constructor_test)
 {
-    SDParams params;
+    DetectorParams params;
     EXPECT_TRUE(params.empty());
 
     if (CELERITAS_DEBUG)
@@ -70,20 +65,20 @@ TEST_F(SDParamsTest, empty_constructor_test)
     }
 }
 
-TEST_F(SDParamsTest, TEST_IF_CELERITAS_DEBUG(invalid_label_test))
+TEST_F(DetectorParamsTest, TEST_IF_CELERITAS_DEBUG(invalid_label_test))
 {
     auto const& geo = *this->geometry();
-    EXPECT_THROW(SDParams(geo, {VolumeId{}}), celeritas::RuntimeError);
+    EXPECT_THROW(DetectorParams(geo, {VolumeId{}}), celeritas::RuntimeError);
 }
 
-TEST_F(SDParamsTest, detector_test)
+TEST_F(DetectorParamsTest, detector_test)
 {
     VecStr detector_labels = {"gap_10", "absorber_40", "absorber_31"};
 
     auto const& geo = *this->geometry();
     auto const& impl_volumes = this->geometry()->impl_volumes();
 
-    SDParams params(geo, this->find_volumes(detector_labels));
+    DetectorParams params(geo, this->find_volumes(detector_labels));
     EXPECT_FALSE(params.empty());
     EXPECT_EQ(3, params.size());
 
@@ -98,5 +93,6 @@ TEST_F(SDParamsTest, detector_test)
     }
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

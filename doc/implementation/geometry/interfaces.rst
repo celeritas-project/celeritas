@@ -14,6 +14,8 @@ volume identifiers with Geant4 runtime data structures.
 
 .. doxygenclass:: celeritas::GeoParamsInterface
 
+.. doxygenclass:: celeritas::DetectorParams
+
 A few helper functions can be used to build collections (see
 :ref:`api_data_model`) of ``ImplVolumeId`` for runtime tracking (used
 internally by fields, physics, etc.).

@@ -14,6 +14,7 @@
 #include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/CoreGeoTestBase.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 
 #include "celeritas_test.hh"
 

@@ -20,7 +20,7 @@
 #include "celeritas/em/msc/detail/UrbanMscScatter.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"

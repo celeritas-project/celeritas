@@ -8,7 +8,7 @@
 
 #include "corecel/random/engine/RngEngine.hh"
 #include "geocel/VolumeSurfaceView.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 
 #include "CoreTrackData.hh"
 #include "MaterialView.hh"

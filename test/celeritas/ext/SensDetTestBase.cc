@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/SDTestBase.cc
+//! \file celeritas/ext/SensDetTestBase.cc
 //---------------------------------------------------------------------------//
-#include "SDTestBase.hh"
+#include "SensDetTestBase.hh"
 
 #include <G4LogicalVolumeStore.hh>
 #include <G4SDManager.hh>
@@ -21,7 +21,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 //! Attach SDs when building geometry
-auto SDTestBase::build_geant_geo(std::string const& filename) const
+auto SensDetTestBase::build_geant_geo(std::string const& filename) const
     -> SPConstGeantGeo
 {
     CELER_EXPECT(detectors_.empty());
@@ -63,7 +63,7 @@ auto SDTestBase::build_geant_geo(std::string const& filename) const
 
 //---------------------------------------------------------------------------//
 //! Restore SD map when rebuilding geometry
-auto SDTestBase::build_geometry() -> SPConstCoreGeo
+auto SensDetTestBase::build_geometry() -> SPConstCoreGeo
 {
     // Build or fetch geo
     auto result = Base::build_geometry();

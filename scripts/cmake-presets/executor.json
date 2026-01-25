@@ -21,7 +21,8 @@
         "BUILD_TESTING":         {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_covfie":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_USE_DD4hep":   {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_DD4hep":  {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_LArSoft": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_HIP":     {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL",   "value": "ON"},
@@ -53,6 +54,19 @@
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "min",
+      "displayName": "Goldfinger minimal build",
+      "inherits": [".base", ".debug", "default"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-min/.spack-env/view"
+      },
+      "cacheVariables": {
+        "CELERITAS_USE_covfie":  {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL",   "value": "OFF"}
       }
     },
     {
