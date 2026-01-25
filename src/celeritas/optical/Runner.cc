@@ -82,7 +82,7 @@ auto Runner::operator()() -> Result
 /*!
  * Transport tracks generated directly from track initializers.
  */
-auto Runner::operator()(DirectGeneratorData data) -> Result
+auto Runner::operator()(SpanConstTrackInit data) -> Result
 {
     auto generate
         = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
@@ -101,7 +101,7 @@ auto Runner::operator()(DirectGeneratorData data) -> Result
 /*!
  * Transport tracks generated through scintillation or Cherenkov.
  */
-auto Runner::operator()(OffloadGeneratorData data) -> Result
+auto Runner::operator()(SpanConstGenDist data) -> Result
 {
     auto generate = std::dynamic_pointer_cast<optical::GeneratorAction const>(
         problem_.generator);
