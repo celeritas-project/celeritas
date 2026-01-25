@@ -66,6 +66,7 @@ struct DTMixMucfData
     using MaterialItems = Collection<T, W, M, MuCfMatId>;
     using GridRecord = NonuniformGridRecord;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, Array<real_type, 2>>;
+    using MaterialFractionsArray = EnumArray<MucfIsotope, real_type>;
 
     //! Particle IDs
     MucfParticleIds particles;
@@ -78,6 +79,8 @@ struct DTMixMucfData
     //! Material-dependent data calculated at model construction
     //! \c PhysMatId indexed by \c MuCfMatId
     MaterialItems<PhysMatId> mucfmatid_to_matid;
+    //! Isotopic fractions per material: [mat_comp_id][isotope]
+    MaterialItems<MaterialFractionsArray> isotopic_fractions;
     //! Cycle times per material: [mat_comp_id][muonic_molecule][spin_index]
     MaterialItems<CycleTimesArray> cycle_times;  //!< In [s]
     //! \todo Add mean atom spin flip times
@@ -88,7 +91,8 @@ struct DTMixMucfData
     explicit CELER_FUNCTION operator bool() const
     {
         return particles && muon_energy_cdf && !mucfmatid_to_matid.empty()
-               && !cycle_times.empty()
+               && !isotopic_fractions.empty() && !cycle_times.empty()
+               && (mucfmatid_to_matid.size() == isotopic_fractions.size())
                && (mucfmatid_to_matid.size() == cycle_times.size());
     }
 
@@ -103,6 +107,7 @@ struct DTMixMucfData
         this->reals = other.reals;
         this->muon_energy_cdf = other.muon_energy_cdf;
         this->mucfmatid_to_matid = other.mucfmatid_to_matid;
+        this->isotopic_fractions = other.isotopic_fractions;
         this->cycle_times = other.cycle_times;
 
         return *this;
