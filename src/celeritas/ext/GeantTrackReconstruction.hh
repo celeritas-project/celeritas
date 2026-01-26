@@ -45,7 +45,7 @@ class GeantTrackReconstruction
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantTrackReconstruction);
 
     // Clear G4Track reconstruction data
-    void end_event();
+    void clear();
 
     // Register mapping from Celeritas PrimaryID to Geant4 track ID
     [[nodiscard]] PrimaryId acquire(G4Track&);

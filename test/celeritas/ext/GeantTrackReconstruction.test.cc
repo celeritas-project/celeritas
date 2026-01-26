@@ -114,7 +114,7 @@ TEST_F(GeantTrackReconstructionTest, construction)
     GeantTrackReconstruction recon({}, step_);
 
     // Test that end_event works
-    recon.end_event();
+    recon.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -273,7 +273,7 @@ TEST_F(GeantTrackReconstructionTest, end_event_cleanup)
     EXPECT_NE(track1.GetCreatorProcess(), track2.GetCreatorProcess());
 
     // End event should clear reconstruction data
-    recon.end_event();
+    recon.clear();
 
     // Verify all tracks have cleared user information
     for (auto particle_id :

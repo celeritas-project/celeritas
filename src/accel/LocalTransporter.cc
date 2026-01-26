@@ -411,7 +411,7 @@ void LocalTransporter::Flush()
                                    << " hits for event " << event_id_.get();
             run_accum_.hits += num_hits;
         }
-        hit_processor_->track_reconstruction().end_event();
+        hit_processor_->track_reconstruction().clear();
     }
 }
 

@@ -88,7 +88,7 @@ GeantTrackReconstruction::~GeantTrackReconstruction()
     try
     {
         CELER_LOG(debug) << "Deallocating track reconstruction";
-        this->end_event();
+        this->clear();
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
     {
@@ -100,11 +100,11 @@ GeantTrackReconstruction::~GeantTrackReconstruction()
 /*!
  * Clear G4Track reconstruction data.
  */
-void GeantTrackReconstruction::end_event()
+void GeantTrackReconstruction::clear()
 {
     for (auto& track : tracks_)
     {
-        // Clear the user information to prevent double deletion
+        // Clear the user information to prevent double deletion:
         // GeantTrackReconstruction owns the track user info
         track->SetUserInformation(nullptr);
     }
