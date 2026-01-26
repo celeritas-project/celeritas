@@ -93,6 +93,9 @@ void Transporter::transport_impl(CoreState<M>& state) const
             }
         }
 
+        // No longer have a reference to the counters, so need to retrieve the
+        // updated values
+        counters = state.sync_get_counters();
         num_steps += counters.num_active;
         if (CELER_UNLIKELY(++num_step_iters
                            == this->params()->sim()->max_step_iters()))
@@ -111,9 +114,6 @@ void Transporter::transport_impl(CoreState<M>& state) const
             state.reset();
             break;
         }
-        // No longer have a reference to the counters, so need to retrieve the
-        // updated values
-        counters = state.sync_get_counters();
     }
 
     // Update statistics
