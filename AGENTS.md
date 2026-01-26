@@ -51,7 +51,7 @@ ctest
 - `.device.hh/.device.cc`: Requires CUDA/HIP runtime but compilable by host compiler
 - `.test.cc`: Unit tests
 
-Most development doesn't involve CUDA/HIP code: only kernel launches (device execution) should be in `.cu` files.
+Most development doesn't involve CUDA/HIP code: only kernel launches (device execution) should be in `.cu` files. Use the `celeritas-gen.py` tool to create new files from templates.
 
 ### Host-Device Compatibility
 Use these macros (from `corecel/Macros.hh`):
