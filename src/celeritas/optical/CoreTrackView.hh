@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/random/engine/RngEngine.hh"
+#include "geocel/DetectorView.hh"
 #include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
 
@@ -77,6 +78,9 @@ class CoreTrackView
 
     // Return a surface physics view
     inline CELER_FUNCTION SurfacePhysicsTrackView surface_physics() const;
+
+    // Return a sensitive detector view
+    inline CELER_FUNCTION DetectorView detectors() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -244,6 +248,15 @@ CELER_FUNCTION auto CoreTrackView::surface_physics() const
     return SurfacePhysicsTrackView{params_.surface_physics,
                                    states_.surface_physics,
                                    this->track_slot_id()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a sensitive detector view.
+ */
+CELER_FUNCTION auto CoreTrackView::detectors() const -> DetectorView
+{
+    return DetectorView{params_.detectors};
 }
 
 //---------------------------------------------------------------------------//

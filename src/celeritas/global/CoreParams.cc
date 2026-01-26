@@ -23,6 +23,7 @@
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
@@ -86,8 +87,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     // NOTE: volumes do not yet have device data
     ref.surface = get_ref<M>(*p.surface);
     ref.init = get_ref<M>(*p.init);
-    // TODO when volume params is visible on device:
-    // ref.volume = get_ref<M>(*p.volume);
+    ref.detectors = get_ref<M>(*p.detectors);
     if (p.wentzel)
     {
         ref.wentzel = get_ref<M>(*p.wentzel);
@@ -251,6 +251,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(volume);
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(init);
+    CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(output_reg);
     CP_VALIDATE_INPUT(max_streams);

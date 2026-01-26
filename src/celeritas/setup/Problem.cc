@@ -331,7 +331,7 @@ auto build_optical_params(inp::Problem const& p,
     pi.surface = core.surface();
     pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
         pi.action_reg.get(), p.physics.optical.surfaces);
-    // TODO: copy detectors from core
+    pi.detectors = core.detectors();
 
     // Photon generating processes
     if (p.physics.optical.cherenkov)
@@ -388,7 +388,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.surface = std::move(loaded_model.surface);
     pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
         pi.action_reg.get(), p.physics.surfaces);
-    // TODO: save loaded detectors
+    pi.detectors = std::move(loaded_model.detector);
 
     // Streams and capacities
     pi.max_streams = p.num_streams;
@@ -514,7 +514,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
             }
             params.surface = std::make_shared<SurfaceParams>();
         }
-        // TODO: save detectors to params
+        params.detectors = std::move(loaded_model.detector);
     }
 
     // Load materials

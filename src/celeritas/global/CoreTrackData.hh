@@ -10,6 +10,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/random/data/RngData.hh"
+#include "geocel/DetectorData.hh"
 #include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
@@ -74,6 +75,7 @@ struct CoreParamsData
     RngParamsData<W, M> rng;
     SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
+    DetectorParamsData<W, M> detectors;
     TrackInitParamsData<W, M> init;
     WentzelOKVIData<W, M> wentzel;
 
@@ -82,7 +84,7 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        // OPTIONAL: surface, volumes
+        // OPTIONAL: surface, volumes, detectors
         return geometry && materials && geo_mats && particles && cutoffs
                && physics && rng && sim && init && scalars;
     }
@@ -101,6 +103,7 @@ struct CoreParamsData
         rng = other.rng;
         sim = other.sim;
         surface = other.surface;
+        detectors = other.detectors;
         init = other.init;
         wentzel = other.wentzel;
         scalars = other.scalars;
