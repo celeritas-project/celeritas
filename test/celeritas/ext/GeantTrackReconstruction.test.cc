@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/TrackProcessor.test.cc
+//! \file celeritas/ext/GeantTrackReconstruction.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/ext/detail/TrackProcessor.hh"
+#include "celeritas/ext/GeantTrackReconstruction.hh"
 
 #include <G4DynamicParticle.hh>
 #include <G4ParticleDefinition.hh>
@@ -23,8 +23,6 @@
 #include "celeritas_test.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 namespace test
 {
@@ -83,10 +81,10 @@ class MockProcess : public G4VProcess
 
 //---------------------------------------------------------------------------//
 
-class TrackProcessorTest : public ::celeritas::test::SimpleCmsTestBase
+class GeantTrackReconstructionTest : public ::celeritas::test::SimpleCmsTestBase
 {
   protected:
-    using VecParticle = TrackProcessor::VecParticle;
+    using VecParticle = GeantTrackReconstruction::VecParticle;
     using size_type = ::celeritas::size_type;
 
     void SetUp() override
@@ -110,20 +108,20 @@ class TrackProcessorTest : public ::celeritas::test::SimpleCmsTestBase
 
 //---------------------------------------------------------------------------//
 
-TEST_F(TrackProcessorTest, construction)
+TEST_F(GeantTrackReconstructionTest, construction)
 {
     // Create an empty processor first to test basic construction
-    TrackProcessor processor({}, step_);
+    GeantTrackReconstruction recon({}, step_);
 
     // Test that end_event works
-    processor.end_event();
+    recon.end_event();
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(TrackProcessorTest, primary_registration)
+TEST_F(GeantTrackReconstructionTest, primary_registration)
 {
-    TrackProcessor processor(particles_, step_);
+    GeantTrackReconstruction recon(particles_, step_);
 
     // Create a primary track
     auto primary_track = std::make_unique<G4Track>(
@@ -142,7 +140,7 @@ TEST_F(TrackProcessorTest, primary_registration)
     primary_track->SetCreatorProcess(mock_process.get());
 
     // Register primary
-    PrimaryId primary_id = processor.acquire(*primary_track);
+    PrimaryId primary_id = recon.acquire(*primary_track);
 
     // Verify primary ID
     EXPECT_EQ(0, primary_id.unchecked_get());
@@ -151,7 +149,7 @@ TEST_F(TrackProcessorTest, primary_registration)
     EXPECT_EQ(nullptr, primary_track->GetUserInformation());
 
     // Test that process information can be retrieved by restoring the track
-    G4Track& test_restored = processor.view(ParticleId{0}, primary_id);
+    G4Track& test_restored = recon.view(ParticleId{0}, primary_id);
     EXPECT_EQ(mock_process.get(), test_restored.GetCreatorProcess());
     EXPECT_EQ(123, test_restored.GetTrackID());
 
@@ -163,15 +161,15 @@ TEST_F(TrackProcessorTest, primary_registration)
     primary_track2->SetTrackID(456);
     primary_track2->SetParentID(0);
 
-    PrimaryId primary_id2 = processor.acquire(*primary_track2);
+    PrimaryId primary_id2 = recon.acquire(*primary_track2);
     EXPECT_EQ(1, primary_id2.unchecked_get());
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(TrackProcessorTest, track_restoration)
+TEST_F(GeantTrackReconstructionTest, track_restoration)
 {
-    TrackProcessor processor(particles_, step_);
+    GeantTrackReconstruction recon(particles_, step_);
 
     // Create and register primary track with user information
     auto primary_track = std::make_unique<G4Track>(
@@ -188,10 +186,10 @@ TEST_F(TrackProcessorTest, track_restoration)
     auto mock_process = std::make_unique<MockProcess>("TestBremsstrahlung");
     primary_track->SetCreatorProcess(mock_process.get());
 
-    PrimaryId primary_id = processor.acquire(*primary_track);
+    PrimaryId primary_id = recon.acquire(*primary_track);
 
     // Restore track for electron (particle ID 1) with primary information
-    G4Track& restored_track = processor.view(ParticleId{1}, primary_id);
+    G4Track& restored_track = recon.view(ParticleId{1}, primary_id);
 
     // Verify restored track properties
     EXPECT_EQ(789, restored_track.GetTrackID());
@@ -211,12 +209,12 @@ TEST_F(TrackProcessorTest, track_restoration)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(TrackProcessorTest, track_restoration_without_primary)
+TEST_F(GeantTrackReconstructionTest, track_restoration_without_primary)
 {
-    TrackProcessor processor(particles_, step_);
+    GeantTrackReconstruction recon(particles_, step_);
 
     // Restore track without primary information (invalid PrimaryId)
-    G4Track& restored_track = processor.view(ParticleId{0}, PrimaryId{});
+    G4Track& restored_track = recon.view(ParticleId{0}, PrimaryId{});
 
     // Verify basic track properties
     EXPECT_EQ(particles_[0], restored_track.GetDefinition());
@@ -228,9 +226,9 @@ TEST_F(TrackProcessorTest, track_restoration_without_primary)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(TrackProcessorTest, end_event_cleanup)
+TEST_F(GeantTrackReconstructionTest, end_event_cleanup)
 {
-    TrackProcessor processor(particles_, step_);
+    GeantTrackReconstruction recon(particles_, step_);
 
     // Register some primaries
     auto primary_track1 = std::make_unique<G4Track>(
@@ -256,16 +254,16 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
     auto mock_process2 = std::make_unique<MockProcess>("TestProcess2");
     primary_track2->SetCreatorProcess(mock_process2.get());
 
-    PrimaryId id1 = processor.acquire(*primary_track1);
-    PrimaryId id2 = processor.acquire(*primary_track2);
+    PrimaryId id1 = recon.acquire(*primary_track1);
+    PrimaryId id2 = recon.acquire(*primary_track2);
 
     // Verify primaries are registered
     EXPECT_EQ(0, id1.unchecked_get());
     EXPECT_EQ(1, id2.unchecked_get());
 
     // Restore tracks to verify data exists
-    G4Track& track1 = processor.view(ParticleId{0}, id1);
-    G4Track& track2 = processor.view(ParticleId{1}, id2);
+    G4Track& track1 = recon.view(ParticleId{0}, id1);
+    G4Track& track2 = recon.view(ParticleId{1}, id2);
     EXPECT_EQ(100, track1.GetTrackID());
     EXPECT_EQ(200, track2.GetTrackID());
 
@@ -275,28 +273,28 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
     EXPECT_NE(track1.GetCreatorProcess(), track2.GetCreatorProcess());
 
     // End event should clear reconstruction data
-    processor.end_event();
+    recon.end_event();
 
     // Verify all tracks have cleared user information
     for (auto particle_id :
          range(ParticleId{static_cast<size_type>(particles_.size())}))
     {
-        G4Track& track = processor.view(particle_id, PrimaryId{});
+        G4Track& track = recon.view(particle_id, PrimaryId{});
         EXPECT_EQ(nullptr, track.GetUserInformation());
     }
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(TrackProcessorTest, multiple_particle_types)
+TEST_F(GeantTrackReconstructionTest, multiple_particle_types)
 {
-    TrackProcessor processor(particles_, step_);
+    GeantTrackReconstruction recon(particles_, step_);
 
     // Test all particle types can be restored
     for (auto i : range(particles_.size()))
     {
         ParticleId particle_id{static_cast<size_type>(i)};
-        G4Track& track = processor.view(particle_id, PrimaryId{});
+        G4Track& track = recon.view(particle_id, PrimaryId{});
 
         EXPECT_EQ(particles_[i], track.GetDefinition());
         EXPECT_EQ(0, track.GetTrackID());
@@ -306,9 +304,9 @@ TEST_F(TrackProcessorTest, multiple_particle_types)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(TrackProcessorTest, reconstruction_data_persistence)
+TEST_F(GeantTrackReconstructionTest, reconstruction_data_persistence)
 {
-    TrackProcessor processor(particles_, step_);
+    GeantTrackReconstruction recon(particles_, step_);
 
     // Create primary with complete information
     auto primary_track = std::make_unique<G4Track>(
@@ -325,12 +323,12 @@ TEST_F(TrackProcessorTest, reconstruction_data_persistence)
     auto mock_process = std::make_unique<MockProcess>("TestIonization");
     primary_track->SetCreatorProcess(mock_process.get());
 
-    PrimaryId primary_id = processor.acquire(*primary_track);
+    PrimaryId primary_id = recon.acquire(*primary_track);
 
     // Test reconstruction data persists across multiple restore calls
     for (int i = 0; i < 3; ++i)
     {
-        G4Track& restored = processor.view(ParticleId{2}, primary_id);
+        G4Track& restored = recon.view(ParticleId{2}, primary_id);
 
         EXPECT_EQ(999, restored.GetTrackID());
         EXPECT_EQ(1, restored.GetParentID());
@@ -345,5 +343,4 @@ TEST_F(TrackProcessorTest, reconstruction_data_persistence)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
-}  // namespace detail
 }  // namespace celeritas

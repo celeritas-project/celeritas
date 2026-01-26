@@ -94,7 +94,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
     , step_{std::make_shared<G4Step>()}
-    , track_processor_{particles, step_}
+    , track_reconstruction_{particles, step_}
     , step_post_status_{
           selection.points[StepPoint::pre].volume_instance_ids
           && selection.points[StepPoint::post].volume_instance_ids}
@@ -322,7 +322,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     if (!out.particle.empty())
     {
-        G4Track& g4track = track_processor_.view(
+        G4Track& g4track = track_reconstruction_.view(
             out.particle[i],
             !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
         this->update_track(g4track);

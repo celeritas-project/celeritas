@@ -20,7 +20,7 @@
 #include "celeritas/user/StepData.hh"
 
 #include "TouchableUpdaterInterface.hh"
-#include "TrackProcessor.hh"
+#include "../GeantTrackReconstruction.hh"
 
 class G4LogicalVolume;
 class G4ParticleDefinition;
@@ -107,7 +107,10 @@ class HitProcessor
     inline size_type exchange_hits();
 
     //! Access Geant4 track metadata reconstruction
-    TrackProcessor& track_processor() { return track_processor_; }
+    GeantTrackReconstruction& track_reconstruction()
+    {
+        return track_reconstruction_;
+    }
 
   private:
     //! Detector volumes for navigation updating
@@ -120,8 +123,8 @@ class HitProcessor
     //! Shared step object
     std::shared_ptr<G4Step> step_;
 
-    //! Track processor for track reconstruction
-    TrackProcessor track_processor_;
+    //! Track reconstruction for hit processing
+    GeantTrackReconstruction track_reconstruction_;
     //! Step points
     EnumArray<StepPoint, G4StepPoint*> step_points_{{nullptr, nullptr}};
 

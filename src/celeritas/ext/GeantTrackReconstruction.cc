@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/TrackProcessor.cc
+//! \file celeritas/ext/GeantTrackReconstruction.cc
 //---------------------------------------------------------------------------//
-#include "TrackProcessor.hh"
+#include "GeantTrackReconstruction.hh"
 
 #include <G4DynamicParticle.hh>
 #include <G4ParticleDefinition.hh>
@@ -20,15 +20,12 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Restore the G4Track from the reconstruction data. Takes ownership of the
  * user information by unsetting it in the original track.
  */
-TrackProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
-    G4Track& track)
+GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track)
     : track_id_{track.GetTrackID()}
     , parent_id_{track.GetParentID()}
     , user_info_{track.GetUserInformation()}
@@ -45,7 +42,7 @@ TrackProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
  * not have ownership of the user information, user must take care to reset it
  * before deletion of the track.
  */
-void TrackProcessor::GeantTrackReconstructionData::restore(G4Track& track) const
+void GeantTrackReconstruction::AcquiredData::restore(G4Track& track) const
 {
     CELER_EXPECT(*this);
     track.SetTrackID(track_id_);
@@ -58,8 +55,8 @@ void TrackProcessor::GeantTrackReconstructionData::restore(G4Track& track) const
 /*!
  * Construct with particle definitions for track reconstruction.
  */
-TrackProcessor::TrackProcessor(VecParticle const& particles,
-                               std::shared_ptr<G4Step> step)
+GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
+                                                   std::shared_ptr<G4Step> step)
     : step_(std::move(step))
 {
     CELER_EXPECT(step_);
@@ -86,11 +83,11 @@ TrackProcessor::TrackProcessor(VecParticle const& particles,
 /*!
  * Unset the user information for all tracks
  */
-TrackProcessor::~TrackProcessor()
+GeantTrackReconstruction::~GeantTrackReconstruction()
 {
     try
     {
-        CELER_LOG(debug) << "Deallocating track processor";
+        CELER_LOG(debug) << "Deallocating track reconstruction";
         this->end_event();
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
@@ -103,12 +100,12 @@ TrackProcessor::~TrackProcessor()
 /*!
  * Clear G4Track reconstruction data.
  */
-void TrackProcessor::end_event()
+void GeantTrackReconstruction::end_event()
 {
     for (auto& track : tracks_)
     {
         // Clear the user information to prevent double deletion
-        // TrackProcessor owns the track user info
+        // GeantTrackReconstruction owns the track user info
         track->SetUserInformation(nullptr);
     }
     g4_track_data_.clear();
@@ -119,10 +116,10 @@ void TrackProcessor::end_event()
  * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
  * ownership of the G4VUserTrackInformation and unset it in the primary track.
  */
-PrimaryId TrackProcessor::acquire(G4Track& primary)
+PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
 {
     auto primary_id = id_cast<PrimaryId>(g4_track_data_.size());
-    g4_track_data_.emplace_back(GeantTrackReconstructionData{primary});
+    g4_track_data_.emplace_back(AcquiredData{primary});
     return primary_id;
 }
 
@@ -132,8 +129,8 @@ PrimaryId TrackProcessor::acquire(G4Track& primary)
  * given particle ID with restored primary track information if a valid
  * PrimaryId is provided.
  */
-G4Track&
-TrackProcessor::view(ParticleId particle_id, PrimaryId primary_id) const
+G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
+                                        PrimaryId primary_id) const
 {
     CELER_EXPECT(particle_id < tracks_.size());
 
@@ -150,5 +147,4 @@ TrackProcessor::view(ParticleId particle_id, PrimaryId primary_id) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

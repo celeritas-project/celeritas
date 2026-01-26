@@ -237,7 +237,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/NaviTouchableUpdater.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
-    ext/detail/TrackProcessor.cc
+    ext/GeantTrackReconstruction.cc
   )
 
   if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)

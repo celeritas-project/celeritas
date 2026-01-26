@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/TrackProcessor.hh
+//! \file celeritas/ext/GeantTrackReconstruction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,8 +20,6 @@ class G4VUserTrackInformation;
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Manage track information for reconstruction.
@@ -30,7 +28,7 @@ namespace detail
  * to reconstruct tracks during hit processing. It maintains mappings between
  * Celeritas PrimaryID and Geant4 track data.
  */
-class TrackProcessor
+class GeantTrackReconstruction
 {
   public:
     //!@{
@@ -40,10 +38,10 @@ class TrackProcessor
 
   public:
     // Construct with particle definitions for track reconstruction
-    TrackProcessor(VecParticle const&, std::shared_ptr<G4Step>);
+    GeantTrackReconstruction(VecParticle const&, std::shared_ptr<G4Step>);
 
-    ~TrackProcessor();
-    CELER_DEFAULT_MOVE_DELETE_COPY(TrackProcessor);
+    ~GeantTrackReconstruction();
+    CELER_DEFAULT_MOVE_DELETE_COPY(GeantTrackReconstruction);
 
     // Clear G4Track reconstruction data
     void end_event();
@@ -56,11 +54,11 @@ class TrackProcessor
 
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
-    class GeantTrackReconstructionData
+    class AcquiredData
     {
       public:
         //! Save the G4Track reconstruction data
-        explicit GeantTrackReconstructionData(G4Track&);
+        explicit AcquiredData(G4Track&);
         //! Whether the data is valid
         explicit operator bool() const { return track_id_ >= 0; }
         //! Restore the G4Track from the reconstruction data
@@ -78,7 +76,7 @@ class TrackProcessor
     };
 
     //! G4Track reconstruction data indexed by Celeritas PrimaryID
-    std::vector<GeantTrackReconstructionData> g4_track_data_;
+    std::vector<AcquiredData> g4_track_data_;
     //! Tracks for each particle type
     std::vector<std::unique_ptr<G4Track>> tracks_;
     //! Shared step object
@@ -86,5 +84,4 @@ class TrackProcessor
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas
