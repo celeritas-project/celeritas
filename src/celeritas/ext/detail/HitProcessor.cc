@@ -28,13 +28,13 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "geocel/GeantGeoParams.hh"
-#include "geocel/g4/Convert.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
 #include "LevelTouchableUpdater.hh"
-#include "../GeantUnits.hh"
+#include "../GeantStepPointView.hh"
+#include "../GeantStepView.hh"
 
 namespace celeritas
 {
@@ -243,19 +243,19 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 {
     CELER_EXPECT(!out.detector.empty());
     CELER_EXPECT(i < out.size());
-#define HP_SET(SETTER, OUT, UNITS)                   \
-    do                                               \
-    {                                                \
-        if (!OUT.empty())                            \
-        {                                            \
-            SETTER(convert_to_geant(OUT[i], UNITS)); \
-        }                                            \
-    } while (0)
 
     G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
 
-    HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
-    HP_SET(step_->SetStepLength, out.step_length, clhep_length);
+    GeantStepView step_view{step_};
+    if (!out.energy_deposition.empty())
+    {
+        step_view.energy_deposition(
+            GeantStepView::MevEnergy{out.energy_deposition[i]});
+    }
+    if (!out.step_length.empty())
+    {
+        step_view.step_length(out.step_length[i]);
+    }
 
     for (auto sp : range(StepPoint::size_))
     {
@@ -276,46 +276,44 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
                 // Inconsistent touchable: skip this energy deposition
                 CELER_LOG_LOCAL(error)
                     << "Omitting energy deposition of "
-                    << step_->GetTotalEnergyDeposit() / CLHEP::MeV << " [MeV]";
+                    << step_view.energy_deposition().value() << ' '
+                    << GeantStepView::Energy::unit_type::label();
                 return;
             }
         }
 
-        HP_SET(g4sp->SetGlobalTime, out.points[sp].time, clhep_time);
-        HP_SET(g4sp->SetPosition, out.points[sp].pos, clhep_length);
-        HP_SET(g4sp->SetKineticEnergy, out.points[sp].energy, CLHEP::MeV);
-        HP_SET(g4sp->SetMomentumDirection, out.points[sp].dir, 1);
+        auto const& celer_sp = out.points[sp];
+        GeantStepPointView sp_view{g4sp};
 
+#define HP_SET_STEP_POINT_ATTR(ATTR)    \
+    if (!celer_sp.ATTR.empty())         \
+    {                                   \
+        sp_view.ATTR(celer_sp.ATTR[i]); \
+    }
+
+        HP_SET_STEP_POINT_ATTR(time);
+        HP_SET_STEP_POINT_ATTR(pos);
+        HP_SET_STEP_POINT_ATTR(energy);
+        HP_SET_STEP_POINT_ATTR(dir);
         if (!out.weight.empty())
         {
-            g4sp->SetWeight(out.weight[i]);
+            // Celeritas weight does not currently change across a step
+            sp_view.weight(out.weight[i]);
         }
-        G4LogicalVolume const* point_lv = [&]() -> G4LogicalVolume const* {
-            if (sp == StepPoint::pre)
-                return lv;
+#undef HP_SET_STEP_POINT_ATTR
 
-            // NOTE: post-step volume is only fetched if we're locating the
-            // touchable
-            if (auto* touch = g4sp->GetTouchable())
-            {
-                // The physical volume could be null if post-step is outside
-                if (auto* pv = touch->GetVolume())
-                {
-                    return pv->GetLogicalVolume();
-                }
-            }
-            return nullptr;
-        }();
-
-        if (point_lv)
+        // Copy attributes from logical volume
+        if (sp == StepPoint::pre)
         {
-            // Copy attributes from logical volume
-            g4sp->SetMaterial(point_lv->GetMaterial());
-            g4sp->SetMaterialCutsCouple(point_lv->GetMaterialCutsCouple());
-            g4sp->SetSensitiveDetector(point_lv->GetSensitiveDetector());
+            // Use lv already known from the in-volume detector
+            sp_view.update_from_volume(lv);
+        }
+        else
+        {
+            // Look up LV from the touchable
+            sp_view.update_from_volume();
         }
     }
-#undef HP_SET
 
     if (!out.particle.empty())
     {

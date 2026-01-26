@@ -86,7 +86,7 @@ Real3 GeantTrackView::pos() const
 /*!
  * Get momentum direction.
  */
-Real3 GeantTrackView::direction() const
+Real3 GeantTrackView::dir() const
 {
     return convert_from_geant(track_.GetMomentumDirection(), 1);
 }
