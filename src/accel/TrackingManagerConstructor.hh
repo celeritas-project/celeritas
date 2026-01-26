@@ -9,11 +9,13 @@
 #include <functional>
 #include <G4VPhysicsConstructor.hh>
 
-class G4ParticleDefinition;
 #include "TrackOffloadInterface.hh"
+
+class G4ParticleDefinition;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class LocalTransporter;
 class SharedParams;
 class TrackingManagerIntegration;
@@ -50,7 +52,7 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     //!@{
     //! \name Type aliases
     using LocalOffloadFromThread = std::function<TrackOffloadInterface*(int)>;
-    using VecG4PD = SetupOptions::VecG4PD;
+    using VecG4PD = std::vector<G4ParticleDefinition*>;
     //!@}
 
   public:
