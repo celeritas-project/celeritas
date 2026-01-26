@@ -149,6 +149,7 @@ TEST_F(LArSphereGeneratorTest, direct)
                                   Real3{1, 0, 0},
                                   Real3{0, 1, 0},
                                   0,
+                                  {},  // primary
                                   ImplVolumeId{0}});
 
     // Construct the runner and transport optical primaries

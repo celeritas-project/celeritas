@@ -103,6 +103,7 @@ void SurfacePhysicsIntegrationTestBase::run_step(RealTurn angle)
                          Real3{sin_theta, cos_theta, 0},  // direction
                          Real3{0, 0, 1},  // polarization
                          0,  // time
+                         {},  // primary
                          ImplVolumeId{0}});
 
     generate_->insert(*state_, make_span(inits));
