@@ -166,10 +166,11 @@ Supports ORANGE (native), VecGeom, and Geant4 geometries. GDML is the standard i
 - **CMake presets**: System-specific configs in `scripts/cmake-presets/<hostname>.json`
 
 ### Git Commit Messages
-When committing agent-assisted work:
-- Write a concise subject line summarizing the change
-- Body should list specific changes without redundant summary text
-- Include `--trailer "Assisted-by: GitHub Copilot (<model metadata>)"` for attribution
+Commit agent-assisted work after major tasks (multiple files) when compilation and testing succeed:
+- Add files to commit
+- Use `pre-commit run` to check and fix formatting
+- Write a concise commit message summarizing your recent work
+- Commit with `--trailer "Assisted-by: GitHub Copilot (<model metadata>)"` for attribution
 
 ## Common Pitfalls
 - Never copy-paste code: instead, refactor into reusable functors
