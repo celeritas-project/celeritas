@@ -26,7 +26,7 @@ Commit after major work when:
 ```bash
 git add <files>
 pre-commit run        # Auto-formats code
-git commit -m "Message" --trailer "Assisted-by: GitHub Copilot (Claude Sonnet 4.5)"
+git commit -m "Message" --trailer "Assisted-by: GitHub Copilot (<model-name>)"
 ```
 
 ## Architecture
