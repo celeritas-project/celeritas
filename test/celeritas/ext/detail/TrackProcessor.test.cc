@@ -140,7 +140,7 @@ TEST_F(TrackProcessorTest, primary_registration)
     primary_track->SetCreatorProcess(mock_process.get());
 
     // Register primary
-    PrimaryId primary_id = processor.register_primary(*primary_track);
+    PrimaryId primary_id = processor.acquire(*primary_track);
 
     // Verify primary ID
     EXPECT_EQ(0, primary_id.unchecked_get());
@@ -149,7 +149,7 @@ TEST_F(TrackProcessorTest, primary_registration)
     EXPECT_EQ(nullptr, primary_track->GetUserInformation());
 
     // Test that process information can be retrieved by restoring the track
-    G4Track& test_restored = processor.restore_track(ParticleId{0}, primary_id);
+    G4Track& test_restored = processor.view(ParticleId{0}, primary_id);
     EXPECT_EQ(mock_process.get(), test_restored.GetCreatorProcess());
     EXPECT_EQ(123, test_restored.GetTrackID());
 
@@ -161,7 +161,7 @@ TEST_F(TrackProcessorTest, primary_registration)
     primary_track2->SetTrackID(456);
     primary_track2->SetParentID(0);
 
-    PrimaryId primary_id2 = processor.register_primary(*primary_track2);
+    PrimaryId primary_id2 = processor.acquire(*primary_track2);
     EXPECT_EQ(1, primary_id2.unchecked_get());
 }
 
@@ -187,11 +187,10 @@ TEST_F(TrackProcessorTest, track_restoration)
     auto mock_process = std::make_unique<MockProcess>("TestBremsstrahlung");
     primary_track->SetCreatorProcess(mock_process.get());
 
-    PrimaryId primary_id = processor.register_primary(*primary_track);
+    PrimaryId primary_id = processor.acquire(*primary_track);
 
     // Restore track for electron (particle ID 1) with primary information
-    G4Track& restored_track
-        = processor.restore_track(ParticleId{1}, primary_id);
+    G4Track& restored_track = processor.view(ParticleId{1}, primary_id);
 
     // Verify restored track properties
     EXPECT_EQ(789, restored_track.GetTrackID());
@@ -217,8 +216,7 @@ TEST_F(TrackProcessorTest, track_restoration_without_primary)
     TrackProcessor processor(particles);
 
     // Restore track without primary information (invalid PrimaryId)
-    G4Track& restored_track
-        = processor.restore_track(ParticleId{0}, PrimaryId{});
+    G4Track& restored_track = processor.view(ParticleId{0}, PrimaryId{});
 
     // Verify basic track properties
     EXPECT_EQ(particles[0], restored_track.GetDefinition());
@@ -259,16 +257,16 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
     auto mock_process2 = std::make_unique<MockProcess>("TestProcess2");
     primary_track2->SetCreatorProcess(mock_process2.get());
 
-    PrimaryId id1 = processor.register_primary(*primary_track1);
-    PrimaryId id2 = processor.register_primary(*primary_track2);
+    PrimaryId id1 = processor.acquire(*primary_track1);
+    PrimaryId id2 = processor.acquire(*primary_track2);
 
     // Verify primaries are registered
     EXPECT_EQ(0, id1.unchecked_get());
     EXPECT_EQ(1, id2.unchecked_get());
 
     // Restore tracks to verify data exists
-    G4Track& track1 = processor.restore_track(ParticleId{0}, id1);
-    G4Track& track2 = processor.restore_track(ParticleId{1}, id2);
+    G4Track& track1 = processor.view(ParticleId{0}, id1);
+    G4Track& track2 = processor.view(ParticleId{1}, id2);
     EXPECT_EQ(100, track1.GetTrackID());
     EXPECT_EQ(200, track2.GetTrackID());
 
@@ -284,7 +282,7 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
     for (auto particle_id :
          range(ParticleId{static_cast<size_type>(particles.size())}))
     {
-        G4Track& track = processor.restore_track(particle_id, PrimaryId{});
+        G4Track& track = processor.view(particle_id, PrimaryId{});
         EXPECT_EQ(nullptr, track.GetUserInformation());
     }
 }
@@ -300,7 +298,7 @@ TEST_F(TrackProcessorTest, multiple_particle_types)
     for (auto i : range(particles.size()))
     {
         ParticleId particle_id{static_cast<size_type>(i)};
-        G4Track& track = processor.restore_track(particle_id, PrimaryId{});
+        G4Track& track = processor.view(particle_id, PrimaryId{});
 
         EXPECT_EQ(particles[i], track.GetDefinition());
         EXPECT_EQ(0, track.GetTrackID());
@@ -330,12 +328,12 @@ TEST_F(TrackProcessorTest, reconstruction_data_persistence)
     auto mock_process = std::make_unique<MockProcess>("TestIonization");
     primary_track->SetCreatorProcess(mock_process.get());
 
-    PrimaryId primary_id = processor.register_primary(*primary_track);
+    PrimaryId primary_id = processor.acquire(*primary_track);
 
     // Test reconstruction data persists across multiple restore calls
     for (int i = 0; i < 3; ++i)
     {
-        G4Track& restored = processor.restore_track(ParticleId{2}, primary_id);
+        G4Track& restored = processor.view(ParticleId{2}, primary_id);
 
         EXPECT_EQ(999, restored.GetTrackID());
         EXPECT_EQ(1, restored.GetParentID());

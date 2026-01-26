@@ -29,7 +29,6 @@ namespace detail
  * This class handles the bookkeeping of Geant4 track information needed
  * to reconstruct tracks during hit processing. It maintains mappings between
  * Celeritas PrimaryID and Geant4 track data.
- *
  */
 class TrackProcessor
 {
@@ -49,11 +48,11 @@ class TrackProcessor
     // Clear G4Track reconstruction data
     void end_event();
 
-    // Register mapping from Celeritas PrimaryID to Geant4 TrackID
-    [[nodiscard]] PrimaryId register_primary(G4Track&);
+    // Register mapping from Celeritas PrimaryID to Geant4 track ID
+    [[nodiscard]] PrimaryId acquire(G4Track&);
 
     // Restore track information for given primary and particle IDs
-    G4Track& restore_track(ParticleId, PrimaryId) const;
+    [[nodiscard]] G4Track& view(ParticleId, PrimaryId) const;
 
     // Get the owned step
     G4Step& step() { return *step_; }
@@ -68,7 +67,7 @@ class TrackProcessor
         //! Whether the data is valid
         explicit operator bool() const { return track_id_ >= 0; }
         //! Restore the G4Track from the reconstruction data
-        void restore_track(G4Track&) const;
+        void restore(G4Track&) const;
 
       private:
         //! Original Geant4 track ID

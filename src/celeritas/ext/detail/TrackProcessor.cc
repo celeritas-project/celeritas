@@ -45,8 +45,7 @@ TrackProcessor::GeantTrackReconstructionData::GeantTrackReconstructionData(
  * not have ownership of the user information, user must take care to reset it
  * before deletion of the track.
  */
-void TrackProcessor::GeantTrackReconstructionData::restore_track(
-    G4Track& track) const
+void TrackProcessor::GeantTrackReconstructionData::restore(G4Track& track) const
 {
     CELER_EXPECT(*this);
     track.SetTrackID(track_id_);
@@ -120,10 +119,10 @@ void TrackProcessor::end_event()
  * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
  * ownership of the G4VUserTrackInformation and unset it in the primary track.
  */
-PrimaryId TrackProcessor::register_primary(G4Track& primary)
+PrimaryId TrackProcessor::acquire(G4Track& primary)
 {
     auto primary_id = id_cast<PrimaryId>(g4_track_data_.size());
-    g4_track_data_.push_back(GeantTrackReconstructionData{primary});
+    g4_track_data_.emplace_back(GeantTrackReconstructionData{primary});
     return primary_id;
 }
 
@@ -133,8 +132,8 @@ PrimaryId TrackProcessor::register_primary(G4Track& primary)
  * given particle ID with restored primary track information if a valid
  * PrimaryId is provided.
  */
-G4Track& TrackProcessor::restore_track(ParticleId particle_id,
-                                       PrimaryId primary_id) const
+G4Track&
+TrackProcessor::view(ParticleId particle_id, PrimaryId primary_id) const
 {
     CELER_EXPECT(particle_id < tracks_.size());
 
@@ -145,7 +144,7 @@ G4Track& TrackProcessor::restore_track(ParticleId particle_id,
     if (primary_id)
     {
         CELER_ASSERT(primary_id < g4_track_data_.size());
-        g4_track_data_[primary_id.unchecked_get()].restore_track(track);
+        g4_track_data_[primary_id.unchecked_get()].restore(track);
     }
     return track;
 }

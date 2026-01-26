@@ -271,8 +271,7 @@ void LocalTransporter::Push(G4Track& g4track)
     // Generate Celeritas-specific PrimaryID
     if (hit_processor_)
     {
-        track.primary_id
-            = hit_processor_->track_processor().register_primary(g4track);
+        track.primary_id = hit_processor_->track_processor().acquire(g4track);
     }
 
     track.energy = units::MevEnergy(

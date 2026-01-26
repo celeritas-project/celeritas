@@ -319,7 +319,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     if (!out.particle.empty())
     {
-        G4Track& g4track = track_processor_.restore_track(
+        G4Track& g4track = track_processor_.view(
             out.particle[i],
             !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
         this->update_track(g4track);
