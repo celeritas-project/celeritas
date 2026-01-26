@@ -93,8 +93,12 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
-    , track_processor_{particles}
-    , step_{&track_processor_.step()}
+    , step_{[] {
+        auto step = std::make_shared<G4Step>();
+        step->NewSecondaryVector();
+        return step;
+    }()}
+    , track_processor_{particles, step_}
     , step_post_status_{
           selection.points[StepPoint::pre].volume_instance_ids
           && selection.points[StepPoint::post].volume_instance_ids}
@@ -334,7 +338,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 
     // Hit sensitive detector
-    this->detector(out.detector[i])->Hit(step_);
+    this->detector(out.detector[i])->Hit(step_.get());
 }
 
 //---------------------------------------------------------------------------//

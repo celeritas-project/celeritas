@@ -40,7 +40,7 @@ class TrackProcessor
 
   public:
     // Construct with particle definitions for track reconstruction
-    explicit TrackProcessor(VecParticle const&);
+    TrackProcessor(VecParticle const&, std::shared_ptr<G4Step>);
 
     ~TrackProcessor();
     CELER_DEFAULT_MOVE_DELETE_COPY(TrackProcessor);
@@ -53,9 +53,6 @@ class TrackProcessor
 
     // Restore track information for given primary and particle IDs
     [[nodiscard]] G4Track& view(ParticleId, PrimaryId) const;
-
-    // Get the owned step
-    G4Step& step() { return *step_; }
 
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
@@ -84,8 +81,8 @@ class TrackProcessor
     std::vector<GeantTrackReconstructionData> g4_track_data_;
     //! Tracks for each particle type
     std::vector<std::unique_ptr<G4Track>> tracks_;
-    //! Owned step object
-    std::unique_ptr<G4Step> step_;
+    //! Shared step object
+    std::shared_ptr<G4Step> step_;
 };
 
 //---------------------------------------------------------------------------//

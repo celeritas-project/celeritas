@@ -58,8 +58,12 @@ void TrackProcessor::GeantTrackReconstructionData::restore(G4Track& track) const
 /*!
  * Construct with particle definitions for track reconstruction.
  */
-TrackProcessor::TrackProcessor(VecParticle const& particles)
+TrackProcessor::TrackProcessor(VecParticle const& particles,
+                               std::shared_ptr<G4Step> step)
+    : step_(std::move(step))
 {
+    CELER_EXPECT(step_);
+
     // Create track for each particle type
     for (G4ParticleDefinition const* pd : particles)
     {
@@ -70,10 +74,6 @@ TrackProcessor::TrackProcessor(VecParticle const& particles)
         track->SetParentID(0);
         tracks_.emplace_back(std::move(track));
     }
-
-    // Create step and step-owned structures
-    step_ = std::make_unique<G4Step>();
-    step_->NewSecondaryVector();
 
     // Set the step for all tracks
     for (auto const& track : tracks_)

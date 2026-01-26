@@ -89,19 +89,23 @@ class TrackProcessorTest : public ::celeritas::test::SimpleCmsTestBase
     using VecParticle = TrackProcessor::VecParticle;
     using size_type = ::celeritas::size_type;
 
-    VecParticle make_particles()
+    void SetUp() override
     {
         // Load particles from Geant4
         this->physics();
 
-        VecParticle result;
         auto& table = *G4ParticleTable::GetParticleTable();
         for (auto p : {pdg::gamma(), pdg::electron(), pdg::positron()})
         {
-            result.push_back(table.FindParticle(p.get()));
+            particles_.push_back(table.FindParticle(p.get()));
         }
-        return result;
+
+        step_ = std::make_shared<G4Step>();
+        step_->NewSecondaryVector();
     }
+
+    VecParticle particles_;
+    std::shared_ptr<G4Step> step_;
 };
 
 //---------------------------------------------------------------------------//
@@ -109,8 +113,7 @@ class TrackProcessorTest : public ::celeritas::test::SimpleCmsTestBase
 TEST_F(TrackProcessorTest, construction)
 {
     // Create an empty processor first to test basic construction
-    TrackProcessor::VecParticle empty_particles;
-    TrackProcessor processor(empty_particles);
+    TrackProcessor processor({}, step_);
 
     // Test that end_event works
     processor.end_event();
@@ -120,12 +123,11 @@ TEST_F(TrackProcessorTest, construction)
 
 TEST_F(TrackProcessorTest, primary_registration)
 {
-    auto particles = make_particles();
-    TrackProcessor processor(particles);
+    TrackProcessor processor(particles_, step_);
 
     // Create a primary track
     auto primary_track = std::make_unique<G4Track>(
-        new G4DynamicParticle(particles[0], G4ThreeVector(1, 0, 0)),
+        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
         0.0,
         G4ThreeVector(0, 0, 0));
     primary_track->SetTrackID(123);
@@ -155,7 +157,7 @@ TEST_F(TrackProcessorTest, primary_registration)
 
     // Register another primary
     auto primary_track2 = std::make_unique<G4Track>(
-        new G4DynamicParticle(particles[1], G4ThreeVector(0, 1, 0)),
+        new G4DynamicParticle(particles_[1], G4ThreeVector(0, 1, 0)),
         0.0,
         G4ThreeVector(1, 1, 1));
     primary_track2->SetTrackID(456);
@@ -169,12 +171,11 @@ TEST_F(TrackProcessorTest, primary_registration)
 
 TEST_F(TrackProcessorTest, track_restoration)
 {
-    auto particles = make_particles();
-    TrackProcessor processor(particles);
+    TrackProcessor processor(particles_, step_);
 
     // Create and register primary track with user information
     auto primary_track = std::make_unique<G4Track>(
-        new G4DynamicParticle(particles[1], G4ThreeVector(0, 0, 1)),
+        new G4DynamicParticle(particles_[1], G4ThreeVector(0, 0, 1)),
         0.0,
         G4ThreeVector(0, 0, 0));
     primary_track->SetTrackID(789);
@@ -196,7 +197,7 @@ TEST_F(TrackProcessorTest, track_restoration)
     EXPECT_EQ(789, restored_track.GetTrackID());
     EXPECT_EQ(1, restored_track.GetParentID());
     EXPECT_EQ(mock_process.get(), restored_track.GetCreatorProcess());
-    EXPECT_EQ(&processor.step(), restored_track.GetStep());
+    EXPECT_EQ(step_.get(), restored_track.GetStep());
 
     // Verify user information was restored
     auto* restored_user_info = dynamic_cast<MockUserTrackInformation*>(
@@ -205,21 +206,20 @@ TEST_F(TrackProcessorTest, track_restoration)
     EXPECT_EQ(99, restored_user_info->value());
 
     // Verify particle type
-    EXPECT_EQ(particles[1], restored_track.GetDefinition());
+    EXPECT_EQ(particles_[1], restored_track.GetDefinition());
 }
 
 //---------------------------------------------------------------------------//
 
 TEST_F(TrackProcessorTest, track_restoration_without_primary)
 {
-    auto particles = make_particles();
-    TrackProcessor processor(particles);
+    TrackProcessor processor(particles_, step_);
 
     // Restore track without primary information (invalid PrimaryId)
     G4Track& restored_track = processor.view(ParticleId{0}, PrimaryId{});
 
     // Verify basic track properties
-    EXPECT_EQ(particles[0], restored_track.GetDefinition());
+    EXPECT_EQ(particles_[0], restored_track.GetDefinition());
     EXPECT_EQ(0, restored_track.GetTrackID());
     EXPECT_EQ(0, restored_track.GetParentID());
     EXPECT_EQ(nullptr, restored_track.GetUserInformation());
@@ -230,12 +230,11 @@ TEST_F(TrackProcessorTest, track_restoration_without_primary)
 
 TEST_F(TrackProcessorTest, end_event_cleanup)
 {
-    auto particles = make_particles();
-    TrackProcessor processor(particles);
+    TrackProcessor processor(particles_, step_);
 
     // Register some primaries
     auto primary_track1 = std::make_unique<G4Track>(
-        new G4DynamicParticle(particles[0], G4ThreeVector(1, 0, 0)),
+        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
         0.0,
         G4ThreeVector(0, 0, 0));
     primary_track1->SetTrackID(100);
@@ -247,7 +246,7 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
     primary_track1->SetCreatorProcess(mock_process1.get());
 
     auto primary_track2 = std::make_unique<G4Track>(
-        new G4DynamicParticle(particles[1], G4ThreeVector(0, 1, 0)),
+        new G4DynamicParticle(particles_[1], G4ThreeVector(0, 1, 0)),
         0.0,
         G4ThreeVector(0, 0, 0));
     primary_track2->SetTrackID(200);
@@ -280,7 +279,7 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
 
     // Verify all tracks have cleared user information
     for (auto particle_id :
-         range(ParticleId{static_cast<size_type>(particles.size())}))
+         range(ParticleId{static_cast<size_type>(particles_.size())}))
     {
         G4Track& track = processor.view(particle_id, PrimaryId{});
         EXPECT_EQ(nullptr, track.GetUserInformation());
@@ -291,16 +290,15 @@ TEST_F(TrackProcessorTest, end_event_cleanup)
 
 TEST_F(TrackProcessorTest, multiple_particle_types)
 {
-    auto particles = make_particles();
-    TrackProcessor processor(particles);
+    TrackProcessor processor(particles_, step_);
 
     // Test all particle types can be restored
-    for (auto i : range(particles.size()))
+    for (auto i : range(particles_.size()))
     {
         ParticleId particle_id{static_cast<size_type>(i)};
         G4Track& track = processor.view(particle_id, PrimaryId{});
 
-        EXPECT_EQ(particles[i], track.GetDefinition());
+        EXPECT_EQ(particles_[i], track.GetDefinition());
         EXPECT_EQ(0, track.GetTrackID());
         EXPECT_EQ(0, track.GetParentID());
     }
@@ -310,12 +308,11 @@ TEST_F(TrackProcessorTest, multiple_particle_types)
 
 TEST_F(TrackProcessorTest, reconstruction_data_persistence)
 {
-    auto particles = make_particles();
-    TrackProcessor processor(particles);
+    TrackProcessor processor(particles_, step_);
 
     // Create primary with complete information
     auto primary_track = std::make_unique<G4Track>(
-        new G4DynamicParticle(particles[2], G4ThreeVector(1, 1, 1)),
+        new G4DynamicParticle(particles_[2], G4ThreeVector(1, 1, 1)),
         0.0,
         G4ThreeVector(10, 20, 30));
     primary_track->SetTrackID(999);

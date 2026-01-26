@@ -106,12 +106,8 @@ class HitProcessor
     // Get and reset the hits counted (generally once per event)
     inline size_type exchange_hits();
 
-    // Access track processor
-    inline TrackProcessor& track_processor() { return track_processor_; }
-    inline TrackProcessor const& track_processor() const
-    {
-        return track_processor_;
-    }
+    //! Access Geant4 track metadata reconstruction
+    TrackProcessor& track_processor() { return track_processor_; }
 
   private:
     //! Detector volumes for navigation updating
@@ -121,11 +117,11 @@ class HitProcessor
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
 
+    //! Shared step object
+    std::shared_ptr<G4Step> step_;
+
     //! Track processor for track reconstruction
     TrackProcessor track_processor_;
-
-    //! Temporary step
-    G4Step* step_;
     //! Step points
     EnumArray<StepPoint, G4StepPoint*> step_points_{{nullptr, nullptr}};
 
