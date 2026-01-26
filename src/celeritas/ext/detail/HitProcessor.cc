@@ -93,11 +93,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
-    , step_{[] {
-        auto step = std::make_shared<G4Step>();
-        step->NewSecondaryVector();
-        return step;
-    }()}
+    , step_{std::make_shared<G4Step>()}
     , track_processor_{particles, step_}
     , step_post_status_{
           selection.points[StepPoint::pre].volume_instance_ids
@@ -109,6 +105,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     // same thing
     CELER_LOG(debug) << "Setting up thread-local hit processor for "
                      << detector_volumes_->size() << " sensitive detectors";
+
+    // Allocate secondary vector, needed to keep some SDs from crashing
+    step_->NewSecondaryVector();
 
 #if G4VERSION_NUMBER >= 1103
 #    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
