@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/mucf/executor/detail/DTMixMuonicAtomSelector.hh
+//! \file celeritas/mucf/executor/detail/MuonicAtomSelector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -35,12 +35,12 @@ namespace detail
  * If a selected uniform random number is \f$ x \leq P_\text{d} \f$, a muonic
  * deuterium is formed. Otherwside, a muonic tritium is selected.
  */
-class DTMixMuonicAtomSelector
+class MuonicAtomSelector
 {
   public:
     //! Construct with material information
-    inline CELER_FUNCTION DTMixMuonicAtomSelector(real_type deuterium_fraction,
-                                                  real_type tritium_fraction);
+    inline CELER_FUNCTION MuonicAtomSelector(real_type deuterium_fraction,
+                                             real_type tritium_fraction);
 
     // Select muonic atom
     template<class Engine>
@@ -58,8 +58,8 @@ class DTMixMuonicAtomSelector
  * Construct with material information.
  */
 CELER_FUNCTION
-DTMixMuonicAtomSelector::DTMixMuonicAtomSelector(real_type deuterium_fraction,
-                                                 real_type tritium_fraction)
+MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction,
+                                       real_type tritium_fraction)
     : deuterium_fraction_(deuterium_fraction)
     , tritium_fraction_(tritium_fraction)
 {
@@ -74,7 +74,7 @@ DTMixMuonicAtomSelector::DTMixMuonicAtomSelector(real_type deuterium_fraction,
  * Select a muonic atom.
  */
 template<class Engine>
-CELER_FUNCTION MucfMuonicAtom DTMixMuonicAtomSelector::operator()(Engine& rng)
+CELER_FUNCTION MucfMuonicAtom MuonicAtomSelector::operator()(Engine& rng)
 {
     MucfMuonicAtom result{MucfMuonicAtom::size_};
 

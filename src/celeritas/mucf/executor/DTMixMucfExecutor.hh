@@ -16,8 +16,8 @@
 
 #include "detail/DDChannelSelector.hh"
 #include "detail/DTChannelSelector.hh"
-#include "detail/DTMixMuonicAtomSelector.hh"
 #include "detail/DTMixMuonicMoleculeSelector.hh"
+#include "detail/MuonicAtomSelector.hh"
 #include "detail/MuonicAtomSpinSelector.hh"
 #include "detail/MuonicMoleculeSpinSelector.hh"
 #include "detail/TTChannelSelector.hh"
@@ -71,7 +71,7 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
     CELER_ASSERT(mucf_matid);
 
     // Form d or t muonic atom
-    detail::DTMixMuonicAtomSelector form_atom(
+    detail::MuonicAtomSelector form_atom(
         data.isotopic_fractions[mucf_matid][MucfIsotope::deuterium],
         data.isotopic_fractions[mucf_matid][MucfIsotope::tritium]);
     auto muonic_atom = form_atom(rng);
