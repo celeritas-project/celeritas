@@ -125,6 +125,16 @@ using GeantTrackViewConst = GeantTrackView<Ownership::const_reference>;
 using GeantTrackViewMutable = GeantTrackView<Ownership::reference>;
 
 //---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+// Deduce const_reference from const G4Track&
+GeantTrackView(G4Track const&) -> GeantTrackView<Ownership::const_reference>;
+
+// Deduce reference from mutable G4Track&
+GeantTrackView(G4Track&) -> GeantTrackView<Ownership::reference>;
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
