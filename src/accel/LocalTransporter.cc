@@ -246,20 +246,19 @@ void LocalTransporter::Push(G4Track& g4track)
 
     ScopedProfiling profile_this{"push"};
 
-    GeantTrackView track_view{g4track};
+    GeantTrackView gtv{g4track};
 
-    if (!is_inside(bbox_, track_view.position()))
+    if (!is_inside(bbox_, gtv.pos()))
     {
         // Primary may have been created by a particle generator outside the
         // geometry
-        CELER_LOG_LOCAL(error)
-            << "Discarding track outside world bounds: "
-            << track_view.energy().value() << " "
-            << GeantTrackView::Energy::unit_type::label() << " from "
-            << track_view.particle().name() << " at " << track_view.position()
-            << " along " << track_view.direction();
+        CELER_LOG_LOCAL(error) << "Discarding track outside world bounds: "
+                               << gtv.energy().value() << " "
+                               << GeantTrackView::Energy::unit_type::label()
+                               << " from " << gtv.particle().name() << " at "
+                               << gtv.pos() << " along " << gtv.direction();
 
-        buffer_accum_.lost_energy += track_view.energy().value();
+        buffer_accum_.lost_energy += gtv.energy().value();
         ++buffer_accum_.lost_primaries;
         return;
     }
@@ -273,15 +272,15 @@ void LocalTransporter::Push(G4Track& g4track)
             = hit_processor_->track_processor().register_primary(g4track);
     }
 
-    offloaded.energy = track_view.energy();
-    offloaded.particle_id = particles_->find(track_view.particle().pdg());
-    offloaded.position = track_view.position();
-    offloaded.direction = track_view.direction();
-    offloaded.time = track_view.time();
-    offloaded.weight = track_view.weight();
+    offloaded.energy = gtv.energy();
+    offloaded.particle_id = particles_->find(gtv.particle().pdg());
+    offloaded.position = gtv.pos();
+    offloaded.direction = gtv.direction();
+    offloaded.time = gtv.time();
+    offloaded.weight = gtv.weight();
 
     CELER_VALIDATE(offloaded.particle_id,
-                   << "cannot offload '" << track_view.particle().name()
+                   << "cannot offload '" << gtv.particle().name()
                    << "' particles");
 
     /*!

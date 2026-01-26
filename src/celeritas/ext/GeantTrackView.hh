@@ -43,10 +43,10 @@ class GeantTrackView
     inline GeantParticleView particle() const;
 
     // Position in native Celeritas length units
-    inline Real3 position() const;
+    inline Real3 pos() const;
 
     // Momentum direction (unit vector)
-    inline Real3 direction() const;
+    inline Real3 dir() const;
 
     // Kinetic energy [MeV]
     inline Energy energy() const;
@@ -77,7 +77,7 @@ GeantParticleView GeantTrackView::particle() const
 /*!
  * Get position in native Celeritas length units.
  */
-Real3 GeantTrackView::position() const
+Real3 GeantTrackView::pos() const
 {
     return convert_from_geant(track_.GetPosition(), clhep_length);
 }
