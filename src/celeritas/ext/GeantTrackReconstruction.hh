@@ -34,11 +34,12 @@ class GeantTrackReconstruction
     //!@{
     //! \name Type aliases
     using VecParticle = std::vector<G4ParticleDefinition const*>;
+    using SPStep = std::shared_ptr<G4Step>;
     //!@}
 
   public:
     // Construct with particle definitions for track reconstruction
-    GeantTrackReconstruction(VecParticle const&, std::shared_ptr<G4Step>);
+    GeantTrackReconstruction(VecParticle const&, SPStep);
 
     ~GeantTrackReconstruction();
     CELER_DEFAULT_MOVE_DELETE_COPY(GeantTrackReconstruction);
@@ -80,7 +81,7 @@ class GeantTrackReconstruction
     //! Tracks for each particle type
     std::vector<std::unique_ptr<G4Track>> tracks_;
     //! Shared step object
-    std::shared_ptr<G4Step> step_;
+    SPStep step_;
 };
 
 //---------------------------------------------------------------------------//

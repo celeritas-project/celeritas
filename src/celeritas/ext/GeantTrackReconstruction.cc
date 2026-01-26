@@ -56,7 +56,7 @@ void GeantTrackReconstruction::AcquiredData::restore(G4Track& track) const
  * Construct with particle definitions for track reconstruction.
  */
 GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
-                                                   std::shared_ptr<G4Step> step)
+                                                   SPStep step)
     : step_(std::move(step))
 {
     CELER_EXPECT(step_);
