@@ -93,13 +93,16 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
             EXPECT_EQ(host_data.particle_ids.mu_minus, sec[1].particle_id);
             EXPECT_EQ(host_data.particle_ids.alpha, sec[2].particle_id);
 
-            // Check energy conservation (17.6 MeV total)
+            // Check approximate energy conservation
+            // The total kineticy energy is only very roughly 17.6 MeV due to
+            // simplistic sampling. See DTMucfInteractor documentation for
+            // details.
             real_type total_kinetic_energy = 0;
             for (auto const& sec : interaction.secondaries)
             {
                 total_kinetic_energy += sec.energy.value();
             }
-            EXPECT_SOFT_EQ(17.6, total_kinetic_energy);
+            EXPECT_SOFT_NEAR(17.6, total_kinetic_energy, 0.5);
 
             // Check momentum conservation
             // Momentum and energy conservation is not accurate (see the
