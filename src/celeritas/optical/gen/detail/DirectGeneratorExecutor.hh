@@ -8,12 +8,10 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/Utils.hh"
 
-#include "GeneratorAlgorithms.hh"
 #include "../DirectGeneratorData.hh"
 
 namespace celeritas

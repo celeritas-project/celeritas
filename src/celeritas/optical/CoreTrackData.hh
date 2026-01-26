@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/random/data/RngData.hh"
+#include "geocel/DetectorData.hh"
 #include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
@@ -55,6 +56,7 @@ struct CoreParamsData
     SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
     SurfacePhysicsParamsData<W, M> surface_physics;
+    DetectorParamsData<W, M> detectors;
     CherenkovData<W, M> cherenkov;
     ScintillationData<W, M> scintillation;
 
@@ -79,6 +81,7 @@ struct CoreParamsData
         sim = other.sim;
         surface = other.surface;
         surface_physics = other.surface_physics;
+        detectors = other.detectors;
         cherenkov = other.cherenkov;
         scintillation = other.scintillation;
         scalars = other.scalars;
