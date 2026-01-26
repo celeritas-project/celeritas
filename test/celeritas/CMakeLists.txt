@@ -144,6 +144,11 @@ celeritas_add_test(Units.test.cc)
 celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 #-----------------------------------------------------------------------------#
+# MuCF
+
+celeritas_add_test(mucf/MuonicAtomSelector.test.cc ${_needs_double})
+
+#-----------------------------------------------------------------------------#
 # EM
 
 # Distributions
