@@ -155,20 +155,23 @@ EM-only execution is used for performance testing and verification via `celer-si
 Supports ORANGE (native), VecGeom, and Geant4 geometries. GDML is the standard interchange format. Geometry loads through `inp::Model` (see `geocel/inp/Model.hh`).
 
 ## Documentation
-
 - Doxygen comments go next to **definitions**, not declarations
 - Document `operator()` behavior in class comment, not operator itself
 - Use `\citep{author-keyword-year}` for references (maintained in Zotero at `doc/_static/zotero.bib`)
 - Physics constants need units and paper citations
 
 ## Development Tools
-
 - **pre-commit**: Auto-formats code (clang-format enforces 80-column limit, East const)
 - **celeritas-gen.py** (`scripts/dev/`): Generate file skeletons with proper decorations
 - **CMake presets**: System-specific configs in `scripts/cmake-presets/<hostname>.json`
 
-## Common Pitfalls
+### Git Commit Messages
+When committing agent-assisted work:
+- Write a concise subject line summarizing the change
+- Body should list specific changes without redundant summary text
+- Include `--trailer "Assisted-by: GitHub Copilot (<model metadata>)"` for attribution
 
+## Common Pitfalls
 - Never copy-paste code: instead, refactor into reusable functors
 - Ensure consistency between setup, runtime data, and execution code:
   * problem input,
@@ -178,7 +181,6 @@ Supports ORANGE (native), VecGeom, and Geant4 geometries. GDML is the standard i
 - Failing to mark functions `CELER_FUNCTION` will cause `call to __host__ function from __device__` errors
 
 ## External Dependencies
-
 Key dependencies (see `scripts/spack-packages.yaml` for versions):
 - Geant4
 - GoogleTest (tests), CLI11 (apps), nlohmann_json (I/O)
