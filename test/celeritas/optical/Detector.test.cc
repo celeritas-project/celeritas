@@ -11,6 +11,7 @@
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/optical/Runner.hh"
 #include "celeritas/optical/Types.hh"
+#include "celeritas/optical/detector/DetectorData.hh"
 
 #include "celeritas_test.hh"
 
@@ -79,13 +80,121 @@ class DetectorTest : public Test
 };
 
 /*
- * - Figure out how to add detectors in setup
- * - Write a test to check individual photon hit results
  * - Write a test to check bulk photon hits
  * - Write a test to check bulk photon hits on device
  */
 
+struct SimpleScorer
+{
+    std::vector<size_type> detector_ids;
+    std::vector<real_type> energies;
+    std::vector<real_type> times;
+    std::vector<real_type> x_positions;
+    std::vector<real_type> y_positions;
+    std::vector<real_type> z_positions;
+    std::vector<size_type> volume_instance_ids;
+
+    void operator()(Span<optical::DetectorHit> const& new_hits)
+    {
+        for (auto const& hit : new_hits)
+        {
+            detector_ids.push_back(hit.detector.get());
+            energies.push_back(value_as<units::MevEnergy>(hit.energy));
+            times.push_back(hit.time);
+            x_positions.push_back(hit.position[0]);
+            y_positions.push_back(hit.position[1]);
+            z_positions.push_back(hit.position[2]);
+            volume_instance_ids.push_back(hit.volume_instance.get());
+        }
+    }
+};
+
 TEST_F(DetectorTest, simple)
+{
+    SimpleScorer scores;
+    osi_.problem.scoring.detector_callback = scores;
+
+    using E = units::MevEnergy;
+    using TI = optical::TrackInitializer;
+
+    std::vector<TI> const inits{
+        TI{E{1e-6},
+           Real3{0, 0, 0},  // pos
+           Real3{1, 0, 0},  // dir
+           Real3{0, 1, 0},  // pol
+           0,  // time
+           {},
+           ImplVolumeId{0}},
+        TI{E{2e-6},
+           Real3{0, 0, 0},  // pos
+           Real3{-1, 0, 0},  // dir
+           Real3{0, 1, 0},  // pol
+           10,  // time
+           {},
+           ImplVolumeId{0}},
+        TI{E{3e-6},
+           Real3{0, 0, 0},  // pos
+           Real3{0, 0, 1},  // dir
+           Real3{0, 1, 0},  // pol
+           1,  // time
+           {},
+           ImplVolumeId{0}},
+        TI{E{4e-6},
+           Real3{0, 0, 0},  // pos
+           Real3{0, 0, -1},  // dir
+           Real3{0, 1, 0},  // pol
+           20,  // time
+           {},
+           ImplVolumeId{0}},
+        TI{E{5e-6},
+           Real3{0, 0, 0},  // pos
+           Real3{1, 0, 0},  // dir
+           Real3{0, 1, 0},  // pol
+           13,  // time
+           {},
+           ImplVolumeId{0}},
+        TI{E{2e-6},
+           Real3{0, 0, 0},  // pos
+           Real3{0, 1, 0},  // dir
+           Real3{1, 0, 0},  // pol
+           2,  // time
+           {},
+           ImplVolumeId{0}},
+        TI{E{6e-6},
+           Real3{0, 0, 0},  // pos
+           Real3{0, -1, 0},  // dir
+           Real3{1, 0, 0},  // pol
+           7,  // time
+           {},
+           ImplVolumeId{0}},
+    };
+
+    auto result = optical::Runner(std::move(osi_))(make_span(inits));
+
+    EXPECT_EQ(0, result.counters.steps);
+    EXPECT_EQ(0, result.counters.step_iters);
+    EXPECT_EQ(1, result.counters.flushes);
+    ASSERT_EQ(1, result.counters.generators.size());
+
+    static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0};
+    static real_type const expected_energies[]
+        = {1e-6, 2e-6, 3e-6, 4e-6, 5e-6, 6e-6};
+    static real_type const expected_x_positions[] = {0};
+    static real_type const expected_y_positions[] = {0};
+    static real_type const expected_z_positions[] = {0};
+    static real_type const expected_times[] = {0};
+    static size_type const expected_volume_instance_ids[] = {3, 4, 5, 6, 3, 2};
+
+    EXPECT_VEC_EQ(expected_detector_ids, scores.detector_ids);
+    EXPECT_VEC_SOFT_EQ(expected_energies, scores.energies);
+    EXPECT_VEC_SOFT_EQ(expected_x_positions, scores.x_positions);
+    EXPECT_VEC_SOFT_EQ(expected_y_positions, scores.y_positions);
+    EXPECT_VEC_SOFT_EQ(expected_z_positions, scores.z_positions);
+    EXPECT_VEC_SOFT_EQ(expected_times, scores.times);
+    EXPECT_VEC_EQ(expected_volume_instance_ids, scores.volume_instance_ids);
+}
+
+TEST_F(DetectorTest, stress)
 {
     size_type num_tracks = osi_.problem.capacity.tracks * 4;
 

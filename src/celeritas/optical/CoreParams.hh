@@ -86,8 +86,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstSurface surface;
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;
-        SPConstScoring scoring;
 
+        SPConstScoring scoring;  //!< Optional
         SPConstCherenkov cherenkov;  //!< Optional
         SPConstScintillation scintillation;  //!< Optional
 
@@ -101,9 +101,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         explicit operator bool() const
         {
             return geometry && material && rng && sim && surface
-                   && surface_physics && scoring && action_reg && gen_reg
-                   && max_streams && capacity.generators > 0
-                   && capacity.tracks > 0 && capacity.primaries > 0;
+                   && surface_physics && action_reg && gen_reg && max_streams
+                   && capacity.generators > 0 && capacity.tracks > 0
+                   && capacity.primaries > 0;
         }
     };
 
