@@ -6,22 +6,21 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
 #include "celeritas/inp/Scoring.hh"
 
 namespace celeritas
 {
+class ActionRegistry;
+
 namespace optical
 {
+class DetectorAction;
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    ScoringParams ...;
-   \endcode
  */
-class ScoringParams
+class ScoringParams final
 {
   public:
     //!@{
@@ -30,10 +29,13 @@ class ScoringParams
     //!@}
 
   public:
-    ScoringParams(inp::OpticalScoring);
+    ScoringParams(ActionRegistry*, inp::OpticalScoring);
+
+    void process_hits(Span<DetectorHit> const&) const;
 
   private:
     std::optional<HitCallbackFunc> detector_callback_;
+    std::shared_ptr<DetectorAction> detector_action_;
 };
 
 //---------------------------------------------------------------------------//

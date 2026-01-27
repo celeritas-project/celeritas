@@ -8,7 +8,9 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"
 
+#include "DetectorAction.hh"
 #include "DetectorData.hh"
 
 namespace celeritas
@@ -16,17 +18,37 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-ScoringParams::ScoringParams(inp::OpticalScoring input)
+/*!
+ */
+ScoringParams::ScoringParams(ActionRegistry* action_reg,
+                             inp::OpticalScoring input)
     : detector_callback_(std::move(input.detector_callback))
 {
+    CELER_EXPECT(action_reg);
+
     if (detector_callback_)
     {
         CELER_LOG(info) << "optical scoring enabled.";
+
+        detector_action_
+            = std::make_shared<DetectorAction>(action_reg->next_id());
+        CELER_ASSERT(detector_action_);
+        action_reg->insert(detector_action_);
     }
     else
     {
         CELER_LOG(info) << "optical scoring disabled.";
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ */
+void ScoringParams::process_hits(Span<DetectorHit> const& hits) const
+{
+    CELER_EXPECT(detector_callback_);
+
+    (*detector_callback_)(hits);
 }
 
 //---------------------------------------------------------------------------//

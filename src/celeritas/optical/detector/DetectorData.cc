@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "DetectorData.hh"
 
+#include <iostream>
+
 namespace celeritas
 {
 namespace optical
@@ -18,12 +20,11 @@ void copy_hits(
     DetectorStateData<Ownership::reference, MemSpace::host> const& state)
 {
     // Trivial copy to pinned memory
-    output->hits.reserve(state.all_track_hits.size());
+    output->hits.resize(state.all_track_hits.size());
 
     for (auto tid : range(TrackSlotId{state.all_track_hits.size()}))
     {
-        output->hits[tid.unchecked_get()]
-            = state.all_track_hits[tid.unchecked_get()];
+        output->hits[tid.unchecked_get()] = state.all_track_hits[tid];
     }
 }
 

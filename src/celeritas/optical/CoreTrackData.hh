@@ -20,6 +20,7 @@
 #include "PhysicsData.hh"
 #include "SimData.hh"
 #include "TrackInitData.hh"
+#include "detector/DetectorData.hh"
 #include "gen/CherenkovData.hh"
 #include "gen/ScintillationData.hh"
 #include "surface/SurfacePhysicsData.hh"
@@ -103,6 +104,7 @@ struct CoreStateData
     ParticleStateData<W, M> particle;
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
+    DetectorStateData<W, M> scoring;
     SimStateData<W, M> sim;
     SurfacePhysicsStateData<W, M> surface_physics;
     TrackInitStateData<W, M> init;
@@ -116,8 +118,8 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && particle && physics && rng && sim && surface_physics
-               && init && stream_id;
+        return geometry && particle && physics && rng && scoring && sim
+               && surface_physics && init && stream_id;
     }
 
     //! Assign from another set of data
@@ -129,6 +131,7 @@ struct CoreStateData
         particle = other.particle;
         physics = other.physics;
         rng = other.rng;
+        scoring = other.scoring;
         sim = other.sim;
         surface_physics = other.surface_physics;
         init = other.init;

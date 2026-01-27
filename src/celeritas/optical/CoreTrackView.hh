@@ -17,6 +17,7 @@
 #include "PhysicsTrackView.hh"
 #include "SimTrackView.hh"
 #include "TrackInitializer.hh"
+#include "detector/ScoringTrackView.hh"
 #include "surface/SurfacePhysicsTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
@@ -81,6 +82,9 @@ class CoreTrackView
 
     // Return a sensitive detector view
     inline CELER_FUNCTION DetectorView detectors() const;
+
+    // Return a scoring view
+    inline CELER_FUNCTION ScoringTrackView scoring() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -150,6 +154,9 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the surface state
     this->surface_physics().reset();
+
+    // Initialize scoring
+    this->scoring().clear_hit();
 
     return *this;
 }
@@ -259,6 +266,14 @@ CELER_FUNCTION auto CoreTrackView::detectors() const -> DetectorView
     return DetectorView{params_.detectors};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Return a scoring view.
+ */
+CELER_FUNCTION auto CoreTrackView::scoring() const -> ScoringTrackView
+{
+    return ScoringTrackView{states_.scoring, this->track_slot_id()};
+}
 //---------------------------------------------------------------------------//
 /*!
  * Return the RNG engine.

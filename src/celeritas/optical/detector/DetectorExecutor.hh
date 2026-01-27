@@ -15,8 +15,6 @@ namespace optical
  */
 struct DetectorExecutor
 {
-    NativeRef<DetectorStateData> data;
-
     inline CELER_FUNCTION void operator()(CoreTrackView const&) const;
 };
 
@@ -28,23 +26,38 @@ struct DetectorExecutor
 CELER_FUNCTION void
 DetectorExecutor::operator()(CoreTrackView const& track) const
 {
-    auto const detectors = track.detectors();
+    auto score = track.scoring();
+    auto sim = track.sim();
 
-    auto const volume_id = track.geometry().volume_id();
-    auto const detector_id = detectors.detector_id(volume_id);
-
-    DetectorHit& hit = data.all_track_hits[track.track_slot_id()];
-    hit.detector = detector_id;
-
-    if (detector_id)
+    if (sim.status() == TrackStatus::alive)
     {
-        // Populate hit data
-        hit.energy = track.particle().energy();
-        hit.time = track.sim().time();
-        hit.position = track.geometry().pos();
-        hit.volume_instance = track.geometry().volume_instance_id();
+        auto const detectors = track.detectors();
 
-        // Kill the track
+        auto geometry = track.geometry();
+
+        auto const volume_id = geometry.volume_id();
+        auto const detector_id = detectors.detector_id(volume_id);
+
+        if (detector_id)
+        {
+            score.score_hit(DetectorHit{detector_id,
+                                        track.particle().energy(),
+                                        sim.time(),
+                                        geometry.pos(),
+                                        geometry.volume_instance_id()});
+
+            // Kill the track
+            sim.status(TrackStatus::killed);
+        }
+        else
+        {
+            score.clear_hit();
+        }
+    }
+    else
+    {
+        // Ensure killed, inactive, and errored tracks don't contribute to hits
+        score.clear_hit();
     }
 }
 
