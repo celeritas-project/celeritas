@@ -247,7 +247,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_t i) const
 
     G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
 
-    GeantStepView step_view{step_};
+    GeantStepView step_view{*step_};
     if (!out.energy_deposition.empty())
     {
         step_view.energy_deposition(
@@ -284,7 +284,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_t i) const
         }
 
         auto const& celer_sp = out.points[sp];
-        GeantStepPointView sp_view{g4sp};
+        GeantStepPointView sp_view{*g4sp};
 
 #define HP_SET_STEP_POINT_ATTR(ATTR)    \
     if (!celer_sp.ATTR.empty())         \

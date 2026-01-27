@@ -96,14 +96,14 @@ class GeantTrackView<Ownership::reference>
     // Construct from mutable G4Track
     explicit GeantTrackView(G4Track& track) : Base(track) {}
 
-    // Bring base class getters into scope
+    // Bring base class accessors into scope
     using Base::dir;
     using Base::energy;
     using Base::pos;
     using Base::time;
     using Base::weight;
 
-    // Setters
+    // Mutators
     inline void pos(Real3 const& position);
     inline void dir(Real3 const& direction);
     inline void energy(Energy e);

@@ -38,13 +38,13 @@ class GeantStepPointView
 
   public:
     // Construct from G4StepPoint
-    explicit GeantStepPointView(G4StepPoint* step_point)
+    explicit GeantStepPointView(G4StepPoint& step_point)
         : step_point_(step_point)
     {
     }
 
     //!@{
-    //! \name Getters
+    //! \name Accessors
 
     // Position in native Celeritas length units
     inline Real3 pos() const;
@@ -59,11 +59,11 @@ class GeantStepPointView
     inline real_type time() const;
 
     //! Statistical weight
-    real_type weight() const { return step_point_->GetWeight(); }
+    real_type weight() const { return step_point_.GetWeight(); }
 
     //!@}
     //!@{
-    //! \name Setters
+    //! \name Mutators
 
     // Set position in native Celeritas length units
     inline void pos(Real3 const& position);
@@ -78,21 +78,21 @@ class GeantStepPointView
     inline void time(real_type global_time);
 
     // Set statistical weight
-    void weight(real_type w) { step_point_->SetWeight(w); }
+    void weight(real_type w) { step_point_.SetWeight(w); }
 
     // Update attributes from logical volume
-    inline void update_from_volume(G4LogicalVolume const* lv);
+    void update_from_volume(G4LogicalVolume const* lv);
 
     // Update attributes from touchable's logical volume
-    inline void update_from_volume();
+    void update_from_volume();
 
     // Update mass and charge from particle definition
-    inline void update_from_particle(GeantParticleView const& particle);
+    void update_from_particle(GeantParticleView const& particle);
 
     //!@}
 
   private:
-    G4StepPoint* step_point_;
+    G4StepPoint& step_point_;
 };
 
 //---------------------------------------------------------------------------//
@@ -103,7 +103,7 @@ class GeantStepPointView
  */
 Real3 GeantStepPointView::pos() const
 {
-    return convert_from_geant(step_point_->GetPosition(), clhep_length);
+    return convert_from_geant(step_point_.GetPosition(), clhep_length);
 }
 
 //---------------------------------------------------------------------------//
@@ -112,7 +112,7 @@ Real3 GeantStepPointView::pos() const
  */
 Real3 GeantStepPointView::dir() const
 {
-    return convert_from_geant(step_point_->GetMomentumDirection(), 1);
+    return convert_from_geant(step_point_.GetMomentumDirection(), 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -122,7 +122,7 @@ Real3 GeantStepPointView::dir() const
 GeantStepPointView::Energy GeantStepPointView::energy() const
 {
     return Energy{
-        convert_from_geant(step_point_->GetKineticEnergy(), CLHEP::MeV)};
+        convert_from_geant(step_point_.GetKineticEnergy(), CLHEP::MeV)};
 }
 
 //---------------------------------------------------------------------------//
@@ -131,7 +131,7 @@ GeantStepPointView::Energy GeantStepPointView::energy() const
  */
 real_type GeantStepPointView::time() const
 {
-    return convert_from_geant(step_point_->GetGlobalTime(), clhep_time);
+    return convert_from_geant(step_point_.GetGlobalTime(), clhep_time);
 }
 
 //---------------------------------------------------------------------------//
@@ -140,7 +140,7 @@ real_type GeantStepPointView::time() const
  */
 void GeantStepPointView::pos(Real3 const& position)
 {
-    step_point_->SetPosition(convert_to_geant(position, clhep_length));
+    step_point_.SetPosition(convert_to_geant(position, clhep_length));
 }
 
 //---------------------------------------------------------------------------//
@@ -149,7 +149,7 @@ void GeantStepPointView::pos(Real3 const& position)
  */
 void GeantStepPointView::dir(Real3 const& direction)
 {
-    step_point_->SetMomentumDirection(convert_to_geant(direction, 1));
+    step_point_.SetMomentumDirection(convert_to_geant(direction, 1));
 }
 
 //---------------------------------------------------------------------------//
@@ -158,7 +158,7 @@ void GeantStepPointView::dir(Real3 const& direction)
  */
 void GeantStepPointView::energy(Energy kinetic_energy)
 {
-    step_point_->SetKineticEnergy(
+    step_point_.SetKineticEnergy(
         convert_to_geant(kinetic_energy.value(), CLHEP::MeV));
 }
 
@@ -168,52 +168,7 @@ void GeantStepPointView::energy(Energy kinetic_energy)
  */
 void GeantStepPointView::time(real_type global_time)
 {
-    step_point_->SetGlobalTime(convert_to_geant(global_time, clhep_time));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Update attributes from logical volume.
- *
- * If the logical volume is null, no updates are performed.
- */
-void GeantStepPointView::update_from_volume(G4LogicalVolume const* lv)
-{
-    CELER_EXPECT(lv);
-    step_point_->SetMaterial(lv->GetMaterial());
-    step_point_->SetMaterialCutsCouple(lv->GetMaterialCutsCouple());
-    step_point_->SetSensitiveDetector(lv->GetSensitiveDetector());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Update attributes from touchable's logical volume.
- *
- * The post-step volume is fetched from the touchable. The physical volume
- * could be null if post-step is outside the geometry.
- */
-void GeantStepPointView::update_from_volume()
-{
-    G4LogicalVolume const* lv = nullptr;
-    if (auto* touch = step_point_->GetTouchable())
-    {
-        // The physical volume could be null if post-step is outside
-        if (auto* pv = touch->GetVolume())
-        {
-            lv = pv->GetLogicalVolume();
-        }
-    }
-    this->update_from_volume(lv);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Update mass and charge from particle definition.
- */
-void GeantStepPointView::update_from_particle(GeantParticleView const& particle)
-{
-    step_point_->SetMass(particle.mass().value() * CLHEP::MeV);
-    step_point_->SetCharge(particle.charge().value() * CLHEP::eplus);
+    step_point_.SetGlobalTime(convert_to_geant(global_time, clhep_time));
 }
 
 //---------------------------------------------------------------------------//

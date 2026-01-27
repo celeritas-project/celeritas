@@ -25,6 +25,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/QuantityIO.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
@@ -252,11 +253,10 @@ void LocalTransporter::Push(G4Track& g4track)
     {
         // Primary may have been created by a particle generator outside the
         // geometry
-        CELER_LOG_LOCAL(error) << "Discarding track outside world bounds: "
-                               << gtv.energy().value() << " "
-                               << GeantTrackView::Energy::unit_type::label()
-                               << " from " << gtv.particle().name() << " at "
-                               << gtv.pos() << " along " << gtv.direction();
+        CELER_LOG_LOCAL(error)
+            << "Discarding track outside world bounds: " << gtv.energy()
+            << " from " << gtv.particle().name() << " at " << gtv.pos()
+            << " along " << gtv.dir();
 
         buffer_accum_.lost_energy += gtv.energy().value();
         ++buffer_accum_.lost_primaries;
@@ -275,7 +275,7 @@ void LocalTransporter::Push(G4Track& g4track)
     offloaded.energy = gtv.energy();
     offloaded.particle_id = particles_->find(gtv.particle().pdg());
     offloaded.position = gtv.pos();
-    offloaded.direction = gtv.direction();
+    offloaded.direction = gtv.dir();
     offloaded.time = gtv.time();
     offloaded.weight = gtv.weight();
 
