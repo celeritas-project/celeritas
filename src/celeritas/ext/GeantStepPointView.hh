@@ -38,10 +38,7 @@ class GeantStepPointView
 
   public:
     // Construct from G4StepPoint
-    explicit GeantStepPointView(G4StepPoint& step_point)
-        : step_point_(step_point)
-    {
-    }
+    explicit GeantStepPointView(G4StepPoint& step_point) : sp_(step_point) {}
 
     //!@{
     //! \name Accessors
@@ -59,7 +56,7 @@ class GeantStepPointView
     inline real_type time() const;
 
     //! Statistical weight
-    real_type weight() const { return step_point_.GetWeight(); }
+    real_type weight() const { return sp_.GetWeight(); }
 
     //!@}
     //!@{
@@ -78,7 +75,7 @@ class GeantStepPointView
     inline void time(real_type global_time);
 
     // Set statistical weight
-    void weight(real_type w) { step_point_.SetWeight(w); }
+    void weight(real_type w) { sp_.SetWeight(w); }
 
     // Update attributes from logical volume
     void update_from_volume(G4LogicalVolume const& lv);
@@ -89,10 +86,16 @@ class GeantStepPointView
     // Update mass and charge from particle definition
     void update_from_particle(GeantParticleView const& particle);
 
+    // Clear unsupported attributes to invalid sentinel values
+    void clear_unsupported();
+
     //!@}
 
+    //! Access underlying G4 object
+    G4StepPoint& step_point() { return sp_; }
+
   private:
-    G4StepPoint& step_point_;
+    G4StepPoint& sp_;
 };
 
 //---------------------------------------------------------------------------//
@@ -103,7 +106,7 @@ class GeantStepPointView
  */
 Real3 GeantStepPointView::pos() const
 {
-    return convert_from_geant(step_point_.GetPosition(), clhep_length);
+    return convert_from_geant(sp_.GetPosition(), clhep_length);
 }
 
 //---------------------------------------------------------------------------//
@@ -112,7 +115,7 @@ Real3 GeantStepPointView::pos() const
  */
 Real3 GeantStepPointView::dir() const
 {
-    return convert_from_geant(step_point_.GetMomentumDirection(), 1);
+    return convert_from_geant(sp_.GetMomentumDirection(), 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -121,8 +124,7 @@ Real3 GeantStepPointView::dir() const
  */
 GeantStepPointView::Energy GeantStepPointView::energy() const
 {
-    return Energy{
-        convert_from_geant(step_point_.GetKineticEnergy(), CLHEP::MeV)};
+    return Energy{convert_from_geant(sp_.GetKineticEnergy(), CLHEP::MeV)};
 }
 
 //---------------------------------------------------------------------------//
@@ -131,7 +133,7 @@ GeantStepPointView::Energy GeantStepPointView::energy() const
  */
 real_type GeantStepPointView::time() const
 {
-    return convert_from_geant(step_point_.GetGlobalTime(), clhep_time);
+    return convert_from_geant(sp_.GetGlobalTime(), clhep_time);
 }
 
 //---------------------------------------------------------------------------//
@@ -140,7 +142,7 @@ real_type GeantStepPointView::time() const
  */
 void GeantStepPointView::pos(Real3 const& position)
 {
-    step_point_.SetPosition(convert_to_geant(position, clhep_length));
+    sp_.SetPosition(convert_to_geant(position, clhep_length));
 }
 
 //---------------------------------------------------------------------------//
@@ -149,7 +151,7 @@ void GeantStepPointView::pos(Real3 const& position)
  */
 void GeantStepPointView::dir(Real3 const& direction)
 {
-    step_point_.SetMomentumDirection(convert_to_geant(direction, 1));
+    sp_.SetMomentumDirection(convert_to_geant(direction, 1));
 }
 
 //---------------------------------------------------------------------------//
@@ -159,8 +161,8 @@ void GeantStepPointView::dir(Real3 const& direction)
 void GeantStepPointView::energy(Energy kinetic_energy)
 {
     CELER_EXPECT(kinetic_energy >= zero_quantity());
-    step_point_.SetKineticEnergy(
-        convert_to_geant(kinetic_energy.value(), CLHEP::MeV));
+    sp_.SetKineticEnergy(convert_to_geant(kinetic_energy.value(), CLHEP::MeV));
+    // TODO: update speed based on mass, KE
 }
 
 //---------------------------------------------------------------------------//
@@ -170,7 +172,7 @@ void GeantStepPointView::energy(Energy kinetic_energy)
 void GeantStepPointView::time(real_type global_time)
 {
     CELER_EXPECT(global_time >= 0);
-    step_point_.SetGlobalTime(convert_to_geant(global_time, clhep_time));
+    sp_.SetGlobalTime(convert_to_geant(global_time, clhep_time));
 }
 
 //---------------------------------------------------------------------------//

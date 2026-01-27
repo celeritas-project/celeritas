@@ -37,7 +37,7 @@ class GeantStepView
 
   public:
     // Construct from G4Step
-    explicit GeantStepView(G4Step& step) : step_(step) {}
+    explicit GeantStepView(G4Step& step) : s_(step) {}
 
     //!@{
     //! \name Accessors
@@ -53,6 +53,9 @@ class GeantStepView
 
     // Post-step point accessor
     inline GeantStepPointView post_step() const;
+
+    // Whether the step point is valid (not null)
+    inline bool has_step_point(StepPoint sp) const;
 
     // Step point accessor by enum
     inline GeantStepPointView step_point(StepPoint sp) const;
@@ -70,10 +73,13 @@ class GeantStepView
     // Update track from step data
     void update_track();
 
+    // Delete a step point (set to null or clear based on Geant4 version)
+    void delete_step_point(StepPoint sp);
+
     //!@}
 
   private:
-    G4Step& step_;
+    G4Step& s_;
 };
 
 //---------------------------------------------------------------------------//
@@ -84,8 +90,7 @@ class GeantStepView
  */
 auto GeantStepView::energy_deposition() const -> Energy
 {
-    return Energy{
-        convert_from_geant(step_.GetTotalEnergyDeposit(), CLHEP::MeV)};
+    return Energy{convert_from_geant(s_.GetTotalEnergyDeposit(), CLHEP::MeV)};
 }
 
 //---------------------------------------------------------------------------//
@@ -94,7 +99,7 @@ auto GeantStepView::energy_deposition() const -> Energy
  */
 real_type GeantStepView::step_length() const
 {
-    return convert_from_geant(step_.GetStepLength(), clhep_length);
+    return convert_from_geant(s_.GetStepLength(), clhep_length);
 }
 
 //---------------------------------------------------------------------------//
@@ -103,7 +108,7 @@ real_type GeantStepView::step_length() const
  */
 void GeantStepView::energy_deposition(Energy edep)
 {
-    step_.SetTotalEnergyDeposit(convert_to_geant(edep.value(), CLHEP::MeV));
+    s_.SetTotalEnergyDeposit(convert_to_geant(edep.value(), CLHEP::MeV));
 }
 
 //---------------------------------------------------------------------------//
@@ -112,11 +117,11 @@ void GeantStepView::energy_deposition(Energy edep)
  */
 void GeantStepView::step_length(real_type length)
 {
-    step_.SetStepLength(convert_to_geant(length, clhep_length));
-    if (step_.GetTrack())
+    s_.SetStepLength(convert_to_geant(length, clhep_length));
+    if (s_.GetTrack())
     {
         // Set on track as well
-        step_.GetTrack()->SetStepLength(step_.GetStepLength());
+        s_.GetTrack()->SetStepLength(s_.GetStepLength());
     }
 }
 
@@ -126,8 +131,8 @@ void GeantStepView::step_length(real_type length)
  */
 GeantStepPointView GeantStepView::pre_step() const
 {
-    CELER_EXPECT(step_.GetPreStepPoint());
-    return GeantStepPointView{*step_.GetPreStepPoint()};
+    CELER_EXPECT(this->has_step_point(StepPoint::pre));
+    return GeantStepPointView{*s_.GetPreStepPoint()};
 }
 
 //---------------------------------------------------------------------------//
@@ -136,8 +141,19 @@ GeantStepPointView GeantStepView::pre_step() const
  */
 GeantStepPointView GeantStepView::post_step() const
 {
-    CELER_EXPECT(step_.GetPostStepPoint());
-    return GeantStepPointView{*step_.GetPostStepPoint()};
+    CELER_EXPECT(this->has_step_point(StepPoint::post));
+    return GeantStepPointView{*s_.GetPostStepPoint()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the step point is valid (not null).
+ */
+bool GeantStepView::has_step_point(StepPoint sp) const
+{
+    CELER_EXPECT(sp != StepPoint::size_);
+    return (sp == StepPoint::pre ? s_.GetPreStepPoint() : s_.GetPostStepPoint())
+           != nullptr;
 }
 
 //---------------------------------------------------------------------------//

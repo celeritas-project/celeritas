@@ -25,6 +25,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/QuantityIO.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -106,72 +107,40 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     CELER_LOG(debug) << "Setting up thread-local hit processor for "
                      << detector_volumes_->size() << " sensitive detectors";
 
-#if G4VERSION_NUMBER >= 1103
-#    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
-#else
-#    define HP_CLEAR_STEP_POINT(CMD) /* no "reset" before v11.0.3 */
-#endif
-
-#define HP_SETUP_POINT(LOWER, TITLE)                      \
-    do                                                    \
-    {                                                     \
-        if (!selection.points[StepPoint::LOWER])          \
-        {                                                 \
-            HP_CLEAR_STEP_POINT(Reset##TITLE##StepPoint); \
-        }                                                 \
-        else                                              \
-        {                                                 \
-            auto* sp = step_->Get##TITLE##StepPoint();    \
-            sp->SetStepStatus(fUserDefinedLimit);         \
-            step_points_[StepPoint::LOWER] = sp;          \
-        }                                                 \
-    } while (0)
-
-    HP_SETUP_POINT(pre, Pre);
-    HP_SETUP_POINT(post, Post);
-#undef HP_SETUP_POINT
-#undef HP_CLEAR_STEP_POINT
-
-    for (auto p : range(StepPoint::size_))
+    GeantStepView step_view{*step_};
+    for (auto sp : range(StepPoint::size_))
     {
-        if (locate_touchable[p])
+        if (!selection.points[sp])
         {
-            // Create touchable handle for this step point
-            touch_handle_[p] = new G4TouchableHistory;
-            CELER_ASSERT(step_points_[p]);
-            step_points_[p]->SetTouchableHandle(touch_handle_[p]);
+            step_view.delete_step_point(sp);
+            CELER_ASSERT(!locate_touchable[sp]);
         }
-        if (locate_touchable[p] && !update_touchable_)
+        else
         {
-            CELER_EXPECT(selection.points[p].volume_instance_ids);
-            // FIXME: pass geant geo into this constructor
-            auto ggeo = ::celeritas::global_geant_geo().lock();
-            CELER_ASSERT(ggeo);
-            update_touchable_
-                = std::make_unique<LevelTouchableUpdater>(std::move(ggeo));
+            auto point_view = step_view.step_point(sp);
+            point_view.clear_unsupported();
+            step_points_[sp] = &point_view.step_point();
+            if (locate_touchable[sp])
+            {
+                // Create touchable handle for this step point
+                touch_handle_[sp] = new G4TouchableHistory;
+                step_points_[sp]->SetTouchableHandle(touch_handle_[sp]);
+                if (!update_touchable_)
+                {
+                    CELER_EXPECT(selection.points[sp].volume_instance_ids);
+                    // FIXME: pass geant geo into this constructor
+                    auto ggeo = ::celeritas::global_geant_geo().lock();
+                    CELER_ASSERT(ggeo);
+                    update_touchable_ = std::make_unique<LevelTouchableUpdater>(
+                        std::move(ggeo));
+                }
+            }
         }
     }
 
     // Set invalid values for unsupported SD attributes
     step_->SetNonIonizingEnergyDeposit(
         -std::numeric_limits<double>::infinity());
-    for (G4StepPoint* p : step_points_)
-    {
-        if (!p)
-        {
-            continue;
-        }
-        // Time since track was created
-        p->SetLocalTime(std::numeric_limits<double>::infinity());
-        // Time in rest frame since track was created
-        p->SetProperTime(std::numeric_limits<double>::infinity());
-        // Speed (TODO: use ParticleView)
-        p->SetVelocity(std::numeric_limits<double>::infinity());
-        // Safety distance
-        p->SetSafety(std::numeric_limits<double>::infinity());
-        // Polarization (default to zero)
-        p->SetPolarization(G4ThreeVector());
-    }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
     detectors_.resize(detector_volumes_->size());
@@ -239,7 +208,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 /*!
  * Generate and call a single hit.
  */
-void HitProcessor::operator()(DetectorStepOutput const& out, size_t i) const
+void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 {
     CELER_EXPECT(!out.detector.empty());
     CELER_EXPECT(i < out.size());
@@ -272,10 +241,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_t i) const
             if (CELER_UNLIKELY(!success))
             {
                 // Inconsistent touchable: skip this energy deposition
-                CELER_LOG_LOCAL(error)
-                    << "Omitting energy deposition of "
-                    << step_view.energy_deposition().value() << ' '
-                    << GeantStepView::Energy::unit_type::label();
+                CELER_LOG_LOCAL(error) << "Omitting energy deposition of "
+                                       << step_view.energy_deposition();
                 return;
             }
         }

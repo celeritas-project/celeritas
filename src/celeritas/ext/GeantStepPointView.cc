@@ -16,9 +16,9 @@ namespace celeritas
  */
 void GeantStepPointView::update_from_volume(G4LogicalVolume const& lv)
 {
-    step_point_.SetMaterial(lv.GetMaterial());
-    step_point_.SetMaterialCutsCouple(lv.GetMaterialCutsCouple());
-    step_point_.SetSensitiveDetector(lv.GetSensitiveDetector());
+    sp_.SetMaterial(lv.GetMaterial());
+    sp_.SetMaterialCutsCouple(lv.GetMaterialCutsCouple());
+    sp_.SetSensitiveDetector(lv.GetSensitiveDetector());
 }
 
 //---------------------------------------------------------------------------//
@@ -31,7 +31,7 @@ void GeantStepPointView::update_from_volume(G4LogicalVolume const& lv)
 void GeantStepPointView::update_from_volume()
 {
     G4LogicalVolume const* lv = nullptr;
-    if (auto* touch = step_point_.GetTouchable())
+    if (auto* touch = sp_.GetTouchable())
     {
         // The physical volume could be null if post-step is outside
         if (auto* pv = touch->GetVolume())
@@ -45,9 +45,9 @@ void GeantStepPointView::update_from_volume()
     }
     else
     {
-        step_point_.SetMaterial(nullptr);
-        step_point_.SetMaterialCutsCouple(nullptr);
-        step_point_.SetSensitiveDetector(nullptr);
+        sp_.SetMaterial(nullptr);
+        sp_.SetMaterialCutsCouple(nullptr);
+        sp_.SetSensitiveDetector(nullptr);
     }
 }
 
@@ -57,8 +57,29 @@ void GeantStepPointView::update_from_volume()
  */
 void GeantStepPointView::update_from_particle(GeantParticleView const& particle)
 {
-    step_point_.SetMass(particle.mass().value() * CLHEP::MeV);
-    step_point_.SetCharge(particle.charge().value() * CLHEP::eplus);
+    sp_.SetMass(particle.mass().value() * CLHEP::MeV);
+    sp_.SetCharge(particle.charge().value() * CLHEP::eplus);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear unsupported attributes to invalid sentinel values.
+ *
+ * This sets attributes that Celeritas does not currently track to sentinel
+ * values to indicate they are unavailable to sensitive detectors.
+ */
+void GeantStepPointView::clear_unsupported()
+{
+    // Time since track was created
+    sp_.SetLocalTime(std::numeric_limits<double>::infinity());
+    // Time in rest frame since track was created
+    sp_.SetProperTime(std::numeric_limits<double>::infinity());
+    // Speed (TODO: use ParticleView)
+    sp_.SetVelocity(std::numeric_limits<double>::infinity());
+    // Safety distance
+    sp_.SetSafety(std::numeric_limits<double>::infinity());
+    // Polarization (default to zero)
+    sp_.SetPolarization(G4ThreeVector());
 }
 
 //---------------------------------------------------------------------------//

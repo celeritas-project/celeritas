@@ -20,20 +20,20 @@ namespace celeritas
  */
 void GeantStepView::update_track()
 {
-    CELER_EXPECT(step_.GetTrack());
+    CELER_EXPECT(s_.GetTrack());
 
-    GeantTrackView track{*step_.GetTrack()};
+    GeantTrackView track{*s_.GetTrack()};
     GeantParticleView particle_view = track.particle();
 
     // Update pre-step point if present
-    if (G4StepPoint* pre_step = step_.GetPreStepPoint())
+    if (G4StepPoint* pre_step = s_.GetPreStepPoint())
     {
         GeantStepPointView{*pre_step}.update_from_particle(particle_view);
         track.track().SetTouchableHandle(pre_step->GetTouchableHandle());
     }
 
     // Update post-step point and track from post-step if present
-    if (G4StepPoint* post_step = step_.GetPostStepPoint())
+    if (G4StepPoint* post_step = s_.GetPostStepPoint())
     {
         GeantStepPointView post_view{*post_step};
         post_view.update_from_particle(particle_view);
@@ -48,6 +48,32 @@ void GeantStepView::update_track()
         track.track().SetNextTouchableHandle(post_step->GetTouchableHandle());
         track.track().SetVelocity(post_step->GetVelocity());
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Delete a step point.
+ *
+ * This sets the step point to null if supported by the Geant4 version,
+ * otherwise does nothing (no reset available before v11.0.3).
+ */
+void GeantStepView::delete_step_point(StepPoint sp)
+{
+    CELER_EXPECT(sp != StepPoint::size_);
+
+#if G4VERSION_NUMBER >= 1103
+    if (sp == StepPoint::pre)
+    {
+        s_.ResetPreStepPoint(nullptr);
+    }
+    else
+    {
+        s_.ResetPostStepPoint(nullptr);
+    }
+#else
+    // No "reset" available before v11.0.3
+    CELER_DISCARD(sp);
+#endif
 }
 
 //---------------------------------------------------------------------------//

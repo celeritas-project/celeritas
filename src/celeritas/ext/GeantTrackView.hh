@@ -48,7 +48,7 @@ class GeantTrackView<Ownership::const_reference>
 
   public:
     // Construct from G4Track
-    explicit GeantTrackView(G4Track const& track) : track_(track) {}
+    explicit GeantTrackView(G4Track const& track) : t_(track) {}
 
     // Get particle definition view
     inline GeantParticleView particle() const;
@@ -66,16 +66,16 @@ class GeantTrackView<Ownership::const_reference>
     inline real_type time() const;
 
     //! Statistical weight
-    real_type weight() const { return track_.GetWeight(); }
+    real_type weight() const { return t_.GetWeight(); }
 
     //! Access the G4 track directly
-    G4Track const& track() const { return track_; }
+    G4Track const& track() const { return t_; }
 
     //! Access the G4 track directly (const)
-    G4Track const& ctrack() const { return track_; }
+    G4Track const& ctrack() const { return t_; }
 
   private:
-    G4Track const& track_;
+    G4Track const& t_;
 };
 
 //---------------------------------------------------------------------------//
@@ -148,8 +148,8 @@ GeantTrackView(G4Track&) -> GeantTrackView<Ownership::reference>;
  */
 GeantParticleView GeantTrackView<Ownership::const_reference>::particle() const
 {
-    CELER_EXPECT(track_.GetDefinition());
-    return GeantParticleView{*track_.GetDefinition()};
+    CELER_EXPECT(t_.GetDefinition());
+    return GeantParticleView{*t_.GetDefinition()};
 }
 
 //---------------------------------------------------------------------------//
@@ -158,7 +158,7 @@ GeantParticleView GeantTrackView<Ownership::const_reference>::particle() const
  */
 Real3 GeantTrackView<Ownership::const_reference>::pos() const
 {
-    return convert_from_geant(track_.GetPosition(), clhep_length);
+    return convert_from_geant(t_.GetPosition(), clhep_length);
 }
 
 //---------------------------------------------------------------------------//
@@ -167,7 +167,7 @@ Real3 GeantTrackView<Ownership::const_reference>::pos() const
  */
 Real3 GeantTrackView<Ownership::const_reference>::dir() const
 {
-    return convert_from_geant(track_.GetMomentumDirection(), 1);
+    return convert_from_geant(t_.GetMomentumDirection(), 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -176,7 +176,7 @@ Real3 GeantTrackView<Ownership::const_reference>::dir() const
  */
 auto GeantTrackView<Ownership::const_reference>::energy() const -> Energy
 {
-    return Energy{convert_from_geant(track_.GetKineticEnergy(), CLHEP::MeV)};
+    return Energy{convert_from_geant(t_.GetKineticEnergy(), CLHEP::MeV)};
 }
 
 //---------------------------------------------------------------------------//
@@ -185,7 +185,7 @@ auto GeantTrackView<Ownership::const_reference>::energy() const -> Energy
  */
 real_type GeantTrackView<Ownership::const_reference>::time() const
 {
-    return convert_from_geant(track_.GetGlobalTime(), clhep_time);
+    return convert_from_geant(t_.GetGlobalTime(), clhep_time);
 }
 
 //---------------------------------------------------------------------------//
