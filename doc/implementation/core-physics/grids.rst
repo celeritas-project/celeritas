@@ -8,18 +8,14 @@ Numeric grids
 
 Structured data is used in cross section evaluation and sampling routines.
 
-Construction
-------------
-
-.. doxygenclass:: celeritas::SplineDerivCalculator
-.. doxygenclass:: celeritas::RangeGridCalculator
-
 Grid access
 -----------
 
 Grids classes act like vectors, allowing direct access to node-centered data.
 
 .. doxygenclass:: celeritas::UniformGrid
+   :members:
+
 .. doxygenclass:: celeritas::NonuniformGrid
 
 These grids are often used with a helper function for safely finding points
@@ -55,3 +51,9 @@ Inverse sampling
 ----------------
 
 .. doxygenclass:: celeritas::InverseCdfFinder
+
+Construction
+------------
+
+.. doxygenclass:: celeritas::SplineDerivCalculator
+.. doxygenclass:: celeritas::RangeGridCalculator
