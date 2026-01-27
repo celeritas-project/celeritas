@@ -2,34 +2,41 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/SDData.hh
+//! \file geocel/DetectorData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/Types.hh"
+#include "geocel/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Sensitive detector mapping for geometry
 template<Ownership W, MemSpace M>
-struct SDParamsData
+struct DetectorParamsData
 {
+    template<class T>
+    using VolumeItems = Collection<T, W, M, VolumeId>;
+
     //// DATA ////
 
-    //! Mapping for volume -> sensitive detector
-    Collection<DetectorId, W, M, ImplVolumeId> detector;
+    //! Map volume -> sensitive detector
+    VolumeItems<DetectorId> detector_ids;
 
     //! Whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const { return !detector.empty(); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !detector_ids.empty();
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    SDParamsData& operator=(SDParamsData<W2, M2> const& other)
+    DetectorParamsData& operator=(DetectorParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        detector = other.detector;
+        detector_ids = other.detector_ids;
         return *this;
     }
 };

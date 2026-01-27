@@ -9,6 +9,9 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "orange/orangeinp/CsgTree.hh"
+#include "orange/orangeinp/CsgTreeUtils.hh"
+#include "orange/orangeinp/ScaleUtils.hh"
 
 #include "../OrangeTypes.hh"
 
@@ -18,6 +21,80 @@ namespace detail
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+orangeinp::CsgTree build_tree_from_postfix(Span<logic_int const> postfix)
+{
+    using orangeinp::CsgTree;
+    using orangeinp::Joined;
+    using orangeinp::Negated;
+    using orangeinp::Node;
+    using orangeinp::NodeId;
+    using orangeinp::True;
+
+    CELER_EXPECT(!postfix.empty());
+
+    CsgTree tree;
+    std::vector<NodeId> stack;
+    stack.reserve(postfix.size());
+
+    for (logic_int token : postfix)
+    {
+        if (!logic::is_operator_token(token))
+        {
+            auto [node_id, inserted] = tree.insert(LocalSurfaceId{token});
+            stack.push_back(node_id);
+            continue;
+        }
+
+        switch (token)
+        {
+            case logic::ltrue: {
+                auto [node_id, inserted] = tree.insert(Node{True{}});
+                stack.push_back(node_id);
+                break;
+            }
+            case logic::lnot: {
+                CELER_ASSERT(!stack.empty());
+                auto child = stack.back();
+                stack.pop_back();
+                auto [node_id, inserted] = tree.insert(Node{Negated{child}});
+                stack.push_back(node_id);
+                break;
+            }
+            case logic::lor:
+                [[fallthrough]];
+            case logic::land: {
+                CELER_ASSERT(stack.size() >= 2);
+                auto right = stack.back();
+                stack.pop_back();
+                auto left = stack.back();
+                stack.pop_back();
+                auto [node_id, inserted] = tree.insert(
+                    Node{Joined{logic::OperatorToken{token}, {left, right}}});
+                stack.push_back(node_id);
+                break;
+            }
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+    }
+
+    CELER_ASSERT(stack.size() == 1);
+    auto root = stack.back();
+    tree.insert_volume(root);
+    return tree;
+}
+
+std::vector<logic_int>
+simplify_negated_joins_postfix(Span<logic_int const> postfix)
+{
+    auto tree = build_tree_from_postfix(postfix);
+    auto simplified = orangeinp::transform_negated_joins(tree);
+    CELER_ASSERT(!simplified.first.volumes().empty());
+    auto root = simplified.first.volumes().front();
+    return orangeinp::build_postfix_logic(simplified.first, root);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Return true if the token is an operand (surface ID or true).
@@ -409,10 +486,6 @@ std::vector<logic_int> string_to_logic(std::string const& s)
 void convert_logic(OrangeInput& input, LogicNotation to)
 {
     CELER_EXPECT(input);
-    if (input.logic == to)
-    {
-        return;
-    }
     CELER_ASSERT(input.logic == LogicNotation::postfix
                  || input.logic == LogicNotation::infix);
 
@@ -436,15 +509,29 @@ void convert_logic(OrangeInput& input, LogicNotation to)
     switch (to)
     {
         case LogicNotation::postfix:
+            if (input.logic == LogicNotation::postfix)
+            {
+                return;
+            }
             CELER_ASSERT(input.logic == LogicNotation::infix);
             convert_units([](Span<logic_int const> logic) {
                 return convert_to_postfix(logic);
             });
             break;
         case LogicNotation::infix:
-            CELER_ASSERT(input.logic == LogicNotation::postfix);
-            convert_units([](Span<logic_int const> logic) {
-                return convert_to_infix(logic);
+            convert_units([&input](Span<logic_int const> logic) {
+                std::vector<logic_int> postfix;
+                if (input.logic == LogicNotation::postfix)
+                {
+                    postfix.assign(logic.begin(), logic.end());
+                }
+                else
+                {
+                    postfix = convert_to_postfix(logic);
+                }
+                auto simplified
+                    = simplify_negated_joins_postfix(make_span(postfix));
+                return convert_to_infix(make_span(simplified));
             });
             break;
         default:

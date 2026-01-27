@@ -13,7 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/random/data/DistributionData.hh"
 #include "corecel/random/distribution/DistributionVisitor.hh"
-#include "celeritas/phys/InteractionUtils.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 
 #include "PrimaryGeneratorData.hh"
 #include "../TrackInitializer.hh"
@@ -41,6 +41,7 @@ class PrimaryGenerator
   private:
     NativeCRef<DistributionParamsData> const& params_;
     PrimaryDistributionData const& data_;
+    IsotropicDistribution<real_type> sample_polarization_;
 };
 
 //---------------------------------------------------------------------------//
@@ -77,9 +78,11 @@ PrimaryGenerator::operator()(Generator& rng)
     result.energy = units::MevEnergy{sample_with(visit, data_.energy, rng)};
     result.position = sample_with(visit, data_.shape, rng);
     result.direction = sample_with(visit, data_.angle, rng);
+    result.primary = {};  // No associated Geant4 primary
     do
     {
-        result.polarization = ExitingDirectionSampler{0, result.direction}(rng);
+        result.polarization = make_unit_vector(
+            make_orthogonal(sample_polarization_(rng), result.direction));
     } while (CELER_UNLIKELY(
         !is_soft_orthogonal(result.polarization, result.direction)));
 

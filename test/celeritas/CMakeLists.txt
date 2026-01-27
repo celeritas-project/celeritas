@@ -65,7 +65,7 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 
-celeritas_add_test_library(testcel_celeritas
+set(_sources
   GeantTestBase.cc
   GlobalTestBase.cc
   ImportedDataTestBase.cc
@@ -99,6 +99,9 @@ celeritas_add_test_library(testcel_celeritas
   user/MctruthTestBase.cc
   user/SimpleLoopTestBase.cc
 )
+celeritas_polysource_append(_sources track/MockInteractAction)
+celeritas_polysource_append(_sources geo/HeuristicGeoTestBase)
+celeritas_add_test_library(testcel_celeritas ${_sources})
 
 celeritas_target_link_libraries(testcel_celeritas
   PUBLIC
@@ -112,7 +115,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_get_g4libs(_g4_libs materials digits_hits processes)
 
   celeritas_add_test_library(testcel_celeritas_g4
-    ext/SDTestBase.cc
+    ext/SensDetTestBase.cc
     ext/SimpleSensitiveDetector.cc
   )
   celeritas_target_link_libraries(testcel_celeritas_g4
@@ -267,14 +270,7 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 #-----------------------------------------------------------------------------#
 # Geo
 
-set(_geo_args GPU ${_needs_double} ${_fixme_cgs}
-  LINK_LIBRARIES ${_all_geo_libs}
-  SOURCES geo/HeuristicGeoTestBase.cc
-)
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND _geo_args geo/HeuristicGeoTestBase.cu)
-endif()
-celeritas_add_test(geo/Geometry.test.cc ${_geo_args}
+celeritas_add_test(geo/Geometry.test.cc  GPU ${_needs_double} ${_fixme_cgs}
   FILTER "SimpleCms*" "TestEm3*" "ThreeSpheres*")
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
@@ -392,9 +388,70 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Optical
+
+function(celeritas_standalone_add_tests basename suite test backend)
+  string(REPLACE "/" "_" _output_name "${basename}")
+  set(_target "${CELERITASTEST_DIR}_${_output_name}")
+
+  if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "Geant4")
+    list(APPEND _test_props DISABLED TRUE)
+  endif()
+
+  if(NOT TARGET "${_target}")
+    add_executable(${_target} "${basename}.test.cc")
+    set_property(TARGET ${_target} PROPERTY OUTPUT_NAME "${_output_name}")
+
+    celeritas_target_link_libraries(${_target}
+      ${CELERITASTEST_LINK_LIBRARIES}
+      ${_g4_libs}
+      testcel_harness
+    )
+  endif()
+
+  set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
+  add_test(
+    NAME "${_test_name}"
+    COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
+  )
+
+  set(_env ${CELER_G4ENV})
+  set(_labels "unit")
+
+  if("${backend}" STREQUAL "cpu")
+    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+      list(APPEND _env "CELER_DISABLE_DEVICE=1")
+    endif()
+  elseif("${backend}" STREQUAL "gpu")
+    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+      list(APPEND _test_props RESOURCE_LOCK gpu)
+      list(APPEND _labels gpu)
+    else()
+      list(APPEND _test_props DISABLED TRUE)
+    endif()
+  else()
+    message(SEND_ERROR "Invalid backend type ${backend}")
+  endif()
+
+  set_tests_properties("${_test_name}" PROPERTIES
+    ENVIRONMENT "${_env}"
+    LABELS "${_labels}"
+    ${_test_props}
+  )
+endfunction()
+
+function(celeritas_add_standalone_tests basename suite test)
+  foreach(_backend IN ITEMS cpu gpu)
+    celeritas_standalone_add_tests(${basename} ${suite} ${test}
+      ${_backend})
+  endforeach()
+endfunction()
+
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
+
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
-celeritas_add_test(optical/Generator.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
@@ -457,19 +514,7 @@ celeritas_add_test(random/RngReseed.test.cc)
 celeritas_add_test(track/Sim.test.cc ${_needs_geant4})
 celeritas_add_test(track/StatusChecker.test.cc GPU)
 celeritas_add_test(track/TrackSort.test.cc GPU ${_needs_geant4})
-
-set(_trackinit_sources
-  track/MockInteractAction.cc
-)
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND _trackinit_sources
-    track/MockInteractAction.cu
-  )
-endif()
-
-celeritas_add_test(track/TrackInit.test.cc
-  GPU SOURCES ${_trackinit_sources}
-)
+celeritas_add_test(track/TrackInit.test.cc GPU)
 
 #-----------------------------------------------------------------------------#
 # User
@@ -493,8 +538,6 @@ if(CELERITAS_CORE_GEO STREQUAL "Geant4")
   set(_fails_g4geo DISABLE)
 endif()
 
-
-celeritas_add_test(user/SDParams.test.cc)
 celeritas_add_test(user/DetectorSteps.test.cc GPU)
 celeritas_add_test(user/Diagnostic.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo} ${_needs_double}

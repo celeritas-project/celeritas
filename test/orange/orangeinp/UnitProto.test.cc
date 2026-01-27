@@ -194,16 +194,16 @@ TEST_F(LeafTest, explicit_exterior)
         static char const* const expected_surface_strings[]
             = {"Plane: z=-1", "Plane: z=1", "Cyl z: r=1", "Plane: z=0"};
         static char const* const expected_volume_strings[]
-            = {"!all(+0, -1, -2)", "all(+0, -2, -3)", "all(-1, -2, +3)"};
+            = {"any(-0, +1, +2)", "all(+0, -2, -3)", "all(-1, -2, +3)"};
         static char const* const expected_md_strings[] = {
             "",
             "",
             "bottom@mz,bound@mz",
+            "",
             "bound@pz,top@pz",
             "",
             "bottom@cz,bound@cz,top@cz",
             "",
-            "bound",
             "[EXTERIOR]",
             "bottom@pz,top@mz",
             "",
@@ -250,7 +250,7 @@ TEST_F(LeafTest, implicit_exterior)
             "Plane: z=0.5",
         };
         static char const* const expected_volume_strings[]
-            = {"!all(+0, -1, -2)", "all(-2, +3, -4)"};
+            = {"any(-0, +1, +2)", "all(-2, +3, -4)"};
         static char const* const expected_fill_strings[]
             = {"<UNASSIGNED>", "m1"};
 

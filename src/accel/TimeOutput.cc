@@ -77,7 +77,7 @@ void TimeOutput::RecordEventTime(double time)
 /*!
  * Record the time for setting up Celeritas.
  *
- * This should be called once by the master thread.
+ * This should be called once by the main thread.
  */
 void TimeOutput::RecordSetupTime(double time)
 {
@@ -88,7 +88,7 @@ void TimeOutput::RecordSetupTime(double time)
 /*!
  * Record the total time spent in transport and hit I/O (excluding setup).
  *
- * This should be called once by the master thread.
+ * This should be called once by the main thread.
  */
 void TimeOutput::RecordTotalTime(double time)
 {

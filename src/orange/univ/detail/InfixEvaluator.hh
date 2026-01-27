@@ -109,8 +109,11 @@ CELER_FUNCTION bool InfixEvaluator::operator()(F&& eval_sense) const
         {
             // negation of a sub-expression is not supported
             CELER_ASSUME(i + 1 < logic_.size());
-            CELER_EXPECT(!logic::is_operator_token(logic_[i + 1]));
-            result = !static_cast<bool>(eval_sense(FaceId{logic_[++i]}));
+            CELER_EXPECT(!logic::is_operator_token(logic_[i + 1])
+                         || logic_[i + 1] == logic::ltrue);
+            auto const& operand = logic_[++i];
+            result = !((operand == logic::ltrue)
+                       || static_cast<bool>(eval_sense(FaceId{operand})));
         }
         ++i;
     }

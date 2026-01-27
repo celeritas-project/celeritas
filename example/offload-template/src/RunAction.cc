@@ -20,7 +20,7 @@ RunAction::RunAction() : G4UserRunAction() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize master and worker threads in Celeritas.
+ * Initialize main and worker threads in Celeritas.
  */
 void RunAction::BeginOfRunAction(G4Run const* run)
 {

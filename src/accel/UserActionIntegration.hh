@@ -29,29 +29,24 @@ struct SetupOptions;
  *
  * - Use \c SetOptions to set Celeritas configuration before calling \c
  *   G4RunManager::BeamOn
- * - Call \c BeginOfRunAction and \c EndOfRunAction from \c UserRunAction
+ * - Call \c BeginOfRunAction and \c EndOfRunAction (in \c IntegrationBase)
+ *   from \c UserRunAction
  * - Call \c BeginOfEvent and  \c EndOfEvent from \c UserEventAction
  * - Call \c PreUserTrackingAction from your \c UserTrackingAction
- *
- * The \c CELER_DISABLE environment variable, if set and non-empty, will
- * disable offloading so that Celeritas will not be built nor kill tracks.
  *
  * The method names correspond to methods in Geant4 User Actions and \em must
  * be called from all threads, both worker and master.
  *
- * \note Prefer to use \c celeritas::TrackingManagerIntegration instead of this
- * class, unless you need support for Geant4 earlier than 11.1.
+ * See further documentation in \c celeritas::IntegrationBase.
  *
- * \todo Provide default minimal action initialization classes for user?
+ * \note Prefer to use \c celeritas::TrackingManagerIntegration instead of this
+ * class, unless you need support for Geant4 earlier than 11.0.
  */
 class UserActionIntegration final : public IntegrationBase
 {
   public:
     // Access the singleton
     static UserActionIntegration& Instance();
-
-    // Start the run
-    void BeginOfRunAction(G4Run const* run) final;
 
     // Send Celeritas the event ID
     void BeginOfEventAction(G4Event const* event);
@@ -67,6 +62,9 @@ class UserActionIntegration final : public IntegrationBase
     UserActionIntegration();
 
     Stopwatch get_event_time_;
+
+    // Verify setup after initialization (called if offload is enabled)
+    void verify_local_setup() final;
 };
 
 //---------------------------------------------------------------------------//

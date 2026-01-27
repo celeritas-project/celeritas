@@ -1,171 +1,191 @@
 # Celeritas AI Agent Instructions
 Celeritas is a GPU-accelerated HEP detector physics library for HL-LHC, integrating with Geant4. It's a C++17 codebase with CUDA/HIP device support.
 
-## Architecture Overview
+## Quick Reference
 
-### Core Components (src/)
-- **corecel/**: GPU abstractions, data structures, utilities (host-device compatible code)
-- **geocel/**: Geometry cell interfaces (ORANGE, VecGeom, Geant4 adapters)
-- **orange/**: ORANGE geometry engine (native Celeritas geometry)
-- **celeritas/**: Core physics (EM processes, particles, materials, stepping loop)
-- **accel/**: Geant4 integration layer (offload mechanisms, tracking managers)
+### File Organization
+- `corecel/`: GPU abstractions, data structures, utilities
+- `geocel/`: Geometry interfaces (ORANGE, VecGeom, Geant4)
+- `orange/`: Native Celeritas geometry engine
+- `celeritas/`: Physics (EM processes, particles, materials)
+- `accel/`: Geant4 integration layer
 
-### Data Flow Pattern
-Celeritas separates *shared* data from *state* data:
-- **Params**: Immutable problem setup data (physics tables, geometry) - constructed once
-- **States**: Mutable per-track data (particle states, RNG states) - one per concurrent event/track
-- Data exists in **host** and **device** memory spaces with explicit ownership (`value`, `reference`, `const_reference`)
-
-To support GPU execution, it uses data-oriented design but with object-oriented interfaces (`View`s).
-
-## Build & Test Workflow
-
-### Quick Start
-Use a standard CMake workflow:
+### Build & Test
 ```bash
-cmake -B build -G Ninja
-cd build
-ninja
-ctest
+cmake -B build -G Ninja && cd build && ninja && ctest
 ```
 
-### Testing
-- Unit tests in `test/` mirror `src/` structure
-- Uses GoogleTest with base-class test harness and custom helper macros
-- Unit test for class ``celeritas::A::Foo`` should be defined in namespace
-  ``celeritas::A::test``
+### When to Commit
+Commit after major work when:
+- New files compile successfully
+- Refactored code builds without errors
+- Tests pass or aren't affected
+- Work is a logical, complete unit
+
+**Commit workflow:**
+```bash
+git add <files>
+pre-commit run        # Auto-formats code
+git commit -m "Message" --trailer "Assisted-by: GitHub Copilot (<model-name>)"
+```
+
+## Architecture
+
+### Params/States Pattern
+Celeritas separates immutable setup from mutable runtime data:
+- **Params**: Shared problem data (physics tables, geometry) - build once
+- **States**: Per-track mutable data (particle states, RNG) - one per track slot
+- **Ownership**: `value` (owns), `reference` (mutable), `const_reference` (immutable)
+- **MemSpace**: `host` (CPU) or `device` (GPU)
+
+Data flow: Build params on host → copy to device → access via Views
+
+### Data-Oriented Design with Views
+GPU execution requires data-oriented design with object-oriented interfaces:
+```cpp
+// Params: immutable setup data
+struct MyParamsData { Collection<Material> materials; };
+
+// View: lightweight accessor for device code
+class MyView {
+    MyParamsData<const_reference, MemSpace::native> const& data_;
+public:
+    CELER_FUNCTION Material const& get(MaterialId id) const;
+};
+```
 
 ## Code Conventions
 
+### Naming
+- **Classes/structs**: `CapWords` (e.g., `PhysicsTrackView`)
+- **Functions/variables**: `snake_case`
+- **Private members**: trailing underscore (`data_`)
+- **Type-safe IDs**: `FooId` for `Foo` items
+- **Input classes**: Match what they construct (e.g., `inp::Material` → `Material`)
+
 ### File Extensions
-- `.hh`: Host-device compatible C++ headers (use `CELER_FUNCTION` macros)
-- `.cc`: Host-only C++
-- `.cu`: CUDA kernels and launch code (compiled by nvcc, but should be HIP-compatible via macros)
-- `.device.hh/.device.cc`: Requires CUDA/HIP runtime but compilable by host compiler
-- `.test.cc`: Unit tests
+- `.hh`: Headers (host-device compatible with `CELER_FUNCTION`)
+- `.cc`: Host-only implementation
+- `.cu`: CUDA kernels (HIP-compatible via macros)
+- `.test.cc`: Unit tests (mirror `src/` structure in `test/`)
 
-Most development doesn't involve CUDA/HIP code: only kernel launches (device execution) should be in `.cu` files.
+**Most code is `.cc` - only kernel launches need `.cu`**
 
-### Host-Device Compatibility
-Use these macros (from `corecel/Macros.hh`):
-- `CELER_FUNCTION`: Mark functions callable from both host and device
-- `CELER_FORCEINLINE_FUNCTION`: Force-inline version
-- `CELER_CONSTEXPR_FUNCTION`: Compile-time + host/device
-
-Example:
+### Host-Device Macros
 ```cpp
-CELER_FUNCTION real_type calculate(Real3 const& pos) { /* ... */ }
+CELER_FUNCTION              // Callable from host and device
+CELER_FORCEINLINE_FUNCTION  // Force inline + host/device
+CELER_CONSTEXPR_FUNCTION    // Compile-time + host/device
 ```
 
-### Naming Conventions
-- Classes/structs: `CapWords` (e.g., `PhysicsTrackView`)
-- Functions/variables: `snake_case`
-- Private members: trailing underscore (`data_`)
-- Functors: agent nouns (`ModelEvaluator`), instances are verbs (`evaluate_model`)
-- OpaqueId types: `FooId` for `Foo` items, `Bar_` tag struct for abstract concepts
-
-### Data Structures
-- Use `OpaqueId<T>` for type-safe indices, not raw integers
-- End structs with `operator bool()` for validity checks
-- Prefer `Collection<T, W, M>` over raw arrays for GPU-compatible storage
-- Use `Span<T>` for array views, `Array<T, N>` for fixed-size arrays
-
-### Assertions & Error Handling
+### Assertions
 - `CELER_EXPECT`: Preconditions (function entry)
-- `CELER_ASSERT`: Internal invariants
+- `CELER_ASSERT`: Internal invariants (debug only)
 - `CELER_ENSURE`: Postconditions (function exit)
-- `CELER_VALIDATE`: Always-on user input validation
-- Debug assertions only active when `CELERITAS_DEBUG=ON`
+- `CELER_VALIDATE`: User input validation (always on)
+
+### Type-Safe Indices & Collections
+```cpp
+using FooId = OpaqueId<Foo>;
+Collection<Foo, Ownership::value, MemSpace::host> foos;  // Owns data
+Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // View
+```
+
+Key types:
+- `Collection<T>`: GPU-compatible array with ownership semantics
+- `OpaqueId<T>`: Type-safe index (not raw int)
+- `Span<T>`: Non-owning array view
+- `Array<T, N>`: Fixed-size stack array
 
 ## Critical Patterns
 
-### Action/Executor/Interactor Paradigm
-The stepping loop uses a three-layer pattern:
-- **Action**: Implements `StepActionInterface`, defines when to run (`order()`), and launches kernels for host/device via `step()` methods
-- **Executor**: Wraps the interactor and handles track-level logic (e.g., `make_action_track_executor` filters by `action_id`)
-- **Interactor**: Pure physics functor that operates on a minimal physics information (e.g., `MaterialView`) and returns an `Interaction`
+### Action/Executor/Interactor
+The stepping loop uses three layers:
 
-Example flow:
+1. **Action** (StepActionInterface): Defines when to run, launches kernels
+2. **Executor**: Filters tracks, handles track-level logic
+3. **Interactor**: Pure physics functor (MaterialView → Interaction)
+
 ```cpp
-// In Model::step() [.cc or .cu]
+// In Model::step()
 auto execute = make_action_track_executor(
     params.ptr<MemSpace::native>(), state.ptr(), this->action_id(),
     InteractionApplier{MyModelExecutor{this->host_ref()}});
-launch_action(*this, params, state, execute); // or ActionLauncher for device
+launch_action(*this, params, state, execute);
 ```
 
-See `src/celeritas/em/model/KleinNishinaModel.{cc,cu}` for a complete example.
+See `src/celeritas/em/model/KleinNishinaModel.{cc,cu}`
 
-### Building Params Data with Inserters
-Physics models build device-compatible data using "inserter" classes during construction. Inserters efficiently populate `Collection` objects with deduplication and proper memory layout:
+### Inserters for Building Params
+Use inserter classes to populate Collections with deduplication:
 ```cpp
 class XsGridInserter {
 public:
-    GridId operator()(inp::XsGrid const& grid); // Returns ID for referencing
+    GridId operator()(inp::XsGrid const& grid);
 private:
-    DedupeCollectionBuilder<real_type> reals_;  // Deduplicates identical data
-    CollectionBuilder<XsGridRecord> grids_;     // Sequential insertion
+    DedupeCollectionBuilder<real_type> reals_;
+    CollectionBuilder<XsGridRecord> grids_;
 };
 ```
-See `src/celeritas/grid/XsGridInserter.hh` and `src/celeritas/em/model/detail/LivermoreXsInserter.hh`.
 
-### Collection Groups: Managing Host-Device Data
-Collections manage deeply hierarchical GPU data via type-safe indices and ranges:
-- **Collection<T, W, M, I>**: Array-like container with ownership (`value`/`reference`/`const_reference`) and memory space (`host`/`device`)
-- **ItemId<T>**: Type-safe index into a `Collection<T>` (actually `OpaqueId<T>`)
-- **ItemRange<T>**: Slice of items [begin, end) for variable-length data
-- **ItemMap<KeyId, ValueId>**: Maps one ID type to another via offset arithmetic (not a hash map!)
+### Collection Ranges & Maps
+- `ItemRange<T>`: Contiguous slice [begin, end)
+- `ItemMap<K, V>`: Offset-based mapping (not hash map)
 
-Example data structure:
 ```cpp
-template<Ownership W, MemSpace M>
 struct MyParamsData {
-    Collection<Material, W, M> materials;       // Array of materials
-    Collection<ElementComponent, W, M> components;  // Backend storage
-    Collection<double, W, M> reals;             // Backend reals
-    // Each Material has ItemRange<ElementComponent> referencing components
-    // Templated operator= enables copying across memory spaces
-    // Boolean operator validates initialization and copying
+    Collection<Material> materials;
+    Collection<Element> elements;        // Backend storage
+    // Material stores ItemRange<Element> into elements collection
 };
 ```
 
-Collections power the params/states architecture: build on host with `Ownership::value`, copy to device, then access via `const_reference` (params) or `reference` (states). See `src/corecel/data/Collection.hh` for details.
+State collections need `resize(size)` operators for track slots.
 
-### Test Requirements
-Every class needs a unit test with cyclomatic complexity coverage. Detail classes (in `detail/` namespaces) are exempt but still recommended.
+## Common Patterns
 
-## Integration Points
+### Creating New Classes
+1. Use `scripts/dev/celeritas-gen.py` for file skeletons
+2. Separate data from behavior: `FooData`, `FooParams`, `FooView`
+3. Add `operator bool()` validation to data structs
+4. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
 
-### Geant4 Integration (accel/)
-Users integrate via `SharedParams`, `TrackingManagerConstructor`, and run actions (`BeginOfRunAction`, `EndOfRunAction`). See `example/accel/` for templates. Use `celeritas_target_link_libraries()` instead of `target_link_libraries()` to handle VecGeom RDC linking.
-
-### Standalone Execution (app/)
-EM-only execution is used for performance testing and verification via `celer-sim`.
-
-### Geometry
-Supports ORANGE (native), VecGeom, and Geant4 geometries. GDML is the standard interchange format. Geometry loads through `inp::Model` (see `geocel/inp/Model.hh`).
+### Consistency Checklist
+When adding features, ensure consistency across:
+- **Input**: `inp::Foo` constructs the data
+- **Data**: Members, `operator bool()`, `operator=`, resize (for states)
+- **View**: Lightweight accessor with `CELER_FUNCTION` methods
+- **Executor/Interactor**: Physics implementation
 
 ## Documentation
 
-- Doxygen comments go next to **definitions**, not declarations
-- Document `operator()` behavior in class comment, not operator itself
-- Use `\citep{author-keyword-year}` for references (maintained in Zotero at `doc/_static/zotero.bib`)
-- Physics constants need units and paper citations
+- Doxygen comments go on **definitions**, not declarations
+- `operator()` behavior documented in class comment
+- Citations: `\citep{author-keyword-year}` (refs in `doc/_static/zotero.bib`)
+- Physics constants need units and citations
 
 ## Development Tools
 
-- **pre-commit**: Auto-formats code (clang-format enforces 80-column limit, East const)
-- **celeritas-gen.py** (`scripts/dev/`): Generate file skeletons with proper decorations
-- **CMake presets**: System-specific configs in `scripts/cmake-presets/<hostname>.json`
+- `pre-commit`: Auto-formats (clang-format: 80 cols, East const)
+- `celeritas-gen.py`: Generate file templates
+- `ctest -R <pattern>`: Run specific tests
+- `ninja <target>`: Build specific component
 
 ## Common Pitfalls
 
-- Never copy-paste code: instead, refactor into reusable functors
-- Failing to mark functions `CELER_FUNCTION` will cause `call to __host__ function from __device__` errors
+**Don't:**
+- Copy-paste code (refactor into reusable functors instead)
+- Use raw integers for indices (use `OpaqueId<T>`)
+- Forget `CELER_FUNCTION` on device code (→ `__host__/__device__` errors)
+
+**Do:**
+- Ensure data consistency (input → data → view → executor)
+- Add unit tests for all classes (detail classes excepted)
+- Run `pre-commit run` before committing
 
 ## External Dependencies
 
-Key dependencies (see `scripts/spack-packages.yaml` for versions):
-- Geant4
-- GoogleTest (tests), CLI11 (apps), nlohmann_json (I/O)
-- Optional: VecGeom, ROOT, HepMC3, DD4hep, MPI, OpenMP, Perfetto
+Required: Geant4, GoogleTest (tests), CLI11 (apps), nlohmann_json (I/O)
+Optional: VecGeom, ROOT, HepMC3, DD4hep, MPI, OpenMP, Perfetto
+
+See `scripts/spack-packages.yaml` for versions.

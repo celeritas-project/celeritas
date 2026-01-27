@@ -55,18 +55,9 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
     validate_geant_threading(optical_params.max_streams());
 
     // Save a pointer to the generator action
-    auto const& gen_reg = *optical_params.gen_reg();
-    for (auto gen_id : range(GeneratorId(gen_reg.size())))
-    {
-        if (auto gen = std::dynamic_pointer_cast<optical::GeneratorAction const>(
-                gen_reg.at(gen_id)))
-        {
-            CELER_VALIDATE(!generate_,
-                           << "more than one optical GeneratorAction found");
-            generate_ = gen;
-        }
-    }
-    CELER_VALIDATE(generate_, << "no optical GeneratorAction found");
+    generate_ = std::dynamic_pointer_cast<optical::GeneratorAction const>(
+        params.optical_problem_loaded().generator);
+    CELER_VALIDATE(generate_, << "invalid optical GeneratorAction");
 
     // Number of optical photons to buffer before offloading
     auto const& capacity = options.optical->capacity;

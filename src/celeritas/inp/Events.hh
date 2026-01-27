@@ -93,6 +93,7 @@ struct CorePrimaryGenerator : PrimaryGenerator
  * Generate optical photon primary particles.
  *
  * \note The sampled optical photon primaries are unpolarized.
+ * \sa celeritas::optical::PrimaryGeneratorAction
  */
 struct OpticalPrimaryGenerator : PrimaryGenerator
 {
