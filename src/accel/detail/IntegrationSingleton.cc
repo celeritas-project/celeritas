@@ -90,30 +90,29 @@ IntegrationSingleton& IntegrationSingleton::instance()
  */
 LocalOffloadInterface& IntegrationSingleton::local_offload()
 {
-    static G4ThreadLocal UPOffload offload = [this]() -> UPOffload {
+    static G4ThreadLocal UPOffload offload;
+
+    if (CELER_UNLIKELY(!offload))
+    {
         if (!options_)
         {
             // Cannot construct offload before options are set
-            return nullptr;
+            CELER_LOG_LOCAL(error)
+                << R"(cannot access offload before options are set)";
         }
-        else if (options_.optical
-                 && std::holds_alternative<inp::OpticalOffloadGenerator>(
-                     options_.optical->generator))
+        if (options_.optical
+            && std::holds_alternative<inp::OpticalOffloadGenerator>(
+                options_.optical->generator))
         {
-            return std::make_unique<LocalOpticalGenOffload>();
+            offload = std::make_unique<LocalOpticalGenOffload>();
         }
         else
         {
             // TODO: if offloading direct optical tracks, return optical
             // offload
-            return std::make_unique<LocalTransporter>();
+            offload = std::make_unique<LocalTransporter>();
         }
-        return nullptr;
-    }();
-
-    CELER_VALIDATE(
-        options_,
-        << R"(cannot access local offload before options are assigned)");
+    }
 
     return *offload;
 }
