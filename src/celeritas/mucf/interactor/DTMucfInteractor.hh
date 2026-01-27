@@ -25,6 +25,14 @@ namespace celeritas
  * Fusion channels:
  * - \f$ \alpha + \mu + n \f$
  * - \f$ (\alpha)_\mu + n \f$
+ *
+ * \warning This implementation has an incorrect energy and momentum
+ * conservation implementation. Acceleron assumes an isotropic direction for
+ * both neutron and muon in the \f$ \alpha + \mu + n \f$ channel, which leads
+ * to the alpha particle either conserving energy or momentum but not both
+ * simultaneously. The current implementation results in a roughly correct
+ * total energy within \f$ K_\text{total} = [17.5, 17.9] \f$ MeV, instead of
+ * the expected 17.6 MeV.
  */
 class DTMucfInteractor
 {
@@ -94,17 +102,6 @@ DTMucfInteractor::DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
 //---------------------------------------------------------------------------//
 /*!
  * Sample a dt muonic molecule fusion.
- *
- * \note Since secondaries come from an at rest interaction, their final state
- * is a simple combination of random direction + momentum conservation.
- *
- * \warning This implementation has an incorrect energy and momentum
- * conservation implementation. Acceleron assumes an isotropic direction for
- * both neutron and muon in the \f$ \alpha + \mu + n \f$ channel, which leads
- * to the alpha particle either conserving energy or momentum but not both
- * simultaneously. The current implementation results in a roughly correct
- * total energy within \f$ K_\text{total} = [17.5, 17.9] \f$ MeV, instead of
- * the expected 17.6 MeV.
  */
 template<class Engine>
 CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
@@ -188,7 +185,7 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
 //---------------------------------------------------------------------------//
 /*!
  * Calculate momentum magnitude from particle energy and mass via
- * \f$ p = \sqrt{K^2 + 2mK} \f$
+ * \f$ p = \sqrt{K^2 + 2mK} \f$ .
  */
 CELER_FUNCTION real_type DTMucfInteractor::calc_momentum(
     units::MevEnergy energy, units::MevMass mass) const
@@ -202,7 +199,7 @@ CELER_FUNCTION real_type DTMucfInteractor::calc_momentum(
 //---------------------------------------------------------------------------//
 /*!
  * Calculate kinetic energy given a momentum magnitude and particle mass via
- * \f$ K = \sqrt{p^2 - m^2} - m\f$
+ * \f$ K = \sqrt{p^2 - m^2} - m\f$ .
  */
 CELER_FUNCTION units::MevEnergy
 DTMucfInteractor::calc_kinetic_energy(Real3 momentum_vec,

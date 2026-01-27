@@ -187,7 +187,7 @@ TEST_F(DTMucfInteractorTest, alpha_muon_neutron)
     auto& rng = this->rng();
     for (auto i : range(num_samples))
     {
-        Interaction result = interact(rng);
+        auto result = interact(rng);
         this->validate_interaction(result, channel);
     }
 }
@@ -208,7 +208,7 @@ TEST_F(DTMucfInteractorTest, muonicalpha_neutron)
     auto& rng = this->rng();
     for (auto i : range(num_samples))
     {
-        Interaction result = interact(rng);
+        auto result = interact(rng);
         this->validate_interaction(result, channel);
     }
 }
@@ -230,7 +230,7 @@ TEST_F(DTMucfInteractorTest, stress_test)
         auto& rng = this->rng();
         for (auto i : range(num_samples))
         {
-            Interaction result = interact(rng);
+            auto result = interact(rng);
             total_avg_secondaries += result.secondaries.size();
         }
     }
