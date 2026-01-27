@@ -185,7 +185,7 @@ TEST_F(DTMucfInteractorTest, alpha_muon_neutron)
         data_.host_ref(), channel, this->secondary_allocator());
 
     auto& rng = this->rng();
-    for (auto i : range(num_samples))
+    for ([[maybe_unused]] auto i : range(num_samples))
     {
         auto result = interact(rng);
         this->validate_interaction(result, channel);
@@ -206,7 +206,7 @@ TEST_F(DTMucfInteractorTest, muonicalpha_neutron)
         data_.host_ref(), channel, this->secondary_allocator());
 
     auto& rng = this->rng();
-    for (auto i : range(num_samples))
+    for ([[maybe_unused]] auto i : range(num_samples))
     {
         auto result = interact(rng);
         this->validate_interaction(result, channel);
@@ -228,7 +228,7 @@ TEST_F(DTMucfInteractorTest, stress_test)
             data_.host_ref(), channel, this->secondary_allocator());
 
         auto& rng = this->rng();
-        for (auto i : range(num_samples))
+        for ([[maybe_unused]] auto i : range(num_samples))
         {
             auto result = interact(rng);
             total_avg_secondaries += result.secondaries.size();
