@@ -73,7 +73,7 @@ class GeantStepView
     // Update track from step data
     void update_track();
 
-    // Delete a step point (set to null or clear based on Geant4 version)
+    // Delete a step point if not used for SD reconstruction
     void delete_step_point(StepPoint sp);
 
     //!@}

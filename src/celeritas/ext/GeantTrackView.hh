@@ -20,13 +20,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-template<Ownership W>
-class GeantTrackView
-{
-    static_assert(W != Ownership::value, "GeantTrackView cannot own data");
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Access track data from Geant4 with Celeritas units.
  *
@@ -36,6 +29,18 @@ class GeantTrackView
  * The const_reference version provides read-only access, while the reference
  * version adds setters.
  */
+template<Ownership W>
+class GeantTrackView
+{
+    static_assert(W != Ownership::value, "GeantTrackView cannot own data");
+};
+
+//---------------------------------------------------------------------------//
+
+using GeantTrackViewConst = GeantTrackView<Ownership::const_reference>;
+using GeantTrackViewMutable = GeantTrackView<Ownership::reference>;
+
+//---------------------------------------------------------------------------//
 template<>
 class GeantTrackView<Ownership::const_reference>
 {
@@ -79,9 +84,6 @@ class GeantTrackView<Ownership::const_reference>
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Mutable track view with setters.
- */
 template<>
 class GeantTrackView<Ownership::reference>
     : public GeantTrackView<Ownership::const_reference>
@@ -120,13 +122,6 @@ class GeantTrackView<Ownership::reference>
     //! Access mutable track reference (safe: constructed from non-const)
     G4Track& track() { return const_cast<G4Track&>(this->ctrack()); }
 };
-
-//---------------------------------------------------------------------------//
-// TYPE ALIASES
-//---------------------------------------------------------------------------//
-
-using GeantTrackViewConst = GeantTrackView<Ownership::const_reference>;
-using GeantTrackViewMutable = GeantTrackView<Ownership::reference>;
 
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
