@@ -30,8 +30,9 @@ namespace
 //---------------------------------------------------------------------------//
 /*!
  * Verify that all particles in \c SetupOptions::offload_particles user-defined
- * list are valid and supported by Celeritas when non-empty. Return user or
- * default list accordingly.
+ * list are valid and supported by Celeritas when non-empty.
+ *
+ * Return user or default list accordingly.
  */
 SetupOptions::VecG4PD
 validate_and_return_offloaded(std::optional<SetupOptions::VecG4PD> const& user)
@@ -79,14 +80,13 @@ IntegrationSingleton& IntegrationSingleton::instance()
  * Access the thread-local offload interface.
  *
  * The first time this is called in an execution, we look at the options to
- determine whether to create:
- - an EM track offload interface (LocalTransporter, which will send to the
- Celeritas EM core loop)
- - an optical track offload interface (TBD, which will send to a standalone
- optical loop)
- - an optical *generator* offload interface (LocalOpticalGenOffload, used for
- cherenkov/scintillation photons)
-
+ * determine whether to create:
+ *  - an EM track offload interface (LocalTransporter, which will send to the
+ *    Celeritas EM core loop)
+ *  - an optical track offload interface (TBD, which will send to a standalone
+ *    optical loop)
+ *  - an optical *generator* offload interface (LocalOpticalGenOffload, used
+ *    for cherenkov/scintillation photons)
  */
 LocalOffloadInterface& IntegrationSingleton::local_offload()
 {
@@ -117,6 +117,7 @@ LocalOffloadInterface& IntegrationSingleton::local_offload()
     return *offload;
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Access thread-local *track* offload interface (for anything that pushes a
  * track)
