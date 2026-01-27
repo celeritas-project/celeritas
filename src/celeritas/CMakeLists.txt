@@ -81,6 +81,7 @@ list(APPEND SOURCES
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
   grid/XsGridInserter.cc
+  inp/EventsIO.json.cc
   inp/MucfPhysics.cc
   io/AtomicRelaxationReader.cc
   io/GammaNuclearXsReader.cc

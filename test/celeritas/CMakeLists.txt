@@ -380,6 +380,11 @@ celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
+# Inp
+celeritas_add_test(inp/JsonIO.test.cc
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
+
+#-----------------------------------------------------------------------------#
 # Optical
 
 function(celeritas_standalone_add_tests basename suite test backend)
