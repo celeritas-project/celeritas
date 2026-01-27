@@ -27,7 +27,7 @@ TEST(JsonIOTest, events)
     input.shape = UniformBoxDistribution{{0, 0, 0}, {1, 1, 1}};
 
     char const expected[]
-        = R"json({"angle":{"delta":[0.0,0.0,1.0]},"energy":{"normal":{"mean":1.0,"stddev":0.0}},"primaries":512,"shape":{"uniform_box":{"lower":[0.0,0.0,0.0],"upper":[1.0,1.0,1.0]}}})json";
+        = R"json({"angle":{"_type":"delta","value":[0.0,0.0,1.0]},"energy":{"_type":"normal","mean":1.0,"stddev":0.0},"primaries":512,"shape":{"_type":"uniform_box","lower":[0.0,0.0,0.0],"upper":[1.0,1.0,1.0]}})json";
     nlohmann::json obj(input);
     EXPECT_JSON_EQ(expected, obj.dump());
 

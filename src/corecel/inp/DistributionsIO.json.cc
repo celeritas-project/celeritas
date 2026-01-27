@@ -20,48 +20,50 @@ namespace inp
 template<class T>
 void to_json(nlohmann::json& j, DeltaDistribution<T> const& v)
 {
-    j = nlohmann::json{{"delta", v.value}};
+    j = {json_type_pair("delta"), CELER_JSON_PAIR(v, value)};
 }
 
 template<class T>
 void from_json(nlohmann::json const& j, DeltaDistribution<T>& v)
 {
-    j.at("delta").get_to(v.value);
+    CELER_JSON_LOAD_REQUIRED(j, v, value);
 }
 
 void to_json(nlohmann::json& j, NormalDistribution const& v)
 {
-    j = nlohmann::json{
-        {"normal", {{"mean", v.mean}, {"stddev", v.stddev}}},
+    j = {
+        json_type_pair("normal"),
+        CELER_JSON_PAIR(v, mean),
+        CELER_JSON_PAIR(v, stddev),
     };
 }
 
 void from_json(nlohmann::json const& j, NormalDistribution& v)
 {
-    auto const& params = j.at("normal");
-    params.at("mean").get_to(v.mean);
-    params.at("stddev").get_to(v.stddev);
+    CELER_JSON_LOAD_REQUIRED(j, v, mean);
+    CELER_JSON_LOAD_REQUIRED(j, v, stddev);
 }
 
 void to_json(nlohmann::json& j, IsotropicDistribution const&)
 {
-    j = nlohmann::json{{"isotropic", nlohmann::json::object()}};
+    j = {json_type_pair("isotropic")};
 }
 
 void from_json(nlohmann::json const&, IsotropicDistribution&) {}
 
 void to_json(nlohmann::json& j, UniformBoxDistribution const& v)
 {
-    j = nlohmann::json{
-        {"uniform_box", {{"lower", v.lower}, {"upper", v.upper}}},
+    j = {
+        json_type_pair("uniform_box"),
+        CELER_JSON_PAIR(v, lower),
+        CELER_JSON_PAIR(v, upper),
     };
 }
 
 void from_json(nlohmann::json const& j, UniformBoxDistribution& v)
 {
-    auto const& params = j.at("uniform_box");
-    params.at("lower").get_to(v.lower);
-    params.at("upper").get_to(v.upper);
+    CELER_JSON_LOAD_REQUIRED(j, v, lower);
+    CELER_JSON_LOAD_REQUIRED(j, v, upper);
 }
 
 //!@}

@@ -19,14 +19,14 @@ namespace inp
 //!@{
 //! I/O routines for JSON
 
-#define EIO_LOAD_VARIANT(NAME, TYPE)                    \
-    do                                                  \
-    {                                                   \
-        if (auto iter = j.find(#NAME); iter != j.end()) \
-        {                                               \
-            v = j.get<TYPE>();                          \
-            return;                                     \
-        }                                               \
+#define EIO_LOAD_VARIANT(NAME, TYPE) \
+    do                               \
+    {                                \
+        if (j.at("_type") == #NAME)  \
+        {                            \
+            v = j.get<TYPE>();       \
+            return;                  \
+        }                            \
     } while (0)
 
 void to_json(nlohmann::json& j, EnergyDistribution const& v)
