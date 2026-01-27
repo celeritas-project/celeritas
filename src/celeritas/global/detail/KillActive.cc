@@ -21,9 +21,6 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Mark all active tracks as "errored".
- *
- * These will then be killed by the \c TrackingCutAction at the end of the
- * step.
  */
 void kill_active(CoreParams const& params, CoreState<MemSpace::host>& state)
 {
