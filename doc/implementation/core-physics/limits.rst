@@ -15,10 +15,7 @@ Discrete interactions
 ---------------------
 
 Most physics processes use pre-calculated cross sections that are tabulated and
-interpolated.
-
-.. doxygenclass:: celeritas::XsCalculator
-
+interpolated: see :ref:`api_grids`.
 Cross sections for each process are evaluated at the beginning of the step
 along with range limiters.
 
