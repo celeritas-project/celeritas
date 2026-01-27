@@ -138,7 +138,15 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
 
     // Load geometry, surfaces, regions from Geant4 world pointer
     CELER_ASSERT(geant_setup.geo_params());
-    si.problem.model = geant_setup.geo_params()->make_model_input();
+    {
+        // TODO: have a better way to define detectors for standalone optical
+        // simulations.
+        CELER_LOG(warning) << "Sensitive detectors from GDML not currently "
+                              "supported! Please be careful!";
+        auto dets = si.problem.model.detectors;
+        si.problem.model = geant_setup.geo_params()->make_model_input();
+        si.problem.model.detectors = std::move(dets);
+    }
 
     // Import optical physics data from Geant4
     ImportData imported;

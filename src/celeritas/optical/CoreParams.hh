@@ -33,6 +33,7 @@ namespace optical
 //---------------------------------------------------------------------------//
 class MaterialParams;
 class PhysicsParams;
+class ScoringParams;
 class SimParams;
 class SurfacePhysicsParams;
 //---------------------------------------------------------------------------//
@@ -57,6 +58,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPConstDetectors = std::shared_ptr<DetectorParams const>;
+    using SPConstScoring = std::shared_ptr<ScoringParams const>;
 
     using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
@@ -84,6 +86,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstSurface surface;
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;
+        SPConstScoring scoring;
 
         SPConstCherenkov cherenkov;  //!< Optional
         SPConstScintillation scintillation;  //!< Optional
@@ -98,9 +101,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         explicit operator bool() const
         {
             return geometry && material && rng && sim && surface
-                   && surface_physics && action_reg && gen_reg && max_streams
-                   && capacity.generators > 0 && capacity.tracks > 0
-                   && capacity.primaries > 0;
+                   && surface_physics && scoring && action_reg && gen_reg
+                   && max_streams && capacity.generators > 0
+                   && capacity.tracks > 0 && capacity.primaries > 0;
         }
     };
 
@@ -134,6 +137,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPAuxRegistry const& aux_reg() const { return input_.aux_reg; }
     SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
     SPConstDetectors const& detectors() const { return input_.detectors; }
+    SPConstScoring const& scoring() const { return input_.scoring; }
     SPConstCherenkov const& cherenkov() const { return input_.cherenkov; }
     SPConstScintillation const& scintillation() const
     {

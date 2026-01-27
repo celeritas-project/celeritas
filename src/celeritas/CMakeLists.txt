@@ -109,6 +109,7 @@ list(APPEND SOURCES
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
+  optical/detector/ScoringParams.cc
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
   optical/gen/GeneratorBase.cc

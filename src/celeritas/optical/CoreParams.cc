@@ -126,6 +126,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(detectors);
+    CP_VALIDATE_INPUT(scoring);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
