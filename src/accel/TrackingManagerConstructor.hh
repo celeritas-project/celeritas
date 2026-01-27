@@ -16,7 +16,6 @@ class G4ParticleDefinition;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class LocalTransporter;
 class SharedParams;
 class TrackingManagerIntegration;
 
@@ -34,7 +33,8 @@ class TrackingManagerIntegration;
    \endcode
  *
  * but for manual integration it can be constructed with a function to get a
- * reference to the thread-local \c LocalTransporter from the Geant4 thread ID:
+ * reference to the thread-local \c TrackOffloadInterface from the Geant4
+ * thread ID:
  * \code
     auto* physics_list = new FTFP_BERT;
     physics_list->RegisterPhysics(new TrackingManagerConstructor{

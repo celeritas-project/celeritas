@@ -14,7 +14,6 @@
 #include "corecel/cont/Range.hh"
 
 #include "ExceptionConverter.hh"
-#include "LocalTransporter.hh"
 #include "SharedParams.hh"
 #include "TrackOffloadInterface.hh"
 

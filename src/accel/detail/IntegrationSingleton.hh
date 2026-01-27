@@ -48,9 +48,6 @@ class IntegrationSingleton
     // Static GLOBAL shared singleton
     static IntegrationSingleton& instance();
 
-    // Static THREAD-LOCAL Celeritas state data
-    static LocalTransporter& local_transporter();
-
     // Static THREAD-LOCAL Celeritas optical state data
     static LocalOpticalGenOffload& local_optical_offload();
 
