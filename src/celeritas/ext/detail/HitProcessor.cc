@@ -35,6 +35,7 @@
 #include "LevelTouchableUpdater.hh"
 #include "../GeantStepPointView.hh"
 #include "../GeantStepView.hh"
+#include "../GeantTrackView.hh"
 
 namespace celeritas
 {
@@ -239,7 +240,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 /*!
  * Generate and call a single hit.
  */
-void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
+void HitProcessor::operator()(DetectorStepOutput const& out, size_t i) const
 {
     CELER_EXPECT(!out.detector.empty());
     CELER_EXPECT(i < out.size());
@@ -250,7 +251,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     if (!out.energy_deposition.empty())
     {
         step_view.energy_deposition(
-            GeantStepView::MevEnergy{out.energy_deposition[i]});
+            GeantStepView::Energy{out.energy_deposition[i]});
     }
     if (!out.step_length.empty())
     {
@@ -320,7 +321,9 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         G4Track& g4track = track_processor_.restore_track(
             out.particle[i],
             !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
-        this->update_track(g4track);
+        CELER_ASSERT(&g4track == step_->GetTrack());
+        // Copy step information to the corresponding track
+        GeantStepView{*step_}.update_track();
     }
 
     if (step_post_status_)
@@ -333,51 +336,6 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     // Hit sensitive detector
     this->detector(out.detector[i])->Hit(step_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Recreate the track from the particle ID and saved post-step data.
- *
- * This is a bit like \c G4Step::UpdateTrack .
- */
-void HitProcessor::update_track(G4Track& track) const
-{
-    // Copy data from step to track
-    track.SetStepLength(step_->GetStepLength());
-
-    G4ParticleDefinition const& pd = *track.GetParticleDefinition();
-
-    for (G4StepPoint* p : step_points_)
-    {
-        if (!p)
-        {
-            continue;
-        }
-
-        // Copy data from track to step points
-        p->SetMass(pd.GetPDGMass());
-        p->SetCharge(pd.GetPDGCharge());
-    }
-
-    if (G4StepPoint* pre_step = step_points_[StepPoint::pre])
-    {
-        // Copy data from post-step to track
-        track.SetTouchableHandle(pre_step->GetTouchableHandle());
-    }
-
-    if (G4StepPoint* post_step = step_points_[StepPoint::post])
-    {
-        // Copy data from post-step to track
-        track.SetGlobalTime(post_step->GetGlobalTime());
-        track.SetPosition(post_step->GetPosition());
-        track.SetKineticEnergy(post_step->GetKineticEnergy());
-        track.SetMomentumDirection(post_step->GetMomentumDirection());
-        track.SetWeight(post_step->GetWeight());
-
-        track.SetNextTouchableHandle(post_step->GetTouchableHandle());
-        track.SetVelocity(post_step->GetVelocity());
-    }
 }
 
 //---------------------------------------------------------------------------//

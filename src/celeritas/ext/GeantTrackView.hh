@@ -112,7 +112,6 @@ class GeantTrackView<Ownership::reference>
     //! Set statistical weight
     void weight(real_type w) { this->mtrack().SetWeight(w); }
 
-  private:
     //! Access mutable track reference (safe: constructed from non-const)
     G4Track& mtrack() { return const_cast<G4Track&>(this->track()); }
 };

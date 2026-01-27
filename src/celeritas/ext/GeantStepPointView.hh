@@ -15,6 +15,7 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/UnitTypes.hh"
 
+#include "GeantParticleView.hh"
 #include "GeantUnits.hh"
 
 namespace celeritas
@@ -84,6 +85,9 @@ class GeantStepPointView
 
     // Update attributes from touchable's logical volume
     inline void update_from_volume();
+
+    // Update mass and charge from particle definition
+    inline void update_from_particle(GeantParticleView const& particle);
 
     //!@}
 
@@ -175,12 +179,10 @@ void GeantStepPointView::time(real_type global_time)
  */
 void GeantStepPointView::update_from_volume(G4LogicalVolume const* lv)
 {
-    if (lv)
-    {
-        step_point_->SetMaterial(lv->GetMaterial());
-        step_point_->SetMaterialCutsCouple(lv->GetMaterialCutsCouple());
-        step_point_->SetSensitiveDetector(lv->GetSensitiveDetector());
-    }
+    CELER_EXPECT(lv);
+    step_point_->SetMaterial(lv->GetMaterial());
+    step_point_->SetMaterialCutsCouple(lv->GetMaterialCutsCouple());
+    step_point_->SetSensitiveDetector(lv->GetSensitiveDetector());
 }
 
 //---------------------------------------------------------------------------//
@@ -202,6 +204,16 @@ void GeantStepPointView::update_from_volume()
         }
     }
     this->update_from_volume(lv);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update mass and charge from particle definition.
+ */
+void GeantStepPointView::update_from_particle(GeantParticleView const& particle)
+{
+    step_point_->SetMass(particle.mass().value() * CLHEP::MeV);
+    step_point_->SetCharge(particle.charge().value() * CLHEP::eplus);
 }
 
 //---------------------------------------------------------------------------//
