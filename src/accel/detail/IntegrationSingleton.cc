@@ -76,63 +76,53 @@ IntegrationSingleton& IntegrationSingleton::instance()
 
 //---------------------------------------------------------------------------//
 /*!
- * Static THREAD-LOCAL Celeritas state data.
- */
-TrackOffloadInterface& IntegrationSingleton::local_track_offload()
-{
-    return IntegrationSingleton::local_transporter();
-}
-
-LocalTransporter& IntegrationSingleton::local_transporter()
-{
-    auto& offload = IntegrationSingleton::local_offload_ptr();
-    if (!offload)
-    {
-        offload = std::make_unique<LocalTransporter>();
-    }
-    auto* lt = dynamic_cast<LocalTransporter*>(offload.get());
-    CELER_VALIDATE(lt,
-                   << "Cannot access LocalTransporter when "
-                      "LocalOpticalGenOffload is being used");
-    return *lt;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Static THREAD-LOCAL Celeritas optical state data.
- */
-LocalOpticalGenOffload& IntegrationSingleton::local_optical_offload()
-{
-    auto& offload = IntegrationSingleton::local_offload_ptr();
-    if (!offload)
-    {
-        offload = std::make_unique<LocalOpticalGenOffload>();
-    }
-    auto* lt = dynamic_cast<LocalOpticalGenOffload*>(offload.get());
-    CELER_VALIDATE(lt,
-                   << "Cannot access LocalOpticalGenOffload when "
-                      "LocalTransporter is being used");
-    return *lt;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Access the thread-local offload interface.
+ *
+ * The first time this is called in an execution, we look at the options to
+ determine whether to create:
+ - an EM track offload interface (LocalTransporter, which will send to the
+ Celeritas EM core loop)
+ - an optical track offload interface (TBD, which will send to a standalone
+ optical loop)
+ - an optical *generator* offload interface (LocalOpticalGenOffload, used for
+ cherenkov/scintillation photons)
+
  */
 LocalOffloadInterface& IntegrationSingleton::local_offload()
 {
-    CELER_VALIDATE(
-        !this->optical_offload(),
-        << R"(Cannot enable both optical generator offload and optical track offload at the same time)");
+    static G4ThreadLocal UPOffload offload = [this]() -> UPOffload {
+        CELER_VALIDATE(
+            options_,
+            << R"(cannot access local offload before options are assigned)");
+        if (options_.optical
+            && std::holds_alternative<inp::OpticalOffloadGenerator>(
+                options_.optical->generator))
+        {
+            return std::make_unique<LocalOpticalGenOffload>();
+        }
+        else
+        {
+            // TODO: if offloading direct optical tracks, return optical
+            // offload
+            return std::make_unique<LocalTransporter>();
+        }
+        return nullptr;
+    }();
 
-    if (this->optical_offload())
-    {
-        return IntegrationSingleton::local_optical_offload();
-    }
-    else
-    {
-        return IntegrationSingleton::local_transporter();
-    }
+    return *offload;
+}
+
+/*!
+ * Access thread-local *track* offload interface (for anything that pushes a
+ * track)
+ */
+TrackOffloadInterface& IntegrationSingleton::local_track_offload()
+{
+    auto* oi = dynamic_cast<TrackOffloadInterface*>(&this->local_offload());
+    CELER_VALIDATE(oi,
+                   << "Cannot access track offload when "
+                      "LocalOpticalGenOffload is being used");
+    return *oi;
 }
 
 //---------------------------------------------------------------------------//
@@ -160,8 +150,6 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
         CELER_LOG(warning)
             << R"(SetOptions called with incomplete input: you must use the UI to update before /run/initialize)";
     }
-
-    CELER_ENSURE(!offloaded_.empty() || this->optical_offload());
 }
 
 //---------------------------------------------------------------------------//
@@ -291,27 +279,6 @@ IntegrationSingleton::IntegrationSingleton()
             this->update_logger();
         },
         ExceptionConverter{"celer.init.singleton"});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Static THREAD-LOCAL Celeritas offload.
- */
-auto IntegrationSingleton::local_offload_ptr() -> UPOffload&
-{
-    static G4ThreadLocal UPOffload offload;
-    return offload;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the local optical generator offload is used.
- */
-bool IntegrationSingleton::optical_offload() const
-{
-    return options_.optical
-           && std::holds_alternative<inp::OpticalOffloadGenerator>(
-               options_.optical->generator);
 }
 
 //---------------------------------------------------------------------------//
