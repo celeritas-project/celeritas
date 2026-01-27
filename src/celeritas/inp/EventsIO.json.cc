@@ -38,7 +38,7 @@ void from_json(nlohmann::json const& j, EnergyDistribution& v)
 {
     EIO_LOAD_VARIANT(delta, MonoenergeticDistribution);
     EIO_LOAD_VARIANT(normal, NormalDistribution);
-    CELER_ASSERT_UNREACHABLE();
+    CELER_VALIDATE(false, << "invalid EnergyDistribution input");
 }
 
 void to_json(nlohmann::json& j, ShapeDistribution const& v)
@@ -50,7 +50,7 @@ void from_json(nlohmann::json const& j, ShapeDistribution& v)
 {
     EIO_LOAD_VARIANT(delta, PointDistribution);
     EIO_LOAD_VARIANT(uniform_box, UniformBoxDistribution);
-    CELER_ASSERT_UNREACHABLE();
+    CELER_VALIDATE(false, << "invalid ShapeDistribution input");
 }
 
 void to_json(nlohmann::json& j, AngleDistribution const& v)
@@ -62,7 +62,7 @@ void from_json(nlohmann::json const& j, AngleDistribution& v)
 {
     EIO_LOAD_VARIANT(delta, MonodirectionalDistribution);
     EIO_LOAD_VARIANT(isotropic, IsotropicDistribution);
-    CELER_ASSERT_UNREACHABLE();
+    CELER_VALIDATE(false, << "invalid AngleDistribution input");
 }
 
 void to_json(nlohmann::json& j, OpticalPrimaryGenerator const& v)
