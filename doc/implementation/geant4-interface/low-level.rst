@@ -44,5 +44,5 @@ Views
 
 .. doxygenclass:: celeritas::GeantParticleView
 .. doxygenclass:: celeritas::GeantStepPointView
-.. doxygenclass:: celeritas::GeantTrackView<celeritas::Ownership::const_reference>
+.. doxygenclass:: celeritas::GeantTrackView
 .. doxygenclass:: celeritas::GeantStepView

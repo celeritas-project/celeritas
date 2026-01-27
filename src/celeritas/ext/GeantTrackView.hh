@@ -138,6 +138,8 @@ GeantTrackView(G4Track const&) -> GeantTrackView<Ownership::const_reference>;
 // Deduce reference from mutable G4Track&
 GeantTrackView(G4Track&) -> GeantTrackView<Ownership::reference>;
 
+// Doxygen fails to deduce correct templated class
+#if !defined(__DOXYGEN__) || __DOXYGEN__ > 0x011600
 //---------------------------------------------------------------------------//
 // INLINE ACCESSOR DEFINITIONS
 //---------------------------------------------------------------------------//
@@ -223,6 +225,7 @@ void GeantTrackView<Ownership::reference>::time(real_type t)
 {
     this->track().SetGlobalTime(convert_to_geant(t, clhep_time));
 }
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
