@@ -16,7 +16,6 @@
 #include "celeritas/UnitTypes.hh"
 
 #include "GeantStepPointView.hh"
-#include "GeantTrackView.hh"
 
 namespace celeritas
 {
@@ -69,7 +68,7 @@ class GeantStepView
     inline void step_length(real_type length);
 
     // Update track from step data
-    inline void update_track();
+    void update_track();
 
     //!@}
 
@@ -83,7 +82,7 @@ class GeantStepView
 /*!
  * Get total energy deposited during step in MeV.
  */
-GeantStepView::Energy GeantStepView::energy_deposition() const
+auto GeantStepView::energy_deposition() const -> Energy
 {
     return Energy{
         convert_from_geant(step_.GetTotalEnergyDeposit(), CLHEP::MeV)};
@@ -127,6 +126,7 @@ void GeantStepView::step_length(real_type length)
  */
 GeantStepPointView GeantStepView::pre_step() const
 {
+    CELER_EXPECT(step_.GetPreStepPoint());
     return GeantStepPointView{*step_.GetPreStepPoint()};
 }
 
@@ -136,6 +136,7 @@ GeantStepPointView GeantStepView::pre_step() const
  */
 GeantStepPointView GeantStepView::post_step() const
 {
+    CELER_EXPECT(step_.GetPostStepPoint());
     return GeantStepPointView{*step_.GetPostStepPoint()};
 }
 
@@ -146,48 +147,7 @@ GeantStepPointView GeantStepView::post_step() const
 GeantStepPointView GeantStepView::step_point(StepPoint sp) const
 {
     CELER_EXPECT(sp != StepPoint::size_);
-    return GeantStepPointView{sp == StepPoint::pre ? this->pre_step()
-                                                   : this->post_step()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Update track from step data.
- *
- * Copies step length and step point data to the track. This is similar to
- * \c G4Step::UpdateTrack but applies only to attributes we know about and
- * safely handles null pointers.
- */
-void GeantStepView::update_track()
-{
-    CELER_EXPECT(step_.GetTrack());
-
-    GeantTrackView track{*step_.GetTrack()};
-    GeantParticleView particle_view = track.particle();
-
-    // Update pre-step point if present
-    if (G4StepPoint* pre_step = step_.GetPreStepPoint())
-    {
-        GeantStepPointView{*pre_step}.update_from_particle(particle_view);
-        track.mtrack().SetTouchableHandle(pre_step->GetTouchableHandle());
-    }
-
-    // Update post-step point and track from post-step if present
-    if (G4StepPoint* post_step = step_.GetPostStepPoint())
-    {
-        GeantStepPointView post_view{*post_step};
-        post_view.update_from_particle(particle_view);
-
-        // Copy post-step state to track
-        track.time(post_view.time());
-        track.pos(post_view.pos());
-        track.energy(post_view.energy());
-        track.dir(post_view.dir());
-        track.weight(post_view.weight());
-
-        track.mtrack().SetNextTouchableHandle(post_step->GetTouchableHandle());
-        track.mtrack().SetVelocity(post_step->GetVelocity());
-    }
+    return sp == StepPoint::pre ? this->pre_step() : this->post_step();
 }
 
 //---------------------------------------------------------------------------//

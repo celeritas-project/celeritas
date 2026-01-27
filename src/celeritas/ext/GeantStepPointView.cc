@@ -6,27 +6,27 @@
 //---------------------------------------------------------------------------//
 #include "GeantStepPointView.hh"
 
+#include <G4LogicalVolume.hh>
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Update attributes from logical volume.
- *
- * If the logical volume is null, no updates are performed.
  */
-void GeantStepPointView::update_from_volume(G4LogicalVolume const* lv)
+void GeantStepPointView::update_from_volume(G4LogicalVolume const& lv)
 {
-    step_point_.SetMaterial(lv->GetMaterial());
-    step_point_.SetMaterialCutsCouple(lv->GetMaterialCutsCouple());
-    step_point_.SetSensitiveDetector(lv->GetSensitiveDetector());
+    step_point_.SetMaterial(lv.GetMaterial());
+    step_point_.SetMaterialCutsCouple(lv.GetMaterialCutsCouple());
+    step_point_.SetSensitiveDetector(lv.GetSensitiveDetector());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Update attributes from touchable's logical volume if possible.
+ * Update attributes from the touchable's logical volume if possible.
  *
- * The post-step volume is fetched from the touchable. The physical volume
- * could be null if post-step is outside the geometry.
+ * If the step point has an associated touchable, and that touchable is inside
+ * the geometry, it updates. Otherwise, it clears the corresponding attributes.
  */
 void GeantStepPointView::update_from_volume()
 {
@@ -41,7 +41,7 @@ void GeantStepPointView::update_from_volume()
     }
     if (lv)
     {
-        this->update_from_volume(lv);
+        this->update_from_volume(*lv);
     }
     else
     {

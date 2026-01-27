@@ -35,7 +35,6 @@
 #include "LevelTouchableUpdater.hh"
 #include "../GeantStepPointView.hh"
 #include "../GeantStepView.hh"
-#include "../GeantTrackView.hh"
 
 namespace celeritas
 {
@@ -245,8 +244,6 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_t i) const
     CELER_EXPECT(!out.detector.empty());
     CELER_EXPECT(i < out.size());
 
-    G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
-
     GeantStepView step_view{*step_};
     if (!out.energy_deposition.empty())
     {
@@ -306,8 +303,10 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_t i) const
         // Copy attributes from logical volume
         if (sp == StepPoint::pre)
         {
+            G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
+            CELER_ASSERT(lv);
             // Use lv already known from the in-volume detector
-            sp_view.update_from_volume(lv);
+            sp_view.update_from_volume(*lv);
         }
         else
         {

@@ -138,8 +138,6 @@ class HitProcessor
 
     //! Accumulated number of hits
     size_type num_hits_{0};
-
-    void update_track(G4Track&) const;
 };
 
 //---------------------------------------------------------------------------//

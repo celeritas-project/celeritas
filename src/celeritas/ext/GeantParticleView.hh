@@ -6,12 +6,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
 #include <G4Version.hh>
 
 #include "corecel/math/Quantity.hh"
+#include "geocel/g4/Convert.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/phys/PDGNumber.hh"
+
+#include "GeantUnits.hh"
 
 namespace celeritas
 {
@@ -72,11 +76,9 @@ auto GeantParticleView::decay_constant() const -> real_type
         return 0;
     }
 
-    // CLHEP time unit system
-    using Time = Quantity<units::ClhepTraits::Time, double>;
-
-    // Decay constant is 1/lifetime
-    return 1 / native_value_from(Time{pd_.GetPDGLifeTime()});
+    // Decay constant is 1/lifetime (lifetime is in CLHEP time units)
+    real_type lifetime = convert_from_geant(pd_.GetPDGLifeTime(), clhep_time);
+    return 1 / lifetime;
 }
 
 //---------------------------------------------------------------------------//

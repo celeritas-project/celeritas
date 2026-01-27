@@ -7,9 +7,9 @@
 #pragma once
 
 #include <CLHEP/Units/SystemOfUnits.h>
-#include <G4LogicalVolume.hh>
 #include <G4StepPoint.hh>
 
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Quantity.hh"
 #include "geocel/g4/Convert.hh"
@@ -81,7 +81,7 @@ class GeantStepPointView
     void weight(real_type w) { step_point_.SetWeight(w); }
 
     // Update attributes from logical volume
-    void update_from_volume(G4LogicalVolume const* lv);
+    void update_from_volume(G4LogicalVolume const& lv);
 
     // Update attributes from touchable's logical volume
     void update_from_volume();
@@ -158,6 +158,7 @@ void GeantStepPointView::dir(Real3 const& direction)
  */
 void GeantStepPointView::energy(Energy kinetic_energy)
 {
+    CELER_EXPECT(kinetic_energy >= zero_quantity());
     step_point_.SetKineticEnergy(
         convert_to_geant(kinetic_energy.value(), CLHEP::MeV));
 }
@@ -168,6 +169,7 @@ void GeantStepPointView::energy(Energy kinetic_energy)
  */
 void GeantStepPointView::time(real_type global_time)
 {
+    CELER_EXPECT(global_time >= 0);
     step_point_.SetGlobalTime(convert_to_geant(global_time, clhep_time));
 }
 
