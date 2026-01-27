@@ -18,17 +18,17 @@ template<Ownership W, MemSpace M>
 struct DetectorParamsData
 {
     template<class T>
-    using ImplVolumeItems = Collection<T, W, M, ImplVolumeId>;
+    using VolumeItems = Collection<T, W, M, VolumeId>;
 
     //// DATA ////
 
-    //! Map implementation volume -> sensitive detector
-    ImplVolumeItems<DetectorId> detectors;
+    //! Map volume -> sensitive detector
+    VolumeItems<DetectorId> detector_ids;
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !detectors.empty();
+        return !detector_ids.empty();
     }
 
     //! Assign from another set of data
@@ -36,7 +36,7 @@ struct DetectorParamsData
     DetectorParamsData& operator=(DetectorParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        detectors = other.detectors;
+        detector_ids = other.detector_ids;
         return *this;
     }
 };

@@ -28,6 +28,7 @@ class MpiCommunicator;
 class OutputRegistry;
 class ParticleParams;
 class PhysicsParams;
+class DetectorParams;
 class SimParams;
 class SurfaceParams;
 class TrackInitParams;
@@ -60,6 +61,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
     using SPConstVolume = std::shared_ptr<VolumeParams const>;
+    using SPConstDetectors = std::shared_ptr<DetectorParams const>;
 
     using SPConstWentzelOKVI = std::shared_ptr<WentzelOKVIParams const>;
 
@@ -87,6 +89,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstVolume volume;
         SPConstSurface surface;
         SPConstTrackInit init;
+        SPConstDetectors detectors;
         SPConstWentzelOKVI wentzel;  //!< TODO: move to EM physics
 
         SPActionRegistry action_reg;
@@ -130,6 +133,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstVolume const& volume() const { return input_.volume; }
     SPConstSurface const& surface() const { return input_.surface; }
     SPConstTrackInit const& init() const { return input_.init; }
+    SPConstDetectors const& detectors() const { return input_.detectors; }
     SPConstWentzelOKVI const& wentzel() const { return input_.wentzel; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }

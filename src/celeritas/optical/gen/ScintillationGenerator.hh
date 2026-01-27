@@ -238,6 +238,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
           + u * dist_.step_length
                 / (native_value_from(dist_.points[StepPoint::pre].speed)
                    + u * real_type(0.5) * native_value_from(delta_speed_));
+    photon.primary = dist_.primary;
 
     if (component.rise_time == 0)
     {

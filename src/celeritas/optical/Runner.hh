@@ -8,8 +8,6 @@
 
 #include <memory>
 
-#include "corecel/Types.hh"
-#include "celeritas/Types.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/setup/StandaloneInput.hh"
 #include "celeritas/user/ActionTimes.hh"
@@ -42,8 +40,8 @@ class Runner
     //!@{
     //! \name Type aliases
     using SPConstParams = std::shared_ptr<CoreParams const>;
-    using DirectGeneratorData = DirectGeneratorAction::SpanConstData;
-    using OffloadGeneratorData = GeneratorAction::SpanConstData;
+    using SpanConstTrackInit = DirectGeneratorAction::SpanConstData;
+    using SpanConstGenDist = GeneratorAction::SpanConstData;
     //!@}
 
     struct Result
@@ -60,10 +58,10 @@ class Runner
     Result operator()();
 
     // Transport tracks generated directly from track initializers
-    Result operator()(DirectGeneratorData);
+    Result operator()(SpanConstTrackInit);
 
     // Transport tracks generated through scintillation or Cherenkov
-    Result operator()(OffloadGeneratorData);
+    Result operator()(SpanConstGenDist);
 
     //! Access the shared params
     SPConstParams const& params() const

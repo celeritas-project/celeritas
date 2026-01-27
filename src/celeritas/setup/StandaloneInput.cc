@@ -49,20 +49,36 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     std::shared_ptr<GeantGeoParams> ggp;
     if (si.geant_setup)
     {
-        // Take file name from problem and physics options from the arguments,
-        // and set up Geant4
         CELER_ASSUME(
             std::holds_alternative<std::string>(problem.model.geometry));
+        // Take file name from problem and physics options from the arguments,
+        // and set up Geant4
         geant_setup.emplace(std::get<std::string>(problem.model.geometry),
                             *si.geant_setup);
 
         // Keep the geant4 geometry and set it as global
         ggp = geant_setup->geo_params();
         CELER_ASSERT(ggp);
-
-        // Load geometry, surfaces, regions from Geant4 world pointer
-        problem.model = ggp->make_model_input();
     }
+    else if (auto* s = std::get_if<std::string>(&problem.model.geometry))
+    {
+        // Load model directly (when loading ROOT physics)
+        ggp = GeantGeoParams::from_gdml(*s);
+    }
+    else if (auto* pv
+             = std::get_if<G4VPhysicalVolume const*>(&problem.model.geometry))
+    {
+        // Load model directly (unused?)
+        ggp = std::make_shared<GeantGeoParams>(*pv, Ownership::reference);
+    }
+    else
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+    // Replace model input: load geometry, surfaces, regions from Geant4 world
+    // pointer
+    problem.model = ggp->make_model_input();
 
     // Import physics data from Geant4 or ROOT: see Import.hh
     ImportData imported;

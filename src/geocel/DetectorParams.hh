@@ -9,55 +9,55 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
 #include "DetectorData.hh"
+#include "inp/Model.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class GeoParamsInterface;
+class VolumeParams;
 
 //---------------------------------------------------------------------------//
 /*!
  * Map Geant4 sensitive detectors to distinct detector IDs.
- *
- * \note See \c celeritas::VolumeIdBuilder for how to construct these easily.
  */
 class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
 {
   public:
     //!@{
     //! \name Type aliases
-    using VecVolId = std::vector<VolumeId>;
+    using SpanVol = Span<VolumeId const>;
+    using DetectorMap = LabelIdMultiMap<DetectorId>;
     //!@}
 
   public:
-    //! Default constructor: no detectors
+    //! Construct without detectors or volumes
     DetectorParams() = default;
 
-    //! Construct from canonical volume IDs
-    DetectorParams(GeoParamsInterface const& geo, VecVolId&& volume_ids);
+    // Construct from detector input and volume params reference
+    DetectorParams(inp::Detectors detectors, VolumeParams const& volumes);
 
-    //! Whether any detectors are present
+    //! Whether detector mapping is disabled (no volumes specified)
     bool empty() const { return !static_cast<bool>(mirror_); }
 
     //! Number of detectors
-    DetectorId::size_type size() const { return volume_ids_.size(); }
-
-    //! Access detector ID based on implementation volume ID
-    DetectorId volume_to_detector_id(ImplVolumeId iv_id)
+    DetectorId::size_type num_detectors() const
     {
-        return host_ref().detectors[iv_id];
+        return detectors_.detectors.size();
     }
 
-    //! Access volume ID based on detector ID
-    VolumeId detector_to_volume_id(DetectorId det_id)
-    {
-        CELER_EXPECT(det_id < this->size());
-        return volume_ids_[det_id.get()];
-    }
+    //! Get detector metadata
+    DetectorMap const& detector_labels() const { return det_labels_; }
+
+    // Find the detector ID for a given volume, if any
+    inline DetectorId detector_id(VolumeId vol_id) const;
+
+    // Find all volumes assigned to a detector.
+    inline SpanVol volume_ids(DetectorId det_id) const;
 
     //!@{
     //! \name Data interface
@@ -69,9 +69,31 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
     //!@}
 
   private:
-    VecVolId volume_ids_;
     CollectionMirror<DetectorParamsData> mirror_;
+    inp::Detectors detectors_;
+    DetectorMap det_labels_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Find the detector ID for a given volume, if any.
+ */
+DetectorId DetectorParams::detector_id(VolumeId vol_id) const
+{
+    return host_ref().detector_ids[vol_id];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find all volumes assigned to a detector.
+ */
+auto DetectorParams::volume_ids(DetectorId det_id) const -> SpanVol
+{
+    CELER_EXPECT(det_id < this->num_detectors());
+    return make_span(detectors_.detectors[det_id.get()].volumes);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

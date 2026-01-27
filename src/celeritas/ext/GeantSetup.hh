@@ -11,8 +11,6 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Assert.hh"
-
 #include "GeantPhysicsOptions.hh"
 
 // Geant4 forward declarations

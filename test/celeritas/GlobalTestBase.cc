@@ -14,7 +14,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/data/AuxParamsRegistry.hh"
-#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -33,6 +32,8 @@
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
+using std::make_shared;
+
 namespace celeritas
 {
 namespace test
@@ -46,7 +47,7 @@ GlobalTestBase::GlobalTestBase()
 #endif
 
     // Create output registry
-    output_reg_ = std::make_shared<OutputRegistry>();
+    output_reg_ = make_shared<OutputRegistry>();
 }
 
 //---------------------------------------------------------------------------//
@@ -147,35 +148,35 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
     }
 
     auto mi = model_geo->make_model_input();
-    volume_ = std::make_shared<VolumeParams>(mi.volumes);
+    volume_ = make_shared<VolumeParams>(std::move(mi.volumes));
     celeritas::global_volumes(volume_);
-    surface_ = std::make_shared<SurfaceParams>(mi.surfaces, *volume_);
-
+    surface_ = make_shared<SurfaceParams>(std::move(mi.surfaces), *volume_);
+    detector_ = make_shared<DetectorParams>(std::move(mi.detectors), *volume_);
     return core_geo;
 }
 
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_rng() const -> SPConstRng
 {
-    return std::make_shared<RngParams>(20220511);
+    return make_shared<RngParams>(20220511);
 }
 
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_action_reg() const -> SPActionRegistry
 {
-    return std::make_shared<ActionRegistry>();
+    return make_shared<ActionRegistry>();
 }
 
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_aux_reg() const -> SPUserRegistry
 {
-    return std::make_shared<AuxParamsRegistry>();
+    return make_shared<AuxParamsRegistry>();
 }
 
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_optical_action_reg() const -> SPActionRegistry
 {
-    return std::make_shared<ActionRegistry>();
+    return make_shared<ActionRegistry>();
 }
 
 //---------------------------------------------------------------------------//
@@ -188,11 +189,12 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.surface = this->core()->surface();
     inp.action_reg = this->optical_action_reg();
     inp.output_reg = this->core()->output_reg();
-    inp.gen_reg = std::make_shared<GeneratorRegistry>();
+    inp.gen_reg = make_shared<GeneratorRegistry>();
     inp.aux_reg = this->core()->aux_reg();
     inp.physics = this->optical_physics();
     inp.sim = this->optical_sim();
     inp.surface_physics = this->optical_surface_physics();
+    inp.detectors = this->detector();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
     inp.capacity = inp::OpticalStateCapacity::from_default(
@@ -205,33 +207,37 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_optical_params() -> SPOpticalParams
 {
-    return std::make_shared<optical::CoreParams>(this->optical_params_input());
+    return make_shared<optical::CoreParams>(this->optical_params_input());
 }
 
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_core() -> SPConstCore
 {
-    CoreParams::Input inp;
-    inp.geometry = this->geometry();
+    // Load geometry and create empty attributes if needed
+    auto geo = this->geometry();
+    CELER_ASSERT(static_cast<bool>(surface_) == static_cast<bool>(volume_)
+                 && static_cast<bool>(surface_)
+                        == static_cast<bool>(detector_));
     if (!surface_)
     {
-        surface_ = std::make_shared<SurfaceParams>();
-    }
-    if (!volume_)
-    {
-        volume_ = std::make_shared<VolumeParams>();
+        surface_ = make_shared<SurfaceParams>();
+        volume_ = make_shared<VolumeParams>();
+        detector_ = make_shared<DetectorParams>();
     }
 
-    inp.cutoff = this->cutoff();
+    CoreParams::Input inp;
+    inp.geometry = std::move(geo);
     inp.geomaterial = this->geomaterial();
+    inp.particle = this->particle();
+    inp.cutoff = this->cutoff();
     inp.init = this->init();
     inp.material = this->material();
-    inp.particle = this->particle();
     inp.physics = this->physics();
     inp.rng = this->rng();
     inp.sim = this->sim();
     inp.surface = surface_;
     inp.volume = volume_;
+    inp.detectors = detector_;
     inp.wentzel = this->wentzel();
 
     inp.action_reg = this->action_reg();
@@ -246,13 +252,13 @@ auto GlobalTestBase::build_core() -> SPConstCore
     if (insert_status_checker_)
     {
         // For unit testing, add status checker
-        auto status_checker = std::make_shared<StatusChecker>(
+        auto status_checker = make_shared<StatusChecker>(
             inp.action_reg->next_id(), inp.aux_reg->next_id());
         inp.action_reg->insert(status_checker);
         inp.aux_reg->insert(status_checker);
     }
 
-    return std::make_shared<CoreParams>(std::move(inp));
+    return make_shared<CoreParams>(std::move(inp));
 }
 
 //---------------------------------------------------------------------------//
