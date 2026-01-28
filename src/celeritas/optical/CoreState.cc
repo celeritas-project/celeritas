@@ -46,7 +46,7 @@ CoreState<M>::CoreState(CoreParams const& params,
     states_ = CollectionStateStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
 
-    auto counters = this->sync_get_counters();
+    auto counters = CoreStateCounters{};
     counters.num_vacancies = num_track_slots;
     this->sync_put_counters(counters);
 
