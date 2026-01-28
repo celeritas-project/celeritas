@@ -133,14 +133,17 @@ host/device data via :cpp:class:`celeritas::detail::MucfMaterialInserter`.
 .. doxygenclass:: celeritas::detail::MucfMaterialInserter
 
 The main cycle is managed by the model's
-:cpp:class:`celeritas::DTMixMucfExecutor`. The muonic atom selection is handled
-by detail classes, while the Interactors are reserved for sampling final states
-of the outgoing secondaries.
+:cpp:class:`celeritas::DTMixMucfExecutor`. The muonic atom, spin, fusion channel
+selections are handled by detail classes, while the Interactors are reserved for
+sampling final states of the outgoing secondaries.
 
 .. note:: Only reactive channels are implemented.
 
 .. doxygenclass:: celeritas::detail::MuonicAtomSelector
 .. doxygenclass:: celeritas::detail::MuonicAtomSpinSelector
+.. doxygenclass:: celeritas::detail::DDChannelSelector
+.. doxygenclass:: celeritas::detail::DTChannelSelector
+.. doxygenclass:: celeritas::detail::TTChannelSelector
 .. doxygenclass:: celeritas::DDMucfInteractor
 .. doxygenclass:: celeritas::DTMucfInteractor
 .. doxygenclass:: celeritas::TTMucfInteractor
