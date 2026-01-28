@@ -42,6 +42,7 @@ jobs:
           fetch-tags: true
       - name: Configure celeritas
         # Turn warnings into errors only for PRs
+        # Disable expensive graphs for PRs also
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           mkdir build && cd build
