@@ -214,7 +214,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(ext/detail/HitProcessor.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
-  celeritas_add_test(ext/detail/TrackProcessor.test.cc
+  celeritas_add_test(ext/GeantTrackReconstruction.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 
@@ -378,6 +378,11 @@ celeritas_add_test(io/ImportUnits.test.cc)
 celeritas_add_test(io/JsonEventIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
+
+#-----------------------------------------------------------------------------#
+# Inp
+celeritas_add_test(inp/JsonIO.test.cc
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 #-----------------------------------------------------------------------------#
 # Optical

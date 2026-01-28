@@ -7,6 +7,7 @@
 #pragma once
 
 #include <string_view>
+#include <utility>
 #include <variant>
 #include <nlohmann/json.hpp>
 
@@ -132,6 +133,15 @@ void check_format(nlohmann::json const& j, std::string_view format);
 
 // Check units for consistency
 void check_units(nlohmann::json const& j, std::string_view format);
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a key/value pair for JSON polymorphism.
+ */
+inline std::pair<std::string, std::string> json_type_pair(std::string&& s)
+{
+    return {"_type", std::move(s)};
+}
 
 //---------------------------------------------------------------------------//
 /*!
