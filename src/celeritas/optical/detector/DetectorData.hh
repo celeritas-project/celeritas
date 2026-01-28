@@ -90,22 +90,22 @@ struct DetectorStateData
 template<MemSpace M>
 void copy_hits(DetectorHitOutput* output,
                DetectorStateData<Ownership::reference, M> const& state,
-               StreamId);
+               StreamId stream);
 
 template<>
-void copy_hits(DetectorHitOutput* output,
+void copy_hits(DetectorHitOutput*,
                DetectorStateData<Ownership::reference, MemSpace::host> const&,
                StreamId);
 
 template<>
-void copy_hits(DetectorHitOutput* output,
+void copy_hits(DetectorHitOutput*,
                DetectorStateData<Ownership::reference, MemSpace::device> const&,
                StreamId);
 
 #if !CELER_USE_DEVICE
 template<>
 inline void
-copy_hits(DetectorHitOutput* output,
+copy_hits(DetectorHitOutput*,
           DetectorStateData<Ownership::reference, MemSpace::device> const&,
           StreamId)
 {
