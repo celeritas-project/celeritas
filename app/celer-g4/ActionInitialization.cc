@@ -58,7 +58,7 @@ ActionInitialization::ActionInitialization(SPParams params)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct actions on the master thread.
+ * Construct actions on the manager thread.
  *
  * Since our \c RunAction::EndOfRunAction only calls \c SharedParams::Finalize
  * on the master thread, we need a special case for MT mode.

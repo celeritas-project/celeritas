@@ -24,7 +24,7 @@ CMake configuration options are set.
 
 The assertion macros ``CELER_EXPECT``, ``CELER_ASSERT``, and ``CELER_ENSURE``
 correspond to "precondition contract", "internal assertion", and "postcondition
-contract".
+contract". They all throw :cpp:class:`celeritas::DebugError`.
 
 .. doxygendefine:: CELER_EXPECT
 .. doxygendefine:: CELER_ASSERT
@@ -36,12 +36,20 @@ behavior at runtime to allow compiler optimizations:
 .. doxygendefine:: CELER_ASSERT_UNREACHABLE
 .. doxygendefine:: CELER_ASSUME
 
-Finally, a few runtime macros will always throw helpful errors based on
-incorrect configuration or input values.
+Finally, a few runtime macros will always throw helpful
+:cpp:class:`celeritas::RuntimeError` errors based on incorrect configuration or
+input values.
 
 .. doxygendefine:: CELER_VALIDATE
 .. doxygendefine:: CELER_NOT_CONFIGURED
 .. doxygendefine:: CELER_NOT_IMPLEMENTED
+
+These macros all throw subclasses of standard exceptions. See the developer
+documentation for more details.
+
+.. doxygenclass:: celeritas::DebugError
+.. doxygenclass:: celeritas::RuntimeError
+
 
 Utility macros
 ^^^^^^^^^^^^^^
@@ -49,11 +57,24 @@ Utility macros
 The :file:`corecel/Macros.hh` file defines language and compiler abstraction
 macro definitions.
 
-.. doxygendefine:: CELER_TRY_HANDLE
-.. doxygendefine:: CELER_TRY_HANDLE_CONTEXT
-
 .. doxygendefine:: CELER_DEFAULT_COPY_MOVE
 .. doxygendefine:: CELER_DELETE_COPY_MOVE
 .. doxygendefine:: CELER_DEFAULT_MOVE_DELETE_COPY
 
 .. doxygendefine:: CELER_DISCARD
+
+.. _exception_handling:
+
+Exception handling
+^^^^^^^^^^^^^^^^^^
+
+During multithreaded execution or when called by a Geant4 simulation, it is
+important not to throw C++ exceptions lest they be uncaught and result in an
+immediate program abort. Celeritas provides macros and classes for managing
+exceptions and providing detailed diagnostics.
+
+.. doxygendefine:: CELER_TRY_HANDLE
+.. doxygendefine:: CELER_TRY_HANDLE_CONTEXT
+.. doxygenclass:: celeritas::RichContextException
+.. doxygenclass:: celeritas::MultiExceptionHandler
+.. doxygenfunction:: celeritas::log_and_rethrow

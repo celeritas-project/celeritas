@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/SDTestBase.hh
+//! \file celeritas/ext/SensDetTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,7 +24,7 @@ class SimpleSensitiveDetector;
 /*!
  * Attach "debug" sensitive detectors to a Geant4 geometry.
  */
-class SDTestBase : virtual public GeantTestBase
+class SensDetTestBase : virtual public GeantTestBase
 {
     using Base = GeantTestBase;
 

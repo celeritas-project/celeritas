@@ -12,6 +12,7 @@
 #include "corecel/random/data/XorwowRngData.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/detail/GenerateCanonical32.hh"
+#include "corecel/random/engine/SplitMix64.hh"
 #include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
@@ -110,13 +111,6 @@ class XorwowRngEngine
     inline CELER_FUNCTION void
     jump(ull_int, ArrayJumpPoly const&, XorwowState&);
     inline CELER_FUNCTION void jump(JumpPoly const&, XorwowState&);
-
-    // Helper RNG for initializing the state
-    struct SplitMix64
-    {
-        std::uint64_t state;
-        inline CELER_FUNCTION std::uint64_t operator()();
-    };
 };
 
 //---------------------------------------------------------------------------//
@@ -358,20 +352,6 @@ XorwowRngEngine::jump(JumpPoly const& jump_poly, XorwowState& state)
         }
     }
     state.xorstate = s;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Generate a 64-bit pseudorandom number using the SplitMix64 engine.
- *
- * This is used to initialize the XORWOW state. See https://prng.di.unimi.it.
- */
-CELER_FUNCTION std::uint64_t XorwowRngEngine::SplitMix64::operator()()
-{
-    std::uint64_t z = (state += 0x9e3779b97f4a7c15ull);
-    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ull;
-    z = (z ^ (z >> 27)) * 0x94d049bb133111ebull;
-    return z ^ (z >> 31);
 }
 
 //---------------------------------------------------------------------------//

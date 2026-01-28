@@ -22,10 +22,8 @@ void InitializeTracksAction::step_impl(CoreParams const& params,
                                        CoreStateDevice& state,
                                        size_type num_new_tracks) const
 {
-    detail::InitTracksExecutor execute_thread{params.ptr<MemSpace::native>(),
-                                              state.ptr(),
-                                              num_new_tracks,
-                                              state.counters()};
+    detail::InitTracksExecutor execute_thread{
+        params.ptr<MemSpace::native>(), state.ptr(), num_new_tracks};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
     launch_kernel(num_new_tracks, state.stream_id(), execute_thread);
 }

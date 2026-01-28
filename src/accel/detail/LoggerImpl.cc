@@ -116,7 +116,7 @@ void MtSelfWriter::operator()(LogProvenance prov,
     }
     else
     {
-        // Logging "local" message from the master thread!
+        // Logging "local" message from the master thread
         cerr << color_code('W') << "[M!] ";
     }
     cerr << ColorfulLogMessage{prov, lev, msg} << std::endl;

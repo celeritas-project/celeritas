@@ -47,7 +47,7 @@ void handle_serial(LogProvenance prov, LogLevel lev, std::string msg)
 }
 
 //---------------------------------------------------------------------------//
-//! Tag a singular output with worker/master: should usually be master
+//! Tag a singular output with worker/main: should usually be main
 void handle_mt_world(LogProvenance prov, LogLevel lev, std::string msg)
 {
     if (G4Threading::G4GetThreadId() > 0)
@@ -143,7 +143,7 @@ LogHandler make_world_handler()
         return SelfLogHandler{get_geant_num_threads()};
     }
 
-    // Only master and the first worker write
+    // Only the main thread (and a single worker if MT) write
     return handle_mt_world;
 }
 

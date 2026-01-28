@@ -237,10 +237,6 @@
  *
  * "Try" to execute the statement, and "handle" *all* thrown errors by calling
  * the given function-like error handler with a \c std::exception_ptr object.
- *
- * \note A file that uses this macro must include the \c \<exception\> header
- * (but since the \c HANDLE_EXCEPTION needs to take an exception pointer, it's
- * got to be included anyway).
  */
 #define CELER_TRY_HANDLE(STATEMENT, HANDLE_EXCEPTION)   \
     do                                                  \
@@ -261,8 +257,23 @@
  * Try the given statement, and if it fails, chain it into the given exception.
  *
  * The given \c CONTEXT_EXCEPTION must be an expression that yields an rvalue
- * to a \c std::exception subclass that isn't \c final . The resulting chained
- * exception will be passed into \c HANDLE_EXCEPTION for processing.
+ * to a \c std::exception subclass that is not marked \c final . The resulting
+ * chained exception will be passed into \c HANDLE_EXCEPTION for processing.
+ *
+ * This example shows how to safely propagate exceptions out of an OpenMP
+ * parallel block using celeritas::MultiExceptionHandler :
+ * \code
+    MultiExceptionHandler capture_exception;
+    #pragma omp parallel for
+    for (size_type i = 0; i < num_threads; ++i)
+    {
+        CELER_TRY_HANDLE_CONTEXT(
+            execute_thread(ThreadId{i}),
+            capture_exception,
+            KernelContextException(ThreadId{i}));
+    }
+    log_and_rethrow(std::move(capture_exception));
+ * \endcode
  */
 #define CELER_TRY_HANDLE_CONTEXT(                          \
     STATEMENT, HANDLE_EXCEPTION, CONTEXT_EXCEPTION)        \

@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
 #include "IntegrationBase.hh"
 
 namespace celeritas
@@ -26,13 +24,7 @@ namespace celeritas
  *   usually in \c main for simple applications.
  * - Call \c BeginOfRunAction and \c EndOfRunAction from \c UserRunAction
  *
- * The \c CELER_DISABLE environment variable, if set and non-empty, will
- * disable offloading so that Celeritas will not be built nor kill tracks.
- *
- * The method names correspond to methods in Geant4 User Actions and \em must
- * be called from all threads, both worker and master.
- *
- * \todo Provide default minimal action initialization classes for user
+ * See further documentation in \c celeritas::IntegrationBase.
  */
 class TrackingManagerIntegration final : public IntegrationBase
 {
@@ -40,12 +32,12 @@ class TrackingManagerIntegration final : public IntegrationBase
     // Access the public-facing integration singleton
     static TrackingManagerIntegration& Instance();
 
-    // Start the run
-    void BeginOfRunAction(G4Run const* run) final;
-
   private:
     // Tracking manager can only be created privately
     TrackingManagerIntegration();
+
+    // Verify tracking manager setup
+    void verify_local_setup() final;
 };
 
 //---------------------------------------------------------------------------//

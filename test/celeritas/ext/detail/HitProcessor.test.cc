@@ -17,7 +17,7 @@
 #include "celeritas/user/StepData.hh"
 
 #include "celeritas_test.hh"
-#include "../SDTestBase.hh"
+#include "../SensDetTestBase.hh"
 #include "../SimpleSensitiveDetector.hh"
 
 using celeritas::test::from_cm;
@@ -32,7 +32,7 @@ namespace test
 {
 
 //---------------------------------------------------------------------------//
-class SimpleCmsTest : public ::celeritas::test::SDTestBase,
+class SimpleCmsTest : public ::celeritas::test::SensDetTestBase,
                       public ::celeritas::test::SimpleCmsTestBase
 {
   protected:

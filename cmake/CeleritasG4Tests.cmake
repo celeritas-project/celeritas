@@ -20,13 +20,15 @@ run manager.
 
   celeritas_g4_add_tests(
     <target>
-    [PREFIX string]      # before target in test name
-    [SUFFIX string]      # after target in test name
+    [NAME string]        # test name (default: target)
     [ARGS arg [...]]     # passed to command line
     [LABELS label [...]] # tagged in CTestFile
+    [RMTYPE [serial] [mt] [task]] # run manager
+    [OFFLOAD [cpu] [gpu] [g4] [ko]] # offload
     [DISABLE]            # display but don't run
     [WILL_FAIL]          # expect the test to exit with a failure
   )
+
 
   Note that DISABLE silently overrides WILL_FAIL.
 

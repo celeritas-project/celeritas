@@ -134,8 +134,8 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
     CELER_ASSERT(state.size() > 0);
 
-    auto const& core_counters = core_state.counters();
-    auto& counters = state.counters();
+    auto const core_counters = core_state.sync_get_counters();
+    auto const& counters = state.counters();
 
     if ((counters.num_pending < data_.auto_flush
          && (core_counters.num_alive > 0 || core_counters.num_initializers > 0))
