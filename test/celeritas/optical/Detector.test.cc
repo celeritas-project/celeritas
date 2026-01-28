@@ -28,10 +28,9 @@ class DetectorTest : public Test
         osi_.problem.model.geometry
             = Test::test_data_path("geocel", "optical-box.gdml");
 
-        osi_.problem.generator = inp::OpticalDirectGenerator{};
         osi_.problem.capacity = [] {
             inp::OpticalStateCapacity cap;
-            cap.tracks = 32;
+            cap.tracks = 8;
             cap.primaries = 8 * cap.tracks;
             cap.generators = 2 * cap.tracks;
             return cap;
@@ -43,20 +42,27 @@ class DetectorTest : public Test
         osi_.geant_setup.absorption = true;
 
         osi_.problem.model.detectors.detectors = {
-            {"y-detectors", {VolumeId{2}}},
+            {"y-detectors", {VolumeId{1}, VolumeId{2}}},
             {"x-detectors", {VolumeId{3}, VolumeId{4}}},
             {"z-detectors", {VolumeId{5}, VolumeId{6}}},
         };
+
+        osi_.problem.physics.surfaces = [] {
+            inp::SurfacePhysics input;
+            input.materials.push_back({});
+            input.roughness.polished.emplace(PhysSurfaceId{0},
+                                             inp::NoRoughness{});
+            input.reflectivity.fresnel.emplace(PhysSurfaceId{0},
+                                               inp::FresnelReflection{});
+            input.interaction.trivial.emplace(
+                PhysSurfaceId{0}, optical::TrivialInteractionMode::transmit);
+            return input;
+        }();
     }
 
   protected:
     inp::OpticalStandaloneInput osi_;
 };
-
-/*
- * - Write a test to check bulk photon hits
- * - Write a test to check bulk photon hits on device
- */
 
 struct SimpleScores
 {
@@ -141,6 +147,7 @@ TEST_F(DetectorTest, simple)
            {},
            ImplVolumeId{0}},
     };
+    osi_.problem.generator = inp::OpticalDirectGenerator{};
 
     auto result = optical::Runner(std::move(osi_))(make_span(inits));
 
@@ -176,31 +183,68 @@ TEST_F(DetectorTest, simple)
     EXPECT_VEC_EQ(expected_volume_instance_ids, scores.volume_instance_ids);
 }
 
+struct StressScorer
+{
+    size_type& x_hits;
+    size_type& y_hits;
+    size_type& z_hits;
+    size_type& errored;
+
+    void operator()(Span<optical::DetectorHit> const& hits)
+    {
+        std::cout << "Num incoming hits: " << hits.size() << "\n";
+        for (auto const& hit : hits)
+        {
+            if (hit.detector == DetectorId{0})
+            {
+                y_hits++;
+            }
+            else if (hit.detector == DetectorId{1})
+            {
+                x_hits++;
+            }
+            else if (hit.detector == DetectorId{2})
+            {
+                z_hits++;
+            }
+            else
+            {
+                errored++;
+            }
+        }
+        std::cout << "Done processing hits!\n";
+    }
+};
+
 TEST_F(DetectorTest, stress)
 {
-    size_type num_tracks = osi_.problem.capacity.tracks * 4;
+    size_type x_hits = 0;
+    size_type y_hits = 0;
+    size_type z_hits = 0;
+    size_type errored = 0;
+    osi_.problem.scoring.detector_callback
+        = StressScorer{x_hits, y_hits, z_hits, errored};
 
-    std::vector<optical::TrackInitializer> const inits(
-        num_tracks,
-        optical::TrackInitializer{units::MevEnergy{3e-6},
-                                  from_cm(Real3{0, 49, 0}),
-                                  Real3{0, -1, 0},  // direction
-                                  Real3{0, 0, 1},  // polarization
-                                  0,
-                                  {},  // primary
-                                  ImplVolumeId{0}});
+    osi_.problem.generator = [&] {
+        inp::OpticalPrimaryGenerator gen;
+        gen.primaries = 9;
+        gen.energy = inp::MonoenergeticDistribution{1e-5};
+        gen.angle = inp::IsotropicDistribution{};
+        gen.shape = inp::PointDistribution{{0, 0, 0}};
+        return gen;
+    }();
 
-    auto result = optical::Runner(std::move(osi_))(make_span(inits));
+    auto result = optical::Runner(std::move(osi_))();
 
     EXPECT_EQ(0, result.counters.steps);
     EXPECT_EQ(0, result.counters.step_iters);
     EXPECT_EQ(1, result.counters.flushes);
     ASSERT_EQ(1, result.counters.generators.size());
 
-    auto const& gen = result.counters.generators.front();
-    EXPECT_EQ(num_tracks, gen.buffer_size);
-    EXPECT_EQ(0, gen.num_pending);
-    EXPECT_EQ(num_tracks, gen.num_generated);
+    EXPECT_EQ(x_hits, 0);
+    EXPECT_EQ(y_hits, 0);
+    EXPECT_EQ(z_hits, 0);
+    EXPECT_EQ(errored, 0);
 }
 
 //---------------------------------------------------------------------------//

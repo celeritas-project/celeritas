@@ -35,9 +35,6 @@
     <box lunit="cm" name="voxel_box" x="100.0" y="100.0" z="100.0"/>
     <box lunit="cm" name="world_box" x="1000.0" y="1000.0" z="1000.0"/>
 
-    <opticalsurface name="center_top_surf" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0">
-      <property name="REFLECTIVITY" ref="REF"/>
-    </opticalsurface>
   </solids>
 
   <structure>
@@ -104,10 +101,6 @@
       </physvol>
     </volume>
 
-    <bordersurface name="center_to_top" surfaceproperty="center_top_surf">
-        <physvolref ref="center_box_pv"/>
-        <physvolref ref="top_box_pv"/>
-    </bordersurface>
   </structure>
 
   <setup name="Default" version="1.0">
