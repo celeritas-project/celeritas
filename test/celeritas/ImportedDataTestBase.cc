@@ -180,6 +180,14 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
 }
 
 //---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_optical_scoring() -> SPConstOpticalScoring
+{
+    // Optical scoring is just a user callback for optical hits, which isn't
+    // directly supported from import data.
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_optical_sim() -> SPConstOpticalSim
 {
     return std::make_shared<optical::SimParams>(inp::OpticalTrackingLimits{});

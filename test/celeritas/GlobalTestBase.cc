@@ -195,6 +195,7 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.sim = this->optical_sim();
     inp.surface_physics = this->optical_surface_physics();
     inp.detectors = this->detector();
+    inp.scoring = this->optical_scoring();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
     inp.capacity = inp::OpticalStateCapacity::from_default(
@@ -235,9 +236,9 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.physics = this->physics();
     inp.rng = this->rng();
     inp.sim = this->sim();
-    inp.surface = surface_;
-    inp.volume = volume_;
-    inp.detectors = detector_;
+    inp.surface = this->surface();
+    inp.volume = this->volume();
+    inp.detectors = this->detector();
     inp.wentzel = this->wentzel();
 
     inp.action_reg = this->action_reg();
