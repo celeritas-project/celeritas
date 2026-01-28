@@ -7,7 +7,6 @@
 #include "SensitiveDetector.hh"
 
 #include <memory>
-#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4HCofThisEvent.hh>
 #include <G4SDManager.hh>
 #include <G4Step.hh>
@@ -17,6 +16,7 @@
 
 #include "corecel/Assert.hh"
 #include "geocel/g4/Convert.hh"
+#include "celeritas/ext/GeantUnits.hh"
 
 #include "GlobalSetup.hh"
 
@@ -90,7 +90,7 @@ bool SensitiveDetector::ProcessHits(G4Step* g4step, G4TouchableHistory*)
     hit.volume = log_vol->GetInstanceID();
     hit.copy_num = phys_vol->GetCopyNo();
     hit.energy_dep = convert_from_geant(edep, CLHEP::MeV);
-    hit.time = convert_from_geant(pre_step->GetGlobalTime(), CLHEP::s);
+    hit.time = convert_from_geant(pre_step->GetGlobalTime(), clhep_time);
 
     collection_->insert(new SensitiveHit(hit));
     return true;
