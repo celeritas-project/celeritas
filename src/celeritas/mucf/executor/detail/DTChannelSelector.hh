@@ -29,7 +29,6 @@ class DTChannelSelector
     using Channel = DTMucfInteractor::Channel;
     //!@}
 
-  public:
     //! Default constructor
     inline CELER_FUNCTION DTChannelSelector() = default;
 

@@ -29,12 +29,12 @@ namespace celeritas
 class DDMucfInteractor
 {
   public:
-    //! \todo Implement muonichydrogen3_proton (\f$ (^3\text{H})_\mu + p \f$)
+    //! \todo Implement muonictritium_proton (\f$ (^3\text{H})_\mu + p \f$)
     enum class Channel
     {
         helium3_muon_neutron,  //!< \f$ ^3\text{He} + \mu + n \f$
         muonichelium3_neutron,  //!< \f$ (^3\text{He})_\mu + n \f$
-        hydrogen3_muon_proton,  //!< \f$ ^3\text{H} + \mu + p \f$
+        tritium_muon_proton,  //!< \f$ ^3\text{H} + \mu + p \f$
         size_
     };
 

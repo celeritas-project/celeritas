@@ -44,7 +44,8 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
     auto elcomp_id = phys_step_view.element();
     CELER_ASSERT(elcomp_id);
 
-    auto element = track.material().material_record().element_record(elcomp_id);
+    auto const& mat_record = track.material().material_record();
+    auto element = mat_record.element_record(elcomp_id);
     CELER_ASSERT(element.atomic_number() == AtomicNumber{1});  // Must be H
 
     auto rng = track.rng();
@@ -118,7 +119,9 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
         case MucfMuonicMolecule::deuterium_deuterium: {
             // Return DD interaction
             DDMucfInteractor interact(
-                data, detail::DDChannelSelector()(rng), allocate_secondaries);
+                data,
+                detail::DDChannelSelector(mat_record.temperature())(rng),
+                allocate_secondaries);
             result = interact(rng);
             break;
         }
