@@ -120,6 +120,14 @@ TEST(ArrayTest, two_level)
     EXPECT_VEC_EQ((Int3{7, 8, 9}), x[2]);
 }
 
+TEST(ArrayTest, to_array)
+{
+    long vals[] = {1, 2, 3};
+    auto arr = to_array(vals);
+    EXPECT_TRUE((std::is_same_v<Array<long, 3>, decltype(arr)>));
+    EXPECT_VEC_EQ((Array{1, 2, 3}), arr);
+}
+
 TEST(ArrayTest, casts)
 {
     // Test up- and down-casting
