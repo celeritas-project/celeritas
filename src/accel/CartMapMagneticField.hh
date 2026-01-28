@@ -28,7 +28,12 @@ struct CartMapFieldGridParams
 };
 
 //---------------------------------------------------------------------------//
-// Generate field input with user-defined uniform grid
+// Generate field input with user-defined uniform grid and explicit field
+CartMapFieldParams::Input
+MakeCartMapFieldInput(G4Field const& field,
+                      CartMapFieldGridParams const& params);
+
+// Generate field input with user-defined uniform grid from global field
 CartMapFieldParams::Input
 MakeCartMapFieldInput(CartMapFieldGridParams const& params);
 

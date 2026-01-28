@@ -52,12 +52,11 @@ struct CartMapMagneticField::Impl
 //---------------------------------------------------------------------------//
 /*!
  * Generates input for CartMapField params with configurable uniform grid
- * dimensions in native Geant4 units. This must be called after
- * G4RunManager::Initialize as it will retrieve the G4FieldManager's field
- * to sample it.
+ * dimensions in native Geant4 units using an explicit field.
  */
 CartMapFieldParams::Input
-MakeCartMapFieldInput(CartMapFieldGridParams const& params)
+MakeCartMapFieldInput(G4Field const& field,
+                      CartMapFieldGridParams const& params)
 {
     // Validate input parameters
     CELER_VALIDATE(params, << "invalid CartMapFieldGridParams provided");
@@ -108,11 +107,7 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
     };
 
     // Sample field using common utility
-    G4Field const* g4field = celeritas::geant_field();
-    CELER_VALIDATE(g4field,
-                   << "no Geant4 global field has been set: cannot build "
-                      "magnetic field map");
-    detail::setup_and_sample_field(*g4field,
+    detail::setup_and_sample_field(field,
                                    field_input.field.data(),
                                    dims,
                                    position_calculator,
@@ -120,6 +115,23 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 
     CELER_ENSURE(field_input);
     return field_input;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generates input for CartMapField params with configurable uniform grid
+ * dimensions in native Geant4 units. This must be called after
+ * G4RunManager::Initialize as it will retrieve the G4FieldManager's field
+ * to sample it.
+ */
+CartMapFieldParams::Input
+MakeCartMapFieldInput(CartMapFieldGridParams const& params)
+{
+    G4Field const* g4field = celeritas::geant_field();
+    CELER_VALIDATE(g4field,
+                   << "no Geant4 global field has been set: cannot build "
+                      "magnetic field map");
+    return MakeCartMapFieldInput(*g4field, params);
 }
 
 //---------------------------------------------------------------------------//
