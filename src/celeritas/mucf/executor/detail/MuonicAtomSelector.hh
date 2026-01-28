@@ -27,9 +27,9 @@ namespace detail
  * where \f$ C_t \f$  is the relative tritium isotope concentration and
  * \f$ q_\text{1s} \f$ is the fraction muonic deuterium atoms in the ground
  * state. This expression allows calculating the probability of forming a
- * muonic deuterium or tritium atom via
+ * muonic deuterium atom via
  * \f[
- * P_\text{d} = C_d * q\text{1s}.
+ * P_\text{d} = C_d \times q\text{1s}.
  * \f]
  *
  * If a selected uniform random number is \f$ x \leq P_\text{d} \f$, a muonic

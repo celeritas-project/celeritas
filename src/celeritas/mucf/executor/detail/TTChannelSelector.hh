@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/mucf/executor/detail/TTChannelSelectionHelper.hh
+//! \file celeritas/mucf/executor/detail/TTChannelSelector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
