@@ -40,6 +40,26 @@
     } while (0)
 
 /*!
+ * Load a std::optional field.
+ *
+ * If the field is missing or null, the optional is reset.
+ */
+#define CELER_JSON_LOAD_OPTIONAL(OBJ, STRUCT, NAME)  \
+    do                                               \
+    {                                                \
+        auto iter = (OBJ).find(#NAME);               \
+        if (iter != (OBJ).end() && !iter->is_null()) \
+        {                                            \
+            (STRUCT).NAME.emplace();                 \
+            iter->get_to(*(STRUCT).NAME);            \
+        }                                            \
+        else                                         \
+        {                                            \
+            (STRUCT).NAME.reset();                   \
+        }                                            \
+    } while (0)
+
+/*!
  * Load a field if present and set a default value otherwise.
  */
 #define CELER_JSON_LOAD_DEFAULT(OBJ, STRUCT, NAME, DEFAULT)                 \
@@ -109,10 +129,17 @@
     {#NAME, (COND ? nlohmann::json(STRUCT.NAME) : nlohmann::json(nullptr))}
 
 /*!
- * Construct a key/value pair with null value when condition is false.
+ * Construct a key/value pair with null value when field is false.
  */
 #define CELER_JSON_PAIR_OPTION(STRUCT, NAME) \
     CELER_JSON_PAIR_WHEN(STRUCT, NAME, STRUCT.NAME)
+
+/*!
+ * Construct a key/value pair with null value when std::optional is false.
+ */
+#define CELER_JSON_PAIR_OPTIONAL(STRUCT, NAME) \
+    {#NAME,                                    \
+     (STRUCT.NAME ? nlohmann::json(*STRUCT.NAME) : nlohmann::json(nullptr))}
 
 //---------------------------------------------------------------------------//
 
