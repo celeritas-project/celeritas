@@ -25,8 +25,6 @@
 #include "VecgeomData.hh"
 #include "VecgeomTypes.hh"
 
-#include "detail/VecgeomCompatibility.hh"
-
 #if CELERITAS_VECGEOM_SURFACE
 #    include "detail/SurfNavigator.hh"
 #elif CELERITAS_VECGEOM_VERSION < 0x020000
@@ -292,7 +290,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // LocatePointIn sets `vgstate_`
     constexpr bool contains_point = true;
     Navigator::LocatePointIn(
-        world, detail::to_vector(pos_), vgstate_, contains_point);
+        world, to_vgvector(pos_), vgstate_, contains_point);
     return *this;
 }
 
@@ -434,9 +432,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
     {
         // SPECIAL CASE: find distance to interior from outside world volume
         auto const& world_pv = this->world();
-        next_step_ = world_pv.DistanceToIn(detail::to_vector(pos_),
-                                           detail::to_vector(dir_),
-                                           vecgeom::kInfLength);
+        next_step_ = world_pv.DistanceToIn(
+            to_vgvector(pos_), to_vgvector(dir_), vecgeom::kInfLength);
 
         next_step_ = max(next_step_, this->extra_push());
         vgnext_.Clear();
@@ -470,8 +467,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
         *next_surf_ = null_surface();
     }
     // TODO: vgnext is simply copied and the boundary flag optionally set
-    next_step_ = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
-                                                     detail::to_vector(dir_),
+    next_step_ = Navigator::ComputeStepAndNextVolume(to_vgvector(pos_),
+                                                     to_vgvector(dir_),
                                                      max_step,
                                                      vgstate_,
                                                      vgnext_
@@ -532,7 +529,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
     CELER_EXPECT(!this->is_on_boundary());
     CELER_EXPECT(max_radius > 0);
 
-    real_type safety = Navigator::ComputeSafety(detail::to_vector(this->pos()),
+    real_type safety = Navigator::ComputeSafety(to_vgvector(this->pos()),
                                                 vgstate_
 #if VECGEOM_VERSION >= 0x200000
                                                 ,
@@ -580,8 +577,8 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
         if (!CELERITAS_VECGEOM_SURFACE || !vgstate_.IsOutside())
         {
             // In surf model, relocation does not work from [OUTSIDE]
-            Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
-                                            detail::to_vector(this->dir_),
+            Navigator::RelocateToNextVolume(to_vgvector(this->pos_),
+                                            to_vgvector(this->dir_),
 #if CELERITAS_VECGEOM_SURFACE
                                             *next_surf_,
 #endif
