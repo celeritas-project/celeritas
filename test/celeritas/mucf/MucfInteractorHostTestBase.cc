@@ -7,6 +7,7 @@
 #include "MucfInteractorHostTestBase.hh"
 
 #include "celeritas/Units.hh"
+#include "celeritas/inp/MucfPhysics.hh"
 
 namespace celeritas
 {
@@ -26,17 +27,27 @@ MucfInteractorHostBase::MucfInteractorHostBase()
     using units::Second;
     using InvSecond = RealQuantity<UnitInverse<Second>>;
 
-    // Particle masses (from PDG)
-    constexpr MevMass muon_mass{105.6583745};
-    constexpr MevMass protium_mass{938.272081};
-    constexpr MevMass neutron_mass{939.565413};
-    constexpr MevMass deuterium_mass{1875.612928};
-    constexpr MevMass tritium_mass{2808.921132};
-    constexpr MevMass alpha_mass{3727.379378};
-    constexpr MevMass he3_mass{2808.391607};
+    constexpr units::MevMass amu_mev{931.5};  // Convert from AMU to MeV
+    auto const scalars = inp::MucfScalars::from_default();
+
+    // Particle masses
+    // PDG, PRD 110, 030001, 2024 (https://doi.org/10.1103/PhysRevD.110.030001)
+    constexpr MevMass muon_mass{105.6583755};
+    constexpr MevMass protium_mass{938.272088};
+    constexpr MevMass neutron_mass{939.565420};
+    // Acceleron default values
+    MevMass deuterium_mass{scalars.deuterium.value() * amu_mev};
+    MevMass tritium_mass{scalars.tritium.value() * amu_mev};
+    // CODATA 2022 (https://arxiv.org/pdf/2409.03787)
+    MevMass alpha_mass{3727.379};
+    MevMass he3_mass{2808.391};
+
     // Decay constants
+    // Muon: PDG, 110, 030001, 2024
+    // Tritium: NUBASE 2020, Chinese Physics C 45 030001
+    // (https://iopscience.iop.org/article/10.1088/1674-1137/abddae)
     constexpr InvSecond muon_decay_constant{1 / 2.1969811e-6};
-    constexpr InvSecond tritium_decay_constant{1 / 5.4927e8};  // ~12.3 years
+    constexpr InvSecond tritium_decay_constant{1 / 3.8879e+8};
 
     // ParticlesParams used by the muCF process
     ParticleParams::Input par_inp = {

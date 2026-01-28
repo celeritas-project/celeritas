@@ -75,12 +75,13 @@ class DTMucfInteractor
     }
 
     // Calculate momentum magnitude from energy and mass
-    inline CELER_FUNCTION real_type calc_momentum(units::MevEnergy energy,
-                                                  units::MevMass mass) const;
+    inline CELER_FUNCTION real_type calc_momentum(
+        units::MevEnergy const energy, units::MevMass const mass) const;
 
-    // Calculate kinetic energy from momentum magnitude and mass
+    // Calculate kinetic energy from momentum and mass
     inline CELER_FUNCTION units::MevEnergy
-    calc_kinetic_energy(Real3 momentum_vec, units::MevMass mass) const;
+    calc_kinetic_energy(Real3 const& momentum_vec,
+                        units::MevMass const mass) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -119,6 +120,7 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
     size_type const muonicalpha_idx{1};  // Channel::muonicalpha_neutron
 
     IsotropicDistribution sample_isotropic;
+    // Grid range is [0,1), with its domain being the muon energy in MeV
     NonuniformGridCalculator sample_muon_energy(data_.muon_energy_cdf,
                                                 data_.reals);
 
@@ -188,7 +190,7 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
  * \f$ p = \sqrt{K^2 + 2mK} \f$ .
  */
 CELER_FUNCTION real_type DTMucfInteractor::calc_momentum(
-    units::MevEnergy energy, units::MevMass mass) const
+    units::MevEnergy const energy, units::MevMass const mass) const
 
 {
     return std::sqrt(ipow<2>(value_as<units::MevEnergy>(energy))
@@ -198,17 +200,14 @@ CELER_FUNCTION real_type DTMucfInteractor::calc_momentum(
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate kinetic energy given a momentum magnitude and particle mass via
+ * Calculate kinetic energy given a particle's momentum and mass via
  * \f$ K = \sqrt{p^2 - m^2} - m\f$ .
  */
 CELER_FUNCTION units::MevEnergy
-DTMucfInteractor::calc_kinetic_energy(Real3 momentum_vec,
-                                      units::MevMass mass) const
+DTMucfInteractor::calc_kinetic_energy(Real3 const& momentum_vec,
+                                      units::MevMass const mass) const
 {
-    real_type momentum_mag = std::sqrt(ipow<2>(momentum_vec[0])
-                                       + ipow<2>(momentum_vec[1])
-                                       + ipow<2>(momentum_vec[2]));
-
+    real_type momentum_mag = norm(momentum_vec);
     return units::MevEnergy{std::sqrt(ipow<2>(momentum_mag)
                                       + ipow<2>(value_as<units::MevMass>(mass)))
                             - value_as<units::MevMass>(mass)};

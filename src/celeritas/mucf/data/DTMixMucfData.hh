@@ -110,7 +110,8 @@ struct DTMixMucfData
     MucfParticleMasses particle_masses;
 
     //! Muon CDF energy grid for sampling outgoing muCF muons
-    GridRecord muon_energy_cdf;  //! \todo Verify energy unit
+    //! X-axis range is [0, 1) and y-axis is the outgoing muon energy in MeV
+    GridRecord muon_energy_cdf;
     Items<real_type> reals;
 
     //!@{

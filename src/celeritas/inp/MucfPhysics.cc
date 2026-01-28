@@ -15,6 +15,8 @@ namespace
 //---------------------------------------------------------------------------//
 /*!
  * Muon energy CDF data for muon-catalyzed fusion.
+ *
+ * Data is extracted from https://doi.org/10.1103/PhysRevC.107.034607 .
  */
 Grid mucf_muon_energy_cdf()
 {
@@ -46,28 +48,30 @@ Grid mucf_muon_energy_cdf()
         1.0,
     };
 
-    // Energy [MeV]
-    cdf.y = {0.,
-             0.00048850540675768084,
-             0.0008390389347819425,
-             0.0012521213482687141,
-             0.0017153033196164724,
-             0.002253638712180777,
-             0.002854653691809707,
-             0.003606073540073316,
-             0.004470346052913727,
-             0.005560291219507215,
-             0.006700556502915258,
-             0.007953772477101693,
-             0.009194596305637525,
-             0.010849180562221111,
-             0.012353474314071864,
-             0.014045888515617822,
-             0.015650634617544647,
-             0.01738079707555165,
-             0.019111008546659452,
-             0.019976130619913615,
-             0.08};
+    // Muon energy [MeV]
+    cdf.y = {
+        0.,
+        0.00048850540675768084,
+        0.0008390389347819425,
+        0.0012521213482687141,
+        0.0017153033196164724,
+        0.002253638712180777,
+        0.002854653691809707,
+        0.003606073540073316,
+        0.004470346052913727,
+        0.005560291219507215,
+        0.006700556502915258,
+        0.007953772477101693,
+        0.009194596305637525,
+        0.010849180562221111,
+        0.012353474314071864,
+        0.014045888515617822,
+        0.015650634617544647,
+        0.01738079707555165,
+        0.019111008546659452,
+        0.019976130619913615,
+        0.08,
+    };
 
     CELER_ENSURE(cdf);
     return cdf;
@@ -108,6 +112,9 @@ std::vector<MucfAtomTransferRate> mucf_atom_transfer_rates()
 //---------------------------------------------------------------------------//
 /*!
  * Initialize with hardcoded values.
+ *
+ * \note Default data replicated from Acceleron.
+ * \todo May need to be updated.
  */
 MucfScalars MucfScalars::from_default()
 {
@@ -123,7 +130,7 @@ MucfScalars MucfScalars::from_default()
 /*!
  * Construct hardcoded muon-catalyzed fusion physics data.
  *
- * \todo Official tables are implemented directly in C++ in NK Labs Geant4
+ * \todo Official tables are implemented directly in C++ in Acceleron's Geant4
  * implementation. These likely will be loaded from external data files so that
  * muCF experimental data can be loaded at runtime.
  */
