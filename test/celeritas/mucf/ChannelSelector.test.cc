@@ -1,0 +1,314 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/mucf/ChannelSelector.test.cc
+//---------------------------------------------------------------------------//
+#include "corecel/cont/Range.hh"
+#include "corecel/random/DiagnosticRngEngine.hh"
+#include "celeritas/mucf/executor/detail/DDChannelSelector.hh"
+#include "celeritas/mucf/executor/detail/DTChannelSelector.hh"
+#include "celeritas/mucf/executor/detail/TTChannelSelector.hh"
+
+#include "celeritas_test.hh"
+
+namespace celeritas
+{
+namespace detail
+{
+namespace test
+{
+using namespace ::celeritas::test;
+//---------------------------------------------------------------------------//
+// TEST HARNESS
+//---------------------------------------------------------------------------//
+
+class ChannelSelectorTest : public Test
+{
+  protected:
+    using Engine = DiagnosticRngEngine<std::mt19937>;
+
+    void SetUp() override { rng_.reset_count(); }
+
+    Engine& rng() { return rng_; }
+
+    // Sticking fraction between the two dd --> 3He channels
+    real_type const dd_sticking_fraction() { return 0.122; }
+    // Sticking fraction for dt
+    real_type const dt_sticking_fraction() { return 0.00857; }
+    // Sticking fraction for tt
+    real_type const tt_sticking_fraction() { return 0.14; }
+
+    // Calculate dd --> 3He channel probability from the branching ratio
+    real_type he3_probability(real_type branching_ratio)
+    {
+        return branching_ratio / (branching_ratio + 1);
+    }
+
+    // Calculate sigma for the statistical tests
+    real_type calc_sigma(real_type num_samples, real_type success_prob)
+    {
+        return std::sqrt(num_samples * success_prob * (1 - success_prob));
+    }
+
+  private:
+    Engine rng_;
+};
+
+//---------------------------------------------------------------------------//
+// TESTS
+//---------------------------------------------------------------------------//
+
+TEST_F(ChannelSelectorTest, dd_channel_low_temperature)
+{
+    // dd fusion at T < 50 K: branching_ratio = 1
+    real_type const temperature = 30.0;
+    real_type const branching_ratio = 1.0;
+    real_type const he3_probability = this->he3_probability(branching_ratio);
+    real_type const sticking_fraction = this->dd_sticking_fraction();
+
+    DDChannelSelector select_channel(temperature);
+
+    int num_samples = 100000;
+    int helium3_count = 0;
+    int muonichelium3_count = 0;
+    int tritium_count = 0;
+
+    for ([[maybe_unused]] auto i : range(num_samples))
+    {
+        auto channel = select_channel(this->rng());
+        if (channel == DDMucfInteractor::Channel::helium3_muon_neutron)
+        {
+            helium3_count++;
+        }
+        else if (channel == DDMucfInteractor::Channel::muonichelium3_neutron)
+        {
+            muonichelium3_count++;
+        }
+        else if (channel == DDMucfInteractor::Channel::tritium_muon_proton)
+        {
+            tritium_count++;
+        }
+        else
+        {
+            FAIL() << "Unexpected channel selected";
+        }
+    }
+
+    EXPECT_EQ(num_samples, helium3_count + muonichelium3_count + tritium_count);
+
+    real_type expected_tritium_count = num_samples * (1 - he3_probability);
+    real_type expected_helium3_count = num_samples * he3_probability
+                                       * (1 - sticking_fraction);
+    real_type expected_muonichelium3_count = num_samples * he3_probability
+                                             * sticking_fraction;
+    // 3 sigma tolerance
+    real_type tolerance = 3 * this->calc_sigma(num_samples, he3_probability);
+
+    EXPECT_NEAR(expected_tritium_count, tritium_count, tolerance);
+    EXPECT_NEAR(expected_helium3_count, helium3_count, tolerance);
+    EXPECT_NEAR(expected_muonichelium3_count, muonichelium3_count, tolerance);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ChannelSelectorTest, dd_channel_mid_temperature)
+{
+    // DD fusion at 50 < T < 100 K: branching_ratio = 1.0088 * (T - 50) = 25.22
+    real_type const temperature = 75.0;
+    real_type const branching_ratio = 1.0088 * (temperature - 50);
+    real_type const he3_probability = this->he3_probability(branching_ratio);
+
+    DDChannelSelector select_channel(temperature);
+
+    size_type const num_samples = 10000;
+    size_type he3_total_count = 0;
+    size_type tritium_count = 0;
+
+    for ([[maybe_unused]] auto i : range(num_samples))
+    {
+        auto channel = select_channel(this->rng());
+        if (channel == DDMucfInteractor::Channel::helium3_muon_neutron
+            || channel == DDMucfInteractor::Channel::muonichelium3_neutron)
+        {
+            he3_total_count++;
+        }
+        else if (channel == DDMucfInteractor::Channel::tritium_muon_proton)
+        {
+            tritium_count++;
+        }
+    }
+
+    EXPECT_EQ(num_samples, he3_total_count + tritium_count);
+
+    real_type const expected_he3_count = num_samples * he3_probability;
+    real_type const tolerance
+        = 3 * this->calc_sigma(num_samples, he3_probability);
+
+    EXPECT_NEAR(expected_he3_count, he3_total_count, tolerance);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ChannelSelectorTest, dd_channel_high_temperature)
+{
+    // DD fusion at T < 300 K: branching_ratio = 1.44
+    real_type const temperature = 300;
+    real_type const branching_ratio = 1.44;
+    real_type const he3_probability = this->he3_probability(branching_ratio);
+
+    DDChannelSelector select_channel(temperature);
+
+    size_type const num_samples = 10000;
+    size_type he3_total_count = 0;
+    size_type tritium_count = 0;
+
+    for ([[maybe_unused]] auto i : range(num_samples))
+    {
+        auto channel = select_channel(this->rng());
+        if (channel == DDMucfInteractor::Channel::helium3_muon_neutron
+            || channel == DDMucfInteractor::Channel::muonichelium3_neutron)
+        {
+            he3_total_count++;
+        }
+        else if (channel == DDMucfInteractor::Channel::tritium_muon_proton)
+        {
+            tritium_count++;
+        }
+    }
+
+    EXPECT_EQ(num_samples, he3_total_count + tritium_count);
+
+    real_type const expected_he3_count = num_samples * he3_probability;
+    // 3 sigma tolerance
+    real_type const tolerance
+        = 3 * this->calc_sigma(num_samples, he3_probability);
+
+    EXPECT_NEAR(expected_he3_count, he3_total_count, tolerance);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ChannelSelectorTest, dd_sticking_fraction_within_he3)
+{
+    // Test that when He3 channel is selected, sticking fraction is 12.2%
+    real_type const temperature = 300;
+    real_type const sticking_fraction = this->dd_sticking_fraction();
+
+    DDChannelSelector select_channel(temperature);
+
+    size_type const num_samples = 10000;
+    size_type helium3_count = 0;
+    size_type muonichelium3_count = 0;
+
+    // Only count He3 channels
+    for ([[maybe_unused]] auto i : range(num_samples))
+    {
+        auto channel = select_channel(this->rng());
+        if (channel == DDMucfInteractor::Channel::helium3_muon_neutron)
+        {
+            helium3_count++;
+        }
+        else if (channel == DDMucfInteractor::Channel::muonichelium3_neutron)
+        {
+            muonichelium3_count++;
+        }
+    }
+
+    size_type total_he3 = helium3_count + muonichelium3_count;
+    EXPECT_GT(total_he3, 0);
+
+    real_type expected_muonichelium3 = total_he3 * sticking_fraction;
+    // 3 sigma tolerance
+    real_type const tolerance
+        = 3 * this->calc_sigma(total_he3, sticking_fraction);
+
+    EXPECT_NEAR(expected_muonichelium3, muonichelium3_count, tolerance);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ChannelSelectorTest, dt_channel)
+{
+    // DT fusion: ~0.8% sticking
+    DTChannelSelector select_channel;
+
+    size_type const num_samples = 100000;
+    size_type alpha_count = 0;
+    size_type muonicalpha_count = 0;
+
+    for ([[maybe_unused]] auto i : range(num_samples))
+    {
+        auto channel = select_channel(this->rng());
+        if (channel == DTMucfInteractor::Channel::alpha_muon_neutron)
+        {
+            alpha_count++;
+        }
+        else if (channel == DTMucfInteractor::Channel::muonicalpha_neutron)
+        {
+            muonicalpha_count++;
+        }
+        else
+        {
+            FAIL() << "Unexpected channel selected";
+        }
+    }
+
+    EXPECT_EQ(num_samples, alpha_count + muonicalpha_count);
+
+    real_type const sticking_fraction = this->dt_sticking_fraction();
+    real_type const expected_muonicalpha_count = num_samples
+                                                 * sticking_fraction;
+    real_type const expected_alpha_count = num_samples
+                                           * (1 - sticking_fraction);
+    // 3 sigma tolerance
+    real_type const tolerance
+        = 3 * this->calc_sigma(num_samples, sticking_fraction);
+
+    EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count, tolerance);
+    EXPECT_NEAR(expected_alpha_count, alpha_count, tolerance);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ChannelSelectorTest, tt_channel)
+{
+    // TT fusion: ~14% sticking
+    TTChannelSelector select_channel;
+
+    size_type const num_samples = 10000;
+    size_type alpha_count = 0;
+    size_type muonicalpha_count = 0;
+
+    for ([[maybe_unused]] auto i : range(num_samples))
+    {
+        auto channel = select_channel(this->rng());
+        if (channel == TTMucfInteractor::Channel::alpha_muon_neutron_neutron)
+        {
+            alpha_count++;
+        }
+        else if (channel
+                 == TTMucfInteractor::Channel::muonicalpha_neutron_neutron)
+        {
+            muonicalpha_count++;
+        }
+        else
+        {
+            FAIL() << "Unexpected channel selected";
+        }
+    }
+
+    EXPECT_EQ(num_samples, alpha_count + muonicalpha_count);
+
+    real_type const sticking_fraction = this->tt_sticking_fraction();
+    real_type const expected_muonicalpha_count = num_samples
+                                                 * sticking_fraction;
+    real_type const expected_alpha_count = num_samples
+                                           * (1 - sticking_fraction);
+
+    real_type const tolerance
+        = 3 * this->calc_sigma(num_samples, sticking_fraction);
+
+    EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count, tolerance);
+    EXPECT_NEAR(expected_alpha_count, alpha_count, tolerance);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace test
+}  // namespace detail
+}  // namespace celeritas

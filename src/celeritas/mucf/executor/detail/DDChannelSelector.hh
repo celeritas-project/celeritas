@@ -17,9 +17,10 @@ namespace detail
 /*!
  * Select final channel for muonic dd molecules.
  *
- * The branching ratio is temperature dependent and determines the probability
+ * The material temperature determines the probability
  * of the outcome of the fusion ending in the \f$ ^3\text{He} \f$ channels
- * versus the tritium channel.
+ * versus the tritium channel. If the outcome is a \f$ ^3\text{He} \f$ channel,
+ * a constant sticking fraction of 12.2% is used to define if sticking occurs.
  */
 class DDChannelSelector
 {
@@ -37,7 +38,7 @@ class DDChannelSelector
     inline CELER_FUNCTION Channel operator()(Engine& rng);
 
   private:
-    real_type he3_probability_{};
+    real_type he3_probability_;
 
     // Constant sticking fraction between the two 3He channels
     inline CELER_FUNCTION real_type sticking_fraction() const { return 0.122; }
@@ -58,11 +59,11 @@ DDChannelSelector::DDChannelSelector(real_type material_temperature)
     CELER_EXPECT(material_temperature > 0);
 
     real_type branching_ratio{0};
-    if (material_temperature < 50)
+    if (material_temperature <= 50)
     {
         branching_ratio = 1;
     }
-    else if (material_temperature < 100)
+    else if (material_temperature <= 100)
     {
         branching_ratio = 1.0088 * (material_temperature - 50);
     }

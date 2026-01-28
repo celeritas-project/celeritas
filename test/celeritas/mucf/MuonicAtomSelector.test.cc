@@ -27,7 +27,7 @@ using namespace ::celeritas::test;
 class MuonicAtomSelectorTest : public Test
 {
   protected:
-    using Engine = ::celeritas::test::DiagnosticRngEngine<std::mt19937>;
+    using Engine = DiagnosticRngEngine<std::mt19937>;
 
     void SetUp() override { rng_.reset_count(); }
 
