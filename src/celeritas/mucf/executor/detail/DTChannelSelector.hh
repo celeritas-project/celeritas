@@ -17,9 +17,9 @@ namespace detail
 /*!
  * Select final channel for muonic dt molecules.
  *
- * The selection is a simple selection based on a constant sticking fraction
- * from [ \todo https://arxiv.org/abs/2112.08399 ], in which ~0.8% of the time
- * the muonic alpha channel is selected.
+ * The selection is based on a constant sticking fraction from
+ * [ \todo https://arxiv.org/abs/2112.08399 ], in which ~0.8% of the time the
+ * muonic alpha channel is selected.
  */
 class DTChannelSelector
 {

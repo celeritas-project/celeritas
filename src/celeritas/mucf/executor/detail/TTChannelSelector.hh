@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/random/distribution/GenerateCanonical.hh"
 #include "celeritas/mucf/interactor/TTMucfInteractor.hh"
 
 namespace celeritas
@@ -16,8 +17,9 @@ namespace detail
 /*!
  * Select final channel for muonic tt molecules.
  *
- * This selection already accounts for sticking, as that is one of the possible
- * outcomes.
+ * The selection is based on a constant sticking fraction
+ * from [ \todo https://link.springer.com/article/10.1134/S1063776109020034 ],
+ * in which ~14% of the time the muonic alpha channel is selected.
  */
 class TTChannelSelector
 {
@@ -27,42 +29,40 @@ class TTChannelSelector
     using Channel = TTMucfInteractor::Channel;
     //!@}
 
-  public:
-    //! Construct with args; \todo Update documentation
-    inline CELER_FUNCTION TTChannelSelector(/* args */);
+    //! Default constructor
+    inline CELER_FUNCTION TTChannelSelector() = default;
 
     // Select fusion channel to be used by the interactor
     template<class Engine>
-    inline CELER_FUNCTION Channel operator()(Engine&);
+    inline CELER_FUNCTION Channel operator()(Engine& rng);
+
+  private:
+    // Constant sticking fraction of tt fusion
+    inline CELER_FUNCTION real_type sticking_fraction() const { return 0.14; }
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with args.
- *
- * \todo Update documentation
- */
-CELER_FUNCTION TTChannelSelector::TTChannelSelector(/* args */)
-{
-    //! \todo Implement
-    CELER_NOT_IMPLEMENTED("Mucf tt fusion channel selection");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a sampled channel to be used as input in the tt muCF interactor.
+ * Return a selected fusion channel for the \f$ (tt)_\mu \f$ muonic molecule.
  *
  * \sa celeritas::TTMucfInteractor
  */
 template<class Engine>
-CELER_FUNCTION TTChannelSelector::Channel TTChannelSelector::operator()(Engine&)
+CELER_FUNCTION TTChannelSelector::Channel
+TTChannelSelector::operator()(Engine& rng)
 {
     Channel result{Channel::size_};
 
-    //! \todo Implement
-    // Final channel selection already takes into account sticking.
+    if (generate_canonical(rng) > sticking_fraction())
+    {
+        result = Channel::alpha_muon_neutron_neutron;
+    }
+    else
+    {
+        result = Channel::muonicalpha_neutron_neutron;
+    }
 
     CELER_ENSURE(result < Channel::size_);
     return result;
