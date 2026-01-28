@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/random/distribution/GenerateCanonical.hh"
 #include "celeritas/mucf/interactor/DTMucfInteractor.hh"
 
 namespace celeritas
@@ -16,8 +17,9 @@ namespace detail
 /*!
  * Select final channel for muonic dt molecules.
  *
- * This selection already accounts for sticking, as that is one of the possible
- * outcomes.
+ * The selection is a simple selection based on a constant sticking fraction
+ * from [ \todo https://arxiv.org/abs/2112.08399 ], in which ~0.8% of the time
+ * the muonic alpha channel is selected.
  */
 class DTChannelSelector
 {
@@ -28,40 +30,38 @@ class DTChannelSelector
     //!@}
 
   public:
-    //! Construct with args; \todo Update documentation
-    inline CELER_FUNCTION DTChannelSelector(/* args */);
+    //! Default constructor
+    inline CELER_FUNCTION DTChannelSelector() = default;
 
     // Select fusion channel to be used by the interactor
     template<class Engine>
-    inline CELER_FUNCTION Channel operator()(Engine&);
+    inline CELER_FUNCTION Channel operator()(Engine& rng);
+
+  private:
+    // Constant sticking fraction of dt fusion
+    inline CELER_FUNCTION real_type sticking_fraction() const
+    {
+        return 0.00857;
+    }
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with args.
- *
- * \todo Update documentation
- */
-CELER_FUNCTION DTChannelSelector::DTChannelSelector(/* args */)
-{
-    CELER_NOT_IMPLEMENTED("Mucf dt fusion channel selection");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a sampled channel to be used as input in the dt muCF interactor.
+ * Return a selected fusion channel for the \f$ (dt)_\mu \f$ muonic molecule.
  *
  * \sa celeritas::DTMucfInteractor
  */
 template<class Engine>
-CELER_FUNCTION DTChannelSelector::Channel DTChannelSelector::operator()(Engine&)
+CELER_FUNCTION DTChannelSelector::Channel
+DTChannelSelector::operator()(Engine& rng)
 {
     Channel result{Channel::size_};
 
-    //! \todo Implement
-    // Final channel selection already takes into account sticking.
+    generate_canonical(rng) > this->sticking_fraction()
+        ? result = Channel::alpha_muon_neutron
+        : result = Channel::muonicalpha_neutron;
 
     CELER_ENSURE(result < Channel::size_);
     return result;
