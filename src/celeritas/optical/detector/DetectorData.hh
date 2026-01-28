@@ -19,6 +19,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * A single hit of a photon track on a sensitive detector.
  */
 struct DetectorHit
 {
@@ -33,17 +34,25 @@ struct DetectorHit
 
 //---------------------------------------------------------------------------//
 /*!
+ * Pinned memory buffer for transferring detector hits.
  */
 struct DetectorHitOutput
 {
+    //!@{
+    //! \name Type aliases
     template<class T>
     using PinnedVec = std::vector<T, PinnedAllocator<T>>;
+    //!@}
 
     PinnedVec<DetectorHit> hits;
 };
 
 //---------------------------------------------------------------------------//
 /*!
+ * State buffer for storing detector hits.
+ *
+ * Detector hits is large enough to store a hit for every track at the end of a
+ * step. Stored hits may be invalid if the track is not in a detector region.
  */
 template<Ownership W, MemSpace M>
 struct DetectorStateData
@@ -54,7 +63,6 @@ struct DetectorStateData
     using StateItems = StateCollection<T, W, M>;
     //!@}
 
-    StreamId stream_id{};
     StateItems<DetectorHit> all_track_hits;
 
     //! Whether data is assigned and valid
@@ -71,12 +79,42 @@ struct DetectorStateData
     DetectorStateData<W, M>& operator=(DetectorStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        stream_id = other.stream_id;
         all_track_hits = other.all_track_hits;
         return *this;
     }
 };
 
+//---------------------------------------------------------------------------//
+// Copy hits from a memory space to pinned memory
+
+template<MemSpace M>
+void copy_hits(DetectorHitOutput* output,
+               DetectorStateData<Ownership::reference, M> const& state,
+               StreamId);
+
+template<>
+void copy_hits(DetectorHitOutput* output,
+               DetectorStateData<Ownership::reference, MemSpace::host> const&,
+               StreamId);
+
+template<>
+void copy_hits(DetectorHitOutput* output,
+               DetectorStateData<Ownership::reference, MemSpace::device> const&,
+               StreamId);
+
+#if !CELER_USE_DEVICE
+template<>
+inline void
+copy_hits(DetectorHitOutput* output,
+          DetectorStateData<Ownership::reference, MemSpace::device> const&,
+          StreamId)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Resize the state in host code.
@@ -92,30 +130,6 @@ resize(DetectorStateData<Ownership::value, M>* state, size_type size)
 
     CELER_ENSURE(*state);
 }
-
-//---------------------------------------------------------------------------//
-
-template<MemSpace M>
-void copy_hits(DetectorHitOutput* output,
-               DetectorStateData<Ownership::reference, M> const& state);
-
-template<>
-void copy_hits(DetectorHitOutput* output,
-               DetectorStateData<Ownership::reference, MemSpace::host> const&);
-
-template<>
-void copy_hits(DetectorHitOutput* output,
-               DetectorStateData<Ownership::reference, MemSpace::device> const&);
-
-#if !CELER_USE_DEVICE
-template<>
-inline void
-copy_hits(DetectorHitOutput* output,
-          DetectorStateData<Ownership::reference, MemSpace::device> const&)
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

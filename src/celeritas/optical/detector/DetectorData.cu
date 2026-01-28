@@ -11,23 +11,33 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Copy hits from device to pinned memory.
+ *
+ * All hits from all tracks are copied. These may include invalid hits where a
+ * track is not in a detector, which is indicated by an invalid detector ID.
+ * The user of the output is therefore responsible for parsing the pinned
+ * memory for only valid hits.
+ */
 template<>
 copy_hits(DetectorHitOutput* output,
-          DetectorStateData<Ownership::reference, MemSpace::device> const& state)
+          DetectorStateData<Ownership::reference, MemSpace::device> const& state,
+          StreamId stream_id)
 {
     CELER_EXPECT(output);
-
-    // Trivially copy all track hits from device
+    CELER_EXPECT(stream_id);
 
     size_type num_tracks = state.all_track_hits.size();
 
+    // Copy all track hits from device
     output->hits.resize(num_tracks);
     Copier<DetectorHit, MemSpace::host> copy{{output->hits.data(), num_tracks},
-                                             state.stream_id};
+                                             stream_id};
     copy(MemSpace::device, {state.all_track_hits.data().get(), num_tracks});
 
+    // Synchronize to ensure all data is transferred before continuing
     CELER_DEVICE_API_CALL(
-        StreamSynchronize(celeritas::device().stream(state.stream_id).get()));
+        StreamSynchronize(celeritas::device().stream(stream_id).get()));
 
     CELER_ENSURE(output->hits.size() == num_tracks);
 }

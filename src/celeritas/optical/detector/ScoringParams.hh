@@ -19,6 +19,11 @@ namespace optical
 class DetectorAction;
 //---------------------------------------------------------------------------//
 /*!
+ * Manages user callback for optical detectors.
+ *
+ * Constructs the \c DetectorAction used by sensitive detectors to send hits
+ * back to the user provided callback function. If the callback function is not
+ * provided, then no \c DetectorAction is created.
  */
 class ScoringParams final
 {
@@ -29,8 +34,10 @@ class ScoringParams final
     //!@}
 
   public:
+    // Construct from optical scoring input
     ScoringParams(ActionRegistry*, inp::OpticalScoring);
 
+    // Send hits to user callback function
     void process_hits(Span<DetectorHit> const&) const;
 
   private:

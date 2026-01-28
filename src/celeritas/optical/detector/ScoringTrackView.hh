@@ -16,12 +16,12 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Track view into the corresponding hit buffer.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    ScoringTrackView ...;
-   \endcode
+ * For a given track ID, this view accesses the corresponding hit data in the
+ * detector state buffer. For tracks in detectors, the \c score_hit function
+ * may be used to populate the track's hit data. Otherwise, the track's hit
+ * data should be cleared at the end of every step with \c clear_hit.
  */
 class ScoringTrackView
 {
@@ -53,6 +53,7 @@ class ScoringTrackView
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Construct from detector state buffer and track ID.
  */
 CELER_FUNCTION
 ScoringTrackView::ScoringTrackView(StateRef const& state, TrackSlotId tid)
@@ -63,6 +64,9 @@ ScoringTrackView::ScoringTrackView(StateRef const& state, TrackSlotId tid)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Clear hit data for this track.
+ *
+ * Marks the hit with an invalid detector ID.
  */
 CELER_FUNCTION void ScoringTrackView::clear_hit()
 {
@@ -71,6 +75,9 @@ CELER_FUNCTION void ScoringTrackView::clear_hit()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set the hit data for this track.
+ *
+ * Should have a valid detector ID to indicate it is a valid hit.
  */
 CELER_FUNCTION void ScoringTrackView::score_hit(DetectorHit hit)
 {
@@ -80,6 +87,7 @@ CELER_FUNCTION void ScoringTrackView::score_hit(DetectorHit hit)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access the hit data associated with this track.
  */
 CELER_FUNCTION DetectorHit& ScoringTrackView::hit()
 {

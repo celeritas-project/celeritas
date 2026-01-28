@@ -9,12 +9,14 @@
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/SimParams.hh"
+#include "celeritas/optical/detector/ScoringParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
@@ -182,9 +184,8 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_optical_scoring() -> SPConstOpticalScoring
 {
-    // Optical scoring is just a user callback for optical hits, which isn't
-    // directly supported from import data.
-    return nullptr;
+    return std::make_shared<optical::ScoringParams>(
+        this->optical_action_reg().get(), inp::OpticalScoring{});
 }
 
 //---------------------------------------------------------------------------//

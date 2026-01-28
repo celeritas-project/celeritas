@@ -33,6 +33,14 @@ namespace test
 {
 using namespace ::celeritas::test;
 //---------------------------------------------------------------------------//
+/*!
+ * Test optical detector and scoring.
+ *
+ * Because detectors are not directly loaded from GDML files, an override is
+ * used for loading the detectors into the core parameters. The default optical
+ * surface is set to be strictly transmitting to ensure hits are always
+ * recorded.
+ */
 class DetectorTest : public ::celeritas::test::GeantTestBase
 {
   public:
@@ -119,6 +127,12 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
     inp::OpticalScoring scoring_input_;
 };
 
+//---------------------------------------------------------------------------//
+// TESTS
+//---------------------------------------------------------------------------//
+// Run test to check small number of photons and hits to ensure correct hit
+// information is populated.
+
 struct SimpleScores
 {
     std::vector<size_type> detector_ids;
@@ -154,6 +168,8 @@ TEST_F(DetectorTest, simple)
 {
     SimpleScores scores;
     scoring_input_.detector_callback = SimpleScorer{scores};
+
+    // Manually generate arbitrary photons aimed at different detectors
 
     using E = units::MevEnergy;
     using TI = TrackInitializer;
@@ -203,11 +219,15 @@ TEST_F(DetectorTest, simple)
            ImplVolumeId{0}},
     };
 
+    // Run test
+
     auto generate
         = DirectGeneratorAction::make_and_insert(*this->optical_params());
     this->initialize_run();
     generate->insert(*state_, make_span(inits));
     (*transport_)(*state_);
+
+    // Check results
 
     real_type const flight_time = 1.66782047599076e-09;
 
@@ -236,6 +256,9 @@ TEST_F(DetectorTest, simple)
     EXPECT_VEC_EQ(expected_volume_instance_ids, scores.volume_instance_ids);
 }
 
+//---------------------------------------------------------------------------//
+// Run test over large number of photons to check buffering is done correctly.
+
 struct StressScorer
 {
     std::vector<size_type>& scores;
@@ -259,9 +282,12 @@ struct StressScorer
 
 TEST_F(DetectorTest, stress)
 {
+    // 3 detectors: x, y, z
     std::vector<size_type> hits(3, 0);
     size_type errored = 0;
     scoring_input_.detector_callback = StressScorer{hits, errored};
+
+    // Isotropically generate photons
 
     inp::OpticalPrimaryGenerator gen;
     gen.primaries = 8192;
@@ -269,11 +295,15 @@ TEST_F(DetectorTest, stress)
     gen.angle = inp::IsotropicDistribution{};
     gen.shape = inp::PointDistribution{{0, 0, 0}};
 
+    // Run test
+
     auto generate = PrimaryGeneratorAction::make_and_insert(
         *this->optical_params(), std::move(gen));
     this->initialize_run();
     generate->insert(*state_);
     (*transport_)(*state_);
+
+    // Check results
 
     static size_type const expected_hits[] = {2673, 2816, 2703};
 

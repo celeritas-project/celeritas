@@ -19,6 +19,13 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct scoring parameters from input.
+ *
+ * Registers the \c DetectorAction as a post-step action and stores the
+ * callback function for the \c DetectorAction to send hits to.
+ *
+ * If no callback function is provided, then \c DetectorAction is not
+ * registered.
  */
 ScoringParams::ScoringParams(ActionRegistry* action_reg,
                              inp::OpticalScoring input)
@@ -28,21 +35,18 @@ ScoringParams::ScoringParams(ActionRegistry* action_reg,
 
     if (detector_callback_)
     {
-        CELER_LOG(info) << "optical scoring enabled.";
-
         detector_action_
             = std::make_shared<DetectorAction>(action_reg->next_id());
         CELER_ASSERT(detector_action_);
         action_reg->insert(detector_action_);
     }
-    else
-    {
-        CELER_LOG(info) << "optical scoring disabled.";
-    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
+ * Send hits to the user provided callback function.
+ *
+ * Must be built with a user callback function.
  */
 void ScoringParams::process_hits(Span<DetectorHit> const& hits) const
 {

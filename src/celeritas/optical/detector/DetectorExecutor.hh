@@ -12,9 +12,17 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Populate detector state buffer at the end of a step.
+ *
+ * All tracks have hits copied into the state buffer. If the track is not alive
+ * or is not in a detector region, an invalid hit is set in the corresponding
+ * buffer track slot.
+ *
+ * When a track generates a valid hit, it is killed (absorbed by the detector).
  */
 struct DetectorExecutor
 {
+    // Copy track hit into the state buffer
     inline CELER_FUNCTION void operator()(CoreTrackView const&) const;
 };
 
@@ -22,6 +30,7 @@ struct DetectorExecutor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Copy track hit into the state buffer.
  */
 CELER_FUNCTION void
 DetectorExecutor::operator()(CoreTrackView const& track) const
@@ -40,6 +49,7 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
 
         if (detector_id)
         {
+            // Score a valid hit
             score.score_hit(DetectorHit{detector_id,
                                         track.particle().energy(),
                                         sim.time(),
@@ -51,6 +61,7 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
         }
         else
         {
+            // Mark that the track is not in a detector
             score.clear_hit();
         }
     }

@@ -13,11 +13,17 @@ namespace celeritas
 namespace optical
 {
 //---------------------------------------------------------------------------//
-
+/*!
+ * Copy hits from host state data to pinned memory.
+ *
+ * Because both buffer reside host-side, this is just a trivial copy between
+ * the buffers.
+ */
 template<>
 void copy_hits(
     DetectorHitOutput* output,
-    DetectorStateData<Ownership::reference, MemSpace::host> const& state)
+    DetectorStateData<Ownership::reference, MemSpace::host> const& state,
+    StreamId /* unused */)
 {
     // Trivial copy to pinned memory
     output->hits.resize(state.all_track_hits.size());
