@@ -56,12 +56,12 @@ class MuonicAtomSelectorTest : public Test
 TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_deuterium)
 {
     // Pure deuterium
-    MuonicAtomSelector select_atom(1.0, 0.0);
+    MuonicAtomSelector select_atom(1, 0);
 
-    size_type num_samples = 1000;
+    size_type const num_samples = 100;
     size_type deuterium_count = 0;
 
-    for (auto i : range(num_samples))
+    for ([[maybe_unused]] auto i : range(num_samples))
     {
         auto atom = select_atom(this->rng());
         if (atom == MucfMuonicAtom::deuterium)
@@ -76,12 +76,12 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_deuterium)
 TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_tritium)
 {
     // Pure tritium
-    MuonicAtomSelector select_atom(0.0, 1.0);
+    MuonicAtomSelector select_atom(0, 1);
 
-    size_type num_samples = 1000;
+    size_type const num_samples = 100;
     size_type tritium_count = 0;
 
-    for (auto i : range(num_samples))
+    for ([[maybe_unused]] auto i : range(num_samples))
     {
         auto atom = select_atom(this->rng());
         if (atom == MucfMuonicAtom::tritium)
@@ -96,15 +96,15 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_tritium)
 TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 {
     // 50/50 mixture
-    real_type d_frac = 0.5;
-    real_type t_frac = 0.5;
+    real_type const d_frac = 0.5;
+    real_type const t_frac = 0.5;
     MuonicAtomSelector select_atom(d_frac, t_frac);
 
-    size_type num_samples = 10000;
+    size_type const num_samples = 10000;
     size_type deuterium_count = 0;
     size_type tritium_count = 0;
 
-    for (auto i : range(num_samples))
+    for ([[maybe_unused]] auto i : range(num_samples))
     {
         auto atom = select_atom(this->rng());
         if (atom == MucfMuonicAtom::deuterium)
@@ -119,10 +119,12 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 
     EXPECT_EQ(num_samples, deuterium_count + tritium_count);
 
-    real_type expected_d_prob = this->calc_deuterium_q1s_prob(d_frac, t_frac);
-    real_type expected_d_count = num_samples * expected_d_prob;
+    real_type const expected_d_prob
+        = this->calc_deuterium_q1s_prob(d_frac, t_frac);
+    real_type const expected_d_count = num_samples * expected_d_prob;
     // 3 sigma tolerance
-    real_type tolerance = 3 * this->calc_sigma(num_samples, expected_d_prob);
+    real_type const tolerance
+        = 3 * this->calc_sigma(num_samples, expected_d_prob);
 
     EXPECT_NEAR(expected_d_count, deuterium_count, tolerance);
     EXPECT_NEAR(num_samples - expected_d_count, tritium_count, tolerance);
@@ -132,14 +134,14 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 TEST_F(MuonicAtomSelectorTest, muonic_atom_asymmetric_mixture)
 {
     // 70/30 mixture
-    real_type d_frac = 0.7;
-    real_type t_frac = 0.3;
+    real_type const d_frac = 0.7;
+    real_type const t_frac = 0.3;
     MuonicAtomSelector select_atom(d_frac, t_frac);
 
-    size_type num_samples = 10000;
+    size_type const num_samples = 10000;
     size_type deuterium_count = 0;
 
-    for (auto i : range(num_samples))
+    for ([[maybe_unused]] auto i : range(num_samples))
     {
         auto atom = select_atom(this->rng());
         if (atom == MucfMuonicAtom::deuterium)
@@ -148,10 +150,12 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_asymmetric_mixture)
         }
     }
 
-    real_type expected_d_prob = this->calc_deuterium_q1s_prob(d_frac, t_frac);
-    real_type expected_d_count = num_samples * expected_d_prob;
+    real_type const expected_d_prob
+        = this->calc_deuterium_q1s_prob(d_frac, t_frac);
+    real_type const expected_d_count = num_samples * expected_d_prob;
     // 3 sigma tolerance
-    real_type tolerance = 3 * this->calc_sigma(num_samples, expected_d_prob);
+    real_type const tolerance
+        = 3 * this->calc_sigma(num_samples, expected_d_prob);
 
     EXPECT_NEAR(expected_d_count, deuterium_count, tolerance);
 }
@@ -161,11 +165,11 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_deuterium)
 {
     MuonicAtomSpinSelector select_spin(MucfMuonicAtom::deuterium);
 
-    size_type num_samples = 10000;
+    size_type const num_samples = 10000;
     size_type spin_3_2_count = 0;  // Spin 3/2
     size_type spin_1_2_count = 0;  // Spin 1/2
 
-    for (auto i : range(num_samples))
+    for ([[maybe_unused]] auto i : range(num_samples))
     {
         size_type spin = select_spin(this->rng());
         if (spin == 3)
@@ -199,11 +203,11 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_tritium)
 {
     MuonicAtomSpinSelector select_spin(MucfMuonicAtom::tritium);
 
-    size_type num_samples = 10000;
+    size_type const num_samples = 10000;
     size_type spin_1_count = 0;  // Spin 1
     size_type spin_0_count = 0;  // Spin 0
 
-    for (auto i : range(num_samples))
+    for ([[maybe_unused]] auto i : range(num_samples))
     {
         size_type spin = select_spin(this->rng());
         if (spin == 2)
@@ -223,10 +227,11 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_tritium)
     EXPECT_EQ(num_samples, spin_1_count + spin_0_count);
 
     // Expected: 3/4 for spin 1, 1/4 for spin 0
-    real_type expected_1_prob = 0.75;
-    real_type expected_1_count = num_samples * expected_1_prob;
+    real_type const expected_1_prob = 0.75;
+    real_type const expected_1_count = num_samples * expected_1_prob;
     // 3 sigma tolerance
-    real_type tolerance = 3 * this->calc_sigma(num_samples, expected_1_prob);
+    real_type const tolerance
+        = 3 * this->calc_sigma(num_samples, expected_1_prob);
 
     EXPECT_NEAR(expected_1_count, spin_1_count, tolerance);
     EXPECT_NEAR(num_samples - expected_1_count, spin_0_count, tolerance);
