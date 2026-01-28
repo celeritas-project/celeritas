@@ -20,6 +20,11 @@ namespace celeritas
  *
  * This simple class is used by physics vectors and classes that need to do
  * lookups on a uniform grid.
+ *
+ * Searching for a grid index with \c find  \em requires the input value
+ * to be in range, because out-of-bounds values often need special treatment
+ * (e.g., clipping to the boundary values rather than interpolating).
+ * It's easier to check for those exceptional cases outside of the grid view.
  */
 class UniformGrid
 {
@@ -49,7 +54,7 @@ class UniformGrid
     // Find the index of the given value (*must* be in bounds)
     inline CELER_FUNCTION size_type find(value_type value) const;
 
-    //! Get the data used to construct this class
+    //! \internal Access the data used to construct this class
     CELER_FUNCTION UniformGridData const& data() const { return data_; }
 
   private:
@@ -81,11 +86,6 @@ CELER_FUNCTION auto UniformGrid::operator[](size_type i) const -> value_type
 //---------------------------------------------------------------------------//
 /*!
  * Find the value bin such that data[result] <= value < data[result + 1].
- *
- * The given value *must* be in range, because out-of-bounds values usually
- * require different treatment (e.g. clipping to the boundary values rather
- * than interpolating). It's easier to test the exceptional cases (final grid
- * point) outside of the grid view.
  */
 CELER_FUNCTION size_type UniformGrid::find(value_type value) const
 {

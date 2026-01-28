@@ -50,7 +50,7 @@ class SurfNavigator
     /// @brief Locates the point in the geometry volume tree
     /// @param pvol_id Placed volume id to be checked first
     /// @param point Point to be checked, in the local frame of pvol
-    /// @param path Path to a parent of pvol that must contain the point
+    /// @param nav Path to a parent of pvol that must contain the point
     /// @param top Check first if pvol contains the point
     /// @param exclude Placed volume id to exclude from the search
     /// @return Index of the placed volume that contains the point
