@@ -15,6 +15,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantUnits.hh"
@@ -107,8 +108,15 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
     };
 
     // Sample field using common utility
-    detail::setup_and_sample_field(
-        field_input.field.data(), dims, position_calculator, field_converter);
+    G4Field const* g4field = celeritas::geant_field();
+    CELER_VALIDATE(g4field,
+                   << "no Geant4 global field has been set: cannot build "
+                      "magnetic field map");
+    detail::setup_and_sample_field(*g4field,
+                                   field_input.field.data(),
+                                   dims,
+                                   position_calculator,
+                                   field_converter);
 
     CELER_ENSURE(field_input);
     return field_input;

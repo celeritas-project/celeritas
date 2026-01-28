@@ -18,6 +18,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -111,8 +112,15 @@ MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
     };
 
     // Sample field using common utility
-    detail::setup_and_sample_field(
-        field_input.field.data(), dims, position_calculator, field_converter);
+    G4Field const* g4field = celeritas::geant_field();
+    CELER_VALIDATE(g4field,
+                   << "no Geant4 global field has been set: cannot build "
+                      "magnetic field map");
+    detail::setup_and_sample_field(*g4field,
+                                   field_input.field.data(),
+                                   dims,
+                                   position_calculator,
+                                   field_converter);
 
     CELER_ENSURE(field_input);
     return field_input;
