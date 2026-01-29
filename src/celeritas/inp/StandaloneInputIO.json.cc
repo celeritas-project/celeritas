@@ -17,6 +17,9 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
+static char const format_str[] = "optical-standalone-input";
+
+//---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
 //! \todo Add JSON support for \c StandaloneInput
@@ -28,10 +31,14 @@ void to_json(nlohmann::json& j, OpticalStandaloneInput const& v)
         CELER_JSON_PAIR(v, problem),
         CELER_JSON_PAIR(v, geant_setup),
     };
+
+    save_format(j, format_str);
 }
 
 void from_json(nlohmann::json const& j, OpticalStandaloneInput& v)
 {
+    check_format(j, format_str);
+
     CELER_JSON_LOAD_OPTION(j, v, system);
     CELER_JSON_LOAD_REQUIRED(j, v, problem);
     CELER_JSON_LOAD_OPTION(j, v, geant_setup);
