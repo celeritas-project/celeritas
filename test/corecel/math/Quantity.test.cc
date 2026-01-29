@@ -10,6 +10,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/math/ArrayOperators.hh"  // IWYU pragma: keep
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/math/Turn.hh"
 
@@ -227,6 +228,19 @@ TEST(QuantityTest, swappiness)
     }
     EXPECT_EQ(12, native_value_from(dozen));
     EXPECT_EQ(144, native_value_from(gross));
+}
+
+TEST(QuantityTest, array)
+{
+    using Int3 = Array<int, 3>;
+    using Dozen3 = Quantity<DozenUnit, Int3>;
+    EXPECT_TRUE((std::is_same_v<Int3, Dozen3::common_type>));
+
+    Dozen3 dozens{Int3{1, 0, 2}};
+    EXPECT_EQ(2, dozens.value()[2]);
+    auto d = native_value_from(dozens);
+    EXPECT_TRUE((std::is_same_v<Int3, decltype(d)>));
+    EXPECT_EQ(Int3(12, 0, 24), d);
 }
 
 TEST(QuantityTest, io)
