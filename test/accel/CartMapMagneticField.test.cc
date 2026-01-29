@@ -1,0 +1,173 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file accel/CartMapMagneticField.test.cc
+//---------------------------------------------------------------------------//
+#include "accel/CartMapMagneticField.hh"
+
+#include <memory>
+#include <CLHEP/Units/SystemOfUnits.h>
+#include <G4MagneticField.hh>
+
+#include "corecel/math/ArrayOperators.hh"
+#include "geocel/UnitUtils.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/field/CartMapFieldParams.hh"
+
+#include "TestMacros.hh"
+#include "celeritas_test.hh"
+
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+
+struct TestFieldData
+{
+    real_type scale{1};  // [native Bfield]
+    Real3 origin{0};  // [native len]
+};
+
+struct TestFieldParams
+{
+    TestFieldData data;
+
+    TestFieldData const& host_ref() const { return data; }
+};
+
+//! Linear field, zero at origin
+struct TestField
+{
+    TestFieldData const& data;
+
+    Real3 operator()(Real3 const& pos) const
+    {
+        return data.scale * (pos - data.origin);
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+class CartMapMagneticFieldTest : public ::celeritas::test::Test
+{
+  public:
+    using MagFieldT = MagneticField<TestFieldParams, TestField>;
+
+    void SetUp()
+    {
+        auto params = std::make_shared<TestFieldParams>([] {
+            TestFieldData d;
+            d.scale = native_value_from(units::FieldTesla{1.5});
+            d.origin = from_cm({0.7, 1.1, -2.5});
+            return d;
+        }());
+
+        g4field = std::make_unique<MagFieldT>(params);
+    }
+    std::unique_ptr<MagFieldT> g4field;
+};
+
+TEST_F(CartMapMagneticFieldTest, make_input)
+{
+    // Convert
+    auto inp = MakeCartMapFieldInput(*g4field, [] {
+        using CLHEP::cm;
+
+        CartMapFieldGridParams grid;
+        grid.x.min = 0.1 * cm;
+        grid.x.max = 2.1 * cm;
+        grid.x.num = 2;
+
+        grid.y.min = 0.5 * cm;
+        grid.y.max = 1.5 * cm;
+        grid.y.num = 3;
+
+        grid.z.min = -3 * cm;
+        grid.z.max = 0 * cm;
+        grid.z.num = 4;
+
+        return grid;
+    }());
+
+    // Check (being careful with units)
+    std::vector<real_type> field_tesla(inp.field.size());
+    for (auto i : range(inp.field.size()))
+    {
+        field_tesla[i]
+            = native_value_to<units::FieldTesla>(inp.field[i]).value();
+    }
+    static double const expected_field_tesla[] = {
+        -0.9, -0.9,  -0.75, -0.9, -0.9,  0.75,  -0.9, -0.9,  2.25,
+        -0.9, -0.9,  3.75,  -0.9, -0.15, -0.75, -0.9, -0.15, 0.75,
+        -0.9, -0.15, 2.25,  -0.9, -0.15, 3.75,  -0.9, 0.6,   -0.75,
+        -0.9, 0.6,   0.75,  -0.9, 0.6,   2.25,  -0.9, 0.6,   3.75,
+        2.1,  -0.9,  -0.75, 2.1,  -0.9,  0.75,  2.1,  -0.9,  2.25,
+        2.1,  -0.9,  3.75,  2.1,  -0.15, -0.75, 2.1,  -0.15, 0.75,
+        2.1,  -0.15, 2.25,  2.1,  -0.15, 3.75,  2.1,  0.6,   -0.75,
+        2.1,  0.6,   0.75,  2.1,  0.6,   2.25,  2.1,  0.6,   3.75,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_field_tesla, field_tesla);
+
+    EXPECT_VEC_SOFT_EQ((Real2{0.1, 2.1}),
+                       (Real2{to_cm(inp.x.min), to_cm(inp.x.max)}));
+    EXPECT_EQ(2, inp.x.num);
+    EXPECT_VEC_SOFT_EQ((Real2{0.5, 1.5}),
+                       (Real2{to_cm(inp.y.min), to_cm(inp.y.max)}));
+    EXPECT_EQ(3, inp.y.num);
+    EXPECT_VEC_SOFT_EQ((Real2{-3, 0}),
+                       (Real2{to_cm(inp.z.min), to_cm(inp.z.max)}));
+    EXPECT_EQ(4, inp.z.num);
+}
+
+// Test that the field mapping is roughly equivalent (linear should work, but
+// covfie/single precision introduce some errors)
+TEST_F(CartMapMagneticFieldTest, geant_calculation)
+{
+    using CLHEP::cm;
+    using CLHEP::tesla;
+
+    // Create mapped magnetic field
+    CartMapMagneticField cart_field{std::make_shared<CartMapFieldParams>(
+        MakeCartMapFieldInput(*g4field, [] {
+            CartMapFieldGridParams grid;
+            grid.x.min = 0.0 * cm;
+            grid.x.max = 1.0 * cm;
+            grid.x.num = 4;
+
+            grid.y.min = 0. * cm;
+            grid.y.max = 2.0 * cm;
+            grid.y.num = 8;
+
+            grid.z.min = -4 * cm;
+            grid.z.max = 0 * cm;
+            grid.z.num = 16;
+            return grid;
+        }()))};
+
+    using Dbl3 = Array<double, 3>;
+    Array<double, 4> xyzt{0, 0, 0, 0};
+    Dbl3 expected{-1, -1, -1};
+    Dbl3 actual{-1, -1, -1};
+
+    constexpr auto tol = 1e-5;
+    // Check at origin (CLHEP units): field should be zero
+    xyzt = {0.7 * cm, 1.1 * cm, -2.5 * cm, 0};
+    g4field->GetFieldValue(xyzt.data(), expected.data());
+    cart_field.GetFieldValue(xyzt.data(), actual.data());
+    EXPECT_VEC_NEAR((Dbl3{0, 0, 0}), expected, tol);
+    EXPECT_VEC_NEAR(expected, actual, tol);
+
+    // Check elsewhere inside box
+    xyzt = {0.5 * cm, 0.11 * cm, -3.9 * cm, 0};
+    EXPECT_VEC_NEAR(expected, actual, tol);
+
+    // Check outside sample box
+    xyzt = {-3 * cm, 0.1 * cm, -0.1 * cm, 0};
+    EXPECT_VEC_NEAR((Dbl3{0, 0, 0}), actual, tol);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace test
+}  // namespace celeritas

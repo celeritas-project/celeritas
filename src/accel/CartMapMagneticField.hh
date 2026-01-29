@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-
 #include "corecel/Types.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
@@ -19,6 +17,7 @@ namespace celeritas
 //! POD struct for CartMap field grid parameters
 struct CartMapFieldGridParams
 {
+    // TODO: should be double?
     AxisGrid<real_type> x{};  //!< X-axis grid specification
     AxisGrid<real_type> y{};  //!< Y-axis grid specification
     AxisGrid<real_type> z{};  //!< Z-axis grid specification
@@ -29,13 +28,11 @@ struct CartMapFieldGridParams
 
 //---------------------------------------------------------------------------//
 // Generate field input with user-defined uniform grid and explicit field
-CartMapFieldParams::Input
-MakeCartMapFieldInput(G4Field const& field,
-                      CartMapFieldGridParams const& params);
+CartMapFieldInput MakeCartMapFieldInput(G4Field const& field,
+                                        CartMapFieldGridParams const& params);
 
 // Generate field input with user-defined uniform grid from global field
-CartMapFieldParams::Input
-MakeCartMapFieldInput(CartMapFieldGridParams const& params);
+CartMapFieldInput MakeCartMapFieldInput(CartMapFieldGridParams const& params);
 
 //---------------------------------------------------------------------------//
 //! On-the-fly field calculation with covfie using Celeritas data+units

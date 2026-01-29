@@ -48,6 +48,9 @@ celeritas_add_test(HepMC3PrimaryGenerator.test.cc
   ${_needs_hepmc}
   ENVIRONMENT "${CELER_G4ENV}")
 
+# Fields
+celeritas_add_test(CartMapMagneticField.test.cc)
+
 #-----------------------------------------------------------------------------#
 # INTEGRATION TESTS
 #-----------------------------------------------------------------------------#

@@ -20,7 +20,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Wrap a Celeritas field for use in Geant4.
+ * Wrap a Celeritas field as a Geant4 magnetic field.
+ *
  * \tparam P params for creating field
  * \tparam F field calculator
  */
@@ -67,6 +68,7 @@ void MagneticField<P, F>::GetFieldValue(G4double const pos[3],
                                         G4double* field) const
 {
     F calc_field(params_->host_ref());
+
     // Calculate the magnetic field value in the native Celeritas unit system
     Real3 result = calc_field(convert_from_geant(pos, clhep_length));
     for (auto i = 0; i < 3; ++i)
