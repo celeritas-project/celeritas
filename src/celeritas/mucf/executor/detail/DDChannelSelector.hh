@@ -20,7 +20,8 @@ namespace detail
  * The material temperature determines the probability
  * of the outcome of the fusion ending in the \f$ ^3\text{He} \f$ channels
  * versus the tritium channel. If the outcome is a \f$ ^3\text{He} \f$ channel,
- * a constant sticking fraction of 12.2% is used to define if sticking occurs.
+ * a constant sticking fraction of 12.2% is used to define if sticking occurs
+ * [ \todo https://doi.org/10.1134/S106377961102002X ].
  */
 class DDChannelSelector
 {
