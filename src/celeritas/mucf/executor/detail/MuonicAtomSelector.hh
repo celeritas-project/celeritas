@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mucf/Types.hh"
 
@@ -47,8 +47,7 @@ class MuonicAtomSelector
     inline CELER_FUNCTION MucfMuonicAtom operator()(Engine& rng);
 
   private:
-    real_type deuterium_fraction_;
-    real_type tritium_fraction_;
+    real_type deuterium_probability_;
 };
 
 //---------------------------------------------------------------------------//
@@ -60,13 +59,17 @@ class MuonicAtomSelector
 CELER_FUNCTION
 MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction,
                                        real_type tritium_fraction)
-    : deuterium_fraction_(deuterium_fraction)
-    , tritium_fraction_(tritium_fraction)
 {
-    CELER_EXPECT(deuterium_fraction_ >= 0);
-    CELER_EXPECT(tritium_fraction_ >= 0);
-    CELER_EXPECT(deuterium_fraction_ + tritium_fraction_ > 0);
-    CELER_EXPECT(deuterium_fraction_ + tritium_fraction_ <= 1);
+    CELER_EXPECT(deuterium_fraction >= 0);
+    CELER_EXPECT(tritium_fraction >= 0);
+    CELER_EXPECT(deuterium_fraction + tritium_fraction > 0);
+    CELER_EXPECT(deuterium_fraction + tritium_fraction <= 1);
+
+    real_type const q1s = real_type{1}
+                          / (real_type{1} + real_type{2.9} * tritium_fraction);
+    deuterium_probability_ = deuterium_fraction * q1s;
+
+    CELER_ENSURE(deuterium_probability_ >= 0 && deuterium_probability_ <= 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -76,22 +79,9 @@ MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction,
 template<class Engine>
 CELER_FUNCTION MucfMuonicAtom MuonicAtomSelector::operator()(Engine& rng)
 {
-    MucfMuonicAtom result{MucfMuonicAtom::size_};
-
-    real_type const q1s
-        = real_type{1} / (real_type{1} + real_type{2.9} * tritium_fraction_);
-    real_type const deuterium_probability = deuterium_fraction_ * q1s;
-    if (generate_canonical(rng) <= deuterium_probability)
-    {
-        result = MucfMuonicAtom::deuterium;
-    }
-    else
-    {
-        result = MucfMuonicAtom::tritium;
-    }
-
-    CELER_ENSURE(result < MucfMuonicAtom::size_);
-    return result;
+    return BernoulliDistribution(deuterium_probability_)(rng)
+               ? MucfMuonicAtom::deuterium
+               : MucfMuonicAtom::tritium;
 }
 
 //---------------------------------------------------------------------------//

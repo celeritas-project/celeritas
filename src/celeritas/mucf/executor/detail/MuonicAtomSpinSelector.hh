@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mucf/Types.hh"
 
@@ -72,26 +72,16 @@ CELER_FUNCTION size_type MuonicAtomSpinSelector::operator()(Engine& rng)
 {
     switch (atom_)
     {
-        case MucfMuonicAtom::deuterium: {
-            if (generate_canonical(rng) < deuterium_spin_probability())
-            {
-                return 3;  // Spin 3/2
-            }
-            else
-            {
-                return 1;  // Spin 1/2
-            }
-        }
-        case MucfMuonicAtom::tritium: {
-            if (generate_canonical(rng) < tritium_spin_probability())
-            {
-                return 2;  // Spin 1
-            }
-            else
-            {
-                return 0;  // Spin 0
-            }
-        }
+        case MucfMuonicAtom::deuterium:
+            return BernoulliDistribution(this->deuterium_spin_probability())(
+                       rng)
+                       ? 3  // Spin 3/2
+                       : 1;  // Spin 1/2
+
+        case MucfMuonicAtom::tritium:
+            return BernoulliDistribution(this->tritium_spin_probability())(rng)
+                       ? 2  // Spin 1
+                       : 0;  // Spin 0
         default:
             CELER_ASSERT_UNREACHABLE();
     }
