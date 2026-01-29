@@ -21,8 +21,6 @@ namespace detail
 /*!
  * Remove all elements in the vacancy vector that were flagged as active
  * tracks.
- *
- * \return New size of the vacancy vector
  */
 void remove_if_alive(
     TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
