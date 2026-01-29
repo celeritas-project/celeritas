@@ -235,7 +235,8 @@ TEST_F(DetectorTest, simple)
 
     // Check results
 
-    real_type const flight_time = 1.66782047599076e-09;
+    real_type const box_size = from_cm(50);
+    real_type const flight_time = box_size / constants::c_light;
 
     static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0};
     static real_type const expected_energies[]

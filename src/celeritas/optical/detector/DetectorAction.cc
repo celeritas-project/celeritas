@@ -93,7 +93,7 @@ void DetectorAction::process_hits_impl(CoreParams const& params,
     // Send hits to the callback function, if there are any
     if (!hit_results.hits.empty())
     {
-        auto scoring = params.scoring();
+        auto const& scoring = params.scoring();
         CELER_ASSERT(scoring);
         scoring->process_hits(make_span(hit_results.hits));
     }
