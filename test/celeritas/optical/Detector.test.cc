@@ -241,9 +241,30 @@ TEST_F(DetectorTest, simple)
     static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0};
     static real_type const expected_energies[]
         = {1e-6, 2e-6, 3e-6, 4e-6, 5e-6, 6e-6};
-    static real_type const expected_x_positions[] = {50, -50, 0, 0, 50, 0};
-    static real_type const expected_y_positions[] = {0, 0, 0, 0, 0, -50};
-    static real_type const expected_z_positions[] = {0, 0, 50, -50, 0, 0};
+    static real_type const expected_x_positions[] = {
+        box_size,
+        -box_size,
+        0,
+        0,
+        box_size,
+        0,
+    };
+    static real_type const expected_y_positions[] = {
+        0,
+        0,
+        0,
+        0,
+        0,
+        -box_size,
+    };
+    static real_type const expected_z_positions[] = {
+        0,
+        0,
+        box_size,
+        -box_size,
+        0,
+        0,
+    };
     static real_type const expected_times[] = {
         0 + flight_time,
         10 + flight_time,
