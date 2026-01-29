@@ -48,7 +48,7 @@ jobs:
           mkdir build && cd build
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
             ${{ github.workflow == 'pull_request'
-             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DDOXYGEN_HAVE_DOT="NO"'
+             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DDOXYGEN_HAVE_DOT="NO" -DDOXYGEN_QUIET="NO"'
              || ''}} \
             ..
       - name: Build documentation

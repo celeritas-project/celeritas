@@ -28,7 +28,7 @@ namespace detail
    Phong Vo back in 1991. In a subsequent ballot round: Landon Curt Noll
    improved on their algorithm. Some people tried this hash and found that it
    worked rather well. In an EMail message to Landon, they named it the
-   ``Fowler/Noll/Vo'' or FNV hash.
+   "Fowler/Noll/Vo" or FNV hash.
 
    FNV hashes are designed to be fast while maintaining a low collision rate.
    The FNV speed allows one to quickly hash lots of data while maintaining a

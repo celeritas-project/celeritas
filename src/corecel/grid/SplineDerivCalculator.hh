@@ -25,19 +25,20 @@ namespace celeritas
 /*!
  * Calculate the second derivatives of a cubic spline.
  *
- * See section 3.3: Cubic Spline Interpolation in \cite{press-nr-1992} for a
- * review of interpolating cubic splines and an algorithm for calculating the
- * second derivatives.
+ * \note See section 3.3: Cubic Spline Interpolation in \cite{press-nr-1992}
+ * for a review of interpolating cubic splines and an algorithm for calculating
+ * the second derivatives.
  *
- * Determining the polynomial coefficients \$ a_0, a_1, a_2 \f$ and \$f a_3 \f$
- * of a cubic spline \f$ S(x) \f$ (see: \sa SplineInterpolator) requires
+ * Determining the polynomial coefficients \f$ a_0, a_1, a_2 \f$ and \f$ a_3
+ \f$
+ * of a cubic spline \f$ S(x) \f$ requires
  * solving a tridiagonal, linear system of equations for the second
  * derivatives. For \f$ n \f$ points \f$ (x_i, y_i) \f$ and \f$ n \f$ unknowns
  * \f$ S''_i \f$ there are \f$ n - 2 \f$ equations of the form
  * \f[
    h_{i - 1} S''_{i - 1} + 2 (h_{i - 1} + h_i) S''i + h_i S''_{i + 1} = 6 r_i,
  * \f]
- * where \f$ r_i = frac{\Delta y_i}{h_i} - frac{\Delta y_{i - 1}}{h_{i - 1}}
+ * where \f$ r_i = \frac{\Delta y_i}{h_i} - \frac{\Delta y_{i - 1}}{h_{i - 1}}
  * \f$ and \f$ h_i = \Delta x_i = x_{i + 1} - x_i \f$.
  *
  * Specifying the boundary conditions gives the remaining two equations.
@@ -45,7 +46,7 @@ namespace celeritas
  * to the following initial and final equations:
  * \f[
  * \begin{aligned}
-   2 (h_0 + h_1) S''_1 + h_1 S''_2 &= 6 r_1 //
+   2 (h_0 + h_1) S''_1 + h_1 S''_2 &= 6 r_1 \\
    h_{n - 3} S''_{n - 3} + 2 (h_{n - 3} + h_{n - 2}) S''_{n - 2}
    &= 6 r_{n - 2}.
  * \end{aligned}
@@ -62,7 +63,7 @@ namespace celeritas
  * \f[
  * \begin{aligned}
    \frac{(h_0 + 2 h_1)(h_0 + h_1)}{h_1} S''_1 + \frac{h_1^2 - h_0^2}{h_1}
-   S''_2 &= 6 r_1 //
+   S''_2 &= 6 r_1 \\
    \frac{h_{n - 3}^2 - h_{n - 2}^2}{h_{n - 3}} S''_{n - 3} + \frac{(h_{n - 3}
    + h_{n - 2})(2 h_{n - 3} + h_{n - 2})}{h_{n - 3}} S''_{n - 2} &= 6 r_{n - 2}
  * \end{aligned}
@@ -77,6 +78,8 @@ namespace celeritas
    S''_{n - 3}}{h_{n - 3}}
  * \end{aligned}
  * \f]
+ *
+ * \sa celeritas::SplineInterpolator
  */
 class SplineDerivCalculator
 {

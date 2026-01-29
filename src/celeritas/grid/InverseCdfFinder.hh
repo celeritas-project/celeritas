@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Given a sampled CDF value, find the corresponding grid value.
  *
- * \tparam G Grid, e.g. \c UniformGrid or \c NonUniformGrid
+ * \tparam G Grid, e.g. \c UniformGrid or \c NonuniformGrid
  * \tparam C Calculate the CDF at a given grid index
  *
  * Both the input grid and the CDF must be monotonically increasing. The
