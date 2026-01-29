@@ -430,7 +430,7 @@ CELER_FUNCTION RanluxppArray18 multiply_9x9(RanluxppArray9 const& in1,
  * \p out is guaranteed to be smaller than the modulus.
  *
  * \param[in] mul product from multiply_9x9 with 18 numbers of 64 bits each
- * \param[out] out result with 9 numbers of 64 bits each
+ * \return result with 9 numbers of 64 bits each
  */
 CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
 {
@@ -530,7 +530,7 @@ CELER_FORCEINLINE_FUNCTION RanluxppArray9 compute_mod_multiply(
 /*!
  * Compute \c base to the \p 2^log_n modulo m.
  *
- * \param[in]  base  with 9 numbers of 64 bits each
+ * \param[in]  result base with 9 numbers of 64 bits each
  * \param[in]  log_n log_2 of exponent
  */
 CELER_FUNCTION RanluxppArray9 compute_power_exp_modulus(RanluxppArray9 result,
