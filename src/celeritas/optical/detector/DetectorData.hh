@@ -93,15 +93,18 @@ void copy_hits(DetectorHitOutput* output,
                StreamId stream);
 
 template<>
-void copy_hits(DetectorHitOutput*,
-               DetectorStateData<Ownership::reference, MemSpace::host> const&,
-               StreamId);
+void copy_hits<MemSpace::host>(
+    DetectorHitOutput*,
+    DetectorStateData<Ownership::reference, MemSpace::host> const&,
+    StreamId);
 
 template<>
-void copy_hits(DetectorHitOutput*,
-               DetectorStateData<Ownership::reference, MemSpace::device> const&,
-               StreamId);
+void copy_hits<MemSpace::device>(
+    DetectorHitOutput*,
+    DetectorStateData<Ownership::reference, MemSpace::device> const&,
+    StreamId);
 
+//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
 inline void

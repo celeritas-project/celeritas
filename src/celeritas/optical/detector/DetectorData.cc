@@ -20,7 +20,7 @@ namespace optical
  * the buffers.
  */
 template<>
-void copy_hits(
+void copy_hits<MemSpace::host>(
     DetectorHitOutput* output,
     DetectorStateData<Ownership::reference, MemSpace::host> const& state,
     StreamId /* unused */)

@@ -20,9 +20,10 @@ namespace optical
  * memory for only valid hits.
  */
 template<>
-copy_hits(DetectorHitOutput* output,
-          DetectorStateData<Ownership::reference, MemSpace::device> const& state,
-          StreamId stream_id)
+void copy_hits<MemSpace::device>(
+    DetectorHitOutput* output,
+    DetectorStateData<Ownership::reference, MemSpace::device> const& state,
+    StreamId stream_id)
 {
     CELER_EXPECT(output);
     CELER_EXPECT(stream_id);

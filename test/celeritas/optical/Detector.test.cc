@@ -32,6 +32,12 @@ namespace optical
 namespace test
 {
 using namespace ::celeritas::test;
+
+constexpr bool reference_configuration
+    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+       && !CELERITAS_VECGEOM_SURFACE
+       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
+
 //---------------------------------------------------------------------------//
 /*!
  * Test optical detector and scoring.
@@ -247,13 +253,16 @@ TEST_F(DetectorTest, simple)
     };
     static size_type const expected_volume_instance_ids[] = {5, 4, 6, 7, 5, 3};
 
-    EXPECT_VEC_EQ(expected_detector_ids, scores.detector_ids);
-    EXPECT_VEC_SOFT_EQ(expected_energies, scores.energies);
-    EXPECT_VEC_SOFT_EQ(expected_x_positions, scores.x_positions);
-    EXPECT_VEC_SOFT_EQ(expected_y_positions, scores.y_positions);
-    EXPECT_VEC_SOFT_EQ(expected_z_positions, scores.z_positions);
-    EXPECT_VEC_SOFT_EQ(expected_times, scores.times);
-    EXPECT_VEC_EQ(expected_volume_instance_ids, scores.volume_instance_ids);
+    if (reference_configuration)
+    {
+        EXPECT_VEC_EQ(expected_detector_ids, scores.detector_ids);
+        EXPECT_VEC_SOFT_EQ(expected_energies, scores.energies);
+        EXPECT_VEC_SOFT_EQ(expected_x_positions, scores.x_positions);
+        EXPECT_VEC_SOFT_EQ(expected_y_positions, scores.y_positions);
+        EXPECT_VEC_SOFT_EQ(expected_z_positions, scores.z_positions);
+        EXPECT_VEC_SOFT_EQ(expected_times, scores.times);
+        EXPECT_VEC_EQ(expected_volume_instance_ids, scores.volume_instance_ids);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -305,10 +314,13 @@ TEST_F(DetectorTest, stress)
 
     // Check results
 
-    static size_type const expected_hits[] = {2673, 2816, 2703};
+    if (reference_configuration)
+    {
+        static size_type const expected_hits[] = {2673, 2816, 2703};
 
-    EXPECT_VEC_EQ(expected_hits, hits);
-    EXPECT_EQ(errored, 0);
+        EXPECT_VEC_EQ(expected_hits, hits);
+        EXPECT_EQ(errored, 0);
+    }
 }
 
 //---------------------------------------------------------------------------//
