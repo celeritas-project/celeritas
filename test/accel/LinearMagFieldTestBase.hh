@@ -1,0 +1,93 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file accel/LinearMagFieldTestBase.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include <G4MagneticField.hh>
+
+#include "corecel/Types.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "geocel/UnitUtils.hh"
+#include "celeritas/g4/MagneticField.hh"
+
+#include "Test.hh"
+
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Data for a linear magnetic field.
+ *
+ * The field is zero at the origin and increases linearly with distance.
+ */
+struct LinearMagFieldData
+{
+    real_type scale{1};  //!< Field scale factor [native Bfield]
+    Real3 origin{0};  //!< Origin point where field is zero [native len]
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Parameters for the test linear magnetic field.
+ */
+struct LinearMagFieldParams
+{
+    LinearMagFieldData data;
+
+    LinearMagFieldData const& host_ref() const { return data; }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Linear magnetic field functor.
+ *
+ * Returns a field value that is zero at origin and increases linearly:
+ * \f[
+ *   \vec{B}(\vec{r}) = s \cdot (\vec{r} - \vec{r}_0)
+ * \f]
+ * where \em s is the scale factor and \f$ \vec{r}_0 \f$ is the origin.
+ */
+struct LinearMagField
+{
+    LinearMagFieldData const& data;
+
+    //! Calculate field at the given position
+    Real3 operator()(Real3 const& pos) const
+    {
+        return data.scale * (pos - data.origin);
+    }
+};
+
+//---------------------------------------------------------------------------//
+// Test harness that creates a Geant4 magnetic field
+class LinearMagFieldTestBase : public ::celeritas::test::Test
+{
+  public:
+    using MagFieldT = MagneticField<LinearMagFieldParams, LinearMagField>;
+
+    void SetUp()
+    {
+        auto params = std::make_shared<LinearMagFieldParams>([] {
+            LinearMagFieldData d;
+            d.scale = native_value_from(units::FieldTesla{1.5});
+            d.origin = from_cm({0.7, 1.1, -2.5});
+            return d;
+        }());
+
+        g4field_ = std::make_unique<MagFieldT>(params);
+    }
+
+    G4MagneticField const& g4field() const;
+
+  protected:
+    std::unique_ptr<MagFieldT> g4field_;
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace test
+}  // namespace celeritas

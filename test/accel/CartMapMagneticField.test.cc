@@ -10,11 +10,11 @@
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4MagneticField.hh>
 
-#include "corecel/math/ArrayOperators.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 
+#include "LinearMagFieldTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -24,55 +24,14 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-struct TestFieldData
+class CartMapMagneticFieldTest : public LinearMagFieldTestBase
 {
-    real_type scale{1};  // [native Bfield]
-    Real3 origin{0};  // [native len]
-};
-
-struct TestFieldParams
-{
-    TestFieldData data;
-
-    TestFieldData const& host_ref() const { return data; }
-};
-
-//! Linear field, zero at origin
-struct TestField
-{
-    TestFieldData const& data;
-
-    Real3 operator()(Real3 const& pos) const
-    {
-        return data.scale * (pos - data.origin);
-    }
-};
-
-//---------------------------------------------------------------------------//
-
-class CartMapMagneticFieldTest : public ::celeritas::test::Test
-{
-  public:
-    using MagFieldT = MagneticField<TestFieldParams, TestField>;
-
-    void SetUp()
-    {
-        auto params = std::make_shared<TestFieldParams>([] {
-            TestFieldData d;
-            d.scale = native_value_from(units::FieldTesla{1.5});
-            d.origin = from_cm({0.7, 1.1, -2.5});
-            return d;
-        }());
-
-        g4field = std::make_unique<MagFieldT>(params);
-    }
-    std::unique_ptr<MagFieldT> g4field;
 };
 
 TEST_F(CartMapMagneticFieldTest, make_input)
 {
     // Convert
-    auto inp = MakeCartMapFieldInput(*g4field, [] {
+    auto inp = MakeCartMapFieldInput(this->g4field(), [] {
         using CLHEP::cm;
 
         CartMapFieldGridParams grid;
@@ -130,7 +89,7 @@ TEST_F(CartMapMagneticFieldTest, geant_calculation)
 
     // Create mapped magnetic field
     CartMapMagneticField cart_field{std::make_shared<CartMapFieldParams>(
-        MakeCartMapFieldInput(*g4field, [] {
+        MakeCartMapFieldInput(this->g4field(), [] {
             CartMapFieldGridParams grid;
             grid.x.min = 0.0 * cm;
             grid.x.max = 1.0 * cm;
@@ -154,7 +113,7 @@ TEST_F(CartMapMagneticFieldTest, geant_calculation)
     constexpr auto tol = 1e-5;
     // Check at origin (CLHEP units): field should be zero
     xyzt = {0.7 * cm, 1.1 * cm, -2.5 * cm, 0};
-    g4field->GetFieldValue(xyzt.data(), expected.data());
+    this->g4field().GetFieldValue(xyzt.data(), expected.data());
     cart_field.GetFieldValue(xyzt.data(), actual.data());
     EXPECT_VEC_NEAR((Dbl3{0, 0, 0}), expected, tol);
     EXPECT_VEC_NEAR(expected, actual, tol);
