@@ -47,47 +47,15 @@ class DetectorAction final : public OpticalStepActionInterface,
     StepActionOrder order() const final { return StepActionOrder::post; }
 
   private:
-    // Process hits copied from the kernels and send them to the callback
+    //!@{
+    //! Process hits copied from the kernels and send them to the callback
+    void process_hits(CoreParams const&, CoreStateHost&) const;
+    void process_hits(CoreParams const&, CoreStateDevice&) const;
+
     template<MemSpace M>
-    void process_hits(CoreParams const&, CoreState<M>&) const;
+    void process_hits_impl(CoreParams const&, CoreState<M>&) const;
+    //!@}
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Process hits copied from the kernels and send them to the callback.
- *
- * Copied hits might be invalid, and are removed before sending into the
- * callback function. The callback is only execute when a non-zero amount of
- * valid hits occurs.
- */
-template<MemSpace M>
-void DetectorAction::process_hits(CoreParams const& params,
-                                  CoreState<M>& state) const
-{
-    DetectorHitOutput hit_results;
-
-    // Copy hits (possibly from device) into pinned vector
-    copy_hits<M>(&hit_results, state.ref().scoring, state.stream_id());
-
-    // Erase all hits with invalid detector ID
-    hit_results.hits.erase(
-        std::remove_if(hit_results.hits.begin(),
-                       hit_results.hits.end(),
-                       [](DetectorHit const& hit) {
-                           return !static_cast<bool>(hit.detector);
-                       }),
-        hit_results.hits.end());
-
-    // Send hits to the callback function, if there are any
-    if (!hit_results.hits.empty())
-    {
-        auto scoring = params.scoring();
-        CELER_ASSERT(scoring);
-        scoring->process_hits(make_span(hit_results.hits));
-    }
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
