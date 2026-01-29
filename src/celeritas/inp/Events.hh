@@ -129,11 +129,20 @@ struct OpticalDirectGenerator
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Offload optical photon tracks from Geant4 to Celeritas.
+ */
+struct OpticalTrackOffload
+{
+};
+
+//---------------------------------------------------------------------------//
 //! Mechanism for generating optical photons
 using OpticalGenerator = std::variant<OpticalEmGenerator,
                                       OpticalOffloadGenerator,
                                       OpticalPrimaryGenerator,
-                                      OpticalDirectGenerator>;
+                                      OpticalDirectGenerator,
+                                      OpticalTrackOffload>;
 
 //---------------------------------------------------------------------------//
 /*!

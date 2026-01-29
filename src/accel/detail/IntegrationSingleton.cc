@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "IntegrationSingleton.hh"
 
+#include <memory>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -14,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "geocel/GeantUtils.hh"
+#include "accel/LocalOpticalTrackOffload.hh"
 
 #include "LoggerImpl.hh"
 #include "../ExceptionConverter.hh"
@@ -104,7 +106,16 @@ LocalOffloadInterface& IntegrationSingleton::local_offload()
             && std::holds_alternative<inp::OpticalOffloadGenerator>(
                 options_.optical->generator))
         {
+            CELER_LOG(info) << "optical gen offloading enabled";
             offload = std::make_unique<LocalOpticalGenOffload>();
+        }
+        else if (options_.optical
+                 && std::holds_alternative<inp::OpticalTrackOffload>(
+                     options_.optical->generator))
+
+        {
+            CELER_LOG(info) << "optical track offloading enabled";
+            offload = std::make_unique<LocalOpticalTrackOffload>();
         }
         else
         {
