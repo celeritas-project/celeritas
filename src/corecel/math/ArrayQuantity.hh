@@ -10,7 +10,8 @@
 #include <cstddef>
 
 #include "corecel/cont/Array.hh"
-#include "corecel/math/Quantity.hh"
+
+#include "Quantity.hh"
 
 namespace celeritas
 {
@@ -33,17 +34,38 @@ make_quantity_array(Args const&... args) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct an array of quantities from raw values.
+ *
+ * This helper function allows concise construction of quantity arrays:
+ * \code
+ * auto distances = make_quantity_array<CmLength>(1.0, 2.5, 3.7);
+ * \endcode
+ */
+template<class Q, size_type N>
+CELER_CONSTEXPR_FUNCTION Array<Q, N>
+make_quantity_array(Array<typename Q::value_type, N> const& arr) noexcept
+{
+    Array<Q, N> result;
+    for (size_type i = 0; i < N; ++i)
+    {
+        result[i] = Q{arr[i]};
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert an array of quantities to native values.
  *
  * This applies native_value_from element-wise to each component.
  */
-template<class UnitT, class ValueT, std::size_t N>
+template<class UnitT, class ValueT, size_type N>
 CELER_CONSTEXPR_FUNCTION auto
 native_value_from(Array<Quantity<UnitT, ValueT>, N> const& quant) noexcept
 {
     using common_type = typename Quantity<UnitT, ValueT>::common_type;
     Array<common_type, N> result;
-    for (std::size_t i = 0; i < N; ++i)
+    for (size_type i = 0; i < N; ++i)
     {
         result[i] = native_value_from(quant[i]);
     }
@@ -56,11 +78,11 @@ native_value_from(Array<Quantity<UnitT, ValueT>, N> const& quant) noexcept
  *
  * This applies native_value_to element-wise to each component.
  */
-template<class Q, class T, std::size_t N>
+template<class Q, class T, size_type N>
 CELER_CONSTEXPR_FUNCTION auto native_value_to(Array<T, N> const& value) noexcept
 {
     Array<Q, N> result;
-    for (std::size_t i = 0; i < N; ++i)
+    for (size_type i = 0; i < N; ++i)
     {
         result[i] = native_value_to<Q>(value[i]);
     }
