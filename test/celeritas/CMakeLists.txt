@@ -25,6 +25,7 @@ else()
   else()
     set(_needs_geant4_11 DISABLE)
   endif()
+  celeritas_get_g4libs(_g4_field_libs geometry)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -187,6 +188,12 @@ celeritas_add_test(em/CoulombScattering.test.cc ${_fixme_single})
 celeritas_add_test(em/UrbanMsc.test.cc ${_optional_geant4_env})
 celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
+
+#-----------------------------------------------------------------------------#
+if(CELERITAS_USE_Geant4)
+  celeritas_add_test(g4/MagneticField.test.cc
+    LINK_LIBRARIES ${_g4_field_libs})
+endif()
 
 #-----------------------------------------------------------------------------#
 # External
