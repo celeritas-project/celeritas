@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
 #include <G4FieldManager.hh>
 #include <G4TransportationManager.hh>
 
@@ -18,22 +17,19 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Generate field input with user-defined grid and explicit field
-CylMapFieldParams::Input
+CylMapFieldInput
 MakeCylMapFieldInput(G4Field const& field,
                      std::vector<G4double> const& r_grid,
-                     std::vector<G4double> const& phi_values,
+                     std::vector<G4double> const& phi_values,  // Radians
                      std::vector<G4double> const& z_grid);
 
 // Generate field input with user-defined grid from global field
-CylMapFieldParams::Input
-MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
-                     std::vector<G4double> const& phi_values,
-                     std::vector<G4double> const& z_grid);
+CylMapFieldInput MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
+                                      std::vector<G4double> const& phi_values,
+                                      std::vector<G4double> const& z_grid);
 
 //---------------------------------------------------------------------------//
-/*!
- * A user magnetic field equivalent to celeritas::CylMapField.
- */
+//! Geant4 magnetic field adapter for cylindrical field
 using CylMapMagneticField
     = celeritas::MagneticField<CylMapFieldParams, CylMapField>;
 

@@ -50,6 +50,7 @@ celeritas_add_test(HepMC3PrimaryGenerator.test.cc
 
 # Fields
 celeritas_add_test(CartMapMagneticField.test.cc)
+celeritas_add_test(CylMapMagneticField.test.cc)
 
 #-----------------------------------------------------------------------------#
 # INTEGRATION TESTS

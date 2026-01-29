@@ -82,7 +82,7 @@ class LinearMagFieldTestBase : public ::celeritas::test::Test
         g4field_ = std::make_unique<MagFieldT>(params);
     }
 
-    G4MagneticField const& g4field() const;
+    G4MagneticField const& g4field() const { return *g4field_; }
 
   protected:
     std::unique_ptr<MagFieldT> g4field_;
