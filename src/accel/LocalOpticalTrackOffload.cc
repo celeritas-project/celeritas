@@ -6,11 +6,15 @@
 //---------------------------------------------------------------------------//
 #include "LocalOpticalTrackOffload.hh"
 
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 
+#include "corecel/Assert.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/g4/Convert.hh"
+#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/Transporter.hh"
@@ -110,7 +114,6 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
  */
 void LocalOpticalTrackOffload::Push(G4Track& g4track)
 {
-    CELER_LOG(info) << "Transport pointer: " << transport_;
     CELER_EXPECT(*this);
 
     ++num_pushed_;
@@ -124,9 +127,8 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
     ScopedProfiling profile_this{"push"};
 
     buffer_.push_back(init);
-    pending_tracks_++;
 
-    if (pending_tracks_ >= auto_flush_)
+    if (buffer_.size() >= auto_flush_)
     {
         this->Flush();
     }
@@ -153,7 +155,6 @@ void LocalOpticalTrackOffload::Flush()
     // state_->insert_primaries(make_span(buffer_));
 
     buffer_.clear();
-    pending_tracks_ = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -174,7 +175,7 @@ void LocalOpticalTrackOffload::Finalize()
     CELER_EXPECT(*this);
 
     CELER_VALIDATE(buffer_.empty(),
-                   << pending_tracks_ << " optical tracks were not flushed");
+                   << buffer_.size() << " optical tracks were not flushed");
 
     CELER_LOG(info) << "Finalizing Celeritas after " << num_pushed_
                     << " optical tracks pushed (over " << num_flushed_

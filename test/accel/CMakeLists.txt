@@ -151,7 +151,7 @@ celeritas_add_integration_tests(
   RMTYPE ${_optical_rm_type}
 )
 
-# Test with optical track offloading
+# Test with optical physics offloading distributions
 celeritas_add_integration_tests(
   UserActionIntegration LarSphereOpticalTrackOffload run
   OFFLOAD cpu gpu g4

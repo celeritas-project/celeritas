@@ -61,7 +61,7 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
     bool Initialized() const final { return static_cast<bool>(transport_); }
 
     // Number of buffered tracks
-    size_type GetBufferSize() const final { return pending_tracks_; }
+    size_type GetBufferSize() const final { return buffer_.size(); }
 
     // Get accumulated action times
     MapStrDbl GetActionTime() const final;
@@ -69,6 +69,8 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
 
     // Offload optical distribution track to Celeritas
     void Push(G4Track&) final;
+    // Number of optical tracks pushed to offload
+    size_type num_pushed() const { return num_pushed_; }
 
   private:
     // Transport pending optical tracks
@@ -88,8 +90,6 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
 
     // Accumulated number of tracks pushed over flushes
     size_type num_flushed_{};
-
-    size_type pending_tracks_{};
 
     //  Current event ID for obtaining it
     UniqueEventId event_id_;

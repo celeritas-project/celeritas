@@ -12,6 +12,7 @@
 #include "accel/LocalOpticalTrackOffload.hh"
 
 #include "../LocalOpticalGenOffload.hh"
+#include "../LocalOpticalTrackOffload.hh"
 #include "../LocalTransporter.hh"
 #include "../SetupOptions.hh"
 #include "../SharedParams.hh"

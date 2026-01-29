@@ -14,10 +14,10 @@
 #include "corecel/sys/Stopwatch.hh"
 
 #include "ExceptionConverter.hh"
-#include "TimeOutput.hh"
+#include "G4OpticalPhoton.hh"
+#include "TimeOutput.hh"  // IWYU pragma: keep
 
 #include "detail/IntegrationSingleton.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -87,6 +87,21 @@ void UserActionIntegration::PreUserTrackingAction(G4Track* track)
         }
 
         // Either "pushed" or we're in kill_offload mode
+        track->SetTrackStatus(fStopAndKill);
+        return;
+    }
+    if (track->GetDefinition() == G4OpticalPhoton::Definition())
+    {
+        if (mode == SharedParams::Mode::enabled)
+        {
+            // Celeritas is transporting this optical photon
+            CELER_TRY_HANDLE(detail::IntegrationSingleton::instance()
+                                 .local_track_offload()
+                                 .Push(*track),
+                             ExceptionConverter("celer.track.push",
+                                                +&singleton.shared_params()));
+        }
+        // Kill the optical photon (offloaded or not)
         track->SetTrackStatus(fStopAndKill);
     }
 }

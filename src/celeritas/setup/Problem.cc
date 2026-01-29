@@ -822,26 +822,28 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
     CELER_ASSERT(params);
 
     // Construct the optical generator
-    std::visit(Overload{
-                   [&](inp::OpticalEmGenerator) {
-                       CELER_VALIDATE(false,
-                                      << "OpticalEmGenerator cannot be used "
-                                         "with only optical physics enabled");
-                   },
-                   [&](inp::OpticalOffloadGenerator) {
-                       optical::GeneratorAction::make_and_insert(
-                           *params, p.capacity.generators);
-                   },
-                   [&](inp::OpticalPrimaryGenerator opg) {
-                       optical::PrimaryGeneratorAction::make_and_insert(
-                           *params, std::move(opg));
-                   },
-                   [&](inp::OpticalDirectGenerator) {
-                       optical::DirectGeneratorAction::make_and_insert(*params);
-                   },
-                   [&](inp::OpticalTrackOffload) {},
-               },
-               p.generator);
+    result.generator = std::visit(
+        Overload{
+            [&](inp::OpticalEmGenerator) -> SPGeneratorBase {
+                CELER_VALIDATE(false,
+                               << "OpticalEmGenerator cannot be used "
+                                  "with only optical physics enabled");
+                return nullptr;
+            },
+            [&](inp::OpticalOffloadGenerator) -> SPGeneratorBase {
+                return optical::GeneratorAction::make_and_insert(
+                    *params, p.capacity.generators);
+            },
+            [&](inp::OpticalPrimaryGenerator opg) -> SPGeneratorBase {
+                return optical::PrimaryGeneratorAction::make_and_insert(
+                    *params, std::move(opg));
+            },
+            [&](inp::OpticalDirectGenerator) -> SPGeneratorBase {
+                return optical::DirectGeneratorAction::make_and_insert(*params);
+            },
+            [&](inp::OpticalTrackOffload) -> SPGeneratorBase { return nullptr; },
+        },
+        p.generator);
 
     OpticalProblemLoaded result;
 

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "IntegrationSingleton.hh"
 
+#include <memory>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -14,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "geocel/GeantUtils.hh"
+#include "accel/LocalOpticalTrackOffload.hh"
 
 #include "LoggerImpl.hh"
 #include "../ExceptionConverter.hh"
@@ -89,53 +91,40 @@ TrackOffloadInterface& IntegrationSingleton::local_track_offload()
 
 LocalTransporter& IntegrationSingleton::local_transporter()
 {
-    auto& offload = IntegrationSingleton::local_offload_ptr();
-    if (!offload)
-    {
-        offload = std::make_unique<LocalTransporter>();
-    }
-    auto* lt = dynamic_cast<LocalTransporter*>(offload.get());
-    CELER_VALIDATE(lt,
-                   << "Cannot access LocalTransporter when "
-                      "LocalOpticalGenOffload is being used");
-    return *lt;
-}
+    static G4ThreadLocal UPOffload offload;
 
-//---------------------------------------------------------------------------//
-/*!
- * Static THREAD-LOCAL Celeritas optical state data.
- */
-LocalOpticalGenOffload& IntegrationSingleton::local_optical_offload()
-{
-    auto& offload = IntegrationSingleton::local_offload_ptr();
-    if (!offload)
+    if (CELER_UNLIKELY(!offload))
     {
-        offload = std::make_unique<LocalOpticalGenOffload>();
-    }
-    auto* lt = dynamic_cast<LocalOpticalGenOffload*>(offload.get());
-    CELER_VALIDATE(lt,
-                   << "Cannot access LocalOpticalGenOffload when "
-                      "LocalTransporter is being used");
-    return *lt;
-}
+        if (!options_)
+        {
+            // Cannot construct offload before options are set
+            CELER_LOG_LOCAL(error)
+                << R"(cannot access offload before options are set)";
+        }
+        if (options_.optical
+            && std::holds_alternative<inp::OpticalOffloadGenerator>(
+                options_.optical->generator))
+        {
+            CELER_LOG(info) << "optical gen offloading enabled";
+            offload = std::make_unique<LocalOpticalGenOffload>();
+        }
+        else if (options_.optical
+                 && std::holds_alternative<inp::OpticalTrackOffload>(
+                     options_.optical->generator))
 
-//---------------------------------------------------------------------------//
-/*!
- * Static thread-local Celeritas optical track.
- */
-LocalOpticalTrackOffload& IntegrationSingleton::local_optical_track_offload()
-{
-    auto& offload = IntegrationSingleton::local_offload_ptr();
-    if (!offload)
-    {
-        CELER_LOG(info) << "Optical track offload initialised";
-        offload = std::make_unique<LocalOpticalTrackOffload>();
+        {
+            CELER_LOG(info) << "optical track offloading enabled";
+            offload = std::make_unique<LocalOpticalTrackOffload>();
+        }
+        else
+        {
+            // TODO: if offloading direct optical tracks, return optical
+            // offload
+            offload = std::make_unique<LocalTransporter>();
+        }
     }
-    auto* lt = dynamic_cast<LocalOpticalTrackOffload*>(offload.get());
-    CELER_VALIDATE(lt,
-                   << "Cannot access LocalOpticalTrackOffload when "
-                      "LocalTransporter is being used");
-    return *lt;
+
+    return *offload;
 }
 
 //---------------------------------------------------------------------------//

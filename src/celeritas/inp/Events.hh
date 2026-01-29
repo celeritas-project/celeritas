@@ -137,7 +137,7 @@ struct OpticalDirectGenerator
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate with individual optical photon tracks copied from CPU.
+ * Offload optical photon tracks from Geant4 to Celeritas.
  */
 struct OpticalTrackOffload
 {
