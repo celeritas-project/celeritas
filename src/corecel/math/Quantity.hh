@@ -74,10 +74,7 @@ namespace celeritas
  * operate in the Celeritas native unit system), use the resulting numeric
  * values in your mathematical expressions, then return a new Quantity class
  * with the resulting value and correct type.
- *
- * \note To use Quantity with array types, include \c ArrayOperators.hh . Try
- * to avoid in runtime code due to potential register usage due to inefficient
- * operators.
+ * Furthermore, this class is \em not compatible with \c Array.
  */
 template<class UnitT, class ValueT>
 class Quantity
