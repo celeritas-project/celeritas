@@ -25,7 +25,8 @@ else()
   else()
     set(_needs_geant4_11 DISABLE)
   endif()
-  celeritas_get_g4libs(_g4_field_libs geometry)
+  celeritas_get_g4libs(_g4_geo_lib geometry)
+  celeritas_get_g4libs(_g4_global_libs global)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -45,7 +46,7 @@ elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
   set(_needs_orange DISABLE)
-  set(_core_geo_libs testcel_geocel ${Geant4_LIBRARIES})
+  set(_core_geo_libs testcel_geocel ${_g4_geo_lib})
 endif()
 
 set(_all_geo_libs
@@ -138,9 +139,8 @@ celeritas_setup_tests(SERIAL
 # TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_add_test(Constants.test.cc
-  LINK_LIBRARIES ${Geant4_LIBRARIES})
-celeritas_add_test(Units.test.cc)
+celeritas_add_test(Constants.test.cc LINK_LIBRARIES ${_g4_global_libs})
+celeritas_add_test(Units.test.cc LINK_LIBRARIES ${_g4_global_libs})
 
 #-----------------------------------------------------------------------------#
 # Decay
@@ -192,7 +192,7 @@ celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
 #-----------------------------------------------------------------------------#
 if(CELERITAS_USE_Geant4)
   celeritas_add_test(g4/MagneticField.test.cc
-    LINK_LIBRARIES ${_g4_field_libs})
+    LINK_LIBRARIES ${_g4_geo_lib})
 endif()
 
 #-----------------------------------------------------------------------------#
