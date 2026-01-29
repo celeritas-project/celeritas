@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
 #include <string_view>
 #include <utility>
 #include <variant>
@@ -44,20 +45,8 @@
  *
  * If the field is missing or null, the optional is reset.
  */
-#define CELER_JSON_LOAD_OPTIONAL(OBJ, STRUCT, NAME)  \
-    do                                               \
-    {                                                \
-        auto iter = (OBJ).find(#NAME);               \
-        if (iter != (OBJ).end() && !iter->is_null()) \
-        {                                            \
-            (STRUCT).NAME.emplace();                 \
-            iter->get_to(*(STRUCT).NAME);            \
-        }                                            \
-        else                                         \
-        {                                            \
-            (STRUCT).NAME.reset();                   \
-        }                                            \
-    } while (0)
+#define CELER_JSON_LOAD_OPTIONAL(OBJ, STRUCT, NAME) \
+    ::celeritas::load_json_optional(OBJ, #NAME, STRUCT.NAME);
 
 /*!
  * Load a field if present and set a default value otherwise.
@@ -186,6 +175,27 @@ nlohmann::json variants_to_json(std::vector<T> const& values)
     }
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load a \c std::optional field.
+ */
+template<class T>
+void load_json_optional(nlohmann::json const& j,
+                        char const* name,
+                        std::optional<T>& value)
+{
+    auto iter = j.find(name);
+    if (iter != j.end() && !iter->is_null())
+    {
+        value.emplace();
+        iter->get_to(*value);
+    }
+    else
+    {
+        value.reset();
+    }
 }
 
 //---------------------------------------------------------------------------//
