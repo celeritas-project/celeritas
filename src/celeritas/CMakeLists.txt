@@ -81,6 +81,7 @@ list(APPEND SOURCES
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
   grid/XsGridInserter.cc
+  inp/EventsIO.json.cc
   inp/MucfPhysics.cc
   io/AtomicRelaxationReader.cc
   io/GammaNuclearXsReader.cc
@@ -225,6 +226,7 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
+    ext/GeantTrackReconstruction.cc
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
@@ -238,7 +240,6 @@ if(CELERITAS_USE_Geant4)
     ext/detail/NaviTouchableUpdater.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
-    ext/detail/TrackProcessor.cc
   )
 
   if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)

@@ -209,6 +209,7 @@ list(APPEND SOURCES
   grid/GridTypesIO.json.cc
   grid/SplineDerivCalculator.cc
   grid/VectorUtils.cc
+  inp/DistributionsIO.json.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc
