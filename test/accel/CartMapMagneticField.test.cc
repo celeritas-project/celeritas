@@ -105,7 +105,8 @@ TEST_F(CartMapMagneticFieldTest, geant_calculation)
             return grid;
         }()))};
 
-    constexpr double tol{1e-5};
+    constexpr SoftEqual tol{1e-5, 1e-6};
+    SCOPED_TRACE("cartesian");
 
     // Check where the true value is zero
     Dbl3 pos{0.7 * cm, 1.1 * cm, -2.5 * cm};
