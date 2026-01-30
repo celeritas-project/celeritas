@@ -179,6 +179,23 @@ CELER_CEF bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 }
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Convert an array from type \c T2 to \c T1.
+ */
+template<class T1, class T2, size_type N>
+CELER_CONSTEXPR_FUNCTION Array<T1, N> static_array_cast(Array<T2, N> const& x)
+{
+    Array<T1, N> result;
+    for (size_type i = 0; i != N; ++i)
+    {
+        result[i] = static_cast<T1>(x[i]);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
 
 //---------------------------------------------------------------------------//
