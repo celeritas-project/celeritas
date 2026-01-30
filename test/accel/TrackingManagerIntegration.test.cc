@@ -626,7 +626,7 @@ auto OpticalSurfaces::make_primary_input() const -> PrimaryInput
     result.shape
         = inp::PointDistribution{array_cast<double>(from_cm({30, 0, 0}))};
     result.angle = inp::MonodirectionalDistribution{{-1, 0, 0}};
-    result.energy = inp::MonoenergeticDistribution{10};  // [MeV]
+    result.energy = inp::MonoenergeticDistribution{100};  // [MeV]
     result.primaries_per_event = 1;
     result.num_events = 4;  // Overridden with BeamOn
     return result;
