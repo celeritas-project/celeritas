@@ -15,6 +15,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/VolumeCollectionBuilder.hh"
 #include "geocel/VolumeIdBuilder.hh"
@@ -73,11 +74,8 @@ UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
     // Interpret field strength in units of Tesla
     CELER_VALIDATE(norm(inp.strength) > 0,
                    << "along-step uniform field has zero field strength");
-    for (auto i : range(inp.strength.size()))
-    {
-        host_data.field[i]
-            = native_value_from(units::FieldTesla{inp.strength[i]});
-    }
+    host_data.field = native_value_from(
+        make_quantity_array<units::FieldTesla>(inp.strength));
 
     // Throw a runtime error if any driver options are invalid
     validate_input(inp.driver_options);
