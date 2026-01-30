@@ -27,6 +27,7 @@ namespace detail
  * 2. Setting up the HyperslabIndexer
  * 3. Sampling the field on a grid
  *
+ * \param g4field Geant4 magnetic field class
  * \param field_data Output parameter array to store field values (must be
  *                   pre-allocated with size equal to the product of all dims)
  * \param dims Grid dimensions
