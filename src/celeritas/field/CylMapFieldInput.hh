@@ -6,11 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <algorithm>
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"
 #include "celeritas/Types.hh"
 
