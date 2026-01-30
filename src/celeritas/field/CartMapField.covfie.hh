@@ -20,6 +20,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Interpolate a magnetic field vector on an x/y/z grid.
+ *
+ * NOTE: values outside the grid result in invalid extrapolation or a
+ * segmentation fault.
  */
 class CartMapField
 {

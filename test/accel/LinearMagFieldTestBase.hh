@@ -6,15 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4MagneticField.hh>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/ArrayIO.hh"  // IWYU pragma: keep
 #include "corecel/math/ArrayOperators.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/g4/MagneticField.hh"
 
 #include "Test.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -71,6 +74,7 @@ class LinearMagFieldTestBase : public ::celeritas::test::Test
 {
   public:
     using MagFieldT = MagneticField<LinearMagFieldParams, LinearMagField>;
+    using Dbl3 = Array<double, 3>;
 
     void SetUp()
     {
@@ -83,9 +87,38 @@ class LinearMagFieldTestBase : public ::celeritas::test::Test
         }());
 
         g4field_ = std::make_unique<MagFieldT>(params);
+
+        // Check where value should be {0,0,0} and {0,0,1.5}
+        using CLHEP::cm;
+        EXPECT_VEC_NEAR(
+            (Dbl3{0, 0, 0}),
+            calc_field(this->g4field(), {0.7 * cm, 1.1 * cm, -2.5 * cm}),
+            1e-6);
+        EXPECT_VEC_NEAR(
+            (Dbl3{0, 0, 1.5}),
+            calc_field(this->g4field(), {0.7 * cm, 1.1 * cm, -1.5 * cm}),
+            1e-6);
     }
 
     G4MagneticField const& g4field() const { return *g4field_; }
+
+    static Dbl3 calc_field(G4MagneticField const& field, Dbl3 const& pos)
+    {
+        Array<double, 4> xyzt{pos[0], pos[1], pos[2], 0};
+        Dbl3 result{-1, -1, -1};
+        field.GetFieldValue(xyzt.data(), result.data());
+        result /= CLHEP::tesla;
+        return result;
+    }
+
+    template<class T>
+    void
+    check_field(G4MagneticField const& actual, Dbl3 const& pos, T cmp) const
+    {
+        EXPECT_VEC_NEAR(
+            calc_field(this->g4field(), pos), calc_field(actual, pos), cmp)
+            << "at " << pos << " [mm]";
+    }
 
   protected:
     std::unique_ptr<MagFieldT> g4field_;
