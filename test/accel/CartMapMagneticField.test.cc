@@ -111,6 +111,7 @@ TEST_F(CartMapMagneticFieldTest, geant_calculation)
     Dbl3 actual{-1, -1, -1};
 
     constexpr auto tol = 1e-5;
+
     // Check at origin (CLHEP units): field should be zero
     xyzt = {0.7 * cm, 1.1 * cm, -2.5 * cm, 0};
     this->g4field().GetFieldValue(xyzt.data(), expected.data());
@@ -118,12 +119,23 @@ TEST_F(CartMapMagneticFieldTest, geant_calculation)
     EXPECT_VEC_NEAR((Dbl3{0, 0, 0}), expected, tol);
     EXPECT_VEC_NEAR(expected, actual, tol);
 
+    // Check where the true value should be ~{0,0,1.5T}
+    xyzt[2] = -1.5 * cm;
+    this->g4field().GetFieldValue(xyzt.data(), expected.data());
+    cart_field.GetFieldValue(xyzt.data(), actual.data());
+    EXPECT_VEC_NEAR((Dbl3{0, 0, 1.5 * tesla}), expected, 1e-6);
+    EXPECT_VEC_NEAR(expected, actual, tol);
+
     // Check elsewhere inside box
     xyzt = {0.5 * cm, 0.11 * cm, -3.9 * cm, 0};
+    this->g4field().GetFieldValue(xyzt.data(), expected.data());
+    cart_field.GetFieldValue(xyzt.data(), actual.data());
     EXPECT_VEC_NEAR(expected, actual, tol);
 
     // Check outside sample box
     xyzt = {-3 * cm, 0.1 * cm, -0.1 * cm, 0};
+    this->g4field().GetFieldValue(xyzt.data(), expected.data());
+    cart_field.GetFieldValue(xyzt.data(), actual.data());
     EXPECT_VEC_NEAR((Dbl3{0, 0, 0}), actual, tol);
 }
 

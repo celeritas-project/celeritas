@@ -110,13 +110,20 @@ TEST_F(CylMapMagneticFieldTest, geant_calculation)
     Dbl3 expected{-1, -1, -1};
     Dbl3 actual{-1, -1, -1};
 
-    SoftEqual<> tol{1e-3, 1e-3};
+    SoftEqual<> tol{1e-5};
 
-    xyzt = {0.7 * cm, 1.1 * cm, -2.5 * cm, 0};
     // Check where the true value is zero
+    xyzt = {0.7 * cm, 1.1 * cm, -2.5 * cm, 0};
     this->g4field().GetFieldValue(xyzt.data(), expected.data());
     cyl_field.GetFieldValue(xyzt.data(), actual.data());
     EXPECT_VEC_NEAR((Dbl3{0, 0, 0}), expected, 1e-6);
+    EXPECT_VEC_NEAR(expected, actual, tol);
+
+    // Check where the true value should be ~{0,0,1.5T}
+    xyzt[2] = -1.5 * cm;
+    this->g4field().GetFieldValue(xyzt.data(), expected.data());
+    cyl_field.GetFieldValue(xyzt.data(), actual.data());
+    EXPECT_VEC_NEAR((Dbl3{0, 0, 1.5 * tesla}), expected, 1e-6);
     EXPECT_VEC_NEAR(expected, actual, tol);
 
     // Check elsewhere inside cylindrical volume

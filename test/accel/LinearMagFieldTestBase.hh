@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/g4/MagneticField.hh"
 
 #include "Test.hh"
@@ -23,12 +24,13 @@ namespace test
 /*!
  * Data for a linear magnetic field.
  *
- * The field is zero at the origin and increases linearly with distance.
+ * The field is zero at the origin and increases linearly with distance. All
+ * units are in the native system.
  */
 struct LinearMagFieldData
 {
-    real_type scale{1};  //!< Field scale factor [native Bfield]
-    Real3 origin{0};  //!< Origin point where field is zero [native len]
+    real_type scale{1};  //!< Field scale factor [Bfield / len]
+    Real3 origin{0};  //!< Origin point where field is zero [len]
 };
 
 //---------------------------------------------------------------------------//
@@ -74,7 +76,8 @@ class LinearMagFieldTestBase : public ::celeritas::test::Test
     {
         auto params = std::make_shared<LinearMagFieldParams>([] {
             LinearMagFieldData d;
-            d.scale = native_value_from(units::FieldTesla{1.5});
+            d.scale = native_value_from(units::FieldTesla{1.5})
+                      / native_value_from(units::CmLength{1});
             d.origin = from_cm({0.7, 1.1, -2.5});
             return d;
         }());
