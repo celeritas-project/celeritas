@@ -27,8 +27,6 @@ namespace celeritas
  * - uses the native celeritas \c size_type (even though this has \em no effect
      on generated code for values of N inside the range of \c size_type
  * - zero-initialized by default
- * - scalar initializer fills the array rather than leaving zeros for other
- elements
  *
  * \note For supplementary functionality, include:
  * - \c corecel/math/ArrayUtils.hh for real-number vector/matrix applications
@@ -69,8 +67,8 @@ class Array
         }
     }
 
-    //! Construct by filling with a constant
-    CELER_CEF Array(T first) { this->fill(first); }
+    //! Construct with C-style aggregate initialization
+    CELER_CEF Array(T first) : d_{first} {}
 
     //! Construct with the array's data
     template<class... Us>
