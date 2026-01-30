@@ -65,7 +65,7 @@ template<class P, class F>
 void MagneticField<P, F>::GetFieldValue(G4double const pos[3],
                                         G4double* field) const
 {
-    F calc_field(params_->host_ref());
+    F calc_field{params_->host_ref()};
 
     // Calculate the magnetic field value in the native Celeritas unit system
     Real3 field_native = calc_field(convert_from_geant(pos, clhep_length));
