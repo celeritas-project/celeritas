@@ -49,13 +49,4 @@ using CartMapMagneticField
     = celeritas::MagneticField<CartMapFieldParams, CartAdapterField>;
 
 //---------------------------------------------------------------------------//
-
-#if !CELERITAS_USE_COVFIE
-inline Real3 CartAdapterField::operator()(Real3 const&) const
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-#endif
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas
