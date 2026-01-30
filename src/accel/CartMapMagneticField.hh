@@ -44,7 +44,7 @@ struct CartAdapterField
 };
 
 //---------------------------------------------------------------------------//
-//! Geant4 magnetic field class
+//! Geant4 magnetic field class for XYZ uniform grid field
 using CartMapMagneticField
     = celeritas::MagneticField<CartMapFieldParams, CartAdapterField>;
 
