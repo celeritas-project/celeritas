@@ -16,7 +16,6 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/VolumeCollectionBuilder.hh"
 #include "geocel/VolumeIdBuilder.hh"
@@ -70,8 +69,10 @@ validated_field_data(UniformFieldParams::Input const& inp)
     validate_input(inp.driver_options);
 
     HostVal<UniformFieldParamsData> result;
-    result.field = native_value_from(
-        make_quantity_array<units::FieldTesla>(inp.strength));
+    for (auto i : range(inp.strength.size()))
+    {
+        result.field[i] = native_value_from(units::FieldTesla{inp.strength[i]});
+    }
     result.options = inp.driver_options;
     return result;
 }
