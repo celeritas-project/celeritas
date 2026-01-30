@@ -202,7 +202,7 @@ void GeneratorAction::step_impl(CoreParams const& params,
             state.stream_id());
     }
 
-    if (state.counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
     {
         // Generate the optical photons from the distribution data
         this->generate(params, state);
@@ -232,8 +232,8 @@ void GeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
-    size_type num_gen
-        = min(state.counters().num_vacancies, aux_state.counters.num_pending);
+    size_type num_gen = min(state.sync_get_counters().num_vacancies,
+                            aux_state.counters.num_pending);
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
@@ -241,8 +241,7 @@ void GeneratorAction::generate(CoreParams const& params,
                                           params.host_ref().cherenkov,
                                           params.host_ref().scintillation,
                                           aux_state.store.ref(),
-                                          aux_state.counters.buffer_size,
-                                          state.counters()};
+                                          aux_state.counters.buffer_size};
         launch_action(num_gen, execute);
     }
     {

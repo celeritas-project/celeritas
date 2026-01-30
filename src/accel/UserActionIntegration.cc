@@ -13,7 +13,7 @@
 #include "corecel/sys/Stopwatch.hh"
 
 #include "ExceptionConverter.hh"
-#include "TimeOutput.hh"
+#include "TimeOutput.hh"  // IWYU pragma: keep
 
 #include "detail/IntegrationSingleton.hh"
 

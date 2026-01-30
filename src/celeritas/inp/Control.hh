@@ -28,7 +28,8 @@ namespace inp
  * used in MPI parallel (e.g., one process per GPU), each process \em rank has
  * \c tracks total threads.
  *
- * \note The \c primaries was previously named \c auto_flush .
+ * \note The \c primaries was previously named \c auto_flush . It is not used
+ * in standalone EM or optical-only runs.
  * \note Previously, \c SetupOptions and \c celer-g4 treated these quantities
  * as "per stream" whereas \c celer-sim used "per process".
  *
@@ -94,7 +95,8 @@ struct CoreStateCapacity : StateCapacity
 /*!
  * Set up per-process state/buffer capacities for the optical tracking loop.
  *
- * \note \c generators was previously named \c buffer_capacity .
+ * \note \c generators was previously named \c buffer_capacity. It is required
+ * for the offload and direct generators but not the primary generator.
  */
 struct OpticalStateCapacity : StateCapacity
 {

@@ -98,6 +98,8 @@ struct OpticalProblem
     unsigned int seed{};
     //! Set up step or action timers
     Timers timers;
+    //! Write Perfetto tracing data to this filename
+    std::string perfetto_file;
     //! Write Celeritas diagnostics to this file ("-" is stdout)
     std::string output_file{"-"};
 };

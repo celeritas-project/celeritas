@@ -117,10 +117,12 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
      * for some run modes, e.g. offloading distributions through accel where we
      * already know the number of pending tracks.
      */
+    auto counters = state_->sync_get_counters();
     for (auto const& d : data)
     {
-        state_->counters().num_pending += d.num_photons;
+        counters.num_pending += d.num_photons;
     }
+    state_->sync_put_counters(counters);
 
     // Generate optical photons and transport to completion
     (*problem_.transporter)(*state_);

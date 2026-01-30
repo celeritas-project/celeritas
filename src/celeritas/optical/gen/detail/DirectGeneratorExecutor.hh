@@ -29,7 +29,6 @@ struct DirectGeneratorExecutor
     CRefPtr<CoreParamsData, MemSpace::native> params;
     RefPtr<CoreStateData, MemSpace::native> state;
     NativeRef<DirectGeneratorStateData> const data;
-    CoreStateCounters counters;
 
     // Initialize optical photons
     inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
@@ -50,16 +49,17 @@ CELER_FUNCTION void DirectGeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_EXPECT(params);
     CELER_EXPECT(state);
 
+    auto counters = state->init.counters.data().get();
     // Create view to new track to be initialized
     CoreTrackView vacancy(*params, *state, [&] {
         TrackSlotId idx{
-            index_before(counters.num_vacancies, ThreadId(tid.get()))};
+            index_before(counters->num_vacancies, ThreadId(tid.get()))};
         return state->init.vacancies[idx];
     }());
 
     // Get initializer from the back
     TrackInitializer const& init = data.initializers[ItemId<TrackInitializer>(
-        index_before(counters.num_pending, ThreadId(tid.get())))];
+        index_before(counters->num_pending, ThreadId(tid.get())))];
 
     // Initialize track
     vacancy = init;

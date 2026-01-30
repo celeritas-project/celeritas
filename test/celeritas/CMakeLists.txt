@@ -80,6 +80,7 @@ set(_sources
   global/StepperTestBase.cc
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
+  mucf/MucfInteractorHostTestBase.cc
   neutron/NeutronTestBase.cc
   optical/OpticalMockTestBase.cc
   optical/OpticalTestBase.cc
@@ -147,6 +148,12 @@ celeritas_add_test(Units.test.cc)
 celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 #-----------------------------------------------------------------------------#
+# MuCF
+
+# Interactors
+celeritas_add_test(mucf/DTMucfInteractor.test.cc ${_needs_double})
+
+#-----------------------------------------------------------------------------#
 # EM
 
 # Distributions
@@ -204,6 +211,9 @@ celeritas_add_test(ext/GeantImporter.test.cc
   FILTER ${_import_filter}
 )
 
+celeritas_add_test(ext/JsonIO.test.cc
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
+
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
@@ -214,7 +224,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(ext/detail/HitProcessor.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
-  celeritas_add_test(ext/detail/TrackProcessor.test.cc
+  celeritas_add_test(ext/GeantTrackReconstruction.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 
@@ -378,6 +388,11 @@ celeritas_add_test(io/ImportUnits.test.cc)
 celeritas_add_test(io/JsonEventIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
+
+#-----------------------------------------------------------------------------#
+# Inp
+celeritas_add_test(inp/JsonIO.test.cc
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 #-----------------------------------------------------------------------------#
 # Optical

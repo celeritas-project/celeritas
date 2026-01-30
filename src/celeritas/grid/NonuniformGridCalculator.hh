@@ -23,8 +23,6 @@ namespace celeritas
  * Find and interpolate real numbers on a nonuniform grid.
  *
  * The end points of the grid are extrapolated outward as constant values.
- *
- * \todo Template on value type and/or units?
  */
 class NonuniformGridCalculator
 {

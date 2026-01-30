@@ -268,11 +268,11 @@ void LocalTransporter::Push(G4Track& g4track)
     PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
     track.particle_id = particles_->find(pdg);
 
-    // Generate Celeritas-specific PrimaryID
+    // Generate Celeritas-specific PrimaryID and capture user info
     if (hit_processor_)
     {
         track.primary_id
-            = hit_processor_->track_processor().register_primary(g4track);
+            = hit_processor_->track_reconstruction().acquire(g4track);
     }
 
     track.energy = units::MevEnergy(
@@ -411,7 +411,7 @@ void LocalTransporter::Flush()
                                    << " hits for event " << event_id_.get();
             run_accum_.hits += num_hits;
         }
-        hit_processor_->track_processor().end_event();
+        hit_processor_->track_reconstruction().clear();
     }
 }
 

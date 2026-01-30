@@ -47,8 +47,14 @@ class CoreStateInterface : public AuxStateInterface
     //! Thread/stream ID
     virtual StreamId stream_id() const = 0;
 
-    //! Access track initialization counters
-    virtual CoreStateCounters const& counters() const = 0;
+    //! Synchronize and copy track initialization counters from device to host
+    //! For host-only code, this replaces the old counters() function
+    [[nodiscard]] virtual CoreStateCounters sync_get_counters() const = 0;
+
+    //! Synchronize and copy track initialization counters from host to device
+    //! For host-only code, this replaces the old counters() function
+    //! since we return a CoreStateCounters object instead of a reference
+    virtual void sync_put_counters(CoreStateCounters const&) = 0;
 
     //! Reseed the RNGs at the start of an event for reproducibility
     virtual void reseed(std::shared_ptr<RngParams const>, UniqueEventId) = 0;
@@ -79,12 +85,6 @@ class CoreStateBase : public CoreStateInterface
     //!@}
 
   public:
-    //! Track initialization counters
-    CoreStateCounters& counters() { return counters_; }
-
-    //! Track initialization counters
-    CoreStateCounters const& counters() const final { return counters_; }
-
     //! Optical loop statistics
     OpticalAccumStats const& accum() const { return accum_; }
 
@@ -106,9 +106,6 @@ class CoreStateBase : public CoreStateInterface
     ~CoreStateBase() override;
 
   private:
-    // Counters for track initialization and activity
-    CoreStateCounters counters_;
-
     //! Counts accumulated over the event for diagnostics
     OpticalAccumStats accum_;
 
@@ -153,6 +150,14 @@ class CoreState final : public CoreStateBase
 
     //! Number of track slots
     size_type size() const final { return states_.size(); }
+
+    //! Synchronize and copy track initialization counters from device to host
+    [[nodiscard]] CoreStateCounters sync_get_counters() const final;
+
+    //! Synchronize and copy track initialization counters from host to device
+    //! For host-only code, this copies the local CoreStateCounters back to the
+    //! class, since sync_get_counters() doesn't return a reference
+    void sync_put_counters(CoreStateCounters const&) final;
 
     // Whether the state is being transported with no active particles
     bool warming_up() const;
