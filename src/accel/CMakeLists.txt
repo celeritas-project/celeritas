@@ -30,7 +30,7 @@ list(APPEND SOURCES
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
   IntegrationBase.cc
-  LocalOpticalOffload.cc
+  LocalOpticalGenOffload.cc
   LocalTransporter.cc
   Logger.cc
   PGPrimaryGeneratorAction.cc

@@ -135,7 +135,7 @@ class TMITestBase : virtual public IntegrationTestBase
     void EndOfEventAction(G4Event const*) override
     {
         auto const& local_transport
-            = detail::IntegrationSingleton::local_transporter();
+            = detail::IntegrationSingleton::instance().local_track_offload();
         EXPECT_EQ(0, local_transport.GetBufferSize());
     }
 
@@ -404,7 +404,8 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     if (integration.mode() == OffloadMode::enabled)
     {
-        auto& local_transporter = integration.local_transporter();
+        auto& local_transporter
+            = dynamic_cast<LocalTransporter&>(integration.local_offload());
         auto const& shared_params = integration.shared_params();
 
         // Check that local/shared data is available before end of run
@@ -518,7 +519,8 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     if (integration.mode() == OffloadMode::enabled)
     {
-        auto& local_transporter = integration.local_transporter();
+        auto& local_transporter
+            = dynamic_cast<LocalTransporter&>(integration.local_offload());
         auto const& shared_params = integration.shared_params();
 
         // Check that local/shared data is available before end of run
@@ -664,7 +666,8 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     if (integration.mode() == OffloadMode::enabled)
     {
-        auto& local_transporter = integration.local_transporter();
+        auto& local_transporter
+            = dynamic_cast<LocalTransporter&>(integration.local_offload());
         auto const& shared_params = integration.shared_params();
 
         // Check that local/shared data is available before end of run

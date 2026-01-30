@@ -15,7 +15,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "LocalOffloadInterface.hh"
+#include "TrackOffloadInterface.hh"
 
 class G4EventManager;
 class G4Track;
@@ -49,10 +49,8 @@ class StepperInterface;
  *
  * \warning Due to Geant4 thread-local allocators, this class \em must be
  * finalized or destroyed on the same CPU thread in which is created and used!
- *
- * \todo Rename \c LocalOffload or something?
  */
-class LocalTransporter final : public LocalOffloadInterface
+class LocalTransporter final : public TrackOffloadInterface
 {
   public:
     // Construct in an invalid state
@@ -88,7 +86,7 @@ class LocalTransporter final : public LocalOffloadInterface
     //!@}
 
     // Offload this track
-    void Push(G4Track&);
+    void Push(G4Track&) final;
 
     // Access core state data for user diagnostics
     CoreStateInterface const& GetState() const;
