@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/Units.hh"
 
-#include "geocel/g4/Convert.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/ext/GeantUnits.hh"
 
@@ -15,6 +14,8 @@
 #if CELERITAS_USE_GEANT4
 #    include <CLHEP/Units/PhysicalConstants.h>
 #    include <CLHEP/Units/SystemOfUnits.h>
+
+#    include "geocel/g4/Convert.hh"
 #endif
 
 namespace celeritas
