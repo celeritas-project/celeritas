@@ -26,11 +26,15 @@ struct TestFieldData
     real_type z_offset{0};  // [native len]
 };
 
-struct TestFieldParams
+class TestFieldParams
 {
-    TestFieldData data;
+  public:
+    explicit TestFieldParams(TestFieldData const& d) : data_{d} {}
 
-    TestFieldData const& host_ref() const { return data; }
+    TestFieldData const& host_ref() const { return data_; }
+
+  private:
+    TestFieldData data_;
 };
 
 //! Return strength if greater than offset, otherwise zero
