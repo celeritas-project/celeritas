@@ -7,14 +7,12 @@
 #pragma once
 
 #include <memory>
-#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4MagneticField.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Quantity.hh"
 #include "geocel/g4/Convert.hh"
-#include "celeritas/Quantities.hh"
+#include "celeritas/ext/GeantUnits.hh"
 
 namespace celeritas
 {
@@ -70,12 +68,11 @@ void MagneticField<P, F>::GetFieldValue(G4double const pos[3],
     F calc_field(params_->host_ref());
 
     // Calculate the magnetic field value in the native Celeritas unit system
-    Real3 result = calc_field(convert_from_geant(pos, clhep_length));
+    Real3 field_native = calc_field(convert_from_geant(pos, clhep_length));
     for (auto i = 0; i < 3; ++i)
     {
-        // Return values of the field vector in CLHEP::tesla for Geant4
-        auto ft = native_value_to<units::FieldTesla>(result[i]);
-        field[i] = convert_to_geant(ft.value(), CLHEP::tesla);
+        // Return values of the field vector in native geant4 units
+        field[i] = convert_to_geant(field_native[i], clhep_field);
     }
 }
 
