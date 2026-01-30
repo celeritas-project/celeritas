@@ -40,11 +40,15 @@ struct LinearMagFieldData
 /*!
  * Parameters for the test linear magnetic field.
  */
-struct LinearMagFieldParams
+class LinearMagFieldParams
 {
-    LinearMagFieldData data;
+  public:
+    explicit LinearMagFieldParams(LinearMagFieldData const& d) : data_{d} {}
 
-    LinearMagFieldData const& host_ref() const { return data; }
+    LinearMagFieldData const& host_ref() const { return data_; }
+
+  private:
+    LinearMagFieldData data_;
 };
 
 //---------------------------------------------------------------------------//

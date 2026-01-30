@@ -73,9 +73,9 @@ TEST_F(MagneticFieldTest, uniform)
     g4_field.GetFieldValue(pos, field);
 
     // NOTE: quantities are cast to single precision
-    EXPECT_SOFT_EQ(real_type(0.5) * CLHEP::tesla, field[0]);
-    EXPECT_SOFT_EQ(real_type(0.3) * CLHEP::tesla, field[1]);
-    EXPECT_SOFT_EQ(real_type(1.0) * CLHEP::tesla, field[2]);
+    EXPECT_SOFT_EQ(real_type(0.5 * CLHEP::tesla), field[0]);
+    EXPECT_SOFT_EQ(real_type(0.3 * CLHEP::tesla), field[1]);
+    EXPECT_SOFT_EQ(real_type(1.0 * CLHEP::tesla), field[2]);
 }
 
 TEST_F(MagneticFieldTest, nonuniform)
