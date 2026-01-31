@@ -35,7 +35,12 @@ CartMapFieldInput MakeCartMapFieldInput(G4Field const& field,
 CartMapFieldInput MakeCartMapFieldInput(CartMapFieldGridParams const& params);
 
 //---------------------------------------------------------------------------//
-//! On-the-fly field calculation with covfie using Celeritas data+units
+/*!
+ * On-the-fly field calculation with covfie using Celeritas data+units.
+ *
+ * This "adapter" implementation hides the covfie dependency from downstream
+ * users.
+ */
 struct CartAdapterField
 {
     HostCRef<CartMapFieldParamsData> const& data;

@@ -122,8 +122,8 @@ TEST_F(CartMapMagneticFieldTest, geant_calculation)
 
     if (false)
     {
-        // TODO: Checking outside the field's domain gives wrong errors or
-        // causes C assertions to fail
+        // TODO: Checking outside the field's domain clamps to a nearby grid
+        // point or triggers a C assert that terminates the program
         pos = {-1 * cm, 0.1 * cm, -0.1 * cm};
         EXPECT_VEC_NEAR(
             (Dbl3{0, 0, 0}), this->calc_field(cart_field, pos), tol);
