@@ -939,9 +939,14 @@ void GeantGeoParams::build_metadata()
         "impl volume", make_logical_vol_labels(vi_mapper_, this->lv_offset())};
     surfaces_ = make_surface_vec(*this);
 
+    using lengthunits::ClhepLength;
     auto clhep_bbox = this->get_clhep_bbox();
-    bbox_ = {convert_from_geant(clhep_bbox.lower().data(), clhep_length),
-             convert_from_geant(clhep_bbox.upper().data(), clhep_length)};
+    auto to_native_real3 = [](Array<double, 3> const& arr) {
+        return static_array_cast<real_type>(
+            native_value_from(make_quantity_array<ClhepLength>(arr)));
+    };
+    bbox_ = {to_native_real3(clhep_bbox.lower()),
+             to_native_real3(clhep_bbox.upper())};
     CELER_ENSURE(bbox_);
     CELER_ENSURE(data_);
 }

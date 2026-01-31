@@ -6,38 +6,55 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4ThreeVector.hh>
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayQuantity.hh"
+#include "geocel/detail/LengthQuantities.hh"
 
-#include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
-#include "geocel/Types.hh"
-#include "geocel/detail/LengthUnits.hh"
+#include "GeantTypes.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// CONSTANTS
-//---------------------------------------------------------------------------//
-//! Value of a unit Celeritas length in the CLHEP unit system
-inline constexpr double clhep_length{1 / lengthunits::millimeter};
-
-//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-/*!
- * Convert a value from Geant4/CLHEP to Celeritas native units.
- */
-template<class T>
-constexpr inline T convert_from_geant(T const& val, T units)
+//! Convert via a quantity to native Geant4 types/units
+template<class Q, class T>
+G4ThreeVector convert_to_geant(Array<T, 3> const& v)
 {
-    return val / units;
+    return to_g4vector(value_as<Q>(native_value_to<Q>(v)));
 }
 
+//---------------------------------------------------------------------------//
+//! Convert via a quantity to native Geant4 types/units
+template<class Q, class T>
+Array<typename Q::value_type, 3> convert_from_geant(G4ThreeVector const& v)
+{
+    return native_value_from<Q>(make_quantity_array<Q>(to_array(v)));
+}
+
+//---------------------------------------------------------------------------//
+//! Convert via a quantity to native Geant4 types/units
+template<class Q>
+double convert_to_geant(real_type v)
+{
+    return value_as<Q>(native_value_to<Q>(v));
+}
+
+//---------------------------------------------------------------------------//
+//! Convert via a quantity to native Geant4 types/units
+template<class Q>
+real_type convert_from_geant(double v)
+{
+    return native_value_from<Q>(Q(v));
+}
+
+//---------------------------------------------------------------------------//
+// DEPRECATED
 //---------------------------------------------------------------------------//
 /*!
  * Convert a value from Geant4 with CLHEP units.
  */
-constexpr inline double convert_from_geant(double val, double units)
+constexpr inline double convert_from_geant(real_type val, double units)
 {
     return val / units;
 }
@@ -48,9 +65,7 @@ constexpr inline double convert_from_geant(double val, double units)
  */
 inline Real3 convert_from_geant(G4ThreeVector const& vec, double units)
 {
-    return {static_cast<real_type>(vec[0] / units),
-            static_cast<real_type>(vec[1] / units),
-            static_cast<real_type>(vec[2] / units)};
+    return static_array_cast<real_type>(to_array(vec) / units);
 }
 
 //---------------------------------------------------------------------------//
@@ -59,54 +74,26 @@ inline Real3 convert_from_geant(G4ThreeVector const& vec, double units)
  */
 inline Real3 convert_from_geant(double const vec[3], double units)
 {
-    return {static_cast<real_type>(vec[0] / units),
-            static_cast<real_type>(vec[1] / units),
-            static_cast<real_type>(vec[2] / units)};
+    return static_array_cast<real_type>(Array{vec[0], vec[1], vec[2]} / units);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert a native Celeritas quantity to a Geant4 value with CLHEP units.
  */
-template<class T>
-constexpr inline double convert_to_geant(T const& val, double units)
+constexpr inline double convert_to_geant(real_type val, double units)
 {
     return val * units;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a native Celeritas quantity to a Geant4 value.
- */
-constexpr inline double convert_to_geant(real_type val, double units)
-{
-    return double{val} * units;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Convert a native Celeritas 3-vector to a Geant4 equivalent.
  */
-template<class T>
-inline G4ThreeVector convert_to_geant(Array<T, 3> const& arr, double units)
+inline G4ThreeVector convert_to_geant(Real3 const& arr, double units)
 {
-    return {arr[0] * units, arr[1] * units, arr[2] * units};
+    return to_g4vector(static_array_cast<double>(arr) * units);
 }
-
-//! \cond (CELERITAS_DOC_DEV)
-//---------------------------------------------------------------------------//
-/*!
- * Set y += a * x .
- */
-inline void axpy(double a, G4ThreeVector const& x, G4ThreeVector* y)
-{
-    CELER_EXPECT(y);
-    for (int i = 0; i < 3; ++i)
-    {
-        (*y)[i] = a * x[i] + (*y)[i];
-    }
-}
-//! \endcond
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
