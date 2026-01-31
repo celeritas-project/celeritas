@@ -245,6 +245,10 @@ TEST(QuantityTest, array)
     auto dozens2 = make_quantity_array<Dozen>(Int3{1, 2, 3});
     EXPECT_TRUE((std::is_same_v<Dozen3, decltype(dozens2)>));
     EXPECT_EQ(Int3(12, 24, 36), native_value_from(dozens2));
+
+    auto dva = value_as<Dozen>(dozens2);
+    EXPECT_TRUE((std::is_same_v<Int3, decltype(dva)>));
+    EXPECT_EQ(Int3(1, 2, 3), dva);
 }
 
 TEST(QuantityTest, io)

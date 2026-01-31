@@ -8,7 +8,9 @@
 #pragma once
 
 #include <cstddef>
+#include <type_traits>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 
 #include "Quantity.hh"
@@ -85,6 +87,24 @@ CELER_CONSTEXPR_FUNCTION auto native_value_to(Array<T, N> const& value) noexcept
     for (size_type i = 0; i < N; ++i)
     {
         result[i] = native_value_to<Q>(value[i]);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert an array of quantities to native values.
+ *
+ * This applies native_value_from element-wise to each component.
+ */
+template<class Q, size_type N>
+CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
+    -> std::enable_if_t<is_quantity_v<Q>, Array<typename Q::value_type, N>>
+{
+    Array<typename Q::value_type, N> result;
+    for (size_type i = 0; i < N; ++i)
+    {
+        result[i] = value_as<Q>(quant[i]);
     }
     return result;
 }
