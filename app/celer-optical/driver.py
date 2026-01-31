@@ -25,6 +25,8 @@ geant_setup = {
     "mie_scattering": True,
     "wavelength_shifting": {"enable": False},
     "wavelength_shifting2": {"enable": False},
+    "cherenkov": {"enable": False},
+    "scintillation": {"enable": False},
 }
 
 capacity = {
