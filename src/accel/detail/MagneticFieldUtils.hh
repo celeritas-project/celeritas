@@ -13,7 +13,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/HyperslabIndexer.hh"
-#include "geocel/GeantGeoUtils.hh"
 
 namespace celeritas
 {
@@ -28,6 +27,7 @@ namespace detail
  * 2. Setting up the HyperslabIndexer
  * 3. Sampling the field on a grid
  *
+ * \param g4field Geant4 magnetic field class
  * \param field_data Output parameter array to store field values (must be
  *                   pre-allocated with size equal to the product of all dims)
  * \param dims Grid dimensions
@@ -37,22 +37,22 @@ namespace detail
  *                           size_type) returning [x, y, z, 0] coordinates
  * \param convert_field Callable that converts field from G4 to
  *                        native units in the correct coordinate space. Must
- *                        have signature: void(Array<G4double, 3> const&,
- *                        real_type*) taking G4 field [Bx, By, Bz] and writing
- *                        converted values to output pointer
+ *                        have signature:
+ *                        void(Array<G4double, 3> const& field,
+ *                             Array<G4double, 4> const& pos,
+ *                             real_type output[3])
+ *                        taking G4 field [Bx, By, Bz], the position
+ *                        [x, y, z, 0], and writing converted values to output
+ *                        pointer
  */
 template<typename PositionCalc, typename FieldConverter>
-inline void setup_and_sample_field(real_type* field_data,
+inline void setup_and_sample_field(G4Field const& g4field,
+                                   real_type* field_data,
                                    Array<size_type, 4> const& dims,
                                    PositionCalc const& calc_position,
                                    FieldConverter const& convert_field)
 {
     HyperslabIndexer const flat_index{dims};
-    G4Field const* g4field = celeritas::geant_field();
-    CELER_VALIDATE(g4field,
-                   << "no Geant4 global field has been set: cannot build "
-                      "magnetic field map");
-
     Array<G4double, 3> bfield;
 
     for (size_type i = 0; i < dims[0]; ++i)
@@ -65,11 +65,11 @@ inline void setup_and_sample_field(real_type* field_data,
                 Array<G4double, 4> pos = calc_position(i, j, k);
 
                 // Sample field at this position
-                g4field->GetFieldValue(pos.data(), bfield.data());
+                g4field.GetFieldValue(pos.data(), bfield.data());
 
                 // Convert and store field values
                 auto* cur_bfield = field_data + flat_index(i, j, k, 0);
-                convert_field(bfield, cur_bfield);
+                convert_field(bfield, pos, cur_bfield);
             }
         }
     }

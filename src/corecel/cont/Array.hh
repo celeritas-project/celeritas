@@ -22,10 +22,11 @@ namespace celeritas
  * The Array class is primarily used for point coordinates (e.g., \c Real3) but
  * is also used for other fixed-size data structures.
  *
- * This isn't fully standards-compliant with std::array: there's no support for
- * N=0 for example. Additionally it uses the native celeritas \c size_type,
- * even though this has \em no effect on generated code for values of N inside
- * the range of \c size_type. Arrays are also zero-initialized by default.
+ * This is not fully compatible with std::array:
+ * - no support for N=0
+ * - uses the native celeritas \c size_type (even though this has \em no effect
+     on generated code for values of N inside the range of \c size_type
+ * - zero-initialized by default
  *
  * \note For supplementary functionality, include:
  * - \c corecel/math/ArrayUtils.hh for real-number vector/matrix applications

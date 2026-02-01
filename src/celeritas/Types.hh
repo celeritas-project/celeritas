@@ -218,7 +218,7 @@ enum class WlsTimeProfile
 };
 
 //---------------------------------------------------------------------------//
-//! Cylindrical coordinates indices
+//! Cylindrical coordinate indices
 enum class CylAxis
 {
     r = 0,
