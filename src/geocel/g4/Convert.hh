@@ -51,6 +51,9 @@ real_type convert_from_geant(double v)
 //---------------------------------------------------------------------------//
 // DEPRECATED
 //---------------------------------------------------------------------------//
+//! Value of a unit Celeritas length in the CLHEP unit system
+inline constexpr double clhep_length{1 / lengthunits::millimeter};
+
 /*!
  * Convert a value from Geant4 with CLHEP units.
  */
