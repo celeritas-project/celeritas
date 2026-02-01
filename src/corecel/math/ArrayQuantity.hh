@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Construct an array of quantities from raw values.
  *
- * This helper function allows concise construction of quantity arrays:
+ * This helper function allows concise construction of arrays of quantities:
  * \code
  * auto distances = make_quantity_array<CmLength>(1.0, 2.5, 3.7);
  * \endcode

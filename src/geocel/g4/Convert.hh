@@ -29,7 +29,7 @@ G4ThreeVector convert_to_geant(Array<T, 3> const& v)
 template<class Q, class T>
 Array<typename Q::value_type, 3> convert_from_geant(G4ThreeVector const& v)
 {
-    return native_value_from<Q>(make_quantity_array<Q>(to_array(v)));
+    return native_value_from(make_quantity_array<Q>(to_array(v)));
 }
 
 //---------------------------------------------------------------------------//
