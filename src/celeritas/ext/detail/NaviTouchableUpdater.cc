@@ -94,7 +94,7 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     CELER_EXPECT(lv);
     CELER_EXPECT(touchable);
 
-    auto g4pos = convert_to_geant<ClhepLength>(pos);
+    auto g4pos = convert_to_geant<lengthunits::ClhepLength>(pos);
     auto g4dir = to_g4vector(dir);
 
     // Locate pre-step point
