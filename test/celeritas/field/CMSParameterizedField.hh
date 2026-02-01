@@ -85,7 +85,7 @@ auto CMSParameterizedField::operator()(Real3 const& pos) const -> Real3
  * Evaluate the magnetic field value at the given (r, z) position based on
  * the parameterized function.
  *
- * TODO: simplify and optimize
+ * \return Field strength in Tesla
  */
 CELER_FUNCTION
 auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
