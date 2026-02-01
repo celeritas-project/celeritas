@@ -18,6 +18,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/Turn.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -50,11 +51,11 @@ inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
 /*!
  * Generates input for CylMapField params with configurable nonuniform grid
  * dimensions in native Geant4 units, and \f$\phi\f$ should be in the range
- * [0;\f$2\times\pi\f$]. This must be called after G4RunManager::Initialize as
- * it will retrieve the G4FieldManager's field to sample it.
+ * [0;\f$2\times\pi\f$] using an explicit field.
  */
 CylMapFieldParams::Input
-MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
+MakeCylMapFieldInput(G4Field const& field,
+                     std::vector<G4double> const& r_grid,
                      std::vector<G4double> const& phi_values,
                      std::vector<G4double> const& z_grid)
 {
@@ -111,11 +112,33 @@ MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
     };
 
     // Sample field using common utility
-    detail::setup_and_sample_field(
-        field_input.field.data(), dims, position_calculator, field_converter);
+    detail::setup_and_sample_field(field,
+                                   field_input.field.data(),
+                                   dims,
+                                   position_calculator,
+                                   field_converter);
 
     CELER_ENSURE(field_input);
     return field_input;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generates input for CylMapField params with configurable nonuniform grid
+ * dimensions in native Geant4 units, and \f$\phi\f$ should be in the range
+ * [0;\f$2\times\pi\f$]. This must be called after G4RunManager::Initialize as
+ * it will retrieve the G4FieldManager's field to sample it.
+ */
+CylMapFieldParams::Input
+MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
+                     std::vector<G4double> const& phi_values,
+                     std::vector<G4double> const& z_grid)
+{
+    G4Field const* g4field = celeritas::geant_field();
+    CELER_VALIDATE(g4field,
+                   << "no Geant4 global field has been set: cannot build "
+                      "magnetic field map");
+    return MakeCylMapFieldInput(*g4field, r_grid, phi_values, z_grid);
 }
 
 //---------------------------------------------------------------------------//

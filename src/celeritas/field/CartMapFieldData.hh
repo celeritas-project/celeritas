@@ -9,7 +9,7 @@
 #include "corecel/Config.hh"
 
 #if CELERITAS_USE_COVFIE || __DOXYGEN__
-#    include "CartMapFieldData.covfie.hh"
+#    include "CartMapFieldData.covfie.hh"  // IWYU pragma: export
 #else
 #    include "corecel/Types.hh"
 

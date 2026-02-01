@@ -7,8 +7,16 @@
 #include "celeritas/Units.hh"
 
 #include "celeritas/UnitTypes.hh"
+#include "celeritas/ext/GeantUnits.hh"
 
 #include "celeritas_test.hh"
+
+#if CELERITAS_USE_GEANT4
+#    include <CLHEP/Units/PhysicalConstants.h>
+#    include <CLHEP/Units/SystemOfUnits.h>
+
+#    include "geocel/g4/Convert.hh"
+#endif
 
 namespace celeritas
 {
@@ -84,6 +92,44 @@ TEST(UnitsTest, trait_visitor)
     EXPECT_STREQ("cm", visit_unit_system(get_length_str, UnitSystem::cgs));
     EXPECT_STREQ("m", visit_unit_system(get_length_str, UnitSystem::si));
     EXPECT_STREQ("mm", visit_unit_system(get_length_str, UnitSystem::clhep));
+}
+
+//---------------------------------------------------------------------------//
+TEST(UnitsTest, clhep)
+{
+#if CELERITAS_USE_GEANT4
+    {
+        EXPECT_SOFT_EQ(0.001, CLHEP::tesla);
+        if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        {
+            EXPECT_SOFT_EQ(1e4, units::tesla);
+        }
+        else if (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP)
+        {
+            EXPECT_SOFT_EQ(CLHEP::tesla, units::tesla);
+        }
+
+        double g4_native = 2.5 * CLHEP::tesla;
+        auto celer_native = convert_from_geant(g4_native, clhep_field);
+        EXPECT_SOFT_EQ(2.5 * units::tesla, celer_native);
+        EXPECT_SOFT_EQ(2.5, native_value_to<FieldTesla>(celer_native).value());
+        EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_field));
+    }
+    {
+        double g4_native = 1.5 * CLHEP::s;
+        auto celer_native = convert_from_geant(g4_native, clhep_time);
+        EXPECT_SOFT_EQ(1.5 * units::second, celer_native);
+        EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_time));
+    }
+    {
+        double g4_native = 1.5 * CLHEP::meter;
+        auto celer_native = convert_from_geant(g4_native, clhep_length);
+        EXPECT_SOFT_EQ(1.5 * units::meter, celer_native);
+        EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_length));
+    }
+#else
+    GTEST_SKIP() << "CLHEP is not available";
+#endif
 }
 
 //---------------------------------------------------------------------------//

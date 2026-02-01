@@ -24,10 +24,11 @@ namespace celeritas
  * Load a GDML file and construct sensitive detectors.
  *
  * - In \c Construct on the main thread, load the GDML file (including
- * detectors)
+ *   detectors)
  * - In \c ConstructSDandField on each worker thread, call the SDBuilder for
  *   each distinct SD name, for all LVs that share the SD name
  *
+ * \internal
  * \todo This is extracted from app/celer-g4; it should be extended and will
  * replace the app/celer-g4 construction.
  */
