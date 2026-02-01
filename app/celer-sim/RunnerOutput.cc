@@ -73,9 +73,9 @@ void RunnerOutput::output(JsonPimpl* j) const
             step_times.push_back(event.step_times);
         }
 
-        if (event.num_optical)
+        if (!event.num_optical.generators.empty())
         {
-            optical.push_back(*event.num_optical);
+            optical.push_back(event.num_optical);
         }
     }
 

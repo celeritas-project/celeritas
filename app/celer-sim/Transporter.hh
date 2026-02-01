@@ -7,7 +7,6 @@
 #pragma once
 
 #include <memory>
-#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -83,7 +82,7 @@ struct TransporterResult
     size_type max_queued{};  //!< Maximum track initializer count
 
     // Optical photons
-    std::optional<CounterAccumStats> num_optical{};
+    CounterAccumStats num_optical;
 };
 
 //---------------------------------------------------------------------------//
