@@ -1147,14 +1147,23 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
     {
-        auto const* particle = particle_iterator.value();
-        if (!include_particle(PDGNumber{particle->GetPDGEncoding()}))
+        PDGNumber pdg = [&particle_iterator] {
+            GeantParticleView particle{*(particle_iterator.value())};
+            if (G4VERSION_NUMBER < 1070 && particle.is_optical_photon())
+            {
+                // Before 10.7, geant4 uses PDG 0 plus a unique string name
+                return g4_optical_pdg;
+            }
+            return particle.pdg();
+        }();
+
+        if (!include_particle(pdg))
         {
             continue;
         }
 
         // Get the transportation process
-        auto const* trans = get_transportation(particle);
+        auto const* trans = get_transportation(particle_iterator.value());
         CELER_ASSERT(trans);
 
         // Get the threshold values for killing looping tracks
@@ -1163,7 +1172,7 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
         looping.important_energy = trans->GetThresholdImportantEnergy()
                                    * mev_scale;
         CELER_ASSERT(looping);
-        result.looping.insert({particle->GetPDGEncoding(), looping});
+        result.looping.insert({pdg.get(), looping});
     }
 
     CELER_ENSURE(result);
