@@ -110,10 +110,10 @@ TEST(UnitsTest, clhep)
         }
 
         double g4_native = 2.5 * CLHEP::tesla;
-        auto celer_native = convert_from_geant(g4_native, clhep_field);
+        auto celer_native = convert_from_geant<ClhepField>(g4_native);
         EXPECT_SOFT_EQ(2.5 * units::tesla, celer_native);
         EXPECT_SOFT_EQ(2.5, native_value_to<FieldTesla>(celer_native).value());
-        EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_field));
+        EXPECT_SOFT_EQ(g4_native, convert_to_geant<ClhepField>(celer_native));
     }
     {
         double g4_native = 1.5 * CLHEP::s;

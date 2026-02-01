@@ -45,7 +45,7 @@ double convert_to_geant(real_type v)
 template<class Q>
 real_type convert_from_geant(double v)
 {
-    return native_value_from<Q>(Q(v));
+    return native_value_from(Q(v));
 }
 
 //---------------------------------------------------------------------------//

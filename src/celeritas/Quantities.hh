@@ -32,6 +32,14 @@ using LogMevEnergy = RealQuantity<LogMev>;
 
 //---------------------------------------------------------------------------//
 //!@{
+//! \name Quantities for Geant4 conversion
+using ClhepLength = Quantity<Millimeter, double>;
+using ClhepField = Quantity<ClhepUnitBField, double>;
+using ClhepTime = Quantity<Nanosecond, double>;
+//!@}
+
+//---------------------------------------------------------------------------//
+//!@{
 //! \name Quantities for manual input and/or test harnesses
 using BarnXs = RealQuantity<Barn>;
 using CmLength = RealQuantity<Centimeter>;
