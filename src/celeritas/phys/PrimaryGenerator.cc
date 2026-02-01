@@ -38,8 +38,7 @@ auto make_energy_sampler(inp::EnergyDistribution const& i)
         return_as<PrimaryGenerator::EnergySampler>(Overload{
             [](inp::MonoenergeticDistribution const& me) {
                 CELER_VALIDATE(me.value > 0,
-                               << "invalid primary generator "
-                                  "energy "
+                               << R"(invalid primary generator energy )"
                                << me.value);
                 return DeltaDistribution{static_cast<real_type>(me.value)};
             },
@@ -76,18 +75,19 @@ auto make_position_sampler(inp::ShapeDistribution const& i)
 auto make_direction_sampler(inp::AngleDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
-    return std::visit(return_as<PrimaryGenerator::DirectionSampler>(Overload{
-                          [](inp::IsotropicDistribution const&) {
-                              return IsotropicDistribution<real_type>{};
-                          },
-                          [](inp::MonodirectionalDistribution const& ma) {
-                              CELER_VALIDATE(is_soft_unit_vector(ma.value),
-                                             << "primary generator angle is "
-                                                "not a unit vector");
-                              return DeltaDistribution{
-                                  static_array_cast<real_type>(ma.value)};
-                          }}),
-                      i);
+    return std::visit(
+        return_as<PrimaryGenerator::DirectionSampler>(Overload{
+            [](inp::IsotropicDistribution const&) {
+                return IsotropicDistribution<real_type>{};
+            },
+            [](inp::MonodirectionalDistribution const& ma) {
+                CELER_VALIDATE(
+                    is_soft_unit_vector(ma.value),
+                    << R"(primary generator angle is not a unit vector)");
+                return DeltaDistribution{
+                    static_array_cast<real_type>(ma.value)};
+            }}),
+        i);
 }
 
 //---------------------------------------------------------------------------//

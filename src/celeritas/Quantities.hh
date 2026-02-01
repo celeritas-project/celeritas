@@ -36,6 +36,7 @@ using LogMevEnergy = RealQuantity<LogMev>;
 using ClhepLength = Quantity<Millimeter, double>;
 using ClhepField = Quantity<ClhepUnitBField, double>;
 using ClhepTime = Quantity<Nanosecond, double>;
+using ClhepEnergy = Quantity<Mev, double>;
 //!@}
 
 //---------------------------------------------------------------------------//
