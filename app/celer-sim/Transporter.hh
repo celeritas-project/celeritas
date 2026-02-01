@@ -83,7 +83,7 @@ struct TransporterResult
     size_type max_queued{};  //!< Maximum track initializer count
 
     // Optical photons
-    std::optional<CounterAccumStats> num_optical;
+    std::optional<CounterAccumStats> num_optical{};
 };
 
 //---------------------------------------------------------------------------//

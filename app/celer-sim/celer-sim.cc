@@ -141,7 +141,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
             activate_device_local();
 
             // Run a single event on a single thread
-            TransporterResult event_result;
+            TransporterResult event_result{};
             CELER_TRY_HANDLE(event_result = run_stream(
                                  id_cast<StreamId>(get_openmp_thread()),
                                  id_cast<EventId>(event)),

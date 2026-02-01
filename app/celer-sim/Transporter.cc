@@ -212,15 +212,13 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     {
         auto& aux = stepper_->sp_state()->aux();
         auto counters = optical_->exchange_counters(aux);
-
         CELER_ASSERT(counters.generators.size() == 1);
-        auto const& gen = counters.generators.front();
 
         CELER_LOG_LOCAL(debug)
-            << "Tracked " << gen.num_generated << " photons from "
-            << gen.buffer_size << " distributions for " << counters.steps
-            << " steps, using " << counters.step_iters
-            << " step iterations over " << counters.flushes << " flushes";
+            << "Tracked " << counters.generators[0].num_generated
+            << " photons for " << counters.steps << " steps, using "
+            << counters.step_iters << " step iterations over "
+            << counters.flushes << " flushes";
 
         auto const& buffer_counts = optical_->buffer_counts(aux);
         if (!buffer_counts.empty())
