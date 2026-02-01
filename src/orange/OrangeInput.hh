@@ -24,10 +24,9 @@
 
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
+#include "inp/Bih.hh"
 #include "surf/VariantSurface.hh"
 #include "transform/VariantTransform.hh"
-
-#include "detail/BIHBuilder.hh"
 
 namespace celeritas
 {
@@ -180,7 +179,7 @@ struct RectArrayInput
 struct ConstructionOptions
 {
     //! Options for Bounding Interval Hierarchy (BIH) construction
-    detail::BIHBuilder::Options bih_options;
+    inp::BIHBuilder bih_options;
 
     //! Whether the options are valid
     explicit operator bool() const { return static_cast<bool>(bih_options); }

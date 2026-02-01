@@ -16,6 +16,7 @@
 
 #include "BIHPartitioner.hh"
 #include "../OrangeData.hh"
+#include "../inp/Bih.hh"
 
 namespace celeritas
 {
@@ -50,25 +51,15 @@ class BIHBuilder
   public:
     //!@{
     //! \name Type aliases
-
-    //! Options parameters
-    struct Options
-    {
-        //! Minimum number of bboxes needed to trigger a partitioning attempt
-        size_type min_split_size = 2;
-
-        //! Whether the options are valid
-        explicit operator bool() const { return min_split_size >= 2; }
-    };
-
     using VecBBox = std::vector<FastBBox>;
     using Storage = BIHTreeData<Ownership::value, MemSpace::host>;
     using SetLocalVolId = std::set<LocalVolumeId>;
+    using Input = inp::BIHBuilder;
     //!@}
 
   public:
-    // Construct from Storage and Options objects
-    BIHBuilder(Storage* storage, Options options);
+    // Construct from Storage and Input objects
+    BIHBuilder(Storage* storage, Input inp);
 
     // Create BIH Nodes
     BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
@@ -97,7 +88,7 @@ class BIHBuilder
     CollectionBuilder<BIHInnerNode> inner_nodes_;
     CollectionBuilder<BIHLeafNode> leaf_nodes_;
 
-    Options options_;
+    Input inp_;
 
     //// HELPER FUNCTIONS ////
 
