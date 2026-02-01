@@ -67,7 +67,7 @@ class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
                     result.energy.push_back(p->GetKineticEnergy());
                     result.mass.push_back(p->GetMass());
 
-                    auto dir = convert_from_geant(p->GetMomentumDirection(), 1);
+                    auto dir = to_array(p->GetMomentumDirection());
                     result.dir.insert(result.dir.end(), dir.begin(), dir.end());
                 }
             }

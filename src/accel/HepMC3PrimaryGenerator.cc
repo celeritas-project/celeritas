@@ -62,8 +62,8 @@ class PrimaryInserter
         G4PrimaryParticle* primary = new G4PrimaryParticle(par.pid());
 
         // Set the primary directlon
-        auto dir = make_unit_vector(Array<double, 3>{p.x(), p.y(), p.z()});
-        primary->SetMomentumDirection(convert_to_geant(dir, 1));
+        auto dir = make_unit_vector(Array{p.x(), p.y(), p.z()});
+        primary->SetMomentumDirection(to_g4vector(dir));
 
         // Set the kinetic energy
         primary->SetKineticEnergy(p.e() - p.m());
