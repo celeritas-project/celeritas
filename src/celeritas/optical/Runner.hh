@@ -46,7 +46,7 @@ class Runner
 
     struct Result
     {
-        OpticalAccumStats counters;
+        CounterAccumStats counters;
         ActionTimes::MapStrDbl action_times;
     };
 
