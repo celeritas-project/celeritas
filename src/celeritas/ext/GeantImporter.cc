@@ -410,25 +410,27 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
     {
         GeantParticleView particle_view{*(particle_iterator.value())};
 
-        if (!include_particle(particle_view.pdg()))
+        PDGNumber pdg = [&] {
+            if (G4VERSION_NUMBER < 1070 && particle_view.is_optical_photon())
+            {
+                // Before 10.7, geant4 uses PDG 0 plus a unique string name
+                return g4_optical_pdg;
+            }
+            return particle_view.pdg();
+        }();
+
+        if (!include_particle(pdg))
         {
             continue;
         }
 
-        particles.push_back([&particle_view] {
+        particles.push_back([&particle_view, &pdg] {
             inp::Particle result;
             result.name = particle_view.name();
-            result.pdg = particle_view.pdg();
+            result.pdg = pdg;
             result.mass = particle_view.mass();
             result.charge = particle_view.charge();
             result.decay_constant = particle_view.decay_constant();
-
-            if (G4VERSION_NUMBER < 1070 && particle_view.is_optical_photon())
-            {
-                // Before 10.7, geant4 uses PDG 0 plus a unique string name
-                result.pdg = g4_optical_pdg;
-            }
-
             return result;
         }());
     }
