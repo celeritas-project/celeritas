@@ -17,6 +17,7 @@
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/GeneratorCountersIO.json.hh"
 
 namespace celeritas
 {
@@ -74,15 +75,7 @@ void RunnerOutput::output(JsonPimpl* j) const
 
         if (event.num_optical)
         {
-            auto& count = *event.num_optical;
-            optical.push_back(json::object({
-                CELER_JSON_PAIR(count, tracks),
-                CELER_JSON_PAIR(count, generators),
-
-                CELER_JSON_PAIR(count, steps),
-                CELER_JSON_PAIR(count, step_iters),
-                CELER_JSON_PAIR(count, flushes),
-            }));
+            optical.push_back(*event.num_optical);
         }
     }
 
