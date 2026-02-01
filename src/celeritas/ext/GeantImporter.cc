@@ -1060,11 +1060,20 @@ auto import_processes(GeantImporter::DataSelection selected,
 
     for (auto const& p : particles)
     {
-        G4ParticleDefinition const* g4_particle_def
-            = G4ParticleTable::GetParticleTable()->FindParticle(p.pdg.get());
+        G4ParticleDefinition* g4_particle_def;
+        if (G4VERSION_NUMBER < 1070 && p.pdg == g4_optical_pdg)
+        {
+            // Optical photon PDG in Geant4 is 0 before version 10.7
+            g4_particle_def = G4OpticalPhoton::OpticalPhoton();
+        }
+        else
+        {
+            g4_particle_def = G4ParticleTable::GetParticleTable()->FindParticle(
+                p.pdg.get());
+        }
         CELER_ASSERT(g4_particle_def);
 
-        if (!include_particle(PDGNumber{g4_particle_def->GetPDGEncoding()}))
+        if (!include_particle(p.pdg))
         {
             CELER_LOG(debug) << "Filtered all processes from particle '"
                              << g4_particle_def->GetParticleName() << "'";
@@ -1083,36 +1092,6 @@ auto import_processes(GeantImporter::DataSelection selected,
             }
 
             append_process(*g4_particle_def, process);
-        }
-    }
-
-    // Optical photon PDG in Geant4 is 0 before version 10.7
-    if (G4VERSION_NUMBER < 1070
-        && G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton"))
-    {
-        auto* photon_def = G4OpticalPhoton::OpticalPhoton();
-        CELER_ASSERT(photon_def);
-
-        if (!include_particle(g4_optical_pdg))
-        {
-            CELER_LOG(debug) << "Filtered all processes from particle '"
-                             << photon_def->GetParticleName() << "'";
-        }
-        else
-        {
-            G4ProcessVector const& process_list
-                = *photon_def->GetProcessManager()->GetProcessList();
-
-            for (auto j : range(process_list.size()))
-            {
-                G4VProcess const& process = *process_list[j];
-                if (!include_process(process.GetProcessType()))
-                {
-                    continue;
-                }
-
-                append_process(*photon_def, process);
-            }
         }
     }
 
