@@ -36,9 +36,9 @@ namespace
 
 //! Cartesian to cylindrical 3D vector conversion.
 inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
+                                     double phi,
                                      EnumArray<CylAxis, G4double>& cyl)
 {
-    double const phi = std::atan2(cart[1], cart[0]);
     cyl[CylAxis::r] = cart[0] * std::cos(phi) + cart[1] * std::sin(phi);
     cyl[CylAxis::phi] = -cart[0] * std::sin(phi) + cart[1] * std::cos(phi);
     cyl[CylAxis::z] = cart[2];
@@ -102,9 +102,11 @@ MakeCylMapFieldInput(G4Field const& field,
     // Field converter for cylindrical coordinates (requires coordinate
     // transformation)
     auto field_converter = [](Array<G4double, 3> const& bfield,
-                              real_type* cur_bfield) {
+                              Array<G4double, 4> const& pos,
+                              real_type cur_bfield[3]) {
+        double const phi = std::atan2(pos[1], pos[0]);
         EnumArray<CylAxis, G4double> bfield_cyl;
-        cartesian_to_cylindrical(bfield, bfield_cyl);
+        cartesian_to_cylindrical(bfield, phi, bfield_cyl);
         auto bfield_cyl_native
             = convert_from_geant(bfield_cyl.data(), clhep_field);
         std::copy(

@@ -77,7 +77,8 @@ MakeCartMapFieldInput(G4Field const& field,
 
     // Field converter for Cartesian coordinates (no transformation needed)
     auto field_converter = [](Array<G4double, 3> const& bfield,
-                              real_type* cur_bfield) {
+                              Array<G4double, 4> const&,
+                              real_type cur_bfield[3]) {
         auto bfield_native = convert_from_geant(bfield.data(), clhep_field);
         std::copy(bfield_native.cbegin(), bfield_native.cend(), cur_bfield);
     };

@@ -37,9 +37,13 @@ namespace detail
  *                           size_type) returning [x, y, z, 0] coordinates
  * \param convert_field Callable that converts field from G4 to
  *                        native units in the correct coordinate space. Must
- *                        have signature: void(Array<G4double, 3> const&,
- *                        real_type*) taking G4 field [Bx, By, Bz] and writing
- *                        converted values to output pointer
+ *                        have signature:
+ *                        void(Array<G4double, 3> const& field,
+ *                             Array<G4double, 4> const& pos,
+ *                             real_type output[3])
+ *                        taking G4 field [Bx, By, Bz], the position
+ *                        [x, y, z, 0], and writing converted values to output
+ *                        pointer
  */
 template<typename PositionCalc, typename FieldConverter>
 inline void setup_and_sample_field(G4Field const& g4field,
@@ -65,7 +69,7 @@ inline void setup_and_sample_field(G4Field const& g4field,
 
                 // Convert and store field values
                 auto* cur_bfield = field_data + flat_index(i, j, k, 0);
-                convert_field(bfield, cur_bfield);
+                convert_field(bfield, pos, cur_bfield);
             }
         }
     }
