@@ -841,7 +841,9 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
             [&](inp::OpticalDirectGenerator) -> SPGeneratorBase {
                 return optical::DirectGeneratorAction::make_and_insert(*params);
             },
-            [&](inp::OpticalTrackOffload) -> SPGeneratorBase { return nullptr; },
+            [&](inp::OpticalTrackOffload) -> SPGeneratorBase {
+                return optical::DirectGeneratorAction::make_and_insert(*params);
+            },
         },
         p.generator);
 

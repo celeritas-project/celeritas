@@ -39,6 +39,11 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
     // Save a pointer to the optical transporter
     transport_ = params.optical_problem_loaded().transporter;
 
+    // Save a pointer to the direct generator action to insert tracks
+    direct_gen_
+        = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
+            params.optical_problem_loaded().generator);
+
     CELER_ASSERT(transport_);
     CELER_ASSERT(transport_->params());
 
@@ -121,8 +126,18 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
     CELER_EXPECT(g4track.GetDefinition());
     CELER_EXPECT(g4track.GetDefinition()->GetParticleName() == "opticalphoton");
 
-    // TODO : Populate optical::TrackInitializer from Geant4 Track
+    // Convert Geant4 track to optical::TrackInitializer
     TrackData init;
+
+    init.energy = units::MevEnergy(
+        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
+
+    init.position = convert_from_geant(g4track.GetPosition(), CLHEP::cm);
+
+    init.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
+
+    init.time = convert_from_geant(g4track.GetGlobalTime(), CLHEP::second);
+    init.polarization = convert_from_geant(g4track.GetPolarization(), 1);
 
     ScopedProfiling profile_this{"push"};
 
@@ -147,16 +162,20 @@ void LocalOpticalTrackOffload::Flush()
         return;
     }
 
-    // Number of flushed optical tracks
+    ScopedProfiling profile_this("flush");
+
+    // Insert tracks
+    if (direct_gen_)
+    {
+        direct_gen_->insert(*state_, make_span(buffer_));
+    }
+
+    // Transport tracks
+    (*transport_)(*state_);
+
     ++num_flushed_;
-
-    // TODO  insert buffered track into
-    // optical CoreState and execute optical transport.
-    // state_->insert_primaries(make_span(buffer_));
-
     buffer_.clear();
 }
-
 //---------------------------------------------------------------------------//
 auto LocalOpticalTrackOffload::GetActionTime() const -> MapStrDbl
 {
