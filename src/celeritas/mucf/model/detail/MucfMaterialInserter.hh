@@ -12,6 +12,8 @@
 #include "celeritas/mucf/Types.hh"
 #include "celeritas/mucf/data/DTMixMucfData.hh"
 
+#include "EquilibrateDensitiesCalculator.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -36,8 +38,8 @@ class MucfMaterialInserter
 
     using MoleculeCycles = Array<real_type, 2>;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, MoleculeCycles>;
-    using LhdArray = EnumArray<MucfIsotope, real_type>;
-    using EquilibriumArray = EnumArray<MucfIsoprotologueMolecule, real_type>;
+    using LhdArray = EquilibrateDensitiesCalculator::LhdArray;
+    using EquilibriumArray = EquilibrateDensitiesCalculator::EquilibriumArray;
     using AtomicMassNumber = AtomicNumber;
     using IsotopeChecker = EnumArray<MucfIsotope, bool>;
 
@@ -46,6 +48,7 @@ class MucfMaterialInserter
     CollectionBuilder<CycleTimesArray, MemSpace::host, MuCfMatId> cycle_times_;
     // Temporary quantities needed for calculating the model data
     inp::MucfScalars scalars_;
+    IsotopeChecker has_isotope_;
     LhdArray lhd_densities_;
     EquilibriumArray equilibrium_densities_;
 
@@ -54,12 +57,8 @@ class MucfMaterialInserter
     // Return muonic atom from given atomic mass number
     MucfIsotope from_mass_number(AtomicMassNumber mass);
 
-    // Calculate thermal equilibrium densities
-    EquilibriumArray calc_equilibrium_densities(ElementView const&);
-
     // Calculate mean fusion cycle times for all reactive muonic molecules
-    CycleTimesArray calc_cycle_times(ElementView const& element,
-                                     IsotopeChecker const& has_isotope);
+    CycleTimesArray calc_cycle_times(ElementView const& element);
 
     // Calculate mean fusion cycle times for dd muonic molecules
     Array<real_type, 2> calc_dd_cycle(ElementView const&);
@@ -69,6 +68,9 @@ class MucfMaterialInserter
 
     // Calculate mean fusion cycle times for tt muonic molecules
     Array<real_type, 2> calc_tt_cycle(ElementView const&);
+
+    // Clear temporary data before next insertion
+    void clear();
 };
 
 //---------------------------------------------------------------------------//

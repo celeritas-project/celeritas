@@ -68,6 +68,7 @@ enum class MucfIsoprotologueMolecule
     protium_protium,
     protium_deuterium,
     protium_tritium,
+    deuterium_deuterium,
     deuterium_tritium,
     tritium_tritium,
     size_

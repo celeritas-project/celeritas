@@ -35,6 +35,7 @@ MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
  */
 bool MucfMaterialInserter::operator()(MaterialView const& material)
 {
+    this->clear();
     auto const mat_num_density = material.number_density();
 
     for (auto elcompid : range(material.num_elements()))
@@ -47,8 +48,7 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
             continue;
         }
 
-        // Found hydrogen; Check for d and t isotopes
-        IsotopeChecker has_isotope{false, false};
+        // Found hydrogen; calculate quantities for its isotopes
         auto const elem_rel_abundance = material.elements()[elcompid].fraction;
         for (auto el_comp : range(element_view.num_isotopes()))
         {
@@ -58,25 +58,25 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
                 = this->from_mass_number(iso_view.atomic_mass_number());
 
             CELER_ASSERT(atom < MucfIsotope::size_);
-            has_isotope[atom] = true;  // D or t isotope found
+            has_isotope_[atom] = true;
             lhd_densities_[atom] = elem_rel_abundance * mat_num_density
                                    / scalars_.liquid_hydrogen_density.value();
         }
 
-        if (!has_isotope[MucfIsotope::deuterium]
-            && !has_isotope[MucfIsotope::tritium])
+        if (!has_isotope_[MucfIsotope::deuterium]
+            && !has_isotope_[MucfIsotope::tritium])
         {
             // No deuterium or tritium found; skip material
             return false;
         }
 
-        // Temporary data needed to calculate model data, such as cycle times
-        equilibrium_densities_ = this->calc_equilibrium_densities(element_view);
+        // Found hydrogen with deuterium and/or tritium; Calculate quantities
+        equilibrium_densities_ = EquilibrateDensitiesCalculator(
+            lhd_densities_, material.temperature())();
 
         // Calculate and insert muCF material data into model data
         mucfmatid_to_matid_.push_back(material.material_id());
-        cycle_times_.push_back(
-            this->calc_cycle_times(element_view, has_isotope));
+        cycle_times_.push_back(this->calc_cycle_times(element_view));
         //! \todo Store mean atom spin flip and transfer times
     }
     return true;
@@ -105,23 +105,6 @@ MucfIsotope MucfMaterialInserter::from_mass_number(AtomicMassNumber mass)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate dt mixture densities after reaching thermodynamical
- * equilibrium.
- *
- * Used during cycle time calculations.
- */
-MucfMaterialInserter::EquilibriumArray
-MucfMaterialInserter::calc_equilibrium_densities(ElementView const&)
-{
-    EquilibriumArray result;
-
-    //! \todo Implement
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate fusion mean cycle times.
  *
  * This is designed to work with the user's material definition being either:
@@ -130,9 +113,14 @@ MucfMaterialInserter::calc_equilibrium_densities(ElementView const&)
  * - Multiple elements, single isotope each (separate H, d, and t elements).
  */
 MucfMaterialInserter::CycleTimesArray
-MucfMaterialInserter::calc_cycle_times(ElementView const& element,
-                                       IsotopeChecker const& has_isotope)
+MucfMaterialInserter::calc_cycle_times(ElementView const& element)
 {
+    CELER_EXPECT(element.atomic_number() == AtomicNumber{1});
+    CELER_EXPECT(has_isotope_[MucfIsotope::deuterium]
+                 || has_isotope_[MucfIsotope::tritium]);
+    CELER_EXPECT(lhd_densities_[MucfIsotope::deuterium] > 0
+                 || lhd_densities_[MucfIsotope::tritium] > 0);
+
     CycleTimesArray result;
     for (auto el_comp : range(element.num_isotopes()))
     {
@@ -146,7 +134,7 @@ MucfMaterialInserter::calc_cycle_times(ElementView const& element,
             case MucfIsotope::deuterium: {
                 result[MucfMuonicMolecule::deuterium_deuterium]
                     = this->calc_dd_cycle(element);
-                if (has_isotope[MucfIsotope::tritium])
+                if (has_isotope_[MucfIsotope::tritium])
                 {
                     // Calculate cycle times for dt molecules
                     result[MucfMuonicMolecule::deuterium_tritium]
@@ -222,6 +210,23 @@ MucfMaterialInserter::calc_tt_cycle(ElementView const&)
     // Only F = 1/2 is reactive
     CELER_ENSURE(result[0] >= 0 && result[1] == 0);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear temporary data before next insertion.
+ */
+void MucfMaterialInserter::clear()
+{
+    for (auto& lhd : lhd_densities_)
+    {
+        lhd = 0;
+    }
+
+    for (auto& has_iso : has_isotope_)
+    {
+        has_iso = false;
+    }
 }
 
 //---------------------------------------------------------------------------//
