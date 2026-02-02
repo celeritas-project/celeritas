@@ -23,6 +23,11 @@
 #include "detail/Types.hh"
 #include "detail/Utils.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -566,7 +571,23 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     // Calculate local senses, taking current face into account
     // Current senses should put us inside the volume
     LogicEvaluator is_inside(vol.logic());
-    CELER_ASSERT(is_inside(calc_sense) != (target_sense == Sense::inside));
+
+    // Return early if the current sense already matches the target sense
+    // (a tracking error)
+    if (is_inside(calc_sense) == (target_sense == Sense::inside))
+    {
+#if !CELER_DEVICE_COMPILE
+        if constexpr (CELERITAS_DEBUG)
+        {
+            {
+                CELER_LOG_LOCAL(warning)
+                    << "Calculated surface sense at position " << repr(pos)
+                    << " already matches target sense";
+            }
+        }
+#endif
+        return {};
+    }
 
     // previous isect distance for move delta
     real_type previous_distance{0};
