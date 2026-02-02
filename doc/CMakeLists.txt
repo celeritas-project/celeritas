@@ -233,6 +233,9 @@ set(DOXYGEN_CLASS_GRAPH NO)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_INTERNAL_DOCS NO)
+list(APPEND DOXYGEN_EXCLUDE
+  "${PROJECT_SOURCE_DIR}/src/celeritas/io/"
+)
 
 set(DOXYGEN_ALIASES
   "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""

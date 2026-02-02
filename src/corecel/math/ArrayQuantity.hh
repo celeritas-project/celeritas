@@ -34,13 +34,14 @@ make_quantity_array(Args const&... args) noexcept
     return {Q{args}...};
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Construct an array of quantities from raw values.
  *
- * This helper function allows concise construction of quantity arrays:
+ * This helper function allows concise construction of arrays of quantities:
  * \code
- * auto distances = make_quantity_array<CmLength>(1.0, 2.5, 3.7);
+ * auto pos = make_quantity_array<CmLength>(hardcoded_pos_cm);
  * \endcode
  */
 template<class Q, size_type N>
@@ -109,5 +110,6 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
     return result;
 }
 
+//! \endcond
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
