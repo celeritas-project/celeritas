@@ -150,8 +150,8 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 #-----------------------------------------------------------------------------#
 # MuCF
 
-celeritas_add_test(mucf/MuonicAtomSelector.test.cc ${_needs_double})
-celeritas_add_test(mucf/DTMucfInteractor.test.cc ${_needs_double})
+celeritas_add_test(mucf/MuonicAtomSelector.test.cc)
+celeritas_add_test(mucf/DTMucfInteractor.test.cc)
 
 #-----------------------------------------------------------------------------#
 # EM
