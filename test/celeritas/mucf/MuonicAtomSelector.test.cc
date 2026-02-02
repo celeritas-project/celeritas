@@ -27,11 +27,9 @@ using namespace ::celeritas::test;
 class MuonicAtomSelectorTest : public Test
 {
   protected:
-    using Engine = ::celeritas::test::DiagnosticRngEngine<std::mt19937>;
+    using Engine = DiagnosticRngEngine<std::mt19937>;
 
-    void SetUp() override { rng_.reset_count(); }
-
-    Engine& rng() { return rng_; }
+    void SetUp() override {}
 
     real_type
     calc_deuterium_q1s_prob(real_type deuterium_frac, real_type tritium_frac)
@@ -45,7 +43,7 @@ class MuonicAtomSelectorTest : public Test
         return std::sqrt(num_samples * success_prob * (1 - success_prob));
     }
 
-  private:
+  protected:
     Engine rng_;
 };
 
@@ -63,7 +61,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_deuterium)
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        auto atom = select_atom(this->rng());
+        auto atom = select_atom(rng_);
         if (atom == MucfMuonicAtom::deuterium)
         {
             deuterium_count++;
@@ -83,7 +81,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_tritium)
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        auto atom = select_atom(this->rng());
+        auto atom = select_atom(rng_);
         if (atom == MucfMuonicAtom::tritium)
         {
             tritium_count++;
@@ -106,7 +104,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        auto atom = select_atom(this->rng());
+        auto atom = select_atom(rng_);
         if (atom == MucfMuonicAtom::deuterium)
         {
             deuterium_count++;
@@ -143,7 +141,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_asymmetric_mixture)
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        auto atom = select_atom(this->rng());
+        auto atom = select_atom(rng_);
         if (atom == MucfMuonicAtom::deuterium)
         {
             deuterium_count++;
@@ -171,18 +169,18 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_deuterium)
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        size_type spin = select_spin(this->rng());
-        if (spin == 3)
+        auto spin = select_spin(rng_);
+        if (spin == units::HalfSpinInt{3})
         {
             spin_3_2_count++;
         }
-        else if (spin == 1)
+        else if (spin == units::HalfSpinInt{1})
         {
             spin_1_2_count++;
         }
         else
         {
-            FAIL() << "Unexpected spin value: " << spin;
+            FAIL() << "Unexpected spin value: " << spin.value();
         }
     }
 
@@ -209,18 +207,18 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_tritium)
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        size_type spin = select_spin(this->rng());
-        if (spin == 2)
+        auto spin = select_spin(rng_);
+        if (spin == units::HalfSpinInt{2})
         {
             spin_1_count++;
         }
-        else if (spin == 0)
+        else if (spin == units::HalfSpinInt{0})
         {
             spin_0_count++;
         }
         else
         {
-            FAIL() << "Unexpected spin value: " << spin;
+            FAIL() << "Unexpected spin value: " << spin.value();
         }
     }
 

@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mucf/Types.hh"
 
@@ -30,9 +31,9 @@ class MuonicAtomSpinSelector
     // Construct with muonic atom type
     inline CELER_FUNCTION MuonicAtomSpinSelector(MucfMuonicAtom atom);
 
-    // Sample and return a spin value in units of hbar / 2
+    // Sample and return a spin value in units of hbar/2
     template<class Engine>
-    inline CELER_FUNCTION size_type operator()(Engine& rng);
+    inline CELER_FUNCTION units::HalfSpinInt operator()(Engine& rng);
 
   private:
     MucfMuonicAtom atom_;
@@ -68,20 +69,21 @@ MuonicAtomSpinSelector::MuonicAtomSpinSelector(MucfMuonicAtom atom)
  * Select a muonic atom spin, in units of \f$ \hbar / 2 \f$.
  */
 template<class Engine>
-CELER_FUNCTION size_type MuonicAtomSpinSelector::operator()(Engine& rng)
+CELER_FUNCTION units::HalfSpinInt
+MuonicAtomSpinSelector::operator()(Engine& rng)
 {
     switch (atom_)
     {
         case MucfMuonicAtom::deuterium:
             return BernoulliDistribution(this->deuterium_spin_probability())(
                        rng)
-                       ? 3  // Spin 3/2
-                       : 1;  // Spin 1/2
+                       ? units::HalfSpinInt{3}  // Spin 3/2
+                       : units::HalfSpinInt{1};  // Spin 1/2
 
         case MucfMuonicAtom::tritium:
             return BernoulliDistribution(this->tritium_spin_probability())(rng)
-                       ? 2  // Spin 1
-                       : 0;  // Spin 0
+                       ? units::HalfSpinInt{2}  // Spin 1
+                       : units::HalfSpinInt{0};  // Spin 0
         default:
             CELER_ASSERT_UNREACHABLE();
     }
