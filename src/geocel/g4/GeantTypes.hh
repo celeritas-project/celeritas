@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include <G4ThreeVector.hh>
 
 #include "corecel/Assert.hh"

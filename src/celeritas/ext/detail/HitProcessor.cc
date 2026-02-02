@@ -185,7 +185,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         detectors_[i] = lv->GetSensitiveDetector();
         CELER_VALIDATE(detectors_[i],
                        << "no sensitive detector is attached to volume '"
-                       << StreamableLV{lv};);
+                       << StreamableLV{lv});
     }
 
     CELER_ENSURE(!detectors_.empty());

@@ -188,14 +188,14 @@ CELER_CEF bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
  * The standard library version of this function is available since C++20.
  */
 template<class T, size_type N>
-CELER_CONSTEXPR_FUNCTION Array<std::remove_cv_t<T>, N> to_array(T (&x)[N])
+CELER_CONSTEXPR_FUNCTION auto to_array(T (&x)[N])
 {
     static_assert(!std::is_array_v<T>,
                   "to_array elements cannot be multidimensional");
     static_assert(std::is_constructible_v<T, T&>,
                   "to_array elements must be copy constructible");
 
-    Array<T, N> result;
+    Array<std::remove_cv_t<T>, N> result;
     for (size_type i = 0; i != N; ++i)
     {
         result[i] = x[i];
