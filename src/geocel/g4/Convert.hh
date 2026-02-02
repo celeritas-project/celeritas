@@ -57,7 +57,7 @@ inline constexpr double clhep_length{1 / lengthunits::millimeter};
 /*!
  * Convert a value from Geant4 with CLHEP units.
  */
-constexpr inline double convert_from_geant(real_type val, double units)
+constexpr inline double convert_from_geant(double val, double units)
 {
     return val / units;
 }
