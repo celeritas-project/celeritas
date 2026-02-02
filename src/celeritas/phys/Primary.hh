@@ -27,8 +27,8 @@ struct Primary
     Real3 direction{0, 0, 0};
     real_type time{};
     EventId event_id;
-    unsigned int track_id{};
-    unsigned int step_count{};
+    unsigned int geant_track_id{};
+    unsigned int geant_step_count{};
     PrimaryId primary_id;
     real_type weight{1.0};
 };

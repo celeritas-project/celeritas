@@ -293,6 +293,10 @@ void LocalTransporter::Push(G4Track& g4track)
      */
     track.event_id = EventId{0};
 
+    // Add track id and initialize step counter
+    track.track_id = g4track.GetTrackId();
+    track.step_count = g4track.GetCurrentStepNumber();
+
     buffer_.push_back(track);
     buffer_accum_.energy += track.energy.value();
     if (buffer_.size() >= auto_flush_)
