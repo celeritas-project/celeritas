@@ -19,8 +19,8 @@ namespace detail
 /*!
  * Select a muonic atom given the material information.
  *
- * This class uses the \f$ q_\text{1S} \f$ formula [ \todo
- * https://doi.org/10.1134/1.1926428 ]
+ * This class uses the \f$ q_\text{1S} \f$ formula
+ * \citet{bom-experimentaldt-2005, https://doi.org/10.1134/1.1926428}
  * \f[
  * q_\text{1s} = \frac{1}{1 + 2.9 C_t},
  * \f]
