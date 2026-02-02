@@ -9,6 +9,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/TrackInitializer.hh"
+#include "celeritas/optical/gen/DirectGeneratorAction.hh"
 
 #include "TrackOffloadInterface.hh"
 
@@ -78,6 +79,8 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
 
     // Thread-local state data
     std::shared_ptr<optical::CoreStateBase> state_;
+
+    std::shared_ptr<optical::DirectGeneratorAction const> direct_gen_;
 
     // Buffered tracks for offloading
     std::vector<TrackData> buffer_;
