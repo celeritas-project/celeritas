@@ -70,13 +70,16 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
             return false;
         }
 
-        // Found hydrogen with deuterium and/or tritium; Calculate quantities
+        // Found hydrogen with deuterium and/or tritium
+        // Calculate HDT equilibrium densities for cycle time calculations
         equilibrium_densities_ = EquilibrateDensitiesCalculator(
             lhd_densities_, material.temperature())();
 
         // Calculate and insert muCF material data into model data
         mucfmatid_to_matid_.push_back(material.material_id());
-        cycle_times_.push_back(this->calc_cycle_times(element_view));
+        cycle_times_.push_back(
+            this->calc_cycle_times(element_view, material.temperature()));
+
         //! \todo Store mean atom spin flip and transfer times
     }
     return true;
@@ -113,7 +116,8 @@ MucfIsotope MucfMaterialInserter::from_mass_number(AtomicMassNumber mass)
  * - Multiple elements, single isotope each (separate H, d, and t elements).
  */
 MucfMaterialInserter::CycleTimesArray
-MucfMaterialInserter::calc_cycle_times(ElementView const& element)
+MucfMaterialInserter::calc_cycle_times(ElementView const& element,
+                                       real_type const temperature)
 {
     CELER_EXPECT(element.atomic_number() == AtomicNumber{1});
     CELER_EXPECT(has_isotope_[MucfIsotope::deuterium]
@@ -133,19 +137,19 @@ MucfMaterialInserter::calc_cycle_times(ElementView const& element)
             // Calculate cycle times for dd molecules
             case MucfIsotope::deuterium: {
                 result[MucfMuonicMolecule::deuterium_deuterium]
-                    = this->calc_dd_cycle(element);
+                    = this->calc_dd_cycle(temperature);
                 if (has_isotope_[MucfIsotope::tritium])
                 {
                     // Calculate cycle times for dt molecules
                     result[MucfMuonicMolecule::deuterium_tritium]
-                        = this->calc_dt_cycle(element);
+                        = this->calc_dt_cycle(temperature);
                 }
                 break;
             }
             // Calculate cycle times for tt molecules
             case MucfIsotope::tritium: {
                 result[MucfMuonicMolecule::tritium_tritium]
-                    = this->calc_tt_cycle(element);
+                    = this->calc_tt_cycle(temperature);
                 break;
             }
             default:
@@ -163,7 +167,7 @@ MucfMaterialInserter::calc_cycle_times(ElementView const& element)
  * Cycle times for dd molecules come from F = 0 and F = 1 spin states.
  */
 MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_dd_cycle(ElementView const&)
+MucfMaterialInserter::calc_dd_cycle(real_type const temperature)
 {
     MoleculeCycles result;
 
@@ -182,13 +186,29 @@ MucfMaterialInserter::calc_dd_cycle(ElementView const&)
  * Cycle times for dt molecules come from F = 1/2 and F = 3/2 spin states.
  */
 MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_dt_cycle(ElementView const&)
+MucfMaterialInserter::calc_dt_cycle(real_type const temperature)
 {
-    MoleculeCycles result;
+    using IsoProt = MucfIsoprotologueMolecule;
 
-    //! \todo Implement
+    auto const& dd_dens = equilibrium_densities_[IsoProt::deuterium_deuterium];
+    auto const& dt_dens = equilibrium_densities_[IsoProt::deuterium_tritium];
+    auto const& hd_dens = equilibrium_densities_[IsoProt::protium_deuterium];
 
     // Reactive states are F = 1/2 and F = 3/2
+    MoleculeCycles result;
+
+#if 0
+    // F = 1/2 state
+    result[0] = dd_dens * dd1_interp(temperature)
+                + dt_dens * dt1_interp(temperature)
+                + hd_dens * hd1_interp(temperature);
+
+    // F = 3/2 state
+    result[1] = dd_dens * dd0_interp(temperature)
+                + dt_dens * dt0_interp(temperature)
+                + hd_dens * hd0_interp(temperature);
+#endif
+
     CELER_ENSURE(result[0] >= 0 && result[1] >= 0);
     return result;
 }
@@ -201,7 +221,7 @@ MucfMaterialInserter::calc_dt_cycle(ElementView const&)
  * Cycle times for tt molecules come only from the F = 1/2 spin state.
  */
 MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_tt_cycle(ElementView const&)
+MucfMaterialInserter::calc_tt_cycle(real_type const temperature)
 {
     MoleculeCycles result;
 

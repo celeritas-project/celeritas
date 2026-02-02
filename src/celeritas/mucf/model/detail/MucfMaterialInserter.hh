@@ -58,16 +58,17 @@ class MucfMaterialInserter
     MucfIsotope from_mass_number(AtomicMassNumber mass);
 
     // Calculate mean fusion cycle times for all reactive muonic molecules
-    CycleTimesArray calc_cycle_times(ElementView const& element);
+    CycleTimesArray
+    calc_cycle_times(ElementView const& element, real_type const temperature);
 
     // Calculate mean fusion cycle times for dd muonic molecules
-    Array<real_type, 2> calc_dd_cycle(ElementView const&);
+    Array<real_type, 2> calc_dd_cycle(real_type const temperature);
 
     // Calculate mean fusion cycle times for dt muonic molecules
-    Array<real_type, 2> calc_dt_cycle(ElementView const&);
+    Array<real_type, 2> calc_dt_cycle(real_type const temperature);
 
     // Calculate mean fusion cycle times for tt muonic molecules
-    Array<real_type, 2> calc_tt_cycle(ElementView const&);
+    Array<real_type, 2> calc_tt_cycle(real_type const temperature);
 
     // Clear temporary data before next insertion
     void clear();
