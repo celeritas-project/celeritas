@@ -139,7 +139,7 @@ inline void Stream::free_async(void*)
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline void launch_host_func(HostKernel func, void* data)
+inline void Stream::launch_host_func(HostKernel func, void* data)
 {
     CELER_EXPECT(func);
     func(data);
