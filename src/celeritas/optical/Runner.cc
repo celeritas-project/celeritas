@@ -8,6 +8,9 @@
 
 #include <utility>
 
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
+#include "celeritas/inp/StandaloneInputIO.json.hh"
 #include "celeritas/setup/Problem.hh"
 
 #include "CoreParams.hh"
@@ -22,12 +25,16 @@ namespace optical
 /*!
  * Construct with optical problem input definition.
  */
-Runner::Runner(inp::OpticalStandaloneInput&& osi)
+Runner::Runner(Input&& osi)
 {
     CELER_VALIDATE(osi.problem.num_streams == 1,
                    << "standalone optical runner expects a single stream");
     StreamId stream_id{0};
     auto num_tracks = osi.problem.capacity.tracks;
+
+    // Prepare problem input for json output before it's modified during setup
+    auto osi_output = std::make_shared<OutputInterfaceAdapter<Input>>(
+        OutputInterface::Category::input, "*", std::make_shared<Input>(osi));
 
     // Set up the problem from the input
     auto loaded = setup::standalone_input(osi);
@@ -37,6 +44,9 @@ Runner::Runner(inp::OpticalStandaloneInput&& osi)
     CELER_ASSERT(problem_.transporter);
     CELER_ASSERT(problem_.generator);
     CELER_ASSERT(stream_id < this->params()->max_streams());
+
+    // Add problem input to output registry
+    this->params()->output_reg()->insert(osi_output);
 
     // Allocate state data
     auto memspace = celeritas::device() ? MemSpace::device : MemSpace::host;
@@ -74,9 +84,7 @@ auto Runner::operator()() -> Result
     // Set the number of pending tracks
     generate->insert(*state_);
 
-    // Generate optical photons and transport to completion
-    (*problem_.transporter)(*state_);
-    return this->get_result();
+    return this->run();
 }
 
 //---------------------------------------------------------------------------//
@@ -94,9 +102,7 @@ auto Runner::operator()(SpanConstTrackInit data) -> Result
     // Insert track initializers
     generate->insert(*state_, data);
 
-    // Generate optical photons and transport to completion
-    (*problem_.transporter)(*state_);
-    return this->get_result();
+    return this->run();
 }
 
 //---------------------------------------------------------------------------//
@@ -124,23 +130,24 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
     }
     state_->sync_put_counters(counters);
 
-    // Generate optical photons and transport to completion
-    (*problem_.transporter)(*state_);
-    return this->get_result();
+    return this->run();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get optical counters.
+ * Generate optical photons and transport to completion.
  */
-auto Runner::get_result() const -> Result
+auto Runner::run() const -> Result
 {
+    (*problem_.transporter)(*state_);
+
     Result result;
     result.counters = state_->accum();
     result.counters.generators.push_back(
         problem_.generator->counters(*state_->aux()).accum);
     result.action_times
         = problem_.transporter->get_action_times(*state_->aux());
+
     return result;
 }
 
