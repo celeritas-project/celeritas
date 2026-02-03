@@ -11,7 +11,7 @@
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
@@ -211,7 +211,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
     //!@{
     //! \name Type aliases
     template<template<Ownership, MemSpace> class S>
-    using StateStore = CollectionStateStore<S, MemSpace::host>;
+    using StateStore = StateDataStore<S, MemSpace::host>;
     using ParamsHostRef = HostCRef<PhysicsParamsData>;
     //!@}
 
@@ -731,7 +731,7 @@ class PHYS_DEVICE_TEST : public PhysicsParamsTest
     //!@{
     //! \name Type aliases
     template<template<Ownership, MemSpace> class S>
-    using StateStore = CollectionStateStore<S, MemSpace::device>;
+    using StateStore = StateDataStore<S, MemSpace::device>;
     //!@}
 
     void SetUp() override
@@ -918,9 +918,9 @@ TEST_F(EPlusAnnihilationTest, accessors)
 
 TEST_F(EPlusAnnihilationTest, host_track_view)
 {
-    CollectionStateStore<PhysicsStateData, MemSpace::host> state{
+    StateDataStore<PhysicsStateData, MemSpace::host> state{
         this->physics()->host_ref(), 1};
-    CollectionStateStore<ParticleStateData, MemSpace::host> par_state{
+    StateDataStore<ParticleStateData, MemSpace::host> par_state{
         this->particles()->host_ref(), 1};
     HostCRef<PhysicsParamsData> params_ref{this->physics()->host_ref()};
 

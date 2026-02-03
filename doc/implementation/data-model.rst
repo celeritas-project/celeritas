@@ -75,7 +75,7 @@ Storage
 
 .. doxygenclass:: celeritas::Collection
 .. doxygenclass:: celeritas::ParamsDataStore
-.. doxygenclass:: celeritas::CollectionStateStore
+.. doxygenclass:: celeritas::StateDataStore
 
 .. doxygenfunction:: celeritas::ldg
 

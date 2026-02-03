@@ -13,9 +13,9 @@
 #include "corecel/data/AuxState.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
@@ -177,7 +177,7 @@ class CoreState final : public CoreStateInterface
 
   private:
     // State data
-    CollectionStateStore<CoreStateData, M> states_;
+    StateDataStore<CoreStateData, M> states_;
 
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;

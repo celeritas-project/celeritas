@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/phys/PhysicsStepUtils.hh"
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
@@ -33,11 +33,10 @@ class PhysicsStepUtilsTest : public MockTestBase
 
   protected:
     using MaterialStateStore
-        = CollectionStateStore<MaterialStateData, MemSpace::host>;
+        = StateDataStore<MaterialStateData, MemSpace::host>;
     using ParticleStateStore
-        = CollectionStateStore<ParticleStateData, MemSpace::host>;
-    using PhysicsStateStore
-        = CollectionStateStore<PhysicsStateData, MemSpace::host>;
+        = StateDataStore<ParticleStateData, MemSpace::host>;
+    using PhysicsStateStore = StateDataStore<PhysicsStateData, MemSpace::host>;
 
     using MevEnergy = units::MevEnergy;
 
