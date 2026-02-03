@@ -7,6 +7,8 @@
 #include "CartMapFieldParams.hh"
 
 #include <algorithm>
+#include <cmath>
+#include <limits>
 #include <memory>
 #include <vector>
 
@@ -65,11 +67,13 @@ struct CartMapFieldParams::Impl
             }
 
             using field_real_type = CartMapField::real_type;
+            // Shift world coordinates so the grid minimum maps to zero.
             auto affine_translate = covfie::algebra::affine<3>::translation(
                 static_cast<field_real_type>(-inp.x.min),
                 static_cast<field_real_type>(-inp.y.min),
                 static_cast<field_real_type>(-inp.z.min));
 
+            // Scale world units to index units so max maps to (num - 1).
             auto affine_scale = covfie::algebra::affine<3>::scaling(
                 static_cast<field_real_type>((inp.x.num - 1)
                                              / (inp.x.max - inp.x.min)),
@@ -78,11 +82,34 @@ struct CartMapFieldParams::Impl
                 static_cast<field_real_type>((inp.z.num - 1)
                                              / (inp.z.max - inp.z.min)));
 
-            using field_t = detail::CovfieFieldTraits<MemSpace::host>::field_t;
+            using traits_t = detail::CovfieFieldTraits<MemSpace::host>;
+            using field_t = typename traits_t::field_t;
+            using clamp_config_t =
+                typename traits_t::clamped_t::configuration_t;
+            using clamp_vec_t = decltype(clamp_config_t{}.min);
+            using clamp_scalar_t = typename clamp_vec_t::value_type;
+
+            auto clamp_max = [](size_type n) {
+                auto const max = static_cast<clamp_scalar_t>(n - 1);
+                return std::nextafter(
+                    max, -std::numeric_limits<clamp_scalar_t>::infinity());
+            };
+
+            // Clamp in index space before interpolation: keep coords in-bounds
+            // and avoid the (n-1) corner that would request n in linear.
+            clamp_config_t clamp_config{
+                clamp_vec_t{static_cast<clamp_scalar_t>(0),
+                            static_cast<clamp_scalar_t>(0),
+                            static_cast<clamp_scalar_t>(0)},
+                clamp_vec_t{clamp_max(inp.x.num),
+                            clamp_max(inp.y.num),
+                            clamp_max(inp.z.num)}};
+
             host.field = std::make_unique<field_t>(covfie::make_parameter_pack(
                 field_t::backend_t::configuration_t(affine_scale
                                                     * affine_translate),
-                field_t::backend_t::backend_t::configuration_t{},
+                std::move(clamp_config),
+                typename traits_t::interp_t::configuration_t{},  // std::monostate
                 builder.backend()));
             host.options = inp.driver_options;
             return host;
