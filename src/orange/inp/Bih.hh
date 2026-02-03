@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
+
 namespace celeritas
 {
 namespace inp
