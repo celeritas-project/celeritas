@@ -18,7 +18,8 @@ namespace detail
  */
 InterpolatorHelper::InterpolatorHelper(inp::Grid input)
     : grid_record_(NonuniformGridBuilder(&reals_)(input))
-    , interpolate_(grid_record_, &reals_)
+    , reals_ref_(reals_)
+    , interpolate_(grid_record_, reals_ref_)
 {
     CELER_EXPECT(input);
 }

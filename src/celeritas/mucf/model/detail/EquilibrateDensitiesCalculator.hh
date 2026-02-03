@@ -19,7 +19,7 @@ namespace detail
  * Calculate dt mixture densities after reaching thermodynamical
  * equilibrium based on LHD densities and material temperature.
  *
- * Based on the theory on https://www.osti.gov/biblio/6205719.
+ * Based on the theory from https://www.osti.gov/biblio/6205719.
  *
  * The equilibrated densities are needed to correctly calculate the cycle time
  * of dd, dt, and tt fusion cycles.
@@ -52,20 +52,23 @@ class EquilibrateDensitiesCalculator
 
     //// HELPER FUNCTIONS ////
 
+    // {
+    // Convergence limit parameters
     // Acceptance error between current and previous equilibrium iteration
     static real_type constexpr convergence_err() { return 1e-6; }
 
     // Maximum number of iterations to reach convergence
     static size_type constexpr max_iterations() { return 1000; }
+    // }
 
     // Calculate equilibrium constant: \f$ H_2 + D_2 \rightleftharpoons 2HD \f$
     real_type calc_hd_equilibrium_constant();
 
-    // Calculate equilibrium constant: \f$ D_2 + T_2 \rightleftharpoons 2DT \f$
-    real_type calc_dt_equilibrium_constant();
-
     // Calculate equilibrium constant: \f$ H_2 + T_2 \rightleftharpoons 2HT \f$
     real_type calc_ht_equilibrium_constant();
+
+    // Calculate equilibrium constant: \f$ D_2 + T_2 \rightleftharpoons 2DT \f$
+    real_type calc_dt_equilibrium_constant();
 
     // Equilibrate a pair of isotopes and write the new density in the array
     void equilibrate_pair(MucfIsoprotologueMolecule molecule_aa,

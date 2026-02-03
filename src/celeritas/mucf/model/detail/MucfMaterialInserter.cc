@@ -8,8 +8,6 @@
 
 #include "corecel/Assert.hh"
 
-#include "InterpolatorHelper.hh"
-
 namespace celeritas
 {
 namespace detail
@@ -25,6 +23,14 @@ MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
     , data_(data)
 {
     CELER_EXPECT(data_);
+
+    // Initialize interpolators for cycle time tables
+    for (auto const& cycle_data : data_.cycle_rates)
+    {
+        InterpolatorHelper interp(cycle_data.rate);
+        interpolators_.insert(
+            {{cycle_data.type, cycle_data.spin_state}, interp});
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -34,11 +40,24 @@ MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
  * Calculates and caches material-dependent properties needed by the
  * \c DTMixMucfModel . If the material does not contain deuterium and/or
  * tritium the operator will return false.
+ *
+ * * This is designed to work with the user's material definition being either:
+ * - Single element, multiple isotopes (H element, with H, d, and t isotopes);
+ * or
+ * - Multiple elements, single isotope each (separate H, d, and t elements).
  */
 bool MucfMaterialInserter::operator()(MaterialView const& material)
 {
-    this->clear();
-    auto const mat_num_density = material.number_density();
+    using LhdArray = EquilibrateDensitiesCalculator::LhdArray;
+
+    CycleTimesArray cycle_times;
+    LhdArray lhd_densities{};
+
+    auto from_mass_number = [&](AtomicMassNumber mass) -> MucfIsotope {
+        auto it = mass_isotope_map_.find(mass);
+        return (it != mass_isotope_map_.end()) ? it->second
+                                               : MucfIsotope::size_;
+    };
 
     for (auto elcompid : range(material.num_elements()))
     {
@@ -50,127 +69,71 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
             continue;
         }
 
-        // Found hydrogen; calculate quantities for its isotopes
+        // Found hydrogen; Check isotopes
         auto const elem_rel_abundance = material.elements()[elcompid].fraction;
         for (auto el_comp : range(element_view.num_isotopes()))
         {
             auto iso_view
                 = element_view.isotope_record(IsotopeComponentId{el_comp});
-            auto const atom
-                = this->from_mass_number(iso_view.atomic_mass_number());
-
+            auto const atom = from_mass_number(iso_view.atomic_mass_number());
             CELER_ASSERT(atom < MucfIsotope::size_);
-            has_isotope_[atom] = true;
-            lhd_densities_[atom]
-                = elem_rel_abundance * mat_num_density
+
+            // Cache density for hydrogen isotope
+            lhd_densities[atom]
+                = elem_rel_abundance * material.number_density()
                   / data_.scalars.liquid_hydrogen_density.value();
         }
-
-        if (!has_isotope_[MucfIsotope::deuterium]
-            && !has_isotope_[MucfIsotope::tritium])
-        {
-            // No deuterium or tritium found; skip material
-            return false;
-        }
-
-        // Found hydrogen with deuterium and/or tritium
-        // Calculate HDT equilibrium densities for cycle time calculations
-        equilibrium_densities_ = EquilibrateDensitiesCalculator(
-            lhd_densities_, material.temperature())();
-
-        // Calculate and insert muCF material data into model data
-        mucfmatid_to_matid_.push_back(material.material_id());
-        cycle_times_.push_back(
-            this->calc_cycle_times(element_view, material.temperature()));
-
-        //! \todo Store mean atom spin flip and transfer times
     }
+
+    if (!lhd_densities[MucfIsotope::deuterium]
+        && !lhd_densities[MucfIsotope::tritium])
+    {
+        // No deuterium or tritium densities; skip material
+        return false;
+    }
+
+    // Found d and/or t, calculate and insert data into collection
+
+    auto equilibrium_densities = EquilibrateDensitiesCalculator(
+        lhd_densities, material.temperature())();
+
+    if (lhd_densities[MucfIsotope::deuterium])
+    {
+        cycle_times[MucfMuonicMolecule::deuterium_deuterium]
+            = this->calc_dd_cycle(equilibrium_densities,
+                                  material.temperature());
+    }
+    if (lhd_densities[MucfIsotope::tritium])
+    {
+        cycle_times[MucfMuonicMolecule::tritium_tritium] = this->calc_tt_cycle(
+            equilibrium_densities, material.temperature());
+    }
+    if (lhd_densities[MucfIsotope::deuterium]
+        && lhd_densities[MucfIsotope::tritium])
+    {
+        cycle_times[MucfMuonicMolecule::deuterium_tritium]
+            = this->calc_dt_cycle(equilibrium_densities,
+                                  material.temperature());
+    }
+
+    // Add muCF material to the model's host/device data
+    mucfmatid_to_matid_.push_back(material.material_id());
+    cycle_times_.push_back(std::move(cycle_times));
+
+    //! \todo Store mean atom spin flip and transfer times
+
     return true;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Return \c MucfIsotope from a given atomic mass number.
- */
-MucfIsotope MucfMaterialInserter::from_mass_number(AtomicMassNumber mass)
-{
-    if (mass == AtomicMassNumber{1})
-    {
-        return MucfIsotope::protium;
-    }
-    if (mass == AtomicMassNumber{2})
-    {
-        return MucfIsotope::deuterium;
-    }
-    if (mass == AtomicMassNumber{3})
-    {
-        return MucfIsotope::tritium;
-    }
-    return MucfIsotope::size_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate fusion mean cycle times.
+ * Calculate dd muonic molecules cycle times.
  *
- * This is designed to work with the user's material definition being either:
- * - Single element, multiple isotopes (H element, with H, d, and t isotopes);
- * or
- * - Multiple elements, single isotope each (separate H, d, and t elements).
- */
-MucfMaterialInserter::CycleTimesArray
-MucfMaterialInserter::calc_cycle_times(ElementView const& element,
-                                       real_type const temperature)
-{
-    CELER_EXPECT(element.atomic_number() == AtomicNumber{1});
-    CELER_EXPECT(has_isotope_[MucfIsotope::deuterium]
-                 || has_isotope_[MucfIsotope::tritium]);
-    CELER_EXPECT(lhd_densities_[MucfIsotope::deuterium] > 0
-                 || lhd_densities_[MucfIsotope::tritium] > 0);
-
-    CycleTimesArray result;
-    for (auto el_comp : range(element.num_isotopes()))
-    {
-        auto iso_view = element.isotope_record(IsotopeComponentId{el_comp});
-
-        // Select possible muonic atom based on the isotope/element mass number
-        auto atom = this->from_mass_number(iso_view.atomic_mass_number());
-        switch (atom)
-        {
-            // Calculate cycle times for dd molecules
-            case MucfIsotope::deuterium: {
-                result[MucfMuonicMolecule::deuterium_deuterium]
-                    = this->calc_dd_cycle(temperature);
-                if (has_isotope_[MucfIsotope::tritium])
-                {
-                    // Calculate cycle times for dt molecules
-                    result[MucfMuonicMolecule::deuterium_tritium]
-                        = this->calc_dt_cycle(temperature);
-                }
-                break;
-            }
-            // Calculate cycle times for tt molecules
-            case MucfIsotope::tritium: {
-                result[MucfMuonicMolecule::tritium_tritium]
-                    = this->calc_tt_cycle(temperature);
-                break;
-            }
-            default:
-                CELER_ASSERT_UNREACHABLE();
-        }
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate dd muonic molecules cycle times from material properties and grid
- * data.
- *
- * Cycle times for dd molecules come from F = 1/2 and F = 3/2 spin states.
+ * F = 1/2 and F = 3/2 are the reactive spin states for dd fusion.
  */
 MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_dd_cycle(real_type const temperature)
+MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
+                                    real_type const temperature)
 {
     MoleculeCycles result;
 
@@ -183,47 +146,39 @@ MucfMaterialInserter::calc_dd_cycle(real_type const temperature)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate dt muonic molecules cycle times from material properties and grid
- * data.
+ * Calculate dt muonic molecules cycle times.
  *
- * Cycle times for dt molecules come from F = 0 and F = 1 spin states.
+ * F = 0 and F = 1 are the 2 reactive spin states for dt fusion.
  */
 MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_dt_cycle(real_type const temperature)
+MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
+                                    real_type const temperature)
 {
+    CELER_EXPECT(temperature > 0);
+
     using IsoProt = MucfIsoprotologueMolecule;
+    using CTT = inp::CycleTableType;
+    using units::HalfSpinInt;
 
-    auto const& dd_dens = equilibrium_densities_[IsoProt::deuterium_deuterium];
-    auto const& dt_dens = equilibrium_densities_[IsoProt::deuterium_tritium];
-    auto const& hd_dens = equilibrium_densities_[IsoProt::protium_deuterium];
-
-    auto find_grid
-        = [&](inp::CycleTableType type, units::HalfSpinInt spin) -> inp::Grid {
-        for (auto const& cycle_rate : data_.cycle_rates)
-        {
-            if (cycle_rate.type == type && cycle_rate.spin_state == spin)
-            {
-                return cycle_rate.rate;
-            }
-        }
-        return inp::Grid{};
-    };
+    auto const& dd_dens = eq_dens[IsoProt::deuterium_deuterium];
+    auto const& dt_dens = eq_dens[IsoProt::deuterium_tritium];
+    auto const& hd_dens = eq_dens[IsoProt::protium_deuterium];
 
     // F = 0 interpolators
-    InterpolatorHelper dd0_interpolate(find_grid(
-        inp::CycleTableType::deuterium_deuterium, units::HalfSpinInt{0}));
-    InterpolatorHelper dt0_interpolate(find_grid(
-        inp::CycleTableType::deuterium_tritium, units::HalfSpinInt{0}));
-    InterpolatorHelper hd0_interpolate(find_grid(
-        inp::CycleTableType::protium_deuterium, units::HalfSpinInt{0}));
+    auto dd0_interpolate
+        = interpolators_.find({CTT::deuterium_deuterium, HalfSpinInt{0}})->second;
+    auto dt0_interpolate
+        = interpolators_.find({CTT::deuterium_tritium, HalfSpinInt{0}})->second;
+    auto hd0_interpolate
+        = interpolators_.find({CTT::protium_deuterium, HalfSpinInt{0}})->second;
 
     // F = 1 interpolators
-    InterpolatorHelper dd1_interpolate(find_grid(
-        inp::CycleTableType::deuterium_deuterium, units::HalfSpinInt{2}));
-    InterpolatorHelper dt1_interpolate(find_grid(
-        inp::CycleTableType::deuterium_tritium, units::HalfSpinInt{2}));
-    InterpolatorHelper hd1_interpolate(find_grid(
-        inp::CycleTableType::protium_deuterium, units::HalfSpinInt{2}));
+    auto dd1_interpolate
+        = interpolators_.find({CTT::deuterium_deuterium, HalfSpinInt{2}})->second;
+    auto dt1_interpolate
+        = interpolators_.find({CTT::deuterium_tritium, HalfSpinInt{2}})->second;
+    auto hd1_interpolate
+        = interpolators_.find({CTT::protium_deuterium, HalfSpinInt{2}})->second;
 
     MoleculeCycles result;
     // F = 0
@@ -242,13 +197,13 @@ MucfMaterialInserter::calc_dt_cycle(real_type const temperature)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate tt muonic molecules cycle times from material properties and grid
- * data.
+ * Calculate tt muonic molecules cycle times.
  *
- * Cycle times for tt molecules come only from the F = 1/2 spin state.
+ * F = 1/2 is the only reactive spin state for tt fusion.
  */
 MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_tt_cycle(real_type const temperature)
+MucfMaterialInserter::calc_tt_cycle(EquilibriumArray const& eq_dens,
+                                    real_type const temperature)
 {
     MoleculeCycles result;
 
@@ -257,23 +212,6 @@ MucfMaterialInserter::calc_tt_cycle(real_type const temperature)
     // Only F = 1/2 is reactive
     CELER_ENSURE(result[0] >= 0 && result[1] == 0);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Clear temporary data before next insertion.
- */
-void MucfMaterialInserter::clear()
-{
-    for (auto& lhd : lhd_densities_)
-    {
-        lhd = 0;
-    }
-
-    for (auto& has_iso : has_isotope_)
-    {
-        has_iso = false;
-    }
 }
 
 //---------------------------------------------------------------------------//

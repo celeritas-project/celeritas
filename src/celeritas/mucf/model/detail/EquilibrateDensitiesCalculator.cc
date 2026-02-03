@@ -67,7 +67,7 @@ EquilibrateDensitiesCalculator::operator()()
     EquilibriumArray previous_equilib_dens = result;
     auto iter_diff = std::numeric_limits<real_type>::infinity();
     size_type iter{0};
-    while (iter_diff > convergence_err() && iter < max_iterations())
+    while (iter_diff > this->convergence_err() && iter < this->max_iterations())
     {
         // Equilibrate HD
         this->equilibrate_pair(IsoProt::protium_protium,
@@ -126,6 +126,7 @@ EquilibrateDensitiesCalculator::operator()()
 real_type EquilibrateDensitiesCalculator::calc_hd_equilibrium_constant()
 {
     real_type result;
+
     if (temperature_ < 30)
     {
         result = 6.785 * exp(-654.3 / (r_gas_constant_ * temperature_));
@@ -225,9 +226,9 @@ void EquilibrateDensitiesCalculator::equilibrate_pair(
 
     real_type sigma
         = ((mix_a + mix_b)
-           - sqrt(ipow<2>(mix_a - mix_b)
-                  + 16 * mix_a * mix_b
-                        / (eq_constant_ab - this->convergence_err())))
+           - std::sqrt(ipow<2>(mix_a - mix_b)
+                       + 16 * mix_a * mix_b
+                             / (eq_constant_ab - this->convergence_err())))
           / (2 * (1 - 4 / (eq_constant_ab - this->convergence_err())));
 
     // Write new density into the equilibrium array

@@ -79,7 +79,7 @@ struct DTMixMucfData
     //! \c PhysMatId indexed by \c MuCfMatId
     MaterialItems<PhysMatId> mucfmatid_to_matid;
     //! Cycle times per material: [mat_comp_id][muonic_molecule][spin_index]
-    MaterialItems<CycleTimesArray> cycle_times;  //!< In [s]
+    MaterialItems<CycleTimesArray> cycle_times;  //!< [time]
     //! \todo Add mean atom spin flip times
     //! \todo Add mean atom transfer times
     //!@}

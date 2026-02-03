@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
+
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/inp/MucfPhysics.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -13,6 +15,7 @@
 #include "celeritas/mucf/data/DTMixMucfData.hh"
 
 #include "EquilibrateDensitiesCalculator.hh"
+#include "InterpolatorHelper.hh"
 
 namespace celeritas
 {
@@ -34,44 +37,41 @@ class MucfMaterialInserter
     bool operator()(MaterialView const& material);
 
   private:
-    //// DATA ////
-
     using MoleculeCycles = Array<real_type, 2>;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, MoleculeCycles>;
-    using LhdArray = EquilibrateDensitiesCalculator::LhdArray;
     using EquilibriumArray = EquilibrateDensitiesCalculator::EquilibriumArray;
     using AtomicMassNumber = AtomicNumber;
-    using IsotopeChecker = EnumArray<MucfIsotope, bool>;
+    using InterpolatorsMap
+        = std::map<std::pair<inp::CycleTableType, units::HalfSpinInt>,
+                   InterpolatorHelper>;
+
+    //// DATA ////
 
     // DTMixMucfModel host data references populated by operator()
     CollectionBuilder<PhysMatId, MemSpace::host, MuCfMatId> mucfmatid_to_matid_;
     CollectionBuilder<CycleTimesArray, MemSpace::host, MuCfMatId> cycle_times_;
-    // Temporary quantities needed for calculating the model data
+    // Const data
+    std::map<AtomicMassNumber, MucfIsotope> const mass_isotope_map_{
+        {AtomicMassNumber{1}, MucfIsotope::protium},
+        {AtomicMassNumber{2}, MucfIsotope::deuterium},
+        {AtomicMassNumber{3}, MucfIsotope::tritium},
+    };
     inp::MucfPhysics const& data_;
-    IsotopeChecker has_isotope_;
-    LhdArray lhd_densities_;
-    EquilibriumArray equilibrium_densities_;
+    InterpolatorsMap interpolators_;
 
     //// HELPER FUNCTIONS ////
 
-    // Return muonic atom from given atomic mass number
-    MucfIsotope from_mass_number(AtomicMassNumber mass);
-
-    // Calculate mean fusion cycle times for all reactive muonic molecules
-    CycleTimesArray
-    calc_cycle_times(ElementView const& element, real_type const temperature);
-
     // Calculate mean fusion cycle times for dd muonic molecules
-    Array<real_type, 2> calc_dd_cycle(real_type const temperature);
+    Array<real_type, 2> calc_dd_cycle(EquilibriumArray const& eq_dens,
+                                      real_type const temperature);
 
     // Calculate mean fusion cycle times for dt muonic molecules
-    Array<real_type, 2> calc_dt_cycle(real_type const temperature);
+    Array<real_type, 2> calc_dt_cycle(EquilibriumArray const& eq_dens,
+                                      real_type const temperature);
 
     // Calculate mean fusion cycle times for tt muonic molecules
-    Array<real_type, 2> calc_tt_cycle(real_type const temperature);
-
-    // Clear temporary data before next insertion
-    void clear();
+    Array<real_type, 2> calc_tt_cycle(EquilibriumArray const& eq_dens,
+                                      real_type const temperature);
 };
 
 //---------------------------------------------------------------------------//

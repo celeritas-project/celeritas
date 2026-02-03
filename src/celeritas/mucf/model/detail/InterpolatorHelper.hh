@@ -33,9 +33,12 @@ class InterpolatorHelper
 
   private:
     using Items = Collection<real_type, Ownership::value, MemSpace::host>;
+    using ItemsRef
+        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
 
-    NonuniformGridRecord grid_record_;
     Items reals_;
+    NonuniformGridRecord grid_record_;
+    ItemsRef reals_ref_;
     NonuniformGridCalculator interpolate_;
 };
 
