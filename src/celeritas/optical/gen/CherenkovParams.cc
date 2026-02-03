@@ -60,7 +60,7 @@ CherenkovParams::CherenkovParams(optical::MaterialParams const& mats)
         insert_angle_integral(grid);
     }
     CELER_ASSERT(data.angle_integral.size() == mats.num_materials());
-    data_ = CollectionMirror<CherenkovData>{std::move(data)};
+    data_ = ParamsDataStore<CherenkovData>{std::move(data)};
     CELER_ENSURE(data_);
 }
 

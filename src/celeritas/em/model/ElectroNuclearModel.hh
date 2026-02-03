@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/inp/Grid.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/ElectroNuclearData.hh"
@@ -65,7 +65,7 @@ class ElectroNuclearModel final : public Model, public StaticConcreteAction
     std::shared_ptr<EmExtraPhysicsHelper> helper_;
 
     // Host/device storage and reference
-    CollectionMirror<ElectroNuclearData> data_;
+    ParamsDataStore<ElectroNuclearData> data_;
 
     //// TYPES ////
 

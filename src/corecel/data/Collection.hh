@@ -56,7 +56,7 @@ namespace celeritas
  * work than manually copying scalars in a templated assignment operator.
  *
  * A <em>collection group</em> has the following requirements to be compatible
- * with the \c CollectionMirror (for "params" collection groups), \c
+ * with the \c ParamsDataStore (for "params" collection groups), \c
  * CollectionStateStore (for "state" collection groups"), and other such helper
  * classes:
  * - Be a struct templated with <code>template<Ownership W, MemSpace M></code>

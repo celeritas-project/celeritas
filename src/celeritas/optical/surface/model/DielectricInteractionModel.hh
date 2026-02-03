@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/optical/surface/SurfaceModel.hh"
 
@@ -55,8 +55,8 @@ class DielectricInteractionModel : public SurfaceModel
 
   private:
     VecSurfaceLayer surfaces_;
-    CollectionMirror<DielectricData> dielectric_data_;
-    CollectionMirror<UnifiedReflectionData> reflection_data_;
+    ParamsDataStore<DielectricData> dielectric_data_;
+    ParamsDataStore<UnifiedReflectionData> reflection_data_;
 };
 
 //---------------------------------------------------------------------------//

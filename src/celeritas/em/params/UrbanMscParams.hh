@@ -8,8 +8,8 @@
 
 #include <memory>
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 
 namespace celeritas
@@ -58,7 +58,7 @@ class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
 
   private:
     // Host/device storage and reference
-    CollectionMirror<UrbanMscData> data_;
+    ParamsDataStore<UrbanMscData> data_;
 
     static UrbanMscMaterialData
     calc_material_data(MaterialView const& material_view);

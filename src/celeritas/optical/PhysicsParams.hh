@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
 #include "Model.hh"
 #include "PhysicsData.hh"
@@ -82,7 +82,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     VecModels models_;
 
     // Host/device storage
-    CollectionMirror<PhysicsParamsData> data_;
+    ParamsDataStore<PhysicsParamsData> data_;
 
     //!@{
     //! \name Data construction helper functions

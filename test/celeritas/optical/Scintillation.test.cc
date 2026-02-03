@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "geocel/UnitUtils.hh"

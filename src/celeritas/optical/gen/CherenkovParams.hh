@@ -7,8 +7,8 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
 #include "CherenkovData.hh"
 
@@ -36,7 +36,7 @@ class CherenkovParams final : public ParamsDataInterface<CherenkovData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<CherenkovData> data_;
+    ParamsDataStore<CherenkovData> data_;
 };
 
 //---------------------------------------------------------------------------//

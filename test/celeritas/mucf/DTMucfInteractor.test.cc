@@ -61,7 +61,7 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
         host_data.muon_energy_cdf = build_grid_record(inp_data.muon_energy_cdf);
 
         // Construct collection
-        data_ = CollectionMirror<DTMixMucfData>{std::move(host_data)};
+        data_ = ParamsDataStore<DTMixMucfData>{std::move(host_data)};
 
         // At-rest muon primary
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.0});
@@ -161,7 +161,7 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
     }
 
   protected:
-    CollectionMirror<DTMixMucfData> data_;
+    ParamsDataStore<DTMixMucfData> data_;
     EnumArray<Channel, size_type> num_secondaries_{
         3,  // alpha_muon_neutron
         2  // muonicalpha_neutron
