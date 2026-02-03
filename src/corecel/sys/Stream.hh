@@ -11,7 +11,7 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Assert.hh"
+#include "corecel/Assert.hh"  // IWYU pragma: keep
 #include "corecel/Macros.hh"  // IWYU pragma: keep
 
 #if CELER_DEVICE_SOURCE
@@ -90,7 +90,7 @@ class Stream
     // Access the thrust resource allocator associated with the stream
     ResourceT& memory_resource();
 
-    // Synchronize this stream
+    // Block host execution until stream operations are all done
     void sync() const;
 
     // Allocate memory asynchronously on this stream if possible

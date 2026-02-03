@@ -21,7 +21,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-//! Safely print a stream's ID (if possible) or
+//! Safely print a stream's ID (if possible)
 struct StreamableStream
 {
     detail::DeviceStream_t s;
@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& os, StreamableStream const& sds)
 }  // namespace
 
 //---------------------------------------------------------------------------//
-// PIMPL class
+//! PIMPL class
 struct Stream::Impl
 {
     StreamT stream{nullptr};
@@ -109,7 +109,7 @@ Stream::ResourceT& Stream::memory_resource()
 
 //---------------------------------------------------------------------------//
 /*!
- * Synchronize this stream.
+ * Block host execution until stream operations are all complete.
  */
 void Stream::sync() const
 {

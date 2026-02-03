@@ -23,7 +23,32 @@ namespace celeritas
 class Stream;
 
 //---------------------------------------------------------------------------//
-/*! Minimal wrapper around a CUDA/HIP event. */
+/*!
+ * Minimal wrapper around a CUDA/HIP event for synchronization.
+ *
+ * Events provide a mechanism for querying the status of asynchronous
+ * operations on GPU streams and synchronizing between host and device. This
+ * class creates events with timing disabled for minimal overhead.
+ *
+ * When CUDA/HIP is unavailable, this class provides a no-op implementation.
+ *
+ * \par Example:
+ * \code
+  // Setup:
+  DeviceEvent my_kernel(state.stream_id());
+  assert(my_kernel.ready());
+  // Later...
+  launch_kernel_async(state);
+  my_kernel.record();
+  // Then do CPU work until the kernel or CPU is done
+  while (!cpu_work_done() && !my_kernel.ready())
+  {
+      cpu_work();
+  }
+ * \endcode
+ * Use \c my_kernel.sync() before the kernel launch to wait on the previous
+ kernel launch before going again.
+ */
 class DeviceEvent
 {
   public:
@@ -50,7 +75,7 @@ class DeviceEvent
     // Query event status
     bool ready() const;
 
-    // Wait for the event to complete
+    // Block the host until the recorded event is complete
     void sync() const;
 
   private:

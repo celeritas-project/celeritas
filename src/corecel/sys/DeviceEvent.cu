@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "DeviceEvent.hh"
 
+#include <iostream>
+
 #include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
 
 #include "corecel/Assert.hh"  // IWYU pragma: keep
@@ -15,6 +17,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Internal implementation holding the native CUDA/HIP event handle.
+ */
 struct DeviceEvent::Impl
 {
     EventT event{nullptr};
@@ -31,15 +36,18 @@ void DeviceEvent::ImplDeleter::operator()(Impl* impl) noexcept
     }
     catch (RuntimeError const& e)
     {
-        std::cerr << "Failed to destroy stream: " << e.what() << std::endl;
+        std::cerr << "Failed to destroy event: " << e.what() << std::endl;
     }
     catch (...)
     {
-        // Destructors must not throw
+        std::cerr << "Failed to destroy event" << std::endl;
     }
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a device event with timing disabled.
+ */
 DeviceEvent::DeviceEvent()
 {
     EventT event;
@@ -49,6 +57,11 @@ DeviceEvent::DeviceEvent()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the native CUDA/HIP event handle.
+ *
+ * This provides direct access to the underlying event for advanced use cases.
+ */
 DeviceEvent::EventT DeviceEvent::get() const
 {
     CELER_EXPECT(impl_);
@@ -56,6 +69,13 @@ DeviceEvent::EventT DeviceEvent::get() const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Record this event on a stream.
+ *
+ * This captures the state of the stream at the point the event is recorded.
+ * All operations enqueued on the stream before this call must complete before
+ * the event is considered complete.
+ */
 void DeviceEvent::record(Stream const& stream) const
 {
     CELER_EXPECT(impl_);
@@ -63,6 +83,15 @@ void DeviceEvent::record(Stream const& stream) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Query event status without blocking.
+ *
+ * \return true if all operations recorded before this event have completed,
+ *         false if the event is still pending
+ *
+ * This is a non-blocking query that returns immediately. If an error occurs
+ * during the query, the function will throw an exception.
+ */
 bool DeviceEvent::ready() const
 {
     auto result = CELER_DEVICE_API_SYMBOL(EventQuery)(impl_->event);
@@ -80,6 +109,13 @@ bool DeviceEvent::ready() const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Wait for the event to complete.
+ *
+ * This blocks the calling thread until all operations recorded before this
+ * event have finished executing on the device. Use this to synchronize the
+ * host with device operations.
+ */
 void DeviceEvent::sync() const
 {
     CELER_EXPECT(impl_);
