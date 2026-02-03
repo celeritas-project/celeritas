@@ -203,35 +203,17 @@ int main(int argc, char* argv[])
     }
 
     // Save output
-    auto msg = CELER_LOG(status);
-    msg << "Saving output to ";
-    std::ofstream outf;
-    std::ostream* os{nullptr};
-    if (output_filename == "-")
-    {
-        os = &std::cout;
-        msg << "<stdout>";
-    }
-    else
-    {
-        os = &outf;
-        outf.open(output_filename);
-        CELER_VALIDATE(outf,
-                       << "failed to open output file at '" << output_filename
-                       << "'");
-        msg << "'" << output_filename << "'";
-    }
-    CELER_ASSERT(os);
-
+    celeritas::FileOrStdout ostream{output_filename};
+    CELER_LOG(status) << "Saving output to " << ostream.filename();
     if (!output)
     {
         CELER_LOG(warning) << "No output available";
-        *os << "null\n";
+        ostream << "null\n";
         return_code = EXIT_FAILURE;
     }
     else
     {
-        output->output(os);
+        output->output(&static_cast<std::ostream&>(ostream));
     }
 
     // Delete streams before end of program (TODO: this is because of a static
