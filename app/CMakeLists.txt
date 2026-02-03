@@ -87,6 +87,7 @@ celeritas_target_link_libraries(celer-export-geant
 add_subdirectory(celer-sim)
 add_subdirectory(celer-g4)
 add_subdirectory(celer-geo)
+add_subdirectory(celer-optical)
 
 #-----------------------------------------------------------------------------#
 # TESTS
