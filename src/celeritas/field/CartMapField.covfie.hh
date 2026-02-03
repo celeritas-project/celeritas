@@ -64,9 +64,9 @@ CartMapField::CartMapField(ParamsRef const& shared) : field_{shared.get_view()}
 /*!
  * Calculate the magnetic field vector for the given position.
  *
- * This does a 3-D interpolation on the input grid and reconstructs the
- * magnetic field vector from the stored X, Y, Z components of the field.
- * The result is in the native Celeritas unit system.
+ * \warning Accessing values outside the grid clamps to boundary values.
+ * This behavior differs from other field maps, where values outside the map
+ * are assumed zero.
  */
 CELER_FUNCTION auto CartMapField::operator()(Real3 const& pos) const -> Real3
 {
