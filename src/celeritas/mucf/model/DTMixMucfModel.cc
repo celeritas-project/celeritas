@@ -113,7 +113,7 @@ DTMixMucfModel::DTMixMucfModel(ActionId id,
     host_data.muon_energy_cdf = build_grid_record(inp_data.muon_energy_cdf);
 
     // Calculate and cache quantities for all materials with dt mixtures
-    detail::MucfMaterialInserter insert(&host_data, inp_data.scalars);
+    detail::MucfMaterialInserter insert(&host_data, inp_data);
     for (auto const& matid : range(materials.num_materials()))
     {
         auto const& mat_view = materials.get(PhysMatId{matid});

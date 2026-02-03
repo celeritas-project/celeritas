@@ -265,7 +265,7 @@ MucfCycleRate dd1_cycle_data()
 
 //---------------------------------------------------------------------------//
 /*!
- * Muon-catalyzed fusion cycle rate data for dt fusion for the F = 1 state.
+ * Muon-catalyzed fusion cycle rate data for \em dt fusion with F = 1 state.
  */
 MucfCycleRate dt1_cycle_data()
 {
@@ -321,7 +321,7 @@ MucfCycleRate dt1_cycle_data()
 
 //---------------------------------------------------------------------------//
 /*!
- * Muon-catalyzed fusion cycle rate data for dt fusion for the F = 1 state.
+ * Muon-catalyzed fusion cycle rate data for \em dt fusion with F = 1 state.
  */
 MucfCycleRate hd1_cycle_data()
 {
@@ -353,7 +353,7 @@ MucfCycleRate hd1_cycle_data()
 /*!
  * Cycle rate data for muon-catalyzed fusion.
  *
- * Data comes from https://doi.org/10.1007/BF02227621 .
+ * Data from https://doi.org/10.1007/BF02227621 .
  */
 std::vector<MucfCycleRate> mucf_cycle_rates()
 {
@@ -363,7 +363,6 @@ std::vector<MucfCycleRate> mucf_cycle_rates()
     {
         // F = 1/2
         // F = 3/2
-        // F = 5/2
     }
 
     // DT fusion (requires hd, dd, and dt data for both spin states)

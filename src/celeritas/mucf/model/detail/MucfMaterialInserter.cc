@@ -8,6 +8,8 @@
 
 #include "corecel/Assert.hh"
 
+#include "InterpolatorHelper.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -17,12 +19,12 @@ namespace detail
  * Construct with \c DTMixMucfModel model data.
  */
 MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
-                                           inp::MucfScalars const& scalars_)
+                                           inp::MucfPhysics const& data)
     : mucfmatid_to_matid_(&host_data->mucfmatid_to_matid)
     , cycle_times_(&host_data->cycle_times)
-    , scalars_(scalars_)
+    , data_(data)
 {
-    CELER_EXPECT(scalars_);
+    CELER_EXPECT(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -59,8 +61,9 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
 
             CELER_ASSERT(atom < MucfIsotope::size_);
             has_isotope_[atom] = true;
-            lhd_densities_[atom] = elem_rel_abundance * mat_num_density
-                                   / scalars_.liquid_hydrogen_density.value();
+            lhd_densities_[atom]
+                = elem_rel_abundance * mat_num_density
+                  / data_.scalars.liquid_hydrogen_density.value();
         }
 
         if (!has_isotope_[MucfIsotope::deuterium]
@@ -164,7 +167,7 @@ MucfMaterialInserter::calc_cycle_times(ElementView const& element,
  * Calculate dd muonic molecules cycle times from material properties and grid
  * data.
  *
- * Cycle times for dd molecules come from F = 0 and F = 1 spin states.
+ * Cycle times for dd molecules come from F = 1/2 and F = 3/2 spin states.
  */
 MucfMaterialInserter::MoleculeCycles
 MucfMaterialInserter::calc_dd_cycle(real_type const temperature)
@@ -173,7 +176,7 @@ MucfMaterialInserter::calc_dd_cycle(real_type const temperature)
 
     //! \todo Implement
 
-    // Reactive states are F = 0 and F = 1
+    // Reactive states are F = 1/2 and F = 3/2
     CELER_ENSURE(result[0] >= 0 && result[1] >= 0);
     return result;
 }
@@ -183,7 +186,7 @@ MucfMaterialInserter::calc_dd_cycle(real_type const temperature)
  * Calculate dt muonic molecules cycle times from material properties and grid
  * data.
  *
- * Cycle times for dt molecules come from F = 1/2 and F = 3/2 spin states.
+ * Cycle times for dt molecules come from F = 0 and F = 1 spin states.
  */
 MucfMaterialInserter::MoleculeCycles
 MucfMaterialInserter::calc_dt_cycle(real_type const temperature)
@@ -194,20 +197,44 @@ MucfMaterialInserter::calc_dt_cycle(real_type const temperature)
     auto const& dt_dens = equilibrium_densities_[IsoProt::deuterium_tritium];
     auto const& hd_dens = equilibrium_densities_[IsoProt::protium_deuterium];
 
-    // Reactive states are F = 1/2 and F = 3/2
+    auto find_grid
+        = [&](inp::CycleTableType type, units::HalfSpinInt spin) -> inp::Grid {
+        for (auto const& cycle_rate : data_.cycle_rates)
+        {
+            if (cycle_rate.type == type && cycle_rate.spin_state == spin)
+            {
+                return cycle_rate.rate;
+            }
+        }
+        return inp::Grid{};
+    };
+
+    // F = 0 interpolators
+    InterpolatorHelper dd0_interpolate(find_grid(
+        inp::CycleTableType::deuterium_deuterium, units::HalfSpinInt{0}));
+    InterpolatorHelper dt0_interpolate(find_grid(
+        inp::CycleTableType::deuterium_tritium, units::HalfSpinInt{0}));
+    InterpolatorHelper hd0_interpolate(find_grid(
+        inp::CycleTableType::protium_deuterium, units::HalfSpinInt{0}));
+
+    // F = 1 interpolators
+    InterpolatorHelper dd1_interpolate(find_grid(
+        inp::CycleTableType::deuterium_deuterium, units::HalfSpinInt{2}));
+    InterpolatorHelper dt1_interpolate(find_grid(
+        inp::CycleTableType::deuterium_tritium, units::HalfSpinInt{2}));
+    InterpolatorHelper hd1_interpolate(find_grid(
+        inp::CycleTableType::protium_deuterium, units::HalfSpinInt{2}));
+
     MoleculeCycles result;
+    // F = 0
+    result[0] = dd_dens * dd0_interpolate(temperature)
+                + dt_dens * dt0_interpolate(temperature)
+                + hd_dens * hd0_interpolate(temperature);
 
-#if 0
-    // F = 1/2 state
-    result[0] = dd_dens * dd1_interp(temperature)
-                + dt_dens * dt1_interp(temperature)
-                + hd_dens * hd1_interp(temperature);
-
-    // F = 3/2 state
-    result[1] = dd_dens * dd0_interp(temperature)
-                + dt_dens * dt0_interp(temperature)
-                + hd_dens * hd0_interp(temperature);
-#endif
+    // F = 1
+    result[1] = dd_dens * dd1_interpolate(temperature)
+                + dt_dens * dt1_interpolate(temperature)
+                + hd_dens * hd1_interpolate(temperature);
 
     CELER_ENSURE(result[0] >= 0 && result[1] >= 0);
     return result;

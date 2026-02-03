@@ -28,7 +28,7 @@ class MucfMaterialInserter
   public:
     // Construct with muCF host data
     explicit MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
-                                  inp::MucfScalars const& scalars);
+                                  inp::MucfPhysics const& data);
 
     // Insert material if it is a valid d-t mixture
     bool operator()(MaterialView const& material);
@@ -47,7 +47,7 @@ class MucfMaterialInserter
     CollectionBuilder<PhysMatId, MemSpace::host, MuCfMatId> mucfmatid_to_matid_;
     CollectionBuilder<CycleTimesArray, MemSpace::host, MuCfMatId> cycle_times_;
     // Temporary quantities needed for calculating the model data
-    inp::MucfScalars scalars_;
+    inp::MucfPhysics const& data_;
     IsotopeChecker has_isotope_;
     LhdArray lhd_densities_;
     EquilibriumArray equilibrium_densities_;
