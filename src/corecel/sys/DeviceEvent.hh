@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"  // IWYU pragma: keep
 #include "corecel/Macros.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #if CELER_DEVICE_SOURCE
 #    include "corecel/DeviceRuntimeApi.hh"
@@ -47,7 +48,7 @@ class Stream;
   }
  * \endcode
  * Use \c my_kernel.sync() before the kernel launch to wait on the previous
- kernel launch before going again.
+ * kernel launch before going again.
  */
 class DeviceEvent
 {
@@ -59,9 +60,9 @@ class DeviceEvent
 #endif
 
   public:
-    DeviceEvent();
-    CELER_DEFAULT_MOVE_DELETE_COPY(DeviceEvent);
-    ~DeviceEvent() = default;
+    // Construct with stream or stream ID
+    explicit DeviceEvent(StreamId stream_id);
+    explicit DeviceEvent(Stream const& stream);
 
 #ifdef CELER_DEVICE_RUNTIME_INCLUDED
     EventT get() const;
@@ -69,8 +70,8 @@ class DeviceEvent
     MissingDeviceRuntime get() const {}
 #endif
 
-    // Record this event on a stream
-    void record(Stream const& stream) const;
+    // Record this event on the stream
+    void record();
 
     // Query event status
     bool ready() const;
@@ -90,9 +91,11 @@ class DeviceEvent
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline DeviceEvent::DeviceEvent() = default;
+inline DeviceEvent::DeviceEvent(StreamId) {}
 
-inline void DeviceEvent::record(Stream const&) const {}
+inline DeviceEvent::DeviceEvent(Stream const&) {}
+
+inline void DeviceEvent::record() {}
 
 inline bool DeviceEvent::ready() const
 {

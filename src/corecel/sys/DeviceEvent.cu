@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"  // IWYU pragma: keep
 
+#include "Device.hh"
 #include "Stream.hh"  // IWYU pragma: keep
 
 namespace celeritas
@@ -23,6 +24,7 @@ namespace celeritas
 struct DeviceEvent::Impl
 {
     EventT event{nullptr};
+    CELER_DEVICE_API_SYMBOL(Stream_t) stream { nullptr };
 };
 
 //---------------------------------------------------------------------------//
@@ -46,14 +48,30 @@ void DeviceEvent::ImplDeleter::operator()(Impl* impl) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a device event with timing disabled.
+ * Construct a device event for the given stream ID.
+ *
+ * The stream pointer is obtained from \c celeritas::device() and stored
+ * internally so that \c record() can be called without passing the stream.
  */
-DeviceEvent::DeviceEvent()
+DeviceEvent::DeviceEvent(StreamId stream_id)
+    : DeviceEvent(device().stream(stream_id))
+{
+    CELER_EXPECT(stream_id < device().num_streams());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a device event for the given stream.
+ *
+ * The stream pointer is stored internally so that \c record() can be called
+ * without passing the stream.
+ */
+DeviceEvent::DeviceEvent(Stream const& stream)
 {
     EventT event;
     CELER_DEVICE_API_CALL(EventCreateWithFlags(
         &event, CELER_DEVICE_API_SYMBOL(EventDisableTiming)));
-    impl_.reset(new Impl{event});
+    impl_.reset(new Impl{event, stream.get()});
 }
 
 //---------------------------------------------------------------------------//
@@ -70,16 +88,16 @@ DeviceEvent::EventT DeviceEvent::get() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Record this event on a stream.
+ * Record this event on the stream.
  *
  * This captures the state of the stream at the point the event is recorded.
  * All operations enqueued on the stream before this call must complete before
  * the event is considered complete.
  */
-void DeviceEvent::record(Stream const& stream) const
+void DeviceEvent::record()
 {
     CELER_EXPECT(impl_);
-    CELER_DEVICE_API_CALL(EventRecord(impl_->event, stream.get()));
+    CELER_DEVICE_API_CALL(EventRecord(impl_->event, impl_->stream));
 }
 
 //---------------------------------------------------------------------------//
