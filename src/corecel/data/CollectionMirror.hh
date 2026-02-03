@@ -95,10 +95,21 @@ template<template<Ownership, MemSpace> class P>
 CollectionMirror<P>::CollectionMirror(HostValue&& host)
     : host_(std::move(host))
 {
-    CELER_EXPECT(host_);
+    if (CELER_UNLIKELY(!host_))
+    {
+        CELER_DEBUG_FAIL("incomplete host data or bad copy", precondition);
+    }
+
     host_ref_ = host_;
+
     if (celeritas::device())
     {
+        if constexpr (!CELER_USE_DEVICE)
+        {
+            // Mark unreachable for optimization and coverage
+            CELER_ASSERT_UNREACHABLE();
+        }
+
         // Copy data to device and save reference
         device_ = host_;
         device_ref_ = device_;

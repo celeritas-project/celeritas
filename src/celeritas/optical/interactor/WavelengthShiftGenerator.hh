@@ -125,6 +125,7 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
           + (time_profile_ == WlsTimeProfile::delta
                  ? time_constant_
                  : ExponentialDistribution(real_type{1} / time_constant_)(rng));
+    result.primary = distribution_.primary;
 
     CELER_ENSURE(is_soft_unit_vector(result.polarization));
     CELER_ENSURE(is_soft_orthogonal(result.direction, result.polarization));

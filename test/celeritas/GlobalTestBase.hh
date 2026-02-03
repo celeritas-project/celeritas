@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/LazyGeantGeoManager.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
@@ -90,6 +91,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using SPConstTrackInit = SP<TrackInitParams const>;
     using SPConstSurface = SP<SurfaceParams const>;
     using SPConstVolume = SP<VolumeParams const>;
+    using SPConstDetectors = SP<DetectorParams const>;
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
@@ -210,6 +212,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     // Access surface and volume; called during build_core
     SPConstSurface const& surface() const { return surface_; }
     SPConstVolume const& volume() const { return volume_; }
+    SPConstDetectors const& detector() const { return detector_; }
 
     // Implement LazyGeantGeoManager
     SPConstGeoI build_geo_from_geant(SPConstGeantGeo const&) const final;
@@ -245,6 +248,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     // NOTE: these may not be built
     SPConstSurface surface_;
     SPConstVolume volume_;
+    SPConstDetectors detector_;
 
     SPConstCherenkov cherenkov_;
     SPActionRegistry optical_action_reg_;

@@ -18,7 +18,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Temporarily store exception pointers.
+ * Temporarily store exception pointers to allow propagation across threads.
  *
  * This is useful for storing multiple exceptions in unrelated loops (where one
  * exception shouldn't affect the program flow outside of the scope),
@@ -33,6 +33,11 @@ namespace celeritas
     }
     log_and_rethrow(std::move(capture_exception));
  * \endcode
+ *
+ * If an exception is caught and the stored exception pointers are not cleared
+ * via \c release or \c log_and_rethrow , then at the end of the exception
+ * handler's lifetime, the stored exceptions will be printed and the program
+ * will be terminated.
  *
  * \note This class implements an OpenMP \c critical mutex, not a \c std
  * mutex. If using this class in a \c std::thread context, wrap the call

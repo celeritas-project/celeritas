@@ -8,8 +8,8 @@
 
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"

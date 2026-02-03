@@ -118,20 +118,8 @@ CELER_FUNCTION Span<Secondary>
 DDMucfInteractor::sample_secondaries(Secondary* secondaries /*, other args */,
                                      Engine&)
 {
-    switch (channel_)
-    {
-        case Channel::helium3_muon_neutron:
-            //! \todo Assign secondaries
-            break;
-        case Channel::muonichelium3_neutron:
-            //! \todo Assign secondaries
-            break;
-        case Channel::hydrogen3_muon_proton:
-            //! \todo Assign secondaries
-            break;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
+    // TODO: switch on channel_
+    CELER_ASSERT_UNREACHABLE();
 
     return Span<Secondary>{secondaries, num_secondaries_[channel_]};
 }

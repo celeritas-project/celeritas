@@ -8,10 +8,8 @@
 
 #include <cmath>
 
-#include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/grid/UniformGridData.hh"
-#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 
 namespace celeritas

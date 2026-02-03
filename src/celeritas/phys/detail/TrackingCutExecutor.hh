@@ -9,7 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 

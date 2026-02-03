@@ -126,10 +126,12 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
             }
 
             // Update region
-            if (auto iter = unit.regions.find(new_id);
+            if (auto iter = unit.regions.find(old_id);
                 iter != unit.regions.end())
             {
-                regions.insert(unit.regions.extract(iter));
+                auto region = unit.regions.extract(iter);
+                region.key() = new_id;
+                regions.insert(std::move(region));
             }
         }
         else

@@ -12,10 +12,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 
 #include "ExceptionConverter.hh"
-#include "LocalTransporter.hh"
 #include "SharedParams.hh"
+#include "TrackOffloadInterface.hh"
 
 namespace celeritas
 {
@@ -28,7 +29,7 @@ namespace celeritas
  * run.
  */
 TrackingManager::TrackingManager(SharedParams const* params,
-                                 LocalTransporter* local)
+                                 TrackOffloadInterface* local)
     : params_(params), transport_(local)
 {
     CELER_EXPECT(params_);
@@ -123,7 +124,7 @@ void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 /*!
  * Offload the incoming track to Celeritas.
  *
- * This will \em not be called in the master thread of an MT run.
+ * This will \em not be called in the "master" thread of an MT run.
  */
 void TrackingManager::HandOverOneTrack(G4Track* track)
 {

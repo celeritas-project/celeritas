@@ -6,10 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <functional>
-#include <memory>
-
-#include "celeritas/optical/Types.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/SurfaceModel.hh"
 

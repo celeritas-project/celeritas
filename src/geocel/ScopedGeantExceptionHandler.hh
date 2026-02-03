@@ -23,15 +23,15 @@ namespace celeritas
 /*!
  * Convert Geant4 exceptions to RuntimeError during this class lifetime.
  *
- * Note that creating a \c G4RunManagerKernel resets the exception
- * handler, so errors thrown during setup \em cannot be caught by Celeritas,
- * and this class can only be used after creating the \c G4RunManager.
- *
  * Because the underlying Geant4 error handler is thread-local, this class must
  * be scoped to inside each worker thread. Additionally, since throwing from a
  * worker thread terminates the program, an error handler \em must be specified
  * if used in a worker thread: you should probably use a \c
- * celeritas::MultiExceptionHandler .
+ * celeritas::MultiExceptionHandler if used inside a worker thread.
+ *
+ * \note Creating a \c G4RunManagerKernel resets the exception
+ * handler, so errors thrown during setup \em cannot be caught by Celeritas,
+ * and this class can only be used after creating the \c G4RunManager.
  */
 class ScopedGeantExceptionHandler
 {

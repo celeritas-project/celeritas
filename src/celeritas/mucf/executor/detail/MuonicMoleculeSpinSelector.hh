@@ -55,22 +55,8 @@ CELER_FUNCTION MuonicMoleculeSpinSelector::MuonicMoleculeSpinSelector(
 template<class Engine>
 CELER_FUNCTION size_type MuonicMoleculeSpinSelector::operator()(Engine&)
 {
-    size_type result{};
-
-    //! \todo Implement
-
-    switch (molecule_)
-    {
-        case MucfMuonicMolecule::deuterium_deuterium:
-            break;
-        case MucfMuonicMolecule::deuterium_tritium:
-            break;
-        case MucfMuonicMolecule::tritium_tritium:
-            break;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
-    return result;
+    //! \todo switch on molecule_
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

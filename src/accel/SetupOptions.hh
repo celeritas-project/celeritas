@@ -64,7 +64,8 @@ struct AlongStepFactoryInput;
  *   are never set.
  *
  * The \c force_volumes option can be used for unusual cases (i.e., when using
- * a custom run manager) that do not define SDs on the "master" thread.
+ * a custom run manager) that do not define the same SDs on the main thread
+ * as on worker threads.
  * Similarly, the \c skip_volumes option allows optimized GPU-defined SDs to be
  * used in place of a Geant4 callback. For both options, the \c
  * FindVolumes helper function can be used to determine LV pointers from
@@ -143,7 +144,7 @@ struct OpticalSetupOptions
  * disables Celeritas offloading and immediately kills the \c offload_particles
  * in Geant4. The only expected use case for an empty \c offload_particles
  * vector is when offloading optical distribution data to Celeritas through the
- * \c LocalOpticalOffload.
+ * \c LocalOpticalGenOffload.
  *
  * Note that the Celeritas core capacity values (\c max_num_tracks, \c
  * initializer_capacity and \c auto_flush) are per \em stream while the \c

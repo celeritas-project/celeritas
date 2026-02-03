@@ -81,7 +81,14 @@ list(APPEND SOURCES
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
   grid/XsGridInserter.cc
+  inp/ControlIO.json.cc
+  inp/DiagnosticsIO.json.cc
+  inp/EventsIO.json.cc
   inp/MucfPhysics.cc
+  inp/ProblemIO.json.cc
+  inp/StandaloneInputIO.json.cc
+  inp/SystemIO.json.cc
+  inp/TrackingIO.json.cc
   io/AtomicRelaxationReader.cc
   io/GammaNuclearXsReader.cc
   io/ImportData.cc
@@ -120,6 +127,7 @@ list(APPEND SOURCES
   optical/MaterialParams.cc
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
+  optical/Runner.cc
   optical/SimParams.cc
   optical/Transporter.cc
   optical/Types.cc
@@ -130,6 +138,7 @@ list(APPEND SOURCES
   optical/surface/SurfaceSteppingAction.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
+  phys/GeneratorCountersIO.json.cc
   phys/GeneratorInterface.cc
   phys/GeneratorRegistry.cc
   phys/ImportedModelAdapter.cc
@@ -159,7 +168,6 @@ list(APPEND SOURCES
   user/DetectorSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc
-  user/SDParams.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
@@ -188,8 +196,8 @@ if(CELERITAS_USE_covfie)
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
-  # object libraries do not work properly with RDC builds
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    # NOTE: object libraries do not work properly with RDC builds or HIP
     list(APPEND SOURCES ${_celer_covfie_src})
     list(APPEND PRIVATE_DEPS
       Celeritas::BuildFlags
@@ -226,6 +234,7 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
+    ext/GeantTrackReconstruction.cc
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
@@ -239,7 +248,6 @@ if(CELERITAS_USE_Geant4)
     ext/detail/NaviTouchableUpdater.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
-    ext/detail/TrackProcessor.cc
   )
 
   if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
@@ -399,8 +407,10 @@ celeritas_polysource(optical/gen/DirectGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
-celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
 celeritas_polysource(optical/surface/model/DielectricInteractionModel)
+celeritas_polysource(optical/surface/model/GaussianRoughnessModel)
+celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
+celeritas_polysource(optical/surface/model/SmearRoughnessModel)
 celeritas_polysource(optical/surface/model/TrivialInteractionModel)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)

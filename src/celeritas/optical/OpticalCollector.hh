@@ -125,7 +125,7 @@ class OpticalCollector
     GeneratorRegistry const& gen_reg() const;
 
     // Get and reset cumulative statistics on optical tracks from a state
-    OpticalAccumStats exchange_counters(AuxStateVec& aux) const;
+    CounterAccumStats exchange_counters(AuxStateVec& aux) const;
 
     // Get queued buffer sizes
     OpticalBufferSize buffer_counts(AuxStateVec const& aux) const;

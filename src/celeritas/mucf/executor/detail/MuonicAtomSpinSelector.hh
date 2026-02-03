@@ -55,21 +55,8 @@ MuonicAtomSpinSelector::MuonicAtomSpinSelector(MucfMuonicAtom atom)
 template<class Engine>
 CELER_FUNCTION size_type MuonicAtomSpinSelector::operator()(Engine&)
 {
-    size_type result{};
-
-    //! \todo Implement
-
-    switch (atom_)
-    {
-        case MucfMuonicAtom::deuterium:
-            break;
-        case MucfMuonicAtom::tritium:
-            // Protium and tritium samplings are equivalent
-            break;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
-    return result;
+    //! \todo switch on atom_
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

@@ -55,6 +55,44 @@ struct MucfParticleIds
 
 //---------------------------------------------------------------------------//
 /*!
+ * Particle masses used by the \c DTMixMucfModel .
+ */
+struct MucfParticleMasses
+{
+    //! Primary
+    units::MevMass mu_minus;
+
+    //!@{
+    //! Elementary particles and nuclei
+    units::MevMass neutron;
+    units::MevMass proton;
+    units::MevMass alpha;
+    units::MevMass he3;
+    //!@}
+
+    //!@{
+    //! Muonic atoms
+    units::MevMass muonic_hydrogen;
+    units::MevMass muonic_deuteron;
+    units::MevMass muonic_triton;
+    units::MevMass muonic_alpha;
+    units::MevMass muonic_he3;
+    //!@}
+
+    //! Check whether all data are assigned
+    CELER_FUNCTION explicit operator bool() const
+    {
+        return mu_minus > zero_quantity() && neutron > zero_quantity()
+               && proton > zero_quantity() && alpha > zero_quantity()
+               && he3 > zero_quantity() && muonic_hydrogen > zero_quantity()
+               && muonic_alpha > zero_quantity()
+               && muonic_triton > zero_quantity()
+               && muonic_he3 > zero_quantity();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Data for for the \c DTMixMucfModel .
  */
 template<Ownership W, MemSpace M>
@@ -67,11 +105,13 @@ struct DTMixMucfData
     using GridRecord = NonuniformGridRecord;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, Array<real_type, 2>>;
 
-    //! Particle IDs
-    MucfParticleIds particles;
+    //! Particles
+    MucfParticleIds particle_ids;
+    MucfParticleMasses particle_masses;
 
     //! Muon CDF energy grid for sampling outgoing muCF muons
-    GridRecord muon_energy_cdf;  //! \todo Verify energy unit
+    //! X-axis range is [0, 1) and y-axis is the outgoing muon energy in MeV
+    GridRecord muon_energy_cdf;
     Items<real_type> reals;
 
     //!@{
@@ -87,9 +127,13 @@ struct DTMixMucfData
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return particles && muon_energy_cdf && !mucfmatid_to_matid.empty()
-               && !cycle_times.empty()
+        return true;
+#if 0
+        // Re-enable once full data assignment is implemented
+        return particle_ids && particle_masses && muon_energy_cdf
+               && !mucfmatid_to_matid.empty() && !cycle_times.empty()
                && (mucfmatid_to_matid.size() == cycle_times.size());
+#endif
     }
 
     //! Assign from another set of data
@@ -99,7 +143,8 @@ struct DTMixMucfData
         CELER_EXPECT(other);
 
         //! \todo Finish implementation
-        this->particles = other.particles;
+        this->particle_ids = other.particle_ids;
+        this->particle_masses = other.particle_masses;
         this->reals = other.reals;
         this->muon_energy_cdf = other.muon_energy_cdf;
         this->mucfmatid_to_matid = other.mucfmatid_to_matid;

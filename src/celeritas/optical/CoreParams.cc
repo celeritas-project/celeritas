@@ -14,6 +14,7 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -55,11 +56,11 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.geometry = get_ref<M>(*p.geometry);
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
-    ref.surface = get_ref<M>(*p.surface);
-    ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.rng = get_ref<M>(*p.rng);
     ref.sim = get_ref<M>(*p.sim);
-    // TODO: Get detectors ref
+    ref.surface = get_ref<M>(*p.surface);
+    ref.surface_physics = get_ref<M>(*p.surface_physics);
+    ref.detectors = get_ref<M>(*p.detectors);
     if (p.cherenkov)
     {
         ref.cherenkov = get_ref<M>(*p.cherenkov);
@@ -124,6 +125,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(surface_physics);
+    CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
@@ -131,12 +133,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
-    // TODO: provide detectors in input, passing from core params
-    detectors_ = input_.detectors;
-    if (!detectors_)
-    {
-        detectors_ = std::make_shared<SDParams>();
-    }
     if (!input_.aux_reg)
     {
         input_.aux_reg = std::make_shared<AuxParamsRegistry>();

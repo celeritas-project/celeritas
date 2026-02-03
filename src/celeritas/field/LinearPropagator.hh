@@ -31,14 +31,8 @@ class LinearPropagator
     {
     }
 
-    // Move track to next volume boundary.
-    inline CELER_FUNCTION result_type operator()();
-
     // Move track up to a user-provided distance, up to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
-
-    //! Whether it's possible to have tracks that are looping
-    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return false; }
 
   private:
     GTV geo_;
@@ -49,22 +43,6 @@ class LinearPropagator
 //---------------------------------------------------------------------------//
 template<class GTV>
 CELER_FUNCTION LinearPropagator(GTV&&) -> LinearPropagator<GTV>;
-
-//---------------------------------------------------------------------------//
-/*!
- * Move track to next volume boundary.
- */
-template<class GTV>
-CELER_FUNCTION auto LinearPropagator<GTV>::operator()() -> result_type
-{
-    CELER_EXPECT(!geo_.is_outside());
-
-    result_type result = geo_.find_next_step();
-    CELER_ASSERT(result.boundary);
-    geo_.move_to_boundary();
-
-    return result;
-}
 
 //---------------------------------------------------------------------------//
 /*!

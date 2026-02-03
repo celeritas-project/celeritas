@@ -10,7 +10,9 @@
 #include <vector>
 
 #include "corecel/inp/Grid.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/mucf/Types.hh"
 
 namespace celeritas
@@ -20,36 +22,28 @@ namespace inp
 //---------------------------------------------------------------------------//
 /*!
  * Muon-catalyzed fusion scalars.
- *
- * Default values are the same used by Acceleron.
  */
 struct MucfScalars
 {
-    // Atomic masses
-    units::AmuMass protium_mass;  //!< Protium atomic mass [AMU]
-    units::AmuMass deuterium_mass;  //!< Deuterium atomic mass [AMU]
-    units::AmuMass tritium_mass;  //!< Tritium atomic mass [AMU]
-    units::InvCcDensity liquid_hydrogen_density;  //!< LHD unit [1/cm^3]
+    using AmuMass = Quantity<units::Amu, double>;
+    using InvCcDensity = Quantity<units::InvCentimeterCubed, double>;
 
-    //! Whether the data are assigned
+    // Atomic masses
+    AmuMass protium;  //!< Protium atomic mass [AMU]
+    AmuMass deuterium;  //!< Deuterium atomic mass [AMU]
+    AmuMass tritium;  //!< Tritium atomic mass [AMU]
+    InvCcDensity liquid_hydrogen_density;  //!< LHD unit [1/cm^3]
+
+    //! Whether scalars have been defined
     explicit operator bool() const
     {
-        return protium_mass > zero_quantity()
-               && deuterium_mass > zero_quantity()
-               && tritium_mass > zero_quantity()
+        return protium > zero_quantity() && deuterium > zero_quantity()
+               && tritium > zero_quantity()
                && liquid_hydrogen_density > zero_quantity();
     }
 
-    //! Initialize with hardcoded values
-    static MucfScalars from_default()
-    {
-        MucfScalars result;
-        result.protium_mass = units::AmuMass{1.007825031898};
-        result.deuterium_mass = units::AmuMass{2.014101777844};
-        result.tritium_mass = units::AmuMass{3.016049281320};
-        result.liquid_hydrogen_density = units::InvCcDensity{4.25e22};
-        return result;
-    }
+    // Initialize with hardcoded values
+    static MucfScalars from_default();
 };
 
 //---------------------------------------------------------------------------//
@@ -174,7 +168,7 @@ struct MucfPhysics
     //! Whether muon-catalyzed fusion physics is enabled
     explicit operator bool() const
     {
-        return muon_energy_cdf && !cycle_rates.empty();
+        return scalars && muon_energy_cdf && !cycle_rates.empty();
     }
 
     //! Construct hardcoded muon-catalyzed fusion physics data

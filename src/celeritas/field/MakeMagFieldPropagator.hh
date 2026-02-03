@@ -10,7 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "FieldDriverOptions.hh"

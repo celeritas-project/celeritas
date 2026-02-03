@@ -64,7 +64,7 @@ class LArSphereOffloadTest : public LArSphereBase
         // Optical distribution data
         OffloadResult cherenkov;
         OffloadResult scintillation;
-        OpticalAccumStats accum;
+        CounterAccumStats accum;
     };
 
   public:

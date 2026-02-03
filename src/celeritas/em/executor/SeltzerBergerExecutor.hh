@@ -11,7 +11,7 @@
 #include "corecel/random/engine/RngEngine.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/interactor/SeltzerBergerInteractor.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/Interaction.hh"

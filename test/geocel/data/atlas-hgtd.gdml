@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <material Z="13" name="Aluminium_Ma" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="166"/>
+      <D unit="g/cm3" value="2.70000024772552"/>
+      <atom unit="g/mole" value="26.9815"/>
+    </material>
+    <isotope N="14" Z="7" name="N14">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N15">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="N">
+      <fraction n="0.99632" ref="N14"/>
+      <fraction n="0.00368" ref="N15"/>
+    </element>
+    <isotope N="16" Z="8" name="O16">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O17">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O18">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="O">
+      <fraction n="0.99757" ref="O16"/>
+      <fraction n="0.00038" ref="O17"/>
+      <fraction n="0.00205" ref="O18"/>
+    </element>
+    <isotope N="36" Z="18" name="Ar36">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="Ar38">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar">
+      <fraction n="0.003365" ref="Ar36"/>
+      <fraction n="0.000632" ref="Ar38"/>
+      <fraction n="0.996003" ref="Ar40"/>
+    </element>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="Air" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="85.5378377847393"/>
+      <D unit="g/cm3" value="0.001214"/>
+      <fraction n="0.7494" ref="N"/>
+      <fraction n="0.2369" ref="O"/>
+      <fraction n="0.0129" ref="Ar"/>
+      <fraction n="0.0008" ref="H"/>
+    </material>
+  </materials>
+
+  <solids>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="SPlate0x685f6f00" rmax="660" rmin="120" startphi="0" z="1"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="G4Tube0x685f6200" rmax="1100" rmin="110" startphi="0" z="125"/>
+    <union name="HGTD0x654bb180">
+      <first ref="G4Tube0x685f6200"/>
+      <second ref="G4Tube0x685f6200"/>
+      <position name="HGTD0x654bb180_pos" unit="mm" x="0" y="0" z="6965"/>
+    </union>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="ITK0x4fe0ff00" rmax="1148" rmin="28.8" startphi="0" z="7090"/>
+    <polycone aunit="deg" deltaphi="360" lunit="mm" name="Atlas0x40da0fc0" startphi="0">
+      <zplane rmax="1501" rmin="0" z="-26046"/>
+      <zplane rmax="1501" rmin="0" z="-23001"/>
+      <zplane rmax="2751" rmin="0" z="-23001"/>
+      <zplane rmax="2751" rmin="0" z="-22031"/>
+      <zplane rmax="14201" rmin="0" z="-22031"/>
+      <zplane rmax="14201" rmin="0" z="-12899"/>
+      <zplane rmax="14201" rmin="0" z="-12899"/>
+      <zplane rmax="14201" rmin="0" z="-6741"/>
+      <zplane rmax="14201" rmin="0" z="-6741"/>
+      <zplane rmax="14201" rmin="0" z="6741"/>
+      <zplane rmax="14201" rmin="0" z="6741"/>
+      <zplane rmax="14201" rmin="0" z="12899"/>
+      <zplane rmax="14201" rmin="0" z="12899"/>
+      <zplane rmax="14201" rmin="0" z="22031"/>
+      <zplane rmax="2751" rmin="0" z="22031"/>
+      <zplane rmax="2751" rmin="0" z="23001"/>
+      <zplane rmax="1501" rmin="0" z="23001"/>
+      <zplane rmax="1501" rmin="0" z="26046"/>
+    </polycone>
+  </solids>
+
+  <structure>
+    <volume name="SPlate0x6027d4a0">
+      <materialref ref="Aluminium_Ma"/>
+      <solidref ref="SPlate0x685f6f00"/>
+    </volume>
+    <volume name="HGTD0x685d78c0">
+      <materialref ref="Air"/>
+      <solidref ref="HGTD0x654bb180"/>
+      <physvol copynumber="5" name="SPlate_40x602d7220">
+        <volumeref ref="SPlate0x6027d4a0"/>
+        <position name="SPlate_40x602d7220_pos" unit="mm" x="0" y="0" z="6927.5"/>
+      </physvol>
+      <physvol copynumber="1" name="SPlate_50x602d7270">
+        <volumeref ref="SPlate0x6027d4a0"/>
+        <position name="SPlate_50x602d7270_pos" unit="mm" x="0" y="0" z="6934.5"/>
+      </physvol>
+      <physvol copynumber="2" name="SPlate_60x602d7720">
+        <volumeref ref="SPlate0x6027d4a0"/>
+        <position name="SPlate_60x602d7720_pos" unit="mm" x="0" y="0" z="6952.5"/>
+      </physvol>
+      <physvol copynumber="3" name="SPlate_70x602d7770">
+        <volumeref ref="SPlate0x6027d4a0"/>
+        <position name="SPlate_70x602d7770_pos" unit="mm" x="0" y="0" z="6959.5"/>
+      </physvol>
+      <physvol copynumber="248" name="SPlate_40x65e335e0">
+        <volumeref ref="SPlate0x6027d4a0"/>
+        <position name="SPlate_40x65e335e0_pos" unit="mm" x="7.75586651663304e-12" y="0" z="37.5"/>
+        <rotation name="SPlate_40x65e335e0_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="1" name="SPlate_50x65e33b80">
+        <volumeref ref="SPlate0x6027d4a0"/>
+        <position name="SPlate_50x65e33b80_pos" unit="mm" x="6.30810476686154e-12" y="0" z="30.5"/>
+        <rotation name="SPlate_50x65e33b80_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="2" name="SPlate_60x65e33c20">
+        <volumeref ref="SPlate0x6027d4a0"/>
+        <position name="SPlate_60x65e33c20_pos" unit="mm" x="2.58528883887768e-12" y="0" z="12.5"/>
+        <rotation name="SPlate_60x65e33c20_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+      <physvol copynumber="3" name="SPlate_70x65e33cc0">
+        <volumeref ref="SPlate0x6027d4a0"/>
+        <position name="SPlate_70x65e33cc0_pos" unit="mm" x="1.13752708910618e-12" y="0" z="5.5"/>
+        <rotation name="SPlate_70x65e33cc0_rot" unit="deg" x="180" y="0" z="180"/>
+      </physvol>
+    </volume>
+    <volume name="ITK0x4fe7c790">
+      <materialref ref="Air"/>
+      <solidref ref="ITK0x4fe0ff00"/>
+      <physvol name="HGTD0x65e4d130">
+        <volumeref ref="HGTD0x685d78c0"/>
+        <position name="HGTD0x65e4d130_pos" unit="mm" x="0" y="0" z="-3482.5"/>
+      </physvol>
+    </volume>
+    <volume name="Atlas0x4174ac60">
+      <materialref ref="Air"/>
+      <solidref ref="Atlas0x40da0fc0"/>
+      <physvol name="ITK0x4ffa3e50">
+        <volumeref ref="ITK0x4fe7c790"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="Atlas0x4174ac60"/>
+  </setup>
+
+</gdml>

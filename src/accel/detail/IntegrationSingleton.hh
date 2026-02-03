@@ -10,7 +10,7 @@
 
 #include "corecel/sys/Stopwatch.hh"
 
-#include "../LocalOpticalOffload.hh"
+#include "../LocalOpticalGenOffload.hh"
 #include "../LocalTransporter.hh"
 #include "../SetupOptions.hh"
 #include "../SharedParams.hh"
@@ -48,16 +48,14 @@ class IntegrationSingleton
     // Static GLOBAL shared singleton
     static IntegrationSingleton& instance();
 
-    // Static THREAD-LOCAL Celeritas state data
-    static LocalTransporter& local_transporter();
-
-    // Static THREAD-LOCAL Celeritas optical state data
-    static LocalOpticalOffload& local_optical_offload();
-
     //// ACCESSORS ////
 
-    // Access the thread-local offload interface
+    // Access the thread-local offload base interface (for event/run)
     LocalOffloadInterface& local_offload();
+
+    // Access thread-local *track* offload interface (for anything that pushes
+    // a track)
+    TrackOffloadInterface& local_track_offload();
 
     //! Assign setup options before constructing params
     void setup_options(SetupOptions&&);
@@ -79,23 +77,11 @@ class IntegrationSingleton
 
     //// HELPERS ////
 
-    // Construct shared params on master (or single) thread
-    void initialize_shared_params();
+    // Initialize shared params and thread-local transporter
+    bool initialize_offload();
 
-    // Construct thread-local transporter
-    bool initialize_local_transporter();
-
-    // Destroy local transporter
-    void finalize_local_transporter();
-
-    // Destroy params
-    void finalize_shared_params();
-
-    // Start the transport timer [s]
-    void start_timer() { get_time_ = {}; }
-
-    // Stop the timer and return the elapsed time [s]
-    real_type stop_timer() { return get_time_(); }
+    // Destroy local transporter and shared params
+    void finalize_offload();
 
   private:
     //// TYPES ////
@@ -110,20 +96,27 @@ class IntegrationSingleton
     std::unique_ptr<SetupOptionsMessenger> messenger_;
     Stopwatch get_time_;
     bool have_created_logger_{false};
+    bool failed_setup_{false};
 
     //// PRIVATE MEMBER FUNCTIONS ////
 
     // Only this class can construct
     IntegrationSingleton();
 
-    // Static thread-local Celeritas state data
-    static UPOffload& local_offload_ptr();
-
-    // Whether offloading optical distribution data is enabled
-    bool optical_offload() const;
-
     // Set up or update logging if the run manager is enabled
     void update_logger();
+
+    // Initialize shared params implementation
+    void initialize_master_impl();
+    // Initialize worker thread implementation
+    void initialize_worker_impl();
+    // Initialize local transporter implementation
+    void initialize_local_impl();
+
+    // Finalize local transporter implementation
+    void finalize_local_impl();
+    // Finalize shared params implementation
+    void finalize_shared_impl();
 };
 
 //---------------------------------------------------------------------------//
