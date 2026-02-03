@@ -120,17 +120,12 @@ TEST_F(CartMapMagneticFieldTest, geant_calculation)
     pos = {0.5 * cm, 0.11 * cm, -3.9 * cm};
     this->check_field(cart_field, pos, tol);
 
-    if (false)
-    {
-        // TODO: Checking outside the field's domain clamps to a nearby grid
-        // point or triggers a C assert that terminates the program
-        pos = {-1 * cm, 0.1 * cm, -0.1 * cm};
-        EXPECT_VEC_NEAR(
-            (Dbl3{0, 0, 0}), this->calc_field(cart_field, pos), tol);
-        pos = {1 * cm, 0.1 * cm, -0.1 * cm};
-        EXPECT_VEC_NEAR(
-            (Dbl3{0, 0, 0}), this->calc_field(cart_field, pos), tol);
-    }
+    pos = {-1 * cm, 0.1 * cm, -0.1 * cm};
+    EXPECT_VEC_NEAR(
+        (Dbl3{-1.05, -1.5, 3.6}), this->calc_field(cart_field, pos), tol);
+    pos = {1 * cm, 0.1 * cm, -0.1 * cm};
+    EXPECT_VEC_NEAR(
+        (Dbl3{0.45, -1.5, 3.6}), this->calc_field(cart_field, pos), tol);
 }
 
 //---------------------------------------------------------------------------//

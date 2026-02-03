@@ -85,9 +85,11 @@ struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
             }
             else
             {
+                auto const& host_backend = other.field->backend();
+                auto const& strided_backend
+                    = host_backend.get_backend().get_backend().get_backend();
                 field = std::make_unique<field_t>(covfie::make_parameter_pack(
-                    other.field->backend().get_configuration(),
-                    other.field->backend().get_backend().get_backend()));
+                    host_backend.get_configuration(), strided_backend));
             }
             field_view = DeviceVector<view_t>{1};
             field_view.copy_to_device(make_span<view_t const>({{*field}}));
