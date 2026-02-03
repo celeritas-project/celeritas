@@ -122,7 +122,7 @@ void Stream::sync() const
  *
  * HIP 5.1 and lower does not support async allocation.
  */
-void* Stream::malloc_async(std::size_t bytes) const
+void* Stream::malloc_async(std::size_t bytes)
 {
     return detail::malloc_async(bytes, impl_->stream);
 }
@@ -131,9 +131,19 @@ void* Stream::malloc_async(std::size_t bytes) const
 /*!
  * Free memory asynchronously on this stream if possible.
  */
-void Stream::free_async(void* ptr) const
+void Stream::free_async(void* ptr)
 {
     return detail::free_async(ptr, impl_->stream);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enqueue delayed execution of a host function.
+ */
+void Stream::launch_host_func(HostKernel func, void* data)
+{
+    CELER_EXPECT(func);
+    CELER_DEVICE_API_CALL(LaunchHostFunc(impl_->stream, func, data));
 }
 
 //---------------------------------------------------------------------------//

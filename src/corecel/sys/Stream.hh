@@ -70,6 +70,7 @@ class Stream
     using MissingDeviceRuntime = void;
 #endif
     using ResourceT = detail::AsyncMemoryResource;
+    using HostKernel = void (*)(void*);
     //!@}
 
   public:
@@ -94,10 +95,13 @@ class Stream
     void sync() const;
 
     // Allocate memory asynchronously on this stream if possible
-    void* malloc_async(std::size_t bytes) const;
+    void* malloc_async(std::size_t bytes);
 
     // Free memory asynchronously on this stream if possible
-    void free_async(void* ptr) const;
+    void free_async(void* ptr);
+
+    // Delayed execution of a host function
+    void launch_host_func(HostKernel func, void* data);
 
   private:
     struct Impl;
@@ -110,35 +114,35 @@ class Stream
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline Stream::Stream()
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
+inline Stream::Stream() {}
 
 #    ifdef CELER_DEVICE_RUNTIME_INCLUDED
 inline Stream::StreamT Stream::get() const
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #    endif
 
 inline Stream::ResourceT& Stream::memory_resource()
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline void Stream::sync() const
+inline void Stream::sync() const {}
+inline void* Stream::malloc_async(std::size_t)
 {
-    CELER_ASSERT_UNREACHABLE();
-}
-inline void* Stream::malloc_async(std::size_t) const
-{
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline void Stream::free_async(void*) const
+inline void Stream::free_async(void*)
 {
-    CELER_ASSERT_UNREACHABLE();
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+inline void launch_host_func(HostKernel func, void* data)
+{
+    CELER_EXPECT(func);
+    func(data);
 }
 
 inline void Stream::ImplDeleter::operator()(Impl*) noexcept
