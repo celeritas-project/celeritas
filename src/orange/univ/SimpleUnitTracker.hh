@@ -572,22 +572,18 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     // Current senses should put us inside the volume
     LogicEvaluator is_inside(vol.logic());
 
-    // Return early if the current sense already matches the target sense
-    // (a tracking error)
-    if (is_inside(calc_sense) == (target_sense == Sense::inside))
-    {
+    // Log a warning if the current sense already matches the target sense
 #if !CELER_DEVICE_COMPILE
-        if constexpr (CELERITAS_DEBUG)
+    if constexpr (CELERITAS_DEBUG)
+    {
+        if (is_inside(calc_sense) == (target_sense == Sense::inside))
         {
-            {
-                CELER_LOG_LOCAL(warning)
-                    << "Calculated surface sense at position " << repr(pos)
-                    << " already matches target sense";
-            }
+            CELER_LOG_LOCAL(warning)
+                << "Calculated surface sense at position " << repr(pos)
+                << " already matches target sense";
         }
-#endif
-        return {};
     }
+#endif
 
     // previous isect distance for move delta
     real_type previous_distance{0};
