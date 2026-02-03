@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/CollectionMirror.hh
+//! \file corecel/data/ParamsDataStore.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -43,14 +43,12 @@ namespace celeritas
  *         return data_.device_ref();
  *     }
  *   private:
- *     CollectionMirror<FooData> data_;
+ *     ParamsDataStore<FooData> data_;
  * };
  * \endcode
- *
- * \todo Rename ParamsDataStore
  */
 template<template<Ownership, MemSpace> class P>
-class CollectionMirror final : public ParamsDataInterface<P>
+class ParamsDataStore final : public ParamsDataInterface<P>
 {
   public:
     //!@{
@@ -62,10 +60,10 @@ class CollectionMirror final : public ParamsDataInterface<P>
 
   public:
     //! Default constructor leaves the class in an "unassigned" state
-    CollectionMirror() = default;
+    ParamsDataStore() = default;
 
     // Construct from host data
-    explicit inline CollectionMirror(HostValue&& host);
+    explicit inline ParamsDataStore(HostValue&& host);
 
     //! Whether the data is assigned
     explicit operator bool() const { return static_cast<bool>(host_); }
@@ -98,8 +96,7 @@ class CollectionMirror final : public ParamsDataInterface<P>
  * Construct by capturing host data.
  */
 template<template<Ownership, MemSpace> class P>
-CollectionMirror<P>::CollectionMirror(HostValue&& host)
-    : host_(std::move(host))
+ParamsDataStore<P>::ParamsDataStore(HostValue&& host) : host_(std::move(host))
 {
     if (CELER_UNLIKELY(!host_))
     {
