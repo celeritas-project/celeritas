@@ -41,7 +41,7 @@ class UnitInserter
     // Construct from full parameter data
     UnitInserter(UniverseInserter* insert_universe,
                  Data* orange_data,
-                 ConstructionOptions* opts);
+                 ConstructionOptions const* opts);
 
     // Create a simple unit and store in in OrangeParamsData
     UnivId operator()(UnitInput&& inp);
