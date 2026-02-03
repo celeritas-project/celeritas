@@ -33,12 +33,6 @@ class DeviceEvent
     using MissingDeviceRuntime = void;
 #endif
 
-    enum class Status
-    {
-        pending,
-        ready
-    };
-
   public:
     DeviceEvent();
     CELER_DEFAULT_MOVE_DELETE_COPY(DeviceEvent);
@@ -54,7 +48,6 @@ class DeviceEvent
     void record(Stream const& stream) const;
 
     // Query event status
-    Status status() const;
     bool ready() const;
 
     // Wait for the event to complete
@@ -75,11 +68,6 @@ class DeviceEvent
 inline DeviceEvent::DeviceEvent() = default;
 
 inline void DeviceEvent::record(Stream const&) const {}
-
-inline DeviceEvent::Status DeviceEvent::status() const
-{
-    return Status::ready;
-}
 
 inline bool DeviceEvent::ready() const
 {

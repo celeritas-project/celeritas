@@ -12,7 +12,6 @@
 
 #include "Stream.hh"  // IWYU pragma: keep
 
-#if CELER_USE_DEVICE
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -29,6 +28,10 @@ void DeviceEvent::ImplDeleter::operator()(Impl* impl) noexcept
     {
         CELER_DEVICE_API_CALL(EventDestroy(impl->event));
         delete impl;
+    }
+    catch (RuntimeError const& e)
+    {
+        std::cerr << "Failed to destroy stream: " << e.what() << std::endl;
     }
     catch (...)
     {
@@ -60,23 +63,20 @@ void DeviceEvent::record(Stream const& stream) const
 }
 
 //---------------------------------------------------------------------------//
-DeviceEvent::Status DeviceEvent::status() const
+bool DeviceEvent::ready() const
 {
-    CELER_EXPECT(impl_);
-
     auto result = CELER_DEVICE_API_SYMBOL(EventQuery)(impl_->event);
     if (result == CELER_DEVICE_API_SYMBOL(ErrorNotReady))
     {
-        return Status::pending;
+        return false;
     }
-    CELER_DEVICE_API_CALL(EventQuery(impl_->event));
-    return Status::ready;
-}
-
-//---------------------------------------------------------------------------//
-bool DeviceEvent::ready() const
-{
-    return this->status() == Status::ready;
+    else if (result == CELER_DEVICE_API_SYMBOL(Success))
+    {
+        return true;
+    }
+    // Either is missing: an error has occurred
+    CELER_DEVICE_API_CALL(GetLastError());
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -88,4 +88,3 @@ void DeviceEvent::sync() const
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
-#endif  // CELER_USE_DEVICE

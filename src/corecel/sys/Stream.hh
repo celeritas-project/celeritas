@@ -46,6 +46,7 @@ class AsyncMemoryResource;
  * typically be accessed only by low-level device implementations or advanced
  * kernels that need to interact with the device stream.
  *
+ * \internal
  * \warning This class interface changes based on available headers.
  * Because the CUDA/HIP stream type are only defined when those paths are
  * included and available (which isn't true for all Celeritas code) we hide the
@@ -55,6 +56,8 @@ class AsyncMemoryResource;
  * cannot be included at all by a non-HIP compiler. Because this class forward
  * declares the memory resource, downstream uses must include \c
  * corecel/sys/detail/AsyncMemoryResource.device.hh .
+ *
+ * \todo Rename DeviceStream
  */
 class Stream
 {
