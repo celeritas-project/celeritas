@@ -52,6 +52,8 @@ class DeviceEvent
     // Construct with stream or stream ID
     explicit DeviceEvent(StreamId stream_id);
     explicit DeviceEvent(Stream const& stream);
+    CELER_DEFAULT_MOVE_DELETE_COPY(DeviceEvent);
+    ~DeviceEvent() = default;
 
     // Record this event on the stream
     void record();

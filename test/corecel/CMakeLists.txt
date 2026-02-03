@@ -129,6 +129,7 @@ celeritas_add_test(sys/ActionRegistry.test.cc)
 celeritas_add_test(sys/Device.test.cc GPU
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
+celeritas_add_test(sys/DeviceEvent.test.cc GPU)
 celeritas_add_test(sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
   LINK_LIBRARIES nlohmann_json::nlohmann_json
