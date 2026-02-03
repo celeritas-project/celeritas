@@ -15,6 +15,8 @@
 #include "Device.hh"
 #include "Stream.hh"  // IWYU pragma: keep
 
+using EventT = CELER_DEVICE_API_SYMBOL(Event_t);
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -72,18 +74,6 @@ DeviceEvent::DeviceEvent(Stream const& stream)
     CELER_DEVICE_API_CALL(EventCreateWithFlags(
         &event, CELER_DEVICE_API_SYMBOL(EventDisableTiming)));
     impl_.reset(new Impl{event, stream.get()});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the native CUDA/HIP event handle.
- *
- * This provides direct access to the underlying event for advanced use cases.
- */
-DeviceEvent::EventT DeviceEvent::get() const
-{
-    CELER_EXPECT(impl_);
-    return impl_->event;
 }
 
 //---------------------------------------------------------------------------//

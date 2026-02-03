@@ -14,10 +14,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#if CELER_DEVICE_SOURCE
-#    include "corecel/DeviceRuntimeApi.hh"
-#endif
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -53,22 +49,9 @@ class Stream;
 class DeviceEvent
 {
   public:
-#ifdef CELER_DEVICE_RUNTIME_INCLUDED
-    using EventT = CELER_DEVICE_API_SYMBOL(Event_t);
-#else
-    using MissingDeviceRuntime = void;
-#endif
-
-  public:
     // Construct with stream or stream ID
     explicit DeviceEvent(StreamId stream_id);
     explicit DeviceEvent(Stream const& stream);
-
-#ifdef CELER_DEVICE_RUNTIME_INCLUDED
-    EventT get() const;
-#else
-    MissingDeviceRuntime get() const {}
-#endif
 
     // Record this event on the stream
     void record();
@@ -105,13 +88,6 @@ inline bool DeviceEvent::ready() const
 inline void DeviceEvent::sync() const {}
 
 inline void DeviceEvent::ImplDeleter::operator()(Impl*) noexcept {}
-
-#    ifdef CELER_DEVICE_RUNTIME_INCLUDED
-inline DeviceEvent::EventT DeviceEvent::get() const
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-#    endif
 #endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
