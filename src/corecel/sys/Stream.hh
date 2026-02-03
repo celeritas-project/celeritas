@@ -11,6 +11,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"  // IWYU pragma: keep
 
 #if CELER_DEVICE_SOURCE
