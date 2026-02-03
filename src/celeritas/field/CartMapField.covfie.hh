@@ -21,10 +21,9 @@ namespace celeritas
 /*!
  * Interpolate a magnetic field vector on an x/y/z grid.
  *
- * \warning Accessing values outside the grid has different behavior depending
- * on the platform: CUDA clamps via texture memory; HIP and CPU clamp on the
- * low side but assert on the high side. This behavior also differs from other
- * field maps, where values outside the map are assumed zero.
+ * \warning Accessing values outside the grid clamps to boundary values.
+ * This behavior differs from other field maps, where values outside the map
+ * are assumed zero.
  */
 class CartMapField
 {
@@ -64,9 +63,9 @@ CartMapField::CartMapField(ParamsRef const& shared) : field_{shared.get_view()}
 /*!
  * Calculate the magnetic field vector for the given position.
  *
- * \warning Accessing values outside the grid clamps to boundary values.
- * This behavior differs from other field maps, where values outside the map
- * are assumed zero.
+ * This does a 3-D interpolation on the input grid and reconstructs the
+ * magnetic field vector from the stored X, Y, Z components of the field.
+ * The result is in the native Celeritas unit system.
  */
 CELER_FUNCTION auto CartMapField::operator()(Real3 const& pos) const -> Real3
 {
