@@ -31,9 +31,9 @@ class MuonicAtomSelectorTest : public Test
 
     void SetUp() override {}
 
-    real_type
-    calc_deuterium_q1s_prob(real_type deuterium_frac, real_type tritium_frac)
+    real_type calc_deuterium_q1s_prob(real_type deuterium_frac)
     {
+        real_type const tritium_frac = 1 - deuterium_frac;
         real_type q1s = 1.0 / (1.0 + 2.9 * tritium_frac);
         return deuterium_frac * q1s;
     }
@@ -54,7 +54,7 @@ class MuonicAtomSelectorTest : public Test
 TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_deuterium)
 {
     // Pure deuterium
-    MuonicAtomSelector select_atom(1, 0);
+    MuonicAtomSelector select_atom(1);
 
     size_type const num_samples = 100;
     size_type deuterium_count = 0;
@@ -74,7 +74,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_deuterium)
 TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_tritium)
 {
     // Pure tritium
-    MuonicAtomSelector select_atom(0, 1);
+    MuonicAtomSelector select_atom(0);
 
     size_type const num_samples = 100;
     size_type tritium_count = 0;
@@ -95,8 +95,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 {
     // 50/50 mixture
     real_type const d_frac = 0.5;
-    real_type const t_frac = 0.5;
-    MuonicAtomSelector select_atom(d_frac, t_frac);
+    MuonicAtomSelector select_atom(d_frac);
 
     size_type const num_samples = 10000;
     size_type deuterium_count = 0;
@@ -119,8 +118,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        real_type const expected_d_prob
-            = this->calc_deuterium_q1s_prob(d_frac, t_frac);
+        real_type const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
         real_type const expected_d_count = num_samples * expected_d_prob;
         // 3 sigma tolerance
         real_type const tolerance
@@ -136,8 +134,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_asymmetric_mixture)
 {
     // 70/30 mixture
     real_type const d_frac = 0.7;
-    real_type const t_frac = 0.3;
-    MuonicAtomSelector select_atom(d_frac, t_frac);
+    MuonicAtomSelector select_atom(d_frac);
 
     size_type const num_samples = 10000;
     size_type deuterium_count = 0;
@@ -153,8 +150,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_asymmetric_mixture)
 
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        real_type const expected_d_prob
-            = this->calc_deuterium_q1s_prob(d_frac, t_frac);
+        real_type const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
         real_type const expected_d_count = num_samples * expected_d_prob;
         // 3 sigma tolerance
         real_type const tolerance

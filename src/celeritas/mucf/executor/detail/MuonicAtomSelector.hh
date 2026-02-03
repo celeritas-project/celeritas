@@ -17,7 +17,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Select a muonic atom given the material information.
+ * Select a muonic atom given the mixture of dt in the material.
+ *
+ * This model assumes that the capture did not happen to a protium.
  *
  * This class uses the \f$ q_\text{1S} \f$ formula
  * \citet{bom-experimentaldt-2005, https://doi.org/10.1134/1.1926428}
@@ -33,14 +35,13 @@ namespace detail
  * \f]
  *
  * If a selected uniform random number is \f$ x \leq P_\text{d} \f$, a muonic
- * deuterium is formed. Otherwside, a muonic tritium is selected.
+ * deuterium is formed. Otherwise, a muonic tritium is selected.
  */
 class MuonicAtomSelector
 {
   public:
-    //! Construct with material information
-    inline CELER_FUNCTION MuonicAtomSelector(real_type deuterium_fraction,
-                                             real_type tritium_fraction);
+    //! Construct with deuterium fraction in the material
+    inline CELER_FUNCTION MuonicAtomSelector(real_type deuterium_fraction);
 
     // Select muonic atom
     template<class Engine>
@@ -54,17 +55,14 @@ class MuonicAtomSelector
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with material information.
+ * Construct with deuterium fraction in the material.
  */
 CELER_FUNCTION
-MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction,
-                                       real_type tritium_fraction)
+MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction)
 {
-    CELER_EXPECT(deuterium_fraction >= 0);
-    CELER_EXPECT(tritium_fraction >= 0);
-    CELER_EXPECT(deuterium_fraction + tritium_fraction > 0);
-    CELER_EXPECT(deuterium_fraction + tritium_fraction <= 1);
+    CELER_EXPECT(deuterium_fraction >= 0 && deuterium_fraction <= 1);
 
+    real_type tritium_fraction = real_type{1} - deuterium_fraction;
     real_type const q1s = real_type{1}
                           / (real_type{1} + real_type{2.9} * tritium_fraction);
     deuterium_probability_ = deuterium_fraction * q1s;

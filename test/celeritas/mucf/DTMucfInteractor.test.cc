@@ -121,7 +121,7 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
                 {
                     real_type neutron_momentum_i = sec[0].direction[i]
                                                    * neutron_p_mag;
-                    real_type muon_momentum_i = +sec[1].direction[i]
+                    real_type muon_momentum_i = sec[1].direction[i]
                                                 * muon_p_mag;
                     alpha_momentum[i] = -(neutron_momentum_i + muon_momentum_i);
                     total_momentum[i] = neutron_momentum_i + muon_momentum_i

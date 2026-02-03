@@ -136,7 +136,10 @@ struct Mol
 //! Spin (in units of hbar/2)
 struct HalfSpin
 {
-    static CELER_CONSTEXPR_FUNCTION Constant value() { return Constant{0.5}; }
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        return constants::hbar_planck / 2;
+    }
     static char const* label() { return "hbar/2"; }
 };
 
