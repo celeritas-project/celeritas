@@ -18,35 +18,36 @@ has a default value but can be overridden with any boolean value.
 
 .. table:: Environment variables used by Celeritas.
 
- ======================= ========= ==========================================
- Variable                Component Brief description
- ======================= ========= ==========================================
- CELER_COLOR             corecel   Flag: log with ANSI colors
- CELER_DEBUG_DEVICE      corecel   Flag: check device ID consistency
- CELER_DISABLE_DEVICE    corecel   Flag: disable CUDA/HIP support
- CELER_DISABLE_PARALLEL  corecel   Flag: disable MPI support
- CELER_DISABLE_REDIRECT  corecel   Flag: disable stream->logger redirection
- CELER_DISABLE_ROOT      corecel   Flag: disable ROOT I/O calls
- CELER_DISABLE_SIGNALS   corecel   Flag: disable signal handling
- CELER_DEVICE_ASYNC      corecel   Flag: allocate memory asynchronously
- CELER_ENABLE_PROFILING  corecel   Flag: use NVTX/ROCTX profiling [#pr]_
- CELER_LOG               corecel   Set "global" logger verbosity [#lg]_
- CELER_LOG_LOCAL         corecel   Set "local" logger verbosity [#lg]_
- CELER_MEMPOOL... [#mp]_ corecel   Set ``cudaMemPoolAttrReleaseThreshold``
- CELER_PERFETT... [#bs]_ corecel   Set in-process tracing buffer size
- CELER_PROFILE_DEVICE    corecel   Flag: record kernel launch counts
- CUDA_HEAP_SIZE          geocel    Set ``cudaLimitMallocHeapSize`` (VG)
- CUDA_STACK_SIZE         geocel    Set ``cudaLimitStackSize`` for VecGeom
- G4ORG_OPTIONS           orange    JSON filename for G4-to-ORANGE conversion
- G4VG_COMPARE_VOLUMES    geocel    Check G4VG volume capacity when converting
- HEPMC3_VERBOSE          celeritas HepMC3 debug level integer
- VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity integer
- CELER_DISABLE           accel     Flag: disable Celeritas offloading entirely
- CELER_LOG_ALL_LOCAL     accel     Flag: log more messages from all threads
- CELER_KILL_OFFLOAD      accel     Flag: kill offloaded tracks [#ko]_
- CELER_NONFATAL_FLUSH    accel     Flag: print and continue on failure [#nf]_
- CELER_STRIP_SOURCEDIR   accel     Flag: clean exception output
- ======================= ========= ==========================================
+ ========================= ========= ==========================================
+ Variable                  Component Brief description
+ ========================= ========= ==========================================
+ CELER_COLOR               corecel   Flag: log with ANSI colors
+ CELER_DEBUG_DEVICE        corecel   Flag: check device ID consistency
+ CELER_DISABLE_DEVICE      corecel   Flag: disable CUDA/HIP support
+ CELER_DISABLE_PARALLEL    corecel   Flag: disable MPI support
+ CELER_DISABLE_REDIRECT    corecel   Flag: disable stream->logger redirection
+ CELER_DISABLE_ROOT        corecel   Flag: disable ROOT I/O calls
+ CELER_DISABLE_SIGNALS     corecel   Flag: disable signal handling
+ CELER_DEVICE_ASYNC        corecel   Flag: allocate memory asynchronously
+ CELER_ENABLE_PROFILING    corecel   Flag: use NVTX/ROCTX profiling [#pr]_
+ CELER_LOG                 corecel   Set "global" logger verbosity [#lg]_
+ CELER_LOG_LOCAL           corecel   Set "local" logger verbosity [#lg]_
+ CELER_MEMPOOL... [#mp]_   corecel   Set ``cudaMemPoolAttrReleaseThreshold``
+ CELER_PERFETT... [#bs]_   corecel   Set in-process tracing buffer size
+ CELER_PROFILE_DEVICE      corecel   Flag: record kernel launch counts
+ CUDA_HEAP_SIZE            geocel    Set ``cudaLimitMallocHeapSize`` (VG)
+ CUDA_STACK_SIZE           geocel    Set ``cudaLimitStackSize`` for VecGeom
+ G4ORG_OPTIONS             orange    JSON filename for G4-to-ORANGE conversion
+ G4VG_COMPARE_VOLUMES      geocel    Check G4VG volume capacity when converting
+ HEPMC3_VERBOSE            celeritas HepMC3 debug level integer
+ VECGEOM_VERBOSE           celeritas VecGeom CUDA verbosity integer
+ CELER_DISABLE             accel     Flag: disable Celeritas offloading entirely
+ CELER_LOG_ALL_LOCAL       accel     Flag: log more messages from all threads
+ CELER_KILL_OFFLOAD        accel     Flag: kill offloaded tracks [#ko]_
+ CELER_NONFATAL_FLUSH      accel     Flag: print and continue on failure [#nf]_
+ CELER_STRIP_SOURCEDIR     accel     Flag: clean exception output
+ ORANGE_BIH_MIN_SPLIT_SIZE orange    Set BIH ``min_split_size``
+ ========================= ========= ==========================================
 
 .. [#pr] See :ref:`profiling`
 .. [#lg] See :ref:`logging`

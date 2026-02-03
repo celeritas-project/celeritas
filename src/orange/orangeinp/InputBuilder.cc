@@ -13,6 +13,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
@@ -146,6 +147,14 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     if (csg_outp)
     {
         csg_outp.write(opts_.csg_output_file);
+    }
+
+    if (std::string var = celeritas::getenv("ORANGE_BIH_MIN_SPLIT_SIZE");
+        !var.empty())
+    {
+        size_type mss = std::stoul(var);
+        CELER_EXPECT(mss > 1);
+        result.construction_opts.bih_options.min_split_size = mss;
     }
 
     CELER_ENSURE(result);

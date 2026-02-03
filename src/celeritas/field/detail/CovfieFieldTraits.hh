@@ -8,9 +8,11 @@
 
 #include <covfie/core/backend/primitive/array.hpp>
 #include <covfie/core/backend/transformer/affine.hpp>
+#include <covfie/core/backend/transformer/clamp.hpp>
 #include <covfie/core/backend/transformer/linear.hpp>
 #include <covfie/core/backend/transformer/strided.hpp>
 #include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
 
 #include "corecel/Config.hh"
 #include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
@@ -41,7 +43,8 @@ struct CovfieFieldTraits<MemSpace::host>
     using dimensioned_t
         = covfie::backend::strided<covfie::vector::size3, storage_t>;
     using interp_t = covfie::backend::linear<dimensioned_t>;
-    using transformed_t = covfie::backend::affine<interp_t>;
+    using clamped_t = covfie::backend::clamp<interp_t>;
+    using transformed_t = covfie::backend::affine<clamped_t>;
     using field_t = covfie::field<transformed_t>;
     using builder_t = covfie::field<dimensioned_t>;
 
@@ -69,7 +72,8 @@ struct CovfieFieldTraits<MemSpace::device>
     using dimensioned_t
         = covfie::backend::strided<covfie::vector::size3, storage_t>;
     using interp_t = covfie::backend::linear<dimensioned_t>;
-    using transformed_t = covfie::backend::affine<interp_t>;
+    using clamped_t = covfie::backend::clamp<interp_t>;
+    using transformed_t = covfie::backend::affine<clamped_t>;
 #endif
 
     using field_t = covfie::field<transformed_t>;
