@@ -1077,31 +1077,31 @@ TEST_F(TwoBoxesTest,
         }
     }
 
-    std::vector<int> expected_boundary = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
+    std::vector<int> expected_boundary = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
     std::vector<double> expected_distances = {
         0.0078534718906499,
-        0.0028235332722979,
+        0.0078539816339745,
         0.0044879852658442,
-        0.0028259738005751,
+        0.0044879895051283,
         1e-05,
-        1e-05,
+        1e-06,
         9.9999658622419e-09,
         1e-08,
         9.9981633254417e-12,
         1e-11,
     };
-    std::vector<int> expected_substeps = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
+    std::vector<int> expected_substeps = {1, 1, 1, 1, 1, 4, 1, 1, 1, 1};
     std::vector<std::string> expected_volumes = {
-        "world",
         "inner",
-        "world",
         "inner",
-        "world",
-        "world",
-        "world",
-        "world",
-        "world",
-        "world",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
     };
 
     /*
@@ -1120,6 +1120,7 @@ TEST_F(TwoBoxesTest,
         expected_distances[7] = 0;
         expected_substeps[1] = 1;
         expected_substeps[3] = 1;
+        expected_substeps[5] = 1;
         expected_substeps[9] = 0;
         expected_volumes = {
             "inner",
