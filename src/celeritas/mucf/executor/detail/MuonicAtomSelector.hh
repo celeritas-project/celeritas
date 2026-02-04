@@ -19,9 +19,14 @@ namespace detail
 /*!
  * Select a muonic atom given the mixture of dt in the material.
  *
- * This model assumes that the capture did not happen to a protium.
+ * This class assumes that the material is hydrogen and that the capture \em
+ * happened to a deuterium or tritium via a simple isotopic fraction selection.
  *
- * This class uses the \f$ q_\text{1S} \f$ formula
+ * It is needed to \em correct the probability of a deuterium or tritium
+ * capture, since the isotopic fraction sampling is not sufficient: tritium has
+ * a higher mass and thus has a biased capture rate.
+ *
+ * This effect is calculated using the \f$ q_\text{1S} \f$ formula
  * \citet{bom-experimentaldt-2005, https://doi.org/10.1134/1.1926428}
  * \f[
  * q_\text{1s} = \frac{1}{1 + 2.9 C_t},
