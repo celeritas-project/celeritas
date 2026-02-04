@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 
 #include "Stream.hh"
 #include "ThreadId.hh"

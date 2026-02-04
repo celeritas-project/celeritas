@@ -112,13 +112,15 @@ int Device::num_devices()
 
         // Note that the first CUDA API call may take a few seconds if NVIDIA
         // persistence mode is off
-        CELER_LOG(debug) << "Querying CUDA device count...";
+        CELER_LOG(debug) << "Querying " << CELER_DEVICE_PLATFORM_UPPER_STR
+                         << " device count...";
         int result = -1;
         CELER_DEVICE_API_CALL(GetDeviceCount(&result));
         if (result == 0)
         {
             CELER_LOG(warning)
-                << R"(Disabling GPU support since no CUDA devices are present)";
+                << "Disabling GPU support since no "
+                << CELER_DEVICE_PLATFORM_UPPER_STR << " devices are present";
         }
 
         CELER_ENSURE(result >= 0);
