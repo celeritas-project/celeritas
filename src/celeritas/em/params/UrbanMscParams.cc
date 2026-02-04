@@ -163,7 +163,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     CELER_ASSERT(host_data);
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<UrbanMscData>{std::move(host_data)};
+    data_ = ParamsDataStore<UrbanMscData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

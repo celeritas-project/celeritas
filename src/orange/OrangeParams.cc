@@ -269,7 +269,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
-    data_ = CollectionMirror{std::move(host_data)};
+    data_ = ParamsDataStore{std::move(host_data)};
 
     CELER_ENSURE(impl_surf_labels_ && univ_labels_ && impl_vol_labels_);
     CELER_ENSURE(data_);
@@ -325,7 +325,7 @@ inp::Model OrangeParams::make_model_input() const
  */
 OrangeParams::~OrangeParams() = default;
 
-template class CollectionMirror<OrangeParamsData>;
+template class ParamsDataStore<OrangeParamsData>;
 template class ParamsDataInterface<OrangeParamsData>;
 
 //---------------------------------------------------------------------------//

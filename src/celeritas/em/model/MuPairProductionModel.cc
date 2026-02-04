@@ -71,7 +71,7 @@ MuPairProductionModel::MuPairProductionModel(ActionId id,
     this->build_table(inp_model.muppet_table, &host_data.table);
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<MuPairProductionData>{std::move(host_data)};
+    data_ = ParamsDataStore<MuPairProductionData>{std::move(host_data)};
 
     CELER_ENSURE(data_);
 }

@@ -114,7 +114,7 @@ SimParams::SimParams(Input const& input)
     make_builder(&host_data.looping).insert_back(looping.begin(), looping.end());
     host_data.max_steps = input.max_steps;
 
-    data_ = CollectionMirror<SimParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<SimParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

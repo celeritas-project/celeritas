@@ -7,9 +7,9 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/Filler.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
 #include "TrackInitData.hh"
 
@@ -60,7 +60,7 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
 
   private:
     // Host/device storage and reference
-    CollectionMirror<TrackInitParamsData> data_;
+    ParamsDataStore<TrackInitParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/inp/PhysicsModel.hh"
@@ -79,7 +79,7 @@ class SeltzerBergerModel final : public Model, public StaticConcreteAction
 
   private:
     // Host/device storage and reference
-    CollectionMirror<SeltzerBergerData> data_;
+    ParamsDataStore<SeltzerBergerData> data_;
 
     ImportedModelAdapter imported_;
 };

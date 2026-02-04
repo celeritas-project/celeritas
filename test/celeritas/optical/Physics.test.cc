@@ -8,7 +8,7 @@
 #include <iostream>
 #include <random>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/optical/ParticleData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
@@ -73,14 +73,13 @@ class OpticalPhysicsTest : public OpticalMockTestBase
     void initialize_states(TrackSlotId::size_type num_tracks)
     {
         particle_state_
-            = CollectionStateStore<ParticleStateData, MemSpace::host>(
-                num_tracks);
+            = StateDataStore<ParticleStateData, MemSpace::host>(num_tracks);
         for (auto i : range(TrackSlotId{num_tracks}))
         {
             particle_state_.ref().energy[i] = 3;
         }
-        physics_state_ = CollectionStateStore<PhysicsStateData, MemSpace::host>(
-            num_tracks);
+        physics_state_
+            = StateDataStore<PhysicsStateData, MemSpace::host>(num_tracks);
         CELER_ENSURE(physics_state_.ref().size() == num_tracks);
     }
 
@@ -98,8 +97,8 @@ class OpticalPhysicsTest : public OpticalMockTestBase
   private:
     SPConstOpticalPhysics optical_physics_;
 
-    CollectionStateStore<ParticleStateData, MemSpace::host> particle_state_;
-    CollectionStateStore<PhysicsStateData, MemSpace::host> physics_state_;
+    StateDataStore<ParticleStateData, MemSpace::host> particle_state_;
+    StateDataStore<PhysicsStateData, MemSpace::host> physics_state_;
 };
 
 //---------------------------------------------------------------------------//

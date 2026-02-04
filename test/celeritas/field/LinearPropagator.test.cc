@@ -9,7 +9,7 @@
 #include <string_view>
 
 #include "corecel/cont/ArrayIO.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"

@@ -14,8 +14,8 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
@@ -153,7 +153,7 @@ class VecgeomParams final : public GeoParamsInterface,
     BBox bbox_;
 
     // Host/device storage and reference
-    CollectionMirror<VecgeomParamsData> data_;
+    ParamsDataStore<VecgeomParamsData> data_;
 
     //// HELPER FUNCTIONS ////
 
@@ -164,7 +164,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
 //---------------------------------------------------------------------------//
 
-extern template class CollectionMirror<VecgeomParamsData>;
+extern template class ParamsDataStore<VecgeomParamsData>;
 extern template class ParamsDataInterface<VecgeomParamsData>;
 
 //---------------------------------------------------------------------------//

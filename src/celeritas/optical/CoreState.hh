@@ -9,8 +9,8 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/GeneratorCounters.hh"
@@ -184,7 +184,7 @@ class CoreState final : public CoreStateBase
 
   private:
     // State data
-    CollectionStateStore<CoreStateData, M> states_;
+    StateDataStore<CoreStateData, M> states_;
 
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;

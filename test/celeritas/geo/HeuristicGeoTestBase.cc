@@ -11,9 +11,9 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"

@@ -12,8 +12,8 @@
 #include "corecel/Config.hh"
 
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
@@ -39,8 +39,7 @@ class RectArrayTrackerTest : public OrangeGeoTestBase
   protected:
     using StateHostValue = HostVal<OrangeStateData>;
     using StateHostRef = HostRef<OrangeStateData>;
-    using HostStateStore
-        = CollectionStateStore<OrangeStateData, MemSpace::host>;
+    using HostStateStore = StateDataStore<OrangeStateData, MemSpace::host>;
     using Initialization = ::celeritas::detail::Initialization;
     using LocalState = ::celeritas::detail::LocalState;
 

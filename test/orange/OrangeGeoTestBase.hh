@@ -14,7 +14,7 @@
 
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "geocel/Types.hh"
 #include "orange/OrangeData.hh"
 
@@ -126,8 +126,7 @@ class OrangeGeoTestBase : public OrangeTestBase
   private:
     //// TYPES ////
 
-    using HostStateStore
-        = CollectionStateStore<OrangeStateData, MemSpace::host>;
+    using HostStateStore = StateDataStore<OrangeStateData, MemSpace::host>;
 
     //// DATA ////
 

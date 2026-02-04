@@ -394,7 +394,7 @@ GeoMaterialParams::GeoMaterialParams(Input const& input)
     CELER_ASSERT(host_data);
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<GeoMaterialParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<GeoMaterialParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

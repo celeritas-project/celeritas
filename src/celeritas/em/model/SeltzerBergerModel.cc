@@ -103,7 +103,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     }
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<SeltzerBergerData>{std::move(host_data)};
+    data_ = ParamsDataStore<SeltzerBergerData>{std::move(host_data)};
 
     CELER_ENSURE(this->data_);
 }

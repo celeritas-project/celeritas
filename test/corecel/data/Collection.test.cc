@@ -13,9 +13,9 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/data/DeviceVector.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 
@@ -492,7 +492,7 @@ TEST_F(AssignmentTest, TEST_IF_CELER_DEVICE(device_host))
 class CollectionTest : public Test
 {
   protected:
-    using MockParamsMirror = CollectionMirror<MockParamsData>;
+    using MockParamsMirror = ParamsDataStore<MockParamsData>;
 
     void SetUp() override
     {
