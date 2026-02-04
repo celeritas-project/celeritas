@@ -8,9 +8,7 @@
 
 #include <thrust/mr/memory_resource.h>
 
-#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
-
-#include "corecel/Macros.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 namespace celeritas
 {

@@ -246,6 +246,7 @@ list(APPEND SOURCES
   sys/MemRegistryIO.json.cc
   sys/ScopedMem.cc
   sys/ScopedSignalHandler.cc
+  sys/Stream.cc
   sys/TypeDemangler.cc
   sys/Version.cc
 )
@@ -313,7 +314,6 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     data/Filler.cu
     sys/KernelParamCalculator.device.cc
-    sys/Stream.cu
     sys/detail/AsyncMemoryResource.cu
   )
 endif()
@@ -331,6 +331,11 @@ endif()
 if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
+  )
+  # Build some files as HIP due to rocThrust
+  set_source_files_properties(
+    sys/Stream.cc
+    PROPERTIES LANGUAGE HIP
   )
 endif()
 

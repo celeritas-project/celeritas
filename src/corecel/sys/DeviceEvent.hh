@@ -19,6 +19,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class Device;
 class Stream;
 
 //---------------------------------------------------------------------------//
@@ -31,24 +32,24 @@ class Stream;
  * single stream.
  *
  * \par States
- * - \b Constructed: when build with a device stream object, the instance
- *   evaluates to \c true and forwards operations to device APIs.
+ * - \b Constructed: when built with an active device, the instance
+ *   evaluates to \c true and manages an event object.
  * - \b Null: when constructed with a nullptr, or when \c moved from, the class
  *   instance is \c false. It does not manage an event nor does it associate
- *   with a stream. The \c sync  and \c record functions are null-op, the event
- *   is always "ready", and the host kernel launch is instantaneous.
+ *   with a stream. The \c sync function is a null-op (the event
+ *   is always \c ready ), and \c record cannot be called.
  *
  * If no device is enabled (or Celeritas is compiled without CUDA/HIP support),
- * only the nullptr constructor is allowed.
+ * only the null state is available.
  *
  * \par Example:
  * \code
   // Setup:
-  DeviceEvent my_kernel(state.stream_id());
+  DeviceEvent my_kernel;
   assert(my_kernel.ready());
   // Later...
-  launch_kernel_async(state);
-  my_kernel.record();
+  launch_kernel_async(state.stream());
+  my_kernel.record(state.stream());
   // Then do CPU work until the kernel or CPU is done
   while (!cpu_work_done() && !my_kernel.ready())
   {
@@ -73,16 +74,15 @@ class DeviceEvent
 #endif
 
   public:
-    // Construct with stream or stream ID
-    explicit DeviceEvent(StreamId stream_id);
-    explicit DeviceEvent(Stream const& stream);
+    // Construct with a device context
+    explicit DeviceEvent(Device const& d);
     // Construct a null event
     DeviceEvent(std::nullptr_t);
     CELER_DEFAULT_MOVE_DELETE_COPY(DeviceEvent);
     ~DeviceEvent() = default;
 
     // Whether the event is valid (not null or moved-from)
-    explicit operator bool() const;
+    inline explicit operator bool() const;
 
 #if defined(CELER_DEVICE_RUNTIME_INCLUDED) || !CELER_USE_DEVICE
     EventT get() const;
@@ -91,7 +91,7 @@ class DeviceEvent
 #endif
 
     // Record this event on the stream
-    void record();
+    void record(Stream const& s);
 
     // Query event status
     bool ready() const;
@@ -109,9 +109,14 @@ class DeviceEvent
     std::unique_ptr<Impl, ImplDeleter> impl_{};
 };
 
-// Makes all future work submitted to stream wait for all work captured in
-// event
-void stream_wait_event(Stream& s, DeviceEvent const& e);
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the event is valid (not null or moved-from).
+ */
+DeviceEvent::operator bool() const
+{
+    return static_cast<bool>(impl_);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -1,9 +1,9 @@
 //------------------------------ -*- cuda -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
 //! \file corecel/sys/detail/AsyncMemoryResource.cu
 //---------------------------------------------------------------------------//
-#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 
 #include "AsyncMemoryResource.device.hh"

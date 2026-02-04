@@ -1,7 +1,8 @@
 //------------------------------ -*- cuda -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
-//! \file corecel/sys/Stream.cu
+//---------------------------------------------------------------------------//
+//! \file corecel/sys/Stream.cc
 //---------------------------------------------------------------------------//
 #include "Stream.hh"
 
@@ -13,6 +14,7 @@
 #include "corecel/io/Logger.hh"
 
 #include "Device.hh"
+#include "DeviceEvent.hh"
 
 #include "detail/AsyncMemoryResource.device.hh"
 
@@ -58,20 +60,23 @@ struct Stream::Impl
  */
 void Stream::ImplDeleter::operator()(Impl* impl) noexcept
 {
-    try
+    if constexpr (CELER_USE_DEVICE)
     {
-        CELER_LOG_LOCAL(debug)
-            << "Destroying stream " << StreamableStream{impl->stream};
-        CELER_DEVICE_API_CALL(StreamDestroy(impl->stream));
-        delete impl;
-    }
-    catch (RuntimeError const& e)
-    {
-        std::cerr << "Failed to destroy stream: " << e.what() << std::endl;
-    }
-    catch (...)
-    {
-        std::cerr << "Failed to destroy stream" << std::endl;
+        try
+        {
+            CELER_LOG_LOCAL(debug)
+                << "Destroying stream " << StreamableStream{impl->stream};
+            CELER_DEVICE_API_CALL(StreamDestroy(impl->stream));
+            delete impl;
+        }
+        catch (RuntimeError const& e)
+        {
+            std::cerr << "Failed to destroy stream: " << e.what() << std::endl;
+        }
+        catch (...)
+        {
+            std::cerr << "Failed to destroy stream" << std::endl;
+        }
     }
 }
 
@@ -136,16 +141,6 @@ Stream::ResourceT& Stream::memory_resource()
 
 //---------------------------------------------------------------------------//
 /*!
- * Block host execution until stream operations are all complete.
- */
-void Stream::sync() const
-{
-    CELER_EXPECT(*this);
-    CELER_DEVICE_API_CALL(StreamSynchronize(impl_->stream));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Allocate memory asynchronously on this stream if possible.
  *
  * HIP 5.1 and lower does not support async allocation.
@@ -168,20 +163,33 @@ void Stream::free_async(void* ptr)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Block host execution until stream operations are all complete.
+ */
+void Stream::sync() const
+{
+    CELER_EXPECT(*this);
+    CELER_DEVICE_API_CALL(StreamSynchronize(impl_->stream));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Block stream execution until the event completes.
+ */
+void Stream::wait(DeviceEvent const& e)
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(e);
+    CELER_DEVICE_API_CALL(StreamWaitEvent(this->get(), e.get()));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Enqueue delayed execution of a host function.
  */
 void Stream::launch_host_func(HostKernel func, void* data)
 {
-    CELER_EXPECT(func);
-    if (*this)
-    {
-        CELER_DEVICE_API_CALL(LaunchHostFunc(impl_->stream, func, data));
-    }
-    else
-    {
-        // Execute immediately
-        func(data);
-    }
+    CELER_EXPECT(*this);
+    CELER_DEVICE_API_CALL(LaunchHostFunc(impl_->stream, func, data));
 }
 
 //---------------------------------------------------------------------------//

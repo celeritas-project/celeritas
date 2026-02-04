@@ -12,7 +12,7 @@
 #include "corecel/Assert.hh"  // IWYU pragma: keep
 #include "corecel/Macros.hh"  // IWYU pragma: keep
 
-#if CELER_DEVICE_SOURCE
+#if CELER_USE_DEVICE
 #    include "corecel/DeviceRuntimeApi.hh"
 #endif
 
@@ -73,14 +73,16 @@ class Stream
 #if !CELER_USE_DEVICE
     //! Stream implementation is unavailable
     using StreamT = nullptr_t;
+    using ResourceT = nullptr_t;
 #elif !defined(CELER_DEVICE_RUNTIME_INCLUDED)
     //! Sentinel type to indicate compilation error
     using MissingDeviceRuntime = void;
+    using ResourceT = detail::AsyncMemoryResource;
 #else
     //! Actual CUDA/HIP stream opaque pointer
     using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
-#endif
     using ResourceT = detail::AsyncMemoryResource;
+#endif
     using HostKernel = void (*)(void*);
     //!@}
 
@@ -109,14 +111,17 @@ class Stream
     // Access the thrust resource allocator associated with the stream
     ResourceT& memory_resource();
 
-    // Block host execution until stream operations are all done
-    void sync() const;
-
     // Allocate memory asynchronously on this stream if possible
     void* malloc_async(std::size_t bytes);
 
     // Free memory asynchronously on this stream if possible
     void free_async(void* ptr);
+
+    // Block host execution until stream operations are all done
+    void sync() const;
+
+    // Block stream execution until the event completes
+    void wait(DeviceEvent const& d);
 
     // Delayed execution of a host function
     void launch_host_func(HostKernel func, void* data);
@@ -139,54 +144,5 @@ Stream::operator bool() const
     return static_cast<bool>(impl_);
 }
 
-//---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-inline Stream::Stream()
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-inline Stream::Stream(std::nullptr_t) {}
-
-inline Stream::Stream(Device const&)
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-#    ifdef CELER_DEVICE_RUNTIME_INCLUDED
-inline Stream::StreamT Stream::get() const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#    endif
-
-inline Stream::ResourceT& Stream::memory_resource()
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-inline void Stream::sync() const {}
-inline void* Stream::malloc_async(std::size_t)
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-inline void Stream::free_async(void*)
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-inline void Stream::launch_host_func(HostKernel func, void* data)
-{
-    CELER_EXPECT(func);
-    func(data);
-}
-
-inline void Stream::ImplDeleter::operator()(Impl*) noexcept
-{
-    CELER_UNREACHABLE;
-}
-
-#endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
