@@ -190,4 +190,18 @@ void DeviceEvent::sync() const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Block stream execution until the event is complete.
+ *
+ * \pre Either the stream and event are both valid, or the device must be
+ * inactive (and the stream and event are both null).
+ */
+void stream_wait_event(Stream& s, DeviceEvent const& e)
+{
+    CELER_EXPECT(s && e || !(celeritas::device() || s || e));
+
+    CELER_DEVICE_API_CALL(StreamWaitEvent(s.get(), e.get()));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

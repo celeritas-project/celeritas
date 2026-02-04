@@ -110,5 +110,8 @@ class DeviceEvent
     std::unique_ptr<Impl, ImplDeleter> impl_{};
 };
 
+// Block stream execution until the event is complete
+void stream_wait_event(Stream& s, DeviceEvent const& e);
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
