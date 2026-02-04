@@ -393,7 +393,7 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
         // the updated point is still inside the original volume.
         SHOULD_FAIL_WHEN(geo.cross_boundary(),
                          test_->geometry_type() == "VecGeom"
-                             && vecgeom_version < Version{2});
+                             && using_solids_vg);
         EXPECT_EQ("HGTD", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
@@ -522,18 +522,6 @@ void CmseGeoTest::test_trace() const
             29.931406871193, 40.276406871193, 57.573593128807, 57.573593128807,
             57.573593128807, 57.573593128807,};
         // clang-format on
-        if (test_->geometry_type() == "VecGeom"
-            && vecgeom_version >= Version{2, 0} && using_solids_vg)
-        {
-            /*
-             * Failed to cross boundary:
-             * unique volume instance is the same before and after
-             * at {30, 30, 655.04101161124} [cm] along {0, 0, 1},
-             * [FAILED] [ON BOUNDARY] in OCMS_PV/CMSE/MUON
-             */
-            ref.fail_at(12);
-        }
-
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -553,17 +541,6 @@ void CmseGeoTest::test_trace() const
         ref.halfway_safeties = {85, 267.5, 85.85, 60.4, 0.078366388350267,
             2.343262600759, 0.078366388350244, 60.4, 85.85, 267.5, 460,};
         // clang-format on
-        if (test_->geometry_type() == "VecGeom"
-            && vecgeom_version >= Version{2, 0} && using_solids_vg)
-        {
-            /*
-             * Failed to cross boundary:
-             * unique volume instance is the same before and after
-             * at {-295, 0, -48.5} [cm] along {1, 0, 0},
-             * [FAILED] [ON BOUNDARY] in OCMS_PV/CMSE/MUON
-             */
-            ref.fail_at(2);
-        }
 
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -577,17 +554,6 @@ void CmseGeoTest::test_trace() const
         ref.distances = {12.495, 287.505, 530, 920};
         ref.dot_normal = {};  // All normals are along track dir
         ref.halfway_safeties = {6.2475, 47.95, 242, 460};
-        if (test_->geometry_type() == "VecGeom"
-            && vecgeom_version >= Version{2, 0} && using_solids_vg)
-        {
-            /*
-             * Failed to cross boundary:
-             * unique volume instance is the same before and after
-             * at {300, 0, 1328} [cm] along {1, 0, 0},
-             * [FAILED] [ON BOUNDARY] in OCMS_PV/CMSE/OQUA@0
-             */
-            ref.fail_at(2);
-        }
 
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1943,17 +1909,6 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[14] = 42.8397753718277;
             ref.halfway_safeties[15] = 18.8833925371992;
             ref.halfway_safeties[16] = 42.8430141842906;
-
-            if (vecgeom_version >= Version{2})
-            {
-                /*
-                 * Unique volume instance is the same before and after
-                 * Failed during cross_boundary:
-                 * at {258.1, 0, 0.5} [cm] along {-1, 0, 0},
-                 * [FAILED] [ON BOUNDARY] in World_PV/polycone1_PV
-                 */
-                ref.fail_at(4);
-            }
         }
 
         auto tol = test_->tracking_tol();
@@ -2066,13 +2021,10 @@ void SolidsGeoTest::test_trace() const
             if (vecgeom_version >= Version{2})
             {
                 /*
-                 * Unique volume instance is the same before and after
-                 * Failed during cross_boundary:
-                 * at {-335.05, -125, 0.5} [cm] along {1, 0, 0},
-                 * [FAILED] [ON BOUNDARY] in World_PV/arb8b_PV
+                 * Issues near World_PV/arb8b_PV
                  */
                 ref.halfway_safeties[4] = 39.0470100365853;
-                ref.fail_at(5);
+                ref.halfway_safeties[6] = 29.8360600858068;
             }
         }
 
@@ -2336,6 +2288,8 @@ void SimpleCmsGeoTest::test_trace() const
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
+    // Fails to find first step
+    if (!using_solids_vg || vecgeom_version < Version{2, 0})
     {
         SCOPED_TRACE("edge case with flipped direction");
         auto result = test_->track(pos, -dir);
@@ -2372,13 +2326,6 @@ void SimpleCmsGeoTest::test_trace() const
             162.41892241026,
             232.37188601505,
         };
-
-        if (using_solids_vg && vecgeom_version >= Version{2, 0})
-        {
-            // Track fails immediately
-            ref = {};
-            ref.fail();
-        }
 
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -3192,10 +3139,6 @@ void ZnenvGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
-        if (using_solids_vg && vecgeom_version >= Version{2, 0})
-        {
-            GTEST_SKIP() << "FIXME: Znenv VecGeom model construction failure.";
-        }
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }

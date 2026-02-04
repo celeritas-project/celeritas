@@ -8,6 +8,7 @@
 
 #include <VecGeom/base/Version.h>
 // NOTE: must include Global before most other vecgeom/veccore includes
+#include <type_traits>
 #include <VecGeom/base/Global.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
@@ -19,6 +20,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
 
@@ -190,15 +192,12 @@ class VecgeomTrackView
 
     // Static data
 
-    //! Absolute tolerance in vecgeom::kTolerance
-    //! 1e-9 for double, 1e-3 for single
-    static constexpr vg_real_type abs_tolerance_
-        = CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-9 : 1e-3;
-
     //! Tolerance used for solid model relocation bump
-    //! V1 solids by default;
     static constexpr vg_real_type relocate_bump_
-        = CELERITAS_VECGEOM_SURFACE ? 0 : 10 * abs_tolerance_;
+        = CELERITAS_VECGEOM_SURFACE                ? 0
+          : std::is_same_v<vg_real_type, float>    ? 1e-4f
+          : std::is_same_v<vgbvh_real_type, float> ? 1e-5f
+                                                   : 1e-8;
 
     //// HELPER FUNCTIONS ////
 
