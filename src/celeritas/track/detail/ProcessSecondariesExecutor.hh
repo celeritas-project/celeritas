@@ -84,8 +84,10 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
     // initialized in this slot
     TrackId const track_id{sim.track_id()};
 
-    for (auto const& secondary : track.physics_step().secondaries())
+    for (unsigned int secondary_idx :
+         celeritas::range(track.physics_step().secondaries().size()))
     {
+        auto secondary = track.physics_step().secondaries()[secondary_idx];
         if (secondary)
         {
             CELER_ASSERT(secondary.energy > zero_quantity()
@@ -108,6 +110,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             ti.geo.dir = secondary.direction;
             ti.particle.particle_id = secondary.particle_id;
             ti.particle.energy = secondary.energy;
+            ti.rng = track.rng().branch();
             CELER_ASSERT(ti);
 
             if (sim.track_id() == track_id && sim.status() != TrackStatus::alive

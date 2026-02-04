@@ -162,6 +162,9 @@ CoreTrackView::operator=(TrackInitializer const& init)
     // Initialize the simulation state
     this->sim() = init.sim;
 
+    // Initializer RNG state
+    this->rng() = init.rng;
+
     // Initialize the particle attributes
     this->particle() = init.particle;
 

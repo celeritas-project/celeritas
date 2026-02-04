@@ -29,7 +29,7 @@ struct Primary
     EventId event_id;
     unsigned int geant_track_id{};
     unsigned int geant_step_count{};
-    PrimaryId primary_id;
+    PrimaryId primary_id;  //! todo: remove this in the future.
     real_type weight{1.0};
 };
 

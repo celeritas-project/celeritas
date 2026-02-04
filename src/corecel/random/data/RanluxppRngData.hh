@@ -36,6 +36,10 @@ struct RanluxppRngParamsDataImpl
     RanluxppArray9 advance_sequence;
 
     //// FUNCTIONS ////
+
+    //! Get the seed as a 64-bit unsigned integer
+    std::uint64_t get_seed() const { return seed; }
+
     //! Whether the data is assigned.
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const
     {

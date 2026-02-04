@@ -28,6 +28,9 @@ class SplitMix64
     // Produce a random number
     inline CELER_FUNCTION std::uint64_t operator()();
 
+    // XOR this state with another
+    inline CELER_FUNCTION void xor_state(std::uint64_t state);
+
   private:
     // SplitMix64 State
     std::uint64_t state_;
@@ -56,6 +59,15 @@ CELER_FUNCTION std::uint64_t SplitMix64::operator()()
     z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ull;
     z = (z ^ (z >> 27)) * 0x94d049bb133111ebull;
     return z ^ (z >> 31);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform a XOR operation of this state with another state.
+ */
+CELER_FUNCTION void SplitMix64::xor_state(std::uint64_t state)
+{
+    state_ ^= state;
 }
 
 //---------------------------------------------------------------------------//
