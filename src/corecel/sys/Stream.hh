@@ -12,7 +12,7 @@
 #include "corecel/Assert.hh"  // IWYU pragma: keep
 #include "corecel/Macros.hh"  // IWYU pragma: keep
 
-#if CELER_USE_DEVICE
+#if CELER_DEVICE_SOURCE
 #    include "corecel/DeviceRuntimeApi.hh"
 #endif
 

@@ -124,18 +124,24 @@ TEST_F(DeviceEventTest, TEST_IF_CELER_DEVICE(multi_stream))
     DeviceEvent e1(device());
     ASSERT_TRUE(e1);
 
-    static int const delay_ms = 80;
+    static int const delay_ms = 150;
 
     // Launch a delayed host function on the stream
     Stopwatch get_time;
     s1.launch_host_func(my_host_kernel, const_cast<int*>(&delay_ms));
+
+    // Check that it's lagged and reset the timer to reduce jitter from ROCm
+    // startup costs
+    EXPECT_LT(get_time(), delay_ms * ms_to_s);
+    get_time = {};
     e1.record(s1);
 
     Stream s2(device());
-
+    EXPECT_LT(get_time(), delay_ms * ms_to_s);
     // Create an event for stream 2
     DeviceEvent e2{device()};
     EXPECT_LT(get_time(), delay_ms * ms_to_s);
+
     // Tell stream2 to wait until stream 1's kernel is done (i.e., the
     // stream record stored in 'e')
     s2.wait(e1);

@@ -12,7 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#if CELER_USE_DEVICE
+#if CELER_DEVICE_SOURCE
 #    include "corecel/DeviceRuntimeApi.hh"
 #endif
 
