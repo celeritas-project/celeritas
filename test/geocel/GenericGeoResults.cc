@@ -28,6 +28,18 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+
+template<class T>
+void erase_after(std::vector<T>& vec, std::size_t idx)
+{
+    auto iter = vec.begin() + std::min(idx, vec.size());
+    vec.erase(iter, vec.end());
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 ::testing::AssertionResult IsNormalEquiv(char const* expected_expr,
                                          char const* actual_expr,
@@ -76,6 +88,16 @@ void GenericGeoTrackingResult::clear_boring_normals()
     {
         dn.clear();
     }
+}
+
+void GenericGeoTrackingResult::fail_at(std::size_t index)
+{
+    erase_after(volumes, index);
+    erase_after(volume_instances, index);
+    erase_after(distances, index);
+    erase_after(dot_normal, index);
+    erase_after(halfway_safeties, index);
+    volumes.push_back("[FAILURE]");
 }
 
 void GenericGeoTrackingResult::print_expected() const
@@ -196,6 +218,11 @@ void GenericGeoVolumeStackResult::print_expected() const
             << CELER_REF_ATTR(volume_instances)
             "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
+}
+
+void GenericGeoVolumeStackResult::fail()
+{
+    this->volume_instances.push_back("[FAILURE]");
 }
 
 ::testing::AssertionResult IsRefEq(char const* expr1,
