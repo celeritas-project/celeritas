@@ -1298,25 +1298,18 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         }
         catch (RuntimeError const& e)
         {
-            if (using_surface_vg)
-            {
-                EXPECT_TRUE(geo.failed());
-                GTEST_SKIP()
-                    << "FIXME: VecGeom surface model fails: " << e.what();
-            }
             FAIL() << e.what();
-        }
-
-        if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
-        {
-            GTEST_SKIP() << "FIXME: VecGeom solid method didn't start in the "
-                            "right place";
         }
 
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_SOFT_NEAR(
             double{30}, static_cast<double>(integrate.count()), 0.2);
 
+        if (using_surface_vg)
+        {
+            EXPECT_FALSE(geo.is_on_boundary());
+            GTEST_SKIP() << "FIXME: VecGeom surface model fails";
+        }
         ASSERT_TRUE(geo.is_on_boundary());
 
         if (geo.check_normal())
