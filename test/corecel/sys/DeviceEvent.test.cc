@@ -130,11 +130,11 @@ void DeviceEventTest::run_multistream(Stream& s1,
     // record stored in 'e')
     stream_wait_event(s2, e);
 
-    e2.record();
     // Then after waiting, launch a kernel on stream 2
     g_value = 0;
     static int const new_g_value{3};
     s2.launch_host_func(set_value, const_cast<int*>(&new_g_value));
+    e2.record();
     if (e)
     {
         // Execution should be delayed
@@ -159,7 +159,7 @@ void DeviceEventTest::run_multistream(Stream& s1,
     {
         CELER_LOG(debug) << "execution completed already";
     }
-    // Wait until the second event is done
+    // Wait until the second event is done, i.e., g_value is updated
     e2.sync();
     EXPECT_EQ(new_g_value, g_value);
 }
@@ -215,7 +215,7 @@ TEST_F(DeviceEventTest, TEST_IF_CELER_DEVICE(device))
 
     // Run with multiple streams
     stream = Stream{celeritas::device()};
-    this->run_multistream(stream, s2, e2);
+    this->run_multistream(s2, stream, e2);
 }
 
 //---------------------------------------------------------------------------//
