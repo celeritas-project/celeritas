@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/inp/Grid.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
@@ -26,7 +27,9 @@ class InterpolatorHelper
 {
   public:
     // Construct with grid input data
-    InterpolatorHelper(inp::Grid input);
+    explicit InterpolatorHelper(inp::Grid const& input);
+    // Prevent copy and move
+    CELER_DELETE_COPY_MOVE(InterpolatorHelper);
 
     // Interpolate data at given point
     real_type operator()(real_type value) const;

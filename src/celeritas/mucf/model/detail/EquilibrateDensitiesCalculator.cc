@@ -49,10 +49,10 @@ EquilibrateDensitiesCalculator::operator()()
 
     // Cache equilibrium constants for this temperature for the while loop
     real_type const k_hd = this->calc_hd_equilibrium_constant();
-    real_type const k_dt = this->calc_dt_equilibrium_constant();
     real_type const k_ht = this->calc_ht_equilibrium_constant();
+    real_type const k_dt = this->calc_dt_equilibrium_constant();
 
-    // Initialize result and calculate equilibrium densities
+    // Initialize result and set homonuclear molecules values
     EquilibriumArray result;
     result[IsoProt::protium_protium] = lhd_densities_[Iso::protium]
                                        * inv_tot_density;
@@ -60,21 +60,16 @@ EquilibrateDensitiesCalculator::operator()()
                                            * inv_tot_density;
     result[IsoProt::tritium_tritium] = lhd_densities_[Iso::tritium]
                                        * inv_tot_density;
-    result[IsoProt::protium_deuterium] = 0;
-    result[IsoProt::deuterium_tritium] = 0;
-    result[IsoProt::protium_tritium] = 0;
 
-    EquilibriumArray previous_equilib_dens = result;
+    EquilibriumArray previous_equilib_dens;
     real_type iter_diff{0};
     size_type iter{0};
-    while (iter_diff > this->convergence_err() && iter < this->max_iterations())
+    do
     {
-        // Equilibrate HD
-        this->equilibrate_pair(IsoProt::protium_protium,
-                               IsoProt::deuterium_deuterium,
-                               IsoProt::protium_deuterium,
-                               k_hd,
-                               result);
+        iter++;
+        iter_diff = 0;
+        previous_equilib_dens = result;
+
         // Equilibrate DT
         this->equilibrate_pair(IsoProt::deuterium_deuterium,
                                IsoProt::tritium_tritium,
@@ -87,21 +82,25 @@ EquilibrateDensitiesCalculator::operator()()
                                IsoProt::protium_tritium,
                                k_ht,
                                result);
+        // Equilibrate HD
+        this->equilibrate_pair(IsoProt::protium_protium,
+                               IsoProt::deuterium_deuterium,
+                               IsoProt::protium_deuterium,
+                               k_hd,
+                               result);
 
         for (auto i : range(MucfIsoprotologueMolecule::size_))
         {
             // Calculate difference between current and previous densities
             real_type diff = std::abs(result[i] - previous_equilib_dens[i]);
-            if (iter_diff < diff)
+            if (diff > iter_diff)
             {
                 // Select maximum difference for convergence check
                 iter_diff = diff;
             }
         }
-        // Save current state to compare with next iteration
-        previous_equilib_dens = result;
-        iter++;
-    }
+    } while ((iter_diff > this->convergence_err())
+             && (iter < this->max_iterations()));
 
     if (iter == this->max_iterations())
     {
@@ -110,9 +109,9 @@ EquilibrateDensitiesCalculator::operator()()
                            << " iterations. Current error is " << iter_diff;
     }
 
-    for (auto& dens : result)
+    for (auto& val : result)
     {
-        dens *= total_density;
+        val *= total_density;
     }
 
     return result;
@@ -215,14 +214,19 @@ void EquilibrateDensitiesCalculator::equilibrate_pair(
     real_type eq_constant_ab,
     EquilibriumArray& input)
 {
+    CELER_EXPECT(molecule_aa < MucfIsoprotologueMolecule::size_);
+    CELER_EXPECT(molecule_bb < MucfIsoprotologueMolecule::size_);
+    CELER_EXPECT(molecule_ab < MucfIsoprotologueMolecule::size_);
+    CELER_EXPECT(eq_constant_ab > 0);
+
     auto const& dens_aa = input[molecule_aa];
     auto const& dens_bb = input[molecule_bb];
     auto const& dens_ab = input[molecule_ab];
 
-    // (AA + AB) / 2
-    real_type const mix_a = (dens_aa + dens_ab) * real_type{0.5};
-    // (BB + AB) / 2
-    real_type const mix_b = (dens_bb + dens_ab) * real_type{0.5};
+    // AA + AB / 2
+    real_type const mix_a = dens_aa + dens_ab * real_type{0.5};
+    // BB + AB / 2
+    real_type const mix_b = dens_bb + dens_ab * real_type{0.5};
 
     real_type sigma
         = ((mix_a + mix_b)

@@ -27,9 +27,9 @@ MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
     // Initialize interpolators for cycle time tables
     for (auto const& cycle_data : data_.cycle_rates)
     {
-        InterpolatorHelper interp(cycle_data.rate);
-        interpolators_.insert(
-            {{cycle_data.type, cycle_data.spin_state}, interp});
+        // Use emplace to avoid copy/move of InterpolatorHelper objects
+        interpolators_.emplace(
+            std::pair{cycle_data.type, cycle_data.spin_state}, cycle_data.rate);
     }
 }
 
@@ -45,6 +45,9 @@ MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
  * - Single element, multiple isotopes (H element, with H, d, and t isotopes);
  * or
  * - Multiple elements, single isotope each (separate H, d, and t elements).
+ *
+ * The input data stores the cycle \em rate \f$\lambda\f$, while the cached
+ * data is the cycle \em time \f$\tau = 1/\lambda\f$.
  */
 bool MucfMaterialInserter::operator()(MaterialView const& material)
 {
@@ -78,10 +81,11 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
             auto const atom = from_mass_number(iso_view.atomic_mass_number());
             CELER_ASSERT(atom < MucfIsotope::size_);
 
-            // Cache density for hydrogen isotope
+            // Cache density for this hydrogen isotope
             lhd_densities[atom]
-                = elem_rel_abundance * material.number_density()
-                  / data_.scalars.liquid_hydrogen_density.value();
+                = element_view.isotopes()[el_comp].fraction
+                  * (elem_rel_abundance * material.number_density()
+                     / data_.scalars.liquid_hydrogen_density.value());
         }
     }
 
@@ -164,36 +168,32 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
     auto const& dt_dens = eq_dens[IsoProt::deuterium_tritium];
     auto const& hd_dens = eq_dens[IsoProt::protium_deuterium];
 
+    auto get = [&](inp::CycleTableType type, units::HalfSpinInt spin) -> auto& {
+        auto it = interpolators_.find({type, spin});
+        CELER_ASSERT(it != interpolators_.end());
+        return it->second;
+    };
+
     // F = 0 interpolators
-    auto dd0_interpolate
-        = interpolators_.find({CTT::deuterium_deuterium, HalfSpinInt{0}})->second;
-    auto dt0_interpolate
-        = interpolators_.find({CTT::deuterium_tritium, HalfSpinInt{0}})->second;
-    auto hd0_interpolate
-        = interpolators_.find({CTT::protium_deuterium, HalfSpinInt{0}})->second;
-
+    auto const& hd0_interpolate = get(CTT::protium_deuterium, HalfSpinInt{0});
+    auto const& dd0_interpolate = get(CTT::deuterium_deuterium, HalfSpinInt{0});
+    auto const& dt0_interpolate = get(CTT::deuterium_tritium, HalfSpinInt{0});
     // F = 1 interpolators
-    auto dd1_interpolate
-        = interpolators_.find({CTT::deuterium_deuterium, HalfSpinInt{2}})->second;
-    auto dt1_interpolate
-        = interpolators_.find({CTT::deuterium_tritium, HalfSpinInt{2}})->second;
-    auto hd1_interpolate
-        = interpolators_.find({CTT::protium_deuterium, HalfSpinInt{2}})->second;
+    auto const& hd1_interpolate = get(CTT::protium_deuterium, HalfSpinInt{2});
+    auto const& dd1_interpolate = get(CTT::deuterium_deuterium, HalfSpinInt{2});
+    auto const& dt1_interpolate = get(CTT::deuterium_tritium, HalfSpinInt{2});
 
-    MoleculeCycles result{1, 2};
-#if 0
-    // F = 0
-    result[0] = dd_dens * dd0_interpolate(temperature)
-                + dt_dens * dt0_interpolate(temperature)
-                + hd_dens * hd0_interpolate(temperature);
+    // Interpolate over rates, store final cycle time (1/rate)
+    MoleculeCycles result;
+    result[0] = real_type{1}
+                / (hd_dens * hd0_interpolate(temperature)
+                   + dd_dens * dd0_interpolate(temperature)
+                   + dt_dens * dt0_interpolate(temperature));  // F = 0
+    result[1] = real_type{1}
+                / (hd_dens * hd1_interpolate(temperature)
+                   + dd_dens * dd1_interpolate(temperature)
+                   + dt_dens * dt1_interpolate(temperature));  // F = 1
 
-    // F = 1
-    result[1] = dd_dens * dd1_interpolate(temperature)
-                + dt_dens * dt1_interpolate(temperature)
-                + hd_dens * hd1_interpolate(temperature);
-#endif
-
-    // Reactive states are F = 0 and F = 1
     CELER_ENSURE(result[0] >= 0 && result[1] >= 0);
     return result;
 }

@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "InterpolatorHelper.hh"
 
-#include "corecel/Macros.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
@@ -16,12 +16,13 @@ namespace detail
 /*!
  * Construct with grid input data.
  */
-InterpolatorHelper::InterpolatorHelper(inp::Grid input)
+InterpolatorHelper::InterpolatorHelper(inp::Grid const& input)
     : grid_record_(NonuniformGridBuilder(&reals_)(input))
     , reals_ref_(reals_)
     , interpolate_(grid_record_, reals_ref_)
 {
     CELER_EXPECT(input);
+    CELER_ENSURE(grid_record_);
 }
 
 //---------------------------------------------------------------------------//
