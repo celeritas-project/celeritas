@@ -41,24 +41,61 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
 
         // Set up particle IDs
         host_data.particle_ids.mu_minus = params.find(pdg::mu_minus());
+        host_data.particle_ids.proton = params.find(pdg::proton());
         host_data.particle_ids.neutron = params.find(pdg::neutron());
         host_data.particle_ids.alpha = params.find(pdg::alpha());
+        host_data.particle_ids.he3 = params.find(pdg::he3());
+        host_data.particle_ids.muonic_hydrogen
+            = params.find(pdg::muonic_hydrogen());
+        host_data.particle_ids.muonic_deuteron
+            = params.find(pdg::muonic_deuteron());
+        host_data.particle_ids.muonic_triton
+            = params.find(pdg::muonic_triton());
         host_data.particle_ids.muonic_alpha = params.find(pdg::muonic_alpha());
+        host_data.particle_ids.muonic_he3 = params.find(pdg::muonic_he3());
 
         // Set up particle masses
         host_data.particle_masses.mu_minus
             = params.get(host_data.particle_ids.mu_minus).mass();
+        host_data.particle_masses.proton
+            = params.get(host_data.particle_ids.proton).mass();
         host_data.particle_masses.neutron
             = params.get(host_data.particle_ids.neutron).mass();
         host_data.particle_masses.alpha
             = params.get(host_data.particle_ids.alpha).mass();
+        host_data.particle_masses.he3
+            = params.get(host_data.particle_ids.he3).mass();
+        host_data.particle_masses.muonic_hydrogen
+            = params.get(host_data.particle_ids.muonic_hydrogen).mass();
+        host_data.particle_masses.muonic_deuteron
+            = params.get(host_data.particle_ids.muonic_deuteron).mass();
+        host_data.particle_masses.muonic_triton
+            = params.get(host_data.particle_ids.muonic_triton).mass();
         host_data.particle_masses.muonic_alpha
             = params.get(host_data.particle_ids.muonic_alpha).mass();
+        host_data.particle_masses.muonic_he3
+            = params.get(host_data.particle_ids.muonic_he3).mass();
 
         // Set up muon energy CDF
         auto const inp_data = inp::MucfPhysics::from_default();
         NonuniformGridBuilder build_grid_record{&host_data.reals};
         host_data.muon_energy_cdf = build_grid_record(inp_data.muon_energy_cdf);
+
+        // Set up dummy cycle data
+        using CycleTimesArray
+            = EnumArray<MucfMuonicMolecule, Array<real_type, 2>>;
+        CollectionBuilder<PhysMatId, MemSpace::host, MuCfMatId> mucfid(
+            &host_data.mucfmatid_to_matid);
+        CollectionBuilder<CycleTimesArray, MemSpace::host, MuCfMatId> cycles(
+            &host_data.cycle_times);
+
+        CycleTimesArray cycle_data;
+        cycle_data[MucfMuonicMolecule::deuterium_deuterium] = {1, 2};
+        cycle_data[MucfMuonicMolecule::deuterium_tritium] = {3, 4};
+        cycle_data[MucfMuonicMolecule::tritium_tritium] = {5, 6};
+
+        mucfid.push_back(PhysMatId{0});
+        cycles.push_back(std::move(cycle_data));
 
         // Construct collection
         data_ = CollectionMirror<DTMixMucfData>{std::move(host_data)};

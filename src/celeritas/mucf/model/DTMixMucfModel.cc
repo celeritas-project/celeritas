@@ -54,15 +54,11 @@ from_params(ParticleParams const& particles)
     MP_ADD(proton);
     MP_ADD(alpha);
     MP_ADD(he3);
+    MP_ADD(muonic_hydrogen);
     MP_ADD(muonic_deuteron);
     MP_ADD(muonic_triton);
     MP_ADD(muonic_alpha);
-
-    //! \todo Decide whether to implement these PDGs in PDGNumber.hh
-#if 0
-    MP_ADD(muonic_hydrogen);
     MP_ADD(muonic_he3);
-#endif
 
     CELER_VALIDATE(missing.empty(),
                    << "missing particles required for muon-catalyzed fusion: "

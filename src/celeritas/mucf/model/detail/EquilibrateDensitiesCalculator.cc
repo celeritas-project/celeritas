@@ -65,7 +65,7 @@ EquilibrateDensitiesCalculator::operator()()
     result[IsoProt::protium_tritium] = 0;
 
     EquilibriumArray previous_equilib_dens = result;
-    auto iter_diff = std::numeric_limits<real_type>::infinity();
+    real_type iter_diff{0};
     size_type iter{0};
     while (iter_diff > this->convergence_err() && iter < this->max_iterations())
     {
@@ -88,11 +88,11 @@ EquilibrateDensitiesCalculator::operator()()
                                k_ht,
                                result);
 
-        for (auto const& i : range(MucfIsoprotologueMolecule::size_))
+        for (auto i : range(MucfIsoprotologueMolecule::size_))
         {
             // Calculate difference between current and previous densities
             real_type diff = std::abs(result[i] - previous_equilib_dens[i]);
-            if (diff > iter_diff)
+            if (iter_diff < diff)
             {
                 // Select maximum difference for convergence check
                 iter_diff = diff;

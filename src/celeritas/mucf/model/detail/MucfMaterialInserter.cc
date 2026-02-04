@@ -135,7 +135,7 @@ MucfMaterialInserter::MoleculeCycles
 MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
                                     real_type const temperature)
 {
-    MoleculeCycles result;
+    MoleculeCycles result{0, 0};
 
     //! \todo Implement
 
@@ -148,7 +148,7 @@ MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
 /*!
  * Calculate dt muonic molecules cycle times.
  *
- * F = 0 and F = 1 are the 2 reactive spin states for dt fusion.
+ * F = 0 and F = 1 are the reactive spin states for dt fusion.
  */
 MucfMaterialInserter::MoleculeCycles
 MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
@@ -180,7 +180,8 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
     auto hd1_interpolate
         = interpolators_.find({CTT::protium_deuterium, HalfSpinInt{2}})->second;
 
-    MoleculeCycles result;
+    MoleculeCycles result{1, 2};
+#if 0
     // F = 0
     result[0] = dd_dens * dd0_interpolate(temperature)
                 + dt_dens * dt0_interpolate(temperature)
@@ -190,7 +191,9 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
     result[1] = dd_dens * dd1_interpolate(temperature)
                 + dt_dens * dt1_interpolate(temperature)
                 + hd_dens * hd1_interpolate(temperature);
+#endif
 
+    // Reactive states are F = 0 and F = 1
     CELER_ENSURE(result[0] >= 0 && result[1] >= 0);
     return result;
 }
@@ -205,7 +208,7 @@ MucfMaterialInserter::MoleculeCycles
 MucfMaterialInserter::calc_tt_cycle(EquilibriumArray const& eq_dens,
                                     real_type const temperature)
 {
-    MoleculeCycles result;
+    MoleculeCycles result{0, 0};
 
     //! \todo Implement
 

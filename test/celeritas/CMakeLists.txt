@@ -152,7 +152,10 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 # MuCF
 
 # Interactors
-celeritas_add_test(mucf/DTMucfInteractor.test.cc ${_needs_double})
+celeritas_add_test(mucf/DTMucfInteractor.test.cc)
+
+# Model
+celeritas_add_test(mucf/DTMixMucfModel.test.cc)
 
 #-----------------------------------------------------------------------------#
 # EM
