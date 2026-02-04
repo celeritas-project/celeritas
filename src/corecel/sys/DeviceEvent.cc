@@ -1,21 +1,19 @@
-//------------------------------ -*- cuda -*- -------------------------------//
+//------------------------------- -*- C++ -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/DeviceEvent.cu
+//! \file corecel/sys/DeviceEvent.cc
 //---------------------------------------------------------------------------//
 #include "DeviceEvent.hh"
 
 #include <iostream>
 
-#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"  // IWYU pragma: keep
 
 #include "Device.hh"
 #include "Stream.hh"  // IWYU pragma: keep
-
-using EventT = CELER_DEVICE_API_SYMBOL(Event_t);
 
 namespace celeritas
 {
@@ -25,8 +23,14 @@ namespace celeritas
  */
 struct DeviceEvent::Impl
 {
+#if CELER_USE_DEVICE
+    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
+#else
+    using StreamT = nullptr_t;
+#endif
+
     EventT event{nullptr};
-    CELER_DEVICE_API_SYMBOL(Stream_t) stream { nullptr };
+    StreamT stream{nullptr};
 };
 
 //---------------------------------------------------------------------------//
@@ -54,11 +58,18 @@ void DeviceEvent::ImplDeleter::operator()(Impl* impl) noexcept
  *
  * The stream pointer is obtained from \c celeritas::device() and stored
  * internally so that \c record() can be called without passing the stream.
+ *
+ * \pre A device must be active and the stream ID must be valid.
  */
 DeviceEvent::DeviceEvent(StreamId stream_id)
     : DeviceEvent(device().stream(stream_id))
 {
-    CELER_EXPECT(stream_id < device().num_streams());
+    CELER_VALIDATE(celeritas::device(),
+                   << "cannot construct event: device is not configured");
+    CELER_VALIDATE(stream_id < device().num_streams(),
+                   << "invalid stream ID " << stream_id.unchecked_get()
+                   << " (only " << device().num_streams()
+                   << " streams available)");
 }
 
 //---------------------------------------------------------------------------//
@@ -67,13 +78,48 @@ DeviceEvent::DeviceEvent(StreamId stream_id)
  *
  * The stream pointer is stored internally so that \c record() can be called
  * without passing the stream.
+ *
+ * \pre The stream must be valid (not null or moved-from).
  */
 DeviceEvent::DeviceEvent(Stream const& stream)
 {
+    CELER_VALIDATE(stream, << "cannot construct event: stream is not valid");
     EventT event;
     CELER_DEVICE_API_CALL(EventCreateWithFlags(
         &event, CELER_DEVICE_API_SYMBOL(EventDisableTiming)));
     impl_.reset(new Impl{event, stream.get()});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a null device event.
+ */
+DeviceEvent::DeviceEvent(std::nullptr_t)
+{
+    // Do not create an event; leave impl_ as nullptr
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the event is valid (not null or moved-from).
+ */
+DeviceEvent::operator bool() const
+{
+    return impl_ != nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the native CUDA/HIP event handle.
+ *
+ * This provides direct access to the underlying event for advanced use cases.
+ */
+auto DeviceEvent::get() const -> EventT
+{
+    if (!impl_)
+        return nullptr;
+
+    return impl_->event;
 }
 
 //---------------------------------------------------------------------------//
@@ -86,7 +132,9 @@ DeviceEvent::DeviceEvent(Stream const& stream)
  */
 void DeviceEvent::record()
 {
-    CELER_EXPECT(impl_);
+    if (!*this)
+        return;
+
     CELER_DEVICE_API_CALL(EventRecord(impl_->event, impl_->stream));
 }
 
@@ -102,6 +150,10 @@ void DeviceEvent::record()
  */
 bool DeviceEvent::ready() const
 {
+    if (!*this)
+        return true;
+
+#if CELER_USE_DEVICE
     auto result = CELER_DEVICE_API_SYMBOL(EventQuery)(impl_->event);
     if (result == CELER_DEVICE_API_SYMBOL(ErrorNotReady))
     {
@@ -111,9 +163,12 @@ bool DeviceEvent::ready() const
     {
         return true;
     }
-    // Either is missing: an error has occurred
-    CELER_DEVICE_API_CALL(GetLastError());
+    CELER_RUNTIME_THROW(CELER_DEVICE_PLATFORM_UPPER_STR,
+                        CELER_DEVICE_API_SYMBOL(GetErrorString)(result),
+                        "EventQuery");
+#else
     CELER_ASSERT_UNREACHABLE();
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -123,10 +178,14 @@ bool DeviceEvent::ready() const
  * This blocks the calling thread until all operations recorded before this
  * event have finished executing on the device. Use this to synchronize the
  * host with device operations.
+ *
+ * If the event is uninitialized
  */
 void DeviceEvent::sync() const
 {
-    CELER_EXPECT(impl_);
+    if (!*this)
+        return;
+
     CELER_DEVICE_API_CALL(EventSynchronize(impl_->event));
 }
 

@@ -238,6 +238,7 @@ list(APPEND SOURCES
   sys/ActionRegistry.cc
   sys/ActionRegistryOutput.cc
   sys/DeviceIO.json.cc
+  sys/DeviceEvent.cc
   sys/Environment.cc
   sys/KernelRegistry.cc
   sys/KernelRegistryIO.json.cc
@@ -312,7 +313,6 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     data/Filler.cu
     sys/KernelParamCalculator.device.cc
-    sys/DeviceEvent.cu
     sys/Stream.cu
     sys/detail/AsyncMemoryResource.cu
   )

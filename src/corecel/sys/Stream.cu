@@ -77,10 +77,26 @@ void Stream::ImplDeleter::operator()(Impl* impl) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct by creating a stream.
+ * Construct by creating a stream with the active device context.
+ *
+ * \pre A device must be active and configured.
+ * \deprecated This constructor is ambiguous: remnove it.
  */
-Stream::Stream()
+Stream::Stream() : Stream(celeritas::device()) {}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a stream for the given device.
+ *
+ * This delegates to the default constructor, which creates a stream on the
+ * active device. The device reference is used to enforce that a valid device
+ * has been activated before stream creation.
+ *
+ * \pre The device must be valid and active.
+ */
+Stream::Stream(Device const& device)
 {
+    CELER_EXPECT(device);
     StreamT stream;
     CELER_DEVICE_API_CALL(StreamCreate(&stream));
     CELER_LOG_LOCAL(debug) << "Created stream " << StreamableStream{stream};
@@ -91,10 +107,20 @@ Stream::Stream()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a null stream.
+ */
+Stream::Stream(std::nullptr_t)
+{
+    CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the CUDA stream pointer.
  */
 Stream::StreamT Stream::get() const
 {
+    CELER_EXPECT(*this);
     return impl_->stream;
 }
 
@@ -104,6 +130,7 @@ Stream::StreamT Stream::get() const
  */
 Stream::ResourceT& Stream::memory_resource()
 {
+    CELER_EXPECT(*this);
     return impl_->memory_resource;
 }
 
@@ -113,6 +140,7 @@ Stream::ResourceT& Stream::memory_resource()
  */
 void Stream::sync() const
 {
+    CELER_EXPECT(*this);
     CELER_DEVICE_API_CALL(StreamSynchronize(impl_->stream));
 }
 
@@ -124,6 +152,7 @@ void Stream::sync() const
  */
 void* Stream::malloc_async(std::size_t bytes)
 {
+    CELER_EXPECT(*this);
     return detail::malloc_async(bytes, impl_->stream);
 }
 
@@ -133,6 +162,7 @@ void* Stream::malloc_async(std::size_t bytes)
  */
 void Stream::free_async(void* ptr)
 {
+    CELER_EXPECT(*this);
     return detail::free_async(ptr, impl_->stream);
 }
 
@@ -142,6 +172,7 @@ void Stream::free_async(void* ptr)
  */
 void Stream::launch_host_func(HostKernel func, void* data)
 {
+    CELER_EXPECT(*this);
     CELER_EXPECT(func);
     CELER_DEVICE_API_CALL(LaunchHostFunc(impl_->stream, func, data));
 }

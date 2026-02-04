@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
 
 #include "celeritas_test.hh"
@@ -22,17 +23,10 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class EventTest : public ::celeritas::test::Test
+class DeviceEventTest : public ::celeritas::test::Test
 {
-  protected:
-    void SetUp() override
-    {
-        auto& d = celeritas::device();
-        if (d && d.num_streams() == 0)
-        {
-            d.create_streams(1);
-        }
-    }
+  public:
+    void run(Stream& s, DeviceEvent& de) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -48,65 +42,95 @@ void my_host_kernel(void* user_data)
     return my_host_kernel_impl(*duration_ms);
 }
 
-Stream& get_stream(StreamId sid)
+//---------------------------------------------------------------------------//
+void DeviceEventTest::run(Stream& s, DeviceEvent& e) const
 {
-    if (auto& d = celeritas::device())
+    // Note that the lifetime of the argument must be longer than the
+    // stack, since the function is called asynchronously on another thread
+    static int const delay_ms = 50;
+    constexpr double ms_to_s = 0.001;
+
+    // Launch a delayed host function on the stream
+    Stopwatch get_time;
+    s.launch_host_func(my_host_kernel, const_cast<int*>(&delay_ms));
+    if (!e)
     {
-        CELER_EXPECT(sid < d.num_streams());
-        return d.stream(sid);
+        // No device: function executes instantaneously
+        EXPECT_GE(get_time(), delay_ms * ms_to_s);
+    }
+
+    // Record the event after the delayed function
+    e.record();
+
+    if (e)
+    {
+        // Event should not be ready if running asynchronously
+        EXPECT_FALSE(e.ready());
     }
     else
     {
-        // Return null stream
-        static Stream s;
-        return s;
+        // Event executed immediately
+        EXPECT_TRUE(e.ready());
     }
+
+    // Sync should block until the delay is complete
+    get_time = {};
+    e.sync();
+
+    if (e)
+    {
+        // Should have waited at least the delay time
+        EXPECT_GE(get_time(), delay_ms * ms_to_s);
+    }
+    EXPECT_TRUE(e.ready());
 }
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(EventTest, construct_from_stream_id)
+TEST_F(DeviceEventTest, host)
 {
-    StreamId stream_id{0};
-    DeviceEvent event(stream_id);
+    Stream stream{nullptr};
+    EXPECT_FALSE(stream);
+
+    DeviceEvent event{nullptr};
+    EXPECT_FALSE(event);
 
     // Event should be ready immediately after construction
     EXPECT_TRUE(event.ready());
+
+    this->run(stream, event);
+
+    // Test implicit construction
+    stream = nullptr;
+    event = nullptr;
 }
 
-TEST_F(EventTest, record_and_query)
+TEST_F(DeviceEventTest, TEST_IF_CELER_DEVICE(device))
 {
-    Stream& s = get_stream(StreamId{0});
-    DeviceEvent event(s);
+    Stream stream(celeritas::device());
+    ASSERT_TRUE(stream);
+    DeviceEvent event(stream);
+    ASSERT_TRUE(event);
 
-    // Note that the lifetime of the argument must be longer than the
-    // stack, since the function is called asynchronously on another thread
-    static int const delay_ms = 100;
+    // Run an event
+    this->run(stream, event);
 
-    // Launch a delayed host function on the stream
-    s.launch_host_func(my_host_kernel, const_cast<int*>(&delay_ms));
+    // Reuse the event
+    this->run(stream, event);
 
-    // Record the event after the delayed function
-    event.record();
+    // Test that moving works
+    Stream s2(std::move(stream));
+    EXPECT_TRUE(s2);
+    EXPECT_FALSE(stream);
 
-    // Event should not be ready if running asynchronously, but will be ready
-    // if on host
-    EXPECT_EQ(!CELER_USE_DEVICE, event.ready());
+    DeviceEvent e2(std::move(event));
+    EXPECT_TRUE(e2);
+    EXPECT_FALSE(event);
 
-    // Sync should block until the delay is complete
-    auto start = chrono::steady_clock::now();
-    event.sync();
-    auto duration = chrono::duration_cast<chrono::milliseconds>(
-        chrono::steady_clock::now() - start);
-
-    // Should have waited at least the delay time
-    if (CELER_USE_DEVICE)
-    {
-        EXPECT_GE(duration.count(), delay_ms);
-    }
-    EXPECT_TRUE(event.ready());
+    // Run with the new event
+    this->run(s2, e2);
 }
 
 //---------------------------------------------------------------------------//

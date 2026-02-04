@@ -8,11 +8,15 @@
 
 #include <memory>
 
-#include "corecel/Config.hh"  // IWYU pragma: keep
+#include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"  // IWYU pragma: keep
 #include "corecel/Macros.hh"
 #include "corecel/sys/ThreadId.hh"
+
+#if CELER_USE_DEVICE
+#    include "corecel/DeviceRuntimeApi.hh"
+#endif
 
 namespace celeritas
 {
@@ -24,10 +28,19 @@ class Stream;
  * Minimal wrapper around a CUDA/HIP event for synchronization.
  *
  * Events provide a mechanism for querying the status of asynchronous
- * operations on GPU streams and synchronizing between host and device. This
- * class creates events with timing disabled for minimal overhead.
+ * operations on GPU streams and synchronizing between host and device, and
+ * synchronizing between streams.
  *
- * When CUDA/HIP is unavailable, this class provides a no-op implementation.
+ * \par States
+ * - \b Constructed: when build with a device stream object, the instance
+ *   evaluates to \c true and forwards operations to device APIs.
+ * - \b Null: when constructed with a nullptr, or when \c moved from, the class
+ *   instance is \c false. It does not manage an event nor does it associate
+ *   with a stream. The \c sync  and \c record functions are null-op, the event
+ *   is always "ready", and the host kernel launch is instantaneous.
+ *
+ * If no device is enabled (or Celeritas is compiled without CUDA/HIP support),
+ * only the nullptr constructor is allowed.
  *
  * \par Example:
  * \code
@@ -49,11 +62,34 @@ class Stream;
 class DeviceEvent
 {
   public:
+#if !CELER_USE_DEVICE
+    //! Event implementation is unavailable
+    using EventT = nullptr_t;
+#elif !CELER_DEVICE_RUNTIME_INCLUDED
+    //! Sentinel type to indicate compilation error: include runtime downstream
+    using MissingDeviceRuntime = void;
+#else
+    //! Actual CUDA/HIP stream opaque pointer
+    using EventT = CELER_DEVICE_API_SYMBOL(Event_t);
+#endif
+
+  public:
     // Construct with stream or stream ID
     explicit DeviceEvent(StreamId stream_id);
     explicit DeviceEvent(Stream const& stream);
+    // Construct a null event
+    DeviceEvent(std::nullptr_t);
     CELER_DEFAULT_MOVE_DELETE_COPY(DeviceEvent);
     ~DeviceEvent() = default;
+
+    // Whether the event is valid (not null or moved-from)
+    explicit operator bool() const;
+
+#if defined(CELER_DEVICE_RUNTIME_INCLUDED) || !CELER_USE_DEVICE
+    EventT get() const;
+#else
+    MissingDeviceRuntime get() const {}
+#endif
 
     // Record this event on the stream
     void record();
@@ -74,22 +110,5 @@ class DeviceEvent
     std::unique_ptr<Impl, ImplDeleter> impl_{};
 };
 
-//---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-inline DeviceEvent::DeviceEvent(StreamId) {}
-
-inline DeviceEvent::DeviceEvent(Stream const&) {}
-
-inline void DeviceEvent::record() {}
-
-inline bool DeviceEvent::ready() const
-{
-    return true;
-}
-
-inline void DeviceEvent::sync() const {}
-
-inline void DeviceEvent::ImplDeleter::operator()(Impl*) noexcept {}
-#endif
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
