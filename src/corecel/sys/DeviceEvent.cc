@@ -6,17 +6,16 @@
 //---------------------------------------------------------------------------//
 // NOTE: runtime API *must* be included before header
 #include "corecel/DeviceRuntimeApi.hh"
-//---------------------------------------------------------------------------//
+//------------------------------------//
+#include "DeviceEvent.hh"
+//------------------------------------//
 #include <iostream>
 
-#include "corecel/DeviceRuntimeApi.hh"
-
-#include "corecel/Assert.hh"  // IWYU pragma: keep
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
 #include "Device.hh"
-#include "DeviceEvent.hh"
-#include "Stream.hh"  // IWYU pragma: keep
+#include "Stream.hh"
 
 namespace celeritas
 {

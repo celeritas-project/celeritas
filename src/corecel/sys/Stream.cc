@@ -4,11 +4,12 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/Stream.cc
 //---------------------------------------------------------------------------//
-#include "Stream.hh"
-
-#include <iostream>
-
+// NOTE: runtime API *must* be included before header
 #include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
+//------------------------------------//
+#include "Stream.hh"
+//------------------------------------//
+#include <iostream>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
