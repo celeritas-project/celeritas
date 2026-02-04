@@ -21,8 +21,9 @@ namespace detail
  * Select muonic atom spin, in units of \f$ \frac{\hbar}{2} \f$.
  *
  * Sampling is based on spin population probabilities from
- * \citet{yamashita-muonicmoleculemodel-2022,
- * https://doi.org/10.1038/s41598-022-09487-0}, which are:
+ * \citet{yamashita-muonicspin-2022,
+ * https://doi.org/10.1038/s41598-022-09487-0}
+ * which are:
  * - Muonic deuterium: 2/3 probability for spin 3/2; 1/3 for spin 1/2
  * - Muonic tritium: 3/4 probability for spin 1; 1/4 for spin 0
  */
@@ -67,7 +68,7 @@ MuonicAtomSpinSelector::MuonicAtomSpinSelector(MucfMuonicAtom atom)
 
 //---------------------------------------------------------------------------//
 /*!
- * Select a muonic atom spin, in units of \f$ \hbar / 2 \f$.
+ * Select a muonic atom spin, in units of \f$ \frac{\hbar}{2} \f$.
  */
 template<class Engine>
 CELER_FUNCTION units::HalfSpinInt
