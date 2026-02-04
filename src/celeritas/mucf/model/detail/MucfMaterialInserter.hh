@@ -72,6 +72,10 @@ class MucfMaterialInserter
     // Calculate mean fusion cycle times for tt muonic molecules
     Array<real_type, 2> calc_tt_cycle(EquilibriumArray const& eq_dens,
                                       real_type const temperature);
+
+    // Get interpolator for given cycle type and spin
+    InterpolatorHelper const&
+    interpolator(inp::CycleTableType type, units::HalfSpinInt spin) const;
 };
 
 //---------------------------------------------------------------------------//

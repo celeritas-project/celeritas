@@ -75,22 +75,31 @@ TEST_F(DTMixMucfModelTest, data)
 
     EXPECT_EQ(21, data.muon_energy_cdf.grid.size());
 
-    // In seconds
-    static double const expected_dt_f0_cycle_time{1.0182824459351898e-08};
-    static double const expected_dt_f1_cycle_time{5.098478246172425e-09};
+    // Cycle times are in seconds
+    // DD (reactivity of F = 3/2 is almost negligible, with huge cycle times)
+    static double const expected_dd_1_over_2_cycle_time{1.8312922823566493e-06};
+    static double const expected_dd_3_over_2_cycle_time{1.1439517165483279};
+    // DT
+    static double const expected_dt_0_cycle_time{1.0182824459351898e-08};
+    static double const expected_dt_1_cycle_time{5.098478246172425e-09};
+    // TT
+    static double const expected_tt_1_over_2_cycle_time{1.4056833511329384e-06};
 
     auto const& cycles = data.cycle_times;
 
     // DD cycle times
-    EXPECT_SOFT_EQ(0, cycles[MuCfMatId{0}][Molecule::deuterium_deuterium][0]);
-    EXPECT_SOFT_EQ(0, cycles[MuCfMatId{0}][Molecule::deuterium_deuterium][1]);
+    EXPECT_SOFT_EQ(expected_dd_1_over_2_cycle_time,
+                   cycles[MuCfMatId{0}][Molecule::deuterium_deuterium][0]);
+    EXPECT_SOFT_EQ(expected_dd_3_over_2_cycle_time,
+                   cycles[MuCfMatId{0}][Molecule::deuterium_deuterium][1]);
     // DT cycle times
-    EXPECT_SOFT_EQ(expected_dt_f0_cycle_time,
+    EXPECT_SOFT_EQ(expected_dt_0_cycle_time,
                    cycles[MuCfMatId{0}][Molecule::deuterium_tritium][0]);
-    EXPECT_SOFT_EQ(expected_dt_f1_cycle_time,
+    EXPECT_SOFT_EQ(expected_dt_1_cycle_time,
                    cycles[MuCfMatId{0}][Molecule::deuterium_tritium][1]);
     // TT cycle times
-    EXPECT_SOFT_EQ(0, cycles[MuCfMatId{0}][Molecule::tritium_tritium][0]);
+    EXPECT_SOFT_EQ(expected_tt_1_over_2_cycle_time,
+                   cycles[MuCfMatId{0}][Molecule::tritium_tritium][0]);
     EXPECT_SOFT_EQ(0, cycles[MuCfMatId{0}][Molecule::tritium_tritium][1]);
 }
 

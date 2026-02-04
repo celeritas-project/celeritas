@@ -139,11 +139,23 @@ MucfMaterialInserter::MoleculeCycles
 MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
                                     real_type const temperature)
 {
-    MoleculeCycles result{0, 0};
+    using IsoProt = MucfIsoprotologueMolecule;
+    using CTT = inp::CycleTableType;
+    using units::HalfSpinInt;
 
-    //! \todo Implement
+    auto const& dd_dens = eq_dens[IsoProt::deuterium_deuterium];
 
-    // Reactive states are F = 1/2 and F = 3/2
+    auto const& dd_1_over_2_interpolate
+        = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{1});
+    auto const& dd_3_over_2_interpolate
+        = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{3});
+
+    MoleculeCycles result;
+    result[0] = real_type{1}
+                / (dd_dens * dd_1_over_2_interpolate(temperature));  // F = 1/2
+    result[1] = real_type{1}
+                / (dd_dens * dd_3_over_2_interpolate(temperature));  // F = 3/2
+
     CELER_ENSURE(result[0] >= 0 && result[1] >= 0);
     return result;
 }
@@ -168,20 +180,20 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
     auto const& dt_dens = eq_dens[IsoProt::deuterium_tritium];
     auto const& hd_dens = eq_dens[IsoProt::protium_deuterium];
 
-    auto get = [&](inp::CycleTableType type, units::HalfSpinInt spin) -> auto& {
-        auto it = interpolators_.find({type, spin});
-        CELER_ASSERT(it != interpolators_.end());
-        return it->second;
-    };
-
     // F = 0 interpolators
-    auto const& hd0_interpolate = get(CTT::protium_deuterium, HalfSpinInt{0});
-    auto const& dd0_interpolate = get(CTT::deuterium_deuterium, HalfSpinInt{0});
-    auto const& dt0_interpolate = get(CTT::deuterium_tritium, HalfSpinInt{0});
+    auto const& hd0_interpolate
+        = this->interpolator(CTT::protium_deuterium, HalfSpinInt{0});
+    auto const& dd0_interpolate
+        = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{0});
+    auto const& dt0_interpolate
+        = this->interpolator(CTT::deuterium_tritium, HalfSpinInt{0});
     // F = 1 interpolators
-    auto const& hd1_interpolate = get(CTT::protium_deuterium, HalfSpinInt{2});
-    auto const& dd1_interpolate = get(CTT::deuterium_deuterium, HalfSpinInt{2});
-    auto const& dt1_interpolate = get(CTT::deuterium_tritium, HalfSpinInt{2});
+    auto const& hd1_interpolate
+        = this->interpolator(CTT::protium_deuterium, HalfSpinInt{2});
+    auto const& dd1_interpolate
+        = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{2});
+    auto const& dt1_interpolate
+        = this->interpolator(CTT::deuterium_tritium, HalfSpinInt{2});
 
     // Interpolate over rates, store final cycle time (1/rate)
     MoleculeCycles result;
@@ -208,13 +220,29 @@ MucfMaterialInserter::MoleculeCycles
 MucfMaterialInserter::calc_tt_cycle(EquilibriumArray const& eq_dens,
                                     real_type const temperature)
 {
-    MoleculeCycles result{0, 0};
+    using IsoProt = MucfIsoprotologueMolecule;
+    using CTT = inp::CycleTableType;
+    using units::HalfSpinInt;
 
-    //! \todo Implement
+    auto const& tt_dens = eq_dens[IsoProt::tritium_tritium];
+    auto const& tt_interpolate
+        = this->interpolator(CTT::tritium_tritium, HalfSpinInt{1});
 
-    // Only F = 1/2 is reactive
+    MoleculeCycles result;
+    result[0] = real_type{1} / (tt_dens * tt_interpolate(temperature));
+
     CELER_ENSURE(result[0] >= 0 && result[1] == 0);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+InterpolatorHelper const&
+MucfMaterialInserter::interpolator(inp::CycleTableType type,
+                                   units::HalfSpinInt spin) const
+{
+    auto it = interpolators_.find({type, spin});
+    CELER_ASSERT(it != interpolators_.end());
+    return it->second;
 }
 
 //---------------------------------------------------------------------------//

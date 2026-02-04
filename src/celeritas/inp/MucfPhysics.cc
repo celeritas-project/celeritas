@@ -78,10 +78,155 @@ Grid mucf_muon_energy_cdf()
 }
 
 //---------------------------------------------------------------------------//
+// DD cycle rate data
+//---------------------------------------------------------------------------//
+/*!
+ * Muon-catalyzed fusion cycle rate data for \em dd fusion with F = 1/2 state.
+ */
+MucfCycleRate dd_1_over_2_cycle_data()
+{
+    MucfCycleRate result;
+    result.type = CycleTableType::deuterium_deuterium;
+    result.spin_state = units::HalfSpinInt{1};  // F = 1/2
+
+    result.rate.interpolation.type = InterpolationType::cubic_spline;
+    // Temperature [K]
+    result.rate.x = {
+        0.0,
+        36.43103676856282,
+        49.84753686046977,
+        62.30013430590361,
+        72.8249264583911,
+        94.80254726485413,
+        118.65929788178391,
+        134.8637502794038,
+        174.9275151614521,
+        212.16105692405534,
+        260.90506935936025,
+        325.03565799325077,
+        380.6089687138337,
+        434.29674495520254,
+        486.0836155123639,
+        564.7393523983244,
+        668.3489596576321,
+        764.2819309563899,
+        860.2110594538995,
+        935.0316806939586,
+        998.3392693938174,
+    };
+    // Mean cycle rate [1/s]
+    result.rate.y = {
+        0.0,
+        0.005464463375221662e6,
+        0.020292872692477815e6,
+        0.04715981762065269e6,
+        0.098103833770665e6,
+        0.2721222062034343e6,
+        0.5362926959236205e6,
+        0.7584940318094278e6,
+        1.2388537948623028e6,
+        1.6110396634730852e6,
+        1.9710284809214524e6,
+        2.2225696043387786e6,
+        2.3059026708109145e6,
+        2.3141137763784285e6,
+        2.283275296360035e6,
+        2.19792475923249e6,
+        2.05207892345204e6,
+        1.921378528091838e6,
+        1.7996962265613146e6,
+        1.7144033314524956e6,
+        1.6473195500592115e6,
+    };
+
+    CELER_ENSURE(result);
+    return result;
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Muon-catalyzed fusion cycle rate data for \em dd fusion with F = 3/2 state.
+ */
+MucfCycleRate dd_3_over_2_cycle_data()
+{
+    MucfCycleRate result;
+    result.type = CycleTableType::deuterium_deuterium;
+    result.spin_state = units::HalfSpinInt{3};  // F = 3/2
+
+    result.rate.interpolation.type = InterpolationType::cubic_spline;
+    // Temperature [K]
+    result.rate.x = {
+        0.0,
+        5.4317995646105715,
+        8.023769006655044,
+        15.563345056011997,
+        21.23403876489806,
+        24.19235525928977,
+        30.970416194589205,
+        36.77176514592074,
+        40.6299375993124,
+        48.3052926261127,
+        54.996250066448454,
+        65.48389514020138,
+        83.57516295078466,
+        104.55813870078731,
+        127.50862868996978,
+        141.88390769335217,
+        157.2358986807023,
+        176.44862398894298,
+        208.18055529758965,
+        248.59273415949275,
+        289.00491302139596,
+        347.6774429488119,
+        437.0821353934164,
+        532.1831402218961,
+        626.2766906564209,
+        748.1620201862349,
+        868.0888020131156,
+        992.7877025236317,
+    };
+    // Mean cycle rate [1/s]
+    result.rate.y = {
+        0.0,
+        3.002924371750031,
+        3.670220083632165,
+        3.976719989803767,
+        4.169019528475477,
+        3.9765902952616323,
+        3.820175795347777,
+        3.705860143810432,
+        3.6516939388136374,
+        3.6395545296699483,
+        3.6875501565621276,
+        3.8256690797323616,
+        4.119986345246231,
+        4.378188003927343,
+        4.519125621813277,
+        4.533939620625851,
+        4.506654771061913,
+        4.419191653948062,
+        4.202281855381299,
+        3.8650011112100278,
+        3.5277203670387562,
+        3.0879607598755188,
+        2.527498765500099,
+        2.0992156842652023,
+        1.785176202044242,
+        1.500779127953113,
+        1.312603875721246,
+        1.1754591026674808,
+    };
+
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+// DT cycle rate data
+//---------------------------------------------------------------------------//
 /*!
  * Muon-catalyzed fusion cycle rate data for \em dt fusion with F = 0 state.
  */
-MucfCycleRate dd0_cycle_data()
+MucfCycleRate dd_0_cycle_data()
 {
     MucfCycleRate result;
     result.type = CycleTableType::deuterium_deuterium;
@@ -133,7 +278,7 @@ MucfCycleRate dd0_cycle_data()
 /*!
  * Muon-catalyzed fusion cycle rate data for \em dt fusion with F = 0 state.
  */
-MucfCycleRate dt0_cycle_data()
+MucfCycleRate dt_0_cycle_data()
 {
     MucfCycleRate result;
     result.type = CycleTableType::deuterium_tritium;
@@ -189,7 +334,7 @@ MucfCycleRate dt0_cycle_data()
 /*!
  * Muon-catalyzed fusion cycle rate data for \em dt fusion with F = 0 state.
  */
-MucfCycleRate hd0_cycle_data()
+MucfCycleRate hd_0_cycle_data()
 {
     MucfCycleRate result;
     result.type = CycleTableType::protium_deuterium;
@@ -217,7 +362,7 @@ MucfCycleRate hd0_cycle_data()
 /*!
  * Muon-catalyzed fusion cycle rate data for \em dt fusion with F = 1 state.
  */
-MucfCycleRate dd1_cycle_data()
+MucfCycleRate dd_1_cycle_data()
 {
     MucfCycleRate result;
     result.type = CycleTableType::deuterium_deuterium;
@@ -269,7 +414,7 @@ MucfCycleRate dd1_cycle_data()
 /*!
  * Muon-catalyzed fusion cycle rate data for \em dt fusion with F = 1 state.
  */
-MucfCycleRate dt1_cycle_data()
+MucfCycleRate dt_1_cycle_data()
 {
     MucfCycleRate result;
     result.type = CycleTableType::deuterium_tritium;
@@ -325,7 +470,7 @@ MucfCycleRate dt1_cycle_data()
 /*!
  * Muon-catalyzed fusion cycle rate data for \em dt fusion with F = 1 state.
  */
-MucfCycleRate hd1_cycle_data()
+MucfCycleRate hd_1_cycle_data()
 {
     MucfCycleRate result;
     result.type = CycleTableType::protium_deuterium;
@@ -352,39 +497,57 @@ MucfCycleRate hd1_cycle_data()
 }
 
 //---------------------------------------------------------------------------//
+// TT cycle rate data
+//---------------------------------------------------------------------------//
+/*!
+ * Muon-catalyzed fusion cycle rate data for \em tt fusion with F = 1/2 state.
+ *
+ * The tt fusion cycle rate data is currently a constant value at 2.8e6 1/s.
+ */
+MucfCycleRate tt_1_over_2_cycle_data()
+{
+    MucfCycleRate result;
+    result.type = CycleTableType::tritium_tritium;
+    result.spin_state = units::HalfSpinInt{1};  // F = 1/2
+
+    result.rate.interpolation.type = InterpolationType::linear;
+    // Temperature [K]
+    result.rate.x = {
+        0.0,
+        std::numeric_limits<double>::max(),
+    };
+    // Mean cycle rate [1/s]
+    result.rate.y = {2.8e6, 2.8e6};
+
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Cycle rate data for muon-catalyzed fusion.
  *
- * Data from https://doi.org/10.1007/BF02227621 .
+ * Data extracted from https://doi.org/10.1007/BF02227621 .
  *
  * \todo Use native units.
  */
 std::vector<MucfCycleRate> mucf_cycle_rates()
 {
     std::vector<MucfCycleRate> result;
-
     // DD fusion
-    {
-        // F = 1/2
-        // F = 3/2
-    }
-
-    // DT fusion (requires hd, dd, and dt data for both spin states)
-    {
-        // F = 0
-        result.push_back(hd0_cycle_data());
-        result.push_back(dd0_cycle_data());
-        result.push_back(dt0_cycle_data());
-        // F = 1
-        result.push_back(hd1_cycle_data());
-        result.push_back(dd1_cycle_data());
-        result.push_back(dt1_cycle_data());
-    }
-
+    result.push_back(dd_1_over_2_cycle_data());  // F = 1/2
+    result.push_back(dd_3_over_2_cycle_data());  // F = 3/2
+    // DT fusion
+    // F = 0
+    result.push_back(hd_0_cycle_data());
+    result.push_back(dd_0_cycle_data());
+    result.push_back(dt_0_cycle_data());
+    // F = 1
+    result.push_back(hd_1_cycle_data());
+    result.push_back(dd_1_cycle_data());
+    result.push_back(dt_1_cycle_data());
     // TT fusion
-    {
-        // F = 1/2
-    }
+    result.push_back(tt_1_over_2_cycle_data());  // F = 1/2
 
     return result;
 }
