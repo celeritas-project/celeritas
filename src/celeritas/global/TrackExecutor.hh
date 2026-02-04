@@ -127,6 +127,8 @@ class ConditionalTrackExecutor
             return;
         }
 
+        // NOTE: "return value type" error means the executor function is
+        // incorrectly returning a value
         return execute_track_(track);
     }
 

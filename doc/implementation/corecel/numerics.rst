@@ -41,6 +41,7 @@ expressions and functions.
 .. doxygenclass:: celeritas::BisectionRootFinder
 .. doxygenclass:: celeritas::IllinoisRootFinder
 .. doxygenclass:: celeritas::TridiagonalSolver
+.. doxygenclass:: celeritas::FerrariSolver
 
 Atomics
 ^^^^^^^

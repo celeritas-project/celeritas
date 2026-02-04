@@ -9,16 +9,15 @@ requirements of the [HL-LHC upgrade][HLLHC].
 # Documentation
 
 Most of the Celeritas documentation is readable through the codebase through a
-combination of [static RST documentation][inline-docs] and Doxygen-markup
-comments in the source code itself. The full [Celeritas user
-documentation][user-docs] (including selected code documentation incorporated
-by Breathe) and the [Celeritas code documentation][dev-docs] are mirrored on
-our GitHub pages site. You can generate these yourself (if the necessary
-prerequisites are installed) by
-setting the `CELERITAS_BUILD_DOCS=ON` configuration option and running
-`ninja doc` (user) or `ninja doxygen` (developer).
+combination of [static RST documentation][doc/index.rst] and Doxygen-markup
+comments in the source code itself.
+The full [Celeritas user documentation][user-docs] (including selected code
+documentation incorporated by Breathe) and the [Celeritas code
+documentation][dev-docs] are mirrored on our GitHub pages site.
+You can generate these yourself (if the necessary prerequisites are installed) by
+setting the `CELERITAS_BUILD_DOCS=ON` configuration option and running `ninja
+doc` (user) or `ninja doxygen` (developer).
 
-[inline-docs]: doc/index.rst
 [user-docs]: https://celeritas-project.github.io/celeritas/user/index.html
 [dev-docs]: https://celeritas-project.github.io/celeritas/dev/index.html
 
@@ -146,14 +145,14 @@ installed and want to do development on a CUDA system with Ampere-class graphics
 cards, execute the following steps from within the cloned Celeritas source
 directory:
 ```console
-# Set up CUDA (optional)
-$ spack external find cuda
-# Install celeritas dependencies
+# Create an environment from celeritas dependencies
 $ spack env create celeritas scripts/spack.yaml
 $ spack env activate celeritas
-$ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=80"
+# Set up CUDA/HIP (optional; example here is for Nvidia A100)
+$ spack external find --not-buildable cuda
+$ spack config add packages:all:prefer:"+cuda cuda_arch=80"
+# Install dependencies
 $ spack install
-# Set up
 # Configure, build, and test with a default development configure
 $ ./scripts/build.sh dev
 ```
@@ -169,9 +168,9 @@ $ make && ctest
 
 > [!NOTE]
 > It is **highly** recommended to use the `build.sh` script to set up your
-> environment, even when not using Spack. The first time you run it, edit the
-> `CMakeUserPresets.json` symlink it creates, and submit it in your next pull
-> request.
+> environment, even when not using Spack, for reproducibility and error
+> checking. The first time you run it, edit the `CMakeUserPresets.json`
+> symlink it creates, and submit it in your next pull request.
 
 Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration.
@@ -188,7 +187,7 @@ See the configure output from the [GitHub runners][runners] for the full list of
 - C++ standard
     - C++17 and C++20
 - Dependencies:
-    - Geant4 11.0.4
+    - Geant4 10.5-11.4
     - VecGeom 1.2.10
 
 Partial compatibility and correctness is available for an extended range of
@@ -214,9 +213,14 @@ Compatibility fixes that do not cause newer versions to fail are welcome.
 
 <!-- This section should be kept in sync with the doc/development files -->
 
-See the [contribution guide][contributing-guidelines] for the contribution process,
+See
+[the contribution guide][contributing-guidelines] for the contribution process,
 [the development guidelines][development-guidelines] for further
-details on coding in Celeritas, and [the administration guidelines][administration-guidelines] for community standards and roles.
+details on coding in Celeritas, and
+[the administration guidelines][administration-guidelines] for community
+standards and roles.
+The [AGENTS.md file][agents.md] contains instructions for AI tools but is also
+a good quick-start guide for humans.
 
 [contributing-guidelines]: https://celeritas-project.github.io/celeritas/user/development/contributing.html
 [development-guidelines]: https://celeritas-project.github.io/celeritas/user/development/coding.html

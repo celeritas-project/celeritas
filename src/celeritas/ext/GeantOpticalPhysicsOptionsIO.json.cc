@@ -215,7 +215,14 @@ void from_json(nlohmann::json const& j, GeantOpticalPhysicsOptions& options)
         return;
     }
 
-#define GOPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
+#define GOPO_LOAD_OPTION(NAME)                          \
+    do                                                  \
+    {                                                   \
+        if (auto iter = j.find(#NAME); iter != j.end()) \
+        {                                               \
+            iter->get_to(options.NAME);                 \
+        }                                               \
+    } while (0)
     check_format(j, format_str);
     GOPO_LOAD_OPTION(cherenkov);
     GOPO_LOAD_OPTION(scintillation);

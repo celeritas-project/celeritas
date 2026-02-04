@@ -64,10 +64,10 @@ class SoftEqual
     CELER_CONSTEXPR_FUNCTION SoftEqual();
 
     // Construct with default absolute precision
-    explicit CELER_FUNCTION SoftEqual(value_type rel);
+    explicit CELER_CONSTEXPR_FUNCTION SoftEqual(value_type rel);
 
     // Construct with both relative and absolute precision
-    CELER_FUNCTION SoftEqual(value_type rel, value_type abs);
+    CELER_CONSTEXPR_FUNCTION SoftEqual(value_type rel, value_type abs);
 
     //// COMPARISON ////
 
@@ -213,7 +213,7 @@ CELER_CONSTEXPR_FUNCTION SoftEqual<RealType>::SoftEqual()
  * Construct with scaled absolute precision.
  */
 template<class RealType>
-CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
+CELER_CONSTEXPR_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
     : SoftEqual(rel, rel * (SETraits::abs_thresh() / SETraits::rel_prec()))
 {
     CELER_EXPECT(rel > 0);
@@ -229,7 +229,8 @@ CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
  *           (default 1.0e-14 for doubles)
  */
 template<class RealType>
-CELER_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
+CELER_CONSTEXPR_FUNCTION
+SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
     : rel_{rel}, abs_{abs}
 {
     CELER_EXPECT(rel > 0);

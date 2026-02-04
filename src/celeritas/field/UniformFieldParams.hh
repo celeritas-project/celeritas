@@ -35,6 +35,9 @@ class UniformFieldParams final
     // Construct with a uniform magnetic field
     UniformFieldParams(CoreGeoParams const& geo, Input const& inp);
 
+    // Construct with a uniform magnetic field with no volume dependency
+    explicit UniformFieldParams(Input const& inp);
+
     //! Access field data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 

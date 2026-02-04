@@ -8,8 +8,8 @@
 
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -101,20 +101,6 @@ class CoreTrackView
 
     // HACK: return scalars (maybe have a struct for all actions?)
     inline CELER_FUNCTION CoreScalars const& core_scalars() const;
-
-    // clang-format off
-    // DEPRECATED: remove in v0.7
-    [[deprecated]] CELER_FUNCTION SimTrackView make_sim_view() const { return this->sim(); }
-    [[deprecated]] CELER_FUNCTION GeoTrackView make_geo_view() const { return this->geometry(); }
-    [[deprecated]] CELER_FUNCTION GeoMaterialView make_geo_material_view() const { return this->geo_material(); }
-    [[deprecated]] CELER_FUNCTION MaterialTrackView make_material_view() const { return this->material(); }
-    [[deprecated]] CELER_FUNCTION ParticleTrackView make_particle_view() const { return this->particle(); }
-    [[deprecated]] CELER_FUNCTION ParticleView make_particle_view(ParticleId pid) const { return this->particle_record(pid); }
-    [[deprecated]] CELER_FUNCTION CutoffView make_cutoff_view() const { return this->cutoff(); }
-    [[deprecated]] CELER_FUNCTION PhysicsTrackView make_physics_view() const { return this->physics(); }
-    [[deprecated]] CELER_FUNCTION PhysicsStepView make_physics_step_view() const { return this->physics_step(); }
-    [[deprecated]] CELER_FUNCTION RngEngine make_rng_engine() const { return this->rng(); }
-    // clang-format on
 
     //// MUTATORS ////
 

@@ -53,16 +53,16 @@ structures:
 The primary generator, similar to Geant4's "particle gun", has different
 configuration options:
 
-.. doxygentypedef:: celeritas::inp::Events
-.. doxygentypedef:: celeritas::inp::ShapeDistribution
 .. doxygentypedef:: celeritas::inp::AngleDistribution
 .. doxygentypedef:: celeritas::inp::EnergyDistribution
+.. doxygentypedef:: celeritas::inp::Events
+.. doxygentypedef:: celeritas::inp::MonodirectionalDistribution
+.. doxygentypedef:: celeritas::inp::MonoenergeticDistribution
+.. doxygentypedef:: celeritas::inp::PointDistribution
+.. doxygentypedef:: celeritas::inp::ShapeDistribution
 
-.. celerstruct:: inp::PointDistribution
 .. celerstruct:: inp::UniformBoxDistribution
 .. celerstruct:: inp::IsotropicDistribution
-.. celerstruct:: inp::MonodirectionalDistribution
-.. celerstruct:: inp::MonoenergeticDistribution
 
 
 .. _inp_system:

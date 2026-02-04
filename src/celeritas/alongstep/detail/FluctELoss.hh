@@ -19,6 +19,11 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Apply energy loss (with fluctuations) to a track.
+ *
+ * \warning Because particle range is the integral of the \em mean energy loss,
+ * and this samples from a distribution, the sampled energy loss may be more
+ * than the particle's energy! We take care not to end a particle's life on a
+ * boundary, which is a nonphysical bias.
  */
 class FluctELoss
 {
@@ -33,16 +38,8 @@ class FluctELoss
     // Construct with fluctuation data
     inline explicit CELER_FUNCTION FluctELoss(ParamsRef const& params);
 
-    // Whether energy loss can be used for this track
-    inline CELER_FUNCTION bool is_applicable(CoreTrackView const&) const;
-
     // Apply to the track
-    inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track,
-                                            real_type step,
-                                            bool apply_cut);
-
-    //! Indicate that we can lose all energy before hitting the dE/dx range
-    static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return true; }
+    inline CELER_FUNCTION Energy operator()(CoreTrackView const& track);
 
   private:
     //// DATA ////
@@ -71,21 +68,6 @@ CELER_FUNCTION FluctELoss::FluctELoss(ParamsRef const& params)
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether energy loss is used for this track.
- */
-CELER_FUNCTION bool FluctELoss::is_applicable(CoreTrackView const& track) const
-{
-    // The track can be marked as `errored` *within* the along-step kernel,
-    // during propagation
-    if (track.sim().status() == TrackStatus::errored)
-        return false;
-
-    // Energy loss grid ID is 'false'
-    return static_cast<bool>(track.physics().energy_loss_grid());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Apply energy loss to the given track.
  *
  * - Before and after slowing down we apply a tracking cut to cull low-energy
@@ -96,81 +78,65 @@ CELER_FUNCTION bool FluctELoss::is_applicable(CoreTrackView const& track) const
  *   energy, we reduce it to the particle energy (if energy cuts are to be
  *   applied) or to the mean energy loss (if cuts are prohibited due to this
  *   being a non-physics-based step).
+ *
+ * \todo The gamma and gaussian energy loss models are never called by
+ * positrons/electrons, only by muons
  */
-CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
-                                           real_type step,
-                                           bool apply_cut) -> Energy
+CELER_FUNCTION auto FluctELoss::operator()(CoreTrackView const& track) -> Energy
 {
-    CELER_EXPECT(step > 0);
-
     auto particle = track.particle();
     auto phys = track.physics();
-
-    if (apply_cut && particle.energy() < phys.particle_scalars().lowest_energy)
-    {
-        // Deposit all energy immediately when we start below the tracking cut
-        return particle.energy();
-    }
+    auto sim = track.sim();
 
     // Calculate mean energy loss
-    auto eloss = calc_mean_energy_loss(particle, phys, step);
-
-    if (eloss < particle.energy() && eloss > zero_quantity())
+    auto eloss = calc_mean_energy_loss(particle, phys, sim.step_length());
+    if (eloss == zero_quantity())
     {
-        // Apply energy loss fluctuations
-        auto cutoffs = track.cutoff();
-        auto material = track.material();
+        return eloss;
+    }
 
-        EnergyLossHelper loss_helper(
-            fluct_params_, cutoffs, material, particle, eloss, step);
+    // Apply energy loss fluctuations
+    auto cutoffs = track.cutoff();
+    auto material = track.material();
+    EnergyLossHelper loss_helper(
+        fluct_params_, cutoffs, material, particle, eloss, sim.step_length());
 
-        auto rng = track.rng();
-        switch (loss_helper.model())
-        {
+    auto rng = track.rng();
+    switch (loss_helper.model())
+    {
 #define ASU_SAMPLE_ELOSS(MODEL)                                              \
     case EnergyLossFluctuationModel::MODEL:                                  \
         eloss = this->sample_energy_loss<EnergyLossFluctuationModel::MODEL>( \
             loss_helper, rng);                                               \
         break
-            ASU_SAMPLE_ELOSS(none);
-            ASU_SAMPLE_ELOSS(gamma);
-            ASU_SAMPLE_ELOSS(gaussian);
-            ASU_SAMPLE_ELOSS(urban);
+        ASU_SAMPLE_ELOSS(none);
+        ASU_SAMPLE_ELOSS(gamma);
+        ASU_SAMPLE_ELOSS(gaussian);
+        ASU_SAMPLE_ELOSS(urban);
 #undef ASU_SAMPLE_ELOSS
-        }
-
-        if (eloss >= particle.energy())
-        {
-            // Sampled energy loss can be greater than actual remaining energy
-            // because the range calculation is based on the *mean* energy
-            // loss.
-            if (apply_cut)
-            {
-                // Clamp to actual particle energy so that it stops
-                eloss = particle.energy();
-            }
-            else
-            {
-                // Don't go to zero energy at geometry boundaries: just use the
-                // mean loss which should be positive because this isn't a
-                // range-limited step.
-                eloss = loss_helper.mean_loss();
-                CELER_ASSERT(eloss < particle.energy());
-            }
-        }
     }
 
-    if (apply_cut
-        && (particle.energy() - eloss <= phys.particle_scalars().lowest_energy))
+    if (eloss >= particle.energy())
     {
-        // Deposit all energy when we end below the tracking cut
-        return particle.energy();
+        // Sampled energy loss can be greater than actual remaining energy
+        // because the range calculation is based on the *mean* energy
+        // loss. To fix this, we would need to sample the range from a
+        // distribution as well.
+        if (track.geometry().is_on_boundary())
+        {
+            // Don't stop particles on geometry boundaries: just use the
+            // mean loss which should be positive because this isn't a
+            // range-limited step.
+            eloss = loss_helper.mean_loss();
+            CELER_ASSERT(eloss < particle.energy());
+        }
+        else
+        {
+            // Clamp to actual particle energy so that it stops
+            eloss = particle.energy();
+        }
     }
 
-    CELER_ASSERT(eloss <= particle.energy());
-    CELER_ENSURE(eloss != particle.energy() || apply_cut
-                 || track.sim().post_step_action()
-                        == phys.scalars().range_action());
     return eloss;
 }
 

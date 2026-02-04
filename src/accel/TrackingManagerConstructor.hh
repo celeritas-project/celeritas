@@ -7,16 +7,15 @@
 #pragma once
 
 #include <functional>
-#include <G4ParticleDefinition.hh>
 #include <G4VPhysicsConstructor.hh>
 
-#include "corecel/cont/Span.hh"
+#include "TrackOffloadInterface.hh"
 
-#include "detail/IntegrationSingleton.hh"
+class G4ParticleDefinition;
 
 namespace celeritas
 {
-class LocalTransporter;
+//---------------------------------------------------------------------------//
 class SharedParams;
 class TrackingManagerIntegration;
 
@@ -34,7 +33,8 @@ class TrackingManagerIntegration;
    \endcode
  *
  * but for manual integration it can be constructed with a function to get a
- * reference to the thread-local \c LocalTransporter from the Geant4 thread ID:
+ * reference to the thread-local \c TrackOffloadInterface from the Geant4
+ * thread ID:
  * \code
     auto* physics_list = new FTFP_BERT;
     physics_list->RegisterPhysics(new TrackingManagerConstructor{
@@ -51,14 +51,14 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
   public:
     //!@{
     //! \name Type aliases
-    using LocalTransporterFromThread = std::function<LocalTransporter*(int)>;
-    using VecG4PD = SetupOptions::VecG4PD;
+    using LocalOffloadFromThread = std::function<TrackOffloadInterface*(int)>;
+    using VecG4PD = std::vector<G4ParticleDefinition*>;
     //!@}
 
   public:
     // Construct name and mode
     TrackingManagerConstructor(SharedParams const* shared,
-                               LocalTransporterFromThread get_local);
+                               LocalOffloadFromThread get_local);
 
     // Construct from tracking manager integration
     explicit TrackingManagerConstructor(TrackingManagerIntegration* tmi);
@@ -69,17 +69,9 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
     // Build and attach tracking manager
     void ConstructProcess() override;
 
-    //// ACCESSORS ////
-
-    //! Get the shared params associated with this TM
-    SharedParams const* shared_params() const { return shared_; }
-
-    // Get the local transporter associated with the current thread ID
-    LocalTransporter* get_local_transporter() const;
-
   private:
     SharedParams const* shared_{nullptr};
-    LocalTransporterFromThread get_local_{};
+    LocalOffloadFromThread get_local_{};
     VecG4PD offload_particles_;
 };
 

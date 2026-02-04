@@ -23,7 +23,7 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/inp/Scoring.hh"
 
-#include "SDTestBase.hh"
+#include "SensDetTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -31,7 +31,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
+class SimpleCmsTest : public SensDetTestBase, public SimpleCmsTestBase
 {
   protected:
     void SetUp() override
@@ -45,7 +45,7 @@ class SimpleCmsTest : public SDTestBase, public SimpleCmsTestBase
 
     SPConstGeantGeo build_geant_geo(std::string const& filename) const override
     {
-        auto result = SDTestBase::build_geant_geo(filename);
+        auto result = SensDetTestBase::build_geant_geo(filename);
 
         // Create unused volume after building geometry
         G4Material* mat

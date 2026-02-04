@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/GeantGeoUtils.hh
-//! \todo Move to g4/ subdir
+//! \todo Move to g4/ subdir and/or combine with GeantGeoParams
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -65,10 +65,12 @@ std::ostream& operator<<(std::ostream&, StreamableLV const&);
 // TODO: move all these to GeantGeoParams
 //---------------------------------------------------------------------------//
 // Reset all Geant4 geometry stores if *not* using RunManager
+// DEPRECATED: Remove in Celeritas 1.0
 void reset_geant_geometry();
 
 //---------------------------------------------------------------------------//
 // Get the world volume if the geometry has been set up
+// DEPRECATED: Remove in Celeritas 1.0
 G4VPhysicalVolume const* geant_world_volume();
 
 //---------------------------------------------------------------------------//
@@ -77,7 +79,7 @@ G4Field const* geant_field();
 
 //---------------------------------------------------------------------------//
 // Find Geant4 logical volumes corresponding to a list of names
-// TODO: remove in favor of VolumeIdBuilder
+// DEPRECATED: Remove in Celeritas 1.0
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
 
@@ -86,11 +88,6 @@ std::unordered_set<G4LogicalVolume const*>
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
 inline void reset_geant_geometry()
-{
-    CELER_NOT_CONFIGURED("Geant4");
-}
-
-inline Span<G4LogicalVolume*> geant_logical_volumes()
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

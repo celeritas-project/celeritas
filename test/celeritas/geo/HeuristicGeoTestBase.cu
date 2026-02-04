@@ -8,7 +8,8 @@
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Types.hh"
-#include "corecel/data/Filler.device.t.hh"
+#include "corecel/data/Filler.device.t.hh"  // IWYU pragma: keep
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
@@ -22,13 +23,15 @@ namespace test
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const& params,
-                            DeviceRef<HeuristicGeoStateData> const& state)
+void heuristic_test_execute(HeuristicGeoParamsPtr<MemSpace::device> params,
+                            HeuristicGeoStatePtr<MemSpace::device> state,
+                            size_type size)
 {
+    CELER_EXPECT(params && state);
     HeuristicGeoExecutor execute_thread{params, state};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "heuristic-geo");
-    launch_kernel(state.size(), StreamId{}, execute_thread);
+    launch_kernel(size, StreamId{}, execute_thread);
 
     CELER_DEVICE_API_CALL(DeviceSynchronize());
 }

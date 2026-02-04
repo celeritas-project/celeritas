@@ -7,7 +7,6 @@
 #include "IntegrationTestBase.hh"
 
 #include <exception>
-#include <limits>
 #include <G4Threading.hh>
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
@@ -29,6 +28,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -38,7 +38,6 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
-#include "geocel/ScopedGeantLogger.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
@@ -108,7 +107,6 @@ class RunAction final : public G4UserRunAction
         }
     }
 
-    // TODO: push exception onto a vector so we can do validation testing
     void handle_exception(std::exception_ptr ep)
     {
         try
@@ -121,15 +119,14 @@ class RunAction final : public G4UserRunAction
             if (cstring_equal(d.which, "Geant4"))
             {
                 // GeantExceptionHandler wrapped this error
-                FAIL() << "GeantExceptionHandler caught runtime error ("
-                       << thread_label() << ',' << d.condition << "): from "
-                       << d.file << ": " << d.what;
+                test_->caught_g4_runtime_error(e);
             }
             else
             {
                 // Some other error
-                FAIL() << "Caught runtime error from " << thread_description()
-                       << ": " << e.what();
+                FAIL() << ansi_color('r') << "Caught runtime error from "
+                       << thread_description() << ansi_color(' ') << ": "
+                       << e.what();
             }
         }
         catch (std::exception const& e)
@@ -294,9 +291,6 @@ G4RunManager& IntegrationTestBase::run_manager()
         };
         CELER_ASSERT(rm);
 
-        // Disable signal handling
-        disable_geant_signal_handler();
-
         // Set up detector
         rm->SetUserInitialization(new DetectorConstruction{
             this->test_data_path("geocel", basename + ".gdml"),
@@ -385,6 +379,39 @@ auto IntegrationTestBase::make_sens_det(std::string const&) -> UPSensDet
     return nullptr;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Fail when GeantExceptionHandler catches a celeritas RuntimeError.
+ */
+void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
+{
+    // GeantExceptionHandler wrapped this error
+    auto const& d = e.details();
+    FAIL() << ansi_color('R') << "GeantExceptionHandler caught runtime error ("
+           << thread_label() << ',' << d.condition << ")" << ansi_color(' ')
+           << ": from " << d.file << ": " << d.what;
+}
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
+{
+    // Set default optical physics
+    auto& optical = phys_inp.optical;
+    optical = {};
+    EXPECT_TRUE(optical);
+    EXPECT_TRUE(optical.cherenkov);
+    EXPECT_TRUE(optical.scintillation);
+
+    // Disable WLS which isn't yet working (reemission) in Celeritas
+    using WLSO = WavelengthShiftingOptions;
+    optical.wavelength_shifting = WLSO::deactivated();
+    optical.wavelength_shifting2 = WLSO::deactivated();
+}
+
+//---------------------------------------------------------------------------//
+// TEST PROBLEM MIXINS
 //---------------------------------------------------------------------------//
 /*!
  * Create physics list: default is EM only using make_physics_input.

@@ -18,6 +18,7 @@
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
+#include "SimParams.hh"
 
 namespace celeritas
 {
@@ -63,7 +64,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
     size_type num_step_iters{0};
     size_type num_steps{0};
 
-    auto const& counters = state.counters();
+    auto counters = state.sync_get_counters();
 
     // Store a pointer to aux data for timing results
     std::vector<double>* accum_time = nullptr;
@@ -92,11 +93,16 @@ void Transporter::transport_impl(CoreState<M>& state) const
             }
         }
 
+        // No longer have a reference to the counters, so need to retrieve the
+        // updated values
+        counters = state.sync_get_counters();
         num_steps += counters.num_active;
-        if (CELER_UNLIKELY(++num_step_iters == data_.max_step_iters))
+        if (CELER_UNLIKELY(++num_step_iters
+                           == this->params()->sim()->max_step_iters()))
         {
             CELER_LOG_LOCAL(error)
-                << "Exceeded step count of " << data_.max_step_iters
+                << "Exceeded step count of "
+                << this->params()->sim()->max_step_iters()
                 << ": aborting optical transport loop with "
                 << counters.num_generated << " generated tracks, "
                 << counters.num_active << " active tracks, "

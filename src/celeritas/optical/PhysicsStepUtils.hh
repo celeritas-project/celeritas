@@ -33,12 +33,16 @@ inline CELER_FUNCTION StepLimit calc_physics_step_limit(
         total_xs += physics.calc_xs(model, particle.energy());
     }
     physics.macro_xs(total_xs);
-
-    CELER_ASSERT(physics.macro_xs() > 0);
+    CELER_ASSERT(physics.macro_xs() >= 0);
 
     StepLimit limit;
     limit.action = physics.discrete_action();
     limit.step = physics.interaction_mfp() / total_xs;
+
+    if (CELER_UNLIKELY(total_xs == 0))
+    {
+        limit.action = {};
+    }
 
     return limit;
 }

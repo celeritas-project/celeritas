@@ -94,7 +94,6 @@ be reused in multiple locations. :numref:`fig-orangeinp-types` summarizes these 
 
 .. doxygenclass:: celeritas::orangeinp::PolySegments
 .. doxygenclass:: celeritas::orangeinp::PolyCone
-.. doxygenclass:: celeritas::orangeinp::PolyPrism
 .. doxygenclass:: celeritas::orangeinp::RevolvedPolygon
 .. doxygenclass:: celeritas::orangeinp::StackedExtrudedPolygon
 

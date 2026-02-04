@@ -78,32 +78,35 @@ celeritas_add_test(io/StringUtils.test.cc)
 
 # Math
 celeritas_add_device_test(math/Algorithms)
+celeritas_add_device_test(math/NumericLimits)
 celeritas_add_test(math/ArrayOperators.test.cc)
 celeritas_add_test(math/ArrayUtils.test.cc)
-celeritas_add_test(math/PdfUtils.test.cc)
+celeritas_add_test(math/BisectionRootFinder.test.cc)
 celeritas_add_test(math/Constant.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
+celeritas_add_test(math/IllinoisRootFinder.test.cc)
 celeritas_add_test(math/Integrator.test.cc)
-celeritas_add_device_test(math/NumericLimits)
+celeritas_add_test(math/PdfUtils.test.cc)
 celeritas_add_test(math/PolyEvaluator.test.cc)
 celeritas_add_test(math/Quantity.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
-celeritas_add_test(math/SoftEqual.test.cc)
+celeritas_add_test(math/QuarticSolver.test.cc)
 celeritas_add_test(math/RegulaFalsiRootFinder.test.cc)
-celeritas_add_test(math/BisectionRootFinder.test.cc)
-celeritas_add_test(math/IllinoisRootFinder.test.cc)
+celeritas_add_test(math/SoftEqual.test.cc)
 celeritas_add_test(math/TridiagonalSolver.test.cc)
+
 
 #-----------------------------------------------------------------------------#
 # Random
 
 celeritas_add_test(random/CachedRngEngine.test.cc)
 celeritas_add_test(random/Histogram.test.cc)
+celeritas_add_test(random/RanluxppRngEngine.test.cc GPU)
 celeritas_add_device_test(random/RngEngine
   LINK_LIBRARIES Celeritas::ExtThrust)
 celeritas_add_test(random/Selector.test.cc)
+celeritas_add_test(random/SplitMix64.test.cc GPU)
 celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
-celeritas_add_test(random/RanluxppRngEngine.test.cc GPU)
 
 celeritas_add_test(random/distribution/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distribution/ExponentialDistribution.test.cc)

@@ -6,12 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <G4MagneticField.hh>
-
 #include "corecel/Types.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
+#include "celeritas/g4/MagneticField.hh"
 
 namespace celeritas
 {
@@ -19,6 +17,7 @@ namespace celeritas
 //! POD struct for CartMap field grid parameters
 struct CartMapFieldGridParams
 {
+    // TODO: should be double?
     AxisGrid<real_type> x{};  //!< X-axis grid specification
     AxisGrid<real_type> y{};  //!< Y-axis grid specification
     AxisGrid<real_type> z{};  //!< Z-axis grid specification
@@ -28,41 +27,31 @@ struct CartMapFieldGridParams
 };
 
 //---------------------------------------------------------------------------//
-// Generate field input with user-defined uniform grid
-CartMapFieldParams::Input
-MakeCartMapFieldInput(CartMapFieldGridParams const& params);
+// Generate field input with user-defined uniform grid and explicit field
+CartMapFieldInput MakeCartMapFieldInput(G4Field const& field,
+                                        CartMapFieldGridParams const& params);
+
+// Generate field input with user-defined uniform grid from global field
+CartMapFieldInput MakeCartMapFieldInput(CartMapFieldGridParams const& params);
 
 //---------------------------------------------------------------------------//
 /*!
- * A user magnetic field equivalent to celeritas::CartMapField.
+ * On-the-fly field calculation with covfie using Celeritas data+units.
+ *
+ * This "adapter" implementation hides the covfie dependency from downstream
+ * users.
  */
-class CartMapMagneticField : public G4MagneticField
+struct CartAdapterField
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPConstFieldParams = std::shared_ptr<CartMapFieldParams const>;
-    //!@}
+    HostCRef<CartMapFieldParamsData> const& data;
 
-    // Construct with CartMapFieldParams
-    explicit CartMapMagneticField(SPConstFieldParams field_params);
-
-    // Calculate values of the magnetic field vector
-    void GetFieldValue(G4double const point[3], G4double* field) const override;
-
-  private:
-    // Forward declaration for pImpl
-    struct Impl;
-
-    // Custom deleter for pImpl
-    struct ImplDeleter
-    {
-        void operator()(Impl* ptr) const;
-    };
-    std::unique_ptr<Impl, ImplDeleter> pimpl_;
+    Real3 operator()(Real3 const&) const;
 };
 
 //---------------------------------------------------------------------------//
+//! Geant4 magnetic field class for XYZ uniform grid field
+using CartMapMagneticField
+    = celeritas::MagneticField<CartMapFieldParams, CartAdapterField>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

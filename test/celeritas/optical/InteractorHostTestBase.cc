@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "celeritas/optical/SimParams.hh"
 
 #include "TestMacros.hh"
 
@@ -29,8 +30,10 @@ InteractorHostBase::InteractorHostBase() : inc_direction_({0, 0, 1})
     pt_view_ = std::make_shared<ParticleTrackView>(ps_.ref(), TrackSlotId{0});
     *pt_view_ = ParticleTrackView::Initializer{Energy{13e-6}, Real3{1, 0, 0}};
 
+    sim_params_ = std::make_shared<SimParams>(inp::OpticalTrackingLimits{});
     ss_ = StateStore<SimStateData>(1);
-    st_view_ = std::make_shared<SimTrackView>(ss_.ref(), TrackSlotId{0});
+    st_view_ = std::make_shared<SimTrackView>(
+        sim_params_->host_ref(), ss_.ref(), TrackSlotId{0});
     *st_view_ = SimTrackView::Initializer{};
 }
 

@@ -25,6 +25,8 @@ namespace celeritas
 {
 namespace optical
 {
+class SimParams;
+
 namespace test
 {
 using namespace celeritas::test;
@@ -91,6 +93,7 @@ class InteractorHostBase
     Real3 inc_direction_;
     std::shared_ptr<ParticleTrackView> pt_view_;
     std::shared_ptr<SimTrackView> st_view_;
+    std::shared_ptr<SimParams> sim_params_;
 };
 
 class InteractorHostTestBase : public InteractorHostBase, public Test

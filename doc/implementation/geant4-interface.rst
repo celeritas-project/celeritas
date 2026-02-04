@@ -6,10 +6,12 @@
 Geant4 interface
 ================
 
-The ``accel`` directory contains components exclusive to coupling Celeritas with
-Geant4 for user-oriented integration. A simple interface for multithreaded (MT)
-or serial applications is demonstrated in :ref:`example_geant`, and the more
-advanced implementation can be inspected in the :ref:`celer-g4` app.
+Celeritas integrates with Geant4 via low-level helper classes in the
+``celeritas`` source directory and high-level user interface components that
+live in the ``accel`` directory.
+These components are used primarily via the :ref:`celer_g4_lib` as
+demonstrated in the :ref:`example_geant` and internally in the :ref:`celer-g4`
+app.
 
 Offloading through Celeritas is performed through two main classes,
 :cpp:class:`celeritas::SharedParams`, which contains problem information shared

@@ -103,7 +103,7 @@ void ExtendFromPrimariesAction::insert(CoreParams const& params,
                                        CoreStateInterface& state,
                                        Span<Primary const> host_primaries) const
 {
-    size_type num_initializers = state.counters().num_initializers;
+    size_type num_initializers = state.sync_get_counters().num_initializers;
     size_type init_capacity = params.init()->capacity();
 
     CELER_VALIDATE(host_primaries.size() + num_initializers <= init_capacity,
@@ -184,15 +184,18 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
                                           CoreState<M>& state) const
 {
     auto& primaries = get<PrimaryStateData<M>>(state.aux(), aux_id_);
+    auto counters = state.sync_get_counters();
 
     // Create track initializers from primaries
-    state.counters().num_initializers += primaries.count;
+    counters.num_initializers += primaries.count;
+    state.sync_put_counters(counters);
     this->process_primaries(params, state, primaries);
 
     // Mark that the primaries have been processed
-    state.counters().num_generated += primaries.count;
-    state.counters().num_pending = 0;
+    counters.num_generated += primaries.count;
+    counters.num_pending = 0;
     primaries.count = 0;
+    state.sync_put_counters(counters);
 }
 
 //---------------------------------------------------------------------------//
@@ -205,10 +208,8 @@ void ExtendFromPrimariesAction::process_primaries(
     PrimaryStateData<MemSpace::host> const& pstate) const
 {
     auto primaries = pstate.primaries();
-    detail::ProcessPrimariesExecutor execute{params.ptr<MemSpace::native>(),
-                                             state.ptr(),
-                                             state.counters(),
-                                             primaries};
+    detail::ProcessPrimariesExecutor execute{
+        params.ptr<MemSpace::native>(), state.ptr(), primaries};
     return launch_action(*this, primaries.size(), params, state, execute);
 }
 

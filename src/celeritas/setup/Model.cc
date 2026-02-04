@@ -9,6 +9,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/GeantGeoParams.hh"  // IWYU pragma: keep
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
@@ -117,6 +118,16 @@ ModelLoaded model(inp::Model const& m)
     }
     result.surface
         = std::make_shared<SurfaceParams>(m.surfaces, *result.volume);
+
+    if (m.volumes)
+    {
+        result.detector
+            = std::make_shared<DetectorParams>(m.detectors, *result.volume);
+    }
+    else
+    {
+        result.detector = std::make_shared<DetectorParams>();
+    }
 
     return result;
 }

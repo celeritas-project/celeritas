@@ -26,7 +26,7 @@ namespace celeritas
 /*!
  * Interpolate a magnetic field vector on an r/phi/z grid.
  *
- * The field vector is stored as a cartesian \f$(x,y,z)\f$ value on the
+ * The field vector is stored as cylindrical \f$(r,\phi,z)\f$ components on the
  * cylindrical mesh grid points, and trilinear interpolation is performed
  * within each grid cell. The value outside the grid is zero.
  *
@@ -39,12 +39,12 @@ class CylMapField
     //! \name Type aliases
     using real_type = cylmap_real_type;
     using Real3 = Array<celeritas::real_type, 3>;
-    using FieldParamsRef = NativeCRef<CylMapFieldParamsData>;
+    using ParamsRef = NativeCRef<CylMapFieldParamsData>;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit CylMapField(FieldParamsRef const& shared);
+    inline CELER_FUNCTION explicit CylMapField(ParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
@@ -52,7 +52,7 @@ class CylMapField
 
   private:
     // Shared constant field map
-    FieldParamsRef const& params_;
+    ParamsRef const& params_;
 
     NonuniformGrid<real_type> const grid_r_;
     NonuniformGrid<real_type> const grid_phi_;
@@ -66,7 +66,7 @@ class CylMapField
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-CylMapField::CylMapField(FieldParamsRef const& params)
+CylMapField::CylMapField(ParamsRef const& params)
     : params_{params}
     , grid_r_{params_.grids.axes[CylAxis::r], params_.grids.storage}
     , grid_phi_{params_.grids.axes[CylAxis::phi], params_.grids.storage}
@@ -90,18 +90,9 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 
     // Convert Cartesian to cylindrical coordinates
     real_type r = hypot(pos[0], pos[1]);
-    // Ensure phi is in [0, 2\f$\pi\f$)
+    // Wrap turn from [-1/2; 1/2] into [0, 1)
     auto phi = atan2turn<real_type>(pos[1], pos[0]);
-    if (phi < zero_quantity())
-    {
-        phi.value() += 1;
-    }
-    if (CELER_UNLIKELY(phi.value() == 1))
-    {
-        // Make sure phi is in [0, 1). If phi is a negative value smaller
-        // than machine epsilon, adding 1 will result in phi equal to 1
-        phi.value() = 0;
-    }
+    phi.value() -= floor(phi.value());
     CELER_ASSERT(phi >= zero_quantity() && phi.value() < 1);
 
     // Check if point is within field map bounds
@@ -143,15 +134,9 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
     }
 
     // Project cylindrical components to Cartesian coordinates
-    // default for r == 0
-    real_type cos_phi = 1;
-    real_type sin_phi = 0;
-
-    if (r != 0)
-    {
-        cos_phi = pos[0] / r;
-        sin_phi = pos[1] / r;
-    }
+    real_type sin_phi;
+    real_type cos_phi;
+    sincos(phi, &sin_phi, &cos_phi);
     value[0] = interp_field[CylAxis::r] * cos_phi
                - interp_field[CylAxis::phi] * sin_phi;
     value[1] = interp_field[CylAxis::r] * sin_phi

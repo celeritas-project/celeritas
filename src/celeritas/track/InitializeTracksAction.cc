@@ -55,7 +55,7 @@ template<MemSpace M>
 void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                        CoreState<M>& core_state) const
 {
-    auto& counters = core_state.counters();
+    auto counters = core_state.sync_get_counters();
 
     // The number of new tracks to initialize is the smaller of the number of
     // empty slots in the track vector and the number of track initializers
@@ -72,7 +72,6 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
             // Partition indices by whether tracks are charged or neutral
             detail::partition_initializers(core_params,
                                            core_state.ref().init,
-                                           counters,
                                            num_new_tracks,
                                            core_state.stream_id());
         }
@@ -87,6 +86,7 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
 
     // Store number of active tracks at the start of the loop
     counters.num_active = core_state.size() - counters.num_vacancies;
+    core_state.sync_put_counters(counters);
 }
 
 //---------------------------------------------------------------------------//
@@ -100,10 +100,8 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                        CoreStateHost& core_state,
                                        size_type num_new_tracks) const
 {
-    detail::InitTracksExecutor execute{core_params.ptr<MemSpace::native>(),
-                                       core_state.ptr(),
-                                       num_new_tracks,
-                                       core_state.counters()};
+    detail::InitTracksExecutor execute{
+        core_params.ptr<MemSpace::native>(), core_state.ptr(), num_new_tracks};
     return launch_action(
         *this, num_new_tracks, core_params, core_state, execute);
 }

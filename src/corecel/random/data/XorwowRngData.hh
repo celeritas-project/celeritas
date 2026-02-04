@@ -91,6 +91,10 @@ struct XorwowState
 };
 
 //---------------------------------------------------------------------------//
+//! Initializes an RNG state for a branched RNG
+using XorwowRngStateInitializer = XorwowState;
+
+//---------------------------------------------------------------------------//
 /*!
  * XORWOW generator states for all threads.
  */

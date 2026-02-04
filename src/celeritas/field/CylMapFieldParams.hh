@@ -19,9 +19,10 @@ struct CylMapFieldInput;
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up a 3D CylMapFieldParams.
+ * Set up a 3D nonuniform cylindrical field map.
  *
- * The input values are in the native unit system.
+ * The field is interpolated on a cylindrical grid of \f$(r, \phi, z)\f$
+ * coordinates, \em and the field itself is stored in cylindrical coordinates.
  */
 class CylMapFieldParams final
     : public ParamsDataInterface<CylMapFieldParamsData>

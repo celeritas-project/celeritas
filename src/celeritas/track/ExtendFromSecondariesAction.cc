@@ -56,7 +56,6 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
                                             CoreState<M>& core_state) const
 {
     TrackInitStateData<Ownership::reference, M>& init = core_state.ref().init;
-    CoreStateCounters& counters = core_state.counters();
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
@@ -64,14 +63,14 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
-    counters.num_vacancies
-        = detail::remove_if_alive(init.vacancies, core_state.stream_id());
+    detail::remove_if_alive(init, core_state.stream_id());
 
     // The exclusive prefix sum of the number of secondaries produced by each
     // track is used to get the start index in the vector of track initializers
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
+    auto counters = core_state.sync_get_counters();
     counters.num_secondaries = detail::exclusive_scan_counts(
         init.secondary_counts, core_state.stream_id());
 
@@ -96,6 +95,7 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
 
     // Launch a kernel to create track initializers from secondaries
     counters.num_alive = core_state.size() - counters.num_vacancies;
+    core_state.sync_put_counters(counters);
     this->process_secondaries(core_params, core_state);
 }
 
@@ -122,9 +122,7 @@ void ExtendFromSecondariesAction::process_secondaries(
 {
     //! \todo Wrap with a regular track executor but without remapping slots?
     detail::ProcessSecondariesExecutor execute{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        core_state.counters()};
+        core_params.ptr<MemSpace::native>(), core_state.ptr()};
     launch_action(*this, core_params, core_state, execute);
 }
 

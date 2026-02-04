@@ -5,6 +5,9 @@
 
 cmake_minimum_required(VERSION 3.18...4.1)
 
+# Fallback version in case of shallow clone: update when tagging "-dev"
+set(Celeritas_VERSION 0.7)
+# Load actual version from git metadata
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
@@ -30,8 +33,10 @@ endif()
 
 # Optional dependencies
 celeritas_optional_package(covfie "Use Covfie field integrator")
+celeritas_optional_package(DD4hep "Enable DD4hep integration")
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
+celeritas_optional_package(LArSoft "Build LArSoft data interfaces")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(PNG "Enable PNG output with libpng")
@@ -81,9 +86,17 @@ if(CELERITAS_BUILD_TESTS)
   mark_as_advanced(CELERITAS_TEST_XML)
 endif()
 
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
+  set(_needs_g4vg ON)
+else()
+  set(_needs_g4vg OFF)
+endif()
+
 # Automatic options
 celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
 celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
+celeritas_force_package(G4VG ${_needs_g4vg})
+celeritas_force_package(nlohmann_json ON)
 
 #----------------------------------------------------------------------------#
 # PACKAGE-SPECIFIC OPTIONS
@@ -180,6 +193,17 @@ celeritas_setup_option(CELERITAS_UNITS SI)
 celeritas_setup_option(CELERITAS_UNITS CLHEP)
 celeritas_define_options(CELERITAS_UNITS
   "Native unit system for Celeritas")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_CODATA
+# Experimentally measured physical constants
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+celeritas_setup_option(CELERITAS_CODATA 2006) # Used by CLHEP
+celeritas_setup_option(CELERITAS_CODATA 2018)
+celeritas_setup_option(CELERITAS_CODATA 2022)
+set(CELERITAS_CODATA_OPTION_DEFAULT 2018)
+celeritas_define_options(CELERITAS_CODATA
+  "Experimentally measured physical constants revision")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_REAL_TYPE
@@ -306,7 +330,33 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 # DEPENDENCIES
 # NOTE: when adding a new dependency, update the CMakeConfig "find_dependency"
 # and check the dependency code in the CMakeConfig setup at the bottom of this
-# file
+# file; with exceptions:
+# - CLI11 is only used for app/
+# - googletest is only used for test/
+#
+# TODO: dependencies are ordered from highest to lowest level so that we can
+# let other packages choose dependencies. Low-level dependencies should
+# be sorted alphabetically.
+# LArSoft -> ROOT
+# ROOT -> JSON
+# G4 -> VecGeom
+# VecGeom -> CUDA
+# ...
+#----------------------------------------------------------------------------#
+
+# Model explicit package dependencies
+foreach(_pkg LArSoft DD4hep)
+  if(CELERITAS_USE_${_pkg})
+    foreach(_dep ROOT Geant4)
+      if(NOT CELERITAS_USE_${_dep})
+        celeritas_error_incompatible_option(
+          "${_pkg} requires ${_dep}" CELERITAS_USE_${_dep} ON
+        )
+      endif()
+    endforeach()
+  endif()
+endforeach()
+
 #----------------------------------------------------------------------------#
 
 include(CeleritasUtils)
@@ -318,6 +368,18 @@ endif()
 if(BUILD_TESTING)
   # Build the test tree for unit and/or app tests
   include(CTest)
+endif()
+
+if(CELERITAS_USE_LArSoft)
+  if(NOT LArSoft_FOUND)
+    find_package(LArSoft REQUIRED)
+  endif()
+endif()
+
+if(CELERITAS_USE_DD4hep)
+  if(NOT DD4hep_FOUND)
+    find_package(DD4hep REQUIRED COMPONENTS DDCore DDG4)
+  endif()
 endif()
 
 if(CELERITAS_USE_CUDA)
@@ -355,8 +417,10 @@ endif()
 # Unconditionally set Thrust availability for downstream configuration
 celeritas_force_package(Thrust "${Thrust_FOUND}")
 
-if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
-  find_package(Geant4 REQUIRED)
+if(CELERITAS_USE_Geant4)
+  if(NOT Geant4_FOUND)
+    find_package(Geant4 REQUIRED)
+  endif()
   if(CELERITAS_OPENMP STREQUAL "track" AND Geant4_multithreaded_FOUND)
     message(WARNING "Track-level OpenMP will conflict with MT runs of geant4:"
       "consider setting CELERITAS_OPENMP to \"event\" or disabling OpenMP"
@@ -419,14 +483,19 @@ if(CELERITAS_USE_ROOT)
       ON
     )
   endif()
-  # ROOT requirement is due to missing CMake commands in old versions
-  find_package(ROOT 6.24 REQUIRED)
-  if(NOT ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD)
-    message(WARNING "ROOT C++ standard ${ROOT_CXX_STANDARD} "
-      "does not match current CMake standard ${CMAKE_CXX_STANDARD}: "
+  if(NOT ROOT_FOUND)
+    # ROOT requirement is due to missing CMake commands in < 6.24
+    # and Python3 compatibility in 6.28
+    find_package(ROOT 6.28 REQUIRED)
+  endif()
+  if(ROOT_CXX_STANDARD AND CMAKE_CXX_STANDARD
+     AND NOT (ROOT_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD))
+    message(WARNING "ROOT C++ standard (${ROOT_CXX_STANDARD}) "
+      "does not match current CMake standard (${CMAKE_CXX_STANDARD}): "
       "build warnings/errors may result")
   endif()
 endif()
+
 
 if(CELERITAS_USE_covfie)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
@@ -669,11 +738,17 @@ set(_cmake_files
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
 # Add packages with custom Celeritas-provided FindX scripts
-foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 Perfetto ROOT Thrust VecGeom)
+foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 LArSoft Perfetto ROOT Thrust VecGeom)
   if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
 endforeach()
+if(CELERITAS_USE_LArSoft)
+  foreach(_dep lardataobj cetmodules)
+    list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
+  endforeach()
+endif()
+
 if(CELERITAS_BUILD_TESTS)
   list(APPEND _cmake_files
     "${PROJECT_SOURCE_DIR}/cmake/CeleritasAddTest.cmake"

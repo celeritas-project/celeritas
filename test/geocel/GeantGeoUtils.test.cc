@@ -8,8 +8,10 @@
 
 #include <sstream>
 #include <vector>
+#include <G4LogicalVolume.hh>
 
 #include "geocel/Types.hh"
+#include "geocel/g4/GeantGeoTrackView.hh"
 
 #include "UnitUtils.hh"
 #include "celeritas_test.hh"

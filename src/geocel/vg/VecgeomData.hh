@@ -13,7 +13,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
 
@@ -40,11 +39,6 @@ namespace celeritas
 
 inline constexpr VgSurfaceInt vg_null_surface{-1};
 inline constexpr VgNavIndex vg_outside_nav_index{0};
-inline constexpr VgNavIndex vg_world_nav_index{
-    VECGEOM_VERSION < 0x020000         ? 1
-    : CELER_VGNAV == CELER_VGNAV_INDEX ? 3
-    : CELER_VGNAV == CELER_VGNAV_TUPLE ? 2
-                                       : -1};
 
 //---------------------------------------------------------------------------//
 // PARAMS

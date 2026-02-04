@@ -26,13 +26,15 @@ class SimTrackView
     //! Data for initializing the simulation state
     struct Initializer
     {
+        PrimaryId primary;
         real_type time{};
     };
 
   public:
     // Construct from local data
-    inline CELER_FUNCTION
-    SimTrackView(NativeRef<SimStateData> const&, TrackSlotId);
+    inline CELER_FUNCTION SimTrackView(NativeCRef<SimParamsData> const& params,
+                                       NativeRef<SimStateData> const&,
+                                       TrackSlotId);
 
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(Initializer const&);
@@ -66,6 +68,9 @@ class SimTrackView
     // Total number of steps taken by the track
     inline CELER_FUNCTION size_type num_steps() const;
 
+    // Originating primary identifier
+    inline CELER_FUNCTION PrimaryId primary_id() const;
+
     // Time elapsed in the lab frame since the start of the event
     inline CELER_FUNCTION real_type time() const;
 
@@ -78,7 +83,13 @@ class SimTrackView
     // Access post-step action to take
     inline CELER_FUNCTION ActionId post_step_action() const;
 
+    //// PARAMETER DATA ////
+
+    // Maximum number of steps before killing the track
+    inline CELER_FUNCTION size_type max_steps() const;
+
   private:
+    NativeCRef<SimParamsData> const& params_;
     NativeRef<SimStateData> const& states_;
     TrackSlotId track_slot_;
 };
@@ -90,10 +101,12 @@ class SimTrackView
  * Construct from local data.
  */
 CELER_FUNCTION
-SimTrackView::SimTrackView(NativeRef<SimStateData> const& states,
+SimTrackView::SimTrackView(NativeCRef<SimParamsData> const& params,
+                           NativeRef<SimStateData> const& states,
                            TrackSlotId tid)
-    : states_(states), track_slot_(tid)
+    : params_(params), states_(states), track_slot_(tid)
 {
+    CELER_EXPECT(params_);
     CELER_EXPECT(track_slot_ < states_.size());
 }
 
@@ -103,6 +116,7 @@ SimTrackView::SimTrackView(NativeRef<SimStateData> const& states,
  */
 CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer const& init)
 {
+    states_.primary_ids[track_slot_] = init.primary;
     states_.time[track_slot_] = init.time;
     states_.step_length[track_slot_] = {};
     states_.status[track_slot_] = TrackStatus::initializing;
@@ -225,6 +239,15 @@ CELER_FORCEINLINE_FUNCTION size_type SimTrackView::num_steps() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Originating primary identifier.
+ */
+CELER_FORCEINLINE_FUNCTION PrimaryId SimTrackView::primary_id() const
+{
+    return states_.primary_ids[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Time elapsed in the lab frame since the start of the event [s].
  */
 CELER_FORCEINLINE_FUNCTION real_type SimTrackView::time() const
@@ -257,6 +280,15 @@ CELER_FORCEINLINE_FUNCTION real_type SimTrackView::step_length() const
 CELER_FORCEINLINE_FUNCTION ActionId SimTrackView::post_step_action() const
 {
     return states_.post_step_action[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum number of steps before killing the track.
+ */
+CELER_FORCEINLINE_FUNCTION size_type SimTrackView::max_steps() const
+{
+    return params_.max_steps;
 }
 
 //---------------------------------------------------------------------------//

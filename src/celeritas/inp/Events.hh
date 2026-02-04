@@ -93,6 +93,7 @@ struct CorePrimaryGenerator : PrimaryGenerator
  * Generate optical photon primary particles.
  *
  * \note The sampled optical photon primaries are unpolarized.
+ * \sa celeritas::optical::PrimaryGeneratorAction
  */
 struct OpticalPrimaryGenerator : PrimaryGenerator
 {
@@ -120,10 +121,19 @@ struct OpticalOffloadGenerator
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Generate optical photons directly from optical track initializers.
+ */
+struct OpticalDirectGenerator
+{
+};
+
+//---------------------------------------------------------------------------//
 //! Mechanism for generating optical photons
 using OpticalGenerator = std::variant<OpticalEmGenerator,
                                       OpticalOffloadGenerator,
-                                      OpticalPrimaryGenerator>;
+                                      OpticalPrimaryGenerator,
+                                      OpticalDirectGenerator>;
 
 //---------------------------------------------------------------------------//
 /*!

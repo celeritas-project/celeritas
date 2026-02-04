@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
 #include "corecel/math/Quantity.hh"  // IWYU pragma: export
 
 #include "UnitTypes.hh"  // IWYU pragma: export

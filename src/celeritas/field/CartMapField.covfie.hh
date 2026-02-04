@@ -6,14 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/field/CartMapFieldData.hh"
+
+#include "CartMapFieldData.hh"  // IWYU pragma: keep
 
 #include "detail/CovfieFieldTraits.hh"
 
@@ -22,6 +20,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Interpolate a magnetic field vector on an x/y/z grid.
+ *
+ * \warning Accessing values outside the grid clamps to boundary values.
+ * This behavior differs from other field maps, where values outside the map
+ * are assumed zero.
  */
 class CartMapField
 {
@@ -30,19 +32,19 @@ class CartMapField
     //! \name Type aliases
     using real_type = float;
     using Real3 = Array<celeritas::real_type, 3>;
-    using FieldParamsRef = NativeCRef<CartMapFieldParamsData>;
+    using ParamsRef = NativeCRef<CartMapFieldParamsData>;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit CartMapField(FieldParamsRef const& shared);
+    inline CELER_FUNCTION explicit CartMapField(ParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
     CELER_FUNCTION
     inline Real3 operator()(Real3 const& pos) const;
 
   private:
-    using field_view_t = FieldParamsRef::view_t;
+    using field_view_t = ParamsRef::view_t;
     field_view_t const& field_;
 };
 
@@ -53,8 +55,7 @@ class CartMapField
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-CartMapField::CartMapField(FieldParamsRef const& shared)
-    : field_{shared.get_view()}
+CartMapField::CartMapField(ParamsRef const& shared) : field_{shared.get_view()}
 {
 }
 

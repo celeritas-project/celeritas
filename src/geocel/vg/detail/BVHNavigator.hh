@@ -138,7 +138,11 @@ class BVHNavigator
     {
         // See VecgeomTrackView::relocate_bump_ ; this is from the VG 2.0
         // boundary, setting external push to zero
-        static constexpr vg_real_type kBoundaryPush = 10 * vecgeom::kTolerance;
+#ifdef VECGEOM_FLOAT_PRECISION
+        static constexpr vg_real_type kBoundaryPush = 10 * 1e-3f;
+#else
+        static constexpr vg_real_type kBoundaryPush = 10 * 1e-9;
+#endif
 
         // If we are on the boundary, push a bit more
         vg_real_type push = in_state.IsOnBoundary() ? kBoundaryPush : 0;

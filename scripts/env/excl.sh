@@ -10,11 +10,12 @@ export LC_ALL=C
 # Allow running from user rc setup outside of build.sh environment
 if ! command -v celerlog >/dev/null 2>&1; then
   celerlog() {
-    printf "%s: %s\n" "\$1" "\$2" >&2
+    printf "%s: %s\n" "$1" "$2" >&2
   }
 fi
 if test -z "${SYSTEM_NAME}"; then
-  SYSTEM_NAME=$(uname -s)
+  SYSTEM_NAME=$(hostname -s)
+  celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
 fi
 
 export SPACK_ROOT=/auto/projects/celeritas/spack
@@ -42,7 +43,7 @@ fi
 
 # Set default scratchdir; /scratch should exist according to excl docs
 export SCRATCHDIR="${SCRATCHDIR:-/scratch/$USER}"
-for _d in build install ccache; do
+for _d in build install cache; do
   # Create build/install in higher-performance local-but-persistent dir
   _scratch="$SCRATCHDIR/$_d"
   if ! test -d "${_scratch}"; then
@@ -53,24 +54,25 @@ for _d in build install ccache; do
   unset _scratch
 done
 
-if [ -n "$GIT_WORK_TREE" ]; then
-  _clangd="$GIT_WORK_TREE/.clangd"
+if [ -n "$CELER_SOURCE_DIR" ]; then
+  _clangd="$CELER_SOURCE_DIR/.clangd"
   if [ ! -e "${_clangd}" ]; then
     # Create clangd compatible with the system and build config
-    celerlog info "Creating clangd config: ${_clangd}"
+    _gcc_version=$(gcc -dumpversion | cut -d. -f1)
+    celerlog info "Creating clangd config using GCC ${_gcc_version}: ${_clangd}"
     cat > "${_clangd}" << EOF
 CompileFlags:
-  CompilationDatabase: /scratch/s3j/build/celeritas-reldeb
+  CompilationDatabase: ${SCRATCHDIR}/build/celeritas-reldeb
   Add:
     [
       -isystem,
-      /usr/include/c++/13,
+      /usr/include/c++/${_gcc_version},
       -isystem,
       /usr/local/include,
       -isystem,
       /usr/include,
       -isystem,
-      /usr/include/x86_64-linux-gnu/c++/13,
+      /usr/include/x86_64-linux-gnu/c++/${_gcc_version},
     ]
 EOF
   fi
@@ -87,4 +89,4 @@ fi
 export PATH=${CELERITAS_ENV}/bin:${PATH}
 export CMAKE_PREFIX_PATH=${CELERITAS_ENV}:${CMAKE_PREFIX_PATH}
 
-export CCACHE_DIR="${SCRATCHDIR}/ccache"
+export XDG_CACHE_HOME="${SCRATCHDIR}/cache"

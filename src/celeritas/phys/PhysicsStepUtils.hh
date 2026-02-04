@@ -11,16 +11,15 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/NumericLimits.hh"
+#include "corecel/math/Quantity.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/grid/SplineCalculator.hh"
-#include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "ParticleTrackView.hh"
 #include "PhysicsStepView.hh"
@@ -205,13 +204,6 @@ calc_physics_step_limit(MaterialTrackView const& material,
  *
  * \note The inverse range correction assumes range is always the integral of
  * the stopping power/energy loss.
- *
- * \todo The GEANT3 manual \cite{geant3-1993} makes the point that linear
- * interpolation of energy
- * loss rate results in a piecewise constant energy deposition curve, which is
- * why they use spline interpolation. Investigate higher-order reconstruction
- * of energy loss curve, e.g. through spline-based interpolation or log-log
- * interpolation.
  *
  * \note See section 7.2.4 Run Time Energy Loss Computation of the Geant4
  * physics manual \cite{g4prm}. See also the longer discussions in section 8

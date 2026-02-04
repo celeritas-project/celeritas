@@ -77,5 +77,19 @@ struct StandaloneInput
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Celeritas setup for standalone optical-only apps.
+ */
+struct OpticalStandaloneInput
+{
+    //! System attributes
+    System system;
+    //! Base problem options and input data
+    OpticalProblem problem;
+    //! Set up Geant4 (if all the data isn't already loaded into Problem)
+    GeantOpticalPhysicsOptions geant_setup;
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace inp
 }  // namespace celeritas

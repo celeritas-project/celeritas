@@ -12,6 +12,7 @@
 #include "corecel/random/data/XorwowRngData.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/detail/GenerateCanonical32.hh"
+#include "corecel/random/engine/SplitMix64.hh"
 #include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
@@ -62,6 +63,7 @@ class XorwowRngEngine
     using Initializer_t = XorwowRngInitializer;
     using ParamsRef = NativeCRef<XorwowRngParamsData>;
     using StateRef = NativeRef<XorwowRngStateData>;
+    using RngStateInitializer_t = XorwowRngStateInitializer;
     //!@}
 
   public:
@@ -75,14 +77,21 @@ class XorwowRngEngine
                                           StateRef const& state,
                                           TrackSlotId tid);
 
-    // Initialize state
+    // Initialize state with an RNG initializer
     inline CELER_FUNCTION XorwowRngEngine& operator=(Initializer_t const&);
+
+    // Initialize state with a state initializer
+    inline CELER_FUNCTION XorwowRngEngine&
+    operator=(RngStateInitializer_t const&);
 
     // Generate a 32-bit pseudorandom number
     inline CELER_FUNCTION result_type operator()();
 
     // Advance the state \c count times
     inline CELER_FUNCTION void discard(ull_int count);
+
+    // Initialize a state for a new spawned RNG
+    inline CELER_FUNCTION RngStateInitializer_t branch();
 
   private:
     /// TYPES ///
@@ -98,16 +107,10 @@ class XorwowRngEngine
     //// HELPER FUNCTIONS ////
 
     inline CELER_FUNCTION void discard_subsequence(ull_int);
-    inline CELER_FUNCTION void next();
-    inline CELER_FUNCTION void jump(ull_int, ArrayJumpPoly const&);
-    inline CELER_FUNCTION void jump(JumpPoly const&);
-
-    // Helper RNG for initializing the state
-    struct SplitMix64
-    {
-        std::uint64_t state;
-        inline CELER_FUNCTION std::uint64_t operator()();
-    };
+    inline CELER_FUNCTION void next(XorwowState&);
+    inline CELER_FUNCTION void
+    jump(ull_int, ArrayJumpPoly const&, XorwowState&);
+    inline CELER_FUNCTION void jump(JumpPoly const&, XorwowState&);
 };
 
 //---------------------------------------------------------------------------//
@@ -179,11 +182,23 @@ XorwowRngEngine::operator=(Initializer_t const& init)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize the RNG engine with a state initializer.
+ */
+CELER_FUNCTION XorwowRngEngine&
+XorwowRngEngine::operator=(RngStateInitializer_t const& state_init)
+{
+    state_->xorstate = state_init.xorstate;
+    state_->weylstate = state_init.weylstate;
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Generate a 32-bit pseudorandom number using the 'xorwow' engine.
  */
 CELER_FUNCTION auto XorwowRngEngine::operator()() -> result_type
 {
-    this->next();
+    this->next(*state_);
     state_->weylstate += 362437u;
     return state_->weylstate + state_->xorstate[4];
 }
@@ -194,8 +209,39 @@ CELER_FUNCTION auto XorwowRngEngine::operator()() -> result_type
  */
 CELER_FUNCTION void XorwowRngEngine::discard(ull_int count)
 {
-    this->jump(count, params_.jump);
+    this->jump(count, params_.jump, *state_);
     state_->weylstate += static_cast<unsigned int>(count) * 362437u;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate a branched and (hopefully) decorreleated RNG
+ *
+ * \todo There are good reasons to believe that an RNG that is based on XOR
+ *       operations may not be decorrelated when XORing the state.  Work on an
+ *       improved methodology may be warranted.
+ */
+CELER_FUNCTION XorwowRngEngine::RngStateInitializer_t XorwowRngEngine::branch()
+{
+    XorwowState new_state;
+
+    // Copy the state into the new state
+    new_state.xorstate = state_->xorstate;
+
+    // Advance this RNG 4 times to get new state
+    this->jump(4, params_.jump, *state_);
+
+    // XOR the state with the new state
+    for (auto i : celeritas::range(new_state.xorstate.size()))
+    {
+        new_state.xorstate[i] ^= state_->xorstate[i];
+    }
+
+    // Advance the new state 4 times to (hopefully) decorrelate
+    this->jump(4, params_.jump, new_state);
+
+    // Create and return the state initializer
+    return RngStateInitializer_t{new_state.xorstate, state_->weylstate};
 }
 
 //---------------------------------------------------------------------------//
@@ -207,7 +253,7 @@ CELER_FUNCTION void XorwowRngEngine::discard(ull_int count)
  */
 CELER_FUNCTION void XorwowRngEngine::discard_subsequence(ull_int count)
 {
-    this->jump(count, params_.jump_subsequence);
+    this->jump(count, params_.jump_subsequence, *state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -216,9 +262,9 @@ CELER_FUNCTION void XorwowRngEngine::discard_subsequence(ull_int count)
  *
  * This does not update the Weyl sequence value.
  */
-CELER_FUNCTION void XorwowRngEngine::next()
+CELER_FUNCTION void XorwowRngEngine::next(XorwowState& state)
 {
-    auto& s = state_->xorstate;
+    auto& s = state.xorstate;
     auto const t = (s[0] ^ (s[0] >> 2u));
 
     s[0] = s[1];
@@ -235,8 +281,9 @@ CELER_FUNCTION void XorwowRngEngine::next()
  * This applies the jump polynomials until the given number of steps or
  * subsequences have been skipped.
  */
-CELER_FUNCTION void
-XorwowRngEngine::jump(ull_int count, ArrayJumpPoly const& jump_poly_arr)
+CELER_FUNCTION void XorwowRngEngine::jump(ull_int count,
+                                          ArrayJumpPoly const& jump_poly_arr,
+                                          XorwowState& state)
 {
     // Maximum number of times to apply any jump polynomial. Since the jump
     // sizes are 4^i for i = [0, 32), the max is 3.
@@ -251,7 +298,7 @@ XorwowRngEngine::jump(ull_int count, ArrayJumpPoly const& jump_poly_arr)
         for (size_type i = 0; i < num_jump; ++i)
         {
             CELER_ASSERT(jump_idx < jump_poly_arr.size());
-            this->jump(jump_poly_arr[jump_idx]);
+            this->jump(jump_poly_arr[jump_idx], state);
         }
         ++jump_idx;
         count >>= 2;
@@ -286,7 +333,8 @@ XorwowRngEngine::jump(ull_int count, ArrayJumpPoly const& jump_poly_arr)
  * addition is the same as subtraction and equivalent to bitwise exclusive or,
  * and multiplication is bitwise and.
  */
-CELER_FUNCTION void XorwowRngEngine::jump(JumpPoly const& jump_poly)
+CELER_FUNCTION void
+XorwowRngEngine::jump(JumpPoly const& jump_poly, XorwowState& state)
 {
     Array<uint_t, 5> s = {0};
     for (size_type i : range(params_.num_words()))
@@ -297,27 +345,13 @@ CELER_FUNCTION void XorwowRngEngine::jump(JumpPoly const& jump_poly)
             {
                 for (size_type k : range(params_.num_words()))
                 {
-                    s[k] ^= state_->xorstate[k];
+                    s[k] ^= state.xorstate[k];
                 }
             }
-            this->next();
+            this->next(state);
         }
     }
-    state_->xorstate = s;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Generate a 64-bit pseudorandom number using the SplitMix64 engine.
- *
- * This is used to initialize the XORWOW state. See https://prng.di.unimi.it.
- */
-CELER_FUNCTION std::uint64_t XorwowRngEngine::SplitMix64::operator()()
-{
-    std::uint64_t z = (state += 0x9e3779b97f4a7c15ull);
-    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ull;
-    z = (z ^ (z >> 27)) * 0x94d049bb133111ebull;
-    return z ^ (z >> 31);
+    state.xorstate = s;
 }
 
 //---------------------------------------------------------------------------//

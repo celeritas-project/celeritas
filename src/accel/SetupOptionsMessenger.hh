@@ -30,7 +30,7 @@ struct SetupOptions;
   geometryOutputFile   | Filename for GDML export
   maxNumTracks         | Number of tracks to be transported simultaneously
   maxNumEvents         | Maximum number of events in use
-  maxNumSteps          | Limit on number of step iterations before aborting
+  maxNumSteps          | Limit on number of steps per track before killing
   maxInitializers      | Maximum number of track initializers
   secondaryStackFactor | At least the average number of secondaries per track
   autoFlush            | Number of tracks to buffer before offloading

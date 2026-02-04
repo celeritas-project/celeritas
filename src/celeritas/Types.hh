@@ -218,31 +218,12 @@ enum class WlsTimeProfile
 };
 
 //---------------------------------------------------------------------------//
-//! Cylindrical coordinates indices
+//! Cylindrical coordinate indices
 enum class CylAxis
 {
     r = 0,
     phi,
     z,
-    size_
-};
-
-//---------------------------------------------------------------------------//
-//! Muon-catalyzed fusion atoms
-enum class MucfMuonicAtom
-{
-    deuterium,
-    tritium,
-    size_
-};
-
-//---------------------------------------------------------------------------//
-//! Muon-catalyzed fusion molecules
-enum class MucfMuonicMolecule
-{
-    deuterium_deuterium,
-    deuterium_tritium,
-    tritium_tritium,
     size_
 };
 

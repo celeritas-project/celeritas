@@ -27,7 +27,7 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
                                                SPConstParticles particle_params)
 {
     return SimParams::Input::from_import(
-        data, std::move(particle_params), inp::TrackingLimits{});
+        data, std::move(particle_params), inp::CoreTrackingLimits{});
 }
 
 //---------------------------------------------------------------------------//
@@ -37,7 +37,7 @@ SimParams::Input SimParams::Input::from_import(ImportData const& data,
 SimParams::Input
 SimParams::Input::from_import(ImportData const& data,
                               SPConstParticles particle_params,
-                              inp::TrackingLimits const& limits)
+                              inp::CoreTrackingLimits const& limits)
 {
     CELER_EXPECT(particle_params);
     CELER_EXPECT(data.trans_params);

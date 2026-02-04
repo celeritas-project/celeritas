@@ -29,8 +29,8 @@ class DetectorConstruction;
 /*!
  * Diagnostics for Geant4 (i.e., for tracks not offloaded to Celeritas).
  *
- * A single instance of this class should be created by the master thread and
- * shared across all threads.
+ * A single instance of this class should be created by the main thread and
+ * shared among worker threads.
  */
 class GeantDiagnostics
 {

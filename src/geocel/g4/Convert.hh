@@ -10,6 +10,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Constant.hh"
 #include "geocel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
 

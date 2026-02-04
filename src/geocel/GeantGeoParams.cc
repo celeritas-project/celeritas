@@ -28,23 +28,15 @@
 #include <G4VisExtent.hh>
 
 #include "corecel/Assert.hh"
-#include "geocel/inp/Model.hh"
-#if G4VERSION_NUMBER >= 1070
-#    include <G4Backtrace.hh>
-#endif
-
-#include "corecel/Config.hh"
-
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/inp/Model.hh"
 
 #include "GeantGdmlLoader.hh"
 #include "GeantGeoUtils.hh"
-#include "GeantUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated
@@ -532,10 +524,22 @@ std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
             result.push_back(region);
         }
     }
-    CELER_LOG(debug) << "Loaded " << region_map.size() << " regions out of "
-                     << G4RegionStore::GetInstance()->size()
-                     << " Geant4 regions and created " << result.size()
-                     << " new regions";
+
+    auto* region_store = G4RegionStore::GetInstance();
+    CELER_ASSERT(region_store);
+
+    if (!region_store->empty() || !result.empty())
+    {
+        CELER_LOG(debug) << "Loaded " << region_map.size()
+                         << " regions out of "
+                         << G4RegionStore::GetInstance()->size()
+                         << " Geant4 regions and created " << result.size()
+                         << " new regions";
+    }
+    else
+    {
+        CELER_LOG(debug) << "Geant4 has no regions, and none were created";
+    }
 
     // Add regions to result vector
     for (auto&& [g4reg, volumes] : region_map)
@@ -661,8 +665,6 @@ GeantGeoParams::from_gdml(std::string const& filename)
 
     ScopedGeantLogger logger(celeritas::world_logger());
     ScopedGeantExceptionHandler exception_handler;
-
-    disable_geant_signal_handler();
 
     if (!ends_with(filename, ".gdml"))
     {

@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/random/data/RngData.hh"
+#include "geocel/DetectorData.hh"
 #include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
@@ -19,7 +20,6 @@
 #include "PhysicsData.hh"
 #include "SimData.hh"
 #include "TrackInitData.hh"
-#include "Types.hh"
 #include "gen/CherenkovData.hh"
 #include "gen/ScintillationData.hh"
 #include "surface/SurfacePhysicsData.hh"
@@ -53,8 +53,10 @@ struct CoreParamsData
     MaterialParamsData<W, M> material;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
+    SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
     SurfacePhysicsParamsData<W, M> surface_physics;
+    DetectorParamsData<W, M> detectors;
     CherenkovData<W, M> cherenkov;
     ScintillationData<W, M> scintillation;
 
@@ -64,7 +66,7 @@ struct CoreParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && material && physics && surface && surface_physics
-               && rng && scalars;
+               && rng && sim && scalars;
     }
 
     //! Assign from another set of data
@@ -76,11 +78,13 @@ struct CoreParamsData
         material = other.material;
         physics = other.physics;
         rng = other.rng;
+        sim = other.sim;
         surface = other.surface;
         surface_physics = other.surface_physics;
-        scalars = other.scalars;
+        detectors = other.detectors;
         cherenkov = other.cherenkov;
         scintillation = other.scintillation;
+        scalars = other.scalars;
         return *this;
     }
 };
@@ -96,7 +100,6 @@ struct CoreStateData
     using Items = StateCollection<T, W, M>;
 
     GeoStateData<W, M> geometry;
-    // TODO: should we cache the material ID?
     ParticleStateData<W, M> particle;
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;

@@ -70,6 +70,7 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
     distribution_.energy = particle.energy();
     distribution_.time = sim.time();
     distribution_.position = pos;
+    distribution_.primary = sim.primary_id();
     distribution_.material = mat_id;
 }
 

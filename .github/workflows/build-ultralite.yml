@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
 
       ### ENVIRONMENT ###
 
@@ -41,9 +41,9 @@ jobs:
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --version
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};;;', github.event.pull_request.number)
-              || format(';-{0};;;', github.ref_name)}}"
+            -DCeleritas_VERSION_STRING="${{github.event.pull_request
+              && format('pr.{0}', github.event.pull_request.number)
+              || github.ref_name}}"
 
       ### BUILD ###
 
@@ -121,7 +121,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
 
       ### ENVIRONMENT ###
 
@@ -138,10 +138,12 @@ jobs:
         run: |
           Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
           cmake --version
-          cmake --preset=$Env:CMAKE_PRESET `
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
+          cmake --preset=$Env:CMAKE_PRESET --log-level=VERBOSE `
+            -DCeleritas_VERSION_STRING="${{
+              github.event.pull_request
+              && format('-pr.{0}', github.event.pull_request.number)
+              || format('-{0}', github.ref_name)
+            }}"
 
       ### BUILD ###
 

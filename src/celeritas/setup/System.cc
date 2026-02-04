@@ -9,6 +9,7 @@
 #include <map>
 #include <optional>
 
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/inp/System.hh"
@@ -29,9 +30,16 @@ void system(inp::System const& sys)
     auto& env = celeritas::environment();
     for (auto const& kv : sys.environment)
     {
-        env.insert(kv);
-        // TODO: log extant variables
+        auto inserted = env.insert(kv);
+        if (!inserted)
+        {
+            CELER_LOG(warning)
+                << "Failed to set environment variable " << kv.first << ": '"
+                << kv.second << "' because it is already set to " << kv.first
+                << ": '" << env[kv.first] << "'";
+        }
     }
+    CELER_LOG(debug) << "Celeritas environment variables: " << env;
 
     // TODO: set up MPI communicator
 

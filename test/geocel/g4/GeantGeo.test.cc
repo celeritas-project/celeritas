@@ -7,6 +7,7 @@
 #include <regex>
 #include <string_view>
 #include <G4LogicalVolume.hh>
+#include <G4StateManager.hh>
 #include <G4VSensitiveDetector.hh>
 
 #include "corecel/Config.hh"
@@ -25,10 +26,9 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/VolumeParams.hh"
-#include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoTrackView.hh"
-#include "geocel/inp/Model.hh"
+#include "geocel/VolumeParams.hh"  // IWYU pragma: keep
+#include "geocel/g4/GeantGeoTrackView.hh"  // IWYU pragma: keep
+#include "geocel/inp/Model.hh"  // IWYU pragma: keep
 #include "geocel/rasterize/SafetyImager.hh"
 
 #include "GeantGeoTestBase.hh"
@@ -84,7 +84,84 @@ class GeantGeoTest : public GeantGeoTestBase
 
     ScopedGeantExceptionHandler exception_handler;
     ScopedGeantLogger logger{celeritas::world_logger()};
+
+    void SetUp() override
+    {
+        GeantGeoTestBase::SetUp();
+        ASSERT_TRUE(this->geometry());
+
+        auto* sm = G4StateManager::GetStateManager();
+        CELER_ASSERT(sm);
+        // Have ScopedGeantExceptionHandler treat tracking errors like runtime
+        EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_EventProc));
+    }
+
+    void TearDown() override
+    {
+        ASSERT_TRUE(this->geometry());
+
+        // Restore G4 state just in case it matters
+        auto* sm = G4StateManager::GetStateManager();
+        EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_PreInit));
+        GeantGeoTestBase::TearDown();
+    }
 };
+
+//---------------------------------------------------------------------------//
+using AtlasHgtdTest
+    = GenericGeoParameterizedTest<GeantGeoTest, AtlasHgtdGeoTest>;
+
+TEST_F(AtlasHgtdTest, model)
+{
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {"SPlate", "HGTD", "ITK", "Atlas"};
+    ref.volume.materials = {0, 1, 1, 1};
+    ref.volume.daughters = {{}, {3, 4, 5, 6, 7, 8, 9, 10}, {2}, {1}};
+    ref.volume_instance.labels = {
+        "Atlas_PV",
+        "ITK",
+        "HGTD",
+        "SPlate_4@0",
+        "SPlate_5@0",
+        "SPlate_6@0",
+        "SPlate_7@0",
+        "SPlate_4@1",
+        "SPlate_5@1",
+        "SPlate_6@1",
+        "SPlate_7@1",
+    };
+    ref.volume_instance.volumes = {
+        3,
+        2,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    };
+    ref.world = "Atlas";
+    EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(AtlasHgtdTest, trace)
+{
+    this->impl().test_trace();
+}
+
+TEST_F(AtlasHgtdTest, volume_stack)
+{
+    this->impl().test_volume_stack();
+}
+
+TEST_F(AtlasHgtdTest, detailed_track)
+{
+    this->impl().test_detailed_tracking();
+}
 
 //---------------------------------------------------------------------------//
 using CmseTest = GenericGeoParameterizedTest<GeantGeoTest, CmseGeoTest>;
@@ -295,7 +372,13 @@ TEST_F(FourLevelsTest, consecutive_compute)
 
 TEST_F(FourLevelsTest, detailed_track)
 {
+    ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_detailed_tracking();
+
+    // "Finding next step up to ... when previous step 4 was already
+    // calculated"
+    static char const* const expected_log_levels[] = {"warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
 }
 
 TEST_F(FourLevelsTest, safety)
@@ -345,32 +428,6 @@ TEST_F(FourLevelsTest, safety)
         3.1,
     };
     EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
-}
-
-TEST_F(FourLevelsTest, levels)
-{
-    auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
-    EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("World_PV/env1/Shape1", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("World_PV/env1", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("World_PV", this->unique_volume_name(geo));
-    geo.find_next_step();
-    geo.move_to_boundary();
-    geo.cross_boundary();
-
-    EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
 }
 
 //---------------------------------------------------------------------------//
@@ -721,49 +778,6 @@ TEST_F(ReplicaTest, volume_stack)
     this->impl().test_volume_stack();
 }
 
-TEST_F(ReplicaTest, level_strings)
-{
-    using R2 = Array<double, 2>;
-
-    auto const& vol_inst = this->volumes()->volume_instance_labels();
-
-    static R2 const points[] = {
-        {-435, 550},
-        {-460, 550},
-        {-400, 650},
-        {-450, 650},
-        {-450, 700},
-    };
-
-    std::vector<std::string> all_vol_inst;
-    for (R2 xz : points)
-    {
-        auto geo = this->make_geo_track_view({xz[0], 0.0, xz[1]}, {1, 0, 0});
-
-        auto depth = geo.volume_level();
-        CELER_ASSERT(depth && depth >= VolumeLevelId{0});
-        std::vector<VolumeInstanceId> inst_ids(depth.get() + 1);
-        geo.volume_instance_id(make_span(inst_ids));
-        std::vector<std::string> names(inst_ids.size());
-        for (auto i : range(inst_ids.size()))
-        {
-            Label lab = vol_inst.at(inst_ids[i]);
-            names[i] = to_string(lab);
-        }
-        all_vol_inst.push_back(to_string(repr(names)));
-    }
-
-    static char const* const expected_all_vol_inst[] = {
-        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@14"})",
-        R"({"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@6"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@4", "HadCalCell_PV@1", "HadCalLayer_PV@2"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@2", "HadCalCell_PV@1", "HadCalLayer_PV@7"})",
-        R"({"world_PV", "fSecondArmPhys", "HadCalorimeter", "HadCalColumn_PV@3", "HadCalCell_PV@1", "HadCalLayer_PV@16"})",
-    };
-
-    EXPECT_VEC_EQ(expected_all_vol_inst, all_vol_inst);
-}
-
 //---------------------------------------------------------------------------//
 
 using SimpleCmsTest
@@ -803,11 +817,14 @@ TEST_F(SimpleCmsTest, trace)
 
 TEST_F(SimpleCmsTest, detailed_track)
 {
-    if (CELERITAS_USE_VECGEOM && !CELERITAS_VECGEOM_SURFACE)
-    {
-        GTEST_SKIP() << "FIXME: VecGeom surface v1,v2 both trigger a G4 error";
-    }
+    ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_detailed_tracking();
+    if (geant4_version >= Version{11})
+    {
+        // G4 11.3: "Accuracy error or slightly inaccurate position shift."
+        static char const* const expected_log_levels[] = {"error", "error"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -851,7 +868,15 @@ TEST_F(SolidsTest, accessors)
 
 TEST_F(SolidsTest, trace)
 {
+    ScopedLogStorer scoped_log_{&self_logger()};
     TestImpl(this).test_trace();
+    if (geant4_version >= Version{11})
+    {
+        // G4 11.3 report normal directions perpendicular to track direction
+        // due to coincident surfaces; and at least one of the tangents is
+        // machine-dependent
+        EXPECT_GE(scoped_log_.levels().size(), 3) << scoped_log_;
+    }
 }
 
 //---------------------------------------------------------------------------//

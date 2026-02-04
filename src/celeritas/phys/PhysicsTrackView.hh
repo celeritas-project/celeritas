@@ -14,6 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
+#include "celeritas/em/xs/ElectroNuclearMicroXsCalculator.hh"
 #include "celeritas/em/xs/GammaNuclearMicroXsCalculator.hh"
 #include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
 #include "celeritas/grid/GridIdFinder.hh"
@@ -458,10 +459,16 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
             result = MacroXsCalculator<LivermorePEMicroXsCalculator>(
                 params_.hardwired.livermore_pe, material)(energy);
         }
+
         else if (model_id == params_.hardwired.ids.eplusgg)
         {
             result = EPlusGGMacroXsCalculator(params_.hardwired.eplusgg,
                                               material)(energy);
+        }
+        else if (model_id == params_.hardwired.ids.electro_vd)
+        {
+            result = MacroXsCalculator<ElectroNuclearMicroXsCalculator>(
+                params_.hardwired.electro_vd, material)(energy);
         }
         else if (model_id == params_.hardwired.ids.bertini_qgs)
         {
@@ -671,6 +678,12 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id(ParticleModelId pmid) const
  *
  * Below \c min_range, no step scaling is applied, but the step can still
  * be arbitrarily small.
+ *
+ * \todo Rename \c calc_eloss_step_limit . This step limiter allows tuning the
+ * accuracy loss from approximating a constant cross section along the step. We
+ * should also split this into limiting the \em actual range (where the energy
+ * goes to zero or the minimum allowable tracking range) versus a dE/dx
+ * limiter.
  */
 CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {

@@ -19,11 +19,12 @@ physical constants such as the speed of light, Planck's constant, and the
 electron charge, have exact numerical values as specified by the SI unit system
 :cite:`si-2019`. Other physical constants such as the atomic mass unit and electron
 radius are derived from experimental measurements in CODATA 2018
-:cite:`codata-2018`. Because the
+:cite:`codata-2018` or CODATA 2022.
+Because the
 reported constants are derived from regression fits to experimental data
 points, some exactly defined physical relationships (such as the fine structure
 constant
-:math:`\alpha = \frac{e^2}{2 \epsilon_0 h c}`) are only approximate.
+:math:`\alpha = \frac{e^2}{2 \epsilon_0 h c}` ) are only approximate.
 
 Unlike Geant4 and the CLHEP unit systems :cite:`clhep`, Celeritas avoids using "natural"
 units in its definitions. Although a natural unit system makes some
@@ -35,7 +36,6 @@ stores quantities in another unit system with a compile-time constant that
 allows their conversion back to native units. This allows, for example,
 particles to represent their energy as MeV and charge as fractions of *e* but
 work seamlessly with a field definition in native (macro-scale quantity) units.
-
 
 .. _api_quantity:
 

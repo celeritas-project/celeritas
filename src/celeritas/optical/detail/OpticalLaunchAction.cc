@@ -134,12 +134,12 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
     CELER_ASSERT(state.size() > 0);
 
-    auto const& core_counters = core_state.counters();
-    auto& counters = state.counters();
+    auto const core_counters = core_state.sync_get_counters();
+    auto const counters = state.sync_get_counters();
 
     if ((counters.num_pending < data_.auto_flush
          && (core_counters.num_alive > 0 || core_counters.num_initializers > 0))
-        || counters.num_pending == 0 || data_.max_step_iters == 0)
+        || counters.num_pending == 0)
     {
         // Don't launch the optical loop if the number of pending tracks is
         // below the threshold and the core stepping loop hasn't completed yet
@@ -170,7 +170,6 @@ void OpticalLaunchAction::begin_run_impl(CoreState<M>& core_state)
             // Create the transporter
             optical::Transporter::Input inp;
             inp.params = data_.optical_params;
-            inp.max_step_iters = data_.max_step_iters;
             inp.action_times = data_.action_times;
             transport_ = std::make_shared<optical::Transporter>(std::move(inp));
         }
