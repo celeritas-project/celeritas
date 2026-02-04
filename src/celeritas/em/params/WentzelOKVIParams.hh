@@ -8,8 +8,8 @@
 
 #include <memory>
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
@@ -77,7 +77,7 @@ class WentzelOKVIParams final : public ParamsDataInterface<WentzelOKVIData>
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<WentzelOKVIData> data_;
+    ParamsDataStore<WentzelOKVIData> data_;
 
     //// HELPER METHODS ////
 

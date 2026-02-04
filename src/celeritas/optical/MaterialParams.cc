@@ -134,7 +134,7 @@ MaterialParams::MaterialParams(Input const& inp)
     CollectionBuilder{&data.core_material_id}.insert_back(
         inp.optical_to_core.begin(), inp.optical_to_core.end());
 
-    data_ = CollectionMirror<MaterialParamsData>{std::move(data)};
+    data_ = ParamsDataStore<MaterialParamsData>{std::move(data)};
     CELER_ENSURE(data_);
 }
 

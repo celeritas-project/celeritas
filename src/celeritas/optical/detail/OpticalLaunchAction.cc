@@ -135,7 +135,7 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     CELER_ASSERT(state.size() > 0);
 
     auto const core_counters = core_state.sync_get_counters();
-    auto const& counters = state.counters();
+    auto const counters = state.sync_get_counters();
 
     if ((counters.num_pending < data_.auto_flush
          && (core_counters.num_alive > 0 || core_counters.num_initializers > 0))

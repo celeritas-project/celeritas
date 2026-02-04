@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
@@ -63,7 +63,7 @@ class RayleighModel final : public Model, public StaticConcreteAction
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<RayleighData> mirror_;
+    ParamsDataStore<RayleighData> mirror_;
 
     ImportedModelAdapter imported_;
 

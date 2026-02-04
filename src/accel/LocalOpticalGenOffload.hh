@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/LocalOpticalOffload.hh
+//! \file accel/LocalOpticalGenOffload.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -33,7 +33,7 @@ class SharedParams;
 /*!
  * Manage offloading of optical distribution data to Celeritas.
  */
-class LocalOpticalOffload final : public LocalOffloadInterface
+class LocalOpticalGenOffload final : public LocalOffloadInterface
 {
   public:
     //!@{
@@ -43,10 +43,10 @@ class LocalOpticalOffload final : public LocalOffloadInterface
 
   public:
     // Construct in an invalid state
-    LocalOpticalOffload() = default;
+    LocalOpticalGenOffload() = default;
 
     // Construct with shared (across threads) params
-    LocalOpticalOffload(SetupOptions const& options, SharedParams& params);
+    LocalOpticalGenOffload(SetupOptions const& options, SharedParams& params);
 
     //!@{
     //! \name LocalOffload interface

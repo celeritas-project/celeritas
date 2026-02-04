@@ -191,10 +191,10 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ModelId model,
     }
 
     // Calculate the MFP using the grid, then return its inverse (xs)
-    NonuniformGridCalculator calc{grid, params_.reals};
-    real_type result = calc(value_as<Energy>(energy));
-    CELER_ENSURE(result > 0);
-    return 1 / result;
+    NonuniformGridCalculator calc_mfp{grid, params_.reals};
+    real_type mfp = calc_mfp(value_as<Energy>(energy));
+    CELER_ENSURE(mfp > 0);
+    return 1 / mfp;
 }
 
 //---------------------------------------------------------------------------//

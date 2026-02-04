@@ -410,25 +410,27 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
     {
         GeantParticleView particle_view{*(particle_iterator.value())};
 
-        if (!include_particle(particle_view.pdg()))
+        PDGNumber pdg = [&] {
+            if (G4VERSION_NUMBER < 1070 && particle_view.is_optical_photon())
+            {
+                // Before 10.7, geant4 uses PDG 0 plus a unique string name
+                return g4_optical_pdg;
+            }
+            return particle_view.pdg();
+        }();
+
+        if (!include_particle(pdg))
         {
             continue;
         }
 
-        particles.push_back([&particle_view] {
+        particles.push_back([&particle_view, &pdg] {
             inp::Particle result;
             result.name = particle_view.name();
-            result.pdg = particle_view.pdg();
+            result.pdg = pdg;
             result.mass = particle_view.mass();
             result.charge = particle_view.charge();
             result.decay_constant = particle_view.decay_constant();
-
-            if (G4VERSION_NUMBER < 1070 && particle_view.is_optical_photon())
-            {
-                // Before 10.7, geant4 uses PDG 0 plus a unique string name
-                result.pdg = g4_optical_pdg;
-            }
-
             return result;
         }());
     }
@@ -1058,11 +1060,20 @@ auto import_processes(GeantImporter::DataSelection selected,
 
     for (auto const& p : particles)
     {
-        G4ParticleDefinition const* g4_particle_def
-            = G4ParticleTable::GetParticleTable()->FindParticle(p.pdg.get());
+        G4ParticleDefinition* g4_particle_def;
+        if (G4VERSION_NUMBER < 1070 && p.pdg == g4_optical_pdg)
+        {
+            // Optical photon PDG in Geant4 is 0 before version 10.7
+            g4_particle_def = G4OpticalPhoton::OpticalPhoton();
+        }
+        else
+        {
+            g4_particle_def = G4ParticleTable::GetParticleTable()->FindParticle(
+                p.pdg.get());
+        }
         CELER_ASSERT(g4_particle_def);
 
-        if (!include_particle(PDGNumber{g4_particle_def->GetPDGEncoding()}))
+        if (!include_particle(p.pdg))
         {
             CELER_LOG(debug) << "Filtered all processes from particle '"
                              << g4_particle_def->GetParticleName() << "'";
@@ -1081,36 +1092,6 @@ auto import_processes(GeantImporter::DataSelection selected,
             }
 
             append_process(*g4_particle_def, process);
-        }
-    }
-
-    // Optical photon PDG in Geant4 is 0 before version 10.7
-    if (G4VERSION_NUMBER < 1070
-        && G4ParticleTable::GetParticleTable()->FindParticle("opticalphoton"))
-    {
-        auto* photon_def = G4OpticalPhoton::OpticalPhoton();
-        CELER_ASSERT(photon_def);
-
-        if (!include_particle(g4_optical_pdg))
-        {
-            CELER_LOG(debug) << "Filtered all processes from particle '"
-                             << photon_def->GetParticleName() << "'";
-        }
-        else
-        {
-            G4ProcessVector const& process_list
-                = *photon_def->GetProcessManager()->GetProcessList();
-
-            for (auto j : range(process_list.size()))
-            {
-                G4VProcess const& process = *process_list[j];
-                if (!include_process(process.GetProcessType()))
-                {
-                    continue;
-                }
-
-                append_process(*photon_def, process);
-            }
         }
     }
 
@@ -1166,14 +1147,23 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
     {
-        auto const* particle = particle_iterator.value();
-        if (!include_particle(PDGNumber{particle->GetPDGEncoding()}))
+        PDGNumber pdg = [&particle_iterator] {
+            GeantParticleView particle{*(particle_iterator.value())};
+            if (G4VERSION_NUMBER < 1070 && particle.is_optical_photon())
+            {
+                // Before 10.7, geant4 uses PDG 0 plus a unique string name
+                return g4_optical_pdg;
+            }
+            return particle.pdg();
+        }();
+
+        if (!include_particle(pdg))
         {
             continue;
         }
 
         // Get the transportation process
-        auto const* trans = get_transportation(particle);
+        auto const* trans = get_transportation(particle_iterator.value());
         CELER_ASSERT(trans);
 
         // Get the threshold values for killing looping tracks
@@ -1182,7 +1172,7 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
         looping.important_energy = trans->GetThresholdImportantEnergy()
                                    * mev_scale;
         CELER_ASSERT(looping);
-        result.looping.insert({particle->GetPDGEncoding(), looping});
+        result.looping.insert({pdg.get(), looping});
     }
 
     CELER_ENSURE(result);

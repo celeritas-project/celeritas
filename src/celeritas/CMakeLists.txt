@@ -136,6 +136,7 @@ list(APPEND SOURCES
   optical/surface/SurfaceSteppingAction.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
+  phys/GeneratorCountersIO.json.cc
   phys/GeneratorInterface.cc
   phys/GeneratorRegistry.cc
   phys/ImportedModelAdapter.cc
@@ -193,8 +194,8 @@ if(CELERITAS_USE_covfie)
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
-  # object libraries do not work properly with RDC builds
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    # NOTE: object libraries do not work properly with RDC builds or HIP
     list(APPEND SOURCES ${_celer_covfie_src})
     list(APPEND PRIVATE_DEPS
       Celeritas::BuildFlags

@@ -111,8 +111,10 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
     // distributions created in this step
     auto& optical_state
         = get<optical::CoreState<M>>(core_state.aux(), data_.optical_id);
-    optical_state.counters().num_pending += detail::count_num_photons(
+    auto counters = optical_state.sync_get_counters();
+    counters.num_pending += detail::count_num_photons(
         buffer, start, buffer_size, core_state.stream_id());
+    optical_state.sync_put_counters(counters);
 }
 
 //---------------------------------------------------------------------------//

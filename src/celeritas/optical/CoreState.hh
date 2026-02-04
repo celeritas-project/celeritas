@@ -9,15 +9,15 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
 #include "CoreTrackData.hh"
 #include "TrackInitializer.hh"
-#include "gen/OffloadData.hh"
 
 namespace celeritas
 {
@@ -47,8 +47,14 @@ class CoreStateInterface : public AuxStateInterface
     //! Thread/stream ID
     virtual StreamId stream_id() const = 0;
 
-    //! Access track initialization counters
-    virtual CoreStateCounters const& counters() const = 0;
+    //! Synchronize and copy track initialization counters from device to host
+    //! For host-only code, this replaces the old counters() function
+    [[nodiscard]] virtual CoreStateCounters sync_get_counters() const = 0;
+
+    //! Synchronize and copy track initialization counters from host to device
+    //! For host-only code, this replaces the old counters() function
+    //! since we return a CoreStateCounters object instead of a reference
+    virtual void sync_put_counters(CoreStateCounters const&) = 0;
 
     //! Reseed the RNGs at the start of an event for reproducibility
     virtual void reseed(std::shared_ptr<RngParams const>, UniqueEventId) = 0;
@@ -79,17 +85,11 @@ class CoreStateBase : public CoreStateInterface
     //!@}
 
   public:
-    //! Track initialization counters
-    CoreStateCounters& counters() { return counters_; }
-
-    //! Track initialization counters
-    CoreStateCounters const& counters() const final { return counters_; }
+    //! Optical loop statistics
+    CounterAccumStats const& accum() const { return accum_; }
 
     //! Optical loop statistics
-    OpticalAccumStats const& accum() const { return accum_; }
-
-    //! Optical loop statistics
-    OpticalAccumStats& accum() { return accum_; }
+    CounterAccumStats& accum() { return accum_; }
 
     //// AUXILIARY DATA ////
 
@@ -106,11 +106,8 @@ class CoreStateBase : public CoreStateInterface
     ~CoreStateBase() override;
 
   private:
-    // Counters for track initialization and activity
-    CoreStateCounters counters_;
-
     //! Counts accumulated over the event for diagnostics
-    OpticalAccumStats accum_;
+    CounterAccumStats accum_;
 
     // Auxiliary data owned by the core state
     SPAuxStateVec aux_state_;
@@ -154,6 +151,14 @@ class CoreState final : public CoreStateBase
     //! Number of track slots
     size_type size() const final { return states_.size(); }
 
+    //! Synchronize and copy track initialization counters from device to host
+    [[nodiscard]] CoreStateCounters sync_get_counters() const final;
+
+    //! Synchronize and copy track initialization counters from host to device
+    //! For host-only code, this copies the local CoreStateCounters back to the
+    //! class, since sync_get_counters() doesn't return a reference
+    void sync_put_counters(CoreStateCounters const&) final;
+
     // Whether the state is being transported with no active particles
     bool warming_up() const;
 
@@ -179,7 +184,7 @@ class CoreState final : public CoreStateBase
 
   private:
     // State data
-    CollectionStateStore<CoreStateData, M> states_;
+    StateDataStore<CoreStateData, M> states_;
 
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;

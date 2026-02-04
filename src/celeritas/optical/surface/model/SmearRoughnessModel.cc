@@ -46,7 +46,7 @@ SmearRoughnessModel::SmearRoughnessModel(
     CELER_ENSURE(data);
     CELER_ENSURE(data.roughness.size() == layer_map.size());
 
-    data_ = CollectionMirror<SmearRoughnessData>{std::move(data)};
+    data_ = ParamsDataStore<SmearRoughnessData>{std::move(data)};
 }
 
 //---------------------------------------------------------------------------//

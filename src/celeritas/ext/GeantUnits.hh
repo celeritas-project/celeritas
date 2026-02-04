@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/GeantUnits.hh
+//! Convert unit systems without having to link against geant4.
 //! \sa geocel/g4/Convert.hh
 //---------------------------------------------------------------------------//
 #pragma once

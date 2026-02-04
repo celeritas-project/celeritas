@@ -318,7 +318,7 @@ void InteractorHostBase::check_energy_conservation(
 void InteractorHostBase::check_momentum_conservation(
     Interaction const& interaction) const
 {
-    CollectionStateStore<ParticleStateData, MemSpace::host> temp_store(
+    StateDataStore<ParticleStateData, MemSpace::host> temp_store(
         particle_params_->host_ref(), 1);
     ParticleTrackView temp_track(
         particle_params_->host_ref(), temp_store.ref(), TrackSlotId{0});

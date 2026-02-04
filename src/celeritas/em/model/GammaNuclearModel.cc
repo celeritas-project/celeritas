@@ -63,7 +63,7 @@ GammaNuclearModel::GammaNuclearModel(ActionId id,
     CELER_ASSERT(data.xs_iaea.size() == data.xs_chips.size());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<GammaNuclearData>{std::move(data)};
+    data_ = ParamsDataStore<GammaNuclearData>{std::move(data)};
     CELER_ENSURE(this->data_);
 }
 

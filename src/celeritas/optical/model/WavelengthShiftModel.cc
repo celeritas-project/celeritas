@@ -97,7 +97,7 @@ WavelengthShiftModel::WavelengthShiftModel(ActionId id,
     CELER_ASSERT(data.energy_cdf.size() == input.data.size());
     CELER_ASSERT(data.wls_record.size() == data.energy_cdf.size());
 
-    data_ = CollectionMirror<WavelengthShiftData>{std::move(data)};
+    data_ = ParamsDataStore<WavelengthShiftData>{std::move(data)};
     CELER_ENSURE(data_);
 }
 

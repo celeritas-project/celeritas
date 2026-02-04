@@ -2,35 +2,32 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/detail/RefImpl.hh
+//! \file accel/TrackOffloadInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Types.hh"
+#include "LocalOffloadInterface.hh"
+
+class G4Track;
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-//! Store a value/reference and dispatch function name based on MemSpace.
-
-template<class T, MemSpace M>
-struct RefGetter
+/*!
+ * Interface for offloading complete Geant4 tracks to Celeritas.
+ *
+ * It allows the Geant4 tracking manager to forward full
+ * track to Celeritas, such as EM or optical track transport.
+ */
+class TrackOffloadInterface : public LocalOffloadInterface
 {
-    T obj_;
+  public:
+    // Construct with defaults
+    ~TrackOffloadInterface() override = default;
 
-    auto operator()() const -> decltype(auto) { return obj_.host_ref(); }
-};
-
-template<class T>
-struct RefGetter<T, MemSpace::device>
-{
-    T obj_;
-
-    auto operator()() const -> decltype(auto) { return obj_.device_ref(); }
+    // Push a full Geant4 track to Celeritas
+    virtual void Push(G4Track&) = 0;
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas
