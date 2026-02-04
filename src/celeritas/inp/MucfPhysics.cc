@@ -192,7 +192,7 @@ MucfCycleRate dt0_cycle_data()
 MucfCycleRate hd0_cycle_data()
 {
     MucfCycleRate result;
-    result.type = CycleTableType::deuterium_tritium;
+    result.type = CycleTableType::protium_deuterium;
     result.spin_state = units::HalfSpinInt{0};  // F = 0
 
     result.rate.interpolation.type = InterpolationType::cubic_spline;
@@ -328,7 +328,7 @@ MucfCycleRate dt1_cycle_data()
 MucfCycleRate hd1_cycle_data()
 {
     MucfCycleRate result;
-    result.type = CycleTableType::deuterium_tritium;
+    result.type = CycleTableType::protium_deuterium;
     result.spin_state = units::HalfSpinInt{2};  // F = 1
 
     result.rate.interpolation.type = InterpolationType::cubic_spline;
