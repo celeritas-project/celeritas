@@ -32,6 +32,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class Device;
+class DeviceEvent;
+
+//---------------------------------------------------------------------------//
 namespace detail
 {
 class AsyncMemoryResource;
@@ -46,6 +50,12 @@ class AsyncMemoryResource;
  * typically be accessed only by low-level device implementations or advanced
  * kernels that need to interact with the device stream.
  *
+ * \par States
+ * - \b Constructed: A valid stream created with an active device. The stream
+ *   can be used for device operations.
+ * - \b Null: Explicitly constructed with \c nullptr. No stream is created,
+ *   but the object is in a valid null state. Operations are no-ops.
+ *
  * \internal
  * \warning This class interface changes based on available headers.
  * Because the CUDA/HIP stream type are only defined when those paths are
@@ -56,18 +66,21 @@ class AsyncMemoryResource;
  * cannot be included at all by a non-HIP compiler. Because this class forward
  * declares the memory resource, downstream uses must include \c
  * corecel/sys/detail/AsyncMemoryResource.device.hh .
- *
- * \todo Rename DeviceStream
  */
 class Stream
 {
   public:
     //!@{
     //! \name Type aliases
-#ifdef CELER_DEVICE_RUNTIME_INCLUDED
-    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
-#else
+#if !CELER_USE_DEVICE
+    //! Stream implementation is unavailable
+    using StreamT = nullptr_t;
+#elif !CELER_DEVICE_RUNTIME_INCLUDED
+    //! Sentinel type to indicate compilation error
     using MissingDeviceRuntime = void;
+#else
+    //! Actual CUDA/HIP stream opaque pointer
+    using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
 #endif
     using ResourceT = detail::AsyncMemoryResource;
     using HostKernel = void (*)(void*);
@@ -76,10 +89,17 @@ class Stream
   public:
     // Construct by creating a stream
     Stream();
+    // Construct a null stream
+    Stream(std::nullptr_t);
+    // Construct a stream for the given device
+    explicit Stream(Device const& device);
     CELER_DEFAULT_MOVE_DELETE_COPY(Stream);
     ~Stream() = default;
 
-#ifdef CELER_DEVICE_RUNTIME_INCLUDED
+    // Whether the stream is valid (not null or moved-from)
+    inline explicit operator bool() const;
+
+#if defined(CELER_DEVICE_RUNTIME_INCLUDED) || !CELER_USE_DEVICE
     // Access the stream
     StreamT get() const;
 #else
@@ -113,8 +133,27 @@ class Stream
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Whether the stream is valid (not null or moved-from).
+ */
+Stream::operator bool() const
+{
+    return static_cast<bool>(impl_);
+}
+
+//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline Stream::Stream() {}
+inline Stream::Stream()
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+inline Stream::Stream(std::nullptr_t) {}
+
+inline Stream::Stream(Device const&)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
 
 #    ifdef CELER_DEVICE_RUNTIME_INCLUDED
 inline Stream::StreamT Stream::get() const
