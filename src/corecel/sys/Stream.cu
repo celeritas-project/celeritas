@@ -172,9 +172,16 @@ void Stream::free_async(void* ptr)
  */
 void Stream::launch_host_func(HostKernel func, void* data)
 {
-    CELER_EXPECT(*this);
     CELER_EXPECT(func);
-    CELER_DEVICE_API_CALL(LaunchHostFunc(impl_->stream, func, data));
+    if (*this)
+    {
+        CELER_DEVICE_API_CALL(LaunchHostFunc(impl_->stream, func, data));
+    }
+    else
+    {
+        // Execute immediately
+        func(data);
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -8,8 +8,6 @@
 
 #include <memory>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Assert.hh"  // IWYU pragma: keep
 #include "corecel/Macros.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -29,7 +27,8 @@ class Stream;
  *
  * Events provide a mechanism for querying the status of asynchronous
  * operations on GPU streams and synchronizing between host and device, and
- * synchronizing between streams.
+ * synchronizing between streams. This particular event is associated with a
+ * single stream.
  *
  * \par States
  * - \b Constructed: when build with a device stream object, the instance
@@ -65,7 +64,7 @@ class DeviceEvent
 #if !CELER_USE_DEVICE
     //! Event implementation is unavailable
     using EventT = nullptr_t;
-#elif !CELER_DEVICE_RUNTIME_INCLUDED
+#elif !defined(CELER_DEVICE_RUNTIME_INCLUDED)
     //! Sentinel type to indicate compilation error: include runtime downstream
     using MissingDeviceRuntime = void;
 #else
@@ -110,7 +109,8 @@ class DeviceEvent
     std::unique_ptr<Impl, ImplDeleter> impl_{};
 };
 
-// Block stream execution until the event is complete
+// Makes all future work submitted to stream wait for all work captured in
+// event
 void stream_wait_event(Stream& s, DeviceEvent const& e);
 
 //---------------------------------------------------------------------------//

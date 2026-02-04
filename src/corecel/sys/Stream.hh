@@ -9,8 +9,6 @@
 #include <cstddef>
 #include <memory>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Assert.hh"  // IWYU pragma: keep
 #include "corecel/Macros.hh"  // IWYU pragma: keep
 
@@ -75,7 +73,7 @@ class Stream
 #if !CELER_USE_DEVICE
     //! Stream implementation is unavailable
     using StreamT = nullptr_t;
-#elif !CELER_DEVICE_RUNTIME_INCLUDED
+#elif !defined(CELER_DEVICE_RUNTIME_INCLUDED)
     //! Sentinel type to indicate compilation error
     using MissingDeviceRuntime = void;
 #else

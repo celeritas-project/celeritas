@@ -64,12 +64,8 @@ void DeviceEvent::ImplDeleter::operator()(Impl* impl) noexcept
 DeviceEvent::DeviceEvent(StreamId stream_id)
     : DeviceEvent(device().stream(stream_id))
 {
-    CELER_VALIDATE(celeritas::device(),
-                   << "cannot construct event: device is not configured");
-    CELER_VALIDATE(stream_id < device().num_streams(),
-                   << "invalid stream ID " << stream_id.unchecked_get()
-                   << " (only " << device().num_streams()
-                   << " streams available)");
+    CELER_EXPECT(celeritas::device());
+    CELER_EXPECT(stream_id < device().num_streams());
 }
 
 //---------------------------------------------------------------------------//
@@ -78,16 +74,16 @@ DeviceEvent::DeviceEvent(StreamId stream_id)
  *
  * The stream pointer is stored internally so that \c record() can be called
  * without passing the stream.
- *
- * \pre The stream must be valid (not null or moved-from).
  */
 DeviceEvent::DeviceEvent(Stream const& stream)
 {
-    CELER_VALIDATE(stream, << "cannot construct event: stream is not valid");
-    EventT event;
-    CELER_DEVICE_API_CALL(EventCreateWithFlags(
-        &event, CELER_DEVICE_API_SYMBOL(EventDisableTiming)));
-    impl_.reset(new Impl{event, stream.get()});
+    if (stream)
+    {
+        EventT event;
+        CELER_DEVICE_API_CALL(EventCreateWithFlags(
+            &event, CELER_DEVICE_API_SYMBOL(EventDisableTiming)));
+        impl_.reset(new Impl{event, stream.get()});
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -198,9 +194,12 @@ void DeviceEvent::sync() const
  */
 void stream_wait_event(Stream& s, DeviceEvent const& e)
 {
-    CELER_EXPECT(s && e || !(celeritas::device() || s || e));
+    CELER_EXPECT(static_cast<bool>(s) == static_cast<bool>(e));
 
-    CELER_DEVICE_API_CALL(StreamWaitEvent(s.get(), e.get()));
+    if (e)
+    {
+        CELER_DEVICE_API_CALL(StreamWaitEvent(s.get(), e.get()));
+    }
 }
 
 //---------------------------------------------------------------------------//
