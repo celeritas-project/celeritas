@@ -105,6 +105,9 @@ void DeviceEvent::record(Stream const& s)
 {
     CELER_EXPECT(*this);
     CELER_DEVICE_API_CALL(EventRecord(impl_->event, s.get()));
+#if !CELER_USE_DEVICE
+    CELER_DISCARD(s);
+#endif
 }
 
 //---------------------------------------------------------------------------//

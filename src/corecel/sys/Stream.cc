@@ -17,7 +17,7 @@
 #include "Device.hh"
 #include "DeviceEvent.hh"
 
-#include "detail/AsyncMemoryResource.device.hh"
+#include "detail/AsyncMemoryResource.hh"
 
 namespace celeritas
 {
@@ -27,7 +27,7 @@ namespace
 //! Safely print a stream's ID (if possible)
 struct StreamableStream
 {
-    detail::DeviceStream_t s;
+    Stream::StreamT s;
 };
 
 #if !CELER_DEVICE_COMPILE
@@ -191,6 +191,10 @@ void Stream::launch_host_func(HostKernel func, void* data)
 {
     CELER_EXPECT(*this);
     CELER_DEVICE_API_CALL(LaunchHostFunc(impl_->stream, func, data));
+#if !CELER_USE_DEVICE
+    CELER_DISCARD(func);
+    CELER_DISCARD(data);
+#endif
 }
 
 //---------------------------------------------------------------------------//
