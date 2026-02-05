@@ -312,7 +312,7 @@ TEST_F(LarSphereTest, default)
     }
 }
 
-//----------------------------m-----------------------------------------------//
+//----------------------------------------------------------------------------//
 using MultilevelTest = ProtoConstructorTest;
 
 TEST_F(MultilevelTest, full_inline)
@@ -692,18 +692,45 @@ TEST_F(ZnenvTest, default)
         EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
+        // Lots of eliminations happen in ZNTX
         SCOPED_TRACE("ZNTX");
-        auto u = this->build_unit(protos, UnivId{1});
 
-        static char const* const expected_surface_strings[] = {
-            "Plane: y=0",
-        };
+        static char const* const expected_surface_strings[] = {"Plane: y=0"};
         static char const* const expected_volume_strings[]
             = {"F", "-6", "+6", "F"};
+        static char const* const expected_md_strings[] = {
+            R"(TGeoBBox0x0,TGeoBBox0x0@mx,TGeoBBox0x0@my,TGeoBBox0x0@mz,TGeoBBox0x0@mx,TGeoBBox0x0@my,TGeoBBox0x0@mz,ZNTX.children)",
+            R"(TGeoBBox0x0@px,TGeoBBox0x0@py,TGeoBBox0x0@pz,TGeoBBox0x0@px,TGeoBBox0x0@py,TGeoBBox0x0@pz,ZNTX,[EXTERIOR])",
+            "TGeoBBox0x0,TGeoBBox0x0@my,TGeoBBox0x0@py",
+            "TGeoBBox0x0",
+        };
+        static char const* const expected_bound_strings[] = {
+            R"(0: {{{-1.76,-3.52,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
+            R"(~1: {{{-1.76,-3.52,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
+            R"(2: {{{-1.76,0,-50}, {1.76,3.52,50}}, {{-1.76,0,-50}, {1.76,3.52,50}}})",
+            R"(3: {{{-1.76,-3.52,-50}, {1.76,0,50}}, {{-1.76,-3.52,-50}, {1.76,0,50}}})"};
+        static char const* const expected_trans_strings[] = {
+            "0: t=0 -> {}",
+            "1: t=0",
+            "2: t=2 -> {{0,1.76,0}}",
+            "3: t=1 -> {{0,-1.76,0}}",
+        };
+        static char const* const expected_fill_strings[]
+            = {"<UNASSIGNED>", "{u=0, t=1}", "{u=1, t=2}", "m2"};
+        static int const expected_volume_nodes[] = {1, 3, 2, 1};
+        static char const expected_tree_string[]
+            = R"json(["t",["~",0],["S",6],["~",2]])json";
+
+        auto u = this->build_unit(protos, UnivId{1});
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(GeoMatId{}, u.background);
+        EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+        EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+        EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
+        EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
+        EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
     {
         SCOPED_TRACE("ZN1");
