@@ -187,27 +187,19 @@ CELER_ICC barn = Constant{1e-24} * centimeter * centimeter;
  */
 namespace literals
 {
-#define CELER_DEFINE_UNIT_UDL(NAME)                                     \
-    CELER_CONSTEXPR_FUNCTION real_type operator""_##NAME(long double v) \
-    {                                                                   \
-        return static_cast<real_type>(v) * units::NAME;                 \
-    }                                                                   \
-    CELER_CONSTEXPR_FUNCTION real_type operator""_##NAME(               \
-        unsigned long long int v)                                       \
-    {                                                                   \
-        return static_cast<real_type>(v) * units::NAME;                 \
-    }
 
 #define CELER_DEFINE_UNIT_UDL_ALIAS(SUFFIX, NAME)                         \
     CELER_CONSTEXPR_FUNCTION real_type operator""_##SUFFIX(long double v) \
     {                                                                     \
         return static_cast<real_type>(v) * units::NAME;                   \
     }                                                                     \
-    CELER_CONSTEXPR_FUNCTION real_type operator""_##SUFFIX(               \
+    CELER_CONSTEXPR_FUNCTION Constant operator""_##SUFFIX(                \
         unsigned long long int v)                                         \
     {                                                                     \
-        return static_cast<real_type>(v) * units::NAME;                   \
+        return v * units::NAME;                                           \
     }
+
+#define CELER_DEFINE_UNIT_UDL(NAME) CELER_DEFINE_UNIT_UDL_ALIAS(NAME, NAME)
 
 CELER_DEFINE_UNIT_UDL(centimeter)
 CELER_DEFINE_UNIT_UDL_ALIAS(cm, centimeter)
@@ -241,12 +233,6 @@ CELER_DEFINE_UNIT_UDL(millimeter)
 CELER_DEFINE_UNIT_UDL_ALIAS(mm, millimeter)
 CELER_DEFINE_UNIT_UDL(nanosecond)
 CELER_DEFINE_UNIT_UDL_ALIAS(ns, nanosecond)
-#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-CELER_DEFINE_UNIT_UDL(megaelectronvolt)
-CELER_DEFINE_UNIT_UDL_ALIAS(MeV, megaelectronvolt)
-CELER_DEFINE_UNIT_UDL(e_electron)
-CELER_DEFINE_UNIT_UDL_ALIAS(e, e_electron)
-#endif
 CELER_DEFINE_UNIT_UDL(micrometer)
 CELER_DEFINE_UNIT_UDL_ALIAS(um, micrometer)
 CELER_DEFINE_UNIT_UDL(nanometer)
@@ -256,8 +242,8 @@ CELER_DEFINE_UNIT_UDL_ALIAS(fm, femtometer)
 CELER_DEFINE_UNIT_UDL(barn)
 CELER_DEFINE_UNIT_UDL_ALIAS(b, barn)
 
-#undef CELER_DEFINE_UNIT_UDL
 #undef CELER_DEFINE_UNIT_UDL_ALIAS
+#undef CELER_DEFINE_UNIT_UDL
 }  // namespace literals
 
 //---------------------------------------------------------------------------//

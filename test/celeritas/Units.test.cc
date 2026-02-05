@@ -139,13 +139,6 @@ TEST(UnitsTest, literals)
     EXPECT_REAL_EQ(16 * units::nanometer, 16_nm);
     EXPECT_REAL_EQ(17 * units::femtometer, 17_femtometer);
     EXPECT_REAL_EQ(17 * units::femtometer, 17_fm);
-
-#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-    EXPECT_REAL_EQ(6 * units::megaelectronvolt, 6_megaelectronvolt);
-    EXPECT_REAL_EQ(6 * units::megaelectronvolt, 6_MeV);
-    EXPECT_REAL_EQ(1 * units::e_electron, 1_e_electron);
-    EXPECT_REAL_EQ(1 * units::e_electron, 1_e);
-#endif
 }
 
 //---------------------------------------------------------------------------//
