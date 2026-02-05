@@ -95,6 +95,53 @@ TEST(UnitsTest, trait_visitor)
 }
 
 //---------------------------------------------------------------------------//
+TEST(UnitsTest, literals)
+{
+    using namespace celeritas::units::literals;
+
+    EXPECT_REAL_EQ(2.5 * units::centimeter, 2.5_centimeter);
+    EXPECT_REAL_EQ(2.5 * units::centimeter, 2.5_cm);
+    EXPECT_REAL_EQ(3 * units::meter, 3_meter);
+    EXPECT_REAL_EQ(3 * units::meter, 3_m);
+    EXPECT_REAL_EQ(7 * units::millimeter, 7_millimeter);
+    EXPECT_REAL_EQ(7 * units::millimeter, 7_mm);
+    EXPECT_REAL_EQ(4 * units::nanosecond, 4_nanosecond);
+    EXPECT_REAL_EQ(4 * units::nanosecond, 4_ns);
+    EXPECT_REAL_EQ(1.25 * units::tesla, 1.25_tesla);
+    EXPECT_REAL_EQ(1.25 * units::tesla, 1.25_T);
+    EXPECT_REAL_EQ(2 * units::gram, 2_gram);
+    EXPECT_REAL_EQ(2 * units::gram, 2_g);
+    EXPECT_REAL_EQ(5 * units::barn, 5_barn);
+    EXPECT_REAL_EQ(5 * units::barn, 5_b);
+    EXPECT_REAL_EQ(1.5 * units::second, 1.5_second);
+    EXPECT_REAL_EQ(1.5 * units::second, 1.5_s);
+    EXPECT_REAL_EQ(1 * units::gauss, 1_gauss);
+    EXPECT_REAL_EQ(1 * units::gauss, 1_G);
+    EXPECT_REAL_EQ(300 * units::kelvin, 300_kelvin);
+    EXPECT_REAL_EQ(300 * units::kelvin, 300_K);
+    EXPECT_REAL_EQ(2 * units::kilogram, 2_kilogram);
+    EXPECT_REAL_EQ(2 * units::kilogram, 2_kg);
+    EXPECT_REAL_EQ(9 * units::newton, 9_newton);
+    EXPECT_REAL_EQ(9 * units::newton, 9_N);
+    EXPECT_REAL_EQ(10 * units::joule, 10_joule);
+    EXPECT_REAL_EQ(10 * units::joule, 10_J);
+    EXPECT_REAL_EQ(11 * units::coulomb, 11_coulomb);
+    EXPECT_REAL_EQ(11 * units::coulomb, 11_C);
+    EXPECT_REAL_EQ(12 * units::ampere, 12_ampere);
+    EXPECT_REAL_EQ(12 * units::ampere, 12_A);
+    EXPECT_REAL_EQ(13 * units::volt, 13_volt);
+    EXPECT_REAL_EQ(13 * units::volt, 13_V);
+    EXPECT_REAL_EQ(14 * units::farad, 14_farad);
+    EXPECT_REAL_EQ(14 * units::farad, 14_F);
+    EXPECT_REAL_EQ(15 * units::micrometer, 15_micrometer);
+    EXPECT_REAL_EQ(15 * units::micrometer, 15_um);
+    EXPECT_REAL_EQ(16 * units::nanometer, 16_nanometer);
+    EXPECT_REAL_EQ(16 * units::nanometer, 16_nm);
+    EXPECT_REAL_EQ(17 * units::femtometer, 17_femtometer);
+    EXPECT_REAL_EQ(17 * units::femtometer, 17_fm);
+}
+
+//---------------------------------------------------------------------------//
 TEST(UnitsTest, clhep)
 {
 #if CELERITAS_USE_GEANT4
