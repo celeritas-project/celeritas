@@ -31,14 +31,14 @@ class MuonicAtomSelectorTest : public Test
 
     void SetUp() override {}
 
-    real_type calc_deuterium_q1s_prob(real_type deuterium_frac)
+    double calc_deuterium_q1s_prob(double deuterium_frac)
     {
-        real_type const tritium_frac = 1 - deuterium_frac;
-        real_type q1s = 1.0 / (1.0 + 2.9 * tritium_frac);
+        double const tritium_frac = 1 - deuterium_frac;
+        double q1s = 1.0 / (1.0 + 2.9 * tritium_frac);
         return deuterium_frac * q1s;
     }
 
-    real_type calc_sigma(real_type num_samples, real_type success_prob)
+    double calc_sigma(double num_samples, double success_prob)
     {
         return std::sqrt(num_samples * success_prob * (1 - success_prob));
     }
@@ -94,7 +94,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_tritium)
 TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 {
     // 50/50 mixture
-    real_type const d_frac = 0.5;
+    double const d_frac = 0.5;
     MuonicAtomSelector select_atom(d_frac);
 
     size_type const num_samples = 10000;
@@ -118,10 +118,11 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        real_type const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
-        real_type const expected_d_count = num_samples * expected_d_prob;
+        double const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
+        double const expected_d_count = static_cast<double>(num_samples)
+                                        * expected_d_prob;
         // 3 sigma tolerance
-        real_type const tolerance
+        double const tolerance
             = 3 * this->calc_sigma(num_samples, expected_d_prob);
 
         EXPECT_NEAR(expected_d_count, deuterium_count, tolerance);
@@ -133,7 +134,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 TEST_F(MuonicAtomSelectorTest, muonic_atom_asymmetric_mixture)
 {
     // 70/30 mixture
-    real_type const d_frac = 0.7;
+    double const d_frac = 0.7;
     MuonicAtomSelector select_atom(d_frac);
 
     size_type const num_samples = 10000;
@@ -150,10 +151,11 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_asymmetric_mixture)
 
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        real_type const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
-        real_type const expected_d_count = num_samples * expected_d_prob;
+        double const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
+        double const expected_d_count = static_cast<double>(num_samples)
+                                        * expected_d_prob;
         // 3 sigma tolerance
-        real_type const tolerance
+        double const tolerance
             = 3 * this->calc_sigma(num_samples, expected_d_prob);
 
         EXPECT_NEAR(expected_d_count, deuterium_count, tolerance);
@@ -191,11 +193,11 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_deuterium)
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         // Expected: 2/3 for spin 3/2, 1/3 for spin 1/2
-        real_type expected_3_2_prob = 2.0 / 3.0;
-        real_type expected_3_2_count = num_samples * expected_3_2_prob;
+        double expected_3_2_prob = 2.0 / 3.0;
+        double expected_3_2_count = static_cast<double>(num_samples)
+                                    * expected_3_2_prob;
         // 3 sigma tolerance
-        real_type tolerance
-            = 3 * this->calc_sigma(num_samples, expected_3_2_prob);
+        double tolerance = 3 * this->calc_sigma(num_samples, expected_3_2_prob);
 
         EXPECT_NEAR(expected_3_2_count, spin_3_2_count, tolerance);
         EXPECT_NEAR(
@@ -234,10 +236,11 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_tritium)
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         // Expected: 3/4 for spin 1, 1/4 for spin 0
-        real_type const expected_1_prob = 0.75;
-        real_type const expected_1_count = num_samples * expected_1_prob;
+        double const expected_1_prob = 0.75;
+        double const expected_1_count = static_cast<double>(num_samples)
+                                        * expected_1_prob;
         // 3 sigma tolerance
-        real_type const tolerance
+        double const tolerance
             = 3 * this->calc_sigma(num_samples, expected_1_prob);
 
         EXPECT_NEAR(expected_1_count, spin_1_count, tolerance);
