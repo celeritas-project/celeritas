@@ -62,7 +62,8 @@ MucfInteractorHostBase::MucfInteractorHostBase()
          muon_mass,
          ElementaryCharge{1},
          native_value_from(muon_decay_constant)},
-        // Nuclei and ions
+
+        // Ions
         {"proton",
          pdg::proton(),
          protium_mass,
@@ -89,9 +90,31 @@ MucfInteractorHostBase::MucfInteractorHostBase()
          ElementaryCharge{2},
          stable_decay_constant},
         {"he3", pdg::he3(), he3_mass, ElementaryCharge{2}, stable_decay_constant},
+
+        // Muonic atoms
+        {"muonic_hydrogen",
+         pdg::muonic_hydrogen(),
+         protium_mass + muon_mass,
+         ElementaryCharge{1},
+         stable_decay_constant},
+        {"muonic_deuteron",
+         pdg::muonic_deuteron(),
+         deuterium_mass + muon_mass,
+         ElementaryCharge{1},
+         stable_decay_constant},
+        {"muonic_triton",
+         pdg::muonic_triton(),
+         tritium_mass + muon_mass,
+         ElementaryCharge{1},
+         stable_decay_constant},
         {"muonic_alpha",
          pdg::muonic_alpha(),
          alpha_mass + muon_mass,
+         ElementaryCharge{1},
+         native_value_from(muon_decay_constant)},
+        {"muonic_he3",
+         pdg::muonic_he3(),
+         he3_mass + muon_mass,
          ElementaryCharge{1},
          native_value_from(muon_decay_constant)},
     };
