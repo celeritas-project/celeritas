@@ -10,6 +10,8 @@
 #include <utility>
 #include <vector>
 
+#include "corecel/math/HashUtils.hh"
+
 #include "../CsgTree.hh"
 #include "../CsgTypes.hh"
 
@@ -133,8 +135,7 @@ class DeMorganSimplifier
     //! an opposite join node with negated operands
     std::vector<bool> negated_join_nodes_;
 
-    //! Parents matrix. For nodes n1, n2, if n1 * tree_.size() + n2 is set, it
-    //! means that n2 is a parent of n1
+    //! Parents matrix. If the pair {e1, e2} exists, e2 is parent of e1
     SparseMatrix2D parents_;
 
     //! Used during construction of the simplified tree to map replaced nodes
