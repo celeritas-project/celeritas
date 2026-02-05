@@ -72,8 +72,8 @@ class Stream
     //! \name Type aliases
 #if !CELER_USE_DEVICE
     //! Stream implementation is unavailable
-    using StreamT = nullptr_t;
-    using ResourceT = nullptr_t;
+    using StreamT = std::nullptr_t;
+    using ResourceT = std::nullptr_t;
 #elif !defined(CELER_DEVICE_RUNTIME_INCLUDED)
     //! Sentinel type to indicate compilation error
     using MissingDeviceRuntime = void;

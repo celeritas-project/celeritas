@@ -63,7 +63,7 @@ class DeviceEvent
   public:
 #if !CELER_USE_DEVICE
     //! Event implementation is unavailable
-    using EventT = nullptr_t;
+    using EventT = std::nullptr_t;
 #elif !defined(CELER_DEVICE_RUNTIME_INCLUDED)
     //! Sentinel type to indicate compilation error: include runtime downstream
     using MissingDeviceRuntime = void;
