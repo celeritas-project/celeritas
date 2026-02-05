@@ -22,14 +22,6 @@ namespace detail
 struct BoundingZone;
 struct IntersectSurfaceState;
 struct CsgUnit;
-
-//---------------------------------------------------------------------------//
-// Define expected in samem namespace to allow ADL
-void print_expected(CsgUnit const&);
-void print_expected(IntersectSurfaceState const&);
-void print_expected(BoundingZone const&);
-
-//---------------------------------------------------------------------------//
 }  // namespace detail
 
 namespace test
@@ -49,6 +41,9 @@ std::vector<std::string> fill_strings(detail::CsgUnit const& u);
 std::vector<real_type> flattened(detail::BoundingZone const& bz);
 
 std::string count_surface_types(detail::CsgUnit const& u);
+
+void print_expected(detail::CsgUnit const& u);
+void print_expected(detail::IntersectSurfaceState const& css);
 
 // Functions for `join_stream`
 void stream_node_id(std::ostream& os, NodeId n);

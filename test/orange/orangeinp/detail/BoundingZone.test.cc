@@ -11,7 +11,6 @@
 #include "orange/BoundingBoxUtils.hh"
 
 #include "celeritas_test.hh"
-#include "../CsgTestUtils.hh"
 
 namespace celeritas
 {
@@ -85,6 +84,36 @@ class BoundingZoneTest : public ::celeritas::test::Test
         }
         // Inside or on interior box
         return bz.negated ? IsInside::no : IsInside::yes;
+    }
+
+    static void print_expected(BoundingZone const& bz)
+    {
+        cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+             << (bz.negated ? "EXPECT_TRUE" : "EXPECT_FALSE")
+             << "(bz.negated);\n";
+
+#define BZ_EXPECTED_PT(BOX, POINT)                                          \
+    cout << "EXPECT_VEC_SOFT_EQ((Real3" << repr(bz.BOX.POINT()) << "), bz." \
+         << #BOX "." #POINT "());\n"
+#define BZ_EXPECTED(BOX)                                            \
+    if (!bz.BOX)                                                    \
+    {                                                               \
+        cout << "EXPECT_FALSE(bz." #BOX ") << bz." #BOX ";\n";      \
+    }                                                               \
+    else if (bz.BOX == BBox::from_infinite())                       \
+    {                                                               \
+        cout << "EXPECT_EQ(BBox::from_infinite(), bz." #BOX ");\n"; \
+    }                                                               \
+    else                                                            \
+    {                                                               \
+        BZ_EXPECTED_PT(BOX, lower);                                 \
+        BZ_EXPECTED_PT(BOX, upper);                                 \
+    }
+        BZ_EXPECTED(interior);
+        BZ_EXPECTED(exterior);
+#undef BZ_EXPECTED_PT
+#undef BZ_EXPECTED
+        cout << "/*** END CODE ***/\n";
     }
 };
 
