@@ -329,11 +329,12 @@ void UnitProto::build(ProtoBuilder& pb) const
         NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
         // Construct logic and faces with remapped surfaces
+        detail::PostfixBuildLogicPolicy const policy{csg_unit.tree,
+                                                     sorted_local_surfaces};
         auto&& [faces, logic] = detail::build_logic(
             // always use postfix logic for unit input, post-processing to
             // convert to tracking notation
-            detail::PostfixBuildLogicPolicy{csg_unit.tree,
-                                            sorted_local_surfaces},
+            policy,
             node_id);
         vi.faces = std::move(faces);
         vi.logic = std::move(logic);

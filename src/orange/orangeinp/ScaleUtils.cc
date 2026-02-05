@@ -20,9 +20,11 @@ std::vector<logic_int> build_postfix_logic(CsgTree const& tree, NodeId n)
 {
     using celeritas::orangeinp::detail::PostfixBuildLogicPolicy;
 
-    PostfixBuildLogicPolicy policy{tree};
-    policy(n);
-    return std::move(policy).logic();
+    PostfixBuildLogicPolicy const policy{tree};
+    std::vector<logic_int> logic;
+    auto visitor = policy(logic);
+    visitor(n);
+    return logic;
 }
 
 //---------------------------------------------------------------------------//

@@ -80,36 +80,33 @@ inline BuildLogicResult::VecSurface remap_faces(BuildLogicResult::VecLogic& lgc)
  * the surfaces remapped to the index of the surface in the face vector.
  *
  * The function is templated on a policy class that determines the logic
- * representation. The policy class must have an operator() that takes a
- * NodeId.
+ * representation. The policy acts as a factory that creates a visitor to build
+ * the logic expression.
  *
  * The per-node local surfaces (faces) are sorted in ascending order of ID, not
  * of access, since they're always evaluated sequentially rather than as part
  * of the logic evaluation itself.
  */
 template<class BuildLogicPolicy>
-inline BuildLogicResult build_logic(BuildLogicPolicy&& policy, NodeId n)
+inline BuildLogicResult build_logic(BuildLogicPolicy const& policy, NodeId n)
 {
-    static_assert(std::is_invocable_v<BuildLogicPolicy, NodeId>);
-    static_assert(std::is_rvalue_reference_v<BuildLogicPolicy&&>,
-                  "Will move from policy: rvalue ref expected");
-    CELER_EXPECT(policy.empty());
-
     // Construct logic vector as local surface IDs
-    policy(n);
-    auto lgc = std::forward<BuildLogicPolicy>(policy).logic();
+    BuildLogicResult::VecLogic lgc;
+    auto visitor = policy(lgc);
+    visitor(n);
     return {remap_faces(lgc), std::move(lgc)};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Base class for logic builder policies following CRTP pattern.
+ * Base class for logic builder visitors following CRTP pattern.
  *
+ * Visitors recursively traverse the CSG tree and append to a logic vector.
  * The call operator for Negated and Joined are not implemented in the base
- * policy and must be provided by the derived class.
+ * visitor and must be provided by the derived class.
  */
-template<class BuilderPolicy>
-class BaseBuildLogicPolicy
+template<class BuilderVisitor>
+class BaseBuildLogicVisitor
 {
   public:
     //!@{
@@ -124,9 +121,11 @@ class BaseBuildLogicPolicy
 
   public:
     // Construct without mapping
-    explicit inline BaseBuildLogicPolicy(CsgTree const& tree);
+    inline BaseBuildLogicVisitor(CsgTree const& tree, VecLogic& logic);
     // Construct with optional mapping
-    inline BaseBuildLogicPolicy(CsgTree const& tree, VecSurface const& vs);
+    inline BaseBuildLogicVisitor(CsgTree const& tree,
+                                 VecLogic& logic,
+                                 VecSurface const& vs);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
@@ -143,31 +142,26 @@ class BaseBuildLogicPolicy
     inline void operator()(Aliased const&);
     //!@}
 
-    //! Whether no logic has been filled
-    bool empty() const { return logic_.empty(); }
-
-    //! Access the logic expression
-    VecLogic&& logic() && { return std::move(logic_); }
-
   protected:
     //! Access the logic expression directly
-    VecLogic& logic() & { return logic_; }
+    VecLogic& logic() { return logic_; }
 
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
     VecSurface const* mapping_{nullptr};
-    VecLogic logic_;
+    VecLogic& logic_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct without mapping.
  */
-template<class BuilderPolicy>
-BaseBuildLogicPolicy<BuilderPolicy>::BaseBuildLogicPolicy(CsgTree const& tree)
-    : visit_node_{tree}
+template<class BuilderVisitor>
+BaseBuildLogicVisitor<BuilderVisitor>::BaseBuildLogicVisitor(CsgTree const& tree,
+                                                             VecLogic& logic)
+    : visit_node_{tree}, logic_{logic}
 {
-    static_assert(std::is_base_of_v<BaseBuildLogicPolicy, BuilderPolicy>,
+    static_assert(std::is_base_of_v<BaseBuildLogicVisitor, BuilderVisitor>,
                   "CRTP: template parameter must be derived class");
 }
 
@@ -179,12 +173,12 @@ BaseBuildLogicPolicy<BuilderPolicy>::BaseBuildLogicPolicy(CsgTree const& tree)
  * Those surface IDs will be replaced by the index in the array. All existing
  * surface IDs must be present!
  */
-template<class BuilderPolicy>
-BaseBuildLogicPolicy<BuilderPolicy>::BaseBuildLogicPolicy(CsgTree const& tree,
-                                                          VecSurface const& vs)
-    : visit_node_{tree}, mapping_{&vs}
+template<class BuilderVisitor>
+BaseBuildLogicVisitor<BuilderVisitor>::BaseBuildLogicVisitor(
+    CsgTree const& tree, VecLogic& logic, VecSurface const& vs)
+    : visit_node_{tree}, mapping_{&vs}, logic_{logic}
 {
-    static_assert(std::is_base_of_v<BaseBuildLogicPolicy, BuilderPolicy>,
+    static_assert(std::is_base_of_v<BaseBuildLogicVisitor, BuilderVisitor>,
                   "CRTP: template parameter must be derived class");
 }
 
@@ -192,18 +186,18 @@ BaseBuildLogicPolicy<BuilderPolicy>::BaseBuildLogicPolicy(CsgTree const& tree,
 /*!
  * Build from a node ID.
  */
-template<class BuilderPolicy>
-void BaseBuildLogicPolicy<BuilderPolicy>::operator()(NodeId const& n)
+template<class BuilderVisitor>
+void BaseBuildLogicVisitor<BuilderVisitor>::operator()(NodeId const& n)
 {
-    visit_node_(static_cast<BuilderPolicy&>(*this), n);
+    visit_node_(static_cast<BuilderVisitor&>(*this), n);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Append the "true" token.
  */
-template<class BuilderPolicy>
-void BaseBuildLogicPolicy<BuilderPolicy>::operator()(True const&)
+template<class BuilderVisitor>
+void BaseBuildLogicVisitor<BuilderVisitor>::operator()(True const&)
 {
     logic_.push_back(logic::ltrue);
 }
@@ -214,8 +208,8 @@ void BaseBuildLogicPolicy<BuilderPolicy>::operator()(True const&)
  *
  * The 'false' standin is always aliased to "not true" in the CSG tree.
  */
-template<class BuilderPolicy>
-void BaseBuildLogicPolicy<BuilderPolicy>::operator()(False const&)
+template<class BuilderVisitor>
+void BaseBuildLogicVisitor<BuilderVisitor>::operator()(False const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
@@ -224,8 +218,8 @@ void BaseBuildLogicPolicy<BuilderPolicy>::operator()(False const&)
 /*!
  * Push a surface ID.
  */
-template<class BuilderPolicy>
-void BaseBuildLogicPolicy<BuilderPolicy>::operator()(Surface const& s)
+template<class BuilderVisitor>
+void BaseBuildLogicVisitor<BuilderVisitor>::operator()(Surface const& s)
 {
     CELER_EXPECT(s.id < logic::lbegin);
     // Get index of original surface or remapped
@@ -253,41 +247,30 @@ void BaseBuildLogicPolicy<BuilderPolicy>::operator()(Surface const& s)
  * Aliased node shouldn't be reachable if the tree is fully simplified, but
  * could be reachable for testing purposes.
  */
-template<class BuilderPolicy>
-void BaseBuildLogicPolicy<BuilderPolicy>::operator()(Aliased const& n)
+template<class BuilderVisitor>
+void BaseBuildLogicVisitor<BuilderVisitor>::operator()(Aliased const& n)
 {
     (*this)(n.node);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Recursively construct a logic vector from a node with postfix operation.
- *
- * This is a policy used as template parameter of the \c build_logic function.
- * The user invokes this class with a node ID (usually representing a cell),
- * and then this class recurses into the daughters using a tree visitor.
+ * Visitor for constructing logic in postfix notation.
  *
  * Example: \verbatim
-    all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
-    all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
+    all(1, 3, 5) -> "0 1 & 2 & &"
+    all(1, 3, !all(2, 4)) -> "0 2 & 1 3 & ~ &"
  * \endverbatim
  */
-class PostfixBuildLogicPolicy
-    : public BaseBuildLogicPolicy<PostfixBuildLogicPolicy>
+class PostfixBuildLogicVisitor
+    : public BaseBuildLogicVisitor<PostfixBuildLogicVisitor>
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using BaseBuildLogicPolicy::VecLogic;
-    using BaseBuildLogicPolicy::VecSurface;
-    //!@}
-
-  public:
-    using BaseBuildLogicPolicy::BaseBuildLogicPolicy;
+    using BaseBuildLogicVisitor::BaseBuildLogicVisitor;
 
     //!@{
     //! \name Visit a node directly
-    using BaseBuildLogicPolicy::operator();
+    using BaseBuildLogicVisitor::operator();
 
     //! Visit a negated node and append 'not'.
     void operator()(Negated const& n)
@@ -316,32 +299,67 @@ class PostfixBuildLogicPolicy
 
 //---------------------------------------------------------------------------//
 /*!
- * Recursively construct a logic vector from a node with infix operation.
+ * Policy for building logic in postfix notation.
  *
- * This is a policy used as template parameter of \c build_logic.
- * The user invokes this class with a node ID (usually representing a cell),
- * and then this class recurses into the daughters using a tree visitor.
+ * This immutable factory creates visitors that construct logic expressions
+ * in postfix notation. It can be passed by const reference to \c build_logic.
  *
  * Example: \verbatim
-    all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2)"}
-    all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
+    all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
+    all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
  * \endverbatim
  */
-class InfixBuildLogicPolicy : public BaseBuildLogicPolicy<InfixBuildLogicPolicy>
+class PostfixBuildLogicPolicy
 {
   public:
     //!@{
     //! \name Type aliases
-    using BaseBuildLogicPolicy::VecLogic;
-    using BaseBuildLogicPolicy::VecSurface;
+    using VecLogic = std::vector<logic_int>;
+    using VecSurface = std::vector<LocalSurfaceId>;
     //!@}
 
   public:
-    using BaseBuildLogicPolicy::BaseBuildLogicPolicy;
+    // Construct without mapping
+    explicit PostfixBuildLogicPolicy(CsgTree const& tree) : tree_{tree} {}
+    // Construct with optional mapping
+    PostfixBuildLogicPolicy(CsgTree const& tree, VecSurface const& vs)
+        : tree_{tree}, mapping_{&vs}
+    {
+    }
+
+    //! Create a visitor for building logic
+    auto operator()(VecLogic& logic) const
+    {
+        if (mapping_)
+        {
+            return PostfixBuildLogicVisitor{tree_, logic, *mapping_};
+        }
+        return PostfixBuildLogicVisitor{tree_, logic};
+    }
+
+  private:
+    CsgTree const& tree_;
+    VecSurface const* mapping_{nullptr};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Visitor for constructing logic in infix notation.
+ *
+ * Example: \verbatim
+    all(1, 3, 5) -> "(0 & 1 & 2)"
+    all(1, 3, any(~(2), ~(4))) -> "(0 & 2 & (~1 | ~3))"
+ * \endverbatim
+ */
+class InfixBuildLogicVisitor
+    : public BaseBuildLogicVisitor<InfixBuildLogicVisitor>
+{
+  public:
+    using BaseBuildLogicVisitor::BaseBuildLogicVisitor;
 
     //!@{
     //! \name Visit a node directly
-    using BaseBuildLogicPolicy::operator();
+    using BaseBuildLogicVisitor::operator();
 
     //! Append 'not' and visit a negated node.
     void operator()(Negated const& n)
@@ -368,6 +386,51 @@ class InfixBuildLogicPolicy : public BaseBuildLogicPolicy<InfixBuildLogicPolicy>
         logic.push_back(logic::lclose);
     }
     //!@}
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Policy for building logic in infix notation.
+ *
+ * This immutable factory creates visitors that construct logic expressions
+ * in infix notation. It can be passed by const reference to \c build_logic.
+ *
+ * Example: \verbatim
+    all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2)"}
+    all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
+ * \endverbatim
+ */
+class InfixBuildLogicPolicy
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecLogic = std::vector<logic_int>;
+    using VecSurface = std::vector<LocalSurfaceId>;
+    //!@}
+
+  public:
+    // Construct without mapping
+    explicit InfixBuildLogicPolicy(CsgTree const& tree) : tree_{tree} {}
+    // Construct with optional mapping
+    InfixBuildLogicPolicy(CsgTree const& tree, VecSurface const& vs)
+        : tree_{tree}, mapping_{&vs}
+    {
+    }
+
+    //! Create a visitor for building logic
+    auto operator()(VecLogic& logic) const
+    {
+        if (mapping_)
+        {
+            return InfixBuildLogicVisitor{tree_, logic, *mapping_};
+        }
+        return InfixBuildLogicVisitor{tree_, logic};
+    }
+
+  private:
+    CsgTree const& tree_;
+    VecSurface const* mapping_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

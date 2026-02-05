@@ -132,14 +132,16 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
 
     // Test postfix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
-    auto build_postfix =
-        [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
-            if (mapping)
-            {
-                return build_logic(PostfixBuildLogicPolicy{tree_, *mapping}, n);
-            }
-            return build_logic(PostfixBuildLogicPolicy{tree_}, n);
-        };
+    auto build_postfix
+        = [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
+              if (mapping)
+              {
+                  PostfixBuildLogicPolicy const policy{tree_, *mapping};
+                  return build_logic(policy, n);
+              }
+              PostfixBuildLogicPolicy const policy{tree_};
+              return build_logic(policy, n);
+          };
 
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
@@ -305,14 +307,16 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
 
     // Test infix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
-    auto build_infix =
-        [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
-            if (mapping)
-            {
-                return build_logic(InfixBuildLogicPolicy{tree_, *mapping}, n);
-            }
-            return build_logic(InfixBuildLogicPolicy{tree_}, n);
-        };
+    auto build_infix
+        = [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
+              if (mapping)
+              {
+                  InfixBuildLogicPolicy const policy{tree_, *mapping};
+                  return build_logic(policy, n);
+              }
+              InfixBuildLogicPolicy const policy{tree_};
+              return build_logic(policy, n);
+          };
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
         auto&& [faces, lgc] = build_infix(mz);
