@@ -188,7 +188,7 @@ CELER_ICC barn = Constant{1e-24} * centimeter * centimeter;
 namespace literals
 {
 
-#define CELER_DEFINE_UNIT_UDL_ALIAS(SUFFIX, NAME)                         \
+#define CELER_DEFINE_UNIT_UDL(SUFFIX, NAME)                               \
     CELER_CONSTEXPR_FUNCTION real_type operator""_##SUFFIX(long double v) \
     {                                                                     \
         return static_cast<real_type>(v) * units::NAME;                   \
@@ -197,52 +197,38 @@ namespace literals
         unsigned long long int v)                                         \
     {                                                                     \
         return v * units::NAME;                                           \
+    }                                                                     \
+    CELER_CONSTEXPR_FUNCTION real_type operator""_##NAME(long double v)   \
+    {                                                                     \
+        return static_cast<real_type>(v) * units::NAME;                   \
+    }                                                                     \
+    CELER_CONSTEXPR_FUNCTION Constant operator""_##NAME(                  \
+        unsigned long long int v)                                         \
+    {                                                                     \
+        return v * units::NAME;                                           \
     }
 
-#define CELER_DEFINE_UNIT_UDL(NAME) CELER_DEFINE_UNIT_UDL_ALIAS(NAME, NAME)
+CELER_DEFINE_UNIT_UDL(cm, centimeter)
+CELER_DEFINE_UNIT_UDL(g, gram)
+CELER_DEFINE_UNIT_UDL(s, second)
+CELER_DEFINE_UNIT_UDL(G, gauss)
+CELER_DEFINE_UNIT_UDL(K, kelvin)
+CELER_DEFINE_UNIT_UDL(m, meter)
+CELER_DEFINE_UNIT_UDL(kg, kilogram)
+CELER_DEFINE_UNIT_UDL(T, tesla)
+CELER_DEFINE_UNIT_UDL(N, newton)
+CELER_DEFINE_UNIT_UDL(J, joule)
+CELER_DEFINE_UNIT_UDL(C, coulomb)
+CELER_DEFINE_UNIT_UDL(A, ampere)
+CELER_DEFINE_UNIT_UDL(V, volt)
+CELER_DEFINE_UNIT_UDL(F, farad)
+CELER_DEFINE_UNIT_UDL(mm, millimeter)
+CELER_DEFINE_UNIT_UDL(ns, nanosecond)
+CELER_DEFINE_UNIT_UDL(um, micrometer)
+CELER_DEFINE_UNIT_UDL(nm, nanometer)
+CELER_DEFINE_UNIT_UDL(fm, femtometer)
+CELER_DEFINE_UNIT_UDL(b, barn)
 
-CELER_DEFINE_UNIT_UDL(centimeter)
-CELER_DEFINE_UNIT_UDL_ALIAS(cm, centimeter)
-CELER_DEFINE_UNIT_UDL(gram)
-CELER_DEFINE_UNIT_UDL_ALIAS(g, gram)
-CELER_DEFINE_UNIT_UDL(second)
-CELER_DEFINE_UNIT_UDL_ALIAS(s, second)
-CELER_DEFINE_UNIT_UDL(gauss)
-CELER_DEFINE_UNIT_UDL_ALIAS(G, gauss)
-CELER_DEFINE_UNIT_UDL(kelvin)
-CELER_DEFINE_UNIT_UDL_ALIAS(K, kelvin)
-CELER_DEFINE_UNIT_UDL(meter)
-CELER_DEFINE_UNIT_UDL_ALIAS(m, meter)
-CELER_DEFINE_UNIT_UDL(kilogram)
-CELER_DEFINE_UNIT_UDL_ALIAS(kg, kilogram)
-CELER_DEFINE_UNIT_UDL(tesla)
-CELER_DEFINE_UNIT_UDL_ALIAS(T, tesla)
-CELER_DEFINE_UNIT_UDL(newton)
-CELER_DEFINE_UNIT_UDL_ALIAS(N, newton)
-CELER_DEFINE_UNIT_UDL(joule)
-CELER_DEFINE_UNIT_UDL_ALIAS(J, joule)
-CELER_DEFINE_UNIT_UDL(coulomb)
-CELER_DEFINE_UNIT_UDL_ALIAS(C, coulomb)
-CELER_DEFINE_UNIT_UDL(ampere)
-CELER_DEFINE_UNIT_UDL_ALIAS(A, ampere)
-CELER_DEFINE_UNIT_UDL(volt)
-CELER_DEFINE_UNIT_UDL_ALIAS(V, volt)
-CELER_DEFINE_UNIT_UDL(farad)
-CELER_DEFINE_UNIT_UDL_ALIAS(F, farad)
-CELER_DEFINE_UNIT_UDL(millimeter)
-CELER_DEFINE_UNIT_UDL_ALIAS(mm, millimeter)
-CELER_DEFINE_UNIT_UDL(nanosecond)
-CELER_DEFINE_UNIT_UDL_ALIAS(ns, nanosecond)
-CELER_DEFINE_UNIT_UDL(micrometer)
-CELER_DEFINE_UNIT_UDL_ALIAS(um, micrometer)
-CELER_DEFINE_UNIT_UDL(nanometer)
-CELER_DEFINE_UNIT_UDL_ALIAS(nm, nanometer)
-CELER_DEFINE_UNIT_UDL(femtometer)
-CELER_DEFINE_UNIT_UDL_ALIAS(fm, femtometer)
-CELER_DEFINE_UNIT_UDL(barn)
-CELER_DEFINE_UNIT_UDL_ALIAS(b, barn)
-
-#undef CELER_DEFINE_UNIT_UDL_ALIAS
 #undef CELER_DEFINE_UNIT_UDL
 }  // namespace literals
 
