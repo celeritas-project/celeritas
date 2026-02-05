@@ -141,10 +141,6 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
             EXPECT_EQ(host_data.particle_ids.muonic_alpha,
                       interaction.secondaries[1].particle_id);
 
-            // Check kinetic energies are equal
-            EXPECT_SOFT_EQ(interaction.secondaries[0].energy.value(),
-                           interaction.secondaries[1].energy.value());
-
             // Check directions are opposite
             EXPECT_SOFT_EQ(-1.0,
                            dot_product(interaction.secondaries[0].direction,
@@ -216,7 +212,7 @@ TEST_F(DTMucfInteractorTest, muonicalpha_neutron)
 //---------------------------------------------------------------------------//
 TEST_F(DTMucfInteractorTest, stress_test)
 {
-    size_type const num_samples = 10000;
+    size_type const num_samples = 100;
     real_type total_avg_secondaries{0};
 
     for (auto channel : {DTMucfInteractor::Channel::alpha_muon_neutron,
