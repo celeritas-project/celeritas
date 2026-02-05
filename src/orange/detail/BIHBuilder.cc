@@ -27,7 +27,7 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
     , inp_{inp}
 {
     CELER_EXPECT(storage);
-    CELER_EXPECT(inp_.min_split_size > 1);
+    CELER_EXPECT(inp_.max_leaf_size > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -138,7 +138,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         (*nodes)[current_index] = node;
     };
 
-    if (indices.size() < inp_.min_split_size)
+    if (indices.size() <= inp_.max_leaf_size)
     {
         // All bboxes fit on a single leaf; make it and exit early
         make_leaf();
