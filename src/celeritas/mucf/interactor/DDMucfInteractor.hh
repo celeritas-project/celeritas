@@ -26,7 +26,7 @@ namespace celeritas
  * Fusion channels:
  * - \f$ ^3\text{He} + \mu + n \f$
  * - \f$ (^3\text{He})_\mu + n \f$
- * - \f$ ^3\text{H} + \mu + p \f$
+ * - \f$ t + \mu + p \f$
  */
 class DDMucfInteractor
 {
@@ -36,7 +36,7 @@ class DDMucfInteractor
     {
         helium3_muon_neutron,  //!< \f$ ^3\text{He} + \mu + n \f$
         muonichelium3_neutron,  //!< \f$ (^3\text{He})_\mu + n \f$
-        hydrogen3_muon_proton,  //!< \f$ ^3\text{H} + \mu + p \f$
+        tritium_muon_proton,  //!< \f$ t + \mu + p \f$
         size_
     };
 
@@ -61,7 +61,7 @@ class DDMucfInteractor
     EnumArray<Channel, size_type> num_secondaries_{
         3,  // helium3_muon_neutron
         2,  // muonichelium3_neutron
-        3  // hydrogen3_muon_proton
+        3  // tritium_muon_proton
     };
 
     // Neutron channels total kinetic energy
@@ -165,7 +165,7 @@ CELER_FUNCTION Interaction DDMucfInteractor::operator()(Engine& rng)
             break;
         }
 
-        case Channel::hydrogen3_muon_proton: {
+        case Channel::tritium_muon_proton: {
             // Proton: random direction with known energy
             sec[proton_idx] = detail::sample_mucf_secondary(
                 data_.particle_ids.proton, this->proton_kinetic_energy(), rng);
@@ -184,6 +184,7 @@ CELER_FUNCTION Interaction DDMucfInteractor::operator()(Engine& rng)
                                                data_.particle_masses.mu_minus,
                                                data_.particle_ids.triton,
                                                data_.particle_masses.triton);
+            break;
         }
 
         default:
