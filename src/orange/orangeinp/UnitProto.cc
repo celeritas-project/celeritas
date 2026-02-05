@@ -101,57 +101,76 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
     std::map<NodeId, CsgUnit::Region> regions;
 
     // Map metadata
-    for (auto old_id : range(id_cast<NodeId>(unit.tree.size())))
+    for (auto old_id : range(NodeId{unit.tree.size()}))
     {
         auto& old_md = unit.metadata[old_id.get()];
-        if (auto new_id = nodes[old_id.get()])
-        {
-            CELER_ASSERT(new_id < metadata.size());
-
-            // Update metadata
-            auto& new_md = metadata[new_id.get()];
-            if (CELER_UNLIKELY(!new_md.empty()))
+        auto new_id = nodes[old_id.get()];
+        auto log_debug = [&, msg = std::optional<Logger::Message>{}]() mutable
+            -> Logger::Message& {
+            if (!msg)
             {
-                // Node was merged with another node
-                CELER_LOG(warning)
-                    << "Merged CSG node "
-                    << join(new_md.begin(), new_md.end(), "','") << " into "
-                    << join(old_md.begin(), old_md.end(), "','");
-                new_md.insert(old_md.begin(), old_md.end());
-                old_md.clear();
+                msg.emplace(CELER_LOG(debug));
+                *msg << "In universe '" << label << "': node " << old_id
+                     << " maps to " << new_id << ": ";
             }
             else
             {
-                new_md = std::move(old_md);
+                *msg << "; ";
+            }
+            return *msg;
+        };
+
+        if (new_id)
+        {
+            CELER_ASSERT(new_id < metadata.size());
+            if (true)
+            {
+                // Update metadata
+                auto& new_md = metadata[new_id.get()];
+                if (CELER_UNLIKELY(!new_md.empty()))
+                {
+                    // Node was merged with another node
+                    log_debug()
+                        << "merged '"
+                        << join(new_md.begin(), new_md.end(), "','")
+                        << "' into '"
+                        << join(old_md.begin(), old_md.end(), "','") << "'";
+                    new_md.insert(old_md.begin(), old_md.end());
+                    old_md.clear();
+                }
+                else
+                {
+                    new_md = std::move(old_md);
+                }
             }
 
-            // Update region
+            // Move region to new tree with updated ID: necessary even for
+            // false/true region due to interior
             if (auto iter = unit.regions.find(old_id);
                 iter != unit.regions.end())
             {
                 auto region = unit.regions.extract(iter);
                 region.key() = new_id;
-                regions.insert(std::move(region));
+                auto irt = regions.insert(std::move(region));
+                if (!irt.inserted)
+                {
+                    log_debug() << "merged region bounds";
+                }
             }
         }
         else
         {
             // Node was removed from the tree
             auto region = unit.regions.find(old_id);
-            if (CELER_UNLIKELY(region != unit.regions.end() || !old_md.empty()))
+            if (region != unit.regions.end())
             {
-                auto msg = CELER_LOG(warning);
-                msg << "Simplification removed node " << old_id.get();
-                if (!old_md.empty())
-                {
-                    msg << "='" << join(old_md.begin(), old_md.end(), "','")
-                        << "'";
-                }
-                if (region != unit.regions.end())
-                {
-                    msg << " (which has a region)";
-                }
-                msg << " from '" << label << "'";
+                log_debug() << "deleted region";
+            }
+            if (!old_md.empty())
+            {
+                log_debug()
+                    << "deleted '" << join(old_md.begin(), old_md.end(), "','")
+                    << "'";
             }
         }
     }
@@ -266,6 +285,12 @@ void UnitProto::build(ProtoBuilder& pb) const
     {
         result.surfaces.emplace_back(csg_unit.surfaces[lsid.get()]);
     }
+    auto find_new_lsid = [&sls = sorted_local_surfaces](LocalSurfaceId old) {
+        CELER_EXPECT(old);
+        auto iter = find_sorted(sls.begin(), sls.end(), old);
+        CELER_ASSERT(iter != sls.end());
+        return id_cast<LocalSurfaceId>(iter - sls.begin());
+    };
 
     // Save surface labels
     result.surface_labels.resize(result.surfaces.size());
@@ -273,21 +298,24 @@ void UnitProto::build(ProtoBuilder& pb) const
     {
         if (auto* surf_node = std::get_if<Surface>(&csg_unit.tree[node_id]))
         {
-            LocalSurfaceId old_lsid = surf_node->id;
-            auto idx = static_cast<size_type>(
-                find_sorted(sorted_local_surfaces.begin(),
-                            sorted_local_surfaces.end(),
-                            old_lsid)
-                - sorted_local_surfaces.begin());
-            CELER_ASSERT(idx < result.surface_labels.size());
+            auto new_lsid = find_new_lsid(surf_node->id);
+            CELER_ASSERT(new_lsid < result.surface_labels.size());
 
-            // NOTE: surfaces may be created more than once. Our primitive
-            // "input" allows association with only one surface, so we'll
-            // arbitrarily choose the lexicographically sorted "first" surface
-            // name in the list.
-            CELER_ASSERT(!csg_unit.metadata[node_id.get()].empty());
-            auto const& label = *csg_unit.metadata[node_id.get()].begin();
-            result.surface_labels[idx] = label;
+            auto const& md = csg_unit.metadata[node_id.get()];
+            if (auto iter = md.begin(); iter != md.end())
+            {
+                // NOTE: surfaces may be created more than once. Our primitive
+                // "input" allows association with only one surface, so we'll
+                // arbitrarily choose the lexicographically sorted "first"
+                // surface name in the list.
+                result.surface_labels[new_lsid.get()] = *iter;
+            }
+            else
+            {
+                CELER_LOG(warning) << "No metadata for new surface "
+                                   << new_lsid << " (new node ID " << node_id
+                                   << ") = old LSID " << surf_node->id;
+            }
         }
     }
 
