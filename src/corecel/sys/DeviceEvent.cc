@@ -151,7 +151,7 @@ bool DeviceEvent::ready() const
  * event have finished executing on the device. Use this to synchronize the
  * host with device operations.
  *
- * If the event is uninitialized
+ * If the event is null, this is a no-op.
  */
 void DeviceEvent::sync() const
 {

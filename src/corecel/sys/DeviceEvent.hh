@@ -28,24 +28,23 @@ class Stream;
  *
  * Events provide a mechanism for querying the status of asynchronous
  * operations on GPU streams and synchronizing between host and device, and
- * synchronizing between streams. This particular event is associated with a
- * single stream.
+ * synchronizing between streams.
  *
  * \par States
  * - \b Constructed: when built with an active device, the instance
  *   evaluates to \c true and manages an event object.
  * - \b Null: when constructed with a nullptr, or when \c moved from, the class
- *   instance is \c false. It does not manage an event nor does it associate
- *   with a stream. The \c sync function is a null-op (the event
- *   is always \c ready ), and \c record cannot be called.
+ *   instance is \c false. It does not manage an event.
+ *   The \c sync function is a null-op (the event is always
+ *   \c ready ), and \c record cannot be called.
  *
  * If no device is enabled (or Celeritas is compiled without CUDA/HIP support),
  * only the null state is available.
  *
- * \par Example:
+ * \par Example
  * \code
   // Setup:
-  DeviceEvent my_kernel;
+  DeviceEvent my_kernel(celeritas::device());
   assert(my_kernel.ready());
   // Later...
   launch_kernel_async(state.stream());

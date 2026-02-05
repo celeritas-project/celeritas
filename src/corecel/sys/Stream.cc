@@ -86,7 +86,7 @@ void Stream::ImplDeleter::operator()(Impl* impl) noexcept
  * Construct by creating a stream with the active device context.
  *
  * \pre A device must be active and configured.
- * \deprecated This constructor is ambiguous: remnove it.
+ * \deprecated This constructor is ambiguous: remove it.
  */
 Stream::Stream() : Stream(celeritas::device()) {}
 
