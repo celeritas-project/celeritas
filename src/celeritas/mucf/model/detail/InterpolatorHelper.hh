@@ -19,7 +19,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for creating interpolators for host-only muCF input data.
+ * Host-only interpolator wrapper class for muCF input data.
  *
  * \sa MucfMaterialInserter
  */

@@ -31,6 +31,7 @@ struct MucfParticleIds
     //!@{
     //! Elementary particles and nuclei
     ParticleId proton;
+    ParticleId triton;
     ParticleId neutron;
     ParticleId alpha;
     ParticleId he3;
@@ -48,9 +49,9 @@ struct MucfParticleIds
     //! Check whether all particles are assigned
     CELER_FUNCTION explicit operator bool() const
     {
-        return mu_minus && proton && neutron && alpha && he3 && muonic_hydrogen
-               && muonic_deuteron && muonic_triton && muonic_alpha
-               && muonic_he3;
+        return mu_minus && proton && triton && neutron && alpha && he3
+               && muonic_hydrogen && muonic_deuteron && muonic_triton
+               && muonic_alpha && muonic_he3;
     }
 };
 
@@ -66,6 +67,7 @@ struct MucfParticleMasses
     //!@{
     //! Elementary particles and nuclei
     units::MevMass proton;
+    units::MevMass triton;
     units::MevMass neutron;
     units::MevMass alpha;
     units::MevMass he3;
@@ -84,8 +86,9 @@ struct MucfParticleMasses
     CELER_FUNCTION explicit operator bool() const
     {
         return mu_minus > zero_quantity() && proton > zero_quantity()
-               && neutron > zero_quantity() && alpha > zero_quantity()
-               && he3 > zero_quantity() && muonic_hydrogen > zero_quantity()
+               && triton > zero_quantity() && neutron > zero_quantity()
+               && alpha > zero_quantity() && he3 > zero_quantity()
+               && muonic_hydrogen > zero_quantity()
                && muonic_deuteron > zero_quantity()
                && muonic_triton > zero_quantity()
                && muonic_alpha > zero_quantity()

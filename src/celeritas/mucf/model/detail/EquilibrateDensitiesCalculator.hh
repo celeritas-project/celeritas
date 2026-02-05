@@ -16,8 +16,8 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate dt mixture densities after reaching thermodynamical
- * equilibrium based on LHD densities and material temperature.
+ * Calculate dt mixture densities after reaching thermodynamic
+ * equilibrium based isotopic fraction, density, and material temperature.
  *
  * Based on the theory from https://www.osti.gov/biblio/6205719.
  *

@@ -50,8 +50,9 @@ from_params(ParticleParams const& particles)
     }
 
     MP_ADD(mu_minus);
-    MP_ADD(neutron);
     MP_ADD(proton);
+    MP_ADD(neutron);
+    MP_ADD(triton);
     MP_ADD(alpha);
     MP_ADD(he3);
     MP_ADD(muonic_hydrogen);
