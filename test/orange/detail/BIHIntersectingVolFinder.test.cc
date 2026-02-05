@@ -47,7 +47,7 @@ class BIHIntersectingVolFinderTest : public Test
     using DistMap = std::map<LocalVolumeId, real_type>;
 
   protected:
-    void setup(size_type min_split_size)
+    void setup(size_type max_leaf_size)
     {
         BIHBuilder::VecBBox bboxes = {
             FastBBox::from_infinite(),
@@ -58,7 +58,7 @@ class BIHIntersectingVolFinderTest : public Test
             {{0, -1, 0}, {5, 0, 100}},
         };
 
-        BIHBuilder build(&storage_, BIHBuilder::Input{min_split_size});
+        BIHBuilder build(&storage_, BIHBuilder::Input{max_leaf_size});
         BIHBuilder::SetLocalVolId implicit_vol_ids_;
         bih_tree_ = build(std::move(bboxes), implicit_vol_ids_);
         ref_storage_ = storage_;
@@ -126,8 +126,8 @@ class BIHIntersectingVolFinderTest : public Test
 // intersection yields the first volume intersection.
 TEST_F(BIHIntersectingVolFinderTest, outside_first)
 {
-    auto run_test = [&](size_type min_split_size) {
-        this->setup(min_split_size);
+    auto run_test = [&](size_type max_leaf_size) {
+        this->setup(max_leaf_size);
         Real3 pos, dir;
         DistMap dist_map;
 
@@ -209,9 +209,9 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
         this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.3, 1.2);
     };
 
-    for (auto min_split_size : range(2, 5))
+    for (auto max_leaf_size : range(1, 4))
     {
-        run_test(min_split_size);
+        run_test(max_leaf_size);
     }
 }
 
@@ -219,8 +219,8 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
 // contains first intersecting volume.
 TEST_F(BIHIntersectingVolFinderTest, inside_first)
 {
-    auto run_test = [&](size_type min_split_size) {
-        this->setup(min_split_size);
+    auto run_test = [&](size_type max_leaf_size) {
+        this->setup(max_leaf_size);
         Real3 pos, dir;
         DistMap dist_map;
 
@@ -313,9 +313,9 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
         this->check_result({pos, dir}, dist_map, LocalVolumeId{5}, 1.6, 1.2);
     };
 
-    for (auto min_split_size : range(2, 5))
+    for (auto max_leaf_size : range(1, 4))
     {
-        run_test(min_split_size);
+        run_test(max_leaf_size);
     }
 }
 
@@ -323,8 +323,8 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
 // collision
 TEST_F(BIHIntersectingVolFinderTest, not_first)
 {
-    auto run_test = [&](size_type min_split_size) {
-        this->setup(min_split_size);
+    auto run_test = [&](size_type max_leaf_size) {
+        this->setup(max_leaf_size);
         Real3 pos, dir;
         DistMap dist_map;
 
@@ -386,9 +386,9 @@ TEST_F(BIHIntersectingVolFinderTest, not_first)
         this->check_result({pos, dir}, dist_map, LocalVolumeId{2}, 2.1, 1.5);
     };
 
-    for (auto min_split_size : range(2, 5))
+    for (auto max_leaf_size : range(1, 4))
     {
-        run_test(min_split_size);
+        run_test(max_leaf_size);
     }
 }
 
