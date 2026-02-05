@@ -627,7 +627,7 @@ auto UnitProto::build(Tol const& tol,
         remove_interior(result, this->label());
     }
 
-    if (orange_tracking_logic() == LogicNotation::infix
+    if (orange_tracking_logic == LogicNotation::infix
         || input_.remove_negated_join)
     {
         remove_negated_join(result, this->label());

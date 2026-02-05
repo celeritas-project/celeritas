@@ -38,10 +38,7 @@ inline constexpr UnivId orange_global_univ{0};
 inline constexpr UnivLevelId orange_global_univ_level{0};
 
 //! Logic notation used for boolean expressions
-CELER_FUNCTION inline constexpr auto orange_tracking_logic()
-{
-    return LogicNotation::infix;
-}
+inline constexpr auto orange_tracking_logic{LogicNotation::infix};
 
 //---------------------------------------------------------------------------//
 /*!

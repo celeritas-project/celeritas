@@ -578,7 +578,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     }
 
     static auto const nowhere_logic = []() -> std::array<logic_int, 2> {
-        if (orange_tracking_logic() == LogicNotation::postfix)
+        if (orange_tracking_logic == LogicNotation::postfix)
             return {logic::ltrue, logic::lnot};
         else
             return {logic::lnot, logic::ltrue};
