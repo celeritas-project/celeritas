@@ -68,7 +68,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         }                                                                 \
         msg << "at " << d.file << ':' << d.line << " during '" << #ACTION \
             << "'";                                                       \
-        ADD_FAILURE() << d.what;                                          \
+        CELER_LOG(error) << "Failed: " << d.what;                         \
+        result.fail();                                                    \
         return result;                                                    \
     }                                                                     \
     catch (std::exception const& e)                                       \
