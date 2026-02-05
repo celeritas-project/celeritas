@@ -68,7 +68,7 @@ LocalVolumeId ObjectTestBase::build_volume(ObjectInterface const& s)
 void ObjectTestBase::print_expected() const
 {
     CELER_EXPECT(unit_);
-    ::celeritas::orangeinp::test::print_expected(*unit_);
+    ::celeritas::orangeinp::detail::print_expected(*unit_);
 }
 
 //---------------------------------------------------------------------------//

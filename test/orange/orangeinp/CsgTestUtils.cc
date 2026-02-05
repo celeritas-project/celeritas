@@ -24,6 +24,7 @@
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTreeIO.json.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
+#include "orange/orangeinp/detail/BoundingZone.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/orangeinp/detail/IntersectSurfaceState.hh"
 #include "orange/surf/SurfaceIO.hh"
@@ -306,6 +307,66 @@ std::string count_surface_types(detail::CsgUnit const& u)
 }
 
 //---------------------------------------------------------------------------//
+void stream_node_id(std::ostream& os, NodeId n)
+{
+    os << "N{";
+    if (n)
+    {
+        os << n.unchecked_get();
+    }
+    os << '}';
+}
+
+void stream_logic_int(std::ostream& os, logic_int value)
+{
+    using namespace logic;
+    if (is_operator_token(value))
+    {
+        os << "logic::";
+        switch (static_cast<OperatorToken>(value))
+        {
+            case lopen:
+                os << "lopen";
+                return;
+            case lclose:
+                os << "lclose";
+                return;
+            case lor:
+                os << "lor";
+                return;
+            case land:
+                os << "land";
+                return;
+            case lnot:
+                os << "lnot";
+                return;
+            case ltrue:
+                os << "ltrue";
+                return;
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+    }
+    os << value << 'u';
+}
+
+std::ostream& operator<<(std::ostream& os, ReprLogic const& rl)
+{
+    os << '{'
+       << join_stream(
+              std::begin(rl.logic), std::end(rl.logic), ", ", stream_logic_int)
+       << ",}";
+    return os;
+}
+}  // namespace test
+
+namespace detail
+{
+//---------------------------------------------------------------------------//
+// ADL-COMPATIBLE PRINTERS
+//---------------------------------------------------------------------------//
+using namespace celeritas::orangeinp::test;
+
 void print_expected(CsgUnit const& u)
 {
     std::cout << R"cpp(
@@ -370,59 +431,38 @@ EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));
 )cpp" << std::endl;
 }
 
-void stream_node_id(std::ostream& os, NodeId n)
+//---------------------------------------------------------------------------//
+void print_expected(BoundingZone const& bz)
 {
-    os << "N{";
-    if (n)
-    {
-        os << n.unchecked_get();
-    }
-    os << '}';
-}
+    using std::cout;
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+         << (bz.negated ? "EXPECT_TRUE" : "EXPECT_FALSE") << "(bz.negated);\n";
 
-void stream_logic_int(std::ostream& os, logic_int value)
-{
-    using namespace logic;
-    if (is_operator_token(value))
-    {
-        os << "logic::";
-        switch (static_cast<OperatorToken>(value))
-        {
-            case lopen:
-                os << "lopen";
-                return;
-            case lclose:
-                os << "lclose";
-                return;
-            case lor:
-                os << "lor";
-                return;
-            case land:
-                os << "land";
-                return;
-            case lnot:
-                os << "lnot";
-                return;
-            case ltrue:
-                os << "ltrue";
-                return;
-            default:
-                CELER_ASSERT_UNREACHABLE();
-        }
+#define BZ_EXPECTED_PT(BOX, POINT)                                          \
+    cout << "EXPECT_VEC_SOFT_EQ((Real3" << repr(bz.BOX.POINT()) << "), bz." \
+         << #BOX "." #POINT "());\n"
+#define BZ_EXPECTED(BOX)                                            \
+    if (!bz.BOX)                                                    \
+    {                                                               \
+        cout << "EXPECT_FALSE(bz." #BOX ") << bz." #BOX ";\n";      \
+    }                                                               \
+    else if (bz.BOX == BBox::from_infinite())                       \
+    {                                                               \
+        cout << "EXPECT_EQ(BBox::from_infinite(), bz." #BOX ");\n"; \
+    }                                                               \
+    else                                                            \
+    {                                                               \
+        BZ_EXPECTED_PT(BOX, lower);                                 \
+        BZ_EXPECTED_PT(BOX, upper);                                 \
     }
-    os << value << 'u';
-}
-
-std::ostream& operator<<(std::ostream& os, ReprLogic const& rl)
-{
-    os << '{'
-       << join_stream(
-              std::begin(rl.logic), std::end(rl.logic), ", ", stream_logic_int)
-       << ",}";
-    return os;
+    BZ_EXPECTED(interior);
+    BZ_EXPECTED(exterior);
+#undef BZ_EXPECTED_PT
+#undef BZ_EXPECTED
+    cout << "/*** END CODE ***/\n";
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas
