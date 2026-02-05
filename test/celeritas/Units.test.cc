@@ -24,6 +24,7 @@ namespace units
 {
 namespace test
 {
+using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 // Locally replace the Celeritas "real" expectation for one that forces
 // Constant objects to double-precision
@@ -97,8 +98,6 @@ TEST(UnitsTest, trait_visitor)
 //---------------------------------------------------------------------------//
 TEST(UnitsTest, literals)
 {
-    using namespace celeritas::units::literals;
-
     EXPECT_REAL_EQ(2.5 * units::centimeter, 2.5_centimeter);
     EXPECT_REAL_EQ(2.5 * units::centimeter, 2.5_cm);
     EXPECT_REAL_EQ(3 * units::meter, 3_meter);
@@ -158,20 +157,20 @@ TEST(UnitsTest, clhep)
 
         double g4_native = 2.5 * CLHEP::tesla;
         auto celer_native = convert_from_geant(g4_native, clhep_field);
-        EXPECT_SOFT_EQ(2.5 * units::tesla, celer_native);
+        EXPECT_SOFT_EQ(2.5_T, celer_native);
         EXPECT_SOFT_EQ(2.5, native_value_to<FieldTesla>(celer_native).value());
         EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_field));
     }
     {
         double g4_native = 1.5 * CLHEP::s;
         auto celer_native = convert_from_geant(g4_native, clhep_time);
-        EXPECT_SOFT_EQ(1.5 * units::second, celer_native);
+        EXPECT_SOFT_EQ(1.5_s, celer_native);
         EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_time));
     }
     {
         double g4_native = 1.5 * CLHEP::meter;
         auto celer_native = convert_from_geant(g4_native, clhep_length);
-        EXPECT_SOFT_EQ(1.5 * units::meter, celer_native);
+        EXPECT_SOFT_EQ(1.5_m, celer_native);
         EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_length));
     }
 #else
