@@ -324,18 +324,16 @@ void UnitProto::build(ProtoBuilder& pb) const
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
 
+    // Always use postfix logic for unit input, post-processing to
+    // convert to tracking notation
+    detail::PostfixBuildLogicPolicy const policy{csg_unit.tree,
+                                                 sorted_local_surfaces};
+    // Construct logic and faces with remapped surfaces
     for (auto vol_idx : range(unit_volumes.size()))
     {
         NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
-        // Construct logic and faces with remapped surfaces
-        detail::PostfixBuildLogicPolicy const policy{csg_unit.tree,
-                                                     sorted_local_surfaces};
-        auto&& [faces, logic] = detail::build_logic(
-            // always use postfix logic for unit input, post-processing to
-            // convert to tracking notation
-            policy,
-            node_id);
+        auto&& [faces, logic] = detail::build_logic(policy, node_id);
         vi.faces = std::move(faces);
         vi.logic = std::move(logic);
         // Set bounding box

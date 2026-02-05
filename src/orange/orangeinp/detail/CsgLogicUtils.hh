@@ -105,8 +105,8 @@ inline BuildLogicResult build_logic(BuildLogicPolicy const& policy, NodeId n)
  * The call operator for Negated and Joined are not implemented in the base
  * visitor and must be provided by the derived class.
  */
-template<class BuilderVisitor>
-class BaseBuildLogicVisitor
+template<class VisitorImpl>
+class BaseLogicBuilder
 {
   public:
     //!@{
@@ -121,12 +121,11 @@ class BaseBuildLogicVisitor
 
   public:
     // Construct without mapping
-    inline BaseBuildLogicVisitor(CsgTree const& tree, VecLogic& logic);
+    inline BaseLogicBuilder(CsgTree const& tree, VecLogic& logic);
     // Construct with optional mapping
-    inline BaseBuildLogicVisitor(CsgTree const& tree,
-                                 VecLogic& logic,
-                                 VecSurface const& vs);
-
+    inline BaseLogicBuilder(CsgTree const& tree,
+                            VecLogic& logic,
+                            VecSurface const& vs);
     //! Build from a node ID
     inline void operator()(NodeId const& n);
 
@@ -143,26 +142,21 @@ class BaseBuildLogicVisitor
     //!@}
 
   protected:
-    //! Access the logic expression directly
-    VecLogic& logic() { return logic_; }
+    VecLogic& logic_;
 
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
     VecSurface const* mapping_{nullptr};
-    VecLogic& logic_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct without mapping.
  */
-template<class BuilderVisitor>
-BaseBuildLogicVisitor<BuilderVisitor>::BaseBuildLogicVisitor(CsgTree const& tree,
-                                                             VecLogic& logic)
-    : visit_node_{tree}, logic_{logic}
+template<class Impl>
+BaseLogicBuilder<Impl>::BaseLogicBuilder(CsgTree const& tree, VecLogic& logic)
+    : logic_{logic}, visit_node_{tree}
 {
-    static_assert(std::is_base_of_v<BaseBuildLogicVisitor, BuilderVisitor>,
-                  "CRTP: template parameter must be derived class");
 }
 
 //---------------------------------------------------------------------------//
@@ -173,31 +167,30 @@ BaseBuildLogicVisitor<BuilderVisitor>::BaseBuildLogicVisitor(CsgTree const& tree
  * Those surface IDs will be replaced by the index in the array. All existing
  * surface IDs must be present!
  */
-template<class BuilderVisitor>
-BaseBuildLogicVisitor<BuilderVisitor>::BaseBuildLogicVisitor(
-    CsgTree const& tree, VecLogic& logic, VecSurface const& vs)
-    : visit_node_{tree}, mapping_{&vs}, logic_{logic}
+template<class Impl>
+BaseLogicBuilder<Impl>::BaseLogicBuilder(CsgTree const& tree,
+                                         VecLogic& logic,
+                                         VecSurface const& vs)
+    : logic_{logic}, visit_node_{tree}, mapping_{&vs}
 {
-    static_assert(std::is_base_of_v<BaseBuildLogicVisitor, BuilderVisitor>,
-                  "CRTP: template parameter must be derived class");
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Build from a node ID.
  */
-template<class BuilderVisitor>
-void BaseBuildLogicVisitor<BuilderVisitor>::operator()(NodeId const& n)
+template<class Impl>
+void BaseLogicBuilder<Impl>::operator()(NodeId const& n)
 {
-    visit_node_(static_cast<BuilderVisitor&>(*this), n);
+    visit_node_(static_cast<Impl&>(*this), n);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Append the "true" token.
  */
-template<class BuilderVisitor>
-void BaseBuildLogicVisitor<BuilderVisitor>::operator()(True const&)
+template<class Impl>
+void BaseLogicBuilder<Impl>::operator()(True const&)
 {
     logic_.push_back(logic::ltrue);
 }
@@ -208,8 +201,8 @@ void BaseBuildLogicVisitor<BuilderVisitor>::operator()(True const&)
  *
  * The 'false' standin is always aliased to "not true" in the CSG tree.
  */
-template<class BuilderVisitor>
-void BaseBuildLogicVisitor<BuilderVisitor>::operator()(False const&)
+template<class Impl>
+void BaseLogicBuilder<Impl>::operator()(False const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
@@ -218,8 +211,8 @@ void BaseBuildLogicVisitor<BuilderVisitor>::operator()(False const&)
 /*!
  * Push a surface ID.
  */
-template<class BuilderVisitor>
-void BaseBuildLogicVisitor<BuilderVisitor>::operator()(Surface const& s)
+template<class Impl>
+void BaseLogicBuilder<Impl>::operator()(Surface const& s)
 {
     CELER_EXPECT(s.id < logic::lbegin);
     // Get index of original surface or remapped
@@ -247,8 +240,8 @@ void BaseBuildLogicVisitor<BuilderVisitor>::operator()(Surface const& s)
  * Aliased node shouldn't be reachable if the tree is fully simplified, but
  * could be reachable for testing purposes.
  */
-template<class BuilderVisitor>
-void BaseBuildLogicVisitor<BuilderVisitor>::operator()(Aliased const& n)
+template<class Impl>
+void BaseLogicBuilder<Impl>::operator()(Aliased const& n)
 {
     (*this)(n.node);
 }
@@ -262,21 +255,20 @@ void BaseBuildLogicVisitor<BuilderVisitor>::operator()(Aliased const& n)
     all(1, 3, !all(2, 4)) -> "0 2 & 1 3 & ~ &"
  * \endverbatim
  */
-class PostfixBuildLogicVisitor
-    : public BaseBuildLogicVisitor<PostfixBuildLogicVisitor>
+class PostfixLogicBuilder : public BaseLogicBuilder<PostfixLogicBuilder>
 {
   public:
-    using BaseBuildLogicVisitor::BaseBuildLogicVisitor;
+    using BaseLogicBuilder::BaseLogicBuilder;
 
     //!@{
     //! \name Visit a node directly
-    using BaseBuildLogicVisitor::operator();
+    using BaseLogicBuilder::operator();
 
     //! Visit a negated node and append 'not'.
     void operator()(Negated const& n)
     {
         (*this)(n.node);
-        logic().push_back(logic::lnot);
+        logic_.push_back(logic::lnot);
     }
 
     //! Visit daughter nodes and append the conjunction.
@@ -291,7 +283,7 @@ class PostfixBuildLogicVisitor
         while (iter != n.nodes.end())
         {
             (*this)(*iter++);
-            logic().push_back(n.op);
+            logic_.push_back(n.op);
         }
     }
     //!@}
@@ -332,9 +324,9 @@ class PostfixBuildLogicPolicy
     {
         if (mapping_)
         {
-            return PostfixBuildLogicVisitor{tree_, logic, *mapping_};
+            return PostfixLogicBuilder{tree_, logic, *mapping_};
         }
-        return PostfixBuildLogicVisitor{tree_, logic};
+        return PostfixLogicBuilder{tree_, logic};
     }
 
   private:
@@ -351,20 +343,19 @@ class PostfixBuildLogicPolicy
     all(1, 3, any(~(2), ~(4))) -> "(0 & 2 & (~1 | ~3))"
  * \endverbatim
  */
-class InfixBuildLogicVisitor
-    : public BaseBuildLogicVisitor<InfixBuildLogicVisitor>
+class InfixLogicBuilder : public BaseLogicBuilder<InfixLogicBuilder>
 {
   public:
-    using BaseBuildLogicVisitor::BaseBuildLogicVisitor;
+    using BaseLogicBuilder::BaseLogicBuilder;
 
     //!@{
     //! \name Visit a node directly
-    using BaseBuildLogicVisitor::operator();
+    using BaseLogicBuilder::operator();
 
     //! Append 'not' and visit a negated node.
     void operator()(Negated const& n)
     {
-        this->logic().push_back(logic::lnot);
+        logic_.push_back(logic::lnot);
         (*this)(n.node);
     }
 
@@ -372,7 +363,7 @@ class InfixBuildLogicVisitor
     void operator()(Joined const& n)
     {
         CELER_EXPECT(n.nodes.size() > 1);
-        auto& logic = this->logic();
+        auto& logic = logic_;
         logic.push_back(logic::lopen);
         // Visit first node, then add conjunction for subsequent nodes
         auto iter = n.nodes.begin();
@@ -423,9 +414,9 @@ class InfixBuildLogicPolicy
     {
         if (mapping_)
         {
-            return InfixBuildLogicVisitor{tree_, logic, *mapping_};
+            return InfixLogicBuilder{tree_, logic, *mapping_};
         }
-        return InfixBuildLogicVisitor{tree_, logic};
+        return InfixLogicBuilder{tree_, logic};
     }
 
   private:
