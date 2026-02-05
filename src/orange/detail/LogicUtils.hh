@@ -7,6 +7,7 @@
 #pragma once
 
 #include <iostream>
+#include <string_view>
 #include <vector>
 
 #include "corecel/Assert.hh"
@@ -20,6 +21,9 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+using VecLogic = std::vector<logic_int>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Convert a logic token to a string.
@@ -62,7 +66,7 @@ std::vector<logic_int> convert_to_postfix(Span<logic_int const> infix);
 /*!
  * Build a logic definition from a C string.
  */
-std::vector<logic_int> string_to_logic(std::string const& s);
+std::vector<logic_int> string_to_logic(std::string_view s);
 
 //---------------------------------------------------------------------------//
 /*!

@@ -94,14 +94,7 @@ TEST(NotationConverter, demorgan_postfix_to_infix)
 
 TEST(NotationConverter, demorgan_infix_to_infix)
 {
-    std::vector<logic_int> infix = {
-        logic::lnot,
-        logic::lopen,
-        logic_int{0},
-        logic::lor,
-        logic_int{1},
-        logic::lclose,
-    };
+    std::vector<logic_int> infix = string_to_logic("~ ( 0 | 1 )");
     auto input = make_input_with_logic(std::move(infix), LogicNotation::infix);
     convert_logic(input, LogicNotation::infix);
     auto& unit = std::get<UnitInput>(input.universes.front());

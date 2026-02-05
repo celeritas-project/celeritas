@@ -418,7 +418,7 @@ std::vector<logic_int> convert_to_postfix(Span<logic_int const> infix)
 /*!
  * Build a logic definition from a C string.
  *
- * A valid string satisfies the regex "[0-9~!| ]+", but the result may
+ * A valid string satisfies the regex "[0-9~!| ()]+", but the result may
  * not be a valid logic expression. (The volume inserter will ensure that the
  * logic expression at least is consistent for a CSG region definition.)
  *
@@ -429,12 +429,13 @@ std::vector<logic_int> convert_to_postfix(Span<logic_int const> infix)
 
    \endcode
  */
-std::vector<logic_int> string_to_logic(std::string const& s)
+VecLogic string_to_logic(std::string_view s)
 {
-    std::vector<logic_int> result;
+    VecLogic result;
 
     logic_int surf_id{};
     bool reading_surf{false};
+    int parens_depth{0};
     for (char v : s)
     {
         if (v >= '0' && v <= '9')
@@ -460,11 +461,21 @@ std::vector<logic_int> string_to_logic(std::string const& s)
         // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
         switch (v)
         {
+            case '(':
+                result.push_back(logic::lopen);
+                ++parens_depth;
+                continue;
+            case ')':
+                CELER_VALIDATE(parens_depth > 0,
+                               << "unmatched ')' in logic string");
+                --parens_depth;
+                result.push_back(logic::lclose);
+                continue;
                 // clang-format off
-            case '*': result.push_back(logic::ltrue); continue;
             case '|': result.push_back(logic::lor);   continue;
             case '&': result.push_back(logic::land);  continue;
             case '~': result.push_back(logic::lnot);  continue;
+            case '*': result.push_back(logic::ltrue); continue;
                 // clang-format on
         }
         CELER_VALIDATE(v == ' ',
@@ -475,6 +486,8 @@ std::vector<logic_int> string_to_logic(std::string const& s)
     {
         result.push_back(surf_id);
     }
+
+    CELER_VALIDATE(parens_depth == 0, << "unmatched '(' in logic string");
 
     return result;
 }
