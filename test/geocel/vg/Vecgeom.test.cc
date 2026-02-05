@@ -274,7 +274,7 @@ TEST_F(FourLevelsTest, trace)
 
 TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 {
-    using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
+    using StateStore = StateDataStore<VecgeomStateData, MemSpace::device>;
 
     // Set up test input
     VGGTestInput input;
@@ -406,7 +406,7 @@ TEST_F(SimpleCmsTest, detailed_track)
 
 TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_CUDA(device))
 {
-    using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
+    using StateStore = StateDataStore<VecgeomStateData, MemSpace::device>;
 
     // Set up test input
     VGGTestInput input;

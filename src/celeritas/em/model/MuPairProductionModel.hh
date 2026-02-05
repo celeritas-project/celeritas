@@ -9,7 +9,7 @@
 #include <functional>
 #include <memory>
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuPairProductionData.hh"
 #include "celeritas/inp/PhysicsModel.hh"
@@ -66,7 +66,7 @@ class MuPairProductionModel final : public Model, public StaticConcreteAction
 
     //// DATA ////
 
-    CollectionMirror<MuPairProductionData> data_;
+    ParamsDataStore<MuPairProductionData> data_;
     ImportedModelAdapter imported_;
 
     //// HELPERS ////

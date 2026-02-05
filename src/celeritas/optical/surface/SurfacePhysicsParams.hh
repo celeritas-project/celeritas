@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/optical/Types.hh"
 
 #include "BoundaryAction.hh"
@@ -102,7 +102,7 @@ class SurfacePhysicsParams final
     SurfaceStepModels models_;
 
     // Host/device storage
-    CollectionMirror<SurfacePhysicsParamsData> data_;
+    ParamsDataStore<SurfacePhysicsParamsData> data_;
 
     // Build surface data
     void build_surfaces(std::vector<std::vector<OptMatId>> const&,

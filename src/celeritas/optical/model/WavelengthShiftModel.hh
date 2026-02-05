@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/ImportedModelAdapter.hh"
 #include "celeritas/optical/Model.hh"
@@ -66,7 +66,7 @@ class WavelengthShiftModel : public Model
 
   private:
     ImportedModelAdapter imported_;
-    CollectionMirror<WavelengthShiftData> data_;
+    ParamsDataStore<WavelengthShiftData> data_;
 };
 
 //---------------------------------------------------------------------------//

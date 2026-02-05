@@ -167,7 +167,7 @@ PhysicsParams::PhysicsParams(Input inp)
     }
 
     // Copy data to device
-    //! \todo Assigning hardwired data refs prevents use of \c CollectionMirror
+    //! \todo Assigning hardwired data refs prevents use of \c ParamsDataStore
     host_ = std::move(host_data);
     host_ref_ = host_;
     if (celeritas::device())

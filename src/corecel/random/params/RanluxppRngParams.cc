@@ -40,7 +40,7 @@ RanluxppRngParams::RanluxppRngParams(RanluxppUInt seed)
         = detail::compute_power_exp_modulus(host_data.advance_state, 96);
 
     CELER_ASSERT(host_data);
-    data_ = CollectionMirror<RanluxppRngParamsData>(std::move(host_data));
+    data_ = ParamsDataStore<RanluxppRngParamsData>(std::move(host_data));
 }
 
 //---------------------------------------------------------------------------//

@@ -27,7 +27,7 @@ AuxMockParams::AuxMockParams(std::string&& label,
     hp.num_bins = num_bins;
     CollectionBuilder{&hp.integers}.insert_back(integers.begin(),
                                                 integers.end());
-    data_ = CollectionMirror{std::move(hp)};
+    data_ = ParamsDataStore{std::move(hp)};
 
     CELER_ENSURE(data_);
 }

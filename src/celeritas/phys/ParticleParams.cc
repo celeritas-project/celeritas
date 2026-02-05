@@ -92,7 +92,7 @@ ParticleParams::ParticleParams(Input const& input)
     }
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<ParticleParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<ParticleParamsData>{std::move(host_data)};
 
     CELER_ENSURE(md_.size() == input.size());
     CELER_ENSURE(name_to_id_.size() == input.size());

@@ -7,7 +7,7 @@
 #include "orange/detail/BIHEnclosingVolFinder.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "geocel/Types.hh"
 #include "orange/detail/BIHBuilder.hh"
 #include "orange/detail/BIHData.hh"

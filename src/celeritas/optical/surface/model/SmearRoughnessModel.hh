@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/optical/surface/SurfaceModel.hh"
 
@@ -51,7 +51,7 @@ class SmearRoughnessModel : public SurfaceModel
 
   private:
     VecSurfaceLayer surfaces_;
-    CollectionMirror<SmearRoughnessData> data_;
+    ParamsDataStore<SmearRoughnessData> data_;
 };
 
 //---------------------------------------------------------------------------//

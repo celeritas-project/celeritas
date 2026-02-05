@@ -51,7 +51,7 @@ DetectorParams::DetectorParams(inp::Detectors idets,
         }
     }
 
-    mirror_ = CollectionMirror{[&dets] {
+    mirror_ = ParamsDataStore{[&dets] {
         HostVal<DetectorParamsData> host_data;
 
         CollectionBuilder{&host_data.detector_ids}.insert_back(dets.begin(),

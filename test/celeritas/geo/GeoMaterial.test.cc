@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/geo/GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/RootTestBase.hh"
@@ -44,7 +44,7 @@ class GeoMaterialTestBase : virtual public GlobalTestBase
 auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
     -> VecString
 {
-    CollectionStateStore<GeoStateData, MemSpace::host> host_state{
+    StateDataStore<GeoStateData, MemSpace::host> host_state{
         this->geometry()->host_ref(), 1};
     // Geometry track view and mat view
     GeoTrackView geo(

@@ -11,8 +11,8 @@
 #include "corecel/Types.hh"
 
 #include "AuxInterface.hh"
-#include "CollectionStateStore.hh"
 #include "ParamsDataInterface.hh"
+#include "StateDataStore.hh"
 
 namespace celeritas
 {
@@ -68,7 +68,7 @@ class AuxState final : public AuxStateInterface
     Ref const& ref() const { return store_.ref(); }
 
   private:
-    CollectionStateStore<S, M> store_;
+    StateDataStore<S, M> store_;
 };
 
 //! \cond (CELERITAS_DOC_DEV)

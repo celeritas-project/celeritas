@@ -10,7 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/AuxInterface.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
@@ -140,7 +140,7 @@ struct GetNumPhotons
 template<MemSpace M>
 struct GeneratorState : public GeneratorStateBase
 {
-    CollectionStateStore<GeneratorStateData, M> store;
+    StateDataStore<GeneratorStateData, M> store;
 
     //! Access valid range of distributions
     auto distributions()

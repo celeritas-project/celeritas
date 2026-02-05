@@ -43,7 +43,7 @@ MockInteractAction::MockInteractAction(
     make_builder(&data.alive).insert_back(alive.begin(), alive.end());
     CELER_ASSERT(data);
 
-    data_ = CollectionMirror<MockInteractData>{std::move(data)};
+    data_ = ParamsDataStore<MockInteractData>{std::move(data)};
     CELER_ENSURE(data_);
 }
 

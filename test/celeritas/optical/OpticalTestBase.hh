@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -69,7 +69,7 @@ class OpticalTestBase : public Test
 
   private:
     template<template<Ownership, MemSpace> class S>
-    using StateStore = CollectionStateStore<S, MemSpace::host>;
+    using StateStore = StateDataStore<S, MemSpace::host>;
 
     std::shared_ptr<ParticleParams> particle_params_;
     std::shared_ptr<SimParams> sim_params_;
