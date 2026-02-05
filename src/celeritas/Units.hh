@@ -168,5 +168,63 @@ CELER_ICC barn = Constant{1e-24} * centimeter * centimeter;
 #undef CELER_ICC
 
 //---------------------------------------------------------------------------//
+/*!
+ * \name User-defined literals for units
+ *
+ * Usage:
+ * \code
+ * using namespace celeritas::units::literals;
+ * auto length = 2.5_centimeter;
+ * \endcode
+ *
+ * \note In headers, prefer explicit multiplication (e.g., \c 2.5 * units::cm)
+ * or bring in only the needed literal operator inside a function scope:
+ * \code
+ * using celeritas::units::literals::operator"" _centimeter;
+ * return 2.5_centimeter;
+ * \endcode
+ */
+namespace literals
+{
+#define CELER_DEFINE_UNIT_UDL(NAME)                                     \
+    CELER_CONSTEXPR_FUNCTION real_type operator""_##NAME(long double v) \
+    {                                                                   \
+        return static_cast<real_type>(v) * units::NAME;                 \
+    }                                                                   \
+    CELER_CONSTEXPR_FUNCTION real_type operator""_##NAME(               \
+        unsigned long long int v)                                       \
+    {                                                                   \
+        return static_cast<real_type>(v) * units::NAME;                 \
+    }
+
+CELER_DEFINE_UNIT_UDL(centimeter)
+CELER_DEFINE_UNIT_UDL(gram)
+CELER_DEFINE_UNIT_UDL(second)
+CELER_DEFINE_UNIT_UDL(gauss)
+CELER_DEFINE_UNIT_UDL(kelvin)
+CELER_DEFINE_UNIT_UDL(meter)
+CELER_DEFINE_UNIT_UDL(kilogram)
+CELER_DEFINE_UNIT_UDL(tesla)
+CELER_DEFINE_UNIT_UDL(newton)
+CELER_DEFINE_UNIT_UDL(joule)
+CELER_DEFINE_UNIT_UDL(coulomb)
+CELER_DEFINE_UNIT_UDL(ampere)
+CELER_DEFINE_UNIT_UDL(volt)
+CELER_DEFINE_UNIT_UDL(farad)
+CELER_DEFINE_UNIT_UDL(millimeter)
+CELER_DEFINE_UNIT_UDL(nanosecond)
+#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
+CELER_DEFINE_UNIT_UDL(megaelectronvolt)
+CELER_DEFINE_UNIT_UDL(e_electron)
+#endif
+CELER_DEFINE_UNIT_UDL(micrometer)
+CELER_DEFINE_UNIT_UDL(nanometer)
+CELER_DEFINE_UNIT_UDL(femtometer)
+CELER_DEFINE_UNIT_UDL(barn)
+
+#undef CELER_DEFINE_UNIT_UDL
+}  // namespace literals
+
+//---------------------------------------------------------------------------//
 }  // namespace units
 }  // namespace celeritas

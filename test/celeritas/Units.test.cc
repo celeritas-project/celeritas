@@ -95,6 +95,25 @@ TEST(UnitsTest, trait_visitor)
 }
 
 //---------------------------------------------------------------------------//
+TEST(UnitsTest, literals)
+{
+    using namespace celeritas::units::literals;
+
+    EXPECT_REAL_EQ(2.5 * units::centimeter, 2.5_centimeter);
+    EXPECT_REAL_EQ(3 * units::meter, 3_meter);
+    EXPECT_REAL_EQ(7 * units::millimeter, 7_millimeter);
+    EXPECT_REAL_EQ(4 * units::nanosecond, 4_nanosecond);
+    EXPECT_REAL_EQ(1.25 * units::tesla, 1.25_tesla);
+    EXPECT_REAL_EQ(2 * units::gram, 2_gram);
+    EXPECT_REAL_EQ(5 * units::barn, 5_barn);
+
+#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
+    EXPECT_REAL_EQ(6 * units::megaelectronvolt, 6_megaelectronvolt);
+    EXPECT_REAL_EQ(1 * units::e_electron, 1_e_electron);
+#endif
+}
+
+//---------------------------------------------------------------------------//
 TEST(UnitsTest, clhep)
 {
 #if CELERITAS_USE_GEANT4
