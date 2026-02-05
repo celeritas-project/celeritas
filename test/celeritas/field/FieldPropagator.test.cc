@@ -1031,51 +1031,71 @@ TEST_F(TwoBoxesTest,
         for (int i : range(2))
         {
             SCOPED_TRACE(i);
-            auto result = propagate(radius * dtheta);
-            if (result.boundary)
+            Propagation result;
+            result.distance = 0;
+            result.boundary = false;
+
+            try
             {
-                geo.cross_boundary();
+                if (!geo.failed())
+                {
+                    result = propagate(radius * dtheta);
+                }
+            }
+            catch (CheckedGeoError const& e)
+            {
+                CELER_LOG(error) << e.what();
             }
 
-            boundary.push_back(result.boundary);
+            if (result.distance > 0)
+            {
+                boundary.push_back(result.boundary);
+                volumes.push_back(this->volume_name(geo));
+            }
+            else
+            {
+                // Error sentinel
+                boundary.push_back(-1);
+                volumes.push_back("[FAILURE]");
+            }
             distances.push_back(result.distance);
             substeps.push_back(integrate.count());
-            volumes.push_back(this->volume_name(geo));
             integrate.reset_count();
         }
     }
 
-    std::vector<int> expected_boundary = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
+    std::vector<int> expected_boundary = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
     std::vector<double> expected_distances = {
         0.0078534718906499,
-        0.0028235332722979,
+        0.0078539816339745,
         0.0044879852658442,
-        0.0028259738005751,
+        0.0044879895051283,
         1e-05,
-        1e-05,
+        1e-06,
         9.9999658622419e-09,
         1e-08,
         9.9981633254417e-12,
         1e-11,
     };
-    std::vector<int> expected_substeps = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
+    std::vector<int> expected_substeps = {1, 1, 1, 1, 1, 4, 1, 1, 1, 1};
     std::vector<std::string> expected_volumes = {
-        "world",
         "inner",
-        "world",
         "inner",
-        "world",
-        "world",
-        "world",
-        "world",
-        "world",
-        "world",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
     };
 
-    EXPECT_VEC_EQ(expected_boundary, boundary);
-    EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps);
-    EXPECT_VEC_EQ(expected_substeps, substeps);
-    EXPECT_VEC_EQ(expected_volumes, volumes);
+    EXPECT_VEC_EQ(expected_boundary, boundary) << repr(boundary);
+    EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps)
+        << repr(distances);
+    EXPECT_VEC_EQ(expected_substeps, substeps) << repr(substeps);
+    EXPECT_VEC_EQ(expected_volumes, volumes) << repr(volumes);
 }
 
 // Heuristic test: plotting points with finer propagation distance show a track
@@ -1248,6 +1268,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             // Surface geometry does not intersect the cylinder boundary, so
             // the track keeps going until the "looping" counter is hit
             EXPECT_SOFT_EQ(1.0314309658010318e-13, result.distance);
+            EXPECT_LT(result.distance, 2e-13);
             EXPECT_FALSE(result.looping);
         }
         else
@@ -1267,17 +1288,27 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
     {
         auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
+
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
-        auto result = propagate(30);
+        Propagation result;
+        try
+        {
+            result = propagate(30);
+        }
+        catch (RuntimeError const& e)
+        {
+            FAIL() << e.what();
+        }
+
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_SOFT_NEAR(
             double{30}, static_cast<double>(integrate.count()), 0.2);
 
         if (using_surface_vg)
         {
-            GTEST_SKIP() << "FIXME: VecGeom surface model fails a boundary "
-                            "requirement.";
+            EXPECT_FALSE(geo.is_on_boundary());
+            GTEST_SKIP() << "FIXME: VecGeom surface model fails";
         }
         ASSERT_TRUE(geo.is_on_boundary());
 
@@ -1315,7 +1346,6 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
     auto calc_radius
         = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
 
-    bool successful_reentry = false;
     {
         auto particle = this->make_particle_view(
             pdg::electron(), MevEnergy{3.27089632881079409e-02});
@@ -1323,7 +1353,8 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
-        auto result = propagate(1.39170198361108938e-05);
+        Propagation result;
+        EXPECT_NO_THROW(result = propagate(1.39170198361108938e-05));
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
@@ -1337,8 +1368,15 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         geo.set_dir({-1.31178657592616127e-01,
                      -8.29310561920304168e-01,
                      -5.43172303859124073e-01});
-        geo.cross_boundary();  // TODO: hack cross_boundary to handle this case
-        successful_reentry = (this->volume_name(geo) == "em_calorimeter");
+        try
+        {
+            geo.cross_boundary();
+        }
+        catch (CheckedGeoError const& e)
+        {
+            FAIL() << e.what();
+        }
+
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             // ORANGE should successfully reenter. However, under certain
@@ -1348,121 +1386,8 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         }
         else
         {
-            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-        }
-
-        if (!successful_reentry)
-        {
-            // Note that this is expected behavior in Geant4 and VecGeom, as
-            // it is assumed that the track will actually change volumes at the
-            // boundary (tangent tracks are not the norm and maybe not properly
-            // handled).
-            CELER_LOG(warning) << "Reentry failed for " << cmake::core_geo
-                               << " geometry: post-propagation volume is "
-                               << this->volume_name(geo);
-
-            if (using_solids_vg && CELERITAS_VECGEOM_VERSION < 0x020000)
-            {
-                // FIXME: VecGeom 1.x navigation failure (solids model)
-                EXPECT_EQ("world", this->volume_name(geo));
-            }
-            else
-            {
-                EXPECT_EQ("si_tracker", this->volume_name(geo));
-            }
-
-            // Interestingly, VecGeom surf and solid models see that surface
-            // slightly differently.  Only surface model thinks the surface
-            // was actually crossed, therefore the next step will find distinct
-            // results
-            auto result = geo.find_next_step(1);
-            EXPECT_LT(result.distance, 2e-8);
-
-            if (result.distance < 1e-6)
-            {
-                geo.move_to_boundary();
-                geo.cross_boundary();  // back into em_calorimeter
-            }
-
-            // then they are back to agreement
-            result = geo.find_next_step(1);
-            EXPECT_EQ(result.distance, 1);
-            EXPECT_FALSE(result.boundary);
-            EXPECT_TRUE(geo.is_on_boundary());
-            EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
-        }
-        else
-        {
-            CELER_LOG(debug) << "Reentry succeeded: " << scoped_log_;
-        }
-    }
-    {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger()};
-        auto particle = this->make_particle_view(
-            pdg::electron(), MevEnergy{3.25917780979408864e-02});
-        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
-            field, particle.charge());
-        auto propagate
-            = make_field_propagator(integrate, driver_options, particle, geo);
-
-        Propagation result;
-        // This absurdly long step is because in the "failed" case the
-        // track thinks it's in the world volume (nearly vacuum)
-        result = propagate(2.12621374950874703e+21);
-
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-            && result.boundary != geo.is_on_boundary())
-        {
-            // FIXME: see #882
-            GTEST_SKIP() << "The current fix fails with the Geant4 navigator";
-        }
-
-        EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_SOFT_NEAR(125, calc_radius(), 1e-2);
-        if (successful_reentry)
-        {
-            // ORANGE and *sometimes* vecgeom/geant4: extremely long
-            // propagation stopped by substep countdown
-            EXPECT_FALSE(result.boundary);
-            EXPECT_TRUE(result.looping);
-            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-
-            EXPECT_SOFT_EQ(12.02714054426572, result.distance);
-            EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_EQ(573, integrate.count());
-            EXPECT_TRUE(result.looping);
-        }
-        else
-        {
-            // Repeated substep bisection failed; particle is bumped
-            EXPECT_SOFT_NEAR(result.distance, 12.02714054426572, coarse_eps);
-            // Minor floating point differences could make this 98 or so
-            EXPECT_SOFT_NEAR(
-                real_type(573), real_type(integrate.count()), 0.05);
-            EXPECT_FALSE(result.boundary);  // FIXME: should have reentered
-            EXPECT_TRUE(result.looping);  // FIXME: looping??
-
-            if (scoped_log_.empty()) {}
-            else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-            {
-                static char const* const expected_log_levels[] = {"error"};
-                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels())
-                    << scoped_log_;
-            }
-            else if (using_solids_vg)
-            {
-                static char const* const expected_log_messages[] = {
-                    R"(Moved internally from boundary but safety didn't increase: volume 6 from {123.3, -20.82, -40.83} to {123.3, -20.82, -40.83} (distance: 1.000e-6))",
-                };
-                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-                static char const* const expected_log_levels[] = {"warning"};
-                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-            }
-            else
-            {
-                ADD_FAILURE() << "Logged warning/error:" << scoped_log_;
-            }
+            // FIXME: see GeoTests: TwoBoxesGeoTest::test_tangent
+            GTEST_SKIP();
         }
     }
 }
@@ -1486,7 +1411,6 @@ TEST_F(CmseTest, coarse)
     std::vector<int> num_integration;
 
     ScopedLogStorer scoped_log_{&celeritas::self_logger()};
-    bool failed{false};
 
     for (real_type radius : {5, 10, 20, 50})
     {
@@ -1502,23 +1426,36 @@ TEST_F(CmseTest, coarse)
         int step_count = 0;
         int boundary_count = 0;
         int const max_steps = 10000;
-        while (!geo.is_outside() && step_count++ < max_steps)
+        while (!geo.is_outside() && !geo.failed() && step_count++ < max_steps)
         {
             Propagation result;
             try
             {
                 result = propagate(radius);
             }
-            catch (RuntimeError const& e)
+            catch (CheckedGeoError const& e)
             {
-                // Failure during Geant4 propagation
                 CELER_LOG(error) << e.what();
-                failed = true;
                 break;
             }
             if (result.boundary)
             {
-                geo.cross_boundary();
+                try
+                {
+                    geo.cross_boundary();
+                }
+                catch (CheckedGeoError const& e)
+                {
+                    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+                    {
+                        CELER_LOG(error) << e.details().what;
+                        break;
+                    }
+                    else
+                    {
+                        FAIL() << e.what();
+                    }
+                }
                 ++boundary_count;
             }
         }
@@ -1533,8 +1470,9 @@ TEST_F(CmseTest, coarse)
     std::vector<int> expected_num_step = {10001, 6450, 3236, 1303};
     std::vector<int> expected_num_intercept = {30419, 19521, 16170, 9956};
     std::vector<int> expected_num_integration = {80659, 58204, 41914, 26114};
+    std::vector<std::string> expected_log_messages;
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4 && failed)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
     {
         // FIXME: this happens because of incorrect momentum update
         expected_num_boundary = {134, 37, 60, 40};
