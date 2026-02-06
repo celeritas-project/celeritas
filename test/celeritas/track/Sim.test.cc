@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/Sim.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -25,9 +25,9 @@ namespace test
 class SimTest : public GeantTestBase
 {
   protected:
-    using SimStateStore = CollectionStateStore<SimStateData, MemSpace::host>;
+    using SimStateStore = StateDataStore<SimStateData, MemSpace::host>;
     using ParticleStateStore
-        = CollectionStateStore<ParticleStateData, MemSpace::host>;
+        = StateDataStore<ParticleStateData, MemSpace::host>;
     using MevEnergy = units::MevEnergy;
 
   protected:

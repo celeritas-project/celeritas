@@ -46,7 +46,7 @@ GaussianRoughnessModel::GaussianRoughnessModel(
     CELER_ENSURE(data);
     CELER_ENSURE(data.sigma_alpha.size() == layer_map.size());
 
-    data_ = CollectionMirror<GaussianRoughnessData>{std::move(data)};
+    data_ = ParamsDataStore<GaussianRoughnessData>{std::move(data)};
 }
 
 //---------------------------------------------------------------------------//

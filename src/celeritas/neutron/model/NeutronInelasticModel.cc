@@ -95,7 +95,7 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     CELER_ASSERT(data.nuclear_zones.zones.size() == materials.num_isotopes());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<NeutronInelasticData>{std::move(data)};
+    data_ = ParamsDataStore<NeutronInelasticData>{std::move(data)};
     CELER_ENSURE(this->data_);
 }
 

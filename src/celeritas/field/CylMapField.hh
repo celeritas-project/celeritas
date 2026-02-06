@@ -26,7 +26,7 @@ namespace celeritas
 /*!
  * Interpolate a magnetic field vector on an r/phi/z grid.
  *
- * The field vector is stored as a cartesian \f$(x,y,z)\f$ value on the
+ * The field vector is stored as cylindrical \f$(r,\phi,z)\f$ components on the
  * cylindrical mesh grid points, and trilinear interpolation is performed
  * within each grid cell. The value outside the grid is zero.
  *

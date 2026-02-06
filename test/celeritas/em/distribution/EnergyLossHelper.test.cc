@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/em/distribution/EnergyLossHelper.hh"
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/HistogramSampler.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/Quantities.hh"
@@ -59,9 +59,9 @@ class EnergyLossDistributionTest : public Test
     using HostValue = HostVal<FluctuationData>;
     using HostRef = HostCRef<FluctuationData>;
     using MaterialStateStore
-        = CollectionStateStore<MaterialStateData, MemSpace::host>;
+        = StateDataStore<MaterialStateData, MemSpace::host>;
     using ParticleStateStore
-        = CollectionStateStore<ParticleStateData, MemSpace::host>;
+        = StateDataStore<ParticleStateData, MemSpace::host>;
     using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
 
     void SetUp() override

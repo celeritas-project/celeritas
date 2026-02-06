@@ -29,9 +29,14 @@ written to be usable both by the ``celer-g4`` app and potential other users.
 Fields
 """"""
 
-.. doxygenclass:: celeritas::RZMapMagneticField
-.. doxygenclass:: celeritas::CylMapMagneticField
-.. doxygenfunction:: celeritas::MakeCylMapFieldInput
+.. doxygenclass:: celeritas::MagneticField
+
+.. doxygentypedef:: celeritas::RZMapMagneticField
+.. doxygentypedef:: celeritas::CartMapMagneticField
+.. doxygentypedef:: celeritas::CylMapMagneticField
+
+.. doxygenfunction:: celeritas::MakeCartMapFieldInput(CartMapFieldGridParams const& )
+.. doxygenfunction:: celeritas::MakeCylMapFieldInput(std::vector<G4double> const &, std::vector<G4double> const &, std::vector<G4double> const &)
 
 Primary generators
 """"""""""""""""""
@@ -65,7 +70,7 @@ parameters to send to Geant4.
 
 .. celerstruct:: GeantPhysicsOptions
 
-Sensitive detectors
-"""""""""""""""""""
+Detector construction
+"""""""""""""""""""""
 
-.. doxygenclass:: celeritas::GeantSimpleCalo
+.. doxygenclass:: celeritas::DetectorConstruction

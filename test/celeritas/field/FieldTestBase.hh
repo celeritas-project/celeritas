@@ -8,7 +8,7 @@
 
 #include <cmath>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -55,8 +55,7 @@ class FieldTestBase : virtual public Test
 
   private:
     //// TYPE ALIASES ////
-    using ParStateStore
-        = CollectionStateStore<ParticleStateData, MemSpace::host>;
+    using ParStateStore = StateDataStore<ParticleStateData, MemSpace::host>;
 
     //// DATA ////
 

@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/inp/PhysicsModel.hh"
@@ -58,7 +58,7 @@ class LivermorePEModel final : public Model, public StaticConcreteAction
 
   private:
     // Host/device storage and reference
-    CollectionMirror<LivermorePEData> data_;
+    ParamsDataStore<LivermorePEData> data_;
 };
 
 //---------------------------------------------------------------------------//

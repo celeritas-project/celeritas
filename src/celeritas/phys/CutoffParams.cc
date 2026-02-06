@@ -125,7 +125,7 @@ CutoffParams::CutoffParams(Input const& input)
         .insert_back(id_to_index.begin(), id_to_index.end());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<CutoffParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<CutoffParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

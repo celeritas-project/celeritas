@@ -2,35 +2,30 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/detail/RefImpl.hh
+//! \file JsonUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Types.hh"
+#include <nlohmann/json.hpp>
+
+#include "TestMacros.hh"
 
 namespace celeritas
 {
-namespace detail
+namespace test
 {
 //---------------------------------------------------------------------------//
-//! Store a value/reference and dispatch function name based on MemSpace.
-
-template<class T, MemSpace M>
-struct RefGetter
-{
-    T obj_;
-
-    auto operator()() const -> decltype(auto) { return obj_.host_ref(); }
-};
-
+//! Verify JSON round-trip serialization.
 template<class T>
-struct RefGetter<T, MemSpace::device>
+inline void verify_json_round_trip(T const& input, char const* expected)
 {
-    T obj_;
+    nlohmann::json obj(input);
+    EXPECT_JSON_EQ(expected, obj.dump());
 
-    auto operator()() const -> decltype(auto) { return obj_.device_ref(); }
-};
+    auto rt_input = obj.get<T>();
+    EXPECT_JSON_EQ(expected, nlohmann::json(rt_input).dump());
+}
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace test
 }  // namespace celeritas

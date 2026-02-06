@@ -361,9 +361,11 @@ make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
 /*!
  * Construct from full parameter data.
  */
-UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
+UnitInserter::UnitInserter(UniverseInserter* insert_universe,
+                           Data* orange_data,
+                           ConstructionOptions const* opts)
     : orange_data_(orange_data)
-    , build_bih_tree_{&orange_data_->bih_tree_data, BIHBuilder::Input{2}}
+    , build_bih_tree_{&orange_data_->bih_tree_data, opts->bih_options}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
     , build_surfaces_{&orange_data_->surface_types,
                       &orange_data_->real_ids,

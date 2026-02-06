@@ -9,7 +9,7 @@
 #include <memory>
 
 #include "corecel/cont/ArrayIO.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/io/HexRepr.hh"
 #include "corecel/random/data/RanluxppRngData.hh"
 #include "corecel/random/data/RanluxppTypes.hh"
@@ -143,9 +143,9 @@ class RanluxppRngEngineTest : public Test
 {
   protected:
     using HostStore
-        = CollectionStateStore<celeritas::RanluxppRngStateData, MemSpace::host>;
+        = StateDataStore<celeritas::RanluxppRngStateData, MemSpace::host>;
     using DeviceStore
-        = CollectionStateStore<celeritas::RanluxppRngStateData, MemSpace::device>;
+        = StateDataStore<celeritas::RanluxppRngStateData, MemSpace::device>;
     using uint_t = RanluxppUInt;
 
     void SetUp() override

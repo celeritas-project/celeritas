@@ -22,6 +22,7 @@
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
+#include "detail/SetPending.hh"
 
 namespace celeritas
 {
@@ -166,9 +167,8 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    auto counters = state_->sync_get_counters();
-    counters.num_pending = primaries.size();
-    state_->sync_put_counters(counters);
+    // Reset the num_pending counter to the number of primaries
+    detail::set_pending(*params_, *state_, primaries.size());
     primaries_action_->insert(*params_, *state_, primaries);
 
     return (*this)();

@@ -81,8 +81,14 @@ list(APPEND SOURCES
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
   grid/XsGridInserter.cc
+  inp/ControlIO.json.cc
+  inp/DiagnosticsIO.json.cc
   inp/EventsIO.json.cc
   inp/MucfPhysics.cc
+  inp/ProblemIO.json.cc
+  inp/StandaloneInputIO.json.cc
+  inp/SystemIO.json.cc
+  inp/TrackingIO.json.cc
   io/AtomicRelaxationReader.cc
   io/GammaNuclearXsReader.cc
   io/ImportData.cc
@@ -130,6 +136,7 @@ list(APPEND SOURCES
   optical/surface/SurfaceSteppingAction.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
+  phys/GeneratorCountersIO.json.cc
   phys/GeneratorInterface.cc
   phys/GeneratorRegistry.cc
   phys/ImportedModelAdapter.cc
@@ -187,8 +194,8 @@ if(CELERITAS_USE_covfie)
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
-  # object libraries do not work properly with RDC builds
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    # NOTE: object libraries do not work properly with RDC builds or HIP
     list(APPEND SOURCES ${_celer_covfie_src})
     list(APPEND PRIVATE_DEPS
       Celeritas::BuildFlags
@@ -377,6 +384,7 @@ celeritas_polysource(em/model/SeltzerBergerModel)
 celeritas_polysource(em/model/CoulombScatteringModel)
 celeritas_polysource(geo/detail/BoundaryAction)
 celeritas_polysource(global/detail/KillActive)
+celeritas_polysource(global/detail/SetPending)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(mucf/model/DTMixMucfModel)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)

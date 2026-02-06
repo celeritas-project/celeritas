@@ -42,7 +42,7 @@ namespace
 template<MemSpace M>
 auto make_state(StreamId stream, size_type size)
 {
-    using StoreT = CollectionStateStore<GeneratorStateData, M>;
+    using StoreT = StateDataStore<GeneratorStateData, M>;
 
     auto result = std::make_unique<GeneratorState<M>>();
     result->store = StoreT{stream, size};
@@ -165,7 +165,7 @@ void GeneratorAction::insert_impl(CoreState<M>& state, SpanConstData data) const
     if (aux_state.store.size() < data.size())
     {
         // Reallocate with enough capacity
-        aux_state.store = CollectionStateStore<GeneratorStateData, M>{
+        aux_state.store = StateDataStore<GeneratorStateData, M>{
             state.stream_id(), static_cast<size_type>(data.size())};
     }
 

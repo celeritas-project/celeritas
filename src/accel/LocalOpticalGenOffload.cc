@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/LocalOpticalOffload.cc
+//! \file accel/LocalOpticalGenOffload.cc
 //---------------------------------------------------------------------------//
-#include "LocalOpticalOffload.hh"
+#include "LocalOpticalGenOffload.hh"
 
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
@@ -32,8 +32,8 @@ namespace celeritas
 /*!
  * Construct with options and shared data.
  */
-LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
-                                         SharedParams& params)
+LocalOpticalGenOffload::LocalOpticalGenOffload(SetupOptions const& options,
+                                               SharedParams& params)
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local optical offload when Celeritas "
@@ -92,17 +92,17 @@ LocalOpticalOffload::LocalOpticalOffload(SetupOptions const& options,
 /*!
  * Initialize with options and shared data.
  */
-void LocalOpticalOffload::Initialize(SetupOptions const& options,
-                                     SharedParams& params)
+void LocalOpticalGenOffload::Initialize(SetupOptions const& options,
+                                        SharedParams& params)
 {
-    *this = LocalOpticalOffload(options, params);
+    *this = LocalOpticalGenOffload(options, params);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set the event ID and reseed the Celeritas RNG at the start of an event.
  */
-void LocalOpticalOffload::InitializeEvent(int id)
+void LocalOpticalGenOffload::InitializeEvent(int id)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
@@ -123,7 +123,7 @@ void LocalOpticalOffload::InitializeEvent(int id)
 /*!
  * Buffer distribution data for generating optical photons.
  */
-void LocalOpticalOffload::Push(optical::GeneratorDistributionData const& data)
+void LocalOpticalGenOffload::Push(optical::GeneratorDistributionData const& data)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(data);
@@ -143,7 +143,7 @@ void LocalOpticalOffload::Push(optical::GeneratorDistributionData const& data)
 /*!
  * Generate and transport optical photons from the buffered distribution data.
  */
-void LocalOpticalOffload::Flush()
+void LocalOpticalGenOffload::Flush()
 {
     CELER_EXPECT(*this);
 
@@ -200,7 +200,7 @@ void LocalOpticalOffload::Flush()
 /*!
  * Get the accumulated action times.
  */
-auto LocalOpticalOffload::GetActionTime() const -> MapStrDbl
+auto LocalOpticalGenOffload::GetActionTime() const -> MapStrDbl
 {
     CELER_EXPECT(*this);
     return transport_->get_action_times(*state_->aux());
@@ -210,7 +210,7 @@ auto LocalOpticalOffload::GetActionTime() const -> MapStrDbl
 /*!
  * Clear local data.
  */
-void LocalOpticalOffload::Finalize()
+void LocalOpticalGenOffload::Finalize()
 {
     CELER_EXPECT(*this);
 

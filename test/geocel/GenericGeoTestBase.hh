@@ -8,7 +8,7 @@
 
 #include <type_traits>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "geocel/GeoTraits.hh"
 #include "geocel/WrappedGeoTrackView.hh"
 
@@ -86,7 +86,7 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
     // Use host store normally, or placeholder if not configured
     using HostStateStore
         = std::conditional_t<is_geometry_configured_v<G>,
-                             CollectionStateStore<StateData, MemSpace::host>,
+                             StateDataStore<StateData, MemSpace::host>,
                              int>;
 
     SPConstGeo geo_;

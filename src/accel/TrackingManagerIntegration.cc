@@ -171,7 +171,7 @@ void TrackingManagerIntegration::verify_local_setup()
         make_span(singleton.shared_params().OffloadParticles()),
         make_span(offload_particles),
         singleton.shared_params(),
-        singleton.local_offload());
+        singleton.local_track_offload());
 }
 
 //---------------------------------------------------------------------------//

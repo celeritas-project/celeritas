@@ -9,15 +9,15 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
 #include "CoreTrackData.hh"
 #include "TrackInitializer.hh"
-#include "gen/OffloadData.hh"
 
 namespace celeritas
 {
@@ -86,10 +86,10 @@ class CoreStateBase : public CoreStateInterface
 
   public:
     //! Optical loop statistics
-    OpticalAccumStats const& accum() const { return accum_; }
+    CounterAccumStats const& accum() const { return accum_; }
 
     //! Optical loop statistics
-    OpticalAccumStats& accum() { return accum_; }
+    CounterAccumStats& accum() { return accum_; }
 
     //// AUXILIARY DATA ////
 
@@ -107,7 +107,7 @@ class CoreStateBase : public CoreStateInterface
 
   private:
     //! Counts accumulated over the event for diagnostics
-    OpticalAccumStats accum_;
+    CounterAccumStats accum_;
 
     // Auxiliary data owned by the core state
     SPAuxStateVec aux_state_;
@@ -184,7 +184,7 @@ class CoreState final : public CoreStateBase
 
   private:
     // State data
-    CollectionStateStore<CoreStateData, M> states_;
+    StateDataStore<CoreStateData, M> states_;
 
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;

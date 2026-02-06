@@ -18,7 +18,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 class SharedParams;
-class LocalTransporter;
+class TrackOffloadInterface;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -47,7 +47,7 @@ class TrackingManager final : public G4VTrackingManager
   public:
     // Construct with shared (across threads) params, and thread-local
     // transporter.
-    TrackingManager(SharedParams const* params, LocalTransporter* local);
+    TrackingManager(SharedParams const* params, TrackOffloadInterface* local);
 
     // Prepare cross-section tables for rebuild (e.g. if new materials have
     // been defined).
@@ -69,12 +69,12 @@ class TrackingManager final : public G4VTrackingManager
     SharedParams const* shared_params() const { return params_; }
 
     //! Get the thread-local transporter
-    LocalTransporter* local_transporter() const { return transport_; }
+    TrackOffloadInterface* local_transporter() const { return transport_; }
 
   private:
     bool validated_{false};
     SharedParams const* params_{nullptr};
-    LocalTransporter* transport_{nullptr};
+    TrackOffloadInterface* transport_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

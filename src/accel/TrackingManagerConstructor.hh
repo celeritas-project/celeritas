@@ -9,11 +9,13 @@
 #include <functional>
 #include <G4VPhysicsConstructor.hh>
 
+#include "TrackOffloadInterface.hh"
+
 class G4ParticleDefinition;
 
 namespace celeritas
 {
-class LocalTransporter;
+//---------------------------------------------------------------------------//
 class SharedParams;
 class TrackingManagerIntegration;
 
@@ -31,7 +33,8 @@ class TrackingManagerIntegration;
    \endcode
  *
  * but for manual integration it can be constructed with a function to get a
- * reference to the thread-local \c LocalTransporter from the Geant4 thread ID:
+ * reference to the thread-local \c TrackOffloadInterface from the Geant4
+ * thread ID:
  * \code
     auto* physics_list = new FTFP_BERT;
     physics_list->RegisterPhysics(new TrackingManagerConstructor{
@@ -48,14 +51,14 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
   public:
     //!@{
     //! \name Type aliases
-    using LocalTransporterFromThread = std::function<LocalTransporter*(int)>;
+    using LocalOffloadFromThread = std::function<TrackOffloadInterface*(int)>;
     using VecG4PD = std::vector<G4ParticleDefinition*>;
     //!@}
 
   public:
     // Construct name and mode
     TrackingManagerConstructor(SharedParams const* shared,
-                               LocalTransporterFromThread get_local);
+                               LocalOffloadFromThread get_local);
 
     // Construct from tracking manager integration
     explicit TrackingManagerConstructor(TrackingManagerIntegration* tmi);
@@ -68,7 +71,7 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
 
   private:
     SharedParams const* shared_{nullptr};
-    LocalTransporterFromThread get_local_{};
+    LocalOffloadFromThread get_local_{};
     VecG4PD offload_particles_;
 };
 
