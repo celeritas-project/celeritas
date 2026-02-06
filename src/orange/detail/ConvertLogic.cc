@@ -429,61 +429,50 @@ VecLogic convert_to_postfix(VecLogic const& infix)
 /*!
  * Convert logic expressions in an OrangeInput to the desired notation.
  */
-void convert_logic(OrangeInput& input, LogicNotation to)
+void convert_logic(OrangeInput& input, LogicNotation target)
 {
     CELER_EXPECT(input);
-    CELER_ASSERT(input.logic == LogicNotation::postfix
-                 || input.logic == LogicNotation::infix);
+    CELER_ASSERT(input.logic != LogicNotation::size_);
+    CELER_ASSERT(target != LogicNotation::size_);
 
-    auto convert_units = [&](auto&& converter) {
-        for (auto& univ : input.universes)
-        {
-            if (auto* unit = std::get_if<UnitInput>(&univ))
-            {
-                for (auto& vol : unit->volumes)
-                {
-                    if (vol.logic.empty())
-                    {
-                        continue;
-                    }
-                    vol.logic = converter(vol.logic);
-                }
-            }
-        }
-    };
+    if (input.logic == target)
+    {
+        // No conversion necessary
+        return;
+    }
 
-    switch (to)
+    std::function<VecLogic(VecLogic const&)> convert;
+
+    switch (target)
     {
         case LogicNotation::postfix:
-            if (input.logic == LogicNotation::postfix)
-            {
-                return;
-            }
-            CELER_ASSERT(input.logic == LogicNotation::infix);
-            convert_units([](VecLogic const& logic) {
-                return convert_to_postfix(logic);
-            });
+            convert = convert_to_postfix;
             break;
         case LogicNotation::infix:
-            convert_units([&input](VecLogic const& logic) {
-                VecLogic postfix;
-                if (input.logic == LogicNotation::postfix)
-                {
-                    postfix.assign(logic.begin(), logic.end());
-                }
-                else
-                {
-                    postfix = convert_to_postfix(logic);
-                }
-                auto simplified = simplify_negated_joins_postfix(postfix);
+            convert = [](VecLogic const& postfix_lgc) {
+                auto simplified = simplify_negated_joins_postfix(postfix_lgc);
                 return convert_to_infix(simplified);
-            });
+            };
             break;
         default:
             CELER_ASSERT_UNREACHABLE();
     }
 
-    input.logic = to;
+    for (auto& univ : input.universes)
+    {
+        if (auto* unit = std::get_if<UnitInput>(&univ))
+        {
+            for (auto& vol : unit->volumes)
+            {
+                if (vol.logic.empty())
+                {
+                    continue;
+                }
+                vol.logic = convert(vol.logic);
+            }
+        }
+    }
+    input.logic = target;
 }
 
 //---------------------------------------------------------------------------//

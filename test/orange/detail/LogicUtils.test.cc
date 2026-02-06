@@ -71,6 +71,7 @@ TEST(NotationConverter, basic)
                "& ~ 10 & ~ 11 )");
 }
 
+// Test that demorgan's law is applied to input postfix
 TEST(NotationConverter, demorgan_postfix_to_infix)
 {
     auto input = make_input_with_logic(string_to_logic("0 1 | ~"),
@@ -81,6 +82,7 @@ TEST(NotationConverter, demorgan_postfix_to_infix)
     EXPECT_EQ(logic_to_string(postfix), "0 ~ 1 ~ &");
 }
 
+// Transformation is *not* applied if input is infix
 TEST(NotationConverter, demorgan_infix_to_infix)
 {
     std::vector<logic_int> infix = string_to_logic("~ ( 0 | 1 )");
@@ -88,7 +90,7 @@ TEST(NotationConverter, demorgan_infix_to_infix)
     convert_logic(input, LogicNotation::infix);
     auto& unit = std::get<UnitInput>(input.universes.front());
     auto postfix = convert_to_postfix(unit.volumes.front().logic);
-    EXPECT_EQ(logic_to_string(postfix), "0 ~ 1 ~ &");
+    EXPECT_EQ(logic_to_string(postfix), "0 1 | ~");
 }
 
 //---------------------------------------------------------------------------//
