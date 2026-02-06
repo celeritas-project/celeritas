@@ -552,8 +552,8 @@ TEST_F(Testem3Test, default)
         static char const* const expected_volume_strings[]
             = {"F", "-6", "+6", "F"};
         static char const* const expected_md_strings[] = {
-            R"(Absorber1@mx,Absorber1@my,Absorber1@mz,Absorber2@my,Absorber2@mz,Layer,Layer@mx,Layer@my,Layer@mz,layer.children)",
-            R"(Absorber1@py,Absorber1@pz,Absorber2@px,Absorber2@py,Absorber2@pz,Layer@px,Layer@py,Layer@pz,[EXTERIOR],layer)",
+            "",
+            "",
             "Absorber1@px,Absorber2,Absorber2@mx",
             "Absorber1",
         };
@@ -724,8 +724,8 @@ TEST_F(ZnenvTest, default)
         static char const* const expected_volume_strings[]
             = {"F", "-6", "+6", "F"};
         static char const* const expected_md_strings[] = {
-            R"(TGeoBBox0x0,TGeoBBox0x0@mx,TGeoBBox0x0@my,TGeoBBox0x0@mz,TGeoBBox0x0@mx,TGeoBBox0x0@my,TGeoBBox0x0@mz,ZNTX.children)",
-            R"(TGeoBBox0x0@px,TGeoBBox0x0@py,TGeoBBox0x0@pz,TGeoBBox0x0@px,TGeoBBox0x0@py,TGeoBBox0x0@pz,ZNTX,[EXTERIOR])",
+            "",
+            "",
             "TGeoBBox0x0,TGeoBBox0x0@my,TGeoBBox0x0@py",
             "TGeoBBox0x0",
         };

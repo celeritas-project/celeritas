@@ -124,9 +124,9 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
         if (new_id)
         {
             CELER_ASSERT(new_id < metadata.size());
-            if (true)
+            if (!CsgTree::is_boolean_node(new_id))
             {
-                // Update metadata
+                // Update metadata if node wasn't logically eliminated
                 auto& new_md = metadata[new_id.get()];
                 if (CELER_UNLIKELY(!new_md.empty()))
                 {
