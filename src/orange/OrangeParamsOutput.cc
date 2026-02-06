@@ -8,6 +8,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -90,6 +91,31 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 
 #undef OPO_SIZE_PAIR
 #undef OPO_PAIR
+
+    // Write BIH metadata as a struct of arrays
+    {
+        auto const& md = data.bih_tree_data.metadata;
+
+        obj["bih_metadata"] = json::object();
+        auto& bih_metadata = obj["bih_metadata"];
+
+        auto make_array = [&](std::string key) -> json& {
+            bih_metadata[key] = json::array();
+            return bih_metadata[key];
+        };
+
+        auto& finite = make_array("num_finite_bboxes");
+        auto& nonfinite = make_array("num_nonfinite_bboxes");
+        auto& depth = make_array("max_depth");
+
+        for (auto i : range(md.size()))
+        {
+            auto const& mdi = md[detail::BIHTree::MetadataId{i}];
+            finite.push_back(mdi.num_finite_bboxes);
+            nonfinite.push_back(mdi.num_nonfinite_bboxes);
+            depth.push_back(mdi.max_depth);
+        }
+    }
 
     j->obj = std::move(obj);
 }

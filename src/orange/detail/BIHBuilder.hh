@@ -87,6 +87,7 @@ class BIHBuilder
     CollectionBuilder<LocalVolumeId> local_volume_ids_;
     CollectionBuilder<BIHInnerNode> inner_nodes_;
     CollectionBuilder<BIHLeafNode> leaf_nodes_;
+    CollectionBuilder<BIHTree::Metadata> metadata_;
 
     Input inp_;
 
@@ -96,7 +97,9 @@ class BIHBuilder
     void construct_tree(VecIndices const& indices,
                         VecNodes* nodes,
                         BIHNodeId parent,
-                        FastBBox const& bbox);
+                        FastBBox const& bbox,
+                        size_type current_depth,
+                        size_type& max_depth);
 
     // Separate nodes into inner and leaf vectors and renumber accordingly
     ArrangedNodes arrange_nodes(VecNodes const& nodes) const;

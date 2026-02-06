@@ -85,6 +85,22 @@ struct BIHLeafNode
  */
 struct BIHTree
 {
+    //// TYPES ////
+    struct Metadata
+    {
+        //! The number of finite bounding boxes in the tree
+        size_type num_finite_bboxes;
+        //! The number of nonfinite bounding boxes in the tree
+        size_type num_nonfinite_bboxes;
+        //! The depth of the most embedded leaf node. This has a value of 1
+        //! when the root node is a leaf.
+        size_type max_depth;
+    };
+
+    using MetadataId = OpaqueId<Metadata>;
+
+    //// DATA ////
+
     //! All bounding boxes managed by the BIH
     ItemMap<LocalVolumeId, FastBBoxId> bboxes;
 
@@ -96,6 +112,11 @@ struct BIHTree
 
     //! Local volumes that have infinite bounding boxes
     ItemRange<LocalVolumeId> inf_vol_ids;
+
+    //! The metadata for this tree
+    MetadataId metadata_id;
+
+    //// METHODS ////
 
     explicit CELER_FUNCTION operator bool() const
     {

@@ -359,13 +359,14 @@ struct BIHTreeData
     Items<LocalVolumeId> local_volume_ids;
     Items<detail::BIHInnerNode> inner_nodes;
     Items<detail::BIHLeafNode> leaf_nodes;
+    Items<detail::BIHTree::Metadata> metadata;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
         // Note that inner_nodes may be empty for single-node trees
         return !bboxes.empty() && !local_volume_ids.empty()
-               && !leaf_nodes.empty();
+               && !leaf_nodes.empty() && !metadata.empty();
     }
 
     //! Assign from another set of data
@@ -376,6 +377,7 @@ struct BIHTreeData
         local_volume_ids = other.local_volume_ids;
         inner_nodes = other.inner_nodes;
         leaf_nodes = other.leaf_nodes;
+        metadata = other.metadata;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
         return *this;
