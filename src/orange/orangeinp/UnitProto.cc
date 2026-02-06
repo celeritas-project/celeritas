@@ -25,6 +25,7 @@
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/detail/LogicIO.hh"
 #include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -324,10 +325,11 @@ void UnitProto::build(ProtoBuilder& pb) const
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
 
-    // Always use postfix logic for unit input, post-processing to
-    // convert to tracking notation
+    // Always use postfix logic for unit input: post-processing in OrangeParams
+    // will convert to tracking notation
+    constexpr auto lgc_notation = LogicNotation::postfix;
     detail::DynamicBuildLogicPolicy const policy{
-        LogicNotation::postfix, csg_unit.tree, &sorted_local_surfaces};
+        lgc_notation, csg_unit.tree, &sorted_local_surfaces};
     // Construct logic and faces with remapped surfaces
     for (auto vol_idx : range(unit_volumes.size()))
     {
@@ -367,7 +369,7 @@ void UnitProto::build(ProtoBuilder& pb) const
         VolumeInput vi;
         vi.faces.resize(sorted_local_surfaces.size());
         std::iota(vi.faces.begin(), vi.faces.end(), LocalSurfaceId{0});
-        vi.logic = {logic::ltrue, logic::lnot};
+        vi.logic = celeritas::detail::make_nowhere_expr(lgc_notation);
         vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
         /*! \todo The nearest internal surface is probably *not* the safety

@@ -133,7 +133,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     {
         // Background volumes should be "nowhere" explicitly using "inside"
         // logic
-        value.logic = {logic::ltrue, logic::lnot};
+        value.logic = detail::make_nowhere_expr(LogicNotation::postfix);
         value.bbox = {};
     }
     else

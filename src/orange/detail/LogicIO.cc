@@ -121,5 +121,24 @@ std::vector<logic_int> string_to_logic(std::string_view s)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a vector of logic indicating "nowhere".
+ */
+std::vector<logic_int> make_nowhere_expr(LogicNotation notation)
+{
+    CELER_EXPECT(notation != LogicNotation::size_);
+
+    switch (notation)
+    {
+        case LogicNotation::postfix:
+            return {logic::ltrue, logic::lnot};
+        case LogicNotation::infix:
+            return {logic::lnot, logic::ltrue};
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
