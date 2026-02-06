@@ -11,7 +11,7 @@
 #include "corecel/Assert.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
-#include "orange/orangeinp/ScaleUtils.hh"
+#include "orange/orangeinp/detail/CsgLogicUtils.hh"
 
 #include "../OrangeTypes.hh"
 
@@ -88,11 +88,23 @@ orangeinp::CsgTree build_tree_from_postfix(Span<logic_int const> postfix)
 std::vector<logic_int>
 simplify_negated_joins_postfix(Span<logic_int const> postfix)
 {
-    auto tree = build_tree_from_postfix(postfix);
-    auto simplified = orangeinp::transform_negated_joins(tree);
-    CELER_ASSERT(!simplified.first.volumes().empty());
-    auto root = simplified.first.volumes().front();
-    return orangeinp::build_postfix_logic(simplified.first, root);
+    CELER_EXPECT(!postfix.empty());
+
+    using namespace orangeinp;
+
+    // Construct a CSG tree from the input and simplify it
+    CsgTree tree
+        = transform_negated_joins(build_tree_from_postfix(postfix)).first;
+    CELER_ASSERT(tree.volumes().size() == 1);
+    NodeId root = tree.volumes().front();
+
+    // Convert simplified tree to postfix
+    orangeinp::detail::PostfixBuildLogicPolicy const policy{tree};
+    std::vector<logic_int> logic;
+    auto build_impl = policy(logic);
+    build_impl(root);
+    CELER_ENSURE(!logic.empty());
+    return logic;
 }
 
 //---------------------------------------------------------------------------//
