@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 
 #include "Stream.hh"
 #include "ThreadId.hh"
@@ -49,9 +48,8 @@ class Stream;
  * global_device is global. CUDA needs to be activated using \c activate_device
  * or \c activate_device_local on every thread, using the same device ID.
  *
- * \todo Const correctness for streams is wrong; we should
- * probably make the global device non-const (and thread-local?) and then
- * activate it on "move".
+ * \todo Streams should be owned by local state objects, not global IDs.
+ * StreamId will just indicate a unique group of states.
  */
 class Device
 {

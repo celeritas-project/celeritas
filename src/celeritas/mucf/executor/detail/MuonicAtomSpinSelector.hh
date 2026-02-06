@@ -7,7 +7,10 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/mucf/Types.hh"
 
 namespace celeritas
 {
@@ -17,7 +20,12 @@ namespace detail
 /*!
  * Select muonic atom spin, in units of \f$ \frac{\hbar}{2} \f$.
  *
- * Applicable to \f$ (p)_\mu \f$, \f$ (d)_\mu \f$, and \f$ (t)_\mu \f$.
+ * Sampling is based on spin population probabilities from
+ * \citet{yamashita-muonicspin-2022,
+ * https://doi.org/10.1038/s41598-022-09487-0}
+ * which are:
+ * - Muonic deuterium: 2/3 probability for spin 3/2; 1/3 for spin 1/2
+ * - Muonic tritium: 3/4 probability for spin 1; 1/4 for spin 0
  */
 class MuonicAtomSpinSelector
 {
@@ -25,13 +33,24 @@ class MuonicAtomSpinSelector
     // Construct with muonic atom type
     inline CELER_FUNCTION MuonicAtomSpinSelector(MucfMuonicAtom atom);
 
-    // Sample and return a spin value in units of hbar / 2
+    // Sample and return a spin value in units of hbar/2
     template<class Engine>
-    inline CELER_FUNCTION size_type operator()(Engine&);
+    inline CELER_FUNCTION units::HalfSpinInt operator()(Engine& rng);
 
   private:
     MucfMuonicAtom atom_;
-    //! \todo Add constant atom spin sampling rejection fractions
+
+    // Muonic deuterium spin probabilities: 2/3 for spin 3/2; 1/3 for spin 1/2
+    constexpr CELER_FUNCTION real_type deuterium_spin_probability()
+    {
+        return real_type{2} / real_type{3};
+    }
+
+    // Muonic tritium spin probabilities: 3/4 for spin 1; 1/4 for spin 0
+    constexpr CELER_FUNCTION real_type tritium_spin_probability()
+    {
+        return real_type{0.75};
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -45,18 +64,31 @@ MuonicAtomSpinSelector::MuonicAtomSpinSelector(MucfMuonicAtom atom)
     : atom_(atom)
 {
     CELER_EXPECT(atom_ < MucfMuonicAtom::size_);
-    CELER_NOT_IMPLEMENTED("Mucf muonic atom spin selection");
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Return selected spin, in units of \f$ \hbar / 2 \f$.
+ * Select a muonic atom spin, in units of \f$ \frac{\hbar}{2} \f$.
  */
 template<class Engine>
-CELER_FUNCTION size_type MuonicAtomSpinSelector::operator()(Engine&)
+CELER_FUNCTION units::HalfSpinInt
+MuonicAtomSpinSelector::operator()(Engine& rng)
 {
-    //! \todo switch on atom_
-    CELER_ASSERT_UNREACHABLE();
+    switch (atom_)
+    {
+        case MucfMuonicAtom::deuterium:
+            return BernoulliDistribution(this->deuterium_spin_probability())(
+                       rng)
+                       ? units::HalfSpinInt{3}  // Spin 3/2
+                       : units::HalfSpinInt{1};  // Spin 1/2
+
+        case MucfMuonicAtom::tritium:
+            return BernoulliDistribution(this->tritium_spin_probability())(rng)
+                       ? units::HalfSpinInt{2}  // Spin 1
+                       : units::HalfSpinInt{0};  // Spin 0
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -149,12 +149,12 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         csg_outp.write(opts_.csg_output_file);
     }
 
-    if (std::string var = celeritas::getenv("ORANGE_BIH_MIN_SPLIT_SIZE");
+    if (std::string var = celeritas::getenv("ORANGE_BIH_MAX_LEAF_SIZE");
         !var.empty())
     {
-        size_type mss = std::stoul(var);
-        CELER_EXPECT(mss > 1);
-        result.construction_opts.bih_options.min_split_size = mss;
+        size_type mls = std::stoul(var);
+        CELER_EXPECT(mls > 0);
+        result.construction_opts.bih_options.max_leaf_size = mls;
     }
 
     CELER_ENSURE(result);

@@ -65,7 +65,7 @@ class BIHEnclosingVolFinderTest : public Test
  */
 TEST_F(BIHEnclosingVolFinderTest, basic)
 {
-    auto run_test = [&](size_type min_split_size) {
+    auto run_test = [&](size_type max_leaf_size) {
         VecFastBbox bboxes = {
             FastBBox::from_infinite(),
             {{0, 0, 0}, {1.6f, 1, 100}},
@@ -75,7 +75,7 @@ TEST_F(BIHEnclosingVolFinderTest, basic)
             {{0, -1, 0}, {5, 0, 100}},
         };
 
-        BIHBuilder build(&storage_, BIHBuilder::Input{min_split_size});
+        BIHBuilder build(&storage_, BIHBuilder::Input{max_leaf_size});
         auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
         ref_storage_ = storage_;
@@ -91,9 +91,9 @@ TEST_F(BIHEnclosingVolFinderTest, basic)
         EXPECT_EQ(LocalVolumeId{5}, find_volume({2.9, -0.7, 50}, odd_vol_id_));
     };
 
-    for (auto min_split_size : range(2, 5))
+    for (auto max_leaf_size : range(1, 4))
     {
-        run_test(min_split_size);
+        run_test(max_leaf_size);
     }
 }
 
@@ -116,7 +116,7 @@ TEST_F(BIHEnclosingVolFinderTest, basic)
  */
 TEST_F(BIHEnclosingVolFinderTest, grid)
 {
-    auto run_test = [&](size_type min_split_size) {
+    auto run_test = [&](size_type max_leaf_size) {
         VecFastBbox bboxes = {FastBBox::from_infinite()};
         for (auto i : range(3))
         {
@@ -128,7 +128,7 @@ TEST_F(BIHEnclosingVolFinderTest, grid)
             }
         }
 
-        BIHBuilder build(&storage_, BIHBuilder::Input{min_split_size});
+        BIHBuilder build(&storage_, BIHBuilder::Input{max_leaf_size});
         auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
         ref_storage_ = storage_;
@@ -149,9 +149,9 @@ TEST_F(BIHEnclosingVolFinderTest, grid)
         }
     };
 
-    for (auto min_split_size : range(2, 5))
+    for (auto max_leaf_size : range(1, 4))
     {
-        run_test(min_split_size);
+        run_test(max_leaf_size);
     }
 }
 

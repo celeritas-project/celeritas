@@ -168,5 +168,70 @@ CELER_ICC barn = Constant{1e-24} * centimeter * centimeter;
 #undef CELER_ICC
 
 //---------------------------------------------------------------------------//
+/*!
+ * \name User-defined literals for units
+ *
+ * Usage:
+ * \code
+ * using namespace celeritas::units::literals;
+ * auto length = 2.5_centimeter;
+ * \endcode
+ *
+ * \note In headers, prefer explicit multiplication (e.g., \c 2.5 *
+ * units::centimeter) or bring in only the needed literal operator inside a
+ * function scope:
+ * \code
+ * using celeritas::units::literals::operator"" _centimeter;
+ * return 2.5_centimeter;
+ * \endcode
+ */
+namespace literals
+{
+
+#define CELER_DEFINE_UNIT_UDL(SUFFIX, NAME)                               \
+    CELER_CONSTEXPR_FUNCTION real_type operator""_##SUFFIX(long double v) \
+    {                                                                     \
+        return static_cast<real_type>(v) * units::NAME;                   \
+    }                                                                     \
+    CELER_CONSTEXPR_FUNCTION Constant operator""_##SUFFIX(                \
+        unsigned long long int v)                                         \
+    {                                                                     \
+        return v * units::NAME;                                           \
+    }                                                                     \
+    CELER_CONSTEXPR_FUNCTION real_type operator""_##NAME(long double v)   \
+    {                                                                     \
+        return static_cast<real_type>(v) * units::NAME;                   \
+    }                                                                     \
+    CELER_CONSTEXPR_FUNCTION Constant operator""_##NAME(                  \
+        unsigned long long int v)                                         \
+    {                                                                     \
+        return v * units::NAME;                                           \
+    }
+
+CELER_DEFINE_UNIT_UDL(cm, centimeter)
+CELER_DEFINE_UNIT_UDL(g, gram)
+CELER_DEFINE_UNIT_UDL(s, second)
+CELER_DEFINE_UNIT_UDL(G, gauss)
+CELER_DEFINE_UNIT_UDL(K, kelvin)
+CELER_DEFINE_UNIT_UDL(m, meter)
+CELER_DEFINE_UNIT_UDL(kg, kilogram)
+CELER_DEFINE_UNIT_UDL(T, tesla)
+CELER_DEFINE_UNIT_UDL(N, newton)
+CELER_DEFINE_UNIT_UDL(J, joule)
+CELER_DEFINE_UNIT_UDL(C, coulomb)
+CELER_DEFINE_UNIT_UDL(A, ampere)
+CELER_DEFINE_UNIT_UDL(V, volt)
+CELER_DEFINE_UNIT_UDL(F, farad)
+CELER_DEFINE_UNIT_UDL(mm, millimeter)
+CELER_DEFINE_UNIT_UDL(ns, nanosecond)
+CELER_DEFINE_UNIT_UDL(um, micrometer)
+CELER_DEFINE_UNIT_UDL(nm, nanometer)
+CELER_DEFINE_UNIT_UDL(fm, femtometer)
+CELER_DEFINE_UNIT_UDL(b, barn)
+
+#undef CELER_DEFINE_UNIT_UDL
+}  // namespace literals
+
+//---------------------------------------------------------------------------//
 }  // namespace units
 }  // namespace celeritas

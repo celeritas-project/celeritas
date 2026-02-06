@@ -6,8 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <unordered_set>
 #include <utility>
 #include <vector>
+
+#include "corecel/math/HashUtils.hh"
 
 #include "../CsgTree.hh"
 #include "../CsgTypes.hh"
@@ -50,6 +53,18 @@ class DeMorganSimplifier
     TransformedTree operator()();
 
   private:
+    using NodePair = std::pair<NodeId, NodeId>;
+
+    struct NodePairHash
+    {
+        std::size_t operator()(NodePair const& p) const noexcept
+        {
+            return hash_combine(p.first, p.second);
+        }
+    };
+
+    using SparseMatrix2D = std::unordered_set<NodePair, NodePairHash>;
+
     //! CsgTree node 0 is always True{} and can't be the parent of any node
     //! so reuse that bit to tell that a given node is a volume
     static constexpr auto is_volume_index_{NodeId{0}};
@@ -89,25 +104,6 @@ class DeMorganSimplifier
         NodeId equivalent_node() const;
     };
 
-    //! Rudimentary 2D square matrix view of a vector<bool>
-    class Matrix2D
-    {
-      public:
-        using indices = std::pair<NodeId, NodeId>;
-
-        // Create the matrix view with the given extent size
-        explicit Matrix2D(size_type) noexcept;
-        // Access the element at the given index
-        std::vector<bool>::reference operator[](indices);
-        // The extent along one dimension
-        size_type extent() const noexcept;
-
-      private:
-        // TODO: sparse storage
-        std::vector<bool> data_;
-        size_type extent_;
-    };
-
     // Dereference Aliased nodes
     NodeId dealias(NodeId) const;
 
@@ -139,9 +135,8 @@ class DeMorganSimplifier
     //! an opposite join node with negated operands
     std::vector<bool> negated_join_nodes_;
 
-    //! Parents matrix. For nodes n1, n2, if n1 * tree_.size() + n2 is set, it
-    //! means that n2 is a parent of n1
-    Matrix2D parents_;
+    //! Parents matrix. If the pair {e1, e2} exists, e2 is parent of e1
+    SparseMatrix2D parents_;
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
