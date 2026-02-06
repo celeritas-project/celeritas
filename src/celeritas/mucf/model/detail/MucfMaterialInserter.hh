@@ -24,7 +24,16 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Helper class to calculate and insert muCF material-dependent data into
- * \c DTMixMucfData .
+ * \c DTMixMucfData . If the material does not contain deuterium and/or
+ * tritium the operator will return false.
+ *
+ * This is designed to work with the user's material definition being either:
+ * - Single element, multiple isotopes (H element, with H, d, and t isotopes);
+ * or
+ * - Multiple elements, single isotope each (separate H, d, and t elements).
+ *
+ * The \c inp:: data has cycle \em rate (\f$\lambda\f$) tables, while the
+ * host/device cached data is the cycle \em time \f$\tau = 1/\lambda\f$.
  */
 class MucfMaterialInserter
 {

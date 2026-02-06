@@ -37,18 +37,6 @@ MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
 //---------------------------------------------------------------------------//
 /*!
  * Insert material information if applicable.
- *
- * Calculates and caches material-dependent properties needed by the
- * \c DTMixMucfModel . If the material does not contain deuterium and/or
- * tritium the operator will return false.
- *
- * * This is designed to work with the user's material definition being either:
- * - Single element, multiple isotopes (H element, with H, d, and t isotopes);
- * or
- * - Multiple elements, single isotope each (separate H, d, and t elements).
- *
- * The input data stores the cycle \em rate \f$\lambda\f$, while the cached
- * data is the cycle \em time \f$\tau = 1/\lambda\f$.
  */
 bool MucfMaterialInserter::operator()(MaterialView const& material)
 {

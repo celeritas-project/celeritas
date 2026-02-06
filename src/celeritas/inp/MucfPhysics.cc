@@ -16,7 +16,8 @@ namespace
 /*!
  * Muon energy CDF data for muon-catalyzed fusion.
  *
- * Data is extracted from https://doi.org/10.1103/PhysRevC.107.034607 .
+ * Data is extracted from \citet{kamimura-mucf-2023,
+ * https://doi.org/10.1103/PhysRevC.107.034607}.
  */
 Grid mucf_muon_energy_cdf()
 {
@@ -527,7 +528,8 @@ MucfCycleRate tt_1_over_2_cycle_data()
 /*!
  * Cycle rate data for muon-catalyzed fusion.
  *
- * Data extracted from https://doi.org/10.1007/BF02227621 .
+ * Data is extracted from \citet{faifman-mucfformation-1996,
+ * https://doi.org/10.1007/BF02227621}.
  *
  * \todo Use native units.
  */
