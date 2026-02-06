@@ -155,7 +155,7 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
                 auto irt = regions.insert(std::move(region));
                 if (!irt.inserted)
                 {
-                    log_debug() << "merged region bounds";
+                    log_debug() << "ignored since a region exists";
                 }
             }
         }
