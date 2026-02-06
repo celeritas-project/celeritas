@@ -98,7 +98,7 @@ class JsonCsgOutput
 /*!
  * Construct with options.
  */
-InputBuilder::InputBuilder(Options&& opts) : opts_{std::move(opts)}
+InputBuilder::InputBuilder(Input&& inp) : opts_{std::move(inp)}
 {
     CELER_EXPECT(opts_.tol);
 }
@@ -124,15 +124,17 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 
     // Build surfaces and metadata
     OrangeInput result;
+    result.tol = opts_.tol;
+    result.logic = opts_.logic;
     JsonCsgOutput csg_outp;
     detail::ProtoBuilder builder(&result, protos, [&] {
         detail::ProtoBuilder::Options pbopts;
-        pbopts.tol = opts_.tol;
         if (!opts_.csg_output_file.empty())
         {
             csg_outp = JsonCsgOutput{protos.size()};
             pbopts.save_json = std::ref(csg_outp);
         }
+        pbopts.implicit_parent_boundary = opts_.implicit_parent_boundary;
         return pbopts;
     }());
 
