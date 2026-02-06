@@ -25,13 +25,18 @@ namespace celeritas
  * - \f$ (^3\text{He})_\mu + n \f$
  * - \f$ t + \mu + p \f$
  *
- * \note This interactor has a similar implementation as \c DTMucfInteractor .
- * See its documentation for details.
+ * The mass ratios between \f$ ^3\text{He} \f$ and the neutron, and between
+ * tritium and the proton, are both about 3:1. This leads to the neutron and
+ * proton kinetic energies being 3/4 of the total kinetic energy available in
+ * their respective channels.
+ *
+ * \note This interactor has a similar implementation as \c DTMucfInteractor ,
+ * where energy is not fully conserved. See its documentation for details.
  */
 class DDMucfInteractor
 {
   public:
-    //! \todo Implement muonichydrogen3_proton (\f$ (^3\text{H})_\mu + p \f$)
+    //! \todo Implement muonictriton_proton (\f$ (t)_\mu + p \f$)
     enum class Channel
     {
         helium3_muon_neutron,  //!< \f$ ^3\text{He} + \mu + n \f$
