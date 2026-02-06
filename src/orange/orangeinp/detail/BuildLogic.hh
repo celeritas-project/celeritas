@@ -240,6 +240,9 @@ class DynamicBuildLogicPolicy
 // TEMPLATE INSTANTIATION
 //---------------------------------------------------------------------------//
 
+extern template class BaseLogicBuilder<PostfixLogicBuilder>;
+extern template class BaseLogicBuilder<InfixLogicBuilder>;
+
 extern template BuildLogicResult
 build_logic(PostfixBuildLogicPolicy const&, NodeId);
 extern template BuildLogicResult

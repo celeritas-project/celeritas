@@ -267,6 +267,9 @@ auto DynamicBuildLogicPolicy::operator()(VecLogic& logic) const -> Builder
 // TEMPLATE INSTANTIATION
 //---------------------------------------------------------------------------//
 
+template class BaseLogicBuilder<PostfixLogicBuilder>;
+template class BaseLogicBuilder<InfixLogicBuilder>;
+
 template BuildLogicResult build_logic(PostfixBuildLogicPolicy const&, NodeId);
 template BuildLogicResult build_logic(InfixBuildLogicPolicy const&, NodeId);
 template BuildLogicResult build_logic(DynamicBuildLogicPolicy const&, NodeId);
