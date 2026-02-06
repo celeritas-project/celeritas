@@ -7,8 +7,8 @@
 #pragma once
 
 #include "corecel/cont/LabelIdMultiMap.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
 #include "SurfaceData.hh"
 
@@ -78,14 +78,14 @@ class SurfaceParams final : public ParamsDataInterface<SurfaceParamsData>
 
   private:
     // Host/device storage and reference
-    CollectionMirror<SurfaceParamsData> data_;
+    ParamsDataStore<SurfaceParamsData> data_;
     // Metadata: surface labels
     SurfaceMap labels_;
 };
 
 //---------------------------------------------------------------------------//
 
-extern template class CollectionMirror<SurfaceParamsData>;
+extern template class ParamsDataStore<SurfaceParamsData>;
 extern template class ParamsDataInterface<SurfaceParamsData>;
 
 //---------------------------------------------------------------------------//

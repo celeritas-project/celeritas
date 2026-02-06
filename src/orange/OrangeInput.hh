@@ -24,6 +24,7 @@
 
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
+#include "inp/Bih.hh"
 #include "surf/VariantSurface.hh"
 #include "transform/VariantTransform.hh"
 
@@ -172,6 +173,19 @@ struct RectArrayInput
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Options that govern the geometry construction process.
+ */
+struct ConstructionOptions
+{
+    //! Options for Bounding Interval Hierarchy (BIH) construction
+    inp::BIHBuilder bih_options;
+
+    //! Whether the options are valid
+    explicit operator bool() const { return static_cast<bool>(bih_options); }
+};
+
+//---------------------------------------------------------------------------//
 //! Possible types of universe inputs
 using VariantUniverseInput = std::variant<UnitInput, RectArrayInput>;
 
@@ -183,6 +197,8 @@ struct OrangeInput
 {
     std::vector<VariantUniverseInput> universes;
 
+    ConstructionOptions construction_opts;
+
     //! Relative and absolute error for construction and transport
     Tolerance<> tol;
 
@@ -192,7 +208,8 @@ struct OrangeInput
     //! Whether the unit definition is valid
     explicit operator bool() const
     {
-        return !universes.empty() && tol && logic != LogicNotation::size_;
+        return !universes.empty() && tol && logic != LogicNotation::size_
+               && static_cast<bool>(construction_opts);
     }
 };
 

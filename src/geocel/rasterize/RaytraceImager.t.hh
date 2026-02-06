@@ -15,7 +15,7 @@
 
 #include "RaytraceImager.hh"
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/sys/KernelLauncher.hh"
 
 #include "Image.hh"
@@ -31,7 +31,7 @@ template<class G>
 struct RaytraceImager<G>::CachedStates
 {
     template<MemSpace M>
-    using StateStore = CollectionStateStore<GeoStateData, M>;
+    using StateStore = StateDataStore<GeoStateData, M>;
 
     StateStore<MemSpace::host> host;
     StateStore<MemSpace::device> device;

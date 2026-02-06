@@ -13,7 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackDataFwd.hh"
 

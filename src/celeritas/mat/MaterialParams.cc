@@ -201,7 +201,7 @@ MaterialParams::MaterialParams(Input const& inp)
         .insert_back(inp.mat_to_optical.begin(), inp.mat_to_optical.end());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<MaterialParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<MaterialParamsData>{std::move(host_data)};
 
     CELER_ENSURE(this->data_);
     CELER_ENSURE(this->host_ref().isotopes.size() == inp.isotopes.size());

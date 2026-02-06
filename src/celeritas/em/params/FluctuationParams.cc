@@ -61,7 +61,7 @@ FluctuationParams::FluctuationParams(ParticleParams const& particles,
         urban.push_back(params);
     }
 
-    data_ = CollectionMirror<FluctuationData>{std::move(data)};
+    data_ = ParamsDataStore<FluctuationData>{std::move(data)};
     CELER_ENSURE(data_);
 }
 

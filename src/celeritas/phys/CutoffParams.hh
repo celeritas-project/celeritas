@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -95,7 +95,7 @@ class CutoffParams final : public ParamsDataInterface<CutoffParamsData>
 
   private:
     // Host/device storage and reference
-    CollectionMirror<CutoffParamsData> data_;
+    ParamsDataStore<CutoffParamsData> data_;
     using HostValue = HostVal<CutoffParamsData>;
 
     //// HELPER FUNCTIONS ////

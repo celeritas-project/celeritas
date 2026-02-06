@@ -8,7 +8,7 @@
 
 #include <random>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
@@ -73,7 +73,7 @@ class MscTestBase : public RootTestBase
 
   private:
     template<template<Ownership, MemSpace> class S>
-    using StateStore = CollectionStateStore<S, MemSpace::host>;
+    using StateStore = StateDataStore<S, MemSpace::host>;
 
     StateStore<PhysicsStateData> physics_state_;
     StateStore<ParticleStateData> particle_state_;

@@ -142,7 +142,7 @@ ScintillationParams::ScintillationParams(Input const& input)
                  == host_data.resolution_scale.size());
 
     // Copy to device
-    mirror_ = CollectionMirror<ScintillationData>{std::move(host_data)};
+    mirror_ = ParamsDataStore<ScintillationData>{std::move(host_data)};
     CELER_ENSURE(mirror_);
 }
 

@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/user/DetectorSteps.hh"
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/data/Ref.hh"
 #include "celeritas/user/StepData.hh"
 #include "celeritas/user/detail/StepScratchCopyExecutor.hh"
@@ -58,7 +58,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
         host_data.selection = this->selection();
         host_data.num_volume_levels = 4;
 
-        params_ = CollectionMirror<StepParamsData>(std::move(host_data));
+        params_ = ParamsDataStore<StepParamsData>(std::move(host_data));
 
         if (auto& d = celeritas::device())
         {
@@ -164,7 +164,7 @@ class DetectorStepsTest : public ::celeritas::test::Test
     }
 
   private:
-    CollectionMirror<StepParamsData> params_;
+    ParamsDataStore<StepParamsData> params_;
 };
 
 class SmallDetectorStepsTest : public DetectorStepsTest

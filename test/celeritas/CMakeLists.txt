@@ -151,11 +151,10 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 #-----------------------------------------------------------------------------#
 # MuCF
 
-# Interactors
+celeritas_add_test(mucf/DDMucfInteractor.test.cc)
 celeritas_add_test(mucf/DTMucfInteractor.test.cc)
-
-# Model
 celeritas_add_test(mucf/DTMixMucfModel.test.cc)
+celeritas_add_test(mucf/MuonicAtomSelector.test.cc)
 
 #-----------------------------------------------------------------------------#
 # EM
@@ -251,7 +250,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # Field
 
-if(CELERITAS_USE_VecGeom)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
+ AND (CELERITAS_USE_CUDA OR VecGeom_VERSION VERSION_GREATER_EQUAL "2.0"))
   # VecGeom surface cannot rebuild the geometry
   set(_fieldprop_filter
     FILTER
@@ -260,10 +260,6 @@ if(CELERITAS_USE_VecGeom)
     "SimpleCms*"
     "Cmse*"
   )
-else()
-  # Other geometries should run everything (and some tests e.g. CMSE are
-  # disabled)
-  set(_fieldprop_filter)
 endif()
 
 celeritas_add_device_test(field/Fields

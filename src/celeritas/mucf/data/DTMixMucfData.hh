@@ -109,6 +109,7 @@ struct DTMixMucfData
     using MaterialItems = Collection<T, W, M, MuCfMatId>;
     using GridRecord = NonuniformGridRecord;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, Array<real_type, 2>>;
+    using MaterialFractionsArray = EnumArray<MucfIsotope, real_type>;
 
     //! Particles
     MucfParticleIds particle_ids;
@@ -123,8 +124,10 @@ struct DTMixMucfData
     //! Material-dependent data calculated at model construction
     //! \c PhysMatId indexed by \c MuCfMatId
     MaterialItems<PhysMatId> mucfmatid_to_matid;
-    //! Cycle times per material: [mucf_matid][muonic_molecule][spin_index]
-    MaterialItems<CycleTimesArray> cycle_times;  //!< [time]
+    //! Isotopic fractions per material: [mat_comp_id][isotope]
+    MaterialItems<MaterialFractionsArray> isotopic_fractions;
+    //! Cycle times per material: [mat_comp_id][muonic_molecule][spin_index]
+    MaterialItems<CycleTimesArray> cycle_times;  //!< In [s]
     //! \todo Add mean atom spin flip times
     //! \todo Add mean atom transfer times
     //!@}
@@ -134,7 +137,7 @@ struct DTMixMucfData
     {
         return particle_ids && particle_masses && muon_energy_cdf
                && !reals.empty() && !mucfmatid_to_matid.empty()
-               && !cycle_times.empty();
+               && !isotopic_fractions.empty() && !cycle_times.empty();
     }
 
     //! Assign from another set of data
@@ -149,6 +152,7 @@ struct DTMixMucfData
         this->muon_energy_cdf = other.muon_energy_cdf;
         this->reals = other.reals;
         this->mucfmatid_to_matid = other.mucfmatid_to_matid;
+        this->isotopic_fractions = other.isotopic_fractions;
         this->cycle_times = other.cycle_times;
 
         return *this;

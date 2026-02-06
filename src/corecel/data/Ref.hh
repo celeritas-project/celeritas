@@ -9,8 +9,6 @@
 
 #include "corecel/Types.hh"
 
-#include "detail/RefImpl.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -66,14 +64,26 @@ inline decltype(auto) make_const_ref(P<Ownership::value, M> const& params)
  * the value of \c M.
  */
 template<MemSpace M, class T>
-decltype(auto) get_ref(T&& obj)
+inline decltype(auto) get_ref(T&& obj)
 {
-    return detail::RefGetter<T, M>{std::forward<T>(obj)}();
+    if constexpr (M == MemSpace::host)
+    {
+        return std::forward<T>(obj).host_ref();
+    }
+    else if constexpr (M == MemSpace::device)
+    {
+        return std::forward<T>(obj).device_ref();
+    }
+    else
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Copy an entire collection group to the host.
+ * \tparam CG CollectionGroup
  *
  * This is mostly useful for debugging and testing. It is \em not performant
  * and should not be used as part of the stepping loop, since it is likely to

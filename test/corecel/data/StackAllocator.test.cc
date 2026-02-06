@@ -8,7 +8,7 @@
 
 #include <cstdint>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 
 #include "StackAllocator.test.hh"
 #include "celeritas_test.hh"
@@ -53,7 +53,7 @@ class StackAllocatorTest : public Test
 
 TEST_F(StackAllocatorTest, host)
 {
-    using StateStore = CollectionStateStore<MockAllocatorData, MemSpace::host>;
+    using StateStore = StateDataStore<MockAllocatorData, MemSpace::host>;
     StateStore data(16);
     Allocator alloc(data.ref());
     EXPECT_EQ(16, alloc.capacity());
@@ -86,8 +86,7 @@ TEST_F(StackAllocatorTest, host)
 
 TEST_F(StackAllocatorTest, TEST_IF_CELER_DEVICE(device))
 {
-    using StateStore
-        = CollectionStateStore<MockAllocatorData, MemSpace::device>;
+    using StateStore = StateDataStore<MockAllocatorData, MemSpace::device>;
 
     StateStore data(1024);
 
