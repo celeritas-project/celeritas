@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <type_traits>
+#include <variant>
 #include <vector>
 
 #include "corecel/Assert.hh"
@@ -69,32 +70,6 @@ inline BuildLogicResult::VecSurface remap_faces(BuildLogicResult::VecLogic& lgc)
         }
     }
     return faces;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a logic representation of a node.
- *
- * The result is a pair of vectors: the sorted surface IDs comprising the faces
- * of this volume, and the logical representation using \em face IDs, i.e. with
- * the surfaces remapped to the index of the surface in the face vector.
- *
- * The function is templated on a policy class that determines the logic
- * representation. The policy acts as a factory that creates a visitor to build
- * the logic expression.
- *
- * The per-node local surfaces (faces) are sorted in ascending order of ID, not
- * of access, since they're always evaluated sequentially rather than as part
- * of the logic evaluation itself.
- */
-template<class LogicPolicy>
-inline BuildLogicResult build_logic(LogicPolicy const& policy, NodeId n)
-{
-    // Construct logic vector as local surface IDs
-    BuildLogicResult::VecLogic lgc;
-    auto visitor = policy(lgc);
-    visitor(n);
-    return {remap_faces(lgc), std::move(lgc)};
 }
 
 //---------------------------------------------------------------------------//
@@ -324,6 +299,44 @@ class InfixLogicBuilder : public BaseLogicBuilder<InfixLogicBuilder>
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a logic representation of a node.
+ *
+ * The result is a pair of vectors: the sorted surface IDs comprising the faces
+ * of this volume, and the logical representation using \em face IDs, i.e. with
+ * the surfaces remapped to the index of the surface in the face vector.
+ *
+ * The function is templated on a policy class that determines the logic
+ * representation. The policy acts as a factory that creates a visitor to build
+ * the logic expression.
+ *
+ * The per-node local surfaces (faces) are sorted in ascending order of ID, not
+ * of access, since they're always evaluated sequentially rather than as part
+ * of the logic evaluation itself.
+ */
+template<class LogicPolicy>
+inline BuildLogicResult build_logic(LogicPolicy const& policy, NodeId n)
+{
+    // Construct logic vector as local surface IDs
+    BuildLogicResult::VecLogic lgc;
+    auto visitor = policy(lgc);
+
+    // Handle both direct builders and variant-wrapped builders
+    if constexpr (std::is_same_v<
+                      decltype(visitor),
+                      std::variant<PostfixLogicBuilder, InfixLogicBuilder>>)
+    {
+        std::visit([n](auto& v) { v(n); }, visitor);
+    }
+    else
+    {
+        visitor(n);
+    }
+
+    return {remap_faces(lgc), std::move(lgc)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Policy for building logic expressions.
  *
  * This immutable factory creates visitors that construct logic expressions.
@@ -345,7 +358,7 @@ class BuildLogicPolicy
   public:
     // Construct without mapping
     explicit BuildLogicPolicy(CsgTree const& tree) : tree_{tree} {}
-    // Construct with optional mapping
+    // Construct with mapping
     BuildLogicPolicy(CsgTree const& tree, VecSurface const& vs)
         : tree_{tree}, mapping_{&vs}
     {
@@ -368,6 +381,58 @@ class BuildLogicPolicy
  */
 using PostfixBuildLogicPolicy = BuildLogicPolicy<PostfixLogicBuilder>;
 using InfixBuildLogicPolicy = BuildLogicPolicy<InfixLogicBuilder>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Runtime-dispatching policy for building logic expressions.
+ *
+ * This policy class selects between postfix and infix notation at runtime
+ * based on a LogicNotation enum value. The operator() returns a variant
+ * containing the appropriate builder type.
+ */
+class RuntimeBuildLogicPolicy
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecLogic = std::vector<logic_int>;
+    using VecSurface = std::vector<LocalSurfaceId>;
+    using Builder = std::variant<PostfixLogicBuilder, InfixLogicBuilder>;
+    //!@}
+
+  public:
+    // Construct without mapping
+    RuntimeBuildLogicPolicy(LogicNotation notation, CsgTree const& tree)
+        : notation_{notation}, tree_{tree}
+    {
+    }
+    // Construct with mapping
+    RuntimeBuildLogicPolicy(LogicNotation notation,
+                            CsgTree const& tree,
+                            VecSurface const& vs)
+        : notation_{notation}, tree_{tree}, mapping_{&vs}
+    {
+    }
+
+    //! Create a visitor for building logic
+    Builder operator()(VecLogic& logic) const
+    {
+        switch (notation_)
+        {
+            case LogicNotation::postfix:
+                return PostfixLogicBuilder{tree_, logic, mapping_};
+            case LogicNotation::infix:
+                return InfixLogicBuilder{tree_, logic, mapping_};
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+    }
+
+  private:
+    LogicNotation notation_;
+    CsgTree const& tree_;
+    VecSurface const* mapping_{nullptr};
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

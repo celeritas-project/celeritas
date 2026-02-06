@@ -326,8 +326,8 @@ void UnitProto::build(ProtoBuilder& pb) const
 
     // Always use postfix logic for unit input, post-processing to
     // convert to tracking notation
-    detail::PostfixBuildLogicPolicy const policy{csg_unit.tree,
-                                                 sorted_local_surfaces};
+    detail::RuntimeBuildLogicPolicy const policy{
+        LogicNotation::postfix, csg_unit.tree, sorted_local_surfaces};
     // Construct logic and faces with remapped surfaces
     for (auto vol_idx : range(unit_volumes.size()))
     {
