@@ -41,6 +41,12 @@
 #    include "detail/VgNavStateWrapper.hh"
 #endif
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
+#    include "geocel/detail/LengthUnits.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -121,7 +127,7 @@ class VecgeomTrackView
     // Whether the track is exactly on a surface
     CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE_FUNCTION bool failed() const { return false; }
+    CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
     // Get the normal vector of the current surface
     inline CELER_FUNCTION Real3 normal() const;
 
@@ -184,6 +190,7 @@ class VecgeomTrackView
 
     // Temporary data
     real_type next_step_{0};
+    bool failed_{false};
 
     //// HELPER FUNCTIONS ////
 
@@ -251,6 +258,7 @@ CELER_FUNCTION VecgeomTrackView&
 VecgeomTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+    failed_ = false;
 
     // Initialize direction
     dir_ = init.dir;
@@ -292,6 +300,17 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     constexpr bool contains_point = true;
     Navigator::LocatePointIn(
         world, detail::to_vector(pos_), vgstate_, contains_point);
+
+    if (CELER_UNLIKELY(vgstate_.IsOutside()))
+    {
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(error);
+        msg << "Failed to initialize geometry state at " << repr(pos_)
+            << lengthunits::label;
+#endif
+        failed_ = true;
+    }
+
     return *this;
 }
 
@@ -448,6 +467,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     {
         *next_surf_ = null_surface();
     }
+
     // TODO: vgnext is simply copied and the boundary flag optionally set
     next_step_ = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
                                                      detail::to_vector(dir_),
