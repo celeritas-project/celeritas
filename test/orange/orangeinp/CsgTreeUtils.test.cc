@@ -97,6 +97,14 @@ class CsgTreeUtilsTest : public ::celeritas::test::Test
         return eval_sense(n);
     }
 
+    auto build(LogicNotation notation,
+               detail::BuildLogicResult::VecSurface* mapping,
+               NodeId n)
+    {
+        detail::DynamicBuildLogicPolicy policy(notation, tree_, mapping);
+        return build_logic(policy, n);
+    }
+
   protected:
     CsgTree tree_;
     std::vector<VariantSurface> surfaces_;
@@ -135,14 +143,9 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Test postfix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
     auto build_postfix
-        = [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
-              if (mapping)
-              {
-                  PostfixBuildLogicPolicy const policy{tree_, *mapping};
-                  return build_logic(policy, n);
-              }
-              PostfixBuildLogicPolicy const policy{tree_};
-              return build_logic(policy, n);
+        = [this](NodeId n,
+                 detail::BuildLogicResult::VecSurface* mapping = nullptr) {
+              return this->build(LogicNotation::postfix, mapping, n);
           };
 
     {
@@ -285,15 +288,11 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
 
     // Test infix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
+
     auto build_infix
-        = [&](N n, detail::BuildLogicResult::VecSurface* mapping = nullptr) {
-              if (mapping)
-              {
-                  InfixBuildLogicPolicy const policy{tree_, *mapping};
-                  return build_logic(policy, n);
-              }
-              InfixBuildLogicPolicy const policy{tree_};
-              return build_logic(policy, n);
+        = [this](NodeId n,
+                 detail::BuildLogicResult::VecSurface* mapping = nullptr) {
+              return this->build(LogicNotation::infix, mapping, n);
           };
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
