@@ -480,7 +480,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 #endif
     );
 
-    if (CELER_UNLIKELY(!(next_step_ > 0)))
+    if (CELER_UNLIKELY(VECGEOM_VERSION < 0x020000 && !(next_step_ > 0)))
     {
 #if !CELER_DEVICE_COMPILE
         auto msg = CELER_LOG_LOCAL(error);
