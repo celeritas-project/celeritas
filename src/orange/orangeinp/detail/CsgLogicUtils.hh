@@ -87,8 +87,8 @@ inline BuildLogicResult::VecSurface remap_faces(BuildLogicResult::VecLogic& lgc)
  * of access, since they're always evaluated sequentially rather than as part
  * of the logic evaluation itself.
  */
-template<class BuildLogicPolicy>
-inline BuildLogicResult build_logic(BuildLogicPolicy const& policy, NodeId n)
+template<class LogicPolicy>
+inline BuildLogicResult build_logic(LogicPolicy const& policy, NodeId n)
 {
     // Construct logic vector as local surface IDs
     BuildLogicResult::VecLogic lgc;
@@ -120,12 +120,10 @@ class BaseLogicBuilder
                   "face and surface ints");
 
   public:
-    // Construct without mapping
-    inline BaseLogicBuilder(CsgTree const& tree, VecLogic& logic);
-    // Construct with optional mapping
+    // Construct with optional mapping pointer
     inline BaseLogicBuilder(CsgTree const& tree,
                             VecLogic& logic,
-                            VecSurface const& vs);
+                            VecSurface const* vs = nullptr);
     //! Build from a node ID
     inline void operator()(NodeId const& n);
 
@@ -151,17 +149,7 @@ class BaseLogicBuilder
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct without mapping.
- */
-template<class Impl>
-BaseLogicBuilder<Impl>::BaseLogicBuilder(CsgTree const& tree, VecLogic& logic)
-    : logic_{logic}, visit_node_{tree}
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with optional mapping.
+ * Construct with optional mapping pointer.
  *
  * The optional surface mapping is an ordered vector of *existing* surface IDs.
  * Those surface IDs will be replaced by the index in the array. All existing
@@ -170,8 +158,8 @@ BaseLogicBuilder<Impl>::BaseLogicBuilder(CsgTree const& tree, VecLogic& logic)
 template<class Impl>
 BaseLogicBuilder<Impl>::BaseLogicBuilder(CsgTree const& tree,
                                          VecLogic& logic,
-                                         VecSurface const& vs)
-    : logic_{logic}, visit_node_{tree}, mapping_{&vs}
+                                         VecSurface const* vs)
+    : logic_{logic}, visit_node_{tree}, mapping_{vs}
 {
 }
 
@@ -291,51 +279,6 @@ class PostfixLogicBuilder : public BaseLogicBuilder<PostfixLogicBuilder>
 
 //---------------------------------------------------------------------------//
 /*!
- * Policy for building logic in postfix notation.
- *
- * This immutable factory creates visitors that construct logic expressions
- * in postfix notation. It can be passed by const reference to \c build_logic.
- *
- * Example: \verbatim
-    all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
-    all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
- * \endverbatim
- */
-class PostfixBuildLogicPolicy
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using VecLogic = std::vector<logic_int>;
-    using VecSurface = std::vector<LocalSurfaceId>;
-    //!@}
-
-  public:
-    // Construct without mapping
-    explicit PostfixBuildLogicPolicy(CsgTree const& tree) : tree_{tree} {}
-    // Construct with optional mapping
-    PostfixBuildLogicPolicy(CsgTree const& tree, VecSurface const& vs)
-        : tree_{tree}, mapping_{&vs}
-    {
-    }
-
-    //! Create a visitor for building logic
-    auto operator()(VecLogic& logic) const
-    {
-        if (mapping_)
-        {
-            return PostfixLogicBuilder{tree_, logic, *mapping_};
-        }
-        return PostfixLogicBuilder{tree_, logic};
-    }
-
-  private:
-    CsgTree const& tree_;
-    VecSurface const* mapping_{nullptr};
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Visitor for constructing logic in infix notation.
  *
  * Example: \verbatim
@@ -381,17 +324,16 @@ class InfixLogicBuilder : public BaseLogicBuilder<InfixLogicBuilder>
 
 //---------------------------------------------------------------------------//
 /*!
- * Policy for building logic in infix notation.
+ * Policy for building logic expressions.
  *
- * This immutable factory creates visitors that construct logic expressions
- * in infix notation. It can be passed by const reference to \c build_logic.
+ * This immutable factory creates visitors that construct logic expressions.
+ * It can be passed by const reference to \c build_logic.
  *
- * Example: \verbatim
-    all(1, 3, 5) -> {{1, 3, 5}, "(0 & 1 & 2)"}
-    all(1, 3, any(~(2), ~(4))) -> {{1, 2, 3, 4}, "(0 & 2 & (~1 | ~3))"}
- * \endverbatim
+ * \tparam LogicBuilder The builder type (PostfixLogicBuilder or
+ * InfixLogicBuilder)
  */
-class InfixBuildLogicPolicy
+template<class LogicBuilder>
+class BuildLogicPolicy
 {
   public:
     //!@{
@@ -402,9 +344,9 @@ class InfixBuildLogicPolicy
 
   public:
     // Construct without mapping
-    explicit InfixBuildLogicPolicy(CsgTree const& tree) : tree_{tree} {}
+    explicit BuildLogicPolicy(CsgTree const& tree) : tree_{tree} {}
     // Construct with optional mapping
-    InfixBuildLogicPolicy(CsgTree const& tree, VecSurface const& vs)
+    BuildLogicPolicy(CsgTree const& tree, VecSurface const& vs)
         : tree_{tree}, mapping_{&vs}
     {
     }
@@ -412,17 +354,20 @@ class InfixBuildLogicPolicy
     //! Create a visitor for building logic
     auto operator()(VecLogic& logic) const
     {
-        if (mapping_)
-        {
-            return InfixLogicBuilder{tree_, logic, *mapping_};
-        }
-        return InfixLogicBuilder{tree_, logic};
+        return LogicBuilder{tree_, logic, mapping_};
     }
 
   private:
     CsgTree const& tree_;
     VecSurface const* mapping_{nullptr};
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Policy classes are factories.
+ */
+using PostfixBuildLogicPolicy = BuildLogicPolicy<PostfixLogicBuilder>;
+using InfixBuildLogicPolicy = BuildLogicPolicy<InfixLogicBuilder>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
