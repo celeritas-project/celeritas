@@ -75,6 +75,13 @@ TEST_F(DTMixMucfModelTest, data)
 
     EXPECT_EQ(21, data.muon_energy_cdf.grid.size());
 
+    // Check sotopic fractions
+    // Single material with 50/50 d and t fractions
+    EXPECT_SOFT_EQ(
+        0.5, data.isotopic_fractions[MuCfMatId{0}][MucfIsotope::deuterium]);
+    EXPECT_SOFT_EQ(
+        0.5, data.isotopic_fractions[MuCfMatId{0}][MucfIsotope::tritium]);
+
     // Cycle times are in seconds
     // DD (reactivity of F = 3/2 is almost negligible, with huge cycle times)
     static double const expected_dd_1_over_2_cycle_time{1.8312922823566493e-06};
