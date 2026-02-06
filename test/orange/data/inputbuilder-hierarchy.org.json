@@ -296,8 +296,7 @@
 {
 "bbox": null,
 "faces": [],
-"flags": 6,
-"logic": "* ~",
+"flags": 2,
 "zorder": "B"
 }
 ]
@@ -340,8 +339,7 @@
 {
 "bbox": null,
 "faces": [],
-"flags": 6,
-"logic": "* ~",
+"flags": 2,
 "zorder": "B"
 }
 ]
@@ -520,14 +518,8 @@
 },
 {
 "bbox": null,
-"faces": [
-0,
-1,
-2,
-3
-],
-"flags": 6,
-"logic": "* ~",
+"faces": [],
+"flags": 2,
 "zorder": "B"
 }
 ]
@@ -652,8 +644,7 @@
 {
 "bbox": null,
 "faces": [],
-"flags": 6,
-"logic": "* ~",
+"flags": 2,
 "zorder": "B"
 }
 ]
@@ -696,8 +687,7 @@
 {
 "bbox": null,
 "faces": [],
-"flags": 6,
-"logic": "* ~",
+"flags": 2,
 "zorder": "B"
 }
 ]

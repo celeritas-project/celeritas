@@ -344,19 +344,11 @@ void UnitProto::build(ProtoBuilder& pb) const
 
     if (csg_unit.background)
     {
-        // "Background" should be unreachable: 'nowhere' logic, null bbox
-        // but it has to have all the surfaces that connect to an interior
-        // volume
+        // Background volume input is filled in by UnitInserter
         VolumeInput vi;
-        vi.faces.resize(sorted_local_surfaces.size());
-        std::iota(vi.faces.begin(), vi.faces.end(), LocalSurfaceId{0});
-        vi.logic = celeritas::detail::make_nowhere_expr(lgc_notation);
-        vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
-        /*! \todo The nearest internal surface is probably *not* the safety
-         * distance, but it's better than nothing
-         */
-        vi.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
+        vi.flags = VolumeRecord::implicit_vol;
+        CELER_ASSERT(vi);
         result.volumes.emplace_back(std::move(vi));
     }
     CELER_ASSERT(result.volumes.size()

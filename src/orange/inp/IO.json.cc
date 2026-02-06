@@ -53,8 +53,6 @@ void from_json(nlohmann::json const& j, InlineSingletons& v)
 
 void to_json(nlohmann::json& j, OrangeGeoFromGeant const& v)
 {
-#define OPT_JSON_STRING(NAME) CELER_JSON_PAIR_WHEN(v, NAME, !v.NAME.empty())
-
     j = nlohmann::json{
         CELER_JSON_PAIR(v, unit_length),
         CELER_JSON_PAIR(v, explicit_interior_threshold),
@@ -65,10 +63,10 @@ void to_json(nlohmann::json& j, OrangeGeoFromGeant const& v)
         CELER_JSON_PAIR(v, remove_negated_join),
         CELER_JSON_PAIR(v, verbose_volumes),
         CELER_JSON_PAIR(v, verbose_structure),
-        CELER_JSON_PAIR_OPTION(v, tol),
-        OPT_JSON_STRING(objects_output_file),
-        OPT_JSON_STRING(csg_output_file),
-        OPT_JSON_STRING(org_output_file),
+        CELER_JSON_PAIR(v, tol),
+        CELER_JSON_PAIR(v, objects_output_file),
+        CELER_JSON_PAIR(v, csg_output_file),
+        CELER_JSON_PAIR(v, org_output_file),
     };
 
 #undef OPT_JSON_STRING

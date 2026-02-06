@@ -105,13 +105,8 @@
 },
 {
 "bbox": null,
-"faces": [
-0,
-1,
-2
-],
-"flags": 6,
-"logic": "* ~",
+"faces": [],
+"flags": 2,
 "zorder": "B"
 }
 ]
