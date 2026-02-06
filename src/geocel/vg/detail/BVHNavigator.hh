@@ -142,19 +142,12 @@ class BVHNavigator
                              NavState const& in_state,
                              NavState& out_state)
     {
-        vg_real_type push = 0;
-
         // If we are on the boundary, push a bit more
-        if (in_state.IsOnBoundary())
-        {
-            push += kBoundaryPush;
-        }
+        vg_real_type push = in_state.IsOnBoundary() ? kBoundaryPush : 0;
+
         if (step_limit < push)
         {
-            // Go as far as the step limit says, assuming there is no boundary.
-            // TODO: Does this make sense?
-            in_state.CopyTo(&out_state);
-            out_state.SetBoundaryState(false);
+            // Ignore small steps on boundary without a change in state
             return step_limit;
         }
         step_limit -= push;
@@ -181,6 +174,7 @@ class BVHNavigator
         {
             if (!hitcandidate)
             {
+                // Pop back up to the parent volume
                 VgPlacedVol const* currentmother = out_state.Top();
                 VgReal3 transformed = localpoint;
                 // Push the point inside the next volume.
