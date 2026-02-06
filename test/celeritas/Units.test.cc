@@ -138,6 +138,9 @@ TEST(UnitsTest, literals)
     EXPECT_REAL_EQ(16 * units::nanometer, 16_nm);
     EXPECT_REAL_EQ(17 * units::femtometer, 17_femtometer);
     EXPECT_REAL_EQ(17 * units::femtometer, 17_fm);
+    EXPECT_REAL_EQ(Constant{2.5} * units::centimeter, 2.5_cm_fp);
+    EXPECT_REAL_EQ(Constant{2.5} * units::centimeter, 2.5_centimeter_fp);
+    EXPECT_REAL_EQ(Constant{2} * units::meter, 2_m_fp);
 }
 
 //---------------------------------------------------------------------------//
