@@ -26,6 +26,7 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 using units::MevEnergy;
 using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
@@ -156,7 +157,7 @@ TEST_F(EnergyLossDistributionTest, none)
     MevEnergy mean_loss{2e-6};
 
     // Tiny step, little energy loss
-    real_type step = 1e-6 * units::centimeter;
+    real_type step = 1e-6_cm;
     EnergyLossHelper helper(
         fluct->host_ref(), cutoff, material, particle, mean_loss, step);
     EXPECT_EQ(EnergyLossFluctuationModel::none, helper.model());
@@ -180,7 +181,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
 
     // Larger step samples from gamma distribution, smaller step from Gaussian
     {
-        real_type step = 5e-2 * units::centimeter;
+        real_type step = 5e-2_cm;
         EnergyLossHelper helper(
             fluct->host_ref(), cutoff, material, particle, mean_loss, step);
         EXPECT_EQ(EnergyLossFluctuationModel::gamma, helper.model());
@@ -203,7 +204,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         EXPECT_REF_EQ(ref, sampled);
     }
     {
-        real_type step = 5e-4 * units::centimeter;
+        real_type step = 5e-4_cm;
         EnergyLossHelper helper(
             fluct->host_ref(), cutoff, material, particle, mean_loss, step);
         EXPECT_SOFT_EQ(0.00019160444039613,
@@ -251,7 +252,7 @@ TEST_F(EnergyLossDistributionTest, urban)
     material = {PhysMatId{0}};
     CutoffView cutoff(cutoffs->host_ref(), PhysMatId{0});
     MevEnergy mean_loss{0.01};
-    real_type step = 0.01 * units::centimeter;
+    real_type step = 0.01_cm;
 
     EnergyLossHelper helper(
         fluct->host_ref(), cutoff, material, particle, mean_loss, step);

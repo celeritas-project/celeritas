@@ -30,6 +30,9 @@ using AmuMass = RealQuantity<Amu>;
 //! Special faux quantity for overloading cross section calculation
 using LogMevEnergy = RealQuantity<LogMev>;
 
+//! Spin (in units of hbar/2)
+using HalfSpinInt = Quantity<HalfSpin, short int>;
+
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Quantities for manual input and/or test harnesses

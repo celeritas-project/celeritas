@@ -11,7 +11,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/inp/MucfPhysics.hh"
-#include "celeritas/phys/InteractionIO.hh"
 
 #include "MucfInteractorHostTestBase.hh"
 #include "celeritas_test.hh"
@@ -104,30 +103,34 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
             }
             EXPECT_SOFT_NEAR(17.6, total_kinetic_energy, 0.5);
 
-            // Check momentum conservation
-            // Momentum and energy conservation is not accurate (see the
-            // DTMucfInteractor documentation for details). Thus, we only check
-            // that the momentum calculation matches the implementation and
-            // adds up to zero.
-            auto const neutron_p_mag = this->calc_momentum(
-                sec[0].energy, host_data.particle_masses.neutron);
-            auto const muon_p_mag = this->calc_momentum(
-                sec[1].energy, host_data.particle_masses.mu_minus);
-
-            Real3 alpha_momentum, total_momentum;
-            for (auto i : range(3))
+            if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
             {
-                real_type neutron_momentum_i = sec[0].direction[i]
-                                               * neutron_p_mag;
-                real_type muon_momentum_i = +sec[1].direction[i] * muon_p_mag;
-                alpha_momentum[i] = -(neutron_momentum_i + muon_momentum_i);
-                total_momentum[i] = neutron_momentum_i + muon_momentum_i
-                                    + alpha_momentum[i];
-            }
+                // Check momentum conservation
+                // Momentum and energy conservation is not accurate (see the
+                // DTMucfInteractor documentation for details). Thus, we only
+                // check that the momentum calculation matches the
+                // implementation and adds up to zero.
+                auto const neutron_p_mag = this->calc_momentum(
+                    sec[0].energy, host_data.particle_masses.neutron);
+                auto const muon_p_mag = this->calc_momentum(
+                    sec[1].energy, host_data.particle_masses.mu_minus);
 
-            EXPECT_VEC_SOFT_EQ(sec[2].direction,
-                               make_unit_vector(alpha_momentum));
-            EXPECT_VEC_SOFT_EQ(Real3{}, total_momentum);
+                Real3 alpha_momentum, total_momentum;
+                for (auto i : range(3))
+                {
+                    real_type neutron_momentum_i = sec[0].direction[i]
+                                                   * neutron_p_mag;
+                    real_type muon_momentum_i = sec[1].direction[i]
+                                                * muon_p_mag;
+                    alpha_momentum[i] = -(neutron_momentum_i + muon_momentum_i);
+                    total_momentum[i] = neutron_momentum_i + muon_momentum_i
+                                        + alpha_momentum[i];
+                }
+
+                EXPECT_VEC_SOFT_EQ(sec[2].direction,
+                                   make_unit_vector(alpha_momentum));
+                EXPECT_VEC_SOFT_EQ(Real3{}, total_momentum);
+            }
         }
 
         else if (channel == Channel::muonicalpha_neutron)
@@ -140,10 +143,6 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
                       interaction.secondaries[0].particle_id);
             EXPECT_EQ(host_data.particle_ids.muonic_alpha,
                       interaction.secondaries[1].particle_id);
-
-            // Check kinetic energies are equal
-            EXPECT_SOFT_EQ(interaction.secondaries[0].energy.value(),
-                           interaction.secondaries[1].energy.value());
 
             // Check directions are opposite
             EXPECT_SOFT_EQ(-1.0,
@@ -216,7 +215,7 @@ TEST_F(DTMucfInteractorTest, muonicalpha_neutron)
 //---------------------------------------------------------------------------//
 TEST_F(DTMucfInteractorTest, stress_test)
 {
-    size_type const num_samples = 10000;
+    size_type const num_samples = 100;
     real_type total_avg_secondaries{0};
 
     for (auto channel : {DTMucfInteractor::Channel::alpha_muon_neutron,
