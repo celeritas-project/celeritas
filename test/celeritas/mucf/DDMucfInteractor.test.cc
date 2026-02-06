@@ -32,9 +32,8 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
   protected:
     void SetUp() override
     {
-        auto host_data = this->make_host_data();
-
         // Construct collection
+        auto host_data = this->make_host_data();
         data_ = ParamsDataStore<DTMixMucfData>{std::move(host_data)};
 
         // At-rest muon primary

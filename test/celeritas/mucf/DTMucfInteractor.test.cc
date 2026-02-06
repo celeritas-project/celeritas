@@ -33,12 +33,8 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
   protected:
     void SetUp() override
     {
-        auto const& params = *this->particle_params();
-        this->set_material("hdt_fuel");
-
-        auto host_data = this->make_host_data();
-
         // Construct collection
+        auto host_data = this->make_host_data();
         data_ = ParamsDataStore<DTMixMucfData>{std::move(host_data)};
 
         // At-rest muon primary
