@@ -155,7 +155,14 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
                 auto irt = regions.insert(std::move(region));
                 if (!irt.inserted)
                 {
-                    log_debug() << "ignored since a region exists";
+                    log_debug()
+                        << "merging region bounds " << irt.node.mapped().bounds
+                        << " into " << irt.position->second.bounds;
+
+                    // Intersect bounding zones since both nodes are true
+                    // (logical and)
+                    irt.position->second.bounds = calc_intersection(
+                        irt.position->second.bounds, irt.node.mapped().bounds);
                 }
             }
         }
