@@ -148,7 +148,12 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
             }
         }
 
-        if (prop.boundary)
+        if (geo.failed())
+        {
+            state.status[tid] = LifeStatus::dead;
+            return;
+        }
+        else if (prop.boundary)
         {
             geo.move_to_boundary();
             CELER_ASSERT(geo.is_on_boundary());

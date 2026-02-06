@@ -1491,12 +1491,14 @@ TEST_F(CmseTest, coarse)
     else if (using_solids_vg)
     {
         // Bumped (platform-dependent!): counts change a bit
-        expected_num_boundary[1] = 101;
-        expected_num_step[1] = 6462;
-        expected_num_intercept[1] = 19551;
-        expected_num_integration[1] = 58282;
+        expected_num_boundary[1] = 37;
+        expected_num_step[1] = 179;
+        expected_num_intercept[1] = 614;
+        expected_num_integration[1] = 1666;
         static char const* const expected_log_messages[] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))"};
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))",
+            R"(Failed to find next step at {10.32, -6.565, 796.9} cm along {0.6896, -0.1485, 0.7088}: computed step is 0 cm)",
+        };
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
             << scoped_log_;
     }
