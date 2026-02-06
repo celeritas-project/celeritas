@@ -557,10 +557,20 @@ TEST_F(Testem3Test, default)
             "Absorber1@px,Absorber2,Absorber2@mx",
             "Absorber1",
         };
+        static char const* const expected_bound_strings[] = {
+            R"(0: {{{-0.4,-20,-20}, {0.4,20,20}}, {{-0.4,-20,-20}, {0.4,20,20}}})",
+            R"(~1: {{{-0.4,-20,-20}, {0.4,20,20}}, {{-0.4,-20,-20}, {0.4,20,20}}})",
+            R"(2: {{{-0.17,-20,-20}, {0.4,20,20}}, {{-0.17,-20,-20}, {0.4,20,20}}})",
+            R"(3: {{{-0.4,-20,-20}, {-0.17,20,20}}, {{-0.4,-20,-20}, {-0.17,20,20}}})",
+        };
+        static char const expected_tree_string[]
+            = R"json(["t",["~",0],["S",6],["~",2]])json";
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+        EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
 }
 
