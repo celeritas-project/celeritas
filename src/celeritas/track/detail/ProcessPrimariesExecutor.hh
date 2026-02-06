@@ -19,7 +19,6 @@
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "FillRngStateInitializer.hh"
 #include "../SimData.hh"
 #include "../TrackInitData.hh"
 #include "../Utils.hh"

@@ -87,7 +87,8 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
     for (unsigned int secondary_idx :
          celeritas::range(track.physics_step().secondaries().size()))
     {
-        auto secondary = track.physics_step().secondaries()[secondary_idx];
+        auto const& secondary
+            = track.physics_step().secondaries()[secondary_idx];
         if (secondary)
         {
             CELER_ASSERT(secondary.energy > zero_quantity()
