@@ -7,7 +7,7 @@
 #include "orange/orangeinp/CsgTreeUtils.hh"
 
 #include "orange/OrangeTypes.hh"
-#include "orange/detail/LogicUtils.hh"
+#include "orange/detail/LogicIO.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTypes.hh"
 #include "orange/orangeinp/detail/BuildLogic.hh"

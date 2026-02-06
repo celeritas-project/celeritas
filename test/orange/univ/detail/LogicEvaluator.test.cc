@@ -6,8 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/univ/detail/LogicEvaluator.hh"
 
-#include "orange/detail/LogicUtils.hh"
-#include "orange/univ/detail/LogicStack.hh"
+#include "orange/detail/LogicIO.hh"
 
 #include "celeritas_test.hh"
 

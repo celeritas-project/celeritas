@@ -24,7 +24,6 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
-#include "orange/detail/LogicUtils.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
@@ -33,6 +32,7 @@
 #include "g4org/Converter.hh"
 #include "univ/detail/LogicStack.hh"
 
+#include "detail/ConvertLogic.hh"
 #include "detail/DepthCalculator.hh"
 #include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"

@@ -29,7 +29,7 @@
 #include "OrangeTypes.hh"
 #include "OrangeTypesIO.json.hh"  // IWYU pragma: keep
 
-#include "detail/LogicUtils.hh"
+#include "detail/LogicIO.hh"
 #include "detail/OrangeInputIOImpl.json.hh"
 
 namespace celeritas

@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/LogicUtils.cc
+//! \file orange/detail/ConvertLogic.cc
 //---------------------------------------------------------------------------//
-#include "LogicUtils.hh"
+#include "ConvertLogic.hh"
 
 #include <vector>
 
@@ -137,7 +137,7 @@ inline int precedence(logic_int token)
 /*!
  * Return true if the operator is right associative.
  */
-inline bool is_right_associative(logic_int token)
+constexpr bool is_right_associative(logic_int token)
 {
     return token == logic::lnot;
 }
@@ -321,6 +321,8 @@ class PostfixStack
     std::vector<logic_int> postfix_;
     std::vector<logic_int> operators_;
 };
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -422,84 +424,6 @@ std::vector<logic_int> convert_to_postfix(Span<logic_int const> infix)
     CELER_ENSURE(!expect_operand);
 
     return std::move(postfix).get_postfix();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build a logic definition from a C string.
- *
- * A valid string satisfies the regex "[0-9~!| ()]+", but the result may
- * not be a valid logic expression. (The volume inserter will ensure that the
- * logic expression at least is consistent for a CSG region definition.)
- *
- * Example:
- * \code
-
-     parse_logic("4 ~ 5 & 6 &");
-
-   \endcode
- */
-VecLogic string_to_logic(std::string_view s)
-{
-    VecLogic result;
-
-    logic_int surf_id{};
-    bool reading_surf{false};
-    int parens_depth{0};
-    for (char v : s)
-    {
-        if (v >= '0' && v <= '9')
-        {
-            // Parse a surface number. 'Push' this digit onto the surface ID by
-            // multiplying the existing ID by 10.
-            if (!reading_surf)
-            {
-                surf_id = 0;
-                reading_surf = true;
-            }
-            surf_id = 10 * surf_id + (v - '0');
-            continue;
-        }
-        else if (reading_surf)
-        {
-            // Next char is end of word or end of string
-            result.push_back(surf_id);
-            reading_surf = false;
-        }
-
-        // Parse a logic token
-        // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
-        switch (v)
-        {
-            case '(':
-                result.push_back(logic::lopen);
-                ++parens_depth;
-                continue;
-            case ')':
-                CELER_VALIDATE(parens_depth > 0,
-                               << "unmatched ')' in logic string");
-                --parens_depth;
-                result.push_back(logic::lclose);
-                continue;
-                // clang-format off
-            case '|': result.push_back(logic::lor);   continue;
-            case '&': result.push_back(logic::land);  continue;
-            case '~': result.push_back(logic::lnot);  continue;
-            case '*': result.push_back(logic::ltrue); continue;
-                // clang-format on
-        }
-        CELER_VALIDATE(v == ' ',
-                       << "unexpected token '" << v
-                       << "' while parsing logic string");
-    }
-    if (reading_surf)
-    {
-        result.push_back(surf_id);
-    }
-
-    CELER_VALIDATE(parens_depth == 0, << "unmatched '(' in logic string");
-
-    return result;
 }
 
 //---------------------------------------------------------------------------//

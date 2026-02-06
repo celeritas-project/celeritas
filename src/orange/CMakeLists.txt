@@ -25,7 +25,8 @@ list(APPEND SOURCES
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
   detail/DepthCalculator.cc
-  detail/LogicUtils.cc
+  detail/ConvertLogic.cc
+  detail/LogicIO.cc
   detail/OrangeInputIOImpl.json.cc
   detail/RectArrayInserter.cc
   detail/SurfacesRecordBuilder.cc

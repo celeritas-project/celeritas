@@ -6,10 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/univ/detail/InfixEvaluator.hh"
 
-#include <iomanip>
-
-#include "orange/detail/LogicUtils.hh"
-#include "orange/univ/detail/LogicStack.hh"
+#include "orange/detail/LogicIO.hh"
 
 #include "celeritas_test.hh"
 
