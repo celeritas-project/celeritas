@@ -7,6 +7,7 @@
 #include "orange/orangeinp/CsgTreeUtils.hh"
 
 #include "orange/OrangeTypes.hh"
+#include "orange/detail/LogicUtils.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTypes.hh"
 #include "orange/orangeinp/detail/CsgLogicUtils.hh"
@@ -20,6 +21,7 @@
 
 using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
+using celeritas::detail::string_to_logic;
 using celeritas::orangeinp::detail::build_logic;
 using celeritas::orangeinp::detail::InfixBuildLogicPolicy;
 using celeritas::orangeinp::detail::InternalSurfaceFlagger;
@@ -147,7 +149,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_FALSE(has_internal_surfaces(mz));
         auto&& [faces, lgc] = build_postfix(mz);
 
-        static size_type expected_lgc[] = {0};
+        auto const expected_lgc = string_to_logic("0");
         static S const expected_faces[] = {S{0u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -162,7 +164,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_FALSE(has_internal_surfaces(below_pz));
         auto&& [faces, lgc] = build_postfix(below_pz);
 
-        static size_type expected_lgc[] = {0, logic::lnot};
+        auto const expected_lgc = string_to_logic("0~");
         static S const expected_faces[] = {S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -175,8 +177,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_FALSE(has_internal_surfaces(zslab));
         auto&& [faces, lgc] = build_postfix(zslab);
 
-        static size_type const expected_lgc[]
-            = {0u, 1u, logic::lnot, logic::land};
+        auto const expected_lgc = string_to_logic("0 1~ &");
         static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -189,8 +190,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_FALSE(has_internal_surfaces(inner_cyl));
         auto&& [faces, lgc] = build_postfix(inner_cyl);
 
-        static size_type const expected_lgc[]
-            = {0u, 1u, logic::lnot, logic::land, 2u, logic::lnot, logic::land};
+        auto const expected_lgc = string_to_logic("0 1~ & 2~ &");
         static S const expected_faces[] = {S{0u}, S{1u}, S{2u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -201,24 +201,8 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_TRUE(has_internal_surfaces(shell));
         auto&& [faces, lgc] = build_postfix(shell);
 
-        static size_type const expected_lgc[] = {
-            0u,
-            1u,
-            logic::lnot,
-            logic::land,
-            3u,
-            logic::lnot,
-            logic::land,
-            0u,
-            1u,
-            logic::lnot,
-            logic::land,
-            2u,
-            logic::lnot,
-            logic::land,
-            logic::lnot,
-            logic::land,
-        };
+        auto const expected_lgc
+            = string_to_logic("0 1~ & 3~ & 0 1~ & 2~ &~ &");
         static S const expected_faces[] = {S{0u}, S{1u}, S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -236,8 +220,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_FALSE(has_internal_surfaces(bdy));
         auto&& [faces, lgc] = build_postfix(bdy);
 
-        static size_type const expected_lgc[]
-            = {0u, 1u, logic::lnot, logic::land, 2u, logic::land};
+        auto const expected_lgc = string_to_logic("0 1~ & 2&");
         static S const expected_faces[] = {S{0u}, S{1u}, S{4u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -247,12 +230,8 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_TRUE(has_internal_surfaces(always_false));
         auto&& [faces, lgc] = build_postfix(always_false);
 
-        static size_type const expected_lgc[] = {
-            0u,          1u,          logic::lnot, logic::land, 2u,
-            logic::lnot, logic::land, 3u,          logic::lnot, logic::land,
-            0u,          1u,          logic::lnot, logic::land, 2u,
-            logic::lnot, logic::land, logic::lnot, logic::land,
-        };
+        auto const expected_lgc
+            = string_to_logic("0 1~ & 2~ & 3~ & 0 1~ & 2~ &~ &");
         static S const expected_faces[] = {S{0}, S{1}, S{2}, S{3}};
         EXPECT_VEC_EQ(expected_lgc, lgc) << ReprLogic{lgc};
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -275,8 +254,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
 
         auto&& [faces, lgc] = build_postfix(shell, &remapped_surf);
 
-        static size_type const expected_lgc[]
-            = {0u, 1u, logic::lnot, logic::land};
+        auto const expected_lgc = string_to_logic("0 1~ &");
         static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -321,7 +299,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_FALSE(has_internal_surfaces(mz));
         auto&& [faces, lgc] = build_infix(mz);
 
-        static size_type expected_lgc[] = {0};
+        auto const expected_lgc = string_to_logic("0");
         static S const expected_faces[] = {S{0u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -336,7 +314,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_FALSE(has_internal_surfaces(below_pz));
         auto&& [faces, lgc] = build_infix(below_pz);
 
-        static size_type expected_lgc[] = {logic::lnot, 0};
+        auto const expected_lgc = string_to_logic("~0");
         static S const expected_faces[] = {S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -349,8 +327,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_FALSE(has_internal_surfaces(zslab));
         auto&& [faces, lgc] = build_infix(zslab);
 
-        static size_type const expected_lgc[]
-            = {logic::lopen, 0u, logic::land, logic::lnot, 1u, logic::lclose};
+        auto const expected_lgc = string_to_logic("(0 & ~1)");
         static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -363,15 +340,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_FALSE(has_internal_surfaces(inner_cyl));
         auto&& [faces, lgc] = build_infix(inner_cyl);
 
-        static size_type const expected_lgc[] = {logic::lopen,
-                                                 0u,
-                                                 logic::land,
-                                                 logic::lnot,
-                                                 1u,
-                                                 logic::land,
-                                                 logic::lnot,
-                                                 2u,
-                                                 logic::lclose};
+        auto const expected_lgc = string_to_logic("(0 & ~1 & ~2)");
         static S const expected_faces[] = {S{0u}, S{1u}, S{2u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -382,28 +351,8 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_TRUE(has_internal_surfaces(shell));
         auto&& [faces, lgc] = build_infix(shell);
 
-        static size_type const expected_lgc[] = {
-            logic::lopen,
-            0u,
-            logic::land,
-            logic::lnot,
-            1u,
-            logic::land,
-            logic::lnot,
-            3u,
-            logic::land,
-            logic::lnot,
-            logic::lopen,
-            0u,
-            logic::land,
-            logic::lnot,
-            1u,
-            logic::land,
-            logic::lnot,
-            2u,
-            logic::lclose,
-            logic::lclose,
-        };
+        auto const expected_lgc
+            = string_to_logic("(0 & ~1 & ~3 & ~(0 & ~1 & ~2))");
         static S const expected_faces[] = {S{0u}, S{1u}, S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_lgc, lgc) << ReprLogic{lgc};
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -421,14 +370,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_FALSE(has_internal_surfaces(bdy));
         auto&& [faces, lgc] = build_infix(bdy);
 
-        static size_type const expected_lgc[] = {logic::lopen,
-                                                 0u,
-                                                 logic::land,
-                                                 logic::lnot,
-                                                 1u,
-                                                 logic::land,
-                                                 2u,
-                                                 logic::lclose};
+        auto const expected_lgc = string_to_logic("(0 & ~1 & 2)");
         static S const expected_faces[] = {S{0u}, S{1u}, S{4u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -449,8 +391,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
         auto&& [faces, lgc] = build_infix(shell, &remapped_surf);
 
-        static size_type const expected_lgc[]
-            = {logic::lopen, 0u, logic::land, logic::lnot, 1u, logic::lclose};
+        auto const expected_lgc = string_to_logic("(0 & ~1)");
         static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
