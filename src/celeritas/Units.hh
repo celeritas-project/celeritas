@@ -181,7 +181,7 @@ CELER_ICC barn = Constant{1e-24} * centimeter * centimeter;
  * units::centimeter) or bring in only the needed literal operator inside a
  * function scope:
  * \code
- * using celeritas::units::literals::operator"" _centimeter;
+ * using celeritas::units::literals::operator""_centimeter;
  * return 2.5_centimeter;
  * \endcode
  */

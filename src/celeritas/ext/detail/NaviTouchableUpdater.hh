@@ -41,14 +41,14 @@ class NaviTouchableUpdater final : public TouchableUpdaterInterface
     //! Maximum step to try within the current volume [len]
     static constexpr double max_step()
     {
-        using celeritas::units::literals::operator"" _mm;
+        using celeritas::units::literals::operator""_mm;
         return 1.0_mm;
     }
 
     //! Print diagnostic when the step is greater than this amount [len]
     static constexpr double max_quiet_step()
     {
-        using celeritas::units::literals::operator"" _mm;
+        using celeritas::units::literals::operator""_mm;
         return 1e-3_mm;
     }
 
