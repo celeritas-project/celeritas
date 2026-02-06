@@ -27,6 +27,9 @@ namespace celeritas
  * - \f$ ^3\text{He} + \mu + n \f$
  * - \f$ (^3\text{He})_\mu + n \f$
  * - \f$ t + \mu + p \f$
+ *
+ * \note This interactor has a similar implementation as \c DTMucfInteractor .
+ * See its documentation for details.
  */
 class DDMucfInteractor
 {
