@@ -326,7 +326,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_FALSE(has_internal_surfaces(zslab));
         auto&& [faces, lgc] = build_infix(zslab);
 
-        auto const expected_lgc = string_to_logic("(0 & ~1)");
+        auto const expected_lgc = string_to_logic("0 & ~1");
         static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -339,7 +339,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_FALSE(has_internal_surfaces(inner_cyl));
         auto&& [faces, lgc] = build_infix(inner_cyl);
 
-        auto const expected_lgc = string_to_logic("(0 & ~1 & ~2)");
+        auto const expected_lgc = string_to_logic("0 & ~1 & ~2");
         static S const expected_faces[] = {S{0u}, S{1u}, S{2u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -351,7 +351,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         auto&& [faces, lgc] = build_infix(shell);
 
         auto const expected_lgc
-            = string_to_logic("(0 & ~1 & ~3 & ~(0 & ~1 & ~2))");
+            = string_to_logic("0 & ~1 & ~3 & ~(0 & ~1 & ~2)");
         static S const expected_faces[] = {S{0u}, S{1u}, S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_lgc, lgc) << ReprLogic{lgc};
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -369,7 +369,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_FALSE(has_internal_surfaces(bdy));
         auto&& [faces, lgc] = build_infix(bdy);
 
-        auto const expected_lgc = string_to_logic("(0 & ~1 & 2)");
+        auto const expected_lgc = string_to_logic("0 & ~1 & 2");
         static S const expected_faces[] = {S{0u}, S{1u}, S{4u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -390,7 +390,7 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
         auto&& [faces, lgc] = build_infix(shell, &remapped_surf);
 
-        auto const expected_lgc = string_to_logic("(0 & ~1)");
+        auto const expected_lgc = string_to_logic("0 & ~1");
         static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
