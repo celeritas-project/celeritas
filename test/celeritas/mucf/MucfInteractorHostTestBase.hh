@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/mucf/data/DTMixMucfData.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
 namespace celeritas
@@ -27,6 +28,9 @@ class MucfInteractorHostBase : public InteractorHostBase
     MucfInteractorHostBase();
     ~MucfInteractorHostBase() = default;
     //!@}
+
+    // Construct MuCF data from test values for interactors
+    HostVal<DTMixMucfData> make_host_data();
 };
 
 class MucfInteractorHostTestBase : public MucfInteractorHostBase, public Test

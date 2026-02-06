@@ -7,6 +7,7 @@
 #include "MucfInteractorHostTestBase.hh"
 
 #include "celeritas/Units.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/inp/MucfPhysics.hh"
 
 namespace celeritas
@@ -69,27 +70,27 @@ MucfInteractorHostBase::MucfInteractorHostBase()
          protium_mass,
          ElementaryCharge{1},
          stable_decay_constant},
-        {"neutron",
-         pdg::neutron(),
-         neutron_mass,
-         zero_quantity(),
-         stable_decay_constant},
-        {"deuterium",
-         pdg::deuteron(),
-         deuterium_mass,
-         ElementaryCharge{1},
-         stable_decay_constant},
         {"tritium",
          pdg::triton(),
          tritium_mass,
          ElementaryCharge{1},
          native_value_from(tritium_decay_constant)},
+        {"neutron",
+         pdg::neutron(),
+         neutron_mass,
+         zero_quantity(),
+         stable_decay_constant},
         {"alpha",
          pdg::alpha(),
          alpha_mass,
          ElementaryCharge{2},
          stable_decay_constant},
         {"he3", pdg::he3(), he3_mass, ElementaryCharge{2}, stable_decay_constant},
+        {"deuterium",
+         pdg::deuteron(),
+         deuterium_mass,
+         ElementaryCharge{1},
+         stable_decay_constant},
 
         // Muonic atoms
         {"muonic_hydrogen",
@@ -110,12 +111,12 @@ MucfInteractorHostBase::MucfInteractorHostBase()
         {"muonic_alpha",
          pdg::muonic_alpha(),
          alpha_mass + muon_mass,
-         ElementaryCharge{1},
+         ElementaryCharge{2},
          native_value_from(muon_decay_constant)},
         {"muonic_he3",
          pdg::muonic_he3(),
          he3_mass + muon_mass,
-         ElementaryCharge{1},
+         ElementaryCharge{2},
          native_value_from(muon_decay_constant)},
     };
     this->set_particle_params(std::move(par_inp));
@@ -177,6 +178,119 @@ MucfInteractorHostBase::MucfInteractorHostBase()
     };
 
     this->set_material_params(std::move(mat_inp));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a populated \c DTMixMucfData host data.
+ */
+HostVal<DTMixMucfData> MucfInteractorHostBase::make_host_data()
+{
+    using AtomicMassNumber = AtomicNumber;
+    using MaterialFractionsArray = EnumArray<MucfIsotope, real_type>;
+    using MoleculeCycles = Array<real_type, 2>;
+    using CycleTimesArray = EnumArray<MucfMuonicMolecule, MoleculeCycles>;
+
+    auto const& particles = *this->particle_params();
+    this->set_material("hdt_fuel");
+
+    HostVal<DTMixMucfData> host_data;
+
+    // Set up particle IDs
+    host_data.particle_ids.mu_minus = particles.find(pdg::mu_minus());
+
+    host_data.particle_ids.proton = particles.find(pdg::proton());
+    host_data.particle_ids.triton = particles.find(pdg::triton());
+    host_data.particle_ids.neutron = particles.find(pdg::neutron());
+    host_data.particle_ids.alpha = particles.find(pdg::alpha());
+    host_data.particle_ids.he3 = particles.find(pdg::he3());
+
+    host_data.particle_ids.muonic_hydrogen
+        = particles.find(pdg::muonic_hydrogen());
+    host_data.particle_ids.muonic_deuteron
+        = particles.find(pdg::muonic_deuteron());
+    host_data.particle_ids.muonic_triton = particles.find(pdg::muonic_triton());
+    host_data.particle_ids.muonic_alpha = particles.find(pdg::muonic_alpha());
+    host_data.particle_ids.muonic_he3 = particles.find(pdg::muonic_he3());
+
+    // Set up particle masses
+    host_data.particle_masses.mu_minus
+        = particles.get(host_data.particle_ids.mu_minus).mass();
+
+    host_data.particle_masses.proton
+        = particles.get(host_data.particle_ids.proton).mass();
+    host_data.particle_masses.triton
+        = particles.get(host_data.particle_ids.triton).mass();
+    host_data.particle_masses.neutron
+        = particles.get(host_data.particle_ids.neutron).mass();
+    host_data.particle_masses.alpha
+        = particles.get(host_data.particle_ids.alpha).mass();
+    host_data.particle_masses.he3
+        = particles.get(host_data.particle_ids.he3).mass();
+
+    host_data.particle_masses.muonic_hydrogen
+        = particles.get(host_data.particle_ids.muonic_hydrogen).mass();
+    host_data.particle_masses.muonic_deuteron
+        = particles.get(host_data.particle_ids.muonic_deuteron).mass();
+    host_data.particle_masses.muonic_triton
+        = particles.get(host_data.particle_ids.muonic_triton).mass();
+    host_data.particle_masses.muonic_alpha
+        = particles.get(host_data.particle_ids.muonic_alpha).mass();
+    host_data.particle_masses.muonic_he3
+        = particles.get(host_data.particle_ids.muonic_he3).mass();
+
+    // Set up muon energy CDF
+    auto const inp_data = inp::MucfPhysics::from_default();
+    NonuniformGridBuilder build_grid_record{&host_data.reals};
+    host_data.muon_energy_cdf = build_grid_record(inp_data.muon_energy_cdf);
+
+    auto const& material = *this->material_params();
+    auto const& el_view = material.get(ElementId{0});  // Only one element
+
+    MaterialFractionsArray iso_fractions_array;
+    for (auto const& frac : el_view.isotopes())
+    {
+        auto const& iso_view = material.get(frac.isotope);
+        if (iso_view.atomic_number() != AtomicNumber{1})
+        {
+            // Skip non-hydrogen (if added later to test)
+            continue;
+        }
+
+        // Set up isotopic fractions for D and T
+
+        if (iso_view.atomic_mass_number() == AtomicMassNumber{2})
+        {
+            iso_fractions_array[MucfIsotope::deuterium] = frac.fraction;
+        }
+        if (iso_view.atomic_mass_number() == AtomicMassNumber{3})
+        {
+            iso_fractions_array[MucfIsotope::tritium] = frac.fraction;
+        }
+    }
+
+    // Set up fractions
+    CollectionBuilder<MaterialFractionsArray, MemSpace::host, MuCfMatId>
+        host_iso_frac(&host_data.isotopic_fractions);
+    host_iso_frac.push_back(std::move(iso_fractions_array));
+
+    // Set up mucf material id to physics material id mapping
+    CollectionBuilder<PhysMatId, MemSpace::host, MuCfMatId> host_matid(
+        &host_data.mucfmatid_to_matid);
+    auto const& mat_view = material.get(PhysMatId{0});  // Only one material
+    host_matid.push_back(mat_view.material_id());
+
+    // Set up cycle times (numbers from DTMixMucfModel test)
+    CycleTimesArray ct_array;
+    ct_array[MucfMuonicMolecule::deuterium_deuterium] = {1.83e-6, 1.14};
+    ct_array[MucfMuonicMolecule::deuterium_tritium] = {1.018e-8, 5.098e-9};
+    ct_array[MucfMuonicMolecule::deuterium_tritium] = {1.40e-6, 0};
+
+    CollectionBuilder<CycleTimesArray, MemSpace::host, MuCfMatId> host_ct(
+        &host_data.cycle_times);
+    host_ct.push_back(std::move(ct_array));
+
+    return host_data;
 }
 
 //---------------------------------------------------------------------------//

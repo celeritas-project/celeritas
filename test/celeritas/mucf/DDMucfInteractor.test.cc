@@ -9,7 +9,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/inp/MucfPhysics.hh"
 
 #include "MucfInteractorHostTestBase.hh"
@@ -33,37 +32,7 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
   protected:
     void SetUp() override
     {
-        auto const& params = *this->particle_params();
-        this->set_material("hdt_fuel");
-
-        HostVal<DTMixMucfData> host_data;
-
-        // Set up particle IDs
-        host_data.particle_ids.mu_minus = params.find(pdg::mu_minus());
-        host_data.particle_ids.neutron = params.find(pdg::neutron());
-        host_data.particle_ids.proton = params.find(pdg::proton());
-        host_data.particle_ids.he3 = params.find(pdg::he3());
-        host_data.particle_ids.triton = params.find(pdg::triton());
-        host_data.particle_ids.muonic_he3 = params.find(pdg::muonic_he3());
-
-        // Set up particle masses
-        host_data.particle_masses.mu_minus
-            = params.get(host_data.particle_ids.mu_minus).mass();
-        host_data.particle_masses.neutron
-            = params.get(host_data.particle_ids.neutron).mass();
-        host_data.particle_masses.proton
-            = params.get(host_data.particle_ids.proton).mass();
-        host_data.particle_masses.he3
-            = params.get(host_data.particle_ids.he3).mass();
-        host_data.particle_masses.triton
-            = params.get(host_data.particle_ids.triton).mass();
-        host_data.particle_masses.muonic_he3
-            = params.get(host_data.particle_ids.muonic_he3).mass();
-
-        // Set up muon energy CDF
-        auto const inp_data = inp::MucfPhysics::from_default();
-        NonuniformGridBuilder build_grid_record{&host_data.reals};
-        host_data.muon_energy_cdf = build_grid_record(inp_data.muon_energy_cdf);
+        auto host_data = this->make_host_data();
 
         // Construct collection
         data_ = ParamsDataStore<DTMixMucfData>{std::move(host_data)};
