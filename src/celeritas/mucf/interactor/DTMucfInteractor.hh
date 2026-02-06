@@ -8,10 +8,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/StackAllocator.hh"
-#include "corecel/math/ArrayUtils.hh"
-#include "corecel/random/distribution/GenerateCanonical.hh"
-#include "corecel/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/mucf/data/DTMixMucfData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/Secondary.hh"

@@ -11,7 +11,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/inp/MucfPhysics.hh"
-#include "celeritas/phys/InteractionIO.hh"
 
 #include "MucfInteractorHostTestBase.hh"
 #include "celeritas_test.hh"
@@ -100,21 +99,15 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
             EXPECT_EQ(host_data.particle_ids.he3, sec[2].particle_id);
 
             // Check approximate energy conservation
-            // The total kinetic energy is only very roughly 3.3 MeV due to
-            // simplistic sampling. See DDMucfInteractor documentation for
-            // details.
             real_type total_kinetic_energy = 0;
             for (auto const& s : interaction.secondaries)
             {
                 total_kinetic_energy += s.energy.value();
             }
-            EXPECT_SOFT_NEAR(3.3, total_kinetic_energy, 0.5);
+            // The total kinetic energy range is within [3.2, 3.5] MeV
+            EXPECT_SOFT_NEAR(3.3, total_kinetic_energy, 0.3);
 
             // Check momentum conservation
-            // Momentum and energy conservation is not accurate (see the
-            // DDMucfInteractor documentation for details). Thus, we only check
-            // that the momentum calculation matches the implementation and
-            // adds up to zero.
             auto const neutron_p_mag = this->calc_momentum(
                 sec[0].energy, host_data.particle_masses.neutron);
             auto const muon_p_mag = this->calc_momentum(
@@ -304,11 +297,10 @@ TEST_F(DDMucfInteractorTest, stress_test)
             total_avg_secondaries += result.secondaries.size();
         }
     }
-    total_avg_secondaries /= 3 * num_samples;  // Average over all three
-                                               // channels
+    total_avg_secondaries /= 3 * num_samples;  // Average over all channels
 
-    static real_type const expected_total_avg_secondaries{
-        (3.0 + 2.0 + 3.0) / 3.0};  // (3 + 2 + 3) / 3 ≈ 2.67
+    // (3 + 2 + 3) / 3
+    static real_type const expected_total_avg_secondaries{8. / 3.};
     EXPECT_SOFT_EQ(expected_total_avg_secondaries, total_avg_secondaries);
 }
 

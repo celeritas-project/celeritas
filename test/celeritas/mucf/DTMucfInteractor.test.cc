@@ -11,7 +11,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/inp/MucfPhysics.hh"
-#include "celeritas/phys/InteractionIO.hh"
 
 #include "MucfInteractorHostTestBase.hh"
 #include "celeritas_test.hh"
