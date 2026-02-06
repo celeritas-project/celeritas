@@ -188,24 +188,24 @@ CELER_ICC barn = Constant{1e-24} * centimeter * centimeter;
 namespace literals
 {
 
-#define CELER_DEFINE_UNIT_UDL(SUFFIX, NAME)                                 \
-    CELER_CONSTEXPR_FUNCTION long double operator""_##SUFFIX(long double v) \
-    {                                                                       \
-        return v * units::NAME;                                             \
-    }                                                                       \
-    CELER_CONSTEXPR_FUNCTION Constant operator""_##SUFFIX(                  \
-        unsigned long long int v)                                           \
-    {                                                                       \
-        return v * units::NAME;                                             \
-    }                                                                       \
-    CELER_CONSTEXPR_FUNCTION long double operator""_##NAME(long double v)   \
-    {                                                                       \
-        return v * units::NAME;                                             \
-    }                                                                       \
-    CELER_CONSTEXPR_FUNCTION Constant operator""_##NAME(                    \
-        unsigned long long int v)                                           \
-    {                                                                       \
-        return v * units::NAME;                                             \
+#define CELER_DEFINE_UNIT_UDL(SUFFIX, NAME)                            \
+    CELER_CONSTEXPR_FUNCTION double operator""_##SUFFIX(long double v) \
+    {                                                                  \
+        return v * units::NAME;                                        \
+    }                                                                  \
+    CELER_CONSTEXPR_FUNCTION Constant operator""_##SUFFIX(             \
+        unsigned long long int v)                                      \
+    {                                                                  \
+        return v * units::NAME;                                        \
+    }                                                                  \
+    CELER_CONSTEXPR_FUNCTION double operator""_##NAME(long double v)   \
+    {                                                                  \
+        return v * units::NAME;                                        \
+    }                                                                  \
+    CELER_CONSTEXPR_FUNCTION Constant operator""_##NAME(               \
+        unsigned long long int v)                                      \
+    {                                                                  \
+        return v * units::NAME;                                        \
     }
 
 CELER_DEFINE_UNIT_UDL(cm, centimeter)
