@@ -42,9 +42,9 @@ TEST(NotationConverter, basic)
 {
     auto round_trip = [](std::string_view postfix, std::string_view infix) {
         auto postfix_expr = string_to_logic(postfix);
-        auto infix_expr = convert_to_infix(make_span(postfix_expr));
+        auto infix_expr = convert_to_infix(postfix_expr);
         EXPECT_EQ(logic_to_string(infix_expr), infix);
-        auto new_postfix_expr = convert_to_postfix(make_span(infix_expr));
+        auto new_postfix_expr = convert_to_postfix(infix_expr);
         EXPECT_EQ(logic_to_string(new_postfix_expr), postfix);
     };
 
@@ -77,7 +77,7 @@ TEST(NotationConverter, demorgan_postfix_to_infix)
                                        LogicNotation::postfix);
     convert_logic(input, LogicNotation::infix);
     auto& unit = std::get<UnitInput>(input.universes.front());
-    auto postfix = convert_to_postfix(make_span(unit.volumes.front().logic));
+    auto postfix = convert_to_postfix(unit.volumes.front().logic);
     EXPECT_EQ(logic_to_string(postfix), "0 ~ 1 ~ &");
 }
 
@@ -87,7 +87,7 @@ TEST(NotationConverter, demorgan_infix_to_infix)
     auto input = make_input_with_logic(std::move(infix), LogicNotation::infix);
     convert_logic(input, LogicNotation::infix);
     auto& unit = std::get<UnitInput>(input.universes.front());
-    auto postfix = convert_to_postfix(make_span(unit.volumes.front().logic));
+    auto postfix = convert_to_postfix(unit.volumes.front().logic);
     EXPECT_EQ(logic_to_string(postfix), "0 ~ 1 ~ &");
 }
 

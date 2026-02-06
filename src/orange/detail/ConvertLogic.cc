@@ -15,6 +15,8 @@
 
 #include "../OrangeTypes.hh"
 
+using VecLogic = std::vector<celeritas::logic_int>;
+
 namespace celeritas
 {
 namespace detail
@@ -22,7 +24,7 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-orangeinp::CsgTree build_tree_from_postfix(Span<logic_int const> postfix)
+orangeinp::CsgTree build_tree_from_postfix(VecLogic const& postfix)
 {
     using orangeinp::CsgTree;
     using orangeinp::Joined;
@@ -85,8 +87,7 @@ orangeinp::CsgTree build_tree_from_postfix(Span<logic_int const> postfix)
     return tree;
 }
 
-std::vector<logic_int>
-simplify_negated_joins_postfix(Span<logic_int const> postfix)
+VecLogic simplify_negated_joins_postfix(VecLogic const& postfix)
 {
     CELER_EXPECT(!postfix.empty());
 
@@ -100,7 +101,7 @@ simplify_negated_joins_postfix(Span<logic_int const> postfix)
 
     // Convert simplified tree to postfix
     orangeinp::detail::PostfixBuildLogicPolicy const make_builder{tree};
-    std::vector<logic_int> logic;
+    VecLogic logic;
     make_builder(logic)(root);
     return logic;
 }
@@ -157,7 +158,7 @@ class InfixStack
     struct Operand
     {
         logic::OperatorToken expr_type;
-        std::vector<logic_int> expr;
+        VecLogic expr;
     };
 
     //! Push a binary operator.
@@ -166,7 +167,7 @@ class InfixStack
         CELER_EXPECT(infix_.size() > 1);
         auto& op_2 = infix_.back();
         auto& op_1 = *(infix_.end() - 2);
-        std::vector<logic_int> new_expr;
+        VecLogic new_expr;
         constexpr int max_extra_tokens = 5;
         new_expr.reserve(max_extra_tokens + op_1.expr.size()
                          + op_2.expr.size());
@@ -184,7 +185,7 @@ class InfixStack
     {
         CELER_EXPECT(!infix_.empty());
         auto&& [expr_type, expr] = infix_.back();
-        std::vector<logic_int> new_expr;
+        VecLogic new_expr;
         constexpr int max_extra_tokens = 3;
         new_expr.reserve(max_extra_tokens + expr.size());
 
@@ -202,7 +203,7 @@ class InfixStack
     }
 
     //! Get the infix expression.
-    std::vector<logic_int> get_infix() &&
+    VecLogic get_infix() &&
     {
         CELER_EXPECT(infix_.size() == 1);
         return std::move(infix_.front().expr);
@@ -210,9 +211,7 @@ class InfixStack
 
   private:
     //! Accumulate operands into a new expression.
-    void add_sub_expr(std::vector<logic_int>& acc,
-                      std::vector<logic_int> const& expr,
-                      bool parentheses)
+    void add_sub_expr(VecLogic& acc, VecLogic const& expr, bool parentheses)
     {
         if (parentheses)
         {
@@ -239,7 +238,7 @@ class InfixStack
 class PostfixStack
 {
   public:
-    using size_type = std::vector<logic_int>::size_type;
+    using size_type = VecLogic::size_type;
 
     void reserve(size_type size)
     {
@@ -281,7 +280,7 @@ class PostfixStack
         operators_.push_back(token);
     }
 
-    std::vector<logic_int> get_postfix() &&
+    VecLogic get_postfix() &&
     {
         while (!operators_.empty())
         {
@@ -318,8 +317,8 @@ class PostfixStack
         }
     }
 
-    std::vector<logic_int> postfix_;
-    std::vector<logic_int> operators_;
+    VecLogic postfix_;
+    VecLogic operators_;
 };
 
 //---------------------------------------------------------------------------//
@@ -333,7 +332,7 @@ class PostfixStack
  * on parenthesis depth. Minimizing that depth in the expression
  * will allow to short-circuit more efficiently.
  */
-std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
+VecLogic convert_to_infix(VecLogic const& postfix)
 {
     CELER_EXPECT(!postfix.empty());
 
@@ -375,7 +374,7 @@ std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
 /*!
  * Convert an infix logic expression to a postfix expression.
  */
-std::vector<logic_int> convert_to_postfix(Span<logic_int const> infix)
+VecLogic convert_to_postfix(VecLogic const& infix)
 {
     CELER_EXPECT(!infix.empty());
 
@@ -447,7 +446,7 @@ void convert_logic(OrangeInput& input, LogicNotation to)
                     {
                         continue;
                     }
-                    vol.logic = converter(make_span(vol.logic));
+                    vol.logic = converter(vol.logic);
                 }
             }
         }
@@ -461,13 +460,13 @@ void convert_logic(OrangeInput& input, LogicNotation to)
                 return;
             }
             CELER_ASSERT(input.logic == LogicNotation::infix);
-            convert_units([](Span<logic_int const> logic) {
+            convert_units([](VecLogic const& logic) {
                 return convert_to_postfix(logic);
             });
             break;
         case LogicNotation::infix:
-            convert_units([&input](Span<logic_int const> logic) {
-                std::vector<logic_int> postfix;
+            convert_units([&input](VecLogic const& logic) {
+                VecLogic postfix;
                 if (input.logic == LogicNotation::postfix)
                 {
                     postfix.assign(logic.begin(), logic.end());
@@ -476,9 +475,8 @@ void convert_logic(OrangeInput& input, LogicNotation to)
                 {
                     postfix = convert_to_postfix(logic);
                 }
-                auto simplified
-                    = simplify_negated_joins_postfix(make_span(postfix));
-                return convert_to_infix(make_span(simplified));
+                auto simplified = simplify_negated_joins_postfix(postfix);
+                return convert_to_infix(simplified);
             });
             break;
         default:
