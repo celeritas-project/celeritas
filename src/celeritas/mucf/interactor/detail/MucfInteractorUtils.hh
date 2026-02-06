@@ -26,8 +26,8 @@ namespace detail
  * Calculate momentum magnitude from particle energy and mass via
  * \f$ p = \sqrt{K^2 + 2mK} \f$ .
  */
-CELER_FUNCTION real_type calc_momentum(units::MevEnergy const energy,
-                                       units::MevMass const mass)
+inline CELER_FUNCTION real_type calc_momentum(units::MevEnergy const energy,
+                                              units::MevMass const mass)
 {
     return std::sqrt(ipow<2>(value_as<units::MevEnergy>(energy))
                      + 2 * value_as<units::MevMass>(mass)
@@ -39,7 +39,7 @@ CELER_FUNCTION real_type calc_momentum(units::MevEnergy const energy,
  * Calculate kinetic energy given a particle's momentum and mass via
  * \f$ K = \sqrt{p^2 - m^2} - m\f$ .
  */
-CELER_FUNCTION units::MevEnergy
+inline CELER_FUNCTION units::MevEnergy
 calc_kinetic_energy(Real3 const& momentum_vec, units::MevMass const mass)
 {
     real_type momentum_mag = norm(momentum_vec);
@@ -54,9 +54,9 @@ calc_kinetic_energy(Real3 const& momentum_vec, units::MevMass const mass)
  * energy.
  */
 template<class Engine>
-CELER_FUNCTION Secondary sample_mucf_secondary(ParticleId pid,
-                                               units::MevEnergy energy,
-                                               Engine& rng)
+inline CELER_FUNCTION Secondary sample_mucf_secondary(ParticleId pid,
+                                                      units::MevEnergy energy,
+                                                      Engine& rng)
 {
     Secondary result;
     result.particle_id = pid;
@@ -73,7 +73,7 @@ CELER_FUNCTION Secondary sample_mucf_secondary(ParticleId pid,
  * \note The muon grid range is [0,1) and its domain is the energy in MeV.
  */
 template<class Engine>
-CELER_FUNCTION Secondary sample_mucf_muon(
+inline CELER_FUNCTION Secondary sample_mucf_muon(
     ParticleId pid, NonuniformGridCalculator sample_energy, Engine& rng)
 {
     Secondary result;
@@ -87,7 +87,7 @@ CELER_FUNCTION Secondary sample_mucf_muon(
 /*!
  * Return opposite direction.
  */
-CELER_FUNCTION Real3 opposite(Real3 const& vec)
+inline CELER_FUNCTION Real3 opposite(Real3 const& vec)
 {
     Real3 result;
     for (auto i : range(3))
@@ -105,12 +105,13 @@ CELER_FUNCTION Real3 opposite(Real3 const& vec)
  * \todo This may be expanded to do a full three-body energy + momentum
  * conservation.
  */
-CELER_FUNCTION Secondary calc_third_secondary(Secondary sec_a,
-                                              units::MevMass const mass_a,
-                                              Secondary sec_b,
-                                              units::MevMass const mass_b,
-                                              ParticleId pid_c,
-                                              units::MevMass const mass_c)
+inline CELER_FUNCTION Secondary
+calc_third_secondary(Secondary sec_a,
+                     units::MevMass const mass_a,
+                     Secondary sec_b,
+                     units::MevMass const mass_b,
+                     ParticleId pid_c,
+                     units::MevMass const mass_c)
 {
     auto const momentum_a_mag = calc_momentum(sec_a.energy, mass_a);
     auto const momentum_b_mag = calc_momentum(sec_b.energy, mass_b);
