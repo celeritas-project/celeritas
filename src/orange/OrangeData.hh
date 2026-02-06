@@ -61,9 +61,6 @@ struct OrangeParamsScalars
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
 
-    // Logic expression notation
-    LogicNotation logic{};
-
     // Raw pointers to externally owned memory for debug output
     OrangeParams const* host_geo_params{nullptr};
     VolumeParams const* host_volume_params{nullptr};

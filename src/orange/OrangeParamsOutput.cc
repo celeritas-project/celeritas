@@ -48,7 +48,6 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_PAIR(data.scalars, max_intersections),
         OPO_PAIR(data.scalars, max_csg_levels),
         OPO_PAIR(data.scalars, tol),
-        OPO_PAIR(data.scalars, logic),
     };
 
     // Save sizes
