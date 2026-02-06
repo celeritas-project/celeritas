@@ -54,6 +54,7 @@ list(APPEND SOURCES
   orangeinp/Truncated.cc
   orangeinp/UnitProto.cc
   orangeinp/detail/BoundingZone.cc
+  orangeinp/detail/BuildLogic.cc
   orangeinp/detail/BuildIntersectRegion.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/DeMorganSimplifier.cc

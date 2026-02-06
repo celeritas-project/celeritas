@@ -35,7 +35,7 @@
 #include "ObjectIO.json.hh"
 #include "Transformed.hh"
 
-#include "detail/CsgLogicUtils.hh"
+#include "detail/BuildLogic.hh"
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
@@ -326,8 +326,8 @@ void UnitProto::build(ProtoBuilder& pb) const
 
     // Always use postfix logic for unit input, post-processing to
     // convert to tracking notation
-    detail::RuntimeBuildLogicPolicy const policy{
-        LogicNotation::postfix, csg_unit.tree, sorted_local_surfaces};
+    detail::DynamicBuildLogicPolicy const policy{
+        LogicNotation::postfix, csg_unit.tree, &sorted_local_surfaces};
     // Construct logic and faces with remapped surfaces
     for (auto vol_idx : range(unit_volumes.size()))
     {

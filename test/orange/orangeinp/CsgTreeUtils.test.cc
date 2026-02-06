@@ -10,7 +10,7 @@
 #include "orange/detail/LogicUtils.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTypes.hh"
-#include "orange/orangeinp/detail/CsgLogicUtils.hh"
+#include "orange/orangeinp/detail/BuildLogic.hh"
 #include "orange/orangeinp/detail/InternalSurfaceFlagger.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 #include "orange/surf/VariantSurface.hh"
