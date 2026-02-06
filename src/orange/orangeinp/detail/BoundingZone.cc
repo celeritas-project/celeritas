@@ -210,6 +210,42 @@ BBox get_exterior_bbox(BoundingZone const& bz)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Print for debugging.
+ */
+std::ostream& operator<<(std::ostream& os, BoundingZone const& bz)
+{
+    os << "{";
+    char const* comma = "";
+    if (!bz.negated)
+    {
+        if (bz.interior)
+        {
+            os << "encloses " << bz.interior;
+            comma = ", ";
+        }
+        if (!is_infinite(bz.exterior))
+        {
+            os << comma << "enclosed by " << bz.exterior;
+        }
+    }
+    else
+    {
+        if (!is_infinite(bz.exterior))
+        {
+            os << "encloses " << bz.exterior;
+            comma = ", ";
+        }
+        if (bz.interior)
+        {
+            os << comma << "excluded from " << bz.interior;
+        }
+    }
+    os << '}';
+    return os;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas
