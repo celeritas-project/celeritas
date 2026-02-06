@@ -8,11 +8,11 @@
 
 #include <algorithm>
 #include <map>
-#include <numeric>
 #include <set>
 #include <utility>
 #include <nlohmann/json.hpp>
 
+#include "corecel/Assert.hh"
 #include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
@@ -20,13 +20,16 @@
 #include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/BoundingBox.hh"
 #include "geocel/VolumeToString.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/LogicIO.hh"
+#include "orange/orangeinp/CsgTypes.hh"
 #include "orange/orangeinp/IntersectRegion.hh"
+#include "orange/orangeinp/detail/BoundingZone.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "CsgObject.hh"
@@ -50,6 +53,45 @@ namespace orangeinp
 namespace
 {
 using detail::CsgUnit;
+
+BoundingBox<> get_unit_bbox(CsgUnit const& unit, bool assume_inside)
+{
+    auto find_bz = [&r = unit.regions](NodeId n) -> detail::BoundingZone const* {
+        if (!n)
+            return nullptr;
+
+        auto iter = r.find(n);
+        if (iter == r.end())
+            return nullptr;
+        return &(iter->second.bounds);
+    };
+
+    CELER_ASSERT(orange_exterior_volume < unit.volumes().size());
+    NodeId exterior_node_id = unit.volumes()[orange_exterior_volume.get()];
+    auto* exterior_bz = find_bz(exterior_node_id);
+    CELER_ASSERT(exterior_bz);
+    if (exterior_bz->negated)
+    {
+        // [EXTERIOR] bbox is negated, so negating again gives the
+        // "interior" bounding zone; we want its outer boundary.
+        return exterior_bz->exterior;
+    }
+
+    if (assume_inside)
+    {
+        // Odd bounding zones can happen for units with degenerate
+        // boundaries due to region merging. See if we can get an
+        // "interior" bbox by negating the exterior node
+        auto* interior_bz = find_bz(unit.tree.find(Negated{exterior_node_id}));
+        if (interior_bz && !exterior_bz->negated)
+        {
+            return interior_bz->exterior;
+        }
+    }
+
+    // Unknown extents: be conservative
+    return BoundingBox<>::from_infinite();
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -277,20 +319,8 @@ void UnitProto::build(ProtoBuilder& pb) const
     UnitInput result;
     result.label = input_.label;
 
-    auto& unit_volumes = csg_unit.tree.volumes();
     // Save unit's bounding box
-    {
-        NodeId node_id = unit_volumes[orange_exterior_volume.get()];
-        auto region_iter = csg_unit.regions.find(node_id);
-        CELER_ASSERT(region_iter != csg_unit.regions.end());
-        auto const& bz = region_iter->second.bounds;
-        if (bz.negated)
-        {
-            // [EXTERIOR] bbox is negated, so negating again gives the
-            // "interior" bounding zone; we want its outer boundary.
-            result.bbox = bz.exterior;
-        }
-    }
+    result.bbox = get_unit_bbox(csg_unit, pb.assume_inside());
 
     // Save surfaces
     result.surfaces.reserve(sorted_local_surfaces.size());
@@ -333,6 +363,7 @@ void UnitProto::build(ProtoBuilder& pb) const
     }
 
     // Loop over all volumes to construct
+    auto const& unit_volumes = csg_unit.tree.volumes();
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));

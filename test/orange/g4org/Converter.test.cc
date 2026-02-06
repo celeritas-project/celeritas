@@ -308,7 +308,8 @@ TEST_F(ConverterTest, testem3)
         EXPECT_EQ(Label{"layer"}, unit->label);
         EXPECT_EQ(4, unit->volumes.size());
         EXPECT_EQ(1, unit->surfaces.size());
-        EXPECT_FALSE(unit->bbox);
+        EXPECT_VEC_SOFT_EQ((Real3{-0.4, -20, -20}), to_cm(unit->bbox.lower()));
+        EXPECT_VEC_SOFT_EQ((Real3{0.4, 20, 20}), to_cm(unit->bbox.upper()));
 
         static char const* const expected_local_parent_map[]
             = {"pb_pv->[BG]@layer", "lar_pv->[BG]@layer"};
