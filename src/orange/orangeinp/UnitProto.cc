@@ -102,76 +102,57 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
     std::map<NodeId, CsgUnit::Region> regions;
 
     // Map metadata
-    for (auto old_id : range(NodeId{unit.tree.size()}))
+    for (auto old_id : range(id_cast<NodeId>(unit.tree.size())))
     {
         auto& old_md = unit.metadata[old_id.get()];
-        auto new_id = nodes[old_id.get()];
-        auto log_debug = [&, msg = std::optional<Logger::Message>{}]() mutable
-            -> Logger::Message& {
-            if (!msg)
+        if (auto new_id = nodes[old_id.get()])
+        {
+            CELER_ASSERT(new_id < metadata.size());
+
+            // Update metadata
+            auto& new_md = metadata[new_id.get()];
+            if (CELER_UNLIKELY(!new_md.empty()))
             {
-                msg.emplace(CELER_LOG(debug));
-                *msg << "In universe '" << label << "': node " << old_id
-                     << " maps to " << new_id << ": ";
+                // Node was merged with another node
+                CELER_LOG(warning)
+                    << "Merged CSG node "
+                    << join(new_md.begin(), new_md.end(), "','") << " into "
+                    << join(old_md.begin(), old_md.end(), "','");
+                new_md.insert(old_md.begin(), old_md.end());
+                old_md.clear();
             }
             else
             {
-                *msg << "; ";
-            }
-            return *msg;
-        };
-
-        if (new_id)
-        {
-            CELER_ASSERT(new_id < metadata.size());
-            if (true)
-            {
-                // Update metadata
-                auto& new_md = metadata[new_id.get()];
-                if (CELER_UNLIKELY(!new_md.empty()))
-                {
-                    // Node was merged with another node
-                    log_debug()
-                        << "merged '"
-                        << join(new_md.begin(), new_md.end(), "','")
-                        << "' into '"
-                        << join(old_md.begin(), old_md.end(), "','") << "'";
-                    new_md.insert(old_md.begin(), old_md.end());
-                    old_md.clear();
-                }
-                else
-                {
-                    new_md = std::move(old_md);
-                }
+                new_md = std::move(old_md);
             }
 
-            // Move region to new tree with updated ID: necessary even for
-            // false/true region due to interior
+            // Update region
             if (auto iter = unit.regions.find(old_id);
                 iter != unit.regions.end())
             {
                 auto region = unit.regions.extract(iter);
                 region.key() = new_id;
-                auto irt = regions.insert(std::move(region));
-                if (!irt.inserted)
-                {
-                    log_debug() << "ignored since a region exists";
-                }
+                regions.insert(std::move(region));
             }
         }
         else
         {
             // Node was removed from the tree
             auto region = unit.regions.find(old_id);
-            if (region != unit.regions.end())
+            if (CELER_UNLIKELY(region != unit.regions.end() || !old_md.empty()))
             {
-                log_debug() << "deleted region";
-            }
-            if (!old_md.empty())
-            {
-                log_debug()
-                    << "deleted '" << join(old_md.begin(), old_md.end(), "','")
-                    << "'";
+                auto msg = CELER_LOG(warning);
+                msg << "Simplification removed node " << old_id.get();
+                if (!old_md.empty())
+                {
+                    msg << "='" << join(old_md.begin(), old_md.end(), "','")
+                        << "'";
+                }
+                if (region != unit.regions.end())
+                {
+                    msg << " (which has a region)";
+                }
+                msg << " from '" << label << "'";
             }
         }
     }
