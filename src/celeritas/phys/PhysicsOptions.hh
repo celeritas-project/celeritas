@@ -64,7 +64,7 @@ struct ParticleOptions
     static ParticleOptions default_light()
     {
         ParticleOptions opts;
-        using celeritas::units::literals::operator""_mm;
+        using namespace celeritas::units::literals;
         opts.min_range = 1.0_mm;
         opts.max_step_over_range = 0.2;
         opts.lowest_energy = ParticleOptions::Energy{0.001};
@@ -78,7 +78,7 @@ struct ParticleOptions
     static ParticleOptions default_heavy()
     {
         ParticleOptions opts;
-        using celeritas::units::literals::operator""_mm;
+        using namespace celeritas::units::literals;
         opts.min_range = 0.1_mm;
         opts.max_step_over_range = 0.2;
         opts.lowest_energy = ParticleOptions::Energy{0.001};

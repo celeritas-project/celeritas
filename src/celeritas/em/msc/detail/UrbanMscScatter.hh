@@ -105,7 +105,7 @@ class UrbanMscScatter
     //! The minimum step length for geometry 0.05 nm
     static CELER_CONSTEXPR_FUNCTION real_type geom_min()
     {
-        using celeritas::units::literals::operator""_cm;
+        using namespace celeritas::units::literals;
         return 5e-9_cm;
     }
 
