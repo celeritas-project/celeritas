@@ -98,9 +98,11 @@ class BaseLogicBuilder
     //!@}
 
   protected:
-    VecLogic& logic_;
+    //! Append a logic token
+    void push_back(logic_int lgc) { logic_.push_back(lgc); }
 
   private:
+    VecLogic& logic_;
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
     VecSurface const* mapping_{nullptr};
 };

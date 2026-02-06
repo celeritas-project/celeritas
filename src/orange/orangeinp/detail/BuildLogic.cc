@@ -70,6 +70,7 @@ BaseLogicBuilder<Impl>::BaseLogicBuilder(CsgTree const& tree,
                                          VecSurface const* vs)
     : logic_{logic}, visit_node_{tree}, mapping_{vs}
 {
+    CELER_EXPECT(logic_.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -89,7 +90,7 @@ void BaseLogicBuilder<Impl>::operator()(NodeId const& n)
 template<class Impl>
 void BaseLogicBuilder<Impl>::operator()(True const&)
 {
-    logic_.push_back(logic::ltrue);
+    this->push_back(logic::ltrue);
 }
 
 //---------------------------------------------------------------------------//
@@ -127,7 +128,7 @@ void BaseLogicBuilder<Impl>::operator()(Surface const& s)
         }
     }();
 
-    logic_.push_back(sidx);
+    this->push_back(sidx);
 }
 
 //---------------------------------------------------------------------------//
@@ -150,7 +151,7 @@ void BaseLogicBuilder<Impl>::operator()(Aliased const& n)
 void PostfixLogicBuilder::operator()(Negated const& n)
 {
     (*this)(n.node);
-    logic_.push_back(logic::lnot);
+    this->push_back(logic::lnot);
 }
 
 //---------------------------------------------------------------------------//
@@ -168,7 +169,7 @@ void PostfixLogicBuilder::operator()(Joined const& n)
     while (iter != n.nodes.end())
     {
         (*this)(*iter++);
-        logic_.push_back(n.op);
+        this->push_back(n.op);
     }
 }
 
@@ -178,7 +179,7 @@ void PostfixLogicBuilder::operator()(Joined const& n)
  */
 void InfixLogicBuilder::operator()(Negated const& n)
 {
-    logic_.push_back(logic::lnot);
+    this->push_back(logic::lnot);
     (*this)(n.node);
 }
 
@@ -189,18 +190,17 @@ void InfixLogicBuilder::operator()(Negated const& n)
 void InfixLogicBuilder::operator()(Joined const& n)
 {
     CELER_EXPECT(n.nodes.size() > 1);
-    auto& logic = logic_;
-    logic.push_back(logic::lopen);
+    this->push_back(logic::lopen);
     // Visit first node, then add conjunction for subsequent nodes
     auto iter = n.nodes.begin();
     (*this)(*iter++);
 
     while (iter != n.nodes.end())
     {
-        logic.push_back(n.op);
+        this->push_back(n.op);
         (*this)(*iter++);
     }
-    logic.push_back(logic::lclose);
+    this->push_back(logic::lclose);
 }
 
 //---------------------------------------------------------------------------//
