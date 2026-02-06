@@ -93,12 +93,14 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     ti.particle.particle_id = primary.particle_id;
     ti.particle.energy = primary.energy;
 
-    // Set the RNG state initializer appropriately dispatched on RNG type
+// Set the RNG state initializer appropriately dispatched on RNG type
+#if CELERITAS_RESEED == CELERITAS_RESEED_TRACK
     this->fillRngStateInitializer(params->rng.get_seed(),
                                   ti.sim.event_id.get(),
                                   primary.geant_track_id,
                                   primary.geant_step_count,
                                   ti.rng);
+#endif
 
     // Store the initializer
     size_type idx = counters->num_initializers - primaries.size() + tid.get();

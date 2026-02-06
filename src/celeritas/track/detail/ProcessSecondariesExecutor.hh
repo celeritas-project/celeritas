@@ -111,7 +111,9 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             ti.geo.dir = secondary.direction;
             ti.particle.particle_id = secondary.particle_id;
             ti.particle.energy = secondary.energy;
+#if CELERITAS_RESEED == CELERITAS_RESEED_TRACK
             ti.rng = track.rng().branch();
+#endif
             CELER_ASSERT(ti);
 
             if (sim.track_id() == track_id && sim.status() != TrackStatus::alive

@@ -162,8 +162,10 @@ CoreTrackView::operator=(TrackInitializer const& init)
     // Initialize the simulation state
     this->sim() = init.sim;
 
-    // Initializer RNG state
+// Initializer RNG state
+#if CELERITAS_RESEED == CELERITAS_RESEED_TRACK
     this->rng() = init.rng;
+#endif
 
     // Initialize the particle attributes
     this->particle() = init.particle;
