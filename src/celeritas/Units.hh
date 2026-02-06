@@ -178,10 +178,9 @@ CELER_ICC barn = Constant{1e-24} * centimeter * centimeter;
  * \endcode
  *
  * \note In headers, prefer explicit multiplication (e.g., \c 2.5 *
- * units::centimeter) or bring in only the needed literal operator inside a
- * function scope:
+ * units::centimeter) or bring the namespace inside a function scope:
  * \code
- * using celeritas::units::literals::operator""_centimeter;
+ * using namespace celeritas::units::literals;
  * return 2.5_centimeter;
  * \endcode
  */
