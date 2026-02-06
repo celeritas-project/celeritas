@@ -19,6 +19,7 @@ namespace detail
 MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
                                            inp::MucfPhysics const& data)
     : mucfmatid_to_matid_(&host_data->mucfmatid_to_matid)
+    , isotopic_fractions_(&host_data->isotopic_fractions)
     , cycle_times_(&host_data->cycle_times)
     , data_(data)
 {
@@ -53,6 +54,7 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
 {
     using LhdArray = EquilibrateDensitiesCalculator::LhdArray;
 
+    MaterialFractionsArray isotopic_fractions;
     CycleTimesArray cycle_times;
     LhdArray lhd_densities{};
 
@@ -81,9 +83,12 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
             auto const atom = from_mass_number(iso_view.atomic_mass_number());
             CELER_ASSERT(atom < MucfIsotope::size_);
 
+            auto const iso_frac = element_view.isotopes()[el_comp].fraction;
+
             // Cache density for this hydrogen isotope
+            isotopic_fractions[atom] = iso_frac;
             lhd_densities[atom]
-                = element_view.isotopes()[el_comp].fraction
+                = iso_frac
                   * (elem_rel_abundance * material.number_density()
                      / data_.scalars.liquid_hydrogen_density.value());
         }
@@ -122,6 +127,7 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
 
     // Add muCF material to the model's host/device data
     mucfmatid_to_matid_.push_back(material.material_id());
+    isotopic_fractions_.push_back(std::move(isotopic_fractions));
     cycle_times_.push_back(std::move(cycle_times));
 
     //! \todo Store mean atom spin flip and transfer times

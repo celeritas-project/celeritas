@@ -40,6 +40,7 @@ class MucfMaterialInserter
     using MoleculeCycles = Array<real_type, 2>;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, MoleculeCycles>;
     using EquilibriumArray = EquilibrateDensitiesCalculator::EquilibriumArray;
+    using MaterialFractionsArray = EnumArray<MucfIsotope, real_type>;
     using AtomicMassNumber = AtomicNumber;
     using InterpolatorsMap
         = std::map<std::pair<inp::CycleTableType, units::HalfSpinInt>,
@@ -49,6 +50,8 @@ class MucfMaterialInserter
 
     // DTMixMucfModel host data references populated by operator()
     CollectionBuilder<PhysMatId, MemSpace::host, MuCfMatId> mucfmatid_to_matid_;
+    CollectionBuilder<MaterialFractionsArray, MemSpace::host, MuCfMatId>
+        isotopic_fractions_;
     CollectionBuilder<CycleTimesArray, MemSpace::host, MuCfMatId> cycle_times_;
     // Const data
     std::map<AtomicMassNumber, MucfIsotope> const mass_isotope_map_{
