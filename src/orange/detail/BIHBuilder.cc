@@ -85,10 +85,13 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     tree.inf_vol_ids = local_volume_ids_.insert_back(inf_vol_ids.begin(),
                                                      inf_vol_ids.end());
 
+    // The depth of the most embedded node (where 1 is the root node), to be
+    // calculated during the recursive construction process
     size_type depth = 0;
 
     if (!indices.empty())
     {
+        // Construct the tree recursively
         VecNodes nodes;
         auto inf_bbox = FastBBox::from_infinite();
         this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox, 0, depth);
