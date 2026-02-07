@@ -24,7 +24,6 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
-#include "orange/detail/LogicUtils.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
@@ -33,6 +32,7 @@
 #include "g4org/Converter.hh"
 #include "univ/detail/LogicStack.hh"
 
+#include "detail/ConvertLogic.hh"
 #include "detail/DepthCalculator.hh"
 #include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"
@@ -180,6 +180,10 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
                      << (celeritas::device() ? " and copying to GPU" : "");
     ScopedTimeLog scoped_time;
 
+    // First, preprocess the input logic expressions to match the tracker
+    detail::convert_logic(input, orange_tracking_logic);
+    CELER_ASSERT(input.logic == orange_tracking_logic);
+
     // Save global bounding box
     bbox_ = [&input] {
         auto& global = input.universes[orange_global_univ.unchecked_get()];
@@ -191,13 +195,10 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
-    host_data.scalars.logic = input.logic;
     host_data.scalars.num_univ_levels
         = detail::DepthCalculator{input.universes}();
     host_data.scalars.num_vol_levels = volumes_ ? volumes_->num_volume_levels()
                                                 : 0;
-
-    detail::convert_logic(input, orange_tracking_logic());
 
     // Insert all universes
     {
@@ -226,6 +227,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
         impl_vol_labels_
             = ImplVolumeMap{"impl volume", std::move(impl_volume_labels)};
     }
+    // Clear captured input since we've consumed and modified it
     std::move(input) = {};
 
     // Simple safety if all SimpleUnits have simple safety and no RectArrays

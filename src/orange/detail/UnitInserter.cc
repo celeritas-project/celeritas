@@ -26,6 +26,7 @@
 #include "corecel/sys/Environment.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/detail/LogicIO.hh"
 
 #include "UniverseInserter.hh"
 #include "../OrangeInput.hh"
@@ -577,22 +578,14 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         }
     }
 
-    static auto const nowhere_logic = []() -> std::array<logic_int, 2> {
-        if (orange_tracking_logic() == LogicNotation::postfix)
-            return {logic::ltrue, logic::lnot};
-        else
-            return {logic::lnot, logic::ltrue};
-    }();
+    static auto const nowhere_logic
+        = detail::make_nowhere_expr(orange_tracking_logic);
 
-    auto input_logic = make_span(v.logic);
     if (v.zorder == ZOrder::background)
     {
         // "Background" volumes should not be explicitly reachable by logic or
         // BIH
-        CELER_EXPECT(std::equal(input_logic.begin(),
-                                input_logic.end(),
-                                std::begin(nowhere_logic),
-                                std::end(nowhere_logic)));
+        CELER_EXPECT(v.logic == nowhere_logic);
         CELER_EXPECT(!v.bbox);
         CELER_EXPECT(!v.obz);
         CELER_EXPECT(v.flags & VolumeRecord::implicit_vol);
@@ -603,8 +596,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     VolumeRecord output;
     output.faces
         = local_surface_ids_.insert_back(v.faces.begin(), v.faces.end());
-    output.logic
-        = logic_ints_.insert_back(input_logic.begin(), input_logic.end());
+    output.logic = logic_ints_.insert_back(v.logic.begin(), v.logic.end());
     output.max_intersections = static_cast<logic_int>(max_intersections);
     output.flags = v.flags;
     if (simple_safety)
@@ -630,7 +622,8 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     }
 
     // Calculate the maximum stack depth of the volume definition
-    int depth = calc_depth(input_logic);
+    // TODO: is this valid for infix??
+    int depth = calc_depth(make_span(v.logic));
     CELER_VALIDATE(depth > 0,
                    << "invalid logic definition: operators do not balance");
 

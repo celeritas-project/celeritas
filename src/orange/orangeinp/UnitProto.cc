@@ -25,6 +25,7 @@
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/detail/LogicIO.hh"
 #include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -35,7 +36,7 @@
 #include "ObjectIO.json.hh"
 #include "Transformed.hh"
 
-#include "detail/CsgLogicUtils.hh"
+#include "detail/BuildLogic.hh"
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
@@ -266,6 +267,12 @@ void UnitProto::build(ProtoBuilder& pb) const
     {
         result.surfaces.emplace_back(csg_unit.surfaces[lsid.get()]);
     }
+    auto find_new_lsid = [&sls = sorted_local_surfaces](LocalSurfaceId old) {
+        CELER_EXPECT(old);
+        auto iter = find_sorted(sls.begin(), sls.end(), old);
+        CELER_ASSERT(iter != sls.end());
+        return id_cast<LocalSurfaceId>(iter - sls.begin());
+    };
 
     // Save surface labels
     result.surface_labels.resize(result.surfaces.size());
@@ -273,21 +280,24 @@ void UnitProto::build(ProtoBuilder& pb) const
     {
         if (auto* surf_node = std::get_if<Surface>(&csg_unit.tree[node_id]))
         {
-            LocalSurfaceId old_lsid = surf_node->id;
-            auto idx = static_cast<size_type>(
-                find_sorted(sorted_local_surfaces.begin(),
-                            sorted_local_surfaces.end(),
-                            old_lsid)
-                - sorted_local_surfaces.begin());
-            CELER_ASSERT(idx < result.surface_labels.size());
+            auto new_lsid = find_new_lsid(surf_node->id);
+            CELER_ASSERT(new_lsid < result.surface_labels.size());
 
-            // NOTE: surfaces may be created more than once. Our primitive
-            // "input" allows association with only one surface, so we'll
-            // arbitrarily choose the lexicographically sorted "first" surface
-            // name in the list.
-            CELER_ASSERT(!csg_unit.metadata[node_id.get()].empty());
-            auto const& label = *csg_unit.metadata[node_id.get()].begin();
-            result.surface_labels[idx] = label;
+            auto const& md = csg_unit.metadata[node_id.get()];
+            if (auto iter = md.begin(); iter != md.end())
+            {
+                // NOTE: surfaces may be created more than once. Our primitive
+                // "input" allows association with only one surface, so we'll
+                // arbitrarily choose the lexicographically sorted "first"
+                // surface name in the list.
+                result.surface_labels[new_lsid.get()] = *iter;
+            }
+            else
+            {
+                CELER_LOG(warning) << "No metadata for new surface "
+                                   << new_lsid << " (new node ID " << node_id
+                                   << ") = old LSID " << surf_node->id;
+            }
         }
     }
 
@@ -296,17 +306,17 @@ void UnitProto::build(ProtoBuilder& pb) const
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
 
+    // Always use postfix logic for unit input: post-processing in OrangeParams
+    // will convert to tracking notation
+    constexpr auto lgc_notation = LogicNotation::postfix;
+    detail::DynamicBuildLogicPolicy const policy{
+        lgc_notation, csg_unit.tree, &sorted_local_surfaces};
+    // Construct logic and faces with remapped surfaces
     for (auto vol_idx : range(unit_volumes.size()))
     {
         NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
-        // Construct logic and faces with remapped surfaces
-        auto&& [faces, logic] = detail::build_logic(
-            // always use postfix logic for unit input, post-processing to
-            // convert to tracking notation
-            detail::PostfixBuildLogicPolicy{csg_unit.tree,
-                                            sorted_local_surfaces},
-            node_id);
+        auto&& [faces, logic] = detail::build_logic(policy, node_id);
         vi.faces = std::move(faces);
         vi.logic = std::move(logic);
         // Set bounding box
@@ -340,7 +350,7 @@ void UnitProto::build(ProtoBuilder& pb) const
         VolumeInput vi;
         vi.faces.resize(sorted_local_surfaces.size());
         std::iota(vi.faces.begin(), vi.faces.end(), LocalSurfaceId{0});
-        vi.logic = {logic::ltrue, logic::lnot};
+        vi.logic = celeritas::detail::make_nowhere_expr(lgc_notation);
         vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
         /*! \todo The nearest internal surface is probably *not* the safety
@@ -599,7 +609,7 @@ auto UnitProto::build(Tol const& tol,
         remove_interior(result, this->label());
     }
 
-    if (orange_tracking_logic() == LogicNotation::infix
+    if (orange_tracking_logic == LogicNotation::infix
         || input_.remove_negated_join)
     {
         remove_negated_join(result, this->label());

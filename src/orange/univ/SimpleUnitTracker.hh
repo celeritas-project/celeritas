@@ -53,7 +53,7 @@ class SimpleUnitTracker
     using Intersection = detail::Intersection;
     using LocalState = detail::LocalState;
     using LogicEvaluator
-        = std::conditional_t<orange_tracking_logic() == LogicNotation::infix,
+        = std::conditional_t<orange_tracking_logic == LogicNotation::infix,
                              detail::InfixEvaluator,
                              detail::PostfixEvaluator>;
     //!@}

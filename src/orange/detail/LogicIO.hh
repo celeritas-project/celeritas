@@ -2,29 +2,33 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ScaleUtils.cc
+//! \file orange/detail/LogicIO.hh
 //---------------------------------------------------------------------------//
-#include "ScaleUtils.hh"
+#pragma once
 
-#include "orange/orangeinp/CsgTree.hh"
+#include <iosfwd>
+#include <string_view>
+#include <vector>
 
-#include "detail/CsgLogicUtils.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {
-namespace orangeinp
+namespace detail
 {
 //---------------------------------------------------------------------------//
-// Build postfix logic with original surface IDs intact
-std::vector<logic_int> build_postfix_logic(CsgTree const& tree, NodeId n)
-{
-    using celeritas::orangeinp::detail::PostfixBuildLogicPolicy;
+// Stream a logic token
+void logic_to_stream(std::ostream& os, logic_int val);
 
-    PostfixBuildLogicPolicy policy{tree};
-    policy(n);
-    return std::move(policy).logic();
-}
+// Convert a logic vector to a string.
+std::string logic_to_string(std::vector<logic_int> const& logic);
+
+// Build a logic definition from a string
+std::vector<logic_int> string_to_logic(std::string_view s);
+
+// Get a vector of logic indicating "nowhere"
+std::vector<logic_int> make_nowhere_expr(LogicNotation notation);
 
 //---------------------------------------------------------------------------//
-}  // namespace orangeinp
+}  // namespace detail
 }  // namespace celeritas

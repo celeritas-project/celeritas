@@ -39,6 +39,7 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 
 struct InvCentimeter
@@ -116,8 +117,8 @@ Span<real_type const> get_water_refractive_index()
 // Convert a wavelength in [micrometer] to a photon energy in [MeV]
 real_type um_to_mev(real_type wavelength_um)
 {
-    return value_as<units::MevEnergy>(optical::detail::wavelength_to_energy(
-        1e-3 * units::millimeter * wavelength_um));
+    return value_as<units::MevEnergy>(
+        optical::detail::wavelength_to_energy(1e-3_mm * wavelength_um));
 }
 
 //---------------------------------------------------------------------------//
