@@ -191,14 +191,14 @@ CudaPointers<VgNavIndex const> navindex_pointers_device()
 
 void check_other_device_pointers()
 {
-    if constexpr (VECGEOM_VERSION < 0x020000)
-        return;
+    if constexpr (VECGEOM_VERSION >= 0x020000)
+    {
+        CELER_VALIDATE(get_device_pointer<LogicalVolumesGetter>() != nullptr,
+                       << "failed to copy VG logical volumes to GPU");
 
-    CELER_VALIDATE(get_device_pointer<LogicalVolumesGetter>() != nullptr,
-                   << "failed to copy VG logical volumes to GPU");
-
-    CELER_VALIDATE(get_device_pointer<PlacedVolumesGetter>() != nullptr,
-                   << "failed to copy VG places volumes to GPU");
+        CELER_VALIDATE(get_device_pointer<PlacedVolumesGetter>() != nullptr,
+                       << "failed to copy VG places volumes to GPU");
+    }
 }
 
 #if CELER_VGNAV == CELER_VGNAV_TUPLE
