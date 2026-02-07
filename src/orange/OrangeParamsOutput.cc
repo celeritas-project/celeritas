@@ -106,14 +106,14 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 
         auto& finite = make_array("num_finite_bboxes");
         auto& nonfinite = make_array("num_nonfinite_bboxes");
-        auto& depth = make_array("max_depth");
+        auto& depth = make_array("depth");
 
         for (auto i : range(md.size()))
         {
             auto const& mdi = md[detail::BIHTree::MetadataId{i}];
             finite.push_back(mdi.num_finite_bboxes);
             nonfinite.push_back(mdi.num_nonfinite_bboxes);
-            depth.push_back(mdi.max_depth);
+            depth.push_back(mdi.depth);
         }
     }
 

@@ -99,7 +99,7 @@ class BIHBuilder
                         BIHNodeId parent,
                         FastBBox const& bbox,
                         size_type current_depth,
-                        size_type& max_depth);
+                        size_type& depth);
 
     // Separate nodes into inner and leaf vectors and renumber accordingly
     ArrangedNodes arrange_nodes(VecNodes const& nodes) const;

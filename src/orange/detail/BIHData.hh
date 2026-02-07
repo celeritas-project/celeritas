@@ -94,7 +94,7 @@ struct BIHTree
         size_type num_nonfinite_bboxes;
         //! The depth of the most embedded leaf node. This has a value of 1
         //! when the root node is a leaf.
-        size_type max_depth;
+        size_type depth;
     };
 
     using MetadataId = OpaqueId<Metadata>;

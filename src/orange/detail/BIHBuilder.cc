@@ -86,14 +86,13 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     tree.inf_vol_ids = local_volume_ids_.insert_back(inf_vol_ids.begin(),
                                                      inf_vol_ids.end());
 
-    size_type max_depth = 0;
+    size_type depth = 0;
 
     if (!indices.empty())
     {
         VecNodes nodes;
         auto inf_bbox = FastBBox::from_infinite();
-        this->construct_tree(
-            indices, &nodes, BIHNodeId{}, inf_bbox, 0, max_depth);
+        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox, 0, depth);
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.inner_nodes
@@ -116,7 +115,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     BIHTree::Metadata md;
     md.num_finite_bboxes = indices.size();
     md.num_nonfinite_bboxes = inf_vol_ids.size();
-    md.max_depth = max_depth;
+    md.depth = depth;
     tree.metadata_id = metadata_.push_back(md);
 
     return tree;
@@ -133,7 +132,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
                                 BIHNodeId parent,
                                 FastBBox const& bbox,
                                 size_type current_depth,
-                                size_type& max_depth)
+                                size_type& depth)
 {
     using Side = BIHInnerNode::Side;
 
@@ -150,7 +149,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
             = local_volume_ids_.insert_back(indices.begin(), indices.end());
         CELER_EXPECT(node);
         (*nodes)[current_index] = node;
-        max_depth = std::max(max_depth, current_depth);
+        depth = std::max(depth, current_depth);
     };
 
     if (indices.size() <= inp_.max_leaf_size)
@@ -195,7 +194,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
                                  BIHNodeId(current_index),
                                  node.edges[side].bbox,
                                  current_depth,
-                                 max_depth);
+                                 depth);
         }
 
         CELER_EXPECT(node);

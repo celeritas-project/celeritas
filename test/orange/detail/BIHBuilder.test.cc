@@ -214,7 +214,7 @@ TEST_F(BIHBuilderTest, basic)
         auto md = storage_.metadata[bih_tree.metadata_id];
         EXPECT_EQ(5, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_nonfinite_bboxes);
-        EXPECT_EQ(3, md.max_depth);
+        EXPECT_EQ(3, md.depth);
     }
 }
 
@@ -490,7 +490,7 @@ TEST_F(BIHBuilderTest, grid)
         auto md = storage_.metadata[bih_tree.metadata_id];
         EXPECT_EQ(12, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_nonfinite_bboxes);
-        EXPECT_EQ(5, md.max_depth);
+        EXPECT_EQ(5, md.depth);
     }
 }
 
@@ -679,7 +679,7 @@ TEST_F(BIHBuilderTest, grid_less_split)
         auto md = storage_.metadata[bih_tree.metadata_id];
         EXPECT_EQ(12, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_nonfinite_bboxes);
-        EXPECT_EQ(3, md.max_depth);
+        EXPECT_EQ(3, md.depth);
     }
 }
 
@@ -706,7 +706,7 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     auto md = storage_.metadata[bih_tree.metadata_id];
     EXPECT_EQ(1, md.num_finite_bboxes);
     EXPECT_EQ(0, md.num_nonfinite_bboxes);
-    EXPECT_EQ(1, md.max_depth);
+    EXPECT_EQ(1, md.depth);
 }
 
 TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
@@ -732,7 +732,7 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     auto md = storage_.metadata[bih_tree.metadata_id];
     EXPECT_EQ(2, md.num_finite_bboxes);
     EXPECT_EQ(0, md.num_nonfinite_bboxes);
-    EXPECT_EQ(1, md.max_depth);
+    EXPECT_EQ(1, md.depth);
 }
 
 TEST_F(BIHBuilderTest, single_infinite_volume)
@@ -752,7 +752,7 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
     auto md = storage_.metadata[bih_tree.metadata_id];
     EXPECT_EQ(0, md.num_finite_bboxes);
     EXPECT_EQ(1, md.num_nonfinite_bboxes);
-    EXPECT_EQ(0, md.max_depth);
+    EXPECT_EQ(0, md.depth);
 }
 
 TEST_F(BIHBuilderTest, multiple_infinite_volumes)
@@ -777,7 +777,7 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
     auto md = storage_.metadata[bih_tree.metadata_id];
     EXPECT_EQ(0, md.num_finite_bboxes);
     EXPECT_EQ(2, md.num_nonfinite_bboxes);
-    EXPECT_EQ(0, md.max_depth);
+    EXPECT_EQ(0, md.depth);
 }
 
 TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
