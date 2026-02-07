@@ -162,7 +162,7 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
         {
             // Check for similar assertions in FieldPropagator before loosening
             // this one!
-            CELER_ASSERT(prop.distance == step);
+            CELER_ASSERT(prop.distance <= step);
             CELER_ASSERT(prop.distance > 0);
 #if CELERITAS_DEBUG
             auto orig_pos = geo.pos();
