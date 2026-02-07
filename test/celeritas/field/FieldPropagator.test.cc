@@ -1472,21 +1472,26 @@ TEST_F(CmseTest, coarse)
     std::vector<int> expected_num_integration = {80659, 58204, 41914, 26114};
     std::vector<std::string> expected_log_messages;
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        // FIXME: this happens because of incorrect momentum update
-        expected_num_boundary = {134, 37, 60, 40};
-        expected_num_step = {10001, 179, 3236, 1303};
-        expected_num_intercept = {30419, 615, 16170, 9956};
-        expected_num_integration = {80659, 1670, 41914, 26114};
-    }
-    else if (using_surface_vg)
+    if (using_surface_vg)
     {
         expected_num_boundary = {134, 37, 43, 16};
         expected_num_step = {10001, 179, 160, 63};
         expected_num_intercept = {30419, 615, 790, 414};
         expected_num_integration = {80659, 1670, 1956, 1092};
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    }
+    else if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    {
+        // Bumped (platform-dependent!): counts change a bit
+        expected_num_boundary[1] = 101;
+        expected_num_step[1] = 6462;
+        expected_num_intercept[1] = 19551;
+        expected_num_integration[1] = 58282;
+        static char const* const expected_log_messages[] = {
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))",
+        };
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
+            << scoped_log_;
     }
     else if (using_solids_vg)
     {
