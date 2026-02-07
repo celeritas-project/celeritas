@@ -24,7 +24,6 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
     , local_volume_ids_{&storage->local_volume_ids}
     , inner_nodes_{&storage->inner_nodes}
     , leaf_nodes_{&storage->leaf_nodes}
-    , metadata_{&storage->metadata}
     , inp_{inp}
 {
     CELER_EXPECT(storage);

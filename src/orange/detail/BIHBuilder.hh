@@ -87,7 +87,6 @@ class BIHBuilder
     CollectionBuilder<LocalVolumeId> local_volume_ids_;
     CollectionBuilder<BIHInnerNode> inner_nodes_;
     CollectionBuilder<BIHLeafNode> leaf_nodes_;
-    CollectionBuilder<BIHTree::Metadata> metadata_;
 
     Input inp_;
 
