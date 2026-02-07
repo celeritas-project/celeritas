@@ -116,7 +116,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     md.num_finite_bboxes = indices.size();
     md.num_nonfinite_bboxes = inf_vol_ids.size();
     md.depth = depth;
-    tree.metadata_id = metadata_.push_back(md);
+    tree.metadata = md;
 
     return tree;
 }

@@ -97,8 +97,6 @@ struct BIHTree
         size_type depth;
     };
 
-    using MetadataId = OpaqueId<Metadata>;
-
     //// DATA ////
 
     //! All bounding boxes managed by the BIH
@@ -114,7 +112,7 @@ struct BIHTree
     ItemRange<LocalVolumeId> inf_vol_ids;
 
     //! The metadata for this tree
-    MetadataId metadata_id;
+    Metadata metadata;
 
     //// METHODS ////
 

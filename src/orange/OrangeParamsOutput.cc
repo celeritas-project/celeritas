@@ -94,8 +94,6 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 
     // Write BIH metadata as a struct of arrays
     {
-        auto const& md = data.bih_tree_data.metadata;
-
         obj["bih_metadata"] = json::object();
         auto& bih_metadata = obj["bih_metadata"];
 
@@ -108,9 +106,10 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         auto& nonfinite = make_array("num_nonfinite_bboxes");
         auto& depth = make_array("depth");
 
-        for (auto i : range(md.size()))
+        for (auto i : range(data.simple_units.size()))
         {
-            auto const& mdi = md[detail::BIHTree::MetadataId{i}];
+            auto const& mdi
+                = data.simple_units[SimpleUnitId{i}].bih_tree.metadata;
             finite.push_back(mdi.num_finite_bboxes);
             nonfinite.push_back(mdi.num_nonfinite_bboxes);
             depth.push_back(mdi.depth);

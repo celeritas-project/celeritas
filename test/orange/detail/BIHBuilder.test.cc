@@ -211,7 +211,7 @@ TEST_F(BIHBuilderTest, basic)
 
     // Metadata
     {
-        auto md = storage_.metadata[bih_tree.metadata_id];
+        auto const& md = bih_tree.metadata;
         EXPECT_EQ(5, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_nonfinite_bboxes);
         EXPECT_EQ(3, md.depth);
@@ -487,7 +487,7 @@ TEST_F(BIHBuilderTest, grid)
 
     // Metadata
     {
-        auto md = storage_.metadata[bih_tree.metadata_id];
+        auto const& md = bih_tree.metadata;
         EXPECT_EQ(12, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_nonfinite_bboxes);
         EXPECT_EQ(5, md.depth);
@@ -676,7 +676,7 @@ TEST_F(BIHBuilderTest, grid_less_split)
 
     // Metadata
     {
-        auto md = storage_.metadata[bih_tree.metadata_id];
+        auto const& md = bih_tree.metadata;
         EXPECT_EQ(12, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_nonfinite_bboxes);
         EXPECT_EQ(3, md.depth);
@@ -703,7 +703,7 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     EXPECT_EQ(1, node.vol_ids.size());
     EXPECT_EQ(LocalVolumeId{0}, storage_.local_volume_ids[node.vol_ids[0]]);
 
-    auto md = storage_.metadata[bih_tree.metadata_id];
+    auto const& md = bih_tree.metadata;
     EXPECT_EQ(1, md.num_finite_bboxes);
     EXPECT_EQ(0, md.num_nonfinite_bboxes);
     EXPECT_EQ(1, md.depth);
@@ -729,7 +729,7 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     EXPECT_EQ(LocalVolumeId{0}, storage_.local_volume_ids[node.vol_ids[0]]);
     EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[1]]);
 
-    auto md = storage_.metadata[bih_tree.metadata_id];
+    auto const& md = bih_tree.metadata;
     EXPECT_EQ(2, md.num_finite_bboxes);
     EXPECT_EQ(0, md.num_nonfinite_bboxes);
     EXPECT_EQ(1, md.depth);
@@ -749,7 +749,7 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
     EXPECT_EQ(LocalVolumeId{0},
               storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
-    auto md = storage_.metadata[bih_tree.metadata_id];
+    auto const& md = bih_tree.metadata;
     EXPECT_EQ(0, md.num_finite_bboxes);
     EXPECT_EQ(1, md.num_nonfinite_bboxes);
     EXPECT_EQ(0, md.depth);
@@ -774,7 +774,7 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
     EXPECT_EQ(LocalVolumeId{1},
               storage_.local_volume_ids[bih_tree.inf_vol_ids[1]]);
 
-    auto md = storage_.metadata[bih_tree.metadata_id];
+    auto const& md = bih_tree.metadata;
     EXPECT_EQ(0, md.num_finite_bboxes);
     EXPECT_EQ(2, md.num_nonfinite_bboxes);
     EXPECT_EQ(0, md.depth);
