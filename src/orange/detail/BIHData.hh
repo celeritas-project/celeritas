@@ -81,10 +81,8 @@ struct BIHLeafNode
  *
  * Infinite bounding boxes are not included in the tree itself. They are stored
  * separately and checked after traversing the tree.
- *
- * \todo Rename BihTreeRecord
  */
-struct BIHTree
+struct BIHTreeRecord
 {
     //// TYPES ////
     struct Metadata

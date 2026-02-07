@@ -34,7 +34,7 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
 /*!
  * Create BIH Nodes.
  */
-BIHTree
+BIHTreeRecord
 BIHBuilder::operator()(VecBBox&& bboxes,
                        BIHBuilder::SetLocalVolId const& implicit_vol_ids)
 {
@@ -77,7 +77,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
         }
     }
 
-    BIHTree tree;
+    BIHTreeRecord tree;
 
     tree.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
         bboxes_.insert_back(temp_.bboxes.begin(), temp_.bboxes.end()));
@@ -114,7 +114,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     }
 
     // Assign metadata for diagnostic purposes
-    BIHTree::Metadata md;
+    BIHTreeRecord::Metadata md;
     md.num_finite_bboxes = indices.size();
     md.num_infinite_bboxes = inf_vol_ids.size();
     md.depth = depth;

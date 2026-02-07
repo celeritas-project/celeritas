@@ -62,7 +62,8 @@ class BIHBuilder
     BIHBuilder(Storage* storage, Input inp);
 
     // Create BIH Nodes
-    BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
+    BIHTreeRecord
+    operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
 
   private:
     /// TYPES ///
