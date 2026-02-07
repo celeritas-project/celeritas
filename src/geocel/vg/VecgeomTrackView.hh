@@ -597,6 +597,19 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
                                         vgnext_);
     }
 
+    // Relocation should have changed volume
+    if (CELER_UNLIKELY(vgstate_.HasSamePathAsOther(vgnext_)))
+    {
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(error);
+        msg << "Failed to cross boundary: unique volume instance is the same "
+               "before and after at "
+            << repr(pos_) << ' ' << lengthunits::label;
+#endif
+        failed_ = true;
+        return;
+    }
+
     vgstate_ = vgnext_;
 
     CELER_ENSURE(this->is_on_boundary());
