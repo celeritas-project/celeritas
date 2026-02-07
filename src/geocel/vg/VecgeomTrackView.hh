@@ -491,7 +491,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 #endif
         failed_ = true;
         Propagation result;
-        result.distance = next_step_;
+        result.distance = 0;
         result.boundary = false;
         return result;
     }
