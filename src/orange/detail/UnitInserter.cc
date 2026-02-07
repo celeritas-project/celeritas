@@ -378,8 +378,8 @@ void fixup_background_volume(LocalSurfaceId::size_type num_surfaces,
     v.zorder = ZOrder::background;
     v.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
     v.logic = nowhere_logic;
-    CELER_EXPECT(!v.bbox);
-    CELER_EXPECT(!v.obz);
+    v.bbox = {};
+    v.obz = {};
 }
 
 //---------------------------------------------------------------------------//
