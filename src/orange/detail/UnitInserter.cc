@@ -44,7 +44,7 @@ constexpr int invalid_depth = -1;
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the maximum CSG logic depth of a volume definition.
+ * Calculate the maximum CSG logic depth of a postfix volume definition.
  *
  * Return a sentinel if the definition is invalid so that we can raise an
  * assertion in the caller with more context.
@@ -639,18 +639,21 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                        | VolumeRecord::Flags::simple_safety;
     }
 
-    // Calculate the maximum stack depth of the volume definition
-    // TODO: is this valid for infix??
-    int depth = calc_depth(make_span(v.logic));
-    CELER_VALIDATE(depth > 0,
-                   << "invalid logic definition: operators do not balance");
-
     // Update global max faces/intersections/logic
     OrangeParamsScalars& scalars = orange_data_->scalars;
     inplace_max<size_type>(&scalars.max_faces, output.faces.size());
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
-    inplace_max<size_type>(&scalars.max_csg_levels, depth);
+
+    if (orange_tracking_logic != LogicNotation::infix)
+    {
+        // Calculate the maximum stack depth of the volume definition
+        int depth = calc_depth(make_span(v.logic));
+        CELER_VALIDATE(
+            depth > 0,
+            << R"(invalid logic definition: operators do not balance)");
+        inplace_max<size_type>(&scalars.max_csg_levels, depth);
+    }
 
     return output;
 }

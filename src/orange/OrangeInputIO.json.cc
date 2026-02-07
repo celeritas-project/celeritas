@@ -543,6 +543,7 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     }
     else
     {
+        // Legacy input is all postfix
         value.logic = LogicNotation::postfix;
     }
 
