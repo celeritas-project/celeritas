@@ -79,7 +79,8 @@ struct BIHLeafNode
 /*!
  * Bounding Interval Hierarchy tree.
  *
- * Infinite bounding boxes are not included in the main tree.
+ * Infinite bounding boxes are not included in the tree itself. They are stored
+ * separately and checked after traversing the tree.
  *
  * \todo Rename BihTreeRecord
  */
@@ -90,8 +91,9 @@ struct BIHTree
     {
         //! The number of finite bounding boxes in the tree
         size_type num_finite_bboxes;
-        //! The number of nonfinite bounding boxes in the tree
-        size_type num_nonfinite_bboxes;
+        //! The number of infinite bounding boxes, i.e., those not included in
+        //! the tree itself.
+        size_type num_infinite_bboxes;
         //! The depth of the most embedded leaf node. This has a value of 1
         //! when the root node is a leaf.
         size_type depth;

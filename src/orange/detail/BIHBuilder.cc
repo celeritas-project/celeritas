@@ -116,7 +116,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     // Assign metadata for diagnostic purposes
     BIHTree::Metadata md;
     md.num_finite_bboxes = indices.size();
-    md.num_nonfinite_bboxes = inf_vol_ids.size();
+    md.num_infinite_bboxes = inf_vol_ids.size();
     md.depth = depth;
     tree.metadata = md;
 

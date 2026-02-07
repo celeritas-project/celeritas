@@ -103,7 +103,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         };
 
         auto& finite = make_array("num_finite_bboxes");
-        auto& nonfinite = make_array("num_nonfinite_bboxes");
+        auto& infinite = make_array("num_infinite_bboxes");
         auto& depth = make_array("depth");
 
         for (auto i : range(data.simple_units.size()))
@@ -111,7 +111,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
             auto const& mdi
                 = data.simple_units[SimpleUnitId{i}].bih_tree.metadata;
             finite.push_back(mdi.num_finite_bboxes);
-            nonfinite.push_back(mdi.num_nonfinite_bboxes);
+            infinite.push_back(mdi.num_infinite_bboxes);
             depth.push_back(mdi.depth);
         }
     }
