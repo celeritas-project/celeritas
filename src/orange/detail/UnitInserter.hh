@@ -50,7 +50,7 @@ class UnitInserter
                  ConstructionOptions const* opts);
 
     // Create a simple unit and store in in OrangeParamsData
-    UnivId operator()(UnitInput&& inp);
+    UnivId operator()(Input&& inp);
 
   private:
     Data* orange_data_{nullptr};
