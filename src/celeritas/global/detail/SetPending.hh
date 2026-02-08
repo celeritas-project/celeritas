@@ -60,7 +60,6 @@ CELER_FORCEINLINE_FUNCTION void SetPendingExecutor::operator()(ThreadId tid)
     CELER_EXPECT(params);
     CELER_EXPECT(state);
     CELER_EXPECT(tid.get() == 0);  // Should call with only one thread
-    CELER_EXPECT(primaries > 0);
 
     auto counters = state->init.counters.data().get();
     counters->num_pending = primaries;
