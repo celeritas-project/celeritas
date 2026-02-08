@@ -147,6 +147,10 @@ CheckedGeoTrackView::CheckedGeoTrackView(UPTrack track,
     , unit_length_(unit_length)
 {
     CELER_EXPECT(unit_length_.value > 0);
+    if (geo_interface_)
+    {
+        check_safety_ = geo_interface_->supports_safety();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -321,8 +325,10 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                           << " is much too large");
         }
     }
-    if (result.distance == 0)
+    if (check_zero_distance_ && result.distance == 0)
     {
+        // TODO: replace zero-distance from reentering geometry (ORANGE)
+        // with a different propagation status
         CELER_LOG_LOCAL(warning)
             << "Returning zero distance should be prohibited: " << *this;
     }
@@ -396,7 +402,7 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
                       << t_->impl_volume_id().get());
         checked_internal_ = true;
     }
-    if (orig_safety == 0 && !t_->is_on_boundary())
+    if (check_safety_ && orig_safety == 0 && !t_->is_on_boundary())
     {
         real_type new_safety = t_->find_safety();
         if (!(new_safety > 0))
