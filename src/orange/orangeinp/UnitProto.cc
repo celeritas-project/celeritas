@@ -176,8 +176,7 @@ void remove_negated_join(CsgUnit& unit)
                     << "- Merged '"
                     << join(new_md.begin(), new_md.end(), "','") << "' into '"
                     << join(old_md.begin(), old_md.end(), "','") << "'";
-                new_md.insert(old_md.begin(), old_md.end());
-                old_md.clear();
+                new_md.merge(std::move(old_md));
             }
             else
             {
