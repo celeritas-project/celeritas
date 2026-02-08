@@ -52,6 +52,34 @@ std::vector<Label> make_volume_labels(RectArrayInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Number of surfaces created by the input.
+ */
+std::size_t RectArrayInserter::num_surfaces(Input const& i)
+{
+    std::size_t result{0};
+    for (auto ax : range(Axis::size_))
+    {
+        result += i.grid[to_int(ax)].size();
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of volumes created by the input.
+ */
+std::size_t RectArrayInserter::num_volumes(Input const& i)
+{
+    std::size_t result{1};
+    for (auto ax : range(Axis::size_))
+    {
+        result *= i.grid[to_int(ax)].size() - 1;
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from full parameter data.
  */
 RectArrayInserter::RectArrayInserter(UniverseInserter* insert_universe,
@@ -94,6 +122,7 @@ UnivId RectArrayInserter::operator()(RectArrayInput const& inp)
 
         // Suppress the outer grid boundaries to avoid coincident surfaces with
         // other universes
+        // FIXME: replace with bump using orange_data.scalars.tol
         grid.front() = -std::numeric_limits<real_type>::infinity();
         grid.back() = std::numeric_limits<real_type>::infinity();
 

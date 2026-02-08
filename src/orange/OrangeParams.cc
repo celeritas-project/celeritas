@@ -40,6 +40,60 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Utility for counters, labels
+template<class T>
+struct Components
+{
+    T universe{};
+    T volume{};
+    T surface{};
+};
+
+using ComponentLabels = Components<std::vector<Label>>;
+
+//---------------------------------------------------------------------------//
+//! Determine number of label components and reserve space for them
+ComponentLabels make_reserved_label_vecs(OrangeInput const& input)
+{
+    Components<std::size_t> sizes;
+    sizes.universe = input.universes.size();
+
+    for (auto const& u : input.universes)
+    {
+        std::visit(Overload{
+                       [&sizes](UnitInput const& i) {
+                           using InserterT = detail::UnitInserter;
+                           sizes.surface += InserterT::num_surfaces(i);
+                           sizes.volume += InserterT::num_volumes(i);
+                       },
+                       [&sizes](RectArrayInput const& i) {
+                           using InserterT = detail::RectArrayInserter;
+                           sizes.surface += InserterT::num_surfaces(i);
+                           sizes.volume += InserterT::num_volumes(i);
+                       },
+                   },
+                   u);
+    }
+
+    CELER_LOG(debug) << "Allocating labels for " << sizes.universe
+                     << " universes with " << sizes.volume
+                     << " impl volumes and " << sizes.surface
+                     << " impl surfaces";
+
+    Components<std::vector<Label>> result;
+    result.universe.reserve(sizes.universe);
+    result.volume.reserve(sizes.volume);
+    result.surface.reserve(sizes.surface);
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Build by loading a GDML file.
@@ -202,14 +256,12 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 
     // Insert all universes
     {
-        std::vector<Label> universe_labels;
-        std::vector<Label> impl_surface_labels;
-        std::vector<Label> impl_volume_labels;
+        ComponentLabels labels = make_reserved_label_vecs(input);
 
         detail::UniverseInserter insert_universe_base{volumes_,
-                                                      &universe_labels,
-                                                      &impl_surface_labels,
-                                                      &impl_volume_labels,
+                                                      &labels.universe,
+                                                      &labels.surface,
+                                                      &labels.volume,
                                                       &host_data};
         Overload insert_universe{
             detail::UnitInserter{
@@ -221,12 +273,13 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
             std::visit(insert_universe, std::move(u));
         }
 
+        univ_labels_ = UniverseMap{"universe", std::move(labels.universe)};
         impl_surf_labels_
-            = SurfaceMap{"impl surface", std::move(impl_surface_labels)};
-        univ_labels_ = UniverseMap{"universe", std::move(universe_labels)};
+            = SurfaceMap{"impl surface", std::move(labels.surface)};
         impl_vol_labels_
-            = ImplVolumeMap{"impl volume", std::move(impl_volume_labels)};
+            = ImplVolumeMap{"impl volume", std::move(labels.volume)};
     }
+
     // Clear captured input since we've consumed and modified it
     std::move(input) = {};
 

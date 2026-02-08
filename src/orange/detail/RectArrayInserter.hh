@@ -23,6 +23,10 @@ class UniverseInserter;
 //---------------------------------------------------------------------------//
 /*!
  * Convert a RectArrayInput a RectArrayRecord.
+ *
+ * The inserted array has one surface per grid point per axis (i.e., one per
+ * grid plane). This matches the surfaces that would be constructed for a
+ * "pseudoarray" with CSG elements.
  */
 class RectArrayInserter
 {
@@ -30,9 +34,15 @@ class RectArrayInserter
     //!@{
     //! \name Type aliases
     using Data = HostVal<OrangeParamsData>;
+    using Input = RectArrayInput;
     //!@}
 
   public:
+    // Number of elements created by the input
+    static std::size_t num_surfaces(Input const& i);
+    // Number of volumes created by the input
+    static std::size_t num_volumes(Input const& i);
+
     // Construct with universe inserter and parameter data
     RectArrayInserter(UniverseInserter* insert_universe, Data* orange_data);
 
