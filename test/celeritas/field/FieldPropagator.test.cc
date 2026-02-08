@@ -191,21 +191,20 @@ TEST_F(TwoBoxesTest, electron_interior)
                        geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
                        geo.dir());
-    EXPECT_EQ(1, integrate.count());
+    EXPECT_EQ(1, integrate.exchange_count());
     EXPECT_EQ(1, geo.intersect_count());
     EXPECT_EQ(0, geo.safety_count());
 
     // Test the remaining quarter-turn divided into 25 steps
     {
         geo.reset_count();
-        integrate.reset_count();
         real_type step = 0.5 * pi * radius - 1e-2;
         for (auto i : range(25))
         {
             SCOPED_TRACE(i);
             result = propagate(step / 25);
             EXPECT_SOFT_EQ(step / 25, result.distance);
-            EXPECT_EQ(i + 1, integrate.count());
+            EXPECT_EQ(1, integrate.exchange_count());
             EXPECT_FALSE(result.boundary)
                 << "At " << geo.pos() << " along " << geo.dir();
         }
@@ -217,18 +216,16 @@ TEST_F(TwoBoxesTest, electron_interior)
     // Test a very long (next quarter-turn) step
     {
         SCOPED_TRACE("Quarter turn");
-        integrate.reset_count();
         result = propagate(0.5 * pi * radius);
         EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), coarse_eps);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
-        EXPECT_EQ(21, integrate.count());
+        EXPECT_EQ(21, integrate.exchange_count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
     {
         SCOPED_TRACE("Half turn");
-        integrate.reset_count();
         result = propagate(pi * radius);
         // The maximum substep limit in the field propagator was reached before
         // traveling the full distance; propagate again to reach the end
@@ -238,13 +235,12 @@ TEST_F(TwoBoxesTest, electron_interior)
         EXPECT_SOFT_EQ(pi * radius - partial_distance, result.distance);
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
-        EXPECT_EQ(40, integrate.count());
+        EXPECT_EQ(40, integrate.exchange_count());
     }
 
     // Test step that's smaller than driver's minimum (should take one
     // iteration in the propagator loop)
     {
-        integrate.reset_count();
         result = propagate(1e-10);
         EXPECT_REAL_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
@@ -253,7 +249,7 @@ TEST_F(TwoBoxesTest, electron_interior)
                         coarse_eps);
         EXPECT_VEC_NEAR(
             Real3({6.25302065531623e-08, 1, 0}), geo.dir(), coarse_eps);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
     }
 }
 
@@ -303,7 +299,7 @@ TEST_F(TwoBoxesTest, gamma_interior)
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 3}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
     }
     // Move to boundary
     {
@@ -311,13 +307,12 @@ TEST_F(TwoBoxesTest, gamma_interior)
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
 
-        integrate.reset_count();
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(2.0, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 5}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(2, integrate.count());
+        EXPECT_EQ(2, integrate.exchange_count());
     }
     // Cross boundary
     {
@@ -332,13 +327,12 @@ TEST_F(TwoBoxesTest, gamma_interior)
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
 
-        integrate.reset_count();
         auto result = propagate(5.0);
         EXPECT_SOFT_EQ(5.0, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
     }
 }
 
@@ -364,7 +358,7 @@ TEST_F(TwoBoxesTest, gamma_pathological)
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
     }
 }
 
@@ -396,7 +390,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
         EXPECT_SOFT_EQ(exact_distance, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -416,7 +410,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
         EXPECT_SOFT_EQ(0.251, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -435,7 +429,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
         EXPECT_SOFT_EQ(0.251, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_EQ(2, integrate.count());
+        EXPECT_EQ(2, integrate.exchange_count());
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -463,7 +457,7 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
             auto result = propagate(delta);
 
             EXPECT_REAL_EQ(delta, result.distance);
-            EXPECT_EQ(1, integrate.count());
+            EXPECT_EQ(1, integrate.exchange_count());
         }
 
         {
@@ -481,7 +475,7 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
             auto result = propagate(delta);
 
             intersect_distance.push_back(result.distance);
-            EXPECT_EQ(1, integrate.count());
+            EXPECT_EQ(1, integrate.exchange_count());
         }
     }
     static real_type const expected_intersect_distance[]
@@ -862,7 +856,6 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
         axpy(real_type(-1), first_pos, &start_pos);
 
         geo = GeoTrackInitializer{start_pos, {0, 1, 0}};
-        integrate.reset_count();
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
         return propagate(first_step - move_delta);
@@ -883,7 +876,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
 
         auto result = propagate(0.1 * dr, dr);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(first_step - dr, result.distance);
         EXPECT_LT(distance(Real3{-4.9512441890768795, -0.092139178167222446, 0},
                            geo.pos()),
@@ -905,7 +898,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
          */
         auto result = propagate(0.1 * dr, 0);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(-5.0, geo.pos()[0]);
@@ -930,7 +923,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
          */
         auto result = propagate(1e-6 * dr, 0);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(-5.0, geo.pos()[0]);
@@ -955,7 +948,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
 
         auto result = propagate(-0.1 * dr, 0);
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(0.40277704609562048, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()),
@@ -975,7 +968,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
          */
         auto result = propagate(-1e-6 * dr, 0);
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(0.44815824321522935, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, -4.3877702173875065e-07, 0}, geo.pos()),
@@ -1059,8 +1052,7 @@ TEST_F(TwoBoxesTest,
                 volumes.push_back("[FAILURE]");
             }
             distances.push_back(result.distance);
-            substeps.push_back(integrate.count());
-            integrate.reset_count();
+            substeps.push_back(integrate.exchange_count());
         }
     }
 
@@ -1116,10 +1108,9 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(nonuniform_field))
     std::vector<int> step_counter;
     for ([[maybe_unused]] auto i : range(8))
     {
-        integrate.reset_count();
         propagate(1.0);
         all_pos.insert(all_pos.end(), geo.pos().begin(), geo.pos().end());
-        step_counter.push_back(integrate.count());
+        step_counter.push_back(integrate.exchange_count());
     }
 
     // clang-format off
@@ -1303,7 +1294,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_SOFT_NEAR(
-            double{30}, static_cast<double>(integrate.count()), 0.2);
+            double{30}, static_cast<double>(integrate.exchange_count()), 0.2);
 
         if (using_surface_vg)
         {
@@ -1358,7 +1349,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
-        EXPECT_EQ(2, integrate.count());
+        EXPECT_EQ(2, integrate.exchange_count());
         EXPECT_FALSE(result.looping);
     }
     {
