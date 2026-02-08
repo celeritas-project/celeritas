@@ -1383,6 +1383,70 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
     }
 }
 
+//! Get detailed results from field propagation with multiple radii
+struct FieldPropagationResult
+{
+    std::vector<int> num_boundary;
+    std::vector<int> num_step;
+    std::vector<int> num_intercept;
+    std::vector<int> num_integration;
+    std::vector<std::vector<std::string>> messages;
+
+    // Add a failure sentinel at a certain index
+    void fail_at(std::size_t index);
+};
+
+void FieldPropagationResult::fail_at(std::size_t index)
+{
+    CELER_EXPECT(index < num_boundary.size());
+    num_boundary[index] = -1;
+    num_step[index] = -1;
+    num_intercept[index] = -1;
+    num_integration[index] = -1;
+}
+
+std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
+{
+    // clang-format off
+    os << "/*** FIELD PROPAGATION RESULT ***/\n"
+          "FieldPropagationResult ref;\n"
+       << CELER_REF_ATTR(num_boundary)
+       << CELER_REF_ATTR(num_step)
+       << CELER_REF_ATTR(num_intercept)
+       << CELER_REF_ATTR(num_integration)
+       << CELER_REF_ATTR(messages)
+       << "EXPECT_REF_EQ(ref, result);\n"
+          "/*** END CODE ***/\n";
+    // clang-format on
+    return os;
+}
+
+::testing::AssertionResult IsRefEq(char const* expr1,
+                                   char const* expr2,
+                                   FieldPropagationResult const& val1,
+                                   FieldPropagationResult const& val2)
+{
+    AssertionHelper result{expr1, expr2};
+
+#define IRE_COMPARE(ATTR)                                          \
+    if (val1.ATTR != val2.ATTR)                                    \
+    {                                                              \
+        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+                      << " but got " << repr(val2.ATTR);           \
+    }                                                              \
+    else                                                           \
+        CELER_DISCARD(int)
+
+    IRE_COMPARE(num_boundary);
+    IRE_COMPARE(num_step);
+    IRE_COMPARE(num_intercept);
+    IRE_COMPARE(num_integration);
+    IRE_COMPARE(messages);
+
+#undef IRE_COMPARE
+    return result;
+}
+
 TEST_F(CmseTest, coarse)
 {
     // Build propagator
