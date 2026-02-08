@@ -68,8 +68,9 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
     MapStrDbl GetActionTime() const final;
     //!@}
 
-    // Offload optical distribution track to Celeritas
+    // Offload optical photon track to Celeritas
     void Push(G4Track&) final;
+
     // Number of optical tracks pushed to offload
     size_type num_pushed() const { return num_pushed_; }
 
@@ -80,6 +81,7 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
     // Thread-local state data
     std::shared_ptr<optical::CoreStateBase> state_;
 
+    // Generator action for injecting buffered tracks into optical state
     std::shared_ptr<optical::DirectGeneratorAction const> direct_gen_;
 
     // Buffered tracks for offloading

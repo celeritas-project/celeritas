@@ -167,6 +167,7 @@ void LocalOpticalTrackOffload::Flush()
     // Insert tracks
     if (direct_gen_)
     {
+        // Inject buffered tracks into optical state for transport
         direct_gen_->insert(*state_, make_span(buffer_));
     }
 
@@ -180,8 +181,7 @@ void LocalOpticalTrackOffload::Flush()
 auto LocalOpticalTrackOffload::GetActionTime() const -> MapStrDbl
 {
     CELER_EXPECT(*this);
-    // TODO Add Per-track optical transport action timing once
-    // optical track insertion and transport are implemented.
+    // Return action times from optical transport
     return transport_->get_action_times(*state_->aux());
 }
 

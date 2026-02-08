@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "IntegrationSingleton.hh"
 
-#include <memory>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -106,7 +105,6 @@ LocalOffloadInterface& IntegrationSingleton::local_offload()
             && std::holds_alternative<inp::OpticalOffloadGenerator>(
                 options_.optical->generator))
         {
-            CELER_LOG(info) << "optical gen offloading enabled";
             offload = std::make_unique<LocalOpticalGenOffload>();
         }
         else if (options_.optical
@@ -114,7 +112,7 @@ LocalOffloadInterface& IntegrationSingleton::local_offload()
                      options_.optical->generator))
 
         {
-            CELER_LOG(info) << "optical track offloading enabled";
+            CELER_LOG(info) << "Optical track offloading enabled";
             offload = std::make_unique<LocalOpticalTrackOffload>();
         }
         else

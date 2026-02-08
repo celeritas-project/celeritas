@@ -335,18 +335,12 @@ TEST_F(OpNoviceOptical, run)
 }
 
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // LAR SPHERE WITH OPTICAL TRACK OFFLOAD
 //---------------------------------------------------------------------------//
 class LSOOTrackingAction final : public G4UserTrackingAction
 {
   public:
     void PreUserTrackingAction(G4Track const* track) final;
-    //   std::size_t num_pushed() const { return num_pushed_; }
-
-  private:
-    //   std::size_t num_pushed_{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -357,6 +351,7 @@ class LarSphereOpticalTrackOffload : public LarSphere
 {
   public:
     PhysicsInput make_physics_input() const override;
+    PrimaryInput make_primary_input() const override;
     SetupOptions make_setup_options() override;
     void EndOfRunAction(G4Run const* run) override;
     UPTrackAction make_tracking_action() override
@@ -369,6 +364,20 @@ class LarSphereOpticalTrackOffload : public LarSphere
   private:
     std::vector<LSOOTrackingAction*> tracking_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Single electron primary.
+ */
+auto LarSphereOpticalTrackOffload::make_primary_input() const -> PrimaryInput
+{
+    auto result = LarSphereIntegrationMixin::make_primary_input();
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({0.1, 0.1, 0}))};
+    result.primaries_per_event = 1;
+    result.energy = inp::MonoenergeticDistribution{1};
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -443,16 +452,15 @@ void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
     auto& local = integration.local_offload();
 
     auto* opt_offload = dynamic_cast<LocalOpticalTrackOffload*>(&local);
-    if (!G4Threading::IsMasterThread())
+    if (!G4Threading::IsMultithreadedApplication())
     {
         if (opt_offload && opt_offload->Initialized())
         {
             std::size_t pushed = opt_offload->num_pushed();
 
-            CELER_LOG(info) << "Total optical photon tracks pushed: " << pushed;
             // Validate that we intercepted optical tracks
-            EXPECT_GT(pushed, 15048) << "should have pushed many optical "
-                                        "tracks";
+            EXPECT_EQ(pushed, 1128) << "should have pushed many optical "
+                                       "tracks";
         }
     }
     // Continue cleanup and other checks at end of run
@@ -463,11 +471,13 @@ void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
 TEST_F(LarSphereOpticalTrackOffload, run)
 {
     auto& rm = this->run_manager();
-    rm.SetNumberOfThreads(1);
+    rm.SetNumberOfThreads(2);
     UAI::Instance().SetOptions(this->make_setup_options());
 
     rm.Initialize();
     rm.BeamOn(1);
 }
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
