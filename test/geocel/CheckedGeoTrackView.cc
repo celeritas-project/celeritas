@@ -67,6 +67,24 @@ std::ostream& operator<<(std::ostream& os, StreamableUniqueVolName const& suvn)
     return os;
 }
 
+//! Print a length/position as a quantity with units
+template<class T>
+struct StreamableLength
+{
+    T const& native_value;
+    UnitLength const& units;
+};
+
+template<class T>
+std::ostream& operator<<(std::ostream& os, StreamableLength<T> const& sl)
+{
+    os << repr(sl.units.from_native(sl.native_value)) << " [" << sl.units.label
+       << ']';
+    return os;
+}
+
+//---------------------------------------------------------------------------//
+
 [[noreturn]] void throw_cgtv_error(CheckedGeoTrackView const& cgtv,
                                    std::ostringstream&& msg,
                                    std::string&& cond,
@@ -276,14 +294,15 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
             auto const& units = this->unit_length();
 
             CELER_LOG_LOCAL(warning)
-                << "Calculated safety " << repr(safety)
+                << "Calculated safety " << StreamableLength{safety, units}
                 << " exceeds actual distance " << repr(result.distance)
-                << " to boundary at " << t_->pos() << " by "
-                << repr((safety - result.distance) / units.value) << " ["
-                << units.label << "]: " << *this;
+                << " to boundary at " << StreamableLength{t_->pos(), units}
+                << " by " << StreamableLength{safety - result.distance, units}
+                << ": " << *this;
             CGTV_VALIDATE(*this,
                           safety <= 1.1 * result.distance,
-                          << "calculated safety " << repr(safety)
+                          << "calculated safety "
+                          << (StreamableLength{safety, units})
                           << " is much too large");
         }
     }
@@ -363,12 +382,14 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
         real_type new_safety = t_->find_safety();
         if (!(new_safety > 0))
         {
+            auto const& units = this->unit_length();
             CELER_LOG_LOCAL(warning)
                 << "Moved internally from boundary but safety didn't "
                    "increase: volume "
                 << t_->impl_volume_id().get() << " from " << repr(orig_pos)
-                << " to " << repr(t_->pos())
-                << " (distance: " << repr(distance(orig_pos, pos)) << ")";
+                << " to " << StreamableLength{t_->pos(), units}
+                << " (distance: "
+                << StreamableLength{distance(orig_pos, pos), units} << ")";
         }
     }
 }
@@ -549,8 +570,8 @@ std::ostream& operator<<(std::ostream& os, CheckedGeoTrackView const& geo)
     // Length scale and description
     auto const& units = geo.unit_length();
 
-    os << "at " << repr(geo.pos() / units.value) << " [" << units.label
-       << "] along " << repr(geo.dir()) << ", ";
+    os << "at " << StreamableLength{geo.pos(), units} << " along "
+       << repr(geo.dir()) << ", ";
     if (geo.failed())
     {
         os << "[FAILED] ";
