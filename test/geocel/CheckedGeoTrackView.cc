@@ -83,6 +83,17 @@ std::ostream& operator<<(std::ostream& os, StreamableLength<T> const& sl)
     return os;
 }
 
+//! Print a length/position as a quantity with units
+struct NativeLength
+{
+};
+
+std::ostream& operator<<(std::ostream& os, NativeLength const&)
+{
+    os << " [" << lengthunits::native_label << ']';
+    return os;
+}
+
 //---------------------------------------------------------------------------//
 
 [[noreturn]] void throw_cgtv_error(CheckedGeoTrackView const& cgtv,
@@ -176,7 +187,8 @@ real_type CheckedGeoTrackView::find_safety()
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
     CGTV_VALIDATE(*this,
                   result >= 0,
-                  << "safety " << repr(result) << " is out of bounds");
+                  << "safety " << repr(result) << NativeLength{}
+                  << " is out of bounds");
     return result;
 }
 
@@ -189,7 +201,8 @@ real_type CheckedGeoTrackView::find_safety()
 real_type CheckedGeoTrackView::find_safety(real_type max_safety)
 {
     CELER_VALIDATE(max_safety > 0,
-                   << "invalid safety maximum " << repr(max_safety));
+                   << "invalid safety maximum " << repr(max_safety)
+                   << NativeLength{});
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
 
     ++num_safety_;
@@ -198,7 +211,7 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
     CGTV_VALIDATE(*this,
                   result >= 0 && result <= max_safety,
-                  << "safety " << repr(result)
+                  << "safety " << repr(result) << NativeLength{}
                   << " is out of bounds: should be in [0, " << max_safety
                   << ']');
     return result;
@@ -253,7 +266,7 @@ Propagation CheckedGeoTrackView::find_next_step()
     CGTV_VALIDATE(*this,
                   result.distance > 0,
                   << "return distance " << repr(result.distance)
-                  << " was nonpositive");
+                  << NativeLength{} << " was nonpositive");
 
     next_boundary_ = result.distance;
     return result;
@@ -269,16 +282,20 @@ Propagation CheckedGeoTrackView::find_next_step()
  */
 Propagation CheckedGeoTrackView::find_next_step(real_type distance)
 {
-    CELER_VALIDATE(distance > 0, << "invalid step maximum " << repr(distance));
+    CELER_VALIDATE(distance > 0,
+                   << "invalid step maximum " << repr(distance)
+                   << NativeLength{});
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(),
                    << "cannot find next step from outside");
+    auto const& units = this->unit_length();
+
     if (next_boundary_ && distance <= *next_boundary_)
     {
         CELER_LOG_LOCAL(warning)
-            << "Finding next step up to " << repr(distance)
+            << "Finding next step up to " << repr(distance) << NativeLength{}
             << " when previous step " << repr(*next_boundary_)
-            << " was already calculated";
+            << NativeLength{} << " was already calculated";
     }
 
     bool const started_on_boundary{t_->is_on_boundary()};
@@ -291,14 +308,12 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
         real_type safety = t_->find_safety(distance);
         if (!(safety <= result.distance))
         {
-            auto const& units = this->unit_length();
-
             CELER_LOG_LOCAL(warning)
-                << "Calculated safety " << StreamableLength{safety, units}
-                << " exceeds actual distance " << repr(result.distance)
-                << " to boundary at " << StreamableLength{t_->pos(), units}
-                << " by " << StreamableLength{safety - result.distance, units}
-                << ": " << *this;
+                << "Calculated safety " << safety << NativeLength{}
+                << " exceeds actual distance " << result.distance
+                << NativeLength{} << " to boundary at " << t_->pos()
+                << NativeLength{} << " by " << safety - result.distance
+                << NativeLength{} << ": " << *this;
             CGTV_VALIDATE(*this,
                           safety <= 1.1 * result.distance,
                           << "calculated safety "
@@ -314,7 +329,8 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     CGTV_VALIDATE(*this,
                   result.distance >= 0 && result.distance <= distance,
                   << "return distance " << repr(result.distance)
-                  << " out of bounds " << distance);
+                  << NativeLength{} << " out of bounds " << repr(distance)
+                  << NativeLength{});
     CGTV_VALIDATE(*this,
                   t_->is_on_boundary() == started_on_boundary,
                   << "boundary state changed during find_next_step");
@@ -340,7 +356,8 @@ void CheckedGeoTrackView::move_internal(real_type step)
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
     CGTV_VALIDATE(*this,
                   !t_->is_on_boundary() && !t_->is_outside(),
-                  << "on boundary after moving " << repr(step));
+                  << "on boundary after moving " << repr(step)
+                  << NativeLength{});
 }
 
 //---------------------------------------------------------------------------//
@@ -364,7 +381,8 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
     CGTV_VALIDATE(*this,
                   !this->is_on_boundary() && !t_->is_outside(),
-                  << "not internal to volume after moving to " << repr(pos));
+                  << "not internal to volume after moving to " << repr(pos)
+                  << NativeLength{});
     if (!checked_internal_ && orig_safety > this->safety_tol())
     {
         ImplVolumeId expected = t_->impl_volume_id();
@@ -373,8 +391,9 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
         CGTV_VALIDATE(*this,
                       t_->impl_volume_id() == expected,
                       << "volume ID changed during internal move from"
-                      << repr(orig_pos) << ": was " << expected.get()
-                      << ", now " << t_->impl_volume_id().get());
+                      << repr(orig_pos) << NativeLength{} << ": was "
+                      << expected.get() << ", now "
+                      << t_->impl_volume_id().get());
         checked_internal_ = true;
     }
     if (orig_safety == 0 && !t_->is_on_boundary())
@@ -387,9 +406,9 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
                 << "Moved internally from boundary but safety didn't "
                    "increase: volume "
                 << t_->impl_volume_id().get() << " from " << repr(orig_pos)
-                << " to " << StreamableLength{t_->pos(), units}
-                << " (distance: "
-                << StreamableLength{distance(orig_pos, pos), units} << ")";
+                << NativeLength{} << " to " << repr(t_->pos())
+                << NativeLength{} << " (distance: " << distance(orig_pos, pos)
+                << NativeLength{} << ")";
         }
     }
 }
