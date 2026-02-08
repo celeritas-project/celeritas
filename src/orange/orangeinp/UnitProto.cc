@@ -100,7 +100,7 @@ BoundingBox<> get_unit_bbox(CsgUnit const& unit, bool assume_inside)
  * This is allowed (and required, to avoid coincident surfaces) for non-global
  * universes because higher levels truncate lower ones.
  */
-void implicit_parent_boundary(CsgUnit& unit, std::string_view label)
+void implicit_parent_boundary(CsgUnit& unit)
 {
     CELER_EXPECT(!unit.tree.volumes().empty());
     NodeId ext_node
@@ -114,10 +114,9 @@ void implicit_parent_boundary(CsgUnit& unit, std::string_view label)
                   auto const& labels = md[nid.get()];
                   os << '{' << join(labels.begin(), labels.end(), ", ") << '}';
               };
-        CELER_LOG(warning)
-            << "While building '" << label
-            << "', encountered surfaces that could not be logically "
-               "eliminated from the boundary: "
+        CELER_LOG(debug)
+            << "- Surfaces could not be logically eliminated from the "
+               "boundary: "
             << join_stream(
                    unknowns.begin(), unknowns.end(), ", ", write_node_labels);
     }
@@ -131,8 +130,11 @@ void implicit_parent_boundary(CsgUnit& unit, std::string_view label)
  * \c NodeId indexing in the \c CsgTree are invalidated after calling this,
  * \c CsgUnit data is updated to point to the simplified tree \c NodeId but any
  * previously cached \c NodeId is invalid.
+ *
+ * Note that the debug messages will be printed after a "Building 'label'"
+ * message, so we don't worry about printing the unit label for context.
  */
-void remove_negated_join(CsgUnit& unit, std::string_view label)
+void remove_negated_join(CsgUnit& unit)
 {
     // Apply demorgan simplification
     auto&& [tree, nodes] = transform_negated_joins(unit.tree);
@@ -143,86 +145,78 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
     std::vector<std::set<CsgUnit::Metadata>> metadata(tree.size());
     std::map<NodeId, CsgUnit::Region> regions;
 
+    size_type simplified_count{0};
+    size_type removed_count{0};
+
     // Map metadata
     for (auto old_id : range(NodeId{unit.tree.size()}))
     {
-        auto& old_md = unit.metadata[old_id.get()];
         auto new_id = nodes[old_id.get()];
-        auto log_debug = [&, msg = std::optional<Logger::Message>{}]() mutable
-            -> Logger::Message& {
-            if (!msg)
-            {
-                msg.emplace(CELER_LOG(debug));
-                *msg << "In universe '" << label << "': node " << old_id
-                     << " maps to " << new_id << ": ";
-            }
-            else
-            {
-                *msg << "; ";
-            }
-            return *msg;
-        };
-
-        if (new_id)
+        if (!new_id)
         {
-            CELER_ASSERT(new_id < metadata.size());
-            if (!CsgTree::is_boolean_node(new_id))
-            {
-                // Update metadata if node wasn't logically eliminated
-                auto& new_md = metadata[new_id.get()];
-                if (CELER_UNLIKELY(!new_md.empty()))
-                {
-                    // Node was merged with another node
-                    log_debug()
-                        << "merged '"
-                        << join(new_md.begin(), new_md.end(), "','")
-                        << "' into '"
-                        << join(old_md.begin(), old_md.end(), "','") << "'";
-                    new_md.insert(old_md.begin(), old_md.end());
-                    old_md.clear();
-                }
-                else
-                {
-                    new_md = std::move(old_md);
-                }
-            }
+            ++removed_count;
+            continue;
+        }
 
-            // Move region to new tree with updated ID: necessary even for
-            // false/true region due to interior
-            if (auto iter = unit.regions.find(old_id);
-                iter != unit.regions.end())
-            {
-                auto region = unit.regions.extract(iter);
-                region.key() = new_id;
-                auto irt = regions.insert(std::move(region));
-                if (!irt.inserted)
-                {
-                    log_debug()
-                        << "merging region bounds " << irt.node.mapped().bounds
-                        << " into " << irt.position->second.bounds;
-
-                    // Intersect bounding zones since both nodes are true
-                    // (logical and)
-                    irt.position->second.bounds = calc_intersection(
-                        irt.position->second.bounds, irt.node.mapped().bounds);
-                }
-            }
+        CELER_ASSERT(new_id < metadata.size());
+        if (CsgTree::is_boolean_node(new_id))
+        {
+            // Logically eliminated node
+            ++simplified_count;
         }
         else
         {
-            // Node was removed from the tree
-            auto region = unit.regions.find(old_id);
-            if (region != unit.regions.end())
+            // Merge metadata since node wasn't logically eliminated
+            auto& old_md = unit.metadata[old_id.get()];
+            auto& new_md = metadata[new_id.get()];
+            if (CELER_UNLIKELY(!new_md.empty()))
             {
-                log_debug() << "deleted region";
+                // Node was merged with another node
+                CELER_LOG(debug)
+                    << "- Merged '"
+                    << join(new_md.begin(), new_md.end(), "','") << "' into '"
+                    << join(old_md.begin(), old_md.end(), "','") << "'";
+                new_md.insert(old_md.begin(), old_md.end());
+                old_md.clear();
             }
-            if (!old_md.empty())
+            else
             {
-                log_debug()
-                    << "deleted '" << join(old_md.begin(), old_md.end(), "','")
-                    << "'";
+                new_md = std::move(old_md);
             }
         }
+
+        // Move region to new tree with updated ID: necessary even for
+        // false/true region due to interior
+        if (auto iter = unit.regions.find(old_id); iter != unit.regions.end())
+        {
+            auto region = unit.regions.extract(iter);
+            region.key() = new_id;
+            auto irt = regions.insert(std::move(region));
+            if (!irt.inserted)
+            {
+                // Intersect bounding zones since both nodes are true
+                // (logical and)
+                irt.position->second.bounds = calc_intersection(
+                    irt.position->second.bounds, irt.node.mapped().bounds);
+            }
+        }
+    }
+
+    if (simplified_count > 0 || removed_count > 0)
+    {
+        auto msg = CELER_LOG(debug);
+        msg << "- Logic simplification ";
+        char const* and_str = "";
+        if (simplified_count > 0)
+        {
+            msg << "hard-coded " << simplified_count << " nodes ";
+            and_str = "and ";
+        }
+        if (removed_count > 0)
+        {
+            msg << and_str << "pruned " << removed_count << " unused nodes ";
+        }
+        msg << "of " << unit.tree.size() << " CSG nodes";
     }
 
     // Update the unit
@@ -312,8 +306,7 @@ void UnitProto::build(ProtoBuilder& pb) const
 
     // Get the list of all surfaces actually used
     auto const sorted_local_surfaces = calc_surfaces(csg_unit.tree);
-    CELER_LOG(debug) << "...built " << this->label() << ": used "
-                     << sorted_local_surfaces.size() << " of "
+    CELER_LOG(debug) << "- Retained " << sorted_local_surfaces.size() << " of "
                      << csg_unit.surfaces.size() << " surfaces";
 
     UnitInput result;
@@ -590,8 +583,8 @@ auto UnitProto::build(BuildOptions const& opts) const -> Unit
     CELER_EXPECT(opts.tol);
     CELER_EXPECT(opts.logic != LogicNotation::size_);
 
-    CELER_LOG(debug) << "Building '" << this->label() << ": "
-                     << input_.daughters.size() << " daughters and "
+    CELER_LOG(debug) << "Building '" << this->label()
+                     << "': " << input_.daughters.size() << " daughters and "
                      << input_.materials.size() << " materials...";
 
     ScopedProfiling profile_this{"orange-csg"};
@@ -662,13 +655,13 @@ auto UnitProto::build(BuildOptions const& opts) const -> Unit
     if (opts.assume_inside)
     {
         // Assume that the enclosing universe provides our boundary conditions
-        implicit_parent_boundary(result, this->label());
+        implicit_parent_boundary(result);
     }
 
     if (opts.logic == LogicNotation::infix)
     {
         // Apply DeMorgan's law to eliminate negated joins
-        remove_negated_join(result, this->label());
+        remove_negated_join(result);
     }
 
     return result;
