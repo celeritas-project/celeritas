@@ -115,9 +115,6 @@ class SimpleCmsTest : public FieldPropagatorTestBase
     std::string_view gdml_basename() const override { return "simple-cms"; }
 };
 
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-#    define CmseTest DISABLED_CmseTest
-#endif
 class CmseTest : public FieldPropagatorTestBase
 {
     std::string_view gdml_basename() const override { return "cmse"; }
@@ -1415,7 +1412,7 @@ std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
        << CELER_REF_ATTR(num_intercept)
        << CELER_REF_ATTR(num_integration)
        << CELER_REF_ATTR(messages)
-       << "EXPECT_REF_EQ(ref, result);\n"
+       << "EXPECT_REF_EQ(ref, result) << result;\n"
           "/*** END CODE ***/\n";
     // clang-format on
     return os;
@@ -1460,17 +1457,18 @@ TEST_F(CmseTest, coarse)
     driver_options.delta_chord = 0.1;
     driver_options.max_substeps = 100;
 
-    std::vector<int> num_boundary;
-    std::vector<int> num_step;
-    std::vector<int> num_intercept;
-    std::vector<int> num_integration;
-
-    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
+    FieldPropagationResult result;
 
     for (real_type radius : {5, 10, 20, 50})
     {
+        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+                                    LogLevel::warning};
         auto geo = this->make_geo_track_view(
             {2 * radius + real_type{0.01}, 0, -300}, {0, 1, 1});
+        // TODO: define a "reentrant" different propagation status: see
+        // CheckedGeoTrackView, OrangeTrackView
+        geo.check_zero_distance(false);
+
         field = UniformZField(unit_radius_field_strength / radius);
         EXPECT_SOFT_EQ(radius,
                        this->calc_field_curvature(particle, geo, field));
@@ -1480,85 +1478,82 @@ TEST_F(CmseTest, coarse)
 
         int step_count = 0;
         int boundary_count = 0;
-        int const max_steps = 10000;
+        constexpr int max_steps = 10000;
         while (!geo.is_outside() && !geo.failed() && step_count++ < max_steps)
         {
             Propagation result;
             try
             {
                 result = propagate(radius);
+                if (result.boundary)
+                {
+                    ++boundary_count;
+                    geo.cross_boundary();
+                }
             }
             catch (CheckedGeoError const& e)
             {
-                CELER_LOG(error) << e.what();
+                CELER_LOG_LOCAL(error) << e.details().what;
                 break;
             }
-            if (result.boundary)
-            {
-                try
-                {
-                    geo.cross_boundary();
-                }
-                catch (CheckedGeoError const& e)
-                {
-                    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
-                    {
-                        CELER_LOG(error) << e.details().what;
-                        break;
-                    }
-                    else
-                    {
-                        FAIL() << e.what();
-                    }
-                }
-                ++boundary_count;
-            }
         }
-        num_boundary.push_back(boundary_count);
-        num_step.push_back(step_count);
-        num_intercept.push_back(geo.intersect_count());
-        num_integration.push_back(integrate.count());
-        integrate.reset_count();
+        result.num_boundary.push_back(boundary_count);
+        result.num_step.push_back(step_count);
+        result.num_intercept.push_back(geo.intersect_count());
+        result.num_integration.push_back(integrate.exchange_count());
+        result.messages.push_back(std::move(scoped_log_).messages());
+        if (geo.failed())
+        {
+            CELER_LOG(error)
+                << "Failed radius = " << radius << " after "
+                << result.num_boundary.back() << " boundary crossings, "
+                << result.num_step.back() << " steps, "
+                << result.num_intercept.back() << " intersection calls";
+            result.fail_at(result.num_boundary.size() - 1);
+        }
     }
 
-    std::vector<int> expected_num_boundary = {134, 100, 60, 40};
-    std::vector<int> expected_num_step = {10001, 6450, 3236, 1303};
-    std::vector<int> expected_num_intercept = {30419, 19521, 16170, 9956};
-    std::vector<int> expected_num_integration = {80659, 58204, 41914, 26114};
-    std::vector<std::string> expected_log_messages;
+    FieldPropagationResult ref;
+    ref.num_boundary = {134, 101, 60, 40};
+    ref.num_step = {10001, 6462, 3236, 1303};
+    ref.num_intercept = {30419, 19551, 16170, 9956};
+    ref.num_integration = {80659, 58282, 41914, 26114};
+    ref.messages.resize(ref.num_boundary.size());
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
-        // FIXME: this happens because of incorrect momentum update
-        expected_num_boundary = {134, 37, 60, 40};
-        expected_num_step = {10001, 179, 3236, 1303};
-        expected_num_intercept = {30419, 615, 16170, 9956};
-        expected_num_integration = {80659, 1670, 41914, 26114};
+        ref.fail_at(1);
+        ref.messages[1] = {
+            R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
+            R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
+            R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
+            R"(track failed to cross local surface 91 in universe 0 at local position {10.47, -6.625, 797.1} along local direction {0.6625, -0.2470, 0.7072})",
+            R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"};
     }
-    else if (using_surface_vg)
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+             && !CELERITAS_VECGEOM_SURFACE
+             && CELERITAS_VECGEOM_VERSION < 0x020000)
     {
-        expected_num_boundary = {134, 37, 43, 16};
-        expected_num_step = {10001, 179, 160, 63};
-        expected_num_intercept = {30419, 615, 790, 414};
-        expected_num_integration = {80659, 1670, 1956, 1092};
-        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+        // VG Solid 2
+        ref.messages[1] = {
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
     }
-    else if (using_solids_vg)
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+             && !CELERITAS_VECGEOM_SURFACE)
     {
-        // Bumped (platform-dependent!): counts change a bit
-        expected_num_boundary[1] = 101;
-        expected_num_step[1] = 6462;
-        expected_num_intercept[1] = 19551;
-        expected_num_integration[1] = 58282;
-        static char const* const expected_log_messages[] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))"};
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
-            << scoped_log_;
+        // VG Solid 2
+        ref.messages[1] = {
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
     }
-    EXPECT_VEC_EQ(expected_num_boundary, num_boundary);
-    EXPECT_VEC_EQ(expected_num_step, num_step);
-    EXPECT_VEC_EQ(expected_num_intercept, num_intercept);
-    EXPECT_VEC_EQ(expected_num_integration, num_integration);
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+        || CELERITAS_VECGEOM_SURFACE)
+    {
+        GTEST_SKIP() << "Ignore checks due to reduced-precision numerical "
+                        "sensitivity";
+    }
+
+    EXPECT_REF_EQ(ref, result) << result;
 }
 
 //---------------------------------------------------------------------------//

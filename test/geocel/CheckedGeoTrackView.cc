@@ -396,7 +396,7 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
         *t_ = here;
         CGTV_VALIDATE(*this,
                       t_->impl_volume_id() == expected,
-                      << "volume ID changed during internal move from"
+                      << "volume ID changed during internal move from "
                       << repr(orig_pos) << NativeLength{} << ": was "
                       << expected.get() << ", now "
                       << t_->impl_volume_id().get());
