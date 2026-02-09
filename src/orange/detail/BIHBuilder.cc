@@ -17,7 +17,11 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from Storage and Input objects.
+ * \brief Constructor.
+ *
+ * \param[in] storage  Struct containing collections of persistent data for
+ *                     all BIH trees
+ * \param[in] inp      Input options that govern BIH construction
  */
 BIHBuilder::BIHBuilder(Storage* storage, Input inp)
     : bboxes_{&storage->bboxes}
@@ -32,7 +36,13 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create BIH Nodes.
+ * \brief Build a BIH tree for the supplied bounding boxes.
+ *
+ * \param[in] bboxes            All bounding boxes to be included in the tree
+ * \param[in] implicit_vol_ids  The ids of the "background" volumes, to be
+ *                              excluded from the tree
+ *
+ * \return The record of the resultant BIH tree
  */
 BIHTreeRecord
 BIHBuilder::operator()(VecBBox&& bboxes,
@@ -128,6 +138,15 @@ BIHBuilder::operator()(VecBBox&& bboxes,
 //---------------------------------------------------------------------------//
 /*!
  * Recursively construct BIH nodes for a vector of bbox indices.
+ *
+ * \param[in] indices        The indices of the bboxes that will be partitioned
+ *                           or placed on a leaf node in this function call
+ * \param[in, out] nodes     All nodes constructed so far, to be added to
+ * \param[in] parent         The parent node
+ * \param[in] bbox           The bounding box of the parent node
+ * \param[in] current_depth  The recursion depth of this function call
+ * \param[in] depth          The maximum recursion depth encountered during the
+ *                           full construction process
  */
 void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
@@ -216,6 +235,10 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 //---------------------------------------------------------------------------//
 /*!
  * Separate inner nodes from leaf nodes and renumber accordingly.
+ *
+ * \param[in] nodes  The interspersed inner and leaf nodes
+ *
+ * \returns  The separated inner and leaf nodes
  */
 BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
 {
