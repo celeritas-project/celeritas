@@ -75,6 +75,10 @@ struct StreamableLength
     UnitLength const& units;
 };
 
+// Needed for C++17
+template<class T>
+StreamableLength(T const&, UnitLength) -> StreamableLength<T>;
+
 template<class T>
 std::ostream& operator<<(std::ostream& os, StreamableLength<T> const& sl)
 {
