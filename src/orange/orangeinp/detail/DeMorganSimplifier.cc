@@ -209,6 +209,24 @@ bool DeMorganSimplifier::insert_negated_children(NodeId node_id)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the second node is a child of the first.
+ */
+bool DeMorganSimplifier::is_parent_of(NodeId parent, NodeId child) const
+{
+    return parents_.count({child, parent});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether a child has any parent.
+ */
+bool DeMorganSimplifier::has_parent(NodeId child_id) const
+{
+    return parents_.count({child_id, has_parents_index_});
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Second pass through the tree to build the simplified tree.
  *
  * \return the simplified tree.
@@ -334,8 +352,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
 
         // Check if the negation is a root or a volume. If so, we must
         // insert it in the simplified tree
-        if (is_volume_node_[node_id.get()]
-            || !parents_.count({node_id, has_parents_index_}))
+        if (is_volume_node_[node_id.get()] || !this->has_parent(node_id))
         {
             return true;
         }
@@ -439,8 +456,7 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
     CELER_EXPECT(std::holds_alternative<Joined>(this->get_node(node_id)));
 
     // This join node is referred by a volume or a root node, we must insert it
-    if (is_volume_node_[node_id.get()]
-        || !parents_.count({node_id, has_parents_index_}))
+    if (is_volume_node_[node_id.get()] || !this->has_parent(node_id))
     {
         return true;
     }
@@ -452,7 +468,7 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
     auto has_negated_join_parent = [&](NodeId n) {
         for (auto p : range(first_node_id_, NodeId{tree_.size()}))
         {
-            if (parents_.count({n, p}) && negated_join_nodes_.count(p))
+            if (this->is_parent_of(p, n) && negated_join_nodes_.count(p))
                 return true;
         }
         return false;
@@ -461,7 +477,7 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
     for (auto p : range(first_node_id_, NodeId{tree_.size()}))
     {
         // Not a parent
-        if (!parents_.count({node_id, p}))
+        if (!this->is_parent_of(p, node_id))
             continue;
 
         // Check if a parent requires that node to be inserted

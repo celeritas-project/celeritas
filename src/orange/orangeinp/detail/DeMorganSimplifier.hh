@@ -118,6 +118,12 @@ class DeMorganSimplifier
     // Declare negated nodes to add in the simplified tree
     bool insert_negated_children(NodeId);
 
+    // Whether a child has any parent
+    bool has_parent(NodeId) const;
+
+    // Whether a child has any parent
+    bool is_parent_of(NodeId parent, NodeId child) const;
+
     // Second pass to build the simplified tree
     CsgTree build_simplified_tree();
 
