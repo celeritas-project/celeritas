@@ -133,8 +133,9 @@ void DeMorganSimplifier::find_join_negations()
         auto const& node = this->get_node(node_id);
         if (auto* negated = std::get_if<Negated>(&node))
         {
-            parents_.insert({negated->node, node_id});
-            parents_.insert({negated->node, has_parents_index_});
+            // Mark the parent relationship
+            this->insert_parent(node_id, negated->node);
+
             if (std::holds_alternative<Joined>(this->get_node(negated->node)))
             {
                 this->insert_negated_children(negated->node);
@@ -142,13 +143,32 @@ void DeMorganSimplifier::find_join_negations()
         }
         else if (auto* joined = std::get_if<Joined>(&node))
         {
-            for (auto const& join_operand : joined->nodes)
+            for (auto const& child_node_id : joined->nodes)
             {
-                parents_.insert({join_operand, node_id});
-                parents_.insert({join_operand, has_parents_index_});
+                this->insert_parent(node_id, child_node_id);
             }
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Mark that the first node is a parent of the second.
+ *
+ * \param node_id a \c Joined node_id with a \c Negated parent.
+ */
+bool DeMorganSimplifier::insert_parent(NodeId parent, NodeId child)
+{
+    CELER_EXPECT(parent);
+    CELER_EXPECT(child);
+    CELER_EXPECT(parent >= child);
+
+    auto&& [iter, inserted] = parents_.insert({child, parent});
+    if (inserted)
+    {
+        parents_.insert({child, has_parents_index_});
+    }
+    return inserted;
 }
 
 //---------------------------------------------------------------------------//
