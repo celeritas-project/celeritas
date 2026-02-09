@@ -221,21 +221,6 @@ bool DeMorganSimplifier::is_parent_of(NodeId parent, NodeId child) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether a child has any parent.
- */
-bool DeMorganSimplifier::has_parent(NodeId child) const
-{
-    auto iter = parents_.find(child);
-    if (iter == parents_.end())
-    {
-        return false;
-    }
-    CELER_ENSURE(!iter->second.empty());
-    return true;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Second pass through the tree to build the simplified tree.
  *
  * \return the simplified tree.
