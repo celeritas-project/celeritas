@@ -47,10 +47,7 @@ NodeId DeMorganSimplifier::MatchingNodes::equivalent_node() const
 /*!
  * Construct and fix bitsets size.
  */
-DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree)
-    : tree_(tree), parents_(tree_.size())
-{
-}
+DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree) : tree_(tree) {}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -163,11 +160,12 @@ bool DeMorganSimplifier::insert_parent(NodeId parent, NodeId child)
     CELER_EXPECT(child);
     CELER_EXPECT(parent >= child);
 
-    auto&& [iter, inserted] = parents_.insert({child, parent});
-    if (inserted)
-    {
-        parents_.insert({child, has_parents_index_});
-    }
+    // Insert child row
+    auto&& [iter, inserted] = parents_.try_emplace(child);
+    CELER_ASSERT(iter != parents_.end());
+    // Insert parent entry
+    inserted = iter->second.insert(parent).second;
+
     return inserted;
 }
 
@@ -213,16 +211,27 @@ bool DeMorganSimplifier::insert_negated_children(NodeId node_id)
  */
 bool DeMorganSimplifier::is_parent_of(NodeId parent, NodeId child) const
 {
-    return parents_.count({child, parent});
+    auto iter = parents_.find(child);
+    if (iter == parents_.end())
+    {
+        return false;
+    }
+    return iter->second.count(parent);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Whether a child has any parent.
  */
-bool DeMorganSimplifier::has_parent(NodeId child_id) const
+bool DeMorganSimplifier::has_parent(NodeId child) const
 {
-    return parents_.count({child_id, has_parents_index_});
+    auto iter = parents_.find(child);
+    if (iter == parents_.end())
+    {
+        return false;
+    }
+    CELER_ENSURE(!iter->second.empty());
+    return true;
 }
 
 //---------------------------------------------------------------------------//
@@ -352,17 +361,19 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
 
         // Check if the negation is a root or a volume. If so, we must
         // insert it in the simplified tree
-        if (is_volume_node_[node_id.get()] || !this->has_parent(node_id))
+        if (is_volume_node_[node_id.get()])
+        {
+            return true;
+        }
+        auto parents_iter = parents_.find(node_id);
+        if (parents_iter == parents_.end())
         {
             return true;
         }
 
-        for (auto p : range(first_node_id_, NodeId{tree_.size()}))
+        // Loop over all parents of node_id
+        for (NodeId p : parents_iter->second)
         {
-            // Not a parent
-            if (!parents_.count({node_id, p}))
-                continue;
-
             // A negated node should never have a negated parent
             CELER_ASSERT(!std::holds_alternative<Negated>(this->get_node(p)));
 

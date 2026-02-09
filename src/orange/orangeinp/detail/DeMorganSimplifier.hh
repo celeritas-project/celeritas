@@ -11,8 +11,6 @@
 #include <utility>
 #include <vector>
 
-#include "corecel/math/HashUtils.hh"
-
 #include "../CsgTree.hh"
 #include "../CsgTypes.hh"
 
@@ -54,24 +52,11 @@ class DeMorganSimplifier
     TransformedTree operator()();
 
   private:
-    using NodePair = std::pair<NodeId, NodeId>;
+    //// TYPES ////
 
-    struct NodePairHash
-    {
-        std::size_t operator()(NodePair const& p) const noexcept
-        {
-            return hash_combine(p.first, p.second);
-        }
-    };
-
-    using SetNodeNode = std::unordered_set<NodePair, NodePairHash>;
     using MapNodeVecNode = std::unordered_map<NodeId, std::vector<NodeId>>;
     using SetNode = std::unordered_set<NodeId>;
-
-    //! CsgTree node 1 is always a Negated node parent of node 0, so we can
-    //! reuse that bit to tell if a node has a parent as it's never set for
-    //! node id >= 2
-    static constexpr auto has_parents_index_{NodeId{1}};
+    using MapNodeSetNode = std::unordered_map<NodeId, SetNode>;
 
     //! First meaningful node id in a CsgTree
     static constexpr auto first_node_id_{NodeId{2}};
@@ -105,6 +90,8 @@ class DeMorganSimplifier
     };
 
     using MapNodeMatching = std::unordered_map<NodeId, MatchingNodes>;
+
+    //// HELPER FUNCTIONS ////
 
     // Get a non-aliased Node variant from the original tree
     Node const& get_node(NodeId) const;
@@ -141,6 +128,8 @@ class DeMorganSimplifier
     // Find a translation entry, or nullptr if none exist
     MatchingNodes const* find_translation(NodeId) const;
 
+    //// DATA ////
+
     //! the tree to simplify
     CsgTree const& tree_;
 
@@ -152,8 +141,8 @@ class DeMorganSimplifier
     SetNode negated_join_nodes_;
 
     //! Parents matrix (original tree)
-    // If the pair {e1, e2} exists, e2 is parent of e1
-    SetNodeNode parents_;
+    // If parents_[c].count(p), p is parent of c
+    MapNodeSetNode parents_;
 
     //! Whether the index is a volume in the original tree
     std::vector<bool> is_volume_node_;
