@@ -37,7 +37,7 @@ TEST(SplitMix64Test, xor)
     // Create a pre-xored RNG
     celeritas::SplitMix64 ref_rng(state1 ^ state2);
 
-    for (auto i : celeritas::range(10))
+    for ([[maybe_unused]] auto i : celeritas::range(10))
     {
         EXPECT_EQ(ref_rng(), test_rng());
     }
