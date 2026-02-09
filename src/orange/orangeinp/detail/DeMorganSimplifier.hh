@@ -67,9 +67,6 @@ class DeMorganSimplifier
     using SparseMatrix2D = std::unordered_set<NodePair, NodePairHash>;
     using NodeSet = std::unordered_set<NodeId>;
 
-    //! CsgTree node 0 is always True{} and can't be the parent of any node
-    //! so reuse that bit to tell that a given node is a volume
-    static constexpr auto is_volume_index_{NodeId{0}};
     //! CsgTree node 1 is always a Negated node parent of node 0, so we can
     //! reuse that bit to tell if a node has a parent as it's never set for
     //! node id >= 2
@@ -144,8 +141,12 @@ class DeMorganSimplifier
     //! an opposite join node with negated operands
     NodeSet negated_join_nodes_;
 
-    //! Parents matrix. If the pair {e1, e2} exists, e2 is parent of e1
+    //! Parents matrix (original tree)
+    // If the pair {e1, e2} exists, e2 is parent of e1
     SparseMatrix2D parents_;
+
+    //! Whether the index is a volume in the original tree
+    std::vector<bool> is_volume_node_;
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree

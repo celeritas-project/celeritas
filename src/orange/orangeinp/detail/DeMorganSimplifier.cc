@@ -83,6 +83,14 @@ TransformedTree DeMorganSimplifier::operator()()
 {
     this->find_join_negations();
 
+    // Save volume nodes
+    is_volume_node_.assign(tree_.size(), false);
+    for (auto node_id : tree_.volumes())
+    {
+        CELER_ASSERT(node_id < is_volume_node_.size());
+        is_volume_node_[node_id.unchecked_get()] = true;
+    }
+
     auto simplified_tree{this->build_simplified_tree()};
 
     std::vector<NodeId> equivalent_nodes(tree_.size());
@@ -142,13 +150,6 @@ void DeMorganSimplifier::find_join_negations()
                 parents_.insert({join_operand, has_parents_index_});
             }
         }
-    }
-
-    // Volumes act as parents of nodes.
-    // We can reuse node id 0 to set that a node has a parent volume
-    for (auto node_id : tree_.volumes())
-    {
-        parents_.insert({node_id, is_volume_index_});
     }
 }
 
@@ -310,7 +311,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
 
         // Check if the negation is a root or a volume. If so, we must
         // insert it in the simplified tree
-        if (parents_.count({node_id, is_volume_index_})
+        if (is_volume_node_[node_id.get()]
             || !parents_.count({node_id, has_parents_index_}))
         {
             return true;
@@ -415,7 +416,7 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
     CELER_EXPECT(std::holds_alternative<Joined>(this->get_node(node_id)));
 
     // This join node is referred by a volume or a root node, we must insert it
-    if (parents_.count({node_id, is_volume_index_})
+    if (is_volume_node_[node_id.get()]
         || !parents_.count({node_id, has_parents_index_}))
     {
         return true;
