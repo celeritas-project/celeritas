@@ -16,6 +16,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
+#include <G4Navigator.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4Region.hh>
 #include <G4RegionStore.hh>
@@ -41,6 +42,7 @@
 #include "ScopedGeantLogger.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated
 #include "g4/GeantGeoData.hh"  // IWYU pragma: associated
+#include "g4/detail/GeantGeoNavCollection.hh"
 
 #include "detail/MakeLabelVector.hh"
 
@@ -874,6 +876,26 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 GeoMatId GeantGeoParams::geant_to_id(G4Material const& g4mat) const
 {
     return id_cast<GeoMatId>(g4mat.GetIndex() - this->mat_offset());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ */
+VolumeInstanceId
+GeantGeoParams::locate_volume_containing_point(Real3 const& point) const
+{
+    // Create G4 Navigator
+    auto g4_point = convert_to_geant(point, clhep_length);
+    detail::UPNavigator nav{new G4Navigator()};
+    nav->SetWorldVolume(const_cast<G4VPhysicalVolume*>(this->world()));
+    auto pv = nav->LocateGlobalPointAndSetup(g4_point,
+                                             nullptr,
+                                             /* relative search = */ false,
+                                             /* ignore direction = */ true);
+
+    CELER_ASSERT(pv);
+
+    return this->geant_to_id(*pv);
 }
 
 //---------------------------------------------------------------------------//

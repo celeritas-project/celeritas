@@ -124,6 +124,8 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
+    VolumeInstanceId locate_volume_containing_point(Real3 const&) const final;
+
     //// SURFACES ////
 
     //! Get the number of surfaces (TODO: maybe live in surface params?)
