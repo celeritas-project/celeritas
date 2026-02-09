@@ -78,6 +78,7 @@ DeMorganSimplifier::find_translation(NodeId id) const
  */
 TransformedTree DeMorganSimplifier::operator()()
 {
+    // Mark nodes related to negated joins
     this->find_join_negations();
 
     // Save volume nodes
@@ -88,8 +89,10 @@ TransformedTree DeMorganSimplifier::operator()()
         is_volume_node_[node_id.unchecked_get()] = true;
     }
 
-    auto simplified_tree{this->build_simplified_tree()};
+    // Perform simplification
+    CsgTree simplified_tree = this->build_simplified_tree();
 
+    // Find equivalent nodes
     std::vector<NodeId> equivalent_nodes(tree_.size());
     for (auto node_id : range(NodeId{tree_.size()}))
     {
@@ -98,6 +101,7 @@ TransformedTree DeMorganSimplifier::operator()()
             equivalent_nodes[node_id.get()] = trans->equivalent_node();
         }
     }
+
     return {simplified_tree, equivalent_nodes};
 }
 
