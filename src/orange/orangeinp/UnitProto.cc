@@ -306,8 +306,10 @@ void UnitProto::build(ProtoBuilder& pb) const
 
     // Get the list of all surfaces actually used
     auto const sorted_local_surfaces = calc_surfaces(csg_unit.tree);
-    CELER_LOG(debug) << "- Retained " << sorted_local_surfaces.size() << " of "
-                     << csg_unit.surfaces.size() << " surfaces";
+    CELER_ASSERT(sorted_local_surfaces.size() <= csg_unit.surfaces.size());
+    CELER_LOG(debug) << "- Eliminated "
+                     << csg_unit.surfaces.size() - sorted_local_surfaces.size()
+                     << " of " << csg_unit.surfaces.size() << " surfaces";
 
     UnitInput result;
     result.label = input_.label;
