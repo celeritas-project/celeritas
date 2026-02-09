@@ -29,7 +29,7 @@ namespace detail
  * DeMorgan's law on a \c CsgTree so that all negations of a set operator are
  * removed and transformed into their equivalent operation.
  *
- * The simplification preserves subtrees referred to by \c CsgTree::volumes
+ * The simplification preserves subtrees referred to by \c CsgTree::volumes .
  *
  * Instances of this class shouldn't outlive the \c CsgTree used to construct
  * it as we keep a reference to it.
@@ -37,8 +37,8 @@ namespace detail
  * It is currently single-use: calling operator() twice on the same instance
  * isn't supported.
  *
- * The \c CsgTree being simplified shouldn't contain alias nodes or double
- * negations.
+ * The \c CsgTree being transformed should \em not have double negations
+ * (the tree's insertion method will have simplified those).
  */
 class DeMorganSimplifier
 {
