@@ -64,8 +64,9 @@ class DeMorganSimplifier
         }
     };
 
-    using SparseMatrix2D = std::unordered_set<NodePair, NodePairHash>;
-    using NodeSet = std::unordered_set<NodeId>;
+    using SetNodeNode = std::unordered_set<NodePair, NodePairHash>;
+    using MapNodeVecNode = std::unordered_map<NodeId, std::vector<NodeId>>;
+    using SetNode = std::unordered_set<NodeId>;
 
     //! CsgTree node 1 is always a Negated node parent of node 0, so we can
     //! reuse that bit to tell if a node has a parent as it's never set for
@@ -103,7 +104,7 @@ class DeMorganSimplifier
         NodeId equivalent_node() const;
     };
 
-    using NodeMap = std::unordered_map<NodeId, MatchingNodes>;
+    using MapNodeMatching = std::unordered_map<NodeId, MatchingNodes>;
 
     // Get a non-aliased Node variant from the original tree
     Node const& get_node(NodeId) const;
@@ -135,22 +136,22 @@ class DeMorganSimplifier
     CsgTree const& tree_;
 
     //! Set when we must insert a \c Negated parent for the given index
-    NodeSet new_negated_nodes_;
+    SetNode new_negated_nodes_;
 
     //! Set when \c Joined nodes have a \c Negated parent, so we need to insert
     //! an opposite join node with negated operands
-    NodeSet negated_join_nodes_;
+    SetNode negated_join_nodes_;
 
     //! Parents matrix (original tree)
     // If the pair {e1, e2} exists, e2 is parent of e1
-    SparseMatrix2D parents_;
+    SetNodeNode parents_;
 
     //! Whether the index is a volume in the original tree
     std::vector<bool> is_volume_node_;
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
-    NodeMap node_ids_translation_;
+    MapNodeMatching node_ids_translation_;
 };
 
 //---------------------------------------------------------------------------//
