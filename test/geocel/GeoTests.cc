@@ -805,34 +805,6 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_locate_point() const
 {
-    // auto volume_name = [this](VolumeInstanceId vi) {
-    //     return vi ? test_->volumes()->volume_instance_labels().at(vi) :
-    //     "[INVALID]";
-    // };
-
-    // auto vols = test_->volume_stack({10.0, 10.0, 10.0});
-    // vols.print_expected();
-
-    // auto volumes = *test_->volumes();
-    // std::cout << "Loaded volumes:\n";
-    // for (auto v : range(VolumeId{volumes.num_volumes()}))
-    // {
-    //     std::cout << v.unchecked_get() << ": " <<
-    //     volumes.volume_labels().at(v) << "\n";
-    // }
-
-    // std::cout << "Loaded volume instances:\n";
-    // for (auto vi : range(VolumeInstanceId{volumes.num_volume_instances()}))
-    // {
-    //     std::cout << vi.unchecked_get() << ": " <<
-    //     volumes.volume_instance_labels().at(vi) << "\n";
-    // }
-
-    // EXPECT_EQ(
-    //     "Shape2",
-    //     volume_name(test_->geometry_interface()->locate_volume_containing_point(
-    //         {10.0, 10.0, 10.0})));
-
     std::vector<Real3> test_points{
         {10.0, 10.0, 10.0},
         {-10.0, -10.0, 4.5},
