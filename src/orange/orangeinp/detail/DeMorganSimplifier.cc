@@ -368,6 +368,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
         auto parents_iter = parents_.find(node_id);
         if (parents_iter == parents_.end())
         {
+            // No parents: root node
             return true;
         }
 
@@ -466,9 +467,18 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
 {
     CELER_EXPECT(std::holds_alternative<Joined>(this->get_node(node_id)));
 
+    // TODO: logic is very similar to process_negated_joined_nodes
+
     // This join node is referred by a volume or a root node, we must insert it
-    if (is_volume_node_[node_id.get()] || !this->has_parent(node_id))
+    if (is_volume_node_[node_id.get()])
     {
+        return true;
+    }
+
+    auto parents_iter = parents_.find(node_id);
+    if (parents_iter == parents_.end())
+    {
+        // No parents: root node
         return true;
     }
 
@@ -476,16 +486,13 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
     // 1. It has a Join ancestor that is not negated
     // 2. It has a negated parent, and that negated node has a negated join
     // parent (double negation of that join)
-
-    for (auto p : range(first_node_id_, NodeId{tree_.size()}))
+    // Loop over all parents of node_id
+    for (NodeId p : parents_iter->second)
     {
-        // Not a parent
-        if (!this->is_parent_of(p, node_id))
-            continue;
-
         // Check if a parent requires that node to be inserted
         // TODO: Is it really correct in all cases...
-        Node const& dealiased = {this->get_node(p)};
+        Node const& dealiased = this->get_node(p);
+
         if (std::holds_alternative<Joined>(dealiased)
             && this->should_insert_join(p))
         {
@@ -494,12 +501,17 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
         if (std::holds_alternative<Negated>(dealiased))
         {
             // Loop over grandparents
-            for (auto gp : range(first_node_id_, NodeId{tree_.size()}))
+            auto gp_iter = parents_.find(p);
+            if (gp_iter != parents_.end())
             {
-                if (this->is_parent_of(gp, p) && negated_join_nodes_.count(gp))
+                for (NodeId gp : gp_iter->second)
                 {
-                    // has negated join
-                    return true;
+                    if (this->is_parent_of(gp, p)
+                        && negated_join_nodes_.count(gp))
+                    {
+                        // has negated join
+                        return true;
+                    }
                 }
             }
         }
