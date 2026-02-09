@@ -31,11 +31,15 @@
 #include "OrangeInputIO.json.hh"  // IWYU pragma: keep
 #include "OrangeTypes.hh"
 #include "g4org/Converter.hh"
+#include "transform/TransformVisitor.hh"
+#include "univ/TrackerVisitor.hh"
 #include "univ/detail/LogicStack.hh"
+#include "univ/detail/Types.hh"
 
 #include "detail/DepthCalculator.hh"
 #include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"
+#include "detail/UniverseIndexer.hh"
 #include "detail/UniverseInserter.hh"
 
 namespace celeritas
@@ -312,6 +316,59 @@ inp::Model OrangeParams::make_model_input() const
 
     v.world = VolumeId{0};
     return result;
+}
+
+//---------------------------------------------------------------------------//
+VolumeInstanceId
+OrangeParams::locate_volume_containing_point(Real3 const& global_point) const
+{
+    std::vector<VolumeInstanceId> levels;
+
+    // Create local state
+    detail::LocalState local;
+    local.pos = global_point;
+    local.volume = {};
+    local.surface = {};
+
+    // Helpers for applying parent-to-daughter transformations
+    TransformVisitor apply_transform{this->host_ref()};
+    auto transform_down_local
+        = [&local](auto&& t) { local.pos = t.transform_down(local.pos); };
+
+    // Recursively step down from outmost universe into daughter universes
+    UnivId univ_id = orange_global_univ;
+    DaughterId daughter_id;
+    detail::UniverseIndexer ui{this->host_ref().univ_indexer_data};
+    do
+    {
+        // Locate volume containing point in current universe
+        TrackerVisitor visit_tracker{this->host_ref()};
+        auto tinit = visit_tracker(
+            [&local](auto&& t) { return t.initialize(local); }, univ_id);
+
+        // TODO: better handling for failing to locate position?
+        CELER_ASSERT(tinit.volume && !tinit.surface);
+
+        // Append volume to level list
+        // TODO: does this skip over local parents??
+        ImplVolumeId impl_id = ui.global_volume(univ_id, tinit.volume);
+        levels.push_back(this->host_ref().volume_instance_ids[impl_id]);
+
+        // Identify if this volume is a daughter universe
+        daughter_id = visit_tracker(
+            [&tinit](auto&& t) { return t.daughter(tinit.volume); }, univ_id);
+        if (daughter_id)
+        {
+            // Transform down to the daughter universe
+            auto const& daughter = this->host_ref().daughters[daughter_id];
+            apply_transform(transform_down_local, daughter.trans_id);
+            univ_id = daughter.univ_id;
+        }
+    } while (daughter_id);
+
+    // Return the deepest found volume instance ID
+    CELER_ENSURE(!levels.empty());
+    return levels.back();
 }
 
 //---------------------------------------------------------------------------//

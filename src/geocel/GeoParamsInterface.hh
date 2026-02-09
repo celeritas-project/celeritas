@@ -60,6 +60,11 @@ class GeoParamsInterface
     //! Get the canonical volume IDs corresponding to an implementation volume
     virtual VolumeId volume_id(ImplVolumeId) const = 0;
 
+    virtual VolumeInstanceId locate_volume_containing_point(Real3 const&) const
+    {
+        return {};
+    };
+
   protected:
     GeoParamsInterface() = default;
     CELER_DEFAULT_COPY_MOVE(GeoParamsInterface);

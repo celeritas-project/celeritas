@@ -111,6 +111,8 @@ class OrangeParams final : public GeoParamsInterface,
     // implementation volume
     inline VolumeInstanceId volume_instance_id(ImplVolumeId) const;
 
+    VolumeInstanceId locate_volume_containing_point(Real3 const&) const final;
+
     //// DATA ACCESS ////
 
     //! Reference to CPU geometry data

@@ -19,6 +19,7 @@
 #include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
@@ -798,6 +799,66 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         geo.cross_boundary();
 
         EXPECT_EQ("[OUTSIDE]", test_->unique_volume_name(geo));
+    }
+}
+
+//---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_locate_point() const
+{
+    // auto volume_name = [this](VolumeInstanceId vi) {
+    //     return vi ? test_->volumes()->volume_instance_labels().at(vi) :
+    //     "[INVALID]";
+    // };
+
+    // auto vols = test_->volume_stack({10.0, 10.0, 10.0});
+    // vols.print_expected();
+
+    // auto volumes = *test_->volumes();
+    // std::cout << "Loaded volumes:\n";
+    // for (auto v : range(VolumeId{volumes.num_volumes()}))
+    // {
+    //     std::cout << v.unchecked_get() << ": " <<
+    //     volumes.volume_labels().at(v) << "\n";
+    // }
+
+    // std::cout << "Loaded volume instances:\n";
+    // for (auto vi : range(VolumeInstanceId{volumes.num_volume_instances()}))
+    // {
+    //     std::cout << vi.unchecked_get() << ": " <<
+    //     volumes.volume_instance_labels().at(vi) << "\n";
+    // }
+
+    // EXPECT_EQ(
+    //     "Shape2",
+    //     volume_name(test_->geometry_interface()->locate_volume_containing_point(
+    //         {10.0, 10.0, 10.0})));
+
+    std::vector<Real3> test_points{
+        {10.0, 10.0, 10.0},
+        {-10.0, -10.0, 4.5},
+        {0.0, 0.0, 0.0},
+        {1.0, 2.0, 5.0},
+        {-3.0, -7.5, -4.5},
+        {-7.0, 1.5, 3.7},
+    };
+
+    for (auto const& point : test_points)
+    {
+        // Get volume label from point lookup
+        auto volume_instance
+            = test_->geometry_interface()->locate_volume_containing_point(
+                point);
+
+        auto volume_label = volume_instance
+                                ? test_->volumes()->volume_instance_labels().at(
+                                      volume_instance)
+                                : "[INVALID]";
+
+        // Get expected volume label from test chassis
+        auto expected_volume_label
+            = test_->volume_stack(point).volume_instances.back();
+
+        EXPECT_EQ(expected_volume_label, volume_label);
     }
 }
 
