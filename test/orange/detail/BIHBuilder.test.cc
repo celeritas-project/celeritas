@@ -216,6 +216,8 @@ TEST_F(BIHBuilderTest, basic)
 }
 
 //---------------------------------------------------------------------------//
+// Grid geometry tests
+//---------------------------------------------------------------------------//
 /* Test a 3x4 grid of non-overlapping cuboids.
  * \verbatim
                   4 _______________
@@ -230,7 +232,38 @@ TEST_F(BIHBuilderTest, basic)
                     0    1    2    3
                             x
    \endverbatim
- * Resultant tree structure in terms of BIHNodeId (N) and volumes (V):
+ */
+class GridTest : public BIHBuilderTest
+{
+  protected:
+    /// TYPES ///
+    using Side = BIHInnerNode::Side;
+
+    /// METHODS ///
+    void SetUp() override
+    {
+        constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
+
+        bboxes = {FastBBox::from_infinite()};
+        for (auto i : range(3))
+        {
+            for (auto j : range(4))
+            {
+                auto x = static_cast<fast_real_type>(i);
+                auto y = static_cast<fast_real_type>(j);
+                bboxes.push_back({{x, y, 0}, {x + 1, y + 1, 100}});
+            }
+        }
+    }
+
+    /// DATA ///
+    VecFastBbox bboxes;
+};
+
+//---------------------------------------------------------------------------//
+/* Test with max_leaf_size = 1 and the default depth limit (large enough to not
+ * affect BIH construction here). The resultant tree structure in terms of
+ * BIHNodeId (N) and volumes (V) is:
  * \verbatim
                      _______________ N0 ______________
                    /                                   \
@@ -259,22 +292,8 @@ TEST_F(BIHBuilderTest, basic)
  * Here, we test only the N1 side for the tree for brevity, as the N6 side is
  * directly analogous.
  */
-TEST_F(BIHBuilderTest, grid)
+TEST_F(GridTest, basic)
 {
-    using Side = BIHInnerNode::Side;
-    constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
-
-    VecFastBbox bboxes = {FastBBox::from_infinite()};
-    for (auto i : range(3))
-    {
-        for (auto j : range(4))
-        {
-            auto x = static_cast<fast_real_type>(i);
-            auto y = static_cast<fast_real_type>(j);
-            bboxes.push_back({{x, y, 0}, {x + 1, y + 1, 100}});
-        }
-    }
-
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
     ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
@@ -484,21 +503,9 @@ TEST_F(BIHBuilderTest, grid)
 }
 
 //---------------------------------------------------------------------------//
-/* Same as the "grid" test, but set max_leaf_size to 4.
- * \verbatim
-                  4 _______________
-                    | V4 | V8 | V12|
-                  3 |____|____|____|
-                    | V3 | V7 | V11|
-              y   2 |____|____|____|
-                    | V2 | V6 | V10|
-                  1 |____|____|____|
-                    | V1 | V5 | V9 |
-                  0 |____|____|____|
-                    0    1    2    3
-                            x
-   \endverbatim
- * Resultant tree structure in terms of BIHNodeId (N) and volumes (V):
+/* Test with max_leaf_size = 4 and the default depth limit (large enough to not
+ * affect BIH construction here). The resultant tree structure in terms of
+ * BIHNodeId (N) and volumes (V) is:
  * \verbatim
                      _______________ N0 ______________
                    /                                   \
@@ -518,22 +525,8 @@ TEST_F(BIHBuilderTest, grid)
       V1, V2        V5, V6, V9, V10        V3, V4          V7, V8, V11, V12
    \endverbatim
  */
-TEST_F(BIHBuilderTest, grid_less_split)
+TEST_F(GridTest, max_leaf_size)
 {
-    using Side = BIHInnerNode::Side;
-    constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
-
-    VecFastBbox bboxes = {FastBBox::from_infinite()};
-    for (auto i : range(3))
-    {
-        for (auto j : range(4))
-        {
-            auto x = static_cast<fast_real_type>(i);
-            auto y = static_cast<fast_real_type>(j);
-            bboxes.push_back({{x, y, 0}, {x + 1, y + 1, 100}});
-        }
-    }
-
     BIHBuilder build(&storage_, BIHBuilder::Input{4});
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
     ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
@@ -668,21 +661,9 @@ TEST_F(BIHBuilderTest, grid_less_split)
 }
 
 //---------------------------------------------------------------------------//
-/* Same as the "grid" test, but limit the tree to a depth of 4.
- * \verbatim
-                  4 _______________
-                    | V4 | V8 | V12|
-                  3 |____|____|____|
-                    | V3 | V7 | V11|
-              y   2 |____|____|____|
-                    | V2 | V6 | V10|
-                  1 |____|____|____|
-                    | V1 | V5 | V9 |
-                  0 |____|____|____|
-                    0    1    2    3
-                            x
-   \endverbatim
- * Resultant tree structure in terms of BIHNodeId (N) and volumes (V):
+/* Test with max_leaf_size = 1 and depth_limit = 4, the later of which causes
+ * the tree to be less deep than it otherwise would. The resultant tree
+ * structure in terms of BIHNodeId (N) and volumes (V) is:
  * \verbatim
                      _______________ N0 ______________
                    /                                   \
@@ -707,22 +688,8 @@ TEST_F(BIHBuilderTest, grid_less_split)
  * Here, we test only the N1 side for the tree for brevity, as the N4 side is
  * directly analogous.
  */
-TEST_F(BIHBuilderTest, grid_less_depth)
+TEST_F(GridTest, depth_limit)
 {
-    using Side = BIHInnerNode::Side;
-    constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
-
-    VecFastBbox bboxes = {FastBBox::from_infinite()};
-    for (auto i : range(3))
-    {
-        for (auto j : range(4))
-        {
-            auto x = static_cast<fast_real_type>(i);
-            auto y = static_cast<fast_real_type>(j);
-            bboxes.push_back({{x, y, 0}, {x + 1, y + 1, 100}});
-        }
-    }
-
     BIHBuilder build(&storage_, BIHBuilder::Input{1, 4});
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
     ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
