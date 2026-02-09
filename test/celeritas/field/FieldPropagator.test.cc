@@ -115,6 +115,7 @@ class SimpleCmsTest : public FieldPropagatorTestBase
     std::string_view gdml_basename() const override { return "simple-cms"; }
 };
 
+#define CmseTest TEST_IF_CELERITAS_GEANT(CmseTest)
 class CmseTest : public FieldPropagatorTestBase
 {
     std::string_view gdml_basename() const override { return "cmse"; }
