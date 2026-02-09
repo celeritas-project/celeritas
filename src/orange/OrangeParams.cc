@@ -319,10 +319,13 @@ inp::Model OrangeParams::make_model_input() const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance containing the global point.
+ */
 VolumeInstanceId
 OrangeParams::locate_volume_containing_point(Real3 const& global_point) const
 {
-    std::vector<VolumeInstanceId> levels;
+    VolumeInstanceId last_level{};
 
     // Create local state
     detail::LocalState local;
@@ -352,7 +355,7 @@ OrangeParams::locate_volume_containing_point(Real3 const& global_point) const
         // Append volume to level list
         // TODO: does this skip over local parents??
         ImplVolumeId impl_id = ui.global_volume(univ_id, tinit.volume);
-        levels.push_back(this->host_ref().volume_instance_ids[impl_id]);
+        last_level = this->host_ref().volume_instance_ids[impl_id];
 
         // Identify if this volume is a daughter universe
         daughter_id = visit_tracker(
@@ -367,8 +370,7 @@ OrangeParams::locate_volume_containing_point(Real3 const& global_point) const
     } while (daughter_id);
 
     // Return the deepest found volume instance ID
-    CELER_ENSURE(!levels.empty());
-    return levels.back();
+    return last_level;
 }
 
 //---------------------------------------------------------------------------//

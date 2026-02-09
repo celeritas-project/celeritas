@@ -124,6 +124,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
+    // Get the volume instance containing the global point
     VolumeInstanceId locate_volume_containing_point(Real3 const&) const final;
 
     //// SURFACES ////
@@ -329,6 +330,11 @@ inline GeoMatId GeantGeoParams::geant_to_id(G4Material const&) const
     CELER_ASSERT_UNREACHABLE();
 }
 inline VolumeId GeantGeoParams::geant_to_id(G4LogicalVolume const&) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline VolumeInstanceId
+GeantGeoParams::locate_volume_containing_point(Real3 const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
