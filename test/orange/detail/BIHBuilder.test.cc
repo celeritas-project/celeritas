@@ -30,6 +30,9 @@ class BIHBuilderTest : public ::celeritas::test::Test
     using VecFastBbox = BIHBuilder::VecBBox;
 
   protected:
+    static constexpr auto inff
+        = std::numeric_limits<fast_real_type>::infinity();
+
     BIHBuilder::SetLocalVolId implicit_vol_ids_;
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
 };
@@ -75,7 +78,6 @@ TEST_F(BIHBuilderTest, basic)
 {
     using Side = BIHInnerNode::Side;
     using Real3 = FastBBox::Real3;
-    constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
 
     VecFastBbox bboxes = {
         FastBBox::from_infinite(),
@@ -242,8 +244,6 @@ class GridTest : public BIHBuilderTest
     /// METHODS ///
     void SetUp() override
     {
-        constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
-
         bboxes = {FastBBox::from_infinite()};
         for (auto i : range(3))
         {
@@ -937,8 +937,6 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
 
 TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
 {
-    constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
-
     VecFastBbox bboxes = {
         {{0, 0, -inff}, {1, 1, inff}},
         {{1, 0, -inff}, {2, 1, inff}},
