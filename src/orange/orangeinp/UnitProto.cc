@@ -136,6 +136,7 @@ void implicit_parent_boundary(CsgUnit& unit)
  */
 void remove_negated_join(CsgUnit& unit)
 {
+    ScopedProfiling profile_this{"orange-logic-simplify"};
     // Apply demorgan simplification
     auto&& [tree, nodes] = transform_negated_joins(unit.tree);
     CELER_ASSERT(unit.tree.size() == nodes.size());
