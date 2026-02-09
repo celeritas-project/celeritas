@@ -54,18 +54,15 @@ class BIHBuilderTest : public ::celeritas::test::Test
    \endverbatim
  * Resultant tree structure in terms of BIHNodeIds (N) and volumes (V):
  * \verbatim
-
                         ___ N0 ___
                       /            \
                     N1              N2
                    /  \           /    \
                   N3   N4        N5     N6
                   V1   V2       V4,V5   V3
-
    \endverbatim
  * In terms of BIHInnerNodeIds (I) and BIHLeafNodeIds (L):
  * \verbatim
-
                         ___ I0 ___
                       /            \
                     I1              I2
@@ -221,7 +218,6 @@ TEST_F(BIHBuilderTest, basic)
 //---------------------------------------------------------------------------//
 /* Test a 3x4 grid of non-overlapping cuboids.
  * \verbatim
-
                   4 _______________
                     | V4 | V8 | V12|
                   3 |____|____|____|
@@ -233,11 +229,9 @@ TEST_F(BIHBuilderTest, basic)
                   0 |____|____|____|
                     0    1    2    3
                             x
-
    \endverbatim
  * Resultant tree structure in terms of BIHNodeId (N) and volumes (V):
  * \verbatim
-
                      _______________ N0 ______________
                    /                                   \
             ___  N1  ___                         ___   N6  ___
@@ -248,11 +242,9 @@ TEST_F(BIHBuilderTest, basic)
     V1     V2      /   \      /   \        V3    V4       /  \        /   \
                   N13  N14   N15   N16                   N19  N20    N21   N22
                   V5   V6    V9    V10                   V7   V8     V11   V12
-
    \endverbatim
  * In terms of BIHInnerNodeIds (I) and BIHLeafNodeIds (L):
  * \verbatim
-
                      _______________ I0 ______________
                    /                                   \
             ___  I1  ___                         ___   I6  ___
@@ -263,9 +255,6 @@ TEST_F(BIHBuilderTest, basic)
     V1     V2      /   \      /   \        V3    V4       /  \        /   \
                   L2   L3    L4    L5                    L8   L9     L10   L11
                   V5   V6    V9    V10                   V7   V8     V11   V12
-
-
-
    \endverbatim
  * Here, we test only the N1 side for the tree for brevity, as the N6 side is
  * directly analogous.
@@ -495,10 +484,8 @@ TEST_F(BIHBuilderTest, grid)
 }
 
 //---------------------------------------------------------------------------//
-/* Same test as above, but min_split_size is set to 5, meaning the BIHBuilder
- * will not split leaf nodes unless they contain at least 5 bboxes.
+/* Same as the "grid" test, but set max_leaf_size to 4.
  * \verbatim
-
                   4 _______________
                     | V4 | V8 | V12|
                   3 |____|____|____|
@@ -510,18 +497,15 @@ TEST_F(BIHBuilderTest, grid)
                   0 |____|____|____|
                     0    1    2    3
                             x
-
    \endverbatim
  * Resultant tree structure in terms of BIHNodeId (N) and volumes (V):
  * \verbatim
-
                      _______________ N0 ______________
                    /                                   \
             ___  N1  ___                         ___   N2  ___
           /              \                     /                \
         N3                N4                 N5                  N6
       V1, V2        V5, V6, V9, V10        V3, V4          V7, V8, V11, V12
-
    \endverbatim
  * In terms of BIHInnerNodeIds (I) and BIHLeafNodeIds (L):
  * \verbatim
@@ -680,6 +664,210 @@ TEST_F(BIHBuilderTest, grid_less_split)
         EXPECT_EQ(12, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_infinite_bboxes);
         EXPECT_EQ(3, md.depth);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/* Same as the "grid" test, but limit the tree to a depth of 4.
+ * \verbatim
+                  4 _______________
+                    | V4 | V8 | V12|
+                  3 |____|____|____|
+                    | V3 | V7 | V11|
+              y   2 |____|____|____|
+                    | V2 | V6 | V10|
+                  1 |____|____|____|
+                    | V1 | V5 | V9 |
+                  0 |____|____|____|
+                    0    1    2    3
+                            x
+   \endverbatim
+ * Resultant tree structure in terms of BIHNodeId (N) and volumes (V):
+ * \verbatim
+                     _______________ N0 ______________
+                   /                                   \
+            ___  N1  ___                         ___   N4  ___
+          /              \                     /               \
+        N2                N3                 N5                N6
+       /  \             /    \             /    \             /   \
+    N7     N8         N9      N10       N11      N12       N13     N14
+    V1     V2      V5, V6   V9, V10     V3       V4      V7, V8   V11, V12
+   \endverbatim
+ * In terms of BIHInnerNodeIds (I) and BIHLeafNodeIds (L):
+ * \verbatim
+                     _______________ I0 ______________
+                   /                                   \
+            ___  I1  ___                         ___   I4  ___
+          /              \                     /               \
+        I2                I3                 I5                 I6
+       /  \             /    \             /    \             /    \
+    L0     L1         L2      L3         L4      L5         L6      L7
+    V1     V2      V5, V6   V9, V10     V3       V4      V7, V8   V11, V12
+   \endverbatim
+ * Here, we test only the N1 side for the tree for brevity, as the N4 side is
+ * directly analogous.
+ */
+TEST_F(BIHBuilderTest, grid_less_depth)
+{
+    using Side = BIHInnerNode::Side;
+    constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
+
+    VecFastBbox bboxes = {FastBBox::from_infinite()};
+    for (auto i : range(3))
+    {
+        for (auto j : range(4))
+        {
+            auto x = static_cast<fast_real_type>(i);
+            auto y = static_cast<fast_real_type>(j);
+            bboxes.push_back({{x, y, 0}, {x + 1, y + 1, 100}});
+        }
+    }
+
+    BIHBuilder build(&storage_, BIHBuilder::Input{1, 4});
+    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
+    EXPECT_EQ(LocalVolumeId{0},
+              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
+
+    // Test nodes
+    auto inner_nodes = bih_tree.inner_nodes;
+    auto leaf_nodes = bih_tree.leaf_nodes;
+    ASSERT_EQ(7, inner_nodes.size());
+    ASSERT_EQ(8, leaf_nodes.size());
+
+    // N0, I0
+    {
+        auto node = storage_.inner_nodes[inner_nodes[0]];
+        auto& edges = node.edges;
+
+        ASSERT_FALSE(node.parent);
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
+        EXPECT_SOFT_EQ(2.f, edges[Side::right].bounding_plane_pos);
+        EXPECT_EQ(BIHNodeId{1}, edges[Side::left].child);
+        EXPECT_EQ(BIHNodeId{4}, edges[Side::right].child);
+
+        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+                           edges[Side::left].bbox.lower());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+                           edges[Side::left].bbox.upper());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, 2.f, -inff}),
+                           edges[Side::right].bbox.lower());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, inff, inff}),
+                           edges[Side::right].bbox.upper());
+    }
+
+    // N1, I1
+    {
+        auto node = storage_.inner_nodes[inner_nodes[1]];
+        auto& edges = node.edges;
+
+        ASSERT_EQ(BIHNodeId{0}, node.parent);
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
+        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
+        EXPECT_EQ(BIHNodeId{2}, edges[Side::left].child);
+        EXPECT_EQ(BIHNodeId{3}, edges[Side::right].child);
+
+        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+                           edges[Side::left].bbox.lower());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, inff}),
+                           edges[Side::left].bbox.upper());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, -inff, -inff}),
+                           edges[Side::right].bbox.lower());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+                           edges[Side::right].bbox.upper());
+    }
+
+    // N2, I2
+    {
+        auto node = storage_.inner_nodes[inner_nodes[2]];
+        auto& edges = node.edges;
+
+        ASSERT_EQ(BIHNodeId{1}, node.parent);
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_EQ(Axis{1}, node.axis);
+        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
+        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
+        EXPECT_EQ(BIHNodeId{7}, edges[Side::left].child);
+        EXPECT_EQ(BIHNodeId{8}, edges[Side::right].child);
+
+        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+                           edges[Side::left].bbox.lower());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, inff}),
+                           edges[Side::left].bbox.upper());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, 1.f, -inff}),
+                           edges[Side::right].bbox.lower());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, inff}),
+                           edges[Side::right].bbox.upper());
+    }
+
+    // N3, I3
+    {
+        auto node = storage_.inner_nodes[inner_nodes[3]];
+        auto& edges = node.edges;
+
+        ASSERT_EQ(BIHNodeId{1}, node.parent);
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_EQ(Axis{0}, node.axis);
+        EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
+        EXPECT_SOFT_EQ(2.f, edges[Side::right].bounding_plane_pos);
+        EXPECT_EQ(BIHNodeId{9}, edges[Side::left].child);
+        EXPECT_EQ(BIHNodeId{10}, edges[Side::right].child);
+
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, -inff, -inff}),
+                           edges[Side::left].bbox.lower());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, inff}),
+                           edges[Side::left].bbox.upper());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, -inff, -inff}),
+                           edges[Side::right].bbox.lower());
+        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+                           edges[Side::right].bbox.upper());
+    }
+
+    // N7, L0
+    {
+        auto node = storage_.leaf_nodes[leaf_nodes[0]];
+        ASSERT_EQ(BIHNodeId{2}, node.parent);
+        EXPECT_EQ(1, node.vol_ids.size());
+        EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[0]]);
+    }
+
+    // N8, L1
+    {
+        auto node = storage_.leaf_nodes[leaf_nodes[1]];
+        ASSERT_EQ(BIHNodeId{2}, node.parent);
+        EXPECT_EQ(1, node.vol_ids.size());
+        EXPECT_EQ(LocalVolumeId{2}, storage_.local_volume_ids[node.vol_ids[0]]);
+    }
+
+    // N9, L2
+    {
+        auto node = storage_.leaf_nodes[leaf_nodes[2]];
+        ASSERT_EQ(BIHNodeId{3}, node.parent);
+        EXPECT_EQ(2, node.vol_ids.size());
+        EXPECT_EQ(LocalVolumeId{5}, storage_.local_volume_ids[node.vol_ids[0]]);
+        EXPECT_EQ(LocalVolumeId{6}, storage_.local_volume_ids[node.vol_ids[1]]);
+    }
+
+    // N10, L3
+    {
+        auto node = storage_.leaf_nodes[leaf_nodes[3]];
+        ASSERT_EQ(BIHNodeId{3}, node.parent);
+        EXPECT_EQ(2, node.vol_ids.size());
+        EXPECT_EQ(LocalVolumeId{9}, storage_.local_volume_ids[node.vol_ids[0]]);
+        EXPECT_EQ(LocalVolumeId{10},
+                  storage_.local_volume_ids[node.vol_ids[1]]);
+    }
+
+    // Metadata
+    {
+        auto const& md = bih_tree.metadata;
+        EXPECT_EQ(12, md.num_finite_bboxes);
+        EXPECT_EQ(1, md.num_infinite_bboxes);
+        EXPECT_EQ(4, md.depth);
     }
 }
 

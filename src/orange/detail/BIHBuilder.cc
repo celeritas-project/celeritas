@@ -27,7 +27,7 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
     , inp_{inp}
 {
     CELER_EXPECT(storage);
-    CELER_EXPECT(inp_.max_leaf_size > 0);
+    CELER_EXPECT(inp_);
 }
 
 //---------------------------------------------------------------------------//
@@ -136,6 +136,8 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
                                 size_type current_depth,
                                 size_type& depth)
 {
+    CELER_EXPECT(current_depth < inp_.depth_limit);
+
     using Side = BIHInnerNode::Side;
 
     ++current_depth;
@@ -154,9 +156,11 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         depth = std::max(depth, current_depth);
     };
 
-    if (indices.size() <= inp_.max_leaf_size)
+    if (indices.size() <= inp_.max_leaf_size
+        || current_depth == inp_.depth_limit)
     {
-        // All bboxes fit on a single leaf; make it and exit early
+        // All bboxes fit on a single leaf, or we have reached the depth limit;
+        // make a leaf and exit early
         make_leaf();
         return;
     }
