@@ -21,7 +21,8 @@ namespace detail
  *
  * \param[in] storage  Struct containing collections of persistent data for
  *                     all BIH trees
- * \param[in] inp      Input options that govern BIH construction
+ * \param[in] inp      Input options that govern BIH construction, i.e.,
+ *                     the maximum leaf size and the recursion depth limit
  */
 BIHBuilder::BIHBuilder(Storage* storage, Input inp)
     : bboxes_{&storage->bboxes}
