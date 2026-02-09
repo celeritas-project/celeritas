@@ -108,8 +108,8 @@ class DeMorganSimplifier
 
     using NodeMap = std::unordered_map<NodeId, MatchingNodes>;
 
-    // Dereference Aliased nodes
-    NodeId dealias(NodeId) const;
+    // Get a non-aliased Node variant from the original tree
+    Node const& get_node(NodeId) const;
 
     // First pass to find negated set operations
     void find_join_negations();

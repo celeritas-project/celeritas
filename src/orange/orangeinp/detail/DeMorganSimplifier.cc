@@ -13,6 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "../CsgTree.hh"
@@ -81,18 +82,15 @@ DeMorganSimplifier::find_translation(NodeId id) const
 TransformedTree DeMorganSimplifier::operator()()
 {
     this->find_join_negations();
+
     auto simplified_tree{this->build_simplified_tree()};
-    std::vector<NodeId> equivalent_nodes;
-    equivalent_nodes.reserve(tree_.size());
+
+    std::vector<NodeId> equivalent_nodes(tree_.size());
     for (auto node_id : range(NodeId{tree_.size()}))
     {
         if (auto const* trans = this->find_translation(node_id))
         {
-            equivalent_nodes.push_back(trans->equivalent_node());
-        }
-        else
-        {
-            equivalent_nodes.push_back(NodeId{});
+            equivalent_nodes[node_id.get()] = trans->equivalent_node();
         }
     }
     return {simplified_tree, equivalent_nodes};
@@ -100,9 +98,9 @@ TransformedTree DeMorganSimplifier::operator()()
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the real node id to access by dereferencing Aliased nodes.
+ * Get a non-aliased Node variant
  */
-NodeId DeMorganSimplifier::dealias(NodeId node_id) const
+Node const& DeMorganSimplifier::get_node(NodeId node_id) const
 {
     CELER_EXPECT(node_id < tree_.size());
     NodeId dealiased{node_id};
@@ -111,7 +109,7 @@ NodeId DeMorganSimplifier::dealias(NodeId node_id) const
         dealiased = aliased->node;
         CELER_ASSERT(dealiased < tree_.size());
     }
-    return dealiased;
+    return tree_[dealiased];
 }
 
 //---------------------------------------------------------------------------//
@@ -121,22 +119,22 @@ NodeId DeMorganSimplifier::dealias(NodeId node_id) const
  */
 void DeMorganSimplifier::find_join_negations()
 {
+    ScopedProfiling profile_this{"orange-demorgan-find"};
     for (auto node_id : range(NodeId{tree_.size()}))
     {
-        auto const* node = &tree_[this->dealias(node_id)];
-        if (auto* negated = std::get_if<Negated>(node))
+        auto const& node = this->get_node(node_id);
+        if (auto* negated = std::get_if<Negated>(&node))
         {
             parents_.insert({negated->node, node_id});
             parents_.insert({negated->node, has_parents_index_});
-            if (std::holds_alternative<Joined>(
-                    tree_[this->dealias(negated->node)]))
+            if (std::holds_alternative<Joined>(this->get_node(negated->node)))
             {
                 // This is a negated join node
                 negated_join_nodes_.insert(negated->node);
                 this->add_negation_for_operands(negated->node);
             }
         }
-        else if (auto* joined = std::get_if<Joined>(node))
+        else if (auto* joined = std::get_if<Joined>(&node))
         {
             for (auto const& join_operand : joined->nodes)
             {
@@ -163,12 +161,12 @@ void DeMorganSimplifier::find_join_negations()
  */
 void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
 {
-    CELER_ASSUME(std::holds_alternative<Joined>(tree_[this->dealias(node_id)]));
+    CELER_ASSUME(std::holds_alternative<Joined>(this->get_node(node_id)));
     auto& [op, operands] = std::get<Joined>(tree_[node_id]);
 
     for (auto const& join_operand : operands)
     {
-        Node const& target_node = tree_[this->dealias(join_operand)];
+        Node const& target_node = this->get_node(join_operand);
         if (std::holds_alternative<Joined>(target_node))
         {
             // This negated join node has a join operand, so we'll have to
@@ -193,6 +191,7 @@ void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
  */
 CsgTree DeMorganSimplifier::build_simplified_tree()
 {
+    ScopedProfiling profile_this{"orange-demorgan-simplify"};
     CsgTree result{};
 
     // We can now build the new tree
@@ -208,7 +207,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // to update the node ids of its children
 
         // deref aliased nodes, we don't want to insert them in the new tree
-        Node new_node = tree_[this->dealias(node_id)];
+        Node new_node = this->get_node(node_id);
 
         CELER_ASSERT(!std::holds_alternative<Aliased>(new_node));
 
@@ -246,7 +245,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // We might have to insert a negated version of that node
         if (new_negated_nodes_.count(node_id))
         {
-            Node const& target_node{tree_[this->dealias(node_id)]};
+            Node const& target_node{this->get_node(node_id)};
             CELER_ASSERT(!std::holds_alternative<Negated>(target_node)
                          && !std::holds_alternative<Joined>(target_node)
                          && !trans.new_negation);
@@ -291,12 +290,12 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
 bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                                                       CsgTree& result)
 {
-    Node const* target_node = &tree_[this->dealias(node_id)];
-    if (auto const* negated = std::get_if<Negated>(target_node))
+    Node const& target_node = this->get_node(node_id);
+    if (auto const* negated = std::get_if<Negated>(&target_node))
     {
         // This node has a joined child, we must never insert it in the
         // simplified tree
-        if (std::holds_alternative<Joined>(tree_[this->dealias(negated->node)]))
+        if (std::holds_alternative<Joined>(this->get_node(negated->node)))
         {
             // Redirect parents looking for this node to the new Joined
             // node which is logically equivalent
@@ -324,12 +323,11 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 continue;
 
             // A negated node should never have a negated parent
-            CELER_ASSERT(
-                !std::holds_alternative<Negated>(tree_[this->dealias(p)]));
+            CELER_ASSERT(!std::holds_alternative<Negated>(this->get_node(p)));
 
             // If an ancestor is a join node that should be inserted
             // unmodified, this negated node is still necessary
-            if (std::holds_alternative<Joined>(tree_[this->dealias(p)])
+            if (std::holds_alternative<Joined>(this->get_node(p))
                 && this->should_insert_join(p))
             {
                 return true;
@@ -340,7 +338,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
         // is no longer necessary in the simplified tree
         return false;
     }
-    else if (auto const* joined = std::get_if<Joined>(target_node))
+    else if (auto const* joined = std::get_if<Joined>(&target_node))
     {
         // Check if this node needs a simplification
         if (negated_join_nodes_.count(node_id))
@@ -377,7 +375,7 @@ Joined DeMorganSimplifier::build_negated_node(Joined const& joined)
     {
         // Negation of a negated operand cancel each other, we can
         // just use the child of that negated operand
-        if (auto const* neg = std::get_if<Negated>(&tree_[this->dealias(n)]))
+        if (auto const* neg = std::get_if<Negated>(&this->get_node(n)))
         {
             // We should have recorded that this node was necessary
             // for a join
@@ -414,7 +412,7 @@ Joined DeMorganSimplifier::build_negated_node(Joined const& joined)
  */
 bool DeMorganSimplifier::should_insert_join(NodeId node_id)
 {
-    CELER_EXPECT(std::holds_alternative<Joined>(tree_[this->dealias(node_id)]));
+    CELER_EXPECT(std::holds_alternative<Joined>(this->get_node(node_id)));
 
     // This join node is referred by a volume or a root node, we must insert it
     if (parents_.count({node_id, is_volume_index_})
@@ -444,7 +442,7 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
 
         // Check if a parent requires that node to be inserted
         // TODO: Is it really correct in all cases...
-        if (Node const& dealiased{tree_[this->dealias(p)]};
+        if (Node const& dealiased{this->get_node(p)};
             (std::holds_alternative<Joined>(dealiased)
              && this->should_insert_join(p))
             || (std::holds_alternative<Negated>(dealiased)
