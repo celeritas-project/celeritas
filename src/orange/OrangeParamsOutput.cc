@@ -55,31 +55,31 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 
     // Save sizes
     obj["sizes"] = {
-        OPO_SIZE_PAIR(data, univ_types),
-        OPO_SIZE_PAIR(data, univ_indices),
-        OPO_SIZE_PAIR(data, simple_units),
-        OPO_SIZE_PAIR(data, rect_arrays),
-        OPO_SIZE_PAIR(data, transforms),
-        OPO_SIZE_PAIR(data, volume_ids),
-        OPO_SIZE_PAIR(data, volume_instance_ids),
+        OPO_SIZE_PAIR(data, connectivity_records),
+        OPO_SIZE_PAIR(data, daughters),
+        OPO_SIZE_PAIR(data, fast_real3s),
         OPO_SIZE_PAIR(data, local_surface_ids),
         OPO_SIZE_PAIR(data, local_volume_ids),
-        OPO_SIZE_PAIR(data, real_ids),
         OPO_SIZE_PAIR(data, logic_ints),
-        OPO_SIZE_PAIR(data, reals),
-        OPO_SIZE_PAIR(data, fast_real3s),
-        OPO_SIZE_PAIR(data, surface_types),
-        OPO_SIZE_PAIR(data, connectivity_records),
-        OPO_SIZE_PAIR(data, volume_records),
-        OPO_SIZE_PAIR(data, daughters),
         OPO_SIZE_PAIR(data, obz_records),
+        OPO_SIZE_PAIR(data, real_ids),
+        OPO_SIZE_PAIR(data, reals),
+        OPO_SIZE_PAIR(data, rect_arrays),
+        OPO_SIZE_PAIR(data, simple_units),
+        OPO_SIZE_PAIR(data, surface_types),
+        OPO_SIZE_PAIR(data, transforms),
+        OPO_SIZE_PAIR(data, univ_indices),
+        OPO_SIZE_PAIR(data, univ_types),
+        OPO_SIZE_PAIR(data, volume_ids),
+        OPO_SIZE_PAIR(data, volume_instance_ids),
+        OPO_SIZE_PAIR(data, volume_records),
     };
     obj["sizes"]["bih"] = [&bihdata = data.bih_tree_data] {
         return json::object({
             OPO_SIZE_PAIR(bihdata, bboxes),
-            OPO_SIZE_PAIR(bihdata, local_volume_ids),
             OPO_SIZE_PAIR(bihdata, inner_nodes),
             OPO_SIZE_PAIR(bihdata, leaf_nodes),
+            OPO_SIZE_PAIR(bihdata, local_volume_ids),
         });
     }();
     obj["sizes"]["universe_indexer"] = [&uidata = data.univ_indexer_data] {
