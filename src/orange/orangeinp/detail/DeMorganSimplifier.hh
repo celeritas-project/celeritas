@@ -63,6 +63,7 @@ class DeMorganSimplifier
 
     //! Helper struct to translate ids from the original tree to ids in the
     //! simplified tree
+    // TODO: are more than one of these ever set simultaneously?
     struct MatchingNodes
     {
         //! Set if a node has the exact same node in the simplified tree
@@ -88,8 +89,6 @@ class DeMorganSimplifier
         // Lookup a node an equal node in the simplified tree
         NodeId equivalent_node() const;
     };
-
-    using MapNodeMatching = std::unordered_map<NodeId, MatchingNodes>;
 
     //// HELPER FUNCTIONS ////
 
@@ -144,9 +143,10 @@ class DeMorganSimplifier
     //! Whether the index is a volume in the original tree
     std::vector<bool> is_volume_node_;
 
+    //! Map old node ID -> new node IDs:
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
-    MapNodeMatching node_ids_translation_;
+    std::vector<MatchingNodes> matching_nodes_;
 };
 
 //---------------------------------------------------------------------------//

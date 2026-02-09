@@ -53,22 +53,10 @@ DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree) : tree_(tree) {}
 /*!
  * Access or create a translation entry.
  */
-DeMorganSimplifier::MatchingNodes& DeMorganSimplifier::translation(NodeId id)
+auto DeMorganSimplifier::translation(NodeId id) -> MatchingNodes&
 {
-    return node_ids_translation_.try_emplace(id).first->second;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find a translation entry.
- */
-DeMorganSimplifier::MatchingNodes const*
-DeMorganSimplifier::find_translation(NodeId id) const
-{
-    auto iter = node_ids_translation_.find(id);
-    if (iter == node_ids_translation_.end())
-        return nullptr;
-    return &iter->second;
+    CELER_EXPECT(id < matching_nodes_.size());
+    return matching_nodes_[id.get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -79,6 +67,7 @@ DeMorganSimplifier::find_translation(NodeId id) const
 TransformedTree DeMorganSimplifier::operator()()
 {
     // Mark nodes related to negated joins
+    matching_nodes_.assign(tree_.size(), {});
     this->find_join_negations();
 
     // Save volume nodes
@@ -96,10 +85,8 @@ TransformedTree DeMorganSimplifier::operator()()
     std::vector<NodeId> equivalent_nodes(tree_.size());
     for (auto node_id : range(NodeId{tree_.size()}))
     {
-        if (auto const* trans = this->find_translation(node_id))
-        {
-            equivalent_nodes[node_id.get()] = trans->equivalent_node();
-        }
+        equivalent_nodes[node_id.get()]
+            = this->translation(node_id).equivalent_node();
     }
 
     return {simplified_tree, equivalent_nodes};
@@ -264,14 +251,14 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         {
             // This is not a negated join, they are inserted in
             // process_negated_joined_nodes
-            for (auto& op : joined->nodes)
+            for (auto& child : joined->nodes)
             {
                 // That means we should find an equivalent node for
                 // each operand, either a simplified negated join or an
                 // unmodified node
-                auto& trans = this->translation(op);
+                auto& trans = this->translation(child);
                 CELER_ASSERT(trans.equivalent_node());
-                op = trans.equivalent_node();
+                child = trans.equivalent_node();
             }
         }
 
@@ -498,7 +485,7 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
                     if (this->is_parent_of(gp, p)
                         && negated_join_nodes_.count(gp))
                     {
-                        // has negated join
+                        // Has negated join
                         return true;
                     }
                 }
