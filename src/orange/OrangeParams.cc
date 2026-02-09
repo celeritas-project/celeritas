@@ -103,8 +103,8 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
         }
         catch (std::exception const& e)
         {
-            CELER_LOG(critical)
-                << "Failed to load options from " << opt_filename;
+            CELER_LOG(critical) << "Failed to load options from "
+                                << opt_filename << ": " << e.what();
         }
     }
 
