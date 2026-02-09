@@ -113,7 +113,7 @@ class DeMorganSimplifier
     void find_join_negations();
 
     // Declare negated nodes to add in the simplified tree
-    void add_negation_for_operands(NodeId);
+    bool insert_negated_children(NodeId);
 
     // Second pass to build the simplified tree
     CsgTree build_simplified_tree();

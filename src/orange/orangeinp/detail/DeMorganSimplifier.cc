@@ -137,9 +137,7 @@ void DeMorganSimplifier::find_join_negations()
             parents_.insert({negated->node, has_parents_index_});
             if (std::holds_alternative<Joined>(this->get_node(negated->node)))
             {
-                // This is a negated join node
-                negated_join_nodes_.insert(negated->node);
-                this->add_negation_for_operands(negated->node);
+                this->insert_negated_children(negated->node);
             }
         }
         else if (auto* joined = std::get_if<Joined>(&node))
@@ -160,28 +158,33 @@ void DeMorganSimplifier::find_join_negations()
  *
  * \param node_id a \c Joined node_id with a \c Negated parent.
  */
-void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
+bool DeMorganSimplifier::insert_negated_children(NodeId node_id)
 {
     CELER_ASSUME(std::holds_alternative<Joined>(this->get_node(node_id)));
+    auto&& [iter, inserted] = negated_join_nodes_.insert(node_id);
+    if (!inserted)
+    {
+        return inserted;
+    }
     auto& [op, operands] = std::get<Joined>(tree_[node_id]);
 
-    for (auto const& join_operand : operands)
+    for (auto const& child_node : operands)
     {
-        Node const& target_node = this->get_node(join_operand);
+        Node const& target_node = this->get_node(child_node);
         if (std::holds_alternative<Joined>(target_node))
         {
             // This negated join node has a join operand, so we'll have to
             // insert a negated join of that join operand and its operands
-            negated_join_nodes_.insert(join_operand);
-            this->add_negation_for_operands(join_operand);
+            this->insert_negated_children(child_node);
         }
         else if (!std::holds_alternative<Negated>(target_node))
         {
             // Negate each operand unless it's a negated node, in which
             // case double negation will cancel to the child of that operand
-            new_negated_nodes_.insert(join_operand);
+            new_negated_nodes_.insert(child_node);
         }
     }
+    return inserted;
 }
 
 //---------------------------------------------------------------------------//
