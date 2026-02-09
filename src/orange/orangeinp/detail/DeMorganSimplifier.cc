@@ -476,14 +476,6 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
     // 1. It has a Join ancestor that is not negated
     // 2. It has a negated parent, and that negated node has a negated join
     // parent (double negation of that join)
-    auto has_negated_join_parent = [&](NodeId n) {
-        for (auto p : range(first_node_id_, NodeId{tree_.size()}))
-        {
-            if (this->is_parent_of(p, n) && negated_join_nodes_.count(p))
-                return true;
-        }
-        return false;
-    };
 
     for (auto p : range(first_node_id_, NodeId{tree_.size()}))
     {
@@ -493,13 +485,23 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
 
         // Check if a parent requires that node to be inserted
         // TODO: Is it really correct in all cases...
-        if (Node const& dealiased{this->get_node(p)};
-            (std::holds_alternative<Joined>(dealiased)
-             && this->should_insert_join(p))
-            || (std::holds_alternative<Negated>(dealiased)
-                && has_negated_join_parent(p)))
+        Node const& dealiased = {this->get_node(p)};
+        if (std::holds_alternative<Joined>(dealiased)
+            && this->should_insert_join(p))
         {
             return true;
+        }
+        if (std::holds_alternative<Negated>(dealiased))
+        {
+            // Loop over grandparents
+            for (auto gp : range(first_node_id_, NodeId{tree_.size()}))
+            {
+                if (this->is_parent_of(gp, p) && negated_join_nodes_.count(gp))
+                {
+                    // has negated join
+                    return true;
+                }
+            }
         }
     }
 
