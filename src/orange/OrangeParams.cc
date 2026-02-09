@@ -288,8 +288,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
  */
 inp::Model OrangeParams::make_model_input() const
 {
-    CELER_LOG(warning)
-        << R"(ORANGE standalone model input is not fully implemented)";
+    CELER_LOG(info) << R"(Generating fake model input for unit tests)";
 
     inp::Model result;
     inp::Volumes& v = result.volumes;
