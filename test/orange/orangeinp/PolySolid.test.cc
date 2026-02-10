@@ -313,7 +313,8 @@ TEST_F(PolyconeTest, degenerate_inner)
         "Cyl z: r=0.75",
     };
     static char const* const expected_volume_strings[] = {
-        R"(any(all(+0, -1, -2, !all(+0, -1, -3)), all(+1, -5, -6, !all(+1, -3, -5)), all(+5, -7, -8, !all(-3, +5, -7)), all(-6, +7, -9, !all(-3, +7, -9)), all(+9, -10, -11, !all(-3, +9, -10)), all(-8, +10, -13, !all(+10, -13, -14)), all(-8, +13, -15), all(+15, -17, -18)))"};
+        R"(any(all(+0, -1, -2, !all(+0, -1, -3)), all(+1, -4, -5, !all(+1, -3, -4)), all(+4, -6, -7, !all(-3, +4, -6)), all(-5, +6, -8, !all(-3, +6, -8)), all(+8, -9, -10, !all(-3, +8, -9)), all(-7, +9, -11, !all(+9, -11, -12)), all(-7, +11, -13), all(+13, -14, -15)))",
+    };
     static char const* const expected_md_strings[] = {
         "",
         "",
