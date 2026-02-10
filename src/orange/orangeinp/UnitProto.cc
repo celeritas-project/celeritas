@@ -54,18 +54,18 @@ namespace
 {
 using detail::CsgUnit;
 
-BoundingBox<> get_unit_bbox(CsgUnit const& unit, bool assume_inside)
+BoundingBox<> get_unit_bbox(CsgUnit const& unit)
 {
     auto find_bz = [&r = unit.regions](NodeId n) -> detail::BoundingZone const& {
         CELER_EXPECT(n);
-
         auto iter = r.find(n);
-        CELER_EXPECT(iter != r.end());
+        CELER_ENSURE(iter != r.end());
         return iter->second.bounds;
     };
 
     CELER_ASSERT(orange_exterior_volume < unit.volumes().size());
     NodeId exterior_node_id = unit.volumes()[orange_exterior_volume.get()];
+    CELER_ASSERT(exterior_node_id);
     auto const& exterior_bz = find_bz(exterior_node_id);
     if (exterior_bz.negated)
     {
@@ -74,20 +74,21 @@ BoundingBox<> get_unit_bbox(CsgUnit const& unit, bool assume_inside)
         return exterior_bz.exterior;
     }
 
-    if (assume_inside)
+    // Odd bounding zones can happen for units with degenerate
+    // boundaries due to region merging. See if we can get an
+    // "interior" bbox by negating the exterior node
+    auto interior_id = unit.tree.find(Negated{exterior_node_id});
+    CELER_ASSERT(interior_id);
+    auto const& interior_bz = find_bz(interior_id);
+    if (!interior_bz.negated)
     {
-        // Odd bounding zones can happen for units with degenerate
-        // boundaries due to region merging. See if we can get an
-        // "interior" bbox by negating the exterior node
-        auto const& interior_bz
-            = find_bz(unit.tree.find(Negated{exterior_node_id}));
-        if (!interior_bz.negated)
-        {
-            return interior_bz.exterior;
-        }
+        return interior_bz.exterior;
     }
 
     // Unknown extents: be conservative
+    CELER_LOG(warning)
+        << "Could not determine bounding box of unit: exterior is "
+        << exterior_bz;
     return BoundingBox<>::from_infinite();
 }
 
@@ -313,7 +314,7 @@ void UnitProto::build(ProtoBuilder& pb) const
     result.label = input_.label;
 
     // Save unit's bounding box
-    result.bbox = get_unit_bbox(csg_unit, pb.assume_inside());
+    result.bbox = get_unit_bbox(csg_unit);
 
     // Save surfaces
     result.surfaces.reserve(sorted_local_surfaces.size());
