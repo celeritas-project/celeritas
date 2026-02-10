@@ -91,7 +91,7 @@ AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
     }
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<AtomicRelaxParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<AtomicRelaxParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

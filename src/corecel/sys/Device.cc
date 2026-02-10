@@ -110,12 +110,17 @@ int Device::num_devices()
             return 0;
         }
 
+        // Note that the first CUDA API call may take a few seconds if NVIDIA
+        // persistence mode is off
+        CELER_LOG(debug) << "Querying " << CELER_DEVICE_PLATFORM_UPPER_STR
+                         << " device count...";
         int result = -1;
         CELER_DEVICE_API_CALL(GetDeviceCount(&result));
         if (result == 0)
         {
             CELER_LOG(warning)
-                << R"(Disabling GPU support since no CUDA devices are present)";
+                << "Disabling GPU support since no "
+                << CELER_DEVICE_PLATFORM_UPPER_STR << " devices are present";
         }
 
         CELER_ENSURE(result >= 0);
@@ -380,9 +385,8 @@ void activate_device(Device&& device)
             << "\": code may mysteriously die at runtime";
     }
 
-    CELER_LOG_LOCAL(debug) << "Initializing '" << device.name() << "', ID "
-                           << device.device_id() << " of "
-                           << Device::num_devices();
+    CELER_LOG(debug) << "Initializing '" << device.name() << "', ID "
+                     << device.device_id() << " of " << Device::num_devices();
 
     ScopedTimeLog scoped_time(&self_logger(), 1.0);
     CELER_DEVICE_API_CALL(SetDevice(device.device_id()));

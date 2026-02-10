@@ -18,6 +18,7 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/Convert.hh"
+#include "accel/LocalOpticalGenOffload.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/detail/IntegrationSingleton.hh"
 
@@ -205,7 +206,7 @@ void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
 
     constexpr double clhep_time{1 / units::nanosecond};
 
-    auto& local = detail::IntegrationSingleton::local_optical_offload();
+    auto& local = detail::IntegrationSingleton::instance().local_offload();
     if (!local)
     {
         // Offloading is disabled
@@ -261,19 +262,20 @@ void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
         = {units::LightSpeed(post_step->GetBeta()),
            convert_from_geant(post_step->GetPosition(), clhep_length)};
 
+    auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
     if (num_cherenkov > 0)
     {
         data.type = GeneratorType::cherenkov;
         data.num_photons = num_cherenkov;
         CELER_ASSERT(data);
-        local.Push(data);
+        gen_offload.Push(data);
     }
     if (num_scintillation > 0)
     {
         data.type = GeneratorType::scintillation;
         data.num_photons = num_scintillation;
         CELER_ASSERT(data);
-        local.Push(data);
+        gen_offload.Push(data);
     }
     CELER_LOG(debug) << "Generating " << num_cherenkov
                      << " Cherenkov photons and " << num_scintillation

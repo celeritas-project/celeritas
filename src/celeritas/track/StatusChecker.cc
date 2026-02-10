@@ -164,7 +164,7 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
             CELER_ASSERT(build_orders.size() == reg.num_actions());
 
             // Construct host/device data
-            data_ = CollectionMirror{std::move(host_val)};
+            data_ = ParamsDataStore{std::move(host_val)};
         }
     }
 

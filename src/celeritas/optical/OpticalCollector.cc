@@ -125,7 +125,7 @@ GeneratorRegistry const& OpticalCollector::gen_reg() const
 /*!
  * Get and reset cumulative statistics on optical generation from a state.
  */
-OpticalAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
+CounterAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
 {
     auto& state
         = dynamic_cast<optical::CoreStateBase&>(aux.at(launch_->aux_id()));

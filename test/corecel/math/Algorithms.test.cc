@@ -12,7 +12,7 @@
 #include <utility>
 
 #include "corecel/Constants.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
 #include "Algorithms.test.hh"
 #include "celeritas_test.hh"
@@ -636,7 +636,7 @@ TEST(MathTest, TEST_IF_CELER_DEVICE(device))
         make_builder(&host_input.b).insert_back(b.begin(), b.end());
 
         // Copy to device
-        return CollectionMirror<AlgorithmInputData>{std::move(host_input)};
+        return ParamsDataStore<AlgorithmInputData>{std::move(host_input)};
     }();
 
     // Built the output data

@@ -58,7 +58,7 @@ ElectroNuclearModel::ElectroNuclearModel(ActionId id,
     CELER_ASSERT(data.micro_xs.size() == materials.num_elements());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<ElectroNuclearData>{std::move(data)};
+    data_ = ParamsDataStore<ElectroNuclearData>{std::move(data)};
     CELER_ENSURE(this->data_);
 }
 

@@ -11,8 +11,8 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/inp/Model.hh"
@@ -131,12 +131,12 @@ class OrangeParams final : public GeoParamsInterface,
     SPConstVolumes volumes_;
 
     // Host/device storage and reference
-    CollectionMirror<OrangeParamsData> data_;
+    ParamsDataStore<OrangeParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//
 
-extern template class CollectionMirror<OrangeParamsData>;
+extern template class ParamsDataStore<OrangeParamsData>;
 extern template class ParamsDataInterface<OrangeParamsData>;
 
 //---------------------------------------------------------------------------//

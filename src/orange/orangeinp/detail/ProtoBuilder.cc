@@ -27,13 +27,12 @@ ProtoBuilder::ProtoBuilder(OrangeInput* inp,
     : inp_{inp}
     , protos_{protos}
     , save_json_{opts.save_json}
-    , num_univs_{protos_.size()}
+    , implicit_parent_boundary_{opts.implicit_parent_boundary}
 {
     CELER_EXPECT(inp_);
-    CELER_EXPECT(opts.tol);
-
-    inp_->tol = opts.tol;
+    CELER_EXPECT(inp_->logic != LogicNotation::size_);
     inp_->universes.resize(protos_.size());
+    CELER_ENSURE(this->num_universes() == protos.size());
 }
 
 //---------------------------------------------------------------------------//

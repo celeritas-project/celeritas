@@ -68,6 +68,7 @@ void from_json(nlohmann::json const& j, AngleDistribution& v)
 void to_json(nlohmann::json& j, OpticalPrimaryGenerator const& v)
 {
     j = nlohmann::json{
+        json_type_pair("primary"),
         CELER_JSON_PAIR(v, shape),
         CELER_JSON_PAIR(v, angle),
         CELER_JSON_PAIR(v, energy),
@@ -81,6 +82,41 @@ void from_json(nlohmann::json const& j, OpticalPrimaryGenerator& v)
     CELER_JSON_LOAD_REQUIRED(j, v, angle);
     CELER_JSON_LOAD_REQUIRED(j, v, energy);
     CELER_JSON_LOAD_REQUIRED(j, v, primaries);
+}
+
+void to_json(nlohmann::json& j, OpticalEmGenerator const&)
+{
+    j = nlohmann::json{json_type_pair("em")};
+}
+
+void from_json(nlohmann::json const&, OpticalEmGenerator&) {}
+
+void to_json(nlohmann::json& j, OpticalOffloadGenerator const&)
+{
+    j = nlohmann::json{json_type_pair("offload")};
+}
+
+void from_json(nlohmann::json const&, OpticalOffloadGenerator&) {}
+
+void to_json(nlohmann::json& j, OpticalDirectGenerator const&)
+{
+    j = nlohmann::json{json_type_pair("direct")};
+}
+
+void from_json(nlohmann::json const&, OpticalDirectGenerator&) {}
+
+void to_json(nlohmann::json& j, OpticalGenerator const& v)
+{
+    j = std::visit([](auto const& g) { return nlohmann::json(g); }, v);
+}
+
+void from_json(nlohmann::json const& j, OpticalGenerator& v)
+{
+    EIO_LOAD_VARIANT(primary, OpticalPrimaryGenerator);
+    EIO_LOAD_VARIANT(em, OpticalEmGenerator);
+    EIO_LOAD_VARIANT(offload, OpticalOffloadGenerator);
+    EIO_LOAD_VARIANT(direct, OpticalDirectGenerator);
+    CELER_VALIDATE(false, << "invalid OpticalGenerator input");
 }
 
 #undef EIO_LOAD_VARIANT

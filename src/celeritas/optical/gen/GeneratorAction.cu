@@ -38,8 +38,8 @@ void GeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
-    size_type num_gen
-        = min(state.counters().num_vacancies, aux_state.counters.num_pending);
+    size_type num_gen = min(state.sync_get_counters().num_vacancies,
+                            aux_state.counters.num_pending);
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
@@ -47,8 +47,7 @@ void GeneratorAction::generate(CoreParams const& params,
                                           params.device_ref().cherenkov,
                                           params.device_ref().scintillation,
                                           aux_state.store.ref(),
-                                          aux_state.counters.buffer_size,
-                                          state.counters()};
+                                          aux_state.counters.buffer_size};
         static ActionLauncher<decltype(execute)> const launch(*this);
         launch(num_gen, state.stream_id(), execute);
     }

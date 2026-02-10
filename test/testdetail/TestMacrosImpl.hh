@@ -100,10 +100,12 @@ struct SoftPrecisionType<Constant, Constant>
 /*!
  * Get a soft comparison function from a \c SOFT_NEAR argument.
  *
- * If a floating point value, it defaults to
+ * If a floating point value, it defaults to EqualOrSoftEqual using explicit
+ * casts to the given value type to avoid errors with mixed-precision
+ * arithmetic.
  */
 template<class VT, class CT>
-constexpr auto soft_comparator(CT&& cmp_or_tol)
+constexpr auto make_soft_comparator(CT&& cmp_or_tol)
 {
     if constexpr (std::is_floating_point_v<std::remove_reference_t<CT>>)
     {
@@ -133,8 +135,6 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
                 char const* actual_expr,
                 BinaryOp comp)
 {
-    using value_type = typename BinaryOp::value_type;
-
     if (comp(expected, actual))
     {
         return ::testing::AssertionSuccess();
@@ -144,19 +144,19 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
     ::testing::AssertionResult result = ::testing::AssertionFailure();
 
     result << "Value of: " << actual_expr << "\n  Actual: " << actual
-           << "\nExpected: " << expected_expr << "\nWhich is: " << expected
-           << '\n';
+           << "\nExpected: " << expected_expr << "\nWhich is: " << expected;
 
-    if (SoftZero<value_type>{comp.abs()}(expected))
+    if (std::fabs(actual - expected) > comp.abs())
     {
-        // Avoid divide by zero errors
-        result << "(Absolute error " << actual - expected
-               << " exceeds tolerance " << comp.abs() << ")";
+        result << '\n'
+               << "- absolute error " << actual - expected
+               << " exceeds tolerance " << comp.abs();
     }
-    else
+    if (expected != 0
+        && std::fabs(actual - expected) > std::fabs(expected) * comp.rel())
     {
-        result << "(Relative error " << (actual - expected) / expected
-               << " exceeds tolerance " << comp.rel() << ")";
+        result << "\n- relative error " << actual / expected - 1
+               << " exceeds tolerance " << comp.rel();
     }
     return result;
 }
@@ -214,7 +214,7 @@ template<class Value_E, class Value_A, class T>
         expected_expr,
         static_cast<ValueT>(actual),
         actual_expr,
-        soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
+        make_soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//
@@ -729,7 +729,7 @@ template<class ContainerE, class ContainerA, class T>
         expected_expr,
         actual,
         actual_expr,
-        soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
+        make_soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//

@@ -14,6 +14,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 #include "TrackInitializer.hh"
 
@@ -30,6 +31,8 @@ namespace optical
  *   capacity.
  * - \c vacancies stores the \c TrackSlotid of the tracks that have been
  *   killed; the size will be <= the number of track states.
+ * - \c counters stores the number of tracks with a given status and is updated
+ *   during each step of the simulation of an event.
  */
 template<Ownership W, MemSpace M>
 struct TrackInitStateData
@@ -38,17 +41,24 @@ struct TrackInitStateData
 
     template<class T>
     using StateItems = StateCollection<T, W, M>;
+    template<class T>
+    using Items = Collection<T, W, M>;
 
     //// DATA ////
 
     StateItems<TrackSlotId> vacancies;
+
+    // Maintain the counters here to allow device-resident computation with
+    // synchronization between host and device only at the end of a step or
+    // when explicitly requested, such as in the tests
+    Items<CoreStateCounters> counters;
 
     //// METHODS ////
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !vacancies.empty();
+        return !vacancies.empty() && !counters.empty();
     }
 
     //! Assign from another set of data
@@ -57,6 +67,7 @@ struct TrackInitStateData
     {
         CELER_EXPECT(other);
         vacancies = other.vacancies;
+        counters = other.counters;
         return *this;
     }
 };
@@ -78,6 +89,10 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     // Initialize vacancies to mark all track slots as empty
     resize(&data->vacancies, size);
     fill_sequence(&data->vacancies, stream);
+
+    // Initialize the counters for the step to zero
+    resize(&data->counters, 1);
+    fill(CoreStateCounters{}, &data->counters);
 
     CELER_ENSURE(*data);
 }

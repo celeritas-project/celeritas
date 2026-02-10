@@ -28,6 +28,18 @@ void from_json(nlohmann::json const& j, AngleDistribution&);
 void to_json(nlohmann::json& j, OpticalPrimaryGenerator const&);
 void from_json(nlohmann::json const& j, OpticalPrimaryGenerator&);
 
+void to_json(nlohmann::json& j, OpticalEmGenerator const&);
+void from_json(nlohmann::json const& j, OpticalEmGenerator&);
+
+void to_json(nlohmann::json& j, OpticalOffloadGenerator const&);
+void from_json(nlohmann::json const& j, OpticalOffloadGenerator&);
+
+void to_json(nlohmann::json& j, OpticalDirectGenerator const&);
+void from_json(nlohmann::json const& j, OpticalDirectGenerator&);
+
+void to_json(nlohmann::json& j, OpticalGenerator const&);
+void from_json(nlohmann::json const& j, OpticalGenerator&);
+
 //---------------------------------------------------------------------------//
 }  // namespace inp
 }  // namespace celeritas

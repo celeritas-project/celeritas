@@ -9,7 +9,7 @@
 #include <functional>
 #include <memory>
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/inp/Grid.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/GammaNuclearData.hh"
@@ -81,7 +81,7 @@ class GammaNuclearModel final : public Model, public StaticConcreteAction
     std::shared_ptr<EmExtraPhysicsHelper> helper_;
 
     // Host/device storage and reference
-    CollectionMirror<GammaNuclearData> data_;
+    ParamsDataStore<GammaNuclearData> data_;
 
     //// TYPES ////
 

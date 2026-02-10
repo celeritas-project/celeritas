@@ -251,18 +251,20 @@ enum class Chirality : bool
  */
 namespace logic
 {
-//! Special logical Evaluator tokens ordered by precedence.
-// The enum values are set to the highest 6 values of logic_int.
+/*!
+ * Special logical evaluator tokens ordered by precedence.
+ *
+ * The enum values are set to the highest 6 values of logic_int.
+ */
 enum OperatorToken : logic_int
 {
-    lbegin = logic_int(~logic_int(6)),
+    lbegin = static_cast<logic_int>(-6),
     lopen = lbegin,  //!< Open parenthesis
     lclose,  //!< Close parenthesis
     lor,  //!< Binary logical OR
     land,  //!< Binary logical AND
     lnot,  //!< Unary negation
     ltrue,  //!< Push 'true'
-    lend
 };
 }  // namespace logic
 

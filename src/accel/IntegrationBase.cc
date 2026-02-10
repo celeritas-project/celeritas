@@ -9,6 +9,7 @@
 #include <G4Threading.hh>
 
 #include "corecel/Assert.hh"
+#include "accel/LocalTransporter.hh"
 
 #include "ExceptionConverter.hh"
 
@@ -107,6 +108,7 @@ CoreParams const& IntegrationBase::GetParams()
 CoreStateInterface& IntegrationBase::GetState()
 {
     auto& singleton = IntegrationSingleton::instance();
+    LocalTransporter* lt{nullptr};
     CELER_TRY_HANDLE(
         {
             CELER_VALIDATE(
@@ -116,10 +118,13 @@ CoreStateInterface& IntegrationBase::GetState()
             CELER_VALIDATE(
                 singleton.shared_params().mode() == OffloadMode::enabled,
                 << R"(cannot access local state unless Celeritas is enabled)");
+            lt = dynamic_cast<LocalTransporter*>(&singleton.local_offload());
+            CELER_VALIDATE(
+                lt, << R"(cannot access EM state when not using EM offload)");
         },
         ExceptionConverter{"celer.get.state"});
 
-    return singleton.local_transporter().GetState();
+    return lt->GetState();
 }
 //!@}
 

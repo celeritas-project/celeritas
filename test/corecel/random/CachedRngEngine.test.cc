@@ -8,7 +8,7 @@
 
 #include <random>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "corecel/random/engine/XorwowRngEngine.hh"
 #include "corecel/random/params/XorwowRngParams.hh"
@@ -70,7 +70,7 @@ TEST_F(CachedRngEngineTest, mt)
 
 TEST_F(CachedRngEngineTest, xorwow)
 {
-    using HostStore = CollectionStateStore<XorwowRngStateData, MemSpace::host>;
+    using HostStore = StateDataStore<XorwowRngStateData, MemSpace::host>;
 
     // Construct params with seed
     XorwowRngParams params{12345};

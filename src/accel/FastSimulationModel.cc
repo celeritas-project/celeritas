@@ -9,8 +9,8 @@
 #include "corecel/Assert.hh"
 
 #include "ExceptionConverter.hh"
-#include "LocalTransporter.hh"
 #include "SharedParams.hh"
+#include "TrackOffloadInterface.hh"
 
 #include "detail/IntegrationSingleton.hh"
 
@@ -25,7 +25,7 @@ FastSimulationModel::FastSimulationModel(G4Envelope* region)
           "celeritas",
           region,
           &detail::IntegrationSingleton::instance().shared_params(),
-          &detail::IntegrationSingleton::local_transporter())
+          &detail::IntegrationSingleton::instance().local_track_offload())
 {
 }
 
@@ -35,7 +35,7 @@ FastSimulationModel::FastSimulationModel(G4Envelope* region)
  */
 FastSimulationModel::FastSimulationModel(G4String const& name,
                                          SharedParams const* params,
-                                         LocalTransporter* local)
+                                         TrackOffloadInterface* local)
     : G4VFastSimulationModel(name), params_(params), transport_(local)
 {
 }
@@ -50,7 +50,7 @@ FastSimulationModel::FastSimulationModel(G4String const& name,
 FastSimulationModel::FastSimulationModel(G4String const& name,
                                          G4Envelope* region,
                                          SharedParams const* params,
-                                         LocalTransporter* local)
+                                         TrackOffloadInterface* local)
     : G4VFastSimulationModel(name, region), params_(params), transport_(local)
 {
     CELER_VALIDATE(G4VERSION_NUMBER >= 1110,

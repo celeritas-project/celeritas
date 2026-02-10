@@ -351,7 +351,7 @@ TEST_F(ConverterTest, znenv)
     auto result = convert(this->geo(), *this->volumes()).input;
     write_org_json(result, basename);
 
-    EXPECT_EQ(9, result.universes.size());
+    ASSERT_EQ(9, result.universes.size());
     {
         auto const& unit = std::get<UnitInput>(result.universes[0]);
         EXPECT_EQ(6, unit.volumes.size());

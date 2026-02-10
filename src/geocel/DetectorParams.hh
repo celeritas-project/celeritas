@@ -11,8 +11,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
 #include "DetectorData.hh"
 #include "inp/Model.hh"
@@ -69,7 +69,7 @@ class DetectorParams final : public ParamsDataInterface<DetectorParamsData>
     //!@}
 
   private:
-    CollectionMirror<DetectorParamsData> mirror_;
+    ParamsDataStore<DetectorParamsData> mirror_;
     inp::Detectors detectors_;
     DetectorMap det_labels_;
 };
