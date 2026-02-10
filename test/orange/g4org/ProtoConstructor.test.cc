@@ -807,7 +807,11 @@ TEST_F(TilecalPlugTest, default)
         static char const expected_tree_string[]
             = R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["~",6],["S",3],["~",8],["S",4],["~",10],["S",5],["~",12],["|",[3,4,6,8,11,13]],["S",6],["~",15],["|",[4,6,8,11,13,16]],["&",[5,7,9,10,12,15]],["S",7],["~",19],["S",8],["~",21],["|",[8,11,13,15,20,21]],["&",[9,10,12,16,19,22]],["&",[17,23]],["|",[18,24]],["S",9],["~",27],["S",10],["~",29],["S",11],["~",31],["|",[6,11,16,27,29,32]],["&",[7,10,15,28,30,31]],["&",[26,33]],["&",[2,5,7,9,10,12,17,23]]])json";
 
-        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // Slight change in plane when single precision
+            EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        }
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));

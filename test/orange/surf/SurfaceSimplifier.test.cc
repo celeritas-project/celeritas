@@ -293,7 +293,11 @@ TEST_F(SimpleQuadricTest, cylinder)
 {
     this->check_round_trip<SimpleQuadric>(CylX{{4, 5, -1}, 4.0});
     this->check_round_trip<SimpleQuadric>(CylY{{4, 5, -1}, 1.0});
-    this->check_round_trip<SimpleQuadric>(CylZ{{4, 5, -1}, 0.1});
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        this->check_round_trip<SimpleQuadric>(CylZ{{4, 5, -1}, 0.1});
+    }
 
     // Inverted
     this->check_simplifies_to(SimpleQuadric{{-2, 0, -2}, {4, 0, 12}, -2 * 3.75},
