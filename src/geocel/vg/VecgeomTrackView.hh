@@ -189,6 +189,7 @@ class VecgeomTrackView
     // Temporary data
     real_type next_step_{0};
     bool failed_{false};
+    bool reentrant_{false};
 
     // Static data
 
@@ -269,6 +270,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
     failed_ = false;
+    reentrant_ = false;
 
     // Initialize direction
     dir_ = init.dir;
@@ -494,31 +496,15 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     {
         // Possibly reentrant boundary?
 #if !CELER_DEVICE_COMPILE
-        auto msg = CELER_LOG_LOCAL(warning);
-        msg << "Failed to find next step at " << repr(pos_) << ' '
-            << lengthunits::native_label << " along " << repr(dir_)
-            << ": computed step is " << repr(next_step_) << ' '
-            << lengthunits::native_label;
+        auto msg = CELER_LOG_LOCAL(debug);
+        msg << "Possibly reentrant boundary at " << repr(pos_) << ' '
+            << lengthunits::native_label << " along " << repr(dir_);
 #endif
-        next_step_ = 1e-12;
+        reentrant_ = true;
+
         Propagation result;
         result.distance = 0;
         result.boundary = true;
-        return result;
-    }
-    if (CELER_UNLIKELY(!(next_step_ > 0)))
-    {
-#if !CELER_DEVICE_COMPILE
-        auto msg = CELER_LOG_LOCAL(error);
-        msg << "Failed to find next step at " << repr(pos_) << ' '
-            << lengthunits::native_label << " along " << repr(dir_)
-            << ": computed step is " << repr(next_step_) << ' '
-            << lengthunits::native_label;
-#endif
-        failed_ = true;
-        Propagation result;
-        result.distance = 0;
-        result.boundary = false;
         return result;
     }
 
@@ -586,8 +572,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
  */
 CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
 {
-    CELER_EXPECT(this->has_next_step());
-    CELER_EXPECT(this->is_next_boundary());
+    CELER_EXPECT(this->is_next_boundary() || reentrant_);
 
     // Move next step
     axpy(next_step_, dir_, &pos_);
@@ -608,6 +593,11 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(this->is_next_boundary());
+
+    if (reentrant_)
+    {
+        return;
+    }
 
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
@@ -647,7 +637,6 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
  */
 CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
-    CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(dist > 0 && dist <= next_step_);
     CELER_EXPECT(dist != next_step_ || !this->is_next_boundary());
 
@@ -709,7 +698,7 @@ CELER_FUNCTION bool VecgeomTrackView::has_next_step() const
  */
 CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
 {
-    CELER_EXPECT(this->has_next_step() || this->is_on_boundary());
+    CELER_EXPECT(this->has_next_step() || reentrant_);
     if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
         return *next_surf_ != null_surface();
