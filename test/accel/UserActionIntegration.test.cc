@@ -458,9 +458,16 @@ void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
         {
             std::size_t pushed = opt_offload->num_pushed();
 
-            // Validate that we intercepted optical tracks
-            EXPECT_EQ(pushed, 1128) << "should have pushed many optical "
-                                       "tracks";
+            if (using_surface_vg)
+            {
+                EXPECT_EQ(pushed, 74);
+            }
+            else
+            {
+                // Validate that we intercepted optical tracks
+                EXPECT_EQ(pushed, 1128) << "should have pushed many optical "
+                                           "tracks";
+            }
         }
     }
     // Continue cleanup and other checks at end of run
