@@ -4,6 +4,9 @@
 """
 Convert an ORANGE CSG JSON representation to a GraphViz or Mermaid input.
 
+Note that ``test/orange/g4org/Converter.test.cc`` can be used to generate
+the ``.csg.json`` files.
+
 .. example::
 
     To run from a raw CSG tree that you've copied to your clipboard::
@@ -120,6 +123,8 @@ def write_tree(gen: DotGenerator, csg_unit: dict[str, Any], args):
         if isinstance(node, str):
             # True literal
             node = (node.upper(), node)
+        if labels is None:
+            labels = []
 
         (nodetype, value) = node
 
@@ -177,12 +182,8 @@ def run(infile, outfile, gencls, args):
             )
             sys.exit(1)
     else:
-        # Raw CSG tree, no metadata
-        csg_unit = {
-            "tree": tree,
-            "metadata": None,
-            "label": "CSG tree",
-        }
+        # Assume input is a single CSG unit copied from a csg.json file
+        csg_unit = tree
 
     with gencls(outfile, args) as gen:
         write_tree(gen, csg_unit, args)
