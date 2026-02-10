@@ -24,7 +24,6 @@
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
-#include "orange/detail/LogicUtils.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
@@ -36,6 +35,7 @@
 #include "univ/detail/LogicStack.hh"
 #include "univ/detail/Types.hh"
 
+#include "detail/ConvertLogic.hh"
 #include "detail/DepthCalculator.hh"
 #include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"
@@ -107,8 +107,8 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
         }
         catch (std::exception const& e)
         {
-            CELER_LOG(critical)
-                << "Failed to load options from " << opt_filename;
+            CELER_LOG(critical) << "Failed to load options from "
+                                << opt_filename << ": " << e.what();
         }
     }
 
@@ -184,6 +184,10 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
                      << (celeritas::device() ? " and copying to GPU" : "");
     ScopedTimeLog scoped_time;
 
+    // First, preprocess the input logic expressions to match the tracker
+    detail::convert_logic(input, orange_tracking_logic);
+    CELER_ASSERT(input.logic == orange_tracking_logic);
+
     // Save global bounding box
     bbox_ = [&input] {
         auto& global = input.universes[orange_global_univ.unchecked_get()];
@@ -195,13 +199,10 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
-    host_data.scalars.logic = input.logic;
     host_data.scalars.num_univ_levels
         = detail::DepthCalculator{input.universes}();
     host_data.scalars.num_vol_levels = volumes_ ? volumes_->num_volume_levels()
                                                 : 0;
-
-    detail::convert_logic(input, orange_tracking_logic());
 
     // Insert all universes
     {
@@ -215,7 +216,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
                                                       &impl_volume_labels,
                                                       &host_data};
         Overload insert_universe{
-            detail::UnitInserter{&insert_universe_base, &host_data},
+            detail::UnitInserter{
+                &insert_universe_base, &host_data, &(input.construction_opts)},
             detail::RectArrayInserter{&insert_universe_base, &host_data}};
 
         for (auto&& u : input.universes)
@@ -229,6 +231,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
         impl_vol_labels_
             = ImplVolumeMap{"impl volume", std::move(impl_volume_labels)};
     }
+    // Clear captured input since we've consumed and modified it
     std::move(input) = {};
 
     // Simple safety if all SimpleUnits have simple safety and no RectArrays
@@ -242,8 +245,10 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 
     // Update scalars *after* loading all units
     CELER_VALIDATE(
-        host_data.scalars.max_csg_levels <= detail::LogicStack::capacity(),
-        << "input geometry has at least one volume with a CSG tree depth of"
+        orange_tracking_logic == LogicNotation::infix
+            || host_data.scalars.max_csg_levels
+                   <= detail::LogicStack::capacity(),
+        << R"(input geometry has at least one volume with a CSG tree depth of)"
         << host_data.scalars.max_csg_levels
         << ", but the logic stack is limited to a depth of "
         << detail::LogicStack::capacity());
@@ -272,7 +277,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
-    data_ = CollectionMirror{std::move(host_data)};
+    data_ = ParamsDataStore{std::move(host_data)};
 
     CELER_ENSURE(impl_surf_labels_ && univ_labels_ && impl_vol_labels_);
     CELER_ENSURE(data_);
@@ -289,8 +294,7 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
  */
 inp::Model OrangeParams::make_model_input() const
 {
-    CELER_LOG(warning)
-        << R"(ORANGE standalone model input is not fully implemented)";
+    CELER_LOG(info) << R"(Generating fake model input for unit tests)";
 
     inp::Model result;
     inp::Volumes& v = result.volumes;
@@ -383,7 +387,7 @@ OrangeParams::locate_volume_containing_point(Real3 const& global_point) const
  */
 OrangeParams::~OrangeParams() = default;
 
-template class CollectionMirror<OrangeParamsData>;
+template class ParamsDataStore<OrangeParamsData>;
 template class ParamsDataInterface<OrangeParamsData>;
 
 //---------------------------------------------------------------------------//

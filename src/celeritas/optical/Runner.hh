@@ -39,6 +39,7 @@ class Runner
   public:
     //!@{
     //! \name Type aliases
+    using Input = inp::OpticalStandaloneInput;
     using SPConstParams = std::shared_ptr<CoreParams const>;
     using SpanConstTrackInit = DirectGeneratorAction::SpanConstData;
     using SpanConstGenDist = GeneratorAction::SpanConstData;
@@ -52,7 +53,7 @@ class Runner
 
   public:
     // Construct with optical problem input definition
-    explicit Runner(inp::OpticalStandaloneInput&&);
+    explicit Runner(Input&&);
 
     // Transport tracks generated with a primary generator
     Result operator()();
@@ -75,7 +76,7 @@ class Runner
 
     //// HELPER FUNCTIONS ////
 
-    Result get_result() const;
+    Result run() const;
 };
 
 //---------------------------------------------------------------------------//

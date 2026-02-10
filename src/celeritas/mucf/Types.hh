@@ -17,6 +17,19 @@ namespace celeritas
  * Muonic atom selection from material data. This is *not* intended to be used
  * by the transport loop.
  */
+enum class MucfIsotope
+{
+    protium,
+    deuterium,
+    tritium,
+    size_
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Muonic atom selection from material data. This is *not* intended to be used
+ * by the transport loop.
+ */
 enum class MucfMuonicAtom
 {
     deuterium,

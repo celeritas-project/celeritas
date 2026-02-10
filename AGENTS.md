@@ -30,6 +30,7 @@ git commit -m "Message" --trailer "Assisted-by: GitHub Copilot (<model-name>)"
 ```
 
 ## Architecture
+Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
 
 ### Params/States Pattern
 Celeritas separates immutable setup from mutable runtime data:
@@ -70,13 +71,6 @@ public:
 - `.test.cc`: Unit tests (mirror `src/` structure in `test/`)
 
 **Most code is `.cc` - only kernel launches need `.cu`**
-
-### Host-Device Macros
-```cpp
-CELER_FUNCTION              // Callable from host and device
-CELER_FORCEINLINE_FUNCTION  // Force inline + host/device
-CELER_CONSTEXPR_FUNCTION    // Compile-time + host/device
-```
 
 ### Assertions
 - `CELER_EXPECT`: Preconditions (function entry)
@@ -120,9 +114,9 @@ See `src/celeritas/em/model/KleinNishinaModel.{cc,cu}`
 Use inserter classes to populate Collections with deduplication:
 ```cpp
 class XsGridInserter {
-public:
+  public:
     GridId operator()(inp::XsGrid const& grid);
-private:
+  private:
     DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<XsGridRecord> grids_;
 };

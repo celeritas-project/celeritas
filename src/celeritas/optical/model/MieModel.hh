@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/optical/ImportedModelAdapter.hh"
 #include "celeritas/optical/Model.hh"
 
@@ -66,7 +66,7 @@ class MieModel final : public Model
 
   private:
     ImportedModelAdapter imported_;
-    CollectionMirror<MieData> data_;
+    ParamsDataStore<MieData> data_;
 };
 
 //---------------------------------------------------------------------------//

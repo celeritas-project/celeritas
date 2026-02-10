@@ -89,7 +89,7 @@ SurfacePhysicsParams::SurfacePhysicsParams(ActionRegistry* action_reg,
     // Finalize data
     CELER_ENSURE(data);
 
-    data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
+    data_ = ParamsDataStore<SurfacePhysicsParamsData>{std::move(data)};
 }
 
 //---------------------------------------------------------------------------//

@@ -62,7 +62,7 @@ MieModel::MieModel(ActionId id, SPConstImported imported, Input input)
         builder.push_back(record);
     }
 
-    data_ = CollectionMirror<MieData>{std::move(data)};
+    data_ = ParamsDataStore<MieData>{std::move(data)};
     CELER_ENSURE(data_);
 }
 

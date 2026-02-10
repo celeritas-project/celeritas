@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/random/data/CuHipRngData.hh"
 
 namespace celeritas
@@ -33,7 +33,7 @@ class CuHipRngParams final : public ParamsDataInterface<CuHipRngParamsData>
 
   private:
     // Host/device storage and reference
-    CollectionMirror<CuHipRngParamsData> data_;
+    ParamsDataStore<CuHipRngParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

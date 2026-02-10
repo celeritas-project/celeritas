@@ -17,17 +17,24 @@
 #include "geocel/inp/Model.hh"
 
 #include "GenericGeoTestInterface.hh"
-#include "testdetail/TestMacrosImpl.hh"
-
-//!@{
-//! Helper macros
-#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
-//!@}
+#include "TestMacros.hh"
 
 namespace celeritas
 {
 namespace test
 {
+namespace
+{
+
+template<class T>
+void erase_after(std::vector<T>& vec, std::size_t idx)
+{
+    auto iter = vec.begin() + std::min(idx, vec.size());
+    vec.erase(iter, vec.end());
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 ::testing::AssertionResult IsNormalEquiv(char const* expected_expr,
                                          char const* actual_expr,
@@ -78,9 +85,20 @@ void GenericGeoTrackingResult::clear_boring_normals()
     }
 }
 
+void GenericGeoTrackingResult::fail_at(std::size_t index)
+{
+    erase_after(volumes, index);
+    erase_after(volume_instances, index);
+    erase_after(distances, index);
+    erase_after(dot_normal, index);
+    erase_after(halfway_safeties, index);
+    volumes.push_back("[FAILURE]");
+}
+
 void GenericGeoTrackingResult::print_expected() const
 {
     using std::cout;
+    auto const& ref = *this;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoTrackingResult ref;\n"
          << CELER_REF_ATTR(volumes) << CELER_REF_ATTR(volume_instances)
@@ -191,11 +209,17 @@ GenericGeoVolumeStackResult::from_span(LabelMap const& vol_inst,
 void GenericGeoVolumeStackResult::print_expected() const
 {
     using std::cout;
+    auto const& ref = *this;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoVolumeStackResult ref;\n"
             << CELER_REF_ATTR(volume_instances)
             "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
+}
+
+void GenericGeoVolumeStackResult::fail()
+{
+    this->volume_instances.push_back("[FAILURE]");
 }
 
 ::testing::AssertionResult IsRefEq(char const* expr1,
@@ -210,7 +234,9 @@ void GenericGeoVolumeStackResult::print_expected() const
     {                                                              \
         result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
                       << " but got " << repr(val2.ATTR);           \
-    }
+    }                                                              \
+    else                                                           \
+        CELER_DISCARD(int)
     IRE_COMPARE(volume_instances);
 #undef IRE_COMPARE
     return result;
@@ -321,6 +347,7 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
 void GenericGeoModelInp::print_expected() const
 {
     using std::cout;
+    auto const& ref = *this;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoModelInp ref;\n"
          << CELER_REF_ATTR(volume.labels) << CELER_REF_ATTR(volume.materials)
@@ -360,7 +387,7 @@ void GenericGeoModelInp::print_expected() const
                       << " but got " << repr(val2.ATTR);           \
     }                                                              \
     else                                                           \
-        (void)sizeof(char)
+        CELER_DISCARD(int)
 
     IRE_COMPARE(volume.labels);
     IRE_COMPARE(volume.materials);

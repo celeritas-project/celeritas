@@ -78,7 +78,7 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
     }();
 
     // Move to mirrored data, copying to device
-    mirror_ = CollectionMirror<RZMapFieldParamsData>{std::move(host_data)};
+    mirror_ = ParamsDataStore<RZMapFieldParamsData>{std::move(host_data)};
     CELER_ENSURE(this->mirror_);
 }
 

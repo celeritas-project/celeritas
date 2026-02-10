@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/UniformBoxDistribution.hh"
 #include "orange/OrangeData.hh"

@@ -29,9 +29,16 @@ options.
 GPU management
 ^^^^^^^^^^^^^^
 
+These devices wrap and hide CUDA/HIP API calls.
+
 .. doxygenclass:: celeritas::Device
 .. doxygenfunction:: celeritas::device
 .. doxygenfunction:: celeritas::activate_device()
+
+The stream and device event can be used for low-level algorithmic development.
+
+.. doxygenclass:: celeritas::Stream
+.. doxygenclass:: celeritas::DeviceEvent
 
 
 Platform portability macros

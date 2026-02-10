@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/detail/RefImpl.hh
+//! \file orange/inp/Bih.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -10,27 +10,22 @@
 
 namespace celeritas
 {
-namespace detail
+namespace inp
 {
 //---------------------------------------------------------------------------//
-//! Store a value/reference and dispatch function name based on MemSpace.
-
-template<class T, MemSpace M>
-struct RefGetter
+/*!
+ * Construction options for BIH tree.
+ */
+struct BIHBuilder
 {
-    T obj_;
+    //! Maximum number of bboxes that can reside on a leaf node without
+    //! triggering a partitioning attempt
+    size_type max_leaf_size = 1;
 
-    auto operator()() const -> decltype(auto) { return obj_.host_ref(); }
-};
-
-template<class T>
-struct RefGetter<T, MemSpace::device>
-{
-    T obj_;
-
-    auto operator()() const -> decltype(auto) { return obj_.device_ref(); }
+    //! Whether the options are valid
+    explicit operator bool() const { return max_leaf_size >= 1; }
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+}  // namespace inp
 }  // namespace celeritas

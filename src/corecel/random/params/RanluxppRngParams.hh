@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/random/data/RanluxppRngData.hh"
 #include "corecel/random/data/RanluxppTypes.hh"
 
@@ -33,7 +33,7 @@ class RanluxppRngParams final
   private:
     /// DATA ///
     // Host/device storage and reference
-    CollectionMirror<RanluxppRngParamsData> data_;
+    ParamsDataStore<RanluxppRngParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

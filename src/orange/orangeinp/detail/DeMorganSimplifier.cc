@@ -13,6 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "../CsgTree.hh"
@@ -25,37 +26,6 @@ namespace orangeinp
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-/*!
- * Create the matrix with the given extent size.
- */
-DeMorganSimplifier::Matrix2D::Matrix2D(size_type extent) noexcept
-    : extent_(extent)
-{
-    data_.resize(extent_ * extent_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access the element at the given index.
- */
-std::vector<bool>::reference
-DeMorganSimplifier::Matrix2D::operator[](indices index)
-{
-    auto& [row, col] = index;
-    CELER_EXPECT(row < extent_ && col < extent_);
-    return data_[row.get() * extent_ + col.get()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * The extent along one dimension.
- */
-size_type DeMorganSimplifier::Matrix2D::extent() const noexcept
-{
-    return extent_;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Find the simplified node corresponding to the original node.
@@ -77,12 +47,16 @@ NodeId DeMorganSimplifier::MatchingNodes::equivalent_node() const
 /*!
  * Construct and fix bitsets size.
  */
-DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree)
-    : tree_(tree), parents_(tree_.size())
+DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree) : tree_(tree) {}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access or create a translation entry.
+ */
+auto DeMorganSimplifier::translation(NodeId id) -> MatchingNodes&
 {
-    new_negated_nodes_.resize(tree_.size());
-    negated_join_nodes_.resize(tree_.size());
-    node_ids_translation_.resize(tree_.size());
+    CELER_EXPECT(id < matching_nodes_.size());
+    return matching_nodes_[id.get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -92,23 +66,37 @@ DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree)
  */
 TransformedTree DeMorganSimplifier::operator()()
 {
+    // Mark nodes related to negated joins
+    matching_nodes_.assign(tree_.size(), {});
     this->find_join_negations();
-    auto simplified_tree{this->build_simplified_tree()};
-    std::vector<NodeId> equivalent_nodes;
-    equivalent_nodes.reserve(tree_.size());
-    for (auto node_id : range(tree_.size()))
+
+    // Save volume nodes
+    is_volume_node_.assign(tree_.size(), false);
+    for (auto node_id : tree_.volumes())
     {
-        equivalent_nodes.push_back(
-            node_ids_translation_[node_id].equivalent_node());
+        CELER_ASSERT(node_id < is_volume_node_.size());
+        is_volume_node_[node_id.unchecked_get()] = true;
     }
+
+    // Perform simplification
+    CsgTree simplified_tree = this->build_simplified_tree();
+
+    // Find equivalent nodes
+    std::vector<NodeId> equivalent_nodes(tree_.size());
+    for (auto node_id : range(NodeId{tree_.size()}))
+    {
+        equivalent_nodes[node_id.get()]
+            = this->translation(node_id).equivalent_node();
+    }
+
     return {simplified_tree, equivalent_nodes};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the real node id to access by dereferencing Aliased nodes.
+ * Get a non-aliased Node variant
  */
-NodeId DeMorganSimplifier::dealias(NodeId node_id) const
+Node const& DeMorganSimplifier::get_node(NodeId node_id) const
 {
     CELER_EXPECT(node_id < tree_.size());
     NodeId dealiased{node_id};
@@ -117,7 +105,7 @@ NodeId DeMorganSimplifier::dealias(NodeId node_id) const
         dealiased = aliased->node;
         CELER_ASSERT(dealiased < tree_.size());
     }
-    return dealiased;
+    return tree_[dealiased];
 }
 
 //---------------------------------------------------------------------------//
@@ -127,37 +115,49 @@ NodeId DeMorganSimplifier::dealias(NodeId node_id) const
  */
 void DeMorganSimplifier::find_join_negations()
 {
+    ScopedProfiling profile_this{"orange-demorgan-find"};
     for (auto node_id : range(NodeId{tree_.size()}))
     {
-        auto const* node = &tree_[this->dealias(node_id)];
-        if (auto* negated = std::get_if<Negated>(node))
+        auto const& node = this->get_node(node_id);
+        if (auto* negated = std::get_if<Negated>(&node))
         {
-            parents_[{negated->node, node_id}] = true;
-            parents_[{negated->node, has_parents_index_}] = true;
-            if (std::holds_alternative<Joined>(
-                    tree_[this->dealias(negated->node)]))
-            {
-                // This is a negated join node
-                negated_join_nodes_[negated->node.get()] = true;
-                this->add_negation_for_operands(negated->node);
-            }
-        }
-        else if (auto* joined = std::get_if<Joined>(node))
-        {
-            for (auto const& join_operand : joined->nodes)
-            {
-                parents_[{join_operand, node_id}] = true;
-                parents_[{join_operand, has_parents_index_}] = true;
-            }
-        }
-    }
+            // Mark the parent relationship
+            this->insert_parent(node_id, negated->node);
 
-    // Volumes act as parents of nodes.
-    // We can reuse node id 0 to set that a node has a parent volume
-    for (auto node_id : tree_.volumes())
-    {
-        parents_[{node_id, is_volume_index_}] = true;
+            if (std::holds_alternative<Joined>(this->get_node(negated->node)))
+            {
+                this->insert_negated_children(negated->node);
+            }
+        }
+        else if (auto* joined = std::get_if<Joined>(&node))
+        {
+            for (auto const& child_node_id : joined->nodes)
+            {
+                this->insert_parent(node_id, child_node_id);
+            }
+        }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Mark that the first node is a parent of the second.
+ *
+ * \param node_id a \c Joined node_id with a \c Negated parent.
+ */
+bool DeMorganSimplifier::insert_parent(NodeId parent, NodeId child)
+{
+    CELER_EXPECT(parent);
+    CELER_EXPECT(child);
+    CELER_EXPECT(parent >= child);
+
+    // Insert child row
+    auto&& [iter, inserted] = parents_.try_emplace(child);
+    CELER_ASSERT(iter != parents_.end());
+    // Insert parent entry
+    inserted = iter->second.insert(parent).second;
+
+    return inserted;
 }
 
 //---------------------------------------------------------------------------//
@@ -167,28 +167,47 @@ void DeMorganSimplifier::find_join_negations()
  *
  * \param node_id a \c Joined node_id with a \c Negated parent.
  */
-void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
+bool DeMorganSimplifier::insert_negated_children(NodeId node_id)
 {
-    CELER_ASSUME(std::holds_alternative<Joined>(tree_[this->dealias(node_id)]));
+    CELER_ASSUME(std::holds_alternative<Joined>(this->get_node(node_id)));
+    auto&& [iter, inserted] = negated_join_nodes_.insert(node_id);
+    if (!inserted)
+    {
+        return inserted;
+    }
     auto& [op, operands] = std::get<Joined>(tree_[node_id]);
 
-    for (auto const& join_operand : operands)
+    for (auto const& child_node : operands)
     {
-        Node const& target_node = tree_[this->dealias(join_operand)];
+        Node const& target_node = this->get_node(child_node);
         if (std::holds_alternative<Joined>(target_node))
         {
             // This negated join node has a join operand, so we'll have to
             // insert a negated join of that join operand and its operands
-            negated_join_nodes_[join_operand.get()] = true;
-            this->add_negation_for_operands(join_operand);
+            this->insert_negated_children(child_node);
         }
         else if (!std::holds_alternative<Negated>(target_node))
         {
             // Negate each operand unless it's a negated node, in which
             // case double negation will cancel to the child of that operand
-            new_negated_nodes_[join_operand.get()] = true;
+            new_negated_nodes_.insert(child_node);
         }
     }
+    return inserted;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the second node is a child of the first.
+ */
+bool DeMorganSimplifier::is_parent_of(NodeId parent, NodeId child) const
+{
+    auto iter = parents_.find(child);
+    if (iter == parents_.end())
+    {
+        return false;
+    }
+    return iter->second.count(parent);
 }
 
 //---------------------------------------------------------------------------//
@@ -199,6 +218,7 @@ void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
  */
 CsgTree DeMorganSimplifier::build_simplified_tree()
 {
+    ScopedProfiling profile_this{"orange-demorgan-simplify"};
     CsgTree result{};
 
     // We can now build the new tree
@@ -214,7 +234,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // to update the node ids of its children
 
         // deref aliased nodes, we don't want to insert them in the new tree
-        Node new_node = tree_[this->dealias(node_id)];
+        Node new_node = this->get_node(node_id);
 
         CELER_ASSERT(!std::holds_alternative<Aliased>(new_node));
 
@@ -223,35 +243,36 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
             // We're never inserting a negated node pointing to a
             // joined or negated node so it's child must have an
             // unmodified equivalent in the simplified tree
-            CELER_ASSERT(node_ids_translation_[negated->node.get()].unmodified);
-            negated->node
-                = node_ids_translation_[negated->node.get()].unmodified;
+            auto& trans = this->translation(negated->node);
+            CELER_ASSERT(trans.unmodified);
+            negated->node = trans.unmodified;
         }
         else if (auto* joined = std::get_if<Joined>(&new_node))
         {
             // This is not a negated join, they are inserted in
             // process_negated_joined_nodes
-            for (auto& op : joined->nodes)
+            for (auto& child : joined->nodes)
             {
                 // That means we should find an equivalent node for
                 // each operand, either a simplified negated join or an
                 // unmodified node
-                CELER_ASSERT(node_ids_translation_[op.get()].equivalent_node());
-                op = node_ids_translation_[op.get()].equivalent_node();
+                auto& trans = this->translation(child);
+                CELER_ASSERT(trans.equivalent_node());
+                child = trans.equivalent_node();
             }
         }
 
         auto [new_id, inserted] = result.insert(std::move(new_node));
-        auto& trans = node_ids_translation_[node_id.get()];
+        auto& trans = this->translation(node_id);
 
         CELER_ASSERT(!trans.unmodified);
         // Record the new node id for parents of that node
         trans.unmodified = new_id;
 
         // We might have to insert a negated version of that node
-        if (new_negated_nodes_[node_id.get()])
+        if (new_negated_nodes_.count(node_id))
         {
-            Node const& target_node{tree_[this->dealias(node_id)]};
+            Node const& target_node{this->get_node(node_id)};
             CELER_ASSERT(!std::holds_alternative<Negated>(target_node)
                          && !std::holds_alternative<Joined>(target_node)
                          && !trans.new_negation);
@@ -268,9 +289,9 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // new tree.
         // This is not always the exact same node, e.g., if the volume
         // points to a negated join, it will still be simplified
-        CELER_ASSERT(node_ids_translation_[volume.get()].equivalent_node());
-        result.insert_volume(
-            node_ids_translation_[volume.get()].equivalent_node());
+        auto& trans = this->translation(volume);
+        CELER_ASSERT(trans.equivalent_node());
+        result.insert_volume(trans.equivalent_node());
     }
 
     return result;
@@ -296,19 +317,18 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
 bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                                                       CsgTree& result)
 {
-    Node const* target_node = &tree_[this->dealias(node_id)];
-    if (auto const* negated = std::get_if<Negated>(target_node))
+    Node const& target_node = this->get_node(node_id);
+    if (auto const* negated = std::get_if<Negated>(&target_node))
     {
         // This node has a joined child, we must never insert it in the
         // simplified tree
-        if (std::holds_alternative<Joined>(tree_[this->dealias(negated->node)]))
+        if (std::holds_alternative<Joined>(this->get_node(negated->node)))
         {
             // Redirect parents looking for this node to the new Joined
             // node which is logically equivalent
-            CELER_ASSERT(
-                node_ids_translation_[negated->node.get()].opposite_join);
-            node_ids_translation_[node_id.get()].simplified_to
-                = node_ids_translation_[negated->node.get()].opposite_join;
+            auto& trans = this->translation(negated->node);
+            CELER_ASSERT(trans.opposite_join);
+            this->translation(node_id).simplified_to = trans.opposite_join;
             return false;
         }
 
@@ -317,25 +337,26 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
 
         // Check if the negation is a root or a volume. If so, we must
         // insert it in the simplified tree
-        if (parents_[{node_id, is_volume_index_}]
-            || !parents_[{node_id, has_parents_index_}])
+        if (is_volume_node_[node_id.get()])
         {
             return true;
         }
-
-        for (auto p : range(first_node_id_, NodeId{tree_.size()}))
+        auto parents_iter = parents_.find(node_id);
+        if (parents_iter == parents_.end())
         {
-            // Not a parent
-            if (!parents_[{node_id, p}])
-                continue;
+            // No parents: root node
+            return true;
+        }
 
+        // Loop over all parents of node_id
+        for (NodeId p : parents_iter->second)
+        {
             // A negated node should never have a negated parent
-            CELER_ASSERT(
-                !std::holds_alternative<Negated>(tree_[this->dealias(p)]));
+            CELER_ASSERT(!std::holds_alternative<Negated>(this->get_node(p)));
 
             // If an ancestor is a join node that should be inserted
             // unmodified, this negated node is still necessary
-            if (std::holds_alternative<Joined>(tree_[this->dealias(p)])
+            if (std::holds_alternative<Joined>(this->get_node(p))
                 && this->should_insert_join(p))
             {
                 return true;
@@ -346,17 +367,16 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
         // is no longer necessary in the simplified tree
         return false;
     }
-    else if (auto const* joined = std::get_if<Joined>(target_node))
+    else if (auto const* joined = std::get_if<Joined>(&target_node))
     {
         // Check if this node needs a simplification
-        if (negated_join_nodes_[node_id.get()])
+        if (negated_join_nodes_.count(node_id))
         {
             // Insert the negated node
             auto [new_id, inserted]
                 = result.insert(this->build_negated_node(*joined));
             // Record that we inserted an opposite join for that node
-            node_ids_translation_[node_id.get()].opposite_join
-                = std::move(new_id);
+            this->translation(node_id).opposite_join = std::move(new_id);
         }
         return this->should_insert_join(node_id);
     }
@@ -371,7 +391,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
  *
  * \return Join node with opposite operation and negated operands
  */
-Joined DeMorganSimplifier::build_negated_node(Joined const& joined) const
+Joined DeMorganSimplifier::build_negated_node(Joined const& joined)
 {
     // Insert the opposite join
     auto const& [op, nodes] = joined;
@@ -384,13 +404,13 @@ Joined DeMorganSimplifier::build_negated_node(Joined const& joined) const
     {
         // Negation of a negated operand cancel each other, we can
         // just use the child of that negated operand
-        if (auto const* neg = std::get_if<Negated>(&tree_[this->dealias(n)]))
+        if (auto const* neg = std::get_if<Negated>(&this->get_node(n)))
         {
             // We should have recorded that this node was necessary
             // for a join
-            CELER_ASSERT(node_ids_translation_[neg->node.get()].unmodified);
-            operands.push_back(
-                node_ids_translation_[neg->node.get()].unmodified);
+            auto& trans = this->translation(neg->node);
+            CELER_ASSERT(trans.unmodified);
+            operands.push_back(trans.unmodified);
         }
         else
         {
@@ -398,7 +418,7 @@ Joined DeMorganSimplifier::build_negated_node(Joined const& joined) const
             // version of that operand in the simplified tree.
             // It's either a simplified join or a negated node
             operands.push_back([&] {
-                auto& trans = node_ids_translation_[n.get()];
+                auto& trans = this->translation(n);
                 CELER_ASSERT(trans.new_negation || trans.opposite_join);
                 if (trans.new_negation)
                     return trans.new_negation;
@@ -421,12 +441,20 @@ Joined DeMorganSimplifier::build_negated_node(Joined const& joined) const
  */
 bool DeMorganSimplifier::should_insert_join(NodeId node_id)
 {
-    CELER_EXPECT(std::holds_alternative<Joined>(tree_[this->dealias(node_id)]));
+    CELER_EXPECT(std::holds_alternative<Joined>(this->get_node(node_id)));
+
+    // TODO: logic is very similar to process_negated_joined_nodes
 
     // This join node is referred by a volume or a root node, we must insert it
-    if (parents_[{node_id, is_volume_index_}]
-        || !parents_[{node_id, has_parents_index_}])
+    if (is_volume_node_[node_id.get()])
     {
+        return true;
+    }
+
+    auto parents_iter = parents_.find(node_id);
+    if (parents_iter == parents_.end())
+    {
+        // No parents: root node
         return true;
     }
 
@@ -434,30 +462,34 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
     // 1. It has a Join ancestor that is not negated
     // 2. It has a negated parent, and that negated node has a negated join
     // parent (double negation of that join)
-    auto has_negated_join_parent = [&](NodeId n) {
-        for (auto p : range(first_node_id_, NodeId{tree_.size()}))
-        {
-            if (parents_[{n, p}] && negated_join_nodes_[p.get()])
-                return true;
-        }
-        return false;
-    };
-
-    for (auto p : range(first_node_id_, NodeId{tree_.size()}))
+    // Loop over all parents of node_id
+    for (NodeId p : parents_iter->second)
     {
-        // Not a parent
-        if (!parents_[{node_id, p}])
-            continue;
-
         // Check if a parent requires that node to be inserted
         // TODO: Is it really correct in all cases...
-        if (Node const& dealiased{tree_[this->dealias(p)]};
-            (std::holds_alternative<Joined>(dealiased)
-             && this->should_insert_join(p))
-            || (std::holds_alternative<Negated>(dealiased)
-                && has_negated_join_parent(p)))
+        Node const& dealiased = this->get_node(p);
+
+        if (std::holds_alternative<Joined>(dealiased)
+            && this->should_insert_join(p))
         {
             return true;
+        }
+        if (std::holds_alternative<Negated>(dealiased))
+        {
+            // Loop over grandparents
+            auto gp_iter = parents_.find(p);
+            if (gp_iter != parents_.end())
+            {
+                for (NodeId gp : gp_iter->second)
+                {
+                    if (this->is_parent_of(gp, p)
+                        && negated_join_nodes_.count(gp))
+                    {
+                        // Has negated join
+                        return true;
+                    }
+                }
+            }
         }
     }
 

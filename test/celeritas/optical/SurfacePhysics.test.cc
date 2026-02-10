@@ -14,7 +14,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/VariantUtils.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsTrackView.hh"
 
@@ -183,7 +183,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
     void initialize_states(TrackSlotId::size_type num_tracks)
     {
         surface_physics_state_
-            = CollectionStateStore<SurfacePhysicsStateData, MemSpace::host>(
+            = StateDataStore<SurfacePhysicsStateData, MemSpace::host>(
                 num_tracks);
         CELER_ASSERT(surface_physics_state_.size() == num_tracks);
     }
@@ -197,8 +197,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
     }
 
   private:
-    CollectionStateStore<SurfacePhysicsStateData, MemSpace::host>
-        surface_physics_state_;
+    StateDataStore<SurfacePhysicsStateData, MemSpace::host> surface_physics_state_;
 };
 
 //---------------------------------------------------------------------------//

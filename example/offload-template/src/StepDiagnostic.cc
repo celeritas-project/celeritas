@@ -84,7 +84,7 @@ StepDiagnostic::StepDiagnostic(ActionId action_id, AuxId aux_id)
     CELER_EXPECT(aux_id_);
 
     // Set up shared data on host and device
-    mirror_ = CollectionMirror{HostVal<StepParamsData>{}};
+    mirror_ = ParamsDataStore{HostVal<StepParamsData>{}};
 }
 
 //---------------------------------------------------------------------------//

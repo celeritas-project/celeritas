@@ -577,7 +577,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
             }
         }
         CELER_ASSERT(host_data);
-        data_ = CollectionMirror{std::move(host_data)};
+        data_ = ParamsDataStore{std::move(host_data)};
 
         // Save world bbox
         bbox_ = [&world] {
@@ -846,7 +846,7 @@ void VecgeomParams::build_volume_tracking()
 // EXPLICIT TEMPLATE INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template class CollectionMirror<VecgeomParamsData>;
+template class ParamsDataStore<VecgeomParamsData>;
 template class ParamsDataInterface<VecgeomParamsData>;
 
 //---------------------------------------------------------------------------//

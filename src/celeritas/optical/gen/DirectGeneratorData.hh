@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
@@ -59,7 +59,7 @@ struct DirectGeneratorStateData
 template<MemSpace M>
 struct DirectGeneratorState : public GeneratorStateBase
 {
-    CollectionStateStore<DirectGeneratorStateData, M> store;
+    StateDataStore<DirectGeneratorStateData, M> store;
 
     //! Access valid range of track initializers
     auto initializers()

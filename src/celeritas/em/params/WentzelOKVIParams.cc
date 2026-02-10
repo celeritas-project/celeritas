@@ -96,7 +96,7 @@ WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
     CELER_ASSERT(host_data);
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<WentzelOKVIData>{std::move(host_data)};
+    data_ = ParamsDataStore<WentzelOKVIData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

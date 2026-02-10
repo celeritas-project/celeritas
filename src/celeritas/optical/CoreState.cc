@@ -43,7 +43,7 @@ CoreState<M>::CoreState(CoreParams const& params,
 
     ScopedProfiling profile_this{"construct-optical-state"};
 
-    states_ = CollectionStateStore<CoreStateData, M>(
+    states_ = StateDataStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
 
     auto counters = CoreStateCounters{};

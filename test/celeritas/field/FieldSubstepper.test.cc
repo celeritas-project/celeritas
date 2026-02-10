@@ -31,6 +31,7 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::units::literals;
 
 constexpr real_type sqrt_two{constants::sqrt_two};
 using units::ElementaryCharge;
@@ -87,8 +88,8 @@ class RevolutionFieldSubstepperTest : public FieldSubstepperTest
         // Input parameters of an electron in a uniform magnetic field
         test_params.nsteps = 100;
         test_params.revolutions = 10;
-        test_params.radius = 3.8085386036 * units::centimeter;
-        test_params.delta_z = 6.7003310629 * units::centimeter;
+        test_params.radius = 3.8085386036_cm;
+        test_params.delta_z = 6.7003310629_cm;
         test_params.epsilon = 1.0e-5;
     }
 
@@ -117,7 +118,7 @@ make_mag_field_substepper(FieldT&& field,
 //! Z oriented field of 2**(y / scale)
 struct ExpZField
 {
-    real_type strength{1 * units::tesla};
+    real_type strength{1_T};
     real_type scale{1};
 
     Real3 operator()(Real3 const& pos) const
@@ -168,7 +169,7 @@ TEST_F(FieldSubstepperTest, unpleasant_field)
     FieldDriverOptions driver_options;
     driver_options.max_nsteps = 32;
 
-    real_type field_strength = 1.0 * units::tesla;
+    real_type field_strength = 1.0_T;
     MevEnergy e{1.0};
     real_type radius = this->calc_curvature(e, field_strength);
 
@@ -200,7 +201,7 @@ TEST_F(FieldSubstepperTest, horrible_field)
     FieldDriverOptions driver_options;
     driver_options.max_nsteps = 32;
 
-    real_type field_strength = 1.0 * units::tesla;
+    real_type field_strength = 1.0_T;
     MevEnergy e{1.0};
     real_type radius = this->calc_curvature(e, field_strength);
 
@@ -240,7 +241,7 @@ TEST_F(FieldSubstepperTest, pathological_chord)
     FieldDriverOptions driver_options;
     driver_options.max_nsteps = std::numeric_limits<short int>::max();
 
-    real_type field_strength = 1.0 * units::tesla;
+    real_type field_strength = 1.0_T;
     MevEnergy e{1.0};
     real_type radius = this->calc_curvature(e, field_strength);
 
@@ -279,7 +280,7 @@ TEST_F(FieldSubstepperTest, step_counts)
     FieldDriverOptions driver_options;
     driver_options.max_nsteps = std::numeric_limits<short int>::max();
 
-    real_type field_strength = 1.0 * units::tesla;
+    real_type field_strength = 1.0_T;
     auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         UniformZField{field_strength}, units::ElementaryCharge{-1});
 
@@ -340,7 +341,7 @@ TEST_F(FieldSubstepperTest, step_counts)
 TEST_F(RevolutionFieldSubstepperTest, advance)
 {
     auto advance = make_mag_field_substepper<DormandPrinceIntegrator>(
-        UniformZField{1.0 * units::tesla}, driver_options, electron_charge());
+        UniformZField{1.0_T}, driver_options, electron_charge());
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -382,7 +383,7 @@ TEST_F(RevolutionFieldSubstepperTest, advance)
 TEST_F(RevolutionFieldSubstepperTest, accurate_advance)
 {
     auto advance = make_mag_field_substepper<DormandPrinceIntegrator>(
-        UniformZField{1.0 * units::tesla}, driver_options, electron_charge());
+        UniformZField{1.0_T}, driver_options, electron_charge());
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
