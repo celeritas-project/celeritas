@@ -16,6 +16,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
@@ -28,6 +29,7 @@
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
 #include "OrangeInputIO.json.hh"  // IWYU pragma: keep
+#include "OrangeTrackView.hh"
 #include "OrangeTypes.hh"
 #include "g4org/Converter.hh"
 #include "transform/TransformVisitor.hh"
@@ -329,52 +331,11 @@ inp::Model OrangeParams::make_model_input() const
 VolumeInstanceId
 OrangeParams::find_volume_instance_at(Real3 const& global_point) const
 {
-    VolumeInstanceId last_level{};
-
-    // Create local state
-    detail::LocalState local;
-    local.pos = global_point;
-    local.volume = {};
-    local.surface = {};
-
-    // Helpers for applying parent-to-daughter transformations
-    TransformVisitor apply_transform{this->host_ref()};
-    auto transform_down_local
-        = [&local](auto&& t) { local.pos = t.transform_down(local.pos); };
-
-    // Recursively step down from outmost universe into daughter universes
-    UnivId univ_id = orange_global_univ;
-    DaughterId daughter_id;
-    detail::UniverseIndexer ui{this->host_ref().univ_indexer_data};
-    do
-    {
-        // Locate volume containing point in current universe
-        TrackerVisitor visit_tracker{this->host_ref()};
-        auto tinit = visit_tracker(
-            [&local](auto&& t) { return t.initialize(local); }, univ_id);
-
-        // TODO: better handling for failing to locate position?
-        CELER_ASSERT(tinit.volume && !tinit.surface);
-
-        // Append volume to level list
-        // TODO: does this skip over local parents??
-        ImplVolumeId impl_id = ui.global_volume(univ_id, tinit.volume);
-        last_level = this->host_ref().volume_instance_ids[impl_id];
-
-        // Identify if this volume is a daughter universe
-        daughter_id = visit_tracker(
-            [&tinit](auto&& t) { return t.daughter(tinit.volume); }, univ_id);
-        if (daughter_id)
-        {
-            // Transform down to the daughter universe
-            auto const& daughter = this->host_ref().daughters[daughter_id];
-            apply_transform(transform_down_local, daughter.trans_id);
-            univ_id = daughter.univ_id;
-        }
-    } while (daughter_id);
-
-    // Return the deepest found volume instance ID
-    return last_level;
+    using HostStateStore = StateDataStore<OrangeStateData, MemSpace::host>;
+    HostStateStore states(this->host_ref(), 1);
+    OrangeTrackView track{this->host_ref(), states.ref(), TrackSlotId{0}};
+    track = OrangeTrackView::Initializer_t(global_point, Real3{1, 0, 0});
+    return track.volume_instance_id();
 }
 
 //---------------------------------------------------------------------------//
