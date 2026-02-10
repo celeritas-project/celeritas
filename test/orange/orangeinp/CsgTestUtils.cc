@@ -62,11 +62,10 @@ std::vector<int> to_vec_int(std::vector<NodeId> const& nodes)
 //---------------------------------------------------------------------------//
 std::vector<std::string> surface_strings(CsgUnit const& u)
 {
-    constexpr int simplify_digits{5};
-    constexpr int print_extra_digits
-        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 2 : 1);
     // Simplify floats to 5 digits of precision
-    ::celeritas::test::StringSimplifier simplify_string(simplify_digits);
+    // Note that with the precision of 6 digits, this gives us a generally good
+    // match with single precision output.
+    ::celeritas::test::StringSimplifier simplify_string(5);
 
     // Loop through CSG tree's encountered surfaces
     std::vector<std::string> result;
@@ -77,7 +76,7 @@ std::vector<std::string> surface_strings(CsgUnit const& u)
             auto lsid = surf_node->id;
             CELER_ASSERT(lsid < u.surfaces.size());
             std::ostringstream os;
-            os << std::setprecision(simplify_digits + print_extra_digits)
+            os << std::setprecision(6)
                << StreamableVariant{u.surfaces[lsid.get()]};
             result.push_back(simplify_string(std::move(os).str()));
         }
