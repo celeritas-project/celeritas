@@ -28,21 +28,15 @@ class InterpolatorHelper
   public:
     // Construct with grid input data
     explicit InterpolatorHelper(inp::Grid const& input);
-    // Prevent copy and move
-    CELER_DELETE_COPY_MOVE(InterpolatorHelper);
 
     // Interpolate data at given point
     real_type operator()(real_type value) const;
 
   private:
     using Items = Collection<real_type, Ownership::value, MemSpace::host>;
-    using ItemsRef
-        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
 
     Items reals_;
     NonuniformGridRecord grid_record_;
-    ItemsRef reals_ref_;
-    NonuniformGridCalculator interpolate_;
 };
 
 //---------------------------------------------------------------------------//

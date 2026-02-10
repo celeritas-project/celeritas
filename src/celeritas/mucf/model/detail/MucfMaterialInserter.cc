@@ -40,7 +40,7 @@ MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
  */
 bool MucfMaterialInserter::operator()(MaterialView const& material)
 {
-    using LhdArray = EquilibrateDensitiesCalculator::LhdArray;
+    using LhdArray = EquilibrateDensitiesSolver::LhdArray;
 
     MaterialFractionsArray isotopic_fractions;
     CycleTimesArray cycle_times;
@@ -91,8 +91,8 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
 
     // Found d and/or t, calculate and insert data into collection
 
-    auto equilibrium_densities = EquilibrateDensitiesCalculator(
-        lhd_densities, material.temperature())();
+    auto equilibrium_densities
+        = EquilibrateDensitiesSolver(lhd_densities)(material.temperature());
 
     if (lhd_densities[MucfIsotope::deuterium])
     {

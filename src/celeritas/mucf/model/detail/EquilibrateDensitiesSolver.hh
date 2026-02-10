@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/mucf/model/detail/EquilibrateDensitiesCalculator.hh
+//! \file celeritas/mucf/model/detail/EquilibrateDensitiesSolver.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -26,7 +26,7 @@ namespace detail
  *
  * \sa MucfMaterialInserter
  */
-class EquilibrateDensitiesCalculator
+class EquilibrateDensitiesSolver
 {
   public:
     //!@{
@@ -36,19 +36,19 @@ class EquilibrateDensitiesCalculator
     //!@}
 
     // Construct with material information
-    EquilibrateDensitiesCalculator(LhdArray const& lhd_densities,
-                                   real_type const temperature);
+    EquilibrateDensitiesSolver(LhdArray const& lhd_densities);
 
     // Calculate equilibrated isoprotologue densities
-    EquilibriumArray operator()();
+    EquilibriumArray operator()(real_type const temperature);
 
   private:
     //// DATA ////
 
     LhdArray lhd_densities_;  //!< Number densities in units of LHD
-    real_type temperature_;  //!< Material temperature [K]
-    real_type const r_gas_constant_ = constants::k_boltzmann.value()
-                                      * constants::na_avogadro.value();
+    real_type total_density_;  //!< Total LHD density
+    real_type inv_tot_density_;  //!< Inverse of total LHD density
+    static constexpr Constant r_gas_ = constants::k_boltzmann
+                                       * constants::na_avogadro;
 
     //// HELPER FUNCTIONS ////
 
@@ -62,13 +62,13 @@ class EquilibrateDensitiesCalculator
     // }
 
     // Calculate equilibrium constant: \f$ H_2 + D_2 \rightleftharpoons 2HD \f$
-    real_type calc_hd_equilibrium_constant();
+    real_type calc_hd_equilibrium_constant(real_type temperature);
 
     // Calculate equilibrium constant: \f$ H_2 + T_2 \rightleftharpoons 2HT \f$
-    real_type calc_ht_equilibrium_constant();
+    real_type calc_ht_equilibrium_constant(real_type temperature);
 
     // Calculate equilibrium constant: \f$ D_2 + T_2 \rightleftharpoons 2DT \f$
-    real_type calc_dt_equilibrium_constant();
+    real_type calc_dt_equilibrium_constant(real_type temperature);
 
     // Equilibrate a pair of isotopes and write the new density in the array
     void equilibrate_pair(MucfIsoprotologueMolecule molecule_aa,

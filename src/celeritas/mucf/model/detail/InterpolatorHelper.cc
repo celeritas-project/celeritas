@@ -18,8 +18,6 @@ namespace detail
  */
 InterpolatorHelper::InterpolatorHelper(inp::Grid const& input)
     : grid_record_(NonuniformGridBuilder(&reals_)(input))
-    , reals_ref_(reals_)
-    , interpolate_(grid_record_, reals_ref_)
 {
     CELER_EXPECT(input);
     CELER_ENSURE(grid_record_);
@@ -31,7 +29,12 @@ InterpolatorHelper::InterpolatorHelper(inp::Grid const& input)
  */
 real_type InterpolatorHelper::operator()(real_type value) const
 {
-    return interpolate_(value);
+    using ItemsCRef
+        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
+
+    ItemsCRef reals_ref_{reals_};
+    NonuniformGridCalculator interpolate{grid_record_, reals_ref_};
+    return interpolate(value);
 }
 
 //---------------------------------------------------------------------------//

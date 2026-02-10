@@ -14,7 +14,7 @@
 #include "celeritas/mucf/Types.hh"
 #include "celeritas/mucf/data/DTMixMucfData.hh"
 
-#include "EquilibrateDensitiesCalculator.hh"
+#include "EquilibrateDensitiesSolver.hh"
 #include "InterpolatorHelper.hh"
 
 namespace celeritas
@@ -48,7 +48,7 @@ class MucfMaterialInserter
   private:
     using MoleculeCycles = Array<real_type, 2>;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, MoleculeCycles>;
-    using EquilibriumArray = EquilibrateDensitiesCalculator::EquilibriumArray;
+    using EquilibriumArray = EquilibrateDensitiesSolver::EquilibriumArray;
     using MaterialFractionsArray = EnumArray<MucfIsotope, real_type>;
     using AtomicMassNumber = AtomicNumber;
     using InterpolatorsMap
