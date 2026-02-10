@@ -897,9 +897,6 @@ TEST_F(InputBuilderTest, universes)
 //---------------------------------------------------------------------------//
 TEST_F(InputBuilderTest, hierarchy)
 {
-    // FIXME: normal is inconsistent on transformed boundaries!
-    supports_surface_normal_ = false;
-
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         auto geo = this->make_geo_track_view();
