@@ -10,6 +10,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 
@@ -91,12 +92,43 @@ Tolerance<T> Tolerance<T>::from_relative(real_type rel, real_type length)
     Tolerance<T> result;
     result.rel = rel;
     result.abs = rel * length;
+    result.clamp();
 
     // Check that the tolerances aren't so low that they're denormalized
-    CELER_ENSURE(result.rel >= std::numeric_limits<T>::min());
-    CELER_ENSURE(result.abs >= std::numeric_limits<T>::min());
     CELER_ENSURE(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check against machine precision and warn.
+ *
+ * Tolerances that are too tight may cause some deduplication logic to fail.
+ * This checks:
+ * - relative error against machine epsilon, i.e., the relative
+ *   difference between two adjacent floating point numbers, and
+ * - absolute error against the floating point minimum, i.e., the smallest
+ *   absolute magnitude that has a non-denormalized value.
+ *
+ * It prints a diagnostic if either has been adjusted.
+ */
+template<class T>
+void Tolerance<T>::clamp()
+{
+    constexpr T eps_mach = std::numeric_limits<T>::epsilon();
+    constexpr T min_norm = std::numeric_limits<T>::min();
+    if (CELER_UNLIKELY(this->rel < eps_mach))
+    {
+        CELER_LOG(warning) << "Clamping relative tolerance " << this->rel
+                           << " to machine epsilon " << eps_mach;
+        this->rel = eps_mach;
+    }
+    if (CELER_UNLIKELY(this->abs < min_norm))
+    {
+        CELER_LOG(warning) << "Clamping absolute tolerance " << this->abs
+                           << " to minimum normal value " << min_norm;
+        this->abs = min_norm;
+    }
 }
 
 //---------------------------------------------------------------------------//

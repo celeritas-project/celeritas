@@ -31,6 +31,7 @@ constexpr Tolerance<> scaled_tolerance(Tolerance<> const& tol, real_type scale)
     Tolerance<> result;
     result.rel = tol.rel * scale;
     result.abs = tol.abs * scale;
+    result.clamp();
     return result;
 }
 

@@ -356,14 +356,15 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
 
 TEST_F(DetailTest, bumpcalculator)
 {
-    detail::BumpCalculator calc_bump(
-        Tolerance<>::from_relative(1e-8, /* length = */ 0.1));
-    EXPECT_SOFT_EQ(1e-9, calc_bump(Real3{0, 0, 0}));
-    EXPECT_SOFT_EQ(1e-9, calc_bump(Real3{1e-14, 0, 0}));
-    EXPECT_SOFT_EQ(2e-8, calc_bump(Real3{0, 1, 2}));
-    EXPECT_SOFT_EQ(1e-6, calc_bump(Real3{-100, 1, 2}));
-    EXPECT_SOFT_EQ(1e-2, calc_bump(Real3{0, 0, 1e6}));
-    EXPECT_SOFT_EQ(1e1, calc_bump(Real3{0, 1e9, 1e6}));
+    // NOTE: tolerance is clamped for single precision
+    auto tol = Tolerance<>::from_relative(1e-8, /* length = */ 0.1);
+    detail::BumpCalculator calc_bump(tol);
+    EXPECT_SOFT_EQ(tol.abs, calc_bump(Real3{0, 0, 0}));
+    EXPECT_SOFT_EQ(tol.abs, calc_bump(Real3{1e-14, 0, 0}));
+    EXPECT_SOFT_EQ(2 * tol.rel, calc_bump(Real3{0, 1, 2}));
+    EXPECT_SOFT_EQ(100 * tol.rel, calc_bump(Real3{-100, 1, 2}));
+    EXPECT_SOFT_EQ(1e6 * tol.rel, calc_bump(Real3{0, 0, 1e6}));
+    EXPECT_SOFT_EQ(1e9 * tol.rel, calc_bump(Real3{0, 1e9, 1e6}));
 }
 
 TEST_F(OneVolumeTest, initialize)
