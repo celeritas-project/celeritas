@@ -24,7 +24,7 @@ constexpr real_type calc_length_scale(Tolerance<> const& tol)
 }
 
 //---------------------------------------------------------------------------//
-constexpr Tolerance<> scaled_tolerance(Tolerance<> const& tol, real_type scale)
+Tolerance<> scaled_tolerance(Tolerance<> const& tol, real_type scale)
 {
     CELER_EXPECT(tol);
     CELER_EXPECT(scale > 0);
