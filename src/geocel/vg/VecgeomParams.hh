@@ -222,7 +222,8 @@ inline VolumeId VecgeomParams::volume_id(ImplVolumeId iv_id) const
 /*!
  * Get the volume instance containing the global point.
  */
-inline VolumeInstanceId VecgeomParams::volume_instance_id(Real3 const&) const
+inline VolumeInstanceId
+VecgeomParams::locate_volume_containing_point(Real3 const&) const
 {
     CELER_NOT_IMPLEMENTED(
         "volume instance lookup for point not yet implemented for VecGeom");
