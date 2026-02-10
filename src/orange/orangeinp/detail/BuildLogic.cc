@@ -186,11 +186,17 @@ void InfixLogicBuilder::operator()(Negated const& n)
 //---------------------------------------------------------------------------//
 /*!
  * Join a set of nodes.
+ *
+ * This omits the outer parentheses.
  */
 void InfixLogicBuilder::operator()(Joined const& n)
 {
     CELER_EXPECT(n.nodes.size() > 1);
-    this->push_back(logic::lopen);
+    if (depth_ > 0)
+    {
+        this->push_back(logic::lopen);
+    }
+    ++depth_;
     // Visit first node, then add conjunction for subsequent nodes
     auto iter = n.nodes.begin();
     (*this)(*iter++);
@@ -200,7 +206,11 @@ void InfixLogicBuilder::operator()(Joined const& n)
         this->push_back(n.op);
         (*this)(*iter++);
     }
-    this->push_back(logic::lclose);
+    --depth_;
+    if (depth_ > 0)
+    {
+        this->push_back(logic::lclose);
+    }
 }
 
 //---------------------------------------------------------------------------//
