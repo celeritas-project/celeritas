@@ -134,50 +134,61 @@ std::vector<Label> make_surface_labels(UnitInput& inp)
                  || inp.surface_labels.size() == inp.surfaces.size());
 
     std::vector<Label> result;
-    result.resize(inp.surfaces.size());
+    result.reserve(inp.surfaces.size());
 
-    for (auto i : range(inp.surface_labels.size()))
+    if (!inp.surface_labels.empty())
     {
-        Label surface_label = std::move(inp.surface_labels[i]);
-        if (surface_label.ext.empty())
+        for (auto& surface_label : inp.surface_labels)
         {
-            surface_label.ext = inp.label.name;
+            if (surface_label.ext.empty())
+            {
+                surface_label.ext = inp.label.name;
+            }
+            result.emplace_back(std::move(surface_label));
         }
-        result[i] = std::move(surface_label);
     }
-    inp.surface_labels.clear();
+    else
+    {
+        result.assign(inp.surfaces.size(), {});
+    }
+
     return result;
 }
 
 //---------------------------------------------------------------------------//
 //! Construct volume labels from the input volumes
-auto make_volume_labels(UnitInput const& inp)
+auto make_volume_labels(UnitInput& inp)
 {
     UniverseInserter::VecVarLabel result;
-    for (auto const& v : inp.volumes)
+    result.reserve(inp.volumes.size());
+
+    for (auto& v : inp.volumes)
     {
         // Convert a <Label, VolInstId> -> <Label, VolInstId, VolId>
         // using a default extension
         result.emplace_back(
-            std::visit(return_as<UniverseInserter::VariantLabel>(Overload{
-                           [](auto&& obj) { return obj; },
-                           [&inp](Label const& label) {
-                               Label result = label;
-                               // Add the unit's name as an extension if blank
-                               if (result.ext.empty())
-                               {
-                                   result.ext = inp.label.name;
-                               }
-                               return result;
-                           },
-                       }),
-                       v.label));
+            std::visit(return_as<UniverseInserter::VariantLabel>(
+                           Overload{[&ext = inp.label.name](Label&& label) {
+                                        Label result{std::move(label)};
+                                        // Add the unit's name as an extension
+                                        // if blank
+                                        if (result.ext.empty())
+                                        {
+                                            result.ext = ext;
+                                        }
+                                        return result;
+                                    },
+                                    [](VolumeInstanceId vid) {
+                                        CELER_ASSERT(vid);
+                                        return vid;
+                                    }}),
+                       std::move(v.label)));
     }
 
-    if (auto const& bg = inp.background)
+    if (auto& bg = inp.background)
     {
         CELER_ASSERT(bg.volume < result.size());
-        result[bg.volume.get()] = bg.label;
+        result[bg.volume.get()] = std::move(bg.label);
     }
 
     return result;
@@ -569,8 +580,14 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     simple_units_.push_back(unit);
     auto surf_labels = make_surface_labels(inp);
     auto vol_labels = make_volume_labels(inp);
+
+    // Save universe label before returning
+    auto univ_label = std::move(inp.label);
+    // Clear captured input since we've consumed and modified it
+    std::move(inp) = {};
+
     return (*insert_universe_)(UnivType::simple,
-                               std::move(inp.label),
+                               std::move(univ_label),
                                std::move(surf_labels),
                                std::move(vol_labels));
 }

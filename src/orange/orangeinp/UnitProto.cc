@@ -61,21 +61,24 @@ using detail::CsgUnit;
 void implicit_parent_boundary(CsgUnit& unit, std::string_view label)
 {
     CELER_EXPECT(!unit.tree.volumes().empty());
+    auto orig_tree_size = unit.tree.size();
     NodeId ext_node
         = unit.tree.volumes()[orange_exterior_volume.unchecked_get()];
     auto unknowns = replace_and_simplify(&unit.tree, ext_node, False{});
     if (!unknowns.empty())
     {
-        auto write_node_labels
-            = [&md = unit.metadata](std::ostream& os, NodeId nid) {
-                  CELER_ASSERT(nid < md.size());
-                  auto const& labels = md[nid.get()];
-                  os << '{' << join(labels.begin(), labels.end(), ", ") << '}';
-              };
-        CELER_LOG(warning)
-            << "While building '" << label
-            << "', encountered surfaces that could not be logically "
-               "eliminated from the boundary: "
+        auto write_node_labels = [&md = unit.metadata](std::ostream& os,
+                                                       NodeId nid) {
+            CELER_ASSERT(nid < md.size());
+            auto const& labels = md[nid.get()];
+            os << '{' << join(labels.begin(), labels.end(), " = ") << '}';
+        };
+        CELER_LOG(debug)
+            << "While building '" << label << "', encountered "
+            << unknowns.size() << " of " << orig_tree_size << " (now "
+            << unit.tree.size()
+            << ") CSG nodes that could not be logically eliminated from the "
+               "boundary: "
             << join_stream(
                    unknowns.begin(), unknowns.end(), ", ", write_node_labels);
     }
@@ -289,20 +292,17 @@ void UnitProto::build(ProtoBuilder& pb) const
             CELER_ASSERT(new_lsid < result.surface_labels.size());
 
             auto const& md = csg_unit.metadata[node_id.get()];
-            if (auto iter = md.begin(); iter != md.end())
-            {
-                // NOTE: surfaces may be created more than once. Our primitive
-                // "input" allows association with only one surface, so we'll
-                // arbitrarily choose the lexicographically sorted "first"
-                // surface name in the list.
-                result.surface_labels[new_lsid.get()] = *iter;
-            }
-            else
-            {
-                CELER_LOG(warning) << "No metadata for new surface "
-                                   << new_lsid << " (new node ID " << node_id
-                                   << ") = old LSID " << surf_node->id;
-            }
+            auto iter = md.begin();
+            CELER_VALIDATE(iter != md.end(),
+                           << "missing metadata for remapped surface "
+                           << new_lsid << " (new node ID " << node_id
+                           << ") = old LSID " << surf_node->id);
+
+            // NOTE: surfaces may be created more than once. Our primitive
+            // "input" allows association with only one surface, so we'll
+            // arbitrarily choose the lexicographically sorted "first"
+            // surface name in the list.
+            result.surface_labels[new_lsid.get()] = *iter;
         }
     }
 
