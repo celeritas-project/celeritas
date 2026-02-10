@@ -1524,12 +1524,18 @@ TEST_F(CmseTest, coarse)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         ref.fail_at(1);
-        ref.messages[1] = {
-            R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
-            R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
-            R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
-            R"(track failed to cross local surface 91 in universe 0 at local position {10.47, -6.625, 797.1} along local direction {0.6625, -0.2470, 0.7072})",
-            R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"};
+        if (CELERITAS_DEBUG)
+        {
+            ref.messages[1] = {
+                R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
+                R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
+                R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
+            };
+        }
+        ref.messages[1].insert(
+            ref.messages[1].end(),
+            {R"(track failed to cross local surface 91 in universe 0 at local position {10.47, -6.625, 797.1} along local direction {0.6625, -0.2470, 0.7072})",
+             R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
     }
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
              && !CELERITAS_VECGEOM_SURFACE
