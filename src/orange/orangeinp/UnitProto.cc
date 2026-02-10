@@ -58,7 +58,7 @@ using detail::CsgUnit;
  * This is allowed (and required, to avoid coincident surfaces) for non-global
  * universes because higher levels truncate lower ones.
  */
-void remove_interior(CsgUnit& unit, std::string_view label)
+void implicit_parent_boundary(CsgUnit& unit, std::string_view label)
 {
     CELER_EXPECT(!unit.tree.volumes().empty());
     NodeId ext_node
@@ -233,8 +233,13 @@ void UnitProto::build(ProtoBuilder& pb) const
     ScopedProfiling profile_this{"orange-unitproto"};
 
     // Build CSG unit
-    auto csg_unit = this->build(
-        pb.tol(), BBox::from_infinite(), pb.is_global_universe());
+    auto csg_unit = this->build([&pb] {
+        BuildOptions opts;
+        opts.tol = pb.tol();
+        opts.assume_inside = pb.assume_inside();
+        opts.logic = pb.logic();
+        return opts;
+    }());
     CELER_ASSERT(csg_unit);
 
     // Get the list of all surfaces actually used
@@ -306,9 +311,9 @@ void UnitProto::build(ProtoBuilder& pb) const
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
 
-    // Always use postfix logic for unit input: post-processing in OrangeParams
-    // will convert to tracking notation
-    constexpr auto lgc_notation = LogicNotation::postfix;
+    // Use user-selected logic to build input: post-processing in OrangeParams
+    // will convert to tracking notation if needed
+    auto lgc_notation = pb.logic();
     detail::DynamicBuildLogicPolicy const policy{
         lgc_notation, csg_unit.tree, &sorted_local_surfaces};
     // Construct logic and faces with remapped surfaces
@@ -344,19 +349,11 @@ void UnitProto::build(ProtoBuilder& pb) const
 
     if (csg_unit.background)
     {
-        // "Background" should be unreachable: 'nowhere' logic, null bbox
-        // but it has to have all the surfaces that connect to an interior
-        // volume
+        // Background volume input is filled in by UnitInserter
         VolumeInput vi;
-        vi.faces.resize(sorted_local_surfaces.size());
-        std::iota(vi.faces.begin(), vi.faces.end(), LocalSurfaceId{0});
-        vi.logic = celeritas::detail::make_nowhere_expr(lgc_notation);
-        vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
-        /*! \todo The nearest internal surface is probably *not* the safety
-         * distance, but it's better than nothing
-         */
-        vi.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
+        vi.flags = VolumeRecord::implicit_vol;
+        CELER_ASSERT(vi);
         result.volumes.emplace_back(std::move(vi));
     }
     CELER_ASSERT(result.volumes.size()
@@ -393,7 +390,7 @@ void UnitProto::build(ProtoBuilder& pb) const
     };
 
     // Save attributes for exterior volume
-    if (pb.current_uid() != orange_global_univ)
+    if (!pb.is_global_universe())
     {
         vol_iter->zorder = ZOrder::implicit_exterior;
         vol_iter->flags |= VolumeRecord::implicit_vol;
@@ -531,11 +528,10 @@ void UnitProto::build(ProtoBuilder& pb) const
  * to be deleted (assumed inside, implicit from the parent universe's boundary)
  * or preserved.
  */
-auto UnitProto::build(Tol const& tol,
-                      BBox const& bbox,
-                      bool is_global_universe) const -> Unit
+auto UnitProto::build(BuildOptions const& opts) const -> Unit
 {
-    CELER_EXPECT(tol);
+    CELER_EXPECT(opts.tol);
+    CELER_EXPECT(opts.logic != LogicNotation::size_);
 
     CELER_LOG(debug) << "Building '" << this->label() << ": "
                      << input_.daughters.size() << " daughters and "
@@ -545,7 +541,7 @@ auto UnitProto::build(Tol const& tol,
 
     detail::CsgUnit result;
     detail::CsgUnitBuilder unit_builder(
-        &result, tol, is_global_universe ? BBox::from_infinite() : bbox);
+        &result, opts.tol, BBox::from_infinite());
 
     auto build_volume = [ub = &unit_builder](ObjectInterface const& obj) {
         detail::VolumeBuilder vb{ub};
@@ -562,20 +558,23 @@ auto UnitProto::build(Tol const& tol,
     auto ext_vol
         = build_volume(NegatedObject("[EXTERIOR]", input_.boundary.interior));
     CELER_ASSERT(ext_vol == orange_exterior_volume);
-    if (is_global_universe)
+    if (!opts.assume_inside)
     {
+        // Build the interior volume explicitly
         detail::VolumeBuilder vb{&unit_builder};
         auto interior_node = input_.boundary.interior->build(vb);
         auto region_iter = result.regions.find(interior_node);
         CELER_ASSERT(region_iter != result.regions.end());
         auto const& bz = region_iter->second.bounds;
-        CELER_VALIDATE(
-            !bz.negated && is_finite(bz.exterior),
-            << "global boundary must be finite: cannot determine "
-               "extents of interior '"
-            << input_.boundary.interior->label() << "' in '" << this->label()
-            << "': " << (bz.negated ? "negated interior" : "exterior")
-            << " bounds are " << (bz.negated ? bz.interior : bz.exterior));
+        if (bz.negated || !is_finite(bz.exterior))
+        {
+            CELER_LOG(warning)
+                << "cannot determine extents of interior '"
+                << input_.boundary.interior->label() << "' in '"
+                << this->label()
+                << "': " << (bz.negated ? "negated interior" : "exterior")
+                << " bounds are " << (bz.negated ? bz.interior : bz.exterior);
+        }
     }
 
     // Build daughters
@@ -600,18 +599,18 @@ auto UnitProto::build(Tol const& tol,
         }
     }
 
-    // Build background fill (optional)
+    // Save background fill (may be null)
     result.background = input_.background.fill;
 
-    if (!is_global_universe && input_.remove_interior)
+    if (opts.assume_inside)
     {
         // Assume that the enclosing universe provides our boundary conditions
-        remove_interior(result, this->label());
+        implicit_parent_boundary(result, this->label());
     }
 
-    if (orange_tracking_logic == LogicNotation::infix
-        || input_.remove_negated_join)
+    if (opts.logic == LogicNotation::infix)
     {
+        // Apply DeMorgan's law to eliminate negated joins
         remove_negated_join(result, this->label());
     }
 

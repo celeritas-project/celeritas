@@ -13,7 +13,6 @@
 
 #include "corecel/OpaqueId.hh"
 #include "geocel/Types.hh"
-#include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -129,18 +128,19 @@ class UnitProto : public ProtoInterface
         BoundaryInput boundary;
         Label label;
 
-        //!@{
-        //! \name Construction options
-
-        //! For non-global units, assume inside the boundary
-        bool remove_interior{true};
-        //! Use DeMorgan's law to remove negated joins
-        bool remove_negated_join{orange_tracking_logic == LogicNotation::infix};
-
-        //!@}
-
         // True if fully defined
         explicit inline operator bool() const;
+    };
+
+    //! Inputs passed from \c OrangeGeoFromCsg via \c ProtoBuilder
+    struct BuildOptions
+    {
+        //! Construction tolerance
+        Tol tol;
+        //! Replace "interior" node with "true"
+        bool assume_inside{};
+        //! Logic notation
+        LogicNotation logic{LogicNotation::size_};
     };
 
   public:
@@ -172,7 +172,7 @@ class UnitProto : public ProtoInterface
     //// HELPER FUNCTIONS ////
 
     // Construct a standalone unit for testing and external interface
-    Unit build(Tol const& tol, BBox const& bbox, bool is_global_universe) const;
+    Unit build(BuildOptions const& opts) const;
 
   private:
     Input input_;

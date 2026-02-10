@@ -208,6 +208,14 @@ TEST_F(BIHBuilderTest, basic)
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{3}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
+
+    // Metadata
+    {
+        auto const& md = bih_tree.metadata;
+        EXPECT_EQ(5, md.num_finite_bboxes);
+        EXPECT_EQ(1, md.num_infinite_bboxes);
+        EXPECT_EQ(3, md.depth);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -476,6 +484,14 @@ TEST_F(BIHBuilderTest, grid)
         EXPECT_EQ(LocalVolumeId{10},
                   storage_.local_volume_ids[node.vol_ids[0]]);
     }
+
+    // Metadata
+    {
+        auto const& md = bih_tree.metadata;
+        EXPECT_EQ(12, md.num_finite_bboxes);
+        EXPECT_EQ(1, md.num_infinite_bboxes);
+        EXPECT_EQ(5, md.depth);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -657,6 +673,14 @@ TEST_F(BIHBuilderTest, grid_less_split)
         EXPECT_EQ(LocalVolumeId{12},
                   storage_.local_volume_ids[node.vol_ids[3]]);
     }
+
+    // Metadata
+    {
+        auto const& md = bih_tree.metadata;
+        EXPECT_EQ(12, md.num_finite_bboxes);
+        EXPECT_EQ(1, md.num_infinite_bboxes);
+        EXPECT_EQ(3, md.depth);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -678,6 +702,11 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     ASSERT_EQ(BIHNodeId{}, node.parent);
     EXPECT_EQ(1, node.vol_ids.size());
     EXPECT_EQ(LocalVolumeId{0}, storage_.local_volume_ids[node.vol_ids[0]]);
+
+    auto const& md = bih_tree.metadata;
+    EXPECT_EQ(1, md.num_finite_bboxes);
+    EXPECT_EQ(0, md.num_infinite_bboxes);
+    EXPECT_EQ(1, md.depth);
 }
 
 TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
@@ -699,6 +728,11 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     EXPECT_EQ(2, node.vol_ids.size());
     EXPECT_EQ(LocalVolumeId{0}, storage_.local_volume_ids[node.vol_ids[0]]);
     EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[1]]);
+
+    auto const& md = bih_tree.metadata;
+    EXPECT_EQ(2, md.num_finite_bboxes);
+    EXPECT_EQ(0, md.num_infinite_bboxes);
+    EXPECT_EQ(1, md.depth);
 }
 
 TEST_F(BIHBuilderTest, single_infinite_volume)
@@ -714,6 +748,11 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
 
     EXPECT_EQ(LocalVolumeId{0},
               storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
+
+    auto const& md = bih_tree.metadata;
+    EXPECT_EQ(0, md.num_finite_bboxes);
+    EXPECT_EQ(1, md.num_infinite_bboxes);
+    EXPECT_EQ(0, md.depth);
 }
 
 TEST_F(BIHBuilderTest, multiple_infinite_volumes)
@@ -734,6 +773,11 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
               storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
     EXPECT_EQ(LocalVolumeId{1},
               storage_.local_volume_ids[bih_tree.inf_vol_ids[1]]);
+
+    auto const& md = bih_tree.metadata;
+    EXPECT_EQ(0, md.num_finite_bboxes);
+    EXPECT_EQ(2, md.num_infinite_bboxes);
+    EXPECT_EQ(0, md.depth);
 }
 
 TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))

@@ -103,8 +103,8 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
         }
         catch (std::exception const& e)
         {
-            CELER_LOG(critical)
-                << "Failed to load options from " << opt_filename;
+            CELER_LOG(critical) << "Failed to load options from "
+                                << opt_filename << ": " << e.what();
         }
     }
 
@@ -241,8 +241,10 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
 
     // Update scalars *after* loading all units
     CELER_VALIDATE(
-        host_data.scalars.max_csg_levels <= detail::LogicStack::capacity(),
-        << "input geometry has at least one volume with a CSG tree depth of"
+        orange_tracking_logic == LogicNotation::infix
+            || host_data.scalars.max_csg_levels
+                   <= detail::LogicStack::capacity(),
+        << R"(input geometry has at least one volume with a CSG tree depth of)"
         << host_data.scalars.max_csg_levels
         << ", but the logic stack is limited to a depth of "
         << detail::LogicStack::capacity());

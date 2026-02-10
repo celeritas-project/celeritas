@@ -117,7 +117,7 @@ class BIHIntersectingVolFinderTest : public Test
     static constexpr auto inff_
         = std::numeric_limits<fast_real_type>::infinity();
     std::vector<FastBBox> bboxes_;
-    detail::BIHTree bih_tree_;
+    detail::BIHTreeRecord bih_tree_;
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
     BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
 };

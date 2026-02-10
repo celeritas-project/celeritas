@@ -27,7 +27,8 @@ class BIHView
     //!@}
 
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    inline CELER_FUNCTION BIHView(BIHTree const& tree, Storage const& storage);
+    inline CELER_FUNCTION
+    BIHView(BIHTreeRecord const& tree, Storage const& storage);
 
     // Determine if a node is inner, i.e., not a leaf
     inline CELER_FUNCTION bool is_inner(BIHNodeId id) const;
@@ -50,7 +51,7 @@ class BIHView
 
   private:
     //// DATA ////
-    BIHTree const& tree_;
+    BIHTreeRecord const& tree_;
     Storage const& storage_;
 };
 
@@ -61,7 +62,7 @@ class BIHView
  * Construct from vector of bounding boxes and storage.
  */
 CELER_FUNCTION
-BIHView::BIHView(BIHTree const& tree, BIHView::Storage const& storage)
+BIHView::BIHView(BIHTreeRecord const& tree, BIHView::Storage const& storage)
     : tree_(tree), storage_(storage)
 {
     CELER_EXPECT(tree);

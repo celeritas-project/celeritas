@@ -10,8 +10,11 @@
 #include <memory>
 #include <sstream>
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/LoggerTypes.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
@@ -147,9 +150,26 @@ class UnitProtoTest : public ::celeritas::test::Test
 {
   protected:
     using Unit = detail::CsgUnit;
-    using Tol = Tolerance<>;
 
-    Tolerance<> tol_ = Tol::from_relative(1e-5);
+    //! Set default tolerance
+    void SetUp() override
+    {
+        inp_.tol = Tolerance<>::from_relative(1e-5);
+        inp_.implicit_parent_boundary = true;
+        inp_.logic = LogicNotation::infix;
+    }
+
+    //! Construct default "non-global" build options to pass to the UnitProto
+    UnitProto::BuildOptions proto_build_opts() const
+    {
+        UnitProto::BuildOptions opts;
+        opts.tol = inp_.tol;
+        opts.assume_inside = inp_.implicit_parent_boundary;
+        opts.logic = inp_.logic;
+        return opts;
+    }
+
+    inp::OrangeGeoFromCsg inp_;
 };
 
 //---------------------------------------------------------------------------//
@@ -158,19 +178,28 @@ using LeafTest = UnitProtoTest;
 TEST_F(LeafTest, errors)
 {
     EXPECT_THROW(UnitProto(UnitProto::Input{}), RuntimeError);
+}
+TEST_F(LeafTest, warnings)
+{
+    UnitProto::Input inp;
+    inp.label = "leaf";
+    inp.boundary.interior = std::make_shared<NegatedObject>(
+        "bad-interior", make_cyl("bound", 1.0, 1.0));
+    inp.boundary.zorder = ZOrder::media;
+    append_material(inp, SPConstObject(inp.boundary.interior), 1);
+    UnitProto const proto{std::move(inp)};
 
-    {
-        SCOPED_TRACE("infinite global box");
-        UnitProto::Input inp;
-        inp.label = "leaf";
-        inp.boundary.interior = std::make_shared<NegatedObject>(
-            "bad-interior", make_cyl("bound", 1.0, 1.0));
-        inp.boundary.zorder = ZOrder::media;
-        append_material(inp, SPConstObject(inp.boundary.interior), 1);
-        UnitProto const proto{std::move(inp)};
+    auto opts = this->proto_build_opts();
+    opts.assume_inside = false;
 
-        EXPECT_THROW(proto.build(tol_, BBox{}, true), RuntimeError);
-    }
+    ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                                   LogLevel::warning};
+    proto.build(opts);
+    static char const* const expected_log_messages[] = {
+        R"(cannot determine extents of interior 'bad-interior' in 'leaf': negated interior bounds are {{-0.7071,-0.7071,-1}, {0.7071,0.7071,1}})"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 // All space is explicitly accounted for
@@ -189,7 +218,9 @@ TEST_F(LeafTest, explicit_exterior)
     EXPECT_EQ("", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, BBox{}, true);
+        auto opts = this->proto_build_opts();
+        opts.assume_inside = false;
+        auto u = proto.build(opts);
 
         static char const* const expected_surface_strings[]
             = {"Plane: z=-1", "Plane: z=1", "Cyl z: r=1", "Plane: z=0"};
@@ -220,14 +251,14 @@ TEST_F(LeafTest, explicit_exterior)
         EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}}, false);
+        auto u = proto.build(this->proto_build_opts());
         static char const* const expected_volume_strings[] = {"F", "-3", "+3"};
 
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     }
 }
 
-// Inside of the "mother" volume is implicit
+// Inside of the "mother" volume is assume_inside
 TEST_F(LeafTest, implicit_exterior)
 {
     UnitProto::Input inp;
@@ -240,7 +271,9 @@ TEST_F(LeafTest, implicit_exterior)
     UnitProto const proto{std::move(inp)};
 
     {
-        auto u = proto.build(tol_, BBox{}, true);
+        auto opts = this->proto_build_opts();
+        opts.assume_inside = false;
+        auto u = proto.build(opts);
 
         static char const* const expected_surface_strings[] = {
             "Plane: z=-1",
@@ -260,7 +293,7 @@ TEST_F(LeafTest, implicit_exterior)
         EXPECT_EQ(GeoMatId{0}, u.background);
     }
     {
-        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}}, false);
+        auto u = proto.build(this->proto_build_opts());
 
         static char const* const expected_volume_strings[]
             = {"F", "all(+3, -4)"};
@@ -305,7 +338,9 @@ TEST_F(MotherTest, explicit_exterior)
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, BBox{}, true);
+        auto opts = this->proto_build_opts();
+        opts.assume_inside = false;
+        auto u = proto.build(opts);
 
         static char const* const expected_surface_strings[] = {
             "Sphere: r=10",
@@ -369,7 +404,7 @@ TEST_F(MotherTest, explicit_exterior)
         EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}}, false);
+        auto u = proto.build(this->proto_build_opts());
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4", "all(+1, +2, +3, +4)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -398,7 +433,9 @@ TEST_F(MotherTest, implicit_exterior)
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, BBox{}, true);
+        auto opts = this->proto_build_opts();
+        opts.assume_inside = false;
+        auto u = proto.build(opts);
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "-2", "-3", "-4"};
         static int const expected_volume_nodes[] = {2, 5, 7, 9, 11};
@@ -408,7 +445,7 @@ TEST_F(MotherTest, implicit_exterior)
         EXPECT_EQ(GeoMatId{3}, u.background);
     }
     {
-        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}}, false);
+        auto u = proto.build(this->proto_build_opts());
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -433,7 +470,9 @@ TEST_F(MotherTest, fuzziness)
     EXPECT_EQ("d1", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, BBox{}, true);
+        auto opts = this->proto_build_opts();
+        opts.assume_inside = false;
+        auto u = proto.build(opts);
         static char const* const expected_surface_strings[]
             = {"Sphere: r=10", "Sphere: r=1", "Sphere: r=1.0001"};
         static char const* const expected_volume_strings[]
@@ -456,7 +495,10 @@ TEST_F(MotherTest, fuzziness)
     {
         // Simplify with lower tolerance because the user has tried to avoid
         // overlap by adding .0001 to the "similar" shape
-        auto u = proto.build(Tol::from_relative(1e-3), BBox{}, true);
+        auto opts = this->proto_build_opts();
+        opts.assume_inside = false;
+        opts.tol = Tolerance<>::from_relative(1e-3);
+        auto u = proto.build(opts);
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "all(-0, +1)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -471,13 +513,7 @@ class InputBuilderTest : public UnitProtoTest
     {
         std::string const output_base = this->make_unique_filename();
 
-        InputBuilder build_input([&] {
-            InputBuilder::Options opts;
-            opts.tol = this->tol_;
-            opts.objects_output_file = output_base + ".objects.json";
-            opts.csg_output_file = output_base + ".csg.json";
-            return opts;
-        }());
+        InputBuilder build_input(InputBuilder::Input{inp_});
         OrangeInput inp = build_input(global);
         EXPECT_TRUE(inp);
         std::string const base_path = this->test_data_path("orange", "");

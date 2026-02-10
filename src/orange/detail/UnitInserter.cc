@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <array>
 #include <iostream>
+#include <numeric>
 #include <regex>
 #include <set>
 #include <vector>
@@ -43,7 +44,7 @@ constexpr int invalid_depth = -1;
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the maximum CSG logic depth of a volume definition.
+ * Calculate the maximum CSG logic depth of a postfix volume definition.
  *
  * Return a sentinel if the definition is invalid so that we can raise an
  * assertion in the caller with more context.
@@ -356,6 +357,32 @@ make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Adjust the last volume (background) if necessary.
+ *
+ * "Background" should be spatially unreachable by logic or BIH: ('nowhere'
+ * logic, null bbox), but it has to have all the surfaces that connect to an
+ * interior volume.
+ */
+void fixup_background_volume(LocalSurfaceId::size_type num_surfaces,
+                             VolumeInput& v)
+{
+    if (v.zorder != ZOrder::background)
+        return;
+
+    static auto const nowhere_logic
+        = detail::make_nowhere_expr(orange_tracking_logic);
+
+    v.faces.resize(num_surfaces);
+    std::iota(v.faces.begin(), v.faces.end(), LocalSurfaceId{0});
+    v.zorder = ZOrder::background;
+    v.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
+    v.logic = nowhere_logic;
+    v.bbox = {};
+    v.obz = {};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -409,6 +436,9 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     // Insert surfaces
     unit.surfaces = this->build_surfaces_(inp.surfaces);
 
+    CELER_ASSERT(!inp.volumes.empty());
+    fixup_background_volume(unit.surfaces.size(), inp.volumes.back());
+
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
@@ -416,6 +446,10 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     BIHBuilder::SetLocalVolId implicit_vol_ids;
     for (auto i : range<LocalVolumeId::size_type>(inp.volumes.size()))
     {
+        // Only the last volume can be background
+        CELER_ASSERT(inp.volumes[i].zorder != ZOrder::background
+                     || i + 1 == inp.volumes.size());
+
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
 
@@ -531,7 +565,6 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
         vol_records.begin() + 1, vol_records.end(), [](VolumeRecord const& v) {
             return supports_simple_safety(v.flags);
         });
-
     CELER_ASSERT(unit);
     simple_units_.push_back(unit);
     auto surf_labels = make_surface_labels(inp);
@@ -578,21 +611,6 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         }
     }
 
-    static auto const nowhere_logic
-        = detail::make_nowhere_expr(orange_tracking_logic);
-
-    if (v.zorder == ZOrder::background)
-    {
-        // "Background" volumes should not be explicitly reachable by logic or
-        // BIH
-        CELER_EXPECT(v.logic == nowhere_logic);
-        CELER_EXPECT(!v.bbox);
-        CELER_EXPECT(!v.obz);
-        CELER_EXPECT(v.flags & VolumeRecord::implicit_vol);
-        // Rely on incoming flags for "simple_safety": false from .org.json,
-        // maybe true if built from GDML
-    }
-
     VolumeRecord output;
     output.faces
         = local_surface_ids_.insert_back(v.faces.begin(), v.faces.end());
@@ -614,25 +632,28 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                            << "': replacing with unreachable volume";
 
         output.faces = {};
-        output.logic = logic_ints_.insert_back(std::begin(nowhere_logic),
-                                               std::end(nowhere_logic));
+        auto nowhere = detail::make_nowhere_expr(orange_tracking_logic);
+        output.logic = logic_ints_.insert_back(nowhere.begin(), nowhere.end());
         output.max_intersections = 0;
         output.flags = VolumeRecord::implicit_vol
                        | VolumeRecord::Flags::simple_safety;
     }
-
-    // Calculate the maximum stack depth of the volume definition
-    // TODO: is this valid for infix??
-    int depth = calc_depth(make_span(v.logic));
-    CELER_VALIDATE(depth > 0,
-                   << "invalid logic definition: operators do not balance");
 
     // Update global max faces/intersections/logic
     OrangeParamsScalars& scalars = orange_data_->scalars;
     inplace_max<size_type>(&scalars.max_faces, output.faces.size());
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
-    inplace_max<size_type>(&scalars.max_csg_levels, depth);
+
+    if (orange_tracking_logic != LogicNotation::infix)
+    {
+        // Calculate the maximum stack depth of the volume definition
+        int depth = calc_depth(make_span(v.logic));
+        CELER_VALIDATE(
+            depth > 0,
+            << R"(invalid logic definition: operators do not balance)");
+        inplace_max<size_type>(&scalars.max_csg_levels, depth);
+    }
 
     return output;
 }
