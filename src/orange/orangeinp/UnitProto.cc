@@ -609,24 +609,6 @@ auto UnitProto::build(BuildOptions const& opts) const -> Unit
     auto ext_vol
         = build_volume(NegatedObject("[EXTERIOR]", input_.boundary.interior));
     CELER_ASSERT(ext_vol == orange_exterior_volume);
-    if (!opts.assume_inside)
-    {
-        // Build the interior volume explicitly
-        detail::VolumeBuilder vb{&unit_builder};
-        auto interior_node = input_.boundary.interior->build(vb);
-        auto region_iter = result.regions.find(interior_node);
-        CELER_ASSERT(region_iter != result.regions.end());
-        auto const& bz = region_iter->second.bounds;
-        if (bz.negated || !is_finite(bz.exterior))
-        {
-            CELER_LOG(warning)
-                << "cannot determine extents of interior '"
-                << input_.boundary.interior->label() << "' in '"
-                << this->label()
-                << "': " << (bz.negated ? "negated interior" : "exterior")
-                << " bounds are " << (bz.negated ? bz.interior : bz.exterior);
-        }
-    }
 
     // Build daughters
     UnivId daughter_id{0};
