@@ -2,18 +2,20 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/LogicUtils.cc
+//! \file orange/detail/ConvertLogic.cc
 //---------------------------------------------------------------------------//
-#include "LogicUtils.hh"
+#include "ConvertLogic.hh"
 
 #include <vector>
 
 #include "corecel/Assert.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
-#include "orange/orangeinp/ScaleUtils.hh"
+#include "orange/orangeinp/detail/BuildLogic.hh"
 
 #include "../OrangeTypes.hh"
+
+using VecLogic = std::vector<celeritas::logic_int>;
 
 namespace celeritas
 {
@@ -22,7 +24,7 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-orangeinp::CsgTree build_tree_from_postfix(Span<logic_int const> postfix)
+orangeinp::CsgTree build_tree_from_postfix(VecLogic const& postfix)
 {
     using orangeinp::CsgTree;
     using orangeinp::Joined;
@@ -85,14 +87,23 @@ orangeinp::CsgTree build_tree_from_postfix(Span<logic_int const> postfix)
     return tree;
 }
 
-std::vector<logic_int>
-simplify_negated_joins_postfix(Span<logic_int const> postfix)
+VecLogic simplify_negated_joins_postfix(VecLogic const& postfix)
 {
-    auto tree = build_tree_from_postfix(postfix);
-    auto simplified = orangeinp::transform_negated_joins(tree);
-    CELER_ASSERT(!simplified.first.volumes().empty());
-    auto root = simplified.first.volumes().front();
-    return orangeinp::build_postfix_logic(simplified.first, root);
+    CELER_EXPECT(!postfix.empty());
+
+    using namespace orangeinp;
+
+    // Construct a CSG tree from the input and simplify it
+    CsgTree tree
+        = transform_negated_joins(build_tree_from_postfix(postfix)).first;
+    CELER_ASSERT(tree.volumes().size() == 1);
+    NodeId root = tree.volumes().front();
+
+    // Convert simplified tree to postfix
+    orangeinp::detail::PostfixBuildLogicPolicy const make_builder{tree};
+    VecLogic logic;
+    make_builder(logic)(root);
+    return logic;
 }
 
 //---------------------------------------------------------------------------//
@@ -127,7 +138,7 @@ inline int precedence(logic_int token)
 /*!
  * Return true if the operator is right associative.
  */
-inline bool is_right_associative(logic_int token)
+constexpr bool is_right_associative(logic_int token)
 {
     return token == logic::lnot;
 }
@@ -147,7 +158,7 @@ class InfixStack
     struct Operand
     {
         logic::OperatorToken expr_type;
-        std::vector<logic_int> expr;
+        VecLogic expr;
     };
 
     //! Push a binary operator.
@@ -156,7 +167,7 @@ class InfixStack
         CELER_EXPECT(infix_.size() > 1);
         auto& op_2 = infix_.back();
         auto& op_1 = *(infix_.end() - 2);
-        std::vector<logic_int> new_expr;
+        VecLogic new_expr;
         constexpr int max_extra_tokens = 5;
         new_expr.reserve(max_extra_tokens + op_1.expr.size()
                          + op_2.expr.size());
@@ -174,7 +185,7 @@ class InfixStack
     {
         CELER_EXPECT(!infix_.empty());
         auto&& [expr_type, expr] = infix_.back();
-        std::vector<logic_int> new_expr;
+        VecLogic new_expr;
         constexpr int max_extra_tokens = 3;
         new_expr.reserve(max_extra_tokens + expr.size());
 
@@ -192,7 +203,7 @@ class InfixStack
     }
 
     //! Get the infix expression.
-    std::vector<logic_int> get_infix() &&
+    VecLogic get_infix() &&
     {
         CELER_EXPECT(infix_.size() == 1);
         return std::move(infix_.front().expr);
@@ -200,9 +211,7 @@ class InfixStack
 
   private:
     //! Accumulate operands into a new expression.
-    void add_sub_expr(std::vector<logic_int>& acc,
-                      std::vector<logic_int> const& expr,
-                      bool parentheses)
+    void add_sub_expr(VecLogic& acc, VecLogic const& expr, bool parentheses)
     {
         if (parentheses)
         {
@@ -229,7 +238,7 @@ class InfixStack
 class PostfixStack
 {
   public:
-    using size_type = std::vector<logic_int>::size_type;
+    using size_type = VecLogic::size_type;
 
     void reserve(size_type size)
     {
@@ -271,7 +280,7 @@ class PostfixStack
         operators_.push_back(token);
     }
 
-    std::vector<logic_int> get_postfix() &&
+    VecLogic get_postfix() &&
     {
         while (!operators_.empty())
         {
@@ -308,9 +317,11 @@ class PostfixStack
         }
     }
 
-    std::vector<logic_int> postfix_;
-    std::vector<logic_int> operators_;
+    VecLogic postfix_;
+    VecLogic operators_;
 };
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -321,7 +332,7 @@ class PostfixStack
  * on parenthesis depth. Minimizing that depth in the expression
  * will allow to short-circuit more efficiently.
  */
-std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
+VecLogic convert_to_infix(VecLogic const& postfix)
 {
     CELER_EXPECT(!postfix.empty());
 
@@ -363,7 +374,7 @@ std::vector<logic_int> convert_to_infix(Span<logic_int const> postfix)
 /*!
  * Convert an infix logic expression to a postfix expression.
  */
-std::vector<logic_int> convert_to_postfix(Span<logic_int const> infix)
+VecLogic convert_to_postfix(VecLogic const& infix)
 {
     CELER_EXPECT(!infix.empty());
 
@@ -416,129 +427,52 @@ std::vector<logic_int> convert_to_postfix(Span<logic_int const> infix)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build a logic definition from a C string.
- *
- * A valid string satisfies the regex "[0-9~!| ]+", but the result may
- * not be a valid logic expression. (The volume inserter will ensure that the
- * logic expression at least is consistent for a CSG region definition.)
- *
- * Example:
- * \code
-
-     parse_logic("4 ~ 5 & 6 &");
-
-   \endcode
- */
-std::vector<logic_int> string_to_logic(std::string const& s)
-{
-    std::vector<logic_int> result;
-
-    logic_int surf_id{};
-    bool reading_surf{false};
-    for (char v : s)
-    {
-        if (v >= '0' && v <= '9')
-        {
-            // Parse a surface number. 'Push' this digit onto the surface ID by
-            // multiplying the existing ID by 10.
-            if (!reading_surf)
-            {
-                surf_id = 0;
-                reading_surf = true;
-            }
-            surf_id = 10 * surf_id + (v - '0');
-            continue;
-        }
-        else if (reading_surf)
-        {
-            // Next char is end of word or end of string
-            result.push_back(surf_id);
-            reading_surf = false;
-        }
-
-        // Parse a logic token
-        // NOLINTNEXTLINE(bugprone-switch-missing-default-case)
-        switch (v)
-        {
-                // clang-format off
-            case '*': result.push_back(logic::ltrue); continue;
-            case '|': result.push_back(logic::lor);   continue;
-            case '&': result.push_back(logic::land);  continue;
-            case '~': result.push_back(logic::lnot);  continue;
-                // clang-format on
-        }
-        CELER_VALIDATE(v == ' ',
-                       << "unexpected token '" << v
-                       << "' while parsing logic string");
-    }
-    if (reading_surf)
-    {
-        result.push_back(surf_id);
-    }
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Convert logic expressions in an OrangeInput to the desired notation.
  */
-void convert_logic(OrangeInput& input, LogicNotation to)
+void convert_logic(OrangeInput& input, LogicNotation target)
 {
     CELER_EXPECT(input);
-    CELER_ASSERT(input.logic == LogicNotation::postfix
-                 || input.logic == LogicNotation::infix);
+    CELER_ASSERT(input.logic != LogicNotation::size_);
+    CELER_ASSERT(target != LogicNotation::size_);
 
-    auto convert_units = [&](auto&& converter) {
-        for (auto& univ : input.universes)
-        {
-            if (auto* unit = std::get_if<UnitInput>(&univ))
-            {
-                for (auto& vol : unit->volumes)
-                {
-                    if (vol.logic.empty())
-                    {
-                        continue;
-                    }
-                    vol.logic = converter(make_span(vol.logic));
-                }
-            }
-        }
-    };
+    if (input.logic == target)
+    {
+        // No conversion necessary
+        return;
+    }
 
-    switch (to)
+    std::function<VecLogic(VecLogic const&)> convert;
+
+    switch (target)
     {
         case LogicNotation::postfix:
-            if (input.logic == LogicNotation::postfix)
-            {
-                return;
-            }
-            CELER_ASSERT(input.logic == LogicNotation::infix);
-            convert_units([](Span<logic_int const> logic) {
-                return convert_to_postfix(logic);
-            });
+            convert = convert_to_postfix;
             break;
         case LogicNotation::infix:
-            convert_units([&input](Span<logic_int const> logic) {
-                std::vector<logic_int> postfix;
-                if (input.logic == LogicNotation::postfix)
-                {
-                    postfix.assign(logic.begin(), logic.end());
-                }
-                else
-                {
-                    postfix = convert_to_postfix(logic);
-                }
-                auto simplified
-                    = simplify_negated_joins_postfix(make_span(postfix));
-                return convert_to_infix(make_span(simplified));
-            });
+            convert = [](VecLogic const& postfix_lgc) {
+                auto simplified = simplify_negated_joins_postfix(postfix_lgc);
+                return convert_to_infix(simplified);
+            };
             break;
         default:
             CELER_ASSERT_UNREACHABLE();
     }
 
-    input.logic = to;
+    for (auto& univ : input.universes)
+    {
+        if (auto* unit = std::get_if<UnitInput>(&univ))
+        {
+            for (auto& vol : unit->volumes)
+            {
+                if (vol.logic.empty())
+                {
+                    continue;
+                }
+                vol.logic = convert(vol.logic);
+            }
+        }
+    }
+    input.logic = target;
 }
 
 //---------------------------------------------------------------------------//

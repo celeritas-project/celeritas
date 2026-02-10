@@ -64,6 +64,10 @@ class Transformer
     // Convert an affine transform
     inline Transformation operator()(G4AffineTransform const& at) const;
 
+    // Construct dynamically
+    inline VariantTransform
+    variant(G4ThreeVector const& t, G4RotationMatrix const* rot) const;
+
   private:
     //// DATA ////
 
@@ -141,6 +145,29 @@ auto Transformer::operator()(G4AffineTransform const& affine) const
 {
     return Transformation{transposed_from_geant(affine.NetRotation()),
                           scale_.to<Real3>(affine.NetTranslation())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a transform from a translation and optional rotation.
+ */
+auto Transformer::variant(G4ThreeVector const& trans,
+                          G4RotationMatrix const* rot) const -> VariantTransform
+{
+    if (rot)
+    {
+        // Do another check for the identity matrix (parameterized volumes
+        // often have one)
+        if (!rot->isIdentity())
+        {
+            return (*this)(trans, *rot);
+        }
+    }
+    if (trans[0] != 0 || trans[1] != 0 || trans[2] != 0)
+    {
+        return (*this)(trans);
+    }
+    return NoTransformation{};
 }
 
 //---------------------------------------------------------------------------//

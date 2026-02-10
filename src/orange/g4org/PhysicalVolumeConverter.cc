@@ -8,6 +8,7 @@
 
 #include <deque>
 #include <iostream>
+#include <variant>
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
 #include <G4ReplicaNavigation.hh>
@@ -23,6 +24,7 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "orange/inp/Import.hh"
+#include "orange/transform/NoTransformation.hh"
 #include "orange/transform/TransformIO.hh"
 
 #include "LogicalVolumeConverter.hh"
@@ -128,14 +130,20 @@ PhysicalVolumeConverter::~PhysicalVolumeConverter() = default;
 //---------------------------------------------------------------------------//
 auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
 {
-    CELER_EXPECT(!g4world.GetRotation());
-    CELER_EXPECT(g4world.GetTranslation() == G4ThreeVector(0, 0, 0));
-
     ScopedProfiling profile_this{"g4org-convert"};
     ScopedMem record_mem("orange.convert-geant");
 
     CELER_LOG(status) << "Converting Geant4 geometry elements to ORANGE input";
     ScopedTimeLog scoped_time;
+
+    if (auto tf = data_->make_transform.variant(g4world.GetTranslation(),
+                                                g4world.GetRotation());
+        !std::holds_alternative<NoTransformation>(tf))
+    {
+        CELER_LOG(warning)
+            << "Ignoring transformation " << StreamableVariant{tf}
+            << " on top-level Geant4 volume '" << g4world.GetName() << "'";
+    }
 
     // Construct world volume
     Builder impl{data_.get(), {}};
@@ -158,24 +166,8 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
     result.id = this->data->geo.geant_to_id(g4pv);
 
     // Get transform
-    result.transform = [&]() -> VariantTransform {
-        auto const& g4trans = g4pv.GetObjectTranslation();
-        if (g4pv.GetFrameRotation())
-        {
-            // Get the child-to-parent rotation and do another check for the
-            // identity matrix (parameterized volumes often have one)
-            auto const& rot = g4pv.GetObjectRotationValue();
-            if (!rot.isIdentity())
-            {
-                return this->data->make_transform(g4trans, rot);
-            }
-        }
-        if (g4trans[0] != 0 || g4trans[1] != 0 || g4trans[2] != 0)
-        {
-            return this->data->make_transform(g4trans);
-        }
-        return NoTransformation{};
-    }();
+    result.transform = this->data->make_transform.variant(
+        g4pv.GetObjectTranslation(), g4pv.GetObjectRotation());
 
     // Convert logical volume
     auto* g4lv = g4pv.GetLogicalVolume();

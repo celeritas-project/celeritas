@@ -53,22 +53,20 @@ void from_json(nlohmann::json const& j, InlineSingletons& v)
 
 void to_json(nlohmann::json& j, OrangeGeoFromGeant const& v)
 {
-#define OPT_JSON_STRING(NAME) CELER_JSON_PAIR_WHEN(v, NAME, !v.NAME.empty())
-
     j = nlohmann::json{
         CELER_JSON_PAIR(v, unit_length),
         CELER_JSON_PAIR(v, explicit_interior_threshold),
         CELER_JSON_PAIR(v, inline_childless),
         CELER_JSON_PAIR(v, inline_singletons),
         CELER_JSON_PAIR(v, inline_unions),
-        CELER_JSON_PAIR(v, remove_interior),
-        CELER_JSON_PAIR(v, remove_negated_join),
+        CELER_JSON_PAIR(v, implicit_parent_boundary),
+        CELER_JSON_PAIR(v, logic),
         CELER_JSON_PAIR(v, verbose_volumes),
         CELER_JSON_PAIR(v, verbose_structure),
-        CELER_JSON_PAIR_OPTION(v, tol),
-        OPT_JSON_STRING(objects_output_file),
-        OPT_JSON_STRING(csg_output_file),
-        OPT_JSON_STRING(org_output_file),
+        CELER_JSON_PAIR(v, tol),
+        CELER_JSON_PAIR(v, objects_output_file),
+        CELER_JSON_PAIR(v, csg_output_file),
+        CELER_JSON_PAIR(v, org_output_file),
     };
 
 #undef OPT_JSON_STRING
@@ -80,6 +78,12 @@ void from_json(nlohmann::json const& j, OrangeGeoFromGeant& v)
 {
     check_format(j, format_str);
 
+    for (auto s : {"remove_interior", "remove_negated_join"})
+    {
+        CELER_VALIDATE(!j.contains(s),
+                       << "deleted geo conversion option '" << s << '\'');
+    }
+
 #define OPT_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
 
     OPT_LOAD_OPTION(unit_length);
@@ -88,8 +92,8 @@ void from_json(nlohmann::json const& j, OrangeGeoFromGeant& v)
     OPT_LOAD_OPTION(inline_childless);
     OPT_LOAD_OPTION(inline_singletons);
     OPT_LOAD_OPTION(inline_unions);
-    OPT_LOAD_OPTION(remove_interior);
-    OPT_LOAD_OPTION(remove_negated_join);
+    OPT_LOAD_OPTION(implicit_parent_boundary);
+    OPT_LOAD_OPTION(logic);
     OPT_LOAD_OPTION(verbose_volumes);
     OPT_LOAD_OPTION(verbose_structure);
     OPT_LOAD_OPTION(objects_output_file);

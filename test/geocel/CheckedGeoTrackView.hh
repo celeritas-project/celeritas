@@ -89,6 +89,11 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     //! Whether failure checking is enabled
     bool check_failure() const { return check_failure_; }
 
+    //! Enable/disable zero-step distance checking
+    void check_zero_distance(bool value) { check_zero_distance_ = value; }
+    //! Whether zero-distance checking is enabled
+    bool check_zero_distance() const { return check_zero_distance_; }
+
     //! Canonical volume parameters (if available)
     SPConstVolumes const& volumes() const { return volumes_; }
     //! Geometry interface (if available)
@@ -166,6 +171,8 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     // Configuration flags
     bool check_normal_{false};
     bool check_failure_{true};
+    bool check_safety_{true};
+    bool check_zero_distance_{true};
 
     // Counters
     size_type num_intersect_{0};
