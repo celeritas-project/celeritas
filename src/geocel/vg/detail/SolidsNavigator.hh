@@ -62,8 +62,10 @@ class SolidsNavigator
                              NavState& out_state)
     {
         ScopedVgNavState temp_state{out_state};
+        // Use 1000 * kTolerance like ADePT
+        constexpr vg_real_type search_bump{1e-5};
         return NavImpl::ComputeStepAndNextVolume(
-            pos, dir, step_limit, in_state, temp_state);
+            pos, dir, step_limit, in_state, temp_state, search_bump);
     }
 
     //-----------------------------------------------------------------------//

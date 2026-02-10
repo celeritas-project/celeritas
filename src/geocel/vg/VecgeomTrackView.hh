@@ -490,6 +490,22 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 #endif
     );
 
+    if (next_step_ == 0)
+    {
+        // Possibly reentrant boundary?
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(warning);
+        msg << "Failed to find next step at " << repr(pos_) << ' '
+            << lengthunits::native_label << " along " << repr(dir_)
+            << ": computed step is " << repr(next_step_) << ' '
+            << lengthunits::native_label;
+#endif
+        next_step_ = 1e-12;
+        Propagation result;
+        result.distance = 0;
+        result.boundary = true;
+        return result;
+    }
     if (CELER_UNLIKELY(!(next_step_ > 0)))
     {
 #if !CELER_DEVICE_COMPILE

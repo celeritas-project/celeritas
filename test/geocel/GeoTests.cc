@@ -698,9 +698,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         // Check the distance to the sphere boundary again, then scatter
         // into the sphere (this may be a "bump": 1e-13 for Geant4;
         // BUT exactly zero for ORANGE thanks to "reentrant" logic)
-        SHOULD_FAIL_WHEN(next = geo.find_next_step(from_cm(20.0)),
-                         vecgeom_version >= Version{2}
-                             && test_->geometry_type() == "VecGeom");
+        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(20.0)));
         EXPECT_LE(next.distance, to_cm(1e-8));
         ASSERT_TRUE(next.boundary);
         if (next.distance > 0)
