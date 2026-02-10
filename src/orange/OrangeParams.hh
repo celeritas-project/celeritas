@@ -112,7 +112,7 @@ class OrangeParams final : public GeoParamsInterface,
     inline VolumeInstanceId volume_instance_id(ImplVolumeId) const;
 
     // Get the volume instance containing the global point
-    VolumeInstanceId locate_volume_containing_point(Real3 const&) const final;
+    VolumeInstanceId find_volume_instance_at(Real3 const&) const final;
 
     //// DATA ACCESS ////
 

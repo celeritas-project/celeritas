@@ -327,7 +327,7 @@ inp::Model OrangeParams::make_model_input() const
  * Get the volume instance containing the global point.
  */
 VolumeInstanceId
-OrangeParams::locate_volume_containing_point(Real3 const& global_point) const
+OrangeParams::find_volume_instance_at(Real3 const& global_point) const
 {
     VolumeInstanceId last_level{};
 

@@ -883,7 +883,7 @@ GeoMatId GeantGeoParams::geant_to_id(G4Material const& g4mat) const
  * Get the volume instance containing the global point.
  */
 VolumeInstanceId
-GeantGeoParams::locate_volume_containing_point(Real3 const& point) const
+GeantGeoParams::find_volume_instance_at(Real3 const& point) const
 {
     // Create G4 Navigator
     auto g4_point = convert_to_geant(point, clhep_length);
@@ -894,9 +894,7 @@ GeantGeoParams::locate_volume_containing_point(Real3 const& point) const
                                              /* relative search = */ false,
                                              /* ignore direction = */ true);
 
-    CELER_ASSERT(pv);
-
-    return this->geant_to_id(*pv);
+    return pv ? this->geant_to_id(*pv) : VolumeInstanceId{};
 }
 
 //---------------------------------------------------------------------------//

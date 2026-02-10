@@ -61,8 +61,7 @@ class GeoParamsInterface
     virtual VolumeId volume_id(ImplVolumeId) const = 0;
 
     //! Get the volume instance containing the global point
-    virtual VolumeInstanceId locate_volume_containing_point(Real3 const&) const
-        = 0;
+    virtual VolumeInstanceId find_volume_instance_at(Real3 const&) const = 0;
 
   protected:
     GeoParamsInterface() = default;
