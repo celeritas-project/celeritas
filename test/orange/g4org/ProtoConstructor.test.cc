@@ -352,13 +352,17 @@ TEST_F(DuneCryostatTest, default)
             = R"json(["t",["~",0],["S",6],["S",7],["~",3],["S",8],["S",9],["~",6],["S",10],["S",11],["~",9],["&",[2,4,5,7,8,10]],["S",12],["S",13],["~",13],["S",14],["S",15],["~",16],["S",16],["S",17],["~",19],["&",[12,14,15,17,18,20]],["S",18],["~",22],["S",19],["S",20],["~",25],["S",21],["~",27],["S",22],["~",29],["S",23],["~",31],["|",[23,24,26,27,30,31]],["&",[12,14,15,17,18,20,33]],["S",24],["~",35],["S",25],["~",37],["|",[23,24,26,27,36,37]],["&",[12,14,15,17,18,20,33,39]],["S",26],["~",41],["S",27],["~",43],["|",[23,24,26,27,42,43]],["&",[12,14,15,17,18,20,33,39,45]],["S",28],["~",47],["S",29],["~",49],["|",[23,24,26,27,48,49]],["&",[12,14,15,17,18,20,33,39,45,51]],["S",31],["~",53],["&",[12,25,28,29,32,54]],["&",[12,25,28,35,38,54]],["&",[12,25,28,41,44,54]],["&",[12,25,28,47,50,54]]])json";
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
         EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
         EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // Deduplication changes for single precision
+            EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+            EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+        }
         EXPECT_EQ(GeoMatId{3}, u.background);
     }
 }
