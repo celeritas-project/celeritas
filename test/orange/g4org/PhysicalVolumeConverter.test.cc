@@ -6,13 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
-#include "orange/MatrixUtils.hh"
 #include "orange/inp/Import.hh"
-#include "orange/orangeinp/ObjectInterface.hh"
+#include "orange/orangeinp/ObjectInterface.hh"  // IWYU pragma: keep
 #include "orange/transform/TransformIO.hh"  // IWYU pragma: keep
 
 #include "GeantLoadTestBase.hh"
@@ -54,7 +54,34 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
     }
 
     G4VPhysicalVolume const& world() const { return *this->geo().world(); }
+
+    G4VPhysicalVolume const& find_vol_instance(std::string const& s)
+    {
+        auto pv_id = this->volumes()->volume_instance_labels().find_unique(s);
+        CELER_VALIDATE(pv_id, << "no volume '" << s << "'");
+        auto* g4pv = this->geo().id_to_geant(pv_id);
+        CELER_VALIDATE(g4pv,
+                       << "could not find Geant4 physical  volume "
+                          "matching '"
+                       << s << "' volume instance (" << pv_id.get());
+        return *g4pv;
+    }
 };
+
+//---------------------------------------------------------------------------//
+TEST_F(PhysicalVolumeConverterTest, dune_arapuca)
+{
+    this->load_test_gdml("dune-cryostat");
+    PhysicalVolumeConverter convert{this->geo(), make_options()};
+
+    auto const& g4pv = this->find_vol_instance("volArapuca_0-0_PV");
+    auto vol = convert(g4pv);
+    EXPECT_EQ("volArapuca_0-0_PV", this->get_label(vol).name);
+
+    EXPECT_JSON_EQ(
+        R"json({"_type":"all","daughters":[{"_type":"all","daughters":[{"_type":"all","daughters":[{"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"box","halfwidths":[1.15,5.9,104.6]},"label":"ArapucaOut"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,-80.2]}},"label":""}],"label":"ArapucaWalls0"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,-31.4]}},"label":""}],"label":"ArapucaWalls1"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,31.4]}},"label":""}],"label":"ArapucaWalls2"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,80.2]}},"label":""}],"label":"ArapucaWalls"})json",
+        to_string(*vol.lv->solid));
+}
 
 //---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, four_levels)
@@ -105,14 +132,15 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(PhysicalVolumeConverterTest, DISABLED_solids)
+TEST_F(PhysicalVolumeConverterTest, solids)
 {
-    celeritas::environment().insert({"G4ORG_ALLOW_ERRORS", "1"});
     this->load_test_gdml("solids");
 
     PhysicalVolumeConverter convert{this->geo(), make_options()};
 
     PhysicalVolume world = convert(this->world());
+
+    EXPECT_EQ(24, world.lv->children.size());
 }
 
 //---------------------------------------------------------------------------//
