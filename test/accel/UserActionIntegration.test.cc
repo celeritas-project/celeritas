@@ -471,7 +471,6 @@ void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
 TEST_F(LarSphereOpticalTrackOffload, run)
 {
     auto& rm = this->run_manager();
-    rm.SetNumberOfThreads(2);
     UAI::Instance().SetOptions(this->make_setup_options());
 
     rm.Initialize();
