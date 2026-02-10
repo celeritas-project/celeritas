@@ -17,12 +17,7 @@
 #include "geocel/inp/Model.hh"
 
 #include "GenericGeoTestInterface.hh"
-#include "testdetail/TestMacrosImpl.hh"
-
-//!@{
-//! Helper macros
-#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
-//!@}
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -103,6 +98,7 @@ void GenericGeoTrackingResult::fail_at(std::size_t index)
 void GenericGeoTrackingResult::print_expected() const
 {
     using std::cout;
+    auto const& ref = *this;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoTrackingResult ref;\n"
          << CELER_REF_ATTR(volumes) << CELER_REF_ATTR(volume_instances)
@@ -213,6 +209,7 @@ GenericGeoVolumeStackResult::from_span(LabelMap const& vol_inst,
 void GenericGeoVolumeStackResult::print_expected() const
 {
     using std::cout;
+    auto const& ref = *this;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoVolumeStackResult ref;\n"
             << CELER_REF_ATTR(volume_instances)
@@ -237,7 +234,9 @@ void GenericGeoVolumeStackResult::fail()
     {                                                              \
         result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
                       << " but got " << repr(val2.ATTR);           \
-    }
+    }                                                              \
+    else                                                           \
+        CELER_DISCARD(int)
     IRE_COMPARE(volume_instances);
 #undef IRE_COMPARE
     return result;
@@ -348,6 +347,7 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
 void GenericGeoModelInp::print_expected() const
 {
     using std::cout;
+    auto const& ref = *this;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoModelInp ref;\n"
          << CELER_REF_ATTR(volume.labels) << CELER_REF_ATTR(volume.materials)
@@ -387,7 +387,7 @@ void GenericGeoModelInp::print_expected() const
                       << " but got " << repr(val2.ATTR);           \
     }                                                              \
     else                                                           \
-        (void)sizeof(char)
+        CELER_DISCARD(int)
 
     IRE_COMPARE(volume.labels);
     IRE_COMPARE(volume.materials);

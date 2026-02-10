@@ -13,8 +13,11 @@
 #include "corecel/io/Repr.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeToString.hh"
+#include "orange/OrangeData.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 #include "orange/orangeinp/CsgTestUtils.hh"
+#include "orange/orangeinp/UnitProto.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/orangeinp/detail/ProtoMap.hh"
 
@@ -39,32 +42,44 @@ class ProtoConstructorTest : public GeantLoadTestBase
 {
   protected:
     using Unit = orangeinp::detail::CsgUnit;
-    using Tol = Tolerance<>;
     using Options = inp::OrangeGeoFromGeant;
 
-    std::shared_ptr<UnitProto> load(std::string const& basename)
+    void SetUp() override
     {
-        Options opts;
-        opts.unit_length = 0.1;
-        return load(basename, opts);
+        opts_.unit_length = 0.1;
+        opts_.tol = Tolerance<>::from_relative(1e-5);
     }
 
-    std::shared_ptr<UnitProto>
-    load(std::string const& basename, Options const& opts)
+    void setup_opts(std::string const& json_str)
+    {
+        CELER_EXPECT(!json_str.empty());
+        std::istringstream{json_str} >> opts_;
+
+        // Check JSON
+        auto&& result_str = [&opts = opts_] {
+            std::ostringstream os;
+            os << opts;
+            return std::move(os).str();
+        }();
+        EXPECT_EQ(15, std::count(result_str.begin(), result_str.end(), ','))
+            << "JSON items changed: actual is " << repr(result_str);
+    }
+
+    std::shared_ptr<UnitProto> load(std::string const& basename)
     {
         // Load GDML into Geant4
         this->load_test_gdml(basename);
 
         // Convert volumes into ORANGE representation
         auto const& geant_geo = this->geo();
-        PhysicalVolumeConverter make_pv(geant_geo, opts);
+        PhysicalVolumeConverter make_pv(geant_geo, opts_);
         PhysicalVolume world = make_pv(*geant_geo.world());
 
         EXPECT_TRUE(std::holds_alternative<NoTransformation>(world.transform));
         EXPECT_EQ(1, world.lv.use_count());
 
         // Construct proto
-        ProtoConstructor make_proto(*this->volumes(), opts);
+        ProtoConstructor make_proto(*this->volumes(), opts_);
         return make_proto(*world.lv);
     }
 
@@ -127,14 +142,16 @@ class ProtoConstructorTest : public GeantLoadTestBase
         CELER_EXPECT(id < protos.size());
         auto const* proto = dynamic_cast<UnitProto const*>(protos.at(id));
         CELER_ASSERT(proto);
-        return proto->build(
-            tol_,
-            id == UnivId{0} ? BBox{}
-                            : BBox{{-1000, -1000, -1000}, {1000, 1000, 1000}},
-            id == UnivId{0});
+        UnitProto::BuildOptions opts;
+        opts.assume_inside = opts_.implicit_parent_boundary
+                             && (id != orange_global_univ);
+        opts.tol = opts_.tol;
+        opts.logic = LogicNotation::infix;
+        return proto->build(opts);
     }
 
-    Tolerance<> tol_ = Tol::from_relative(1e-5);
+  private:
+    Options opts_;
 };
 
 //---------------------------------------------------------------------------//
@@ -317,17 +334,16 @@ using MultilevelTest = ProtoConstructorTest;
 
 TEST_F(MultilevelTest, full_inline)
 {
-    Options opts;
-    std::istringstream{R"json({
+    this->setup_opts(R"json({
 "_format": "g4org-options",
 "explicit_interior_threshold": 1000,
 "inline_childless": true,
 "inline_singletons": "all",
 "inline_unions": true,
 "verbose_structure": false
-})json"} >> opts;
+})json");
 
-    auto global_proto = this->load("multi-level", opts);
+    auto global_proto = this->load("multi-level");
     ProtoMap protos{*global_proto};
     auto parents = this->get_all_local_parents(protos);
 
@@ -361,19 +377,18 @@ TEST_F(MultilevelTest, default)
 
 TEST_F(MultilevelTest, each_volume)
 {
-    Options opts;
-    std::istringstream{R"json({
+    this->setup_opts(R"json({
 "_format": "g4org-options",
 "explicit_interior_threshold": 0,
 "inline_childless": false,
 "inline_singletons": "none",
 "inline_unions": false,
-"remove_interior": false,
-"remove_negated_join": true,
+"implicit_parent_boundary": false,
+"logic": "infix",
 "verbose_structure": false
-})json"} >> opts;
+})json");
 
-    auto global_proto = this->load("multi-level", opts);
+    auto global_proto = this->load("multi-level");
     ProtoMap protos{*global_proto};
     auto parents = this->get_all_local_parents(protos);
     std::vector<std::string> const expected_parents[]
@@ -779,33 +794,24 @@ TEST_F(ZnenvTest, default)
 
 TEST_F(ZnenvTest, explicit_interior)
 {
-    Options opts;
-    std::istringstream{R"json({
+    this->setup_opts(R"json({
 "_format": "g4org-options",
+"csg_output_file": null,
 "explicit_interior_threshold": 0,
+"implicit_parent_boundary": false,
 "inline_childless": false,
 "inline_singletons": "none",
 "inline_unions": false,
-"remove_interior": false,
-"remove_negated_join": true,
-"tol": {"abs": 0.0001, "rel": 0.001},
-"unit_length": 1.0,
-"csg_output_file": null,
+"logic": "postfix",
 "objects_output_file": null,
 "org_output_file": null,
+"tol": {"abs": 0.0001, "rel": 0.001},
+"unit_length": 1.0,
 "verbose_structure": false,
 "verbose_volumes": false
-})json"} >> opts;
+})json");
 
-    auto&& opts_str = [&opts] {
-        std::ostringstream os;
-        os << opts;
-        return std::move(os).str();
-    }();
-    EXPECT_EQ(15, std::count(opts_str.begin(), opts_str.end(), ','))
-        << "JSON items changed: actual is " << repr(opts_str);
-
-    auto global_proto = this->load("znenv", opts);
+    auto global_proto = this->load("znenv");
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {

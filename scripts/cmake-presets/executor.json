@@ -72,7 +72,7 @@
     {
       "name": "min",
       "displayName": "Executor minimal build",
-      "inherits": [".base", ".debug", "default"],
+      "inherits": [".ccache", ".base", ".debug", "default"],
       "environment": {
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-min/.spack-env/view"
       },
@@ -98,7 +98,7 @@
     {
       "name": "float",
       "displayName": "Single-precision arithmetic",
-      "inherits": [".base", ".debug", "default"],
+      "inherits": [".spackbase", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_REAL_TYPE": "float"

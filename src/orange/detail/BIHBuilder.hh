@@ -62,7 +62,8 @@ class BIHBuilder
     BIHBuilder(Storage* storage, Input inp);
 
     // Create BIH Nodes
-    BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
+    BIHTreeRecord
+    operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
 
   private:
     /// TYPES ///
@@ -96,7 +97,9 @@ class BIHBuilder
     void construct_tree(VecIndices const& indices,
                         VecNodes* nodes,
                         BIHNodeId parent,
-                        FastBBox const& bbox);
+                        FastBBox const& bbox,
+                        size_type current_depth,
+                        size_type& depth);
 
     // Separate nodes into inner and leaf vectors and renumber accordingly
     ArrangedNodes arrange_nodes(VecNodes const& nodes) const;
