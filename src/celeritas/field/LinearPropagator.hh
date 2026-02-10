@@ -60,7 +60,7 @@ CELER_FUNCTION auto LinearPropagator<GTV>::operator()(real_type dist)
     {
         geo_.move_to_boundary();
     }
-    else
+    else if (!geo_.failed())
     {
         // TODO: allow distance traveled to be less than the input distance for
         // cases like bumps, internal boundary, etc.
