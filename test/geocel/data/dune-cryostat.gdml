@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!--
+Provenance:
+- Originally from DUNE Project: https://github.com/DUNE/dunecore/blob/develop/dunecore/Geometry/gdml
+- Modified by nuricelab: https://github.com/nuRiceLab/OpticalSims/tree/master/GDML
+- Exported by @Rashika-Gupta
+- Simplified with https://github.com/celeritas-project/gdml-subset
+- Optical data truncated by @sethrj
+-->
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <matrix coldim="2" name="REFLECTIVITY" values="7.74901e-06 0 1.15758e-05 0"/>
+    <matrix coldim="2" name="EFFICIENCY" values="7.74901e-06 1 1.15758e-05 1"/>
+    <matrix coldim="2" name="RINDEX" values="7.74901e-06 1.31339 7.8059e-06 1.31557 7.86362e-06 1.31785 7.92221e-06 1.32024 7.98168e-06 1.32275 8.04204e-06 1.32537 8.10333e-06 1.32812 8.52254e-06 1.34978 8.5914e-06 1.35389 8.66138e-06 1.35825 8.73251e-06 1.36289 8.80482e-06 1.36784 8.87834e-06 1.37312 8.95309e-06 1.37877 9.02911e-06 1.38483 9.10644e-06 1.39134 9.1851e-06 1.39836 9.26514e-06 1.40596 9.34658e-06 1.41419 9.42946e-06 1.42315 9.51383e-06 1.43294 9.59972e-06 1.44366 9.68717e-06 1.45548 9.77624e-06 1.46856 9.86695e-06 1.48311 9.95937e-06 1.49941 1.00535e-05 1.51777 1.01495e-05 1.53863 1.02473e-05 1.56254 1.0347e-05 1.59021 1.04487e-05 1.62264 1.05524e-05 1.66119 1.06582e-05 1.70778 1.07661e-05 1.76532 1.08762e-05 1.83828 1.09886e-05 1.9341 1.11033e-05 2.06612 1.12205e-05 2.26121 1.13402e-05 2.58422 1.14624e-05 3.25186 1.15758e-05 5.44987"/>
+
+    <matrix coldim="2" name="GROUPVEL" values="7.74901e-06 187.379 1.15758e-05 0.622401"/>
+    <matrix coldim="2" name="SCINTILLATIONCOMPONENT1" values="7.74901e-06 0.00286978 9.65527e-06 0.0398606 1.01667e-05 0.0332247 1.06781e-05 0.0196762 1.11896e-05 0.0090939 1.1608e-05 0.00422473"/>
+    <matrix coldim="2" name="SCINTILLATIONCOMPONENT2" values="7.74901e-06 0.000238409 1.05852e-05 0.0220979 1.10966e-05 0.0106224 1.1608e-05 0.00422473"/>
+    <matrix coldim="2" name="FASTCOMPONENT" values="7.74901e-06 0.000238409 8.26045e-06 0.00347484 8.77188e-06 0.0163804 9.28332e-06 0.0341885 9.79475e-06 0.0394953 1.03062e-05 0.0296612 1.08176e-05 0.0162842 1.13291e-05 0.00712565 1.1608e-05 0.00422473"/>
+    <matrix coldim="2" name="SLOWCOMPONENT" values="7.74901e-06 0.000238409 8.26045e-06 0.00347484 8.77188e-06 0.0163804 9.28332e-06 0.0341885 9.79475e-06 0.0394953 1.03062e-05 0.0296612 1.08176e-05 0.0162842 1.1608e-05 0.00422473"/>
+    <matrix coldim="2" name="REEMISSIONPROB" values="7.74901e-06 0.000238409 8.26045e-06 0.00347484 8.77188e-06 0.0163804 9.28332e-06 0.0341885 9.79475e-06 0.0394953 1.03062e-05 0.0296612 1.08176e-05 0.0162842 1.13291e-05 0.00712565 1.1608e-05 0.00422473"/>
+    <matrix coldim="1" name="SCINTILLATIONYIELD" values="50000"/>
+    <matrix coldim="1" name="RESOLUTIONSCALE" values="1"/>
+    <matrix coldim="1" name="SCINTILLATIONTIMECONSTANT1" values="6"/>
+    <matrix coldim="1" name="SCINTILLATIONTIMECONSTANT2" values="1590"/>
+    <matrix coldim="1" name="FASTTIMECONSTANT" values="6"/>
+    <matrix coldim="1" name="SLOWTIMECONSTANT" values="1590"/>
+    <matrix coldim="1" name="YIELDRATIO" values="0.8"/>
+  </define>
+
+  <materials>
+    <isotope N="36" Z="18" name="Ar36">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="Ar38">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="argon">
+      <fraction n="0.003365" ref="Ar36"/>
+      <fraction n="0.000632" ref="Ar38"/>
+      <fraction n="0.996003" ref="Ar40"/>
+    </element>
+    <material name="ArGas" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="188"/>
+      <D unit="g/cm3" value="0.00166"/>
+      <fraction n="1" ref="argon"/>
+    </material>
+    <isotope N="28" Z="14" name="Si28">
+      <atom unit="g/mole" value="27.9769"/>
+    </isotope>
+    <isotope N="29" Z="14" name="Si29">
+      <atom unit="g/mole" value="28.9765"/>
+    </isotope>
+    <isotope N="30" Z="14" name="Si30">
+      <atom unit="g/mole" value="29.9738"/>
+    </isotope>
+    <element name="silicon">
+      <fraction n="0.922296077703922" ref="Si28"/>
+      <fraction n="0.0468319531680468" ref="Si29"/>
+      <fraction n="0.0308719691280309" ref="Si30"/>
+    </element>
+    <isotope N="16" Z="8" name="O16">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O17">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O18">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="oxygen">
+      <fraction n="0.99757" ref="O16"/>
+      <fraction n="0.00038" ref="O17"/>
+      <fraction n="0.00205" ref="O18"/>
+    </element>
+    <isotope N="12" Z="6" name="C12">
+      <atom unit="g/mole" value="12"/>
+    </isotope>
+    <isotope N="13" Z="6" name="C13">
+      <atom unit="g/mole" value="13.0034"/>
+    </isotope>
+    <element name="carbon">
+      <fraction n="0.9893" ref="C12"/>
+      <fraction n="0.0107" ref="C13"/>
+    </element>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="hydrogen">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="G10" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="98.8204470453779"/>
+      <D unit="g/cm3" value="1.7"/>
+      <fraction n="0.2805" ref="silicon"/>
+      <fraction n="0.3954" ref="oxygen"/>
+      <fraction n="0.299" ref="carbon"/>
+      <fraction n="0.0251" ref="hydrogen"/>
+    </material>
+    <isotope N="27" Z="13" name="Al27">
+      <atom unit="g/mole" value="26.9815"/>
+    </isotope>
+    <element name="aluminum">
+      <fraction n="1" ref="Al27"/>
+    </element>
+    <isotope N="54" Z="26" name="Fe54">
+      <atom unit="g/mole" value="53.9396"/>
+    </isotope>
+    <isotope N="56" Z="26" name="Fe56">
+      <atom unit="g/mole" value="55.9349"/>
+    </isotope>
+    <isotope N="57" Z="26" name="Fe57">
+      <atom unit="g/mole" value="56.9354"/>
+    </isotope>
+    <isotope N="58" Z="26" name="Fe58">
+      <atom unit="g/mole" value="57.9333"/>
+    </isotope>
+    <element name="iron">
+      <fraction n="0.05845" ref="Fe54"/>
+      <fraction n="0.91754" ref="Fe56"/>
+      <fraction n="0.02119" ref="Fe57"/>
+      <fraction n="0.00282" ref="Fe58"/>
+    </element>
+    <isotope N="40" Z="20" name="Ca40">
+      <atom unit="g/mole" value="39.9626"/>
+    </isotope>
+    <isotope N="42" Z="20" name="Ca42">
+      <atom unit="g/mole" value="41.9586"/>
+    </isotope>
+    <isotope N="43" Z="20" name="Ca43">
+      <atom unit="g/mole" value="42.9588"/>
+    </isotope>
+    <isotope N="44" Z="20" name="Ca44">
+      <atom unit="g/mole" value="43.9555"/>
+    </isotope>
+    <isotope N="46" Z="20" name="Ca46">
+      <atom unit="g/mole" value="45.9537"/>
+    </isotope>
+    <isotope N="48" Z="20" name="Ca48">
+      <atom unit="g/mole" value="47.9525"/>
+    </isotope>
+    <element name="calcium">
+      <fraction n="0.96941" ref="Ca40"/>
+      <fraction n="0.00647" ref="Ca42"/>
+      <fraction n="0.00135" ref="Ca43"/>
+      <fraction n="0.02086" ref="Ca44"/>
+      <fraction n="4e-05" ref="Ca46"/>
+      <fraction n="0.00187" ref="Ca48"/>
+    </element>
+    <isotope N="24" Z="12" name="Mg24">
+      <atom unit="g/mole" value="23.985"/>
+    </isotope>
+    <isotope N="25" Z="12" name="Mg25">
+      <atom unit="g/mole" value="24.9858"/>
+    </isotope>
+    <isotope N="26" Z="12" name="Mg26">
+      <atom unit="g/mole" value="25.9826"/>
+    </isotope>
+    <element name="magnesium">
+      <fraction n="0.7899" ref="Mg24"/>
+      <fraction n="0.1" ref="Mg25"/>
+      <fraction n="0.1101" ref="Mg26"/>
+    </element>
+    <isotope N="23" Z="11" name="Na23">
+      <atom unit="g/mole" value="22.9898"/>
+    </isotope>
+    <element name="sodium">
+      <fraction n="1" ref="Na23"/>
+    </element>
+    <isotope N="46" Z="22" name="Ti46">
+      <atom unit="g/mole" value="45.9526"/>
+    </isotope>
+    <isotope N="47" Z="22" name="Ti47">
+      <atom unit="g/mole" value="46.9518"/>
+    </isotope>
+    <isotope N="48" Z="22" name="Ti48">
+      <atom unit="g/mole" value="47.9479"/>
+    </isotope>
+    <isotope N="49" Z="22" name="Ti49">
+      <atom unit="g/mole" value="48.9479"/>
+    </isotope>
+    <isotope N="50" Z="22" name="Ti50">
+      <atom unit="g/mole" value="49.9448"/>
+    </isotope>
+    <element name="titanium">
+      <fraction n="0.0825" ref="Ti46"/>
+      <fraction n="0.0744" ref="Ti47"/>
+      <fraction n="0.7372" ref="Ti48"/>
+      <fraction n="0.0541" ref="Ti49"/>
+      <fraction n="0.0518" ref="Ti50"/>
+    </element>
+    <material name="Glass" state="solid">
+      <property name="REFLECTIVITY" ref="REFLECTIVITY"/>
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="132.767300903927"/>
+      <D unit="g/cm3" value="2.74351"/>
+      <fraction n="0.28046468664442" ref="silicon"/>
+      <fraction n="0.460578132026017" ref="oxygen"/>
+      <fraction n="0.0624522754021185" ref="aluminum"/>
+      <fraction n="0.000699430761427042" ref="iron"/>
+      <fraction n="0.160091873673699" ref="calcium"/>
+      <fraction n="0.020503423977769" ref="magnesium"/>
+      <fraction n="0.00741864179802835" ref="sodium"/>
+      <fraction n="0.00779153571652162" ref="titanium"/>
+    </material>
+    <material name="LAr" state="solid">
+      <property name="RINDEX" ref="RINDEX"/>
+      <property name="GROUPVEL" ref="GROUPVEL"/>
+      <property name="SCINTILLATIONCOMPONENT1" ref="SCINTILLATIONCOMPONENT1"/>
+      <property name="SCINTILLATIONCOMPONENT2" ref="SCINTILLATIONCOMPONENT2"/>
+      <property name="FASTCOMPONENT" ref="FASTCOMPONENT"/>
+      <property name="SLOWCOMPONENT" ref="SLOWCOMPONENT"/>
+      <property name="REEMISSIONPROB" ref="REEMISSIONPROB"/>
+      <property name="SCINTILLATIONYIELD" ref="SCINTILLATIONYIELD"/>
+      <property name="RESOLUTIONSCALE" ref="RESOLUTIONSCALE"/>
+      <property name="SCINTILLATIONTIMECONSTANT1" ref="SCINTILLATIONTIMECONSTANT1"/>
+      <property name="SCINTILLATIONTIMECONSTANT2" ref="SCINTILLATIONTIMECONSTANT2"/>
+      <property name="FASTTIMECONSTANT" ref="FASTTIMECONSTANT"/>
+      <property name="SLOWTIMECONSTANT" ref="SLOWTIMECONSTANT"/>
+      <property name="YIELDRATIO" ref="YIELDRATIO"/>
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="188"/>
+      <D unit="g/cm3" value="1.4"/>
+      <fraction n="1" ref="argon"/>
+    </material>
+    <isotope N="14" Z="7" name="N14">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N15">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="nitrogen">
+      <fraction n="0.99632" ref="N14"/>
+      <fraction n="0.00368" ref="N15"/>
+    </element>
+    <material name="Air" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="85.164155254427"/>
+      <D unit="g/cm3" value="0.001205"/>
+      <fraction n="0.78117743532306" ref="nitrogen"/>
+      <fraction n="0.209482284468534" ref="oxygen"/>
+      <fraction n="0.00934028020840625" ref="argon"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="mm" name="GaseousArgon0x600003756680" x="7567.841" y="500" z="17439.4"/>
+    <box lunit="mm" name="ArapucaOut0x600003756760" x="23" y="118" z="2092"/>
+    <box lunit="mm" name="ArapucaIn0x6000037567d0" x="24" y="93" z="468"/>
+    <subtraction name="ArapucaWalls00x600002d572a0">
+      <first ref="ArapucaOut0x600003756760"/>
+      <second ref="ArapucaIn0x6000037567d0"/>
+      <position name="ArapucaWalls00x600002d572a0_pos" unit="mm" x="0" y="0" z="-802"/>
+    </subtraction>
+    <subtraction name="ArapucaWalls10x600002d57340">
+      <first ref="ArapucaWalls00x600002d572a0"/>
+      <second ref="ArapucaIn0x6000037567d0"/>
+      <position name="ArapucaWalls10x600002d57340_pos" unit="mm" x="0" y="0" z="-314"/>
+    </subtraction>
+    <subtraction name="ArapucaWalls20x600002d573e0">
+      <first ref="ArapucaWalls10x600002d57340"/>
+      <second ref="ArapucaIn0x6000037567d0"/>
+      <position name="ArapucaWalls20x600002d573e0_pos" unit="mm" x="0" y="0" z="314"/>
+    </subtraction>
+    <subtraction name="ArapucaWalls0x600002d57480">
+      <first ref="ArapucaWalls20x600002d573e0"/>
+      <second ref="ArapucaIn0x6000037567d0"/>
+      <position name="ArapucaWalls0x600002d57480_pos" unit="mm" x="0" y="0" z="802"/>
+    </subtraction>
+    <box lunit="mm" name="ArapucaAcceptanceWindow0x600003756840" x="22" y="93" z="468"/>
+    <opticalsurface finish="0" model="1" name="ArapucaSurface0x600003744070" type="0" value="1">
+      <property name="REFLECTIVITY" ref="REFLECTIVITY"/>
+      <property name="EFFICIENCY" ref="EFFICIENCY"/>
+    </opticalsurface>
+    <box lunit="mm" name="Cryostat0x6000037564c0" x="7593.241" y="13576.975" z="17464.8"/>
+    <box lunit="mm" name="DetEnclosure0x600003756d80" x="12193.241" y="18176.975" z="23064.8"/>
+  </solids>
+
+  <structure>
+    <volume name="volGaseousArgon0x600002d5c000">
+      <materialref ref="ArGas"/>
+      <solidref ref="GaseousArgon0x600003756680"/>
+    </volume>
+    <volume name="volArapuca_0-00x600002d60820">
+      <materialref ref="G10"/>
+      <solidref ref="ArapucaWalls0x600002d57480"/>
+    </volume>
+    <volume name="volOpDetSensitive_0-0-00x600002d5c1e0">
+      <materialref ref="Glass"/>
+      <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+    </volume>
+    <volume name="volOpDetSensitive_0-0-10x600002d5c320">
+      <materialref ref="Glass"/>
+      <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+    </volume>
+    <volume name="volOpDetSensitive_0-0-20x600002d5c460">
+      <materialref ref="Glass"/>
+      <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+    </volume>
+    <volume name="volOpDetSensitive_0-0-30x600002d5c5a0">
+      <materialref ref="Glass"/>
+      <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+    </volume>
+    <volume name="volCryostat0x600002d65680">
+      <materialref ref="LAr"/>
+      <solidref ref="Cryostat0x6000037564c0"/>
+      <physvol name="volGaseousArgon_PV0x600003f43de0">
+        <volumeref ref="volGaseousArgon0x600002d5c000"/>
+        <position name="volGaseousArgon_PV0x600003f43de0_pos" unit="mm" x="0" y="6525.7875" z="0"/>
+      </physvol>
+      <physvol name="volArapuca_0-0_PV0x600003f785f0">
+        <volumeref ref="volArapuca_0-00x600002d60820"/>
+        <position name="volArapuca_0-0_PV0x600003f785f0_pos" unit="mm" x="0" y="-6123.1875" z="-4549.75"/>
+      </physvol>
+      <physvol name="volOpDetSensitive_0-0-0_PV0x600003f78690">
+        <volumeref ref="volOpDetSensitive_0-0-00x600002d5c1e0"/>
+        <position name="volOpDetSensitive_0-0-0_PV0x600003f78690_pos" unit="mm" x="-0.500000000000002" y="-6123.1875" z="-5351.75"/>
+      </physvol>
+      <physvol name="volOpDetSensitive_0-0-1_PV0x600003f78730">
+        <volumeref ref="volOpDetSensitive_0-0-10x600002d5c320"/>
+        <position name="volOpDetSensitive_0-0-1_PV0x600003f78730_pos" unit="mm" x="-0.500000000000002" y="-6123.1875" z="-4863.75"/>
+      </physvol>
+      <physvol name="volOpDetSensitive_0-0-2_PV0x600003f787d0">
+        <volumeref ref="volOpDetSensitive_0-0-20x600002d5c460"/>
+        <position name="volOpDetSensitive_0-0-2_PV0x600003f787d0_pos" unit="mm" x="-0.500000000000002" y="-6123.1875" z="-4235.75"/>
+      </physvol>
+      <physvol name="volOpDetSensitive_0-0-3_PV0x600003f78870">
+        <volumeref ref="volOpDetSensitive_0-0-30x600002d5c5a0"/>
+        <position name="volOpDetSensitive_0-0-3_PV0x600003f78870_pos" unit="mm" x="-0.500000000000002" y="-6123.1875" z="-3747.75"/>
+      </physvol>
+    </volume>
+    <volume name="volDetEnclosure0x600002d65860">
+      <materialref ref="Air"/>
+      <solidref ref="DetEnclosure0x600003756d80"/>
+      <physvol name="volCryostat_PV0x600003f19d60">
+        <volumeref ref="volCryostat0x600002d65680"/>
+        <position name="volCryostat_PV0x600003f19d60_pos" unit="mm" x="0" y="-1000" z="0"/>
+      </physvol>
+    </volume>
+    <skinsurface name="volOpDetSensitive_0-0-0_Surface" surfaceproperty="ArapucaSurface0x600003744070">
+      <volumeref ref="volOpDetSensitive_0-0-00x600002d5c1e0"/>
+    </skinsurface>
+    <skinsurface name="volOpDetSensitive_0-0-1_Surface" surfaceproperty="ArapucaSurface0x600003744070">
+      <volumeref ref="volOpDetSensitive_0-0-10x600002d5c320"/>
+    </skinsurface>
+    <skinsurface name="volOpDetSensitive_0-0-2_Surface" surfaceproperty="ArapucaSurface0x600003744070">
+      <volumeref ref="volOpDetSensitive_0-0-20x600002d5c460"/>
+    </skinsurface>
+    <skinsurface name="volOpDetSensitive_0-0-3_Surface" surfaceproperty="ArapucaSurface0x600003744070">
+      <volumeref ref="volOpDetSensitive_0-0-30x600002d5c5a0"/>
+    </skinsurface>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="volDetEnclosure0x600002d65860"/>
+  </setup>
+
+</gdml>

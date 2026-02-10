@@ -140,9 +140,29 @@ std::string VolumeInstanceAccessor::operator()(size_type i) const
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ConverterTest, lar_sphere)
+TEST_F(ConverterTest, dune_cryostat)
 {
     verbose_ = true;
+    std::string const basename = "dune-cryostat";
+    this->load_test_gdml(basename);
+    auto convert = this->make_converter(basename);
+    auto result = convert(this->geo(), *this->volumes()).input;
+    write_org_json(result, basename);
+
+    ASSERT_EQ(2, result.universes.size());
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[0]);
+        EXPECT_EQ(3, unit.volumes.size());
+    }
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[1]);
+        EXPECT_EQ(8, unit.volumes.size());
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ConverterTest, lar_sphere)
+{
     std::string const basename = "lar-sphere";
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
@@ -251,7 +271,6 @@ TEST_F(ConverterTest, multilevel)
 TEST_F(ConverterTest, testem3)
 {
     std::string const basename = "testem3";
-    verbose_ = true;
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
     auto result = convert(this->geo(), *this->volumes()).input;
