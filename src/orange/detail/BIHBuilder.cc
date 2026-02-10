@@ -34,7 +34,7 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
 /*!
  * Create BIH Nodes.
  */
-BIHTree
+BIHTreeRecord
 BIHBuilder::operator()(VecBBox&& bboxes,
                        BIHBuilder::SetLocalVolId const& implicit_vol_ids)
 {
@@ -77,7 +77,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
         }
     }
 
-    BIHTree tree;
+    BIHTreeRecord tree;
 
     tree.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
         bboxes_.insert_back(temp_.bboxes.begin(), temp_.bboxes.end()));
@@ -85,11 +85,16 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     tree.inf_vol_ids = local_volume_ids_.insert_back(inf_vol_ids.begin(),
                                                      inf_vol_ids.end());
 
+    // The depth of the most embedded node (where 1 is the root node), to be
+    // calculated during the recursive construction process
+    size_type depth = 0;
+
     if (!indices.empty())
     {
+        // Construct the tree recursively
         VecNodes nodes;
         auto inf_bbox = FastBBox::from_infinite();
-        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox);
+        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox, 0, depth);
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.inner_nodes
@@ -108,6 +113,13 @@ BIHBuilder::operator()(VecBBox&& bboxes,
                                                   std::end(empty_nodes));
     }
 
+    // Assign metadata for diagnostic purposes
+    BIHTreeRecord::Metadata md;
+    md.num_finite_bboxes = indices.size();
+    md.num_infinite_bboxes = inf_vol_ids.size();
+    md.depth = depth;
+    tree.metadata = md;
+
     return tree;
 }
 
@@ -120,10 +132,13 @@ BIHBuilder::operator()(VecBBox&& bboxes,
 void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
                                 BIHNodeId parent,
-                                FastBBox const& bbox)
+                                FastBBox const& bbox,
+                                size_type current_depth,
+                                size_type& depth)
 {
     using Side = BIHInnerNode::Side;
 
+    ++current_depth;
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
 
@@ -136,6 +151,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
             = local_volume_ids_.insert_back(indices.begin(), indices.end());
         CELER_EXPECT(node);
         (*nodes)[current_index] = node;
+        depth = std::max(depth, current_depth);
     };
 
     if (indices.size() <= inp_.max_leaf_size)
@@ -178,7 +194,9 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
             this->construct_tree(p.indices[side],
                                  nodes,
                                  BIHNodeId(current_index),
-                                 node.edges[side].bbox);
+                                 node.edges[side].bbox,
+                                 current_depth,
+                                 depth);
         }
 
         CELER_EXPECT(node);

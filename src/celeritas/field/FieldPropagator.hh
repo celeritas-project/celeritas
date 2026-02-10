@@ -196,13 +196,15 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
             geo_.move_internal(state_.pos);
             --remaining_substeps;
         }
-        else if (CELER_UNLIKELY(result.boundary
-                                && (linear_step.distance)
-                                       < this->bump_distance()))
+        else if (CELER_UNLIKELY(
+                     result.boundary
+                     && ((linear_step.distance) < this->bump_distance())))
         {
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a
             // near tangent). Reduce substep size and try again.
+            // TODO: this condition is triggered in ORANGE when on a reentrant
+            // boundary
             remaining = substep.length / 2;
         }
         else if (update_length <= this->minimum_substep()
