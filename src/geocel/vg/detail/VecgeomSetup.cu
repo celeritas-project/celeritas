@@ -88,7 +88,7 @@ struct LogicalVolumesGetter
 };
 
 //---------------------------------------------------------------------------//
-//! Copy the logical volume pointer table
+//! Copy the placed volume pointer table
 struct PlacedVolumesGetter
 {
     using pointer_type = vecgeom::cuda::VPlacedVolume const*;
@@ -197,7 +197,7 @@ void check_other_device_pointers()
                        << "failed to copy VG logical volumes to GPU");
 
         CELER_VALIDATE(get_device_pointer<PlacedVolumesGetter>() != nullptr,
-                       << "failed to copy VG places volumes to GPU");
+                       << "failed to copy VG placed volumes to GPU");
     }
 }
 
