@@ -158,24 +158,8 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
     result.id = this->data->geo.geant_to_id(g4pv);
 
     // Get transform
-    result.transform = [&]() -> VariantTransform {
-        auto const& g4trans = g4pv.GetObjectTranslation();
-        if (g4pv.GetFrameRotation())
-        {
-            // Get the child-to-parent rotation and do another check for the
-            // identity matrix (parameterized volumes often have one)
-            auto const& rot = g4pv.GetObjectRotationValue();
-            if (!rot.isIdentity())
-            {
-                return this->data->make_transform(g4trans, rot);
-            }
-        }
-        if (g4trans[0] != 0 || g4trans[1] != 0 || g4trans[2] != 0)
-        {
-            return this->data->make_transform(g4trans);
-        }
-        return NoTransformation{};
-    }();
+    result.transform = this->data->make_transform.variant(
+        g4pv.GetObjectTranslation(), g4pv.GetObjectRotation());
 
     // Convert logical volume
     auto* g4lv = g4pv.GetLogicalVolume();
