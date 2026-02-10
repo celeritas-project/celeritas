@@ -367,8 +367,8 @@ struct Tolerance
     // Construct from a relative tolerance and a length scale
     static Tolerance from_relative(real_type rel, real_type length = 1);
 
-    // Check against machine precision and warn
-    void clamp();
+    // Get a copy clamped to machine precision
+    [[nodiscard]] Tolerance clamped() const;
 };
 
 extern template struct Tolerance<float>;

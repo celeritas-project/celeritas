@@ -89,46 +89,46 @@ Tolerance<T> Tolerance<T>::from_relative(real_type rel, real_type length)
                    << "length scale " << length
                    << " is invalid [must be positive]");
 
-    Tolerance<T> result;
-    result.rel = rel;
-    result.abs = rel * length;
-    result.clamp();
+    Tolerance<T> user;
+    user.rel = rel;
+    user.abs = rel * length;
 
-    // Check that the tolerances aren't so low that they're denormalized
+    auto result = user.clamped();
+    if (result.rel != user.rel)
+    {
+        CELER_LOG(warning) << "Clamped relative tolerance " << user.rel
+                           << " to machine epsilon " << result.rel;
+    }
+    if (result.abs != user.abs)
+    {
+        CELER_LOG(warning) << "Clamping absolute tolerance " << user.abs
+                           << " to minimum normal value " << result.abs;
+    }
+
     CELER_ENSURE(result);
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Check against machine precision and warn.
+ * Get a copy clamped to machine precision.
  *
  * Tolerances that are too tight may cause some deduplication logic to fail.
- * This checks:
+ * This checks and returns:
  * - relative error against machine epsilon, i.e., the relative
  *   difference between two adjacent floating point numbers, and
  * - absolute error against the floating point minimum, i.e., the smallest
  *   absolute magnitude that has a non-denormalized value.
- *
- * It prints a diagnostic if either has been adjusted.
  */
 template<class T>
-void Tolerance<T>::clamp()
+auto Tolerance<T>::clamped() const -> Tolerance<T>
 {
-    constexpr T eps_mach = std::numeric_limits<T>::epsilon();
-    constexpr T min_norm = std::numeric_limits<T>::min();
-    if (CELER_UNLIKELY(this->rel < eps_mach))
-    {
-        CELER_LOG(warning) << "Clamping relative tolerance " << this->rel
-                           << " to machine epsilon " << eps_mach;
-        this->rel = eps_mach;
-    }
-    if (CELER_UNLIKELY(this->abs < min_norm))
-    {
-        CELER_LOG(warning) << "Clamping absolute tolerance " << this->abs
-                           << " to minimum normal value " << min_norm;
-        this->abs = min_norm;
-    }
+    Tolerance<T> result;
+
+    using LimitsT = std::numeric_limits<T>;
+    result.rel = std::max(this->rel, LimitsT::epsilon());
+    result.abs = std::max(this->abs, LimitsT::min());
+    return result;
 }
 
 //---------------------------------------------------------------------------//

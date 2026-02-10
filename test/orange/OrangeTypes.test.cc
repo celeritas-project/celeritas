@@ -80,12 +80,11 @@ TEST(Tolerance, single)
         auto tol = TolT::from_relative(1e-9f);
         EXPECT_GT(tol.rel, 1e-9f);
         static char const* const expected_log_messages[]
-            = {"Clamping relative tolerance 1e-9 to machine epsilon 1.192e-7"};
+            = {"Clamped relative tolerance 1e-9 to machine epsilon 1.192e-7"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
         static char const* const expected_log_levels[] = {"warning"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
-#if 0
     {
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
@@ -95,9 +94,8 @@ TEST(Tolerance, single)
         auto c = tol.clamped();
         EXPECT_SOFT_EQ(0, c.rel);
         EXPECT_SOFT_EQ(0, c.abs);
-        scoped_log_.print_expected();
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
-#endif
 }
 
 TEST(Zorder, round_trip)
