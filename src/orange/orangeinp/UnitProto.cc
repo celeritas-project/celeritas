@@ -56,25 +56,22 @@ using detail::CsgUnit;
 
 BoundingBox<> get_unit_bbox(CsgUnit const& unit, bool assume_inside)
 {
-    auto find_bz = [&r = unit.regions](NodeId n) -> detail::BoundingZone const* {
-        if (!n)
-            return nullptr;
+    auto find_bz = [&r = unit.regions](NodeId n) -> detail::BoundingZone const& {
+        CELER_EXPECT(n);
 
         auto iter = r.find(n);
-        if (iter == r.end())
-            return nullptr;
-        return &(iter->second.bounds);
+        CELER_EXPECT(iter != r.end());
+        return iter->second.bounds;
     };
 
     CELER_ASSERT(orange_exterior_volume < unit.volumes().size());
     NodeId exterior_node_id = unit.volumes()[orange_exterior_volume.get()];
-    auto* exterior_bz = find_bz(exterior_node_id);
-    CELER_ASSERT(exterior_bz);
-    if (exterior_bz->negated)
+    auto const& exterior_bz = find_bz(exterior_node_id);
+    if (exterior_bz.negated)
     {
         // [EXTERIOR] bbox is negated, so negating again gives the
         // "interior" bounding zone; we want its outer boundary.
-        return exterior_bz->exterior;
+        return exterior_bz.exterior;
     }
 
     if (assume_inside)
@@ -82,10 +79,11 @@ BoundingBox<> get_unit_bbox(CsgUnit const& unit, bool assume_inside)
         // Odd bounding zones can happen for units with degenerate
         // boundaries due to region merging. See if we can get an
         // "interior" bbox by negating the exterior node
-        auto* interior_bz = find_bz(unit.tree.find(Negated{exterior_node_id}));
-        if (interior_bz && !exterior_bz->negated)
+        auto const& interior_bz
+            = find_bz(unit.tree.find(Negated{exterior_node_id}));
+        if (!interior_bz.negated)
         {
-            return interior_bz->exterior;
+            return interior_bz.exterior;
         }
     }
 
