@@ -379,14 +379,7 @@ TEST_F(PolyconeTest, degenerate_inner)
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-    if constexpr (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_FLOAT)
-    {
-        // Floating point precision is slightly off in the printout but
-        // otherwise correct; the volume strings are different because some of
-        // the planes show up as "exactly equal" (deleted) versus "nearly
-        // equal" (chained and replaced)
-        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-    }
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
 
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }

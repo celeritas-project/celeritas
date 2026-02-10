@@ -374,12 +374,8 @@ TEST_F(DuneCryostatTest, default)
         EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-        {
-            // Deduplication changes for single precision
-            EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-            EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-        }
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
         EXPECT_EQ(GeoMatId{3}, u.background);
     }
 }
@@ -746,13 +742,9 @@ TEST_F(Testem3Test, default)
 
         auto vols = volume_strings(u);
         ASSERT_EQ(53, vols.size());  // slabs, zero-size 'calo', world, ext
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-        {
-            // Deduplication changes for single precision
-            EXPECT_EQ(
-                R"(all(+0, -1, +2, -3, +4, -5, any(-6, -8, +9, -10, +11, +84)))",
-                vols.back());
-        }
+        EXPECT_EQ(
+            R"(all(+0, -1, +2, -3, +4, -5, any(-6, -8, +9, -10, +11, +84)))",
+            vols.back());
         EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
@@ -791,11 +783,6 @@ TEST_F(TilecalPlugTest, default)
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(1, protos.size());
-
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-    {
-        GTEST_SKIP() << "Deduplication slightly changes surface nodes";
-    }
 
     {
         auto u = this->build_unit(protos, UnivId{0});
