@@ -129,19 +129,18 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
         value.zorder = ZOrder::media;
     }
 
+    // Convert logic string to vector
     if (value.zorder == ZOrder::background)
     {
-        // Background volumes should be "nowhere" explicitly using "inside"
-        // logic
-        value.logic = detail::make_nowhere_expr(LogicNotation::postfix);
-        value.bbox = {};
+        // Background volumes must have this flag and have no logic
+        value.flags |= VolumeRecord::Flags::implicit_vol;
     }
     else
     {
-        // Convert logic string to vector
+        // Other voluems must have logic
         value.logic = detail::string_to_logic(j.at("logic").get<std::string>());
-        value.bbox = get_bbox(j);
     }
+    value.bbox = get_bbox(j);
 }
 
 //---------------------------------------------------------------------------//
@@ -544,6 +543,7 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     }
     else
     {
+        // Legacy input is all postfix
         value.logic = LogicNotation::postfix;
     }
 

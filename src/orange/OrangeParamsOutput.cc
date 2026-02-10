@@ -36,7 +36,9 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 {
     using json = nlohmann::json;
 
-    auto obj = json::object();
+    auto obj = json{
+        {"tracking_logic", orange_tracking_logic},
+    };
     auto const& data = orange_->host_ref();
 
 #define OPO_PAIR(DATA, NAME) {#NAME, DATA.NAME}
