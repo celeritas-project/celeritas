@@ -217,6 +217,9 @@ class VecgeomTrackView
     {
         return vg_null_surface;
     }
+
+    // Construct a bumped real3
+    inline CELER_FUNCTION VgReal3 make_bumped_pos(vg_real_type bump) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -593,22 +596,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-        VgReal3 bumped_pos;
-        if constexpr (CELERITAS_VECGEOM_SURFACE)
-        {
-            // Surface relocation is exact, assuming a well constructed
-            // geometry
-            bumped_pos = detail::to_vector(pos_);
-        }
-        else
-        {
-            for (auto i : range(3))
-            {
-                bumped_pos[i] = fma(relocate_bump_, dir_[i], pos_[i]);
-            }
-        }
-
-        Navigator::RelocateToNextVolume(bumped_pos,
+        Navigator::RelocateToNextVolume(this->make_bumped_pos(relocate_bump_),
                                         detail::to_vector(this->dir_),
 #if CELERITAS_VECGEOM_SURFACE
                                         *next_surf_,
@@ -735,6 +723,27 @@ CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
 CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
 {
     return *this->physical_volume().GetLogicalVolume();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * If not using the surface model, return a bumped position.
+ */
+CELER_FUNCTION VgReal3 VecgeomTrackView::make_bumped_pos(vg_real_type bump) const
+{
+    CELER_EXPECT(bump >= 0);
+    if (CELERITAS_VECGEOM_SURFACE)
+    {
+        // Surface relocation is exact, assuming a well constructed geometry
+        return detail::to_vector(pos_);
+    }
+
+    VgReal3 bumped_pos;
+    for (auto i : range(3))
+    {
+        bumped_pos[i] = fma(bump, dir_[i], pos_[i]);
+    }
+    return bumped_pos;
 }
 
 //---------------------------------------------------------------------------//
