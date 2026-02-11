@@ -19,19 +19,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Compare two surfaces for exact equality.
- *
- * Only for exact equality should the local surface inserter return an existing
- * ID. Otherwise we could have a small gap between surfaces.
- */
-struct ExactSurfaceEqual
-{
-    template<class S>
-    inline bool operator()(S const& a, S const& b) const;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Compare two surfaces for soft equality.
  *
  * Ideally, this would evaluate whether the Hausdorff distance between two
@@ -95,21 +82,6 @@ SoftSurfaceEqual::SoftSurfaceEqual(Tolerance<> const& tol)
     : soft_eq_{tol.rel, tol.abs}
 {
     CELER_EXPECT(tol);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Compare exact equality for two surfaces.
- */
-template<class S>
-bool ExactSurfaceEqual::operator()(S const& a, S const& b) const
-{
-    auto const& data_a = a.data();
-    auto const& data_b = b.data();
-    static_assert(std::is_same_v<decltype(data_a), decltype(data_b)>);
-    auto r = range(data_a.size());
-    return std::all_of(
-        r.begin(), r.end(), [&](auto i) { return data_a[i] == data_b[i]; });
 }
 
 //---------------------------------------------------------------------------//

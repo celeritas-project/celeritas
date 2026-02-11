@@ -52,14 +52,17 @@ class ScopedLogStorer
     // Construct reference with default level
     explicit ScopedLogStorer(Logger* orig);
 
-    // Construct null storer for disassociating before destruction
-    ScopedLogStorer();
+    // No default constructor
+    ScopedLogStorer() = delete;
+
+    // Default move constructor will work, but nothing else
+    ScopedLogStorer(ScopedLogStorer&&) = default;
+    ScopedLogStorer(ScopedLogStorer const&) = delete;
+    ScopedLogStorer& operator=(ScopedLogStorer&&) = delete;
+    ScopedLogStorer& operator=(ScopedLogStorer const&) = delete;
 
     // Restore original logger on destruction
     ~ScopedLogStorer();
-
-    //! Prevent copying but allow moving
-    CELER_DEFAULT_MOVE_DELETE_COPY(ScopedLogStorer);
 
     // Save a log message
     void operator()(LogProvenance, LogLevel lev, std::string msg);
@@ -102,7 +105,7 @@ class ScopedLogStorer
   private:
     Logger* logger_{nullptr};
     std::unique_ptr<Logger> saved_logger_;
-    LogLevel min_level_;
+    LogLevel min_level_{LogLevel::warning};
     int float_digits_{4};
     VecString messages_;
     VecString levels_;
