@@ -29,6 +29,18 @@ namespace detail
 class EquilibrateDensitiesSolver
 {
   public:
+    //! Enum for safely accessing hydrogen isoprotologue molecules
+    enum class MucfIsoprotologueMolecule
+    {
+        protium_protium,
+        protium_deuterium,
+        protium_tritium,
+        deuterium_deuterium,
+        deuterium_tritium,
+        tritium_tritium,
+        size_
+    };
+
     //!@{
     //! \name Type aliases
     using LhdArray = EnumArray<MucfIsotope, real_type>;

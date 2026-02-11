@@ -48,8 +48,8 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
 
     auto from_mass_number = [&](AtomicMassNumber mass) -> MucfIsotope {
         auto it = mass_isotope_map_.find(mass);
-        return (it != mass_isotope_map_.end()) ? it->second
-                                               : MucfIsotope::size_;
+        CELER_ENSURE(it != mass_isotope_map_.end());
+        return it->second;
     };
 
     for (auto elcompid : range(material.num_elements()))
@@ -69,8 +69,6 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
             auto iso_view
                 = element_view.isotope_record(IsotopeComponentId{el_comp});
             auto const atom = from_mass_number(iso_view.atomic_mass_number());
-            CELER_ASSERT(atom < MucfIsotope::size_);
-
             auto const iso_frac = element_view.isotopes()[el_comp].fraction;
 
             // Cache density for this hydrogen isotope
@@ -133,7 +131,7 @@ MucfMaterialInserter::MoleculeCycles
 MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
                                     real_type const temperature)
 {
-    using IsoProt = MucfIsoprotologueMolecule;
+    using IsoProt = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
     using CTT = inp::CycleTableType;
     using units::HalfSpinInt;
 
@@ -166,7 +164,7 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
 {
     CELER_EXPECT(temperature > 0);
 
-    using IsoProt = MucfIsoprotologueMolecule;
+    using IsoProt = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
     using CTT = inp::CycleTableType;
     using units::HalfSpinInt;
 
@@ -214,7 +212,7 @@ MucfMaterialInserter::MoleculeCycles
 MucfMaterialInserter::calc_tt_cycle(EquilibriumArray const& eq_dens,
                                     real_type const temperature)
 {
-    using IsoProt = MucfIsoprotologueMolecule;
+    using IsoProt = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
     using CTT = inp::CycleTableType;
     using units::HalfSpinInt;
 

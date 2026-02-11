@@ -6,12 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/inp/Grid.hh"
-#include "celeritas/grid/NonuniformGridBuilder.hh"
-#include "celeritas/grid/NonuniformGridCalculator.hh"
-#include "celeritas/inp/MucfPhysics.hh"
 
 namespace celeritas
 {

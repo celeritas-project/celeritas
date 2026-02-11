@@ -16,6 +16,34 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the infinity norm (\f$ ||x^{(k)} - x^{(k-1)} ||_\infty \f$)
+ * between two consecutive iterations of an \c EquilibriumArray data.
+ */
+real_type
+calc_infinity_norm(EquilibrateDensitiesSolver::EquilibriumArray const& current,
+                   EquilibrateDensitiesSolver::EquilibriumArray const& previous)
+{
+    using MIP = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
+
+    real_type max_norm{0};
+    for (auto i : range(MIP::size_))
+    {
+        real_type const diff = std::fabs(current[i] - previous[i]);
+        if (diff > max_norm)
+        {
+            max_norm = diff;
+        }
+    }
+    return max_norm;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with material information.
@@ -64,7 +92,6 @@ EquilibrateDensitiesSolver::operator()(real_type temperature)
     auto remaining_iters{this->max_iterations()};
     do
     {
-        iter_diff = 0;
         previous_equilib_dens = result;
 
         // The ordering (DT -> HT -> HD) in which `this->equilibrate_pair` is
@@ -90,16 +117,8 @@ EquilibrateDensitiesSolver::operator()(real_type temperature)
                                k_hd,
                                result);
 
-        for (auto i : range(MucfIsoprotologueMolecule::size_))
-        {
-            // Calculate difference between current and previous densities
-            real_type diff = std::abs(result[i] - previous_equilib_dens[i]);
-            if (diff > iter_diff)
-            {
-                // Select maximum difference for convergence check
-                iter_diff = diff;
-            }
-        }
+        // Calculate infinity norm between current and previous iteration
+        auto iter_diff = calc_infinity_norm(result, previous_equilib_dens);
 
         if (--remaining_iters == 0)
         {

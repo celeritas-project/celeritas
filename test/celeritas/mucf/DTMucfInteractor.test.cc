@@ -190,7 +190,7 @@ TEST_F(DTMucfInteractorTest, muonicalpha_neutron)
 //---------------------------------------------------------------------------//
 TEST_F(DTMucfInteractorTest, stress_test)
 {
-    size_type const num_samples = 100;
+    size_type const num_samples = 10000;
     real_type total_avg_secondaries{0};
 
     for (auto channel : {DTMucfInteractor::Channel::alpha_muon_neutron,

@@ -7,6 +7,8 @@
 #include "InterpolatorHelper.hh"
 
 #include "corecel/Assert.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 
 namespace celeritas
 {
