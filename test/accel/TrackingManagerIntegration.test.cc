@@ -746,5 +746,44 @@ TEST_F(TestEm3, run)
 }
 
 //---------------------------------------------------------------------------//
+// RICH-SIMPLIFIED INTEGRATION MIXIN
+//---------------------------------------------------------------------------//
+class RichSimplified : public RichSimplifiedIntegrationMixin, public TMITestBase
+{
+  public:
+    void EndOfRunAction(G4Run const*) override
+    {
+        auto& integration = detail::IntegrationSingleton::instance();
+
+        if (integration.mode() == OffloadMode::enabled
+            && (!G4Threading::IsMultithreadedApplication()
+                || G4Threading::IsWorkerThread()))
+        {
+            auto& local
+                = dynamic_cast<LocalTransporter&>(integration.local_offload());
+
+            auto const& optical_collector
+                = integration.shared_params().problem_loaded().optical_collector;
+
+            ASSERT_TRUE(optical_collector);
+
+            auto const& accum
+                = optical_collector->optical_state(local.GetState()).accum();
+        }
+
+        TMITestBase::EndOfRunAction(nullptr);
+    }
+};
+
+TEST_F(RichSimplified, run)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    rm.Initialize();
+    rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

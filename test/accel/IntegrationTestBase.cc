@@ -682,6 +682,40 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options()
     return result;
 }
 
+auto RichSimplifiedIntegrationMixin::make_physics_input() const -> PhysicsInput
+{
+    auto result = IntegrationTestBase::make_physics_input();
+    enable_optical_physics(result);
+    return result;
+}
+
+auto RichSimplifiedIntegrationMixin::make_primary_input() const -> PrimaryInput
+{
+    PrimaryInput result;
+    result.pdg = {pdg::electron()};
+    result.energy = inp::MonoenergeticDistribution{10'000};  // 10 GeV
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({0, 0, 0}))};
+    result.angle = inp::MonodirectionalDistribution{{0, 0, 1}};
+    result.primaries_per_event = 1;
+    result.num_events = 1;
+    return result;
+}
+
+SetupOptions RichSimplifiedIntegrationMixin::make_setup_options()
+{
+    auto result = Base::make_setup_options();
+    result.sd.enabled = false;
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = 32768 * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        return opt;
+    }();
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
