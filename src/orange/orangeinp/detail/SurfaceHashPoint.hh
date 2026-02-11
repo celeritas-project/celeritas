@@ -75,12 +75,12 @@ struct SurfaceHashPoint
 
     real_type operator()(SimpleQuadric const& s) const
     {
-        return norm(make_array(s.first()));
+        return std::sqrt(s.zeroth());
     }
 
     real_type operator()(GeneralQuadric const& s) const
     {
-        return norm(make_array(s.first()));
+        return std::sqrt(s.zeroth());
     }
 };
 
