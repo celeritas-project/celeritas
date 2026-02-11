@@ -124,7 +124,7 @@
     },
     {
       "name": "vglocal",
-      "displayName": "With local vecgeom",
+      "displayName": "With local vecgeom (solids)",
       "inherits": [".ccache", ".base", ".debug", "default"],
       "environment": {
         "CMAKE_PREFIX_PATH": "/opt/spack/opt/spack/tahoe/geant4/11.3.2/gykadvh:/opt/spack/opt/spack/tahoe/covfie/0.15.4/r5g2psb:/opt/spack/opt/spack/tahoe/nlohmann-json/3.12.0/7mlcviu:/opt/spack/opt/spack/tahoe/cli11/2.6.1/znuwv76:/opt/spack/opt/spack/tahoe/googletest/1.17.0/rmxgcak"
@@ -137,24 +137,16 @@
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"},
-        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL",   "value": "OFF"},
         "VecGeom_DIR": {"type": "PATH", "value": "/Users/seth/Code/vecgeom/install/lib/cmake/VecGeom"}
       }
     },
     {
-      "name": "vglocal-solid",
-      "displayName": "With local vecgeom, surfaces disabled",
+      "name": "vglocal-surface",
+      "displayName": "With local vecgeom, using surfaces",
       "inherits": "vglocal",
       "cacheVariables": {
-        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL",   "value": "OFF"}
-      }
-    },
-    {
-      "name": "vglocal-v1",
-      "displayName": "With local vecgeom, surfaces disabled",
-      "inherits": "vglocal",
-      "cacheVariables": {
-        "VecGeom_DIR": {"type": "PATH", "value": "/Users/seth/Code/vecgeom-v1/install/lib/cmake/VecGeom"}
+        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL",   "value": "ON"}
       }
     },
     {

@@ -148,7 +148,12 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
             }
         }
 
-        if (prop.boundary)
+        if (geo.failed())
+        {
+            state.status[tid] = LifeStatus::dead;
+            return;
+        }
+        else if (prop.boundary)
         {
             geo.move_to_boundary();
             CELER_ASSERT(geo.is_on_boundary());
@@ -157,7 +162,7 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
         {
             // Check for similar assertions in FieldPropagator before loosening
             // this one!
-            CELER_ASSERT(prop.distance == step);
+            CELER_ASSERT(prop.distance <= step);
             CELER_ASSERT(prop.distance > 0);
 #if CELERITAS_DEBUG
             auto orig_pos = geo.pos();
