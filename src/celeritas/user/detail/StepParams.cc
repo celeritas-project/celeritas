@@ -98,7 +98,7 @@ StepParams::StepParams(AuxId aux_id,
     };
 
     // Save data
-    mirror_ = CollectionMirror{[&] {
+    mirror_ = ParamsDataStore{[&] {
         HostVal<StepParamsData> host_data;
         host_data.selection = selection;
 

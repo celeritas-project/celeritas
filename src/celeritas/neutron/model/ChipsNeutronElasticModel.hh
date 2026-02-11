@@ -8,7 +8,7 @@
 
 #include <functional>
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/inp/Grid.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/mat/IsotopeView.hh"
@@ -66,7 +66,7 @@ class ChipsNeutronElasticModel final : public Model, public StaticConcreteAction
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<NeutronElasticData> mirror_;
+    ParamsDataStore<NeutronElasticData> mirror_;
 
     //// TYPES ////
 

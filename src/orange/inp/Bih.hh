@@ -18,11 +18,19 @@ namespace inp
  */
 struct BIHBuilder
 {
-    //! Minimum number of bboxes needed to trigger a partitioning attempt
-    size_type min_split_size = 2;
+    //! Maximum number of bboxes that can reside on a leaf node without
+    //! triggering a partitioning attempt
+    size_type max_leaf_size = 1;
+
+    //! Hard limit on the depth of most the embedded node (where 1 is the root
+    //! node)
+    size_type depth_limit = 32;
 
     //! Whether the options are valid
-    explicit operator bool() const { return min_split_size >= 2; }
+    explicit operator bool() const
+    {
+        return max_leaf_size >= 1 && depth_limit >= 1;
+    }
 };
 
 //---------------------------------------------------------------------------//

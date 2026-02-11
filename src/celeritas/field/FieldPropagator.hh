@@ -202,13 +202,15 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
             geo_.move_internal(state_.pos);
             --remaining_substeps;
         }
-        else if (CELER_UNLIKELY(result.boundary
-                                && (linear_step.distance)
-                                       < this->bump_distance()))
+        else if (CELER_UNLIKELY(
+                     result.boundary
+                     && ((linear_step.distance) < this->bump_distance())))
         {
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a
             // near tangent). Reduce substep size and try again.
+            // TODO: this condition is triggered in ORANGE when on a reentrant
+            // boundary
             remaining = substep.length / 2;
         }
         else if (update_length <= this->minimum_substep()
@@ -300,6 +302,7 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
         // what step length we took, which means we're stuck.
         // Using the just-reapplied direction, hope that we're pointing deeper
         // into the current volume and bump the particle.
+        // TODO: move this into a higher-level failure/bump mechanic
         result.distance = celeritas::min(this->bump_distance(), step);
         result.boundary = false;
         axpy(result.distance, dir, &state_.pos);
@@ -314,7 +317,7 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
     // within the driver, the distance may be very slightly beyond the
     // requested step.
     CELER_ENSURE(
-        result.distance > 0
+        (result.distance > 0 || geo_.failed())
         && (result.distance <= step || soft_equal(result.distance, step)));
     return result;
 }

@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <thrust/mr/memory_resource.h>
-
-#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
-
 #include "corecel/Macros.hh"
+
+#if CELER_USE_DEVICE
+#    include <thrust/mr/memory_resource.h>
+#endif
+#include <cstdlib>
+
+#include "corecel/DeviceRuntimeApi.hh"
 
 namespace celeritas
 {
@@ -18,13 +21,18 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 //! CUDA/HIP opaque stream handle
+#if CELER_USE_DEVICE
 using DeviceStream_t = CELER_DEVICE_API_SYMBOL(Stream_t);
+#else
+using DeviceStream_t = std::nullptr_t;
+#endif
 
 //! Allocate memory asynchronously if supported
 void* malloc_async(std::size_t bytes, DeviceStream_t s);
 //! Free memory asynchronously if supported
 void free_async(void* ptr, DeviceStream_t s);
 
+#if CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Thrust async memory resource associated with a CUDA/HIP stream.
@@ -53,6 +61,18 @@ class AsyncMemoryResource final : public thrust::mr::memory_resource<void*>
   private:
     StreamT stream_{nullptr};
 };
+#else
+class AsyncMemoryResource;
+inline void* malloc_async(std::size_t, DeviceStream_t)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline void free_async(void*, DeviceStream_t)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

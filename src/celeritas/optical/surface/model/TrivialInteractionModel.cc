@@ -40,7 +40,7 @@ TrivialInteractionModel::TrivialInteractionModel(
 
     CELER_ENSURE(data);
 
-    data_ = CollectionMirror<TrivialInteractionData>{std::move(data)};
+    data_ = ParamsDataStore<TrivialInteractionData>{std::move(data)};
 }
 
 //---------------------------------------------------------------------------//

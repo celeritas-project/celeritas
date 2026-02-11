@@ -73,7 +73,7 @@ LivermorePEModel::LivermorePEModel(ActionId id,
     CELER_ASSERT(host_data.xs.elements.size() == materials.num_elements());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<LivermorePEData>{std::move(host_data)};
+    data_ = ParamsDataStore<LivermorePEData>{std::move(host_data)};
     CELER_ENSURE(this->data_);
 }
 

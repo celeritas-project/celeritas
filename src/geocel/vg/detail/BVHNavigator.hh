@@ -271,6 +271,7 @@ class BVHNavigator
         {
             auto bvh
                 = vecgeom::BVHManager::GetBVH(pvol->GetLogicalVolume()->id());
+            // TODO: this may recurse into daughters which may be unnecessary
             bvh->CheckDaughterIntersections(
                 localpoint, localdir, step, pvol, hitcandidate);
         }

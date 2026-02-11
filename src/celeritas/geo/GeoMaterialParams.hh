@@ -12,8 +12,8 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/io/Label.hh"
 #include "celeritas/Types.hh"
 
@@ -99,7 +99,7 @@ class GeoMaterialParams final
     inline PhysMatId material_id(ImplVolumeId v) const;
 
   private:
-    CollectionMirror<GeoMaterialParamsData> data_;
+    ParamsDataStore<GeoMaterialParamsData> data_;
 
     using HostValue = HostVal<GeoMaterialParamsData>;
 };

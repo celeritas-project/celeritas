@@ -21,7 +21,7 @@ Params
   classes convert from user-friendly input (e.g. particle name) to
   device-friendly IDs (e.g., particle ID). These classes should inherit from
   the ``ParamsDataInterface`` class to define uniform helper methods and types
-  and will often implement the data storage by using ``CollectionMirror``.
+  and will often implement the data storage by using ``ParamsDataStore``.
 
 State
   Thread-local data specifying the state of a single particle track with
@@ -74,8 +74,8 @@ Storage
 .. doxygenclass:: celeritas::ItemMap
 
 .. doxygenclass:: celeritas::Collection
-.. doxygenclass:: celeritas::CollectionMirror
-.. doxygenclass:: celeritas::CollectionStateStore
+.. doxygenclass:: celeritas::ParamsDataStore
+.. doxygenclass:: celeritas::StateDataStore
 
 .. doxygenfunction:: celeritas::ldg
 

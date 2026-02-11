@@ -67,7 +67,7 @@ class DTMixMucfModel final : public Model, public StaticConcreteAction
 
   private:
     // Host/device storage and reference
-    CollectionMirror<DTMixMucfData> data_;
+    ParamsDataStore<DTMixMucfData> data_;
 };
 
 //---------------------------------------------------------------------------//

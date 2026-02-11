@@ -50,6 +50,8 @@ class DiagnosticIntegrator
     size_type count() const { return count_; }
     //! Reset the stepscounter
     void reset_count() { count_ = 0; }
+    //! Get and reset the counter
+    size_type exchange_count() { return std::exchange(count_, 0); }
 
   private:
     IntegratorT do_step_;

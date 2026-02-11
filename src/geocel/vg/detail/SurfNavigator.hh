@@ -67,6 +67,7 @@ class SurfNavigator
     /// @brief Computes the isotropic safety from the globalpoint.
     /// @param globalpoint Point in global coordinates
     /// @param state Path where to compute safety
+    /// @param limit Maximum safety distance to search
     /// @return Isotropic safe distance
     CELER_FUNCTION static vg_real_type ComputeSafety(VgReal3 const& globalpoint,
                                                      NavState const& state,

@@ -30,8 +30,9 @@ struct MucfParticleIds
 
     //!@{
     //! Elementary particles and nuclei
-    ParticleId neutron;
     ParticleId proton;
+    ParticleId triton;
+    ParticleId neutron;
     ParticleId alpha;
     ParticleId he3;
     //!@}
@@ -48,8 +49,9 @@ struct MucfParticleIds
     //! Check whether all particles are assigned
     CELER_FUNCTION explicit operator bool() const
     {
-        return mu_minus && neutron && proton && alpha && he3 && muonic_hydrogen
-               && muonic_alpha && muonic_triton && muonic_he3;
+        return mu_minus && proton && triton && neutron && alpha && he3
+               && muonic_hydrogen && muonic_alpha && muonic_triton
+               && muonic_he3;
     }
 };
 
@@ -64,8 +66,9 @@ struct MucfParticleMasses
 
     //!@{
     //! Elementary particles and nuclei
-    units::MevMass neutron;
     units::MevMass proton;
+    units::MevMass triton;
+    units::MevMass neutron;
     units::MevMass alpha;
     units::MevMass he3;
     //!@}
@@ -82,9 +85,10 @@ struct MucfParticleMasses
     //! Check whether all data are assigned
     CELER_FUNCTION explicit operator bool() const
     {
-        return mu_minus > zero_quantity() && neutron > zero_quantity()
-               && proton > zero_quantity() && alpha > zero_quantity()
-               && he3 > zero_quantity() && muonic_hydrogen > zero_quantity()
+        return mu_minus > zero_quantity() && proton > zero_quantity()
+               && triton > zero_quantity() && neutron > zero_quantity()
+               && alpha > zero_quantity() && he3 > zero_quantity()
+               && muonic_hydrogen > zero_quantity()
                && muonic_alpha > zero_quantity()
                && muonic_triton > zero_quantity()
                && muonic_he3 > zero_quantity();
@@ -104,6 +108,7 @@ struct DTMixMucfData
     using MaterialItems = Collection<T, W, M, MuCfMatId>;
     using GridRecord = NonuniformGridRecord;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, Array<real_type, 2>>;
+    using MaterialFractionsArray = EnumArray<MucfIsotope, real_type>;
 
     //! Particles
     MucfParticleIds particle_ids;
@@ -118,6 +123,8 @@ struct DTMixMucfData
     //! Material-dependent data calculated at model construction
     //! \c PhysMatId indexed by \c MuCfMatId
     MaterialItems<PhysMatId> mucfmatid_to_matid;
+    //! Isotopic fractions per material: [mat_comp_id][isotope]
+    MaterialItems<MaterialFractionsArray> isotopic_fractions;
     //! Cycle times per material: [mat_comp_id][muonic_molecule][spin_index]
     MaterialItems<CycleTimesArray> cycle_times;  //!< In [s]
     //! \todo Add mean atom spin flip times
@@ -132,6 +139,7 @@ struct DTMixMucfData
         // Re-enable once full data assignment is implemented
         return particle_ids && particle_masses && muon_energy_cdf
                && !mucfmatid_to_matid.empty() && !cycle_times.empty()
+               && (mucfmatid_to_matid.size() == isotopic_fractions.size())
                && (mucfmatid_to_matid.size() == cycle_times.size());
 #endif
     }
@@ -148,6 +156,7 @@ struct DTMixMucfData
         this->reals = other.reals;
         this->muon_energy_cdf = other.muon_energy_cdf;
         this->mucfmatid_to_matid = other.mucfmatid_to_matid;
+        this->isotopic_fractions = other.isotopic_fractions;
         this->cycle_times = other.cycle_times;
 
         return *this;

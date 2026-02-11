@@ -82,8 +82,7 @@ ImageParams::ImageParams(ImageInput const& inp)
 
     // Allocate storage and "copy" to device
     CELER_ASSERT(scalars);
-    data_
-        = CollectionMirror<ImageParamsData>{HostVal<ImageParamsData>{scalars}};
+    data_ = ParamsDataStore<ImageParamsData>{HostVal<ImageParamsData>{scalars}};
     CELER_ENSURE(data_);
 }
 

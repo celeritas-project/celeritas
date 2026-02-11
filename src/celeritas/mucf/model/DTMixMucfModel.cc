@@ -133,7 +133,7 @@ DTMixMucfModel::DTMixMucfModel(ActionId id,
     }
 
     // Copy to device
-    data_ = CollectionMirror<DTMixMucfData>{std::move(host_data)};
+    data_ = ParamsDataStore<DTMixMucfData>{std::move(host_data)};
     CELER_ENSURE(this->data_);
 }
 

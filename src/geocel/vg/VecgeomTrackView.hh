@@ -312,8 +312,8 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     {
 #if !CELER_DEVICE_COMPILE
         auto msg = CELER_LOG_LOCAL(error);
-        msg << "Failed to initialize geometry state at " << repr(pos_)
-            << lengthunits::label;
+        msg << "Failed to initialize geometry state at " << repr(pos_) << ' '
+            << lengthunits::native_label;
 #endif
         failed_ = true;
     }
@@ -492,13 +492,13 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 #if !CELER_DEVICE_COMPILE
         auto msg = CELER_LOG_LOCAL(error);
         msg << "Failed to find next step at " << repr(pos_) << ' '
-            << lengthunits::label << " along " << repr(dir_)
+            << lengthunits::native_label << " along " << repr(dir_)
             << ": computed step is " << repr(next_step_) << ' '
-            << lengthunits::label;
+            << lengthunits::native_label;
 #endif
         failed_ = true;
         Propagation result;
-        result.distance = next_step_;
+        result.distance = 0;
         result.boundary = false;
         return result;
     }
@@ -623,7 +623,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
         auto msg = CELER_LOG_LOCAL(error);
         msg << "Failed to cross boundary: unique volume instance is the same "
                "before and after at "
-            << repr(pos_) << ' ' << lengthunits::label;
+            << repr(pos_) << ' ' << lengthunits::native_label;
 #endif
         failed_ = true;
         return;

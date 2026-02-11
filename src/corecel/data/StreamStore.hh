@@ -16,8 +16,8 @@
 #include "corecel/sys/ThreadId.hh"
 
 #include "Collection.hh"
-#include "CollectionMirror.hh"
-#include "CollectionStateStore.hh"
+#include "ParamsDataStore.hh"
+#include "StateDataStore.hh"
 
 namespace celeritas
 {
@@ -97,15 +97,15 @@ class StreamStore
 
   private:
     //// TYPES ////
-    using ParamMirror = CollectionMirror<P>;
+    using ParamMirror = ParamsDataStore<P>;
     template<MemSpace M>
-    using StateStore = CollectionStateStore<S, M>;
+    using StateStore = StateDataStore<S, M>;
     template<MemSpace M>
     using VecSS = std::vector<StateStore<M>>;
 
     //// DATA ////
 
-    CollectionMirror<P> params_;
+    ParamsDataStore<P> params_;
     StreamId::size_type num_streams_{0};
     VecSS<MemSpace::host> host_states_;
     VecSS<MemSpace::device> device_states_;

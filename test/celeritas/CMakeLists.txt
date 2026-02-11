@@ -151,8 +151,9 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 #-----------------------------------------------------------------------------#
 # MuCF
 
-# Interactors
-celeritas_add_test(mucf/DTMucfInteractor.test.cc ${_needs_double})
+celeritas_add_test(mucf/DDMucfInteractor.test.cc)
+celeritas_add_test(mucf/DTMucfInteractor.test.cc)
+celeritas_add_test(mucf/MuonicAtomSelector.test.cc)
 
 #-----------------------------------------------------------------------------#
 # EM
@@ -249,7 +250,7 @@ endif()
 # Field
 
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
- AND (CELERITAS_USE_CUDA OR VecGeom_VERSION VERSION_GREATER_EQUAL "2.0"))
+ AND (CELERITAS_USE_CUDA OR CELERITAS_VecGeom_SURFACE))
   # VecGeom surface cannot rebuild the geometry
   set(_fieldprop_filter
     FILTER

@@ -7,8 +7,8 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "ScintillationData.hh"
@@ -72,7 +72,7 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 
   private:
     // Host/device storage and reference
-    CollectionMirror<ScintillationData> mirror_;
+    ParamsDataStore<ScintillationData> mirror_;
 };
 
 //---------------------------------------------------------------------------//

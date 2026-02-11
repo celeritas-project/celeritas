@@ -91,7 +91,7 @@ auto InvalidOrangeTestBase::build_geometry() -> SPConstCoreGeo
 
     // Construct input
     OrangeInput orangeinp = InputBuilder{[&] {
-        InputBuilder::Options opts;
+        inp::OrangeGeoFromCsg opts;
         opts.tol = Tolerance<>::from_default(1 * cm);
         return opts;
     }()}(UnitProto{std::move(inp)});

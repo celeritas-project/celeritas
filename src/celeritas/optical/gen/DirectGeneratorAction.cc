@@ -32,7 +32,7 @@ namespace
 template<MemSpace M>
 auto make_state(StreamId stream, size_type size)
 {
-    using StoreT = CollectionStateStore<DirectGeneratorStateData, M>;
+    using StoreT = StateDataStore<DirectGeneratorStateData, M>;
 
     auto result = std::make_unique<DirectGeneratorState<M>>();
     result->store = StoreT{stream, size};
@@ -137,7 +137,7 @@ void DirectGeneratorAction::insert_impl(CoreState<M>& state,
     if (aux_state.store.size() < data.size())
     {
         // Reallocate with enough capacity
-        aux_state.store = CollectionStateStore<DirectGeneratorStateData, M>{
+        aux_state.store = StateDataStore<DirectGeneratorStateData, M>{
             state.stream_id(), static_cast<size_type>(data.size())};
     }
 

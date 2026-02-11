@@ -119,6 +119,9 @@ struct GenericGeoVolumeStackResult
     static GenericGeoVolumeStackResult
     from_span(LabelMap const&, Span<VolumeInstanceId const>);
     void print_expected() const;
+
+    //! Add a failure sentinel at the end
+    void fail();
 };
 
 ::testing::AssertionResult IsRefEq(char const* expected_expr,

@@ -8,13 +8,11 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/StackAllocator.hh"
-#include "corecel/math/ArrayUtils.hh"
-#include "corecel/random/distribution/GenerateCanonical.hh"
-#include "corecel/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/mucf/data/DTMixMucfData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/Secondary.hh"
+
+#include "detail/MucfInteractorUtils.hh"
 
 namespace celeritas
 {
@@ -74,14 +72,11 @@ class DTMucfInteractor
         return units::MevEnergy{14.1};
     }
 
-    // Calculate momentum magnitude from energy and mass
-    inline CELER_FUNCTION real_type calc_momentum(
-        units::MevEnergy const energy, units::MevMass const mass) const;
-
-    // Calculate kinetic energy from momentum and mass
-    inline CELER_FUNCTION units::MevEnergy
-    calc_kinetic_energy(Real3 const& momentum_vec,
-                        units::MevMass const mass) const;
+    // Total fusion kinetic energy
+    inline CELER_FUNCTION units::MevEnergy total_kinetic_energy() const
+    {
+        return units::MevEnergy{17.6};
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -120,57 +115,38 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
     size_type const muonicalpha_idx{1};  // Channel::muonicalpha_neutron
 
     IsotropicDistribution sample_isotropic;
-    // Grid range is [0,1), with its domain being the muon energy in MeV
-    NonuniformGridCalculator sample_muon_energy(data_.muon_energy_cdf,
-                                                data_.reals);
 
     // Neutron is the same on both cases: 14.1 MeV with random direction
-    sec[neutron_idx].particle_id = data_.particle_ids.neutron;
-    sec[neutron_idx].energy = this->neutron_kinetic_energy();
-    sec[neutron_idx].direction = sample_isotropic(rng);
+    sec[neutron_idx] = detail::sample_mucf_secondary(
+        data_.particle_ids.neutron, this->neutron_kinetic_energy(), rng);
 
     switch (channel_)
     {
         case Channel::alpha_muon_neutron: {
             // Muon: random direction with energy sampled from its CDF
-            sec[muon_idx].particle_id = data_.particle_ids.mu_minus;
-            sec[muon_idx].direction = sample_isotropic(rng);
-            sec[muon_idx].energy = units::MevEnergy{
-                sample_muon_energy(generate_canonical(rng))};
+            sec[muon_idx] = detail::sample_mucf_muon(
+                data_.particle_ids.mu_minus,
+                NonuniformGridCalculator{data_.muon_energy_cdf, data_.reals},
+                rng);
 
             // Alpha: Final state calculated via momentum conservation
-            sec[alpha_idx].particle_id = data_.particle_ids.alpha;
-
-            // Momentum: p_alpha = - (p_neutron + p_muon)
-            auto const neutron_momentum = this->calc_momentum(
-                sec[neutron_idx].energy, data_.particle_masses.neutron);
-            auto const muon_momentum = this->calc_momentum(
-                sec[muon_idx].energy, data_.particle_masses.mu_minus);
-
-            Real3 alpha_momentum_vec;
-            for (auto i : range(3))
-            {
-                alpha_momentum_vec[i]
-                    = -(sec[neutron_idx].direction[i] * neutron_momentum
-                        + sec[muon_idx].direction[i] * muon_momentum);
-            }
-            sec[alpha_idx].direction = make_unit_vector(alpha_momentum_vec);
-
-            // Energy: K = sqrt(p^2 + m^2) - m
-            sec[alpha_idx].energy = this->calc_kinetic_energy(
-                alpha_momentum_vec, data_.particle_masses.alpha);
+            sec[alpha_idx]
+                = detail::calc_third_secondary(sec[neutron_idx],
+                                               data_.particle_masses.neutron,
+                                               sec[muon_idx],
+                                               data_.particle_masses.mu_minus,
+                                               data_.particle_ids.alpha,
+                                               data_.particle_masses.alpha);
             break;
         }
 
         case Channel::muonicalpha_neutron: {
             // Muonic alpha: Equal and opposite momentum to neutron
             sec[muonicalpha_idx].particle_id = data_.particle_ids.muonic_alpha;
-            sec[muonicalpha_idx].energy = sec[neutron_idx].energy;
-            for (auto i : range(3))
-            {
-                sec[muonicalpha_idx].direction[i]
-                    = -sec[neutron_idx].direction[i];
-            }
+            sec[muonicalpha_idx].energy = this->total_kinetic_energy()
+                                          - this->neutron_kinetic_energy();
+            sec[muonicalpha_idx].direction
+                = detail::opposite(sec[neutron_idx].direction);
             break;
         }
 
@@ -182,35 +158,6 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
     Interaction result = Interaction::from_absorption();
     result.secondaries = {sec, num_secondaries_[channel_]};
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate momentum magnitude from particle energy and mass via
- * \f$ p = \sqrt{K^2 + 2mK} \f$ .
- */
-CELER_FUNCTION real_type DTMucfInteractor::calc_momentum(
-    units::MevEnergy const energy, units::MevMass const mass) const
-
-{
-    return std::sqrt(ipow<2>(value_as<units::MevEnergy>(energy))
-                     + 2 * value_as<units::MevMass>(mass)
-                           * value_as<units::MevEnergy>(energy));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate kinetic energy given a particle's momentum and mass via
- * \f$ K = \sqrt{p^2 - m^2} - m\f$ .
- */
-CELER_FUNCTION units::MevEnergy
-DTMucfInteractor::calc_kinetic_energy(Real3 const& momentum_vec,
-                                      units::MevMass const mass) const
-{
-    real_type momentum_mag = norm(momentum_vec);
-    return units::MevEnergy{std::sqrt(ipow<2>(momentum_mag)
-                                      + ipow<2>(value_as<units::MevMass>(mass)))
-                            - value_as<units::MevMass>(mass)};
 }
 
 //---------------------------------------------------------------------------//

@@ -7,8 +7,8 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 
 namespace celeritas
@@ -34,7 +34,7 @@ class FluctuationParams final : public ParamsDataInterface<FluctuationData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<FluctuationData> data_;
+    ParamsDataStore<FluctuationData> data_;
 };
 
 //---------------------------------------------------------------------------//

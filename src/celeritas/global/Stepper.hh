@@ -11,7 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"

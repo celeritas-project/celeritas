@@ -13,8 +13,8 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Particle.hh"
@@ -91,7 +91,7 @@ class ParticleParams final : public ParamsDataInterface<ParticleParamsData>
     std::unordered_map<PDGNumber, ParticleId> pdg_to_id_;
 
     // Host/device storage and reference
-    CollectionMirror<ParticleParamsData> data_;
+    ParamsDataStore<ParticleParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

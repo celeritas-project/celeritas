@@ -35,16 +35,22 @@ class UnitInserter
     //!@{
     //! \name Type aliases
     using Data = HostVal<OrangeParamsData>;
+    using Input = UnitInput;
     //!@}
 
   public:
+    //! Number of surfaces created by the input
+    static auto num_surfaces(Input const& i) { return i.surfaces.size(); }
+    //! Number of volumes created by the input
+    static auto num_volumes(Input const& i) { return i.volumes.size(); }
+
     // Construct from full parameter data
     UnitInserter(UniverseInserter* insert_universe,
                  Data* orange_data,
                  ConstructionOptions const* opts);
 
     // Create a simple unit and store in in OrangeParamsData
-    UnivId operator()(UnitInput&& inp);
+    UnivId operator()(Input&& inp);
 
   private:
     Data* orange_data_{nullptr};

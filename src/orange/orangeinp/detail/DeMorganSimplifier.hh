@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -27,7 +29,7 @@ namespace detail
  * DeMorgan's law on a \c CsgTree so that all negations of a set operator are
  * removed and transformed into their equivalent operation.
  *
- * The simplification preserves subtrees referred to by \c CsgTree::volumes
+ * The simplification preserves subtrees referred to by \c CsgTree::volumes .
  *
  * Instances of this class shouldn't outlive the \c CsgTree used to construct
  * it as we keep a reference to it.
@@ -35,8 +37,8 @@ namespace detail
  * It is currently single-use: calling operator() twice on the same instance
  * isn't supported.
  *
- * The \c CsgTree being simplified shouldn't contain alias nodes or double
- * negations.
+ * The \c CsgTree being transformed should \em not have double negations
+ * (the tree's insertion method will have simplified those).
  */
 class DeMorganSimplifier
 {
@@ -50,19 +52,18 @@ class DeMorganSimplifier
     TransformedTree operator()();
 
   private:
-    //! CsgTree node 0 is always True{} and can't be the parent of any node
-    //! so reuse that bit to tell that a given node is a volume
-    static constexpr auto is_volume_index_{NodeId{0}};
-    //! CsgTree node 1 is always a Negated node parent of node 0, so we can
-    //! reuse that bit to tell if a node has a parent as it's never set for
-    //! node id >= 2
-    static constexpr auto has_parents_index_{NodeId{1}};
+    //// TYPES ////
+
+    using MapNodeVecNode = std::unordered_map<NodeId, std::vector<NodeId>>;
+    using SetNode = std::unordered_set<NodeId>;
+    using MapNodeSetNode = std::unordered_map<NodeId, SetNode>;
 
     //! First meaningful node id in a CsgTree
     static constexpr auto first_node_id_{NodeId{2}};
 
     //! Helper struct to translate ids from the original tree to ids in the
     //! simplified tree
+    // TODO: are more than one of these ever set simultaneously?
     struct MatchingNodes
     {
         //! Set if a node has the exact same node in the simplified tree
@@ -89,33 +90,22 @@ class DeMorganSimplifier
         NodeId equivalent_node() const;
     };
 
-    //! Rudimentary 2D square matrix view of a vector<bool>
-    class Matrix2D
-    {
-      public:
-        using indices = std::pair<NodeId, NodeId>;
+    //// HELPER FUNCTIONS ////
 
-        // Create the matrix view with the given extent size
-        explicit Matrix2D(size_type) noexcept;
-        // Access the element at the given index
-        std::vector<bool>::reference operator[](indices);
-        // The extent along one dimension
-        size_type extent() const noexcept;
-
-      private:
-        // TODO: sparse storage
-        std::vector<bool> data_;
-        size_type extent_;
-    };
-
-    // Dereference Aliased nodes
-    NodeId dealias(NodeId) const;
+    // Get a non-aliased Node variant from the original tree
+    Node const& get_node(NodeId) const;
 
     // First pass to find negated set operations
     void find_join_negations();
 
+    // Record a parent-child relationship
+    bool insert_parent(NodeId parent, NodeId child);
+
     // Declare negated nodes to add in the simplified tree
-    void add_negation_for_operands(NodeId);
+    bool insert_negated_children(NodeId);
+
+    // Whether a child has any parent
+    bool is_parent_of(NodeId parent, NodeId child) const;
 
     // Second pass to build the simplified tree
     CsgTree build_simplified_tree();
@@ -124,28 +114,39 @@ class DeMorganSimplifier
     bool process_negated_joined_nodes(NodeId, CsgTree&);
 
     // Create an opposite Joined node
-    Joined build_negated_node(Joined const&) const;
+    Joined build_negated_node(Joined const&);
 
     // Check if this join node should be inserted in the simplified tree
     bool should_insert_join(NodeId);
+
+    // Access or create a translation entry
+    MatchingNodes& translation(NodeId);
+    // Find a translation entry, or nullptr if none exist
+    MatchingNodes const* find_translation(NodeId) const;
+
+    //// DATA ////
 
     //! the tree to simplify
     CsgTree const& tree_;
 
     //! Set when we must insert a \c Negated parent for the given index
-    std::vector<bool> new_negated_nodes_;
+    SetNode new_negated_nodes_;
 
     //! Set when \c Joined nodes have a \c Negated parent, so we need to insert
     //! an opposite join node with negated operands
-    std::vector<bool> negated_join_nodes_;
+    SetNode negated_join_nodes_;
 
-    //! Parents matrix. For nodes n1, n2, if n1 * tree_.size() + n2 is set, it
-    //! means that n2 is a parent of n1
-    Matrix2D parents_;
+    //! Parents matrix (original tree)
+    // If parents_[c].count(p), p is parent of c
+    MapNodeSetNode parents_;
 
+    //! Whether the index is a volume in the original tree
+    std::vector<bool> is_volume_node_;
+
+    //! Map old node ID -> new node IDs:
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
-    std::vector<MatchingNodes> node_ids_translation_;
+    std::vector<MatchingNodes> matching_nodes_;
 };
 
 //---------------------------------------------------------------------------//
