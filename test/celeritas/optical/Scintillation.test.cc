@@ -341,7 +341,7 @@ TEST_F(MaterialScintillationGaussianTest, basic)
             {
                 // Store individual results
                 energy.push_back(p.energy.value());
-                time.push_back(native_value_to<TimeSecond>(p.time).value());
+                time.push_back(p.time / units::nanosecond);
                 cos_theta.push_back(dot_product(p.direction, inc_dir));
 
                 polarization_x.push_back(p.polarization[0]);
@@ -353,13 +353,13 @@ TEST_F(MaterialScintillationGaussianTest, basic)
     }
 
     avg_lambda = to_cm(avg_lambda / num_photons);
-    avg_time = native_value_to<TimeSecond>(avg_time / num_photons).value();
+    avg_time = avg_time / (units::nanosecond * num_photons);
     avg_cosine /= num_photons;
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_EQ(1.8023146707476483e-05, avg_lambda);
-        EXPECT_SOFT_EQ(8.6510374107600554e-07, avg_time);
+        EXPECT_SOFT_EQ(865.10374107600546, avg_time);
         EXPECT_SOFT_EQ(-0.0078894853694884293, avg_cosine);
         EXPECT_EQ(7602, rng.exchange_count());
 
@@ -374,14 +374,14 @@ TEST_F(MaterialScintillationGaussianTest, basic)
             1.2232069181772e-05,
         };
         static double const expected_time[] = {
-            3.3128806993047e-06,
-            1.9448090540859e-07,
-            1.1174848154165e-06,
-            1.2460198181058e-08,
-            3.5306344404732e-08,
-            3.19537294006e-07,
-            7.2757167500751e-09,
-            3.5272895177539e-09,
+            3312.8806993047,
+            194.48090540859,
+            1117.4848154165,
+            12.460198181058,
+            35.306344404732,
+            319.537294006,
+            7.2757167500751,
+            3.5272895177539,
         };
         static double const expected_cos_theta[] = {
             0.99292265109602,
@@ -403,7 +403,6 @@ TEST_F(MaterialScintillationGaussianTest, basic)
             -0.68599121517934,
             -0.35306899564942,
         };
-
         EXPECT_VEC_SOFT_EQ(expected_energy, energy);
         EXPECT_VEC_SOFT_EQ(expected_time, time);
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
