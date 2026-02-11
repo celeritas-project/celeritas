@@ -215,32 +215,33 @@ BBox get_exterior_bbox(BoundingZone const& bz)
  */
 std::ostream& operator<<(std::ostream& os, BoundingZone const& bz)
 {
+    auto print_neg_if = [&os](bool neg) {
+        if (neg)
+            os << '~';
+    };
+    auto print_bb = [&os](BBox const& bb) {
+        if (!bb)
+        {
+            os << "null";
+        }
+        else if (is_infinite(bb))
+        {
+            os << "inf";
+        }
+        else
+        {
+            os << bb;
+        }
+    };
+
     os << "{";
-    char const* comma = "";
-    if (!bz.negated)
-    {
-        if (bz.interior)
-        {
-            os << "encloses " << bz.interior;
-            comma = ", ";
-        }
-        if (!is_infinite(bz.exterior))
-        {
-            os << comma << "enclosed by " << bz.exterior;
-        }
-    }
-    else
-    {
-        if (!is_infinite(bz.exterior))
-        {
-            os << "encloses " << bz.exterior;
-            comma = ", ";
-        }
-        if (bz.interior)
-        {
-            os << comma << "excluded from " << bz.interior;
-        }
-    }
+    print_neg_if(!bz.negated);
+    print_bb(bz.interior);
+    os << " & ";
+    print_neg_if(bz.negated);
+    print_bb(bz.exterior);
+    os << '}';
+
     os << '}';
     return os;
 }
