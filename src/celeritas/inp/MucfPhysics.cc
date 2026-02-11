@@ -222,16 +222,6 @@ MucfCycleRate dd_3_over_2_cycle_data()
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Combined dataset for \em dd fusion cycle rate data.
- */
-void dd_cycle_rate_data(std::vector<MucfCycleRate>& result)
-{
-    result.push_back(dd_1_over_2_cycle_data());  //!< F = 1/2
-    result.push_back(dd_3_over_2_cycle_data());  //!< F = 3/2
-}
-
-//---------------------------------------------------------------------------//
 // DT cycle rate data
 //---------------------------------------------------------------------------//
 /*!
@@ -508,22 +498,6 @@ MucfCycleRate hd_1_cycle_data()
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Combined dataset for \em dt fusion cycle rate data.
- */
-void dt_cycle_rate_data(std::vector<MucfCycleRate>& result)
-{
-    //! F = 0
-    result.push_back(hd_0_cycle_data());
-    result.push_back(dd_0_cycle_data());
-    result.push_back(dt_0_cycle_data());
-    //! F = 1
-    result.push_back(hd_1_cycle_data());
-    result.push_back(dd_1_cycle_data());
-    result.push_back(dt_1_cycle_data());
-}
-
-//---------------------------------------------------------------------------//
 // TT cycle rate data
 //---------------------------------------------------------------------------//
 /*!
@@ -552,15 +526,6 @@ MucfCycleRate tt_1_over_2_cycle_data()
 
 //---------------------------------------------------------------------------//
 /*!
- * Dataset for \em tt fusion cycle rate data.
- */
-void tt_cycle_rate_data(std::vector<MucfCycleRate>& result)
-{
-    result.push_back(tt_1_over_2_cycle_data());  //!< F = 1/2
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Cycle rate data for muon-catalyzed fusion.
  *
  * Data is extracted from \citet{faifman-mucfformation-1996,
@@ -570,10 +535,20 @@ void tt_cycle_rate_data(std::vector<MucfCycleRate>& result)
  */
 std::vector<MucfCycleRate> mucf_cycle_rates()
 {
-    std::vector<MucfCycleRate> result;
-    dd_cycle_rate_data(result);
-    dt_cycle_rate_data(result);
-    tt_cycle_rate_data(result);
+    std::vector<MucfCycleRate> result{
+        // DD fusion cycle rates
+        dd_1_over_2_cycle_data(),
+        dd_3_over_2_cycle_data(),
+        // DT fusion cycle rates
+        hd_0_cycle_data(),
+        dd_0_cycle_data(),
+        dt_0_cycle_data(),
+        hd_1_cycle_data(),
+        dd_1_cycle_data(),
+        dt_1_cycle_data(),
+        // TT fusion cycle rates
+        tt_1_over_2_cycle_data(),
+    };
     return result;
 }
 
