@@ -18,13 +18,6 @@ namespace orangeinp
 {
 namespace detail
 {
-std::string to_string(BoundingZone const& bz)
-{
-    std::ostringstream os;
-    os << bz;
-    return std::move(os).str();
-}
-
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -144,10 +137,6 @@ TEST_F(BoundingZoneTest, standard)
     box.negate();
     EXPECT_EQ(IsInside::yes, is_inside(box, {1.01, 0, 0}));
     EXPECT_EQ(IsInside::no, is_inside(box, {0.9, 0.5, 0.5}));
-
-    EXPECT_EQ(
-        R"({encloses {{-1,-1,-1}, {1,1,1}}, excluded from {{-1,-1,-1}, {1,1,1}}})",
-        to_string(box));
 }
 
 TEST_F(BoundingZoneTest, exterior_only)
@@ -156,16 +145,12 @@ TEST_F(BoundingZoneTest, exterior_only)
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {0.0, 0.0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {1.4, 0, 0}));
     EXPECT_EQ(IsInside::no, is_inside(extonly, {2.0, 0, 0}));
-    EXPECT_EQ("{enclosed by {{-1.5,-1.5,-1.5}, {1.5,1.5,1.5}}}",
-              to_string(extonly));
 
     // Invert
     extonly.negate();
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {0.0, 0.0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {1.4, 0, 0}));
     EXPECT_EQ(IsInside::yes, is_inside(extonly, {2.0, 0, 0}));
-    EXPECT_EQ("{encloses {{-1.5,-1.5,-1.5}, {1.5,1.5,1.5}}}",
-              to_string(extonly));
 }
 
 TEST_F(BoundingZoneTest, calc_intersection)

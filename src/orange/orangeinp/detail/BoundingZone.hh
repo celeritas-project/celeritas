@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iosfwd>
-
 #include "geocel/BoundingBox.hh"
 #include "orange/BoundingBoxUtils.hh"
 
@@ -118,9 +116,6 @@ BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b);
 
 // Get an infinite bbox if "negated", else get the exterior
 BBox get_exterior_bbox(BoundingZone const&);
-
-// Print for debugging
-std::ostream& operator<<(std::ostream& os, BoundingZone const& bz);
 
 //---------------------------------------------------------------------------//
 /*!
