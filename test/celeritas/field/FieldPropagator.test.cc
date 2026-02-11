@@ -1541,20 +1541,9 @@ TEST_F(CmseTest, coarse)
              R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
     }
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-             && !CELERITAS_VECGEOM_SURFACE
-             && CELERITAS_VECGEOM_VERSION < 0x020000)
-    {
-        geometry = "VecGeom solid (1.x)";
-        ref.fail_at(1);
-        ref.messages[1] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))",
-            R"(Failed to find next step at {10.32, -6.565, 796.9} cm along {0.6896, -0.1485, 0.7088}: computed step is 0 cm)",
-            R"(failed during find_next_step: at {10.32, -6.565, 796.9} [cm] along {0.6896, -0.1485, 0.7088}, [FAILED] in OCMS_PV/CMSE)"};
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
              && !CELERITAS_VECGEOM_SURFACE)
     {
-        geometry = "VecGeom solid (2.x)";
+        geometry = "VecGeom solid";
         ref.messages[1] = {
             R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
     }

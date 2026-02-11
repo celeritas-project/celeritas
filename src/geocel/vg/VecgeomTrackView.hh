@@ -480,22 +480,6 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 #endif
     );
 
-    if (CELER_UNLIKELY(VECGEOM_VERSION < 0x020000 && !(next_step_ > 0)))
-    {
-#if !CELER_DEVICE_COMPILE
-        auto msg = CELER_LOG_LOCAL(error);
-        msg << "Failed to find next step at " << repr(pos_) << ' '
-            << lengthunits::native_label << " along " << repr(dir_)
-            << ": computed step is " << repr(next_step_) << ' '
-            << lengthunits::native_label;
-#endif
-        failed_ = true;
-        Propagation result;
-        result.distance = 0;
-        result.boundary = false;
-        return result;
-    }
-
     if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
         // Our accessor uses the next_surf_ state, but the temporary used for
