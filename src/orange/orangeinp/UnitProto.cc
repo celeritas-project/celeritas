@@ -85,10 +85,6 @@ BoundingBox<> get_unit_bbox(CsgUnit const& unit)
         return interior_bz.exterior;
     }
 
-    // Unknown extents: be conservative
-    CELER_LOG(warning)
-        << "Could not determine bounding box of unit: exterior is "
-        << exterior_bz;
     return BoundingBox<>::from_infinite();
 }
 
@@ -318,6 +314,11 @@ void UnitProto::build(ProtoBuilder& pb) const
 
     // Save unit's bounding box
     result.bbox = get_unit_bbox(csg_unit);
+    if (CELER_UNLIKELY(is_infinite(result.bbox)))
+    {
+        CELER_LOG(warning) << "Failed to determine bounding box of unit '"
+                           << this->label() << "'";
+    }
 
     // Save surfaces
     result.surfaces.reserve(sorted_local_surfaces.size());
