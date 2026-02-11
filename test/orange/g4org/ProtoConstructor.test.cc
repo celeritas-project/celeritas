@@ -266,8 +266,8 @@ TEST_F(DuneCryostatTest, default)
             "all(+12, +20, -21, +28, -29, -30)",
         };
         static char const* const expected_md_strings[] = {
-            "Cryostat,Cryostat@mx,Cryostat@my,Cryostat@mz",
-            "Cryostat@px,Cryostat@py,Cryostat@pz,[EXTERIOR]",
+            "",
+            "",
             "GaseousArgon@mx",
             "GaseousArgon@px",
             "",
@@ -757,15 +757,25 @@ TEST_F(Testem3Test, default)
         static char const* const expected_volume_strings[]
             = {"F", "-6", "+6", "F"};
         static char const* const expected_md_strings[] = {
-            R"(Absorber1@mx,Absorber1@my,Absorber1@mz,Absorber2@my,Absorber2@mz,Layer,Layer@mx,Layer@my,Layer@mz,layer.children)",
-            R"(Absorber1@py,Absorber1@pz,Absorber2@px,Absorber2@py,Absorber2@pz,Layer@px,Layer@py,Layer@pz,[EXTERIOR],layer)",
+            "",
+            "",
             "Absorber1@px,Absorber2,Absorber2@mx",
             "Absorber1",
         };
+        static char const* const expected_bound_strings[] = {
+            R"(0: {{{-0.17,-20,-20}, {0.4,20,20}}, {{-0.4,-20,-20}, {0.4,20,20}}})",
+            R"(1: {{{-0.4,-20,-20}, {0.4,20,20}}, {{-0.4,-20,-20}, {0.4,20,20}}})",
+            R"(2: {{{-0.17,-20,-20}, {0.4,20,20}}, {{-0.17,-20,-20}, {0.4,20,20}}})",
+            R"(3: {{{-0.4,-20,-20}, {-0.17,20,20}}, {{-0.4,-20,-20}, {-0.17,20,20}}})",
+        };
+        static char const expected_tree_string[]
+            = R"json(["t",["~",0],["S",6],["~",2]])json";
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+        EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
 }
 
@@ -918,14 +928,14 @@ TEST_F(ZnenvTest, default)
         static char const* const expected_volume_strings[]
             = {"F", "-6", "+6", "F"};
         static char const* const expected_md_strings[] = {
-            R"(TGeoBBox0x0,TGeoBBox0x0@mx,TGeoBBox0x0@my,TGeoBBox0x0@mz,TGeoBBox0x0@mx,TGeoBBox0x0@my,TGeoBBox0x0@mz,ZNTX.children)",
-            R"(TGeoBBox0x0@px,TGeoBBox0x0@py,TGeoBBox0x0@pz,TGeoBBox0x0@px,TGeoBBox0x0@py,TGeoBBox0x0@pz,ZNTX,[EXTERIOR])",
+            "",
+            "",
             "TGeoBBox0x0,TGeoBBox0x0@my,TGeoBBox0x0@py",
             "TGeoBBox0x0",
         };
         static char const* const expected_bound_strings[] = {
-            R"(0: {{{-1.76,-3.52,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
-            R"(~1: {{{-1.76,-3.52,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
+            R"(0: {{{-1.76,0,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
+            R"(1: {{{-1.76,-3.52,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
             R"(2: {{{-1.76,0,-50}, {1.76,3.52,50}}, {{-1.76,0,-50}, {1.76,3.52,50}}})",
             R"(3: {{{-1.76,-3.52,-50}, {1.76,0,50}}, {{-1.76,-3.52,-50}, {1.76,0,50}}})"};
         static char const* const expected_trans_strings[] = {

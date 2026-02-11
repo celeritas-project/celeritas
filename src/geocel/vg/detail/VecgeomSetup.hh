@@ -48,7 +48,11 @@ CudaPointers<detail::CudaBVH_t const> bvh_pointers_device();
 
 //---------------------------------------------------------------------------//
 // Get pointers to the global nav index after setup, for consistency checking
-CudaPointers<unsigned int const> navindex_pointers_device();
+CudaPointers<VgNavIndex const> navindex_pointers_device();
+
+//---------------------------------------------------------------------------//
+// Check consistency of BVH pointers for device data in vecgeom 2.x
+void check_other_device_pointers();
 
 //---------------------------------------------------------------------------//
 // Default-initialize navigation state because DeviceVector doesn't
@@ -72,7 +76,12 @@ inline CudaPointers<CudaBVH_t const> bvh_pointers_device()
     CELER_ASSERT_UNREACHABLE();
 }
 
-inline CudaPointers<unsigned int const> navindex_pointers_device()
+inline CudaPointers<VgNavIndex const> navindex_pointers_device()
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void check_other_device_pointers()
 {
     CELER_ASSERT_UNREACHABLE();
 }
