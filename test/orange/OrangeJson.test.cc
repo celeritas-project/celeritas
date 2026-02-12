@@ -971,7 +971,7 @@ TEST_F(InputBuilderTest, incomplete_bb)
 {
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[2,1],"num_finite_bboxes":[2,1],"num_infinite_bboxes":[1,1]},"scalars":{"num_univ_levels":2,"max_faces":6,"max_intersections":6,"max_csg_levels":0,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":6,"inner_nodes":1,"leaf_nodes":3,"local_volume_ids":5},"connectivity_records":8,"daughters":1,"fast_real3s":0,"local_surface_ids":10,"local_volume_ids":4,"logic_ints":37,"obz_records":0,"real_ids":8,"reals":26,"rect_arrays":0,"simple_units":2,"surface_types":8,"transforms":1,"universe_indexer":{"surfaces":3,"volumes":3},"univ_indices":2,"univ_types":2,"volume_ids":6,"volume_instance_ids":6,"volume_records":6},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[2,1],"num_finite_bboxes":[2,2],"num_infinite_bboxes":[1,0]},"scalars":{"max_csg_levels":0,"max_faces":6,"max_intersections":6,"num_univ_levels":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":6,"inner_nodes":1,"leaf_nodes":3,"local_volume_ids":5},"connectivity_records":8,"daughters":1,"fast_real3s":0,"local_surface_ids":10,"local_volume_ids":4,"logic_ints":37,"obz_records":0,"real_ids":8,"reals":26,"rect_arrays":0,"simple_units":2,"surface_types":8,"transforms":1,"univ_indices":2,"univ_types":2,"universe_indexer":{"surfaces":3,"volumes":3},"volume_ids":6,"volume_instance_ids":6,"volume_records":6},"tracking_logic":"infix"})json",
         to_string(out));
 }
 

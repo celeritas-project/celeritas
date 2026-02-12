@@ -22,8 +22,15 @@ struct BIHBuilder
     //! triggering a partitioning attempt
     size_type max_leaf_size = 1;
 
+    //! Hard limit on the depth of most the embedded node (where 1 is the root
+    //! node)
+    size_type depth_limit = 32;
+
     //! Whether the options are valid
-    explicit operator bool() const { return max_leaf_size >= 1; }
+    explicit operator bool() const
+    {
+        return max_leaf_size >= 1 && depth_limit >= 1;
+    }
 };
 
 //---------------------------------------------------------------------------//

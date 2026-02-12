@@ -50,7 +50,9 @@ struct SurfaceHashPoint
     template<Axis T>
     real_type operator()(CylAligned<T> const& s) const
     {
-        return std::sqrt(s.radius_sq());
+        // Usually cylinders in the same geometry have the same size, so we
+        // hash on one of the orthogonal coordinates.
+        return s.origin_u();
     }
 
     real_type operator()(Plane const& p) const { return p.displacement(); }
@@ -63,7 +65,7 @@ struct SurfaceHashPoint
     template<Axis T>
     real_type operator()(ConeAligned<T> const& s) const
     {
-        return norm(s.origin());
+        return s.origin()[to_int(s.u_axis())];
     }
 
     real_type operator()(Involute const& s) const

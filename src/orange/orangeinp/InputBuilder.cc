@@ -159,6 +159,14 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         result.construction_opts.bih_options.max_leaf_size = mls;
     }
 
+    if (std::string var = celeritas::getenv("ORANGE_BIH_DEPTH_LIMIT");
+        !var.empty())
+    {
+        size_type dl = std::stoul(var);
+        CELER_EXPECT(dl > 0);
+        result.construction_opts.bih_options.depth_limit = dl;
+    }
+
     CELER_ENSURE(result);
     return result;
 }

@@ -27,6 +27,7 @@ namespace test
 class LocalSurfaceInserterTest : public ::celeritas::test::Test
 {
   protected:
+    static constexpr real_type equiv = 1e-7;  // equiv < eps * exact_rel_tol
     static constexpr real_type small = 1e-5;  // small < eps
     static constexpr real_type eps = 1e-4;
     static constexpr real_type large = 1e-3;  // eps < large < sqrt(eps)
@@ -56,11 +57,24 @@ TEST_F(LocalSurfaceInserterTest, exact_duplicates)
 {
     LocalSurfaceInserter insert(&surfaces, tol);
 
-    for (int i = 0; i < 3; ++i)
+    for (int i : range(3))
     {
         SCOPED_TRACE(i);
         EXPECT_EQ(0, insert(PlaneX{2.0}).unchecked_get());
         EXPECT_EQ(1, insert(PlaneY{2.0}).unchecked_get());
+    }
+    EXPECT_EQ(2, surfaces.size());
+}
+
+TEST_F(LocalSurfaceInserterTest, equiv_duplicates)
+{
+    LocalSurfaceInserter insert(&surfaces, tol);
+
+    for (int i : range(5))
+    {
+        SCOPED_TRACE(i);
+        EXPECT_EQ(0, insert(PlaneX{2 + equiv * i}).unchecked_get());
+        EXPECT_EQ(1, insert(PlaneY{2 + equiv * i}).unchecked_get());
     }
     EXPECT_EQ(2, surfaces.size());
 }
@@ -73,7 +87,7 @@ TEST_F(LocalSurfaceInserterTest, tiny_duplicates)
 {
     LocalSurfaceInserter insert(&surfaces, tol);
 
-    for (int i = 0; i < 3; ++i)
+    for (int i : range(3))
     {
         SCOPED_TRACE(i);
         EXPECT_EQ(0, insert(PlaneX{2 + small * i}).unchecked_get());
@@ -97,7 +111,7 @@ TEST_F(LocalSurfaceInserterTest, chained_duplicates)
     EXPECT_EQ(0, insert(PlaneX{2}).unchecked_get());
     EXPECT_EQ(1, insert(PlaneY{2}).unchecked_get());
 
-    for (int i = 1; i < 4; ++i)
+    for (int i : range(4))
     {
         SCOPED_TRACE(i);
         EXPECT_EQ(0, insert(PlaneX{2 + i * eps / 2}).unchecked_get());

@@ -250,7 +250,7 @@ endif()
 # Field
 
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
- AND (CELERITAS_USE_CUDA OR VecGeom_VERSION VERSION_GREATER_EQUAL "2.0"))
+ AND (CELERITAS_USE_CUDA OR CELERITAS_VecGeom_SURFACE))
   # VecGeom surface cannot rebuild the geometry
   set(_fieldprop_filter
     FILTER

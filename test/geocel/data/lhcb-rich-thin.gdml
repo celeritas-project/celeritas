@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <matrix coldim="2" name="RINDEX" values="1.6e-06 1.4 2e-06 1.4 2.5e-06 1.4 3e-06 1.4 3.5e-06 1.4 4e-06 1.4 4.5e-06 1.4 5e-06 1.4 5.5e-06 1.4 6e-06 1.4 6.5e-06 1.4"/>
+    <matrix coldim="2" name="GROUPVEL" values="1.6e-06 214.137 1.8e-06 214.137 2.25e-06 214.137 2.75e-06 214.137 3.25e-06 214.137 3.75e-06 214.137 4.25e-06 214.137 4.75e-06 214.137 5.25e-06 214.137 5.75e-06 214.137 6.5e-06 214.137"/>
+    <matrix coldim="2" name="ABSLENGTH" values="1.6e-06 0.01 2e-06 0.01 2.5e-06 0.01 3e-06 0.01 3.5e-06 0.01 4e-06 0.01 4.5e-06 0.01 5e-06 0.01 5.5e-06 0.01 6e-06 0.01 6.5e-06 0.01"/>
+    <matrix coldim="2" name="FASTCOMPONENT" values="1.6e-06 0.0005 1.75e-06 0.001 2e-06 0.18 2.25e-06 0.05 2.5e-06 0.01 2.75e-06 0.05 3e-06 0.1 3.25e-06 0.12 3.5e-06 0.15 3.75e-06 0.25 4e-06 0.48 4.25e-06 0.65 4.5e-06 0.35 4.75e-06 0.28 5e-06 0.22 5.25e-06 0.38 5.5e-06 0.37 5.75e-06 0.1 6e-06 0.01 6.25e-06 0.0004 6.5e-06 0.0001"/>
+  </define>
+
+  <materials>
+    <material Z="13" name="Rich_Rich2MirrSupportMaterial" state="solid">
+      <T unit="K" value="293.15"/>
+      <P unit="pascal" value="100000.009175019"/>
+      <MEE unit="eV" value="166"/>
+      <D unit="g/cm3" value="0.21"/>
+      <atom unit="g/mole" value="26.9815"/>
+    </material>
+    <isotope N="28" Z="14" name="Si28">
+      <atom unit="g/mole" value="27.9769"/>
+    </isotope>
+    <isotope N="29" Z="14" name="Si29">
+      <atom unit="g/mole" value="28.9765"/>
+    </isotope>
+    <isotope N="30" Z="14" name="Si30">
+      <atom unit="g/mole" value="29.9738"/>
+    </isotope>
+    <element name="Si">
+      <fraction n="0.922296077703922" ref="Si28"/>
+      <fraction n="0.0468319531680468" ref="Si29"/>
+      <fraction n="0.0308719691280309" ref="Si30"/>
+    </element>
+    <isotope N="16" Z="8" name="O16">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O17">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O18">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="O">
+      <fraction n="0.99757" ref="O16"/>
+      <fraction n="0.00038" ref="O17"/>
+      <fraction n="0.00205" ref="O18"/>
+    </element>
+    <material name="Rich_Rich2MirrorGlass" state="solid">
+      <property name="RINDEX" ref="RINDEX"/>
+      <property name="GROUPVEL" ref="GROUPVEL"/>
+      <property name="ABSLENGTH" ref="ABSLENGTH"/>
+      <T unit="K" value="293.15"/>
+      <P unit="pascal" value="100000.009175019"/>
+      <MEE unit="eV" value="125.663004061076"/>
+      <D unit="g/cm3" value="2.23"/>
+      <fraction n="0.467434034238619" ref="Si"/>
+      <fraction n="0.532565965761381" ref="O"/>
+    </material>
+    <isotope N="12" Z="6" name="C12">
+      <atom unit="g/mole" value="12"/>
+    </isotope>
+    <isotope N="13" Z="6" name="C13">
+      <atom unit="g/mole" value="13.0034"/>
+    </isotope>
+    <element name="C">
+      <fraction n="0.9893" ref="C12"/>
+      <fraction n="0.0107" ref="C13"/>
+    </element>
+    <isotope N="19" Z="9" name="F19">
+      <atom unit="g/mole" value="18.9984"/>
+    </isotope>
+    <element name="F">
+      <fraction n="1" ref="F19"/>
+    </element>
+    <material name="Rich_R2RadiatorGas" state="gas">
+      <property name="RINDEX" ref="RINDEX"/>
+      <property name="GROUPVEL" ref="GROUPVEL"/>
+      <property name="ABSLENGTH" ref="ABSLENGTH"/>
+      <property name="FASTCOMPONENT" ref="FASTCOMPONENT"/>
+      <T unit="K" value="293.15"/>
+      <P unit="pascal" value="100000.009175019"/>
+      <MEE unit="eV" value="109.17279089232"/>
+      <D unit="g/cm3" value="0.003884"/>
+      <fraction n="0.137842888154386" ref="C"/>
+      <fraction n="0.854886227150264" ref="F"/>
+      <fraction n="0.00727088469534987" ref="O"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="mm" name="Rich2SphSupportHole" x="1480" y="6200" z="40"/>
+    <subtraction name="Rich2SphMirrorSupport_shape_">
+      <first ref="Rich2SphSupportHole"/>
+      <second ref="Rich2SphSupportHole"/>
+      <position name="Rich2SphMirrorSupport_shape__pos" unit="mm" x="-739.7" y="0" z="0"/>
+    </subtraction>
+    <sphere aunit="deg" deltaphi="3.40143610529958" deltatheta="2.94562190547335" lunit="mm" name="Rich2SphMirrorSphereSeg04" rmax="8598" rmin="8592" startphi="-1.70071805264977" starttheta="88.5271890472633"/>
+    <box lunit="mm" name="Rich2SphMirrorSubBoxQ12InHexSeg55" x="200000" y="200000" z="400000"/>
+    <subtraction name="Rich2SphMirrorBooleanSubQ0InHexSeg04">
+      <first ref="Rich2SphMirrorSphereSeg04"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ0InHexSeg04_pos" unit="mm" x="8606" y="173396.330756888" z="100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ0InHexSeg04_rot" unit="deg" x="-60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ1InHexSeg04">
+      <first ref="Rich2SphMirrorBooleanSubQ0InHexSeg04"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ1InHexSeg04_pos" unit="mm" x="8606" y="173396.330756888" z="-100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ1InHexSeg04_rot" unit="deg" x="60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ2InHexSeg04">
+      <first ref="Rich2SphMirrorBooleanSubQ1InHexSeg04"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ2InHexSeg04_pos" unit="mm" x="8606" y="-173396.330756888" z="-100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ2InHexSeg04_rot" unit="deg" x="-60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ3InHexSeg04_shape_">
+      <first ref="Rich2SphMirrorBooleanSubQ2InHexSeg04"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ3InHexSeg04_shape__pos" unit="mm" x="8606" y="-173396.330756888" z="100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ3InHexSeg04_shape__rot" unit="deg" x="60" y="0" z="0"/>
+    </subtraction>
+    <sphere aunit="deg" deltaphi="3.38999074144556" deltatheta="2.93571101807454" lunit="mm" name="Rich2SphMirrorSphereSeg05" rmax="8627" rmin="8621" startphi="-1.69499537072278" starttheta="88.5321444909627"/>
+    <subtraction name="Rich2SphMirrorBooleanSubQ0InHexSeg05">
+      <first ref="Rich2SphMirrorSphereSeg05"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ0InHexSeg05_pos" unit="mm" x="8606" y="173396.330756888" z="100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ0InHexSeg05_rot" unit="deg" x="-60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ1InHexSeg05">
+      <first ref="Rich2SphMirrorBooleanSubQ0InHexSeg05"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ1InHexSeg05_pos" unit="mm" x="8606" y="173396.330756888" z="-100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ1InHexSeg05_rot" unit="deg" x="60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ2InHexSeg05">
+      <first ref="Rich2SphMirrorBooleanSubQ1InHexSeg05"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ2InHexSeg05_pos" unit="mm" x="8606" y="-173396.330756888" z="-100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ2InHexSeg05_rot" unit="deg" x="-60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ3InHexSeg05_shape_">
+      <first ref="Rich2SphMirrorBooleanSubQ2InHexSeg05"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ3InHexSeg05_shape__pos" unit="mm" x="8606" y="-173396.330756888" z="100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ3InHexSeg05_shape__rot" unit="deg" x="60" y="0" z="0"/>
+    </subtraction>
+    <sphere aunit="deg" deltaphi="3.37706005572181" deltatheta="2.92451393664298" lunit="mm" name="Rich2SphMirrorSphereSeg06" rmax="8660" rmin="8654" startphi="-1.68853002786088" starttheta="88.5377430316785"/>
+    <subtraction name="Rich2SphMirrorBooleanSubQ0InHexSeg06">
+      <first ref="Rich2SphMirrorSphereSeg06"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ0InHexSeg06_pos" unit="mm" x="8606" y="173396.330756888" z="100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ0InHexSeg06_rot" unit="deg" x="-60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ1InHexSeg06">
+      <first ref="Rich2SphMirrorBooleanSubQ0InHexSeg06"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ1InHexSeg06_pos" unit="mm" x="8606" y="173396.330756888" z="-100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ1InHexSeg06_rot" unit="deg" x="60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ2InHexSeg06">
+      <first ref="Rich2SphMirrorBooleanSubQ1InHexSeg06"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ2InHexSeg06_pos" unit="mm" x="8606" y="-173396.330756888" z="-100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ2InHexSeg06_rot" unit="deg" x="-60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ3InHexSeg06_shape_">
+      <first ref="Rich2SphMirrorBooleanSubQ2InHexSeg06"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ3InHexSeg06_shape__pos" unit="mm" x="8606" y="-173396.330756888" z="100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ3InHexSeg06_shape__rot" unit="deg" x="60" y="0" z="0"/>
+    </subtraction>
+    <sphere aunit="deg" deltaphi="3.41814985952988" deltatheta="2.96009483853553" lunit="mm" name="Rich2SphMirrorSphereSeg07" rmax="8556" rmin="8550" startphi="-1.70907492976493" starttheta="88.5199525807322"/>
+    <subtraction name="Rich2SphMirrorBooleanSubQ0InHexSeg07">
+      <first ref="Rich2SphMirrorSphereSeg07"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ0InHexSeg07_pos" unit="mm" x="8606" y="173396.330756888" z="100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ0InHexSeg07_rot" unit="deg" x="-60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ3InHexSeg07">
+      <first ref="Rich2SphMirrorBooleanSubQ0InHexSeg07"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ3InHexSeg07_pos" unit="mm" x="8606" y="-173396.330756888" z="100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ3InHexSeg07_rot" unit="deg" x="60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ12InHexSeg07_shape_">
+      <first ref="Rich2SphMirrorBooleanSubQ3InHexSeg07"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ12InHexSeg07_shape__pos" unit="mm" x="8606" y="0" z="-200000"/>
+    </subtraction>
+    <sphere aunit="deg" deltaphi="3.43301058000452" deltatheta="2.97296316174895" lunit="mm" name="Rich2SphMirrorSphereSeg08" rmax="8519" rmin="8513" startphi="-1.71650529000226" starttheta="88.5135184191255"/>
+    <subtraction name="Rich2SphMirrorBooleanSubQ1InHexSeg08">
+      <first ref="Rich2SphMirrorSphereSeg08"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ1InHexSeg08_pos" unit="mm" x="8606" y="173396.330756888" z="-100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ1InHexSeg08_rot" unit="deg" x="60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ2InHexSeg08">
+      <first ref="Rich2SphMirrorBooleanSubQ1InHexSeg08"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ2InHexSeg08_pos" unit="mm" x="8606" y="-173396.330756888" z="-100110.418238983"/>
+      <rotation name="Rich2SphMirrorBooleanSubQ2InHexSeg08_rot" unit="deg" x="-60" y="0" z="0"/>
+    </subtraction>
+    <subtraction name="Rich2SphMirrorBooleanSubQ3InHexSeg08">
+      <first ref="Rich2SphMirrorBooleanSubQ2InHexSeg08"/>
+      <second ref="Rich2SphMirrorSubBoxQ12InHexSeg55"/>
+      <position name="Rich2SphMirrorBooleanSubQ3InHexSeg08_pos" unit="mm" x="8606" y="0" z="200000"/>
+    </subtraction>
+    <box lunit="mm" name="aRich2BeamPipeCutBox" x="100" y="108.328852831343" z="300"/>
+    <subtraction name="Rich2SphMirrorLHSubBeamPipeBoxBotBHInHexSeg08_shape_">
+      <first ref="Rich2SphMirrorBooleanSubQ3InHexSeg08"/>
+      <second ref="aRich2BeamPipeCutBox"/>
+      <position name="Rich2SphMirrorLHSubBeamPipeBoxBotBHInHexSeg08_shape__pos" unit="mm" x="8513" y="255" z="0"/>
+      <rotation name="Rich2SphMirrorLHSubBeamPipeBoxBotBHInHexSeg08_shape__rot" unit="deg" x="9.99999999999998" y="0" z="0"/>
+    </subtraction>
+    <box lunit="mm" name="Rich2SphMirrorMasterBeamPipeHole0" x="1608" y="6202" z="750"/>
+    <subtraction name="Rich2SphMirrorCont0_shape_">
+      <first ref="Rich2SphMirrorMasterBeamPipeHole0"/>
+      <second ref="Rich2SphMirrorMasterBeamPipeHole0"/>
+      <position name="Rich2SphMirrorCont0_shape__pos" unit="mm" x="-804" y="0" z="2499174"/>
+    </subtraction>
+  </solids>
+
+  <structure>
+    <volume name="lvRich2SphMSupport">
+      <materialref ref="Rich_Rich2MirrSupportMaterial"/>
+      <solidref ref="Rich2SphMirrorSupport_shape_"/>
+    </volume>
+    <volume name="lvRich2SphMirrorHexSeg04">
+      <materialref ref="Rich_Rich2MirrorGlass"/>
+      <solidref ref="Rich2SphMirrorBooleanSubQ3InHexSeg04_shape_"/>
+    </volume>
+    <volume name="lvRich2SphMirrorHexSeg05">
+      <materialref ref="Rich_Rich2MirrorGlass"/>
+      <solidref ref="Rich2SphMirrorBooleanSubQ3InHexSeg05_shape_"/>
+    </volume>
+    <volume name="lvRich2SphMirrorHexSeg06">
+      <materialref ref="Rich_Rich2MirrorGlass"/>
+      <solidref ref="Rich2SphMirrorBooleanSubQ3InHexSeg06_shape_"/>
+    </volume>
+    <volume name="lvRich2SphMirrorRightHalfHexSeg07">
+      <materialref ref="Rich_Rich2MirrorGlass"/>
+      <solidref ref="Rich2SphMirrorBooleanSubQ12InHexSeg07_shape_"/>
+    </volume>
+    <volume name="lvRich2SphMirrorWithBotBPHoleLeftHalfHexSeg08">
+      <materialref ref="Rich_Rich2MirrorGlass"/>
+      <solidref ref="Rich2SphMirrorLHSubBeamPipeBoxBotBHInHexSeg08_shape_"/>
+    </volume>
+    <volume name="lvRich2SphMirrorMaster0">
+      <materialref ref="Rich_R2RadiatorGas"/>
+      <solidref ref="Rich2SphMirrorCont0_shape_"/>
+      <physvol copynumber="102" name="pvRich2SphMSupport0">
+        <volumeref ref="lvRich2SphMSupport"/>
+        <position name="pvRich2SphMSupport0_pos" unit="mm" x="-86.3189756500295" y="0" z="134"/>
+        <rotation name="pvRich2SphMSupport0_rot" unit="deg" x="0" y="16.0428182636631" z="0"/>
+      </physvol>
+      <physvol copynumber="4" name="pvRich2SphMirrorHexSeg04">
+        <volumeref ref="lvRich2SphMirrorHexSeg04"/>
+        <position name="pvRich2SphMirrorHexSeg04_pos" unit="mm" x="2459.28091162791" y="-0.718818604651143" z="-8143.78334331552"/>
+        <rotation name="pvRich2SphMirrorHexSeg04_rot" unit="deg" x="176.62364797304" y="69.2002887195726" z="-178.000524773743"/>
+      </physvol>
+      <physvol copynumber="5" name="pvRich2SphMirrorHexSeg05">
+        <volumeref ref="lvRich2SphMirrorHexSeg05"/>
+        <position name="pvRich2SphMirrorHexSeg05_pos" unit="mm" x="2468.54795348837" y="1.89444418604644" z="-8171.17617312138"/>
+        <rotation name="pvRich2SphMirrorHexSeg05_rot" unit="deg" x="176.831633405199" y="72.1629638866467" z="-177.83983064958"/>
+      </physvol>
+      <physvol copynumber="6" name="pvRich2SphMirrorHexSeg06">
+        <volumeref ref="lvRich2SphMirrorHexSeg06"/>
+        <position name="pvRich2SphMirrorHexSeg06_pos" unit="mm" x="2475.97018372093" y="4.86037674418613" z="-8203.53905629875"/>
+        <rotation name="pvRich2SphMirrorHexSeg06_rot" unit="deg" x="177.220560125947" y="75.124179667297" z="-177.522014662634"/>
+      </physvol>
+      <physvol copynumber="7" name="pvRich2SphMirrorRightHalfHexSeg07">
+        <volumeref ref="lvRich2SphMirrorRightHalfHexSeg07"/>
+        <position name="pvRich2SphMirrorRightHalfHexSeg07_pos" unit="mm" x="2451.81058139535" y="-4.49017441860466" z="-8102.79925073462"/>
+        <rotation name="pvRich2SphMirrorRightHalfHexSeg07_rot" unit="deg" x="177.788421731573" y="78.0844838858019" z="-177.011505414578"/>
+      </physvol>
+      <physvol copynumber="8" name="pvRich2SphMirrorWithBotBPHoleLeftHalfHexSeg08">
+        <volumeref ref="lvRich2SphMirrorWithBotBPHoleLeftHalfHexSeg08"/>
+        <position name="pvRich2SphMirrorWithBotBPHoleLeftHalfHexSeg08_pos" unit="mm" x="2429.10501744186" y="-3.88940581395348" z="-8071.77493834601"/>
+        <rotation name="pvRich2SphMirrorWithBotBPHoleLeftHalfHexSeg08_rot" unit="deg" x="177.586100645718" y="67.6979774855953" z="-179.67088503634"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="lvRich2SphMirrorMaster0"/>
+  </setup>
+
+</gdml>
