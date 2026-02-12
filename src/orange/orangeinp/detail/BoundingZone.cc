@@ -18,14 +18,15 @@ namespace
 {
 //---------------------------------------------------------------------------//
 //! Whether to reduce or expand a bbox operation to enclose unknown space
-enum class BoxOp : bool
+enum class Zone
 {
-    shrink,
-    grow
+    interior,
+    exterior,
+    size_
 };
 
 //---------------------------------------------------------------------------//
-//! Whether a bounding box is finite, null, or infinite
+//! Whether a bounding box is finite, null, or infinite; used for printing
 enum class BoxExtent
 {
     null,
@@ -44,7 +45,7 @@ BoxExtent get_extent(BBox const& b)
 
 //---------------------------------------------------------------------------//
 // For now, be very conservative by returning infinities unless null
-BBox calc_difference(BBox const& a, BBox const& b, BoxOp op)
+BBox calc_difference(BBox const& a, BBox const& b, Zone which)
 {
     if (!b)
     {
@@ -52,20 +53,20 @@ BBox calc_difference(BBox const& a, BBox const& b, BoxOp op)
     }
     if (encloses(a, b))
     {
-        return (op == BoxOp::shrink ? b : a);
+        return (which == Zone::interior ? b : a);
     }
     if (encloses(b, a))
     {
         return BBox{};
     }
-    return (op == BoxOp::shrink ? BBox{} : BBox::from_infinite());
+    return (which == Zone::interior ? BBox{} : BBox::from_infinite());
 }
 
 //---------------------------------------------------------------------------//
 // For now, be conservative by "shrinking" into the largest known box shape
-BBox calc_union(BBox const& a, BBox const& b, BoxOp op)
+BBox calc_union(BBox const& a, BBox const& b, Zone which)
 {
-    if (op == BoxOp::grow)
+    if (which == Zone::exterior)
     {
         // Result encloses both and it can enclose space not in the original
         // two bboxes, so use standard function
@@ -124,9 +125,8 @@ BoundingZone BoundingZone::from_infinite()
  *   (i.e. it should be the bounding box of the resulting polyhedron).
  *
  * \todo Only under certain circumstances will unions and subtractions between
- * boxes result in an actual box shape. To be conservative, for now we return
- * an indeterminate zone for anything but intersection of two non-negated
- * zones.
+ * boxes result in an actual box shape. The resulting bounding zone must
+ * carefully respect the intermediate region.
  */
 BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
 {
@@ -142,21 +142,23 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
     {
         // A - B
         result.interior
-            = calc_difference(a.interior, b.exterior, BoxOp::shrink);
-        result.exterior = calc_difference(a.exterior, b.interior, BoxOp::grow);
+            = calc_difference(a.interior, b.exterior, Zone::interior);
+        result.exterior
+            = calc_difference(a.exterior, b.interior, Zone::exterior);
     }
     else if (!b.negated && a.negated)
     {
         // B - A
         result.interior
-            = calc_difference(b.interior, a.exterior, BoxOp::shrink);
-        result.exterior = calc_difference(b.exterior, a.interior, BoxOp::grow);
+            = calc_difference(b.interior, a.exterior, Zone::interior);
+        result.exterior
+            = calc_difference(b.exterior, a.interior, Zone::exterior);
     }
     else if (a.negated && b.negated)
     {
         // ~(A | B)
-        result.interior = calc_union(a.interior, b.interior, BoxOp::shrink);
-        result.exterior = calc_union(a.exterior, b.exterior, BoxOp::grow);
+        result.interior = calc_union(a.interior, b.interior, Zone::interior);
+        result.exterior = calc_union(a.exterior, b.exterior, Zone::exterior);
         result.negated = true;
     }
     return result;
@@ -186,23 +188,25 @@ BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
     if (!a.negated && !b.negated)
     {
         // A | B
-        result.interior = calc_union(a.interior, b.interior, BoxOp::shrink);
-        result.exterior = calc_union(a.exterior, b.exterior, BoxOp::grow);
+        result.interior = calc_union(a.interior, b.interior, Zone::interior);
+        result.exterior = calc_union(a.exterior, b.exterior, Zone::exterior);
         result.negated = false;
     }
     else if (!a.negated && b.negated)
     {
         // ~(B - A)
         result.interior
-            = calc_difference(a.interior, b.exterior, BoxOp::shrink);
-        result.exterior = calc_difference(a.exterior, b.interior, BoxOp::grow);
+            = calc_difference(a.interior, b.exterior, Zone::interior);
+        result.exterior
+            = calc_difference(a.exterior, b.interior, Zone::exterior);
     }
     else if (!b.negated && a.negated)
     {
         // ~(A - B)
         result.interior
-            = calc_difference(b.interior, a.exterior, BoxOp::shrink);
-        result.exterior = calc_difference(b.exterior, a.interior, BoxOp::grow);
+            = calc_difference(b.interior, a.exterior, Zone::interior);
+        result.exterior
+            = calc_difference(b.exterior, a.interior, Zone::exterior);
     }
     else if (a.negated && b.negated)
     {
