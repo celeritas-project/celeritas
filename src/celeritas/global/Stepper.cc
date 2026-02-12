@@ -22,7 +22,7 @@
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
-#include "detail/SetPending.hh"
+#include "detail/SetGenerated.hh"
 
 namespace celeritas
 {
@@ -129,11 +129,10 @@ template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
     ScopedProfiling profile_this{"step"};
-    auto counters = state_->sync_get_counters();
-    counters.num_generated = 0;
-    state_->sync_put_counters(counters);
+    // Initialize the num_generated counter to zero
+    detail::set_generated(*params_, *state_);
     actions_->step(*params_, *state_);
-    counters = state_->sync_get_counters();
+    auto counters = state_->sync_get_counters();
 
     // Get the number of track initializers and active tracks
     result_type result;
@@ -167,8 +166,6 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    // Reset the num_pending counter to the number of primaries
-    detail::set_pending(*params_, *state_, primaries.size());
     primaries_action_->insert(*params_, *state_, primaries);
 
     return (*this)();
