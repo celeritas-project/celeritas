@@ -49,16 +49,38 @@ BBox calc_difference(BBox const& a, BBox const& b, Zone which)
 {
     if (!b)
     {
+        // Subtracting nothing: return early to avoid 'encloses' error
         return a;
     }
-    if (encloses(a, b))
+    if (which == Zone::interior)
     {
-        return (which == Zone::interior ? b : a);
+        if (encloses(a, b))
+        {
+            // Concentric box is known inside: conservatively return null
+            return {};
+        }
+        else if (encloses(b, a))
+        {
+            // Two "known inside" regions do not overlap
+            return {};
+        }
     }
-    if (encloses(b, a))
+    else if (which == Zone::exterior)
     {
-        return BBox{};
+        if (encloses(a, b))
+        {
+            // "Never" is a union of the negative exterior of A and the
+            // interior of B; so an exterior bbox of A is correct
+            return a;
+        }
+        else if (encloses(b, a))
+        {
+            // Never inside B and never outside A -> nowhere
+            return {};
+        }
     }
+
+    // Conservative fallback
     return (which == Zone::interior ? BBox{} : BBox::from_infinite());
 }
 
