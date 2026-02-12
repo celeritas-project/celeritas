@@ -262,6 +262,7 @@ TEST_F(BoundingZoneTest, calc_intersection)
         EXPECT_FALSE(bz.negated);
     }
     {
+        // Degenerate test: edges are "in"
         auto box = make_bz({0.5, 0, 0}, 0.5, 0.5);
         auto negbox = negated_bz(box);
         auto bz = calc_intersection(box, negbox);

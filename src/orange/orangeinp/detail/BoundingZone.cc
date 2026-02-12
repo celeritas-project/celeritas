@@ -58,7 +58,7 @@ BoxExtent get_extent(BBox const& b)
 }
 
 //---------------------------------------------------------------------------//
-// For now, be very conservative by returning infinities unless null
+// TODO: include tolerance in these calculations since the edge cases are weird
 BBox calc_difference(BBox const& a, BBox const& b, Zone which)
 {
     cout << "      + Subtract a=" << a << " - b=" << b << " ("
@@ -73,6 +73,13 @@ BBox calc_difference(BBox const& a, BBox const& b, Zone which)
     {
         if (encloses(b, a))
         {
+            if (encloses(a, b))
+            {
+                // Edge case: a == b
+                cout << "exact equality\n";
+                return a;
+            }
+
             // The two "known inside" regions do not overlap: exactly null
             cout << "exact: null\n";
             return {};
@@ -83,9 +90,19 @@ BBox calc_difference(BBox const& a, BBox const& b, Zone which)
     }
     else if (which == Zone::exterior)
     {
+        // NOTE: we could return an exact null if `encloses(b, a)`
+        //  *and not* `encloses(a, b)`, where the edge case of a = b must be
+        //  considered.
         if (encloses(b, a))
         {
+            if (encloses(a, b))
+            {
+                // Edge case: a == b
+                cout << "exact equality\n";
+                return a;
+            }
             // Never inside B and never outside A -> nowhere
+            // *excluding* the edge case of a == b
             // (Should be rare in practice since this would be literally a null
             // region in space)
             cout << "exact: null\n";
