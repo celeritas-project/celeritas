@@ -2,15 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/io/LarDataReader.root.cc
+//! \file larceler/LarDataReader.root.cc
 //---------------------------------------------------------------------------//
 #include "LarDataReader.hh"
+
+#include <lardataobj/Simulation/SimEnergyDeposit.h>
 
 #include "corecel/cont/Range.hh"
 
 namespace celeritas
-{
-namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -130,5 +130,4 @@ LarDataReader::VecOpDetCenter LarDataReader::optical_detector_centers() const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

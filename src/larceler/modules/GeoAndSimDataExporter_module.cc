@@ -1,34 +1,31 @@
-////////////////////////////////////////////////////////////////////////
-// Class:       GeoAndSimDataExporter_module
-// Plugin Type: analyzer
-// File:        GeoAndSimDataExporter_module.cc
-//
-// Generated at Sun Feb  8 13:13:21 2026 by Stefano Tognini using cetskelgen
-// from cetlib version 3.18.02.
-////////////////////////////////////////////////////////////////////////
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file larceler/modules/GeoAndSimDataExporter_module.cc
+//---------------------------------------------------------------------------//
 
-#include "TTree.h"
-#include "art/Framework/Core/EDAnalyzer.h"
-#include "art/Framework/Core/ModuleMacros.h"
-#include "art/Framework/Principal/Event.h"
-#include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Principal/Run.h"
-#include "art/Framework/Principal/SubRun.h"
-#include "art_root_io/TFileService.h"
-#include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
-#include "larcore/CoreUtils/ServiceUtil.h"
-#include "larcore/Geometry/Geometry.h"
-#include "larcorealg/Geometry/OpDetGeo.h"
-#include "lardataobj/Simulation/OpDetBacktrackerRecord.h"
-#include "lardataobj/Simulation/SimEnergyDeposit.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
+#include <TTree.h>
+#include <art/Framework/Core/EDAnalyzer.h>
+#include <art/Framework/Core/ModuleMacros.h>
+#include <art/Framework/Principal/Event.h>
+#include <art/Framework/Principal/Handle.h>
+#include <art/Framework/Principal/Run.h>
+#include <art/Framework/Principal/SubRun.h>
+#include <art_root_io/TFileService.h>
+#include <canvas/Utilities/InputTag.h>
+#include <fhiclcpp/ParameterSet.h>
+#include <larcore/CoreUtils/ServiceUtil.h>
+#include <larcore/Geometry/Geometry.h>
+#include <larcorealg/Geometry/OpDetGeo.h>
+#include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
+#include <lardataobj/Simulation/SimEnergyDeposit.h>
+#include <messagefacility/MessageLogger/MessageLogger.h>
 
-namespace phot
+#include "larceler/SimEnergyDepositData.hh"
+
+namespace celeritas
 {
-class GeoAndSimDataExporter;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Analyzer module that exports detector geometry information and, \em
@@ -48,7 +45,7 @@ class GeoAndSimDataExporter;
  *
  * To store only a subset of events, use the optional `-n [num_events]` flag.
  */
-class phot::GeoAndSimDataExporter : public art::EDAnalyzer
+class GeoAndSimDataExporter : public art::EDAnalyzer
 {
   public:
     // Construct with input parameters and export geometry data
@@ -73,36 +70,18 @@ class phot::GeoAndSimDataExporter : public art::EDAnalyzer
     geo::GeometryCore const& fGeometry;
     int fMaxEdeps;
 
-    // TTree with sim::SimEnergyDeposit data
-    TTree* fSimTree;
+    TTree* fSimTree;  // TTree with sim::SimEnergyDeposit data
+    SimEnergyDepositData fSimEdep;  // TBranch reference data
 
-    // Simplified version of sim::SimEnergyDeposit class to fill tree
-    // This object's data is overwritten before every TTree::Fill()
-    struct SimEdep
-    {
-        std::vector<int> NumPhotons;
-        std::vector<int> NumElectrons;
-        std::vector<double> ScintYieldRatio;
-        std::vector<double> Energy;
-        std::vector<double> Time;
-        std::vector<double> StartX;
-        std::vector<double> StartY;
-        std::vector<double> StartZ;
-        std::vector<double> EndX;
-        std::vector<double> EndY;
-        std::vector<double> EndZ;
-        std::vector<double> StartT;
-        std::vector<double> EndT;
-        std::vector<int> TrackID;
-        std::vector<int> PdgCode;
-    } fSimEdep;
+    // Clear SimEnergyDepositData vectors
+    void clear();
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with GDML geometry and export its information.
  */
-phot::GeoAndSimDataExporter::GeoAndSimDataExporter(fhicl::ParameterSet const& p)
+GeoAndSimDataExporter::GeoAndSimDataExporter(fhicl::ParameterSet const& p)
     : EDAnalyzer{p}
     , fGeometry(*(lar::providerFrom<geo::Geometry>()))
     , fMaxEdeps(p.get<int>("max_edeps_per_event"))
@@ -113,6 +92,7 @@ phot::GeoAndSimDataExporter::GeoAndSimDataExporter(fhicl::ParameterSet const& p)
     // Geometry information
     auto* det_info = tfs->make<TTree>("detector_info", "detector_info");
     std::string name = fGeometry.DetectorName();
+
     det_info->Branch("name", &name);
     det_info->Fill();
 
@@ -140,7 +120,7 @@ phot::GeoAndSimDataExporter::GeoAndSimDataExporter(fhicl::ParameterSet const& p)
 /*!
  * Create TTree with sim data.
  */
-void phot::GeoAndSimDataExporter::beginJob()
+void GeoAndSimDataExporter::beginJob()
 {
     // TTree and ROOT file writing is done automatically by the TFileService
     art::ServiceHandle<art::TFileService const> tfs;
@@ -175,7 +155,7 @@ void phot::GeoAndSimDataExporter::beginJob()
  * Loop over optional larg4 Geant4 output simulation file event data with
  * \c IonAndScint objects and export test data.
  */
-void phot::GeoAndSimDataExporter::analyze(art::Event const& e)
+void GeoAndSimDataExporter::analyze(art::Event const& e)
 {
     art::Handle<std::vector<sim::SimEnergyDeposit>> energy_deps;
     if (!e.getByLabel("IonAndScint", energy_deps))
@@ -198,8 +178,8 @@ void phot::GeoAndSimDataExporter::analyze(art::Event const& e)
         return;
     }
 
-    // Clear data for new event
-    fSimEdep = SimEdep();
+    // Clear all vectors before pushing back event data
+    this->clear();
 
     // If the requested maximum number of energy deposits per event is <= 0,
     // store all. Otherwise, set the limit to be up to the size of the vector
@@ -208,7 +188,7 @@ void phot::GeoAndSimDataExporter::analyze(art::Event const& e)
                                  : (fMaxEdeps > edeps_size) ? edeps_size
                                                             : fMaxEdeps;
 
-#define GSDE_GET(MEMBER) fSimEdep.MEMBER.push_back(edep.MEMBER());
+#define GSDE_GET(MEMBER) fSimEdep.MEMBER->push_back(edep.MEMBER());
 
     for (int i = 0; i < num_edeps_stored; i++)
     {
@@ -241,4 +221,33 @@ void phot::GeoAndSimDataExporter::analyze(art::Event const& e)
 }
 
 //---------------------------------------------------------------------------//
-DEFINE_ART_MODULE(phot::GeoAndSimDataExporter)
+/*!
+ * Clear all \c sim::SimEnergyDeposit vector data before an event.
+ */
+void GeoAndSimDataExporter::clear()
+{
+#define GSDE_CLEAR(MEMBER) fSimEdep.MEMBER->clear();
+
+    GSDE_CLEAR(NumPhotons);
+    GSDE_CLEAR(NumElectrons);
+    GSDE_CLEAR(ScintYieldRatio);
+    GSDE_CLEAR(Energy);
+    GSDE_CLEAR(Time);
+    GSDE_CLEAR(StartX);
+    GSDE_CLEAR(StartY);
+    GSDE_CLEAR(StartZ);
+    GSDE_CLEAR(EndX);
+    GSDE_CLEAR(EndY);
+    GSDE_CLEAR(EndZ);
+    GSDE_CLEAR(StartT);
+    GSDE_CLEAR(EndT);
+    GSDE_CLEAR(TrackID);
+    GSDE_CLEAR(PdgCode);
+
+#undef GSDE_CLEAR
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas
+
+DEFINE_ART_MODULE(celeritas::GeoAndSimDataExporter)

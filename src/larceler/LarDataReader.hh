@@ -2,23 +2,28 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/io/LarDataReader.hh
+//! \file larceler/LarDataReader.hh
 //---------------------------------------------------------------------------//
 #pragma once
-
-#include <lardataobj/Simulation/SimEnergyDeposit.h>
 
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/ext/RootUniquePtr.hh"
 
-namespace celeritas
+#include "SimEnergyDepositData.hh"
+
+namespace sim
 {
-namespace test
+class SimEnergyDeposit;
+}  // namespace sim
+
+namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Helper class to read ROOT files produced by the \c GeoAndSimDataExporter
  * module.
+ *
+ * \sa GeoAndSimDataExporter
  */
 class LarDataReader
 {
@@ -48,27 +53,8 @@ class LarDataReader
 
   private:
     SPRootFileManager root_manager_;
-    UPExtern<TTree> sim_tree_;
-
-    // TTree branch references for sim::SimEnergyDeposit data
-    struct SimEdepData
-    {
-        std::vector<int>* NumPhotons{nullptr};
-        std::vector<int>* NumElectrons{nullptr};
-        std::vector<double>* ScintYieldRatio{nullptr};
-        std::vector<double>* Energy{nullptr};
-        std::vector<double>* Time{nullptr};
-        std::vector<double>* StartX{nullptr};
-        std::vector<double>* StartY{nullptr};
-        std::vector<double>* StartZ{nullptr};
-        std::vector<double>* EndX{nullptr};
-        std::vector<double>* EndY{nullptr};
-        std::vector<double>* EndZ{nullptr};
-        std::vector<double>* StartT{nullptr};
-        std::vector<double>* EndT{nullptr};
-        std::vector<int>* TrackID{nullptr};
-        std::vector<int>* PdgCode{nullptr};
-    } sim_edep_data_;
+    UPExtern<TTree> sim_tree_;  //!< TTree with SimEnergyDeposit input data
+    SimEnergyDepositData sim_edep_data_;  //!<  TBranch data references
 
     //// HELPER FUNCTIONS ////
 
@@ -122,5 +108,4 @@ LarDataReader::optical_detector_centers() const
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas
