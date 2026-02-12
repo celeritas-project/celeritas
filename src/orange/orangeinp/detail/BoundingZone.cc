@@ -64,8 +64,8 @@ BoxExtent get_extent(BBox const& b)
 // For now, be very conservative by returning infinities unless null
 BBox calc_difference(BBox const& a, BBox const& b, BoxOp op)
 {
-    cout << "      + Diff a=" << a << " - b=" << b << " (" << to_cstring(op)
-         << ") -> ";
+    cout << "      + Subtract a=" << a << " - b=" << b << " ("
+         << to_cstring(op) << ") -> ";
     if (!b)
     {
         cout << "a\n";
