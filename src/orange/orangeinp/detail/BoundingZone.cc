@@ -8,14 +8,6 @@
 
 #include "orange/BoundingBoxUtils.hh"
 
-#if 1
-#    include <iostream>
-
-#    include "corecel/io/EnumStringMapper.hh"
-using std::cout;
-using std::endl;
-#endif
-
 namespace celeritas
 {
 namespace orangeinp
@@ -32,12 +24,6 @@ enum class Zone
     exterior,
     size_
 };
-
-char const* to_cstring(Zone e)
-{
-    static EnumStringMapper<Zone> const convert{"interior", "exterior"};
-    return convert(e);
-}
 
 //---------------------------------------------------------------------------//
 //! Whether a bounding box is finite, null, or infinite; used for printing
@@ -61,12 +47,9 @@ BoxExtent get_extent(BBox const& b)
 // TODO: include tolerance in these calculations since the edge cases are weird
 BBox calc_difference(BBox const& a, BBox const& b, Zone which)
 {
-    cout << "      + Subtract a=" << a << " - b=" << b << " ("
-         << to_cstring(which) << ") -> ";
     if (!b)
     {
         // Subtracting nothing: return early to avoid 'encloses' error
-        cout << "a\n";
         return a;
     }
     if (which == Zone::interior)
@@ -76,16 +59,13 @@ BBox calc_difference(BBox const& a, BBox const& b, Zone which)
             if (encloses(a, b))
             {
                 // Edge case: a == b
-                cout << "exact equality\n";
                 return a;
             }
 
             // The two "known inside" regions do not overlap: exactly null
-            cout << "exact: null\n";
             return {};
         }
         // Irregular region: conservatively return null
-        cout << "conservative: null\n";
         return {};
     }
     else if (which == Zone::exterior)
@@ -98,20 +78,17 @@ BBox calc_difference(BBox const& a, BBox const& b, Zone which)
             if (encloses(a, b))
             {
                 // Edge case: a == b
-                cout << "exact equality\n";
                 return a;
             }
             // Never inside B and never outside A -> nowhere
             // *excluding* the edge case of a == b
             // (Should be rare in practice since this would be literally a null
             // region in space)
-            cout << "exact: null\n";
             return {};
         }
 
         // "Never" is a union of the negative exterior of A and the
         // interior of B; so an exterior bbox of A is conservative
-        cout << "conservative: a\n";
         return a;
     }
     CELER_ASSERT_UNREACHABLE();
@@ -120,12 +97,8 @@ BBox calc_difference(BBox const& a, BBox const& b, Zone which)
 //---------------------------------------------------------------------------//
 BBox calc_union(BBox const& a, BBox const& b, Zone which)
 {
-    cout << "      + Union a=" << a << " - b=" << b << " ("
-         << to_cstring(which) << ") -> ";
-
     if (which == Zone::exterior)
     {
-        cout << "union\n";
         // Result encloses both and it can enclose space not in the original
         // two bboxes, so use standard function
         return calc_union(a, b);
@@ -134,18 +107,15 @@ BBox calc_union(BBox const& a, BBox const& b, Zone which)
     // Union of A with null is A
     if (!a)
     {
-        cout << "b\n";
         return b;
     }
     if (!b)
     {
-        cout << "a\n";
         return a;
     }
 
     // Choose the larger box since the resulting box has to be strictly
     // enclosed by the space in the input boxes
-    cout << "larger\n";
     return calc_volume(a) > calc_volume(b) ? a : b;
 }
 
@@ -191,8 +161,6 @@ BoundingZone BoundingZone::from_infinite()
  */
 BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
 {
-    cout << "  - Intersect " << a << "\n    & " << b << ":\n";
-
     BoundingZone result;
     if (!a.negated && !b.negated)
     {
@@ -226,7 +194,6 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
         result.exterior = calc_union(a.exterior, b.exterior, Zone::exterior);
         result.negated = true;
     }
-    cout << "    -> " << result << endl;
     return result;
 }
 
@@ -238,8 +205,6 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
  */
 BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
 {
-    cout << "  - Union " << a << "\n    | " << b << ":\n";
-
     BoundingZone result;
     if (!a.negated && !b.negated)
     {
@@ -273,7 +238,6 @@ BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
         result.exterior = calc_intersection(a.exterior, b.exterior);
         result.negated = true;
     }
-    cout << "    -> " << result << endl;
     return result;
 }
 

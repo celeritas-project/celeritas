@@ -11,14 +11,6 @@
 #include "BoundingZone.hh"
 #include "CsgUnitBuilder.hh"
 
-#if 1
-#    include <iostream>
-
-#    include "corecel/io/Join.hh"
-using std::cout;
-using std::endl;
-#endif
-
 namespace celeritas
 {
 namespace orangeinp
@@ -60,9 +52,6 @@ VariantTransform const& VolumeBuilder::local_transform() const
  */
 NodeId VolumeBuilder::insert_region(Metadata&& md, Joined&& j)
 {
-    cout << "* Inserting " << (j.op == op_and ? "intersection" : "union")
-         << " region " << md << endl;
-
     // Calculate bounding zone before creating region
     BoundingZone bz = [&j, this] {
         if (j.op == op_and)
