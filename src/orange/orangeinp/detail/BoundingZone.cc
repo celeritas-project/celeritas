@@ -54,38 +54,32 @@ BBox calc_difference(BBox const& a, BBox const& b, Zone which)
     }
     if (which == Zone::interior)
     {
-        if (encloses(a, b))
+        if (encloses(b, a))
         {
-            // Concentric box is known inside: conservatively return null
+            // The two "known inside" regions do not overlap: exactly null
             return {};
         }
-        else if (encloses(b, a))
-        {
-            // Two "known inside" regions do not overlap
-            return {};
-        }
+        // Irregular region: conservatively return null
+        return {};
     }
     else if (which == Zone::exterior)
     {
-        if (encloses(a, b))
-        {
-            // "Never" is a union of the negative exterior of A and the
-            // interior of B; so an exterior bbox of A is correct
-            return a;
-        }
-        else if (encloses(b, a))
+        if (encloses(b, a))
         {
             // Never inside B and never outside A -> nowhere
+            // (Should be rare in practice since this would be literally a null
+            // region in space)
             return {};
         }
-    }
 
-    // Conservative fallback
-    return (which == Zone::interior ? BBox{} : BBox::from_infinite());
+        // "Never" is a union of the negative exterior of A and the
+        // interior of B; so an exterior bbox of A is conservative
+        return a;
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
-// For now, be conservative by "shrinking" into the largest known box shape
 BBox calc_union(BBox const& a, BBox const& b, Zone which)
 {
     if (which == Zone::exterior)
@@ -153,12 +147,12 @@ BoundingZone BoundingZone::from_infinite()
 BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
 {
     BoundingZone result;
-    result.negated = false;
     if (!a.negated && !b.negated)
     {
         // A & B
         result.interior = calc_intersection(a.interior, b.interior);
         result.exterior = calc_intersection(a.exterior, b.exterior);
+        result.negated = false;
     }
     else if (!a.negated && b.negated)
     {
@@ -167,6 +161,7 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
             = calc_difference(a.interior, b.exterior, Zone::interior);
         result.exterior
             = calc_difference(a.exterior, b.interior, Zone::exterior);
+        result.negated = false;
     }
     else if (!b.negated && a.negated)
     {
@@ -175,6 +170,7 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
             = calc_difference(b.interior, a.exterior, Zone::interior);
         result.exterior
             = calc_difference(b.exterior, a.interior, Zone::exterior);
+        result.negated = false;
     }
     else if (a.negated && b.negated)
     {
@@ -190,23 +186,11 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
 /*!
  * Calculate the union of two bounding zones.
  *
- * Here are the zones that result from unioning of two zones with
- * different negations:
- *
- * | Input     | Interior     | Exterior     | Negated  |
- * | ------    | ------------ | ------------ | -------- |
- * | `A | B`   | `A_i | B_i`  | `A_x | B_x`  | false    |
- * | `A | ~B`  | `B_i - A_x`  | `B_x - A_i`  | true     |
- * | `~A | B ` | `A_i - B_x`  | `A_x - B_i`  | true     |
- * | `~A | ~B` | `A_i & B_i`  | `A_x & B_x`  | true     |
- *
- * As with the intersection, the interior has to shrink and the exterior has to
- * grow if the unioned regions aren't boxes.
+ * We use DeMorgan's law to represent, e.g., `A | ~B` as `~(B - A)`.
  */
 BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
 {
     BoundingZone result;
-    result.negated = true;
     if (!a.negated && !b.negated)
     {
         // A | B
@@ -216,25 +200,28 @@ BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
     }
     else if (!a.negated && b.negated)
     {
-        // ~(B - A)
-        result.interior
-            = calc_difference(a.interior, b.exterior, Zone::interior);
-        result.exterior
-            = calc_difference(a.exterior, b.interior, Zone::exterior);
-    }
-    else if (!b.negated && a.negated)
-    {
-        // ~(A - B)
+        // A | ~B = ~(~A & B) = ~(B - A)
         result.interior
             = calc_difference(b.interior, a.exterior, Zone::interior);
         result.exterior
             = calc_difference(b.exterior, a.interior, Zone::exterior);
+        result.negated = true;
+    }
+    else if (!b.negated && a.negated)
+    {
+        // ~A | B = ~(A & ~B) = ~(A - B)
+        result.interior
+            = calc_difference(a.interior, b.exterior, Zone::interior);
+        result.exterior
+            = calc_difference(a.exterior, b.interior, Zone::exterior);
+        result.negated = true;
     }
     else if (a.negated && b.negated)
     {
         // !(A & B)
         result.interior = calc_intersection(a.interior, b.interior);
         result.exterior = calc_intersection(a.exterior, b.exterior);
+        result.negated = true;
     }
     return result;
 }

@@ -245,7 +245,8 @@ TEST_F(BoundingZoneTest, calc_intersection)
         auto bz = calc_intersection(sph, negated_bz(trasq));
         EXPECT_FALSE(bz.negated);
         EXPECT_FALSE(bz.interior) << bz.interior;
-        EXPECT_EQ(BBox::from_infinite(), bz.exterior);
+        EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), bz.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), bz.exterior.upper());
     }
     {
         auto box = make_bz({0.5, 0, 0}, 0.5, 0.5);
@@ -289,8 +290,8 @@ TEST_F(BoundingZoneTest, calc_union)
         auto bz = calc_union(sph, negextonly);
         EXPECT_TRUE(bz.negated);
         EXPECT_FALSE(bz.interior) << bz.interior;
-        EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), bz.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), bz.exterior.upper());
+        EXPECT_VEC_SOFT_EQ((Real3{0.5, -0.5, -0.5}), bz.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{1.5, 0.5, 0.5}), bz.exterior.upper());
     }
     {
         auto bz = calc_union(negated_bz(sph), negextonly);
@@ -303,7 +304,8 @@ TEST_F(BoundingZoneTest, calc_union)
         auto bz = calc_union(sph, negated_bz(trasph));
         EXPECT_TRUE(bz.negated);
         EXPECT_FALSE(bz.interior) << bz.interior;
-        EXPECT_EQ(BBox::from_infinite(), bz.exterior);
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, -1}), bz.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{2, 2, 1}), bz.exterior.upper());
     }
     {
         // Union with null should be the same as non-null
@@ -319,33 +321,13 @@ TEST_F(BoundingZoneTest, calc_union)
 /*!
  * Test an intersection of unions.
  *
- * Compressed and simplified volume, node 52:
- *   all(+12, -13, +14, -15, +16, -17,
- *     any(-18, +19, -20, +21, -22, +23),
- *     any(-18, +19, -20, +21, -24, +25),
- *     any(-18, +19, -20, +21, -26, +27),
- *     any(-18, +19, -20, +21, -28, +29)))
- *
- * i.e.
- * ["&",[12,14,15,17,18,20,33,39,45,51]],
- * = & [21,33,39,45,51]
- * = & [
-    ["&",[12,14,15,17,18,20]],
-    ["|",[23,24,26,27,30,31]],
-    ["|",[23,24,26,27,36,37]],
-    ["|",[23,24,26,27,42,43]],
-    ["|",[23,24,26,27,48,49]],
-    ]
- "21: t=2 -> {{0,-612,-455}}",
- and the rest are null!
- *
  * Unsimplified volume, node 62:
    all(+12, -13, +14, -15, +16, -17,
-     !all(+18, -19, +20, -21, +22, -23),
-     !all(+18, -19, +20, -21, +24, -25),
-     !all(+18, -19, +20, -21, +26, -27),
-     !all(+18, -19, +20, -21, +28, -29)
-    )
+    ~all(+18, -19, +20, -21, +22, -23),
+    ~all(+18, -19, +20, -21, +24, -25),
+    ~all(+18, -19, +20, -21, +26, -27),
+    ~all(+18, -19, +20, -21, +28, -29)
+   )
  *
  * i.e.,
   = &[ 32,43,49,55,61]
@@ -384,10 +366,10 @@ TEST_F(BoundingZoneTest, arapuca_walls)
     subtract({{-1.2, -617, -398}, {1.2, -608, -351}},
              {{-1.2, -617, -398}, {1.2, -608, -351}});
 
-    // print_expected(bz);
     EXPECT_FALSE(bz.negated);
     EXPECT_FALSE(bz.interior) << bz.interior;
-    EXPECT_EQ(BBox::from_infinite(), bz.exterior);
+    EXPECT_VEC_SOFT_EQ((Real3{-1.15, -618, -560}), bz.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.15, -606, -350}), bz.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

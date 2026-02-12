@@ -278,14 +278,12 @@ TEST_F(SolidTest, antiwedge)
         "",
         "cone",
     };
-    // clang-format off
     static char const* const expected_bound_strings[] = {
-        "7: {{{-0.707,-0.707,-10}, {0.707,0.707,10}}, {{-2,-2,-10}, {2,2,10}}}",
+        R"(7: {{{-0.707,-0.707,-10}, {0.707,0.707,10}}, {{-2,-2,-10}, {2,2,10}}})",
         "10: {null, inf}",
         "~11: {null, inf}",
-        "12: {null, {{-2,-2,-10}, {2,2,10}}}",
+        R"(12: {{{-0.707,-0.707,-10}, {0.707,0.707,10}}, {{-2,-2,-10}, {2,2,10}}})",
     };
-    // clang-format on
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
