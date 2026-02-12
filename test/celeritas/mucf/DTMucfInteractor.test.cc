@@ -33,10 +33,6 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
   protected:
     void SetUp() override
     {
-        // Construct collection
-        auto host_data = this->make_host_data();
-        data_ = ParamsDataStore<DTMixMucfData>{std::move(host_data)};
-
         // At-rest muon primary
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.0});
         this->set_inc_direction({1, 0, 0});
@@ -51,7 +47,7 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
         // Primary muon should be killed
         EXPECT_EQ(Action::absorbed, interaction.action);
 
-        auto const& host_data = data_.host_ref();
+        auto const& host_data = this->host_data();
         auto const& sec = interaction.secondaries;
 
         // First particle is always an outgoing neutron with 14.1 MeV
@@ -135,7 +131,6 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
     }
 
   protected:
-    ParamsDataStore<DTMixMucfData> data_;
     EnumArray<Channel, size_type> num_secondaries_{
         3,  // alpha_muon_neutron
         2  // muonicalpha_neutron
@@ -156,7 +151,7 @@ TEST_F(DTMucfInteractorTest, alpha_muon_neutron)
 
     // Run interactor
     DTMucfInteractor interact(
-        data_.host_ref(), channel, this->secondary_allocator());
+        this->host_data(), channel, this->secondary_allocator());
 
     auto& rng = this->rng();
     for ([[maybe_unused]] auto i : range(num_samples))
@@ -177,7 +172,7 @@ TEST_F(DTMucfInteractorTest, muonicalpha_neutron)
 
     // Run interactor
     DTMucfInteractor interact(
-        data_.host_ref(), channel, this->secondary_allocator());
+        this->host_data(), channel, this->secondary_allocator());
 
     auto& rng = this->rng();
     for ([[maybe_unused]] auto i : range(num_samples))
@@ -199,7 +194,7 @@ TEST_F(DTMucfInteractorTest, stress_test)
         this->resize_secondaries(num_samples * num_secondaries_[channel]);
 
         DTMucfInteractor interact(
-            data_.host_ref(), channel, this->secondary_allocator());
+            this->host_data(), channel, this->secondary_allocator());
 
         auto& rng = this->rng();
         for ([[maybe_unused]] auto i : range(num_samples))

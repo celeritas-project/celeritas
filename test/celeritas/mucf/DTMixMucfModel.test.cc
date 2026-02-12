@@ -19,16 +19,7 @@ namespace test
 class DTMixMucfModelTest : public MucfInteractorHostTestBase
 {
   protected:
-    void SetUp() override
-    {
-        particles_ = this->particle_params();
-        this->set_material("hdt_fuel");
-        materials_ = this->material_params();
-    }
-
-  protected:
-    std::shared_ptr<ParticleParams const> particles_;
-    std::shared_ptr<MaterialParams const> materials_;
+    void SetUp() override {}
 };
 
 //---------------------------------------------------------------------------//
@@ -36,13 +27,13 @@ TEST_F(DTMixMucfModelTest, data)
 {
     using Molecule = MucfMuonicMolecule;
 
-    auto model = DTMixMucfModel(ActionId{0}, *particles_, *materials_);
-    auto const& data = model.host_ref();
+    auto const& data = this->host_data();
     auto const& pids = data.particle_ids;
     auto const& masses = data.particle_masses;
 
-#define EXPECT_PDG_EQ(MEMBER) \
-    EXPECT_EQ(pdg::MEMBER().get(), particles_->id_to_pdg(pids.MEMBER).get())
+#define EXPECT_PDG_EQ(MEMBER)      \
+    EXPECT_EQ(pdg::MEMBER().get(), \
+              this->particle_params()->id_to_pdg(pids.MEMBER).get())
 
     EXPECT_PDG_EQ(mu_minus);
     EXPECT_PDG_EQ(neutron);
@@ -58,7 +49,7 @@ TEST_F(DTMixMucfModelTest, data)
 #undef EXPECT_PDG_EQ
 
 #define EXPECT_MASS_EQ(MEMBER) \
-    EXPECT_EQ(masses.MEMBER, particles_->get(pids.MEMBER).mass())
+    EXPECT_EQ(masses.MEMBER, this->particle_params()->get(pids.MEMBER).mass())
 
     EXPECT_MASS_EQ(mu_minus);
     EXPECT_MASS_EQ(neutron);

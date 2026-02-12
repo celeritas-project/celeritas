@@ -32,10 +32,6 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
   protected:
     void SetUp() override
     {
-        // Construct collection
-        auto host_data = this->make_host_data();
-        data_ = ParamsDataStore<DTMixMucfData>{std::move(host_data)};
-
         // At-rest muon primary
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.0});
         this->set_inc_direction({1, 0, 0});
@@ -50,7 +46,7 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
         // Primary muon should be killed
         EXPECT_EQ(Action::absorbed, interaction.action);
 
-        auto const& host_data = data_.host_ref();
+        auto const& host_data = this->host_data();
         auto const& sec = interaction.secondaries;
 
         // Verify channel-specific data
@@ -172,7 +168,6 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
     }
 
   protected:
-    ParamsDataStore<DTMixMucfData> data_;
     EnumArray<Channel, size_type> num_secondaries_{
         3,  // helium3_muon_neutron
         2,  // muonichelium3_neutron
@@ -193,7 +188,7 @@ TEST_F(DDMucfInteractorTest, helium3_muon_neutron)
 
     // Run interactor
     DDMucfInteractor interact(
-        data_.host_ref(), channel, this->secondary_allocator());
+        this->host_data(), channel, this->secondary_allocator());
 
     auto& rng = this->rng();
     for ([[maybe_unused]] auto i : range(num_samples))
@@ -213,7 +208,7 @@ TEST_F(DDMucfInteractorTest, muonichelium3_neutron)
 
     // Run interactor
     DDMucfInteractor interact(
-        data_.host_ref(), channel, this->secondary_allocator());
+        this->host_data(), channel, this->secondary_allocator());
 
     auto& rng = this->rng();
     for ([[maybe_unused]] auto i : range(num_samples))
@@ -233,7 +228,7 @@ TEST_F(DDMucfInteractorTest, tritium_muon_proton)
 
     // Run interactor
     DDMucfInteractor interact(
-        data_.host_ref(), channel, this->secondary_allocator());
+        this->host_data(), channel, this->secondary_allocator());
 
     auto& rng = this->rng();
     for ([[maybe_unused]] auto i : range(num_samples))
@@ -256,7 +251,7 @@ TEST_F(DDMucfInteractorTest, stress_test)
         this->resize_secondaries(num_samples * num_secondaries_[channel]);
 
         DDMucfInteractor interact(
-            data_.host_ref(), channel, this->secondary_allocator());
+            this->host_data(), channel, this->secondary_allocator());
 
         auto& rng = this->rng();
         for ([[maybe_unused]] auto i : range(num_samples))

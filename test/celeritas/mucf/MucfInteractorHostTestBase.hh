@@ -7,6 +7,7 @@
 #pragma once
 
 #include "celeritas/mucf/data/DTMixMucfData.hh"
+#include "celeritas/mucf/model/DTMixMucfModel.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
 namespace celeritas
@@ -30,7 +31,10 @@ class MucfInteractorHostBase : public InteractorHostBase
     //!@}
 
     // Construct MuCF data from test values for interactors
-    HostVal<DTMixMucfData> make_host_data();
+    HostCRef<DTMixMucfData> host_data() const { return model_->host_ref(); }
+
+  private:
+    std::shared_ptr<DTMixMucfModel> model_;
 };
 
 class MucfInteractorHostTestBase : public MucfInteractorHostBase, public Test
