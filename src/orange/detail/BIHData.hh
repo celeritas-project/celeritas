@@ -79,12 +79,26 @@ struct BIHLeafNode
 /*!
  * Bounding Interval Hierarchy tree.
  *
- * Infinite bounding boxes are not included in the main tree.
- *
- * \todo Rename BihTreeRecord
+ * Infinite bounding boxes are not included in the tree itself. They are stored
+ * separately and checked after traversing the tree.
  */
-struct BIHTree
+struct BIHTreeRecord
 {
+    //// TYPES ////
+    struct Metadata
+    {
+        //! The number of finite bounding boxes in the tree
+        size_type num_finite_bboxes;
+        //! The number of infinite bounding boxes, i.e., those not included in
+        //! the tree itself.
+        size_type num_infinite_bboxes;
+        //! The depth of the most embedded leaf node. This has a value of 1
+        //! when the root node is a leaf.
+        size_type depth;
+    };
+
+    //// DATA ////
+
     //! All bounding boxes managed by the BIH
     ItemMap<LocalVolumeId, FastBBoxId> bboxes;
 
@@ -96,6 +110,11 @@ struct BIHTree
 
     //! Local volumes that have infinite bounding boxes
     ItemRange<LocalVolumeId> inf_vol_ids;
+
+    //! The metadata for this tree
+    Metadata metadata;
+
+    //// METHODS ////
 
     explicit CELER_FUNCTION operator bool() const
     {

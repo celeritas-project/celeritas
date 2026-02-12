@@ -2,33 +2,29 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/OrangeInputIOImpl.json.hh
-//! \sa LogicUtils.hh
+//! \file orange/detail/ConvertLogic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
-#include <nlohmann/json.hpp>
 
-#include "orange/surf/VariantSurface.hh"
-#include "orange/transform/VariantTransform.hh"
+#include "orange/OrangeInput.hh"
+
+#include "../OrangeTypes.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// Read a transform from a JSON object
-VariantTransform import_transform(nlohmann::json const& src);
+// Convert a postfix logic expression to an infix expression.
+std::vector<logic_int> convert_to_infix(std::vector<logic_int> const& postfix);
 
-// Write a transform to arrays suitable for JSON export.
-nlohmann::json export_transform(VariantTransform const& t);
+// Convert an infix logic expression to a postfix expression.
+std::vector<logic_int> convert_to_postfix(std::vector<logic_int> const& infix);
 
-// Read surface data from a JSON object
-std::vector<VariantSurface> import_zipped_surfaces(nlohmann::json const& j);
-
-// Write surface data to a JSON object
-nlohmann::json export_zipped_surfaces(std::vector<VariantSurface> const& s);
+// Convert logic expressions in an OrangeInput to the desired notation
+void convert_logic(OrangeInput& input, LogicNotation to);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -17,7 +17,12 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from Storage and Input objects.
+ * \brief Constructor.
+ *
+ * \param[in] storage  Struct containing collections of persistent data for
+ *                     all BIH trees
+ * \param[in] inp      Input options that govern BIH construction, i.e.,
+ *                     the maximum leaf size and the recursion depth limit
  */
 BIHBuilder::BIHBuilder(Storage* storage, Input inp)
     : bboxes_{&storage->bboxes}
@@ -27,14 +32,20 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
     , inp_{inp}
 {
     CELER_EXPECT(storage);
-    CELER_EXPECT(inp_.max_leaf_size > 0);
+    CELER_EXPECT(inp_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Create BIH Nodes.
+ * \brief Build a BIH tree for the supplied bounding boxes.
+ *
+ * \param[in] bboxes            All bounding boxes to be included in the tree
+ * \param[in] implicit_vol_ids  The ids of the "background" volumes, to be
+ *                              excluded from the tree
+ *
+ * \return The record of the resultant BIH tree
  */
-BIHTree
+BIHTreeRecord
 BIHBuilder::operator()(VecBBox&& bboxes,
                        BIHBuilder::SetLocalVolId const& implicit_vol_ids)
 {
@@ -77,7 +88,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
         }
     }
 
-    BIHTree tree;
+    BIHTreeRecord tree;
 
     tree.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
         bboxes_.insert_back(temp_.bboxes.begin(), temp_.bboxes.end()));
@@ -85,11 +96,16 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     tree.inf_vol_ids = local_volume_ids_.insert_back(inf_vol_ids.begin(),
                                                      inf_vol_ids.end());
 
+    // The depth of the most embedded node (where 1 is the root node), to be
+    // calculated during the recursive construction process
+    size_type depth = 0;
+
     if (!indices.empty())
     {
+        // Construct the tree recursively
         VecNodes nodes;
         auto inf_bbox = FastBBox::from_infinite();
-        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox);
+        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox, 0, depth);
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.inner_nodes
@@ -108,6 +124,13 @@ BIHBuilder::operator()(VecBBox&& bboxes,
                                                   std::end(empty_nodes));
     }
 
+    // Assign metadata for diagnostic purposes
+    BIHTreeRecord::Metadata md;
+    md.num_finite_bboxes = indices.size();
+    md.num_infinite_bboxes = inf_vol_ids.size();
+    md.depth = depth;
+    tree.metadata = md;
+
     return tree;
 }
 
@@ -116,14 +139,28 @@ BIHBuilder::operator()(VecBBox&& bboxes,
 //---------------------------------------------------------------------------//
 /*!
  * Recursively construct BIH nodes for a vector of bbox indices.
+ *
+ * \param[in] indices        The indices of the bboxes that will be partitioned
+ *                           or placed on a leaf node in this function call
+ * \param[in, out] nodes     All nodes constructed so far, to be added to
+ * \param[in] parent         The parent node
+ * \param[in] bbox           The bounding box of the parent node
+ * \param[in] current_depth  The recursion depth of this function call
+ * \param[in] depth          The maximum recursion depth encountered during the
+ *                           full construction process
  */
 void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
                                 BIHNodeId parent,
-                                FastBBox const& bbox)
+                                FastBBox const& bbox,
+                                size_type current_depth,
+                                size_type& depth)
 {
+    CELER_EXPECT(current_depth < inp_.depth_limit);
+
     using Side = BIHInnerNode::Side;
 
+    ++current_depth;
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
 
@@ -136,11 +173,14 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
             = local_volume_ids_.insert_back(indices.begin(), indices.end());
         CELER_EXPECT(node);
         (*nodes)[current_index] = node;
+        depth = std::max(depth, current_depth);
     };
 
-    if (indices.size() <= inp_.max_leaf_size)
+    if (indices.size() <= inp_.max_leaf_size
+        || current_depth == inp_.depth_limit)
     {
-        // All bboxes fit on a single leaf; make it and exit early
+        // All bboxes fit on a single leaf, or we have reached the depth limit;
+        // make a leaf and exit early
         make_leaf();
         return;
     }
@@ -178,7 +218,9 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
             this->construct_tree(p.indices[side],
                                  nodes,
                                  BIHNodeId(current_index),
-                                 node.edges[side].bbox);
+                                 node.edges[side].bbox,
+                                 current_depth,
+                                 depth);
         }
 
         CELER_EXPECT(node);
@@ -194,6 +236,10 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 //---------------------------------------------------------------------------//
 /*!
  * Separate inner nodes from leaf nodes and renumber accordingly.
+ *
+ * \param[in] nodes  The interspersed inner and leaf nodes
+ *
+ * \returns  The separated inner and leaf nodes
  */
 BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
 {

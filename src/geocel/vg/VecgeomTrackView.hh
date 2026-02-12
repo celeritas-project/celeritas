@@ -41,6 +41,12 @@
 #    include "detail/VgNavStateWrapper.hh"
 #endif
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
+#    include "geocel/detail/LengthUnits.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -121,7 +127,7 @@ class VecgeomTrackView
     // Whether the track is exactly on a surface
     CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE_FUNCTION bool failed() const { return false; }
+    CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
     // Get the normal vector of the current surface
     inline CELER_FUNCTION Real3 normal() const;
 
@@ -184,6 +190,7 @@ class VecgeomTrackView
 
     // Temporary data
     real_type next_step_{0};
+    bool failed_{false};
 
     //// HELPER FUNCTIONS ////
 
@@ -192,9 +199,6 @@ class VecgeomTrackView
 
     // Whether the next distance-to-boundary is to a surface
     inline CELER_FUNCTION bool is_next_boundary() const;
-
-    // Get a reference to the world volume
-    inline CELER_FUNCTION VgPlacedVol const& world() const;
 
     // Get a reference to the current volume instance
     inline CELER_FUNCTION VgPlacedVol const& physical_volume() const;
@@ -254,6 +258,7 @@ CELER_FUNCTION VecgeomTrackView&
 VecgeomTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+    failed_ = false;
 
     // Initialize direction
     dir_ = init.dir;
@@ -285,14 +290,27 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // Set up current state and locate daughter volume
     vgstate_.Clear();
 #if CELERITAS_VECGEOM_SURFACE
-    auto world = vecgeom::NavigationState::WorldId();
+    // VecGeom's BVHSurfNav takes `int pvol_id ` but vecgeom's navtuple/index
+    // return NavIndex_t via `NavInd` :(
+    VgPlacedVolumeInt world = vecgeom::NavigationState::WorldId();
 #else
-    auto const* world = &this->world();
+    auto const* world = params_.scalars.world<MemSpace::native>();
 #endif
     // LocatePointIn sets `vgstate_`
     constexpr bool contains_point = true;
     Navigator::LocatePointIn(
         world, detail::to_vector(pos_), vgstate_, contains_point);
+
+    if (CELER_UNLIKELY(vgstate_.IsOutside()))
+    {
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(error);
+        msg << "Failed to initialize geometry state at " << repr(pos_) << ' '
+            << lengthunits::native_label;
+#endif
+        failed_ = true;
+    }
+
     return *this;
 }
 
@@ -426,32 +444,12 @@ CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 /*!
  * Find the distance to the next geometric boundary.
  *
- * This function is allowed to be called from the exterior for ray tracing.
+ * \todo To support ray tracing from unknown distances from the world, we
+ * could add another special function \c find_first_step .
  */
 CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
 {
-    if (this->is_outside())
-    {
-        // SPECIAL CASE: find distance to interior from outside world volume
-        auto const& world_pv = this->world();
-        next_step_ = world_pv.DistanceToIn(detail::to_vector(pos_),
-                                           detail::to_vector(dir_),
-                                           vecgeom::kInfLength);
-
-        next_step_ = max(next_step_, this->extra_push());
-        vgnext_.Clear();
-        Propagation result;
-        result.distance = next_step_;
-        result.boundary = next_step_ < vecgeom::kInfLength;
-
-        if (result.boundary)
-        {
-            vgnext_.Push(&world_pv);
-            vgnext_.SetBoundaryState(true);
-        }
-
-        return result;
-    }
+    CELER_EXPECT(!this->is_outside());
 
     return this->find_next_step(vecgeom::kInfLength);
 }
@@ -469,6 +467,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     {
         *next_surf_ = null_surface();
     }
+
     // TODO: vgnext is simply copied and the boundary flag optionally set
     next_step_ = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
                                                      detail::to_vector(dir_),
@@ -480,6 +479,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
                                                      *next_surf_
 #endif
     );
+
     if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
         // Our accessor uses the next_surf_ state, but the temporary used for
@@ -532,13 +532,8 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
     CELER_EXPECT(!this->is_on_boundary());
     CELER_EXPECT(max_radius > 0);
 
-    real_type safety = Navigator::ComputeSafety(detail::to_vector(this->pos()),
-                                                vgstate_
-#if VECGEOM_VERSION >= 0x200000
-                                                ,
-                                                max_radius
-#endif
-    );
+    real_type safety = Navigator::ComputeSafety(
+        detail::to_vector(this->pos()), vgstate_, max_radius);
     safety = min<real_type>(safety, max_radius);
 
     // Since the reported "safety" is negative if we've moved slightly beyond
@@ -571,22 +566,19 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
  */
 CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 {
+    CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(this->is_next_boundary());
 
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-        if (!CELERITAS_VECGEOM_SURFACE || !vgstate_.IsOutside())
-        {
-            // In surf model, relocation does not work from [OUTSIDE]
-            Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
-                                            detail::to_vector(this->dir_),
+        Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
+                                        detail::to_vector(this->dir_),
 #if CELERITAS_VECGEOM_SURFACE
-                                            *next_surf_,
+                                        *next_surf_,
 #endif
-                                            vgnext_);
-        }
+                                        vgnext_);
     }
 
     vgstate_ = vgnext_;
@@ -671,17 +663,6 @@ CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
     {
         return vgnext_.IsOnBoundary();
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a reference to the world volume instance.
- */
-CELER_FUNCTION auto VecgeomTrackView::world() const -> VgPlacedVol const&
-{
-    auto* pv = params_.scalars.world<MemSpace::native>();
-    CELER_ENSURE(pv);
-    return *pv;
 }
 
 //---------------------------------------------------------------------------//
