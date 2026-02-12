@@ -259,20 +259,24 @@ BBox get_exterior_bbox(BoundingZone const& bz)
 /*!
  * Print for debugging.
  *
- * Negated | Interior | Exterior  | Result
- * ------- | -------- | --------- | -------
- * No      | Null     | Null      | Nowhere
- * No      | Null     | Finite    | Never outside X
- * No      | Null     | Infinite  | Maybe anywhere
- * No      | Finite   | Finite    | Always inside I, never outside X
- * No      | Finite   | Infinite  | Always inside I
- * No      | Infinite | Infinite  | Everywhere
- * Yes     | Null     | Null      | Everywhere
- * Yes     | Null     | Finite    | Always outside X
- * Yes     | Null     | Infinite  | Maybe anywhere
- * Yes     | Finite   | Finite    | Always outside X, never inside I
- * Yes     | Finite   | Infinite  | Never inside I
- * Yes     | Infinite | Infinite  | Nowhere
+ * In this table, interior and exterior are abbreviated I and X. Note that the
+ * interior box should \em always be enclosed by the exterior box (which is the
+ * BZ's operator bool).
+ *
+ * Negated | [I]nterior | E[X]terior | Result
+ * ------- | --------   | ---------- | -------
+ * No      | Null       | Null       | Nowhere
+ * No      | Null       | Finite     | Never outside X
+ * No      | Null       | Infinite   | Maybe anywhere
+ * No      | Finite     | Finite     | Always inside I, never outside X
+ * No      | Finite     | Infinite   | Always inside I
+ * No      | Infinite   | Infinite   | Everywhere
+ * Yes     | Null       | Null       | Everywhere
+ * Yes     | Null       | Finite     | Always outside X
+ * Yes     | Null       | Infinite   | Maybe anywhere
+ * Yes     | Finite     | Finite     | Always outside X, never inside I
+ * Yes     | Finite     | Infinite   | Never inside I
+ * Yes     | Infinite   | Infinite   | Nowhere
  */
 std::ostream& operator<<(std::ostream& os, BoundingZone const& bz)
 {
