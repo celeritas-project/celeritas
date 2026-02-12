@@ -8,12 +8,6 @@
 
 #include "orange/BoundingBoxUtils.hh"
 
-#if 1
-#    include <iostream>
-using std::cout;
-using std::endl;
-#endif
-
 namespace celeritas
 {
 namespace orangeinp
@@ -29,18 +23,6 @@ enum class BoxOp : bool
     shrink,
     grow
 };
-
-char const* to_cstring(BoxOp bo)
-{
-    switch (bo)
-    {
-        case BoxOp::shrink:
-            return "shrink";
-        case BoxOp::grow:
-            return "grow";
-    }
-    return nullptr;
-}
 
 //---------------------------------------------------------------------------//
 //! Whether a bounding box is finite, null, or infinite
@@ -64,24 +46,18 @@ BoxExtent get_extent(BBox const& b)
 // For now, be very conservative by returning infinities unless null
 BBox calc_difference(BBox const& a, BBox const& b, BoxOp op)
 {
-    cout << "      + Subtract a=" << a << " - b=" << b << " ("
-         << to_cstring(op) << ") -> ";
     if (!b)
     {
-        cout << "a\n";
         return a;
     }
     if (encloses(a, b))
     {
-        cout << (op == BoxOp::shrink ? "b" : "a") << "\n";
         return (op == BoxOp::shrink ? b : a);
     }
     if (encloses(b, a))
     {
-        cout << "null\n";
         return BBox{};
     }
-    cout << (op == BoxOp::shrink ? "null" : "inf") << "\n";
     return (op == BoxOp::shrink ? BBox{} : BBox::from_infinite());
 }
 
@@ -89,12 +65,8 @@ BBox calc_difference(BBox const& a, BBox const& b, BoxOp op)
 // For now, be conservative by "shrinking" into the largest known box shape
 BBox calc_union(BBox const& a, BBox const& b, BoxOp op)
 {
-    cout << "      + Union a=" << a << " - b=" << b << " (" << to_cstring(op)
-         << ") -> ";
-
     if (op == BoxOp::grow)
     {
-        cout << "union\n";
         // Result encloses both and it can enclose space not in the original
         // two bboxes, so use standard function
         return calc_union(a, b);
@@ -103,18 +75,15 @@ BBox calc_union(BBox const& a, BBox const& b, BoxOp op)
     // Union of A with null is A
     if (!a)
     {
-        cout << "b\n";
         return b;
     }
     if (!b)
     {
-        cout << "a\n";
         return a;
     }
 
     // Choose the larger box since the resulting box has to be strictly
     // enclosed by the space in the input boxes
-    cout << "larger\n";
     return calc_volume(a) > calc_volume(b) ? a : b;
 }
 
@@ -161,8 +130,6 @@ BoundingZone BoundingZone::from_infinite()
  */
 BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
 {
-    cout << "  - Intersect " << a << "\n    & " << b << ":\n";
-
     BoundingZone result;
     result.negated = false;
     if (!a.negated && !b.negated)
@@ -192,7 +159,6 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
         result.exterior = calc_union(a.exterior, b.exterior, BoxOp::grow);
         result.negated = true;
     }
-    cout << "    -> " << result << endl;
     return result;
 }
 
@@ -215,8 +181,6 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
  */
 BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
 {
-    cout << "  - Union " << a << "\n    | " << b << ":\n";
-
     BoundingZone result;
     result.negated = true;
     if (!a.negated && !b.negated)
@@ -246,7 +210,6 @@ BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
         result.interior = calc_intersection(a.interior, b.interior);
         result.exterior = calc_intersection(a.exterior, b.exterior);
     }
-    cout << "    -> " << result << endl;
     return result;
 }
 
