@@ -247,6 +247,19 @@ TEST_F(BoundingZoneTest, calc_intersection)
         EXPECT_FALSE(bz.interior) << bz.interior;
         EXPECT_EQ(BBox::from_infinite(), bz.exterior);
     }
+    {
+        auto box = make_bz({0.5, 0, 0}, 0.5, 0.5);
+        auto large = make_bz({0, 0, 0}, 1.0, 1.0);
+        auto bz = calc_intersection(box, large);
+        EXPECT_EQ(box.interior, bz.interior);
+        EXPECT_EQ(box.exterior, bz.exterior);
+        EXPECT_FALSE(bz.negated);
+
+        bz = calc_intersection(box, box);
+        EXPECT_EQ(box.interior, bz.interior);
+        EXPECT_EQ(box.exterior, bz.exterior);
+        EXPECT_FALSE(bz.negated);
+    }
 }
 
 TEST_F(BoundingZoneTest, calc_union)
