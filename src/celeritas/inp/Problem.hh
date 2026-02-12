@@ -93,7 +93,7 @@ struct OpticalProblem
     //! Per-process state sizes for optical tracking loop
     OpticalStateCapacity capacity;
     //! User scoring configuration for optical detectors
-    OpticalScoring scoring;
+    OpticalDetector detectors;
     //! Number of streams
     size_type num_streams{};
     //! Random number generator seed

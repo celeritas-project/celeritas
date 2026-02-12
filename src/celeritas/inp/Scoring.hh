@@ -158,16 +158,19 @@ struct Scoring
 /*!
  * Enable detector callback for hits in optical physics simulations.
  */
-struct OpticalScoring
+struct OpticalDetector
 {
     //!@{
     //! \name Type aliases
     using HitCallbackFunc
-        = std::function<void(Span<optical::DetectorHit> const&)>;
+        = std::function<void(Span<optical::DetectorHit const>)>;
     //!@}
 
     //! Hit callback function for optical detectors
-    std::optional<HitCallbackFunc> detector_callback;
+    std::optional<HitCallbackFunc> callback;
+
+    //! Whether detector input is valid and should be built
+    explicit operator bool() const { return static_cast<bool>(callback); }
 };
 
 //---------------------------------------------------------------------------//

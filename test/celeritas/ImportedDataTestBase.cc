@@ -16,7 +16,6 @@
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/SimParams.hh"
-#include "celeritas/optical/detector/ScoringParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
@@ -179,13 +178,6 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
     }
 
     return std::make_shared<optical::PhysicsParams>(std::move(input));
-}
-
-//---------------------------------------------------------------------------//
-auto ImportedDataTestBase::build_optical_scoring() -> SPConstOpticalScoring
-{
-    return std::make_shared<optical::ScoringParams>(
-        this->optical_action_reg().get(), inp::OpticalScoring{});
 }
 
 //---------------------------------------------------------------------------//

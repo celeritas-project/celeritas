@@ -19,9 +19,11 @@ namespace optical
 /*!
  * Construct with action ID.
  */
-DetectorAction::DetectorAction(ActionId aid)
+DetectorAction::DetectorAction(ActionId aid, CallbackFunc const& callback)
     : StaticConcreteAction(aid, "scoring-detector", "Score detector hits")
+    , callback_(callback)
 {
+    CELER_EXPECT(callback);
 }
 
 //---------------------------------------------------------------------------//
@@ -34,7 +36,7 @@ void DetectorAction::step(CoreParams const& params, CoreStateHost& state) const
         params.ptr<MemSpace::native>(), state.ptr(), DetectorExecutor{}};
     launch_action(state, execute);
 
-    this->process_hits(params, state);
+    this->process_hits(state);
 }
 
 #if !CELER_USE_DEVICE
@@ -48,20 +50,18 @@ void DetectorAction::step(CoreParams const&, CoreStateDevice&) const
 /*!
  * Process hits copied from the kernels and send them to the callback.
  */
-void DetectorAction::process_hits(CoreParams const& params,
-                                  CoreStateHost& state) const
+void DetectorAction::process_hits(CoreStateHost& state) const
 {
-    this->process_hits_impl<MemSpace::host>(params, state);
+    this->process_hits_impl<MemSpace::host>(state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Process hits copied from the kernels and send them to the callback.
  */
-void DetectorAction::process_hits(CoreParams const& params,
-                                  CoreStateDevice& state) const
+void DetectorAction::process_hits(CoreStateDevice& state) const
 {
-    this->process_hits_impl<MemSpace::device>(params, state);
+    this->process_hits_impl<MemSpace::device>(state);
 }
 
 //---------------------------------------------------------------------------//
@@ -73,8 +73,7 @@ void DetectorAction::process_hits(CoreParams const& params,
  * valid hits occurs.
  */
 template<MemSpace M>
-void DetectorAction::process_hits_impl(CoreParams const& params,
-                                       CoreState<M>& state) const
+void DetectorAction::process_hits_impl(CoreState<M>& state) const
 {
     DetectorHitOutput hit_results;
 
@@ -93,9 +92,7 @@ void DetectorAction::process_hits_impl(CoreParams const& params,
     // Send hits to the callback function, if there are any
     if (!hit_results.hits.empty())
     {
-        auto const& scoring = params.scoring();
-        CELER_ASSERT(scoring);
-        scoring->process_hits(make_span(hit_results.hits));
+        callback_(make_span(hit_results.hits));
     }
 }
 

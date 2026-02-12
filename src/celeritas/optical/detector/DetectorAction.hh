@@ -8,12 +8,12 @@
 
 #include <algorithm>
 
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 
 #include "DetectorData.hh"
-#include "ScoringParams.hh"
 
 namespace celeritas
 {
@@ -34,8 +34,14 @@ class DetectorAction final : public OpticalStepActionInterface,
                              public StaticConcreteAction
 {
   public:
-    // Construct with ID
-    explicit DetectorAction(ActionId);
+    //!@{
+    //! \name Type aliases
+    using CallbackFunc = typename inp::OpticalDetector::HitCallbackFunc;
+    //!@}
+
+  public:
+    // Construct with ID and callback function
+    explicit DetectorAction(ActionId, CallbackFunc const&);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -49,12 +55,14 @@ class DetectorAction final : public OpticalStepActionInterface,
   private:
     //!@{
     //! Process hits copied from the kernels and send them to the callback
-    void process_hits(CoreParams const&, CoreStateHost&) const;
-    void process_hits(CoreParams const&, CoreStateDevice&) const;
+    void process_hits(CoreStateHost&) const;
+    void process_hits(CoreStateDevice&) const;
 
     template<MemSpace M>
-    void process_hits_impl(CoreParams const&, CoreState<M>&) const;
+    void process_hits_impl(CoreState<M>&) const;
     //!@}
+
+    CallbackFunc callback_;
 };
 
 //---------------------------------------------------------------------------//

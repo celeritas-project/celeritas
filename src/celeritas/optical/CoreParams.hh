@@ -13,6 +13,7 @@
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Scoring.hh"
 
 #include "CoreTrackData.hh"
 
@@ -33,7 +34,6 @@ namespace optical
 //---------------------------------------------------------------------------//
 class MaterialParams;
 class PhysicsParams;
-class ScoringParams;
 class SimParams;
 class SurfacePhysicsParams;
 //---------------------------------------------------------------------------//
@@ -58,7 +58,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPConstDetectors = std::shared_ptr<DetectorParams const>;
-    using SPConstScoring = std::shared_ptr<ScoringParams const>;
 
     using SPConstCherenkov = std::shared_ptr<CherenkovParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
@@ -87,7 +86,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;
 
-        SPConstScoring scoring;  //!< Optional
+        inp::OpticalDetector optical_detector;  //!< Optional
         SPConstCherenkov cherenkov;  //!< Optional
         SPConstScintillation scintillation;  //!< Optional
 
@@ -137,7 +136,6 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPAuxRegistry const& aux_reg() const { return input_.aux_reg; }
     SPGeneratorRegistry const& gen_reg() const { return input_.gen_reg; }
     SPConstDetectors const& detectors() const { return input_.detectors; }
-    SPConstScoring const& scoring() const { return input_.scoring; }
     SPConstCherenkov const& cherenkov() const { return input_.cherenkov; }
     SPConstScintillation const& scintillation() const
     {

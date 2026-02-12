@@ -73,7 +73,6 @@
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/Transporter.hh"
-#include "celeritas/optical/detector/ScoringParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
@@ -390,8 +389,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
         pi.action_reg.get(), p.physics.surfaces);
     pi.detectors = std::move(loaded_model.detector);
-    pi.scoring = std::make_shared<optical::ScoringParams>(pi.action_reg.get(),
-                                                          p.scoring);
+    pi.optical_detector = std::move(p.detectors);
 
     // Streams and capacities
     pi.max_streams = p.num_streams;

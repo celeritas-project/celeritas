@@ -28,6 +28,7 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
@@ -180,6 +181,12 @@ auto GlobalTestBase::build_optical_action_reg() const -> SPActionRegistry
 }
 
 //---------------------------------------------------------------------------//
+auto GlobalTestBase::build_optical_detector_input() -> inp::OpticalDetector
+{
+    return inp::OpticalDetector{};
+}
+
+//---------------------------------------------------------------------------//
 optical::CoreParams::Input GlobalTestBase::optical_params_input()
 {
     optical::CoreParams::Input inp;
@@ -195,7 +202,7 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.sim = this->optical_sim();
     inp.surface_physics = this->optical_surface_physics();
     inp.detectors = this->detector();
-    inp.scoring = this->optical_scoring();
+    inp.optical_detector = this->build_optical_detector_input();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
     inp.capacity = inp::OpticalStateCapacity::from_default(

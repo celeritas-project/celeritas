@@ -52,12 +52,16 @@ class CoreStateInterface;
 
 struct Primary;
 
+namespace inp
+{
+struct OpticalDetector;
+}  // namespace inp
+
 namespace optical
 {
 class MaterialParams;
 class PhysicsParams;
 class SurfacePhysicsParams;
-class ScoringParams;
 }  // namespace optical
 
 namespace test
@@ -105,7 +109,6 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
     using SPOpticalParams = SP<optical::CoreParams>;
     using SPConstOpticalPhysics = SP<optical::PhysicsParams const>;
-    using SPConstOpticalScoring = SP<optical::ScoringParams const>;
     using SPConstOpticalSim = SP<optical::SimParams const>;
     using SPConstOpticalSurfacePhysics
         = SP<optical::SurfacePhysicsParams const>;
@@ -144,7 +147,6 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstOpticalMaterial const& optical_material();
     inline SPOpticalParams const& optical_params();
     inline SPConstOpticalPhysics const& optical_physics();
-    inline SPConstOpticalScoring const& optical_scoring();
     inline SPConstOpticalSim const& optical_sim();
     inline SPConstOpticalSurfacePhysics const& optical_surface_physics();
     inline SPConstScintillation const& scintillation();
@@ -168,7 +170,6 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstOpticalMaterial const& optical_material() const;
     inline SPOpticalParams const& optical_params() const;
     inline SPConstOpticalPhysics const& optical_physics() const;
-    inline SPConstOpticalScoring const& optical_scoring() const;
     inline SPConstOpticalSim const& optical_sim() const;
     inline SPConstOpticalSurfacePhysics const& optical_surface_physics() const;
     inline SPConstScintillation const& scintillation() const;
@@ -204,12 +205,12 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     [[nodiscard]] virtual SPConstCherenkov build_cherenkov() = 0;
     [[nodiscard]] virtual SPConstOpticalMaterial build_optical_material() = 0;
     [[nodiscard]] virtual SPConstOpticalPhysics build_optical_physics() = 0;
-    [[nodiscard]] virtual SPConstOpticalScoring build_optical_scoring() = 0;
     [[nodiscard]] virtual SPConstOpticalSim build_optical_sim() = 0;
     [[nodiscard]] virtual SPConstOpticalSurfacePhysics
     build_optical_surface_physics()
         = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
+    [[nodiscard]] virtual inp::OpticalDetector build_optical_detector_input();
 
     // Do not insert StatusChecker
     void disable_status_checker();
@@ -261,7 +262,6 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     SPConstOpticalMaterial optical_material_;
     SPOpticalParams optical_params_;
     SPConstOpticalPhysics optical_physics_;
-    SPConstOpticalScoring optical_scoring_;
     SPConstOpticalSim optical_sim_;
     SPConstOpticalSurfacePhysics optical_surface_physics_;
     SPConstScintillation scintillation_;
@@ -324,7 +324,6 @@ DEF_GTB_ACCESSORS(SPOpticalParams, optical_params)
 DEF_GTB_ACCESSORS(SPConstOpticalPhysics, optical_physics)
 DEF_GTB_ACCESSORS(SPConstOpticalSim, optical_sim)
 DEF_GTB_ACCESSORS(SPConstOpticalSurfacePhysics, optical_surface_physics)
-DEF_OPTIONAL_GTB_ACCESSORS(SPConstOpticalScoring, optical_scoring)
 DEF_OPTIONAL_GTB_ACCESSORS(SPConstScintillation, scintillation)
 DEF_OPTIONAL_GTB_ACCESSORS(SPConstWentzelOKVI, wentzel)
 

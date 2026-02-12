@@ -18,7 +18,6 @@
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/Types.hh"
 #include "celeritas/optical/detector/DetectorData.hh"
-#include "celeritas/optical/detector/ScoringParams.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
@@ -105,10 +104,9 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
         return detector_;
     }
 
-    SPConstOpticalScoring build_optical_scoring() override
+    inp::OpticalDetector build_optical_detector_input() override
     {
-        return std::make_shared<ScoringParams>(
-            this->optical_action_reg().get(), scoring_input_);
+        return detector_input_;
     }
 
     void initialize_run()
@@ -130,7 +128,7 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
     std::shared_ptr<Transporter> transport_;
     std::shared_ptr<DetectorParams> detector_;
 
-    inp::OpticalScoring scoring_input_;
+    inp::OpticalDetector detector_input_;
 };
 
 //---------------------------------------------------------------------------//
@@ -154,7 +152,7 @@ struct SimpleScorer
 {
     SimpleScores& scores;
 
-    void operator()(Span<DetectorHit> const& new_hits)
+    void operator()(Span<DetectorHit const> new_hits)
     {
         for (auto const& hit : new_hits)
         {
@@ -173,7 +171,7 @@ struct SimpleScorer
 TEST_F(DetectorTest, simple)
 {
     SimpleScores scores;
-    scoring_input_.detector_callback = SimpleScorer{scores};
+    detector_input_.callback = SimpleScorer{scores};
 
     // Manually generate arbitrary photons aimed at different detectors
 
@@ -295,7 +293,7 @@ struct StressScorer
     std::vector<size_type>& scores;
     size_type& errored;
 
-    void operator()(Span<DetectorHit> const& hits)
+    void operator()(Span<DetectorHit const> hits)
     {
         for (auto const& hit : hits)
         {
@@ -316,7 +314,7 @@ TEST_F(DetectorTest, stress)
     // 3 detectors: x, y, z
     std::vector<size_type> hits(3, 0);
     size_type errored = 0;
-    scoring_input_.detector_callback = StressScorer{hits, errored};
+    detector_input_.callback = StressScorer{hits, errored};
 
     // Isotropically generate photons
 
