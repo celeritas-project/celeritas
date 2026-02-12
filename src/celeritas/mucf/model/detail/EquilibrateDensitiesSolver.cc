@@ -88,7 +88,7 @@ EquilibrateDensitiesSolver::operator()(real_type temperature)
                                        * inv_tot_density_;
 
     EquilibriumArray previous_equilib_dens;
-    real_type iter_diff;
+    real_type iter_diff{0};
     auto remaining_iters{this->max_iterations()};
     do
     {
@@ -118,7 +118,7 @@ EquilibrateDensitiesSolver::operator()(real_type temperature)
                                result);
 
         // Calculate infinity norm between current and previous iteration
-        auto iter_diff = calc_infinity_norm(result, previous_equilib_dens);
+        iter_diff = calc_infinity_norm(result, previous_equilib_dens);
 
         if (--remaining_iters == 0)
         {
