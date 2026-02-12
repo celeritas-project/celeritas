@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/orangeinp/detail/BuildLogic.hh"
@@ -440,6 +441,8 @@ void convert_logic(OrangeInput& input, LogicNotation target)
         // No conversion necessary
         return;
     }
+
+    ScopedProfiling profile_this{"orange-logic-convert"};
 
     std::function<VecLogic(VecLogic const&)> convert;
 

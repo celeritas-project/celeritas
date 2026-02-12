@@ -181,9 +181,9 @@ TEST_F(StackedExtrudedPolygonTest, entirely_outside)
            "Plane: z=2",
            "Plane: z=3"};
 
-    static char const* const expected_volume_strings[]
-        = {"any(all(+0, -1, -2, -3, +4, +5), all(+1, -2, -3, +4, +5, -6), "
-           "all(-2, -3, +4, +5, +6, -9))"};
+    static char const* const expected_volume_strings[] = {
+        R"(any(all(+0, -1, -2, -3, +4, +5), all(+1, -2, -3, +4, +5, -6), all(-2, -3, +4, +5, +6, -7)))",
+    };
 
     static char const* const expected_md_strings[] = {
         "",

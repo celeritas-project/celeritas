@@ -10,11 +10,13 @@
 #include <variant>
 
 #include "corecel/OpaqueIdIO.hh"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeInput.hh"
 
 #include "GeantLoadTestBase.hh"
@@ -140,9 +142,62 @@ std::string VolumeInstanceAccessor::operator()(size_type i) const
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ConverterTest, lar_sphere)
+TEST_F(ConverterTest, lhcb_rich_thin)
 {
     verbose_ = true;
+    std::string const basename = "lhcb-rich-thin";
+    this->load_test_gdml(basename);
+
+    // Convert and check error messages
+    OrangeInput result = [&] {
+        auto convert = this->make_converter(basename);
+
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                    LogLevel::warning};
+        auto result = convert(this->geo(), *this->volumes()).input;
+        static char const* const expected_log_messages[]
+            = {"Failed to determine bounding box of unit "
+               "'lvRich2SphMirrorMaster0'"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+        return result;
+    }();
+
+    write_org_json(result, basename);
+
+    EXPECT_EQ(1, result.universes.size());
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[0]);
+        EXPECT_EQ(8, unit.volumes.size());
+        EXPECT_TRUE(is_infinite(unit.bbox)) << unit.bbox;
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ConverterTest, dune_cryostat)
+{
+    verbose_ = false;
+    std::string const basename = "dune-cryostat";
+    this->load_test_gdml(basename);
+    auto convert = this->make_converter(basename);
+    auto result = convert(this->geo(), *this->volumes()).input;
+    write_org_json(result, basename);
+
+    ASSERT_EQ(2, result.universes.size());
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[0]);
+        EXPECT_EQ(3, unit.volumes.size());
+    }
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[1]);
+        EXPECT_EQ(8, unit.volumes.size());
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ConverterTest, lar_sphere)
+{
     std::string const basename = "lar-sphere";
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
@@ -251,7 +306,6 @@ TEST_F(ConverterTest, multilevel)
 TEST_F(ConverterTest, testem3)
 {
     std::string const basename = "testem3";
-    verbose_ = true;
     this->load_test_gdml(basename);
     auto convert = this->make_converter(basename);
     auto result = convert(this->geo(), *this->volumes()).input;
