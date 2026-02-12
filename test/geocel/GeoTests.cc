@@ -818,7 +818,8 @@ void FourLevelsGeoTest::test_locate_point() const
     {
         // Get volume label from point lookup
         auto volume_instance
-            = test_->geometry_interface()->find_volume_instance_at(point);
+            = test_->geometry_interface()->find_volume_instance_at(
+                from_cm(point));
 
         auto volume_label = volume_instance
                                 ? test_->volumes()->volume_instance_labels().at(
