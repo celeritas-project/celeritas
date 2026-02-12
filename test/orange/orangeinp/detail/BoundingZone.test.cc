@@ -75,9 +75,7 @@ class BoundingZoneTest : public ::celeritas::test::Test
     {
         using celeritas::is_inside;
 
-        EXPECT_TRUE(encloses(bz.exterior, bz.interior))
-            << "Exterior " << bz.exterior << " does not enclose interior "
-            << bz.interior;
+        EXPECT_TRUE(bz) << "Invalid bz: " << bz;
 
         if (!is_inside(bz.exterior, point))
         {
@@ -124,18 +122,51 @@ class BoundingZoneTest : public ::celeritas::test::Test
     }
 };
 
+TEST_F(BoundingZoneTest, degenerate)
+{
+    Real3 const wherever{0.9, 0.9, 0};
+    BoundingZone e;
+    EXPECT_EQ(IsInside::no, is_inside(e, wherever));
+    EXPECT_EQ("{nowhere}", to_string(e));
+    e.negate();
+    EXPECT_EQ(IsInside::yes, is_inside(e, wherever));
+    EXPECT_EQ("{everywhere}", to_string(e));
+
+    e = BoundingZone::from_infinite();
+    EXPECT_EQ(IsInside::yes, is_inside(e, wherever));
+    EXPECT_EQ("{everywhere}", to_string(e));
+    e.negate();
+    EXPECT_EQ(IsInside::no, is_inside(e, wherever));
+    EXPECT_EQ("{nowhere}", to_string(e));
+
+    // Indefinite
+    e = BoundingZone::from_infinite();
+    e.interior = {};
+    EXPECT_EQ(IsInside::maybe, is_inside(e, wherever));
+    EXPECT_EQ("{maybe anywhere}", to_string(e));
+    e.negate();
+    EXPECT_EQ(IsInside::maybe, is_inside(e, wherever));
+    EXPECT_EQ("{maybe anywhere}", to_string(e));
+}
+
 TEST_F(BoundingZoneTest, standard)
 {
     auto sph = make_bz({0, 0, 0}, 1.0, 0.7);
     EXPECT_EQ(IsInside::no, is_inside(sph, {1.01, 0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(sph, {0.9, 0.9, 0}));
     EXPECT_EQ(IsInside::yes, is_inside(sph, {0.5, 0.5, 0.5}));
+    EXPECT_EQ(
+        R"({always inside {{-0.7,-0.7,-0.7}, {0.7,0.7,0.7}} and never outside {{-1,-1,-1}, {1,1,1}}})",
+        to_string(sph));
 
     // Invert
     sph.negate();
     EXPECT_EQ(IsInside::yes, is_inside(sph, {1.01, 0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(sph, {0.9, 0.9, 0}));
     EXPECT_EQ(IsInside::no, is_inside(sph, {0.5, 0.5, 0.5}));
+    EXPECT_EQ(
+        R"({never inside {{-0.7,-0.7,-0.7}, {0.7,0.7,0.7}} and always outside {{-1,-1,-1}, {1,1,1}}})",
+        to_string(sph));
 
     auto box = make_bz({0, 0, 0}, 1.0, 1.0);
     EXPECT_EQ(IsInside::no, is_inside(box, {1.01, 0, 0}));
@@ -144,10 +175,6 @@ TEST_F(BoundingZoneTest, standard)
     box.negate();
     EXPECT_EQ(IsInside::yes, is_inside(box, {1.01, 0, 0}));
     EXPECT_EQ(IsInside::no, is_inside(box, {0.9, 0.5, 0.5}));
-
-    EXPECT_EQ(
-        R"({encloses {{-1,-1,-1}, {1,1,1}}, excluded from {{-1,-1,-1}, {1,1,1}}})",
-        to_string(box));
 }
 
 TEST_F(BoundingZoneTest, exterior_only)
@@ -156,7 +183,7 @@ TEST_F(BoundingZoneTest, exterior_only)
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {0.0, 0.0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {1.4, 0, 0}));
     EXPECT_EQ(IsInside::no, is_inside(extonly, {2.0, 0, 0}));
-    EXPECT_EQ("{enclosed by {{-1.5,-1.5,-1.5}, {1.5,1.5,1.5}}}",
+    EXPECT_EQ("{never outside {{-1.5,-1.5,-1.5}, {1.5,1.5,1.5}}}",
               to_string(extonly));
 
     // Invert
@@ -164,7 +191,7 @@ TEST_F(BoundingZoneTest, exterior_only)
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {0.0, 0.0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {1.4, 0, 0}));
     EXPECT_EQ(IsInside::yes, is_inside(extonly, {2.0, 0, 0}));
-    EXPECT_EQ("{encloses {{-1.5,-1.5,-1.5}, {1.5,1.5,1.5}}}",
+    EXPECT_EQ("{always outside {{-1.5,-1.5,-1.5}, {1.5,1.5,1.5}}}",
               to_string(extonly));
 }
 

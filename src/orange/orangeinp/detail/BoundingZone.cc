@@ -43,6 +43,24 @@ char const* to_cstring(BoxOp bo)
 }
 
 //---------------------------------------------------------------------------//
+//! Whether a bounding box is finite, null, or infinite
+enum class BoxExtent
+{
+    null,
+    finite,
+    infinite
+};
+
+BoxExtent get_extent(BBox const& b)
+{
+    if (!b)
+        return BoxExtent::null;
+    if (is_infinite(b))
+        return BoxExtent::infinite;
+    return BoxExtent::finite;
+}
+
+//---------------------------------------------------------------------------//
 // For now, be very conservative by returning infinities unless null
 BBox calc_difference(BBox const& a, BBox const& b, BoxOp op)
 {
@@ -249,37 +267,62 @@ BBox get_exterior_bbox(BoundingZone const& bz)
 //---------------------------------------------------------------------------//
 /*!
  * Print for debugging.
+ *
+ * Negated | Interior | Exterior  | Result
+ * ------- | -------- | --------- | -------
+ * No      | Null     | Null      | Nowhere
+ * No      | Null     | Finite    | Never outside X
+ * No      | Null     | Infinite  | Maybe anywhere
+ * No      | Finite   | Finite    | Always inside I, never outside X
+ * No      | Finite   | Infinite  | Always inside I
+ * No      | Infinite | Infinite  | Everywhere
+ * Yes     | Null     | Null      | Everywhere
+ * Yes     | Null     | Finite    | Always outside X
+ * Yes     | Null     | Infinite  | Maybe anywhere
+ * Yes     | Finite   | Finite    | Always outside X, never inside I
+ * Yes     | Finite   | Infinite  | Never inside I
+ * Yes     | Infinite | Infinite  | Nowhere
  */
 std::ostream& operator<<(std::ostream& os, BoundingZone const& bz)
 {
-    auto print_neg_if = [&os](bool neg) {
-        if (neg)
-            os << '~';
-    };
-    auto print_bb = [&os](BBox const& bb) {
-        if (!bb)
-        {
-            os << "null";
-        }
-        else if (is_infinite(bb))
-        {
-            os << "inf";
-        }
-        else
-        {
-            os << bb;
-        }
-    };
+    CELER_EXPECT(bz);
+    using BE = BoxExtent;
+    BE const ibe = get_extent(bz.interior);
+    BE const xbe = get_extent(bz.exterior);
+    bool const neg = bz.negated;
 
-    os << "{";
-    print_neg_if(!bz.negated);
-    print_bb(bz.interior);
-    os << " & ";
-    print_neg_if(bz.negated);
-    print_bb(bz.exterior);
+    os << '{';
+    if ((!neg && xbe == BE::null) || (neg && ibe == BE::infinite))
+    {
+        os << "nowhere";
+    }
+    else if ((!neg && ibe == BE::infinite) || (neg && xbe == BE::null))
+    {
+        os << "everywhere";
+    }
+    else if (ibe == BE::null && xbe == BE::infinite)
+    {
+        os << "maybe anywhere";
+    }
+    else
+    {
+        bool print_and{false};
+        if (ibe != BE::null)
+        {
+            os << (neg ? "never" : "always") << " inside " << bz.interior;
+            print_and = true;
+        }
+        if (xbe != BE::infinite)
+        {
+            if (print_and)
+            {
+                os << " and ";
+            }
+            os << (neg ? "always" : "never") << " outside " << bz.exterior;
+        }
+    }
     os << '}';
 
-    os << '}';
     return os;
 }
 
