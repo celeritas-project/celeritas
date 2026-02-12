@@ -59,7 +59,7 @@ class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
     OffloadPreStepData build_pre_step()
     {
         OffloadPreStepData pre_step;
-        pre_step.speed = LightSpeed(0.99862874144970537);  // 10 MeV
+        pre_step.speed = LightSpeed{0.9988175606678128};  // 10 MeV
         pre_step.pos = {0, 0, 0};
         pre_step.time = 0;
         pre_step.material = opt_mat_;
@@ -359,7 +359,7 @@ TEST_F(MaterialScintillationGaussianTest, basic)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_EQ(1.8023146707476483e-05, avg_lambda);
-        EXPECT_SOFT_EQ(865.10374107600546, avg_time);
+        EXPECT_SOFT_EQ(865.10373580428154, avg_time);
         EXPECT_SOFT_EQ(-0.0078894853694884293, avg_cosine);
         EXPECT_EQ(7602, rng.exchange_count());
 
@@ -374,14 +374,14 @@ TEST_F(MaterialScintillationGaussianTest, basic)
             1.2232069181772e-05,
         };
         static double const expected_time[] = {
-            3312.8806993047,
-            194.48090540859,
-            1117.4848154165,
-            12.460198181058,
-            35.306344404732,
-            319.537294006,
-            7.2757167500751,
-            3.5272895177539,
+            3312.8806914137,
+            194.48089853941,
+            1117.4848080538,
+            12.460193974748,
+            35.306336560409,
+            319.53728623218,
+            7.2757102426598,
+            3.5272820100053,
         };
         static double const expected_cos_theta[] = {
             0.99292265109602,
