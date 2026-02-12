@@ -261,6 +261,14 @@ TEST_F(BoundingZoneTest, calc_intersection)
         EXPECT_EQ(box.exterior, bz.exterior);
         EXPECT_FALSE(bz.negated);
     }
+    {
+        auto box = make_bz({0.5, 0, 0}, 0.5, 0.5);
+        auto negbox = negated_bz(box);
+        auto bz = calc_intersection(box, negbox);
+        EXPECT_EQ(box.interior, bz.interior);
+        EXPECT_EQ(box.exterior, bz.exterior);
+        EXPECT_FALSE(bz.negated);
+    }
 }
 
 TEST_F(BoundingZoneTest, calc_union)
