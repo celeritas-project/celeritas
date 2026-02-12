@@ -6,6 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/optical/CoreTrackView.hh"
+
+#include "DetectorData.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -22,6 +26,8 @@ namespace optical
  */
 struct DetectorExecutor
 {
+    NativeRef<DetectorStateData> detector_state_;
+
     // Copy track hit into the state buffer
     inline CELER_FUNCTION void operator()(CoreTrackView const&) const;
 };
@@ -35,7 +41,7 @@ struct DetectorExecutor
 CELER_FUNCTION void
 DetectorExecutor::operator()(CoreTrackView const& track) const
 {
-    auto score = track.scoring();
+    auto& hit = detector_state_.detector_hits[track.track_slot_id()];
     auto sim = track.sim();
 
     if (sim.status() == TrackStatus::alive)
@@ -50,11 +56,11 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
         if (detector_id)
         {
             // Score a valid hit
-            score.score_hit(DetectorHit{detector_id,
-                                        track.particle().energy(),
-                                        sim.time(),
-                                        geometry.pos(),
-                                        geometry.volume_instance_id()});
+            hit = DetectorHit{detector_id,
+                              track.particle().energy(),
+                              sim.time(),
+                              geometry.pos(),
+                              geometry.volume_instance_id()};
 
             // Kill the track
             sim.status(TrackStatus::killed);
@@ -62,13 +68,13 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
         else
         {
             // Mark that the track is not in a detector
-            score.clear_hit();
+            hit.detector = {};
         }
     }
     else
     {
         // Ensure killed, inactive, and errored tracks don't contribute to hits
-        score.clear_hit();
+        hit.detector = {};
     }
 }
 

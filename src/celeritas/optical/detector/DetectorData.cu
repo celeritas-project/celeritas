@@ -28,13 +28,13 @@ void copy_hits<MemSpace::device>(
     CELER_EXPECT(output);
     CELER_EXPECT(stream_id);
 
-    size_type num_tracks = state.all_track_hits.size();
+    size_type num_tracks = state.detector_hits.size();
 
     // Copy all track hits from device
     output->hits.resize(num_tracks);
     Copier<DetectorHit, MemSpace::host> copy{{output->hits.data(), num_tracks},
                                              stream_id};
-    copy(MemSpace::device, {state.all_track_hits.data().get(), num_tracks});
+    copy(MemSpace::device, {state.detector_hits.data().get(), num_tracks});
 
     // Synchronize to ensure all data is transferred before continuing
     CELER_DEVICE_API_CALL(

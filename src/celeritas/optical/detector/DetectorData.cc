@@ -26,11 +26,11 @@ void copy_hits<MemSpace::host>(
     StreamId /* unused */)
 {
     // Trivial copy to pinned memory
-    output->hits.resize(state.all_track_hits.size());
+    output->hits.resize(state.detector_hits.size());
 
-    for (auto tid : range(TrackSlotId{state.all_track_hits.size()}))
+    for (auto tid : range(TrackSlotId{state.detector_hits.size()}))
     {
-        output->hits[tid.unchecked_get()] = state.all_track_hits[tid];
+        output->hits[tid.unchecked_get()] = state.detector_hits[tid];
     }
 }
 

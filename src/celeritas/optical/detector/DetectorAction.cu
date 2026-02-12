@@ -21,8 +21,9 @@ namespace optical
  */
 void DetectorAction::step(CoreParams const& params, CoreStateDevice& state) const
 {
-    TrackSlotExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), DetectorExecutor{}};
+    TrackSlotExecutor execute{params.ptr<MemSpace::native>(),
+                              state.ptr(),
+                              DetectorExecutor{state.ref().detectors}};
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);

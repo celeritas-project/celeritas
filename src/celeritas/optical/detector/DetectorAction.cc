@@ -20,7 +20,8 @@ namespace optical
  * Construct with action ID.
  */
 DetectorAction::DetectorAction(ActionId aid, CallbackFunc const& callback)
-    : StaticConcreteAction(aid, "scoring-detector", "Score detector hits")
+    : StaticConcreteAction(
+          aid, "optical-detector", "Score optical detector hits")
     , callback_(callback)
 {
     CELER_EXPECT(callback);
@@ -32,8 +33,9 @@ DetectorAction::DetectorAction(ActionId aid, CallbackFunc const& callback)
  */
 void DetectorAction::step(CoreParams const& params, CoreStateHost& state) const
 {
-    TrackSlotExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), DetectorExecutor{}};
+    TrackSlotExecutor execute{params.ptr<MemSpace::native>(),
+                              state.ptr(),
+                              DetectorExecutor{state.ref().detectors}};
     launch_action(state, execute);
 
     this->process_hits(state);
@@ -78,7 +80,7 @@ void DetectorAction::process_hits_impl(CoreState<M>& state) const
     DetectorHitOutput hit_results;
 
     // Copy hits (possibly from device) into pinned vector
-    copy_hits<M>(&hit_results, state.ref().scoring, state.stream_id());
+    copy_hits<M>(&hit_results, state.ref().detectors, state.stream_id());
 
     // Erase all hits with invalid detector ID
     hit_results.hits.erase(

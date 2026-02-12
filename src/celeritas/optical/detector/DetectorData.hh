@@ -63,23 +63,23 @@ struct DetectorStateData
     using StateItems = StateCollection<T, W, M>;
     //!@}
 
-    StateItems<DetectorHit> all_track_hits;
+    StateItems<DetectorHit> detector_hits;
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !all_track_hits.empty();
+        return !detector_hits.empty();
     }
 
     //! State size
-    CELER_FUNCTION size_type size() const { return all_track_hits.size(); }
+    CELER_FUNCTION size_type size() const { return detector_hits.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     DetectorStateData<W, M>& operator=(DetectorStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        all_track_hits = other.all_track_hits;
+        detector_hits = other.detector_hits;
         return *this;
     }
 };
@@ -129,7 +129,7 @@ resize(DetectorStateData<Ownership::value, M>* state, size_type size)
     CELER_EXPECT(state);
     CELER_EXPECT(size > 0);
 
-    resize(&state->all_track_hits, size);
+    resize(&state->detector_hits, size);
 
     CELER_ENSURE(*state);
 }
