@@ -167,7 +167,7 @@ struct OpticalDetector
     //!@}
 
     //! Hit callback function for optical detectors
-    std::optional<HitCallbackFunc> callback;
+    HitCallbackFunc callback;
 
     //! Whether detector input is valid and should be built
     explicit operator bool() const { return static_cast<bool>(callback); }

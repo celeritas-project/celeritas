@@ -168,11 +168,8 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // TODO: Is there a better place to build this?
     if (input_.optical_detector)
     {
-        ActionId action_id = input_.action_reg->next_id();
-        DetectorAction::CallbackFunc const& callback
-            = *input_.optical_detector.callback;
-        input_.action_reg->insert(
-            make_shared<DetectorAction>(action_id, callback));
+        input_.action_reg->insert(make_shared<DetectorAction>(
+            input_.action_reg->next_id(), input_.optical_detector.callback));
     }
 
     // Save maximum number of streams
