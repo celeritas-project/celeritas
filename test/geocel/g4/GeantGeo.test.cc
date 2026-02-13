@@ -381,6 +381,11 @@ TEST_F(FourLevelsTest, detailed_track)
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
 }
 
+TEST_F(FourLevelsTest, locate_point)
+{
+    this->impl().test_locate_point();
+}
+
 TEST_F(FourLevelsTest, safety)
 {
     auto geo = this->make_geo_track_view();
