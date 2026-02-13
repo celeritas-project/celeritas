@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "DistOffloadMixin.hh"
 
+#include <memory>
+#include <mutex>
 #include <G4Cerenkov.hh>
 #include <G4ProcessManager.hh>
 #include <G4Scintillation.hh>
@@ -13,7 +15,9 @@
 
 #include "corecel/io/Logger.hh"
 #include "geocel/g4/Convert.hh"
+#include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
+#include "accel/IntegrationTestBase.hh"
 #include "accel/LocalOpticalGenOffload.hh"
 #include "accel/detail/IntegrationSingleton.hh"
 
@@ -44,10 +48,19 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
 
     constexpr double clhep_time{1 / units::nanosecond};
 
-    auto& local = detail::IntegrationSingleton::instance().local_offload();
-    if (!local)
+    // Geant4
+    GeantParticleView pv{*step->GetTrack()->GetParticleDefinition()};
+    if (pv.is_optical_photon())
     {
-        // Offloading is disabled
+        ++counters_->optical;
+    }
+    else
+    {
+        ++counters_->other;
+    }
+
+    if (IntegrationTestBase::test_offload() == TestOffload::g4)
+    {
         return;
     }
 
@@ -100,6 +113,7 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
         = {units::LightSpeed(post_step->GetBeta()),
            convert_from_geant(post_step->GetPosition(), clhep_length)};
 
+    auto& local = detail::IntegrationSingleton::instance().local_offload();
     auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
     if (num_cherenkov > 0)
     {
@@ -134,11 +148,13 @@ auto DistOffloadMixin::make_physics_input() const -> PhysicsInput
     auto& optical = result.optical;
     optical = {};
 
-    // TODO: this should *not* be disabled if we're running the test in G4-only
-    // mode
-    // Disable generation of Cherenkov and scintillation photons in Geant4
-    optical.cherenkov.stack_photons = false;
-    optical.scintillation.stack_photons = false;
+    if (IntegrationTestBase::test_offload() != TestOffload::g4)
+    {
+        // Disable generation of Cherenkov and scintillation photons in Geant4,
+        // since we're killing or sending to Celeritas
+        optical.cherenkov.stack_photons = false;
+        optical.scintillation.stack_photons = false;
+    }
 
     // Disable WLS which isn't yet working (reemission) in Celeritas
     using WLSO = WavelengthShiftingOptions;
@@ -175,5 +191,56 @@ auto DistOffloadMixin::make_setup_options() -> SetupOptions
 }
 
 //---------------------------------------------------------------------------//
+auto DistOffloadMixin::make_stepping_action() -> UPStepAction
+{
+    static std::mutex mu_;
+    std::lock_guard scoped_lock{mu_};
+    auto local_ctrs = std::make_shared<StepCounters>();
+    counters_.push_back(local_ctrs);
+    return std::make_unique<DistOffloadSteppingAction>(std::move(local_ctrs));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check counters at end-of-run on master.
+ */
+void DistOffloadMixin::EndOfRunAction(G4Run const*)
+{
+    if (G4Threading::IsMasterThread())
+    {
+        auto counters = this->merge_step_counters();
+        EXPECT_NE(counters.other, 0);
+        if (IntegrationTestBase::test_offload() != TestOffload::g4)
+        {
+            // No optical photons should've been stacked or stepped in G4
+            EXPECT_EQ(0, counters.optical);
+        }
+        else
+        {
+            // Geant4 should have run some optical photons
+            EXPECT_NE(0, counters.optical);
+        }
+        CELER_LOG(info) << "Total Geant4 steps: " << counters.optical
+                        << " optical, " << counters.other << " other";
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sum counters across all threads.
+ *
+ * This is not thread safe: do it only in the master end of run.
+ */
+StepCounters DistOffloadMixin::merge_step_counters() const
+{
+    StepCounters result;
+    for (auto const& c : counters_)
+    {
+        result.optical += c->optical;
+        result.other += c->other;
+    }
+    return result;
+}
+
 }  // namespace test
 }  // namespace celeritas

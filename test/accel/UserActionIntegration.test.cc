@@ -114,10 +114,16 @@ TEST_F(LarSphere, run)
  * DistOffloadMixin sets up the correct Geant4 physics and Celeritas run
  * options.
  */
-class LarSphereOpticalOffload : public LarSphere, public DistOffloadMixin
+class LarSphereOpticalOffload : public DistOffloadMixin, public LarSphere
 {
   public:
     PrimaryInput make_primary_input() const override;
+
+    void EndOfRunAction(G4Run const* run) override
+    {
+        DistOffloadMixin::EndOfRunAction(run);
+        LarSphere::EndOfRunAction(run);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -130,7 +136,7 @@ auto LarSphereOpticalOffload::make_primary_input() const -> PrimaryInput
 
     result.shape
         = inp::PointDistribution{array_cast<double>(from_cm({0.1, 0.1, 0}))};
-    result.primaries_per_event = 1;
+    result.primaries_per_event = 10;
     result.energy = inp::MonoenergeticDistribution{1};  // [MeV]
     return result;
 }
