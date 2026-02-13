@@ -251,15 +251,12 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
+    auto sim = this->make_sim_track_view(step_length_);
+    sim.add_time(sim.step_length() / native_value_from(particle.speed()));
     OffloadPrePostStepData pre_post_step{particle.speed(), edep_};
 
-    ScintillationOffload generate(particle,
-                                  this->make_sim_track_view(step_length_),
-                                  post_pos_,
-                                  edep_,
-                                  data,
-                                  pre_step,
-                                  pre_post_step);
+    ScintillationOffload generate(
+        particle, sim, post_pos_, edep_, data, pre_step, pre_post_step);
 
     Rng rng;
     auto const result = generate(rng);
@@ -270,7 +267,6 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
     }
 
     EXPECT_EQ(4, result.num_photons);
-    EXPECT_REAL_EQ(0, result.time);
     EXPECT_REAL_EQ(from_cm(step_length_), result.step_length);
     EXPECT_EQ(-1, result.charge.value());
     EXPECT_EQ(0, result.material.get());
@@ -278,6 +274,8 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
               result.points[StepPoint::pre].speed.value());
     EXPECT_EQ(particle.speed().value(),
               result.points[StepPoint::post].speed.value());
+    EXPECT_EQ(pre_step.time, result.points[StepPoint::pre].time);
+    EXPECT_EQ(sim.time(), result.points[StepPoint::post].time);
     EXPECT_VEC_EQ(pre_step.pos, result.points[StepPoint::pre].pos);
     EXPECT_VEC_EQ(post_pos_, result.points[StepPoint::post].pos);
 }
@@ -291,17 +289,13 @@ TEST_F(MaterialScintillationGaussianTest, basic)
 
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
+    auto sim = this->make_sim_track_view(step_length_);
     auto const pre_step = this->build_pre_step();
     OffloadPrePostStepData pre_post_step{particle.speed(), edep_};
 
     // Pre-generate optical distribution data
-    ScintillationOffload generate(particle,
-                                  this->make_sim_track_view(step_length_),
-                                  post_pos_,
-                                  edep_,
-                                  data,
-                                  pre_step,
-                                  pre_post_step);
+    ScintillationOffload generate(
+        particle, sim, post_pos_, edep_, data, pre_step, pre_post_step);
 
     Rng rng;
     auto const generated_dist = generate(rng);
@@ -407,6 +401,85 @@ TEST_F(MaterialScintillationGaussianTest, basic)
         EXPECT_VEC_SOFT_EQ(expected_time, time);
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
         EXPECT_VEC_SOFT_EQ(expected_polarization_x, polarization_x);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(MaterialScintillationGaussianTest, time)
+{
+    auto const params = this->build_scintillation_params();
+    auto const& data = params->host_ref();
+
+    optical::GeneratorDistributionData gdd;
+    gdd.type = GeneratorType::scintillation;
+    gdd.num_photons = 8;
+    gdd.step_length = step_length_;
+    gdd.charge = units::ElementaryCharge{-1};
+    gdd.material = opt_mat_;
+    gdd.points[StepPoint::pre].pos = {0, 0, 0};
+    gdd.points[StepPoint::post].pos = post_pos_;
+
+    auto sample_time = [&](optical::GeneratorDistributionData const& d) {
+        Rng rng;
+        optical::ScintillationGenerator generate(data, d);
+        std::vector<real_type> time;
+        for (size_type i = 0; i < d.num_photons; ++i)
+        {
+            auto p = generate(rng);
+            time.push_back(p.time / units::nanosecond);
+        }
+        return time;
+    };
+
+    // Use pre- and post-step time to sample time
+    {
+        auto particle
+            = this->make_particle_track_view(post_energy_, pdg::electron());
+        gdd.points[StepPoint::pre].time = 0;
+        gdd.points[StepPoint::post].time
+            = step_length_ / native_value_from(particle.speed());
+
+        auto time = sample_time(gdd);
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static double const expected_time[] = {
+                7.3670494614798,
+                10.58035645366,
+                3117.0542454245,
+                2339.5624814179,
+                2.1742646282647,
+                833.41358173964,
+                2655.4299519772,
+                316.65670948862,
+            };
+            EXPECT_VEC_SOFT_EQ(expected_time, time);
+        }
+    }
+
+    // Use pre- and post-step speed to sample time
+    {
+        auto particle
+            = this->make_particle_track_view(post_energy_, pdg::electron());
+        gdd.points[StepPoint::pre].speed = this->build_pre_step().speed;
+        gdd.points[StepPoint::post].speed = particle.speed();
+
+        auto time = sample_time(gdd);
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static double const expected_time[] = {
+                7.367041567676,
+                10.580348559856,
+                3117.0542375307,
+                2339.5624735241,
+                2.1742567344609,
+                833.41357384583,
+                2655.4299440834,
+                316.65670159482,
+            };
+            EXPECT_VEC_SOFT_EQ(expected_time, time);
+        }
     }
 }
 

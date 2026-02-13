@@ -252,6 +252,7 @@ TEST_F(CherenkovWaterTest, pre_generator)
         auto particle
             = this->make_particle_track_view(Energy{0.5}, pdg::electron());
         auto sim = this->make_sim_track_view(0.15);
+        sim.add_time(sim.step_length() / native_value_from(particle.speed()));
         Real3 pos = {sim.step_length(), 0, 0};
 
         CherenkovOffload pre_generate(
@@ -266,7 +267,6 @@ TEST_F(CherenkovWaterTest, pre_generator)
             sampled_num_photons.push_back(result.num_photons);
 
             // Remaining values are assigned to result from input data
-            EXPECT_EQ(pre_step.time, result.time);
             EXPECT_EQ(particle.charge().value(), result.charge.value());
             EXPECT_EQ(material_id, result.material);
             EXPECT_EQ(sim.step_length(), result.step_length);
@@ -274,6 +274,8 @@ TEST_F(CherenkovWaterTest, pre_generator)
                       result.points[StepPoint::pre].speed.value());
             EXPECT_EQ(particle.speed().value(),
                       result.points[StepPoint::post].speed.value());
+            EXPECT_EQ(pre_step.time, result.points[StepPoint::pre].time);
+            EXPECT_EQ(sim.time(), result.points[StepPoint::post].time);
             EXPECT_VEC_EQ(pre_step.pos, result.points[StepPoint::pre].pos);
             EXPECT_VEC_EQ(pos, result.points[StepPoint::post].pos);
         }
