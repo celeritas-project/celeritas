@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/ext/RootUniquePtr.hh"
 
 #include "SimEnergyDepositData.hh"
@@ -18,6 +17,11 @@ class SimEnergyDeposit;
 
 namespace celeritas
 {
+// Forward declare ROOT classes
+class TFile;
+class TDirectory;
+class TTree;
+
 //---------------------------------------------------------------------------//
 /*!
  * Helper class to read ROOT files produced by the \c GeoAndSimDataExporter
@@ -30,7 +34,6 @@ class LarDataReader
   public:
     //!@{
     //! \name Type aliases
-    using SPRootFileManager = std::shared_ptr<RootFileManager>;
     using VecSimEdep = std::vector<sim::SimEnergyDeposit>;
     using VecOpDetCenter = std::vector<Real3>;
     //!@}
@@ -51,30 +54,29 @@ class LarDataReader
     // Return all optical detector centers, indexed by optical detector ID
     VecOpDetCenter optical_detector_centers() const;
 
-  private:
-    SPRootFileManager root_manager_;
-    UPExtern<TTree> sim_tree_;  //!< TTree with SimEnergyDeposit input data
-    SimEnergyDepositData sim_edep_data_;  //!<  TBranch data references
+    //!@{
+    //! \name ROOT directory and tree name accessors
+    // TDirectory name created by art; all TTrees are stored in this directory
+    char const* data_dir_name() const { return "data"; }
 
-    //// HELPER FUNCTIONS ////
+    // Detector information tree name
+    char const* detector_info_tree_name() const { return "detector_info"; }
 
-    // Hardcoded detector information tree name
-    char const* detector_info_tree_name() const
-    {
-        return "data/detector_info";
-    }
-
-    // Hardcoded optical detector tree name
+    // Optical detector tree name
     char const* optical_detectors_tree_name() const
     {
-        return "data/optical_detectors";
+        return "optical_detectors";
     }
 
-    // Hardcoded sim::SimEnergyDeposit tree name
-    char const* sim_data_tree_name() const
-    {
-        return "data/sim_energy_deposits";
-    }
+    // SimEnergyDeposit data tree name
+    char const* sim_data_tree_name() const { return "sim_energy_deposits"; }
+    //!@}
+
+  private:
+    UPExtern<TFile> root_file_;
+    UPExtern<TDirectory> data_dir_;  //!< TDirectory with all TTrees
+    UPExtern<TTree> sim_tree_;  //!< TTree with SimEnergyDeposit input data
+    SimEnergyDepositData sim_edep_data_;  //!<  TBranch data references
 };
 
 //---------------------------------------------------------------------------//

@@ -2,10 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/LarDataReader.root.cc
+//! \file larceler/LarDataReader.cc
 //---------------------------------------------------------------------------//
 #include "LarDataReader.hh"
 
+#include <TDirectory.h>
+#include <TFile.h>
+#include <TTree.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
 #include "corecel/cont/Range.hh"
@@ -17,11 +20,15 @@ namespace celeritas
  * Construct with ROOT filename.
  */
 LarDataReader::LarDataReader(std::string name)
-    : root_manager_(std::make_shared<RootFileManager>(std::move(name)))
+    : root_file_(TFile::Open(name.c_str(), "read"))
 {
-    CELER_EXPECT(root_manager_);
+    CELER_EXPECT(root_file_);
+    CELER_EXPECT(!root_file_->IsZombie());
 
-    sim_tree_ = root_manager_->get<TTree>(this->sim_data_tree_name());
+    data_dir_.reset(root_file_->GetDirectory(this->data_dir_name()));
+    CELER_EXPECT(data_dir_);
+
+    sim_tree_ = data_dir_->Get<TTree>(this->sim_data_tree_name());
     CELER_ASSERT(sim_tree_);
 
 #define LDR_SET_SIM_BRANCH(MEMBER) \
@@ -97,7 +104,7 @@ LarDataReader::VecSimEdep LarDataReader::read_event(size_type event_id) const
  */
 std::string LarDataReader::detector_name() const
 {
-    auto* tree = root_manager_->get<TTree>(this->detector_info_tree_name());
+    auto* tree = data_dir_->Get<TTree>(this->detector_info_tree_name());
     CELER_ASSERT(tree);
 
     std::string name;
@@ -113,7 +120,7 @@ std::string LarDataReader::detector_name() const
  */
 LarDataReader::VecOpDetCenter LarDataReader::optical_detector_centers() const
 {
-    auto* tree = root_manager_->get<TTree>(this->optical_detectors_tree_name());
+    auto* tree = data_dir_->Get<TTree>(this->optical_detectors_tree_name());
     CELER_ASSERT(tree);
 
     Real3 pos;

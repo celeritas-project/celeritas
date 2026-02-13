@@ -41,7 +41,7 @@ endif()
 celeritas_add_src_library(larceler
    inp/LarStandaloneRunner.cc
    LarStandaloneRunner.cc
-   LarDataReader.root.cc
+   LarDataReader.cc
 )
 celeritas_target_link_libraries(larceler
   PRIVATE ${PRIVATE_DEPS}
