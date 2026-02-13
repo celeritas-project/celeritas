@@ -185,6 +185,7 @@ auto PrimaryGenerator::operator()() -> result_type
         p.event_id = EventId{event_count_};
         p.primary_id = PrimaryId{event_count_ * primaries_per_event_ + i};
         p.geant_track_id = p.primary_id.get();
+        p.geant_step_count = 0;
     }
     ++event_count_;
     return result;
