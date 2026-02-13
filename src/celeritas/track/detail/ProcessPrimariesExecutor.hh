@@ -60,7 +60,7 @@ struct ProcessPrimariesExecutor
         XorwowRngEngine::RngStateInitializer_t& rng_init) const;
 
     // Fill the RNG state initializer for the Ranluxpp engine
-    void fillRngStateInitializer(
+    void CELER_FUNCTION fillRngStateInitializer(
         unsigned int seed,
         unsigned int event_id,
         unsigned int geant_track_id,
