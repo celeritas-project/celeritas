@@ -129,7 +129,6 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
   public:
     std::string_view gdml_basename() const final { return "lar-sphere"; }
     PrimaryInput make_primary_input() const override;
-    PhysicsInput make_physics_input() const override;
     UPSensDet make_sens_det(std::string const&) final;
 
     virtual void process_hit(G4Step const*);

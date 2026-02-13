@@ -414,17 +414,6 @@ void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
 // TEST PROBLEM MIXINS
 //---------------------------------------------------------------------------//
 /*!
- * Create physics list: default is EM only using make_physics_input.
- */
-auto LarSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
-{
-    PhysicsInput result = Base::make_physics_input();
-    result.em_bins_per_decade = 5;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create a 10 MeV electron primary.
  */
 auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
