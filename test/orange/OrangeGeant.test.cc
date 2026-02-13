@@ -104,6 +104,11 @@ TEST_F(FourLevelsTest, detailed_track)
     this->impl().test_detailed_tracking();
 }
 
+TEST_F(FourLevelsTest, locate_point)
+{
+    this->impl().test_locate_point();
+}
+
 //---------------------------------------------------------------------------//
 using LarSphereTest
     = GenericGeoParameterizedTest<GeantOrangeTest, LarSphereGeoTest>;
