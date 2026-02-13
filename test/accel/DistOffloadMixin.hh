@@ -13,8 +13,6 @@
 
 namespace celeritas
 {
-class GeantGeoParams;
-
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -25,9 +23,6 @@ class DistOffloadSteppingAction final : public G4UserSteppingAction
 {
   public:
     void UserSteppingAction(G4Step const*) final;
-
-  private:
-    std::shared_ptr<GeantGeoParams const> geant_geo_;
 };
 
 //---------------------------------------------------------------------------//

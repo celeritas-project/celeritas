@@ -12,7 +12,6 @@
 #include <G4Step.hh>
 
 #include "corecel/io/Logger.hh"
-#include "geocel/GeantGeoParams.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "accel/LocalOpticalGenOffload.hh"
@@ -31,6 +30,7 @@ T const* find_process(G4ProcessManager* pm, std::string const& name)
 {
     return dynamic_cast<T const*>(pm->GetProcess(name));
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -90,20 +90,8 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
     data.charge = units::ElementaryCharge{
         static_cast<real_type>(post_step->GetCharge())};
 
-    // Get geant4 geometry wrapper as a translation layer
-    if (CELER_UNLIKELY(!geant_geo_))
-    {
-        geant_geo_ = global_geant_geo().lock();
-    }
-    CELER_ASSERT(geant_geo_);
-
-    auto* mat = pre_step->GetMaterial();
-    CELER_ASSERT(mat);
-    GeoMatId gm = geant_geo_->geant_to_id(*mat);
     // TODO: map geo -> phys -> optical matids?!
     // Or logical volume -> optical matids?
-    CELER_DISCARD(gm);
-
     data.material = OptMatId(0);
     data.points[StepPoint::pre]
         = {units::LightSpeed(pre_step->GetBeta()),
