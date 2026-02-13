@@ -242,15 +242,17 @@ TEST_F(CherenkovWaterTest, pre_generator)
     // 500 keV e-
     {
         // Pre-step values
+        auto pre_particle
+            = this->make_particle_track_view(Energy{0.5}, pdg::electron());
         OffloadPreStepData pre_step;
         pre_step.pos = {0, 0, 0};
-        pre_step.speed = units::LightSpeed{0.63431981443206786};
+        pre_step.speed = pre_particle.speed();
         pre_step.time = 0;
         pre_step.material = material_id;
 
         // Post-step values
         auto particle
-            = this->make_particle_track_view(Energy{0.5}, pdg::electron());
+            = this->make_particle_track_view(Energy{0.15}, pdg::electron());
         auto sim = this->make_sim_track_view(0.15);
         sim.add_time(sim.step_length() / native_value_from(particle.speed()));
         Real3 pos = {sim.step_length(), 0, 0};
