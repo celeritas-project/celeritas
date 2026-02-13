@@ -306,89 +306,6 @@ SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate nearest distance to a surface in any direction.
- *
- * The safety calculation uses a very limited method for calculating the safety
- * distance: it's the nearest distance to any surface, for a certain subset of
- * surfaces.  Other surface types will return a safety distance of zero.
- * Complex surfaces might return the distance to internal surfaces that do not
- * represent the edge of a volume. Such distances are conservative but will
- * necessarily slow down the simulation.
- */
-CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
-                                                   LocalVolumeId vol_id) const
-{
-    CELER_EXPECT(vol_id);
-
-    VolumeView vol = this->make_local_volume(vol_id);
-    if (!vol.simple_safety())
-    {
-        // Has a tricky surface: we can't use the simple algorithm to calculate
-        // the safety, so return a conservative estimate.
-        return 0;
-    }
-
-    // Calculate minimum distance to all local faces
-    real_type result = numeric_limits<real_type>::infinity();
-    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
-    detail::CalcSafetyDistance calc_safety{pos};
-    for (LocalSurfaceId surface : vol.faces())
-    {
-        result = celeritas::min(result, visit_surface(calc_safety, surface));
-    }
-
-    CELER_ENSURE(result >= 0);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the local surface normal.
- */
-CELER_FUNCTION auto
-SimpleUnitTracker::normal(Real3 const& pos, LocalSurfaceId surf) const -> Real3
-{
-    CELER_EXPECT(surf);
-
-    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
-    return visit_surface(detail::CalcNormal{pos}, surf);
-}
-
-//---------------------------------------------------------------------------//
-// PRIVATE INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get volumes that have the given surface as a "face" (connectivity).
- */
-CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(LocalSurfaceId surf) const
-    -> LdgSpan<LocalVolumeId const>
-{
-    CELER_EXPECT(surf < this->num_surfaces());
-
-    ConnectivityRecord const& conn
-        = params_.connectivity_records[unit_record_.connectivity[surf]];
-
-    CELER_ENSURE(!conn.neighbors.empty());
-    return params_.local_volume_ids[conn.neighbors];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Search the BIH to find where the predicate is true for the point.
- *
- * The predicate should have the signature \code bool(LocalVolumeId) \endcode.
- */
-template<class F>
-CELER_FUNCTION LocalVolumeId
-SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
-{
-    detail::BIHEnclosingVolFinder find_volume{unit_record_.bih_tree,
-                                              params_.bih_tree_data};
-    return find_volume(pos, predicate);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate distance-to-intercept for the next local surface.
  *
  * The algorithm is:
@@ -477,6 +394,89 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
     }
 
     CELER_ASSERT_UNREACHABLE();  // Unexpected set of flags
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate nearest distance to a surface in any direction.
+ *
+ * The safety calculation uses a very limited method for calculating the safety
+ * distance: it's the nearest distance to any surface, for a certain subset of
+ * surfaces.  Other surface types will return a safety distance of zero.
+ * Complex surfaces might return the distance to internal surfaces that do not
+ * represent the edge of a volume. Such distances are conservative but will
+ * necessarily slow down the simulation.
+ */
+CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
+                                                   LocalVolumeId vol_id) const
+{
+    CELER_EXPECT(vol_id);
+
+    VolumeView vol = this->make_local_volume(vol_id);
+    if (!vol.simple_safety())
+    {
+        // Has a tricky surface: we can't use the simple algorithm to calculate
+        // the safety, so return a conservative estimate.
+        return 0;
+    }
+
+    // Calculate minimum distance to all local faces
+    real_type result = numeric_limits<real_type>::infinity();
+    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+    detail::CalcSafetyDistance calc_safety{pos};
+    for (LocalSurfaceId surface : vol.faces())
+    {
+        result = celeritas::min(result, visit_surface(calc_safety, surface));
+    }
+
+    CELER_ENSURE(result >= 0);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the local surface normal.
+ */
+CELER_FUNCTION auto
+SimpleUnitTracker::normal(Real3 const& pos, LocalSurfaceId surf) const -> Real3
+{
+    CELER_EXPECT(surf);
+
+    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+    return visit_surface(detail::CalcNormal{pos}, surf);
+}
+
+//---------------------------------------------------------------------------//
+// PRIVATE INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get volumes that have the given surface as a "face" (connectivity).
+ */
+CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(LocalSurfaceId surf) const
+    -> LdgSpan<LocalVolumeId const>
+{
+    CELER_EXPECT(surf < this->num_surfaces());
+
+    ConnectivityRecord const& conn
+        = params_.connectivity_records[unit_record_.connectivity[surf]];
+
+    CELER_ENSURE(!conn.neighbors.empty());
+    return params_.local_volume_ids[conn.neighbors];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Search the BIH to find where the predicate is true for the point.
+ *
+ * The predicate should have the signature \code bool(LocalVolumeId) \endcode.
+ */
+template<class F>
+CELER_FUNCTION LocalVolumeId
+SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
+{
+    detail::BIHEnclosingVolFinder find_volume{unit_record_.bih_tree,
+                                              params_.bih_tree_data};
+    return find_volume(pos, predicate);
 }
 
 //---------------------------------------------------------------------------//

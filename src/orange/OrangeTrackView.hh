@@ -650,6 +650,54 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Iterate over universe levels 1 to N to find the next step.
+ *
+ * Caller is responsible for finding the candidate next step on level 0, and
+ * passing the resultant Intersection object as an argument.
+ */
+CELER_FUNCTION Propagation
+OrangeTrackView::find_next_step_impl(detail::Intersection isect)
+{
+    TrackerVisitor visit_tracker{params_};
+
+    // The level with minimum distance to intersection
+    UnivLevelId min_univ_level{0};
+
+    // Find the nearest intersection from 0 to current
+    // univ_level inclusive, preferring the shallowest univ_level
+    // (i.e., lowest univ_id)
+    for (auto ulev_id : range(UnivLevelId{1}, this->univ_level() + 1))
+    {
+        auto univ_id = this->make_lsa(ulev_id).univ();
+        auto local_isect = visit_tracker(
+            [local_state = this->make_local_state(ulev_id), &isect](auto&& t) {
+                return t.intersect(local_state, isect.distance);
+            },
+            univ_id);
+
+        if (local_isect.distance < isect.distance)
+        {
+            isect = local_isect;
+            min_univ_level = ulev_id;
+        }
+    }
+
+    this->next_step(isect.distance);
+    this->next_surf(isect.surface);
+    if (isect)
+    {
+        // Save univ_level corresponding to the intersection
+        this->next_surface_level(min_univ_level);
+    }
+
+    Propagation result;
+    result.distance = isect.distance;
+    result.boundary = static_cast<bool>(isect);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Move to the next straight-line boundary but do not change volume.
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
@@ -1084,54 +1132,6 @@ OrangeTrackView::next_surface_univ_level() const
 
 //---------------------------------------------------------------------------//
 // PRIVATE HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Iterate over universe levels 1 to N to find the next step.
- *
- * Caller is responsible for finding the candidate next step on level 0, and
- * passing the resultant Intersection object as an argument.
- */
-CELER_FUNCTION Propagation
-OrangeTrackView::find_next_step_impl(detail::Intersection isect)
-{
-    TrackerVisitor visit_tracker{params_};
-
-    // The level with minimum distance to intersection
-    UnivLevelId min_univ_level{0};
-
-    // Find the nearest intersection from 0 to current
-    // univ_level inclusive, preferring the shallowest univ_level
-    // (i.e., lowest univ_id)
-    for (auto ulev_id : range(UnivLevelId{1}, this->univ_level() + 1))
-    {
-        auto univ_id = this->make_lsa(ulev_id).univ();
-        auto local_isect = visit_tracker(
-            [local_state = this->make_local_state(ulev_id), &isect](auto&& t) {
-                return t.intersect(local_state, isect.distance);
-            },
-            univ_id);
-
-        if (local_isect.distance < isect.distance)
-        {
-            isect = local_isect;
-            min_univ_level = ulev_id;
-        }
-    }
-
-    this->next_step(isect.distance);
-    this->next_surf(isect.surface);
-    if (isect)
-    {
-        // Save univ_level corresponding to the intersection
-        this->next_surface_level(min_univ_level);
-    }
-
-    Propagation result;
-    result.distance = isect.distance;
-    result.boundary = static_cast<bool>(isect);
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Find the distance to the nearest boundary in any direction.
