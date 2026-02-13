@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/modules/GeoAndSimDataExporter.cc
+//! \file larceler/modules/GeoSimExporterModule.cc
 //---------------------------------------------------------------------------//
 
 #include <TTree.h>
@@ -45,18 +45,18 @@ namespace celeritas
  *
  * To store only a subset of events, use the optional `-n [num_events]` flag.
  */
-class GeoAndSimDataExporter : public art::EDAnalyzer
+class GeoSimExporterModule : public art::EDAnalyzer
 {
   public:
     // Construct with input parameters and export geometry data
-    explicit GeoAndSimDataExporter(fhicl::ParameterSet const& pset);
+    explicit GeoSimExporterModule(fhicl::ParameterSet const& pset);
 
     //!@{
     // Prevent copy and assignment operations
-    GeoAndSimDataExporter(GeoAndSimDataExporter const&) = delete;
-    GeoAndSimDataExporter(GeoAndSimDataExporter&&) = delete;
-    GeoAndSimDataExporter& operator=(GeoAndSimDataExporter const&) = delete;
-    GeoAndSimDataExporter& operator=(GeoAndSimDataExporter&&) = delete;
+    GeoSimExporterModule(GeoSimExporterModule const&) = delete;
+    GeoSimExporterModule(GeoSimExporterModule&&) = delete;
+    GeoSimExporterModule& operator=(GeoSimExporterModule const&) = delete;
+    GeoSimExporterModule& operator=(GeoSimExporterModule&&) = delete;
     //!@}
 
     // Create tree with sim energy deposit data
@@ -81,7 +81,7 @@ class GeoAndSimDataExporter : public art::EDAnalyzer
 /*!
  * Construct with GDML geometry and export its information.
  */
-GeoAndSimDataExporter::GeoAndSimDataExporter(fhicl::ParameterSet const& pset)
+GeoSimExporterModule::GeoSimExporterModule(fhicl::ParameterSet const& pset)
     : EDAnalyzer{pset}
     , geometry_(*(lar::providerFrom<geo::Geometry>()))
     , max_edeps_(pset.get<int>("max_edeps_per_event"))
@@ -112,15 +112,15 @@ GeoAndSimDataExporter::GeoAndSimDataExporter(fhicl::ParameterSet const& pset)
         geo_data->Fill();
     }
 
-    mf::LogInfo("GeoAndSimDataExporter") << "Saved detector information to "
-                                            "root file";
+    mf::LogInfo("GeoSimExporterModule") << "Saved detector information to "
+                                           "root file";
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create TTree with sim data.
  */
-void GeoAndSimDataExporter::beginJob()
+void GeoSimExporterModule::beginJob()
 {
     // TTree and ROOT file writing is done automatically by the TFileService
     art::ServiceHandle<art::TFileService const> tfs;
@@ -155,12 +155,12 @@ void GeoAndSimDataExporter::beginJob()
  * Loop over optional larg4 Geant4 output simulation file event data with
  * \c IonAndScint objects and export test data.
  */
-void GeoAndSimDataExporter::analyze(art::Event const& event)
+void GeoSimExporterModule::analyze(art::Event const& event)
 {
     art::Handle<std::vector<sim::SimEnergyDeposit>> energy_deps;
     if (!event.getByLabel("IonAndScint", energy_deps))
     {
-        mf::LogError("GeoAndSimDataExporter")
+        mf::LogError("GeoSimExporterModule")
             << "Cannot find IonAndScint label. Either 1) missing input file "
                "(lar -c thisjob.fcl -s "
                "[geant4_output.root]) or 2) missing IonAndScint data in "
@@ -172,7 +172,7 @@ void GeoAndSimDataExporter::analyze(art::Event const& event)
     int const edeps_size = (*energy_deps).size();
     if (edeps_size == 0)
     {
-        mf::LogWarning("GeoAndSimDataExporter")
+        mf::LogWarning("GeoSimExporterModule")
             << "sim::SimEnergyDeposit data is valid but has zero entries; "
                "Skipping event";
         return;
@@ -213,7 +213,7 @@ void GeoAndSimDataExporter::analyze(art::Event const& event)
 
     sim_tree_->Fill();
 
-    mf::LogInfo("GeoAndSimDataExporter")
+    mf::LogInfo("GeoSimExporterModule")
         << "Wrote " << num_edeps_stored
         << " SimEnergyDeposition object(s) to ROOT file";
 
@@ -224,7 +224,7 @@ void GeoAndSimDataExporter::analyze(art::Event const& event)
 /*!
  * Clear all \c sim::SimEnergyDeposit vector data before an event.
  */
-void GeoAndSimDataExporter::clear()
+void GeoSimExporterModule::clear()
 {
 #define GSDE_CLEAR(MEMBER) sim_edep_data_.MEMBER->clear();
 
@@ -250,4 +250,4 @@ void GeoAndSimDataExporter::clear()
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
 
-DEFINE_ART_MODULE(celeritas::GeoAndSimDataExporter)
+DEFINE_ART_MODULE(celeritas::GeoSimExporterModule)

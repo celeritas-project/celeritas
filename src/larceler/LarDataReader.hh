@@ -24,10 +24,10 @@ class TTree;
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper class to read ROOT files produced by the \c GeoAndSimDataExporter
+ * Helper class to read ROOT files produced by the \c GeoSimExporterModule
  * module.
  *
- * \sa GeoAndSimDataExporter
+ * \sa GeoSimExporterModule
  */
 class LarDataReader
 {

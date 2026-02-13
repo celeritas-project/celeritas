@@ -22,11 +22,11 @@ namespace celeritas
  * dictionary.
  *
  * The data members are pointers to allow the reuse of this struct by both the
- * exporter ( \c GeoAndSimDataExporter ) and reader ( \c LarDataReader )
+ * exporter ( \c GeoSimExporterModule ) and reader ( \c LarDataReader )
  * classes: For the reader, the pointers are necessary, as ROOT \em requires
  * \c nullptr during \c TTree::SetBranchAddress .
  *
- * \sa GeoAndSimDataExporter
+ * \sa GeoSimExporterModule
  * \sa LarDataReader
  */
 struct SimEnergyDepositData
