@@ -111,6 +111,9 @@ class OrangeParams final : public GeoParamsInterface,
     // implementation volume
     inline VolumeInstanceId volume_instance_id(ImplVolumeId) const;
 
+    // Get the volume instance containing the global point
+    VolumeInstanceId find_volume_instance_at(Real3 const&) const final;
+
     //// DATA ACCESS ////
 
     //! Reference to CPU geometry data

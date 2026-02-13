@@ -96,6 +96,7 @@ class FourLevelsGeoTest
     void test_accessors() const;
     void test_consecutive_compute() const;
     void test_detailed_tracking() const;
+    void test_locate_point() const;
     void test_trace() const;
 
   private:
