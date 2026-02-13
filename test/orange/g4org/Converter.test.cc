@@ -155,12 +155,7 @@ TEST_F(ConverterTest, lhcb_rich_thin)
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
         auto result = convert(this->geo(), *this->volumes()).input;
-        static char const* const expected_log_messages[]
-            = {"Failed to determine bounding box of unit "
-               "'lvRich2SphMirrorMaster0'"};
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-        static char const* const expected_log_levels[] = {"warning"};
-        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;
     }();
 
@@ -170,7 +165,7 @@ TEST_F(ConverterTest, lhcb_rich_thin)
     {
         auto const& unit = std::get<UnitInput>(result.universes[0]);
         EXPECT_EQ(8, unit.volumes.size());
-        EXPECT_TRUE(is_infinite(unit.bbox)) << unit.bbox;
+        EXPECT_FALSE(is_infinite(unit.bbox)) << unit.bbox;
     }
 }
 
