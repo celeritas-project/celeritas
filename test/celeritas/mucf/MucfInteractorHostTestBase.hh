@@ -31,7 +31,7 @@ class MucfInteractorHostBase : public InteractorHostBase
     //!@}
 
     // Get model data
-    HostCRef<DTMixMucfData> host_data() const { return model_->host_ref(); }
+    HostCRef<DTMixMucfData> host_data() const& { return model_->host_ref(); }
 
   private:
     std::shared_ptr<DTMixMucfModel> model_;
