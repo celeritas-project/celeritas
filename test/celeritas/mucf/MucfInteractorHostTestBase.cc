@@ -180,6 +180,7 @@ MucfInteractorHostBase::MucfInteractorHostBase()
     this->set_material_params(std::move(mat_inp));
     this->set_material("hdt_fuel");
 
+    // Initialize model from particle and material params
     model_ = std::make_shared<DTMixMucfModel>(
         ActionId{0}, *this->particle_params(), *this->material_params());
 }

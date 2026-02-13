@@ -30,7 +30,7 @@ class MucfInteractorHostBase : public InteractorHostBase
     ~MucfInteractorHostBase() = default;
     //!@}
 
-    // Construct MuCF data from test values for interactors
+    // Get model data
     HostCRef<DTMixMucfData> host_data() const { return model_->host_ref(); }
 
   private:
