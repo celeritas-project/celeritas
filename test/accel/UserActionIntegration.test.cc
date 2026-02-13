@@ -252,14 +252,14 @@ void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
     data.charge = units::ElementaryCharge{
         static_cast<real_type>(post_step->GetCharge())};
     data.material = OptMatId(0);
-    data.points[StepPoint::pre]
-        = {units::LightSpeed(pre_step->GetBeta()),
-           convert_from_geant(pre_step->GetGlobalTime(), clhep_time),
-           convert_from_geant(pre_step->GetPosition(), clhep_length)};
-    data.points[StepPoint::post]
-        = {units::LightSpeed(post_step->GetBeta()),
-           convert_from_geant(post_step->GetGlobalTime(), clhep_time),
-           convert_from_geant(post_step->GetPosition(), clhep_length)};
+    auto& pre = data.points[StepPoint::pre];
+    pre.speed = units::LightSpeed(pre_step->GetBeta());
+    pre.time = convert_from_geant(pre_step->GetGlobalTime(), clhep_time);
+    pre.pos = convert_from_geant(pre_step->GetPosition(), clhep_length);
+    auto& post = data.points[StepPoint::post];
+    post.speed = units::LightSpeed(post_step->GetBeta());
+    post.time = convert_from_geant(post_step->GetGlobalTime(), clhep_time);
+    post.pos = convert_from_geant(post_step->GetPosition(), clhep_length);
 
     auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
     if (num_cherenkov > 0)

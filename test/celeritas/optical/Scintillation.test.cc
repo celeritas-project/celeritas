@@ -413,7 +413,7 @@ TEST_F(MaterialScintillationGaussianTest, time)
     optical::GeneratorDistributionData gdd;
     gdd.type = GeneratorType::scintillation;
     gdd.num_photons = 8;
-    gdd.step_length = step_length_;
+    gdd.step_length = from_cm(step_length_);
     gdd.charge = units::ElementaryCharge{-1};
     gdd.material = opt_mat_;
     gdd.points[StepPoint::pre].pos = {0, 0, 0};
@@ -437,7 +437,7 @@ TEST_F(MaterialScintillationGaussianTest, time)
             = this->make_particle_track_view(post_energy_, pdg::electron());
         gdd.points[StepPoint::pre].time = 0;
         gdd.points[StepPoint::post].time
-            = step_length_ / native_value_from(particle.speed());
+            = from_cm(step_length_) / native_value_from(particle.speed());
 
         auto time = sample_time(gdd);
 
