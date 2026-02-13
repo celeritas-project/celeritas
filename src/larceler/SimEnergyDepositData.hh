@@ -14,6 +14,9 @@ namespace celeritas
 /*!
  * Required input data to construct a \c sim::SimEnergyDeposit class object.
  *
+ * The struct element names reproduce \c sim::SimEnergyDeposit getters for
+ * easier manipulation using C++ macros.
+ *
  * This is used to store/read the required data to construct a \c
  * sim::SimEnergyDeposit object into/from a ROOT file without the need of a
  * dictionary.

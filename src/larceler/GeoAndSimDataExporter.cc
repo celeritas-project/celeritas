@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/modules/GeoAndSimDataExporter_module.cc
+//! \file larceler/modules/GeoAndSimDataExporter.cc
 //---------------------------------------------------------------------------//
 
 #include <TTree.h>
@@ -49,29 +49,29 @@ class GeoAndSimDataExporter : public art::EDAnalyzer
 {
   public:
     // Construct with input parameters and export geometry data
-    explicit GeoAndSimDataExporter(fhicl::ParameterSet const& p);
+    explicit GeoAndSimDataExporter(fhicl::ParameterSet const& pset);
 
     //!@{
-    // Plugins should not be copied or assigned
+    // Prevent copy and assignment operations
     GeoAndSimDataExporter(GeoAndSimDataExporter const&) = delete;
     GeoAndSimDataExporter(GeoAndSimDataExporter&&) = delete;
     GeoAndSimDataExporter& operator=(GeoAndSimDataExporter const&) = delete;
     GeoAndSimDataExporter& operator=(GeoAndSimDataExporter&&) = delete;
-    //@!}
+    //!@}
 
-    // Create sim data tree
+    // Create tree with sim energy deposit data
     void beginJob() override;
 
     // Export simulation data from input file
-    void analyze(art::Event const& e) override;
+    void analyze(art::Event const& event) override;
 
   private:
     // Fcl input data
-    geo::GeometryCore const& fGeometry;
-    int fMaxEdeps;
+    geo::GeometryCore const& geometry_;
+    int max_edeps_;
 
-    TTree* fSimTree;  // TTree with sim::SimEnergyDeposit data
-    SimEnergyDepositData fSimEdep;  // TBranch reference data
+    TTree* sim_tree_;  // TTree with sim::SimEnergyDeposit data
+    SimEnergyDepositData sim_edep_data_;  // TBranch reference data
 
     // Clear SimEnergyDepositData vectors
     void clear();
@@ -81,17 +81,17 @@ class GeoAndSimDataExporter : public art::EDAnalyzer
 /*!
  * Construct with GDML geometry and export its information.
  */
-GeoAndSimDataExporter::GeoAndSimDataExporter(fhicl::ParameterSet const& p)
-    : EDAnalyzer{p}
-    , fGeometry(*(lar::providerFrom<geo::Geometry>()))
-    , fMaxEdeps(p.get<int>("max_edeps_per_event"))
+GeoAndSimDataExporter::GeoAndSimDataExporter(fhicl::ParameterSet const& pset)
+    : EDAnalyzer{pset}
+    , geometry_(*(lar::providerFrom<geo::Geometry>()))
+    , max_edeps_(pset.get<int>("max_edeps_per_event"))
 {
     // TTree and ROOT file writing is done automatically by the TFileService
     art::ServiceHandle<art::TFileService const> tfs;
 
     // Geometry information
     auto* det_info = tfs->make<TTree>("detector_info", "detector_info");
-    std::string name = fGeometry.DetectorName();
+    std::string name = geometry_.DetectorName();
 
     det_info->Branch("name", &name);
     det_info->Fill();
@@ -102,9 +102,9 @@ GeoAndSimDataExporter::GeoAndSimDataExporter(fhicl::ParameterSet const& p)
     geo_data->Branch("pos", &pos);
     geo_data->Branch("info", &info);
 
-    for (unsigned int i = 0; i < fGeometry.NOpDets(); i++)
+    for (unsigned int i = 0; i < geometry_.NOpDets(); i++)
     {
-        auto const& opdet = fGeometry.OpDetGeoFromOpDet(i);
+        auto const& opdet = geometry_.OpDetGeoFromOpDet(i);
         auto const& center = opdet.GetCenter();
 
         info = opdet.OpDetInfo(/* indent = */ "", /* verbosity = */ 1);
@@ -125,12 +125,12 @@ void GeoAndSimDataExporter::beginJob()
     // TTree and ROOT file writing is done automatically by the TFileService
     art::ServiceHandle<art::TFileService const> tfs;
 
-    // Branch names mimic sim::SimEnergyDeposit class getters
-    fSimTree = tfs->make<TTree>("sim_energy_deposits", "sim_energy_deposits");
+    sim_tree_ = tfs->make<TTree>("sim_energy_deposits", "sim_energy_deposits");
 
 #define GSDE_CREATE_SIM_BRANCH(MEMBER) \
-    fSimTree->Branch(#MEMBER, &fSimEdep.MEMBER);
+    sim_tree_->Branch(#MEMBER, &sim_edep_data_.MEMBER);
 
+    // Branch names mimic sim::SimEnergyDeposit class getters
     GSDE_CREATE_SIM_BRANCH(NumPhotons);
     GSDE_CREATE_SIM_BRANCH(NumElectrons);
     GSDE_CREATE_SIM_BRANCH(ScintYieldRatio);
@@ -155,10 +155,10 @@ void GeoAndSimDataExporter::beginJob()
  * Loop over optional larg4 Geant4 output simulation file event data with
  * \c IonAndScint objects and export test data.
  */
-void GeoAndSimDataExporter::analyze(art::Event const& e)
+void GeoAndSimDataExporter::analyze(art::Event const& event)
 {
     art::Handle<std::vector<sim::SimEnergyDeposit>> energy_deps;
-    if (!e.getByLabel("IonAndScint", energy_deps))
+    if (!event.getByLabel("IonAndScint", energy_deps))
     {
         mf::LogError("GeoAndSimDataExporter")
             << "Cannot find IonAndScint label. Either 1) missing input file "
@@ -184,11 +184,11 @@ void GeoAndSimDataExporter::analyze(art::Event const& e)
     // If the requested maximum number of energy deposits per event is <= 0,
     // store all. Otherwise, set the limit to be up to the size of the vector
     // to avoid a segfault
-    int const num_edeps_stored = (fMaxEdeps <= 0)           ? edeps_size
-                                 : (fMaxEdeps > edeps_size) ? edeps_size
-                                                            : fMaxEdeps;
+    int const num_edeps_stored = (max_edeps_ <= 0)           ? edeps_size
+                                 : (max_edeps_ > edeps_size) ? edeps_size
+                                                             : max_edeps_;
 
-#define GSDE_GET(MEMBER) fSimEdep.MEMBER->push_back(edep.MEMBER());
+#define GSDE_GET(MEMBER) sim_edep_data_.MEMBER->push_back(edep.MEMBER());
 
     for (int i = 0; i < num_edeps_stored; i++)
     {
@@ -211,7 +211,7 @@ void GeoAndSimDataExporter::analyze(art::Event const& e)
         GSDE_GET(PdgCode);
     }
 
-    fSimTree->Fill();
+    sim_tree_->Fill();
 
     mf::LogInfo("GeoAndSimDataExporter")
         << "Wrote " << num_edeps_stored
@@ -226,7 +226,7 @@ void GeoAndSimDataExporter::analyze(art::Event const& e)
  */
 void GeoAndSimDataExporter::clear()
 {
-#define GSDE_CLEAR(MEMBER) fSimEdep.MEMBER->clear();
+#define GSDE_CLEAR(MEMBER) sim_edep_data_.MEMBER->clear();
 
     GSDE_CLEAR(NumPhotons);
     GSDE_CLEAR(NumElectrons);

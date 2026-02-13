@@ -80,34 +80,4 @@ class LarDataReader
 };
 
 //---------------------------------------------------------------------------//
-#if !CELERITAS_USE_ROOT
-inline LarDataReader::LarDataReader(std::string name)
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-inline size_type LarDataReader::num_events() const
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-inline LarDataReader::VecSimEdep
-LarDataReader::read_event(size_type event_id) const
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-inline std::string LarDataReader::detector_name() const
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-inline LarDataReader::VecOpDetCenter
-LarDataReader::optical_detector_centers() const
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-#endif
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas
