@@ -84,11 +84,8 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
     // initialized in this slot
     TrackId const track_id{sim.track_id()};
 
-    for (unsigned int secondary_idx :
-         celeritas::range(track.physics_step().secondaries().size()))
+    for (auto const& secondary : track.physics_step().secondaries())
     {
-        auto const& secondary
-            = track.physics_step().secondaries()[secondary_idx];
         if (secondary)
         {
             CELER_ASSERT(secondary.energy > zero_quantity()
