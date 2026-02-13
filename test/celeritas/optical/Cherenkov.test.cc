@@ -449,10 +449,12 @@ TEST_F(CherenkovWaterTest, generator)
                3999, 3924, 3903, 3900, 3959, 3932, 4023, 3873};
         // clang-format on
 
-        sample(pre_step, particle, sim, pos, num_samples);
-
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
+            // Only test with double precision: with single precision, pre- and
+            // post-step speed are both equal to 1
+            sample(pre_step, particle, sim, pos, num_samples);
+
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
