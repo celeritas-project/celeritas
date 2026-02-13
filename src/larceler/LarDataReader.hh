@@ -24,8 +24,7 @@ class TTree;
 
 //---------------------------------------------------------------------------//
 /*!
- * Helper class to read ROOT files produced by the \c GeoSimExporterModule
- * module.
+ * Helper class to read ROOT files produced by the \c GeoSimExporterModule .
  *
  * \sa GeoSimExporterModule
  */

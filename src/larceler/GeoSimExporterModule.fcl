@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------//
-// Job execution file for the GeoAndSimDataExporter module
+// Job execution file for the GeoSimExporterModule module
 //---------------------------------------------------------------------------//
 #include "services_dune.fcl"
 
