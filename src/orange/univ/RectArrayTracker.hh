@@ -84,7 +84,7 @@ class RectArrayTracker
     inline CELER_FUNCTION Initialization
     initialize(LocalState const& state) const;
 
-    // Calculate distance-to-intercept for the next surface
+    // DEPRECATED: search for intersection without limit
     inline CELER_FUNCTION Intersection intersect(LocalState const& state) const;
 
     // Calculate distance-to-intercept for the next surface, with max distance
@@ -109,11 +109,6 @@ class RectArrayTracker
     RectArrayRecord const& record_;
 
     //// METHODS ////
-
-    // Calculate distance-to-intercept for the next surface.
-    template<class F>
-    inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
-                                                      F) const;
 
     // Find the index of axis (x/y/z) we are about to cross
     inline CELER_FUNCTION size_type find_surface_axis_idx(LocalSurfaceId s) const;
@@ -209,13 +204,15 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance-to-intercept for the next surface.
+ * Search for an intersection without a distance limit.
+ *
+ * \deprecated Provide a physically reasonable upper bound to the distance
+ * to reduce search cost and avoid a redundant method.
  */
-CELER_FUNCTION auto RectArrayTracker::intersect(LocalState const& state) const
-    -> Intersection
+CELER_FORCEINLINE_FUNCTION auto
+RectArrayTracker::intersect(LocalState const& state) const -> Intersection
 {
-    Intersection result = this->intersect_impl(state, detail::IsFinite{});
-    return result;
+    return this->intersect(state, NumericLimits<real_type>::max());
 }
 
 //---------------------------------------------------------------------------//
@@ -227,31 +224,12 @@ RectArrayTracker::intersect(LocalState const& state, real_type max_dist) const
     -> Intersection
 {
     CELER_EXPECT(max_dist > 0);
-    Intersection result
-        = this->intersect_impl(state, detail::IsNotFurtherThan{max_dist});
-    if (!result)
-    {
-        result.distance = max_dist;
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate distance-to-intercept for the next surface.
- */
-template<class F>
-CELER_FUNCTION auto
-RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
-    -> Intersection
-{
     CELER_EXPECT(state.volume);
 
     auto coords
         = VolumeInverseIndexer{record_.dims}(state.volume.unchecked_get());
 
-    Intersection result;
-    Sense sense;
+    Intersection result{{}, max_dist};
     SurfaceIndexer to_index(record_.surface_indexer_data);
 
     for (auto ax : range(Axis::size_))
@@ -270,14 +248,14 @@ RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
         real_type dist = (target_value - state.pos[to_int(ax)])
                          / state.dir[to_int(ax)];
 
-        if (dist > 0 && is_valid(dist) && dist < result.distance)
+        if (dist > 0 && detail::IsNotFurtherThan{result.distance}(dist))
         {
             result.distance = dist;
 
-            sense = dir > 0 ? Sense::inside : Sense::outside;
             auto local_surface = LocalSurfaceId(
                 to_index({static_cast<size_type>(to_int(ax)), target_coord}));
-            result.surface = detail::OnLocalSurface(local_surface, sense);
+            result.surface
+                = {local_surface, dir > 0 ? Sense::inside : Sense::outside};
         }
     }
 

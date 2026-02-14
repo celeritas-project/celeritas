@@ -102,7 +102,7 @@ class SimpleUnitTracker
     inline CELER_FUNCTION Initialization
     cross_boundary(LocalState const& state) const;
 
-    // Calculate the distance to an exiting face for the current volume
+    // DEPRECATED: search for intersection without limit
     inline CELER_FUNCTION Intersection intersect(LocalState const& state) const;
 
     // Calculate nearby distance to an exiting face for the current volume
@@ -133,10 +133,6 @@ class SimpleUnitTracker
     inline CELER_FUNCTION LocalVolumeId find_volume_where(Real3 const& pos,
                                                           F&& predicate) const;
 
-    template<class F>
-    inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
-                                                      F&&) const;
-
     inline CELER_FUNCTION Intersection simple_intersect(LocalState const&,
                                                         VolumeView const&,
                                                         size_type) const;
@@ -145,9 +141,8 @@ class SimpleUnitTracker
                                                          size_type,
                                                          Sense,
                                                          real_type) const;
-    template<class F>
     inline CELER_FUNCTION Intersection background_intersect(LocalState const&,
-                                                            F&&) const;
+                                                            real_type) const;
 
     // Create a Surfaces object from the params
     inline CELER_FUNCTION LocalSurfaceVisitor make_surface_visitor() const;
@@ -277,31 +272,15 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance-to-intercept for the next surface.
+ * Search for an intersection without a distance limit.
+ *
+ * \deprecated Provide a physically reasonable upper bound to the distance
+ * to reduce search cost and avoid a redundant method.
  */
-CELER_FUNCTION auto SimpleUnitTracker::intersect(LocalState const& state) const
-    -> Intersection
+CELER_FORCEINLINE_FUNCTION auto
+SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
 {
-    Intersection result = this->intersect_impl(state, detail::IsFinite{});
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate distance-to-intercept for the next surface.
- */
-CELER_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
-    -> Intersection
-{
-    CELER_EXPECT(max_dist > 0);
-    Intersection result
-        = this->intersect_impl(state, detail::IsNotFurtherThan{max_dist});
-    if (!result)
-    {
-        result.distance = max_dist;
-    }
-    return result;
+    return this->intersect(state, NumericLimits<real_type>::max());
 }
 
 //---------------------------------------------------------------------------//
@@ -326,12 +305,12 @@ SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
  *   simple_intersect.
  * - If the volume has internal surfaces call \c complex_intersect.
  */
-template<class F>
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
+SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
     -> Intersection
 {
     CELER_EXPECT(state.volume);
+    CELER_EXPECT(max_dist > 0);
 
     // Resize temporaries based on volume properties
     VolumeView vol = this->make_local_volume(state.volume);
@@ -340,14 +319,14 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
     if (vol.implicit_vol())
     {
         // Search all the volumes "externally"
-        return this->background_intersect(state, is_valid);
+        return this->background_intersect(state, max_dist);
     }
 
     // Find all valid (nearby or finite, depending on F) surface intersection
     // distances inside this volume. Fill the `isect` array if the tracking
     // algorithm requires sorting.
     detail::CalcIntersections calc_intersections{
-        celeritas::forward<F>(is_valid),
+        max_dist,
         state.pos,
         state.dir,
         state.surface ? vol.find_face(state.surface.id()) : FaceId{},
@@ -553,7 +532,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
                                      VolumeView const& vol,
                                      size_type num_isect,
                                      Sense target_sense,
-                                     real_type max_search_dist) const
+                                     real_type max_distance) const
     -> Intersection
 {
     CELER_ASSERT(num_isect > 0);
@@ -598,7 +577,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
         size_type const isect = state.temp_next.isect[isect_idx];
         real_type const distance = state.temp_next.distance[isect];
 
-        if (distance >= max_search_dist)
+        if (distance >= max_distance)
         {
             // No intersection within search range; exit early
             return {};
@@ -641,18 +620,19 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
  *
  * This function is accelerated with the BIH.
  */
-template<class F>
 CELER_FUNCTION auto
 SimpleUnitTracker::background_intersect(LocalState const& state,
-                                        F&& is_valid) const -> Intersection
+                                        real_type max_distance) const
+    -> Intersection
 {
-    auto is_intersecting = [this, &state, &is_valid](
-                               LocalVolumeId vol_id,
-                               real_type max_search_dist) -> Intersection {
+    CELER_DISCARD(max_distance);  // FIXME
+    auto is_intersecting
+        = [this, &state](LocalVolumeId vol_id,
+                         real_type cur_max_dist) -> Intersection {
         VolumeView vol = this->make_local_volume(vol_id);
 
         detail::CalcIntersections calc_intersections{
-            is_valid,
+            cur_max_dist,
             state.pos,
             state.dir,
             state.surface ? vol.find_face(state.surface.id()) : FaceId{},
@@ -683,7 +663,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
         // Call with a target sense of "inside," because we are seeking a
         // surface for which crossing will result in entering the volume
         return this->complex_intersect(
-            state, vol, num_isect, Sense::inside, max_search_dist);
+            state, vol, num_isect, Sense::inside, cur_max_dist);
     };
 
     detail::BIHIntersectingVolFinder find_intersection{unit_record_.bih_tree,

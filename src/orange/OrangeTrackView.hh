@@ -95,9 +95,6 @@ class OrangeTrackView
 
     //// OPERATIONS ////
 
-    // Find the distance to the next boundary
-    inline CELER_FUNCTION Propagation find_next_step();
-
     // Find the distance to the next boundary, up to and including a step
     inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
@@ -599,31 +596,10 @@ CELER_FUNCTION Real3 OrangeTrackView::normal() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the distance to the next geometric boundary.
- */
-CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
-{
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::entering))
-    {
-        // On a boundary, headed back in: next step is zero
-        return {0, true};
-    }
-
-    // Find intersection at the root level: always the first simple unit
-    auto global_isect = [this] {
-        SimpleUnitTracker t{params_, SimpleUnitId{0}};
-        return t.intersect(this->make_local_state(orange_global_univ_level));
-    }();
-    // Find intersection for all deeper universe levels
-    return this->find_next_step_impl(global_isect);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Find a nearby distance to the next geometric boundary up to a distance.
  *
- * This may reduce the number of surfaces needed to check, sort, or write to
- * temporary memory, thereby speeding up transport.
+ * Providing the distance may reduce the number of surfaces needed to check,
+ * sort, or write to temporary memory, thereby speeding up transport.
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 {
@@ -635,38 +611,15 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
         return {0, true};
     }
 
-    // Find intersection at the root level: always the first simple unit
-    auto global_isect = [this, &max_step] {
-        SimpleUnitTracker t{params_, SimpleUnitId{0}};
-        return t.intersect(this->make_local_state(orange_global_univ_level),
-                           max_step);
-    }();
-
-    // Find intersection for all further levels
-    auto result = this->find_next_step_impl(global_isect);
-    CELER_ENSURE(result.distance <= max_step);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Iterate over universe levels 1 to N to find the next step.
- *
- * Caller is responsible for finding the candidate next step on level 0, and
- * passing the resultant Intersection object as an argument.
- */
-CELER_FUNCTION Propagation
-OrangeTrackView::find_next_step_impl(detail::Intersection isect)
-{
-    TrackerVisitor visit_tracker{params_};
-
     // The level with minimum distance to intersection
-    UnivLevelId min_univ_level{0};
+    TrackerVisitor visit_tracker{params_};
+    UnivLevelId min_univ_level{};
+    detail::Intersection isect{{}, max_step};
 
     // Find the nearest intersection from 0 to current
     // univ_level inclusive, preferring the shallowest univ_level
     // (i.e., lowest univ_id)
-    for (auto ulev_id : range(UnivLevelId{1}, this->univ_level() + 1))
+    for (auto ulev_id : range(this->univ_level() + 1))
     {
         auto univ_id = this->make_lsa(ulev_id).univ();
         auto local_isect = visit_tracker(
@@ -675,7 +628,7 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
             },
             univ_id);
 
-        if (local_isect.distance < isect.distance)
+        if (local_isect && local_isect.distance < isect.distance)
         {
             isect = local_isect;
             min_univ_level = ulev_id;
@@ -693,12 +646,21 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     Propagation result;
     result.distance = isect.distance;
     result.boundary = static_cast<bool>(isect);
+
+    if (!result.boundary)
+    {
+        result.distance = max_step;
+    }
+    CELER_ENSURE(result.distance <= max_step);
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Move to the next straight-line boundary but do not change volume.
+ *
+ * Even though this does not change the universe or volume, it \em may change
+ * the universe of the current surface.
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
@@ -1146,15 +1108,15 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
 
     TrackerVisitor visit_tracker{params_};
 
-    real_type min_safety_dist = numeric_limits<real_type>::infinity();
+    real_type min_safety_dist = NumericLimits<real_type>::infinity();
 
     for (auto ulev_id : range(this->univ_level() + 1))
     {
         auto lsa = this->make_lsa(ulev_id);
-        auto sd = visit_tracker(
+        auto local_safety = visit_tracker(
             [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
             lsa.univ());
-        min_safety_dist = celeritas::min(min_safety_dist, sd);
+        min_safety_dist = celeritas::min(min_safety_dist, local_safety);
     }
     return min_safety_dist;
 }
