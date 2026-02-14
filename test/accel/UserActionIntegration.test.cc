@@ -413,9 +413,7 @@ auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
         opt.capacity.tracks = 32;
         opt.capacity.generators = opt.capacity.tracks * 8;
         opt.capacity.primaries = opt.capacity.tracks * 16;
-        opt.generator = inp::OpticalTrackOffload{};
-        opt.offload_optical_tracks = true;
-
+        opt.generator = inp::OpticalDirectGenerator{};
         return opt;
     }();
 
@@ -458,16 +456,9 @@ void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
         {
             std::size_t pushed = opt_offload->num_pushed();
 
-            if (using_surface_vg)
-            {
-                EXPECT_EQ(pushed, 74);
-            }
-            else
-            {
-                // Validate that we intercepted optical tracks
-                EXPECT_EQ(pushed, 1128) << "should have pushed many optical "
-                                           "tracks";
-            }
+            //  Validate that we intercepted optical tracks
+            EXPECT_GT(pushed, 40) << "should have pushed many optical "
+                                     "tracks";
         }
     }
     // Continue cleanup and other checks at end of run

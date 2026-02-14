@@ -128,8 +128,6 @@ struct OpticalSetupOptions
     inp::OpticalGenerator generator;
     //! Limits for the optical stepping loop
     inp::OpticalTrackingLimits limits;
-
-    bool offload_optical_tracks = false;
 };
 
 //---------------------------------------------------------------------------//
