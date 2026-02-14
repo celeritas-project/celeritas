@@ -15,12 +15,12 @@
 #include "celeritas/geo/GeoData.hh"
 
 #include "CoreTrackDataFwd.hh"
+#include "DetectorData.hh"
 #include "MaterialData.hh"
 #include "ParticleData.hh"
 #include "PhysicsData.hh"
 #include "SimData.hh"
 #include "TrackInitData.hh"
-#include "detector/DetectorData.hh"
 #include "gen/CherenkovData.hh"
 #include "gen/ScintillationData.hh"
 #include "surface/SurfacePhysicsData.hh"

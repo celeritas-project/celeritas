@@ -2,14 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detector/DetectorAction.cu
+//! \file celeritas/optical/action/DetectorAction.cu
 //---------------------------------------------------------------------------//
 #include "DetectorAction.hh"
 
-#include "celeritas/optical/action/ActionLauncher.device.hh"
-#include "celeritas/optical/action/TrackSlotExecutor.hh"
+#include "ActionLauncher.device.hh"
+#include "TrackSlotExecutor.hh"
 
-#include "DetectorExecutor.hh"
+#include "detail/DetectorExecutor.hh"
 
 namespace celeritas
 {
@@ -23,7 +23,7 @@ void DetectorAction::step(CoreParams const& params, CoreStateDevice& state) cons
 {
     TrackSlotExecutor execute{params.ptr<MemSpace::native>(),
                               state.ptr(),
-                              DetectorExecutor{state.ref().detectors}};
+                              detail::DetectorExecutor{state.ref().detectors}};
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);

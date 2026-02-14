@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detector/DetectorAction.hh
+//! \file celeritas/optical/action/DetectorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,9 +11,9 @@
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/action/ActionInterface.hh"
+#include "celeritas/optical/DetectorData.hh"
 
-#include "DetectorData.hh"
+#include "ActionInterface.hh"
 
 namespace celeritas
 {

@@ -2,17 +2,18 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detector/DetectorExecutor.hh
+//! \file celeritas/optical/detail/detail/DetectorExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas/optical/CoreTrackView.hh"
-
-#include "DetectorData.hh"
+#include "celeritas/optical/DetectorData.hh"
 
 namespace celeritas
 {
 namespace optical
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -79,5 +80,6 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace optical
 }  // namespace celeritas
