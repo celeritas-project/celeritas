@@ -6,10 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
 #include "corecel/data/Collection.hh"
-#include "corecel/data/PinnedAllocator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/optical/Types.hh"
 
@@ -27,24 +24,15 @@ struct DetectorHit
 
     DetectorId detector{};
     Energy energy;
-    real_type time;
-    Real3 position;
+    real_type time{};
+    Real3 position{};
     VolumeInstanceId volume_instance;
-};
 
-//---------------------------------------------------------------------------//
-/*!
- * Pinned memory buffer for transferring detector hits.
- */
-struct DetectorHitOutput
-{
-    //!@{
-    //! \name Type aliases
-    template<class T>
-    using PinnedVec = std::vector<T, PinnedAllocator<T>>;
-    //!@}
-
-    PinnedVec<DetectorHit> hits;
+    //! An actual hit has a valid detector
+    explicit CELER_CONSTEXPR_FUNCTION operator bool() const
+    {
+        return static_cast<bool>(detector);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -83,38 +71,6 @@ struct DetectorStateData
         return *this;
     }
 };
-
-//---------------------------------------------------------------------------//
-// Copy hits from a memory space to pinned memory
-
-template<MemSpace M>
-void copy_hits(DetectorHitOutput* output,
-               DetectorStateData<Ownership::reference, M> const& state,
-               StreamId stream);
-
-template<>
-void copy_hits<MemSpace::host>(
-    DetectorHitOutput*,
-    DetectorStateData<Ownership::reference, MemSpace::host> const&,
-    StreamId);
-
-template<>
-void copy_hits<MemSpace::device>(
-    DetectorHitOutput*,
-    DetectorStateData<Ownership::reference, MemSpace::device> const&,
-    StreamId);
-
-//---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-template<>
-inline void
-copy_hits(DetectorHitOutput*,
-          DetectorStateData<Ownership::reference, MemSpace::device> const&,
-          StreamId)
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

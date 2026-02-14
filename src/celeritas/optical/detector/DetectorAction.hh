@@ -53,16 +53,21 @@ class DetectorAction final : public OpticalStepActionInterface,
     StepActionOrder order() const final { return StepActionOrder::post; }
 
   private:
-    //!@{
-    //! Process hits copied from the kernels and send them to the callback
-    void process_hits(CoreStateHost&) const;
-    void process_hits(CoreStateDevice&) const;
+    //// TYPES ////
 
-    template<MemSpace M>
-    void process_hits_impl(CoreState<M>&) const;
-    //!@}
+    using VecHit = std::vector<DetectorHit>;
+
+    //// DATA ////
 
     CallbackFunc callback_;
+
+    //// HELPER FUNCTIONS ////
+
+    // Copy hits from device
+    VecHit load_hits_sync(CoreStateDevice const&) const;
+
+    // Send hits to the callback
+    void callback_hits(VecHit const&) const;
 };
 
 //---------------------------------------------------------------------------//

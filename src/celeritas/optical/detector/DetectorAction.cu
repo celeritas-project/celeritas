@@ -28,7 +28,7 @@ void DetectorAction::step(CoreParams const& params, CoreStateDevice& state) cons
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 
-    this->process_hits(state);
+    this->load_hits_sync(state);
 }
 
 //---------------------------------------------------------------------------//
