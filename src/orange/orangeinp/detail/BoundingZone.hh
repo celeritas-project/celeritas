@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iosfwd>
+
 #include "geocel/BoundingBox.hh"
 #include "orange/BoundingBoxUtils.hh"
 
@@ -103,6 +105,13 @@ struct BoundingZone
 
     // Create an "everything is known inside" zone for intersecting
     static BoundingZone from_infinite();
+
+    //! True if in a valid state
+    explicit operator bool() const
+    {
+        return !this->exterior || !this->interior
+               || encloses(this->exterior, this->interior);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -117,6 +126,9 @@ BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b);
 // Get an infinite bbox if "negated", else get the exterior
 BBox get_exterior_bbox(BoundingZone const&);
 
+// Print for debugging
+std::ostream& operator<<(std::ostream& os, BoundingZone const& bz);
+
 //---------------------------------------------------------------------------//
 /*!
  * Flip inside and outside.
@@ -126,8 +138,7 @@ BBox get_exterior_bbox(BoundingZone const&);
  */
 void BoundingZone::negate()
 {
-    CELER_EXPECT(!this->exterior || !this->interior
-                 || encloses(this->exterior, this->interior));
+    CELER_EXPECT(*this);
     this->negated = !this->negated;
 }
 

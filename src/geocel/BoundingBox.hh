@@ -79,7 +79,15 @@ class BoundingBox
     //! Access a bounding point
     CELER_CONSTEXPR_FUNCTION Real3 const& point(Bound b) const
     {
+        CELER_EXPECT(b != Bound::size_);
         return points_[to_int(b)];
+    }
+
+    //! Access a bounding point
+    CELER_CONSTEXPR_FUNCTION real_type point(Bound b, Axis ax) const
+    {
+        CELER_EXPECT(ax != Axis::size_);
+        return this->point(b)[to_int(ax)];
     }
 
     // Whether the bbox is non-null
@@ -236,7 +244,11 @@ BoundingBox<T>::BoundingBox(std::true_type, Real3 const& lo, Real3 const& hi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the bbox is in a valid state.
+ * Whether the bbox contains any point in space.
+ *
+ * \todo This is inconsistent with the edge case: bounding boxes contain
+ * points on their faces. A bounding box with `lower == upper` should be an
+ * infinitesimal but "true" box, containing just that one point.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const

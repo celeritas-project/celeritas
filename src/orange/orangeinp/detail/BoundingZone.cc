@@ -18,36 +18,86 @@ namespace
 {
 //---------------------------------------------------------------------------//
 //! Whether to reduce or expand a bbox operation to enclose unknown space
-enum class BoxOp : bool
+enum class Zone
 {
-    shrink,
-    grow
+    interior,
+    exterior,
+    size_
 };
 
 //---------------------------------------------------------------------------//
-// For now, be very conservative by returning infinities unless null
-BBox calc_difference(BBox const& a, BBox const& b, BoxOp op)
+//! Whether a bounding box is finite, null, or infinite; used for printing
+enum class BoxExtent
+{
+    null,
+    finite,
+    infinite
+};
+
+BoxExtent get_extent(BBox const& b)
 {
     if (!b)
-    {
-        return a;
-    }
-    if (encloses(a, b))
-    {
-        return (op == BoxOp::shrink ? b : a);
-    }
-    if (encloses(b, a))
-    {
-        return BBox{};
-    }
-    return (op == BoxOp::shrink ? BBox{} : BBox::from_infinite());
+        return BoxExtent::null;
+    if (is_infinite(b))
+        return BoxExtent::infinite;
+    return BoxExtent::finite;
 }
 
 //---------------------------------------------------------------------------//
-// For now, be conservative by "shrinking" into the largest known box shape
-BBox calc_union(BBox const& a, BBox const& b, BoxOp op)
+// TODO: include tolerance in these calculations since the edge cases are weird
+BBox calc_difference(BBox const& a, BBox const& b, Zone which)
 {
-    if (op == BoxOp::grow)
+    if (!b)
+    {
+        // Subtracting nothing: return early to avoid 'encloses' error
+        return a;
+    }
+    if (which == Zone::interior)
+    {
+        if (encloses(b, a))
+        {
+            if (encloses(a, b))
+            {
+                // Edge case: a == b
+                return a;
+            }
+
+            // The two "known inside" regions do not overlap: exactly null
+            return {};
+        }
+        // Irregular region: conservatively return null
+        return {};
+    }
+    else if (which == Zone::exterior)
+    {
+        // NOTE: we could return an exact null if `encloses(b, a)`
+        //  *and not* `encloses(a, b)`, where the edge case of a = b must be
+        //  considered.
+        if (encloses(b, a))
+        {
+            if (encloses(a, b))
+            {
+                // Edge case: a == b
+                return a;
+            }
+            // Never inside B and never outside A -> nowhere
+            // *excluding* the edge case of a == b
+            // (Should be rare in practice since this would be literally a null
+            // region in space)
+            return {};
+        }
+
+        // "Never" is a union of the negative exterior of A and the
+        // interior of B; so an exterior bbox of A is conservative
+        return a;
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+BBox calc_union(BBox const& a, BBox const& b, Zone which)
+{
+    if (which == Zone::exterior)
     {
         // Result encloses both and it can enclose space not in the original
         // two bboxes, so use standard function
@@ -106,39 +156,42 @@ BoundingZone BoundingZone::from_infinite()
  *   (i.e. it should be the bounding box of the resulting polyhedron).
  *
  * \todo Only under certain circumstances will unions and subtractions between
- * boxes result in an actual box shape. To be conservative, for now we return
- * an indeterminate zone for anything but intersection of two non-negated
- * zones.
+ * boxes result in an actual box shape. The resulting bounding zone must
+ * carefully respect the intermediate region.
  */
 BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
 {
     BoundingZone result;
-    result.negated = false;
     if (!a.negated && !b.negated)
     {
         // A & B
         result.interior = calc_intersection(a.interior, b.interior);
         result.exterior = calc_intersection(a.exterior, b.exterior);
+        result.negated = false;
     }
     else if (!a.negated && b.negated)
     {
         // A - B
         result.interior
-            = calc_difference(a.interior, b.exterior, BoxOp::shrink);
-        result.exterior = calc_difference(a.exterior, b.interior, BoxOp::grow);
+            = calc_difference(a.interior, b.exterior, Zone::interior);
+        result.exterior
+            = calc_difference(a.exterior, b.interior, Zone::exterior);
+        result.negated = false;
     }
     else if (!b.negated && a.negated)
     {
         // B - A
         result.interior
-            = calc_difference(b.interior, a.exterior, BoxOp::shrink);
-        result.exterior = calc_difference(b.exterior, a.interior, BoxOp::grow);
+            = calc_difference(b.interior, a.exterior, Zone::interior);
+        result.exterior
+            = calc_difference(b.exterior, a.interior, Zone::exterior);
+        result.negated = false;
     }
     else if (a.negated && b.negated)
     {
         // ~(A | B)
-        result.interior = calc_union(a.interior, b.interior, BoxOp::shrink);
-        result.exterior = calc_union(a.exterior, b.exterior, BoxOp::grow);
+        result.interior = calc_union(a.interior, b.interior, Zone::interior);
+        result.exterior = calc_union(a.exterior, b.exterior, Zone::exterior);
         result.negated = true;
     }
     return result;
@@ -148,49 +201,42 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
 /*!
  * Calculate the union of two bounding zones.
  *
- * Here are the zones that result from unioning of two zones with
- * different negations:
- *
- * | Input     | Interior     | Exterior     | Negated  |
- * | ------    | ------------ | ------------ | -------- |
- * | `A | B`   | `A_i | B_i`  | `A_x | B_x`  | false    |
- * | `A | ~B`  | `B_i - A_x`  | `B_x - A_i`  | true     |
- * | `~A | B ` | `A_i - B_x`  | `A_x - B_i`  | true     |
- * | `~A | ~B` | `A_i & B_i`  | `A_x & B_x`  | true     |
- *
- * As with the intersection, the interior has to shrink and the exterior has to
- * grow if the unioned regions aren't boxes.
+ * We use DeMorgan's law to represent, e.g., `A | ~B` as `~(B - A)`.
  */
 BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
 {
     BoundingZone result;
-    result.negated = true;
     if (!a.negated && !b.negated)
     {
         // A | B
-        result.interior = calc_union(a.interior, b.interior, BoxOp::shrink);
-        result.exterior = calc_union(a.exterior, b.exterior, BoxOp::grow);
+        result.interior = calc_union(a.interior, b.interior, Zone::interior);
+        result.exterior = calc_union(a.exterior, b.exterior, Zone::exterior);
         result.negated = false;
     }
     else if (!a.negated && b.negated)
     {
-        // ~(B - A)
+        // A | ~B = ~(~A & B) = ~(B - A)
         result.interior
-            = calc_difference(a.interior, b.exterior, BoxOp::shrink);
-        result.exterior = calc_difference(a.exterior, b.interior, BoxOp::grow);
+            = calc_difference(b.interior, a.exterior, Zone::interior);
+        result.exterior
+            = calc_difference(b.exterior, a.interior, Zone::exterior);
+        result.negated = true;
     }
     else if (!b.negated && a.negated)
     {
-        // ~(A - B)
+        // ~A | B = ~(A & ~B) = ~(A - B)
         result.interior
-            = calc_difference(b.interior, a.exterior, BoxOp::shrink);
-        result.exterior = calc_difference(b.exterior, a.interior, BoxOp::grow);
+            = calc_difference(a.interior, b.exterior, Zone::interior);
+        result.exterior
+            = calc_difference(a.exterior, b.interior, Zone::exterior);
+        result.negated = true;
     }
     else if (a.negated && b.negated)
     {
         // !(A & B)
         result.interior = calc_intersection(a.interior, b.interior);
         result.exterior = calc_intersection(a.exterior, b.exterior);
+        result.negated = true;
     }
     return result;
 }
@@ -207,6 +253,72 @@ BBox get_exterior_bbox(BoundingZone const& bz)
         return BBox::from_infinite();
     }
     return bz.exterior;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print for debugging.
+ *
+ * In this table, interior and exterior are abbreviated I and X. Note that the
+ * interior box should \em always be enclosed by the exterior box (which is the
+ * BZ's operator bool).
+ *
+ * Negated | [I]nterior | E[X]terior | Result
+ * ------- | --------   | ---------- | -------
+ * No      | Null       | Null       | Nowhere
+ * No      | Null       | Finite     | Never outside X
+ * No      | Null       | Infinite   | Maybe anywhere
+ * No      | Finite     | Finite     | Always inside I, never outside X
+ * No      | Finite     | Infinite   | Always inside I
+ * No      | Infinite   | Infinite   | Everywhere
+ * Yes     | Null       | Null       | Everywhere
+ * Yes     | Null       | Finite     | Always outside X
+ * Yes     | Null       | Infinite   | Maybe anywhere
+ * Yes     | Finite     | Finite     | Always outside X, never inside I
+ * Yes     | Finite     | Infinite   | Never inside I
+ * Yes     | Infinite   | Infinite   | Nowhere
+ */
+std::ostream& operator<<(std::ostream& os, BoundingZone const& bz)
+{
+    CELER_EXPECT(bz);
+    using BE = BoxExtent;
+    BE const ibe = get_extent(bz.interior);
+    BE const xbe = get_extent(bz.exterior);
+    bool const neg = bz.negated;
+
+    os << '{';
+    if ((!neg && xbe == BE::null) || (neg && ibe == BE::infinite))
+    {
+        os << "nowhere";
+    }
+    else if ((!neg && ibe == BE::infinite) || (neg && xbe == BE::null))
+    {
+        os << "everywhere";
+    }
+    else if (ibe == BE::null && xbe == BE::infinite)
+    {
+        os << "maybe anywhere";
+    }
+    else
+    {
+        bool print_and{false};
+        if (ibe != BE::null)
+        {
+            os << (neg ? "never" : "always") << " inside " << bz.interior;
+            print_and = true;
+        }
+        if (xbe != BE::infinite)
+        {
+            if (print_and)
+            {
+                os << " and ";
+            }
+            os << (neg ? "always" : "never") << " outside " << bz.exterior;
+        }
+    }
+    os << '}';
+
+    return os;
 }
 
 //---------------------------------------------------------------------------//

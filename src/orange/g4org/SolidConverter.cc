@@ -443,7 +443,7 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     // daughter-to-parent ("object") translation with an inverted
     // [parent-to-daughter, "frame"] rotation
     return std::make_shared<Transformed>(
-        std::move(daughter), transform_(solid.GetDirectTransform()));
+        std::move(daughter), transform_.variant(solid.GetDirectTransform()));
 }
 
 //---------------------------------------------------------------------------//
