@@ -264,13 +264,11 @@ RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
             continue;
         }
 
-        auto target_coord = coords[to_int(ax)] + static_cast<int>(dir > 0);
+        size_type target_coord = coords[to_int(ax)] + static_cast<int>(dir > 0);
+        real_type target_value = this->make_grid(ax)[target_coord];
 
-        auto target_value = this->make_grid(ax)[target_coord];
-
-        real_type dist
-            = (target_value - static_cast<real_type>(state.pos[to_int(ax)]))
-              / state.dir[to_int(ax)];
+        real_type dist = (target_value - state.pos[to_int(ax)])
+                         / state.dir[to_int(ax)];
 
         if (dist > 0 && is_valid(dist) && dist < result.distance)
         {
