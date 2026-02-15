@@ -10,6 +10,7 @@ set(PRIVATE_DEPS
   lardataobj::MCBase
   Celeritas::geocel
   Celeritas::celeritas
+  ROOT::Tree
 )
 set(PUBLIC_DEPS
   Celeritas::BuildFlags

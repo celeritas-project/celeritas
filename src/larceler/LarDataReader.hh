@@ -6,22 +6,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/ext/RootUniquePtr.hh"
+#include <memory>
+#include <string>
+#include <lardataobj/Simulation/SimEnergyDeposit.h>
+
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"  // IWYU pragma: keep
 
 #include "SimEnergyDepositData.hh"
 
-namespace sim
-{
-class SimEnergyDeposit;
-}  // namespace sim
+class TTree;
+class TFile;
+class TDirectory;
 
 namespace celeritas
 {
-// Forward declare ROOT classes
-class TFile;
-class TDirectory;
-class TTree;
-
 //---------------------------------------------------------------------------//
 /*!
  * Helper class to read ROOT files produced by the \c GeoSimExporterModule .
@@ -40,6 +40,8 @@ class LarDataReader
   public:
     // Construct with ROOT file name
     explicit LarDataReader(std::string name);
+    ~LarDataReader();
+    CELER_DELETE_COPY_MOVE(LarDataReader);
 
     // Return number of events
     size_type num_events() const;
@@ -72,10 +74,13 @@ class LarDataReader
     //!@}
 
   private:
-    UPExtern<TFile> root_file_;
-    UPExtern<TDirectory> data_dir_;  //!< TDirectory with all TTrees
-    UPExtern<TTree> sim_tree_;  //!< TTree with SimEnergyDeposit input data
-    SimEnergyDepositData sim_edep_data_;  //!<  TBranch data references
+    std::unique_ptr<TFile> root_file_;
+    //! TDirectory with all TTrees
+    std::unique_ptr<TDirectory> data_dir_;
+    //! TTree with SimEnergyDeposit input  data
+    std::unique_ptr<TTree> sim_tree_;
+    //! TBranch data references
+    SimEnergyDepositData sim_edep_data_;
 };
 
 //---------------------------------------------------------------------------//

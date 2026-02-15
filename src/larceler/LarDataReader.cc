@@ -28,7 +28,7 @@ LarDataReader::LarDataReader(std::string name)
     data_dir_.reset(root_file_->GetDirectory(this->data_dir_name()));
     CELER_EXPECT(data_dir_);
 
-    sim_tree_ = data_dir_->Get<TTree>(this->sim_data_tree_name());
+    sim_tree_.reset(data_dir_->Get<TTree>(this->sim_data_tree_name()));
     CELER_ASSERT(sim_tree_);
 
 #define LDR_SET_SIM_BRANCH(MEMBER) \
@@ -54,12 +54,18 @@ LarDataReader::LarDataReader(std::string name)
 }
 
 //---------------------------------------------------------------------------//
+//! Default destructor
+LarDataReader::~LarDataReader() = default;
+
+//---------------------------------------------------------------------------//
 /*!
  * Return number of events in the ROOT file.
  */
 size_type LarDataReader::num_events() const
 {
-    return sim_tree_->GetEntries();
+    long int result = sim_tree_->GetEntries();
+    CELER_ENSURE(result >= 0);
+    return static_cast<size_type>(result);
 }
 
 //---------------------------------------------------------------------------//
@@ -69,7 +75,7 @@ size_type LarDataReader::num_events() const
  */
 LarDataReader::VecSimEdep LarDataReader::read_event(size_type event_id) const
 {
-    CELER_ENSURE(event_id < sim_tree_->GetEntries());
+    CELER_ENSURE(event_id < this->num_events());
 
     sim_tree_->GetEntry(event_id);
     size_type const num_hits = sim_edep_data_.NumPhotons->size();

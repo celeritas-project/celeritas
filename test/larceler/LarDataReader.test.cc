@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file larceler/LarDataReader.test.cc
 //---------------------------------------------------------------------------//
-#include "larceler/io/LarDataReader.hh"
+#include "larceler/LarDataReader.hh"
 
 #include "celeritas_test.hh"
 
