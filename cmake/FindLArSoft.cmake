@@ -17,23 +17,23 @@ else()
   set(_larsoft_quiet)
 endif()
 
-# cetmodules is lowest dependency
-if(NOT cetmodules_FOUND)
-  find_package(cetmodules ${_larsoft_quiet})
-endif()
-if(NOT art_FOUND)
-  find_package(art ${_larsoft_quiet})
-endif()
-if(NOT lardataobj_FOUND)
-  find_package(lardataobj ${_larsoft_quiet})
-endif()
+# Ordered dependencies
+set(_required_vars)
+foreach(_module cetmodules art art_root_io larcore lardataobj)
+  list(APPEND _required_vars ${_module}_DIR)
+  if(NOT ${_module}_FOUND)
+    find_package(${_module} ${_larsoft_quiet})
+  endif()
+endforeach()
+
+# Set version from lardataobj
 if(lardataobj_FOUND)
   set(LArSoft_VERSION ${lardataobj_VERSION})
 endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(${CMAKE_FIND_PACKAGE_NAME}
-  REQUIRED_VARS lardataobj_DIR art_DIR cetmodules_DIR
+  REQUIRED_VARS ${_required_vars}
 )
 unset(_larsoft_quiet)
 
