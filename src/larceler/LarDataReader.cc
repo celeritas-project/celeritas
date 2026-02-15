@@ -32,7 +32,7 @@ LarDataReader::LarDataReader(std::string name)
     CELER_ASSERT(sim_tree_);
 
 #define LDR_SET_SIM_BRANCH(MEMBER) \
-    sim_tree_->SetBranchAddress(#MEMBER, sim_edep_data_.MEMBER);
+    sim_tree_->SetBranchAddress(#MEMBER, &sim_edep_data_.MEMBER);
 
     LDR_SET_SIM_BRANCH(NumPhotons);
     LDR_SET_SIM_BRANCH(NumElectrons);
