@@ -650,6 +650,45 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find the distance to the nearest boundary in any direction.
+ *
+ * The safety distance at a given point is the minimum safety distance over all
+ * universe levels, since surface deduplication can potentionally elide
+ * bounding surfaces at more deeply embedded universe levels.
+ */
+CELER_FUNCTION real_type OrangeTrackView::find_safety()
+{
+    CELER_EXPECT(!this->is_on_boundary());
+
+    TrackerVisitor visit_tracker{params_};
+
+    real_type min_safety_dist = numeric_limits<real_type>::infinity();
+
+    for (auto ulev_id : range(this->univ_level() + 1))
+    {
+        auto lsa = this->make_lsa(ulev_id);
+        auto sd = visit_tracker(
+            [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
+            lsa.univ());
+        min_safety_dist = celeritas::min(min_safety_dist, sd);
+    }
+    return min_safety_dist;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to the nearest nearby boundary.
+ *
+ * Since we currently support only "simple" safety distances, we can't
+ * eliminate anything by checking only nearby surfaces.
+ */
+CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
+{
+    return this->find_safety();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Move to the next straight-line boundary but do not change volume.
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
@@ -1130,45 +1169,6 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
     result.distance = isect.distance;
     result.boundary = static_cast<bool>(isect);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the distance to the nearest boundary in any direction.
- *
- * The safety distance at a given point is the minimum safety distance over all
- * universe levels, since surface deduplication can potentionally elide
- * bounding surfaces at more deeply embedded universe levels.
- */
-CELER_FUNCTION real_type OrangeTrackView::find_safety()
-{
-    CELER_EXPECT(!this->is_on_boundary());
-
-    TrackerVisitor visit_tracker{params_};
-
-    real_type min_safety_dist = numeric_limits<real_type>::infinity();
-
-    for (auto ulev_id : range(this->univ_level() + 1))
-    {
-        auto lsa = this->make_lsa(ulev_id);
-        auto sd = visit_tracker(
-            [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
-            lsa.univ());
-        min_safety_dist = celeritas::min(min_safety_dist, sd);
-    }
-    return min_safety_dist;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the distance to the nearest nearby boundary.
- *
- * Since we currently support only "simple" safety distances, we can't
- * eliminate anything by checking only nearby surfaces.
- */
-CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
-{
-    return this->find_safety();
 }
 
 //---------------------------------------------------------------------------//
