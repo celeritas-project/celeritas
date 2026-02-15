@@ -662,15 +662,15 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
 
     TrackerVisitor visit_tracker{params_};
 
-    real_type min_safety_dist = numeric_limits<real_type>::infinity();
+    real_type min_safety_dist = NumericLimits<real_type>::infinity();
 
     for (auto ulev_id : range(this->univ_level() + 1))
     {
         auto lsa = this->make_lsa(ulev_id);
-        auto sd = visit_tracker(
+        auto local_safety = visit_tracker(
             [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
             lsa.univ());
-        min_safety_dist = celeritas::min(min_safety_dist, sd);
+        min_safety_dist = celeritas::min(min_safety_dist, local_safety);
     }
     return min_safety_dist;
 }
