@@ -77,9 +77,6 @@ class InputBuilderTest : public JsonOrangeTest
         return geometry_basename();
     }
 
-  protected:
-    bool supports_surface_normal_{true};
-
   private:
     std::string basename_;
 };
@@ -779,7 +776,6 @@ TEST_F(InputBuilderTest, globalspheres)
 
 TEST_F(InputBuilderTest, lar_split_detector)
 {
-    auto inf = std::numeric_limits<real_type>::infinity();
     {
         auto result = this->track({0, 0, -14}, {0, 0, 1});
 
