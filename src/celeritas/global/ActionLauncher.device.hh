@@ -64,12 +64,6 @@ class ActionLauncher : public KernelLauncher<F>
     // Launch a kernel for a thread range or number of threads
     using KernelLauncher<F>::operator();
 
-    // Launch a kernel for the wrapped executor with a specific number of
-    // threads
-    void operator()(size_type num_threads,
-                    CoreState<MemSpace::device> const& state,
-                    F const& execute_thread) const;
-
     // Launch a kernel for the wrapped executor
     void operator()(CoreState<MemSpace::device> const& state,
                     F const& execute_thread) const;
@@ -100,19 +94,6 @@ ActionLauncher<F>::ActionLauncher(StepActionT const& action,
                                   std::string_view ext)
     : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
 {
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Launch a kernel for the wrapped executor with a specific number of threads.
- */
-template<class F>
-void ActionLauncher<F>::operator()(size_type num_threads,
-                                   CoreState<MemSpace::device> const& state,
-                                   F const& execute_thread) const
-{
-    return (*this)(
-        range(ThreadId{num_threads}), state.stream_id(), execute_thread);
 }
 
 //---------------------------------------------------------------------------//

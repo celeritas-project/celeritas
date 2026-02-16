@@ -8,8 +8,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 
-#include "../ActionLauncher.device.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
 
@@ -25,9 +25,9 @@ void set_generated(CoreParams const& params, CoreState<MemSpace::device>& state)
 {
     SetGeneratedExecutor execute_thread{params.ptr<MemSpace::native>(),
                                         state.ptr()};
-    static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "set-generated");
-    launch_kernel(1, state, execute_thread);
+    launch_kernel(1, state.stream_id(), execute_thread);
 }
 
 //---------------------------------------------------------------------------//
