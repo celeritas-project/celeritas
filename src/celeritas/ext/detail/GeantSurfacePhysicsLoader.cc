@@ -29,15 +29,6 @@ namespace
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Whether the grid is uniformly 1 everywhere.
- */
-bool is_always_unity(inp::Grid const& g)
-{
-    return std::all_of(g.y.begin(), g.y.end(), [](double v) { return v == 1; });
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get a string corresponding to the \c G4OpticalSurfaceModel selection.
  */
 char const* to_cstring(G4OpticalSurfaceModel value)
@@ -278,7 +269,9 @@ void GeantSurfacePhysicsLoader::check_unimplemented_properties(
             // It's OK if it's present but 1 everywhere (note that
             // G4Physics2DVector clamps output values to the end points, so the
             // x extents don't matter)
-            if (!is_always_unity(temp))
+            if (!std::all_of(temp.y.begin(), temp.y.end(), [](double v) {
+                    return v == 1;
+                }))
             {
                 CELER_NOT_IMPLEMENTED("unsupported optical '" + name
                                       + "' property");
