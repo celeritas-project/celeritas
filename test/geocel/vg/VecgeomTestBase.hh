@@ -33,8 +33,8 @@ class VecgeomTestBase : public GenericGeoTestBase<VecgeomParams>
     // Construct via persistent geant_geo; see LazyGeantGeoManager
     SPConstGeo build_geometry() const override;
 
-    // Surface normals do NOT currently work
-    bool supports_surface_normal() const override { return false; }
+    // Update a checked track view to modify normal checking
+    CheckedGeoTrackView make_checked_track_view() override;
 
     // Get the safety tolerance: lower for surface geo
     GenericGeoTrackingTolerance tracking_tol() const override;

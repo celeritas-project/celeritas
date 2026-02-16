@@ -275,8 +275,6 @@ CheckedGeoTrackView GenericGeoTestInterface::make_checked_track_view()
         this->geometry_interface(),
         this->unit_length(),
     };
-
-    result.check_normal(this->supports_surface_normal());
     return result;
 }
 
@@ -306,18 +304,6 @@ GenericGeoTrackingTolerance GenericGeoTestInterface::tracking_tol() const
     result.normal = celeritas::sqrt_tol();
     result.safety = result.distance;
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether surface normals work for the current geometry/test.
- *
- * This defaults to true and should be disabled per geometry
- * implementation/geometry class.
- */
-bool GenericGeoTestInterface::supports_surface_normal() const
-{
-    return true;
 }
 
 //---------------------------------------------------------------------------//

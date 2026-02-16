@@ -77,9 +77,6 @@ class InputBuilderTest : public JsonOrangeTest
         return geometry_basename();
     }
 
-  protected:
-    bool supports_surface_normal_{true};
-
   private:
     std::string basename_;
 };

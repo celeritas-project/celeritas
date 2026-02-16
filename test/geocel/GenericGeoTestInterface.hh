@@ -82,7 +82,7 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     virtual UPGeoTrack make_geo_track_view_interface() = 0;
 
     // Create a checked track view
-    CheckedGeoTrackView make_checked_track_view();
+    virtual CheckedGeoTrackView make_checked_track_view();
 
     //// CONFIGURABLE INTERFACE ////
 
@@ -91,9 +91,6 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
 
     // Maximum number of local track slots
     virtual size_type num_track_slots() const;
-
-    // Whether surface normals work for the current geometry/test
-    virtual bool supports_surface_normal() const;
 
     // Get the safety tolerance (defaults to SoftEq tol) for tracking result
     virtual GenericGeoTrackingTolerance tracking_tol() const;
