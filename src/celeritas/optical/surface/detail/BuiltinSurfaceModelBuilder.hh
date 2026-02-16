@@ -134,6 +134,8 @@ void BuiltinSurfaceModelBuilder::build_fake(
 {
     if (!layer_map.empty())
     {
+        CELER_LOG(error) << "Using nonphysical placeholder for '" << label
+                         << "' physics: results will be incorrect";
         models_.push_back(std::make_shared<FakeModel<T>>(
             SurfaceModelId(models_.size()), label, layer_map));
         num_surf_ += layer_map.size();
