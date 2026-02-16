@@ -44,6 +44,7 @@ class CherenkovOffload
                      OffloadPreStepData const& pre_step,
                      optical::MaterialView const& pre_mat,
                      units::LightSpeed post_speed,
+                     real_type post_time,
                      Real3 const& post_pos,
                      NativeCRef<CherenkovData> const& shared);
 
@@ -81,12 +82,13 @@ CherenkovOffload::CherenkovOffload(units::ElementaryCharge charge,
                                    OffloadPreStepData const& pre_step,
                                    optical::MaterialView const& pre_mat,
                                    units::LightSpeed post_speed,
+                                   real_type post_time,
                                    Real3 const& post_pos,
                                    NativeCRef<CherenkovData> const& shared)
     : charge_{charge}
     , step_length_(step_length)
     , pre_step_(pre_step)
-    , post_step_{post_speed, post_pos}
+    , post_step_{post_speed, post_time, post_pos}
 {
     CELER_EXPECT(charge != zero_quantity());
     CELER_EXPECT(step_length_ > 0);
@@ -115,6 +117,7 @@ CherenkovOffload::CherenkovOffload(OffloadPreStepData const& pre_step,
                        pre_step,
                        pre_mat,
                        post_particle.speed(),
+                       post_sim.time(),
                        post_pos,
                        shared}
 {
@@ -141,11 +144,11 @@ CherenkovOffload::operator()(Generator& rng)
     if (data.num_photons > 0)
     {
         data.type = GeneratorType::cherenkov;
-        data.time = pre_step_.time;
         data.step_length = step_length_;
         data.charge = charge_;
         data.material = pre_step_.material;
         data.points[StepPoint::pre].speed = pre_step_.speed;
+        data.points[StepPoint::pre].time = pre_step_.time;
         data.points[StepPoint::pre].pos = pre_step_.pos;
         data.points[StepPoint::post] = post_step_;
     }

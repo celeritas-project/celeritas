@@ -153,6 +153,7 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 celeritas_add_test(mucf/DDMucfInteractor.test.cc)
 celeritas_add_test(mucf/DTMucfInteractor.test.cc)
+celeritas_add_test(mucf/DTMixMucfModel.test.cc)
 celeritas_add_test(mucf/MuonicAtomSelector.test.cc)
 
 #-----------------------------------------------------------------------------#
@@ -462,6 +463,8 @@ endfunction()
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
+celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)

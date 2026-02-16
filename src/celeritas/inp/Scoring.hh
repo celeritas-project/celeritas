@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <optional>
 #include <unordered_set>
 #include <variant>
@@ -19,6 +20,11 @@ class G4LogicalVolume;
 
 namespace celeritas
 {
+namespace optical
+{
+struct DetectorHit;
+}
+
 namespace inp
 {
 //---------------------------------------------------------------------------//
@@ -146,6 +152,25 @@ struct Scoring
 
     //! Add simple on-device calorimeters integrated over events
     std::optional<SimpleCalo> simple_calo;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable detector callback for hits in optical physics simulations.
+ */
+struct OpticalDetector
+{
+    //!@{
+    //! \name Type aliases
+    using HitCallbackFunc
+        = std::function<void(Span<optical::DetectorHit const>)>;
+    //!@}
+
+    //! Hit callback function for optical detectors
+    HitCallbackFunc callback;
+
+    //! Whether detector input is valid and should be built
+    explicit operator bool() const { return static_cast<bool>(callback); }
 };
 
 //---------------------------------------------------------------------------//

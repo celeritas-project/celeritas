@@ -11,7 +11,10 @@
 #include <G4ThreeVector.hh>
 #include <G4Transform3D.hh>
 
+#include "corecel/Macros.hh"
 #include "geocel/Types.hh"
+#include "orange/transform/NoTransformation.hh"
+#include "orange/transform/Translation.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "Scaler.hh"
@@ -61,8 +64,8 @@ class Transformer
     // Convert a more general transform (includes reflection)
     inline Transformation operator()(G4Transform3D const& tran) const;
 
-    // Convert an affine transform
-    inline Transformation operator()(G4AffineTransform const& at) const;
+    // Convert a general affine transform
+    inline VariantTransform variant(G4AffineTransform const& at) const;
 
     // Construct dynamically
     inline VariantTransform
@@ -91,6 +94,10 @@ inline SquareMatrixReal3 convert_from_geant(G4RotationMatrix const& rot);
 //---------------------------------------------------------------------------//
 // Get the transpose/inverse of a rotation matrix
 inline SquareMatrixReal3 transposed_from_geant(G4RotationMatrix const& rot);
+
+//---------------------------------------------------------------------------//
+// Whether a vector has zero magnitude
+inline bool is_zero(G4ThreeVector const& vec);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -138,13 +145,22 @@ Transformation Transformer::operator()(G4Transform3D const& tran) const
 /*!
  * Create a transform from an affine transform.
  *
- * The affine transform's stored rotation matrix is \em inverted!
+ * The affine transform's stored rotation matrix is \em inverted! Also, this
+ * is frequently used when the rotation is identity, so we make a special case.
  */
-auto Transformer::operator()(G4AffineTransform const& affine) const
-    -> Transformation
+auto Transformer::variant(G4AffineTransform const& affine) const
+    -> VariantTransform
 {
-    return Transformation{transposed_from_geant(affine.NetRotation()),
-                          scale_.to<Real3>(affine.NetTranslation())};
+    if (!affine.NetRotation().isIdentity())
+    {
+        return Transformation{transposed_from_geant(affine.NetRotation()),
+                              scale_.to<Real3>(affine.NetTranslation())};
+    }
+    if (!is_zero(affine.NetTranslation()))
+    {
+        return Translation{scale_.to<Real3>(affine.NetTranslation())};
+    }
+    return NoTransformation{};
 }
 
 //---------------------------------------------------------------------------//
@@ -163,7 +179,7 @@ auto Transformer::variant(G4ThreeVector const& trans,
             return (*this)(trans, *rot);
         }
     }
-    if (trans[0] != 0 || trans[1] != 0 || trans[2] != 0)
+    if (!is_zero(trans))
     {
         return (*this)(trans);
     }
@@ -210,6 +226,15 @@ SquareMatrixReal3 transposed_from_geant(G4RotationMatrix const& rot)
     return {convert_from_geant(rot.xx(), rot.yx(), rot.zx()),
             convert_from_geant(rot.xy(), rot.yy(), rot.zy()),
             convert_from_geant(rot.xz(), rot.yz(), rot.zz())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether a vector has zero magnitude.
+ */
+CELER_FORCEINLINE bool is_zero(G4ThreeVector const& vec)
+{
+    return vec[0] == 0 && vec[1] == 0 && vec[2] == 0;
 }
 
 //---------------------------------------------------------------------------//
