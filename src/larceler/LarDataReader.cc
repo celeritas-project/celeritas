@@ -113,10 +113,10 @@ std::string LarDataReader::detector_name() const
     auto* tree = data_dir_->Get<TTree>(this->detector_info_tree_name());
     CELER_ASSERT(tree);
 
-    std::string name;
+    std::string* name{nullptr};
     tree->SetBranchAddress("name", &name);
     tree->GetEntry(0);
-    return name;
+    return *name;
 }
 
 //---------------------------------------------------------------------------//
@@ -128,16 +128,15 @@ LarDataReader::VecOpDetCenter LarDataReader::optical_detector_centers() const
 {
     auto* tree = data_dir_->Get<TTree>(this->optical_detectors_tree_name());
     CELER_ASSERT(tree);
+    auto const& pos = tree->GetLeaf("pos");
+    CELER_ASSERT(pos);
 
-    Real3 pos;
-    tree->SetBranchAddress("pos", &pos);
     auto const num_dets = tree->GetEntries();
-
     VecOpDetCenter result(num_dets);
     for (auto i : range(num_dets))
     {
         tree->GetEntry(i);
-        result[i] = {pos[0], pos[1], pos[2]};
+        result[i] = {pos->GetValue(0), pos->GetValue(1), pos->GetValue(2)};
     }
     return result;
 }
