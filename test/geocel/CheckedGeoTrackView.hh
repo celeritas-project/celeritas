@@ -175,7 +175,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     UnitLength unit_length_;
 
     // Configuration flags
-    bool check_normal_{false};
+    bool check_normal_{true};
     bool check_failure_{true};
     bool check_safety_{true};
     bool check_zero_distance_{true};
