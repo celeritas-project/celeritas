@@ -11,6 +11,7 @@
 #include <string_view>
 #include <vector>
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/surface/SurfaceModel.hh"
 
