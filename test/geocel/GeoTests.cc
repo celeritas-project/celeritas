@@ -38,15 +38,6 @@ auto const vecgeom_version = celeritas::Version::from_string(
 auto const geant4_version = celeritas::Version::from_string(
     CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
 
-auto make_geo_track_view(GenericGeoTestInterface& gti,
-                         Real3 const& pos,
-                         Real3 const& dir)
-{
-    auto tracker = gti.make_checked_track_view();
-    tracker = gti.make_initializer(pos, dir);
-    return tracker;
-}
-
 BoundingBox<> calc_expected_bbox(std::string_view geo_type, Real3 lo, Real3 hi)
 {
     if (geo_type == "VecGeom")
@@ -335,8 +326,8 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
     {
         // See https://github.com/celeritas-project/celeritas/issues/1902
         SCOPED_TRACE("almost tangent at large Z");
-        auto geo = make_geo_track_view(
-            *test_,
+        auto geo = test_->make_checked_track_view();
+        geo = test_->make_initializer(
             {23.51934584635, 17.141066715148, 344.45000092904},
             {0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7});
         ASSERT_FALSE(geo.is_outside());
@@ -542,7 +533,8 @@ void FourLevelsGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_consecutive_compute() const
 {
-    auto geo = make_geo_track_view(*test_, {-9, -10, -10}, {1, 0, 0});
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ("Shape2", test_->volume_name(geo));
     EXPECT_FALSE(geo.is_on_boundary());
@@ -563,11 +555,12 @@ void FourLevelsGeoTest::test_consecutive_compute() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_detailed_tracking() const
 {
-    bool const check_normal = test_->supports_surface_normal();
+    auto geo = test_->make_checked_track_view();
+
     Propagation next;
     {
         SCOPED_TRACE("rightward along corner");
-        auto geo = make_geo_track_view(*test_, {-10, -10, -10}, {1, 0, 0});
+        geo = test_->make_initializer({-10, -10, -10}, {1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
         EXPECT_EQ("Shape2", test_->volume_name(geo));
         EXPECT_FALSE(geo.is_on_boundary());
@@ -588,13 +581,13 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
         }
         EXPECT_EQ("Shape2", test_->volume_name(geo));
         ASSERT_NO_THROW(geo.cross_boundary());
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
@@ -613,7 +606,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
     }
     {
         SCOPED_TRACE("inside out");
-        auto geo = make_geo_track_view(*test_, {-23.5, 6.5, 6.5}, {-1, 0, 0});
+        geo = test_->make_initializer({-23.5, 6.5, 6.5}, {-1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
         EXPECT_EQ("World", test_->volume_name(geo));
 
@@ -623,7 +616,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 
         geo.move_to_boundary();
         EXPECT_FALSE(geo.is_outside());
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
         }
@@ -634,7 +627,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         SCOPED_TRACE("reentrant boundary");
 
         // Start inside box "Shape1" in the gap outside sphere "Shape2"
-        auto geo = make_geo_track_view(*test_, {15.5, 10, 10}, {-1, 0, 0});
+        geo = test_->make_initializer({15.5, 10, 10}, {-1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
         EXPECT_EQ("Shape1", test_->volume_name(geo));
         EXPECT_FALSE(geo.is_on_boundary());
@@ -738,7 +731,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_LE(next.distance, from_cm(1e-5));
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
@@ -746,7 +739,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         geo.cross_boundary();
         EXPECT_EQ("Shape1", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
@@ -776,7 +769,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
     }
     {
         SCOPED_TRACE("unique volume names");
-        auto geo = make_geo_track_view(*test_, {10.0, 10.0, 10.0}, {1, 0, 0});
+        geo = test_->make_initializer({10.0, 10.0, 10.0}, {1, 0, 0});
         EXPECT_EQ("World_PV/env1/Shape1/Shape2",
                   test_->unique_volume_name(geo));
         geo.find_next_step();
@@ -1092,9 +1085,10 @@ auto MultiLevelGeoTest::get_test_points() -> VecR2
 void MultiLevelGeoTest::test_volume_level() const
 {
     std::vector<VolumeLevelId::size_type> all_levels;
+    auto geo = test_->make_checked_track_view();
     for (R2 xy : this->get_test_points())
     {
-        auto geo = make_geo_track_view(*test_, {xy[0], xy[1], 0}, {0, 0, 1});
+        geo = test_->make_initializer({xy[0], xy[1], 0}, {0, 0, 1});
         VolumeLevelId id;
         if (!geo.is_outside())
         {
@@ -2140,9 +2134,9 @@ void SolidsGeoTest::test_trace() const
 void SimpleCmsGeoTest::test_detailed_tracking() const
 {
     auto safety_tol = test_->tracking_tol().safety;
-    bool const check_normal = test_->supports_surface_normal();
 
-    auto geo = make_geo_track_view(*test_, {0, 0, 0}, {0, 0, 1});
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", test_->volume_name(geo));
 
     auto next = geo.find_next_step(from_cm(100));
@@ -2159,13 +2153,13 @@ void SimpleCmsGeoTest::test_detailed_tracking() const
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     }
 
     geo.cross_boundary();
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     }
@@ -2668,10 +2662,10 @@ void TwoBoxesGeoTest::test_accessors() const
 
 void TwoBoxesGeoTest::test_detailed_tracking() const
 {
-    bool const check_normal = test_->supports_surface_normal();
     auto safety_tol = test_->tracking_tol().safety;
 
-    auto geo = make_geo_track_view(*test_, {0, 0, 0}, {0, 0, 1});
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({0, 0, 0}, {0, 0, 1});
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
 
@@ -2693,7 +2687,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     }
@@ -2724,13 +2718,13 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
     }
 
     geo.cross_boundary();
-    if (!check_normal)
+    if (!geo.check_normal())
     {
         // Skip check
     }
@@ -2757,11 +2751,10 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
  */
 void TwoBoxesGeoTest::test_reentrant() const
 {
-    bool const check_normal = test_->supports_surface_normal();
+    auto geo = test_->make_checked_track_view();
     constexpr auto dx = real_type{1} / constants::sqrt_two;
 
     // Starting left of edge (-), headed down right (+,-)
-    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
@@ -2775,7 +2768,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     // Move to boundary (-; +,-)
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
@@ -2784,7 +2777,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     // Cross into the new volume, needed for optical physics (+; +,-)
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
@@ -2793,7 +2786,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     // Reflect normal to surface  (+; -,-)
     geo.set_dir(Real3{-dx, -dx, 0});
     EXPECT_TRUE(geo.is_on_boundary());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
@@ -2813,7 +2806,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     }
     EXPECT_TRUE(geo.is_on_boundary());
 
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
@@ -2859,11 +2852,10 @@ void TwoBoxesGeoTest::test_reentrant() const
  */
 void TwoBoxesGeoTest::test_reentrant_undo() const
 {
+    auto geo = test_->make_checked_track_view();
     constexpr auto dx = real_type{1} / constants::sqrt_two;
-    bool const check_normal = test_->supports_surface_normal();
 
     // Starting left of edge (-), headed down right (+,-)
-    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
@@ -2893,7 +2885,7 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("world", test_->volume_name(geo));
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }

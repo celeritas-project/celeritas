@@ -75,7 +75,7 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //! Get the label for this geometry: Geant4, VecGeom, ORANGE
     virtual std::string_view geometry_type() const = 0;
 
-    //! Access the geometry interface
+    //! Access the geometry params interface (todo: rename geo_params?)
     virtual SPConstGeoI geometry_interface() const = 0;
 
     //! Create a track view (TODO: replace geo test base view)
