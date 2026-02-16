@@ -6,11 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "GeantSurfacePhysicsLoader.hh"
 
+#include <functional>
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
 
 using G4ST = G4SurfaceType;
@@ -25,6 +27,15 @@ namespace
 {
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the grid is uniformly 1 everywhere.
+ */
+bool is_always_unity(inp::Grid const& g)
+{
+    return std::all_of(g.y.begin(), g.y.end(), [](double v) { return v == 1; });
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get a string corresponding to the \c G4OpticalSurfaceModel selection.
@@ -218,6 +229,7 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
     auto const model = surf.GetModel();
     try
     {
+        this->check_unimplemented_properties(helper);
         switch (model)
         {
             case G4OSM::glisur:
@@ -250,6 +262,31 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Check that properties for unimplemented capabilities are not present.
+ */
+void GeantSurfacePhysicsLoader::check_unimplemented_properties(
+    GeantSurfacePhysicsHelper const& helper) const
+{
+    inp::Grid temp;
+    for (std::string name : {"TRANSMITTANCE", "EFFICIENCY"})
+    {
+        // Check if the property exists on the surface
+        if (helper.get_property(&temp, name))
+        {
+            // It's OK if it's present but 1 everywhere (note that
+            // G4Physics2DVector clamps output values to the end points, so the
+            // x extents don't matter)
+            if (!is_always_unity(temp))
+            {
+                CELER_NOT_IMPLEMENTED("unsupported optical '" + name
+                                      + "' property");
+            }
+        }
+    }
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Insert GLISUR model surface.
@@ -295,7 +332,8 @@ void GeantSurfacePhysicsLoader::insert_unified(
     auto finish = surf.GetFinish();
     switch (finish)
     {
-        // ENUMS USED BY DIELECTRIC-DIELECTRIC AND DIELECTRIC-METAL INTERFACES
+        // ENUMS USED BY DIELECTRIC-DIELECTRIC AND DIELECTRIC-METAL
+        // INTERFACES
         case G4OSF::polished:
             helper.emplace(models_.roughness.polished, inp::NoRoughness{});
             this->insert_interaction(helper, inp::ReflectionForm::from_spike());
