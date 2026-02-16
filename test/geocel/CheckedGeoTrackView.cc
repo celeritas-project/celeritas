@@ -164,6 +164,7 @@ CheckedGeoTrackView::CheckedGeoTrackView(UPTrack track,
 CheckedGeoTrackView&
 CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
 {
+    CELER_EXPECT(t_);
     CELER_VALIDATE(is_soft_unit_vector(init.dir),
                    << "cannot initialize with a non-unit direction "
                    << repr(init.dir));
@@ -175,6 +176,7 @@ CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
     {
         CELER_LOG_LOCAL(warning) << "Started on a boundary: " << *this;
     }
+    count_ = {};
     next_boundary_.reset();
     return *this;
 }
@@ -189,7 +191,7 @@ real_type CheckedGeoTrackView::find_safety()
 {
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
 
-    ++num_safety_;
+    ++count_.safety;
 
     auto result = t_->find_safety();
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
@@ -213,7 +215,7 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
                    << NativeLength{});
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
 
-    ++num_safety_;
+    ++count_.safety;
 
     real_type result = t_->find_safety(max_safety);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
@@ -264,7 +266,7 @@ Propagation CheckedGeoTrackView::find_next_step()
                    << "cannot find next step while outside");
 
     bool orig_bndy = t_->is_on_boundary();
-    ++num_intersect_;
+    ++count_.intersect;
     auto result = t_->find_next_step();
     CGTV_VALIDATE_NOT_FAILED(*this, "find_next_step");
     CGTV_VALIDATE(*this,
@@ -307,7 +309,7 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     }
 
     bool const started_on_boundary{t_->is_on_boundary()};
-    ++num_intersect_;
+    ++count_.intersect;
     auto result = t_->find_next_step(distance);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_next_step");
     if (result.boundary && result.distance > this->safety_tol()
