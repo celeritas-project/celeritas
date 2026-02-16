@@ -190,6 +190,8 @@ CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
 real_type CheckedGeoTrackView::find_safety()
 {
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
+    CELER_VALIDATE(!this->is_on_boundary(),
+                   << "cannot find safety when on a boundary");
 
     ++count_.safety;
 
@@ -242,11 +244,11 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
     CELER_VALIDATE(!this->is_outside(),
                    << "cannot change direction while outside");
 
-    bool orig_bndy = t_->is_on_boundary();
+    bool started_on_boundary = t_->is_on_boundary();
     t_->set_dir(newdir);
     CGTV_VALIDATE_NOT_FAILED(*this, "set_dir");
     CGTV_VALIDATE(*this,
-                  orig_bndy == t_->is_on_boundary(),
+                  started_on_boundary == t_->is_on_boundary(),
                   << "boundary state changed during set_dir");
     next_boundary_.reset();
 }
@@ -345,7 +347,8 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                   << NativeLength{});
     CGTV_VALIDATE(*this,
                   t_->is_on_boundary() == started_on_boundary,
-                  << "boundary state changed during find_next_step");
+                  << "boundary state changed during find_next_step (started "
+                  << (started_on_boundary ? "on" : "off") << " boundary)");
 
     next_boundary_ = result.distance;
     return result;

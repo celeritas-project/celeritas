@@ -2695,12 +2695,6 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("world", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
-    if (geo.is_on_boundary() && CELERITAS_DEBUG)
-    {
-        // Don't check the safety distance on the boundary; we know by
-        // definition it's zero
-        EXPECT_THROW(geo.find_safety(), DebugError);
-    }
 
     // Scatter to tangent along boundary
     constexpr real_type dx
