@@ -74,13 +74,10 @@ class LarDataReader
     //!@}
 
   private:
-    std::unique_ptr<TFile> root_file_;
-    //! TDirectory with all TTrees
-    std::unique_ptr<TDirectory> data_dir_;
-    //! TTree with SimEnergyDeposit input  data
-    std::unique_ptr<TTree> sim_tree_;
-    //! TBranch data references
-    SimEnergyDepositData sim_edep_data_;
+    std::unique_ptr<TFile> root_file_;  //!< Input ROOT file
+    std::unique_ptr<TDirectory> data_dir_;  //!< TDirectory with all TTrees
+    std::unique_ptr<TTree> sim_tree_;  //!< SimEnergyDepositData TTree
+    SimEnergyDepositData sim_edep_data_;  //!< SimEnergyDepositData refs
 };
 
 //---------------------------------------------------------------------------//

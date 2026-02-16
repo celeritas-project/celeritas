@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "LarDataReader.hh"
 
+#include <array>
 #include <TDirectory.h>
 #include <TFile.h>
+#include <TLeaf.h>
 #include <TTree.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 
 namespace celeritas
