@@ -42,6 +42,32 @@ def setup_physics(kernel):
     from DDG4 import Geant4, PhysicsList
 
     phys = Geant4(kernel).setupPhysics("QGSP_BERT")
+
+    # Optical photon physics
+    ph = PhysicsList(kernel, "Geant4OpticalPhotonPhysics/OpticalGammaPhys")
+    ph.VerboseLevel = 1
+    ph.addParticleConstructor("G4OpticalPhoton")
+    ph.enableUI()
+    phys.adopt(ph)
+
+    # Scintillation physics
+    ph = PhysicsList(kernel, "Geant4ScintillationPhysics/ScintillatorPhys")
+    ph.ScintillationYieldFactor = 1.0
+    ph.ScintillationExcitationRatio = 1.0
+    ph.TrackSecondariesFirst = False
+    ph.VerboseLevel = 1
+    ph.enableUI()
+    phys.adopt(ph)
+
+    # Cerenkov physics
+    ph = PhysicsList(kernel, "Geant4CerenkovPhysics/CerenkovPhys")
+    ph.MaxNumPhotonsPerStep = 10
+    ph.MaxBetaChangePerStep = 10.0
+    ph.TrackSecondariesFirst = True
+    ph.VerboseLevel = 1
+    ph.enableUI()
+    phys.adopt(ph)
+
     celer_phys = PhysicsList(kernel, str("CelerPhysics"))
     # MaxNumTracks: max number of tracks in flight
     # InitCapacity: initial capacity for state data allocation
