@@ -63,6 +63,8 @@ CelerPhysics::CelerPhysics(Geant4Context* ctxt, std::string const& name)
     declareProperty("MaxNumTracks", max_num_tracks_);
     declareProperty("InitCapacity", init_capacity_);
     declareProperty("IgnoreProcesses", ignore_processes_);
+    declareProperty("OpticalTracks", optical_tracks_);
+    declareProperty("OpticalGenerators", optical_generators_);
 }
 
 //---------------------------------------------------------------------------//
@@ -180,6 +182,24 @@ SetupOptions CelerPhysics::make_options()
     };
     opts.make_along_step = UniformAlongStepFactory(make_field_input);
     opts.sd.ignore_zero_deposition = false;
+
+    // Configure optical photon offloading if requested
+    if (optical_tracks_ > 0)
+    {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = optical_tracks_;
+        opt.capacity.generators = (optical_generators_ > 0)
+                                      ? optical_generators_
+                                      : optical_tracks_ * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        opt.generator = inp::OpticalEmGenerator{};
+        opt.limits = inp::OpticalTrackingLimits{};
+        opts.optical = opt;
+
+        CELER_LOG(info) << "Optical photon offloading enabled: tracks="
+                        << opt.capacity.tracks
+                        << ", generators=" << opt.capacity.generators;
+    }
 
     // Save diagnostic file to a unique name
     opts.output_file = "ddceler.out.json";

@@ -37,6 +37,8 @@ class CelerPhysics final : public dd4hep::sim::Geant4PhysicsList
     int max_num_tracks_{0};
     int init_capacity_{0};
     std::vector<std::string> ignore_processes_;
+    int optical_tracks_{0};
+    int optical_generators_{0};
 
     // Make options for Celeritas tracking manager
     SetupOptions make_options();
