@@ -151,6 +151,9 @@ CoreTrackView::operator=(TrackInitializer const& init)
     // Initialize the surface state
     this->surface_physics().reset();
 
+    // Clear detector state data
+    states_.detectors.detector_hits[track_slot_id_].detector = {};
+
     return *this;
 }
 
