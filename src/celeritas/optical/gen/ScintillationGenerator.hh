@@ -232,14 +232,19 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);
 
-    // Sample time
-    photon.time
-        = dist_.time
-          + u * dist_.step_length
-                / (native_value_from(dist_.points[StepPoint::pre].speed)
-                   + u * real_type(0.5) * native_value_from(delta_speed_));
-    photon.primary = dist_.primary;
-
+    // Sample the time
+    photon.time = dist_.points[StepPoint::pre].time + u * [&] {
+        if (dist_.points[StepPoint::pre].speed > zero_quantity())
+        {
+            return dist_.step_length
+                   / (native_value_from(dist_.points[StepPoint::pre].speed)
+                      + u * real_type(0.5) * native_value_from(delta_speed_));
+        }
+        // Fall back to using pre- and post-step time if speed isn't available
+        // (e.g. with the LArSoft SimEnergyDeposit)
+        return dist_.points[StepPoint::post].time
+               - dist_.points[StepPoint::pre].time;
+    }();
     if (component.rise_time == 0)
     {
         // Sample exponentially from fall time
@@ -258,6 +263,9 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         } while (RejectionSampler(target)(rng));
         photon.time += scint_time;
     }
+
+    photon.primary = dist_.primary;
+
     return photon;
 }
 

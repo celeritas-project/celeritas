@@ -107,6 +107,8 @@ list(APPEND SOURCES
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
+  mucf/model/detail/EquilibrateDensitiesSolver.cc
+  mucf/model/detail/InterpolatorHelper.cc
   mucf/model/detail/MucfMaterialInserter.cc
   mucf/process/MucfProcess.cc
   neutron/model/CascadeOptions.cc
