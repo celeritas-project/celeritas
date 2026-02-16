@@ -147,6 +147,7 @@ struct SurfacePhysicsStateData
     StateItems<SurfaceTrackPosition> surface_position;
     StateItems<SubsurfaceDirection> track_direction;
     StateItems<Real3> facet_normal;
+    StateItems<ReflectivityAction> reflectivity_action;
     //!@}
 
     //! Whether data is assigned

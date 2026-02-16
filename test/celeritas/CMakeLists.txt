@@ -465,6 +465,7 @@ celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
+celeritas_add_test(optical/GridReflectivity.test.cc)
 celeritas_add_test(optical/ImportedModelAdapter.test.cc)
 celeritas_add_test(optical/ImportedMaterials.test.cc)
 celeritas_add_test(optical/ModelImporter.test.cc)
@@ -488,6 +489,7 @@ celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
 celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat
