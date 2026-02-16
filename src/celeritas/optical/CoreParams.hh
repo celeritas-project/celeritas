@@ -13,6 +13,7 @@
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Scoring.hh"
 
 #include "CoreTrackData.hh"
 
@@ -85,6 +86,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;
 
+        inp::OpticalDetector optical_detector;  //!< Optional
         SPConstCherenkov cherenkov;  //!< Optional
         SPConstScintillation scintillation;  //!< Optional
 

@@ -59,7 +59,6 @@ class DTMucfInteractor
     Channel channel_{Channel::size_};
     // Allocate space for secondary particles
     StackAllocator<Secondary>& allocate_;
-
     // Number of secondaries per channel
     EnumArray<Channel, size_type> num_secondaries_{
         3,  // alpha_muon_neutron

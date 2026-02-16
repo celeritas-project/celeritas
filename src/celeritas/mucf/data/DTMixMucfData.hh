@@ -50,8 +50,8 @@ struct MucfParticleIds
     CELER_FUNCTION explicit operator bool() const
     {
         return mu_minus && proton && triton && neutron && alpha && he3
-               && muonic_hydrogen && muonic_alpha && muonic_triton
-               && muonic_he3;
+               && muonic_hydrogen && muonic_deuteron && muonic_triton
+               && muonic_alpha && muonic_he3;
     }
 };
 
@@ -89,8 +89,9 @@ struct MucfParticleMasses
                && triton > zero_quantity() && neutron > zero_quantity()
                && alpha > zero_quantity() && he3 > zero_quantity()
                && muonic_hydrogen > zero_quantity()
-               && muonic_alpha > zero_quantity()
+               && muonic_deuteron > zero_quantity()
                && muonic_triton > zero_quantity()
+               && muonic_alpha > zero_quantity()
                && muonic_he3 > zero_quantity();
     }
 };
@@ -134,14 +135,9 @@ struct DTMixMucfData
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return true;
-#if 0
-        // Re-enable once full data assignment is implemented
         return particle_ids && particle_masses && muon_energy_cdf
-               && !mucfmatid_to_matid.empty() && !cycle_times.empty()
-               && (mucfmatid_to_matid.size() == isotopic_fractions.size())
-               && (mucfmatid_to_matid.size() == cycle_times.size());
-#endif
+               && !reals.empty() && !mucfmatid_to_matid.empty()
+               && !isotopic_fractions.empty() && !cycle_times.empty();
     }
 
     //! Assign from another set of data
@@ -153,8 +149,8 @@ struct DTMixMucfData
         //! \todo Finish implementation
         this->particle_ids = other.particle_ids;
         this->particle_masses = other.particle_masses;
-        this->reals = other.reals;
         this->muon_energy_cdf = other.muon_energy_cdf;
+        this->reals = other.reals;
         this->mucfmatid_to_matid = other.mucfmatid_to_matid;
         this->isotopic_fractions = other.isotopic_fractions;
         this->cycle_times = other.cycle_times;

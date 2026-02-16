@@ -51,23 +51,6 @@ auto SurfacePhysicsIntegrationTestBase::build_optical_surface_physics()
 
     this->setup_surface_models(input);
 
-    // Default surface
-
-    PhysSurfaceId phys_surface = [&] {
-        size_type num_surfaces = 0;
-        for (auto const& mats : input.materials)
-        {
-            num_surfaces += mats.size() + 1;
-        }
-        return PhysSurfaceId(num_surfaces);
-    }();
-
-    input.materials.push_back({});
-    input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
-    input.reflectivity.fresnel.emplace(phys_surface, inp::FresnelReflection{});
-    input.interaction.trivial.emplace(phys_surface,
-                                      TrivialInteractionMode::absorb);
-
     return std::make_shared<SurfacePhysicsParams>(
         this->optical_action_reg().get(), input);
 }

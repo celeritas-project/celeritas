@@ -52,6 +52,11 @@ class CoreStateInterface;
 
 struct Primary;
 
+namespace inp
+{
+struct OpticalDetector;
+}  // namespace inp
+
 namespace optical
 {
 class MaterialParams;
@@ -205,6 +210,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     build_optical_surface_physics()
         = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
+    [[nodiscard]] virtual inp::OpticalDetector build_optical_detector_input();
 
     // Do not insert StatusChecker
     void disable_status_checker();
@@ -213,6 +219,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     SPConstSurface const& surface() const { return surface_; }
     SPConstVolume const& volume() const { return volume_; }
     SPConstDetectors const& detector() const { return detector_; }
+    virtual SPConstDetectors detector() { return detector_; }
 
     // Implement LazyGeantGeoManager
     SPConstGeoI build_geo_from_geant(SPConstGeantGeo const&) const final;

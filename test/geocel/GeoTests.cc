@@ -19,6 +19,7 @@
 #include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
@@ -802,6 +803,38 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 }
 
 //---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_locate_point() const
+{
+    std::vector<Real3> test_points{
+        {10.0, 10.0, 10.0},
+        {-10.0, -10.0, 4.5},
+        {0.0, 0.0, 0.0},
+        {1.0, 2.0, 5.0},
+        {-3.0, -7.5, -4.5},
+        {-7.0, 1.5, 3.7},
+    };
+
+    for (auto const& point : test_points)
+    {
+        // Get volume label from point lookup
+        auto volume_instance
+            = test_->geometry_interface()->find_volume_instance_at(
+                from_cm(point));
+
+        auto volume_label = volume_instance
+                                ? test_->volumes()->volume_instance_labels().at(
+                                      volume_instance)
+                                : "[INVALID]";
+
+        // Get expected volume label from test chassis
+        auto expected_volume_label
+            = test_->volume_stack(point).volume_instances.back();
+
+        EXPECT_EQ(expected_volume_label, volume_label);
+    }
+}
+
+//---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_trace() const
 {
     {
@@ -860,7 +893,6 @@ void FourLevelsGeoTest::test_trace() const
         };
 
         auto tol = test_->tracking_tol();
-        delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -882,7 +914,6 @@ void FourLevelsGeoTest::test_trace() const
         // clang-format on
 
         auto tol = test_->tracking_tol();
-        delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -925,7 +956,6 @@ void LarSphereGeoTest::test_trace() const
         GTEST_SKIP() << "Fails to cross +y";
     }
 
-    bool const is_orange = test_->geometry_type() == "ORANGE";
     {
         SCOPED_TRACE("+y");
         auto result = test_->track({0, -120, 0}, {0, 1, 0});
@@ -948,11 +978,6 @@ void LarSphereGeoTest::test_trace() const
         ref.distances = {10, 10, 200, 10, 890};
         ref.halfway_safeties = {5, 5, 100, 5, 445};
         ref.bumps = {};
-        if (is_orange)
-        {
-            // TODO: at this exact point it ignores the spherical distance
-            ref.halfway_safeties[2] = result.halfway_safeties[2];
-        }
 
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -2160,7 +2185,6 @@ void SimpleCmsGeoTest::test_detailed_tracking() const
 //---------------------------------------------------------------------------//
 void SimpleCmsGeoTest::test_trace() const
 {
-    bool const is_orange = test_->geometry_type() == "ORANGE";
     {
         SCOPED_TRACE("outward radially");
         auto result = test_->track({-75, 0, 0}, {1, 0, 0});
@@ -2190,11 +2214,6 @@ void SimpleCmsGeoTest::test_trace() const
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {22.5, 30, 47.5, 25, 50, 50, 162.5, 150};
 
-        if (is_orange)
-        {
-            // TODO: at this exact point it ignores the cylindrical distance
-            ref.halfway_safeties[1] = result.halfway_safeties[1];
-        }
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -2209,11 +2228,8 @@ void SimpleCmsGeoTest::test_trace() const
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {0.5, 5, 650};
 
-        if (is_orange)
-        {
-            ref.halfway_safeties[2] = result.halfway_safeties[2];
-        }
         auto tol = test_->tracking_tol();
+        fixup_orange(*test_, ref, result, "world");
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
