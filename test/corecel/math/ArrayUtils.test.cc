@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/math/ArrayUtils.hh"
 
+#include "corecel/io/StreamToString.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
 

@@ -13,6 +13,8 @@
 
 #include "corecel/Assert.hh"
 
+#include "StreamToString.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -70,15 +72,11 @@ operator<<(std::ostream& os, StreamableVariant<T> const& svar)
 //---------------------------------------------------------------------------//
 /*!
  * Save a variant object's value to a string.
- *
- * \todo Separate generic to-string.
  */
 template<class T>
 inline std::string to_string(StreamableVariant<T> const& svar)
 {
-    std::ostringstream os;
-    os << svar;
-    return os.str();
+    return stream_to_string(svar);
 }
 
 //---------------------------------------------------------------------------//
