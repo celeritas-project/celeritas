@@ -141,6 +141,14 @@ TEST_F(PhysicalVolumeConverterTest, solids)
     PhysicalVolume world = convert(this->world());
 
     EXPECT_EQ(24, world.lv->children.size());
+
+    auto const& g4pv = this->find_vol_instance("trd3_refl");
+    auto vol = convert(g4pv);
+    EXPECT_EQ("trd3_refl", this->get_label(vol).name);
+
+    EXPECT_JSON_EQ(
+        R"json({"_type":"all","daughters":[{"_type":"all","daughters":[{"_type":"all","daughters":[{"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"box","halfwidths":[1.15,5.9,104.6]},"label":"ArapucaOut"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"translation","data":[0.0,0.0,-80.2]}},"label":""}],"label":"ArapucaWalls0"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"translation","data":[0.0,0.0,-31.4]}},"label":""}],"label":"ArapucaWalls1"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"translation","data":[0.0,0.0,31.4]}},"label":""}],"label":"ArapucaWalls2"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"translation","data":[0.0,0.0,80.2]}},"label":""}],"label":"ArapucaWalls"})json",
+        to_string(*vol.lv->solid));
 }
 
 //---------------------------------------------------------------------------//

@@ -155,13 +155,13 @@ acceptance of all terms of the Geant4 Software license.
 
   <orb name="shOrb1" lunit="mm" r="400.0"/>
 
-  <polycone name="testpolyc" lunit="mm" aunit="deg" deltaphi="270.0" startphi="0.0">
+  <polycone name="testpolyc" lunit="mm" aunit="deg" deltaphi="270.0" startphi="22.5">
     <zplane z="-500.0" rmin="160.0" rmax="250.0"/>
     <zplane z="   0.0" rmin=" 80.0" rmax="100.0"/>
     <zplane z=" 500.0" rmin="180.0" rmax="200.0"/>
   </polycone>
 
-  <genericPolycone name="testgenpoly" lunit="mm" aunit="deg" deltaphi="240.0" startphi="0.0">
+  <genericPolycone name="testgenpoly" lunit="mm" aunit="deg" deltaphi="240.0" startphi="11.25">
     <rzpoint r="300.0" z="-500.0" />
     <rzpoint r="450.0" z="   0.0" />
     <rzpoint r="500.0" z=" 500.0" />
@@ -175,7 +175,7 @@ acceptance of all terms of the Geant4 Software license.
     <zplane z=" 500.0" rmin="350.0" rmax="500.0"/>
   </polycone-->
 
-  <polyhedra name="testph" lunit="mm" aunit="deg" deltaphi="270." numsides="6" startphi="180." >
+  <polyhedra name="testph" lunit="mm" aunit="deg" deltaphi="270." numsides="6" startphi="195." >
      <zplane z="-500.0" rmin="50.0" rmax="250.0"/>
      <zplane z=" 500.0" rmin="80.0" rmax="360.0"/>
   </polyhedra>
