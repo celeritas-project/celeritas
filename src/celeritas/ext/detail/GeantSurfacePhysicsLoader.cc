@@ -325,8 +325,7 @@ void GeantSurfacePhysicsLoader::insert_unified(
     auto finish = surf.GetFinish();
     switch (finish)
     {
-        // ENUMS USED BY DIELECTRIC-DIELECTRIC AND DIELECTRIC-METAL
-        // INTERFACES
+        // ENUMS USED BY DIELECTRIC-DIELECTRIC AND DIELECTRIC-METAL INTERFACES
         case G4OSF::polished:
             helper.emplace(models_.roughness.polished, inp::NoRoughness{});
             this->insert_interaction(helper, inp::ReflectionForm::from_spike());
