@@ -346,7 +346,7 @@ TEST_F(SurfacePhysicsTest, init_params)
     };
     expected_model_names[SurfacePhysicsOrder::reflectivity] = {
         "grid",
-        "fresnel",
+        "reflectivity-fresnel",
     };
     expected_model_names[SurfacePhysicsOrder::interaction] = {
         "interaction-dielectric",

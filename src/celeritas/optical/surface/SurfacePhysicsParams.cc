@@ -14,6 +14,7 @@
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
 #include "model/DielectricInteractionModel.hh"
+#include "model/FresnelReflectivityModel.hh"
 #include "model/PolishedRoughnessModel.hh"
 #include "model/TrivialInteractionModel.hh"
 
@@ -148,7 +149,8 @@ auto SurfacePhysicsParams::build_models(
                 break;
             case SurfacePhysicsOrder::reflectivity:
                 build_model.build_fake("grid", input.reflectivity.grid);
-                build_model.build_fake("fresnel", input.reflectivity.fresnel);
+                build_model.build<FresnelReflectivityModel>(
+                    input.reflectivity.fresnel);
                 break;
             case SurfacePhysicsOrder::interaction:
                 build_model.build<DielectricInteractionModel>(

@@ -17,7 +17,7 @@ namespace optical
  * Wrap a reflectivity executor and apply it to a track.
  *
  * The functor \c F must take a \c CoreTrackView and return a \c
- * ReflectivityResult.
+ * ReflectivityAction.
  */
 template<class F>
 struct ReflectivityApplier
@@ -41,20 +41,29 @@ CELER_FUNCTION ReflectivityApplier(F&&) -> ReflectivityApplier<F>;
  */
 template<class F>
 CELER_FUNCTION void
-ReflectivityApplier::operator()(CoreTrackView const& track) const
+ReflectivityApplier<F>::operator()(CoreTrackView const& track) const
 {
-    // Sample reflectivity
-    switch (this->sample_reflectivity(track))
+    // Sample reflectivity and set it
+    auto action = this->sample_reflectivity(track);
+
+    auto s_phys = track.surface_physics();
+    s_phys.reflectivity_action(action);
+
+    if (action == ReflectivityAction::absorb)
     {
-        case ReflectivityResult::absorb:
-            track.sim().status(TrackStatus::killed);
-            break;
-        case ReflectivityResult::interact:
-            // Do nothing if photon should undergo surface interaction
-            break;
-        default:
-            // Catch pass-through for future changes
-            CELER_ASSERT_UNREACHABLE();
+        // Mark particle as killed
+        track.sim().status(TrackStatus::killed);
+    }
+    else if (action == ReflectivityAction::transmit)
+    {
+        // Move across the boundary
+        auto traverse = s_phys.traversal();
+        traverse.cross_interface(traverse.dir());
+        if (traverse.is_exiting())
+        {
+            // End boundary crossing if exiting
+            track.sim().post_step_action(s_phys.scalars().post_boundary_action);
+        }
     }
 }
 
