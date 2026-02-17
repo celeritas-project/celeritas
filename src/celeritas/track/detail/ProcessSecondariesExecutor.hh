@@ -108,9 +108,6 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             ti.geo.dir = secondary.direction;
             ti.particle.particle_id = secondary.particle_id;
             ti.particle.energy = secondary.energy;
-#if CELERITAS_RESEED == CELERITAS_RESEED_TRACK
-            ti.rng = track.rng().branch();
-#endif
             CELER_ASSERT(ti);
 
             if (sim.track_id() == track_id && sim.status() != TrackStatus::alive
@@ -134,6 +131,14 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             {
                 CELER_ASSERT(offset > 0
                              && offset <= counters->num_initializers);
+
+                if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
+                {
+                    // If we are reseeding with each track, because this
+                    // secondary is not reusing the primary track, branch the
+                    // rng
+                    ti.rng = track.rng().branch();
+                }
 
                 if (offset <= min(counters->num_secondaries,
                                   counters->num_vacancies)

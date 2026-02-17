@@ -228,10 +228,15 @@ void LocalTransporter::InitializeEvent(int id)
     if (!(G4Threading::IsMultithreadedApplication()
           && G4MTRunManager::SeedOncePerCommunication()))
     {
-        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
-        // using the Geant4 event ID for reproducibility. This guarantees that
-        // an event can be reproduced given the event ID.
-        step_->reseed(event_id_);
+        if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
+        {
+            // Initialize the Geant event reconstruction.
+
+            // Since Geant4 schedules events dynamically, reseed the Celeritas
+            // RNGs using the Geant4 event ID for reproducibility. This
+            // guarantees that an event can be reproduced given the event ID.
+            step_->reseed(event_id_);
+        }
     }
 }
 
@@ -274,6 +279,7 @@ void LocalTransporter::Push(G4Track& g4track)
         track.primary_id
             = hit_processor_->track_reconstruction().acquire(g4track);
     }
+    track.primary_id += g4track.GetTrackID();
 
     track.energy = units::MevEnergy(
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));

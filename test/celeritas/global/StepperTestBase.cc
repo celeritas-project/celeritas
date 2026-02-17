@@ -88,7 +88,7 @@ auto StepperTestBase::run(StepperInterface& step,
     auto primaries = this->make_primaries(num_primaries);
     for (auto i : celeritas::range(primaries.size()))
     {
-        primaries[i].geant_track_id = i;
+        primaries[i].primary_id = id_cast<PrimaryId>(i);
     }
 
     StepperResult counts;
