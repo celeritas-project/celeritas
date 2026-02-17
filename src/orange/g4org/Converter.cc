@@ -16,6 +16,7 @@
 #include "geocel/VolumeParams.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/inp/Import.hh"
 #include "orange/orangeinp/InputBuilder.hh"
 
 #include "PhysicalVolumeConverter.hh"
@@ -95,14 +96,7 @@ auto Converter::operator()(GeantGeoParams const& geo,
 
     // Build universes from protos
     result_type result;
-    InputBuilder build_input([&opts = opts_] {
-        InputBuilder::Options ibo;
-        ibo.tol = opts.tol;
-        ibo.objects_output_file = opts.objects_output_file;
-        ibo.csg_output_file = opts.csg_output_file;
-        CELER_ENSURE(ibo);
-        return ibo;
-    }());
+    InputBuilder build_input(inp::OrangeGeoFromCsg{opts_});
     result.input = build_input(*global_proto);
 
     // Replace the "background" (implicit *or* explicit) with the world volume

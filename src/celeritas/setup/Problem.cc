@@ -389,6 +389,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
         pi.action_reg.get(), p.physics.surfaces);
     pi.detectors = std::move(loaded_model.detector);
+    pi.optical_detector = p.detectors;
 
     // Streams and capacities
     pi.max_streams = p.num_streams;

@@ -13,7 +13,9 @@
 #include <type_traits>
 #include <gtest/gtest.h>
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 
 #include "celeritas_test.hh"
@@ -24,13 +26,9 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class OrangeTypesTest : public ::celeritas::test::Test
+TEST(Tolerance, dbl)
 {
-};
-
-TEST_F(OrangeTypesTest, tolerances)
-{
-    using TolT = Tolerance<real_type>;
+    using TolT = Tolerance<double>;
     EXPECT_FALSE(TolT{});
 
     {
@@ -38,12 +36,9 @@ TEST_F(OrangeTypesTest, tolerances)
         auto const tol = TolT::from_default();
         EXPECT_TRUE(tol);
         EXPECT_SOFT_NEAR(
-            std::sqrt(std::numeric_limits<real_type>::epsilon()), tol.rel, 0.1);
+            std::sqrt(std::numeric_limits<double>::epsilon()), tol.rel, 0.1);
         EXPECT_SOFT_EQ(tol.rel, tol.abs);
-        if constexpr (std::is_same_v<real_type, double>)
-        {
-            EXPECT_SOFT_EQ(1.5e-8, tol.rel);
-        }
+        EXPECT_SOFT_EQ(1.5e-8, tol.rel);
     }
     {
         SCOPED_TRACE("Tolerance with other length scale");
@@ -66,7 +61,44 @@ TEST_F(OrangeTypesTest, tolerances)
     }
 }
 
-TEST_F(OrangeTypesTest, zorder)
+TEST(Tolerance, single)
+{
+    using TolT = Tolerance<float>;
+
+    {
+        SCOPED_TRACE("Default tolerance");
+        auto const tol = TolT::from_default();
+        EXPECT_TRUE(tol);
+        EXPECT_SOFT_NEAR(
+            std::sqrt(std::numeric_limits<float>::epsilon()), tol.rel, 0.1);
+        EXPECT_SOFT_EQ(tol.rel, tol.abs);
+        EXPECT_SOFT_EQ(0.0003f, tol.rel);
+    }
+    {
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                    LogLevel::warning};
+        auto tol = TolT::from_relative(1e-9f);
+        EXPECT_GT(tol.rel, 1e-9f);
+        static char const* const expected_log_messages[]
+            = {"Clamped relative tolerance 1e-9 to machine epsilon 1.192e-7"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    }
+    {
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                    LogLevel::warning};
+        TolT tol;
+        tol.rel = 1e-9f;
+        tol.abs = 1e-40f;
+        auto c = tol.clamped();
+        EXPECT_SOFT_EQ(0, c.rel);
+        EXPECT_SOFT_EQ(0, c.abs);
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    }
+}
+
+TEST(Zorder, round_trip)
 {
     // Test round-tripping of zorder
     for (auto zo : {ZOrder::invalid,

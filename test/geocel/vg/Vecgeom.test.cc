@@ -200,6 +200,11 @@ TEST_F(FourLevelsTest, detailed_track)
     this->impl().test_detailed_tracking();
 }
 
+TEST_F(FourLevelsTest, DISABLED_locate_point)
+{
+    this->impl().test_locate_point();
+}
+
 TEST_F(FourLevelsTest, levels)
 {
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});

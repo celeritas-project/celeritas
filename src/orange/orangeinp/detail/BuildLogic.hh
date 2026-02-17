@@ -139,7 +139,7 @@ class PostfixLogicBuilder : public BaseLogicBuilder<PostfixLogicBuilder>
  *
  * Example: \verbatim
     all(1, 3, 5) -> "(0 & 1 & 2)"
-    all(1, 3, any(~(2), ~(4))) -> "(0 & 2 & (~1 | ~3))"
+    all(1, 3, any(~(2), ~(4))) -> "0 & 2 & (~1 | ~3)"
  * \endverbatim
  */
 class InfixLogicBuilder : public BaseLogicBuilder<InfixLogicBuilder>
@@ -157,6 +157,9 @@ class InfixLogicBuilder : public BaseLogicBuilder<InfixLogicBuilder>
     // Visit daughter nodes and append the conjunction.
     void operator()(Joined const& n);
     //!@}
+
+  private:
+    int depth_{0};
 };
 
 //---------------------------------------------------------------------------//

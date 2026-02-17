@@ -82,9 +82,9 @@ class LArSphereGeneratorTest : public Test
         data.material = OptMatId(0);
         data.continuous_edep_fraction = 1;
         data.points[StepPoint::pre]
-            = {units::LightSpeed(0.7), from_cm(Real3{0, 0, 0})};
+            = {units::LightSpeed(0.7), 0, from_cm(Real3{0, 0, 0})};
         data.points[StepPoint::post]
-            = {units::LightSpeed(0.6), from_cm(Real3{0, 0, 0.2})};
+            = {units::LightSpeed(0.6), 1e-11, from_cm(Real3{0, 0, 0.2})};
 
         VecDistribution result(count, data);
         for (auto i : range(count))

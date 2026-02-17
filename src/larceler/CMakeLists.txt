@@ -10,6 +10,7 @@ set(PRIVATE_DEPS
   lardataobj::MCBase
   Celeritas::geocel
   Celeritas::celeritas
+  ROOT::Tree
 )
 set(PUBLIC_DEPS
   Celeritas::BuildFlags
@@ -41,6 +42,7 @@ endif()
 celeritas_add_src_library(larceler
    inp/LarStandaloneRunner.cc
    LarStandaloneRunner.cc
+   LarDataReader.cc
 )
 celeritas_target_link_libraries(larceler
   PRIVATE ${PRIVATE_DEPS}
@@ -48,21 +50,38 @@ celeritas_target_link_libraries(larceler
 )
 
 #-----------------------------------------------------------------------------#
-# Create plugin
+# Create plugins
 #-----------------------------------------------------------------------------#
 
-set(_plugin_name LarCelerStandalone)
+macro(celeritas_add_larsoft_plugin target)
+  celeritas_add_src_library(${target} MODULE ${target}.cc)
+  celeritas_target_link_libraries(${target}
+    PRIVATE
+      art::Utilities
+      cetlib::cetlib
+      cetlib_except::cetlib_except
+  )
+endmacro()
 
-celeritas_add_src_library(${_plugin_name} MODULE ${_plugin_name}.cc)
-celeritas_target_link_libraries(${_plugin_name}
+celeritas_add_larsoft_plugin(LarCelerStandalone)
+celeritas_target_link_libraries(LarCelerStandalone
   PRIVATE
-    art::Utilities
-    cetlib::cetlib
-    cetlib_except::cetlib_except
     larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
     lardataobj::MCBase
     ${_larsoft_tool_target}
-  PUBLIC ${PUBLIC_DEPS}
+  PUBLIC
+    Celeritas::larceler
+)
+
+celeritas_add_larsoft_plugin(GeoSimExporterModule)
+celeritas_target_link_libraries(GeoSimExporterModule
+  PRIVATE
+    ROOT::Tree
+    art_root_io::TFileService_service
+    larcore::ServiceUtil
+    larcorealg::Geometry
+    larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
+    lardataobj::MCBase
 )
 
 #-----------------------------------------------------------------------------#

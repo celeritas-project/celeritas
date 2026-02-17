@@ -18,6 +18,13 @@ namespace orangeinp
 {
 namespace detail
 {
+std::string to_string(BoundingZone const& bz)
+{
+    std::ostringstream os;
+    os << bz;
+    return std::move(os).str();
+}
+
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -68,9 +75,7 @@ class BoundingZoneTest : public ::celeritas::test::Test
     {
         using celeritas::is_inside;
 
-        EXPECT_TRUE(encloses(bz.exterior, bz.interior))
-            << "Exterior " << bz.exterior << " does not enclose interior "
-            << bz.interior;
+        EXPECT_TRUE(bz) << "Invalid bz: " << bz;
 
         if (!is_inside(bz.exterior, point))
         {
@@ -117,18 +122,51 @@ class BoundingZoneTest : public ::celeritas::test::Test
     }
 };
 
+TEST_F(BoundingZoneTest, degenerate)
+{
+    Real3 const wherever{0.9, 0.9, 0};
+    BoundingZone e;
+    EXPECT_EQ(IsInside::no, is_inside(e, wherever));
+    EXPECT_EQ("{nowhere}", to_string(e));
+    e.negate();
+    EXPECT_EQ(IsInside::yes, is_inside(e, wherever));
+    EXPECT_EQ("{everywhere}", to_string(e));
+
+    e = BoundingZone::from_infinite();
+    EXPECT_EQ(IsInside::yes, is_inside(e, wherever));
+    EXPECT_EQ("{everywhere}", to_string(e));
+    e.negate();
+    EXPECT_EQ(IsInside::no, is_inside(e, wherever));
+    EXPECT_EQ("{nowhere}", to_string(e));
+
+    // Indefinite
+    e = BoundingZone::from_infinite();
+    e.interior = {};
+    EXPECT_EQ(IsInside::maybe, is_inside(e, wherever));
+    EXPECT_EQ("{maybe anywhere}", to_string(e));
+    e.negate();
+    EXPECT_EQ(IsInside::maybe, is_inside(e, wherever));
+    EXPECT_EQ("{maybe anywhere}", to_string(e));
+}
+
 TEST_F(BoundingZoneTest, standard)
 {
     auto sph = make_bz({0, 0, 0}, 1.0, 0.7);
     EXPECT_EQ(IsInside::no, is_inside(sph, {1.01, 0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(sph, {0.9, 0.9, 0}));
     EXPECT_EQ(IsInside::yes, is_inside(sph, {0.5, 0.5, 0.5}));
+    EXPECT_EQ(
+        R"({always inside {{-0.7,-0.7,-0.7}, {0.7,0.7,0.7}} and never outside {{-1,-1,-1}, {1,1,1}}})",
+        to_string(sph));
 
     // Invert
     sph.negate();
     EXPECT_EQ(IsInside::yes, is_inside(sph, {1.01, 0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(sph, {0.9, 0.9, 0}));
     EXPECT_EQ(IsInside::no, is_inside(sph, {0.5, 0.5, 0.5}));
+    EXPECT_EQ(
+        R"({never inside {{-0.7,-0.7,-0.7}, {0.7,0.7,0.7}} and always outside {{-1,-1,-1}, {1,1,1}}})",
+        to_string(sph));
 
     auto box = make_bz({0, 0, 0}, 1.0, 1.0);
     EXPECT_EQ(IsInside::no, is_inside(box, {1.01, 0, 0}));
@@ -145,12 +183,16 @@ TEST_F(BoundingZoneTest, exterior_only)
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {0.0, 0.0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {1.4, 0, 0}));
     EXPECT_EQ(IsInside::no, is_inside(extonly, {2.0, 0, 0}));
+    EXPECT_EQ("{never outside {{-1.5,-1.5,-1.5}, {1.5,1.5,1.5}}}",
+              to_string(extonly));
 
     // Invert
     extonly.negate();
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {0.0, 0.0, 0}));
     EXPECT_EQ(IsInside::maybe, is_inside(extonly, {1.4, 0, 0}));
     EXPECT_EQ(IsInside::yes, is_inside(extonly, {2.0, 0, 0}));
+    EXPECT_EQ("{always outside {{-1.5,-1.5,-1.5}, {1.5,1.5,1.5}}}",
+              to_string(extonly));
 }
 
 TEST_F(BoundingZoneTest, calc_intersection)
@@ -203,7 +245,30 @@ TEST_F(BoundingZoneTest, calc_intersection)
         auto bz = calc_intersection(sph, negated_bz(trasq));
         EXPECT_FALSE(bz.negated);
         EXPECT_FALSE(bz.interior) << bz.interior;
-        EXPECT_EQ(BBox::from_infinite(), bz.exterior);
+        EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), bz.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), bz.exterior.upper());
+    }
+    {
+        auto box = make_bz({0.5, 0, 0}, 0.5, 0.5);
+        auto large = make_bz({0, 0, 0}, 1.0, 1.0);
+        auto bz = calc_intersection(box, large);
+        EXPECT_EQ(box.interior, bz.interior);
+        EXPECT_EQ(box.exterior, bz.exterior);
+        EXPECT_FALSE(bz.negated);
+
+        bz = calc_intersection(box, box);
+        EXPECT_EQ(box.interior, bz.interior);
+        EXPECT_EQ(box.exterior, bz.exterior);
+        EXPECT_FALSE(bz.negated);
+    }
+    {
+        // Degenerate test: edges are "in"
+        auto box = make_bz({0.5, 0, 0}, 0.5, 0.5);
+        auto negbox = negated_bz(box);
+        auto bz = calc_intersection(box, negbox);
+        EXPECT_EQ(box.interior, bz.interior);
+        EXPECT_EQ(box.exterior, bz.exterior);
+        EXPECT_FALSE(bz.negated);
     }
 }
 
@@ -234,8 +299,8 @@ TEST_F(BoundingZoneTest, calc_union)
         auto bz = calc_union(sph, negextonly);
         EXPECT_TRUE(bz.negated);
         EXPECT_FALSE(bz.interior) << bz.interior;
-        EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), bz.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), bz.exterior.upper());
+        EXPECT_VEC_SOFT_EQ((Real3{0.5, -0.5, -0.5}), bz.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{1.5, 0.5, 0.5}), bz.exterior.upper());
     }
     {
         auto bz = calc_union(negated_bz(sph), negextonly);
@@ -248,7 +313,8 @@ TEST_F(BoundingZoneTest, calc_union)
         auto bz = calc_union(sph, negated_bz(trasph));
         EXPECT_TRUE(bz.negated);
         EXPECT_FALSE(bz.interior) << bz.interior;
-        EXPECT_EQ(BBox::from_infinite(), bz.exterior);
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, -1}), bz.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{2, 2, 1}), bz.exterior.upper());
     }
     {
         // Union with null should be the same as non-null
@@ -259,6 +325,60 @@ TEST_F(BoundingZoneTest, calc_union)
         EXPECT_VEC_SOFT_EQ(sph.exterior.lower(), bz.exterior.lower());
         EXPECT_VEC_SOFT_EQ(sph.exterior.upper(), bz.exterior.upper());
     }
+}
+
+/*!
+ * Test an intersection of unions.
+ *
+ * Unsimplified volume, node 62:
+   all(+12, -13, +14, -15, +16, -17,
+    ~all(+18, -19, +20, -21, +22, -23),
+    ~all(+18, -19, +20, -21, +24, -25),
+    ~all(+18, -19, +20, -21, +26, -27),
+    ~all(+18, -19, +20, -21, +28, -29)
+   )
+ *
+ * i.e.,
+  = &[ 32,43,49,55,61]
+ 32: {{{-1.15,-618,-560}, {1.15,-606,-350}},
+      {{-1.15,-618,-560}, {1.15,-606,-350}}}
+~43: {{{-1.2,-617,-559}, {1.2,-608,-512}},
+      {{-1.2,-617,-559}, {1.2,-608,-512}}}
+~49: {{{-1.2,-617,-510}, {1.2,-608,-463}},
+      {{-1.2,-617,-510}, {1.2,-608,-463}}}
+~55: {{{-1.2,-617,-447}, {1.2,-608,-400}},
+      {{-1.2,-617,-447}, {1.2,-608,-400}}}
+~61: {{{-1.2,-617,-398}, {1.2,-608,-351}},
+      {{-1.2,-617,-398}, {1.2,-608,-351}}}
+ *
+ * See g4org/ProtoConstructor.test.cc::DuneCryostatTest
+ */
+TEST_F(BoundingZoneTest, arapuca_walls)
+{
+    // Outer
+    BoundingZone bz;
+    bz.interior = {{-1.15, -618, -560}, {1.15, -606, -350}};
+    bz.exterior = {{-1.15, -618, -560}, {1.15, -606, -350}};
+    auto subtract
+        = [&bz](BoundingBox<> const& inner, BoundingBox<> const& outer) {
+              BoundingZone rhs{inner, outer};
+              rhs.negate();
+              bz = calc_intersection(bz, rhs);
+          };
+
+    subtract({{-1.2, -617, -559}, {1.2, -608, -512}},
+             {{-1.2, -617, -559}, {1.2, -608, -512}});
+    subtract({{-1.2, -617, -510}, {1.2, -608, -463}},
+             {{-1.2, -617, -510}, {1.2, -608, -463}});
+    subtract({{-1.2, -617, -447}, {1.2, -608, -400}},
+             {{-1.2, -617, -447}, {1.2, -608, -400}});
+    subtract({{-1.2, -617, -398}, {1.2, -608, -351}},
+             {{-1.2, -617, -398}, {1.2, -608, -351}});
+
+    EXPECT_FALSE(bz.negated);
+    EXPECT_FALSE(bz.interior) << bz.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-1.15, -618, -560}), bz.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.15, -606, -350}), bz.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

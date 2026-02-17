@@ -12,6 +12,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/Types.hh"
@@ -101,6 +102,11 @@ TEST_F(FourLevelsTest, consecutive_compute)
 TEST_F(FourLevelsTest, detailed_track)
 {
     this->impl().test_detailed_tracking();
+}
+
+TEST_F(FourLevelsTest, locate_point)
+{
+    this->impl().test_locate_point();
 }
 
 //---------------------------------------------------------------------------//

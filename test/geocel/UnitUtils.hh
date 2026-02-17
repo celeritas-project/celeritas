@@ -54,11 +54,17 @@ from_cm(Array<real_type, 3> const& v)
 }
 
 //---------------------------------------------------------------------------//
-//! Unit system used for length in a test
+//! Unit system used for reference results in a test
 struct UnitLength
 {
     Constant value{::celeritas::lengthunits::centimeter};
     std::string label{"cm"};
+
+    template<class T>
+    constexpr T from_native(T const& v) const
+    {
+        return v / value;
+    }
 };
 
 //---------------------------------------------------------------------------//

@@ -6,10 +6,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
+
 #include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/inp/MucfPhysics.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/mucf/Types.hh"
 #include "celeritas/mucf/data/DTMixMucfData.hh"
+
+#include "EquilibrateDensitiesSolver.hh"
+#include "InterpolatorHelper.hh"
 
 namespace celeritas
 {
@@ -18,58 +24,70 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Helper class to calculate and insert muCF material-dependent data into
- * \c DTMixMucfData .
+ * \c DTMixMucfData . If the material does not contain deuterium and/or
+ * tritium the operator will return false.
+ *
+ * This is designed to work with the user's material definition being either:
+ * - Single element, multiple isotopes (H element, with H, d, and t isotopes);
+ * or
+ * - Multiple elements, single isotope each (separate H, d, and t elements).
+ *
+ * The \c inp:: data has cycle \em rate (\f$\lambda\f$) tables, while the
+ * host/device cached data is the cycle \em time \f$\tau = 1/\lambda\f$.
  */
 class MucfMaterialInserter
 {
   public:
     // Construct with muCF host data
-    explicit MucfMaterialInserter(HostVal<DTMixMucfData>* host_data);
+    explicit MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
+                                  inp::MucfPhysics const& data);
 
     // Insert material if it is a valid d-t mixture
     bool operator()(MaterialView const& material);
 
   private:
-    //// DATA ////
-
     using MoleculeCycles = Array<real_type, 2>;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, MoleculeCycles>;
-    using LhdArray = EnumArray<MucfMuonicAtom, real_type>;
-    using EquilibriumArray = EnumArray<MucfIsoprotologueMolecule, real_type>;
+    using EquilibriumArray = EquilibrateDensitiesSolver::EquilibriumArray;
+    using MaterialFractionsArray = EnumArray<MucfIsotope, real_type>;
     using AtomicMassNumber = AtomicNumber;
-    using MucfIsotope = MucfMuonicAtom;
-    using IsotopeChecker = EnumArray<MucfIsotope, bool>;
+    using InterpolatorsMap
+        = std::map<std::pair<inp::CycleTableType, units::HalfSpinInt>,
+                   InterpolatorHelper>;
+
+    //// DATA ////
 
     // DTMixMucfModel host data references populated by operator()
     CollectionBuilder<PhysMatId, MemSpace::host, MuCfMatId> mucfmatid_to_matid_;
+    CollectionBuilder<MaterialFractionsArray, MemSpace::host, MuCfMatId>
+        isotopic_fractions_;
     CollectionBuilder<CycleTimesArray, MemSpace::host, MuCfMatId> cycle_times_;
-    // Temporary quantities needed for calculating the model data
-    LhdArray lhd_densities_;
-    EquilibriumArray equilibrium_densities_;
+    // Const data
+    std::map<AtomicMassNumber, MucfIsotope> const mass_isotope_map_{
+        {AtomicMassNumber{1}, MucfIsotope::protium},
+        {AtomicMassNumber{2}, MucfIsotope::deuterium},
+        {AtomicMassNumber{3}, MucfIsotope::tritium},
+    };
+    inp::MucfPhysics const& data_;
+    InterpolatorsMap interpolators_;
 
     //// HELPER FUNCTIONS ////
 
-    // Return muonic atom from given atomic mass number
-    MucfMuonicAtom from_mass_number(AtomicMassNumber mass);
-
-    // Calculate dt mixture densities in units of liquid hydrogen density
-    LhdArray calc_lhd_densities(ElementView const&);
-
-    // Calculate thermal equilibrium densities
-    EquilibriumArray calc_equilibrium_densities(ElementView const&);
-
-    // Calculate mean fusion cycle times for all reactive muonic molecules
-    CycleTimesArray calc_cycle_times(ElementView const& element,
-                                     IsotopeChecker const& has_isotope);
-
     // Calculate mean fusion cycle times for dd muonic molecules
-    Array<real_type, 2> calc_dd_cycle(ElementView const&);
+    Array<real_type, 2> calc_dd_cycle(EquilibriumArray const& eq_dens,
+                                      real_type const temperature);
 
     // Calculate mean fusion cycle times for dt muonic molecules
-    Array<real_type, 2> calc_dt_cycle(ElementView const&);
+    Array<real_type, 2> calc_dt_cycle(EquilibriumArray const& eq_dens,
+                                      real_type const temperature);
 
     // Calculate mean fusion cycle times for tt muonic molecules
-    Array<real_type, 2> calc_tt_cycle(ElementView const&);
+    Array<real_type, 2> calc_tt_cycle(EquilibriumArray const& eq_dens,
+                                      real_type const temperature);
+
+    // Get interpolator for given cycle type and spin
+    InterpolatorHelper const&
+    interpolator(inp::CycleTableType type, units::HalfSpinInt spin) const;
 };
 
 //---------------------------------------------------------------------------//
