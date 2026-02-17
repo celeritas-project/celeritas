@@ -62,6 +62,12 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
                         SPConstGeoI geo_interface,
                         UnitLength unit_length);
 
+    // Allow moving for customization
+    CELER_DEFAULT_MOVE_DELETE_COPY(CheckedGeoTrackView);
+
+    //! Check if we were "moved from" (permanently invalid state)
+    explicit operator bool() const { return t_ != nullptr; }
+
     //! Access the underlying track view
     TrackT const& track_view() const { return *t_; }
     //! Access the underlying track view
@@ -73,11 +79,11 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     //// ACCESSORS ////
 
     //! Number of calls of find_next_step
-    size_type intersect_count() const { return num_intersect_; }
+    size_type intersect_count() const { return count_.intersect; }
     //! Number of calls of find_safety
-    size_type safety_count() const { return num_safety_; }
+    size_type safety_count() const { return count_.safety; }
     //! Reset the counters
-    void reset_count() { num_intersect_ = num_safety_ = 0; }
+    void reset_count() { count_ = {}; }
 
     //! Enable/disable normal checking
     void check_normal(bool value) { check_normal_ = value; }
@@ -167,14 +173,17 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     UnitLength unit_length_;
 
     // Configuration flags
-    bool check_normal_{false};
+    bool check_normal_{true};
     bool check_failure_{true};
     bool check_safety_{true};
     bool check_zero_distance_{true};
 
     // Counters
-    size_type num_intersect_{0};
-    size_type num_safety_{0};
+    struct
+    {
+        size_type intersect{0};
+        size_type safety{0};
+    } count_;
 
     // Temporary state
     bool checked_internal_{false};

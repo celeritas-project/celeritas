@@ -164,6 +164,7 @@ CheckedGeoTrackView::CheckedGeoTrackView(UPTrack track,
 CheckedGeoTrackView&
 CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
 {
+    CELER_EXPECT(t_);
     CELER_VALIDATE(is_soft_unit_vector(init.dir),
                    << "cannot initialize with a non-unit direction "
                    << repr(init.dir));
@@ -175,6 +176,7 @@ CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
     {
         CELER_LOG_LOCAL(warning) << "Started on a boundary: " << *this;
     }
+    count_ = {};
     next_boundary_.reset();
     return *this;
 }
@@ -188,8 +190,10 @@ CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
 real_type CheckedGeoTrackView::find_safety()
 {
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
+    CELER_VALIDATE(!this->is_on_boundary(),
+                   << "cannot find safety when on a boundary");
 
-    ++num_safety_;
+    ++count_.safety;
 
     auto result = t_->find_safety();
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
@@ -213,7 +217,7 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
                    << NativeLength{});
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
 
-    ++num_safety_;
+    ++count_.safety;
 
     real_type result = t_->find_safety(max_safety);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
@@ -240,11 +244,11 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
     CELER_VALIDATE(!this->is_outside(),
                    << "cannot change direction while outside");
 
-    bool orig_bndy = t_->is_on_boundary();
+    bool started_on_boundary = t_->is_on_boundary();
     t_->set_dir(newdir);
     CGTV_VALIDATE_NOT_FAILED(*this, "set_dir");
     CGTV_VALIDATE(*this,
-                  orig_bndy == t_->is_on_boundary(),
+                  started_on_boundary == t_->is_on_boundary(),
                   << "boundary state changed during set_dir");
     next_boundary_.reset();
 }
@@ -276,7 +280,7 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     }
 
     bool const started_on_boundary{t_->is_on_boundary()};
-    ++num_intersect_;
+    ++count_.intersect;
     auto result = t_->find_next_step(distance);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_next_step");
     if (result.boundary && result.distance > this->safety_tol()
@@ -312,7 +316,8 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                   << NativeLength{});
     CGTV_VALIDATE(*this,
                   t_->is_on_boundary() == started_on_boundary,
-                  << "boundary state changed during find_next_step");
+                  << "boundary state changed during find_next_step (started "
+                  << (started_on_boundary ? "on" : "off") << " boundary)");
 
     next_boundary_ = result.distance;
     return result;

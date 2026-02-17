@@ -51,6 +51,17 @@ auto VecgeomTestBase::build_geometry() const -> SPConstGeo
 
 //---------------------------------------------------------------------------//
 /*!
+ * Update a checked track view to modify normal checking.
+ */
+CheckedGeoTrackView VecgeomTestBase::make_checked_track_view()
+{
+    auto result = GenericGeoTestBase<VecgeomParams>::make_checked_track_view();
+    result.check_normal(false);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the safety tolerance: lower for surface geo.
  */
 GenericGeoTrackingTolerance VecgeomTestBase::tracking_tol() const

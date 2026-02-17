@@ -11,7 +11,7 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Assert.hh"
+#include "corecel/Assert.hh"  // IWYU pragma: keep
 
 class TFile;
 class TTree;
