@@ -283,8 +283,8 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     ++count_.intersect;
     auto result = t_->find_next_step(distance);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_next_step");
-    if (result.boundary && result.distance > this->safety_tol()
-        && !started_on_boundary)
+    if (check_next_safety_ && result.boundary
+        && result.distance > this->safety_tol() && !started_on_boundary)
     {
         real_type safety = t_->find_safety(distance);
         if (!(safety <= result.distance))

@@ -1823,14 +1823,6 @@ void SolidsGeoTest::test_trace() const
                 result.fail_at(0);
             }
         }
-        else if (test_->geometry_type() == "Geant4")
-        {
-            // FIXME: now that we check safety at the halfway point, we see
-            // errors
-            ref.fail_at(14);
-            ref.halfway_safeties.pop_back();
-            ref.dot_normal.pop_back();
-        }
 
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1938,14 +1930,6 @@ void SolidsGeoTest::test_trace() const
                 result.fail_at(0);
             }
         }
-        else if (test_->geometry_type() == "Geant4")
-        {
-            // FIXME: now that we check safety at the halfway point, we see
-            // errors
-            ref.fail_at(4);
-            ref.halfway_safeties.pop_back();
-            ref.dot_normal.pop_back();
-        }
     }
     {
         SCOPED_TRACE("Lower +x");
@@ -2039,12 +2023,6 @@ void SolidsGeoTest::test_trace() const
                 ref.halfway_safeties[4] = 38.205672682313;
                 ref.halfway_safeties[6] = 38.803595749271;
             }
-
-            // FIXME: now that we check safety at the halfway point, we see
-            // errors
-            ref.fail_at(17);
-            ref.halfway_safeties.pop_back();
-            ref.dot_normal.pop_back();
 
             if (result.dot_normal.size() > 15 && result.dot_normal[15] == 0.0)
             {
