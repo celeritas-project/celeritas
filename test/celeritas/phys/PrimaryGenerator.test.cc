@@ -90,7 +90,7 @@ TEST_F(PrimaryGeneratorTest, basic)
 
     static int const expected_particle_id[] = {0, 1, 0, 0, 1, 0};
     static int const expected_event_id[] = {0, 0, 0, 1, 1, 1};
-    static int const expected_primary_id[] = {0, 1, 2, 3, 4, 5};
+    static int const expected_primary_id[] = {0, 1, 2, 0, 1, 2};
 
     EXPECT_VEC_EQ(expected_particle_id, particle_id);
     EXPECT_VEC_EQ(expected_event_id, event_id);
