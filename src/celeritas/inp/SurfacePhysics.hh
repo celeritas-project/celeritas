@@ -32,11 +32,16 @@ namespace inp
  */
 struct GridReflection
 {
-    //! Reflectivity values [MeV -> unitless]
+    //! Grid values [MeV -> unitless]
     Grid reflectivity;
+    Grid transmittance;
+    // Grid efficiency;
 
     // Whether the data are assigned
-    explicit operator bool() const { return static_cast<bool>(reflectivity); }
+    explicit operator bool() const
+    {
+        return reflectivity || transmittance;  //  || efficiency;
+    }
 };
 
 //---------------------------------------------------------------------------//

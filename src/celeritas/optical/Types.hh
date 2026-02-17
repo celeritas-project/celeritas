@@ -81,10 +81,10 @@ enum class TrivialInteractionMode
 //! Results of a reflectivity substep
 enum class ReflectivityAction
 {
-    absorb,  //!< absorb on surface
     transmit,  //!< transmit with no change
     interact,  //!< continue to sample surface interaction
-    size_ = interact,
+    absorb,  //!< absorb on surface
+    size_ = absorb,
 };
 
 //---------------------------------------------------------------------------//

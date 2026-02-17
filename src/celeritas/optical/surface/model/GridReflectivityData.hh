@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/optical/Types.hh"
@@ -26,14 +27,13 @@ struct GridReflectivityData
     template<class T>
     using Items = Collection<T, W, M>;
 
-    template<class T>
-    using SurfaceItems = Collection<T, W, M, SubModelId>;
+    using SurfaceGrids = Collection<NonuniformGridRecord, W, M, SubModelId>;
     //!@}
 
     //// DATA ////
 
-    //! Surface reflectivity data
-    SurfaceItems<NonuniformGridRecord> reflectivity;
+    EnumArray<ReflectivityAction, SurfaceGrids> reflectivity;
+    // SurfaceGrids efficiency;
 
     //! Backend storage
     Items<real_type> reals;
@@ -43,7 +43,10 @@ struct GridReflectivityData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !reflectivity.empty() && !reals.empty();
+        return !reflectivity[ReflectivityAction::interact].empty()
+               && !reflectivity[ReflectivityAction::transmit].empty()
+               /* && !efficiency.empty() */
+               && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -53,7 +56,11 @@ struct GridReflectivityData
     {
         CELER_EXPECT(other);
 
-        reflectivity = other.reflectivity;
+        for (auto action : range(ReflectivityAction::size_))
+        {
+            reflectivity[action] = other.reflectivity[action];
+        }
+        // efficiency = other.efficiency;
         reals = other.reals;
 
         CELER_ENSURE(*this);
