@@ -15,10 +15,10 @@ namespace celeritas
 /*!
  * Helper class to print a contiguous range of data.
  *
- * Since this is reused for Array, we provide
- *
+ * Since this class is used by both \c Array and \c Span, it is templated
+ * solely on the item type, and directly uses a non-owning pointer with a size.
  * \code
-   std::cout << StreamableSpan{s.data(), s.size()} << std::endl;
+   std::cout << StreamableContainer{s.data(), s.size()} << std::endl;
    \endcode
  */
 template<class T>
@@ -34,8 +34,6 @@ struct StreamableContainer
 
 template<class T>
 StreamableContainer(T const*, size_type) -> StreamableContainer<T>;
-template<class T>
-StreamableContainer(T*, size_type) -> StreamableContainer<T>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
