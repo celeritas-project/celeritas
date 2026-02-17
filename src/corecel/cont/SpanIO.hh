@@ -4,24 +4,5 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/io/StreamableContainer.hh"
-
-#include "Span.hh"
-
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
-/*!
- * Write the elements of array \a a to stream \a os.
- */
-template<class T, std::size_t N>
-CELER_FORCEINLINE std::ostream&
-operator<<(std::ostream& os, Span<T, N> const& s)
-{
-    os << StreamableContainer{s.data(), s.size()};
-    return os;
-}
-#endif
-
-//---------------------------------------------------------------------------//
-}  // namespace celeritas
+// DEPRECATED: remove in 1.0
+#warning "Deprecated: this file is no longer necessary to include"

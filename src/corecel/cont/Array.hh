@@ -13,6 +13,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/StreamableContainer.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -178,6 +182,20 @@ CELER_CEF bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     return !(lhs == rhs);
 }
+
+#if !CELER_DEVICE_COMPILE
+//---------------------------------------------------------------------------//
+/*!
+ * Write the elements of array \a a to stream \a os.
+ */
+template<class T, size_type N>
+CELER_FORCEINLINE std::ostream&
+operator<<(std::ostream& os, Array<T, N> const& a)
+{
+    os << StreamableContainer{a.data(), a.size()};
+    return os;
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
