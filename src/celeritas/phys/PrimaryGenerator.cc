@@ -183,9 +183,7 @@ auto PrimaryGenerator::operator()() -> result_type
         p.direction = sample_dir_(rng_);
         p.time = 0;
         p.event_id = EventId{event_count_};
-        p.primary_id = PrimaryId{event_count_ * primaries_per_event_ + i};
-        p.geant_track_id = p.primary_id.get();
-        p.geant_step_count = 0;
+        p.primary_id = PrimaryId{i};
     }
     ++event_count_;
     return result;
