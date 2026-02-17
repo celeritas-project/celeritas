@@ -1731,7 +1731,8 @@ void SolidsGeoTest::test_trace() const
 {
     {
         SCOPED_TRACE("Upper +x");
-        auto result = test_->track({-575, 125, 0.5}, {1, 0, 0});
+        // FIXME: y=125 is along the left cutout of polyhedr1
+        auto result = test_->track({-575, 125., 0.5}, {1, 0, 0});
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
@@ -1823,6 +1824,7 @@ void SolidsGeoTest::test_trace() const
                 result.fail_at(0);
             }
         }
+        delete_orange_safety(*test_, ref, result);
 
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1872,8 +1874,8 @@ void SolidsGeoTest::test_trace() const
         ref.dot_normal = {
             0.99998046627013,
             0.99998046627013,
-            0,
-            0,
+            0.98058067569092,
+            0.98058067569092,
             0.98058067569092,
             0.98058067569092,
             0.69670670934717,
@@ -1914,7 +1916,14 @@ void SolidsGeoTest::test_trace() const
             6.5489918373272,
             33.481506089183,
         };
-        if (test_->geometry_type() == "VecGeom")
+        if (test_->geometry_type() == "Geant4")
+        {
+            // Geant4 chooses normals along the planar cut parallel to the
+            // track
+            ref.dot_normal[2] = 0;
+            ref.dot_normal[3] = 0;
+        }
+        else if (test_->geometry_type() == "VecGeom")
         {
             // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
             // Geant4 v11.3.1
@@ -1930,6 +1939,10 @@ void SolidsGeoTest::test_trace() const
                 result.fail_at(0);
             }
         }
+        delete_orange_safety(*test_, ref, result);
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Lower +x");
@@ -2050,6 +2063,7 @@ void SolidsGeoTest::test_trace() const
                 result.fail_at(0);
             }
         }
+        delete_orange_safety(*test_, ref, result);
 
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -2114,13 +2128,19 @@ void SolidsGeoTest::test_trace() const
             74.5,
         };
 
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom")
         {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            auto tol = test_->tracking_tol();
-            EXPECT_REF_NEAR(ref, result, tol);
+            if (vecgeom_version >= Version{2, 0})
+            {
+                // TODO: VecGeom 2.x-solids still missing some shapes
+                ref.fail_at(0);
+                result.fail_at(0);
+            }
         }
+        delete_orange_safety(*test_, ref, result);
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 
