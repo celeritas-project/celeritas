@@ -879,8 +879,13 @@ TEST_F(SolidsTest, trace)
     {
         // G4 11.3 report normal directions perpendicular to track direction
         // due to coincident surfaces; and at least one of the tangents is
-        // machine-dependent
-        EXPECT_GE(scoped_log_.levels().size(), 3) << scoped_log_;
+        // machine-dependent; these also cause zero-safety states that result
+        // in being "on boundary" in the middle of the step.
+        EXPECT_GE(scoped_log_.levels().size(), 4) << scoped_log_;
+        for (std::string const& msg : scoped_log_.messages())
+        {
+            cout << "Ignored warning/failure: " << msg << endl;
+        }
     }
 }
 
