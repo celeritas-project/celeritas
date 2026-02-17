@@ -108,6 +108,28 @@ void ScopedLogStorer::operator()(LogProvenance prov,
 }
 
 //---------------------------------------------------------------------------//
+//! Delete messages that contain a certain string
+void ScopedLogStorer::remove_if_contains(std::string const& s)
+{
+    auto it_msg = messages_.begin();
+    auto it_lev = levels_.begin();
+
+    while (it_msg != messages_.end())
+    {
+        if (it_msg->find(s) != std::string::npos)
+        {
+            it_msg = messages_.erase(it_msg);
+            it_lev = levels_.erase(it_lev);
+        }
+        else
+        {
+            ++it_msg;
+            ++it_lev;
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
 //! Print the expected values
 void ScopedLogStorer::print_expected() const
 {

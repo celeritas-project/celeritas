@@ -55,6 +55,8 @@ class GeantOrangeTest : public OrangeTestBase
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::error};
         auto result = OrangeTestBase::build_geometry();
+        // Ignore messages emitted from Geant4 loader
+        scoped_log_.remove_if_contains("Geant4 error:");
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;
     }
