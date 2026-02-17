@@ -9,7 +9,6 @@
 #include <fstream>
 #include <variant>
 
-#include "corecel/OpaqueIdIO.hh"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"

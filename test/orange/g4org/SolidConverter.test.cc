@@ -45,7 +45,6 @@
 
 #include "corecel/Constants.hh"
 #include "corecel/ScopedLogStorer.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/Turn.hh"
