@@ -147,7 +147,7 @@ class SurfacePhysicsIntegrationGridTest
         input.reflectivity.grid.emplace(
             phys_surface,
             inp::GridReflection{inp::Grid{{1e-6, 2e-6, 4e-6, 5e-6, 7e-6, 8e-6},
-                                          {0.0, 0.5, 0.5, 0.75, 0.33, 0.0}}});
+                                          {0.0, 0.7, 0.7, 0.75, 0.33, 0.0}}});
         input.interaction.trivial.emplace(phys_surface,
                                           TrivialInteractionMode::backscatter);
     }
