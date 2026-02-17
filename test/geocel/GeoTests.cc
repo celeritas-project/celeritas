@@ -1950,7 +1950,7 @@ void SolidsGeoTest::test_trace() const
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            "World",   "trd3_refl",  "trd3_refl", "World",    "arb8b",
+            "World",   "trd3_also",  "trd3_refl", "World",    "arb8b",
             "World",   "arb8a",      "World",     "trap1",    "World",
             "tetrah1", "World",      "orb1",      "World",    "genPocone1",
             "World",   "genPocone1", "World",     "elltube1", "World",
