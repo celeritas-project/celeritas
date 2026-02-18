@@ -2048,8 +2048,8 @@ void SolidsGeoTest::test_trace() const
             {
                 // Older versions of Geant4 have a bug in Arb8 that
                 // overestimates safety distance to twisted surfaces
-                ref.halfway_safeties[4] = 38.205672682313;
-                ref.halfway_safeties[6] = 38.803595749271;
+                ref.halfway_safeties[5] = 38.205672682313;
+                ref.halfway_safeties[7] = 38.803595749271;
             }
         }
         else if (test_->geometry_type() == "VecGeom")
