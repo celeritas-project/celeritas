@@ -1943,13 +1943,14 @@ TEST_F(Solids, volumes_only)
         names.push_back(volume.name);
     }
 
-    static char const* const expected_names[]
-        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
-           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl@0"};
+    static char const* const expected_names[] = {
+        "box500",    "cone1",    "para1",     "sphere1",    "parabol1",
+        "trap1",     "trd1",     "trd2",      "",           "trd3_also",
+        "tube100",   "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1",   "orb1",     "polyhedr1", "hype1",      "elltube1",
+        "ellcone1",  "arb8b",    "arb8a",     "xtru1",      "World",
+        "trd3_refl",
+    };
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -1968,13 +1969,14 @@ TEST_F(Solids, volumes_unique)
     {
         names.push_back(volume.name);
     }
-    static char const* const expected_names[]
-        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
-           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl@0"};
+    static char const* const expected_names[] = {
+        "box500",    "cone1",    "para1",     "sphere1",    "parabol1",
+        "trap1",     "trd1",     "trd2",      "",           "trd3_also",
+        "tube100",   "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1",   "orb1",     "polyhedr1", "hype1",      "elltube1",
+        "ellcone1",  "arb8b",    "arb8a",     "xtru1",      "World",
+        "trd3_refl",
+    };
     EXPECT_VEC_EQ(expected_names, names);
 }
 

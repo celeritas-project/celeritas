@@ -61,6 +61,18 @@ class GeantOrangeTest : public OrangeTestBase
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;
     }
+
+    //! Some shapes have larger errors with single precision
+    GenericGeoTrackingTolerance tracking_tol() const override
+    {
+        auto result = OrangeTestBase::tracking_tol();
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            result.distance = 1e-5;
+        }
+        return result;
+    }
 };
 
 //---------------------------------------------------------------------------//
