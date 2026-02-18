@@ -25,7 +25,7 @@ template<class T>
 struct StreamableContainer
 {
     T const* data{};
-    size_type size{};
+    std::size_t size{};
 };
 
 //---------------------------------------------------------------------------//
