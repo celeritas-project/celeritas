@@ -1939,50 +1939,24 @@ void SolidsGeoTest::test_trace() const
         auto result = test_->track({-575, -125, 0.5}, {1, 0, 0});
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            "World",
-            "trd3_also",
-            "trd3_refl",
-            "World",
-            "arb8b",
-            "World",
-            "arb8a",
-            "World",
-            "trap1",
-            "World",
-            "tetrah1",
-            "World",
-            "orb1",
-            "World",
-            "genPocone1",
-            "World",
-            "elltube1",
-            "World",
+            "World",      "trd3_also", "World",    "trd3_refl", "World",
+            "arb8b",      "World",     "arb8a",    "World",     "trap1",
+            "World",      "tetrah1",   "World",    "orb1",      "World",
+            "genPocone1", "World",     "elltube1", "World",
         };
         ref.volume_instances = {
-            "World_PV",
-            "reflected@1",
-            "reflected@0",
-            "World_PV",
-            "arb8b_PV",
-            "World_PV",
-            "arb8a_PV",
-            "World_PV",
-            "trap1_PV",
-            "World_PV",
-            "tetrah1_PV",
-            "World_PV",
-            "orb1_PV",
-            "World_PV",
-            "genPocone1_PV",
-            "World_PV",
-            "elltube1_PV",
-            "World_PV",
+            "World_PV", "reflected@1", "World_PV", "reflected@0",
+            "World_PV", "arb8b_PV",    "World_PV", "arb8a_PV",
+            "World_PV", "trap1_PV",    "World_PV", "tetrah1_PV",
+            "World_PV", "orb1_PV",     "World_PV", "genPocone1_PV",
+            "World_PV", "elltube1_PV", "World_PV",
         };
         ref.distances = {
             34.956698760421,
             30.086602479158,
-            24.913397520842,
-            70.093301239579,
+            20,
+            29.913397520842,
+            45.093301239579,
             79.9,
             45.1,
             79.9,
@@ -2006,6 +1980,7 @@ void SolidsGeoTest::test_trace() const
             0.99503719020999,
             0.99503719020999,
             0.99503719020999,
+            0.99503719020999,
             0.95838499854689,
             0.93313781368065,
             0.98803162409286,
@@ -2020,8 +1995,9 @@ void SolidsGeoTest::test_trace() const
         ref.halfway_safeties = {
             17.391607656793,
             14.968644196913,
-            12.394878533861,
-            34.872720758987,
+            9.9503719020999,
+            14.882471509386,
+            22.434755881362,
             39.751735748889,
             22.438088639235,
             33.070197064425,
@@ -2052,13 +2028,13 @@ void SolidsGeoTest::test_trace() const
         {
             // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
             // Geant4 v11.3.1
-            ref.halfway_safeties[3] = 29.9966506197896;
-            ref.halfway_safeties[4] = 27.7657728660916;
-            ref.halfway_safeties[5] = 17.5;
-            ref.halfway_safeties[6] = 21.8864641598878;
-            ref.halfway_safeties[7] = 29.1115376091067;
-            ref.halfway_safeties[13] = 19.0382940808067;
-            ref.halfway_safeties[14] = 0.5;
+            ref.halfway_safeties[4] = 17.4966506197896;
+            ref.halfway_safeties[5] = 27.7657728660916;
+            ref.halfway_safeties[6] = 17.5;
+            ref.halfway_safeties[7] = 21.8864641598878;
+            ref.halfway_safeties[8] = 29.1115376091067;
+            ref.halfway_safeties[14] = 19.0382940808067;
+            ref.halfway_safeties[15] = 0.5;
 
             if (vecgeom_version >= Version{2, 0})
             {

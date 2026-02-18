@@ -319,7 +319,7 @@ TEST_F(SolidsTest, trace)
 
 TEST_F(SolidsTest, reflected_vol)
 {
-    auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
+    auto geo = this->make_geo_track_view({-480, -125, 0}, {0, 1, 0});
     auto const& label
         = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     EXPECT_EQ("trd3_refl", label.name);

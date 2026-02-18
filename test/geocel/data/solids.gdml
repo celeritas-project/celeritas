@@ -60,7 +60,7 @@ acceptance of all terms of the Geant4 Software license.
 
   <position name="posTessel1"    x="-5000" y=" 1250" z="0" unit="mm" />
   <position name="posDirect"     x="-5000" y="    0" z="0" unit="mm" />
-  <position name="posReflect"    x="-5000" y="-1250" z="0" unit="mm" />
+  <position name="trd3_refl_pos" x="-4750" y="-1250" z="0" unit="mm" />
   <position name="posXtru1"      x="-5250" y="    0" z="0" unit="mm" />
 
   <position name="v0" unit="mm"  x=" 400" y=" 400" z="-500" />
@@ -392,7 +392,7 @@ acceptance of all terms of the Geant4 Software license.
 
    <physvol name="reflected0x1234">
      <volumeref ref="trd3"/>
-     <positionref ref="posReflect"/>
+     <positionref ref="trd3_refl_pos"/>
      <rotationref ref="rotatebyx"/>
      <scale x="1" y="1" z="-1"/>
    </physvol>
