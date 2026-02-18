@@ -33,7 +33,7 @@ struct StreamableContainer
 //---------------------------------------------------------------------------//
 
 template<class T>
-StreamableContainer(T const*, size_type) -> StreamableContainer<T>;
+StreamableContainer(T const*, std::size_t) -> StreamableContainer<T>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

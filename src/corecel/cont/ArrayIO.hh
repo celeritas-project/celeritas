@@ -4,4 +4,6 @@
 //---------------------------------------------------------------------------//
 
 // DEPRECATED: remove in 1.0
-#warning "Deprecated:his file is no longer necessary to include"
+#warning "Deprecated: this file is no longer necessary to include"
+
+#include "Array.hh"

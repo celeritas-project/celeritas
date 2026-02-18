@@ -5,3 +5,5 @@
 #pragma once
 
 #warning "Deprecated: this file is no longer necessary to include"
+
+#include "Quantity.hh"

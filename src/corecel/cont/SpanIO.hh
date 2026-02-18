@@ -6,3 +6,5 @@
 
 // DEPRECATED: remove in 1.0
 #warning "Deprecated: this file is no longer necessary to include"
+
+#include "Span.hh"

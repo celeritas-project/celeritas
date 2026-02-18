@@ -35,7 +35,6 @@ namespace celeritas
  * \note For supplementary functionality, include:
  * - \c corecel/math/ArrayUtils.hh for real-number vector/matrix applications
  * - \c corecel/math/ArrayOperators.hh for mathematical operators
- * - \c ArrayIO.hh for streaming and string conversion
  * - \c ArrayIO.json.hh for JSON input and output
  */
 template<class T, ::celeritas::size_type N>
