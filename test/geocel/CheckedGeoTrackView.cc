@@ -256,37 +256,6 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
 /*!
  * Find the distance to the next boundary.
  *
- * \pre Cannot call from outside or if failed
- * \post Boundary state was unaffected
- * \return Next step, with boundary flag set
- */
-Propagation CheckedGeoTrackView::find_next_step()
-{
-    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
-    CELER_VALIDATE(!this->is_outside(),
-                   << "cannot find next step while outside");
-
-    bool orig_bndy = t_->is_on_boundary();
-    ++count_.intersect;
-    auto result = t_->find_next_step();
-    CGTV_VALIDATE_NOT_FAILED(*this, "find_next_step");
-    CGTV_VALIDATE(*this,
-                  orig_bndy == t_->is_on_boundary(),
-                  << "boundary state changed during find_next_step");
-    CGTV_VALIDATE(*this, result.boundary, << "could not find next boundary");
-    CGTV_VALIDATE(*this,
-                  result.distance > 0,
-                  << "return distance " << repr(result.distance)
-                  << NativeLength{} << " was nonpositive");
-
-    next_boundary_ = result.distance;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the distance to the next boundary.
- *
  * \pre Cannot call from outside or if failed, distance is positive
  * \post Boundary state was unaffected
  * \return Next step, with distance between zero and the given maximum
@@ -313,8 +282,8 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     ++count_.intersect;
     auto result = t_->find_next_step(distance);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_next_step");
-    if (result.boundary && result.distance > this->safety_tol()
-        && !started_on_boundary)
+    if (check_next_safety_ && result.boundary
+        && result.distance > this->safety_tol() && !started_on_boundary)
     {
         real_type safety = t_->find_safety(distance);
         if (!(safety <= result.distance))

@@ -83,7 +83,7 @@ class WrappedGeoTrackView final
     Real3 normal() const final { return t_.normal(); }
 
     // Straight-line movement and boundary crossing
-    Propagation find_next_step() final { return t_.find_next_step(); }
+    using GeoTrackInterface<real_type>::find_next_step;
     Propagation find_next_step(real_type max_step) final
     {
         return t_.find_next_step(max_step);

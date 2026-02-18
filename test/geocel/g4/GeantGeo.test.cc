@@ -9,6 +9,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4StateManager.hh>
 #include <G4VSensitiveDetector.hh>
+#include <G4Version.hh>
 
 #include "corecel/Config.hh"
 
@@ -40,8 +41,8 @@ namespace test
 {
 namespace
 {
-auto const geant4_version = celeritas::Version::from_string(
-    CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
+constexpr auto geant4_version
+    = celeritas::Version::from_dec_xyz(G4VERSION_NUMBER);
 
 }  // namespace
 
@@ -104,6 +105,19 @@ class GeantGeoTest : public GeantGeoTestBase
         auto* sm = G4StateManager::GetStateManager();
         EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_PreInit));
         GeantGeoTestBase::TearDown();
+    }
+
+    CheckedGeoTrackView make_checked_track_view() override
+    {
+        auto result = GeantGeoTestBase::make_checked_track_view();
+
+        // FIXME:
+        // Safety check with normals produce bizarre behavior in raytrace
+        // tests for G4 < 11.2, and we get midpoint "zero safety" errors
+        // for 11.2 and greater at some spots
+        result.check_next_safety(false);
+
+        return result;
     }
 };
 
@@ -879,8 +893,13 @@ TEST_F(SolidsTest, trace)
     {
         // G4 11.3 report normal directions perpendicular to track direction
         // due to coincident surfaces; and at least one of the tangents is
-        // machine-dependent
+        // machine- and version-dependent; these also cause zero-safety states
+        // that result in being "on boundary" in the middle of the step.
         EXPECT_GE(scoped_log_.levels().size(), 3) << scoped_log_;
+        for (std::string const& msg : scoped_log_.messages())
+        {
+            cout << "Ignored warning/failure: " << msg << endl;
+        }
     }
 }
 

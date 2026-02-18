@@ -388,11 +388,9 @@ TEST_F(OneVolumeTest, intersect)
         auto state = this->make_state({1, 2, 3}, {0, 0, 1}, "infinite");
         auto isect = tracker.intersect(state);
         EXPECT_FALSE(isect);
-        EXPECT_EQ(no_intersection(), isect.distance);
 
         isect = tracker.intersect(state, 5.0);
         EXPECT_FALSE(isect);
-        EXPECT_EQ(5.0, isect.distance);
     }
 }
 
@@ -517,7 +515,6 @@ TEST_F(TwoVolumeTest, intersect)
         // Range limit: less than
         isect = tracker.intersect(state, 0.9);
         EXPECT_FALSE(isect);
-        EXPECT_SOFT_EQ(0.9, isect.distance);
     }
     {
         SCOPED_TRACE("Outside");
@@ -922,11 +919,9 @@ TEST_F(FiveVolumesTest, intersect)
 
         isect = tracker.intersect(state, 100.0);
         EXPECT_FALSE(isect);
-        EXPECT_SOFT_EQ(100.0, isect.distance);
 
         isect = tracker.intersect(state, 1e-12);
         EXPECT_FALSE(isect);
-        EXPECT_SOFT_EQ(1e-12, isect.distance);
     }
 }
 

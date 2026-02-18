@@ -4,6 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/geo/GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
+#include <limits>
+
 #include "corecel/data/StateDataStore.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
@@ -61,7 +63,7 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
         result.push_back(this->material_name(
             geo_mat_view.material_id(geo.impl_volume_id())));
 
-        geo.find_next_step();
+        geo.find_next_step(std::numeric_limits<real_type>::infinity());
         geo.move_to_boundary();
         geo.cross_boundary();
     }

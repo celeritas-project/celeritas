@@ -1815,15 +1815,17 @@ void SolidsGeoTest::test_trace() const
             // v1.2.10: unknown differences outside hyperboloid
             ref.halfway_safeties[1] = 1.99361986757606;
             ref.halfway_safeties[3] = 1.99361986757606;
+
+            if (vecgeom_version >= Version{2, 0})
+            {
+                // TODO: VecGeom 2.x-solids still missing some shapes
+                ref.fail_at(0);
+                result.fail_at(0);
+            }
         }
 
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
-        {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            auto tol = test_->tracking_tol();
-            EXPECT_REF_NEAR(ref, result, tol);
-        }
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Center -x");
@@ -1920,13 +1922,13 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[14] = 42.8397753718277;
             ref.halfway_safeties[15] = 18.8833925371992;
             ref.halfway_safeties[16] = 42.8430141842906;
-        }
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
-        {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            auto tol = test_->tracking_tol();
-            EXPECT_REF_NEAR(ref, result, tol);
+
+            if (vecgeom_version >= Version{2, 0})
+            {
+                // TODO: VecGeom 2.x-solids still missing some shapes
+                ref.fail_at(0);
+                result.fail_at(0);
+            }
         }
     }
     {
@@ -2012,13 +2014,21 @@ void SolidsGeoTest::test_trace() const
             20,
             74.5,
         };
-        if (test_->geometry_type() == "Geant4"
-            && geant4_version < Version{11, 3})
+        if (test_->geometry_type() == "Geant4")
         {
-            // Older versions of Geant4 have a bug in Arb8 that overestimates
-            // safety distance to twisted surfaces
-            ref.halfway_safeties[4] = 38.205672682313;
-            ref.halfway_safeties[6] = 38.803595749271;
+            if (geant4_version < Version{11, 3})
+            {
+                // Older versions of Geant4 have a bug in Arb8 that
+                // overestimates safety distance to twisted surfaces
+                ref.halfway_safeties[4] = 38.205672682313;
+                ref.halfway_safeties[6] = 38.803595749271;
+            }
+
+            if (result.dot_normal.size() > 15 && result.dot_normal[15] == 0.0)
+            {
+                CELER_LOG(warning) << "GenPocone normal seems to have a bug";
+                ref.dot_normal[15] = result.dot_normal[15];
+            }
         }
         else if (test_->geometry_type() == "VecGeom")
         {
@@ -2032,23 +2042,17 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[13] = 19.0382940808067;
             ref.halfway_safeties[14] = 0.5;
             ref.halfway_safeties[17] = 28.6150602709819;
-        }
 
-        if (test_->geometry_type() == "Geant4"
-            && ref.dot_normal.size() == result.dot_normal.size()
-            && result.dot_normal[15] == 0.0)
-        {
-            CELER_LOG(warning) << "GenPocone normal seems to have a bug";
-            ref.dot_normal[15] = result.dot_normal[15];
+            if (vecgeom_version >= Version{2, 0})
+            {
+                // TODO: VecGeom 2.x-solids still missing some shapes
+                ref.fail_at(0);
+                result.fail_at(0);
+            }
         }
 
         auto tol = test_->tracking_tol();
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
-        {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            EXPECT_REF_NEAR(ref, result, tol);
-        }
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Middle +y");
