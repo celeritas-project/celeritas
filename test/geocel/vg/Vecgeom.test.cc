@@ -582,6 +582,10 @@ TEST_F(SolidsTest, imager)
     {
         prefix += "surf";
     }
+    else if (vecgeom_version >= Version{2})
+    {
+        prefix += "2";
+    }
 
     write_image(ImageParams{inp}, prefix + "-solids-xy-hi.jsonl");
 
