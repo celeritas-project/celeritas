@@ -331,8 +331,37 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
 {
     auto& reflectivity = models_.reflectivity;
     inp::GridReflection refl_grid;
-    if (helper.get_property(&refl_grid.reflectivity, "REFLECTIVITY"))
+
+    bool has_refl
+        = helper.get_property(&refl_grid.reflectivity, "REFLECTIVITY");
+    bool has_trans
+        = helper.get_property(&refl_grid.transmittance, "TRANSMITTANCE");
+    bool has_eff = helper.get_property(&refl_grid.efficiency, "EFFICIENCY");
+
+    if (has_refl || has_trans || has_eff)
     {
+        // Create default grids for reflectivity / transmittance
+        if (has_refl && !has_trans)
+        {
+            refl_grid.transmittance.x = {refl_grid.reflectivity.x.front(),
+                                         refl_grid.reflectivity.x.back()};
+            refl_grid.transmittance.y = {0, 0};
+        }
+        else if (has_trans && !has_refl)
+        {
+            refl_grid.reflectivity.x = {refl_grid.transmittance.x.front(),
+                                        refl_grid.transmittance.x.back()};
+            refl_grid.reflectivity.y = {0, 0};
+        }
+        else if (!has_trans && !has_refl)
+        {
+            refl_grid.reflectivity.x = {refl_grid.efficiency.x.front(),
+                                        refl_grid.efficiency.x.back()};
+            refl_grid.reflectivity.y = {0, 0};
+            refl_grid.transmittance.x = refl_grid.reflectivity.x;
+            refl_grid.transmittance.y = refl_grid.reflectivity.y;
+        }
+
         helper.emplace(reflectivity.grid, std::move(refl_grid));
     }
     else

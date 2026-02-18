@@ -149,9 +149,18 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
         input.reflectivity = ReflectivityModels{
             {
-                {PSI{0}, GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}}, Grid{}}},
-                {PSI{2}, GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}}, Grid{}}},
-                {PSI{5}, GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}}, Grid{}}},
+                {PSI{0},
+                 GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}},
+                                Grid{{0.0, 1.0}, {0.0, 0.0}},
+                                Grid{}}},
+                {PSI{2},
+                 GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}},
+                                Grid{{0.0, 1.0}, {0.0, 0.0}},
+                                Grid{}}},
+                {PSI{5},
+                 GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}},
+                                Grid{{0.0, 1.0}, {0.0, 0.0}},
+                                Grid{}}},
             },
             {
                 {PSI{1}, FresnelReflection{}},

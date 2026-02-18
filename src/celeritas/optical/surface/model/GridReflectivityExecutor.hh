@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
@@ -45,23 +46,18 @@ class GridReflectivitySampler
  * Sample user-defined reflectivity and transmittance grids to determine if the
  * track is transmitted, absorbed, or undergoes usual physics interactions.
  */
-class GridReflectivityExecutor
+struct GridReflectivityExecutor
 {
-  public:
     //!@{
     //! \name Type aliases
-    using DataRef = NativeCRef<GridReflectivityData>;
+    using Energy = units::MevEnergy;
     //!@}
 
-  public:
-    inline CELER_FUNCTION GridReflectivityExecutor(DataRef const&);
+    NativeCRef<GridReflectivityData> data;
 
     //! Apply grid reflectivity executor
     inline CELER_FUNCTION ReflectivityAction
     operator()(CoreTrackView const& track) const;
-
-  private:
-    DataRef data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -91,12 +87,6 @@ GridReflectivitySampler::operator()(ReflectivityAction action) const
     return result;
 }
 
-CELER_FUNCTION
-GridReflectivityExecutor::GridReflectivityExecutor(DataRef const& data)
-    : data_(data)
-{
-}
-
 CELER_FUNCTION ReflectivityAction
 GridReflectivityExecutor::operator()(CoreTrackView const& track) const
 {
@@ -104,18 +94,34 @@ GridReflectivityExecutor::operator()(CoreTrackView const& track) const
     auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::reflectivity)
                             .internal_surface_id();
 
-    // auto efficiency = calc_grid(data.efficiency[sub_model_id]);
-
     auto rng = track.rng();
 
+    // Sample action based on reflectivity and transmittance grids
     auto action = celeritas::make_unnormalized_selector(
-        GridReflectivitySampler{data_, sub_model_id, track.particle().energy()},
+        GridReflectivitySampler{data, sub_model_id, track.particle().energy()},
         ReflectivityAction::size_,
         real_type{1})(rng);
 
-    // if (action == ReflectivityAction::absorb)
-    // {
-    // }
+    if (action == ReflectivityAction::absorb)
+    {
+        auto e_grid_id = data.efficiency_ids[sub_model_id];
+        if (e_grid_id < data.efficiency.size())
+        {
+            // If absorbed and has efficiency grid, sample efficiency
+            auto const& e_grid = data.efficiency[e_grid_id];
+
+            CELER_ASSERT(e_grid);
+
+            real_type efficiency = NonuniformGridCalculator{e_grid, data.reals}(
+                value_as<Energy>(track.particle().energy()));
+
+            if (BernoulliDistribution{efficiency}(rng))
+            {
+                // Pass efficiency selection; transmit instead of absorb
+                action = ReflectivityAction::transmit;
+            }
+        }
+    }
 
     return action;
 }

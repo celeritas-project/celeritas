@@ -55,6 +55,13 @@ CELER_FUNCTION void PreStepExecutor::operator()(CoreTrackView const& track)
                  || sim.status() == TrackStatus::alive);
     sim.status(TrackStatus::alive);
 
+    if (!track.material_record().material_id())
+    {
+        // Kill any tracks starting in an invalid optical material
+        sim.status(TrackStatus::killed);
+        return;
+    }
+
     if (!track.surface_physics().is_crossing_boundary())
     {
         auto phys = track.physics();

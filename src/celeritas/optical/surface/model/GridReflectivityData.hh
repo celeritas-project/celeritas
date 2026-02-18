@@ -24,16 +24,24 @@ struct GridReflectivityData
 {
     //!@{
     //! \name Type aliases
+    using Grid = NonuniformGridRecord;
+    using GridId = OpaqueId<Grid>;
+
     template<class T>
     using Items = Collection<T, W, M>;
 
-    using SurfaceGrids = Collection<NonuniformGridRecord, W, M, SubModelId>;
+    template<class T>
+    using SurfaceItems = Collection<T, W, M, SubModelId>;
+
+    using ReflectivityGrids = EnumArray<ReflectivityAction, SurfaceItems<Grid>>;
     //!@}
 
     //// DATA ////
 
-    EnumArray<ReflectivityAction, SurfaceGrids> reflectivity;
-    // SurfaceGrids efficiency;
+    ReflectivityGrids reflectivity;
+
+    SurfaceItems<GridId> efficiency_ids;
+    Items<Grid> efficiency;
 
     //! Backend storage
     Items<real_type> reals;
@@ -45,8 +53,7 @@ struct GridReflectivityData
     {
         return !reflectivity[ReflectivityAction::interact].empty()
                && !reflectivity[ReflectivityAction::transmit].empty()
-               /* && !efficiency.empty() */
-               && !reals.empty();
+               && !efficiency_ids.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -60,7 +67,8 @@ struct GridReflectivityData
         {
             reflectivity[action] = other.reflectivity[action];
         }
-        // efficiency = other.efficiency;
+        efficiency_ids = other.efficiency_ids;
+        efficiency = other.efficiency;
         reals = other.reals;
 
         CELER_ENSURE(*this);

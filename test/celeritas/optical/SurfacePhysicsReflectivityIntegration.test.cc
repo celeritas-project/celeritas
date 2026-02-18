@@ -157,6 +157,37 @@ class SurfacePhysicsIntegrationGridTest
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Grid reflectivity model with quantum efficiency.
+ *
+ * Interact with a user defined grid probability.
+ */
+class SurfacePhysicsIntegrationEfficiencyTest
+    : public SurfacePhysicsReflectivityIntegrationTest
+{
+  public:
+    void setup_surface_models(inp::SurfacePhysics& input) const final
+    {
+        PhysSurfaceId phys_surface{0};
+
+        // center-top surface
+
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.grid.emplace(phys_surface, [] {
+            inp::GridReflection refl;
+            std::vector<double> xs{1e-6, 2e-6, 4e-6, 5e-6, 7e-6, 8e-6};
+            refl.reflectivity = inp::Grid{xs, {0.0, 0.2, 0.2, 0.75, 0.33, 0.0}};
+            refl.transmittance = inp::Grid{xs, {0, 0.1, 0.1, 0.2, 0.1, 0}};
+            refl.efficiency = inp::Grid{xs, {0, 0.6, 0.6, 0.1, 0, 0}};
+            return refl;
+        }());
+        input.interaction.trivial.emplace(phys_surface,
+                                          TrivialInteractionMode::backscatter);
+    }
+};
+
+//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 // Only Fresnel
@@ -175,9 +206,21 @@ TEST_F(SurfacePhysicsIntegrationFresnelTest, fresnel)
 TEST_F(SurfacePhysicsIntegrationGridTest, grid)
 {
     ReflectivityResults expected;
-    expected.num_absorbed = 5000;
-    expected.num_transmitted = 0;
-    expected.num_interacted = 5000;
+    expected.num_absorbed = 1917;
+    expected.num_transmitted = 1014;
+    expected.num_interacted = 7069;
+
+    this->run(100, expected);
+}
+
+//---------------------------------------------------------------------------//
+// Test quantum efficiency on a surface
+TEST_F(SurfacePhysicsIntegrationEfficiencyTest, efficiency)
+{
+    ReflectivityResults expected;
+    expected.num_absorbed = 2942;
+    expected.num_transmitted = 5104;
+    expected.num_interacted = 1954;
 
     this->run(100, expected);
 }
