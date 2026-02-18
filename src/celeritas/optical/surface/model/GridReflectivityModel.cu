@@ -8,10 +8,11 @@
 
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/action/ActionLaunder.device.hh"
+#include "celeritas/optical/action/ActionLauncher.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "GridReflectivityExecutor.hh"
+#include "ReflectivityApplier.hh"
 
 namespace celeritas
 {
@@ -29,7 +30,7 @@ void GridReflectivityModel::step(CoreParams const& params,
         state.ptr(),
         SurfacePhysicsOrder::interaction,
         this->surface_model_id(),
-        SurfaceInteractionApplier{GridReflectivityExecutor{data_.device_ref()}});
+        ReflectivityApplier{GridReflectivityExecutor{data_.device_ref()}});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
