@@ -107,6 +107,8 @@ list(APPEND SOURCES
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
+  mucf/model/detail/EquilibrateDensitiesSolver.cc
+  mucf/model/detail/InterpolatorHelper.cc
   mucf/model/detail/MucfMaterialInserter.cc
   mucf/process/MucfProcess.cc
   neutron/model/CascadeOptions.cc
@@ -393,6 +395,7 @@ celeritas_polysource(optical/model/MieModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
+celeritas_polysource(optical/action/DetectorAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)

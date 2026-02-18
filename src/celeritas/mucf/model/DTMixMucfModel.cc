@@ -50,19 +50,16 @@ from_params(ParticleParams const& particles)
     }
 
     MP_ADD(mu_minus);
-    MP_ADD(neutron);
     MP_ADD(proton);
+    MP_ADD(neutron);
+    MP_ADD(triton);
     MP_ADD(alpha);
     MP_ADD(he3);
+    MP_ADD(muonic_hydrogen);
     MP_ADD(muonic_deuteron);
     MP_ADD(muonic_triton);
     MP_ADD(muonic_alpha);
-
-    //! \todo Decide whether to implement these PDGs in PDGNumber.hh
-#if 0
-    MP_ADD(muonic_hydrogen);
     MP_ADD(muonic_he3);
-#endif
 
     CELER_VALIDATE(missing.empty(),
                    << "missing particles required for muon-catalyzed fusion: "
@@ -121,7 +118,7 @@ DTMixMucfModel::DTMixMucfModel(ActionId id,
     host_data.muon_energy_cdf = build_grid_record(inp_data.muon_energy_cdf);
 
     // Calculate and cache quantities for all materials with dt mixtures
-    detail::MucfMaterialInserter insert(&host_data);
+    detail::MucfMaterialInserter insert(&host_data, inp_data);
     for (auto const& matid : range(materials.num_materials()))
     {
         auto const& mat_view = materials.get(PhysMatId{matid});

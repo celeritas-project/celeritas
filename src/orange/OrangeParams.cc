@@ -16,6 +16,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
@@ -28,14 +29,19 @@
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
 #include "OrangeInputIO.json.hh"  // IWYU pragma: keep
+#include "OrangeTrackView.hh"
 #include "OrangeTypes.hh"
 #include "g4org/Converter.hh"
+#include "transform/TransformVisitor.hh"
+#include "univ/TrackerVisitor.hh"
 #include "univ/detail/LogicStack.hh"
+#include "univ/detail/Types.hh"
 
 #include "detail/ConvertLogic.hh"
 #include "detail/DepthCalculator.hh"
 #include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"
+#include "detail/UniverseIndexer.hh"
 #include "detail/UniverseInserter.hh"
 
 namespace celeritas
@@ -369,6 +375,20 @@ inp::Model OrangeParams::make_model_input() const
 
     v.world = VolumeId{0};
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance containing the global point.
+ */
+VolumeInstanceId
+OrangeParams::find_volume_instance_at(Real3 const& global_point) const
+{
+    using HostStateStore = StateDataStore<OrangeStateData, MemSpace::host>;
+    HostStateStore states(this->host_ref(), 1);
+    OrangeTrackView track{this->host_ref(), states.ref(), TrackSlotId{0}};
+    track = OrangeTrackView::Initializer_t(global_point, Real3{1, 0, 0});
+    return track.volume_instance_id();
 }
 
 //---------------------------------------------------------------------------//

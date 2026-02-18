@@ -35,20 +35,39 @@
     <box lunit="cm" name="voxel_box" x="100.0" y="100.0" z="100.0"/>
     <box lunit="cm" name="world_box" x="1000.0" y="1000.0" z="1000.0"/>
 
-    <opticalsurface name="center_top_surf" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0">
-      <property name="REFLECTIVITY" ref="REF"/>
-    </opticalsurface>
   </solids>
 
   <structure>
     <volume name="center_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Water"/>
-    </volume>
+  </volume>
+
     <volume name="top_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Vacuum"/>
     </volume>
+    <volume name="bottom_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+    </volume>
+    <volume name="left_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+    </volume>
+    <volume name="right_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+    </volume>
+    <volume name="front_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+    </volume>
+    <volume name="rear_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+    </volume>
+
     <volume name="world">
       <solidref ref="world_box"/>
       <materialref ref="Vacuum"/>
@@ -60,12 +79,28 @@
           <volumeref ref="top_box"/>
         <position name="top_pos" unit="cm" x="0" y="100" z="0"/>
       </physvol>
+      <physvol name="bottom_box_pv">
+          <volumeref ref="bottom_box"/>
+        <position name="bottom_pos" unit="cm" x="0" y="-100" z="0"/>
+      </physvol>
+      <physvol name="left_box_pv">
+          <volumeref ref="left_box"/>
+        <position name="left_pos" unit="cm" x="-100" y="0" z="0"/>
+      </physvol>
+      <physvol name="right_box_pv">
+          <volumeref ref="right_box"/>
+        <position name="right_pos" unit="cm" x="100" y="0" z="0"/>
+      </physvol>
+      <physvol name="front_box_pv">
+          <volumeref ref="front_box"/>
+        <position name="front_pos" unit="cm" x="0" y="0" z="100"/>
+      </physvol>
+      <physvol name="rear_box_pv">
+          <volumeref ref="rear_box"/>
+        <position name="rear_pos" unit="cm" x="0" y="0" z="-100"/>
+      </physvol>
     </volume>
 
-    <bordersurface name="center_to_top" surfaceproperty="center_top_surf">
-        <physvolref ref="center_box_pv"/>
-        <physvolref ref="top_box_pv"/>
-    </bordersurface>
   </structure>
 
   <setup name="Default" version="1.0">

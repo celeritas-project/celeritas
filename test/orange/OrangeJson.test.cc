@@ -77,9 +77,6 @@ class InputBuilderTest : public JsonOrangeTest
         return geometry_basename();
     }
 
-  protected:
-    bool supports_surface_normal_{true};
-
   private:
     std::string basename_;
 };
@@ -779,7 +776,6 @@ TEST_F(InputBuilderTest, globalspheres)
 
 TEST_F(InputBuilderTest, lar_split_detector)
 {
-    auto inf = std::numeric_limits<real_type>::infinity();
     {
         auto result = this->track({0, 0, -14}, {0, 0, 1});
 
@@ -799,7 +795,7 @@ TEST_F(InputBuilderTest, lar_split_detector)
             "outer_region@global",
         };
         ref.distances = {4, 5, 10, 5, 5};
-        ref.halfway_safeties = {2, 2.5, inf, 2.5, 2.5};
+        ref.halfway_safeties = {2, 2.5, 5, 2.5, 2.5};
         ref.bumps = {};
         auto tol = this->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -934,7 +930,7 @@ TEST_F(InputBuilderTest, hierarchy)
         static real_type const expected_distances[]
             = {3, 2, 8, 2, 4, 87.979589711327};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {1.5, 5, 4, 5, 2, 39};
+        static real_type const expected_hw_safety[] = {1.5, 1, 4, 1, 2, 39};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {

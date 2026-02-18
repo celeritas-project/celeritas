@@ -6,11 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "GeantSurfacePhysicsLoader.hh"
 
+#include <functional>
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
 
 using G4ST = G4SurfaceType;
@@ -218,6 +220,7 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
     auto const model = surf.GetModel();
     try
     {
+        this->check_unimplemented_properties(helper);
         switch (model)
         {
             case G4OSM::glisur:
@@ -250,6 +253,33 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Check that properties for unimplemented capabilities are not present.
+ */
+void GeantSurfacePhysicsLoader::check_unimplemented_properties(
+    GeantSurfacePhysicsHelper const& helper) const
+{
+    inp::Grid temp;
+    for (std::string name : {"TRANSMITTANCE", "EFFICIENCY"})
+    {
+        // Check if the property exists on the surface
+        if (helper.get_property(&temp, name))
+        {
+            // It's OK if it's present but 1 everywhere (note that
+            // G4Physics2DVector clamps output values to the end points, so the
+            // x extents don't matter)
+            if (!std::all_of(temp.y.begin(), temp.y.end(), [](double v) {
+                    return v == 1;
+                }))
+            {
+                CELER_NOT_IMPLEMENTED("unsupported optical '" + name
+                                      + "' property");
+            }
+        }
+    }
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Insert GLISUR model surface.

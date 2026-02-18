@@ -27,6 +27,44 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+void log_ggti_exception(LogProvenance where,
+                        char const* action,
+                        CheckedGeoError const& e)
+{
+    auto& log = self_logger();
+    auto const& d = e.details();
+    auto debug_msg = log({d.file, d.line}, LogLevel::debug);
+    debug_msg << "Failed ";
+    if (!d.condition.empty())
+    {
+        debug_msg << '\'' << d.condition << "' ";
+    }
+    debug_msg << "at " << d.file << ':' << d.line << " during '" << action
+              << "'";
+
+    // Log error message from originating call in `track`
+    log(std::move(where), LogLevel::error) << "Failed: " << d.what;
+}
+
+//---------------------------------------------------------------------------//
+struct StreamableActionException
+{
+    char const* action;
+    CheckedGeoTrackView const& geo;
+    std::exception const& e;
+};
+
+std::ostream& operator<<(std::ostream& os, StreamableActionException const& sae)
+{
+    os << "Caught exception during '" << sae.action << "': " << sae.e.what()
+       << ": " << sae.geo;
+    return os;
+}
+
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -42,6 +80,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
 {
     TrackingResult result;
     CheckedGeoTrackView geo = this->make_checked_track_view();
+    CELER_ASSERT(geo);
     if (!geo.check_normal())
     {
         static int warn_count{0};
@@ -52,31 +91,22 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         result.disable_surface_normal();
     }
 
-#define GGTI_EXPECT_NO_THROW(ACTION)                                      \
-    try                                                                   \
-    {                                                                     \
-        ACTION;                                                           \
-    }                                                                     \
-    catch (CheckedGeoError const& e)                                      \
-    {                                                                     \
-        auto const& d = e.details();                                      \
-        auto msg = CELER_LOG(debug);                                      \
-        msg << "Failed ";                                                 \
-        if (!d.condition.empty())                                         \
-        {                                                                 \
-            msg << '\'' << d.condition << "' ";                           \
-        }                                                                 \
-        msg << "at " << d.file << ':' << d.line << " during '" << #ACTION \
-            << "'";                                                       \
-        CELER_LOG(error) << "Failed: " << d.what;                         \
-        result.fail();                                                    \
-        return result;                                                    \
-    }                                                                     \
-    catch (std::exception const& e)                                       \
-    {                                                                     \
-        ADD_FAILURE() << "Caught exception during '" << #ACTION           \
-                      << "': " << e.what() << ": " << geo;                \
-        return result;                                                    \
+#define GGTI_EXPECT_NO_THROW(ACTION)                                 \
+    try                                                              \
+    {                                                                \
+        ACTION;                                                      \
+    }                                                                \
+    catch (CheckedGeoError const& e)                                 \
+    {                                                                \
+        log_ggti_exception(CELER_CODE_PROVENANCE, #ACTION, e);       \
+        result.fail();                                               \
+        return result;                                               \
+    }                                                                \
+    catch (std::exception const& e)                                  \
+    {                                                                \
+        ADD_FAILURE() << StreamableActionException{#ACTION, geo, e}; \
+        result.fail();                                               \
+        return result;                                               \
     }
 
     // Note: position is scaled according to test
@@ -245,8 +275,6 @@ CheckedGeoTrackView GenericGeoTestInterface::make_checked_track_view()
         this->geometry_interface(),
         this->unit_length(),
     };
-
-    result.check_normal(this->supports_surface_normal());
     return result;
 }
 
@@ -276,18 +304,6 @@ GenericGeoTrackingTolerance GenericGeoTestInterface::tracking_tol() const
     result.normal = celeritas::sqrt_tol();
     result.safety = result.distance;
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether surface normals work for the current geometry/test.
- *
- * This defaults to true and should be disabled per geometry
- * implementation/geometry class.
- */
-bool GenericGeoTestInterface::supports_surface_normal() const
-{
-    return true;
 }
 
 //---------------------------------------------------------------------------//

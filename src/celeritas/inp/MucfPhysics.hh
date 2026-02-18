@@ -11,6 +11,7 @@
 
 #include "corecel/inp/Grid.hh"
 #include "corecel/math/Quantity.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/mucf/Types.hh"
 
@@ -21,8 +22,6 @@ namespace inp
 //---------------------------------------------------------------------------//
 /*!
  * Muon-catalyzed fusion scalars.
- *
- * Default values are the same used by Acceleron.
  */
 struct MucfScalars
 {
@@ -49,6 +48,20 @@ struct MucfScalars
 
 //---------------------------------------------------------------------------//
 /*!
+ * Safely access cycle rate tables.
+ */
+enum class CycleTableType
+{
+    protium_deuterium,
+    protium_tritium,
+    deuterium_deuterium,
+    deuterium_tritium,
+    tritium_tritium,
+    size_
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Muon-catalyzed fusion mean cycle rate data.
  *
  * Mean cycle rates are as a function of temperature, with each grid assigned
@@ -65,15 +78,14 @@ struct MucfScalars
  */
 struct MucfCycleRate
 {
-    MucfMuonicMolecule molecule;
+    CycleTableType type;  //!< Cycle table type
     Grid rate;  //!< x = temperature [K], y = mean cycle rate [1/time]
-    std::string spin_label;
+    units::HalfSpinInt spin_state;  // Spin state F, in unit of hbar/2
 
     //! True if data is assigned
     explicit operator bool() const
     {
-        return molecule < MucfMuonicMolecule::size_ && rate
-               && !spin_label.empty();
+        return type < CycleTableType::size_ && rate;
     }
 };
 

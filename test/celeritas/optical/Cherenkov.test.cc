@@ -242,16 +242,19 @@ TEST_F(CherenkovWaterTest, pre_generator)
     // 500 keV e-
     {
         // Pre-step values
+        auto pre_particle
+            = this->make_particle_track_view(Energy{0.5}, pdg::electron());
         OffloadPreStepData pre_step;
         pre_step.pos = {0, 0, 0};
-        pre_step.speed = units::LightSpeed{0.63431981443206786};
+        pre_step.speed = pre_particle.speed();
         pre_step.time = 0;
         pre_step.material = material_id;
 
         // Post-step values
         auto particle
-            = this->make_particle_track_view(Energy{0.5}, pdg::electron());
+            = this->make_particle_track_view(Energy{0.15}, pdg::electron());
         auto sim = this->make_sim_track_view(0.15);
+        sim.add_time(sim.step_length() / native_value_from(particle.speed()));
         Real3 pos = {sim.step_length(), 0, 0};
 
         CherenkovOffload pre_generate(
@@ -266,7 +269,6 @@ TEST_F(CherenkovWaterTest, pre_generator)
             sampled_num_photons.push_back(result.num_photons);
 
             // Remaining values are assigned to result from input data
-            EXPECT_EQ(pre_step.time, result.time);
             EXPECT_EQ(particle.charge().value(), result.charge.value());
             EXPECT_EQ(material_id, result.material);
             EXPECT_EQ(sim.step_length(), result.step_length);
@@ -274,6 +276,8 @@ TEST_F(CherenkovWaterTest, pre_generator)
                       result.points[StepPoint::pre].speed.value());
             EXPECT_EQ(particle.speed().value(),
                       result.points[StepPoint::post].speed.value());
+            EXPECT_EQ(pre_step.time, result.points[StepPoint::pre].time);
+            EXPECT_EQ(sim.time(), result.points[StepPoint::post].time);
             EXPECT_VEC_EQ(pre_step.pos, result.points[StepPoint::pre].pos);
             EXPECT_VEC_EQ(pos, result.points[StepPoint::post].pos);
         }
@@ -445,10 +449,12 @@ TEST_F(CherenkovWaterTest, generator)
                3999, 3924, 3903, 3900, 3959, 3932, 4023, 3873};
         // clang-format on
 
-        sample(pre_step, particle, sim, pos, num_samples);
-
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
+            // Only test with double precision: with single precision, pre- and
+            // post-step speed are both equal to 1
+            sample(pre_step, particle, sim, pos, num_samples);
+
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
