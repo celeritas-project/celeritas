@@ -24,6 +24,8 @@ list(APPEND SOURCES
   SafetyImager.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
+  detail/BIHStructure.cc
+  detail/BIHStructureIO.json.cc
   detail/DepthCalculator.cc
   detail/ConvertLogic.cc
   detail/LogicIO.cc

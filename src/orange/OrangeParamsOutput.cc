@@ -16,6 +16,9 @@
 #include "OrangeParams.hh"  // IWYU pragma: keep
 #include "OrangeTypesIO.json.hh"  // IWYU pragma: keep
 
+#include "detail/BIHStructure.hh"  // IWYU pragma: keep
+#include "detail/BIHStructureIO.json.hh"  // IWYU pragma: keep
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -106,14 +109,17 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         auto& finite = make_array("num_finite_bboxes");
         auto& infinite = make_array("num_infinite_bboxes");
         auto& depth = make_array("depth");
+        auto& structure = make_array("structure");
 
         for (auto i : range(data.simple_units.size()))
         {
-            auto const& mdi
-                = data.simple_units[SimpleUnitId{i}].bih_tree.metadata;
+            auto const& unit = data.simple_units[SimpleUnitId{i}];
+            auto const& mdi = unit.bih_tree.metadata;
             finite.push_back(mdi.num_finite_bboxes);
             infinite.push_back(mdi.num_infinite_bboxes);
             depth.push_back(mdi.depth);
+            structure.push_back(
+                detail::BIHStructure{unit.bih_tree, data.bih_tree_data});
         }
     }
 

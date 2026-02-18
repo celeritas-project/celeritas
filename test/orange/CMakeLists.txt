@@ -55,6 +55,7 @@ celeritas_add_test(detail/UniverseIndexer.test.cc)
 
 # Bounding interval hierarchy
 celeritas_add_test(detail/BIHBuilder.test.cc)
+celeritas_add_test(detail/BIHStructure.test.cc)
 celeritas_add_test(detail/BIHEnclosingVolFinder.test.cc)
 celeritas_add_test(detail/BIHIntersectingVolFinder.test.cc)
 celeritas_add_test(detail/BIHUtils.test.cc)
