@@ -1072,7 +1072,7 @@ TEST_F(SolidConverterTest, subtractionsolid)
         G4Box inner("inner", 50, 50, 50);
         this->build_and_test(
             G4SubtractionSolid("sub", &outer, &inner, G4Transform3D{}),
-            R"json({})json");
+            R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"box","halfwidths":[10.0,10.0,10.0]},"label":"outer"},{"_type":"negated","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[5.0,5.0,5.0]},"label":"inner"},"label":""}],"label":"sub"})json");
     }
 }
 
