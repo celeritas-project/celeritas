@@ -11,7 +11,7 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "FresnelReflectivityInteractor.hh"
+#include "FresnelReflectivityExecutor.hh"
 #include "ReflectivityApplier.hh"
 
 namespace celeritas
@@ -47,7 +47,7 @@ void FresnelReflectivityModel::step(CoreParams const& params,
                       state.ptr(),
                       SurfacePhysicsOrder::reflectivity,
                       this->surface_model_id(),
-                      ReflectivityApplier{FresnelReflectivityInteractor{}}));
+                      ReflectivityApplier{FresnelReflectivityExecutor{}}));
 }
 
 //---------------------------------------------------------------------------//

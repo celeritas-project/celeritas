@@ -38,8 +38,10 @@ struct GridReflectivityData
 
     //// DATA ////
 
+    //! Reflectivity and transmittance grids
     ReflectivityGrids reflectivity;
 
+    //! Optional quantum efficiency grids
     SurfaceItems<GridId> efficiency_ids;
     Items<Grid> efficiency;
 

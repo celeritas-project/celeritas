@@ -11,7 +11,7 @@
 #include "celeritas/optical/action/ActionLaunder.device.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "FresnelReflectivityInteractor.hh"
+#include "FresnelReflectivityExecutor.hh"
 
 namespace celeritas
 {
@@ -29,7 +29,7 @@ void FresnelReflectivityModel::step(CoreParams const& params,
         state.ptr(),
         SurfacePhysicsOrder::interaction,
         this->surface_model_id(),
-        SurfaceInteractionApplier{FresnelReflectivityInteractor{}});
+        SurfaceInteractionApplier{FresnelReflectivityExecutor{}});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);

@@ -8,7 +8,6 @@
 
 #include "SurfacePhysicsIntegrationTestBase.hh"
 #include "celeritas_test.hh"
-// #include "SurfacePhysicsReflectivityIntegration.test.hh"
 
 namespace celeritas
 {

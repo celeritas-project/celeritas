@@ -33,13 +33,16 @@ GridReflectivityModel::GridReflectivityModel(
 {
     using GridId = OpaqueId<NonuniformGridRecord>;
 
+    // Construct surface list
     surfaces_.reserve(layer_map.size());
     std::transform(layer_map.begin(),
                    layer_map.end(),
                    std::back_inserter(surfaces_),
                    [](auto const& layer) { return layer.first; });
 
+    // Build user-defined grids
     HostVal<GridReflectivityData> data;
+
     auto build_reflectivity = NonuniformGridInserter<SubModelId>(
         &data.reals, &data.reflectivity[ReflectivityAction::interact]);
     auto build_transmittance = NonuniformGridInserter<SubModelId>(

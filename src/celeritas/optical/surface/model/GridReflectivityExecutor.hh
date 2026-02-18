@@ -19,6 +19,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Sample a reflectivity grid for the given surface and energy.
  */
 class GridReflectivitySampler
 {
@@ -30,9 +31,11 @@ class GridReflectivitySampler
     //!@}
 
   public:
+    // Construct from data, surface, and energy
     explicit inline CELER_FUNCTION
     GridReflectivitySampler(DataRef const&, SubModelId, Energy);
 
+    // Sample the specified grid for its reflectivity value
     inline CELER_FUNCTION real_type operator()(ReflectivityAction) const;
 
   private:
@@ -45,6 +48,10 @@ class GridReflectivitySampler
 /*!
  * Sample user-defined reflectivity and transmittance grids to determine if the
  * track is transmitted, absorbed, or undergoes usual physics interactions.
+ *
+ * If the track is absorbed and a non-zero efficiency grid is present, then it
+ * is also sampled. If it passes the efficiency threshold then it is instead
+ * set to transmit to the next sub-surface.
  */
 struct GridReflectivityExecutor
 {
@@ -63,6 +70,9 @@ struct GridReflectivityExecutor
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
+/*!
+ * Construct from data, surface, and energy.
+ */
 CELER_FUNCTION
 GridReflectivitySampler::GridReflectivitySampler(DataRef const& data,
                                                  SubModelId surface,
@@ -71,6 +81,10 @@ GridReflectivitySampler::GridReflectivitySampler(DataRef const& data,
 {
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Sample the specified grid for its reflectivity value.
+ */
 CELER_FUNCTION real_type
 GridReflectivitySampler::operator()(ReflectivityAction action) const
 {
@@ -82,11 +96,16 @@ GridReflectivitySampler::operator()(ReflectivityAction action) const
     NonuniformGridCalculator calc_grid{grid, data_.reals};
     real_type result = calc_grid(value_as<Energy>(energy_));
 
+    // Values are probabilities and should be in [0,1]
     CELER_ENSURE(0 <= result && result <= 1);
 
     return result;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Apply the executor to a track.
+ */
 CELER_FUNCTION ReflectivityAction
 GridReflectivityExecutor::operator()(CoreTrackView const& track) const
 {

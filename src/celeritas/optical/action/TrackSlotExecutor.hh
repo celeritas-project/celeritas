@@ -176,10 +176,9 @@ struct IsSurfaceModelEqual
         return IsStepActionEqual{s_phys.scalars().surface_stepping_action}(
                    track)
                && s_phys.interface(step).surface_model_id() == model
-               && (step == SurfacePhysicsOrder::interaction
-                       ? s_phys.reflectivity_action()
-                             == ReflectivityAction::interact
-                       : true);
+               && (step != SurfacePhysicsOrder::interaction
+                   || s_phys.reflectivity_action()
+                          == ReflectivityAction::interact);
     }
 };
 

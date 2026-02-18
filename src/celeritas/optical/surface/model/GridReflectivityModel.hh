@@ -18,12 +18,23 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * User-defined grid reflectivity model.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    GridReflectivityModel ...;
-   \endcode
+ * Allows user-defined grids to override the usual surface physics logic.
+ * Following Geant4's conventions, reflectivity is defined as the probability a
+ * track continues with the usual surface interaction (not necessarily just
+ * reflects). Transmittance is the probability the track moves to the next
+ * surface layer without any changes. If the reflectivity and transmittance do
+ * not sum to 1, then the remaining probability is the chance the track is
+ * absorbed on the surface.
+ *
+ * If a track is absorbed on the surface and there's a non-zero efficiency
+ * grid, it is sampled as the probability the track is "detected" on the
+ * surface. Because this is a hold-over from Geant4 integration, if the track
+ * is sampled to pass the efficiency then it is changed from absorbed to
+ * transmitted. If the next volume is indeed a detector volume, then it is
+ * detected and killed at the surface which matches Geant4's expectation for
+ * detection on a surface.
  */
 class GridReflectivityModel : public SurfaceModel
 {

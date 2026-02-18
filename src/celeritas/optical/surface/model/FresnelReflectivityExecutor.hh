@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/surface/model/FresnelReflectivityInteractor.hh
+//! \file celeritas/optical/surface/model/FresnelReflectivityExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,7 +16,7 @@ namespace optical
 /*!
  * Return an interact result for the reflectivity action.
  */
-struct FresnelReflectivityInteractor
+struct FresnelReflectivityExecutor
 {
     // Get trivial reflectivity action
     inline CELER_FUNCTION ReflectivityAction
@@ -32,7 +32,7 @@ struct FresnelReflectivityInteractor
  * Always returns a \c interact result for the reflectivity action.
  */
 CELER_FUNCTION ReflectivityAction
-FresnelReflectivityInteractor::operator()(CoreTrackView const&) const
+FresnelReflectivityExecutor::operator()(CoreTrackView const&) const
 {
     return ReflectivityAction::interact;
 }
