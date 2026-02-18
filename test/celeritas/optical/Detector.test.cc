@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Detector.test.cc
 //---------------------------------------------------------------------------//
+#include <numeric>
 #include <utility>
 #include <vector>
 
@@ -129,6 +130,37 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
     std::shared_ptr<DetectorParams> detector_;
 
     inp::OpticalDetector detector_input_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * User-defined grid with non-zero efficiency on a surface to test detector
+ * hits.
+ */
+class SurfaceDetectorTest : public DetectorTest
+{
+  public:
+    SPConstOpticalSurfacePhysics build_optical_surface_physics() override
+    {
+        PhysSurfaceId phys_surface{0};
+
+        inp::SurfacePhysics input;
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.grid.emplace(phys_surface, [] {
+            inp::GridReflection refl;
+            std::vector<double> xs{1e-6, 2e-5};
+            refl.reflectivity = inp::Grid{xs, {0.0, 0.0}};
+            refl.transmittance = inp::Grid{xs, {0.0, 0.0}};
+            refl.efficiency = inp::Grid{xs, {0.6, 0.6}};
+            return refl;
+        }());
+        input.interaction.trivial.emplace(phys_surface,
+                                          TrivialInteractionMode::transmit);
+
+        return std::make_shared<SurfacePhysicsParams>(
+            this->optical_action_reg().get(), input);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -339,6 +371,45 @@ TEST_F(DetectorTest, stress)
         static size_type const expected_hits[] = {2673, 2816, 2703};
 
         EXPECT_VEC_EQ(expected_hits, hits);
+        EXPECT_EQ(errored, 0);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// Test surface efficiency propagates hits to detector
+TEST_F(SurfaceDetectorTest, efficiency)
+{
+    // 3 detectors: x, y, z
+    std::vector<size_type> hits(3, 0);
+    size_type errored = 0;
+    detector_input_.callback = StressScorer{hits, errored};
+
+    // Isotropically generate photons
+
+    inp::OpticalPrimaryGenerator gen;
+    gen.primaries = 8192;
+    gen.energy = inp::MonoenergeticDistribution{1e-5};
+    gen.angle = inp::IsotropicDistribution{};
+    gen.shape = inp::PointDistribution{{0, 0, 0}};
+
+    // Run test
+
+    auto generate = PrimaryGeneratorAction::make_and_insert(
+        *this->optical_params(), std::move(gen));
+    this->initialize_run();
+    generate->insert(*state_);
+    (*transport_)(*state_);
+
+    // Check results
+
+    if (reference_configuration)
+    {
+        auto total_hits = std::accumulate(hits.begin(), hits.end(), 0);
+
+        // Expect ~60% of total primaries are detected
+        static size_type const expected_hits = 4894;
+
+        EXPECT_EQ(expected_hits, total_hits);
         EXPECT_EQ(errored, 0);
     }
 }
