@@ -1735,20 +1735,29 @@ void SolidsGeoTest::test_trace() const
 
     if (single_orange)
     {
-        // TODO: find source of distance misestimation at x=125 (between
-        // boolean and
+        // TODO: find source of distance misestimation between bool and
+        // polyhedra
         auto geo = test_->make_checked_track_view();
         geo = test_->make_initializer({15, 125, 0.5}, {1, 0, 0});
         EXPECT_EQ("boolean1", test_->volume_name(geo));
         auto next = geo.find_next_step(to_cm(500));
-        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(10.0f, next.distance);
+        ASSERT_TRUE(next.boundary);
         geo.move_to_boundary();
         geo.cross_boundary();
         EXPECT_EQ("World", test_->volume_name(geo));
         next = geo.find_next_step(to_cm(500));
         EXPECT_TRUE(next.boundary);
         // NOTE: this is wrong; should be 231.57
-        EXPECT_SOFT_EQ(197.99641418457031f, next.distance);
+        EXPECT_SOFT_EQ(to_cm(197.9964f), next.distance);
+        geo.move_internal(to_cm(1.0f));
+        next = geo.find_next_step(to_cm(500));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(to_cm(196.9964f), next.distance);
+        geo.move_internal(to_cm(25.0f));
+        next = geo.find_next_step(to_cm(500));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(to_cm(205.5712f), next.distance);
     }
     else
     {
