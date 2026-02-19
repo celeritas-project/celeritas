@@ -13,6 +13,7 @@
 
 #include "TrackOffloadInterface.hh"
 
+class G4EventManager;
 namespace celeritas
 {
 namespace optical
@@ -96,8 +97,9 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
     // Accumulated number of tracks pushed over flushes
     size_type num_flushed_{};
 
-    //  Current event ID for obtaining it
+    //  Current event ID or manager for obtaining it
     UniqueEventId event_id_;
+    G4EventManager* event_manager_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

@@ -43,6 +43,7 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
     direct_gen_
         = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
             params.optical_problem_loaded().generator);
+    CELER_VALIDATE(direct_gen_, << "invalid optical DirectGeneratorAction");
 
     CELER_ASSERT(transport_);
     CELER_ASSERT(transport_->params());
@@ -54,7 +55,7 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
 
     CELER_EXPECT(options.optical);
     auto const& capacity = options.optical->capacity;
-    auto_flush_ = capacity.tracks;
+    auto_flush_ = capacity.primaries;
 
     auto stream_id = id_cast<StreamId>(get_geant_thread_id());
 
@@ -164,12 +165,28 @@ void LocalOpticalTrackOffload::Flush()
 
     ScopedProfiling profile_this("flush");
 
-    // Insert tracks
-    if (direct_gen_)
+    if (event_manager_ || !event_id_)
     {
-        // Inject buffered tracks into optical state for transport
-        direct_gen_->insert(*state_, make_span(buffer_));
+        if (CELER_UNLIKELY(!event_manager_))
+        {
+            // Save the event manager pointer, thereby marking that
+            // *subsequent* events need to have their IDs checked as well
+            event_manager_ = G4EventManager::GetEventManager();
+            CELER_ASSERT(event_manager_);
+        }
+
+        G4Event const* event = event_manager_->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
+        {
+            // The event ID has changed: reseed it
+            this->InitializeEvent(event->GetEventID());
+        }
     }
+    CELER_ASSERT(event_id_);
+
+    // Inject buffered tracks into optical state for transport
+    direct_gen_->insert(*state_, make_span(buffer_));
 
     // Transport tracks
     (*transport_)(*state_);
@@ -197,8 +214,8 @@ void LocalOpticalTrackOffload::Finalize()
                    << buffer_.size() << " optical tracks were not flushed");
 
     CELER_LOG(info) << "Finalizing Celeritas after " << num_pushed_
-                    << " optical tracks pushed (over " << num_flushed_
-                    << " ) flushes";
+                    << " optical tracks pushed over " << num_flushed_
+                    << " flushes";
 
     *this = {};
 
