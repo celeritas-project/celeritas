@@ -160,7 +160,7 @@ bool process_is_active(OpticalProcessType process,
  */
 SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
     : options_(options.optical)
-    , only_optical_(!(options.em || options.muon || options.mucf))
+    , only_optical_(!(options.em() || options.muon || options.mucf_physics))
 {
 #if G4VERSION_NUMBER >= 1070
     // Use of G4OpticalParameters only from Geant4 10.7

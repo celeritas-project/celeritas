@@ -80,9 +80,9 @@ class Em3AlongStepTest : public TestEm3Base, public AlongStepTestBase
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = TestEm3Base::build_geant_options();
-        opts.em.em_bins_per_decade = bpd_;
-        opts.em.eloss_fluctuation = fluct_;
-        opts.em.msc = msc_ ? MscModelSelection::urban : MscModelSelection::none;
+        opts.em_bins_per_decade = bpd_;
+        opts.eloss_fluctuation = fluct_;
+        opts.msc = msc_ ? MscModelSelection::urban : MscModelSelection::none;
         return opts;
     }
 
@@ -99,9 +99,9 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = SimpleCmsTestBase::build_geant_options();
-        opts.em.em_bins_per_decade = bpd_;
-        opts.em.eloss_fluctuation = fluct_;
-        opts.em.msc = msc_ ? MscModelSelection::urban : MscModelSelection::none;
+        opts.em_bins_per_decade = bpd_;
+        opts.eloss_fluctuation = fluct_;
+        opts.msc = msc_ ? MscModelSelection::urban : MscModelSelection::none;
         return opts;
     }
 
@@ -169,9 +169,9 @@ class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = SimpleCmsTestBase::build_geant_options();
-        opts.em.em_bins_per_decade = bpd_;
-        opts.em.eloss_fluctuation = fluct_;
-        opts.em.msc = MscModelSelection::urban;
+        opts.em_bins_per_decade = bpd_;
+        opts.eloss_fluctuation = fluct_;
+        opts.msc = MscModelSelection::urban;
         return opts;
     }
 

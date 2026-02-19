@@ -36,12 +36,12 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
 
     ScopedStreamRedirect scoped_log(&std::cout);
 
-    int verbosity = options.em.verbose;
+    int verbosity = options.verbose;
     this->SetVerboseLevel(verbosity);
     this->SetDefaultCutValue(
-        native_value_to<ClhepLen>(options.em.default_cutoff).value());
+        native_value_to<ClhepLen>(options.default_cutoff).value());
 
-    if (options.em || options.muon || options.mucf)
+    if (options.em() || options.muon || options.mucf_physics)
     {
         // Add celeritas EM physics plus additional mu/hadron
         detail::emplace_physics<detail::EmStandardPhysics>(*this, options);

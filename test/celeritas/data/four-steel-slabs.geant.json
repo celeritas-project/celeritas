@@ -1,32 +1,30 @@
 {
- "em": {
-  "brems": "all",
-  "coulomb_scattering": true,
-  "eloss_fluctuation": true,
-  "em_bins_per_decade": 7,
-  "integral_approach": true,
-  "linear_loss_limit": 0.01,
-  "lowest_electron_energy": 0.001,
-  "msc_range_factor": 0.04,
-  "msc_safety_factor": 0.6,
-  "msc_lambda_limit": 0.1,
-  "msc_step_algorithm": "safety",
-  "apply_cuts": false,
-  "lpm": true,
-  "max_energy": [
-   100000000.0,
-   "MeV"
-  ],
-  "min_energy": [
-   0.0001,
-   "MeV"
-  ],
-  "msc": "urban_wentzelvi",
-  "rayleigh_scattering": true
- },
- "muon": {
-  "ionization": true,
-  "bremsstrahlung": true,
-  "pair_production": true
- }
+"brems": "all",
+"coulomb_scattering": true,
+"muon": {
+ "ionization": true,
+ "bremsstrahlung": true,
+ "pair_production": true
+},
+"eloss_fluctuation": true,
+"em_bins_per_decade": 7,
+"integral_approach": true,
+"linear_loss_limit": 0.01,
+"lowest_electron_energy": 0.001,
+"msc_range_factor": 0.04,
+"msc_safety_factor": 0.6,
+"msc_lambda_limit": 0.1,
+"msc_step_algorithm": "safety",
+"apply_cuts": false,
+"lpm": true,
+"max_energy": [
+ 100000000.0,
+ "MeV"
+],
+"min_energy": [
+ 0.0001,
+ "MeV"
+],
+"msc": "urban_wentzelvi",
+"rayleigh_scattering": true
 }

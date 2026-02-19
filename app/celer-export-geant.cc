@@ -47,7 +47,7 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
     {
         CELER_LOG(info) << "Using default Celeritas Geant4 options";
         // ... but add verbosity
-        options.em.verbose = true;
+        options.verbose = true;
     }
     else
     {

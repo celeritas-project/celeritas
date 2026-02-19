@@ -123,53 +123,69 @@ void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)
     };
 }
 
-void from_json(nlohmann::json const& j, GeantEmPhysicsOptions& options)
+//---------------------------------------------------------------------------//
+/*!
+ * Read options from JSON.
+ */
+void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 {
-#define GEPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
-    GEPO_LOAD_OPTION(compton_scattering);
-    GEPO_LOAD_OPTION(photoelectric);
-    GEPO_LOAD_OPTION(rayleigh_scattering);
-    GEPO_LOAD_OPTION(gamma_conversion);
-    GEPO_LOAD_OPTION(gamma_general);
+#define GPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
+    check_format(j, format_str);
+    check_units(j, format_str);
 
-    GEPO_LOAD_OPTION(coulomb_scattering);
-    GEPO_LOAD_OPTION(ionization);
-    GEPO_LOAD_OPTION(annihilation);
-    GEPO_LOAD_OPTION(brems);
-    GEPO_LOAD_OPTION(seltzer_berger_limit);
-    GEPO_LOAD_OPTION(msc);
-    GEPO_LOAD_OPTION(relaxation);
+    GPO_LOAD_OPTION(compton_scattering);
+    GPO_LOAD_OPTION(photoelectric);
+    GPO_LOAD_OPTION(rayleigh_scattering);
+    GPO_LOAD_OPTION(gamma_conversion);
+    GPO_LOAD_OPTION(gamma_general);
 
-    GEPO_LOAD_OPTION(em_bins_per_decade);
-    GEPO_LOAD_OPTION(eloss_fluctuation);
-    GEPO_LOAD_OPTION(lpm);
-    GEPO_LOAD_OPTION(integral_approach);
+    GPO_LOAD_OPTION(coulomb_scattering);
+    GPO_LOAD_OPTION(ionization);
+    GPO_LOAD_OPTION(annihilation);
+    GPO_LOAD_OPTION(brems);
+    GPO_LOAD_OPTION(seltzer_berger_limit);
+    GPO_LOAD_OPTION(msc);
+    GPO_LOAD_OPTION(relaxation);
 
-    GEPO_LOAD_OPTION(min_energy);
-    GEPO_LOAD_OPTION(max_energy);
-    GEPO_LOAD_OPTION(linear_loss_limit);
-    GEPO_LOAD_OPTION(lowest_electron_energy);
-    GEPO_LOAD_OPTION(lowest_muhad_energy);
-    GEPO_LOAD_OPTION(apply_cuts);
-    GEPO_LOAD_OPTION(default_cutoff);
+    GPO_LOAD_OPTION(muon);
+    GPO_LOAD_OPTION(mucf_physics);
 
-    GEPO_LOAD_OPTION(msc_displaced);
-    GEPO_LOAD_OPTION(msc_muhad_displaced);
-    GEPO_LOAD_OPTION(msc_range_factor);
-    GEPO_LOAD_OPTION(msc_muhad_range_factor);
-    GEPO_LOAD_OPTION(msc_safety_factor);
-    GEPO_LOAD_OPTION(msc_lambda_limit);
-    GEPO_LOAD_OPTION(msc_theta_limit);
-    GEPO_LOAD_OPTION(angle_limit_factor);
-    GEPO_LOAD_OPTION(msc_step_algorithm);
-    GEPO_LOAD_OPTION(msc_muhad_step_algorithm);
-    GEPO_LOAD_OPTION(form_factor);
+    GPO_LOAD_OPTION(em_bins_per_decade);
+    GPO_LOAD_OPTION(eloss_fluctuation);
+    GPO_LOAD_OPTION(lpm);
+    GPO_LOAD_OPTION(integral_approach);
 
-    GEPO_LOAD_OPTION(verbose);
-#undef GEPO_LOAD_OPTION
+    GPO_LOAD_OPTION(min_energy);
+    GPO_LOAD_OPTION(max_energy);
+    GPO_LOAD_OPTION(linear_loss_limit);
+    GPO_LOAD_OPTION(lowest_electron_energy);
+    GPO_LOAD_OPTION(lowest_muhad_energy);
+    GPO_LOAD_OPTION(apply_cuts);
+    GPO_LOAD_OPTION(default_cutoff);
+
+    GPO_LOAD_OPTION(msc_displaced);
+    GPO_LOAD_OPTION(msc_muhad_displaced);
+    GPO_LOAD_OPTION(msc_range_factor);
+    GPO_LOAD_OPTION(msc_muhad_range_factor);
+    GPO_LOAD_OPTION(msc_safety_factor);
+    GPO_LOAD_OPTION(msc_lambda_limit);
+    GPO_LOAD_OPTION(msc_theta_limit);
+    GPO_LOAD_OPTION(angle_limit_factor);
+    GPO_LOAD_OPTION(msc_step_algorithm);
+    GPO_LOAD_OPTION(msc_muhad_step_algorithm);
+    GPO_LOAD_OPTION(form_factor);
+
+    GPO_LOAD_OPTION(verbose);
+
+    GPO_LOAD_OPTION(optical);
+#undef GPO_LOAD_OPTION
 }
 
-void to_json(nlohmann::json& j, GeantEmPhysicsOptions const& inp)
+//---------------------------------------------------------------------------//
+/*!
+ * Write options to JSON.
+ */
+void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
 {
     j = {
         CELER_JSON_PAIR(inp, compton_scattering),
@@ -185,6 +201,9 @@ void to_json(nlohmann::json& j, GeantEmPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, seltzer_berger_limit),
         CELER_JSON_PAIR(inp, msc),
         CELER_JSON_PAIR(inp, relaxation),
+
+        CELER_JSON_PAIR(inp, muon),
+        CELER_JSON_PAIR(inp, mucf_physics),
 
         CELER_JSON_PAIR(inp, em_bins_per_decade),
         CELER_JSON_PAIR(inp, eloss_fluctuation),
@@ -212,36 +231,7 @@ void to_json(nlohmann::json& j, GeantEmPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, form_factor),
 
         CELER_JSON_PAIR(inp, verbose),
-    };
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Read options from JSON.
- */
-void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
-{
-    check_format(j, format_str);
-    check_units(j, format_str);
-
-#define GPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
-    GPO_LOAD_OPTION(em);
-    GPO_LOAD_OPTION(muon);
-    GPO_LOAD_OPTION(mucf);
-    GPO_LOAD_OPTION(optical);
-#undef GPO_LOAD_OPTION
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write options to JSON.
- */
-void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
-{
-    j = {
-        CELER_JSON_PAIR(inp, em),
-        CELER_JSON_PAIR(inp, muon),
-        CELER_JSON_PAIR(inp, mucf),
         CELER_JSON_PAIR(inp, optical),
     };
 

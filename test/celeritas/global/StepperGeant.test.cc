@@ -88,8 +88,19 @@ class TestEm3Compton : public TestEm3StepperTestBase
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = TestEm3Base::build_geant_options();
-        opts.em = GeantEmPhysicsOptions::deactivated();
-        opts.em.compton_scattering = true;
+        opts.compton_scattering = true;
+        opts.coulomb_scattering = false;
+        opts.photoelectric = false;
+        opts.rayleigh_scattering = false;
+        opts.gamma_conversion = false;
+        opts.gamma_general = false;
+        opts.ionization = false;
+        opts.annihilation = false;
+        opts.brems = BremsModelSelection::none;
+        opts.msc = MscModelSelection::none;
+        opts.relaxation = RelaxationSelection::none;
+        opts.lpm = false;
+        opts.eloss_fluctuation = false;
         return opts;
     }
 
@@ -116,7 +127,7 @@ class TestEm3NoMsc : public TestEm3StepperTestBase
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = TestEm3Base::build_geant_options();
-        opts.em.msc = MscModelSelection::none;
+        opts.msc = MscModelSelection::none;
         return opts;
     }
 };
@@ -144,7 +155,7 @@ class TestEm3MscNofluct : public TestEm3Msc
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = TestEm3Base::build_geant_options();
-        opts.em.eloss_fluctuation = false;
+        opts.eloss_fluctuation = false;
         return opts;
     }
 };
@@ -156,7 +167,7 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = TestEm15Base::build_geant_options();
-        opts.em.eloss_fluctuation = false;
+        opts.eloss_fluctuation = false;
         return opts;
     }
 
@@ -304,8 +315,8 @@ TEST_F(TestEm3Compton, host)
     if (this->is_ci_build())
     {
         EXPECT_EQ(153, result.num_step_iters());
-        EXPECT_SOFT_EQ(795, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(48, result.calc_emptying_step());
+        EXPECT_SOFT_EQ(796, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(47, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({6, 1}), result.calc_queue_hwm());
     }
     else

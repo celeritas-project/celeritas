@@ -419,7 +419,7 @@ void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
 auto LarSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
 {
     PhysicsInput result = Base::make_physics_input();
-    result.em.em_bins_per_decade = 5;
+    result.em_bins_per_decade = 5;
     return result;
 }
 
@@ -487,10 +487,10 @@ auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
     using MevEnergy = Quantity<units::Mev, double>;
 
     PhysicsInput result = Base::make_physics_input();
-    result.em.em_bins_per_decade = 14;
+    result.em_bins_per_decade = 14;
     // Increase the lower energy limit of the physics tables
-    result.em.min_energy = MevEnergy{0.1};
-    result.em.default_cutoff = 0.1 * units::centimeter;
+    result.min_energy = MevEnergy{0.1};
+    result.default_cutoff = 0.1 * units::centimeter;
     return result;
 }
 
