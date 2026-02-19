@@ -18,51 +18,11 @@
     <gdmlFile  ref="${DD4hepINSTALL}/DDDetectors/compact/materials.xml"/>
   </includes>
 
-  <properties>
-    <!-- ScintPS (optical polystyrene scintillator) refractive index vs photon energy -->
-    <matrix name="RINDEX__ScintPS" coldim="2" values="
-      2.00*eV 1.58
-      2.50*eV 1.58
-      2.75*eV 1.58
-      3.00*eV 1.59
-      3.50*eV 1.60
-      4.00*eV 1.62
-    "/>
-    <!-- ScintPS bulk absorption length vs photon energy -->
-    <matrix name="ABSLENGTH__ScintPS" coldim="2" values="
-      2.00*eV 160.0*cm
-      2.50*eV 160.0*cm
-      2.75*eV 160.0*cm
-      3.00*eV  80.0*cm
-      3.50*eV  20.0*cm
-      4.00*eV   1.0*cm
-    "/>
-    <!-- ScintPS scintillation emission spectrum -->
-    <matrix name="SCINTILLATIONCOMPONENT1__ScintPS" coldim="2" values="
-      2.75*eV 0.00
-      2.95*eV 0.10
-      3.00*eV 0.50
-      3.05*eV 1.00
-      3.10*eV 0.50
-      3.20*eV 0.10
-      3.50*eV 0.00
-    "/>
-  </properties>
-
   <materials>
-    <!-- Optical scintillating polystyrene - renamed to avoid conflict with
-         the non-optical Polystyrene already defined in DD4hep's materials.xml -->
-    <material name="ScintPS">
+    <material name="Polystyrene">
       <D type="density" unit="g/cm3" value="1.032"/>
-      <composite n="19" ref="C"/>
-      <composite n="21" ref="H"/>
-      <property name="RINDEX"               ref="RINDEX__ScintPS"/>
-      <property name="ABSLENGTH"            ref="ABSLENGTH__ScintPS"/>
-      <property name="SCINTILLATIONCOMPONENT1" ref="SCINTILLATIONCOMPONENT1__ScintPS"/>
-      <constant name="SCINTILLATIONYIELD"   value="10000.0/MeV"/>
-      <constant name="RESOLUTIONSCALE"      value="1.0"/>
-      <constant name="SCINTILLATIONTIMECONSTANT1" value="2.4*ns"/>
-      <constant name="SCINTILLATIONYIELD1"  value="1.0"/>
+      <composite n="8" ref="C"/>
+      <composite n="8" ref="H"/>
     </material>
   </materials>
 
@@ -105,7 +65,7 @@
 
     <!-- Detection layer - Scintillator, sensitive -->
     <detector id="2" name="DetectionLayer" type="DD4hep_BoxSegment" readout="PreshowerHits" vis="VisibleGreen" sensitive="true" region="PreshowerRegion" limits="PreshowerLimitSet">
-      <material name="ScintPS"/>
+      <material name="Polystyrene"/>
       <sensitive type="calorimeter"/>
       <box      x="60*cm" y="60*cm" z="2.5*cm"/>
       <position x="0"     y="0"     z="151.75*cm"/>
