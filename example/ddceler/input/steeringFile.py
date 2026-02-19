@@ -77,6 +77,9 @@ def setup_physics(kernel):
     celer_phys.InitCapacity = 245760
     # Celeritas does not support single scattering
     celer_phys.IgnoreProcesses = ["CoulombScat"]
+    # Optical tracking: number of optical photon track slots
+    # OpticalGenerators defaults to OpticalTracks * 8 if unset
+    celer_phys.OpticalTracks = 2048
     phys.adopt(celer_phys)
     phys.dump()
     return None
