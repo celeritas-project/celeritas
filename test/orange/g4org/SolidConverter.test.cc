@@ -1067,6 +1067,13 @@ TEST_F(SolidConverterTest, subtractionsolid)
             G4SubtractionSolid("LAr::DM::SPliceBoxr", &trap, &box, transform),
             R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"genprism","halfheight":23.75,"lower":[[4.75,-30.700000000000003],[4.75,30.700000000000003],[-4.75,30.700000000000003],[-4.75,-30.700000000000003]],"upper":[[4.75,-25.917],[4.75,25.917],[-4.75,25.917],[-4.75,-25.917]]},"label":"trap"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[5.0,24.480000000000004,15.0]},"label":"box"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,0.747890784796085,-0.6638217938702345,0.0,0.6638217938702345,0.747890784796085,0.0,-22.349000000000004,19.388]}},"label":""}],"label":"LAr::DM::SPliceBoxr"})json");
     }
+    {
+        G4Box outer("outer", 100, 100, 100);
+        G4Box inner("inner", 50, 50, 50);
+        this->build_and_test(
+            G4SubtractionSolid("sub", &outer, &inner, G4Transform3D{}),
+            R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"box","halfwidths":[10.0,10.0,10.0]},"label":"outer"},{"_type":"negated","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[5.0,5.0,5.0]},"label":"inner"},"label":""}],"label":"sub"})json");
+    }
 }
 
 TEST_F(SolidConverterTest, reflectedsolid)
