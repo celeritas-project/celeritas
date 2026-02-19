@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright Celeritas contributors: see top-level COPYRIGHT file for details -->
+<!-- SPDX-License-Identifier: (Apache-2.0 OR MIT) -->
+<!--
+  Minimal optical photon demonstration geometry.
+
+  A single 30 cm scintillating water cube. A 1 GeV e- initiates an
+  EM shower, generating Cherenkov photons from all shower secondaries
+  and scintillation photons proportional to local energy deposit.
+  Photons below the critical angle (48.8 deg at the water/air boundary)
+  escape; the rest undergo total internal reflection and rattle until
+  absorbed.  The late-time tail in the hit contributions is the TIR
+  signature.
+-->
+<lccdd>
+
+  <info name="ScintWater"
+        title="Single scintillating water box - optical photon demo"
+        author="Celeritas example"
+        status="development"
+        version="1.0">
+    <comment>Minimal geometry for optical photon generation and propagation</comment>
+  </info>
+
+  <includes>
+    <gdmlFile ref="${DD4hepINSTALL}/DDDetectors/compact/elements.xml"/>
+    <gdmlFile ref="${DD4hepINSTALL}/DDDetectors/compact/materials.xml"/>
+  </includes>
+
+  <!-- ── optical property tables ──────────────────────────────────────── -->
+  <properties>
+
+    <!-- Water refractive index vs photon energy -->
+    <matrix name="RINDEX_Water" coldim="2" values="
+      1.77*eV  1.3280
+      2.34*eV  1.3340
+      2.76*eV  1.3380
+      3.10*eV  1.3440
+      3.54*eV  1.3530
+      4.14*eV  1.3720
+    "/>
+
+    <!-- Water bulk absorption length (transparent in visible, absorbing in UV) -->
+    <matrix name="ABSLENGTH_Water" coldim="2" values="
+      1.77*eV  10.0*m
+      2.34*eV  10.0*m
+      2.76*eV   8.0*m
+      3.10*eV   5.0*m
+      3.54*eV   1.0*m
+      4.14*eV   0.1*m
+    "/>
+
+    <!-- Scintillation emission spectrum (peaked at 400 nm / 3.1 eV) -->
+    <matrix name="SCINT_Water" coldim="2" values="
+      2.76*eV  0.00
+      2.92*eV  0.20
+      3.02*eV  0.60
+      3.10*eV  1.00
+      3.18*eV  0.60
+      3.28*eV  0.20
+      3.54*eV  0.00
+    "/>
+
+  </properties>
+
+  <!-- ── materials ────────────────────────────────────────────────────── -->
+  <materials>
+    <material name="ScintWater">
+      <D type="density" unit="g/cm3" value="1.0"/>
+      <composite n="2" ref="H"/>
+      <composite n="1" ref="O"/>
+      <property  name="RINDEX"                     ref="RINDEX_Water"/>
+      <property  name="ABSLENGTH"                  ref="ABSLENGTH_Water"/>
+      <property  name="SCINTILLATIONCOMPONENT1"    ref="SCINT_Water"/>
+      <!-- Low yield (100/MeV) keeps event size manageable -->
+      <constant  name="SCINTILLATIONYIELD"         value="100.0/MeV"/>
+      <constant  name="RESOLUTIONSCALE"            value="1.0"/>
+      <constant  name="SCINTILLATIONTIMECONSTANT1" value="2.5*ns"/>
+      <constant  name="SCINTILLATIONYIELD1"        value="1.0"/>
+    </material>
+  </materials>
+
+  <!-- ── world ────────────────────────────────────────────────────────── -->
+  <define>
+    <constant name="world_size" value="5*m"/>
+    <constant name="world_x"    value="world_size"/>
+    <constant name="world_y"    value="world_size"/>
+    <constant name="world_z"    value="world_size"/>
+  </define>
+
+  <!-- ── step limits ──────────────────────────────────────────────────── -->
+  <limits>
+    <limitset name="WaterLimits">
+      <limit name="step_length_max" particles="*" value="5.0" unit="mm"/>
+    </limitset>
+  </limits>
+
+  <regions>
+    <region name="WaterRegion" eunit="MeV" lunit="mm" cut="0.001" threshold="0.001">
+      <limitsetref name="WaterLimits"/>
+    </region>
+  </regions>
+
+  <!-- ── detector ─────────────────────────────────────────────────────── -->
+  <detectors>
+    <detector id="1" name="WaterBox"
+              type="DD4hep_BoxSegment"
+              readout="WaterHits"
+              sensitive="true"
+              region="WaterRegion"
+              limits="WaterLimits">
+      <material name="ScintWater"/>
+      <sensitive type="calorimeter"/>
+      <box      x="30*cm" y="30*cm" z="30*cm"/>
+      <position x="0"     y="0"     z="0"/>
+      <rotation x="0"     y="0"     z="0"/>
+    </detector>
+  </detectors>
+
+  <!-- ── readout ──────────────────────────────────────────────────────── -->
+  <readouts>
+    <readout name="WaterHits">
+      <segmentation type="CartesianGridXY" grid_size_x="5*mm" grid_size_y="5*mm"/>
+      <id>system:8,x:24:-12,y:-12</id>
+    </readout>
+  </readouts>
+
+  <!-- ── field ────────────────────────────────────────────────────────── -->
+  <!-- Negligible field required by the current CelerPhysics implementation -->
+  <fields>
+    <field name="TinyBz" type="ConstantField" field="magnetic">
+      <strength x="0" y="0" z="1e-4*tesla"/>
+    </field>
+  </fields>
+
+</lccdd>
