@@ -153,7 +153,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
             real_type const half_distance = next.distance / 2;
             GGTI_EXPECT_NO_THROW(geo.move_internal(half_distance));
             GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
-            EXPECT_SOFT_NEAR(next.distance, half_distance, tol.distance);
+            EXPECT_SOFT_NEAR(next.distance, half_distance, tol.distance) << geo;
 
             real_type safety{0};
             GGTI_EXPECT_NO_THROW(safety = geo.find_safety());

@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "DebugIO.json.hh"
 
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/math/QuantityIO.json.hh"

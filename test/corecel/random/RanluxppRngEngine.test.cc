@@ -8,7 +8,6 @@
 
 #include <memory>
 
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/io/HexRepr.hh"
 #include "corecel/random/data/RanluxppRngData.hh"

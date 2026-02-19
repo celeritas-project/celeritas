@@ -27,9 +27,6 @@ class VecgeomTestBase : public GenericGeoTestBase<VecgeomParams>
   public:
     using SpanStringView = Span<std::string_view const>;
 
-    // Keep track of log messages during load
-    virtual SpanStringView expected_log_levels() const;
-
     // Construct via persistent geant_geo; see LazyGeantGeoManager
     SPConstGeo build_geometry() const override;
 

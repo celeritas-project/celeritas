@@ -10,7 +10,6 @@
 #include <G4MagneticField.hh>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/ArrayIO.hh"  // IWYU pragma: keep
 #include "corecel/math/ArrayOperators.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"

@@ -8,7 +8,6 @@
 
 #include <algorithm>
 
-#include "corecel/OpaqueIdIO.hh"
 #include "corecel/inp/Grid.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/TrackExecutor.hh"
