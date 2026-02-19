@@ -368,28 +368,21 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
         = helper.get_property(&refl_grid.transmittance, "TRANSMITTANCE");
     bool has_eff = helper.get_property(&refl_grid.efficiency, "EFFICIENCY");
 
-    auto copy_zero_grid = [](inp::Grid const& from) {
-        inp::Grid out;
-        out.x = {from.x.front(), from.x.back()};
-        out.y = {0, 0};
-        return out;
-    };
-
     if (has_refl || has_trans || has_eff)
     {
         // Create default grids for reflectivity / transmittance
         if (has_refl && !has_trans)
         {
-            refl_grid.transmittance = copy_zero_grid(refl_grid.reflectivity);
+            refl_grid.transmittance = inp::Grid::from_constant(0);
         }
         else if (has_trans && !has_refl)
         {
-            refl_grid.reflectivity = copy_zero_grid(refl_grid.transmittance);
+            refl_grid.reflectivity = inp::Grid::from_constant(0);
         }
         else if (!has_trans && !has_refl)
         {
-            refl_grid.reflectivity = copy_zero_grid(refl_grid.efficiency);
-            refl_grid.transmittance = copy_zero_grid(refl_grid.efficiency);
+            refl_grid.reflectivity = inp::Grid::from_constant(0);
+            refl_grid.transmittance = inp::Grid::from_constant(0);
         }
 
         helper.emplace(reflectivity.grid, std::move(refl_grid));

@@ -19,9 +19,10 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample a reflectivity grid for the given surface and energy.
+ * Calculate the probability of a photon undergoing the specified reflectivity
+ * action for a given grid.
  */
-class GridReflectivitySampler
+class GridReflectivityCalculator
 {
   public:
     //!@{
@@ -33,9 +34,9 @@ class GridReflectivitySampler
   public:
     // Construct from data, surface, and energy
     explicit inline CELER_FUNCTION
-    GridReflectivitySampler(DataRef const&, SubModelId, Energy);
+    GridReflectivityCalculator(DataRef const&, SubModelId, Energy);
 
-    // Sample the specified grid for its reflectivity value
+    // Calculate the probability for the specified reflectivity action
     inline CELER_FUNCTION real_type operator()(ReflectivityAction) const;
 
   private:
@@ -74,19 +75,19 @@ struct GridReflectivityExecutor
  * Construct from data, surface, and energy.
  */
 CELER_FUNCTION
-GridReflectivitySampler::GridReflectivitySampler(DataRef const& data,
-                                                 SubModelId surface,
-                                                 Energy energy)
+GridReflectivityCalculator::GridReflectivityCalculator(DataRef const& data,
+                                                       SubModelId surface,
+                                                       Energy energy)
     : data_(data), surface_(surface), energy_(energy)
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample the specified grid for its reflectivity value.
+ * Calculate the probability for the specified reflectivity action.
  */
 CELER_FUNCTION real_type
-GridReflectivitySampler::operator()(ReflectivityAction action) const
+GridReflectivityCalculator::operator()(ReflectivityAction action) const
 {
     CELER_EXPECT(surface_ < data_.reflectivity[action].size());
     auto grid = data_.reflectivity[action][surface_];
@@ -117,14 +118,14 @@ GridReflectivityExecutor::operator()(CoreTrackView const& track) const
 
     // Sample action based on reflectivity and transmittance grids
     auto action = celeritas::make_unnormalized_selector(
-        GridReflectivitySampler{data, sub_model_id, track.particle().energy()},
+        GridReflectivityCalculator{
+            data, sub_model_id, track.particle().energy()},
         ReflectivityAction::size_,
         real_type{1})(rng);
 
     if (action == ReflectivityAction::absorb)
     {
-        auto e_grid_id = data.efficiency_ids[sub_model_id];
-        if (e_grid_id < data.efficiency.size())
+        if (auto e_grid_id = data.efficiency_ids[sub_model_id])
         {
             // If absorbed and has efficiency grid, sample efficiency
             auto const& e_grid = data.efficiency[e_grid_id];

@@ -40,6 +40,12 @@ namespace inp
  * remaining probability is the chance for the photon to be absorbed. If the
  * photon is absorbed and an efficiency grid is defined, then the efficiency
  * probability is used to determine if the photon is detected.
+ *
+ * The reflectivity and transmittance grids are sampled together and must sum
+ * to between 0 and 1 at every grid point.
+ *
+ * The efficiency grid is sampled independently (if provided), and must be in
+ * the range [0,1].
  */
 struct GridReflection
 {

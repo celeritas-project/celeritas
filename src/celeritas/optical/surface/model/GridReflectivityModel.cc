@@ -43,6 +43,9 @@ GridReflectivityModel::GridReflectivityModel(
     // Build user-defined grids
     HostVal<GridReflectivityData> data;
 
+    // TODO: use the same NonuniformGridBuilder for all collections to dedupe
+    // grids
+
     auto build_reflectivity = NonuniformGridInserter<SubModelId>(
         &data.reals, &data.reflectivity[ReflectivityAction::interact]);
     auto build_transmittance = NonuniformGridInserter<SubModelId>(
