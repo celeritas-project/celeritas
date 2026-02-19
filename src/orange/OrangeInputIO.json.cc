@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.json.hh"  // IWYU pragma: keep

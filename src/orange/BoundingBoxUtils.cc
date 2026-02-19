@@ -9,7 +9,6 @@
 #include <iostream>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/NumericLimits.hh"
 

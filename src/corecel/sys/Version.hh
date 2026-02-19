@@ -138,9 +138,6 @@ CELER_DEFINE_VERSION_CMP(>=)
 // Write to stream
 std::ostream& operator<<(std::ostream&, Version const&);
 
-// Save as string
-std::string to_string(Version const&);
-
 // Get the Celeritas version as an object
 Version celer_version();
 

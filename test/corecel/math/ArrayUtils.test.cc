@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/math/ArrayUtils.hh"
 
-#include "corecel/cont/ArrayIO.hh"
+#include "corecel/io/StreamToString.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
 
@@ -37,7 +37,7 @@ enum
 TEST(ArrayUtilsTest, io)
 {
     Array<int, 3> x{1, 3, 2};
-    EXPECT_EQ("{1,3,2}", to_string(x));
+    EXPECT_EQ("{1,3,2}", stream_to_string(x));
 }
 
 TEST(ArrayUtilsTest, axpy)
