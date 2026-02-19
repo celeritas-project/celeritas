@@ -248,17 +248,17 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         GeantPhysicsOptions opts;
-        opts.relaxation = RelaxationSelection::all;
+        opts.em.relaxation = RelaxationSelection::all;
         opts.muon.ionization = true;
         opts.muon.bremsstrahlung = true;
         opts.muon.pair_production = true;
-        opts.verbose = true;
+        opts.em.verbose = true;
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             nlohmann::json out = opts;
             out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","em":{"angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true},"mucf":false,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null})json",
                 std::string(out.dump()));
         }
         return opts;
@@ -277,9 +277,9 @@ class TestEm3 : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         GeantPhysicsOptions opts;
-        opts.relaxation = RelaxationSelection::none;
-        opts.rayleigh_scattering = false;
-        opts.verbose = false;
+        opts.em.relaxation = RelaxationSelection::none;
+        opts.em.rayleigh_scattering = false;
+        opts.em.verbose = false;
         return opts;
     }
 };
@@ -300,7 +300,7 @@ class MucfBox : public GeantImporterTest
     {
         //! \todo Enable muon EM and decay physics once fully supported
         GeantPhysicsOptions opts;
-        opts.mucf_physics = true;
+        opts.mucf = true;
         return opts;
     }
 };
@@ -317,9 +317,9 @@ class OneSteelSphere : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         GeantPhysicsOptions opts;
-        opts.msc = MscModelSelection::urban_wentzelvi;
-        opts.relaxation = RelaxationSelection::none;
-        opts.verbose = false;
+        opts.em.msc = MscModelSelection::urban_wentzelvi;
+        opts.em.relaxation = RelaxationSelection::none;
+        opts.em.verbose = false;
         return opts;
     }
 };
@@ -339,8 +339,8 @@ class OneSteelSphereGG : public OneSteelSphere
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = OneSteelSphere::build_geant_options();
-        opts.gamma_general = true;
-        opts.msc = MscModelSelection::urban;
+        opts.em.gamma_general = true;
+        opts.em.msc = MscModelSelection::urban;
         return opts;
     }
 };
@@ -404,18 +404,8 @@ class Solids : public GeantImporterTest
     {
         // only brems
         GeantPhysicsOptions opts;
-        opts.compton_scattering = false;
-        opts.coulomb_scattering = false;
-        opts.photoelectric = false;
-        opts.rayleigh_scattering = false;
-        opts.gamma_conversion = false;
-        opts.gamma_general = false;
-        opts.ionization = false;
-        opts.annihilation = false;
-        opts.brems = BremsModelSelection::seltzer_berger;
-        opts.msc = MscModelSelection::none;
-        opts.relaxation = RelaxationSelection::none;
-        opts.eloss_fluctuation = false;
+        opts.em = GeantEmPhysicsOptions::deactivated();
+        opts.em.brems = BremsModelSelection::seltzer_berger;
         return opts;
     }
 };

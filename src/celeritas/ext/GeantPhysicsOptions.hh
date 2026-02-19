@@ -99,17 +99,9 @@ operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construction options for Geant physics.
- *
- * These options attempt to default to our closest match to \c
- * G4StandardEmPhysics. They are passed to the \c EmPhysicsList
- * and \c FtfpBert physics lists to provide an easy way to set up
- * physics options.
- *
- * \todo This will be moved to celeritas::inp
- * \todo Rename default_cutoff to be consistent (it's a production cut)
+ * Construction options for Geant EM physics.
  */
-struct GeantPhysicsOptions
+struct GeantEmPhysicsOptions
 {
     using MevEnergy = Quantity<units::Mev, double>;
 
@@ -147,12 +139,6 @@ struct GeantPhysicsOptions
     //! Enable atomic relaxation and select a model
     RelaxationSelection relaxation{RelaxationSelection::none};
     //!@}
-
-    //! Muon EM physics
-    GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
-
-    //! Muon-catalyzed fusion physics
-    bool mucf_physics{false};
 
     //!@{
     //! \name Physics options
@@ -217,14 +203,20 @@ struct GeantPhysicsOptions
     //! Print detailed Geant4 output
     bool verbose{false};
 
-    //! Optical physics options
-    GeantOpticalPhysicsOptions optical{
-        GeantOpticalPhysicsOptions::deactivated()};
+    //! True if any process is activated
+    explicit operator bool() const
+    {
+        return compton_scattering || photoelectric || rayleigh_scattering
+               || gamma_conversion || gamma_general || coulomb_scattering
+               || ionization || annihilation
+               || brems != BremsModelSelection::none
+               || msc != MscModelSelection::none;
+    }
 
     //! Initialize with no physics
-    static GeantPhysicsOptions deactivated()
+    static GeantEmPhysicsOptions deactivated()
     {
-        GeantPhysicsOptions opt;
+        GeantEmPhysicsOptions opt;
         // Gamma
         opt.compton_scattering = false;
         opt.photoelectric = false;
@@ -238,10 +230,6 @@ struct GeantPhysicsOptions
         opt.brems = BremsModelSelection::none;
         opt.msc = MscModelSelection::none;
         opt.relaxation = RelaxationSelection::none;
-        // Muon
-        opt.muon = GeantMuonPhysicsOptions::deactivated();
-        // Optical
-        opt.optical = GeantOpticalPhysicsOptions::deactivated();
         return opt;
     }
 };
@@ -249,7 +237,7 @@ struct GeantPhysicsOptions
 //! Equality operator, mainly for test harness
 // TODO: when we require C++20, use `friend bool operator==(...) = default;`
 constexpr bool
-operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
+operator==(GeantEmPhysicsOptions const& a, GeantEmPhysicsOptions const& b)
 {
     // clang-format off
     return a.compton_scattering == b.compton_scattering
@@ -265,10 +253,6 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
         && a.seltzer_berger_limit == b.seltzer_berger_limit
         && a.msc == b.msc
         && a.relaxation == b.relaxation
-        // Muon EM physics
-        && a.muon == b.muon
-        // Muon-catalyzed fusion physics
-        && a.mucf_physics == b.mucf_physics
         // Physics options
         && a.em_bins_per_decade == b.em_bins_per_decade
         && a.eloss_fluctuation == b.eloss_fluctuation
@@ -294,7 +278,59 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
         && a.msc_step_algorithm == b.msc_step_algorithm
         && a.msc_muhad_step_algorithm == b.msc_muhad_step_algorithm
         && a.form_factor == b.form_factor
-        && a.verbose == b.verbose
+        && a.verbose == b.verbose;
+    // clang-format on
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construction options for Geant physics.
+ *
+ * These options attempt to default to our closest match to \c
+ * G4StandardEmPhysics. They are passed to the \c EmPhysicsList
+ * and \c FtfpBert physics lists to provide an easy way to set up
+ * physics options.
+ *
+ * \todo This will be moved to celeritas::inp
+ * \todo Rename default_cutoff to be consistent (it's a production cut)
+ */
+struct GeantPhysicsOptions
+{
+    using MevEnergy = GeantEmPhysicsOptions::MevEnergy;
+
+    //! Standard EM physics
+    GeantEmPhysicsOptions em;
+
+    //! Muon EM physics
+    GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
+
+    //! Muon-catalyzed fusion physics
+    bool mucf{false};
+
+    //! Optical physics options
+    GeantOpticalPhysicsOptions optical{
+        GeantOpticalPhysicsOptions::deactivated()};
+
+    //! Initialize with no physics
+    static GeantPhysicsOptions deactivated()
+    {
+        GeantPhysicsOptions opt;
+        opt.em = GeantEmPhysicsOptions::deactivated();
+        opt.muon = GeantMuonPhysicsOptions::deactivated();
+        opt.mucf = false;
+        opt.optical = GeantOpticalPhysicsOptions::deactivated();
+        return opt;
+    }
+};
+
+//! Equality operator, mainly for test harness
+constexpr bool
+operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
+{
+    // clang-format off
+    return a.em == b.em
+        && a.muon == b.muon
+        && a.mucf == b.mucf
         && a.optical == b.optical;
     // clang-format on
 }

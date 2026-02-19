@@ -27,18 +27,20 @@ EmPhysicsList::EmPhysicsList(Options const& options)
 
     ScopedStreamRedirect scoped_log(&std::cout);
 
-    this->SetVerboseLevel(options.verbose);
+    this->SetVerboseLevel(options.em.verbose);
     this->SetDefaultCutValue(
-        native_value_to<ClhepLen>(options.default_cutoff).value());
+        native_value_to<ClhepLen>(options.em.default_cutoff).value());
 
-    // Celeritas-supported EM Physics
-    detail::emplace_physics<SupportedEmStandardPhysics>(*this, options);
+    if (options.em || options.muon || options.mucf)
+    {
+        // Celeritas-supported EM Physics
+        detail::emplace_physics<SupportedEmStandardPhysics>(*this, options);
+    }
 
     if (options.optical)
     {
         // Celeritas-supported Optical Physics
-        detail::emplace_physics<SupportedOpticalPhysics>(*this,
-                                                         options.optical);
+        detail::emplace_physics<SupportedOpticalPhysics>(*this, options);
     }
 }
 

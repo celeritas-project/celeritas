@@ -95,7 +95,7 @@ class TestEm3NoMsc : public TrackSortTestBase, public TestEm3Base
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = TestEm3Base::build_geant_options();
-        opts.msc = MscModelSelection::none;
+        opts.em.msc = MscModelSelection::none;
         return opts;
     }
 

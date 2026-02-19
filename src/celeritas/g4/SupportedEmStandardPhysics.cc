@@ -109,48 +109,49 @@ SupportedEmStandardPhysics::SupportedEmStandardPhysics(Options const& options)
 
     // Set EM options using limits from G4EmParameters
     auto& em_params = *G4EmParameters::Instance();
-    CELER_VALIDATE(options_.em_bins_per_decade >= 5,
+    CELER_VALIDATE(options_.em.em_bins_per_decade >= 5,
                    << "number of EM bins per decade="
-                   << options.em_bins_per_decade << " (must be at least 5)");
+                   << options.em.em_bins_per_decade << " (must be at least 5)");
 
-    em_params.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
-    em_params.SetLossFluctuations(options.eloss_fluctuation);
-    em_params.SetMinEnergy(value_as<Options::MevEnergy>(options.min_energy)
+    em_params.SetNumberOfBinsPerDecade(options.em.em_bins_per_decade);
+    em_params.SetLossFluctuations(options.em.eloss_fluctuation);
+    em_params.SetMinEnergy(value_as<Options::MevEnergy>(options.em.min_energy)
                            * CLHEP::MeV);
-    em_params.SetMaxEnergy(value_as<Options::MevEnergy>(options.max_energy)
+    em_params.SetMaxEnergy(value_as<Options::MevEnergy>(options.em.max_energy)
                            * CLHEP::MeV);
-    em_params.SetLPM(options.lpm);
-    em_params.SetFluo(options.relaxation != RelaxationSelection::none);
-    em_params.SetAuger(options.relaxation == RelaxationSelection::all);
-    em_params.SetIntegral(options.integral_approach);
-    em_params.SetLinearLossLimit(options.linear_loss_limit);
+    em_params.SetLPM(options.em.lpm);
+    em_params.SetFluo(options.em.relaxation != RelaxationSelection::none);
+    em_params.SetAuger(options.em.relaxation == RelaxationSelection::all);
+    em_params.SetIntegral(options.em.integral_approach);
+    em_params.SetLinearLossLimit(options.em.linear_loss_limit);
     em_params.SetNuclearFormfactorType(
-        from_form_factor_type(options.form_factor));
+        from_form_factor_type(options.em.form_factor));
     em_params.SetMscStepLimitType(
-        from_msc_step_algorithm(options.msc_step_algorithm));
+        from_msc_step_algorithm(options.em.msc_step_algorithm));
     em_params.SetMscMuHadStepLimitType(
-        from_msc_step_algorithm(options.msc_muhad_step_algorithm));
-    em_params.SetLateralDisplacement(options.msc_displaced);
-    em_params.SetMuHadLateralDisplacement(options.msc_muhad_displaced);
-    em_params.SetMscRangeFactor(options.msc_range_factor);
-    em_params.SetMscMuHadRangeFactor(options.msc_muhad_range_factor);
+        from_msc_step_algorithm(options.em.msc_muhad_step_algorithm));
+    em_params.SetLateralDisplacement(options.em.msc_displaced);
+    em_params.SetMuHadLateralDisplacement(options.em.msc_muhad_displaced);
+    em_params.SetMscRangeFactor(options.em.msc_range_factor);
+    em_params.SetMscMuHadRangeFactor(options.em.msc_muhad_range_factor);
 #if G4VERSION_NUMBER >= 1060
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
     // Customizable MSC safety factor/lambda limit were added in
     // emutils-V10-05-18
-    em_params.SetMscSafetyFactor(options.msc_safety_factor);
+    em_params.SetMscSafetyFactor(options.em.msc_safety_factor);
     em_params.SetMscLambdaLimit(
-        native_value_to<ClhepLen>(options.msc_lambda_limit).value());
+        native_value_to<ClhepLen>(options.em.msc_lambda_limit).value());
 #endif
-    em_params.SetMscThetaLimit(options.msc_theta_limit);
+    em_params.SetMscThetaLimit(options.em.msc_theta_limit);
     em_params.SetLowestElectronEnergy(
-        value_as<Options::MevEnergy>(options.lowest_electron_energy)
+        value_as<Options::MevEnergy>(options.em.lowest_electron_energy)
         * CLHEP::MeV);
     em_params.SetLowestMuHadEnergy(
-        value_as<Options::MevEnergy>(options.lowest_muhad_energy) * CLHEP::MeV);
-    em_params.SetApplyCuts(options.apply_cuts);
-    em_params.SetVerbose(options.verbose);
+        value_as<Options::MevEnergy>(options.em.lowest_muhad_energy)
+        * CLHEP::MeV);
+    em_params.SetApplyCuts(options.em.apply_cuts);
+    em_params.SetVerbose(options.em.verbose);
 }
 
 //---------------------------------------------------------------------------//
@@ -172,13 +173,14 @@ void SupportedEmStandardPhysics::ConstructParticle()
     G4Gamma::Definition();
     G4Electron::Definition();
     G4Positron::Definition();
-    if (options_.muon || options_.mucf_physics)
+    if (options_.muon || options_.mucf)
     {
         CELER_LOG(debug) << "Constructing: mu+, mu-";
         G4MuonMinus::Definition();
         G4MuonPlus::Definition();
     }
-    if (options_.msc != MscModelSelection::none || options_.coulomb_scattering)
+    if (options_.em.msc != MscModelSelection::none
+        || options_.em.coulomb_scattering)
     {
         CELER_LOG(debug) << "Constructing: proton";
         G4Proton::Definition();
@@ -197,7 +199,7 @@ void SupportedEmStandardPhysics::ConstructProcess()
     this->add_gamma_processes();
     this->add_e_processes(G4Electron::Definition());
     this->add_e_processes(G4Positron::Definition());
-    if (options_.muon || options_.mucf_physics)
+    if (options_.muon || options_.mucf)
     {
         this->add_mu_processes(G4MuonMinus::Definition());
         this->add_mu_processes(G4MuonPlus::Definition());
@@ -227,7 +229,7 @@ void SupportedEmStandardPhysics::add_gamma_processes()
     auto* gamma = G4Gamma::Gamma();
     // Option to create GammaGeneral for performance/robustness
     std::unique_ptr<G4GammaGeneralProcess> ggproc;
-    if (options_.gamma_general)
+    if (options_.em.gamma_general)
     {
         ggproc = std::make_unique<G4GammaGeneralProcess>();
     }
@@ -243,7 +245,7 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         }
     };
 
-    if (options_.compton_scattering)
+    if (options_.em.compton_scattering)
     {
         // Compton Scattering: G4KleinNishinaCompton
         auto compton_scattering = std::make_unique<G4ComptonScattering>();
@@ -252,7 +254,7 @@ void SupportedEmStandardPhysics::add_gamma_processes()
                             "G4KleinNishinaCompton";
     }
 
-    if (options_.photoelectric)
+    if (options_.em.photoelectric)
     {
         // Photoelectric effect: G4LivermorePhotoElectricModel
         auto pe = std::make_unique<G4PhotoElectricEffect>();
@@ -262,7 +264,7 @@ void SupportedEmStandardPhysics::add_gamma_processes()
                             "G4LivermorePhotoElectricModel";
     }
 
-    if (options_.rayleigh_scattering)
+    if (options_.em.rayleigh_scattering)
     {
         // Rayleigh: G4LivermoreRayleighModel
         auto rayl = std::make_unique<G4RayleighScattering>();
@@ -271,7 +273,7 @@ void SupportedEmStandardPhysics::add_gamma_processes()
                             "G4LivermoreRayleighModel";
     }
 
-    if (options_.gamma_conversion)
+    if (options_.em.gamma_conversion)
     {
         // Gamma conversion: G4PairProductionRelModel
         auto gamma_conversion = std::make_unique<G4GammaConversion>();
@@ -298,7 +300,7 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
     auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
     auto& em_params = *G4EmParameters::Instance();
 
-    if (options_.annihilation && p == G4Positron::Positron())
+    if (options_.em.annihilation && p == G4Positron::Positron())
     {
 #if G4VERSION_NUMBER >= 1130
         if (em_params.Use3GammaAnnihilationOnFly())
@@ -315,7 +317,7 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
                             "G4eplusAnnihilation";
     }
 
-    if (options_.ionization)
+    if (options_.em.ionization)
     {
         // e-e+ ionization: G4MollerBhabhaModel
         auto ionization = std::make_unique<G4eIonisation>();
@@ -325,15 +327,15 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         CELER_LOG(debug) << "Using ionization with G4MollerBhabhaModel";
     }
 
-    if (options_.brems != BremsModelSelection::none)
+    if (options_.em.brems != BremsModelSelection::none)
     {
         ph.RegisterProcess(
             new detail::GeantBremsstrahlungProcess(
-                options_.brems,
-                value_as<Options::MevEnergy>(options_.seltzer_berger_limit)),
+                options_.em.brems,
+                value_as<Options::MevEnergy>(options_.em.seltzer_berger_limit)),
             p);
 
-        if (!options_.ionization)
+        if (!options_.em.ionization)
         {
             // If ionization is turned off, activate the along-step "do it" for
             // bremsstrahlung *after* the process has been registered and set
@@ -358,7 +360,7 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 
         auto msg = CELER_LOG(debug);
         msg << "Using Bremsstrahlung with ";
-        switch (options_.brems)
+        switch (options_.em.brems)
         {
             case BremsModelSelection::seltzer_berger:
                 msg << "G4SeltzerBergerModel";
@@ -378,12 +380,12 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 
     // Energy limit between MSC models when multiple models are used
     double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
-    bool set_energy_limit = options_.msc == MMS::urban_wentzelvi;
+    bool set_energy_limit = options_.em.msc == MMS::urban_wentzelvi;
 
-    if (options_.coulomb_scattering)
+    if (options_.em.coulomb_scattering)
     {
         // Coulomb scattering: G4eCoulombScatteringModel
-        if (options_.msc == MMS::urban)
+        if (options_.em.msc == MMS::urban)
         {
             CELER_LOG(warning)
                 << "Urban multiple scattering is used for all "
@@ -399,7 +401,7 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
                 model->SetLowEnergyLimit(msc_energy_limit);
                 model->SetActivationLowEnergyLimit(msc_energy_limit);
             }
-            if (options_.msc == MMS::none)
+            if (options_.em.msc == MMS::none)
             {
                 G4EmParameters::Instance()->SetMscThetaLimit(0);
             }
@@ -414,11 +416,12 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         }
     }
 
-    if (options_.msc != MMS::none)
+    if (options_.em.msc != MMS::none)
     {
         auto process = std::make_unique<G4eMultipleScattering>();
 
-        if (options_.msc == MMS::urban || options_.msc == MMS::urban_wentzelvi)
+        if (options_.em.msc == MMS::urban
+            || options_.em.msc == MMS::urban_wentzelvi)
         {
             // Multiple scattering: Urban
             auto model = std::make_unique<G4UrbanMscModel>();
@@ -435,8 +438,8 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
             process->SetEmModel(model.release());
         }
 
-        if (options_.msc == MMS::wentzelvi
-            || options_.msc == MMS::urban_wentzelvi)
+        if (options_.em.msc == MMS::wentzelvi
+            || options_.em.msc == MMS::urban_wentzelvi)
         {
             // Multiple scattering: WentzelVI
             auto model = std::make_unique<G4WentzelVIModel>();
@@ -495,7 +498,7 @@ void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
                             "G4eCoulombScatteringModel";
     }
 
-    if (options_.mucf_physics && p == G4MuonMinus::Definition())
+    if (options_.mucf && p == G4MuonMinus::Definition())
     {
         // This is a G4VRestProcess with G4ProcessType::fHadronic
         auto* pm = p->GetProcessManager();

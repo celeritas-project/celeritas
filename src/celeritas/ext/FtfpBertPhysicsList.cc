@@ -36,19 +36,21 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
 
     ScopedStreamRedirect scoped_log(&std::cout);
 
-    int verbosity = options.verbose;
+    int verbosity = options.em.verbose;
     this->SetVerboseLevel(verbosity);
     this->SetDefaultCutValue(
-        native_value_to<ClhepLen>(options.default_cutoff).value());
+        native_value_to<ClhepLen>(options.em.default_cutoff).value());
 
-    // Add celeritas EM physics plus additional mu/hadron
-    detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
+    if (options.em || options.muon || options.mucf)
+    {
+        // Add celeritas EM physics plus additional mu/hadron
+        detail::emplace_physics<detail::EmStandardPhysics>(*this, options);
+    }
 
     if (options.optical)
     {
         // Celeritas-supported Optical Physics
-        detail::emplace_physics<SupportedOpticalPhysics>(*this,
-                                                         options.optical);
+        detail::emplace_physics<SupportedOpticalPhysics>(*this, options);
     }
 
     // TODO: Add a physics constructor equivalent to G4EmExtraPhysics

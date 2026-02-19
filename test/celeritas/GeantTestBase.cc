@@ -85,8 +85,8 @@ bool GeantTestBase::is_summit_build()
 auto GeantTestBase::build_geant_options() const -> GeantPhysicsOptions
 {
     GeantPhysicsOptions options;
-    options.em_bins_per_decade = 14;
-    options.rayleigh_scattering = false;
+    options.em.em_bins_per_decade = 14;
+    options.em.rayleigh_scattering = false;
     return options;
 }
 
@@ -114,10 +114,10 @@ auto GeantTestBase::build_along_step() -> SPConstAction
         this->imported_data().em_params.energy_loss_fluct);
     CELER_ASSERT(result);
     CELER_ASSERT(result->has_fluct()
-                 == this->build_geant_options().eloss_fluctuation);
+                 == this->build_geant_options().em.eloss_fluctuation);
     CELER_ASSERT(
         result->has_msc()
-        == (this->build_geant_options().msc != MscModelSelection::none));
+        == (this->build_geant_options().em.msc != MscModelSelection::none));
     action_reg.insert(result);
     return result;
 }
@@ -168,7 +168,7 @@ auto GeantTestBase::load(std::string const& filename) const
     else
     {
         // Verbosity change is allowable
-        opts.verbose = false;
+        opts.em.verbose = false;
 
         static char const explanation[]
             = R"( (Geant4 cannot be set up twice in one execution: see issue #462))";
@@ -194,7 +194,7 @@ auto GeantTestBase::load(std::string const& filename) const
         CELER_ASSERT(i->import);
         i->imported = (*i->import)(sel);
         i->selection = sel;
-        i->options.verbose = false;
+        i->options.em.verbose = false;
 
         if (i->selection.reader_data)
         {
