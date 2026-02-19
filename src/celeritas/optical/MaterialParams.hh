@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "MaterialData.hh"
@@ -80,7 +80,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<MaterialParamsData> data_;
+    ParamsDataStore<MaterialParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

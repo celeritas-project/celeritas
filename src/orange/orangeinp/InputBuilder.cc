@@ -13,6 +13,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
@@ -97,7 +98,7 @@ class JsonCsgOutput
 /*!
  * Construct with options.
  */
-InputBuilder::InputBuilder(Options&& opts) : opts_{std::move(opts)}
+InputBuilder::InputBuilder(Input&& inp) : opts_{std::move(inp)}
 {
     CELER_EXPECT(opts_.tol);
 }
@@ -123,15 +124,17 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 
     // Build surfaces and metadata
     OrangeInput result;
+    result.tol = opts_.tol;
+    result.logic = opts_.logic;
     JsonCsgOutput csg_outp;
     detail::ProtoBuilder builder(&result, protos, [&] {
         detail::ProtoBuilder::Options pbopts;
-        pbopts.tol = opts_.tol;
         if (!opts_.csg_output_file.empty())
         {
             csg_outp = JsonCsgOutput{protos.size()};
             pbopts.save_json = std::ref(csg_outp);
         }
+        pbopts.implicit_parent_boundary = opts_.implicit_parent_boundary;
         return pbopts;
     }());
 
@@ -146,6 +149,22 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     if (csg_outp)
     {
         csg_outp.write(opts_.csg_output_file);
+    }
+
+    if (std::string var = celeritas::getenv("ORANGE_BIH_MAX_LEAF_SIZE");
+        !var.empty())
+    {
+        size_type mls = std::stoul(var);
+        CELER_EXPECT(mls > 0);
+        result.construction_opts.bih_options.max_leaf_size = mls;
+    }
+
+    if (std::string var = celeritas::getenv("ORANGE_BIH_DEPTH_LIMIT");
+        !var.empty())
+    {
+        size_type dl = std::stoul(var);
+        CELER_EXPECT(dl > 0);
+        result.construction_opts.bih_options.depth_limit = dl;
     }
 
     CELER_ENSURE(result);

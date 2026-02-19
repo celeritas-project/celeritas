@@ -6,8 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
+
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
 
 namespace celeritas
@@ -79,6 +82,23 @@ void MfpBuilder::operator()(inp::Grid const& grid)
         return (*this)();
     }
 
+    if (std::any_of(
+            grid.y.begin(), grid.y.end(), [](double y) { return y <= 0; }))
+    {
+        CELER_LOG(warning) << "MFP grid contains one or more nonpositive "
+                              "values: replacing with epsilon="
+                           << numeric_limits<double>::epsilon();
+
+        // Zero or negative MFPs are unphysical: replace with a small positive
+        auto new_grid = grid;
+        std::replace_if(
+            new_grid.y.begin(),
+            new_grid.y.end(),
+            [](double y) { return y <= 0.0; },
+            numeric_limits<double>::epsilon());
+        insert_grid_(new_grid);
+        return;
+    }
     insert_grid_(grid);
 }
 

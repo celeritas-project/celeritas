@@ -6,8 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "CsgTypes.hh"
 
-#include <iostream>
-#include <sstream>
+#include <ostream>
 
 #include "corecel/io/Join.hh"
 #include "corecel/io/StreamableVariant.hh"
@@ -69,15 +68,6 @@ std::ostream& operator<<(std::ostream& os, Node const& node)
 }
 
 //!@}
-//---------------------------------------------------------------------------//
-//! Convert a node variant to a string
-std::string to_string(Node const& n)
-{
-    std::ostringstream os;
-    os << n;
-    return os.str();
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas

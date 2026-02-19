@@ -29,13 +29,11 @@ void DirectGeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state = get<DirectGeneratorState<MemSpace::native>>(
         *state.aux(), this->aux_id());
-    size_type num_gen
-        = min(state.counters().num_vacancies, aux_state.counters.num_pending);
+    size_type num_gen = min(state.sync_get_counters().num_vacancies,
+                            aux_state.counters.num_pending);
 
-    detail::DirectGeneratorExecutor execute{params.ptr<MemSpace::native>(),
-                                            state.ptr(),
-                                            aux_state.store.ref(),
-                                            state.counters()};
+    detail::DirectGeneratorExecutor execute{
+        params.ptr<MemSpace::native>(), state.ptr(), aux_state.store.ref()};
     static ActionLauncher<decltype(execute)> const launch(*this);
     launch(num_gen, state.stream_id(), execute);
 }

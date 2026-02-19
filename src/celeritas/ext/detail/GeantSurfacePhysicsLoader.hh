@@ -36,6 +36,10 @@ class GeantSurfacePhysicsLoader
 
     //// HELPER FUNCTIONS ////
 
+    // Check that unimplemented properties are not present
+    void check_unimplemented_properties(
+        GeantSurfacePhysicsHelper const& helper) const;
+
     // Insert GLISUR model surface
     void insert_glisur(GeantSurfacePhysicsHelper const& helper);
 

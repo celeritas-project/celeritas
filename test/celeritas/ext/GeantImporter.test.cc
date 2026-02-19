@@ -1943,13 +1943,14 @@ TEST_F(Solids, volumes_only)
         names.push_back(volume.name);
     }
 
-    static char const* const expected_names[]
-        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
-           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl@0"};
+    static char const* const expected_names[] = {
+        "box500",    "cone1",    "para1",     "sphere1",    "parabol1",
+        "trap1",     "trd1",     "trd2",      "",           "trd3_also",
+        "tube100",   "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1",   "orb1",     "polyhedr1", "hype1",      "elltube1",
+        "ellcone1",  "arb8b",    "arb8a",     "xtru1",      "World",
+        "trd3_refl",
+    };
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -1968,13 +1969,14 @@ TEST_F(Solids, volumes_unique)
     {
         names.push_back(volume.name);
     }
-    static char const* const expected_names[]
-        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
-           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl@0"};
+    static char const* const expected_names[] = {
+        "box500",    "cone1",    "para1",     "sphere1",    "parabol1",
+        "trap1",     "trd1",     "trd2",      "",           "trd3_also",
+        "tube100",   "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1",   "orb1",     "polyhedr1", "hype1",      "elltube1",
+        "ellcone1",  "arb8b",    "arb8a",     "xtru1",      "World",
+        "trd3_refl",
+    };
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -2152,22 +2154,7 @@ TEST_F(MucfBox, static_data)
     EXPECT_SOFT_EQ(0.55157437567861023, average(mucf.muon_energy_cdf.x));
     EXPECT_SOFT_EQ(11.250286274435437, average(mucf.muon_energy_cdf.y));
 
-    // Dummy data
-    auto const& cycle_f0 = mucf.cycle_rates[0];
-    static double const expected_cycle_rate_f0_y[] = {2, 2};
-    EXPECT_TRUE(cycle_f0);
-    EXPECT_EQ(cycle_f0.molecule, MucfMuonicMolecule::deuterium_tritium);
-    EXPECT_EQ("F=0", cycle_f0.spin_label);
-    EXPECT_EQ(2, cycle_f0.rate.x.size());
-    EXPECT_VEC_EQ(expected_cycle_rate_f0_y, cycle_f0.rate.y);
-
-    auto const& cycle_f1 = mucf.cycle_rates[1];
-    static double const expected_cycle_rate_f1_y[] = {3, 3};
-    EXPECT_TRUE(cycle_f1);
-    EXPECT_EQ(cycle_f1.molecule, MucfMuonicMolecule::deuterium_tritium);
-    EXPECT_EQ("F=1", cycle_f1.spin_label);
-    EXPECT_EQ(2, cycle_f1.rate.x.size());
-    EXPECT_VEC_EQ(expected_cycle_rate_f1_y, cycle_f1.rate.y);
+    //! \todo Add real cycle rate data test
 
     EXPECT_TRUE(mucf.atom_transfer.empty());
     EXPECT_TRUE(mucf.atom_spin_flip.empty());

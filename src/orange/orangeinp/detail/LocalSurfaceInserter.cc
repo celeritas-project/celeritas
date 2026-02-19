@@ -17,10 +17,22 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-real_type calc_length_scale(Tolerance<> const& tol)
+constexpr real_type calc_length_scale(Tolerance<> const& tol)
 {
     CELER_EXPECT(tol);
     return tol.abs / tol.rel;
+}
+
+//---------------------------------------------------------------------------//
+Tolerance<> scaled_tolerance(Tolerance<> const& tol, real_type scale)
+{
+    CELER_EXPECT(tol);
+    CELER_EXPECT(scale > 0);
+    Tolerance<> result;
+    result.rel = tol.rel * scale;
+    result.abs = tol.abs * scale;
+    // Quietly correct too-small tolerances: only user construction should warn
+    return result.clamped();
 }
 
 //---------------------------------------------------------------------------//
@@ -37,7 +49,8 @@ LocalSurfaceInserter::LocalSurfaceInserter(VecSurface* v,
                                            Tolerance<> const& tol)
     : surfaces_{v}
     , soft_surface_equal_{tol}
-    , calc_hashes_{bin_width_frac() * calc_length_scale(tol), 2 * tol.abs}
+    , surface_equal_{scaled_tolerance(tol, exact_rel_tolerance_)}
+    , calc_hashes_{bin_width_frac_ * calc_length_scale(tol), 2 * tol.abs}
 {
     CELER_EXPECT(surfaces_);
     CELER_EXPECT(surfaces_->empty());
@@ -76,8 +89,8 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
                 // Save first matching surface
                 near_match = lsid;
             }
-            // Test for exact equality
-            if (exact_surface_equal_(source, target))
+            // Test for "exact" equality
+            if (surface_equal_(source, target))
             {
                 // Save match
                 exact_match = lsid;

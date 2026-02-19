@@ -91,7 +91,7 @@ void GeneratorBase::update_counters(optical::CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
 
-    auto& counters = state.counters();
+    auto counters = state.sync_get_counters();
     auto& gen_counters = this->counters(*state.aux());
 
     // Calculate the number of new tracks generated at this step
@@ -111,6 +111,7 @@ void GeneratorBase::update_counters(optical::CoreState<M>& state) const
     // Update the number of active tracks. This must be done even if no new
     // tracks were generated
     counters.num_active = state.size() - counters.num_vacancies;
+    state.sync_put_counters(counters);
 }
 
 //---------------------------------------------------------------------------//

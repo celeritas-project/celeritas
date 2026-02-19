@@ -9,6 +9,7 @@
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/MaterialParams.hh"

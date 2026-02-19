@@ -38,6 +38,12 @@
 #    define CELER_VGNAV CELER_VGNAV_PATH
 #endif
 
+#ifdef VECGEOM_SINGLE_PRECISION
+static_assert(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT);
+#else
+static_assert(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE);
+#endif
+
 namespace vecgeom
 {
 #if VECGEOM_VERSION >= 0x020000

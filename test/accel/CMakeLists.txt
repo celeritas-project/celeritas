@@ -7,6 +7,10 @@ if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
 endif()
 
+if(NOT CELERITAS_USE_covfie)
+  set(_needs_covfie DISABLE)
+endif()
+
 include(CeleritasG4Tests)
 
 #-----------------------------------------------------------------------------#
@@ -47,7 +51,10 @@ celeritas_add_test(ExceptionConverter.test.cc)
 celeritas_add_test(HepMC3PrimaryGenerator.test.cc
   ${_needs_hepmc}
   ENVIRONMENT "${CELER_G4ENV}")
-celeritas_add_test(RZMapMagneticField.test.cc)
+
+# Fields
+celeritas_add_test(CartMapMagneticField.test.cc ${_needs_covfie})
+celeritas_add_test(CylMapMagneticField.test.cc)
 
 #-----------------------------------------------------------------------------#
 # INTEGRATION TESTS

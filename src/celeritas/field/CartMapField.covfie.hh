@@ -20,6 +20,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Interpolate a magnetic field vector on an x/y/z grid.
+ *
+ * \warning Accessing values outside the grid clamps to boundary values.
+ * This behavior differs from other field maps, where values outside the map
+ * are assumed zero.
  */
 class CartMapField
 {

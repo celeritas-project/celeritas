@@ -136,7 +136,7 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
     }();
 
     // Move to mirrored data, copying to device
-    mirror_ = CollectionMirror<CylMapFieldParamsData>{std::move(host_data)};
+    mirror_ = ParamsDataStore<CylMapFieldParamsData>{std::move(host_data)};
     CELER_ENSURE(this->mirror_);
 }
 

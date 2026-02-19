@@ -12,8 +12,6 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/transform/VariantTransform.hh"
 
-class G4LogicalVolume;
-
 namespace celeritas
 {
 namespace orangeinp

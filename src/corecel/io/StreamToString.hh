@@ -2,29 +2,26 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ScaleUtils.cc
+//! \file corecel/io/StreamToString.hh
 //---------------------------------------------------------------------------//
-#include "ScaleUtils.hh"
+#pragma once
 
-#include "orange/orangeinp/CsgTree.hh"
-
-#include "detail/CsgLogicUtils.hh"
+#include <sstream>
+#include <string>
 
 namespace celeritas
 {
-namespace orangeinp
-{
 //---------------------------------------------------------------------------//
-// Build postfix logic with original surface IDs intact
-std::vector<logic_int> build_postfix_logic(CsgTree const& tree, NodeId n)
+/*!
+ * Return as a string any object that has an ostream operator.
+ */
+template<class T>
+inline std::string stream_to_string(T const& item)
 {
-    using celeritas::orangeinp::detail::PostfixBuildLogicPolicy;
-
-    PostfixBuildLogicPolicy policy{tree};
-    policy(n);
-    return std::move(policy).logic();
+    std::ostringstream os;
+    os << item;
+    return std::move(os).str();
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace orangeinp
 }  // namespace celeritas

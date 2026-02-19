@@ -82,7 +82,7 @@ PhysicsParams::PhysicsParams(Input input)
 
     CELER_ENSURE(data);
 
-    data_ = CollectionMirror<PhysicsParamsData>{std::move(data)};
+    data_ = ParamsDataStore<PhysicsParamsData>{std::move(data)};
 }
 
 //---------------------------------------------------------------------------//

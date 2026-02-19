@@ -14,26 +14,9 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/phys/GeneratorCounters.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Cumulative statistics of optical tracking.
- */
-struct OpticalAccumStats
-{
-    using size_type = std::size_t;
-    using OpticalBufferSize = GeneratorCounters<size_type>;
-
-    std::vector<OpticalBufferSize> generators;
-
-    size_type steps{0};
-    size_type step_iters{0};
-    size_type flushes{0};
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Pre-step data needed to generate optical photon distributions.

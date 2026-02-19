@@ -29,23 +29,21 @@ class MuonicAtomSelectorTest : public Test
   protected:
     using Engine = DiagnosticRngEngine<std::mt19937>;
 
-    void SetUp() override { rng_.reset_count(); }
+    void SetUp() override {}
 
-    Engine& rng() { return rng_; }
-
-    real_type
-    calc_deuterium_q1s_prob(real_type deuterium_frac, real_type tritium_frac)
+    double calc_deuterium_q1s_prob(double deuterium_frac)
     {
-        real_type q1s = 1.0 / (1.0 + 2.9 * tritium_frac);
+        double const tritium_frac = 1 - deuterium_frac;
+        double q1s = 1.0 / (1.0 + 2.9 * tritium_frac);
         return deuterium_frac * q1s;
     }
 
-    real_type calc_sigma(real_type num_samples, real_type success_prob)
+    double calc_sigma(double num_samples, double success_prob)
     {
         return std::sqrt(num_samples * success_prob * (1 - success_prob));
     }
 
-  private:
+  protected:
     Engine rng_;
 };
 
@@ -56,14 +54,14 @@ class MuonicAtomSelectorTest : public Test
 TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_deuterium)
 {
     // Pure deuterium
-    MuonicAtomSelector select_atom(1, 0);
+    MuonicAtomSelector select_atom(1);
 
     size_type const num_samples = 100;
     size_type deuterium_count = 0;
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        auto atom = select_atom(this->rng());
+        auto atom = select_atom(rng_);
         if (atom == MucfMuonicAtom::deuterium)
         {
             deuterium_count++;
@@ -76,14 +74,14 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_deuterium)
 TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_tritium)
 {
     // Pure tritium
-    MuonicAtomSelector select_atom(0, 1);
+    MuonicAtomSelector select_atom(0);
 
     size_type const num_samples = 100;
     size_type tritium_count = 0;
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        auto atom = select_atom(this->rng());
+        auto atom = select_atom(rng_);
         if (atom == MucfMuonicAtom::tritium)
         {
             tritium_count++;
@@ -96,9 +94,8 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_pure_tritium)
 TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 {
     // 50/50 mixture
-    real_type const d_frac = 0.5;
-    real_type const t_frac = 0.5;
-    MuonicAtomSelector select_atom(d_frac, t_frac);
+    double const d_frac = 0.5;
+    MuonicAtomSelector select_atom(d_frac);
 
     size_type const num_samples = 10000;
     size_type deuterium_count = 0;
@@ -106,7 +103,7 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        auto atom = select_atom(this->rng());
+        auto atom = select_atom(rng_);
         if (atom == MucfMuonicAtom::deuterium)
         {
             deuterium_count++;
@@ -119,45 +116,56 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
 
     EXPECT_EQ(num_samples, deuterium_count + tritium_count);
 
-    real_type const expected_d_prob
-        = this->calc_deuterium_q1s_prob(d_frac, t_frac);
-    real_type const expected_d_count = num_samples * expected_d_prob;
-    // 3 sigma tolerance
-    real_type const tolerance
-        = 3 * this->calc_sigma(num_samples, expected_d_prob);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const num_samples_d = static_cast<double>(num_samples);
+        double const deuterium_count_d = static_cast<double>(deuterium_count);
+        double const tritium_count_d = static_cast<double>(tritium_count);
 
-    EXPECT_NEAR(expected_d_count, deuterium_count, tolerance);
-    EXPECT_NEAR(num_samples - expected_d_count, tritium_count, tolerance);
+        double const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
+        double const expected_d_count = num_samples_d * expected_d_prob;
+        // 3 sigma tolerance
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, expected_d_prob);
+
+        EXPECT_NEAR(expected_d_count, deuterium_count_d, tolerance);
+        EXPECT_NEAR(
+            num_samples_d - expected_d_count, tritium_count_d, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(MuonicAtomSelectorTest, muonic_atom_asymmetric_mixture)
 {
     // 70/30 mixture
-    real_type const d_frac = 0.7;
-    real_type const t_frac = 0.3;
-    MuonicAtomSelector select_atom(d_frac, t_frac);
+    double const d_frac = 0.7;
+    MuonicAtomSelector select_atom(d_frac);
 
     size_type const num_samples = 10000;
     size_type deuterium_count = 0;
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        auto atom = select_atom(this->rng());
+        auto atom = select_atom(rng_);
         if (atom == MucfMuonicAtom::deuterium)
         {
             deuterium_count++;
         }
     }
 
-    real_type const expected_d_prob
-        = this->calc_deuterium_q1s_prob(d_frac, t_frac);
-    real_type const expected_d_count = num_samples * expected_d_prob;
-    // 3 sigma tolerance
-    real_type const tolerance
-        = 3 * this->calc_sigma(num_samples, expected_d_prob);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const num_samples_d = static_cast<double>(num_samples);
+        double const deuterium_count_d = static_cast<double>(deuterium_count);
 
-    EXPECT_NEAR(expected_d_count, deuterium_count, tolerance);
+        double const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
+        double const expected_d_count = num_samples_d * expected_d_prob;
+        // 3 sigma tolerance
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, expected_d_prob);
+
+        EXPECT_NEAR(expected_d_count, deuterium_count_d, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -171,31 +179,40 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_deuterium)
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        size_type spin = select_spin(this->rng());
-        if (spin == 3)
+        auto spin = select_spin(rng_);
+        if (spin == units::HalfSpinInt{3})
         {
             spin_3_2_count++;
         }
-        else if (spin == 1)
+        else if (spin == units::HalfSpinInt{1})
         {
             spin_1_2_count++;
         }
         else
         {
-            FAIL() << "Unexpected spin value: " << spin;
+            FAIL() << "Unexpected spin value: " << spin.value();
         }
     }
 
     EXPECT_EQ(num_samples, spin_3_2_count + spin_1_2_count);
 
-    // Expected: 2/3 for spin 3/2, 1/3 for spin 1/2
-    real_type expected_3_2_prob = 2.0 / 3.0;
-    real_type expected_3_2_count = num_samples * expected_3_2_prob;
-    // 3 sigma tolerance
-    real_type tolerance = 3 * this->calc_sigma(num_samples, expected_3_2_prob);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const num_samples_d = static_cast<double>(num_samples);
+        double const spin_3_2_count_d = static_cast<double>(spin_3_2_count);
+        double const spin_1_2_count_d = static_cast<double>(spin_1_2_count);
 
-    EXPECT_NEAR(expected_3_2_count, spin_3_2_count, tolerance);
-    EXPECT_NEAR(num_samples - expected_3_2_count, spin_1_2_count, tolerance);
+        // Expected: 2/3 for spin 3/2, 1/3 for spin 1/2
+        double const expected_3_2_prob = 2.0 / 3.0;
+        double const expected_3_2_count = num_samples_d * expected_3_2_prob;
+        // 3 sigma tolerance
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, expected_3_2_prob);
+
+        EXPECT_NEAR(expected_3_2_count, spin_3_2_count_d, tolerance);
+        EXPECT_NEAR(
+            num_samples_d - expected_3_2_count, spin_1_2_count_d, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -209,32 +226,40 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_tritium)
 
     for ([[maybe_unused]] auto i : range(num_samples))
     {
-        size_type spin = select_spin(this->rng());
-        if (spin == 2)
+        auto spin = select_spin(rng_);
+        if (spin == units::HalfSpinInt{2})
         {
             spin_1_count++;
         }
-        else if (spin == 0)
+        else if (spin == units::HalfSpinInt{0})
         {
             spin_0_count++;
         }
         else
         {
-            FAIL() << "Unexpected spin value: " << spin;
+            FAIL() << "Unexpected spin value: " << spin.value();
         }
     }
 
     EXPECT_EQ(num_samples, spin_1_count + spin_0_count);
 
-    // Expected: 3/4 for spin 1, 1/4 for spin 0
-    real_type const expected_1_prob = 0.75;
-    real_type const expected_1_count = num_samples * expected_1_prob;
-    // 3 sigma tolerance
-    real_type const tolerance
-        = 3 * this->calc_sigma(num_samples, expected_1_prob);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const num_samples_d = static_cast<double>(num_samples);
+        double const spin_1_count_d = static_cast<double>(spin_1_count);
+        double const spin_0_count_d = static_cast<double>(spin_0_count);
 
-    EXPECT_NEAR(expected_1_count, spin_1_count, tolerance);
-    EXPECT_NEAR(num_samples - expected_1_count, spin_0_count, tolerance);
+        // Expected: 3/4 for spin 1, 1/4 for spin 0
+        double const expected_1_prob = 0.75;
+        double const expected_1_count = num_samples_d * expected_1_prob;
+        // 3 sigma tolerance
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, expected_1_prob);
+
+        EXPECT_NEAR(expected_1_count, spin_1_count_d, tolerance);
+        EXPECT_NEAR(
+            num_samples_d - expected_1_count, spin_0_count_d, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//

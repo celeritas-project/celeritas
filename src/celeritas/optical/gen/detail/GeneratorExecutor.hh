@@ -38,7 +38,6 @@ struct GeneratorExecutor
     NativeCRef<ScintillationData> const scintillation;
     NativeRef<GeneratorStateData> const offload;
     size_type buffer_size{};
-    CoreStateCounters counters;
 
     //// FUNCTIONS ////
 
@@ -64,6 +63,7 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
     using DistId = ItemId<GeneratorDistributionData>;
 
     CoreTrackView track(*params, *state, tid);
+    auto counters = state->init.counters.data().get();
 
     // Find the index of the first distribution that has a nonzero number of
     // primaries left to generate
@@ -86,13 +86,14 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_ASSERT(dist);
 
     // Create the view to the new track to be initialized
-    CoreTrackView vacancy{*params, *state, [&] {
-                              // Get the vacancy from the back in case there
-                              // are more vacancies than photons to generate
-                              TrackSlotId idx{index_before(
-                                  counters.num_vacancies, ThreadId(tid.get()))};
-                              return state->init.vacancies[idx];
-                          }()};
+    CoreTrackView vacancy{
+        *params, *state, [&] {
+            // Get the vacancy from the back in case there
+            // are more vacancies than photons to generate
+            TrackSlotId idx{
+                index_before(counters->num_vacancies, ThreadId(tid.get()))};
+            return state->init.vacancies[idx];
+        }()};
 
     // Generate one track from the distribution
     auto rng = track.rng();

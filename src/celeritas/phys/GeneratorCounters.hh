@@ -40,4 +40,20 @@ struct GeneratorCounters
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Cumulative statistics of tracking.
+ */
+struct CounterAccumStats
+{
+    using size_type = std::size_t;
+    using BufferSize = GeneratorCounters<size_type>;
+
+    std::vector<BufferSize> generators;
+
+    size_type steps{0};
+    size_type step_iters{0};
+    size_type flushes{0};
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

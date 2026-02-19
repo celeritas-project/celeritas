@@ -69,6 +69,12 @@ struct GenericGeoTrackingResult
     // Whether surface normals are disabled
     bool disabled_surface_normal() const;
 
+    //! Add a failure sentinel at the end
+    void fail() { this->fail_at(volumes.size()); }
+
+    // Add a failure sentinel at a certain index
+    void fail_at(std::size_t index);
+
     // Print expected expression to cout
     void print_expected() const;
 };
@@ -113,6 +119,9 @@ struct GenericGeoVolumeStackResult
     static GenericGeoVolumeStackResult
     from_span(LabelMap const&, Span<VolumeInstanceId const>);
     void print_expected() const;
+
+    //! Add a failure sentinel at the end
+    void fail();
 };
 
 ::testing::AssertionResult IsRefEq(char const* expected_expr,

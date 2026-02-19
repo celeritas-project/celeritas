@@ -10,8 +10,8 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/AuxParams.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -97,7 +97,7 @@ class StatusChecker final
 
     ActionId action_id_;
     AuxId aux_id_;
-    CollectionMirror<StatusCheckParamsData> data_;
+    ParamsDataStore<StatusCheckParamsData> data_;
 
     //// HELPER FUNCTIONS ////
 

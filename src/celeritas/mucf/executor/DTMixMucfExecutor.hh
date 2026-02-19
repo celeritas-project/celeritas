@@ -73,8 +73,7 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
 
     // Form d or t muonic atom
     detail::MuonicAtomSelector form_atom(
-        data.isotopic_fractions[mucf_matid][MucfIsotope::deuterium],
-        data.isotopic_fractions[mucf_matid][MucfIsotope::tritium]);
+        data.isotopic_fractions[mucf_matid][MucfIsotope::deuterium]);
     auto muonic_atom = form_atom(rng);
 
     // Select atom spin via a helper class

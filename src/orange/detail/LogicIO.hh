@@ -2,34 +2,32 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/detail/RefImpl.hh
+//! \file orange/detail/LogicIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Types.hh"
+#include <iosfwd>
+#include <string_view>
+#include <vector>
+
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Store a value/reference and dispatch function name based on MemSpace.
+// Stream a logic token
+void logic_to_stream(std::ostream& os, logic_int val);
 
-template<class T, MemSpace M>
-struct RefGetter
-{
-    T obj_;
+// Convert a logic vector to a string.
+std::string logic_to_string(std::vector<logic_int> const& logic);
 
-    auto operator()() const -> decltype(auto) { return obj_.host_ref(); }
-};
+// Build a logic definition from a string
+std::vector<logic_int> string_to_logic(std::string_view s);
 
-template<class T>
-struct RefGetter<T, MemSpace::device>
-{
-    T obj_;
-
-    auto operator()() const -> decltype(auto) { return obj_.device_ref(); }
-};
+// Get a vector of logic indicating "nowhere"
+std::vector<logic_int> make_nowhere_expr(LogicNotation notation);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

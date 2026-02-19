@@ -10,6 +10,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
 #include "geocel/vg/VecgeomTypes.hh"
@@ -42,7 +43,7 @@ __global__ void vgg_test_kernel(DeviceCRef<VecgeomParamsData> const params,
     for (int seg = 0; seg < max_segments; ++seg)
     {
         // Move next step
-        auto next = geo.find_next_step();
+        auto next = geo.find_next_step(NumericLimits<real_type>::infinity());
         if (next.boundary)
         {
             geo.move_to_boundary();

@@ -89,7 +89,7 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(pre_step)
-    , post_step_({pre_post_step.speed, pos})
+    , post_step_({pre_post_step.speed, sim.time(), pos})
     , shared_(shared)
     , continuous_edep_fraction_(pre_post_step.energy_deposition
                                 / energy_deposition)
@@ -148,12 +148,12 @@ ScintillationOffload::operator()(Generator& rng)
     {
         // Assign remaining data
         result.type = GeneratorType::scintillation;
-        result.time = pre_step_.time;
         result.step_length = step_length_;
         result.charge = charge_;
         result.material = pre_step_.material;
         result.continuous_edep_fraction = continuous_edep_fraction_;
         result.points[StepPoint::pre].speed = pre_step_.speed;
+        result.points[StepPoint::pre].time = pre_step_.time;
         result.points[StepPoint::pre].pos = pre_step_.pos;
         result.points[StepPoint::post] = post_step_;
     }

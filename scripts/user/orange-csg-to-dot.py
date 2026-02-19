@@ -4,6 +4,9 @@
 """
 Convert an ORANGE CSG JSON representation to a GraphViz or Mermaid input.
 
+Note that ``test/orange/g4org/Converter.test.cc`` can be used to generate
+the ``.csg.json`` files.
+
 .. example::
 
     To run from a raw CSG tree that you've copied to your clipboard::
@@ -24,11 +27,50 @@ import sys
 from typing import Any
 
 
+def visit_csg_tree(tree: list, root_node: int, visited_nodes: set, visited_edges: set):
+    """
+    Visit all nodes and edges in the CSG tree starting from root_node.
+
+    Populates visited_nodes and visited_edges sets with reachable elements.
+    """
+    if root_node >= len(tree):
+        return
+
+    stack = [root_node]
+
+    while stack:
+        node_idx = stack.pop()
+        if node_idx in visited_nodes or node_idx >= len(tree):
+            continue
+
+        visited_nodes.add(node_idx)
+        node = tree[node_idx]
+
+        if isinstance(node, str):
+            # True/false literal - no children
+            continue
+
+        (nodetype, value) = node
+
+        if isinstance(value, list):
+            # Joined node - visit all children
+            for child_idx in value:
+                visited_edges.add((node_idx, child_idx))
+                stack.append(child_idx)
+        elif nodetype in "=~":
+            # Aliased/negated node - visit child
+            visited_edges.add((node_idx, value))
+            stack.append(value)
+        # Surface nodes (nodetype == "S") have no tree children
+
+
 class DotGenerator:
     def __init__(self, f, args):
         self.f = f
         self.write = f.write
         self.vol_edges = []
+        self.visited_nodes = set()
+        self.visited_edges = set()
 
     def __enter__(self):
         self.write("""\
@@ -47,9 +89,10 @@ edge [color=gray, dir=both]
             self.write(f"volume{i:02d} -> {i:02d}\n")
         self.write("}\n}\n")
 
-    def write_node(self, i: int, label: str):
-        label = f' [label="{label}"]' if label else ""
-        self.write(f"{i:02d}{label}\n")
+    def write_node(self, i: int, label: str, is_visited: bool):
+        label_attr = f' [label="{label}"' if label else " ["
+        style = "" if is_visited else ", style=dashed, color=gray"
+        self.write(f"{i:02d}{label_attr}{style}]\n")
 
     @contextmanager
     def write_volumes(self):
@@ -68,8 +111,9 @@ node [style=rounded, shape=box]
         self.write(f"volume{i:02d}{label}\n")
         self.vol_edges.append(i)
 
-    def write_edge(self, i: int, e: int):
-        self.write(f"{i:02d} -> {e:02d};\n")
+    def write_edge(self, i: int, e: int, is_visited: bool):
+        style = "" if is_visited else " [style=dashed, color=gray]"
+        self.write(f"{i:02d} -> {e:02d}{style};\n")
 
 
 class MermaidGenerator:
@@ -77,6 +121,8 @@ class MermaidGenerator:
         self.f = f
         self.write = f.write
         self.vol_edges = []
+        self.visited_nodes = set()
+        self.visited_edges = set()
 
     def __enter__(self):
         self.write("flowchart TB\n")
@@ -86,9 +132,10 @@ class MermaidGenerator:
         for i in self.vol_edges:
             self.write(f"  v{i:02d} <--> n{i:02d}\n")
 
-    def write_node(self, i: int, label: str):
-        label = f'["{label}"]' if label else ""
-        self.write(f"  n{i:02d}{label}\n")
+    def write_node(self, i: int, label: str, is_visited: bool):
+        label_attr = f'["{label}"]' if label else ""
+        style = "" if is_visited else ":::unvisited"
+        self.write(f"  n{i:02d}{label_attr}{style}\n")
 
     @contextmanager
     def write_volumes(self):
@@ -103,11 +150,12 @@ subgraph Volumes
         self.write(f"  v{i:02d}{label}\n")
         self.vol_edges.append(i)
 
-    def write_edge(self, i: int, e: int):
-        self.write(f"  n{i:02d} --> n{e:02d}\n")
+    def write_edge(self, i: int, e: int, is_visited: bool):
+        arrow = "-->" if is_visited else "-.->"
+        self.write(f"  n{i:02d} {arrow} n{e:02d}\n")
 
 
-def write_tree(gen: DotGenerator, csg_unit: dict[str, Any], args):
+def write_tree(gen, csg_unit: dict[str, Any], args):
     tree = csg_unit["tree"]
     metadata = csg_unit["metadata"] or repeat(None)
     get_surface = (
@@ -120,6 +168,8 @@ def write_tree(gen: DotGenerator, csg_unit: dict[str, Any], args):
         if isinstance(node, str):
             # True literal
             node = (node.upper(), node)
+        if labels is None:
+            labels = []
 
         (nodetype, value) = node
 
@@ -134,15 +184,18 @@ def write_tree(gen: DotGenerator, csg_unit: dict[str, Any], args):
             labels.append(nodetype)
 
         label = r"\n".join(labels)
-        gen.write_node(i, label)
+        is_visited = i in gen.visited_nodes
+        gen.write_node(i, label, is_visited)
 
         if isinstance(value, list):
             # Joined
             for v in value:
-                gen.write_edge(i, v)
+                is_edge_visited = (i, v) in gen.visited_edges
+                gen.write_edge(i, v, is_edge_visited)
         elif nodetype in "=~":
             # Aliased/negated
-            gen.write_edge(i, value)
+            is_edge_visited = (i, value) in gen.visited_edges
+            gen.write_edge(i, value, is_edge_visited)
 
 
 def write_volumes(gen, volumes: dict[str, Any]):
@@ -177,16 +230,19 @@ def run(infile, outfile, gencls, args):
             )
             sys.exit(1)
     else:
-        # Raw CSG tree, no metadata
-        csg_unit = {
-            "tree": tree,
-            "metadata": None,
-            "label": "CSG tree",
-        }
+        # Assume input is a single CSG unit copied from a csg.json file
+        csg_unit = tree
 
     with gencls(outfile, args) as gen:
-        write_tree(gen, csg_unit, args)
+        # Visit all nodes and edges that volumes depend on
         if vols := csg_unit.get("volumes"):
+            csg_tree = csg_unit["tree"]
+            for vol in vols:
+                root = vol["csg_node"]
+                visit_csg_tree(csg_tree, root, gen.visited_nodes, gen.visited_edges)
+
+        write_tree(gen, csg_unit, args)
+        if vols:
             write_volumes(gen, vols)
 
 

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mucf/Types.hh"
 
@@ -17,10 +17,17 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Select a muonic atom given the material information.
+ * Select a muonic atom given the mixture of dt in the material.
  *
- * This class uses the \f$ q_\text{1S} \f$ formula [ \todo
- * https://doi.org/10.1134/1.1926428 ]
+ * This class assumes that the material is hydrogen and that the capture \em
+ * happened to a deuterium or tritium via a simple isotopic fraction selection.
+ *
+ * It is needed to \em correct the probability of a deuterium or tritium
+ * capture, since the isotopic fraction sampling is not sufficient: tritium has
+ * a higher mass and thus has a biased capture rate.
+ *
+ * This effect is calculated using the \f$ q_\text{1S} \f$ formula
+ * \citet{bom-experimentaldt-2005, https://doi.org/10.1134/1.1926428}
  * \f[
  * q_\text{1s} = \frac{1}{1 + 2.9 C_t},
  * \f]
@@ -33,40 +40,39 @@ namespace detail
  * \f]
  *
  * If a selected uniform random number is \f$ x \leq P_\text{d} \f$, a muonic
- * deuterium is formed. Otherwside, a muonic tritium is selected.
+ * deuterium is formed. Otherwise, a muonic tritium is selected.
  */
 class MuonicAtomSelector
 {
   public:
-    //! Construct with material information
-    inline CELER_FUNCTION MuonicAtomSelector(real_type deuterium_fraction,
-                                             real_type tritium_fraction);
+    //! Construct with deuterium fraction in the material
+    inline CELER_FUNCTION MuonicAtomSelector(real_type deuterium_fraction);
 
     // Select muonic atom
     template<class Engine>
     inline CELER_FUNCTION MucfMuonicAtom operator()(Engine& rng);
 
   private:
-    real_type deuterium_fraction_;
-    real_type tritium_fraction_;
+    real_type deuterium_probability_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with material information.
+ * Construct with deuterium fraction in the material.
  */
 CELER_FUNCTION
-MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction,
-                                       real_type tritium_fraction)
-    : deuterium_fraction_(deuterium_fraction)
-    , tritium_fraction_(tritium_fraction)
+MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction)
 {
-    CELER_EXPECT(deuterium_fraction_ >= 0);
-    CELER_EXPECT(tritium_fraction_ >= 0);
-    CELER_EXPECT(deuterium_fraction_ + tritium_fraction_ > 0);
-    CELER_EXPECT(deuterium_fraction_ + tritium_fraction_ <= 1);
+    CELER_EXPECT(deuterium_fraction >= 0 && deuterium_fraction <= 1);
+
+    real_type tritium_fraction = real_type{1} - deuterium_fraction;
+    real_type const q1s = real_type{1}
+                          / (real_type{1} + real_type{2.9} * tritium_fraction);
+    deuterium_probability_ = deuterium_fraction * q1s;
+
+    CELER_ENSURE(deuterium_probability_ >= 0 && deuterium_probability_ <= 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -76,22 +82,9 @@ MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction,
 template<class Engine>
 CELER_FUNCTION MucfMuonicAtom MuonicAtomSelector::operator()(Engine& rng)
 {
-    MucfMuonicAtom result{MucfMuonicAtom::size_};
-
-    real_type const q1s
-        = real_type{1} / (real_type{1} + real_type{2.9} * tritium_fraction_);
-    real_type const deuterium_probability = deuterium_fraction_ * q1s;
-    if (generate_canonical(rng) <= deuterium_probability)
-    {
-        result = MucfMuonicAtom::deuterium;
-    }
-    else
-    {
-        result = MucfMuonicAtom::tritium;
-    }
-
-    CELER_ENSURE(result < MucfMuonicAtom::size_);
-    return result;
+    return BernoulliDistribution(deuterium_probability_)(rng)
+               ? MucfMuonicAtom::deuterium
+               : MucfMuonicAtom::tritium;
 }
 
 //---------------------------------------------------------------------------//

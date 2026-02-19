@@ -6,7 +6,7 @@
 set(SOURCES)
 set(PRIVATE_DEPS
   nlohmann_json::nlohmann_json
-  Celeritas::Extcovfie
+  Celeritas::Extcovfie # NOTE: only needed by CartMapMagneticField.cc
   Celeritas::ExtThrust # TODO: add thrust exception conversion to corecel?
   Celeritas::ExtOpenMP # TODO: provide thread utils in corecel
 )
@@ -30,7 +30,7 @@ list(APPEND SOURCES
   GeantSimpleCalo.cc
   GeantStepDiagnostic.cc
   IntegrationBase.cc
-  LocalOpticalOffload.cc
+  LocalOpticalGenOffload.cc
   LocalTransporter.cc
   Logger.cc
   PGPrimaryGeneratorAction.cc

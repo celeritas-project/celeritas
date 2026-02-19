@@ -15,6 +15,7 @@
 #include "celeritas/geo/GeoData.hh"
 
 #include "CoreTrackDataFwd.hh"
+#include "DetectorData.hh"
 #include "MaterialData.hh"
 #include "ParticleData.hh"
 #include "PhysicsData.hh"
@@ -103,6 +104,7 @@ struct CoreStateData
     ParticleStateData<W, M> particle;
     PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
+    DetectorStateData<W, M> detectors;
     SimStateData<W, M> sim;
     SurfacePhysicsStateData<W, M> surface_physics;
     TrackInitStateData<W, M> init;
@@ -116,8 +118,8 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && particle && physics && rng && sim && surface_physics
-               && init && stream_id;
+        return geometry && particle && physics && rng && detectors && sim
+               && surface_physics && init && stream_id;
     }
 
     //! Assign from another set of data
@@ -129,6 +131,7 @@ struct CoreStateData
         particle = other.particle;
         physics = other.physics;
         rng = other.rng;
+        detectors = other.detectors;
         sim = other.sim;
         surface_physics = other.surface_physics;
         init = other.init;

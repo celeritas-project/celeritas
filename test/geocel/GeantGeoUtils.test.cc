@@ -70,14 +70,6 @@ TEST_F(SolidsTest, find_geant_volumes_missing)
     EXPECT_THROW(find_geant_volumes({"box500", "trd3", "turd3"}), RuntimeError);
 }
 
-TEST_F(SolidsTest, find_geant_volumes_duplicate)
-{
-    auto vols = find_geant_volumes({"trd3_refl"});
-    auto vol_names = get_vol_names(vols.begin(), vols.end());
-    static char const* const expected_vol_names[] = {"trd3_refl", "trd3_refl"};
-    EXPECT_VEC_EQ(expected_vol_names, vol_names);
-}
-
 //---------------------------------------------------------------------------//
 class MultiLevelTest : public GeantGeoUtilsTest
 {

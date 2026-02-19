@@ -11,7 +11,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"

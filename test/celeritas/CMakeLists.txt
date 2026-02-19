@@ -25,6 +25,8 @@ else()
   else()
     set(_needs_geant4_11 DISABLE)
   endif()
+  celeritas_get_g4libs(_g4_geo_lib geometry)
+  celeritas_get_g4libs(_g4_global_libs global)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -44,7 +46,7 @@ elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
   set(_needs_orange DISABLE)
-  set(_core_geo_libs testcel_geocel ${Geant4_LIBRARIES})
+  set(_core_geo_libs testcel_geocel ${_g4_geo_lib})
 endif()
 
 set(_all_geo_libs
@@ -137,9 +139,8 @@ celeritas_setup_tests(SERIAL
 # TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_add_test(Constants.test.cc
-  LINK_LIBRARIES ${Geant4_LIBRARIES})
-celeritas_add_test(Units.test.cc)
+celeritas_add_test(Constants.test.cc LINK_LIBRARIES ${_g4_global_libs})
+celeritas_add_test(Units.test.cc LINK_LIBRARIES ${_g4_global_libs})
 
 #-----------------------------------------------------------------------------#
 # Decay
@@ -150,9 +151,11 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 #-----------------------------------------------------------------------------#
 # MuCF
 
-celeritas_add_test(mucf/ChannelSelector.test.cc ${_needs_double})
-celeritas_add_test(mucf/MuonicAtomSelector.test.cc ${_needs_double})
-celeritas_add_test(mucf/DTMucfInteractor.test.cc ${_needs_double})
+celeritas_add_test(mucf/ChannelSelector.test.cc)
+celeritas_add_test(mucf/DDMucfInteractor.test.cc)
+celeritas_add_test(mucf/DTMucfInteractor.test.cc)
+celeritas_add_test(mucf/DTMixMucfModel.test.cc)
+celeritas_add_test(mucf/MuonicAtomSelector.test.cc)
 
 #-----------------------------------------------------------------------------#
 # EM
@@ -188,6 +191,12 @@ celeritas_add_test(em/CoulombScattering.test.cc ${_fixme_single})
 celeritas_add_test(em/UrbanMsc.test.cc ${_optional_geant4_env})
 celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
+
+#-----------------------------------------------------------------------------#
+if(CELERITAS_USE_Geant4)
+  celeritas_add_test(g4/MagneticField.test.cc
+    LINK_LIBRARIES ${_g4_geo_lib})
+endif()
 
 #-----------------------------------------------------------------------------#
 # External
@@ -242,7 +251,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # Field
 
-if(CELERITAS_USE_VecGeom)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
+ AND (CELERITAS_USE_CUDA OR CELERITAS_VecGeom_SURFACE))
   # VecGeom surface cannot rebuild the geometry
   set(_fieldprop_filter
     FILTER
@@ -251,10 +261,6 @@ if(CELERITAS_USE_VecGeom)
     "SimpleCms*"
     "Cmse*"
   )
-else()
-  # Other geometries should run everything (and some tests e.g. CMSE are
-  # disabled)
-  set(_fieldprop_filter)
 endif()
 
 celeritas_add_device_test(field/Fields
@@ -458,6 +464,8 @@ endfunction()
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
+celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)

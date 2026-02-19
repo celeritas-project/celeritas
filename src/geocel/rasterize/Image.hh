@@ -7,8 +7,8 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
 #include "ImageData.hh"
 #include "ImageInterface.hh"
@@ -91,7 +91,7 @@ class ImageParams final : public ParamsDataInterface<ImageParamsData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<ImageParamsData> data_;
+    ParamsDataStore<ImageParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

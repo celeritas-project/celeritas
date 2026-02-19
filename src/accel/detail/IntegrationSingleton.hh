@@ -10,7 +10,7 @@
 
 #include "corecel/sys/Stopwatch.hh"
 
-#include "../LocalOpticalOffload.hh"
+#include "../LocalOpticalGenOffload.hh"
 #include "../LocalTransporter.hh"
 #include "../SetupOptions.hh"
 #include "../SharedParams.hh"
@@ -48,16 +48,14 @@ class IntegrationSingleton
     // Static GLOBAL shared singleton
     static IntegrationSingleton& instance();
 
-    // Static THREAD-LOCAL Celeritas state data
-    static LocalTransporter& local_transporter();
-
-    // Static THREAD-LOCAL Celeritas optical state data
-    static LocalOpticalOffload& local_optical_offload();
-
     //// ACCESSORS ////
 
-    // Access the thread-local offload interface
+    // Access the thread-local offload base interface (for event/run)
     LocalOffloadInterface& local_offload();
+
+    // Access thread-local *track* offload interface (for anything that pushes
+    // a track)
+    TrackOffloadInterface& local_track_offload();
 
     //! Assign setup options before constructing params
     void setup_options(SetupOptions&&);
@@ -104,12 +102,6 @@ class IntegrationSingleton
 
     // Only this class can construct
     IntegrationSingleton();
-
-    // Static thread-local Celeritas state data
-    static UPOffload& local_offload_ptr();
-
-    // Whether offloading optical distribution data is enabled
-    bool optical_offload() const;
 
     // Set up or update logging if the run manager is enabled
     void update_logger();
