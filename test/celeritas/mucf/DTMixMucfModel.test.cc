@@ -83,22 +83,23 @@ TEST_F(DTMixMucfModelTest, data)
     // TT
     static double const expected_tt_1_over_2_cycle_time{1.4056833511329384e-06};
 
-    auto const& cycles = data.cycle_times;
+    auto const& rates = data.cycle_rates;
 
     // DD cycle times
     EXPECT_SOFT_EQ(expected_dd_1_over_2_cycle_time,
-                   cycles[MuCfMatId{0}][Molecule::deuterium_deuterium][0]);
+                   1 / rates[MuCfMatId{0}][Molecule::deuterium_deuterium][0]);
     EXPECT_SOFT_EQ(expected_dd_3_over_2_cycle_time,
-                   cycles[MuCfMatId{0}][Molecule::deuterium_deuterium][1]);
+                   1 / rates[MuCfMatId{0}][Molecule::deuterium_deuterium][1]);
     // DT cycle times
     EXPECT_SOFT_EQ(expected_dt_0_cycle_time,
-                   cycles[MuCfMatId{0}][Molecule::deuterium_tritium][0]);
+                   1 / rates[MuCfMatId{0}][Molecule::deuterium_tritium][0]);
     EXPECT_SOFT_EQ(expected_dt_1_cycle_time,
-                   cycles[MuCfMatId{0}][Molecule::deuterium_tritium][1]);
+                   1 / rates[MuCfMatId{0}][Molecule::deuterium_tritium][1]);
     // TT cycle times
     EXPECT_SOFT_EQ(expected_tt_1_over_2_cycle_time,
-                   cycles[MuCfMatId{0}][Molecule::tritium_tritium][0]);
-    EXPECT_SOFT_EQ(0, cycles[MuCfMatId{0}][Molecule::tritium_tritium][1]);
+                   1 / rates[MuCfMatId{0}][Molecule::tritium_tritium][0]);
+    EXPECT_SOFT_EQ(numeric_limits<real_type>::infinity(),
+                   1 / rates[MuCfMatId{0}][Molecule::tritium_tritium][1]);
 }
 
 //---------------------------------------------------------------------------//

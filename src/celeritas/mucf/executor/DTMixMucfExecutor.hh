@@ -48,11 +48,6 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
     auto element = mat_record.element_record(elcomp_id);
     CELER_ASSERT(element.atomic_number() == AtomicNumber{1});  // Must be H
 
-    auto rng = track.rng();
-
-    // Muon decay may compete against other "actions" in this executor
-    real_type const decay_len{};  //! \todo Set muon decay interaction length
-
     // Find muCF material ID from PhysMatId
     // Make this a View if ever used beyond this executor
     auto find = [&](PhysMatId matid) -> MuCfMatId {
@@ -71,13 +66,12 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
     auto const mucf_matid = find(track.material().material_id());
     CELER_ASSERT(mucf_matid);
 
-    // Form d or t muonic atom
-    detail::MuonicAtomSelector form_atom(
-        data.isotopic_fractions[mucf_matid][MucfIsotope::deuterium]);
-    auto muonic_atom = form_atom(rng);
+    auto rng = track.rng();
 
-    // Select atom spin via a helper class
-    detail::MuonicAtomSpinSelector select_atom_spin(muonic_atom);
+    // Form d or t muonic atom
+    auto muonic_atom = detail::MuonicAtomSelector(
+        data.isotopic_fractions[mucf_matid][MucfIsotope::deuterium])(rng);
+    auto atom_spin = detail::MuonicAtomSpinSelector(muonic_atom)(rng);
 
     // {
     // Competing at-rest processes which add to the total track time
@@ -86,31 +80,16 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
     // }
 
     // Form dd, dt, or tt muonic molecule
-    detail::DTMixMuonicMoleculeSelector form_muonic_molecule;
-    auto muonic_molecule = form_muonic_molecule(rng);
+    auto [muonic_molecule, cycle_time] = detail::DTMixMuonicMoleculeSelector(
+        muonic_atom,
+        atom_spin,
+        data.isotopic_fractions[mucf_matid],
+        data.cycle_rates[mucf_matid])(rng);
 
-    // Select molecule spin
-    detail::MuonicMoleculeSpinSelector select_molecule_spin(muonic_molecule);
-    auto const molecule_spin = select_molecule_spin(rng);
-
-    // Load cycle time for the selected molecule
-    auto const cycle_time
-        = data.cycle_times[mucf_matid][muonic_molecule][molecule_spin];
-    CELER_ASSERT(cycle_time > 0);
-
-    // Check if muon decays before fusion happens
-    real_type const mucf_len = cycle_time * track.sim().step_length();
-    if (decay_len < mucf_len)
-    {
-        // Muon decays and halts the interaction
-        //! \todo Update track time and return muon decay interactor
-    }
-
-    //! \todo Correct track time update? Or should be done in Interactors?
+    // Update track time according to the sampled cycle time
     track.sim().add_time(cycle_time);
 
     // Fuse molecule and generate secondaries
-    //! \todo Maybe move the channel selectors into the interactors
     auto allocate_secondaries = phys_step_view.make_secondary_allocator();
     Interaction result;
     switch (muonic_molecule)
