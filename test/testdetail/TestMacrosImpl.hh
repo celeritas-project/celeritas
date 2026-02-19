@@ -819,5 +819,16 @@ IsRefEq(char const* expr1,
                                     std::string_view actual);
 
 //---------------------------------------------------------------------------//
+/*!
+ * Compare two JSON objects with a user-specified tolerance for floats.
+ */
+::testing::AssertionResult IsJsonSoftEq(char const* expected_expr,
+                                        char const* actual_expr,
+                                        char const* tol_expr,
+                                        std::string_view expected,
+                                        std::string_view actual,
+                                        real_type tol);
+
+//---------------------------------------------------------------------------//
 }  // namespace testdetail
 }  // namespace celeritas

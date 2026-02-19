@@ -85,5 +85,27 @@ trunc_string(unsigned int digits, char const* str, char const* trunc)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Compare two JSON objects with a user-specified tolerance for floats.
+ */
+::testing::AssertionResult IsJsonSoftEq(char const*,
+                                        char const*,
+                                        char const*,
+                                        std::string_view expected,
+                                        std::string_view actual,
+                                        real_type tol)
+{
+    JsonComparer compare{tol};
+    auto result = compare(expected, actual);
+    if (!result)
+    {
+        // Print actual result for copy-pasting into "expected" expression
+        result << "\n/*** ACTUAL ***/\nR\"json(" << actual
+               << ")json\"\n/******/";
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace testdetail
 }  // namespace celeritas
