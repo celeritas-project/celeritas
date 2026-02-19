@@ -67,13 +67,23 @@ class LarSphereTest : public LarStandaloneRunnerTestBase
 auto LarSphereTest::make_input() const -> Input
 {
     Input result;
-    result.geometry = this->test_data_path("geocel", "lar-sphere.gdml");
-    result.tracking_limits.steps = 10;
-    result.optical_capacity.tracks = 16;
+    result.problem.model.geometry
+        = this->test_data_path("geocel", "lar-sphere.gdml");
+    result.problem.limits.steps = 10;
+    result.problem.capacity = [] {
+        inp::OpticalStateCapacity cap;
+        cap.tracks = 4096;
+        cap.primaries = 8 * cap.tracks;
+        cap.generators = 512;
+        return cap;
+    }();
+    result.problem.num_streams = 1;
+    result.problem.generator = inp::OpticalOffloadGenerator{};
+    result.geant_setup.cherenkov.enable = false;
     return result;
 }
 
-TEST_F(LarSphereTest, single_photon)
+TEST_F(LarSphereTest, single_sim_edep)
 {
     auto& run = this->runner();
 
@@ -90,7 +100,7 @@ TEST_F(LarSphereTest, single_photon)
      * - "original" track ID is always same as actual
      */
     sim::SimEnergyDeposit sed(
-        /* numPhotons = */ 1,
+        /* numPhotons = */ 10000,
         /* numElectrons = */ static_cast<int>(edep * 10000),
         /* scintYieldRatio = */ 1.0,
         /* edep = */ edep,

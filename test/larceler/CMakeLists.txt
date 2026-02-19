@@ -6,6 +6,7 @@
 celeritas_setup_tests(SERIAL
   LINK_LIBRARIES
     Celeritas::larceler
+    fhiclcpp::fhiclcpp
     lardataobj::MCBase
     larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
 )
