@@ -97,16 +97,16 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
 
     // Generate one track from the distribution
     auto rng = track.rng();
-    auto opt_mat = track.material_record(dist.material);
     if (dist.type == GeneratorType::cherenkov)
     {
         CELER_ASSERT(cherenkov);
+        auto opt_mat = track.material_record(dist.material);
         vacancy = CherenkovGenerator(opt_mat, cherenkov, dist)(rng);
     }
     else
     {
         CELER_ASSERT(scintillation);
-        vacancy = ScintillationGenerator(opt_mat, scintillation, dist)(rng);
+        vacancy = ScintillationGenerator(scintillation, dist)(rng);
     }
 }
 
