@@ -63,11 +63,6 @@
 #define EXPECT_JSON_EQ(expected, actual) \
     EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsJsonEq, expected, actual)
 
-//! JSON string equality with user-specified tolerance for floats
-#define EXPECT_JSON_SOFTEQ(expected, actual, tol) \
-    EXPECT_PRED_FORMAT3(                          \
-        ::celeritas::testdetail::IsJsonSoftEq, expected, actual, tol)
-
 //! Construct a test name that is disabled when assertions are enabled
 #if CELERITAS_DEBUG
 #    define TEST_IF_CELERITAS_DEBUG(name) name
