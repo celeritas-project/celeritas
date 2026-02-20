@@ -33,20 +33,20 @@ class ChannelSelectorTest : public Test
     Engine& rng() { return rng_; }
 
     // Sticking fraction between the two dd --> 3He channels
-    real_type const dd_sticking_fraction() { return 0.122; }
+    double const dd_sticking_fraction() { return 0.122; }
     // Sticking fraction for dt
-    real_type const dt_sticking_fraction() { return 0.00857; }
+    double const dt_sticking_fraction() { return 0.00857; }
     // Sticking fraction for tt
-    real_type const tt_sticking_fraction() { return 0.14; }
+    double const tt_sticking_fraction() { return 0.14; }
 
     // Calculate dd --> 3He channel probability from the branching ratio
-    real_type he3_probability(real_type branching_ratio)
+    double he3_probability(double branching_ratio)
     {
         return branching_ratio / (branching_ratio + 1);
     }
 
     // Calculate sigma for the statistical tests
-    real_type calc_sigma(real_type num_samples, real_type success_prob)
+    double calc_sigma(double num_samples, double success_prob)
     {
         return std::sqrt(num_samples * success_prob * (1 - success_prob));
     }
@@ -97,26 +97,33 @@ TEST_F(ChannelSelectorTest, dd_channel_low_temperature)
 
     EXPECT_EQ(num_samples, helium3_count + muonichelium3_count + tritium_count);
 
-    real_type expected_tritium_count = num_samples * (1 - he3_probability);
-    real_type expected_helium3_count = num_samples * he3_probability
-                                       * (1 - sticking_fraction);
-    real_type expected_muonichelium3_count = num_samples * he3_probability
-                                             * sticking_fraction;
-    // 3 sigma tolerance
-    real_type tolerance = 3 * this->calc_sigma(num_samples, he3_probability);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const num_samples_d = static_cast<double>(num_samples);
 
-    EXPECT_NEAR(expected_tritium_count, tritium_count, tolerance);
-    EXPECT_NEAR(expected_helium3_count, helium3_count, tolerance);
-    EXPECT_NEAR(expected_muonichelium3_count, muonichelium3_count, tolerance);
+        double const expected_tritium_count = num_samples_d
+                                              * (1 - he3_probability);
+        double const expected_helium3_count = num_samples_d * he3_probability
+                                              * (1 - sticking_fraction);
+        double const expected_muonichelium3_count
+            = num_samples_d * he3_probability * sticking_fraction;
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, he3_probability);
+
+        EXPECT_NEAR(expected_tritium_count, tritium_count, tolerance);
+        EXPECT_NEAR(expected_helium3_count, helium3_count, tolerance);
+        EXPECT_NEAR(
+            expected_muonichelium3_count, muonichelium3_count, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(ChannelSelectorTest, dd_channel_mid_temperature)
 {
     // DD fusion at 50 < T < 100 K: branching_ratio = 1.0088 * (T - 50) = 25.22
-    real_type const temperature = 75.0;
-    real_type const branching_ratio = 1.0088 * (temperature - 50);
-    real_type const he3_probability = this->he3_probability(branching_ratio);
+    double const temperature = 75.0;
+    double const branching_ratio = 1.0088 * (temperature - 50);
+    double const he3_probability = this->he3_probability(branching_ratio);
 
     DDChannelSelector select_channel(temperature);
 
@@ -140,20 +147,24 @@ TEST_F(ChannelSelectorTest, dd_channel_mid_temperature)
 
     EXPECT_EQ(num_samples, he3_total_count + tritium_count);
 
-    real_type const expected_he3_count = num_samples * he3_probability;
-    real_type const tolerance
-        = 3 * this->calc_sigma(num_samples, he3_probability);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const num_samples_d = static_cast<double>(num_samples);
+        double const expected_he3_count = num_samples_d * he3_probability;
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, he3_probability);
 
-    EXPECT_NEAR(expected_he3_count, he3_total_count, tolerance);
+        EXPECT_NEAR(expected_he3_count, he3_total_count, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(ChannelSelectorTest, dd_channel_high_temperature)
 {
     // DD fusion at T < 300 K: branching_ratio = 1.44
-    real_type const temperature = 300;
-    real_type const branching_ratio = 1.44;
-    real_type const he3_probability = this->he3_probability(branching_ratio);
+    double const temperature = 300;
+    double const branching_ratio = 1.44;
+    double const he3_probability = this->he3_probability(branching_ratio);
 
     DDChannelSelector select_channel(temperature);
 
@@ -177,20 +188,24 @@ TEST_F(ChannelSelectorTest, dd_channel_high_temperature)
 
     EXPECT_EQ(num_samples, he3_total_count + tritium_count);
 
-    real_type const expected_he3_count = num_samples * he3_probability;
-    // 3 sigma tolerance
-    real_type const tolerance
-        = 3 * this->calc_sigma(num_samples, he3_probability);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const num_samples_d = static_cast<double>(num_samples);
+        double const expected_he3_count = num_samples_d * he3_probability;
+        // 3 sigma tolerance
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, he3_probability);
 
-    EXPECT_NEAR(expected_he3_count, he3_total_count, tolerance);
+        EXPECT_NEAR(expected_he3_count, he3_total_count, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(ChannelSelectorTest, dd_sticking_fraction_within_he3)
 {
     // Test that when He3 channel is selected, sticking fraction is 12.2%
-    real_type const temperature = 300;
-    real_type const sticking_fraction = this->dd_sticking_fraction();
+    double const temperature = 300;
+    double const sticking_fraction = this->dd_sticking_fraction();
 
     DDChannelSelector select_channel(temperature);
 
@@ -215,12 +230,16 @@ TEST_F(ChannelSelectorTest, dd_sticking_fraction_within_he3)
     size_type total_he3 = helium3_count + muonichelium3_count;
     EXPECT_GT(total_he3, 0);
 
-    real_type expected_muonichelium3 = total_he3 * sticking_fraction;
-    // 3 sigma tolerance
-    real_type const tolerance
-        = 3 * this->calc_sigma(total_he3, sticking_fraction);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const total_he3_d = static_cast<double>(total_he3);
+        double const expected_muonichelium3 = total_he3_d * sticking_fraction;
+        // 3 sigma tolerance
+        double const tolerance
+            = 3 * this->calc_sigma(total_he3_d, sticking_fraction);
 
-    EXPECT_NEAR(expected_muonichelium3, muonichelium3_count, tolerance);
+        EXPECT_NEAR(expected_muonichelium3, muonichelium3_count, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -252,17 +271,21 @@ TEST_F(ChannelSelectorTest, dt_channel)
 
     EXPECT_EQ(num_samples, alpha_count + muonicalpha_count);
 
-    real_type const sticking_fraction = this->dt_sticking_fraction();
-    real_type const expected_muonicalpha_count = num_samples
-                                                 * sticking_fraction;
-    real_type const expected_alpha_count = num_samples
-                                           * (1 - sticking_fraction);
-    // 3 sigma tolerance
-    real_type const tolerance
-        = 3 * this->calc_sigma(num_samples, sticking_fraction);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const num_samples_d = static_cast<double>(num_samples);
+        double const sticking_fraction = this->dt_sticking_fraction();
+        double const expected_muonicalpha_count = num_samples_d
+                                                  * sticking_fraction;
+        double const expected_alpha_count = num_samples_d
+                                            * (1 - sticking_fraction);
+        // 3 sigma tolerance
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, sticking_fraction);
 
-    EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count, tolerance);
-    EXPECT_NEAR(expected_alpha_count, alpha_count, tolerance);
+        EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count, tolerance);
+        EXPECT_NEAR(expected_alpha_count, alpha_count, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -295,17 +318,21 @@ TEST_F(ChannelSelectorTest, tt_channel)
 
     EXPECT_EQ(num_samples, alpha_count + muonicalpha_count);
 
-    real_type const sticking_fraction = this->tt_sticking_fraction();
-    real_type const expected_muonicalpha_count = num_samples
-                                                 * sticking_fraction;
-    real_type const expected_alpha_count = num_samples
-                                           * (1 - sticking_fraction);
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        double const num_samples_d = static_cast<double>(num_samples);
+        double const sticking_fraction = this->tt_sticking_fraction();
+        double const expected_muonicalpha_count = num_samples_d
+                                                  * sticking_fraction;
+        double const expected_alpha_count = num_samples_d
+                                            * (1 - sticking_fraction);
 
-    real_type const tolerance
-        = 3 * this->calc_sigma(num_samples, sticking_fraction);
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, sticking_fraction);
 
-    EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count, tolerance);
-    EXPECT_NEAR(expected_alpha_count, alpha_count, tolerance);
+        EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count, tolerance);
+        EXPECT_NEAR(expected_alpha_count, alpha_count, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
