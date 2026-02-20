@@ -44,7 +44,7 @@ class MuonicMoleculeSelector
         real_type cycle_time{std::numeric_limits<real_type>::max()};
 
         //! Check whether the data are assigned
-        explicit operator bool() const
+        explicit CELER_FUNCTION operator bool() const
         {
             return molecule < MucfMuonicMolecule::size_ && cycle_time > 0
                    && cycle_time < std::numeric_limits<real_type>::max();
