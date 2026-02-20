@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/mucf/interactor/DDMucfInteractor.hh"
 
 namespace celeritas
@@ -21,7 +21,7 @@ namespace detail
  * of the outcome of the fusion ending in the \f$ ^3\text{He} \f$ channels
  * versus the tritium channel. If the outcome is a \f$ ^3\text{He} \f$ channel,
  * a constant sticking fraction of 12.2% is used to define if sticking occurs
- * [ \todo https://doi.org/10.1134/S106377961102002X ].
+ * \citet{balin-mucf-2011, https://doi.org/10.1134/S106377961102002X} .
  */
 class DDChannelSelector
 {
@@ -90,23 +90,13 @@ DDChannelSelector::operator()(Engine& rng)
 {
     Channel result{Channel::size_};
 
-    if (generate_canonical(rng) < he3_probability_)
-    {
-        // Select between the two 3He channels
-        if (generate_canonical(rng) > this->sticking_fraction())
-        {
-            result = Channel::helium3_muon_neutron;
-        }
-        else
-        {
-            result = Channel::muonichelium3_neutron;
-        }
-    }
-    else
-    {
-        // Select tritium channel
-        result = Channel::tritium_muon_proton;
-    }
+    result = BernoulliDistribution(he3_probability_)(rng)
+                 // Select between the two 3He channels
+                 ? (BernoulliDistribution(this->sticking_fraction())(rng)
+                        ? Channel::muonichelium3_neutron
+                        : Channel::helium3_muon_neutron)
+                 // Select tritium channel
+                 : Channel::tritium_muon_proton;
 
     CELER_ENSURE(result < Channel::size_);
     return result;

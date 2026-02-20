@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/random/distribution/GenerateCanonical.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/mucf/interactor/TTMucfInteractor.hh"
 
 namespace celeritas
@@ -17,8 +17,8 @@ namespace detail
 /*!
  * Select final channel for muonic tt molecules.
  *
- * The selection is based on a constant sticking fraction
- * from [ \todo https://link.springer.com/article/10.1134/S1063776109020034 ],
+ * The selection is based on a constant sticking fraction from
+ * \citet{bogdanova-mucf-2009, https://doi.org/10.1134/S1063776109020034} ,
  * in which ~14% of the time the muonic alpha channel is selected.
  */
 class TTChannelSelector
@@ -55,14 +55,9 @@ TTChannelSelector::operator()(Engine& rng)
 {
     Channel result{Channel::size_};
 
-    if (generate_canonical(rng) > sticking_fraction())
-    {
-        result = Channel::alpha_muon_neutron_neutron;
-    }
-    else
-    {
-        result = Channel::muonicalpha_neutron_neutron;
-    }
+    result = (BernoulliDistribution(this->sticking_fraction())(rng))
+                 ? Channel::muonicalpha_neutron_neutron
+                 : Channel::alpha_muon_neutron_neutron;
 
     CELER_ENSURE(result < Channel::size_);
     return result;
