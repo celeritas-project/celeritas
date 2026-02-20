@@ -340,7 +340,22 @@ TEST_F(OpNoviceOptical, run)
 class LSOOTrackingAction final : public G4UserTrackingAction
 {
   public:
-    void PreUserTrackingAction(G4Track const* track) final;
+    void PreUserTrackingAction(G4Track const* track) final
+    {
+        UAI::Instance().PreUserTrackingAction(const_cast<G4Track*>(track));
+
+        auto& local = detail::IntegrationSingleton::instance().local_offload();
+        auto* opt_offload = dynamic_cast<LocalOpticalTrackOffload*>(&local);
+
+        if (opt_offload && opt_offload->Initialized())
+        {
+            pushes_ = opt_offload->num_pushed();
+        }
+    }
+    std::size_t num_pushes() const { return pushes_; }
+
+  private:
+    std::size_t pushes_{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -356,9 +371,13 @@ class LarSphereOpticalTrackOffload : public LarSphere
     void EndOfRunAction(G4Run const* run) override;
     UPTrackAction make_tracking_action() override
     {
-        auto act = std::make_unique<LSOOTrackingAction>();
-        tracking_.push_back(act.get());
-        return act;
+        auto result = std::make_unique<LSOOTrackingAction>();
+        {
+            static std::mutex mutex;
+            std::lock_guard<std::mutex> lock(mutex);
+            tracking_.push_back(result.get());
+        }
+        return result;
     }
 
   private:
@@ -417,27 +436,11 @@ auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
         return opt;
     }();
 
-    // Don't offload any particles
-    result.offload_particles = SetupOptions::VecG4PD{};
+    // Offload optical photon
+    result.offload_particles
+        = SetupOptions::VecG4PD{G4OpticalPhoton::Definition()};
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Tracking action for pushing optical tracks to Celeritas.
- */
-void LSOOTrackingAction::PreUserTrackingAction(G4Track const* track)
-{
-    CELER_EXPECT(track);
-    // Delegate to UserActionIntegration for standard handling
-    UAI::Instance().PreUserTrackingAction(const_cast<G4Track*>(track));
-
-    // If UserActionIntegration killed it, don't process further
-    if (track->GetTrackStatus() == fStopAndKill)
-    {
-        return;
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -457,8 +460,24 @@ void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
             std::size_t pushed = opt_offload->num_pushed();
 
             //  Validate that we intercepted optical tracks
-            EXPECT_GT(pushed, 40) << "should have pushed many optical "
-                                     "tracks";
+            EXPECT_GT(pushed, 1000) << "should have pushed many optical "
+                                       "tracks";
+        }
+    }
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        std::size_t total_tracks_pushed{0};
+        for (auto* action : tracking_)
+        {
+            total_tracks_pushed += action->num_pushes();
+        }
+
+        CELER_LOG(info) << "Celeritas offloaded  " << total_tracks_pushed
+                        << " optical tracks. ";
+
+        if (integration.mode() == OffloadMode::disabled)
+        {
+            EXPECT_EQ(total_tracks_pushed, 0);
         }
     }
     // Continue cleanup and other checks at end of run
