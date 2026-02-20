@@ -190,22 +190,9 @@ auto ImportedDataTestBase::build_optical_sim() -> SPConstOpticalSim
 auto ImportedDataTestBase::build_optical_surface_physics()
     -> SPConstOpticalSurfacePhysics
 {
-    inp::SurfacePhysics input;
-
-    // TODO: better input construction when we have actual data to import
-    for (auto s : range(PhysSurfaceId{this->surface()->num_surfaces() + 1}))
-    {
-        input.materials.push_back(std::vector<OptMatId>{});
-        input.roughness.polished.emplace(s, inp::NoRoughness{});
-        input.reflectivity.fresnel.emplace(s, inp::FresnelReflection{});
-        input.interaction.dielectric.emplace(
-            s,
-            inp::DielectricInteraction::from_dielectric(
-                inp::ReflectionForm::from_spike()));
-    }
-
     return std::make_shared<optical::SurfacePhysicsParams>(
-        this->optical_action_reg().get(), input);
+        this->optical_action_reg().get(),
+        this->imported_data().optical_physics.surfaces);
 }
 
 //---------------------------------------------------------------------------//
