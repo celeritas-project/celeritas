@@ -16,10 +16,9 @@
 
 #include "detail/DDChannelSelector.hh"
 #include "detail/DTChannelSelector.hh"
-#include "detail/DTMixMuonicMoleculeSelector.hh"
 #include "detail/MuonicAtomSelector.hh"
 #include "detail/MuonicAtomSpinSelector.hh"
-#include "detail/MuonicMoleculeSpinSelector.hh"
+#include "detail/MuonicMoleculeSelector.hh"
 #include "detail/TTChannelSelector.hh"
 
 namespace celeritas
@@ -47,6 +46,8 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
     auto const& mat_record = track.material().material_record();
     auto element = mat_record.element_record(elcomp_id);
     CELER_ASSERT(element.atomic_number() == AtomicNumber{1});  // Must be H
+
+    //! \todo Make sure that at this point we selected d or t already
 
     // Find muCF material ID from PhysMatId
     // Make this a View if ever used beyond this executor
@@ -80,11 +81,8 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
     // }
 
     // Form dd, dt, or tt muonic molecule
-    auto [muonic_molecule, cycle_time] = detail::DTMixMuonicMoleculeSelector(
-        muonic_atom,
-        atom_spin,
-        data.isotopic_fractions[mucf_matid],
-        data.cycle_rates[mucf_matid])(rng);
+    auto [muonic_molecule, cycle_time] = detail::MuonicMoleculeSelector(
+        muonic_atom, atom_spin, data.cycle_rates[mucf_matid])(rng);
 
     // Update track time according to the sampled cycle time
     track.sim().add_time(cycle_time);
