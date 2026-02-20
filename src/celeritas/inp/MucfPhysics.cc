@@ -503,7 +503,8 @@ MucfCycleRate hd_1_cycle_data()
 /*!
  * Muon-catalyzed fusion cycle rate data for \em tt fusion with F = 1/2 state.
  *
- * The tt fusion cycle rate data is currently a constant value at 2.8e6 1/s.
+ * The tt fusion cycle rate data is currently a constant value at 2.8e6 1/s
+ * citet{bogdanova-mucf-2009, https://doi.org/10.1134/S1063776109020034} .
  */
 MucfCycleRate tt_1_over_2_cycle_data()
 {

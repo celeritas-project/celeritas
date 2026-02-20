@@ -8,6 +8,7 @@
 
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/random/distribution/ExponentialDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -41,13 +42,13 @@ class MuonicMoleculeSelector
     struct Result
     {
         MucfMuonicMolecule molecule{MucfMuonicMolecule::size_};
-        real_type cycle_time{std::numeric_limits<real_type>::max()};
+        real_type cycle_time{numeric_limits<real_type>::max()};
 
         //! Check whether the data are assigned
         explicit CELER_FUNCTION operator bool() const
         {
             return molecule < MucfMuonicMolecule::size_ && cycle_time > 0
-                   && cycle_time < std::numeric_limits<real_type>::max();
+                   && cycle_time < numeric_limits<real_type>::max();
         }
     };
 
@@ -131,7 +132,7 @@ MuonicMoleculeSelector::operator()(Engine& rng)
     using CycleTimeArray = EnumArray<MucfMuonicMolecule, real_type>;
 
     CycleTimeArray sampled_times;
-    auto const inf = std::numeric_limits<real_type>::max();
+    auto const inf = numeric_limits<real_type>::max();
     if (atom_ == MucfMuonicAtom::deuterium)
     {
         // DD fusion is only triggered by a muonic deuterium
@@ -180,7 +181,7 @@ CELER_FUNCTION real_type MuonicMoleculeSelector::sample_exp_time(
 
     // Return an infinite cycle time when the cached rate is zero
     return (rate > 0) ? ExponentialDistribution<real_type>(rate)(rng)
-                      : std::numeric_limits<real_type>::max();
+                      : numeric_limits<real_type>::max();
 }
 
 //---------------------------------------------------------------------------//
