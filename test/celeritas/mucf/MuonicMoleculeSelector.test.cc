@@ -148,8 +148,8 @@ TEST_F(MuonicMoleculeSelectorTest, model_data)
     }
 
     // From Acceleron's simulation with equivalent material: 50/50 d/t at 300K,
-    // the fraction of each fusion call is: DD: 20.1%, DT: 78.9%, TT: 0.9%
-    // The counts on this test (20%, 79%, 1%) are spot on with Acceleron.
+    // the fraction of each fusion call is: DD: 20.1%, DT: 78.9%, TT: 0.9%.
+    // The counts on this test (20%, 79%, 0.2%) are close to Acceleron's.
     EXPECT_EQ(2044, molecule_counts[MMM::deuterium_deuterium]);
     EXPECT_EQ(7940, molecule_counts[MMM::deuterium_tritium]);
     EXPECT_EQ(16, molecule_counts[MMM::tritium_tritium]);
