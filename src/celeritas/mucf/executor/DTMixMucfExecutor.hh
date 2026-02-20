@@ -51,18 +51,18 @@ DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
 
     // Find muCF material ID from PhysMatId
     // Make this a View if ever used beyond this executor
-    auto find = [&](PhysMatId matid) -> MuCfMatId {
+    auto find = [&](PhysMatId matid) -> MucfMatId {
         CELER_EXPECT(matid);
         for (auto i : range(data.mucfmatid_to_matid.size()))
         {
-            if (auto const comp_id = MuCfMatId{i};
+            if (auto const comp_id = MucfMatId{i};
                 data.mucfmatid_to_matid[comp_id] == matid)
             {
                 return comp_id;
             }
         }
         // MuCF material ID not found
-        return MuCfMatId{};
+        return MucfMatId{};
     };
     auto const mucf_matid = find(track.material().material_id());
     CELER_ASSERT(mucf_matid);

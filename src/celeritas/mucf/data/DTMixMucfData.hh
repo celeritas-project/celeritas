@@ -106,7 +106,7 @@ struct DTMixMucfData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using MaterialItems = Collection<T, W, M, MuCfMatId>;
+    using MaterialItems = Collection<T, W, M, MucfMatId>;
     using GridRecord = NonuniformGridRecord;
     using CycleRatesArray = EnumArray<MucfMuonicMolecule, Array<real_type, 2>>;
     using MaterialFractionsArray = EnumArray<MucfIsotope, real_type>;
@@ -122,7 +122,7 @@ struct DTMixMucfData
 
     //!@{
     //! Material-dependent data calculated at model construction
-    //! \c PhysMatId indexed by \c MuCfMatId
+    //! \c PhysMatId indexed by \c MucfMatId
     MaterialItems<PhysMatId> mucfmatid_to_matid;
     //! Isotopic fractions per material: [mat_comp_id][isotope]
     MaterialItems<MaterialFractionsArray> isotopic_fractions;

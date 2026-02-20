@@ -58,10 +58,10 @@ class MucfMaterialInserter
     //// DATA ////
 
     // DTMixMucfModel host data references populated by operator()
-    CollectionBuilder<PhysMatId, MemSpace::host, MuCfMatId> mucfmatid_to_matid_;
-    CollectionBuilder<MaterialFractionsArray, MemSpace::host, MuCfMatId>
+    CollectionBuilder<PhysMatId, MemSpace::host, MucfMatId> mucfmatid_to_matid_;
+    CollectionBuilder<MaterialFractionsArray, MemSpace::host, MucfMatId>
         isotopic_fractions_;
-    CollectionBuilder<CycleRatesArray, MemSpace::host, MuCfMatId> cycle_rates_;
+    CollectionBuilder<CycleRatesArray, MemSpace::host, MucfMatId> cycle_rates_;
     // Const data
     std::map<AtomicMassNumber, MucfIsotope> const mass_isotope_map_{
         {AtomicMassNumber{1}, MucfIsotope::protium},

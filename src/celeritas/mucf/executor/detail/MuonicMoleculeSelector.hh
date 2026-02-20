@@ -40,8 +40,15 @@ class MuonicMoleculeSelector
     // Result of molecule and cycle time selection
     struct Result
     {
-        MucfMuonicMolecule molecule;
-        real_type cycle_time;  //!< in [s]
+        MucfMuonicMolecule molecule{MucfMuonicMolecule::size_};
+        real_type cycle_time{std::numeric_limits<real_type>::max()};
+
+        //! Check whether the data are assigned
+        explicit operator bool() const
+        {
+            return molecule < MucfMuonicMolecule::size_ && cycle_time > 0
+                   && cycle_time < std::numeric_limits<real_type>::max();
+        }
     };
 
     //! Construct with muonic atom and material information
@@ -55,12 +62,8 @@ class MuonicMoleculeSelector
 
   private:
     MucfMuonicAtom atom_;
-    HalfSpinInt spin_;
+    size_type cycle_rate_index_;
     CycleRatesArray cycle_rates_;
-
-    // Return the correct array index for each reactive spin state
-    inline CELER_FUNCTION size_type spin_state_index(MucfMuonicMolecule mol,
-                                                     HalfSpinInt spin) const;
 
     // Sample the final cycle time for a given molecule
     template<class Engine>
@@ -72,15 +75,48 @@ class MuonicMoleculeSelector
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with muonic atom and material information.
+ * Construct with muonic atom and cycle rate information.
+ *
+ * The correct cycle rate array index is determined at construction by the
+ * combination of atom+spin. Given the limited number of states, the position
+ * in the index is set in \c MucfMaterialInserter::calc_[dd|dt|tt]_cycle
+ * manually.
+ *
+ * \note Current implementation has no safe method to access cycle rate data
+ * for each spin state.
  */
 CELER_FUNCTION
 MuonicMoleculeSelector::MuonicMoleculeSelector(MucfMuonicAtom atom,
                                                HalfSpinInt spin,
                                                CycleRatesArray cycle_rates)
-    : atom_(atom), spin_(spin), cycle_rates_(cycle_rates)
+    : atom_(atom), cycle_rates_(cycle_rates)
 {
     CELER_EXPECT(atom < MucfMuonicAtom::size_);
+
+    // Check that the spin value is valid for the given atom type and set the
+    // cycle rate array index accordingly
+    switch (atom_)
+    {
+        case MucfMuonicAtom::deuterium: {
+            // Related to DD states F = 1/2 and F = 3/2
+            CELER_EXPECT(spin == HalfSpinInt{1} || spin == HalfSpinInt{3});
+            // F = 1/2 and F = 3/2 correspond to indices 0 and 1, respectively
+            cycle_rate_index_ = (spin == HalfSpinInt{1}) ? 0 : 1;
+            break;
+        }
+        case MucfMuonicAtom::tritium: {
+            // Related to DT states F = 0 and F = 1, and TT state F = 1/2
+            CELER_EXPECT(spin == HalfSpinInt{0} || spin == HalfSpinInt{2}
+                         || spin == HalfSpinInt{1});
+            // DT: F = 0 and F = 1 correspond to indices 0 and 1, respectively
+            // TT: F = 1/2 corresponds to index 0
+            cycle_rate_index_
+                = (spin == HalfSpinInt{0} || spin == HalfSpinInt{1}) ? 0 : 1;
+            break;
+        }
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -94,72 +130,57 @@ MuonicMoleculeSelector::operator()(Engine& rng)
     using MMM = MucfMuonicMolecule;
     using CycleTimeArray = EnumArray<MucfMuonicMolecule, real_type>;
 
-    // Select final molecule and its respective cycle time
     CycleTimeArray sampled_times;
-    real_type shortest_time = std::numeric_limits<real_type>::infinity();
-    MMM molecule{MMM::size_};
+    auto const inf = std::numeric_limits<real_type>::max();
+    if (atom_ == MucfMuonicAtom::deuterium)
+    {
+        // DD fusion is only triggered by a muonic deuterium
+        sampled_times[MMM::deuterium_deuterium]
+            = this->sample_exp_time(MMM::deuterium_deuterium, rng);
+        sampled_times[MMM::deuterium_tritium] = inf;
+        sampled_times[MMM::tritium_tritium] = inf;
+    }
+    if (atom_ == MucfMuonicAtom::tritium)
+    {
+        // DT and TT fusions are triggered by a muonic tritium
+        sampled_times[MMM::deuterium_deuterium] = inf;
+        sampled_times[MMM::deuterium_tritium]
+            = this->sample_exp_time(MMM::deuterium_tritium, rng);
+        sampled_times[MMM::tritium_tritium]
+            = this->sample_exp_time(MMM::tritium_tritium, rng);
+    }
+
+    Result result;
     for (auto mol : range(MMM::size_))
     {
-        sampled_times[mol] = this->sample_exp_time(mol, rng);
-        if (sampled_times[mol] < shortest_time)
+        if (sampled_times[mol] < result.cycle_time)
         {
-            shortest_time = sampled_times[mol];
-            molecule = mol;
+            result.cycle_time = sampled_times[mol];
+            result.molecule = mol;
         }
     }
 
-    CELER_ENSURE(molecule < MMM::size_);
-    return {molecule, shortest_time};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return correct \c CycleRatesArray spin state index for each molecule.
- *
- * Given the limited number of states, this is manually hardcoded during data
- * construction by \c MucfMaterialInserter::calc_[dd|dt|tt]_cycle .
- */
-CELER_FUNCTION size_type MuonicMoleculeSelector::spin_state_index(
-    MucfMuonicMolecule mol, HalfSpinInt spin) const
-{
-    // The array index is wonky and I have to fix that...
-    switch (atom_)
-    {
-        case MucfMuonicAtom::deuterium: {
-            // Muonic deuterium has spin states 1/2 and 3/2, which correspond
-            // to indices 0 and 1, respectively
-            CELER_EXPECT(spin == HalfSpinInt{1} || spin == HalfSpinInt{3});
-            return (spin == HalfSpinInt{1}) ? 0 : 1;
-        }
-
-        case MucfMuonicAtom::tritium: {
-            // Muonic tritium has spin states 0 and 1, which correspond to
-            // indices 0 and 1, respectively
-            CELER_EXPECT(spin == HalfSpinInt{0} || spin == HalfSpinInt{1});
-            return (spin == HalfSpinInt{0}) ? 0 : 1;
-        }
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
+    CELER_ENSURE(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Sample the final exponential distribution for a given cycle rate using
- * \f$ T = -\ln(r) \times \tau_\text{cycle} \f$ . If the cached rate is zero,
- * the returned time is set to infinity, which effectively removes that
- * molecule as a possible selection.
+ * \f$ T = -\ln(r) \times \tau_\text{cycle} \f$ . If the cached rate is
+ * zero, the returned time is set to infinity, which effectively removes
+ * that molecule as a possible selection.
  */
 template<class Engine>
 CELER_FUNCTION real_type MuonicMoleculeSelector::sample_exp_time(
     MucfMuonicMolecule molecule, Engine& rng)
 {
     CELER_EXPECT(molecule < MucfMuonicMolecule::size_);
-    auto const rate = cycle_rates_[molecule][this->spin_state_index(spin_)];
+    auto const rate = cycle_rates_[molecule][cycle_rate_index_];
 
-    // Return infinity when the cached rate is zero
+    // Return an infinite cycle time when the cached rate is zero
     return (rate > 0) ? ExponentialDistribution<real_type>(rate)(rng)
-                      : std::numeric_limits<real_type>::infinity();
+                      : std::numeric_limits<real_type>::max();
 }
 
 //---------------------------------------------------------------------------//

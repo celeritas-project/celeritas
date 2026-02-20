@@ -55,7 +55,7 @@ enum class MucfMuonicMolecule
 //---------------------------------------------------------------------------//
 
 //! Opaque index of a muCF material component
-using MuCfMatId = OpaqueId<struct MuCfMaterialComponent_>;
+using MucfMatId = OpaqueId<struct MucfMaterialComponent_>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
