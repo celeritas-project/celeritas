@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/sys/Environment.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "OrangeInputIO.json.hh"  // IWYU pragma: keep
@@ -168,7 +169,6 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         auto& finite = make_array("num_finite_bboxes");
         auto& infinite = make_array("num_infinite_bboxes");
         auto& depth = make_array("depth");
-        auto& structure = make_array("structure");
 
         for (auto i : range(data.simple_units.size()))
         {
@@ -177,8 +177,18 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
             finite.push_back(mdi.num_finite_bboxes);
             infinite.push_back(mdi.num_infinite_bboxes);
             depth.push_back(mdi.depth);
-            structure.push_back(
-                make_bih_structure_json(unit.bih_tree, data.bih_tree_data));
+        }
+
+        // Include structure information if requested by the user
+        if (celeritas::getenv_flag("ORANGE_BIH_STRUCTURE", false).value)
+        {
+            auto& structure = make_array("structure");
+            for (auto i : range(data.simple_units.size()))
+            {
+                auto const& unit = data.simple_units[SimpleUnitId{i}];
+                structure.push_back(make_bih_structure_json(
+                    unit.bih_tree, data.bih_tree_data));
+            }
         }
     }
 
