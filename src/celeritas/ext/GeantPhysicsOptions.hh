@@ -148,12 +148,6 @@ struct GeantPhysicsOptions
     RelaxationSelection relaxation{RelaxationSelection::none};
     //!@}
 
-    //! Muon EM physics
-    GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
-
-    //! Muon-catalyzed fusion physics
-    bool mucf_physics{false};
-
     //!@{
     //! \name Physics options
 
@@ -217,9 +211,25 @@ struct GeantPhysicsOptions
     //! Print detailed Geant4 output
     bool verbose{false};
 
+    //! Muon EM physics
+    GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
+
+    //! Muon-catalyzed fusion physics
+    bool mucf_physics{false};
+
     //! Optical physics options
     GeantOpticalPhysicsOptions optical{
         GeantOpticalPhysicsOptions::deactivated()};
+
+    //! True if any EM process is activated
+    bool em() const
+    {
+        return compton_scattering || photoelectric || rayleigh_scattering
+               || gamma_conversion || gamma_general || coulomb_scattering
+               || ionization || annihilation
+               || brems != BremsModelSelection::none
+               || msc != MscModelSelection::none;
+    }
 
     //! Initialize with no physics
     static GeantPhysicsOptions deactivated()
@@ -240,6 +250,7 @@ struct GeantPhysicsOptions
         opt.relaxation = RelaxationSelection::none;
         // Muon
         opt.muon = GeantMuonPhysicsOptions::deactivated();
+        opt.mucf_physics = false;
         // Optical
         opt.optical = GeantOpticalPhysicsOptions::deactivated();
         return opt;
