@@ -133,9 +133,6 @@ class VecgeomTrackView
 
     //// OPERATIONS ////
 
-    // Find the distance to the next boundary (infinite max)
-    inline CELER_FUNCTION Propagation find_next_step();
-
     // Find the distance to the next boundary, up to and including a step
     inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
@@ -438,20 +435,6 @@ CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 {
     // FIXME: temporarily return a bogus but valid surface normal
     return this->dir();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the distance to the next geometric boundary.
- *
- * \todo To support ray tracing from unknown distances from the world, we
- * could add another special function \c find_first_step .
- */
-CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
-{
-    CELER_EXPECT(!this->is_outside());
-
-    return this->find_next_step(vecgeom::kInfLength);
 }
 
 //---------------------------------------------------------------------------//

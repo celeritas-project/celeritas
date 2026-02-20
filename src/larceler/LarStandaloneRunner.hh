@@ -10,8 +10,9 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
+#include "celeritas/inp/StandaloneInput.hh"
 
-#include "inp/LarStandaloneRunner.hh"
+#include "detail/LarCelerConfig.hh"
 
 namespace sim
 {
@@ -23,8 +24,7 @@ namespace celeritas
 {
 namespace optical
 {
-class Transporter;
-class CoreStateBase;
+class Runner;
 }  // namespace optical
 
 //---------------------------------------------------------------------------//
@@ -57,12 +57,12 @@ class LarStandaloneRunner
     //! \name Type aliases
     using VecSED = std::vector<sim::SimEnergyDeposit>;
     using VecBTR = std::vector<sim::OpDetBacktrackerRecord>;
-    using Input = inp::LarStandaloneRunner;
+    using Input = inp::OpticalStandaloneInput;
     //!@}
 
   public:
     // Set up the problem
-    explicit LarStandaloneRunner(Input const&);
+    explicit LarStandaloneRunner(Input&&);
     // Don't allow copies of this class
     CELER_DEFAULT_MOVE_DELETE_COPY(LarStandaloneRunner);
 
@@ -70,9 +70,16 @@ class LarStandaloneRunner
     VecBTR operator()(VecSED const& edep);
 
   private:
-    std::shared_ptr<optical::Transporter> transporter_;
-    std::shared_ptr<optical::CoreStateBase> state_;
+    using LarsoftTime = Quantity<celeritas::units::Nanosecond, double>;
+    using LarsoftLen = Quantity<celeritas::units::Centimeter, double>;
+
+    std::shared_ptr<optical::Runner> runner_;
 };
+
+//---------------------------------------------------------------------------//
+// Convert from a FHiCL config input
+inp::OpticalStandaloneInput
+from_config(detail::LarCelerStandaloneConfig const& config);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -8,7 +8,6 @@
 
 #include <iostream>
 
-#include "corecel/OpaqueIdIO.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "geocel/VolumeParams.hh"
 #include "orange/inp/Import.hh"

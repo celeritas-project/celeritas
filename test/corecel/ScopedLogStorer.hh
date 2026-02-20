@@ -76,6 +76,9 @@ class ScopedLogStorer
     //! Get corresponding log levels
     VecString const& levels() const { return levels_; }
 
+    // Delete messages that contain a certain string
+    void remove_if_contains(std::string const& s);
+
     // Print expected results to stdout
     void print_expected() const;
 

@@ -10,7 +10,6 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/cont/ArrayIO.hh"
 #include "geocel/BoundingBoxIO.json.hh"
 
 #include "celeritas_test.hh"

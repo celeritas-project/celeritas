@@ -100,6 +100,9 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     //! Whether zero-distance checking is enabled
     bool check_zero_distance() const { return check_zero_distance_; }
 
+    //! Check the safety when doing find-next-distance
+    void check_next_safety(bool value) { check_next_safety_ = value; }
+
     //! Canonical volume parameters (if available)
     SPConstVolumes const& volumes() const { return volumes_; }
     //! Geometry interface (if available)
@@ -149,9 +152,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     void set_dir(Real3 const&) final;
 
     // Find the distance to the next boundary
-    Propagation find_next_step() final;
-
-    // Find the distance to the next boundary
+    using GeoTrackInterface<real_type>::find_next_step;
     Propagation find_next_step(real_type max_distance) final;
 
     // Move a linear step fraction
@@ -177,6 +178,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     // Configuration flags
     bool check_normal_{true};
     bool check_failure_{true};
+    bool check_next_safety_{true};
     bool check_safety_{true};
     bool check_zero_distance_{true};
 

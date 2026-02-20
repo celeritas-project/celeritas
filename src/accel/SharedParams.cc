@@ -28,7 +28,6 @@
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Join.hh"
