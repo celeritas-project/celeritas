@@ -695,7 +695,7 @@ auto RichSimplifiedIntegrationMixin::make_primary_input() const -> PrimaryInput
     result.pdg = {pdg::electron()};
     result.energy = inp::MonoenergeticDistribution{10'000};  // 10 GeV
     result.shape
-        = inp::PointDistribution{array_cast<double>(from_cm({0, 0, 0}))};
+        = inp::PointDistribution{array_cast<double>(from_cm({0, 30, 0}))};
     result.angle = inp::MonodirectionalDistribution{{0, 0, 1}};
     result.primaries_per_event = 1;
     result.num_events = 1;
@@ -708,7 +708,7 @@ SetupOptions RichSimplifiedIntegrationMixin::make_setup_options()
     result.sd.enabled = false;
     result.optical = [] {
         OpticalSetupOptions opt;
-        opt.capacity.tracks = 32768;
+        opt.capacity.tracks = 1;
         opt.capacity.generators = 32768 * 8;
         opt.capacity.primaries = opt.capacity.generators;
         return opt;

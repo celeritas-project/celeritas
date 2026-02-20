@@ -20,6 +20,7 @@
 #include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Stopwatch.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantParticleView.hh"
@@ -753,7 +754,9 @@ class RichSimplified : public RichSimplifiedIntegrationMixin, public TMITestBase
   public:
     void EndOfRunAction(G4Run const*) override
     {
+        Stopwatch optical_timer;
         auto& integration = detail::IntegrationSingleton::instance();
+        CELER_LOG(info) << "EndOfRunAction";
 
         if (integration.mode() == OffloadMode::enabled
             && (!G4Threading::IsMultithreadedApplication()
@@ -761,6 +764,7 @@ class RichSimplified : public RichSimplifiedIntegrationMixin, public TMITestBase
         {
             auto& local
                 = dynamic_cast<LocalTransporter&>(integration.local_offload());
+            auto const& core_state = local.GetState();
 
             auto const& optical_collector
                 = integration.shared_params().problem_loaded().optical_collector;
@@ -769,6 +773,11 @@ class RichSimplified : public RichSimplifiedIntegrationMixin, public TMITestBase
 
             auto const& accum
                 = optical_collector->optical_state(local.GetState()).accum();
+
+            CELER_LOG(info)
+                << "Generated " << accum.steps << " Cherenkov photons";
+            CELER_LOG(info) << "Optical tracking: " << accum.steps << " steps "
+                            << "in " << optical_timer() << " seconds";
         }
 
         TMITestBase::EndOfRunAction(nullptr);
@@ -781,7 +790,10 @@ TEST_F(RichSimplified, run)
     TMI::Instance().SetOptions(this->make_setup_options());
 
     rm.Initialize();
-    rm.BeamOn(2);
+
+    Stopwatch timer;
+    rm.BeamOn(5);
+    CELER_LOG(info) << "BeamOn completed in " << timer() << " seconds";
 }
 
 //---------------------------------------------------------------------------//

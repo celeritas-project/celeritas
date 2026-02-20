@@ -20,11 +20,16 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/OpticalSizes.json.hh"
+#include "celeritas/optical/action/OpticalStepGatherAction.hh"
+#include "celeritas/optical/detail/OpticalStepData.hh"
+#include "celeritas/optical/detail/OpticalStepParams.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
+#include "celeritas/user/detail/StepGatherAction.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
+#include "OpticalStepInterface.hh"
 #include "PhysicsParams.hh"
 #include "SimParams.hh"
 #include "action/AlongStepAction.hh"
@@ -35,7 +40,6 @@
 #include "gen/CherenkovParams.hh"
 #include "gen/ScintillationParams.hh"
 #include "surface/SurfacePhysicsParams.hh"
-
 namespace celeritas
 {
 namespace optical
@@ -141,6 +145,10 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     {
         input_.aux_reg = std::make_shared<AuxParamsRegistry>();
     }
+    if (std::getenv("CELER_OPTICAL_STEP"))
+    {
+        enable_optical_step_ = true;
+    }
     if (!input_.output_reg)
     {
         input_.output_reg = std::make_shared<OutputRegistry>();
@@ -167,14 +175,40 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());
 
-    // Construct detector callback action
-    // TODO: Is there a better place to build this?
-    if (input_.optical_detector)
+    CELER_LOG(info) << "Optical state : " << enable_optical_step_;
+    if (enable_optical_step_)
     {
-        input_.action_reg->insert(std::make_shared<DetectorAction>(
-            input_.action_reg->next_id(), input_.optical_detector.callback));
-    }
+        CELER_LOG(info) << "==== Optical Action Registry ====";
 
+        auto const& reg = input_.action_reg;
+        for (auto id : range(ActionId{reg->num_actions()}))
+        {
+            auto const& act = reg->id_to_label(id);
+            CELER_LOG(info) << id.get() << " -> " << act;
+        }
+        step_params_ = std::make_shared<optical::detail::OpticalStepParams>(
+            "optical-step", input_.aux_reg->next_id());
+        // step_params_ = std::make_shared<optical::detail::OpticalStepParams>(
+        //     "optical-step", input_.aux_reg->next_id(),
+        //     input_.capacity.tracks);
+
+        input_.aux_reg->insert(step_params_);
+
+        CELER_LOG(info) << "Optical step params registered with aux id "
+                        << step_params_->aux_id().get();
+
+        auto gather_id = input_.action_reg->next_id();
+
+        input_.action_reg->insert(
+            std::make_shared<optical::OpticalStepGatherAction>(gather_id,
+                                                               step_params_));
+        //  input_.output_reg->insert(
+        //      OutputInterfaceAdapter<std::vector<OpticalStepRecord>>::from_getter(
+        //          OutputInterface::Category::internal,
+        //          "optical-steps",
+        //          [sp = step_params_]() -> auto const& { return
+        //          sp->records(); }));
+    }
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
 

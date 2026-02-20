@@ -131,7 +131,9 @@ list(APPEND SOURCES
   optical/Types.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
+  optical/action/OpticalStepGatherAction.cc
   optical/detail/OpticalLaunchAction.cc
+  optical/detail/OpticalStepParams.cc
   optical/surface/SurfacePhysicsParams.cc
   optical/surface/SurfaceSteppingAction.cc
   phys/CutoffParams.cc

@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
@@ -102,6 +103,9 @@ CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
     // pre- and post-step energies
     auto const& pre_step = dist_.points[StepPoint::pre];
     auto const& post_step = dist_.points[StepPoint::post];
+    CELER_LOG(info) << " Cherenkov Photons generated at " << pre_step.pos[0]
+                    << " , y = " << pre_step.pos[1]
+                    << " ,z = " << pre_step.pos[2];
     CherenkovDndxCalculator calc_dndx(material, shared, dist_.charge);
     dndx_pre_ = calc_dndx(pre_step.speed);
     real_type dndx_post = calc_dndx(post_step.speed);

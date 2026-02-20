@@ -14,6 +14,8 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Scoring.hh"
+#include "celeritas/optical/detail/OpticalStepParams.hh"
+#include "celeritas/user/detail/StepParams.hh"
 
 #include "CoreTrackData.hh"
 
@@ -147,6 +149,13 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     }
     //!@}
 
+    //! Access optical step aux params
+    std::shared_ptr<optical::detail::OpticalStepParams> const&
+    step_params() const
+    {
+        return step_params_;
+    }
+
     // Access host pointers to core data
     using ParamsDataInterface<CoreParamsData>::ref;
 
@@ -164,6 +173,8 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
 
     // Copy of DeviceRef in device memory
     DeviceVector<DeviceRef> device_ref_vec_;
+    bool enable_optical_step_{false};
+    std::shared_ptr<optical::detail::OpticalStepParams> step_params_;
 };
 
 //---------------------------------------------------------------------------//
