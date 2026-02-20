@@ -58,7 +58,7 @@
     <!-- Absorber layer - Lead, passive -->
     <detector id="1" name="AbsorberLayer" type="DD4hep_BoxSegment" vis="VisibleYellow" region="PreshowerRegion" limits="PreshowerLimitSet">
       <material name="Lead"/>
-      <box      x="100*cm" y="100*cm" z="1*cm"/>
+      <box      x="100*cm" y="100*cm" z="0.5*cm"/>
       <position x="0"      y="0"      z="150*cm"/>
       <rotation x="0"     y="0"      z="0"/>
     </detector>
@@ -67,7 +67,7 @@
     <detector id="2" name="DetectionLayer" type="DD4hep_BoxSegment" readout="PreshowerHits" vis="VisibleGreen" sensitive="true" region="PreshowerRegion" limits="PreshowerLimitSet">
       <material name="Polystyrene"/>
       <sensitive type="calorimeter"/>
-      <box      x="60*cm" y="60*cm" z="2.5*cm"/>
+      <box      x="60*cm" y="60*cm" z="1.25*cm"/>
       <position x="0"     y="0"     z="151.75*cm"/>
       <rotation x="0"     y="0"     z="0"/>
     </detector>

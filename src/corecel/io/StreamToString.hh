@@ -2,25 +2,25 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/InteractionIO.hh
+//! \file corecel/io/StreamToString.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iosfwd>
-
-#include "corecel/io/StreamToString.hh"  // IWYU pragma: export
-#include "celeritas/phys/Interaction.hh"
+#include <sstream>
+#include <string>
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Write a host-side Interaction to a stream for debugging.
-std::ostream& operator<<(std::ostream& os, Interaction const& i);
-
-//! Allow printing of pos/dir for convenience
-inline std::string to_string(Real3 const& r)
+/*!
+ * Return as a string any object that has an ostream operator.
+ */
+template<class T>
+inline std::string stream_to_string(T const& item)
 {
-    return stream_to_string(r);
+    std::ostringstream os;
+    os << item;
+    return std::move(os).str();
 }
 
 //---------------------------------------------------------------------------//

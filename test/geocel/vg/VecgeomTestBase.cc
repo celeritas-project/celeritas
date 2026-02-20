@@ -21,15 +21,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Keep track of log messages during load.
- */
-auto VecgeomTestBase::expected_log_levels() const -> SpanStringView
-{
-    return {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct via persistent geant_geo; see LazyGeantGeoManager.
  */
 auto VecgeomTestBase::build_geometry() const -> SPConstGeo
@@ -44,8 +35,7 @@ auto VecgeomTestBase::build_geometry() const -> SPConstGeo
 
     ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
     auto result = Base::build_geometry();
-    EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
-        << scoped_log_;
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     return result;
 }
 

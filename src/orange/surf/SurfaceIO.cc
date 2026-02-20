@@ -9,7 +9,7 @@
 #include <cmath>
 #include <ostream>
 
-#include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/Array.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "ConeAligned.hh"  // IWYU pragma: associated

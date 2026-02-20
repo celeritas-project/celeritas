@@ -19,7 +19,7 @@ namespace celeritas
  *
  * The file format is JSON lines:
  * - first line: metadata
- * - each further line: progressive y coordinates
+ * - each further line: progressive \em y coordinates
  *
  * \note This is a very rough-and-ready class that should be restructured and
  * integrated with the ray tracer so that it can be executed in parallel on

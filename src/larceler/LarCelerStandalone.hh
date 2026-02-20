@@ -70,7 +70,7 @@ class LarCelerStandalone final : public phot::IOpticalPropagation
     void endJob() final;
 
   private:
-    inp::LarStandaloneRunner runner_inp_;
+    LarStandaloneRunner::Input runner_inp_;
     std::unique_ptr<LarStandaloneRunner> runner_;
 };
 

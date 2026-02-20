@@ -442,7 +442,7 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     // Note that GetDirectTransform is an affine transform that combines the
     // daughter-to-parent ("object") translation with an inverted
     // [parent-to-daughter, "frame"] rotation
-    return std::make_shared<Transformed>(
+    return Transformed::or_object(
         std::move(daughter), transform_.variant(solid.GetDirectTransform()));
 }
 
@@ -656,8 +656,8 @@ auto SolidConverter::multiunion(arg_type solid_base) -> result_type
     for (auto i : range(n))
     {
         auto vol = (*this)(*(mu.GetSolid(i)));
-        vols[i] = std::make_shared<Transformed>(
-            std::move(vol), transform_(mu.GetTransformation(i)));
+        vols[i] = Transformed::or_object(std::move(vol),
+                                         transform_(mu.GetTransformation(i)));
     }
 
     return std::make_shared<AnyObjects>(std::string{solid_base.GetName()},
@@ -848,8 +848,8 @@ auto SolidConverter::reflectedsolid(arg_type solid_base) -> result_type
     auto converted = (*this)(*underlying);
 
     // Add a reflecting transform
-    return std::make_shared<Transformed>(
-        std::move(converted), transform_(solid.GetDirectTransform3D()));
+    return Transformed::or_object(std::move(converted),
+                                  transform_(solid.GetDirectTransform3D()));
 }
 
 //---------------------------------------------------------------------------//
@@ -864,8 +864,8 @@ auto SolidConverter::scaledsolid(arg_type solid_base) -> result_type
     auto converted = (*this)(*underlying);
 
     // Add a scaling transform
-    return std::make_shared<Transformed>(
-        std::move(converted), transform_(solid.GetScaleTransform()));
+    return Transformed::or_object(std::move(converted),
+                                  transform_(solid.GetScaleTransform()));
 }
 
 //---------------------------------------------------------------------------//

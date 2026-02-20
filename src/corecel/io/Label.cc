@@ -8,6 +8,8 @@
 
 #include <ostream>
 
+#include "StreamToString.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -59,9 +61,7 @@ std::ostream& operator<<(std::ostream& os, Label const& lab)
  */
 std::string to_string(Label const& lab)
 {
-    std::ostringstream os;
-    os << lab;
-    return os.str();
+    return stream_to_string(lab);
 }
 
 //---------------------------------------------------------------------------//

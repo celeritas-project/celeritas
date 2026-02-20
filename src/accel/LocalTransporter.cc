@@ -21,7 +21,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Types.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"

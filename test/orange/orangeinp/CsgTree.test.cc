@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/CsgTree.hh"
 
+#include "corecel/io/StreamToString.hh"
+
 #include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
 
@@ -242,7 +244,7 @@ TEST_F(CsgTreeTest, manual_simplify)
     {
         // Shell combines join
         tree_.exchange(shell, Joined{op_and, {not_inner, inside_outer}});
-        EXPECT_EQ("all{5,9}", to_string(tree_[shell]));
+        EXPECT_EQ("all{5,9}", stream_to_string(tree_[shell]));
     }
     {
         // below mz is false

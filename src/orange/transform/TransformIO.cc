@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "TransformIO.hh"
 
-#include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/Array.hh"
 
 #include "Transformation.hh"
 #include "Translation.hh"

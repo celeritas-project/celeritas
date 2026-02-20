@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "SecondaryIO.hh"
 
-#include "corecel/cont/ArrayIO.hh"
 #include "celeritas/Quantities.hh"
 
 namespace celeritas

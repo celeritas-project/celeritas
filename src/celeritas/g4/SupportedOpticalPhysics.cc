@@ -119,9 +119,8 @@ G4String optical_process_type_to_geant_name(OpticalProcessType value)
  * Use `G4OpticalParameters` when available, otherwise use hardcoded
  * checks.
  */
-bool process_is_active(
-    OpticalProcessType process,
-    [[maybe_unused]] SupportedOpticalPhysics::Options const& options)
+bool process_is_active(OpticalProcessType process,
+                       [[maybe_unused]] GeantOpticalPhysicsOptions const& options)
 {
 #if G4VERSION_NUMBER >= 1070
     auto* params = G4OpticalParameters::Instance();
@@ -160,7 +159,8 @@ bool process_is_active(
  * Construct with physics options.
  */
 SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
-    : options_(options)
+    : options_(options.optical)
+    , only_optical_(!(options.em() || options.muon || options.mucf_physics))
 {
 #if G4VERSION_NUMBER >= 1070
     // Use of G4OpticalParameters only from Geant4 10.7
@@ -304,9 +304,14 @@ void SupportedOpticalPhysics::ConstructProcess()
 #endif
 
     // Add photon-generating processes to all particles they apply to
-    // TODO: Eventually replace with Celeritas step collector processes
+    //! \todo Eventually replace with Celeritas step collector processes
+
+    // Only update scintillation properties if there are particles that the
+    // process applies to. \c G4EmSaturation requires both electron and proton
+    // be defined, which is false for Celeritas optical-only runs.
     auto scint = ObservingUniquePtr{std::make_unique<G4Scintillation>()};
-    if (process_is_active(OpticalProcessType::scintillation, options_))
+    if (process_is_active(OpticalProcessType::scintillation, options_)
+        && !only_optical_)
     {
 #if G4VERSION_NUMBER < 1070
         scint->SetStackPhotons(options_.scintillation.stack_photons);

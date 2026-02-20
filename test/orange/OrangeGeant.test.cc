@@ -13,6 +13,7 @@
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/Types.hh"
@@ -55,7 +56,21 @@ class GeantOrangeTest : public OrangeTestBase
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::error};
         auto result = OrangeTestBase::build_geometry();
+        // Ignore messages emitted from Geant4 loader
+        scoped_log_.remove_if_contains("Geant4 error:");
         EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+        return result;
+    }
+
+    //! Some shapes have larger errors with single precision
+    GenericGeoTrackingTolerance tracking_tol() const override
+    {
+        auto result = OrangeTestBase::tracking_tol();
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            result.distance = 1e-5;
+        }
         return result;
     }
 };
@@ -296,6 +311,47 @@ using SimpleCmsTest
 TEST_F(SimpleCmsTest, trace)
 {
     this->impl().test_trace();
+}
+
+//---------------------------------------------------------------------------//
+class SolidsTest
+    : public GenericGeoParameterizedTest<GeantOrangeTest, SolidsGeoTest>
+{
+};
+
+TEST_F(SolidsTest, accessors)
+{
+    TestImpl(this).test_accessors();
+}
+
+TEST_F(SolidsTest, trace)
+{
+    TestImpl(this).test_trace();
+}
+
+TEST_F(SolidsTest, reflected_vol)
+{
+    auto geo = this->make_geo_track_view({-480, -125, 0}, {0, 1, 0});
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
+    EXPECT_EQ("trd3_refl", label.name);
+    EXPECT_FALSE(ends_with(label.ext, "_refl"));
+}
+
+TEST_F(SolidsTest, DISABLED_imager)
+{
+    SafetyImager write_image{this->geometry()};
+
+    ImageInput inp;
+    inp.lower_left = from_cm({-550, -250, 5});
+    inp.upper_right = from_cm({550, 250, 5});
+    inp.rightward = {1.0, 0.0, 0.0};
+    inp.vertical_pixels = 8;
+
+    write_image(ImageParams{inp}, "org-solids-xy-hi.jsonl");
+
+    inp.lower_left[2] = inp.upper_right[2] = from_cm(-5);
+    write_image(ImageParams{inp}, "org-solids-xy-lo.jsonl");
 }
 
 //---------------------------------------------------------------------------//
