@@ -278,7 +278,7 @@ void LocalTransporter::Push(G4Track& g4track)
         track.primary_id
             = hit_processor_->track_reconstruction().acquire(g4track);
     }
-    track.primary_id += g4track.GetTrackID();
+    track.primary_id = track.primary_id.unchecked_get() + g4track.GetTrackID();
 
     track.energy = units::MevEnergy(
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
@@ -297,10 +297,6 @@ void LocalTransporter::Push(G4Track& g4track)
      * \todo Eliminate event ID from primary.
      */
     track.event_id = EventId{0};
-
-    // Add track id and initialize step counter
-    track.geant_track_id = g4track.GetTrackID();
-    track.geant_step_count = g4track.GetCurrentStepNumber();
 
     buffer_.push_back(track);
     buffer_accum_.energy += track.energy.value();
