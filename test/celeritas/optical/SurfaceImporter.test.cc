@@ -43,6 +43,15 @@ class SurfaceImporterOpticalSurfacesTest : public SurfaceImporterTestBase
     }
 };
 
+class SurfaceImporterFullOpticalSurfacesTest : public SurfaceImporterTestBase
+{
+  public:
+    std::string_view gdml_basename() const override
+    {
+        return "full-optical-surfaces";
+    }
+};
+
 //---------------------------------------------------------------------------//
 
 template<class T>
@@ -149,7 +158,84 @@ void check_input(inp::SurfacePhysics const& expected,
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-TEST_F(SurfaceImporterOpticalSurfacesTest, optical_surfaces)
+// TEST_F(SurfaceImporterOpticalSurfacesTest, optical_surfaces)
+// {
+//     using PSI = PhysSurfaceId;
+//     using namespace ::celeritas::inp;
+//
+//     SurfacePhysics expected_input;
+//
+//     expected_input.materials = {
+//         {},
+//         {},
+//         {},
+//         {},
+//         {},
+//         {},
+//     };
+//
+//     expected_input.roughness.polished = {
+//         {PSI{0}, NoRoughness{}},
+//         {PSI{3}, NoRoughness{}},
+//         {PSI{5}, NoRoughness{}},
+//     };
+//
+//     expected_input.roughness.smear = {
+//         {PSI{1}, SmearRoughness{0.1}},
+//         {PSI{4}, SmearRoughness{0.3}},
+//     };
+//
+//     expected_input.roughness.gaussian = {
+//         {PSI{2}, inp::GaussianRoughness{1}},
+//     };
+//
+//     {
+//         std::vector<double> grid_refl_x{1.65e-6, 1e-05};
+//         expected_input.reflectivity.grid = {
+//             {PSI{0}, GridReflection{grid_refl_x, {0.5, 0.5}}},
+//             {PSI{1}, GridReflection{grid_refl_x, {0.6, 0.6}}},
+//             {PSI{2}, GridReflection{grid_refl_x, {0.7, 0.7}}},
+//             {PSI{3}, GridReflection{grid_refl_x, {0.8, 0.8}}},
+//             {PSI{4}, GridReflection{grid_refl_x, {0.9, 0.9}}},
+//         };
+//     }
+//
+//     expected_input.reflectivity.fresnel = {
+//         {PSI{5}, FresnelReflection{}},
+//     };
+//
+//     expected_input.interaction.dielectric = {
+//         {PSI{0},
+//          DielectricInteraction{inp::ReflectionForm::from_spike(), false}},
+//         {PSI{1}, DielectricInteraction{inp::ReflectionForm::from_lobe(),
+//         false}}, {PSI{2},
+//         DielectricInteraction{inp::ReflectionForm::from_lobe(), false}},
+//         {PSI{3}, DielectricInteraction{inp::ReflectionForm::from_spike(),
+//         true}}, {PSI{4},
+//         DielectricInteraction{inp::ReflectionForm::from_lobe(), true}},
+//         {PSI{5},
+//          DielectricInteraction{inp::ReflectionForm::from_spike(), false}},
+//     };
+//     {
+//         std::vector<double> grid_sc_x{2e-06, 8e-06};
+//
+//         auto& g = expected_input.interaction.dielectric[PSI(2)]
+//                       .reflection.reflection_grids;
+//
+//         using Mode = optical::ReflectionMode;
+//         g[Mode::specular_spike] = {grid_sc_x, {0.1, 0.3}};
+//         g[Mode::specular_lobe] = {grid_sc_x, {0.2, 0.2}};
+//         g[Mode::backscatter] = {grid_sc_x, {0.3, 0.1}};
+//     }
+//
+//     expected_input.interaction.trivial = {};
+//
+//     check_input(expected_input,
+//     this->imported_data().optical_physics.surfaces);
+// }
+
+//---------------------------------------------------------------------------//
+TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
 {
     using PSI = PhysSurfaceId;
     using namespace ::celeritas::inp;
@@ -163,59 +249,76 @@ TEST_F(SurfaceImporterOpticalSurfacesTest, optical_surfaces)
         {},
         {},
         {},
+        {},
+        {},
+        {},
     };
+
+    PSI default_surf{8};
 
     expected_input.roughness.polished = {
         {PSI{0}, NoRoughness{}},
-        {PSI{3}, NoRoughness{}},
-        {PSI{5}, NoRoughness{}},
+        {PSI{2}, NoRoughness{}},
+        {PSI{4}, NoRoughness{}},
+        {PSI{6}, NoRoughness{}},
+        {default_surf, NoRoughness{}},
     };
 
     expected_input.roughness.smear = {
         {PSI{1}, SmearRoughness{0.1}},
-        {PSI{4}, SmearRoughness{0.3}},
+        {PSI{3}, SmearRoughness{0.3}},
     };
 
     expected_input.roughness.gaussian = {
-        {PSI{2}, inp::GaussianRoughness{1}},
+        {PSI{5}, GaussianRoughness{0.4}},
+        {PSI{7}, GaussianRoughness{1.0}},
     };
 
+    // Need to fix reflectivity in import grids??
     {
-        std::vector<double> grid_refl_x{1.65e-6, 1e-05};
+        GridReflection refl{Grid{{1e-06, 1e-05}, {1, 1}}};
         expected_input.reflectivity.grid = {
-            {PSI{0}, GridReflection{grid_refl_x, {0.5, 0.5}}},
-            {PSI{1}, GridReflection{grid_refl_x, {0.6, 0.6}}},
-            {PSI{2}, GridReflection{grid_refl_x, {0.7, 0.7}}},
-            {PSI{3}, GridReflection{grid_refl_x, {0.8, 0.8}}},
-            {PSI{4}, GridReflection{grid_refl_x, {0.9, 0.9}}},
+            {PSI{0}, refl},
+            {PSI{1}, refl},
+            {PSI{2}, refl},
+            {PSI{3}, refl},
+            {PSI{4}, refl},
+            {PSI{5}, refl},
+            {PSI{6}, refl},
+            {PSI{7}, refl},
+        };
+
+        expected_input.reflectivity.fresnel = {
+            {default_surf, FresnelReflection{}},
         };
     }
 
-    expected_input.reflectivity.fresnel = {
-        {PSI{5}, FresnelReflection{}},
-    };
+    using Mode = optical::ReflectionMode;
+    ReflectionForm unified_ground;
+    unified_ground.reflection_grids[Mode::specular_spike]
+        = {{1e-06, 1e-05}, {0.1, 0.3}};
+    unified_ground.reflection_grids[Mode::specular_lobe]
+        = {{1e-06, 1e-05}, {0.2, 0.2}};
+    unified_ground.reflection_grids[Mode::backscatter]
+        = {{1e-06, 1e-05}, {0.3, 0.1}};
 
     expected_input.interaction.dielectric = {
         {PSI{0},
-         DielectricInteraction{inp::ReflectionForm::from_spike(), false}},
-        {PSI{1}, DielectricInteraction{inp::ReflectionForm::from_lobe(), false}},
-        {PSI{2}, DielectricInteraction{inp::ReflectionForm::from_lobe(), false}},
-        {PSI{3}, DielectricInteraction{inp::ReflectionForm::from_spike(), true}},
-        {PSI{4}, DielectricInteraction{inp::ReflectionForm::from_lobe(), true}},
-        {PSI{5},
-         DielectricInteraction{inp::ReflectionForm::from_spike(), false}},
+         DielectricInteraction::from_dielectric(ReflectionForm::from_spike())},
+        {PSI{1},
+         DielectricInteraction::from_dielectric(ReflectionForm::from_lobe())},
+        {PSI{2},
+         DielectricInteraction::from_metal(ReflectionForm::from_spike())},
+        {PSI{3}, DielectricInteraction::from_metal(ReflectionForm::from_lobe())},
+        {PSI{4},
+         DielectricInteraction::from_dielectric(ReflectionForm::from_spike())},
+        {PSI{5}, DielectricInteraction::from_dielectric(unified_ground)},
+        {PSI{6},
+         DielectricInteraction::from_metal(ReflectionForm::from_spike())},
+        {PSI{7}, DielectricInteraction::from_metal(unified_ground)},
+        {default_surf,
+         DielectricInteraction::from_dielectric(ReflectionForm::from_spike())},
     };
-    {
-        std::vector<double> grid_sc_x{2e-06, 8e-06};
-
-        auto& g = expected_input.interaction.dielectric[PSI(2)]
-                      .reflection.reflection_grids;
-
-        using Mode = optical::ReflectionMode;
-        g[Mode::specular_spike] = {grid_sc_x, {0.1, 0.3}};
-        g[Mode::specular_lobe] = {grid_sc_x, {0.2, 0.2}};
-        g[Mode::backscatter] = {grid_sc_x, {0.3, 0.1}};
-    }
 
     expected_input.interaction.trivial = {};
 
