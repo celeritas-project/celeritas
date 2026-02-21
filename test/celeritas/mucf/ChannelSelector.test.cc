@@ -150,11 +150,13 @@ TEST_F(ChannelSelectorTest, dd_channel_mid_temperature)
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         double const num_samples_d = static_cast<double>(num_samples);
+        double const he3_total_count_d = static_cast<double>(he3_total_count);
+
         double const expected_he3_count = num_samples_d * he3_probability;
         double const tolerance
             = 3 * this->calc_sigma(num_samples_d, he3_probability);
 
-        EXPECT_NEAR(expected_he3_count, he3_total_count, tolerance);
+        EXPECT_NEAR(expected_he3_count, he3_total_count_d, tolerance);
     }
 }
 
@@ -191,12 +193,14 @@ TEST_F(ChannelSelectorTest, dd_channel_high_temperature)
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         double const num_samples_d = static_cast<double>(num_samples);
+        double const he3_total_count_d = static_cast<double>(he3_total_count);
+
         double const expected_he3_count = num_samples_d * he3_probability;
         // 3 sigma tolerance
         double const tolerance
             = 3 * this->calc_sigma(num_samples_d, he3_probability);
 
-        EXPECT_NEAR(expected_he3_count, he3_total_count, tolerance);
+        EXPECT_NEAR(expected_he3_count, he3_total_count_d, tolerance);
     }
 }
 
@@ -233,12 +237,15 @@ TEST_F(ChannelSelectorTest, dd_sticking_fraction_within_he3)
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         double const total_he3_d = static_cast<double>(total_he3);
+        double const muonichelium3_count_d
+            = static_cast<double>(muonichelium3_count);
+
         double const expected_muonichelium3 = total_he3_d * sticking_fraction;
         // 3 sigma tolerance
         double const tolerance
             = 3 * this->calc_sigma(total_he3_d, sticking_fraction);
 
-        EXPECT_NEAR(expected_muonichelium3, muonichelium3_count, tolerance);
+        EXPECT_NEAR(expected_muonichelium3, muonichelium3_count_d, tolerance);
     }
 }
 
@@ -274,6 +281,10 @@ TEST_F(ChannelSelectorTest, dt_channel)
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         double const num_samples_d = static_cast<double>(num_samples);
+        double const alpha_count_d = static_cast<double>(alpha_count);
+        double const muonicalpha_count_d
+            = static_cast<double>(muonicalpha_count);
+
         double const sticking_fraction = this->dt_sticking_fraction();
         double const expected_muonicalpha_count = num_samples_d
                                                   * sticking_fraction;
@@ -283,8 +294,8 @@ TEST_F(ChannelSelectorTest, dt_channel)
         double const tolerance
             = 3 * this->calc_sigma(num_samples_d, sticking_fraction);
 
-        EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count, tolerance);
-        EXPECT_NEAR(expected_alpha_count, alpha_count, tolerance);
+        EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count_d, tolerance);
+        EXPECT_NEAR(expected_alpha_count, alpha_count_d, tolerance);
     }
 }
 
@@ -321,6 +332,10 @@ TEST_F(ChannelSelectorTest, tt_channel)
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         double const num_samples_d = static_cast<double>(num_samples);
+        double const alpha_count_d = static_cast<double>(alpha_count);
+        double const muonicalpha_count_d
+            = static_cast<double>(muonicalpha_count);
+
         double const sticking_fraction = this->tt_sticking_fraction();
         double const expected_muonicalpha_count = num_samples_d
                                                   * sticking_fraction;
@@ -330,8 +345,8 @@ TEST_F(ChannelSelectorTest, tt_channel)
         double const tolerance
             = 3 * this->calc_sigma(num_samples_d, sticking_fraction);
 
-        EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count, tolerance);
-        EXPECT_NEAR(expected_alpha_count, alpha_count, tolerance);
+        EXPECT_NEAR(expected_muonicalpha_count, muonicalpha_count_d, tolerance);
+        EXPECT_NEAR(expected_alpha_count, alpha_count_d, tolerance);
     }
 }
 
