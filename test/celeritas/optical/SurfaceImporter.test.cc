@@ -318,14 +318,6 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
     }
     {
         ++surf;
-        // UNIFIED dielectric-metal polished
-        MATERIALS({});
-        ROUGHNESS(polished, NoRoughness{});
-        REFLECTIVITY(grid, refl);
-        INTERACTION(dielectric, from_metal(from_spike()));
-    }
-    {
-        ++surf;
         // UNIFIED dielectric-dielectric polished front painted
         MATERIALS({});
         ROUGHNESS(polished, NoRoughness{});
@@ -339,6 +331,14 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
         ROUGHNESS(polished, NoRoughness{});
         REFLECTIVITY(grid, refl);
         INTERACTION(only_reflection, Mode::diffuse_lobe);
+    }
+    {
+        ++surf;
+        // UNIFIED dielectric-metal polished
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_metal(from_spike()));
     }
     {
         ++surf;

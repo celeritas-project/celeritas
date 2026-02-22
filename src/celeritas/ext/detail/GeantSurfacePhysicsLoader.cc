@@ -338,9 +338,15 @@ void GeantSurfacePhysicsLoader::insert_unified(
 
         // ENUMS ONLY AVAILABLE TO DIELECTRIC-DIELECTRIC INTERFACES
         case G4OSF::polishedfrontpainted:
-            [[fallthrough]];
+            helper.emplace(models_.roughness.polished, inp::NoRoughness{});
+            helper.emplace(models_.interaction.only_reflection,
+                           optical::ReflectionMode::specular_spike);
+            break;
         case G4OSF::groundfrontpainted:
-            [[fallthrough]];
+            helper.emplace(models_.roughness.polished, inp::NoRoughness{});
+            helper.emplace(models_.interaction.only_reflection,
+                           optical::ReflectionMode::diffuse_lobe);
+            break;
         case G4OSF::polishedbackpainted:
             [[fallthrough]];
         case G4OSF::groundbackpainted:
