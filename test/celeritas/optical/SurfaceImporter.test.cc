@@ -326,6 +326,22 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
     }
     {
         ++surf;
+        // UNIFIED dielectric-dielectric polished front painted
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(only_reflection, Mode::specular_spike);
+    }
+    {
+        ++surf;
+        // UNIFIED dielectric-dielectric ground front painted
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(only_reflection, Mode::diffuse_lobe);
+    }
+    {
+        ++surf;
         // UNIFIED dielectric-metal ground
         MATERIALS({});
         ROUGHNESS(gaussian, GaussianRoughness{1.0});
