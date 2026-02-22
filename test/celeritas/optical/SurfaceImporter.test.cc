@@ -23,32 +23,19 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class SurfaceImporterTestBase : public ::celeritas::test::GeantTestBase
-{
-  public:
-    GeantImportDataSelection build_import_data_selection() const override
-    {
-        auto result = GeantTestBase::build_import_data_selection();
-        result.processes |= GeantImportDataSelection::optical;
-        return result;
-    }
-};
-
-class SurfaceImporterOpticalSurfacesTest : public SurfaceImporterTestBase
-{
-  public:
-    std::string_view gdml_basename() const override
-    {
-        return "optical-surfaces";
-    }
-};
-
-class SurfaceImporterFullOpticalSurfacesTest : public SurfaceImporterTestBase
+class SurfaceImporterTest : public ::celeritas::test::GeantTestBase
 {
   public:
     std::string_view gdml_basename() const override
     {
         return "full-optical-surfaces";
+    }
+
+    GeantImportDataSelection build_import_data_selection() const override
+    {
+        auto result = GeantTestBase::build_import_data_selection();
+        result.processes |= GeantImportDataSelection::optical;
+        return result;
     }
 };
 
@@ -183,84 +170,7 @@ void check_input(inp::SurfacePhysics const& expected,
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-// TEST_F(SurfaceImporterOpticalSurfacesTest, optical_surfaces)
-// {
-//     using PSI = PhysSurfaceId;
-//     using namespace ::celeritas::inp;
-//
-//     SurfacePhysics expected_input;
-//
-//     expected_input.materials = {
-//         {},
-//         {},
-//         {},
-//         {},
-//         {},
-//         {},
-//     };
-//
-//     expected_input.roughness.polished = {
-//         {PSI{0}, NoRoughness{}},
-//         {PSI{3}, NoRoughness{}},
-//         {PSI{5}, NoRoughness{}},
-//     };
-//
-//     expected_input.roughness.smear = {
-//         {PSI{1}, SmearRoughness{0.1}},
-//         {PSI{4}, SmearRoughness{0.3}},
-//     };
-//
-//     expected_input.roughness.gaussian = {
-//         {PSI{2}, inp::GaussianRoughness{1}},
-//     };
-//
-//     {
-//         std::vector<double> grid_refl_x{1.65e-6, 1e-05};
-//         expected_input.reflectivity.grid = {
-//             {PSI{0}, GridReflection{grid_refl_x, {0.5, 0.5}}},
-//             {PSI{1}, GridReflection{grid_refl_x, {0.6, 0.6}}},
-//             {PSI{2}, GridReflection{grid_refl_x, {0.7, 0.7}}},
-//             {PSI{3}, GridReflection{grid_refl_x, {0.8, 0.8}}},
-//             {PSI{4}, GridReflection{grid_refl_x, {0.9, 0.9}}},
-//         };
-//     }
-//
-//     expected_input.reflectivity.fresnel = {
-//         {PSI{5}, FresnelReflection{}},
-//     };
-//
-//     expected_input.interaction.dielectric = {
-//         {PSI{0},
-//          DielectricInteraction{inp::ReflectionForm::from_spike(), false}},
-//         {PSI{1}, DielectricInteraction{inp::ReflectionForm::from_lobe(),
-//         false}}, {PSI{2},
-//         DielectricInteraction{inp::ReflectionForm::from_lobe(), false}},
-//         {PSI{3}, DielectricInteraction{inp::ReflectionForm::from_spike(),
-//         true}}, {PSI{4},
-//         DielectricInteraction{inp::ReflectionForm::from_lobe(), true}},
-//         {PSI{5},
-//          DielectricInteraction{inp::ReflectionForm::from_spike(), false}},
-//     };
-//     {
-//         std::vector<double> grid_sc_x{2e-06, 8e-06};
-//
-//         auto& g = expected_input.interaction.dielectric[PSI(2)]
-//                       .reflection.reflection_grids;
-//
-//         using Mode = optical::ReflectionMode;
-//         g[Mode::specular_spike] = {grid_sc_x, {0.1, 0.3}};
-//         g[Mode::specular_lobe] = {grid_sc_x, {0.2, 0.2}};
-//         g[Mode::backscatter] = {grid_sc_x, {0.3, 0.1}};
-//     }
-//
-//     expected_input.interaction.trivial = {};
-//
-//     check_input(expected_input,
-//     this->imported_data().optical_physics.surfaces);
-// }
-
-//---------------------------------------------------------------------------//
-TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
+TEST_F(SurfaceImporterTest, full_optical_surfaces)
 {
     using PSI = PhysSurfaceId;
     using namespace ::celeritas::inp;

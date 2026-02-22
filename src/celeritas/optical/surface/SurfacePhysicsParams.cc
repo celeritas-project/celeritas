@@ -159,6 +159,8 @@ auto SurfacePhysicsParams::build_models(
                     input.interaction.dielectric);
                 build_model.build<TrivialInteractionModel>(
                     input.interaction.trivial);
+                build_model.build_fake("interaction-only_reflection",
+                                       input.interaction.only_reflection);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();
