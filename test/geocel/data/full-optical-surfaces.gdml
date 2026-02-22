@@ -181,8 +181,7 @@
       <physvolref ref="box_pv_6"/>
       <physvolref ref="container_pv"/>
     </bordersurface>
-    <!--
-    <bordersurface name="surface_7" surfaceproperty="unified_dd_polishedfrontpainted">
+    <!-- <bordersurface name="surface_7" surfaceproperty="unified_dd_polishedfrontpainted">
       <physvolref ref="box_pv_7"/>
       <physvolref ref="container_pv"/>
     </bordersurface>
@@ -197,8 +196,7 @@
     <bordersurface name="surface_10" surfaceproperty="unified_dd_groundbackpainted">
       <physvolref ref="box_pv_10"/>
       <physvolref ref="container_pv"/>
-    </bordersurface>
-    -->
+    </bordersurface> -->
     <bordersurface name="surface_11" surfaceproperty="unified_dm_polished">
       <physvolref ref="box_pv_11"/>
       <physvolref ref="container_pv"/>

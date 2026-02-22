@@ -153,6 +153,8 @@ void check_input(inp::SurfacePhysics const& expected,
 
     check_map(expected.interaction.trivial, actual.interaction.trivial);
     check_map(expected.interaction.dielectric, actual.interaction.dielectric);
+    check_map(expected.interaction.only_reflection,
+              actual.interaction.only_reflection);
 }
 
 //---------------------------------------------------------------------------//
@@ -240,58 +242,7 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
     using PSI = PhysSurfaceId;
     using namespace ::celeritas::inp;
 
-    SurfacePhysics expected_input;
-
-    expected_input.materials = {
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-    };
-
-    PSI default_surf{8};
-
-    expected_input.roughness.polished = {
-        {PSI{0}, NoRoughness{}},
-        {PSI{2}, NoRoughness{}},
-        {PSI{4}, NoRoughness{}},
-        {PSI{6}, NoRoughness{}},
-        {default_surf, NoRoughness{}},
-    };
-
-    expected_input.roughness.smear = {
-        {PSI{1}, SmearRoughness{0.1}},
-        {PSI{3}, SmearRoughness{0.3}},
-    };
-
-    expected_input.roughness.gaussian = {
-        {PSI{5}, GaussianRoughness{0.4}},
-        {PSI{7}, GaussianRoughness{1.0}},
-    };
-
-    // Need to fix reflectivity in import grids??
-    {
-        GridReflection refl{Grid{{1e-06, 1e-05}, {1, 1}}};
-        expected_input.reflectivity.grid = {
-            {PSI{0}, refl},
-            {PSI{1}, refl},
-            {PSI{2}, refl},
-            {PSI{3}, refl},
-            {PSI{4}, refl},
-            {PSI{5}, refl},
-            {PSI{6}, refl},
-            {PSI{7}, refl},
-        };
-
-        expected_input.reflectivity.fresnel = {
-            {default_surf, FresnelReflection{}},
-        };
-    }
+    GridReflection refl{Grid{{1e-06, 1e-05}, {1, 1}}};
 
     using Mode = optical::ReflectionMode;
     ReflectionForm unified_ground;
@@ -302,25 +253,98 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
     unified_ground.reflection_grids[Mode::backscatter]
         = {{1e-06, 1e-05}, {0.3, 0.1}};
 
-    expected_input.interaction.dielectric = {
-        {PSI{0},
-         DielectricInteraction::from_dielectric(ReflectionForm::from_spike())},
-        {PSI{1},
-         DielectricInteraction::from_dielectric(ReflectionForm::from_lobe())},
-        {PSI{2},
-         DielectricInteraction::from_metal(ReflectionForm::from_spike())},
-        {PSI{3}, DielectricInteraction::from_metal(ReflectionForm::from_lobe())},
-        {PSI{4},
-         DielectricInteraction::from_dielectric(ReflectionForm::from_spike())},
-        {PSI{5}, DielectricInteraction::from_dielectric(unified_ground)},
-        {PSI{6},
-         DielectricInteraction::from_metal(ReflectionForm::from_spike())},
-        {PSI{7}, DielectricInteraction::from_metal(unified_ground)},
-        {default_surf,
-         DielectricInteraction::from_dielectric(ReflectionForm::from_spike())},
-    };
+    SurfacePhysics expected_input;
 
-    expected_input.interaction.trivial = {};
+#define MATERIALS(VALUE) expected_input.materials.push_back(VALUE)
+#define ROUGHNESS(TYPE, VALUE) \
+    expected_input.roughness.TYPE.emplace(surf, VALUE)
+#define REFLECTIVITY(TYPE, VALUE) \
+    expected_input.reflectivity.TYPE.emplace(surf, VALUE)
+#define INTERACTION(TYPE, VALUE) \
+    expected_input.interaction.TYPE.emplace(surf, VALUE)
+
+    auto from_dielectric = DielectricInteraction::from_dielectric;
+    auto from_metal = DielectricInteraction::from_metal;
+    auto from_spike = ReflectionForm::from_spike;
+    auto from_lobe = ReflectionForm::from_lobe;
+
+    PSI surf{0};
+    {
+        // GLISUR dielectric-dielectric polished
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_dielectric(from_spike()));
+    }
+    {
+        ++surf;
+        // GLISUR dielectric-dielectric ground
+        MATERIALS({});
+        ROUGHNESS(smear, SmearRoughness{0.1});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_dielectric(from_lobe()));
+    }
+    {
+        ++surf;
+        // GLISUR dielectric-metal polished
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_metal(from_spike()));
+    }
+    {
+        ++surf;
+        // GLISUR dielectric-metal ground
+        MATERIALS({});
+        ROUGHNESS(smear, SmearRoughness{0.3});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_metal(from_lobe()));
+    }
+    {
+        ++surf;
+        // UNIFIED dielectric-dielectric polished
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_dielectric(from_spike()));
+    }
+    {
+        ++surf;
+        // UNIFIED dielectric-dielectric ground
+        MATERIALS({});
+        ROUGHNESS(gaussian, GaussianRoughness{0.4});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_dielectric(unified_ground));
+    }
+    {
+        ++surf;
+        // UNIFIED dielectric-metal polished
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_metal(from_spike()));
+    }
+    {
+        ++surf;
+        // UNIFIED dielectric-metal ground
+        MATERIALS({});
+        ROUGHNESS(gaussian, GaussianRoughness{1.0});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_metal(unified_ground));
+    }
+    {
+        ++surf;
+        // Default Surface
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(fresnel, FresnelReflection{});
+        INTERACTION(dielectric, from_dielectric(from_spike()));
+    }
+
+#undef MATERIALS
+#undef ROUGHNESS
+#undef REFLECTIVITY
+#undef INTERACTION
 
     check_input(expected_input, this->imported_data().optical_physics.surfaces);
 }
