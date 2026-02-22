@@ -42,35 +42,20 @@
     <box lunit="cm" name="world_box" x="1000.0" y="1000.0" z="1000.0"/>
 
     <!-- GLISUR Model -->
-    <opticalsurface name="glisur_dd_polished" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0">
-      <property name="REFLECTIVITY" ref="REF"/>
-    </opticalsurface>
-    <opticalsurface name="glisur_dd_ground" model="glisur" finish="ground" type="dielectric_dielectric" value="0.9">
-      <property name="REFLECTIVITY" ref="REF"/>
-    </opticalsurface>
-    <opticalsurface name="glisur_dm_polished" model="glisur" finish="polished" type="dielectric_metal" value="1.0">
-      <property name="REFLECTIVITY" ref="REF"/>
-    </opticalsurface>
-    <opticalsurface name="glisur_dm_ground" model="glisur" finish="ground" type="dielectric_metal" value="0.7">
-      <property name="REFLECTIVITY" ref="REF"/>
-    </opticalsurface>
+    <opticalsurface name="glisur_dd_polished" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0"/>
+    <opticalsurface name="glisur_dd_ground" model="glisur" finish="ground" type="dielectric_dielectric" value="0.9"/>
+    <opticalsurface name="glisur_dm_polished" model="glisur" finish="polished" type="dielectric_metal" value="1.0"/>
+    <opticalsurface name="glisur_dm_ground" model="glisur" finish="ground" type="dielectric_metal" value="0.7"/>
 
     <!-- UNIFIED Model -->
-    <opticalsurface name="unified_dd_polished" model="unified" finish="polished" type="dielectric_dielectric" value="0.3">
-      <property name="REFLECTIVITY" ref="REF"/>
-    </opticalsurface>
+    <opticalsurface name="unified_dd_polished" model="unified" finish="polished" type="dielectric_dielectric" value="0.3"/>
     <opticalsurface name="unified_dd_ground" model="unified" finish="ground" type="dielectric_dielectric" value="0.4">
-      <property name="REFLECTIVITY" ref="REF"/>
       <property name="SPECULARSPIKECONSTANT" ref="SSC"/>
       <property name="SPECULARLOBECONSTANT" ref="SLC"/>
       <property name="BACKSCATTERCONSTANT" ref="BSC"/>
     </opticalsurface>
-    <opticalsurface name="unified_dd_polishedfrontpainted" model="unified" finish="polishedfrontpainted" type="dielectric_dielectric" value="0.5">
-      <property name="REFLECTIVITY" ref="REF"/>
-    </opticalsurface>
-    <opticalsurface name="unified_dd_groundfrontpainted" model="unified" finish="groundfrontpainted" type="dielectric_dielectric" value="0.6">
-      <property name="REFLECTIVITY" ref="REF"/>
-    </opticalsurface>
+    <opticalsurface name="unified_dd_polishedfrontpainted" model="unified" finish="polishedfrontpainted" type="dielectric_dielectric" value="0.5"/>
+    <opticalsurface name="unified_dd_groundfrontpainted" model="unified" finish="groundfrontpainted" type="dielectric_dielectric" value="0.6"/>
     <opticalsurface name="unified_dd_polishedbackpainted" model="unified" finish="polishedbackpainted" type="dielectric_dielectric" value="0.7">
       <property name="REFLECTIVITY" ref="REF"/>
       <property name="RINDEX" ref="RI_air"/>

@@ -207,7 +207,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
         // GLISUR dielectric-dielectric polished
         MATERIALS({});
         ROUGHNESS(polished, NoRoughness{});
-        REFLECTIVITY(grid, refl);
+        REFLECTIVITY(fresnel, FresnelReflection{});
         INTERACTION(dielectric, from_dielectric(from_spike()));
     }
     {
@@ -215,7 +215,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
         // GLISUR dielectric-dielectric ground
         MATERIALS({});
         ROUGHNESS(smear, SmearRoughness{0.1});
-        REFLECTIVITY(grid, refl);
+        REFLECTIVITY(fresnel, FresnelReflection{});
         INTERACTION(dielectric, from_dielectric(from_lobe()));
     }
     {
@@ -223,7 +223,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
         // GLISUR dielectric-metal polished
         MATERIALS({});
         ROUGHNESS(polished, NoRoughness{});
-        REFLECTIVITY(grid, refl);
+        REFLECTIVITY(fresnel, FresnelReflection{});
         INTERACTION(dielectric, from_metal(from_spike()));
     }
     {
@@ -231,7 +231,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
         // GLISUR dielectric-metal ground
         MATERIALS({});
         ROUGHNESS(smear, SmearRoughness{0.3});
-        REFLECTIVITY(grid, refl);
+        REFLECTIVITY(fresnel, FresnelReflection{});
         INTERACTION(dielectric, from_metal(from_lobe()));
     }
     {
@@ -239,7 +239,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
         // UNIFIED dielectric-dielectric polished
         MATERIALS({});
         ROUGHNESS(polished, NoRoughness{});
-        REFLECTIVITY(grid, refl);
+        REFLECTIVITY(fresnel, FresnelReflection{});
         INTERACTION(dielectric, from_dielectric(from_spike()));
     }
     {
@@ -247,7 +247,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
         // UNIFIED dielectric-dielectric ground
         MATERIALS({});
         ROUGHNESS(gaussian, GaussianRoughness{0.4});
-        REFLECTIVITY(grid, refl);
+        REFLECTIVITY(fresnel, FresnelReflection{});
         INTERACTION(dielectric, from_dielectric(unified_ground));
     }
     {
@@ -255,7 +255,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
         // UNIFIED dielectric-dielectric polished front painted
         MATERIALS({});
         ROUGHNESS(polished, NoRoughness{});
-        REFLECTIVITY(grid, refl);
+        REFLECTIVITY(fresnel, FresnelReflection{});
         INTERACTION(only_reflection, Mode::specular_spike);
     }
     {
@@ -263,7 +263,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
         // UNIFIED dielectric-dielectric ground front painted
         MATERIALS({});
         ROUGHNESS(polished, NoRoughness{});
-        REFLECTIVITY(grid, refl);
+        REFLECTIVITY(fresnel, FresnelReflection{});
         INTERACTION(only_reflection, Mode::diffuse_lobe);
     }
     {

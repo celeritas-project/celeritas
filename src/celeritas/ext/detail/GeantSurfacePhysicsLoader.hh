@@ -46,10 +46,6 @@ class GeantSurfacePhysicsLoader
     template<class T>
     void emplace(std::map<PhysSurfaceId, T>& m, T&& value);
 
-    // Check that unimplemented properties are not present
-    void check_unimplemented_properties(
-        GeantSurfacePhysicsHelper const& helper) const;
-
     // Insert GLISUR model surface
     void insert_glisur(GeantSurfacePhysicsHelper const& helper);
 

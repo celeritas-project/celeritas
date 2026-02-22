@@ -224,7 +224,6 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
     auto const model = surf.GetModel();
     try
     {
-        this->check_unimplemented_properties(helper);
         switch (model)
         {
             case G4OSM::glisur:
@@ -284,33 +283,6 @@ void GeantSurfacePhysicsLoader::emplace(std::map<PhysSurfaceId, T>& m,
     auto result = m.emplace(this->current_surface(), std::forward<T>(value));
     // Duplicate surfaces are prohibited
     CELER_ASSERT(result.second);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check that properties for unimplemented capabilities are not present.
- */
-void GeantSurfacePhysicsLoader::check_unimplemented_properties(
-    GeantSurfacePhysicsHelper const& helper) const
-{
-    inp::Grid temp;
-    for (std::string name : {"TRANSMITTANCE", "EFFICIENCY"})
-    {
-        // Check if the property exists on the surface
-        if (helper.get_property(&temp, name))
-        {
-            // It's OK if it's present but 1 everywhere (note that
-            // G4Physics2DVector clamps output values to the end points, so the
-            // x extents don't matter)
-            if (!std::all_of(temp.y.begin(), temp.y.end(), [](double v) {
-                    return v == 1;
-                }))
-            {
-                CELER_NOT_IMPLEMENTED("unsupported optical '" + name
-                                      + "' property");
-            }
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//
