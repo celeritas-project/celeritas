@@ -36,6 +36,13 @@ class GeantSurfacePhysicsLoader
 
     //// HELPER FUNCTIONS ////
 
+    // Get current physical surface being populated
+    PhysSurfaceId current_surface() const;
+
+    // Insert a value for the current surface into a model map in place
+    template<class T>
+    void emplace(std::map<PhysSurfaceId, T>& m, T&& value);
+
     // Check that unimplemented properties are not present
     void check_unimplemented_properties(
         GeantSurfacePhysicsHelper const& helper) const;
@@ -52,6 +59,12 @@ class GeantSurfacePhysicsLoader
     // Insert reflection form for di/di or di/met
     void insert_interaction(GeantSurfacePhysicsHelper const& helper,
                             inp::ReflectionForm&& rf);
+
+    // Insert gap material and surface for back-painted surfaces
+    void insert_gap_material(GeantSurfacePhysicsHelper const& helper);
+
+    // Insert painted surface (reflection only)
+    void insert_painted_surface(optical::ReflectionMode mode);
 };
 
 //---------------------------------------------------------------------------//

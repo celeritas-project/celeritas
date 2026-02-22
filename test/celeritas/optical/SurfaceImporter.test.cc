@@ -128,6 +128,21 @@ void check_map(std::map<PhysSurfaceId, T> const& expected,
         {
             check_input(expected_input, actual_input->second);
         }
+        else
+        {
+            std::cout << "  Expected surface " << phys_surface.unchecked_get()
+                      << " missing\n";
+        }
+    }
+
+    for (auto const& [phys_surface, _] : actual)
+    {
+        auto expected_iter = expected.find(phys_surface);
+        if (expected_iter == expected.end())
+        {
+            std::cout << "  Unexpected surface "
+                      << phys_surface.unchecked_get() << " found\n";
+        }
     }
 }
 
@@ -144,15 +159,23 @@ void check_input(inp::SurfacePhysics const& expected,
                       actual.materials[surface_id]);
     }
 
+    std::cout << "Checking roughness polished\n";
     check_map(expected.roughness.polished, actual.roughness.polished);
+    std::cout << "Checking roughness smear\n";
     check_map(expected.roughness.smear, actual.roughness.smear);
+    std::cout << "Checking roughness gaussian\n";
     check_map(expected.roughness.gaussian, actual.roughness.gaussian);
 
+    std::cout << "Checking reflectivity fresnel\n";
     check_map(expected.reflectivity.fresnel, actual.reflectivity.fresnel);
+    std::cout << "Checking reflectivity grid\n";
     check_map(expected.reflectivity.grid, actual.reflectivity.grid);
 
+    std::cout << "Checking interaction trivial\n";
     check_map(expected.interaction.trivial, actual.interaction.trivial);
+    std::cout << "Checking interaction dielectric\n";
     check_map(expected.interaction.dielectric, actual.interaction.dielectric);
+    std::cout << "Checking interaction only reflection\n";
     check_map(expected.interaction.only_reflection,
               actual.interaction.only_reflection);
 }
@@ -344,9 +367,10 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
         REFLECTIVITY(grid, refl);
         INTERACTION(dielectric, from_dielectric(unified_ground));
 
+        ++surf;
         // gap-wrapping surface
         ROUGHNESS(polished, NoRoughness{});
-        REFLECTIVITY(grid, refl);
+        REFLECTIVITY(fresnel, FresnelReflection{});
         INTERACTION(only_reflection, Mode::specular_spike);
     }
     {
@@ -359,10 +383,11 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
         REFLECTIVITY(grid, refl);
         INTERACTION(dielectric, from_dielectric(unified_ground));
 
+        ++surf;
         // gap-wrapping surface
         ROUGHNESS(polished, NoRoughness{});
-        REFLECTIVITY(grid, refl);
-        INTERACTION(only_reflection, Mode::specular_lobe);
+        REFLECTIVITY(fresnel, FresnelReflection{});
+        INTERACTION(only_reflection, Mode::diffuse_lobe);
     }
     {
         ++surf;
