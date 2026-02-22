@@ -253,6 +253,8 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
     unified_ground.reflection_grids[Mode::backscatter]
         = {{1e-06, 1e-05}, {0.3, 0.1}};
 
+    OptMatId air_id{2};
+
     SurfacePhysics expected_input;
 
 #define MATERIALS(VALUE) expected_input.materials.push_back(VALUE)
@@ -331,6 +333,36 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
         ROUGHNESS(polished, NoRoughness{});
         REFLECTIVITY(grid, refl);
         INTERACTION(only_reflection, Mode::diffuse_lobe);
+    }
+    {
+        ++surf;
+        // UNIFIED dielectric-dielectric polished back painted
+        MATERIALS({air_id});
+
+        // material-gap surface
+        ROUGHNESS(gaussian, GaussianRoughness{0.7});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_dielectric(unified_ground));
+
+        // gap-wrapping surface
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(only_reflection, Mode::specular_spike);
+    }
+    {
+        ++surf;
+        // UNIFIED dielectric-dielectric ground back painted
+        MATERIALS({air_id});
+
+        // material-gap surface
+        ROUGHNESS(gaussian, GaussianRoughness{0.8});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(dielectric, from_dielectric(unified_ground));
+
+        // gap-wrapping surface
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(grid, refl);
+        INTERACTION(only_reflection, Mode::specular_lobe);
     }
     {
         ++surf;
