@@ -31,6 +31,8 @@ class G4VSensitiveDetector;
 
 namespace celeritas
 {
+class GeoOpticalIdMap;
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage and provide access to a Geant4 geometry model.
@@ -154,6 +156,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the volume instance ID corresponding to a Geant4 physical volume
     inline VolumeInstanceId geant_to_id(G4VPhysicalVolume const& volume) const;
 
+    // Get the mapping from geometry material ID to optical material ID
+    inline std::shared_ptr<GeoOpticalIdMap> const& geo_optical_id_map() const;
+
     //!@{
     //! Access the world volume
     G4VPhysicalVolume const* world() const { return data_.world; }
@@ -187,6 +192,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Host metadata/access
     ImplVolumeMap impl_volumes_;
     detail::GeantVolumeInstanceMapper vi_mapper_;
+    std::shared_ptr<GeoOpticalIdMap> geo_to_opt_;
     std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;
 
@@ -283,6 +289,16 @@ VolumeId GeantGeoParams::volume_id(ImplVolumeId iv_id) const
     }
 
     return id_cast<VolumeId>(iv_id.get());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the mapping from geometry material ID to optical material ID.
+ */
+CELER_FORCEINLINE std::shared_ptr<GeoOpticalIdMap> const&
+GeantGeoParams::geo_optical_id_map() const
+{
+    return geo_to_opt_;
 }
 
 //---------------------------------------------------------------------------//
