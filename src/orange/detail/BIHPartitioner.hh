@@ -70,11 +70,8 @@ class BIHPartitioner
     // Find a suitable partition for the given subset of bounding boxes
     Partition operator()(VecIndices const& indices) const;
 
-    // True when constructed though non-default constructor
-    explicit inline operator bool() const
-    {
-        return bboxes_ != nullptr && centers_ != nullptr && num_part_cands_ > 0;
-    }
+    // True when assigned
+    explicit inline operator bool() const { return bboxes_ != nullptr; }
 
   private:
     /// TYPES ///
@@ -87,7 +84,7 @@ class BIHPartitioner
     //! The centers of each bounding box
     VecReal3 const* centers_{nullptr};
     //! The number of partition candidates to check per axis
-    size_type num_part_cands_;
+    size_type num_part_cands_{0};
 
     //// HELPER FUNCTIONS ////
 
