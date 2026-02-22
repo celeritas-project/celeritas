@@ -46,6 +46,7 @@ has a default value but can be overridden with any boolean value.
  CELER_KILL_OFFLOAD        accel     Flag: kill offloaded tracks [#ko]_
  CELER_NONFATAL_FLUSH      accel     Flag: print and continue on failure [#nf]_
  CELER_STRIP_SOURCEDIR     accel     Flag: clean exception output
+ ORANGE_BIH_STRUCTURE      orange    Include "structure" info in BIH JSON output
  ORANGE_BIH_MAX_LEAF_SIZE  orange    Set BIH ``max_leaf_size``
  ========================= ========= ==========================================
 

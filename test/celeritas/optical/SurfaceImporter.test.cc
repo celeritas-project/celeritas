@@ -265,7 +265,8 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
     using PSI = PhysSurfaceId;
     using namespace ::celeritas::inp;
 
-    GridReflection refl{Grid{{1e-06, 1e-05}, {1, 1}}};
+    GridReflection refl{
+        Grid{{1e-06, 1e-05}, {1, 1}}, Grid::from_constant(0), Grid{}};
 
     using Mode = optical::ReflectionMode;
     ReflectionForm unified_ground;

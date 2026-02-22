@@ -217,7 +217,7 @@ to simulated detector hits. The ``LarCelerStandalone`` plugin provides
 an implementation of this class. Its configuration options, which can be
 described through the FHiCL interface, correspond to the following options:
 
-.. celerstruct:: inp::LarStandaloneRunner
+.. celerstruct:: inp::OpticalStandaloneInput
 
 Those options are used during execution time to set up and run a Celeritas
 optical physics problem. Note that this integration method differs

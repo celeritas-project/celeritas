@@ -40,7 +40,6 @@ endif()
 #-----------------------------------------------------------------------------#
 
 celeritas_add_src_library(larceler
-   inp/LarStandaloneRunner.cc
    LarStandaloneRunner.cc
    LarDataReader.cc
 )
