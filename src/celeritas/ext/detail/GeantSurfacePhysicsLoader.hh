@@ -9,6 +9,7 @@
 #include "corecel/Config.hh"
 
 #include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "GeantSurfacePhysicsHelper.hh"
 
@@ -25,7 +26,8 @@ class GeantSurfacePhysicsLoader
 {
   public:
     //! Construct with \c SurfacePhysics input
-    GeantSurfacePhysicsLoader(inp::SurfacePhysics& surface_phys);
+    GeantSurfacePhysicsLoader(inp::SurfacePhysics& surface_phys,
+                              std::vector<ImportOpticalMaterial>& materials);
 
     //! Populate surface physics data
     void operator()(SurfaceId sid);
@@ -33,6 +35,7 @@ class GeantSurfacePhysicsLoader
   private:
     //// DATA ////
     inp::SurfacePhysics& models_;  // Populated by operator()
+    std::vector<ImportOpticalMaterial>& materials_;  // Populated by operator()
 
     //// HELPER FUNCTIONS ////
 

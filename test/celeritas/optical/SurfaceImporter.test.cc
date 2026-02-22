@@ -276,8 +276,6 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
     unified_ground.reflection_grids[Mode::backscatter]
         = {{1e-06, 1e-05}, {0.3, 0.1}};
 
-    OptMatId air_id{2};
-
     SurfacePhysics expected_input;
 
 #define MATERIALS(VALUE) expected_input.materials.push_back(VALUE)
@@ -360,7 +358,7 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
     {
         ++surf;
         // UNIFIED dielectric-dielectric polished back painted
-        MATERIALS({air_id});
+        MATERIALS({OptMatId{2}});
 
         // material-gap surface
         ROUGHNESS(gaussian, GaussianRoughness{0.7});
@@ -376,7 +374,7 @@ TEST_F(SurfaceImporterFullOpticalSurfacesTest, full_optical_surfaces)
     {
         ++surf;
         // UNIFIED dielectric-dielectric ground back painted
-        MATERIALS({air_id});
+        MATERIALS({OptMatId{3}});
 
         // material-gap surface
         ROUGHNESS(gaussian, GaussianRoughness{0.8});

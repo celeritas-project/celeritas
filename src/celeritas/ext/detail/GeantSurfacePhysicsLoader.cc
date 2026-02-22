@@ -202,8 +202,9 @@ load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
 /*!
  * Construct with \c SurfacePhysics input to be filled by \c operator() .
  */
-GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics& models)
-    : models_(models)
+GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(
+    inp::SurfacePhysics& models, std::vector<ImportOpticalMaterial>& materials)
+    : models_(models), materials_(materials)
 {
 }
 
@@ -459,8 +460,6 @@ void GeantSurfacePhysicsLoader::insert_interaction(
 void GeantSurfacePhysicsLoader::insert_gap_material(
     GeantSurfacePhysicsHelper const& helper)
 {
-    std::cout << "Inserting gap material for surface "
-              << this->current_surface().get() << "\n";
     // Add initial-gap surface
     this->emplace(models_.roughness.gaussian,
                   inp::GaussianRoughness{helper.surface().GetSigmaAlpha()});
@@ -470,7 +469,16 @@ void GeantSurfacePhysicsLoader::insert_gap_material(
                       load_unified_refl_form(helper)));
 
     // Add material
-    models_.materials.back().push_back(OptMatId{});
+    models_.materials.back().push_back(OptMatId(materials_.size()));
+
+    {
+        ImportOpticalMaterial material;
+        CELER_VALIDATE(helper.get_property(
+                           &material.properties.refractive_index, "RINDEX"),
+                       << "back-painted surfaces require RINDEX defined for "
+                          "the interstitial material.");
+        materials_.push_back(std::move(material));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -485,8 +493,6 @@ void GeantSurfacePhysicsLoader::insert_gap_material(
 void GeantSurfacePhysicsLoader::insert_painted_surface(
     optical::ReflectionMode mode)
 {
-    std::cout << "Inserting painted surface for "
-              << this->current_surface().get() << "\n";
     this->emplace(models_.roughness.polished, inp::NoRoughness{});
     this->emplace(models_.interaction.only_reflection, std::move(mode));
 }
