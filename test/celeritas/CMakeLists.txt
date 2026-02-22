@@ -491,6 +491,7 @@ celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
 celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat

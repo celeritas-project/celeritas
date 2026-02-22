@@ -147,6 +147,7 @@ struct SurfacePhysicsStateData
     StateItems<SurfaceTrackPosition> surface_position;
     StateItems<SubsurfaceDirection> track_direction;
     StateItems<Real3> facet_normal;
+    StateItems<ReflectivityAction> reflectivity_action;
     //!@}
 
     //! Whether data is assigned
@@ -158,7 +159,8 @@ struct SurfacePhysicsStateData
                && surface.size() == pre_volume_material.size()
                && surface.size() == post_volume_material.size()
                && surface.size() == global_normal.size()
-               && surface.size() == facet_normal.size();
+               && surface.size() == facet_normal.size()
+               && surface.size() == reflectivity_action.size();
     }
 
     //! State size
@@ -178,6 +180,7 @@ struct SurfacePhysicsStateData
         pre_volume_material = other.pre_volume_material;
         post_volume_material = other.post_volume_material;
         facet_normal = other.facet_normal;
+        reflectivity_action = other.reflectivity_action;
         return *this;
     }
 };
@@ -201,6 +204,7 @@ resize(SurfacePhysicsStateData<Ownership::value, M>* state, size_type size)
     resize(&state->pre_volume_material, size);
     resize(&state->post_volume_material, size);
     resize(&state->facet_normal, size);
+    resize(&state->reflectivity_action, size);
 
     CELER_ENSURE(*state);
     CELER_ENSURE(state->size() == size);

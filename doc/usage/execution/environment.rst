@@ -57,6 +57,7 @@ has a default value but can be overridden with any boolean value.
                                      number of partition candidates to check per
                                      axis when partitioning a node during BIH
                                      construction
+ ORANGE_BIH_STRUCTURE      orange    Include "structure" info in BIH JSON output
  ========================= ========= ==========================================
 
 .. [#pr] See :ref:`profiling`
