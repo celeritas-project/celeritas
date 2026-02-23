@@ -219,22 +219,20 @@ Toroid::calc_intersection_polynomial(Real3 const& pos,
 
     // Intermediate terms
     real_type p = sq(a_) / sq(b_);
-    real_type A0 = 4 * sq(r_);
-    real_type B0 = sq(r_) - sq(a_);
 
     real_type f = 1 - sq(az);
     real_type g = f + p * sq(az);
-    real_type l = 2 * (x0 * ax + y0 * ay);
+    real_type h = 2 * (x0 * ax + y0 * ay);
     real_type t = sq(x0) + sq(y0);
-    real_type q = A0 / sq(g);
-    real_type m = (l + 2 * p * z0 * az) / g;
-    real_type u = (t + p * sq(z0) + B0) / g;
+    real_type q = 4 * sq(r_) / sq(g);
+    real_type m = (h + 2 * p * z0 * az) / g;
+    real_type u = (t + p * sq(z0) + sq(r_) - sq(a_)) / g;
 
     // Polynomial coefficients, i.e. cn*x^n
     real_type c4 = 1;
     real_type c3 = 2 * m;
     real_type c2 = sq(m) + 2 * u - q * f;
-    real_type c1 = 2 * m * u - q * l;
+    real_type c1 = 2 * m * u - q * h;
     real_type c0 = on_surface == SurfaceState::on ? 0 : sq(u) - q * t;
     // Potential refinement of c0 if close to 0?
 
