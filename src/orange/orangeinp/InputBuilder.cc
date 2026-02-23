@@ -167,6 +167,14 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         result.construction_opts.bih_options.depth_limit = dl;
     }
 
+    if (std::string var = celeritas::getenv("ORANGE_BIH_PART_CANDS");
+        !var.empty())
+    {
+        size_type dl = std::stoul(var);
+        CELER_EXPECT(dl > 0);
+        result.construction_opts.bih_options.num_part_cands = dl;
+    }
+
     CELER_ENSURE(result);
     return result;
 }

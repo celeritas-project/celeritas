@@ -46,8 +46,18 @@ has a default value but can be overridden with any boolean value.
  CELER_KILL_OFFLOAD        accel     Flag: kill offloaded tracks [#ko]_
  CELER_NONFATAL_FLUSH      accel     Flag: print and continue on failure [#nf]_
  CELER_STRIP_SOURCEDIR     accel     Flag: clean exception output
+ ORANGE_BIH_MAX_LEAF_SIZE  orange    Set BIH ``max_leaf_size``, i.e., the
+                                     maximum number of bboxes that can reside on
+                                     a leaf node without triggering a
+                                     partitioning attempt
+ ORAMGE_BIH_DEPTH_LIMIT    orange    Set BIH ``depth_limit``, i.e., the hard
+                                     limit on the depth of most the embedded
+                                     node (where 1 is the root node)
+ ORANGE_BIH_PART_CANDS     orange    Set BIH ``num_part_cands``, i.e., the
+                                     number of partition candidates to check per
+                                     axis when partitioning a node during BIH
+                                     construction
  ORANGE_BIH_STRUCTURE      orange    Include "structure" info in BIH JSON output
- ORANGE_BIH_MAX_LEAF_SIZE  orange    Set BIH ``max_leaf_size``
  ========================= ========= ==========================================
 
 .. [#pr] See :ref:`profiling`
