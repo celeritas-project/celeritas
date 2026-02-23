@@ -8,6 +8,7 @@
 
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "orange/surf/Toroid.hh"
 
 #include "SurfaceTestUtils.hh"
@@ -73,10 +74,6 @@ TEST(ToroidTest, construction)
     }
 }
 
-Real3 add(Real3 const a, Real3 const b)
-{
-    return {a[0] + b[0], a[1] + b[1], a[2] + b[2]};
-}
 /*!
  * Test sense calculation
  */
@@ -88,7 +85,7 @@ TEST(ToroidTest, sense)
     for (Real3 const& point : inner_points)
     {
         SCOPED_TRACE("Inner point: " + to_string(point));
-        EXPECT_EQ(SignedSense::inside, tor.calc_sense(add(point, origin)));
+        EXPECT_EQ(SignedSense::inside, tor.calc_sense(point + origin));
     }
 
     Real3 outer_points[] = {{0, 0, 0},
@@ -100,14 +97,14 @@ TEST(ToroidTest, sense)
     for (Real3 const& point : outer_points)
     {
         SCOPED_TRACE("Outer point: " + to_string(point));
-        EXPECT_EQ(SignedSense::outside, tor.calc_sense(add(point, origin)));
+        EXPECT_EQ(SignedSense::outside, tor.calc_sense(point + origin));
     }
 
     Real3 edge_points[] = {{5.0, 0, 2.0}, {4.0, 0, 0}, {6.0, 0, 0}};
     for (Real3 const& point : edge_points)
     {
         SCOPED_TRACE("Edge point: " + to_string(point));
-        EXPECT_EQ(SignedSense::on, tor.calc_sense(add(point, origin)));
+        EXPECT_EQ(SignedSense::on, tor.calc_sense(point + origin));
     }
 }
 
@@ -119,15 +116,15 @@ TEST(ToroidTest, normal)
     Real3 origin{1, 2, 3};
     Toroid tor{origin, 5, 1, 2};
     EXPECT_VEC_SOFT_EQ((Real3{0, 0, 1}),
-                       tor.calc_normal(add(origin, {5, 0, 2})));
+                       tor.calc_normal(origin + Real3{5, 0, 2}));
     EXPECT_VEC_SOFT_EQ((Real3{0, 0, -1}),
-                       tor.calc_normal(add(origin, {5, 0, -2})));
+                       tor.calc_normal(origin + Real3{5, 0, -2}));
     EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}),
-                       tor.calc_normal(add(origin, {6, 0, 0})));
+                       tor.calc_normal(origin + Real3{6, 0, 0}));
     EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}),
-                       tor.calc_normal(add(origin, {4, 0, 0})));
+                       tor.calc_normal(origin + Real3{4, 0, 0}));
     EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}),
-                       tor.calc_normal(add(origin, {0, 6, 0})));
+                       tor.calc_normal(origin + Real3{0, 6, 0}));
 }
 
 /*!
@@ -142,26 +139,26 @@ TEST(ToroidTest, intersect)
     SurfaceState off = SurfaceState::off;
 
     // Ray through center shouldn't hit
-    Real3 s{add(origin, {0, 0, 2})};
+    Real3 s{origin + Real3{0, 0, 2}};
     Real3 u{0, 0, -1};
     EXPECT_VEC_SOFT_EQ(make_inters({}),
                        sorted(tor.calc_intersections(s, u, off)));
 
     // Ray inside and out from center should hit exactly once
-    s = add(origin, {0, 5, 0});
+    s = origin + Real3{0, 5, 0};
     u = {0, 1, 0};
     EXPECT_VEC_SOFT_EQ(make_inters({1}),
                        sorted(tor.calc_intersections(s, u, off)));
 
     // Ray inside towards center should hit 3 times
-    s = add(origin, {0, 5, 0});
+    s = origin + Real3{0, 5, 0};
     u = {0, -1, 0};
     EXPECT_VEC_SOFT_EQ(make_inters({1, 9, 11}),
                        sorted(tor.calc_intersections(s, u, off)));
 
     // Ray inside towards center again, to have one test that's not nice even
     // numbers
-    s = add(origin, {0.2, 5.1, 0.1});
+    s = origin + Real3{0.2, 5.1, 0.1};
     u = {-0.039178047638066676, -0.9990402147707002, 0.019589023819033338};
     Intersections expected = sorted(make_inters(
         {1.1022820700552722, 11.093380864669665, 9.1154137268987121}));
@@ -170,7 +167,7 @@ TEST(ToroidTest, intersect)
                     1e-4);  // Not a precision test, that comes later
 
     // Ray above torus shouldn't hit torus below it
-    s = add(origin, {0.2, 5.1, 2.1});
+    s = origin + Real3{0.2, 5.1, 2.1};
     u = {1.0 / 9, 4.0 / 9, 8.0 / 9};
     EXPECT_VEC_SOFT_EQ(make_inters({}),
                        sorted(tor.calc_intersections(s, u, off)));
