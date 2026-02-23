@@ -254,7 +254,7 @@ CELER_FUNCTION auto Toroid::calc_normal(Real3 const& pos) const -> Real3
 {
     auto [x0, y0, z0] = sub(pos, origin_);
 
-    real_type d = std::sqrt(sq(x0) + sq(y0));
+    real_type d = hypot(x0, y0);
     real_type f = 2 * (d - r_) / (d * sq(a_));
     Real3 n{x0 * f, y0 * f, (2 * z0) / (sq(b_))};
     return make_unit_vector(n);
