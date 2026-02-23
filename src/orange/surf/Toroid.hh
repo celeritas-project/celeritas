@@ -44,7 +44,7 @@ namespace celeritas
  * \f[
  *   (x^2 + y^2 + p*y^2 + B_0) - A_0 * (x^2 + y^2) = 0
  * \f]
- * where \f[p = a^2/b^2, A_0 = 4*r^2, and B_0 = (r^2-a^2)\f].
+ * where \f$p = a^2/b^2, A_0 = 4*r^2, and B_0 = (r^2-a^2)\f$.
  */
 class Toroid
 {
