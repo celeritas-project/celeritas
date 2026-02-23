@@ -207,7 +207,7 @@ CELER_FUNCTION auto Toroid::calc_intersections(Real3 const& pos,
  * Calculate the coefficients of the polynomial corresponding to the given
  * ray's intersections with the toroid.
  *
- * Written referencing Graphics Gems II.
+ * Written referencing Graphics Gems II\citep{arvo_graphics-gems_1995}.
  */
 CELER_FUNCTION auto
 Toroid::calc_intersection_polynomial(Real3 const& pos,
