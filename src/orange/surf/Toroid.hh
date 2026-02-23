@@ -12,6 +12,7 @@
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/FerrariSolver.hh"
 #include "orange/OrangeTypes.hh"
@@ -129,9 +130,6 @@ class Toroid
     inline CELER_FUNCTION Real5 calc_intersection_polynomial(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
-    // Shorthand to subtract b from a
-    static inline CELER_FUNCTION Real3 sub(Real3 const& a, Real3 const& b);
-
     // Shorthnad to square a number
     static inline CELER_FUNCTION real_type sq(real_type val);
 };
@@ -168,7 +166,7 @@ CELER_FUNCTION Toroid::Toroid(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const
 {
-    auto [x0, y0, z0] = sub(pos, origin_);
+    auto [x0, y0, z0] = pos - origin_;
 
     real_type val = (sq(sq(x0) + sq(y0) + sq(z0 * a_ / b_) + (sq(r_) - sq(a_)))
                      - (4 * sq(r_)) * (sq(x0) + sq(y0)));
@@ -219,7 +217,7 @@ Toroid::calc_intersection_polynomial(Real3 const& pos,
                                      Real3 const& dir,
                                      SurfaceState on_surface) const -> Real5
 {
-    auto [x0, y0, z0] = sub(pos, origin_);
+    auto [x0, y0, z0] = pos - origin_;
     auto [ax, ay, az] = make_unit_vector(dir);
 
     // Intermediate terms
@@ -252,7 +250,7 @@ Toroid::calc_intersection_polynomial(Real3 const& pos,
  */
 CELER_FUNCTION auto Toroid::calc_normal(Real3 const& pos) const -> Real3
 {
-    auto [x0, y0, z0] = sub(pos, origin_);
+    auto [x0, y0, z0] = pos - origin_;
 
     real_type d = hypot(x0, y0);
     real_type f = 2 * (d - r_) / (d * sq(a_));
@@ -267,15 +265,6 @@ CELER_FUNCTION auto Toroid::calc_normal(Real3 const& pos) const -> Real3
 CELER_FUNCTION real_type Toroid::sq(real_type val)
 {
     return ipow<2>(val);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Shorthand for subtracting vector b from vector a
- */
-CELER_FUNCTION Real3 Toroid::sub(Real3 const& a, Real3 const& b)
-{
-    return Real3{a[0] - b[0], a[1] - b[1], a[2] - b[2]};
 }
 
 }  // namespace celeritas
