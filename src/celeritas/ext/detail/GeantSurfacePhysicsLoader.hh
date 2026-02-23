@@ -37,14 +37,17 @@ class GeantSurfacePhysicsLoader
     inp::SurfacePhysics& models_;  // Populated by operator()
     std::vector<ImportOpticalMaterial>& materials_;  // Populated by operator()
 
-    //// HELPER FUNCTIONS ////
+    PhysSurfaceId current_surface_{0};
 
-    // Get current physical surface being populated
-    PhysSurfaceId current_surface() const;
+    //// HELPER FUNCTIONS ////
 
     // Insert a value for the current surface into a model map in place
     template<class T>
     void emplace(std::map<PhysSurfaceId, T>& m, T&& value);
+
+    // Check that unimplemented properties are not present
+    void check_unimplemented_properties(
+        GeantSurfacePhysicsHelper const& helper) const;
 
     // Insert GLISUR model surface
     void insert_glisur(GeantSurfacePhysicsHelper const& helper);

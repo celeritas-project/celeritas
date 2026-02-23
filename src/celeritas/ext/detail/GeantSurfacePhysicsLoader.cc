@@ -216,7 +216,6 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
 {
     CELER_EXPECT(sid);
 
-    // Start next (geometric) surface
     models_.materials.push_back({});
 
     GeantSurfacePhysicsHelper helper(sid);
@@ -249,27 +248,30 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
     CELER_LOG(debug) << "Inserted " << to_cstring(model) << " surface '"
                      << surf.GetName() << "' (id=" << sid.unchecked_get()
                      << ")";
+
+    // Update to the next surface
+    ++current_surface_;
 }
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Get current physical surface being populated.
- *
- * Since geometric surface may support multiple physical surfaces, this returns
- * the current physical surface that's being populated by the input determined
- * by the input \c model_.materials vector. Modifying this vector will update
- * the physical surface being modified.
+ * Check that unimplemented properties are not present.
  */
-PhysSurfaceId GeantSurfacePhysicsLoader::current_surface() const
+void GeantSurfacePhysicsLoader::check_unimplemented_properties(
+    GeantSurfacePhysicsHelper const& helper) const
 {
-    PhysSurfaceId::size_type surf = 0;
-    for (auto const& mats : models_.materials)
+    inp::Grid temp;
+    for (std::string name : {"GROUPVEL"})
     {
-        surf += mats.size() + 1;
+        // Check if the property exists on the surface
+        if (helper.get_property(&temp, name))
+        {
+            CELER_NOT_IMPLEMENTED("unsupported optical '" + name
+                                  + "' surface property");
+        }
     }
-    return PhysSurfaceId{surf} - 1;
 }
 
 //---------------------------------------------------------------------------//
@@ -280,7 +282,7 @@ template<class T>
 void GeantSurfacePhysicsLoader::emplace(std::map<PhysSurfaceId, T>& m,
                                         T&& value)
 {
-    auto result = m.emplace(this->current_surface(), std::forward<T>(value));
+    auto result = m.emplace(current_surface_, std::forward<T>(value));
     // Duplicate surfaces are prohibited
     CELER_ASSERT(result.second);
 }
@@ -464,13 +466,15 @@ void GeantSurfacePhysicsLoader::insert_gap_material(
 
     // Add material
     models_.materials.back().push_back(OptMatId(materials_.size()));
-
+    ++current_surface_;
     {
         ImportOpticalMaterial material;
-        CELER_VALIDATE(helper.get_property(
-                           &material.properties.refractive_index, "RINDEX"),
-                       << "back-painted surfaces require RINDEX defined for "
-                          "the interstitial material.");
+        bool has_rindex = helper.get_property(
+            &material.properties.refractive_index, "RINDEX");
+
+        CELER_VALIDATE(has_rindex,
+                       << "back-painted surfaces require RINDEX defined "
+                          "for the interstitial material.");
         materials_.push_back(std::move(material));
     }
 }
