@@ -52,7 +52,7 @@ class Toroid
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 4>;
-    using StorageSpan = Span<real_type const, 4>;
+    using StorageSpan = Span<real_type const, 6>;
     using Real3 = Array<real_type, 3>;
     using Real4 = Array<real_type, 4>;
     using Real5 = Array<real_type, 5>;
@@ -100,7 +100,7 @@ class Toroid
     CELER_FUNCTION real_type ellipse_z_radius() const { return b_; }
 
     //! View of data for type-deleted storage
-    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 4}; }
+    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 6}; }
 
     //// CALCULATION ///
 
