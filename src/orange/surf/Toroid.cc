@@ -9,7 +9,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/**
+/*!
  * Construct toroid from origin point and radii.
  *
  * \param origin 3d origin of the toroid.

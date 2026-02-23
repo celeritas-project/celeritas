@@ -147,7 +147,7 @@ CELER_FUNCTION Toroid::Toroid(Span<R, StorageSpan::extent> data)
 }
 
 //---------------------------------------------------------------------------//
-/**
+/*!
  * Determine the sense of the position relative to this surface.
  *
  * For a toroid, being inside the toroid (i) counts as inside, outside
