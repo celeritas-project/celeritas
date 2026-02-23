@@ -296,12 +296,12 @@ TEST_F(DetectorTest, simple)
         0,
     };
     static real_type const expected_times[] = {
-        0 + flight_time,
-        10 + flight_time,
-        1 + flight_time,
-        20 + flight_time,
-        13 + flight_time,
-        7 + flight_time,
+        0 + flight_time * 2 / 3,
+        10 + flight_time * 3 / 4,
+        1 + flight_time * 3 / 11,
+        20 + flight_time / 2,
+        13 + flight_time / 2,
+        7 + flight_time / 2,
     };
     static size_type const expected_volume_instance_ids[] = {5, 4, 6, 7, 5, 3};
 

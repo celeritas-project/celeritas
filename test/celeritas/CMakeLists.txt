@@ -373,6 +373,7 @@ celeritas_add_test(global/StepperGeant.test.cc
 
 #-----------------------------------------------------------------------------#
 # Grid
+celeritas_add_test(grid/DerivativeGridBuilder.test.cc)
 celeritas_add_test(grid/ElementCdfCalculator.test.cc)
 celeritas_add_test(grid/GridIdFinder.test.cc)
 celeritas_add_test(grid/InverseCdfFinder.test.cc)
