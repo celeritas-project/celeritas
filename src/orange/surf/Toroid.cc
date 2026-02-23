@@ -26,9 +26,9 @@ Toroid::Toroid(Real3 const& origin,
     , a_(ellipse_xy_radius)
     , b_(ellipse_z_radius)
 {
-    CELER_EXPECT(major_radius > 0);
-    CELER_EXPECT(ellipse_xy_radius > 0);
-    CELER_EXPECT(ellipse_z_radius > 0);
-    CELER_EXPECT(major_radius > ellipse_xy_radius);  // Degenerate torii
+    CELER_EXPECT(r_ > 0);
+    CELER_EXPECT(a_ > 0);
+    CELER_EXPECT(b_ > 0);
+    CELER_EXPECT(r_ > a_);  // Degenerate torii
 }
 }  // namespace celeritas
