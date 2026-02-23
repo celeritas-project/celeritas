@@ -38,7 +38,7 @@ class DTChannelSelector
 
   private:
     // Constant sticking fraction of dt fusion
-    inline CELER_FUNCTION real_type sticking_fraction() const
+    inline CELER_FUNCTION static constexpr real_type sticking_fraction()
     {
         return 0.00857;
     }

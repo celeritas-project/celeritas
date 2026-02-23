@@ -38,7 +38,10 @@ class TTChannelSelector
 
   private:
     // Constant sticking fraction of tt fusion
-    inline CELER_FUNCTION real_type sticking_fraction() const { return 0.14; }
+    inline CELER_FUNCTION real_type static constexpr sticking_fraction()
+    {
+        return 0.14;
+    }
 };
 
 //---------------------------------------------------------------------------//

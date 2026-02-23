@@ -23,11 +23,12 @@ namespace detail
  * Select a muonic molecule and its final cycle time.
  *
  * The muonic molecule is selected by sampling the shortest fusion cycle time
- * (\f$ T = -\ln(r) \times \tau_\text{cycle} \f$).
+ * \f[
+ * T = -\ln(r) \times \tau_\text{cycle},
+ * \f]
  *
- * \note The cycle rates cached in the model data are calculated based on the
- * material definition, and thus are propagated to the final cycle time sampled
- * here and used in the fusion process.
+ * where \f$ \tau_\text{cycle} \f$ is the cycle time a given molecule + spin
+ * calculated from material data.
  */
 class MuonicMoleculeSelector
 {
@@ -141,7 +142,7 @@ MuonicMoleculeSelector::operator()(Engine& rng)
         sampled_times[MMM::deuterium_tritium] = inf;
         sampled_times[MMM::tritium_tritium] = inf;
     }
-    if (atom_ == MucfMuonicAtom::tritium)
+    else if (atom_ == MucfMuonicAtom::tritium)
     {
         // DT and TT fusions are triggered by a muonic tritium
         sampled_times[MMM::deuterium_deuterium] = inf;

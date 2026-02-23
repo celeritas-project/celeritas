@@ -42,7 +42,10 @@ class DDChannelSelector
     real_type he3_probability_;
 
     // Constant sticking fraction between the two 3He channels
-    inline CELER_FUNCTION real_type sticking_fraction() const { return 0.122; }
+    inline CELER_FUNCTION static constexpr real_type sticking_fraction()
+    {
+        return 0.122;
+    }
 };
 
 //---------------------------------------------------------------------------//
