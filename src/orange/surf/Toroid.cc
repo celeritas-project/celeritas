@@ -10,7 +10,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /**
- * Construct toroid from origin point and radii
+ * Construct toroid from origin point and radii.
  *
  * \param origin 3d origin of the toroid.
  * \param major_radius Radius from origin to the center of revolved ellipse.
