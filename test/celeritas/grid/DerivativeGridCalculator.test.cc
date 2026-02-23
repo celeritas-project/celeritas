@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/DerivativeGridBuilder.test.cc
+//! \file celeritas/grid/DerivativeGridCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/DerivativeGridBuilder.hh"
+#include "corecel/grid/DerivativeGridCalculator.hh"
 
 #include "celeritas_test.hh"
 
@@ -16,17 +16,15 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class DerivativeGridBuilderTest : public ::celeritas::test::Test
+class DerivativeGridCalculatorTest : public ::celeritas::test::Test
 {
-  protected:
-    Collection<real_type, Ownership::value, MemSpace::host> scalars_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 // Test derivative grid construction
-TEST_F(DerivativeGridBuilderTest, build)
+TEST_F(DerivativeGridCalculatorTest, build)
 {
     real_type epsilon = 1e-8;
 
@@ -34,13 +32,12 @@ TEST_F(DerivativeGridBuilderTest, build)
     grid.x = {0.0, 0.4, 0.9, 1.3};
     grid.y = {-31.0, 12.1, 15.5, 92.0};
 
-    DerivativeGridBuilder build(&scalars_, epsilon);
-    NonuniformGridRecord grid_data = build(grid);
+    DerivativeGridCalculator build(epsilon);
+    inp::Grid deriv_grid = build(grid);
 
-    EXPECT_TRUE(grid_data);
-    EXPECT_EQ(16, scalars_.size());
-    EXPECT_EQ(8, grid_data.grid.size());
-    EXPECT_EQ(8, grid_data.grid.size());
+    EXPECT_TRUE(deriv_grid);
+    EXPECT_EQ(8, deriv_grid.x.size());
+    EXPECT_EQ(8, deriv_grid.y.size());
 
     static real_type const expected_grid_x[] = {
         0 - epsilon,
@@ -64,8 +61,8 @@ TEST_F(DerivativeGridBuilderTest, build)
         0,
     };
 
-    EXPECT_VEC_SOFT_EQ(expected_grid_x, scalars_[grid_data.grid]);
-    EXPECT_VEC_SOFT_EQ(expected_grid_y, scalars_[grid_data.value]);
+    EXPECT_VEC_SOFT_EQ(expected_grid_x, deriv_grid.x);
+    EXPECT_VEC_SOFT_EQ(expected_grid_y, deriv_grid.y);
 }
 
 //---------------------------------------------------------------------------//
