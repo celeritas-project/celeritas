@@ -16,6 +16,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/FerrariSolver.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/SenseUtils.hh"
 
 namespace celeritas
 {
@@ -170,12 +171,8 @@ CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const
 
     real_type val = (sq(sq(x0) + sq(y0) + sq(z0 * a_ / b_) + (sq(r_) - sq(a_)))
                      - (4 * sq(r_)) * (sq(x0) + sq(y0)));
-    if (val < 0)
-        return SignedSense::inside;
-    else if (val > 0)
-        return SignedSense::outside;
-    else
-        return SignedSense::on;
+
+    return real_to_sense(val);
 }
 
 //---------------------------------------------------------------------------//
