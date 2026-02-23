@@ -7,12 +7,13 @@ Generating photons
 ==================
 
 Photon generation in Celeritas is split into multiple steps to allow extension
-and to improve performance on GPUs by minimizing memory usage. :numref:`fig-optical-flow` depicts the creation of optical photons in the
+and to improve performance on GPUs by minimizing memory usage.
+:numref:`fig-optical-gen-flow` depicts the creation of optical photons in the
 optical tracking loop as a flowchart.
 
-.. _fig-optical-flow:
+.. _fig-optical-gen-flow:
 
-.. figure:: /_static/dot/optical-flow.*
+.. figure:: /_static/dot/optical-gen-flow.*
    :align: center
    :width: 80%
 

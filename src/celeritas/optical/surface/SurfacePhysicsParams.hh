@@ -34,18 +34,44 @@ namespace optical
 /*!
  * Manage properties for optical surface physics.
  *
- * Surface physics during boundary crossing is split into three phases:
+ * Surface physics during boundary crossing is split into three actions.
  *
- *  1. Initialize boundary crossing
- *  2. Surface physics stepping
- *  3. Post boundary crossing
+ *  1. Initialize the boundary crossing
+ *     (see \rstref{Boundary initialization,surface_boundary_init} ).
+ *  2. Apply surface physics models.
+ *  3. If exiting the surface, the crossing or move into the previous volume
+ *     (see \rstref{Boundary crossing,surface_boundary_post} ).
  *
- * When a surface is crossed in the geometry traversal, the \c
- * InitBoundaryAction is called which initializes the surface physics state for
- * the track. The standard stepping loop is replaced with the surface physics
- * stepping action which calls each surface physics model in appropriate order.
- * When the track is leaving the surface, the \c PostBoundaryAction is called
- * to clean up the state and update the geometry.
+ * The second action is broken down into sets of "internal" \c
+ * celeritas::optical::SurfaceModel classes categorized by a
+ * \c SurfacePhysicsOrder . These are called sequentially, with one model from
+ * each set applying to each track on a surface.
+ *
+ *  1. Sample a local facet normal
+ *     (see \rstref{Roughness,surface_roughness} ).
+ *  2. Select transmittance/reflectivity/absorption override
+ *     (see \rstref{Reflectivity,surface_reflectivity} ).
+ *  3. Sample and perform reflection/refraction
+ *     (see \rstref{Interaction,surface_interaction} ).
+ *
+ * \note The developer documentation includes further details of the
+ * low-level \c Executor classes that performs these actions.
+ *
+ * \internal See the user manual for high-level descriptions and low-level
+ * samplers. The intermediate action/executor descriptions follow.
+ *
+ * The three actions from the surface physics params are:
+ * 1. \c BoundaryAction instantiated to use \c detail::InitBoundaryExecutor
+ * 2. \c SurfaceSteppingAction, which invokes the surface model kernels.
+ * 3. \c BoundaryAction instantiated to use \c detail::PostBoundaryExecutor
+ *
+ * Each surface model launches a kernel:
+ * - Gaussian roughness (\c detail::GaussianRoughnessExecutor which uses \c
+ *    GaussianRoughnessSampler and rejects with \c EnteringSurfaceNormalSampler
+ * - Smear roughness (\c detail::SmearRoughnessExectuor)
+ * - Grid reflectivity \c detail::GridReflectivityExecutor
+ * - Dielectric interaciton, wrapping \c detail::DielectricInteractor with \c
+ *   SurfaceInteractionApplier .
  */
 class SurfacePhysicsParams final
     : public ParamsDataInterface<SurfacePhysicsParamsData>
@@ -96,8 +122,8 @@ class SurfacePhysicsParams final
   private:
     // Boundary actions
     std::shared_ptr<InitBoundaryAction> init_boundary_action_;
-    std::shared_ptr<PostBoundaryAction> post_boundary_action_;
     std::shared_ptr<SurfaceSteppingAction> surface_stepping_action_;
+    std::shared_ptr<PostBoundaryAction> post_boundary_action_;
 
     SurfaceStepModels models_;
 

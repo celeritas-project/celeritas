@@ -17,7 +17,10 @@ namespace optical
 /*!
  * Trivial reflectivity model.
  *
- * Defaults all tracks to undergo a physics interaction.
+ * All tracks at a surface crossing will undergo the surface interaction.
+ *
+ * \todo Should the interaction "absorption vs reflection" calculation be
+ * performed here instead?
  */
 class FresnelReflectivityModel : public SurfaceModel
 {

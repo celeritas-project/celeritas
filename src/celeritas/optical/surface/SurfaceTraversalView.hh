@@ -19,6 +19,8 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  * Manage one-dimensional logic for traversing an optical surface.
+ *
+ * \todo Add documentation and diagram
  */
 class SurfaceTraversalView
 {

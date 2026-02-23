@@ -14,7 +14,7 @@ Celeritas takes place in a drastically different manner.
 .. toctree::
    :maxdepth: 2
 
-   em-physics/properties.rst
-   em-physics/generating.rst
-   em-physics/bulk.rst
-   em-physics/surface.rst
+   optical-physics/properties.rst
+   optical-physics/generating.rst
+   optical-physics/bulk.rst
+   optical-physics/surface.rst

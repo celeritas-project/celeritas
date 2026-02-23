@@ -40,9 +40,6 @@ namespace optical
  * GeoMaterialParams which maps volumes to \c PhysMatId, this class
  * maps the geometry volumes to optical materials for use in the optical
  * tracking loop.
- *
- * When surface models are implemented, surface properties will also be added
- * to this class.
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {

@@ -47,9 +47,9 @@ namespace optical
 //! Ordering of surface physics boundary crossing models
 enum class SurfacePhysicsOrder
 {
-    roughness,
-    reflectivity,
-    interaction,
+    roughness,  //!< Sample a facet normal
+    reflectivity,  //!< Select physics override
+    interaction,  //!< Apply reflection and refraction
     size_
 };
 

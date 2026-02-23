@@ -33,6 +33,9 @@ struct PostBoundaryExecutor;
  * \c PostBoundaryExecutor , which corresponds to the kernel this action will
  * execute during its stepping phase. The action name and description are
  * managed by \c BoundaryActionTraits<E> .
+ *
+ * \todo To improve documentation, make these a detail class with protected
+ * interface. Most kernels can be declared and defined that way too.
  */
 template<class E>
 class BoundaryAction : public OpticalStepActionInterface, public ConcreteAction
