@@ -15,6 +15,7 @@
 #include "model/FresnelReflectivityModel.hh"
 #include "model/GaussianRoughnessModel.hh"
 #include "model/GridReflectivityModel.hh"
+#include "model/OnlyReflectionModel.hh"
 #include "model/PolishedRoughnessModel.hh"
 #include "model/SmearRoughnessModel.hh"
 #include "model/TrivialInteractionModel.hh"
@@ -137,7 +138,7 @@ auto SurfacePhysicsParams::build_models(
 
     for (auto step : range(SurfacePhysicsOrder::size_))
     {
-        // Build fake models
+        // Build models
         detail::BuiltinSurfaceModelBuilder build_model{step_models[step]};
         switch (step)
         {
@@ -159,8 +160,8 @@ auto SurfacePhysicsParams::build_models(
                     input.interaction.dielectric);
                 build_model.build<TrivialInteractionModel>(
                     input.interaction.trivial);
-                build_model.build_fake("interaction-only_reflection",
-                                       input.interaction.only_reflection);
+                build_model.build<OnlyReflectionModel>(
+                    input.interaction.only_reflection);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();

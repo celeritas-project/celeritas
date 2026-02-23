@@ -235,7 +235,7 @@ class SurfacePhysicsIntegrationOnlyReflectionPolishedTest
         // Only polished (specular spike) reflection
 
         input.interaction.only_reflection.emplace(
-            ReflectionMode::specular_spike);
+            phys_surface, ReflectionMode::specular_spike);
     }
 };
 
@@ -257,7 +257,8 @@ class SurfacePhysicsIntegrationOnlyReflectionGroundTest
 
         // Only ground (diffuse lobe) reflection
 
-        input.interaction.only_reflection.emplace(ReflectionMode::diffuse_lobe);
+        input.interaction.only_reflection.emplace(
+            phys_surface, ReflectionMode::diffuse_lobe);
     }
 };
 
