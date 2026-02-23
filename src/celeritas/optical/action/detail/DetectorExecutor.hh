@@ -58,6 +58,7 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
         {
             // Score a valid hit
             hit = DetectorHit{detector_id,
+                              track.sim().primary_id(),
                               track.particle().energy(),
                               sim.time(),
                               geometry.pos(),
