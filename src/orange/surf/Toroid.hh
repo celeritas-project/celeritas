@@ -26,15 +26,18 @@ namespace celeritas
  * around a central axis. This shape can be used in everything from pipe bends
  * to tokamaks in fusion reactors. Possesses a major radius r, and ellipse
  * radii a and b, as shown in the below diagram:
- *     ___   _________   ___
- *   /  |  \           /     \
- *  /   b   \         /       \
- * |    |    |       |         |
- * |-a--+    |   o-----r--+    |
- * |         |       |         |
- *  \       /         \       /
- *   \     /           \     /
- *     ⁻⁻⁻   ⁻⁻⁻⁻⁻⁻⁻⁻⁻   ⁻⁻⁻
+ *
+ * \verbatim
+       ___   _________   ___
+     /  |  \           /     \
+    /   b   \         /       \
+   |    |    |       |         |
+   |-a--+    |   o-----r--+    |
+   |         |       |         |
+    \       /         \       /
+     \     /           \     /
+       ⁻⁻⁻   ⁻⁻⁻⁻⁻⁻⁻⁻⁻   ⁻⁻⁻
+   \endverbatim
  *
  * This torus can be defined with the following quartic equation:
  * \f[
@@ -152,14 +155,16 @@ CELER_FUNCTION Toroid::Toroid(Span<R, StorageSpan::extent> data)
  * For a toroid, being inside the toroid (i) counts as inside, outside
  * (including in the 'hole' region) (o) as outside, and on the surface exactly
  * as on (s).
- *     ___   _________   ___
- *   /     \           /     \
- *  /       \     o   /       \
- * |         |       |         | o
- * |         |       |    i    s
- *  \       /         \       /
- *   \     /           \     /
- *     ⁻⁻⁻   ⁻⁻⁻⁻⁻⁻⁻⁻⁻   ⁻⁻⁻
+ * \verbatim
+       ___   _________   ___
+     /     \           /     \
+    /       \     o   /       \
+   |         |       |         | o
+   |         |       |    i    s
+    \       /         \       /
+     \     /           \     /
+       ⁻⁻⁻   ⁻⁻⁻⁻⁻⁻⁻⁻⁻   ⁻⁻⁻
+   \endverbatim
  */
 CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const
 {
