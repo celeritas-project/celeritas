@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/inp/Grid.hh"
+#include "corecel/math/NumericLimits.hh"
 
 namespace celeritas
 {
@@ -28,7 +29,8 @@ class DerivativeGridCalculator
 {
   public:
     // Construct with a reference to mutable host data
-    explicit DerivativeGridCalculator(real_type epsilon);
+    explicit DerivativeGridCalculator(real_type epsilon
+                                      = NumericLimits<real_type>::epsilon());
 
     // Construct the derivative grid of an imported grid
     inp::Grid operator()(inp::Grid const&);

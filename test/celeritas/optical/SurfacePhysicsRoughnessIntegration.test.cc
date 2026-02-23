@@ -174,7 +174,7 @@ class SurfacePhysicsIntegrationGaussianTest
 TEST_F(SurfacePhysicsIntegrationPolishedTest, polished)
 {
     std::vector<size_type> expected{
-        15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 985,
+        68, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 932,
     };
 
     this->run(10, expected);
@@ -184,8 +184,9 @@ TEST_F(SurfacePhysicsIntegrationPolishedTest, polished)
 // Only uniform smear
 TEST_F(SurfacePhysicsIntegrationSmearTest, smear)
 {
-    std::vector<size_type> expected{
-        4, 11, 6, 5, 7, 4, 3, 4, 7, 15, 0, 0, 0, 1, 0, 0, 0, 1, 34, 898,
+    std::vector<size_type> expected = {
+        17, 24, 17, 18, 21, 15, 20, 66, 63,  55,
+        0,  0,  0,  0,  0,  0,  3,  29, 127, 525,
     };
 
     this->run(10, expected);
@@ -195,9 +196,9 @@ TEST_F(SurfacePhysicsIntegrationSmearTest, smear)
 // Only Gaussian roughness
 TEST_F(SurfacePhysicsIntegrationGaussianTest, gaussian)
 {
-    std::vector<size_type> expected{
-        4,  17, 14, 23, 20, 27, 26, 21, 36, 33,
-        22, 11, 21, 9,  11, 13, 13, 14, 57, 608,
+    std::vector<size_type> expected = {
+        22, 32, 42, 33, 40, 27, 50, 77, 76, 80,
+        5,  11, 6,  9,  7,  10, 13, 23, 99, 338,
     };
 
     this->run(10, expected);

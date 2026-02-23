@@ -40,7 +40,6 @@ DerivativeGridCalculator::DerivativeGridCalculator(real_type epsilon)
 inp::Grid DerivativeGridCalculator::operator()(inp::Grid const& grid)
 {
     CELER_EXPECT(grid);
-
     CELER_VALIDATE(grid.interpolation.type == InterpolationType::linear,
                    << to_cstring(grid.interpolation.type)
                    << " derivative calculation is not supported on a "
