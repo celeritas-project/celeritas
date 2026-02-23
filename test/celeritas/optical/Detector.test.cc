@@ -222,35 +222,35 @@ TEST_F(DetectorTest, simple)
            Real3{0, 0, 0},  // pos
            Real3{-1, 0, 0},  // dir
            Real3{0, 1, 0},  // pol
-           10,  // time
+           0,  // time
            {},
            ImplVolumeId{0}},
         TI{E{3e-6},
            Real3{0, 0, 0},  // pos
            Real3{0, 0, 1},  // dir
            Real3{0, 1, 0},  // pol
-           1,  // time
+           0,  // time
            {},
            ImplVolumeId{0}},
         TI{E{4e-6},
            Real3{0, 0, 0},  // pos
            Real3{0, 0, -1},  // dir
            Real3{0, 1, 0},  // pol
-           20,  // time
+           0,  // time
            {},
            ImplVolumeId{0}},
         TI{E{5e-6},
            Real3{0, 0, 0},  // pos
            Real3{1, 0, 0},  // dir
            Real3{0, 1, 0},  // pol
-           13,  // time
+           0,  // time
            {},
            ImplVolumeId{0}},
         TI{E{6e-6},
            Real3{0, 0, 0},  // pos
            Real3{0, -1, 0},  // dir
            Real3{1, 0, 0},  // pol
-           7,  // time
+           0,  // time
            {},
            ImplVolumeId{0}},
     };
@@ -266,7 +266,6 @@ TEST_F(DetectorTest, simple)
     // Check results
 
     real_type const box_size = from_cm(50);
-    real_type const flight_time = box_size / constants::c_light;
 
     static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0};
     static real_type const expected_energies[]
@@ -295,13 +294,14 @@ TEST_F(DetectorTest, simple)
         0,
         0,
     };
-    static real_type const expected_times[] = {
-        0 + flight_time * 2 / 3,
-        10 + flight_time * 3 / 4,
-        1 + flight_time * 3 / 11,
-        20 + flight_time / 2,
-        13 + flight_time / 2,
-        7 + flight_time / 2,
+    // adjusted by group velocity
+    static double const expected_times[] = {
+        2.5016473229623e-09,
+        2.2237050406385e-09,
+        6.1154807303391e-09,
+        3.3356409519815e-09,
+        3.3356409519815e-09,
+        3.3356409519815e-09,
     };
     static size_type const expected_volume_instance_ids[] = {5, 4, 6, 7, 5, 3};
 
