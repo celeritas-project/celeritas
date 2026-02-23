@@ -52,18 +52,19 @@ celeritas_target_link_libraries(larceler
 # Create plugins
 #-----------------------------------------------------------------------------#
 
-macro(celeritas_add_larsoft_plugin target)
-  celeritas_add_src_library(${target} MODULE ${target}.cc)
+macro(celeritas_add_larsoft_plugin basename type link_libraries)
+  set(target "${basename}_${type}")
+  celeritas_add_src_library(${target} MODULE ${basename}.cc)
   celeritas_target_link_libraries(${target}
     PRIVATE
       art::Utilities
       cetlib::cetlib
       cetlib_except::cetlib_except
+    ${link_libraries}
   )
 endmacro()
 
-celeritas_add_larsoft_plugin(LarCelerStandalone)
-celeritas_target_link_libraries(LarCelerStandalone
+celeritas_add_larsoft_plugin(LarCelerStandalone tool
   PRIVATE
     larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
     lardataobj::MCBase
@@ -72,8 +73,7 @@ celeritas_target_link_libraries(LarCelerStandalone
     Celeritas::larceler
 )
 
-celeritas_add_larsoft_plugin(GeoSimExporterModule)
-celeritas_target_link_libraries(GeoSimExporterModule
+celeritas_add_larsoft_plugin(GeoSimExporter module
   PRIVATE
     ROOT::Tree
     art_root_io::TFileService_service
