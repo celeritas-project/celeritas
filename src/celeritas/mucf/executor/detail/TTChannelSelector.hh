@@ -20,6 +20,8 @@ namespace detail
  * The selection is based on a constant sticking fraction from
  * \citet{bogdanova-mucf-2009, https://doi.org/10.1134/S1063776109020034} ,
  * in which ~14% of the time the muonic alpha channel is selected.
+ *
+ * \todo Update I/O with user-defined sticking fractions.
  */
 class TTChannelSelector
 {

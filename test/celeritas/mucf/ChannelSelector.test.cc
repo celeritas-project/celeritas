@@ -33,11 +33,11 @@ class ChannelSelectorTest : public Test
     Engine& rng() { return rng_; }
 
     // Sticking fraction between the two dd --> 3He channels
-    double const dd_sticking_fraction() { return 0.122; }
+    double dd_sticking_fraction() { return 0.122; }
     // Sticking fraction for dt
-    double const dt_sticking_fraction() { return 0.00857; }
+    double dt_sticking_fraction() { return 0.00857; }
     // Sticking fraction for tt
-    double const tt_sticking_fraction() { return 0.14; }
+    double tt_sticking_fraction() { return 0.14; }
 
     // Calculate dd --> 3He channel probability from the branching ratio
     double he3_probability(double branching_ratio)
@@ -62,10 +62,10 @@ class ChannelSelectorTest : public Test
 TEST_F(ChannelSelectorTest, dd_channel_low_temperature)
 {
     // dd fusion at T < 50 K: branching_ratio = 1
-    real_type const temperature = 30.0;
-    real_type const branching_ratio = 1.0;
-    real_type const he3_probability = this->he3_probability(branching_ratio);
-    real_type const sticking_fraction = this->dd_sticking_fraction();
+    double const temperature = 30.0;
+    double const branching_ratio = 1.0;
+    double const he3_probability = this->he3_probability(branching_ratio);
+    double const sticking_fraction = this->dd_sticking_fraction();
 
     DDChannelSelector select_channel(temperature);
 

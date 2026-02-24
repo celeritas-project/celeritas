@@ -22,6 +22,8 @@ namespace detail
  * versus the tritium channel. If the outcome is a \f$ ^3\text{He} \f$ channel,
  * a constant sticking fraction of 12.2% is used to define if sticking occurs
  * \citet{balin-mucf-2011, https://doi.org/10.1134/S106377961102002X} .
+ *
+ * \todo Update I/O with user-defined sticking fractions and branching ratios.
  */
 class DDChannelSelector
 {
