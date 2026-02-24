@@ -4,7 +4,7 @@
 
 BEGIN_PROLOG
 
-LarCelerStandalone
+LarCelerStandalone:
 {
     tool_type: LarCelerStandalone
 
