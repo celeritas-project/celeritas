@@ -83,9 +83,6 @@ struct LarCelerStandaloneConfig
                                       fhicl::Comment{R"(GPU options)"},
                                       DeviceConfig{}};
 
-    fhicl::Atom<std::string> geometry{
-        fhicl::Name{"geometry"}, fhicl::Comment{R"(GDML input filename)"}};
-
     fhicl::Table<OpticalStateCapacityConfig> optical_capacity{
         fhicl::Name{"optical_capacity"},
         fhicl::Comment{R"(Optical buffer-size capacities)"}};

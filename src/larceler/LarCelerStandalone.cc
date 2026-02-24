@@ -7,6 +7,8 @@
 #include "LarCelerStandalone.hh"
 
 #include <memory>
+#include <larcore/CoreUtils/ServiceUtil.h>
+#include <larcore/Geometry/Geometry.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
@@ -47,7 +49,11 @@ make_input_from_config(detail::LarCelerStandaloneConfig const& cfg)
         result.system.device = d;
     }
 
-    result.problem.model.geometry = cfg.geometry();
+    // Obtain the GDML filename from the LAr geometry service
+    auto geo_handle = lar::providerFrom<geo::Geometry>();
+    CELER_VALIDATE(geo_handle, << "LArSoft geometry is not active");
+
+    result.problem.model.geometry = geo_handle->GDMLFile();
     result.problem.generator = inp::OpticalOffloadGenerator{};
 
     // Optical limits
