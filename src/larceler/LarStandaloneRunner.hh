@@ -12,8 +12,6 @@
 #include "corecel/Macros.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 
-#include "detail/LarCelerConfig.hh"
-
 namespace sim
 {
 class SimEnergyDeposit;

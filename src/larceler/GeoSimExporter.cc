@@ -2,11 +2,10 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/GeoSimExporterModule.cc
+//! \file larceler/GeoSimExporter.cc
 //---------------------------------------------------------------------------//
-#include "GeoSimExporterModule.hh"
+#include "GeoSimExporter.hh"
 
-#include <art/Framework/Core/ModuleMacros.h>
 #include <art/Framework/Principal/Event.h>
 #include <art/Framework/Principal/Handle.h>
 #include <art/Framework/Principal/Run.h>
@@ -26,7 +25,7 @@ namespace celeritas
 /*!
  * Construct with GDML geometry and export its information.
  */
-GeoSimExporterModule::GeoSimExporterModule(fhicl::ParameterSet const& pset)
+GeoSimExporter::GeoSimExporter(fhicl::ParameterSet const& pset)
     : EDAnalyzer{pset}
     , geometry_(*(lar::providerFrom<geo::Geometry>()))
     , max_edeps_(pset.get<int>("max_edeps_per_event"))
@@ -65,7 +64,7 @@ GeoSimExporterModule::GeoSimExporterModule(fhicl::ParameterSet const& pset)
 /*!
  * Create TTree with sim data.
  */
-void GeoSimExporterModule::beginJob()
+void GeoSimExporter::beginJob()
 {
     // TTree and ROOT file writing is done automatically by the TFileService
     art::ServiceHandle<art::TFileService const> tfs;
@@ -100,16 +99,15 @@ void GeoSimExporterModule::beginJob()
  * Loop over optional larg4 Geant4 output simulation file event data with
  * \c IonAndScint objects and export test data.
  */
-void GeoSimExporterModule::analyze(art::Event const& event)
+void GeoSimExporter::analyze(art::Event const& event)
 {
     art::Handle<std::vector<sim::SimEnergyDeposit>> energy_deps;
     if (!event.getByLabel("IonAndScint", energy_deps))
     {
         mf::LogError("GeoSimExporterModule")
             << "Cannot find IonAndScint label. Either 1) missing input file "
-               "(lar -c thisjob.fcl -s "
-               "[geant4_output.root]) or 2) missing IonAndScint data in "
-               "art::Event";
+               "(lar -c thisjob.fcl -s [geant4_output.root]) or "
+               "2) missing IonAndScint data in art::Event";
         return;
     }
 
@@ -169,7 +167,7 @@ void GeoSimExporterModule::analyze(art::Event const& event)
 /*!
  * Clear all \c sim::SimEnergyDeposit vector data before an event.
  */
-void GeoSimExporterModule::clear()
+void GeoSimExporter::clear()
 {
 #define GSDE_CLEAR(MEMBER) sim_edep_data_.MEMBER->clear();
 
@@ -194,5 +192,3 @@ void GeoSimExporterModule::clear()
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
-
-DEFINE_ART_MODULE(celeritas::GeoSimExporterModule)

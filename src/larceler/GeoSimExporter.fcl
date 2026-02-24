@@ -25,7 +25,7 @@ physics:
         // This name also doubles as the directory name in the ROOT file
         data:
         {
-            module_type: "GeoSimExporterModule"
+            module_type: "GeoSimExporter"
             max_edeps_per_event: 10 // Use <= 0 to store all energy deposits
         }
     }

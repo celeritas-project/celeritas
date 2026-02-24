@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/GeoSimExporterModule.hh
+//! \file larceler/GeoSimExporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -33,18 +33,18 @@ namespace celeritas
  *
  * To store only a subset of events, use the optional `-n [num_events]` flag.
  */
-class GeoSimExporterModule : public art::EDAnalyzer
+class GeoSimExporter : public art::EDAnalyzer
 {
   public:
     // Construct with input parameters and export geometry data
-    explicit GeoSimExporterModule(fhicl::ParameterSet const& pset);
+    explicit GeoSimExporter(fhicl::ParameterSet const& pset);
 
     //!@{
     // Prevent copy and assignment operations
-    GeoSimExporterModule(GeoSimExporterModule const&) = delete;
-    GeoSimExporterModule(GeoSimExporterModule&&) = delete;
-    GeoSimExporterModule& operator=(GeoSimExporterModule const&) = delete;
-    GeoSimExporterModule& operator=(GeoSimExporterModule&&) = delete;
+    GeoSimExporter(GeoSimExporter const&) = delete;
+    GeoSimExporter(GeoSimExporter&&) = delete;
+    GeoSimExporter& operator=(GeoSimExporter const&) = delete;
+    GeoSimExporter& operator=(GeoSimExporter&&) = delete;
     //!@}
 
     // Create tree with sim energy deposit data

@@ -57,7 +57,6 @@ macro(celeritas_add_larsoft_plugin basename type link_libraries)
   celeritas_add_src_library(${target} MODULE ${basename}.cc)
   celeritas_target_link_libraries(${target}
     PRIVATE
-      art::Utilities
       cetlib::cetlib
       cetlib_except::cetlib_except
     ${link_libraries}
@@ -76,11 +75,14 @@ celeritas_add_larsoft_plugin(LarCelerStandalone tool
 celeritas_add_larsoft_plugin(GeoSimExporter module
   PRIVATE
     ROOT::Tree
+    art::Utilities
     art_root_io::TFileService_service
     larcore::ServiceUtil
     larcorealg::Geometry
     larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
     lardataobj::MCBase
 )
+
+# TODO: install fcl files to PREFIX/job
 
 #-----------------------------------------------------------------------------#

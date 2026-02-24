@@ -8,7 +8,6 @@
 #include "LarCelerStandalone.hh"
 
 #include <memory>
-#include <art/Utilities/ToolMacros.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
@@ -67,5 +66,3 @@ void LarCelerStandalone::endJob()
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
-
-DEFINE_ART_CLASS_TOOL(celeritas::LarCelerStandalone)
