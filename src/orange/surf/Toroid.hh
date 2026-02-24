@@ -105,8 +105,7 @@ class Toroid
     //! View of data for type-deleted storage
     CELER_FUNCTION StorageSpan data() const
     {
-        static_assert(offsetof(Toroid, b_) - offsetof(Toroid, origin_)
-                      == sizeof(real_type) * 5);
+        static_assert(sizeof(*this) == sizeof(real_type) * 6);
         return {&origin_[0], 6};
     }
 
