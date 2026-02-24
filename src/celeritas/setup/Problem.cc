@@ -332,6 +332,7 @@ auto build_optical_params(inp::Problem const& p,
     pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
         pi.action_reg.get(), p.physics.optical.surfaces);
     pi.detectors = core.detectors();
+    pi.volume = core.volume();
 
     // Photon generating processes
     if (p.physics.optical.cherenkov)
@@ -389,6 +390,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
         pi.action_reg.get(), p.physics.surfaces);
     pi.detectors = std::move(loaded_model.detector);
     pi.optical_detector = p.detectors;
+    pi.volume = std::move(loaded_model.volume);
 
     // Streams and capacities
     pi.max_streams = p.num_streams;
