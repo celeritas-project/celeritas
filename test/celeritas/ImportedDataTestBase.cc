@@ -9,11 +9,13 @@
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/PhysicsParams.hh"
+#include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
@@ -179,25 +181,18 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
 }
 
 //---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_optical_sim() -> SPConstOpticalSim
+{
+    return std::make_shared<optical::SimParams>(inp::OpticalTrackingLimits{});
+}
+
+//---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_optical_surface_physics()
     -> SPConstOpticalSurfacePhysics
 {
-    inp::SurfacePhysics input;
-
-    // TODO: better input construction when we have actual data to import
-    for (auto s : range(PhysSurfaceId{this->surface()->num_surfaces() + 1}))
-    {
-        input.materials.push_back(std::vector<OptMatId>{});
-        input.roughness.polished.emplace(s, inp::NoRoughness{});
-        input.reflectivity.fresnel.emplace(s, inp::FresnelReflection{});
-        input.interaction.dielectric.emplace(
-            s,
-            inp::DielectricInteraction::from_dielectric(
-                inp::ReflectionForm::from_spike()));
-    }
-
     return std::make_shared<optical::SurfacePhysicsParams>(
-        this->optical_action_reg().get(), input);
+        this->optical_action_reg().get(),
+        this->imported_data().optical_physics.surfaces);
 }
 
 //---------------------------------------------------------------------------//

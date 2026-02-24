@@ -55,7 +55,7 @@ jobs:
             geometry: "orange"
             special: "static"
             geant: "11.3"
-          - build_type: "reldebinfo"
+          - build_type: "reldeb"
             geometry: "orange"
             special: "asanlite"
             geant: null
@@ -79,13 +79,13 @@ jobs:
             geometry: "vecgeom"
             special: "tidy"
             geant: "11.2"
-          - build_type: "reldeb"
+          - build_type: "ndebug"
             geometry: "vecgeom"
             special: "codecov"
             geant: "11.3"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldebinfo' && '500' || '300'}}Mi"
+      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldeb' && '500' || '300'}}Mi"
       CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
                   matrix.build_type,
@@ -127,6 +127,8 @@ jobs:
             scripts/ci/spack.yaml > spack.yaml
           if ${{matrix.geometry == 'vecgeom'}}; then
             spack -e . add vecgeom@1.2.11:1+gdml
+          elif ${{matrix.geometry == 'vecgeom2'}}; then
+            spack -e . add vecgeom@2.0.0-rc.7+gdml
           elif ${{matrix.geometry == 'vgsurf'}}; then
             spack -e . add vecgeom@2.0.0-rc.7+surface+gdml
           fi
@@ -356,6 +358,7 @@ jobs:
             !cancelled()
             && steps.build.outcome == 'success'
             && matrix.special != 'tidy'
+            && matrix.special != 'codecov'
           }}
         working-directory: build
         run: |

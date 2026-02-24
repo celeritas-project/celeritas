@@ -9,7 +9,7 @@
 #include <cstring>
 #include <limits>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/RootImporter.hh"
@@ -458,7 +458,7 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     MTestInput input;
     input.init = {{MatId{0}}, {MatId{1}}, {MatId{2}}, {MatId{3}}};
 
-    CollectionStateStore<MaterialStateData, MemSpace::device> states(
+    StateDataStore<MaterialStateData, MemSpace::device> states(
         params->host_ref(), input.init.size());
 
     input.params = params->device_ref();

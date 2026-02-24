@@ -8,7 +8,7 @@
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/random/params/RngParams.hh"
 
@@ -22,7 +22,7 @@ namespace test
 class RngReseedTest : public Test
 {
   public:
-    using RngHostStore = CollectionStateStore<RngStateData, MemSpace::host>;
+    using RngHostStore = StateDataStore<RngStateData, MemSpace::host>;
 
     void SetUp() override { params = std::make_shared<RngParams>(12345); }
 

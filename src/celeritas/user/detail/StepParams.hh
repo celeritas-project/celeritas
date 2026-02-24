@@ -8,8 +8,8 @@
 
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxParams.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/geo/GeoFwd.hh"
 
 #include "../StepData.hh"
@@ -72,7 +72,7 @@ class StepParams : public AuxParams<StepParamsData, StepStateData>
 
   private:
     AuxId aux_id_;
-    CollectionMirror<StepParamsData> mirror_;
+    ParamsDataStore<StepParamsData> mirror_;
 };
 
 //---------------------------------------------------------------------------//

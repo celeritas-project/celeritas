@@ -6,7 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "GeantGeoTestBase.hh"
 
-#include "geocel/GenericGeoTestBase.t.hh"
+#include "geocel/GenericGeoTestBase.t.hh"  // IWYU pragma: keep
+#include "geocel/g4/GeantGeoTrackView.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {

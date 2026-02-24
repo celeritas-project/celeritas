@@ -29,6 +29,7 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::units::literals;
 struct IntegratorTestOutput
 {
     std::vector<real_type> pos_x;
@@ -64,8 +65,7 @@ class IntegratorsTest : public Test
           mom_0 = mass * sqrt(ipow<2>(gamma) - 1) * dir_0
         */
 
-        param.field_value = 1.0 * units::tesla;  //! field value along z
-                                                 //! [tesla]
+        param.field_value = 1.0_T;  //! field value along z [tesla]
         param.radius = 3.8085386036;  //! radius of curvature [cm]
         param.delta_z = 6.7003310629;  //! z-change/revolution [cm]
         param.momentum_y = 10.9610028286;  //! initial momentum_y [MeV/c]
@@ -156,7 +156,7 @@ TEST_F(IntegratorsTest, host_helix)
 TEST_F(IntegratorsTest, host_classical_rk4)
 {
     // Construct a uniform magnetic field
-    UniformField field({0, 0, param.field_value});
+    UniformField field(Real3{0, 0, param.field_value});
 
     // Test the classical 4th order Runge-Kutta integrate
     this->run_integration<UniformField, RungeKuttaIntegrator>(field);
@@ -166,7 +166,7 @@ TEST_F(IntegratorsTest, host_classical_rk4)
 TEST_F(IntegratorsTest, host_dormand_prince_547)
 {
     // Construct a uniform magnetic field
-    UniformField field({0, 0, param.field_value});
+    UniformField field(Real3{0, 0, param.field_value});
 
     // Test the Dormand-Prince 547(M) integrate
     this->run_integration<UniformField, DormandPrinceIntegrator>(field);

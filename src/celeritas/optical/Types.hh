@@ -78,6 +78,15 @@ enum class TrivialInteractionMode
     backscatter,  //!< back scatter
 };
 
+//! Results of a reflectivity substep
+enum class ReflectivityAction
+{
+    transmit,  //!< transmit with no change
+    interact,  //!< continue to sample surface interaction
+    absorb,  //!< absorb on surface
+    size_ = absorb,
+};
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//

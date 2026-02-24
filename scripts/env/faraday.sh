@@ -10,11 +10,11 @@ if ! command -v load_system_env >/dev/null 2>&1; then
 fi
 
 # From modules/rocmmod
-export ROCM_PATH="/opt/rocm-7.0.1"
+export ROCM_PATH="/opt/rocm-7.2.0"
 export HIP_PATH="${ROCM_PATH}"
 export PATH="${ROCM_PATH}/lib/llvm/bin:$PATH"
 export MANPATH="${ROCM_PATH}/share/man:${ROCM_PATH}/lib/llvm/share/man1:$MANPATH"
-export CMAKE_PREFIX_PATH="/opt/rocm-7.0.1:${CMAKE_PREFIX_PATH}"
+export CMAKE_PREFIX_PATH="${ROCM_PATH}:${CMAKE_PREFIX_PATH}"
 export CC="${ROCM_PATH}/lib/llvm/bin/amdclang"
 export CXX="${ROCM_PATH}/lib/llvm/bin/amdclang++"
 

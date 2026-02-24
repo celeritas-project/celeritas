@@ -9,7 +9,6 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GenericGeoTestBase.hh"
 #include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoTrackView.hh"
 #include "geocel/g4/GeantGeoTraits.hh"
 
 namespace celeritas

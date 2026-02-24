@@ -35,7 +35,6 @@ struct PrimaryGeneratorExecutor
     RefPtr<CoreStateData, MemSpace::native> state;
     PrimaryDistributionData data;
     NativeCRef<DistributionParamsData> distributions;
-    CoreStateCounters counters;
 
     //// FUNCTIONS ////
 
@@ -61,15 +60,17 @@ CELER_FUNCTION void PrimaryGeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_EXPECT(distributions);
 
     CoreTrackView track(*params, *state, tid);
+    auto counters = state->init.counters.data().get();
 
     // Create the view to the new track to be initialized
-    CoreTrackView vacancy{*params, *state, [&] {
-                              // Get the vacancy from the back in case there
-                              // are more vacancies than photons to generate
-                              TrackSlotId idx{index_before(
-                                  counters.num_vacancies, ThreadId(tid.get()))};
-                              return state->init.vacancies[idx];
-                          }()};
+    CoreTrackView vacancy{
+        *params, *state, [&] {
+            // Get the vacancy from the back in case there
+            // are more vacancies than photons to generate
+            TrackSlotId idx{
+                index_before(counters->num_vacancies, ThreadId(tid.get()))};
+            return state->init.vacancies[idx];
+        }()};
 
     // Generate one primary from the distribution
     auto rng = track.rng();

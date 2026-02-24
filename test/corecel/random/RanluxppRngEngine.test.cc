@@ -8,8 +8,7 @@
 
 #include <memory>
 
-#include "corecel/cont/ArrayIO.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/io/HexRepr.hh"
 #include "corecel/random/data/RanluxppRngData.hh"
 #include "corecel/random/data/RanluxppTypes.hh"
@@ -143,9 +142,9 @@ class RanluxppRngEngineTest : public Test
 {
   protected:
     using HostStore
-        = CollectionStateStore<celeritas::RanluxppRngStateData, MemSpace::host>;
+        = StateDataStore<celeritas::RanluxppRngStateData, MemSpace::host>;
     using DeviceStore
-        = CollectionStateStore<celeritas::RanluxppRngStateData, MemSpace::device>;
+        = StateDataStore<celeritas::RanluxppRngStateData, MemSpace::device>;
     using uint_t = RanluxppUInt;
 
     void SetUp() override
@@ -334,6 +333,67 @@ TEST_F(RanluxppRngEngineTest, jump)
     for ([[maybe_unused]] int i : celeritas::range(20))
     {
         EXPECT_EQ(rng(), skip_rng());
+    }
+}
+
+TEST_F(RanluxppRngEngineTest, branch)
+{
+    unsigned int size = 4;
+
+    // Initialize first RNG
+    HostStore states(params_->host_ref(), StreamId{0}, size);
+    RanluxppRngEngine rng(params_->host_ref(), states.ref(), TrackSlotId{0});
+    rng = RanluxppInitializer{12345, 0, 0};
+
+    // Initialize second RNG
+    RanluxppRngEngine branched_rng(
+        params_->host_ref(), states.ref(), TrackSlotId{1});
+    branched_rng = rng.branch();
+
+    // Create a third RNG, and branch its state manually
+    auto& ref_rng_state = states.ref().state[TrackSlotId{2}];
+    auto& ref_branched_rng_state = states.ref().state[TrackSlotId{3}];
+    RanluxppRngEngine ref_branched_rng(
+        params_->host_ref(), states.ref(), TrackSlotId{3});
+    {
+        RanluxppRngEngine ref_rng(
+            params_->host_ref(), states.ref(), TrackSlotId{2});
+        ref_rng = RanluxppInitializer{12345, 0, 0};
+        ref_branched_rng = RanluxppInitializer{12345, 0, 0};
+    }
+
+    // Advance the reference RNG
+    {
+        RanluxppArray9 lcg = celeritas::detail::to_lcg(ref_rng_state.value);
+        lcg = celeritas::detail::compute_mod_multiply(
+            params_->host_ref().advance_state, lcg);
+        ref_rng_state.value = celeritas::detail::to_ranlux(lcg);
+        ref_rng_state.position = 0;
+    }
+
+    // XOR with updated state
+    {
+        for (auto i : celeritas::range(9))
+        {
+            ref_branched_rng_state.value.number[i]
+                ^= ref_rng_state.value.number[i];
+        }
+    }
+
+    // Advance the new RNG
+    {
+        RanluxppArray9 lcg
+            = celeritas::detail::to_lcg(ref_branched_rng_state.value);
+        lcg = celeritas::detail::compute_mod_multiply(
+            params_->host_ref().advance_state, lcg);
+        ref_branched_rng_state.value = celeritas::detail::to_ranlux(lcg);
+        ref_branched_rng_state.position = 0;
+    }
+
+    // Draw 10 random numbers from the two branched RNGs and compare
+    for ([[maybe_unused]] auto i : celeritas::range(10))
+    {
+        EXPECT_EQ(ref_branched_rng(), branched_rng());
     }
 }
 

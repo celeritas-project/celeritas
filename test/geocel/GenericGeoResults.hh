@@ -13,11 +13,6 @@
 #include "corecel/cont/Span.hh"
 #include "geocel/Types.hh"
 
-// DEPRECATED: remove in v0.7
-#define EXPECT_RESULT_EQ(EXPECTED, ACTUAL) EXPECT_REF_EQ(EXPECTED, ACTUAL)
-#define EXPECT_RESULT_NEAR(EXPECTED, ACTUAL, TOL) \
-    EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL)
-
 //! Check that a surface normal is equivalent (modulo the sign)
 #define EXPECT_NORMAL_EQUIV(expected, actual) \
     EXPECT_PRED_FORMAT2(::celeritas::test::IsNormalEquiv, expected, actual)
@@ -74,6 +69,12 @@ struct GenericGeoTrackingResult
     // Whether surface normals are disabled
     bool disabled_surface_normal() const;
 
+    //! Add a failure sentinel at the end
+    void fail() { this->fail_at(volumes.size()); }
+
+    // Add a failure sentinel at a certain index
+    void fail_at(std::size_t index);
+
     // Print expected expression to cout
     void print_expected() const;
 };
@@ -118,6 +119,9 @@ struct GenericGeoVolumeStackResult
     static GenericGeoVolumeStackResult
     from_span(LabelMap const&, Span<VolumeInstanceId const>);
     void print_expected() const;
+
+    //! Add a failure sentinel at the end
+    void fail();
 };
 
 ::testing::AssertionResult IsRefEq(char const* expected_expr,

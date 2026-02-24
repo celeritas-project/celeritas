@@ -12,7 +12,7 @@
 namespace celeritas
 {
 class SharedParams;
-class LocalTransporter;
+class TrackOffloadInterface;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -23,9 +23,6 @@ class LocalTransporter;
  * `G4VUserDetectorConstruction::ConstructSDandField()`.
  *
  * Note that the argument \c G4Envelope is a type alias to \c G4Region.
- *
- * \todo Maybe need a helper to create a single fast sim model for multiple
- * regions?
  */
 class FastSimulationModel final : public G4VFastSimulationModel
 {
@@ -36,13 +33,13 @@ class FastSimulationModel final : public G4VFastSimulationModel
     // Construct without attaching to a region
     FastSimulationModel(G4String const& name,
                         SharedParams const* params,
-                        LocalTransporter* local);
+                        TrackOffloadInterface* local);
 
     // Construct and build a fast sim manager for the given region
     FastSimulationModel(G4String const& name,
                         G4Envelope* region,
                         SharedParams const* params,
-                        LocalTransporter* local);
+                        TrackOffloadInterface* local);
 
     // Return true if model is applicable to the `G4ParticleDefinition`
     G4bool IsApplicable(G4ParticleDefinition const& particle) final;
@@ -62,6 +59,6 @@ class FastSimulationModel final : public G4VFastSimulationModel
 
   private:
     SharedParams const* params_{nullptr};
-    LocalTransporter* transport_{nullptr};
+    TrackOffloadInterface* transport_{nullptr};
 };
 }  // namespace celeritas

@@ -10,8 +10,8 @@
 #include <random>
 
 #include "corecel/cont/Span.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/optical/Interaction.hh"
@@ -25,6 +25,8 @@ namespace celeritas
 {
 namespace optical
 {
+class SimParams;
+
 namespace test
 {
 using namespace celeritas::test;
@@ -82,7 +84,7 @@ class InteractorHostBase
 
   private:
     template<template<Ownership, MemSpace> class S>
-    using StateStore = CollectionStateStore<S, MemSpace::host>;
+    using StateStore = StateDataStore<S, MemSpace::host>;
 
     StateStore<ParticleStateData> ps_;
     StateStore<SimStateData> ss_;
@@ -91,6 +93,7 @@ class InteractorHostBase
     Real3 inc_direction_;
     std::shared_ptr<ParticleTrackView> pt_view_;
     std::shared_ptr<SimTrackView> st_view_;
+    std::shared_ptr<SimParams> sim_params_;
 };
 
 class InteractorHostTestBase : public InteractorHostBase, public Test

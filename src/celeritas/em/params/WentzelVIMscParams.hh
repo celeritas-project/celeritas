@@ -8,8 +8,8 @@
 
 #include <memory>
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/em/data/WentzelVIMscData.hh"
 
 namespace celeritas
@@ -50,7 +50,7 @@ class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
 
   private:
     // Host/device storage and reference
-    CollectionMirror<WentzelVIMscData> data_;
+    ParamsDataStore<WentzelVIMscData> data_;
 };
 
 //---------------------------------------------------------------------------//

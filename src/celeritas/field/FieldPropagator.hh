@@ -12,7 +12,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "geocel/Types.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "Types.hh"
@@ -54,15 +54,10 @@ class FieldPropagator
                                           ParticleTrackView const& particle,
                                           GTV&& geo);
 
-    // Move track to next volume boundary.
-    inline CELER_FUNCTION result_type operator()();
-
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
-    //! Whether it's possible to have tracks that are looping
-    static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return true; }
-
+  private:
     //! Limit on substeps
     inline CELER_FUNCTION short int max_substeps() const;
 
@@ -106,17 +101,6 @@ CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
 
     state_.pos = geo_.pos();
     state_.mom = value_as<MomentumUnits>(particle.momentum()) * geo_.dir();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Propagate a charged particle until it hits a boundary.
- */
-template<class SubstepperT, class GTV>
-CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()()
-    -> result_type
-{
-    return (*this)(numeric_limits<real_type>::infinity());
 }
 
 //---------------------------------------------------------------------------//
@@ -212,13 +196,15 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
             geo_.move_internal(state_.pos);
             --remaining_substeps;
         }
-        else if (CELER_UNLIKELY(result.boundary
-                                && (linear_step.distance)
-                                       < this->bump_distance()))
+        else if (CELER_UNLIKELY(
+                     result.boundary
+                     && ((linear_step.distance) < this->bump_distance())))
         {
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a
             // near tangent). Reduce substep size and try again.
+            // TODO: this condition is triggered in ORANGE when on a reentrant
+            // boundary
             remaining = substep.length / 2;
         }
         else if (update_length <= this->minimum_substep()
@@ -310,6 +296,7 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
         // what step length we took, which means we're stuck.
         // Using the just-reapplied direction, hope that we're pointing deeper
         // into the current volume and bump the particle.
+        // TODO: move this into a higher-level failure/bump mechanic
         result.distance = celeritas::min(this->bump_distance(), step);
         result.boundary = false;
         axpy(result.distance, dir, &state_.pos);
@@ -324,7 +311,7 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
     // within the driver, the distance may be very slightly beyond the
     // requested step.
     CELER_ENSURE(
-        result.distance > 0
+        (result.distance > 0 || geo_.failed())
         && (result.distance <= step || soft_equal(result.distance, step)));
     return result;
 }

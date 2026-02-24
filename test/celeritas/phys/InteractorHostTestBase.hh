@@ -12,10 +12,9 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialData.hh"
@@ -168,7 +167,7 @@ class InteractorHostBase
 
   private:
     template<template<Ownership, MemSpace> class S>
-    using StateStore = CollectionStateStore<S, MemSpace::host>;
+    using StateStore = StateDataStore<S, MemSpace::host>;
     template<Ownership W, MemSpace M>
     using SecondaryStackData = StackAllocatorData<Secondary, W, M>;
 

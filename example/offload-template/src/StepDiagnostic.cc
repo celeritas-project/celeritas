@@ -84,7 +84,7 @@ StepDiagnostic::StepDiagnostic(ActionId action_id, AuxId aux_id)
     CELER_EXPECT(aux_id_);
 
     // Set up shared data on host and device
-    mirror_ = CollectionMirror{HostVal<StepParamsData>{}};
+    mirror_ = ParamsDataStore{HostVal<StepParamsData>{}};
 }
 
 //---------------------------------------------------------------------------//
@@ -149,7 +149,7 @@ void StepDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
     auto& step_state = state.aux_data<StepStateData>(aux_id_);
 
     // Accumulate counters
-    this->accum_counters(state.counters(), step_state.host_data);
+    this->accum_counters(state.sync_get_counters(), step_state.host_data);
 
     // Create a functor that gathers data from a single track slot
     auto execute = make_active_track_executor(

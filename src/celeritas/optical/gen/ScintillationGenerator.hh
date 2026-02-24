@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/ExponentialDistribution.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
@@ -86,7 +87,6 @@ class ScintillationGenerator
     UniformRealDist sample_phi_;
     NormalDistribution<real_type> sample_lambda_;
 
-    bool is_neutral_{};
     units::LightSpeed delta_speed_{};
     Real3 delta_pos_{};
 };
@@ -105,7 +105,6 @@ ScintillationGenerator::ScintillationGenerator(
     , shared_(shared)
     , sample_cost_(-1, 1)
     , sample_phi_(0, real_type(2 * constants::pi))
-    , is_neutral_{dist_.charge == zero_quantity()}
 {
     if (shared_.scintillation_by_particle())
     {
@@ -210,18 +209,42 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     }();
     CELER_ASSERT(is_soft_orthogonal(photon.polarization, photon.direction));
 
-    // Sample position: endpoint (collision site) if neutral, else uniform
-    real_type u = is_neutral_ ? 1 : UniformRealDist{}(rng);
+    // Sample the position
+    real_type u = [&rng, &p = dist_.continuous_edep_fraction] {
+        // The number of photons generated along the step (continuous energy
+        // loss) and at the interaction site (local energy deposition) is
+        // proportional to their respective energy contributions. If both
+        // components are present, sample where to generate using the fraction
+        // of the energy deposited along the step. The following condition is
+        // statistically equivalent to sampling \c
+        // BernoulliDistribution{p}(rng), but it avoids generating a random
+        // number in the expected case where the probability is exactly zero or
+        // one, while remaining correct if energy is deposited both along the
+        // step and at the endpoint.
+        if (p == 1 || (p != 0 && BernoulliDistribution{p}(rng)))
+        {
+            // Sample uniformly along the step
+            return UniformRealDist{}(rng);
+        }
+        // Generate the photon at the discrete interaction site
+        return real_type(1);
+    }();
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);
 
-    // Sample time
-    photon.time
-        = dist_.time
-          + u * dist_.step_length
-                / (native_value_from(dist_.points[StepPoint::pre].speed)
-                   + u * real_type(0.5) * native_value_from(delta_speed_));
-
+    // Sample the time
+    photon.time = dist_.points[StepPoint::pre].time + u * [&] {
+        if (dist_.points[StepPoint::pre].speed > zero_quantity())
+        {
+            return dist_.step_length
+                   / (native_value_from(dist_.points[StepPoint::pre].speed)
+                      + u * real_type(0.5) * native_value_from(delta_speed_));
+        }
+        // Fall back to using pre- and post-step time if speed isn't available
+        // (e.g. with the LArSoft SimEnergyDeposit)
+        return dist_.points[StepPoint::post].time
+               - dist_.points[StepPoint::pre].time;
+    }();
     if (component.rise_time == 0)
     {
         // Sample exponentially from fall time
@@ -240,6 +263,9 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         } while (RejectionSampler(target)(rng));
         photon.time += scint_time;
     }
+
+    photon.primary = dist_.primary;
+
     return photon;
 }
 

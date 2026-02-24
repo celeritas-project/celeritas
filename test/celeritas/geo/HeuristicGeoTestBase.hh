@@ -9,12 +9,9 @@
 #include <string>
 #include <vector>
 
-#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/GlobalTestBase.hh"
-#include "celeritas/OnlyCoreTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
 
 #include "HeuristicGeoData.hh"
@@ -22,7 +19,7 @@
 namespace celeritas
 {
 template<template<Ownership, MemSpace> class S, MemSpace M>
-class CollectionStateStore;
+class StateDataStore;
 
 namespace test
 {
@@ -36,7 +33,7 @@ class HeuristicGeoTestBase : public OnlyGeoTestBase
     //!@{
     //! \name Type aliases
     template<MemSpace M>
-    using StateStore = CollectionStateStore<HeuristicGeoStateData, M>;
+    using StateStore = StateDataStore<HeuristicGeoStateData, M>;
     template<MemSpace M>
     using PathLengthRef
         = Collection<real_type, Ownership::reference, M, ImplVolumeId>;
@@ -78,9 +75,10 @@ class HeuristicGeoTestBase : public OnlyGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
-//! Run on device
-void heuristic_test_execute(DeviceCRef<HeuristicGeoParamsData> const&,
-                            DeviceRef<HeuristicGeoStateData> const&);
+//! Run on host device
+void heuristic_test_execute(HeuristicGeoParamsPtr<MemSpace::device> params,
+                            HeuristicGeoStatePtr<MemSpace::device> state,
+                            size_type size);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

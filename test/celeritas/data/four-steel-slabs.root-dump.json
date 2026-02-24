@@ -53,7 +53,7 @@
     "name" : "G4_STAINLESS-STEEL",
     "state" : 1,
     "temperature" : 293.15,
-    "number_density" : 86993489258991547580416,
+    "number_density" : 86993489258991530803200,
     "elements" : [{
       "_typename" : "celeritas::ImportMatElemComponent",
       "element_id" : 0,
@@ -343,7 +343,7 @@
           "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
           "data_" : [-9.21034037197618, 4.60517018598809]
         },
-        "y" : [0.0919755519795959, 128.588033594672],
+        "y" : [0.0919755519795958, 128.588033594672],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
           "type" : 0,
@@ -563,12 +563,32 @@
           },
           "is_metal" : false
         }}],
-        "trivial" : []
+        "trivial" : [],
+        "only_reflection" : []
       }
     }
   },
   "mucf_physics" : {
     "_typename" : "celeritas::inp::MucfPhysics",
+    "scalars" : {
+      "_typename" : "celeritas::inp::MucfScalars",
+      "protium" : {
+        "_typename" : "celeritas::Quantity<celeritas::units::Amu,double>",
+        "value_" : 0
+      },
+      "deuterium" : {
+        "_typename" : "celeritas::Quantity<celeritas::units::Amu,double>",
+        "value_" : 0
+      },
+      "tritium" : {
+        "_typename" : "celeritas::Quantity<celeritas::units::Amu,double>",
+        "value_" : 0
+      },
+      "liquid_hydrogen_density" : {
+        "_typename" : "celeritas::Quantity<celeritas::units::InvCentimeterCubed,double>",
+        "value_" : 0
+      }
+    },
     "muon_energy_cdf" : {
       "_typename" : "celeritas::inp::Grid",
       "x" : [],

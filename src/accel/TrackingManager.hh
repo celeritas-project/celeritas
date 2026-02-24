@@ -18,29 +18,36 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 class SharedParams;
-class LocalTransporter;
+class TrackOffloadInterface;
 
 //---------------------------------------------------------------------------//
 /*!
  * Offload to Celeritas via the per-particle Geant4 "tracking manager".
  *
- * Tracking managers are to be created during worker action initialization and
- * are thus thread-local.  Construction/addition to \c G4ParticleDefinition
- * appears to take place on the master thread, typically
- * in the ConstructProcess method, but the tracking manager pointer is part of
- * the split-class data for the particle. It's observed that different threads
- * have distinct pointers to a LocalTransporter instance, and that these match
- * those of the global thread-local instances in test problems.
+ * Tracking managers are created by \c G4VUserPhysicsList::Construct during
+ * \c G4RunManager::Initialize on each thread. The tracking manager pointer is
+ * a \em thread-local part of the split-class data for a \em global G4Particle.
+ * This thread-local manager points to a corresponding thread-local
+ * transporter.
+ *
+ * The \c TrackingManagerConstructor class creates an instance of this class
+ * for every worker thread (or the main thread when using a serial run
+ * manager.)
  *
  * \note As of Geant4 11.3, instances of this class (one per thread) will never
  * be deleted.
+ *
+ * \warning The physics does \em not reconstruct tracking managers on
+ * subsequent runs. Therefore the \c SharedParams and \c LocalTransporter \em
+ * must have lifetimes that span multiple runs (which is the case for using
+ * global/thread-local).
  */
 class TrackingManager final : public G4VTrackingManager
 {
   public:
     // Construct with shared (across threads) params, and thread-local
     // transporter.
-    TrackingManager(SharedParams const* params, LocalTransporter* local);
+    TrackingManager(SharedParams const* params, TrackOffloadInterface* local);
 
     // Prepare cross-section tables for rebuild (e.g. if new materials have
     // been defined).
@@ -62,12 +69,12 @@ class TrackingManager final : public G4VTrackingManager
     SharedParams const* shared_params() const { return params_; }
 
     //! Get the thread-local transporter
-    LocalTransporter* local_transporter() const { return transport_; }
+    TrackOffloadInterface* local_transporter() const { return transport_; }
 
   private:
     bool validated_{false};
     SharedParams const* params_{nullptr};
-    LocalTransporter* transport_{nullptr};
+    TrackOffloadInterface* transport_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

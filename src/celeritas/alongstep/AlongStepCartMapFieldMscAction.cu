@@ -9,6 +9,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/em/params/FluctuationParams.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
+#include "celeritas/field/CartMapField.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -16,7 +17,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepKernels.hh"
-#include "detail/CartMapFieldPropagatorFactory.hh"
+#include "detail/FieldTrackPropagator.hh"
 #include "detail/PropagationApplier.hh"
 
 namespace celeritas
@@ -39,8 +40,9 @@ void AlongStepCartMapFieldMscAction::step(CoreParams const& params,
             params.ptr<MemSpace::native>(),
             state.ptr(),
             this->action_id(),
-            detail::PropagationApplier{detail::CartMapFieldPropagatorFactory{
-                field_->ref<MemSpace::native>()}});
+            detail::PropagationApplier{
+                detail::FieldTrackPropagator<CartMapField>{
+                    field_->ref<MemSpace::native>()}});
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate-cartmap");
         launch_kernel(*this, params, state, execute_thread);

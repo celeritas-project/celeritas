@@ -12,11 +12,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueIdIO.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/math/QuantityIO.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -88,7 +85,7 @@ void log_state(Logger::Message& msg,
 /*!
  * Capture the current exception and convert it to a G4Exception call.
  */
-void ExceptionConverter::operator()(std::exception_ptr eptr) const
+void ExceptionConverter::operator()(std::exception_ptr eptr)
 {
     try
     {
@@ -151,6 +148,7 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
 
             return std::move(os).str();
         }();
+        forwarded_ = true;
         G4Exception(where.c_str(), err_code_, FatalException, what.c_str());
     }
     catch (DebugError const& e)
@@ -160,6 +158,7 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
         where << detail::CleanedProvenance{e.details().file, e.details().line};
         std::ostringstream what;
         what << to_cstring(e.details().which) << ": " << e.details().condition;
+        forwarded_ = true;
         G4Exception(
             where.str().c_str(), err_code_, FatalException, what.str().c_str());
     }

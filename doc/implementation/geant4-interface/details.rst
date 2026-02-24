@@ -4,66 +4,73 @@
 Detailed interface
 ------------------
 
-These classes are usually integrated into UserActions. The ``SimpleOffload``
-interface above hides the complexity of these classes, or for more complex
-applications you can choose to use these classes directly instead of it.
+These classes manage the low-level runtime interface between Celeritas and
+Geant4.
 
 .. doxygenclass:: celeritas::SharedParams
 .. doxygenclass:: celeritas::LocalTransporter
 
 Interface utilities
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 .. celerstruct:: AlongStepFactoryInput
 
-.. doxygenfunction:: celeritas::MakeMTLogger
 .. doxygenclass:: celeritas::ExceptionConverter
 .. doxygenclass:: celeritas::AlongStepFactoryInterface
 
 .. _api_accel_adapters:
 
 Classes usable by Geant4
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 These utilities are based on Celeritas data structures and capabilities but are
 written to be usable both by the ``celer-g4`` app and potential other users.
 
 Fields
-^^^^^^
+""""""
 
-.. doxygenclass:: celeritas::RZMapMagneticField
-.. doxygenclass:: celeritas::CylMapMagneticField
-.. doxygenfunction:: celeritas::MakeCylMapFieldInput
+.. doxygenclass:: celeritas::MagneticField
+
+.. doxygentypedef:: celeritas::RZMapMagneticField
+.. doxygentypedef:: celeritas::CartMapMagneticField
+.. doxygentypedef:: celeritas::CylMapMagneticField
+
+.. doxygenfunction:: celeritas::MakeCartMapFieldInput(CartMapFieldGridParams const& )
+.. doxygenfunction:: celeritas::MakeCylMapFieldInput(std::vector<G4double> const &, std::vector<G4double> const &, std::vector<G4double> const &)
 
 Primary generators
-^^^^^^^^^^^^^^^^^^
+""""""""""""""""""
 
 .. doxygenclass:: celeritas::HepMC3PrimaryGenerator
 .. doxygenclass:: celeritas::PGPrimaryGeneratorAction
 
-.. _api_geant4_physics_options:
-
-Physics constructors
-^^^^^^^^^^^^^^^^^^^^
-
-A Geant4 physics constructor :cpp:class:`celeritas::SupportedEmStandardPhysics` allows
-very fine-grained selection of the EM physics processes supported by Celeritas.
-The input options incorporate process and model selection as well as default EM
-parameters to send to Geant4.
-
-.. celerstruct:: GeantPhysicsOptions
-.. doxygenclass:: celeritas::SupportedEmStandardPhysics
-
 Physics lists
-^^^^^^^^^^^^^
+"""""""""""""
 
-Two physics lists (one using Geant4 hadronics, the other using pure Celeritas)
-allow setup of EM physics using only processes supported by Celeritas.
+Two physics constructors build exclusively processes supported by Celeritas for
+Geant4:
+
+.. doxygenclass:: celeritas::SupportedEmStandardPhysics
+.. doxygenclass:: celeritas::SupportedOpticalPhysics
+
+Two "modular" physics lists (one using Geant4 hadronics, the other using pure
+Celeritas) are stand-ins for physics factories suitable for sending to
+``G4RunManager::SetUserInitialization``.
 
 .. doxygenclass:: celeritas::EmPhysicsList
 .. doxygenclass:: celeritas::FtfpBertPhysicsList
 
-Sensitive detectors
-^^^^^^^^^^^^^^^^^^^
+.. _api_geant4_physics_options:
 
-.. doxygenclass:: celeritas::GeantSimpleCalo
+Physics setup
+"""""""""""""
+
+The input options incorporate process and model selection as well as default EM
+parameters to send to Geant4.
+
+.. celerstruct:: GeantPhysicsOptions
+
+Detector construction
+"""""""""""""""""""""
+
+.. doxygenclass:: celeritas::DetectorConstruction

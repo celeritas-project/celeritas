@@ -27,69 +27,25 @@ class MeanELoss
     //!@}
 
   public:
-    // Whether energy loss is used for this track
-    inline CELER_FUNCTION bool is_applicable(CoreTrackView const&) const;
-
     // Apply to the track
-    inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track,
-                                            real_type step,
-                                            bool apply_cut);
-
-    //! Particle will slow down to zero only if range limited
-    static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return false; }
+    inline CELER_FUNCTION Energy operator()(CoreTrackView const& track);
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Whether energy loss is used for this track.
- */
-CELER_FUNCTION bool MeanELoss::is_applicable(CoreTrackView const& track) const
-{
-    // The track can be marked as `errored` *within* the along-step kernel,
-    // during propagation
-    if (track.sim().status() == TrackStatus::errored)
-        return false;
-
-    // Energy loss grid ID is 'false'
-    return static_cast<bool>(track.physics().energy_loss_grid());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Apply energy loss to the given track.
  */
-CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
-                                          real_type step,
-                                          bool apply_cut) -> Energy
+CELER_FUNCTION auto MeanELoss::operator()(CoreTrackView const& track) -> Energy
 {
-    CELER_EXPECT(step > 0);
-
     auto particle = track.particle();
     auto phys = track.physics();
-
-    if (apply_cut && particle.energy() < phys.particle_scalars().lowest_energy)
-    {
-        // Deposit all energy when we start below the tracking cut
-        return particle.energy();
-    }
+    auto sim = track.sim();
+    CELER_EXPECT(!particle.is_stopped() && sim.step_length() > 0);
 
     // Calculate the mean energy loss
-    Energy eloss = calc_mean_energy_loss(particle, phys, step);
-
-    if (apply_cut
-        && (particle.energy() - eloss <= phys.particle_scalars().lowest_energy))
-    {
-        // Deposit all energy when we end below the tracking cut
-        return particle.energy();
-    }
-
-    CELER_ENSURE(eloss <= particle.energy());
-    CELER_ENSURE(eloss != particle.energy()
-                 || track.sim().post_step_action()
-                        == phys.scalars().range_action());
-    return eloss;
+    return calc_mean_energy_loss(particle, phys, sim.step_length());
 }
 
 //---------------------------------------------------------------------------//

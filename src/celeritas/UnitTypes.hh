@@ -11,6 +11,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Macros.hh"
 #include "corecel/math/Constant.hh"
 #include "corecel/math/UnitUtils.hh"
 
@@ -131,6 +132,16 @@ struct Mol
 };
 
 //!@}
+
+//! Spin (in units of hbar/2)
+struct HalfSpin
+{
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        return constants::hbar_planck / 2;
+    }
+    static char const* label() { return "hbar/2"; }
+};
 
 //---------------------------------------------------------------------------//
 //!@{

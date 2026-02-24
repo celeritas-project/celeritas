@@ -8,24 +8,27 @@
 
 #include <algorithm>
 #include <map>
-#include <numeric>
 #include <set>
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
+#include "corecel/Assert.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/JsonUtils.json.hh"  // IWYU pragma: keep
 #include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/BoundingBox.hh"
 #include "geocel/VolumeToString.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/detail/LogicIO.hh"
+#include "orange/orangeinp/CsgTypes.hh"
 #include "orange/orangeinp/IntersectRegion.hh"
+#include "orange/orangeinp/detail/BoundingZone.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "CsgObject.hh"
@@ -35,7 +38,7 @@
 #include "ObjectIO.json.hh"
 #include "Transformed.hh"
 
-#include "detail/CsgLogicUtils.hh"
+#include "detail/BuildLogic.hh"
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
@@ -50,6 +53,40 @@ namespace
 {
 using detail::CsgUnit;
 
+BoundingBox<> get_unit_bbox(CsgUnit const& unit)
+{
+    auto find_bz = [&r = unit.regions](NodeId n) -> detail::BoundingZone const& {
+        CELER_EXPECT(n);
+        auto iter = r.find(n);
+        CELER_ENSURE(iter != r.end());
+        return iter->second.bounds;
+    };
+
+    CELER_ASSERT(orange_exterior_volume < unit.volumes().size());
+    NodeId exterior_node_id = unit.volumes()[orange_exterior_volume.get()];
+    CELER_ASSERT(exterior_node_id);
+    auto const& exterior_bz = find_bz(exterior_node_id);
+    if (exterior_bz.negated)
+    {
+        // [EXTERIOR] bbox is negated, so negating again gives the
+        // "interior" bounding zone; we want its outer boundary.
+        return exterior_bz.exterior;
+    }
+
+    // Odd bounding zones can happen for units with degenerate
+    // boundaries due to region merging. See if we can get an
+    // "interior" bbox by negating the exterior node
+    auto interior_id = unit.tree.find(Negated{exterior_node_id});
+    CELER_ASSERT(interior_id);
+    auto const& interior_bz = find_bz(interior_id);
+    if (!interior_bz.negated)
+    {
+        return interior_bz.exterior;
+    }
+
+    return BoundingBox<>::from_infinite();
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Simplify a CSG tree by replaing 'exterior' with 'false'.
@@ -57,24 +94,26 @@ using detail::CsgUnit;
  * This is allowed (and required, to avoid coincident surfaces) for non-global
  * universes because higher levels truncate lower ones.
  */
-void remove_interior(CsgUnit& unit, std::string_view label)
+void implicit_parent_boundary(CsgUnit& unit)
 {
     CELER_EXPECT(!unit.tree.volumes().empty());
+    auto orig_tree_size = unit.tree.size();
     NodeId ext_node
         = unit.tree.volumes()[orange_exterior_volume.unchecked_get()];
     auto unknowns = replace_and_simplify(&unit.tree, ext_node, False{});
     if (!unknowns.empty())
     {
-        auto write_node_labels
-            = [&md = unit.metadata](std::ostream& os, NodeId nid) {
-                  CELER_ASSERT(nid < md.size());
-                  auto const& labels = md[nid.get()];
-                  os << '{' << join(labels.begin(), labels.end(), ", ") << '}';
-              };
-        CELER_LOG(warning)
-            << "While building '" << label
-            << "', encountered surfaces that could not be logically "
-               "eliminated from the boundary: "
+        auto write_node_labels = [&md = unit.metadata](std::ostream& os,
+                                                       NodeId nid) {
+            CELER_ASSERT(nid < md.size());
+            auto const& labels = md[nid.get()];
+            os << '{' << join(labels.begin(), labels.end(), " = ") << '}';
+        };
+        CELER_LOG(debug)
+            << "- Some CSG nodes (" << unknowns.size() << " of "
+            << orig_tree_size << ", now " << unit.tree.size()
+            << ") could not be logically eliminated from the "
+               "boundary: "
             << join_stream(
                    unknowns.begin(), unknowns.end(), ", ", write_node_labels);
     }
@@ -88,9 +127,13 @@ void remove_interior(CsgUnit& unit, std::string_view label)
  * \c NodeId indexing in the \c CsgTree are invalidated after calling this,
  * \c CsgUnit data is updated to point to the simplified tree \c NodeId but any
  * previously cached \c NodeId is invalid.
+ *
+ * Note that the debug messages will be printed after a "Building 'label'"
+ * message, so we don't worry about printing the unit label for context.
  */
-void remove_negated_join(CsgUnit& unit, std::string_view label)
+void remove_negated_join(CsgUnit& unit)
 {
+    ScopedProfiling profile_this{"orange-logic-simplify"};
     // Apply demorgan simplification
     auto&& [tree, nodes] = transform_negated_joins(unit.tree);
     CELER_ASSERT(unit.tree.size() == nodes.size());
@@ -100,58 +143,77 @@ void remove_negated_join(CsgUnit& unit, std::string_view label)
     std::vector<std::set<CsgUnit::Metadata>> metadata(tree.size());
     std::map<NodeId, CsgUnit::Region> regions;
 
-    // Map metadata
-    for (auto old_id : range(id_cast<NodeId>(unit.tree.size())))
-    {
-        auto& old_md = unit.metadata[old_id.get()];
-        if (auto new_id = nodes[old_id.get()])
-        {
-            CELER_ASSERT(new_id < metadata.size());
+    size_type simplified_count{0};
+    size_type removed_count{0};
 
-            // Update metadata
+    // Map metadata
+    for (auto old_id : range(NodeId{unit.tree.size()}))
+    {
+        auto new_id = nodes[old_id.get()];
+        if (!new_id)
+        {
+            ++removed_count;
+            continue;
+        }
+
+        CELER_ASSERT(new_id < metadata.size());
+        if (CsgTree::is_boolean_node(new_id))
+        {
+            // Logically eliminated node
+            ++simplified_count;
+        }
+        else
+        {
+            // Merge metadata since node wasn't logically eliminated
+            auto& old_md = unit.metadata[old_id.get()];
             auto& new_md = metadata[new_id.get()];
             if (CELER_UNLIKELY(!new_md.empty()))
             {
                 // Node was merged with another node
-                CELER_LOG(warning)
-                    << "Merged CSG node "
-                    << join(new_md.begin(), new_md.end(), "','") << " into "
-                    << join(old_md.begin(), old_md.end(), "','");
-                new_md.insert(old_md.begin(), old_md.end());
-                old_md.clear();
+                CELER_LOG(debug)
+                    << "- Merged '"
+                    << join(new_md.begin(), new_md.end(), "','") << "' into '"
+                    << join(old_md.begin(), old_md.end(), "','") << "'";
+                new_md.merge(std::move(old_md));
             }
             else
             {
                 new_md = std::move(old_md);
             }
+        }
 
-            // Update region
-            if (auto iter = unit.regions.find(new_id);
-                iter != unit.regions.end())
-            {
-                regions.insert(unit.regions.extract(iter));
-            }
-        }
-        else
+        // Move region to new tree with updated ID: necessary even for
+        // false/true region due to interior
+        if (auto iter = unit.regions.find(old_id); iter != unit.regions.end())
         {
-            // Node was removed from the tree
-            auto region = unit.regions.find(old_id);
-            if (CELER_UNLIKELY(region != unit.regions.end() || !old_md.empty()))
+            auto region = unit.regions.extract(iter);
+            region.key() = new_id;
+            auto irt = regions.insert(std::move(region));
+            if (!irt.inserted)
             {
-                auto msg = CELER_LOG(warning);
-                msg << "Simplification removed node " << old_id.get();
-                if (!old_md.empty())
-                {
-                    msg << "='" << join(old_md.begin(), old_md.end(), "','")
-                        << "'";
-                }
-                if (region != unit.regions.end())
-                {
-                    msg << " (which has a region)";
-                }
-                msg << " from '" << label << "'";
+                // Intersect bounding zones since both nodes are true
+                // (logical and)
+                irt.position->second.bounds = calc_intersection(
+                    irt.position->second.bounds, irt.node.mapped().bounds);
             }
         }
+    }
+
+    if (simplified_count > 0 || removed_count > 0)
+    {
+        auto msg = CELER_LOG(debug);
+        msg << "- Logic simplification ";
+        char const* and_str = "";
+        if (simplified_count > 0)
+        {
+            msg << "hard-coded " << simplified_count << " nodes ";
+            and_str = "and ";
+        }
+        if (removed_count > 0)
+        {
+            msg << and_str << "pruned " << removed_count << " unused nodes ";
+        }
+        msg << "of " << unit.tree.size() << " CSG nodes";
     }
 
     // Update the unit
@@ -230,32 +292,31 @@ void UnitProto::build(ProtoBuilder& pb) const
     ScopedProfiling profile_this{"orange-unitproto"};
 
     // Build CSG unit
-    auto csg_unit = this->build(
-        pb.tol(), BBox::from_infinite(), pb.is_global_universe());
+    auto csg_unit = this->build([&pb] {
+        BuildOptions opts;
+        opts.tol = pb.tol();
+        opts.assume_inside = pb.assume_inside();
+        opts.logic = pb.logic();
+        return opts;
+    }());
     CELER_ASSERT(csg_unit);
 
     // Get the list of all surfaces actually used
     auto const sorted_local_surfaces = calc_surfaces(csg_unit.tree);
-    CELER_LOG(debug) << "...built " << this->label() << ": used "
-                     << sorted_local_surfaces.size() << " of "
-                     << csg_unit.surfaces.size() << " surfaces";
+    CELER_ASSERT(sorted_local_surfaces.size() <= csg_unit.surfaces.size());
+    CELER_LOG(debug) << "- Eliminated "
+                     << csg_unit.surfaces.size() - sorted_local_surfaces.size()
+                     << " of " << csg_unit.surfaces.size() << " surfaces";
 
     UnitInput result;
     result.label = input_.label;
 
-    auto& unit_volumes = csg_unit.tree.volumes();
     // Save unit's bounding box
+    result.bbox = get_unit_bbox(csg_unit);
+    if (CELER_UNLIKELY(is_infinite(result.bbox)))
     {
-        NodeId node_id = unit_volumes[orange_exterior_volume.get()];
-        auto region_iter = csg_unit.regions.find(node_id);
-        CELER_ASSERT(region_iter != csg_unit.regions.end());
-        auto const& bz = region_iter->second.bounds;
-        if (bz.negated)
-        {
-            // [EXTERIOR] bbox is negated, so negating again gives the
-            // "interior" bounding zone; we want its outer boundary.
-            result.bbox = bz.exterior;
-        }
+        CELER_LOG(warning) << "Failed to determine bounding box of unit '"
+                           << this->label() << "'";
     }
 
     // Save surfaces
@@ -264,6 +325,12 @@ void UnitProto::build(ProtoBuilder& pb) const
     {
         result.surfaces.emplace_back(csg_unit.surfaces[lsid.get()]);
     }
+    auto find_new_lsid = [&sls = sorted_local_surfaces](LocalSurfaceId old) {
+        CELER_EXPECT(old);
+        auto iter = find_sorted(sls.begin(), sls.end(), old);
+        CELER_ASSERT(iter != sls.end());
+        return id_cast<LocalSurfaceId>(iter - sls.begin());
+    };
 
     // Save surface labels
     result.surface_labels.resize(result.surfaces.size());
@@ -271,40 +338,41 @@ void UnitProto::build(ProtoBuilder& pb) const
     {
         if (auto* surf_node = std::get_if<Surface>(&csg_unit.tree[node_id]))
         {
-            LocalSurfaceId old_lsid = surf_node->id;
-            auto idx = static_cast<size_type>(
-                find_sorted(sorted_local_surfaces.begin(),
-                            sorted_local_surfaces.end(),
-                            old_lsid)
-                - sorted_local_surfaces.begin());
-            CELER_ASSERT(idx < result.surface_labels.size());
+            auto new_lsid = find_new_lsid(surf_node->id);
+            CELER_ASSERT(new_lsid < result.surface_labels.size());
+
+            auto const& md = csg_unit.metadata[node_id.get()];
+            auto iter = md.begin();
+            CELER_VALIDATE(iter != md.end(),
+                           << "missing metadata for remapped surface "
+                           << new_lsid << " (new node ID " << node_id
+                           << ") = old LSID " << surf_node->id);
 
             // NOTE: surfaces may be created more than once. Our primitive
             // "input" allows association with only one surface, so we'll
-            // arbitrarily choose the lexicographically sorted "first" surface
-            // name in the list.
-            CELER_ASSERT(!csg_unit.metadata[node_id.get()].empty());
-            auto const& label = *csg_unit.metadata[node_id.get()].begin();
-            result.surface_labels[idx] = label;
+            // arbitrarily choose the lexicographically sorted "first"
+            // surface name in the list.
+            result.surface_labels[new_lsid.get()] = *iter;
         }
     }
 
     // Loop over all volumes to construct
+    auto const& unit_volumes = csg_unit.tree.volumes();
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
     result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
 
+    // Use user-selected logic to build input: post-processing in OrangeParams
+    // will convert to tracking notation if needed
+    auto lgc_notation = pb.logic();
+    detail::DynamicBuildLogicPolicy const policy{
+        lgc_notation, csg_unit.tree, &sorted_local_surfaces};
+    // Construct logic and faces with remapped surfaces
     for (auto vol_idx : range(unit_volumes.size()))
     {
         NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
-        // Construct logic and faces with remapped surfaces
-        auto&& [faces, logic] = detail::build_logic(
-            // always use postfix logic for unit input, post-processing to
-            // convert to tracking notation
-            detail::PostfixBuildLogicPolicy{csg_unit.tree,
-                                            sorted_local_surfaces},
-            node_id);
+        auto&& [faces, logic] = detail::build_logic(policy, node_id);
         vi.faces = std::move(faces);
         vi.logic = std::move(logic);
         // Set bounding box
@@ -332,19 +400,11 @@ void UnitProto::build(ProtoBuilder& pb) const
 
     if (csg_unit.background)
     {
-        // "Background" should be unreachable: 'nowhere' logic, null bbox
-        // but it has to have all the surfaces that connect to an interior
-        // volume
+        // Background volume input is filled in by UnitInserter
         VolumeInput vi;
-        vi.faces.resize(sorted_local_surfaces.size());
-        std::iota(vi.faces.begin(), vi.faces.end(), LocalSurfaceId{0});
-        vi.logic = {logic::ltrue, logic::lnot};
-        vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
-        /*! \todo The nearest internal surface is probably *not* the safety
-         * distance, but it's better than nothing
-         */
-        vi.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
+        vi.flags = VolumeRecord::implicit_vol;
+        CELER_ASSERT(vi);
         result.volumes.emplace_back(std::move(vi));
     }
     CELER_ASSERT(result.volumes.size()
@@ -381,7 +441,7 @@ void UnitProto::build(ProtoBuilder& pb) const
     };
 
     // Save attributes for exterior volume
-    if (pb.current_uid() != orange_global_univ)
+    if (!pb.is_global_universe())
     {
         vol_iter->zorder = ZOrder::implicit_exterior;
         vol_iter->flags |= VolumeRecord::implicit_vol;
@@ -519,21 +579,20 @@ void UnitProto::build(ProtoBuilder& pb) const
  * to be deleted (assumed inside, implicit from the parent universe's boundary)
  * or preserved.
  */
-auto UnitProto::build(Tol const& tol,
-                      BBox const& bbox,
-                      bool is_global_universe) const -> Unit
+auto UnitProto::build(BuildOptions const& opts) const -> Unit
 {
-    CELER_EXPECT(tol);
+    CELER_EXPECT(opts.tol);
+    CELER_EXPECT(opts.logic != LogicNotation::size_);
 
-    CELER_LOG(debug) << "Building '" << this->label() << ": "
-                     << input_.daughters.size() << " daughters and "
+    CELER_LOG(debug) << "Building '" << this->label()
+                     << "': " << input_.daughters.size() << " daughters and "
                      << input_.materials.size() << " materials...";
 
     ScopedProfiling profile_this{"orange-csg"};
 
     detail::CsgUnit result;
     detail::CsgUnitBuilder unit_builder(
-        &result, tol, is_global_universe ? BBox::from_infinite() : bbox);
+        &result, opts.tol, BBox::from_infinite());
 
     auto build_volume = [ub = &unit_builder](ObjectInterface const& obj) {
         detail::VolumeBuilder vb{ub};
@@ -550,21 +609,6 @@ auto UnitProto::build(Tol const& tol,
     auto ext_vol
         = build_volume(NegatedObject("[EXTERIOR]", input_.boundary.interior));
     CELER_ASSERT(ext_vol == orange_exterior_volume);
-    if (is_global_universe)
-    {
-        detail::VolumeBuilder vb{&unit_builder};
-        auto interior_node = input_.boundary.interior->build(vb);
-        auto region_iter = result.regions.find(interior_node);
-        CELER_ASSERT(region_iter != result.regions.end());
-        auto const& bz = region_iter->second.bounds;
-        CELER_VALIDATE(
-            !bz.negated && is_finite(bz.exterior),
-            << "global boundary must be finite: cannot determine "
-               "extents of interior '"
-            << input_.boundary.interior->label() << "' in '" << this->label()
-            << "': " << (bz.negated ? "negated interior" : "exterior")
-            << " bounds are " << (bz.negated ? bz.interior : bz.exterior));
-    }
 
     // Build daughters
     UnivId daughter_id{0};
@@ -588,19 +632,19 @@ auto UnitProto::build(Tol const& tol,
         }
     }
 
-    // Build background fill (optional)
+    // Save background fill (may be null)
     result.background = input_.background.fill;
 
-    if (!is_global_universe && input_.remove_interior)
+    if (opts.assume_inside)
     {
         // Assume that the enclosing universe provides our boundary conditions
-        remove_interior(result, this->label());
+        implicit_parent_boundary(result);
     }
 
-    if (orange_tracking_logic() == LogicNotation::infix
-        || input_.remove_negated_join)
+    if (opts.logic == LogicNotation::infix)
     {
-        remove_negated_join(result, this->label());
+        // Apply DeMorgan's law to eliminate negated joins
+        remove_negated_join(result);
     }
 
     return result;

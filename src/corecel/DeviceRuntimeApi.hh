@@ -64,8 +64,8 @@
 #endif
 
 /*!
- * This macro informs downstream Celeritas code (namely, Stream) that it's safe
- * to use types from the device APIs.
+ * This macro informs downstream Celeritas code (namely, Stream and
+ * DeviceEvent) that it's safe to use types from the device APIs.
  */
 #define CELER_DEVICE_RUNTIME_INCLUDED
 

@@ -39,11 +39,10 @@ struct IsNeutralStencil
 
 //---------------------------------------------------------------------------//
 // Remove all elements in the vacancy vector that were flagged as alive
-size_type remove_if_alive(
-    StateCollection<TrackSlotId, Ownership::reference, MemSpace::host> const&,
-    StreamId);
-size_type remove_if_alive(
-    StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&,
+void remove_if_alive(
+    TrackInitStateData<Ownership::reference, MemSpace::host> const&, StreamId);
+void remove_if_alive(
+    TrackInitStateData<Ownership::reference, MemSpace::device> const&,
     StreamId);
 
 //---------------------------------------------------------------------------//
@@ -60,23 +59,20 @@ size_type exclusive_scan_counts(
 void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::host> const&,
-    CoreStateCounters const&,
     size_type,
     StreamId);
 void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
-    CoreStateCounters const&,
     size_type,
     StreamId);
 
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
+// DEVICE-DISABLED IMPLEMENTATION
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline size_type remove_if_alive(
-    StateCollection<TrackSlotId, Ownership::reference, MemSpace::device> const&,
-    StreamId)
+inline void remove_if_alive(
+    TrackInitStateData<Ownership::reference, MemSpace::device> const&, StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
@@ -91,7 +87,6 @@ inline size_type exclusive_scan_counts(
 inline void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
-    CoreStateCounters const&,
     size_type,
     StreamId)
 {

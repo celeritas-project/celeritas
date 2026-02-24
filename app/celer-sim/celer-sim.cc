@@ -166,7 +166,7 @@ std::string get_device_string()
     celeritas::activate_device();
 
     CELER_VALIDATE(celeritas::Device::num_devices() != 0,
-                   << "No GPUs were detected");
+                   << "no GPUs were detected");
     return nlohmann::json(celeritas::device()).dump(1);
 }
 

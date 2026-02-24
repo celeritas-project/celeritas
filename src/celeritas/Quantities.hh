@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
 #include "corecel/math/Quantity.hh"  // IWYU pragma: export
 
 #include "UnitTypes.hh"  // IWYU pragma: export
@@ -30,6 +29,9 @@ using AmuMass = RealQuantity<Amu>;
 
 //! Special faux quantity for overloading cross section calculation
 using LogMevEnergy = RealQuantity<LogMev>;
+
+//! Spin (in units of hbar/2)
+using HalfSpinInt = Quantity<HalfSpin, short int>;
 
 //---------------------------------------------------------------------------//
 //!@{

@@ -57,4 +57,11 @@ class OutputRegistry
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Add an interfaces for writing system diagnostics
+void insert_system_diagnostics(OutputRegistry&);
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

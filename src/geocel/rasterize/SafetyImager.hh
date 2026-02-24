@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "geocel/GeoTraits.hh"
 
 #include "Image.hh"
@@ -19,7 +19,7 @@ namespace celeritas
  *
  * The file format is JSON lines:
  * - first line: metadata
- * - each further line: progressive y coordinates
+ * - each further line: progressive \em y coordinates
  *
  * \note This is a very rough-and-ready class that should be restructured and
  * integrated with the ray tracer so that it can be executed in parallel on
@@ -48,7 +48,7 @@ class SafetyImager
     using TraitsT = GeoTraits<G>;
     template<Ownership W, MemSpace M>
     using StateData = typename TraitsT::template StateData<W, M>;
-    using HostStateStore = CollectionStateStore<StateData, MemSpace::host>;
+    using HostStateStore = StateDataStore<StateData, MemSpace::host>;
     using GeoTrackView = typename TraitsT::TrackView;
 
     SPConstGeo geo_;

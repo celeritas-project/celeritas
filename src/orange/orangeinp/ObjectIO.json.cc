@@ -85,21 +85,6 @@ void to_json(nlohmann::json& j, PolyCone const& obj)
     }
 }
 
-void to_json(nlohmann::json& j, PolyPrism const& obj)
-{
-    j = {
-        {"_type", "polyprism"},
-        SIO_ATTR_PAIR(obj, label),
-        SIO_ATTR_PAIR(obj, segments),
-        SIO_ATTR_PAIR(obj, num_sides),
-        SIO_ATTR_PAIR(obj, orientation),
-    };
-    if (auto azi = obj.enclosed_azi())
-    {
-        j["enclosed_azi"] = azi;
-    }
-}
-
 void to_json(nlohmann::json& j, RevolvedPolygon const& obj)
 {
     j = {
@@ -349,7 +334,7 @@ namespace nlohmann
 void adl_serializer<CelerSPObjConst>::to_json(json& j,
                                               CelerSPObjConst const& oi)
 {
-    j = oi ? celeritas::json_pimpl_output(*oi) : json(nullptr);
+    j = oi ? celeritas::output_to_json(*oi) : json(nullptr);
 }
 
 void adl_serializer<CelerVarTransform>::to_json(json& j,

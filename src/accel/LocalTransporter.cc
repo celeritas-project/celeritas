@@ -21,7 +21,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Types.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
@@ -40,8 +39,10 @@
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/inp/Control.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/JsonEventWriter.hh"
+#include "celeritas/io/OffloadWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
@@ -50,8 +51,6 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
-
-#include "detail/OffloadWriter.hh"
 
 namespace celeritas
 {
@@ -150,9 +149,7 @@ void trace(StepperResult const& track_counts)
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
-    : auto_flush_(
-          get_default(options, params.Params()->max_streams()).primaries)
-    , max_step_iters_(options.max_step_iters)
+    : max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
@@ -163,6 +160,18 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                            options.optical->generator),
                    << "invalid optical photon generation mechanism for local "
                       "transporter");
+
+    if (options.auto_flush)
+    {
+        auto_flush_ = options.auto_flush;
+    }
+    else
+    {
+        // Get default *per-process* auto flush and divide by number of streams
+        auto capacity = inp::CoreStateCapacity::from_default(
+            celeritas::Device::num_devices());
+        auto_flush_ = capacity.primaries / params.Params()->max_streams();
+    }
 
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
@@ -198,7 +207,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     params.set_state(stream_id.get(), step_->sp_state());
 
     // Save optical pointers if available, for diagnostics
-    optical_ = params.optical_collector();
+    optical_ = params.problem_loaded().optical_collector;
 
     CELER_ENSURE(*this);
 }
@@ -258,11 +267,11 @@ void LocalTransporter::Push(G4Track& g4track)
     PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
     track.particle_id = particles_->find(pdg);
 
-    // Generate Celeritas-specific PrimaryID
+    // Generate Celeritas-specific PrimaryID and capture user info
     if (hit_processor_)
     {
         track.primary_id
-            = hit_processor_->track_processor().register_primary(g4track);
+            = hit_processor_->track_reconstruction().acquire(g4track);
     }
 
     track.energy = units::MevEnergy(
@@ -401,7 +410,7 @@ void LocalTransporter::Flush()
                                    << " hits for event " << event_id_.get();
             run_accum_.hits += num_hits;
         }
-        hit_processor_->track_processor().end_event();
+        hit_processor_->track_reconstruction().clear();
     }
 }
 

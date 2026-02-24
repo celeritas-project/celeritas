@@ -12,7 +12,11 @@
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
 #include "model/DielectricInteractionModel.hh"
+#include "model/FresnelReflectivityModel.hh"
+#include "model/GaussianRoughnessModel.hh"
+#include "model/GridReflectivityModel.hh"
 #include "model/PolishedRoughnessModel.hh"
+#include "model/SmearRoughnessModel.hh"
 #include "model/TrivialInteractionModel.hh"
 
 #include "detail/BuiltinSurfaceModelBuilder.hh"
@@ -87,7 +91,7 @@ SurfacePhysicsParams::SurfacePhysicsParams(ActionRegistry* action_reg,
     // Finalize data
     CELER_ENSURE(data);
 
-    data_ = CollectionMirror<SurfacePhysicsParamsData>{std::move(data)};
+    data_ = ParamsDataStore<SurfacePhysicsParamsData>{std::move(data)};
 }
 
 //---------------------------------------------------------------------------//
@@ -140,18 +144,23 @@ auto SurfacePhysicsParams::build_models(
             case SurfacePhysicsOrder::roughness:
                 build_model.build<PolishedRoughnessModel>(
                     input.roughness.polished);
-                build_model.build_fake("smear", input.roughness.smear);
-                build_model.build_fake("gaussian", input.roughness.gaussian);
+                build_model.build<SmearRoughnessModel>(input.roughness.smear);
+                build_model.build<GaussianRoughnessModel>(
+                    input.roughness.gaussian);
                 break;
             case SurfacePhysicsOrder::reflectivity:
-                build_model.build_fake("grid", input.reflectivity.grid);
-                build_model.build_fake("fresnel", input.reflectivity.fresnel);
+                build_model.build<GridReflectivityModel>(
+                    input.reflectivity.grid);
+                build_model.build<FresnelReflectivityModel>(
+                    input.reflectivity.fresnel);
                 break;
             case SurfacePhysicsOrder::interaction:
                 build_model.build<DielectricInteractionModel>(
                     input.interaction.dielectric);
                 build_model.build<TrivialInteractionModel>(
                     input.interaction.trivial);
+                build_model.build_fake("interaction-only_reflection",
+                                       input.interaction.only_reflection);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();
@@ -159,7 +168,7 @@ auto SurfacePhysicsParams::build_models(
 
         CELER_VALIDATE(
             build_model.num_surfaces() == num_phys_surfaces(input.materials),
-            << " same number of physics surfaces required for each "
+            << "same number of physics surfaces required for each "
                "surface physics step ("
             << num_phys_surfaces(input.materials) << " expected surfaces, "
             << build_model.num_surfaces() << " surfaces from "

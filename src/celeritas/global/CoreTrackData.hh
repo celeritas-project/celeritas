@@ -10,6 +10,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/random/data/RngData.hh"
+#include "geocel/DetectorData.hh"
 #include "geocel/SurfaceData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
@@ -66,14 +67,15 @@ template<Ownership W, MemSpace M>
 struct CoreParamsData
 {
     GeoParamsData<W, M> geometry;
-    GeoMaterialParamsData<W, M> geo_mats;
     MaterialParamsData<W, M> materials;
+    GeoMaterialParamsData<W, M> geo_mats;
     ParticleParamsData<W, M> particles;
     CutoffParamsData<W, M> cutoffs;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
     SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
+    DetectorParamsData<W, M> detectors;
     TrackInitParamsData<W, M> init;
     WentzelOKVIData<W, M> wentzel;
 
@@ -82,7 +84,8 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && geo_mats && materials && particles && cutoffs
+        // OPTIONAL: surface, volumes, detectors
+        return geometry && materials && geo_mats && particles && cutoffs
                && physics && rng && sim && init && scalars;
     }
 
@@ -92,14 +95,15 @@ struct CoreParamsData
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
-        geo_mats = other.geo_mats;
         materials = other.materials;
+        geo_mats = other.geo_mats;
         particles = other.particles;
         cutoffs = other.cutoffs;
         physics = other.physics;
         rng = other.rng;
         sim = other.sim;
         surface = other.surface;
+        detectors = other.detectors;
         init = other.init;
         wentzel = other.wentzel;
         scalars = other.scalars;

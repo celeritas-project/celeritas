@@ -14,26 +14,9 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/phys/GeneratorCounters.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Cumulative statistics of optical tracking.
- */
-struct OpticalAccumStats
-{
-    using size_type = std::size_t;
-    using OpticalBufferSize = GeneratorCounters<size_type>;
-
-    std::vector<OpticalBufferSize> generators;
-
-    size_type steps{0};
-    size_type step_iters{0};
-    size_type flushes{0};
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Pre-step data needed to generate optical photon distributions.
@@ -56,22 +39,29 @@ struct OffloadPreStepData
 
 //---------------------------------------------------------------------------//
 /*!
- * Pre-step data that is cached and used to generate optical distributions.
+ * Energy deposition and particle speed after the continuous part of the step.
  */
-template<Ownership W, MemSpace M>
-struct OffloadStepStateData
+struct OffloadPrePostStepData
 {
-    //// TYPES ////
+    units::LightSpeed speed;
+    units::MevEnergy energy_deposition;
 
-    template<class T>
-    using StateItems = StateCollection<T, W, M>;
+    //! Check whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return speed > zero_quantity() || energy_deposition > zero_quantity();
+    }
+};
 
-    //// DATA ////
-
-    // Pre-step data for generating optical photon distributions
-    StateItems<OffloadPreStepData> step;
-
-    //// METHODS ////
+//---------------------------------------------------------------------------//
+/*!
+ * State data that is cached and used to generate optical distributions.
+ */
+template<class StepDataT, Ownership W, MemSpace M>
+struct OffloadStateData
+{
+    // State data for generating optical photon distributions
+    StateCollection<StepDataT, W, M> step;
 
     //! Number of states
     CELER_FUNCTION size_type size() const { return step.size(); }
@@ -81,7 +71,7 @@ struct OffloadStepStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    OffloadStepStateData& operator=(OffloadStepStateData<W2, M2>& other)
+    OffloadStateData& operator=(OffloadStateData<StepDataT, W2, M2>& other)
     {
         CELER_EXPECT(other);
         step = other.step;
@@ -89,12 +79,18 @@ struct OffloadStepStateData
     }
 };
 
+template<Ownership W, MemSpace M>
+using OffloadPreStateData = OffloadStateData<OffloadPreStepData, W, M>;
+
+template<Ownership W, MemSpace M>
+using OffloadPrePostStateData = OffloadStateData<OffloadPrePostStepData, W, M>;
+
 //---------------------------------------------------------------------------//
 /*!
- * Resize optical step states.
+ * Resize optical offload step states.
  */
-template<MemSpace M>
-void resize(OffloadStepStateData<Ownership::value, M>* state,
+template<class StepDataT, MemSpace M>
+void resize(OffloadStateData<StepDataT, Ownership::value, M>* state,
             StreamId,
             size_type size)
 {

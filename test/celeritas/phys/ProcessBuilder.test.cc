@@ -13,6 +13,7 @@
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
+#include "celeritas/em/process/ElectroNuclearProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
 #include "celeritas/em/process/GammaNuclearProcess.hh"
 #include "celeritas/em/process/MuBremsstrahlungProcess.hh"
@@ -273,6 +274,46 @@ TEST_F(ProcessBuilderTest, gamma_conversion)
             {
                 EXPECT_TRUE(micro_xs[elcomp_idx]);
             }
+        }
+    }
+}
+
+TEST_F(ProcessBuilderTest, electro_nuclear)
+{
+    if (!this->has_particle_xs_data())
+    {
+        GTEST_SKIP() << "Missing ElectroNuclearData";
+    }
+
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material());
+
+    // Create process
+    auto process = build_process(IPC::electro_nuclear);
+    EXPECT_PROCESS_TYPE(ElectroNuclearProcess, process.get());
+
+    // Test model
+    auto models = process->build_models(ActionIdIter{});
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("electro-nuclear", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(2, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    for (auto mat_id : range(PhysMatId{this->material()->num_materials()}))
+    {
+        // Test step limits
+        {
+            applic.material = mat_id;
+            EXPECT_FALSE(process->macro_xs(applic));
+            EXPECT_FALSE(process->energy_loss(applic));
+        }
+
+        // Test micro xs
+        for (auto const& model : models)
+        {
+            EXPECT_TRUE(model->micro_xs(applic).empty());
         }
     }
 }

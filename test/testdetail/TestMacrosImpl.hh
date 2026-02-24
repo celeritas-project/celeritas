@@ -100,10 +100,12 @@ struct SoftPrecisionType<Constant, Constant>
 /*!
  * Get a soft comparison function from a \c SOFT_NEAR argument.
  *
- * If a floating point value, it defaults to
+ * If a floating point value, it defaults to EqualOrSoftEqual using explicit
+ * casts to the given value type to avoid errors with mixed-precision
+ * arithmetic.
  */
 template<class VT, class CT>
-constexpr auto soft_comparator(CT&& cmp_or_tol)
+constexpr auto make_soft_comparator(CT&& cmp_or_tol)
 {
     if constexpr (std::is_floating_point_v<std::remove_reference_t<CT>>)
     {
@@ -133,8 +135,6 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
                 char const* actual_expr,
                 BinaryOp comp)
 {
-    using value_type = typename BinaryOp::value_type;
-
     if (comp(expected, actual))
     {
         return ::testing::AssertionSuccess();
@@ -143,20 +143,21 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
     // Failed: print nice error message
     ::testing::AssertionResult result = ::testing::AssertionFailure();
 
-    result << "Value of: " << actual_expr << "\n  Actual: " << actual
-           << "\nExpected: " << expected_expr << "\nWhich is: " << expected
-           << '\n';
+    result << "Value of: " << actual_expr << "\n  Actual: " << repr(actual)
+           << "\nExpected: " << expected_expr
+           << "\nWhich is: " << repr(expected);
 
-    if (SoftZero<value_type>{comp.abs()}(expected))
+    if (std::fabs(actual - expected) > comp.abs())
     {
-        // Avoid divide by zero errors
-        result << "(Absolute error " << actual - expected
-               << " exceeds tolerance " << comp.abs() << ")";
+        result << '\n'
+               << "- absolute error " << repr(actual - expected)
+               << " exceeds tolerance " << repr(comp.abs());
     }
-    else
+    if (expected != 0
+        && std::fabs(actual - expected) > std::fabs(expected) * comp.rel())
     {
-        result << "(Relative error " << (actual - expected) / expected
-               << " exceeds tolerance " << comp.rel() << ")";
+        result << "\n- relative error " << repr(actual / expected - 1)
+               << " exceeds tolerance " << repr(comp.rel());
     }
     return result;
 }
@@ -214,7 +215,7 @@ template<class Value_E, class Value_A, class T>
         expected_expr,
         static_cast<ValueT>(actual),
         actual_expr,
-        soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
+        make_soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//
@@ -281,15 +282,24 @@ struct IsContainer<std::string> : std::false_type
 {
 };
 
+template<>
+struct IsContainer<std::string_view> : std::false_type
+{
+};
+
 template<class T>
 struct IsContainer<T, std::void_t<typename T::const_iterator>> : std::true_type
 {
 };
 
-template<typename T, std::size_t N>
+template<class T, std::size_t N>
 struct IsContainer<T[N]> : std::true_type
 {
 };
+
+//! Whether a type is a container
+template<class T>
+inline constexpr bool IsContainer_v = IsContainer<T>::value;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -311,6 +321,12 @@ template<class T>
 using ValueTypeT = typename ValueType<T>::type;
 
 //---------------------------------------------------------------------------//
+
+//! Whether a container *holds* another container
+template<class T>
+inline constexpr bool IsNestedContainer_v = IsContainer_v<ValueTypeT<T>>;
+
+//---------------------------------------------------------------------------//
 /*!
  * Recursively get the underlying scalar type of a container.
  */
@@ -321,7 +337,7 @@ struct ScalarValueType
 };
 
 template<class T>
-struct ScalarValueType<T, std::enable_if_t<IsContainer<T>::value>>
+struct ScalarValueType<T, std::enable_if_t<IsContainer_v<T>>>
 {
     using type = typename ScalarValueType<ValueTypeT<T>>::type;
 };
@@ -403,8 +419,8 @@ template<class ContainerE, class ContainerA, class BinaryOp>
                                               char const* actual_expr,
                                               BinaryOp comp)
 {
-    if constexpr (IsContainer<ValueTypeT<ContainerE>>::value
-                  && IsContainer<ValueTypeT<ContainerA>>::value)
+    if constexpr (IsNestedContainer_v<ContainerE>
+                  && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));
@@ -598,8 +614,8 @@ template<class ContainerE, class ContainerA>
                                    ContainerE const& expected,
                                    ContainerA const& actual)
 {
-    if constexpr (IsContainer<ValueTypeT<ContainerE>>::value
-                  && IsContainer<ValueTypeT<ContainerA>>::value)
+    if constexpr (IsNestedContainer_v<ContainerE>
+                  && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));
@@ -714,7 +730,7 @@ template<class ContainerE, class ContainerA, class T>
         expected_expr,
         actual,
         actual_expr,
-        soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
+        make_soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//
@@ -722,7 +738,7 @@ template<class ContainerE, class ContainerA, class T>
  * Compare two vectors of reference values using a tolerance.
  */
 template<class ContainerE, class ContainerA, class Tol>
-std::enable_if_t<IsContainer<ContainerE>::value && IsContainer<ContainerA>::value,
+std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>,
                  ::testing::AssertionResult>
 IsRefEq(char const* expr1,
         char const* expr2,
@@ -784,7 +800,7 @@ IsRefEq(char const* expr1,
  * Compare two vectors of reference values without a special tolerance.
  */
 template<class ContainerE, class ContainerA>
-std::enable_if_t<IsContainer<ContainerE>::value && IsContainer<ContainerA>::value,
+std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>,
                  ::testing::AssertionResult>
 IsRefEq(char const* expr1,
         char const* expr2,

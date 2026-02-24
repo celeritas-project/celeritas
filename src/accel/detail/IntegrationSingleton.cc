@@ -30,8 +30,9 @@ namespace
 //---------------------------------------------------------------------------//
 /*!
  * Verify that all particles in \c SetupOptions::offload_particles user-defined
- * list are valid and supported by Celeritas when non-empty. Return user or
- * default list accordingly.
+ * list are valid and supported by Celeritas when non-empty.
+ *
+ * Return user or default list accordingly.
  */
 SetupOptions::VecG4PD
 validate_and_return_offloaded(std::optional<SetupOptions::VecG4PD> const& user)
@@ -76,51 +77,58 @@ IntegrationSingleton& IntegrationSingleton::instance()
 
 //---------------------------------------------------------------------------//
 /*!
- * Static THREAD-LOCAL Celeritas state data.
- */
-LocalTransporter& IntegrationSingleton::local_transporter()
-{
-    auto& offload = IntegrationSingleton::local_offload_ptr();
-    if (!offload)
-    {
-        offload = std::make_unique<LocalTransporter>();
-    }
-    auto* lt = dynamic_cast<LocalTransporter*>(offload.get());
-    CELER_VALIDATE(lt,
-                   << "Cannot access LocalTransporter when "
-                      "LocalOpticalOffload is being used");
-    return *lt;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Static THREAD-LOCAL Celeritas optical state data.
- */
-LocalOpticalOffload& IntegrationSingleton::local_optical_offload()
-{
-    auto& offload = IntegrationSingleton::local_offload_ptr();
-    if (!offload)
-    {
-        offload = std::make_unique<LocalOpticalOffload>();
-    }
-    auto* lt = dynamic_cast<LocalOpticalOffload*>(offload.get());
-    CELER_VALIDATE(lt,
-                   << "Cannot access LocalOpticalOffload when "
-                      "LocalTransporter is being used");
-    return *lt;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Access the thread-local offload interface.
+ *
+ * The first time this is called in an execution, we look at the options to
+ * determine whether to create:
+ *  - an EM track offload interface (LocalTransporter, which will send to the
+ *    Celeritas EM core loop)
+ *  - an optical track offload interface (TBD, which will send to a standalone
+ *    optical loop)
+ *  - an optical *generator* offload interface (LocalOpticalGenOffload, used
+ *    for cherenkov/scintillation photons)
  */
 LocalOffloadInterface& IntegrationSingleton::local_offload()
 {
-    if (this->optical_offload())
+    static G4ThreadLocal UPOffload offload;
+
+    if (CELER_UNLIKELY(!offload))
     {
-        return IntegrationSingleton::local_optical_offload();
+        if (!options_)
+        {
+            // Cannot construct offload before options are set
+            CELER_LOG_LOCAL(error)
+                << R"(cannot access offload before options are set)";
+        }
+        if (options_.optical
+            && std::holds_alternative<inp::OpticalOffloadGenerator>(
+                options_.optical->generator))
+        {
+            offload = std::make_unique<LocalOpticalGenOffload>();
+        }
+        else
+        {
+            // TODO: if offloading direct optical tracks, return optical
+            // offload
+            offload = std::make_unique<LocalTransporter>();
+        }
     }
-    return IntegrationSingleton::local_transporter();
+
+    return *offload;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access thread-local *track* offload interface (for anything that pushes a
+ * track)
+ */
+TrackOffloadInterface& IntegrationSingleton::local_track_offload()
+{
+    auto* oi = dynamic_cast<TrackOffloadInterface*>(&this->local_offload());
+    CELER_VALIDATE(oi,
+                   << "Cannot access track offload when "
+                      "LocalOpticalGenOffload is being used");
+    return *oi;
 }
 
 //---------------------------------------------------------------------------//
@@ -148,8 +156,6 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
         CELER_LOG(warning)
             << R"(SetOptions called with incomplete input: you must use the UI to update before /run/initialize)";
     }
-
-    CELER_ENSURE(!offloaded_.empty() || this->optical_offload());
 }
 
 //---------------------------------------------------------------------------//
@@ -169,70 +175,41 @@ OffloadMode IntegrationSingleton::mode() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct shared params on master (or single) thread.
+ * Initialize shared params and thread-local transporter.
  *
- * \todo The query for CeleritasDisabled initializes the environment before
- * we've had a chance to load the user setup options. Make sure we can update
- * the environment *first* when refactoring the setup.
- *
- * \note In Geant4 threading, \em only MT mode on non-master thread has
- *   \c G4Threading::IsWorkerThread()==true. For MT mode, the master thread
- *   does not track any particles. For single-thread mode, the master thread
- *   \em does do work.
- */
-void IntegrationSingleton::initialize_shared_params()
-{
-    ExceptionConverter call_g4exception{"celer.init.global"};
-
-    if (G4Threading::IsMasterThread())
-    {
-        CELER_LOG(debug) << "Initializing shared params";
-        CELER_TRY_HANDLE(
-            {
-                CELER_VALIDATE(
-                    options_,
-                    << R"(SetOptions or UI entries were not completely set before BeginRun)");
-                CELER_VALIDATE(
-                    !params_,
-                    << R"(BeginOfRunAction cannot be called more than once)");
-
-                // Update logger in case run manager has changed number of
-                // threads, or user called initialization after run manager
-                this->update_logger();
-
-                params_.Initialize(options_);
-            },
-            call_g4exception);
-    }
-    else
-    {
-        CELER_LOG(debug) << "Initializing worker";
-        CELER_TRY_HANDLE(
-            {
-                CELER_ASSERT(G4Threading::IsMultithreadedApplication());
-                CELER_VALIDATE(
-                    params_,
-                    << R"(BeginOfRunAction was not called on master thread)");
-                params_.InitializeWorker(options_);
-            },
-            call_g4exception);
-    }
-
-    CELER_ENSURE(params_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct thread-local transporter.
- *
- * Note that this uses the thread-local static data. It *must not* be called
- * from the master thread in a multithreaded run.
+ * This handles both global (master thread) and local (worker thread)
+ * initialization. In MT mode, the master thread initializes shared params,
+ * and worker threads initialize their local state.
  *
  * \return Whether Celeritas offloading is enabled
  */
-bool IntegrationSingleton::initialize_local_transporter()
+bool IntegrationSingleton::initialize_offload()
 {
-    CELER_EXPECT(params_);
+    if (G4Threading::IsMasterThread())
+    {
+        failed_setup_ = false;
+
+        ExceptionConverter call_g4exception{"celer.init.global"};
+        CELER_TRY_HANDLE(this->initialize_master_impl(), call_g4exception);
+        failed_setup_ = call_g4exception.forwarded();
+
+        // Start the run timer
+        get_time_ = {};
+    }
+    else if (!failed_setup_)
+    {
+        CELER_TRY_HANDLE(this->initialize_worker_impl(),
+                         ExceptionConverter{"celer.init.worker"});
+    }
+    CELER_ASSERT(params_ || failed_setup_);
+
+    // Now initialize local transporter
+    if (CELER_UNLIKELY(failed_setup_))
+    {
+        CELER_LOG_LOCAL(debug)
+            << R"(Skipping local initialization due to failure)";
+        return false;
+    }
 
     if (params_.mode() == OffloadMode::disabled)
     {
@@ -244,12 +221,9 @@ bool IntegrationSingleton::initialize_local_transporter()
     if (G4Threading::IsMultithreadedApplication()
         && G4Threading::IsMasterThread())
     {
-        // Cannot construct local transporter on master MT thread
+        // Do not construct local transporter on master MT thread
         return false;
     }
-
-    CELER_ASSERT(!G4Threading::IsMultithreadedApplication()
-                 || G4Threading::IsWorkerThread());
 
     if (params_.mode() == OffloadMode::kill_offload)
     {
@@ -259,70 +233,40 @@ bool IntegrationSingleton::initialize_local_transporter()
         return true;
     }
 
-    CELER_LOG(debug) << "Constructing local state";
-
-    CELER_TRY_HANDLE(
-        {
-            auto& lt = this->local_offload();
-            CELER_VALIDATE(!lt,
-                           << "local thread "
-                           << G4Threading::G4GetThreadId() + 1
-                           << " cannot be initialized more than once");
-            lt.Initialize(options_, params_);
-        },
-        ExceptionConverter("celer.init.local"));
+    CELER_TRY_HANDLE(this->initialize_local_impl(),
+                     ExceptionConverter("celer.init.local"));
     return true;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Destroy local transporter.
+ * Finalize thread-local transporter and (if main thread) shared params.
  */
-void IntegrationSingleton::finalize_local_transporter()
+void IntegrationSingleton::finalize_offload()
 {
+    if (CELER_UNLIKELY(failed_setup_))
+    {
+        return;
+    }
     CELER_EXPECT(params_);
 
-    if (params_.mode() != OffloadMode::enabled)
+    // Finalize local transporter
+    if (params_.mode() == OffloadMode::enabled)
     {
-        return;
+        if (!G4Threading::IsMultithreadedApplication()
+            || !G4Threading::IsMasterThread())
+        {
+            CELER_TRY_HANDLE(this->finalize_local_impl(),
+                             ExceptionConverter("celer.finalize.local"));
+        }
     }
 
-    if (G4Threading::IsMultithreadedApplication()
-        && G4Threading::IsMasterThread())
+    // Finalize shared params on main thread
+    if (G4Threading::IsMasterThread())
     {
-        // Cannot destroy local transporter on master MT thread
-        return;
+        CELER_TRY_HANDLE(this->finalize_shared_impl(),
+                         ExceptionConverter("celer.finalize.global"));
     }
-
-    CELER_LOG(debug) << "Destroying local state";
-
-    CELER_TRY_HANDLE(
-        {
-            auto& lt = this->local_offload();
-            CELER_VALIDATE(lt,
-                           << "local thread "
-                           << G4Threading::G4GetThreadId() + 1
-                           << " cannot be finalized more than once");
-            params_.timer()->RecordActionTime(lt.GetActionTime());
-            lt.Finalize();
-        },
-        ExceptionConverter("celer.finalize.local"));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Destroy params.
- */
-void IntegrationSingleton::finalize_shared_params()
-{
-    CELER_LOG(status) << "Finalizing Celeritas";
-    CELER_TRY_HANDLE(
-        {
-            CELER_VALIDATE(params_,
-                           << "params cannot be finalized more than once");
-            params_.Finalize();
-        },
-        ExceptionConverter("celer.finalize.global"));
 }
 
 //---------------------------------------------------------------------------//
@@ -345,27 +289,6 @@ IntegrationSingleton::IntegrationSingleton()
 
 //---------------------------------------------------------------------------//
 /*!
- * Static THREAD-LOCAL Celeritas offload.
- */
-auto IntegrationSingleton::local_offload_ptr() -> UPOffload&
-{
-    static G4ThreadLocal UPOffload offload;
-    return offload;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the local optical offload is used.
- */
-bool IntegrationSingleton::optical_offload() const
-{
-    return options_.optical
-           && std::holds_alternative<inp::OpticalOffloadGenerator>(
-               options_.optical->generator);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create or update the number of threads for the logger.
  */
 void IntegrationSingleton::update_logger()
@@ -377,17 +300,104 @@ void IntegrationSingleton::update_logger()
             celeritas::world_logger() = celeritas::MakeMTWorldLogger(*run_man);
             celeritas::self_logger() = celeritas::MakeMTSelfLogger(*run_man);
             have_created_logger_ = true;
+            CELER_LOG(debug) << "Celeritas logging redirected through Geant4";
         }
         else
         {
-            if (auto* handle
-                = celeritas::world_logger().handle().target<MtSelfWriter>())
+            if (celeritas::world_logger().handle().target<MtSelfWriter>())
             {
-                // Update thread count
-                *handle = MtSelfWriter{get_geant_num_threads(*run_man)};
+                // Update thread count by replacing log handle
+                celeritas::world_logger().handle(
+                    MtSelfWriter{get_geant_num_threads(*run_man)});
             }
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize shared params implementation.
+ */
+void IntegrationSingleton::initialize_master_impl()
+{
+    CELER_EXPECT(G4Threading::IsMasterThread());
+
+    CELER_LOG(debug) << "Initializing shared params";
+    CELER_VALIDATE(
+        options_,
+        << R"(SetOptions or UI entries were not completely set before BeginRun)");
+    CELER_VALIDATE(!params_,
+                   << R"(BeginOfRunAction cannot be called more than once)");
+
+    Stopwatch get_setup_time;
+
+    // Update logger in case run manager has changed number of
+    // threads, or user called initialization after run manager
+    this->update_logger();
+
+    // Perform initialization
+    params_.Initialize(options_);
+
+    // Record the setup time after initialization
+    params_.timer()->RecordSetupTime(get_setup_time());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize worker thread implementation.
+ */
+void IntegrationSingleton::initialize_worker_impl()
+{
+    CELER_EXPECT(G4Threading::IsMultithreadedApplication());
+
+    CELER_LOG(debug) << "Initializing worker";
+    CELER_VALIDATE(params_,
+                   << R"(BeginOfRunAction was not called on master thread)");
+    params_.InitializeWorker(options_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize local transporter implementation.
+ */
+void IntegrationSingleton::initialize_local_impl()
+{
+    CELER_EXPECT(!G4Threading::IsMultithreadedApplication()
+                 || G4Threading::IsWorkerThread());
+
+    CELER_LOG(debug) << "Constructing local state";
+    auto& lt = this->local_offload();
+    CELER_VALIDATE(!lt,
+                   << "local thread " << G4Threading::G4GetThreadId() + 1
+                   << " cannot be initialized more than once");
+    lt.Initialize(options_, params_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Finalize local transporter implementation.
+ */
+void IntegrationSingleton::finalize_local_impl()
+{
+    CELER_LOG(debug) << "Destroying local state";
+    auto& lt = this->local_offload();
+    CELER_VALIDATE(lt,
+                   << "local thread " << G4Threading::G4GetThreadId() + 1
+                   << " cannot be finalized more than once");
+    params_.timer()->RecordActionTime(lt.GetActionTime());
+    lt.Finalize();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Finalize shared params implementation.
+ */
+void IntegrationSingleton::finalize_shared_impl()
+{
+    CELER_LOG(status) << "Finalizing Celeritas";
+    CELER_VALIDATE(params_, << "params cannot be finalized more than once");
+    params_.timer()->RecordTotalTime(get_time_());
+    params_.Finalize();
 }
 
 //---------------------------------------------------------------------------//

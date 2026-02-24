@@ -76,7 +76,7 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
     this->build_data(&host_ref, materials, host_ref.electron_mass.value());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<RelativisticBremData>{std::move(host_ref)};
+    data_ = ParamsDataStore<RelativisticBremData>{std::move(host_ref)};
     CELER_ENSURE(this->data_);
 }
 

@@ -8,20 +8,20 @@
 
 #include <G4VPhysicsConstructor.hh>
 
-#include "celeritas/ext/GeantOpticalPhysicsOptions.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct Celeritas-supported optical physics.
+ * Construct Celeritas-supported optical physics processes.
  */
 class SupportedOpticalPhysics : public G4VPhysicsConstructor
 {
   public:
     //!@{
     //! \name Type aliases
-    using Options = GeantOpticalPhysicsOptions;
+    using Options = GeantPhysicsOptions;
     //!@}
 
   public:
@@ -34,7 +34,8 @@ class SupportedOpticalPhysics : public G4VPhysicsConstructor
     void ConstructProcess() override;
 
   private:
-    Options options_;
+    GeantOpticalPhysicsOptions options_;
+    bool only_optical_;
 };
 
 //---------------------------------------------------------------------------//

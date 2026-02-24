@@ -100,6 +100,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file
     virtual UPSensDet make_sens_det(std::string const& sd_name);
 
+    // Fail when GeantExceptionHandler catches a celeritas RuntimeError
+    virtual void caught_g4_runtime_error(RuntimeError const& e);
+
     //!@{
     //! \name Dispatch from user run/event actions
     virtual void BeginOfRunAction(G4Run const* run) = 0;
@@ -109,6 +112,14 @@ class IntegrationTestBase : public ::celeritas::test::Test
     //!@}
 };
 
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+void enable_optical_physics(IntegrationTestBase::PhysicsInput&);
+
+//---------------------------------------------------------------------------//
+// TEST PROBLEM MIXINS
 //---------------------------------------------------------------------------//
 //! Generate LAr sphere geometry with 10 MeV electrons and functional hit call
 class LarSphereIntegrationMixin : virtual public IntegrationTestBase

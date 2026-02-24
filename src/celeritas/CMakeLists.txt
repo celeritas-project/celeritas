@@ -46,6 +46,7 @@ list(APPEND SOURCES
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
   em/process/CoulombScatteringProcess.cc
+  em/process/ElectroNuclearProcess.cc
   em/process/EIonizationProcess.cc
   em/process/EPlusAnnihilationProcess.cc
   em/process/GammaConversionProcess.cc
@@ -80,7 +81,14 @@ list(APPEND SOURCES
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
   grid/XsGridInserter.cc
+  inp/ControlIO.json.cc
+  inp/DiagnosticsIO.json.cc
+  inp/EventsIO.json.cc
   inp/MucfPhysics.cc
+  inp/ProblemIO.json.cc
+  inp/StandaloneInputIO.json.cc
+  inp/SystemIO.json.cc
+  inp/TrackingIO.json.cc
   io/AtomicRelaxationReader.cc
   io/GammaNuclearXsReader.cc
   io/ImportData.cc
@@ -99,6 +107,10 @@ list(APPEND SOURCES
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
+  mucf/model/detail/EquilibrateDensitiesSolver.cc
+  mucf/model/detail/InterpolatorHelper.cc
+  mucf/model/detail/MucfMaterialInserter.cc
+  mucf/process/MucfProcess.cc
   neutron/model/CascadeOptions.cc
   neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
@@ -115,6 +127,8 @@ list(APPEND SOURCES
   optical/MaterialParams.cc
   optical/ModelImporter.cc
   optical/PhysicsParams.cc
+  optical/Runner.cc
+  optical/SimParams.cc
   optical/Transporter.cc
   optical/Types.cc
   optical/action/ActionGroups.cc
@@ -124,6 +138,7 @@ list(APPEND SOURCES
   optical/surface/SurfaceSteppingAction.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
+  phys/GeneratorCountersIO.json.cc
   phys/GeneratorInterface.cc
   phys/GeneratorRegistry.cc
   phys/ImportedModelAdapter.cc
@@ -153,7 +168,6 @@ list(APPEND SOURCES
   user/DetectorSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc
-  user/SDParams.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
@@ -182,20 +196,30 @@ if(CELERITAS_USE_covfie)
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
-
-  celeritas_add_object_library(celeritas_covfie ${_celer_covfie_src})
-  celeritas_target_link_libraries(celeritas_covfie
-    PRIVATE
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    # NOTE: object libraries do not work properly with RDC builds or HIP
+    list(APPEND SOURCES ${_celer_covfie_src})
+    list(APPEND PRIVATE_DEPS
       Celeritas::BuildFlags
       Celeritas::geocel
       ${_core_geo_deps}
       Celeritas::Extcovfie
-  )
-  list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_covfie>)
-  list(APPEND PRIVATE_DEPS celeritas_covfie)
+    )
+  else()
+    celeritas_add_object_library(celeritas_covfie ${_celer_covfie_src})
+    celeritas_target_link_libraries(celeritas_covfie
+      PRIVATE
+        Celeritas::BuildFlags
+        Celeritas::geocel
+        ${_core_geo_deps}
+        Celeritas::Extcovfie
+    )
+    list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_covfie>)
+    list(APPEND PRIVATE_DEPS celeritas_covfie)
+  endif()
 else()
   celeritas_polysource_append(SOURCES
-  alongstep/AlongStepCartMapFieldMscAction)
+    alongstep/AlongStepCartMapFieldMscAction)
 endif()
 
 if(CELERITAS_USE_Geant4)
@@ -210,6 +234,7 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
+    ext/GeantTrackReconstruction.cc
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
@@ -223,8 +248,15 @@ if(CELERITAS_USE_Geant4)
     ext/detail/NaviTouchableUpdater.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
-    ext/detail/TrackProcessor.cc
   )
+
+  if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
+    # NOTE: G4GammaNuclearXS is unavailable for 10.6 or lower,
+    # incomplete until version 11
+    list(APPEND _cg4_sources
+      g4/EmExtraPhysicsHelper.cc
+    )
+  endif()
 
   celeritas_get_g4libs(_cg4_libs
     global geometry materials processes run physicslists tasking
@@ -338,6 +370,7 @@ celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)
+celeritas_polysource(em/model/ElectroNuclearModel)
 celeritas_polysource(em/model/EPlusGGModel)
 celeritas_polysource(em/model/GammaNuclearModel)
 celeritas_polysource(em/model/ICRU73QOModel)
@@ -354,6 +387,7 @@ celeritas_polysource(em/model/CoulombScatteringModel)
 celeritas_polysource(geo/detail/BoundaryAction)
 celeritas_polysource(global/detail/KillActive)
 celeritas_polysource(global/detail/TrackSlotUtils)
+celeritas_polysource(mucf/model/DTMixMucfModel)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
@@ -361,6 +395,7 @@ celeritas_polysource(optical/model/MieModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
+celeritas_polysource(optical/action/DetectorAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)
@@ -373,8 +408,12 @@ celeritas_polysource(optical/gen/DirectGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
-celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
 celeritas_polysource(optical/surface/model/DielectricInteractionModel)
+celeritas_polysource(optical/surface/model/FresnelReflectivityModel)
+celeritas_polysource(optical/surface/model/GaussianRoughnessModel)
+celeritas_polysource(optical/surface/model/GridReflectivityModel)
+celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
+celeritas_polysource(optical/surface/model/SmearRoughnessModel)
 celeritas_polysource(optical/surface/model/TrivialInteractionModel)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)

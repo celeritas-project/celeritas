@@ -6,7 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomSetup.hh"
 
+#include <VecGeom/base/Version.h>
 #include <VecGeom/management/BVHManager.h>
+
+#if VECGEOM_VERSION >= 0x020000
+#    include <VecGeom/management/DeviceGlobals.h>
+#endif
 
 #include "corecel/data/DeviceVector.hh"
 
@@ -39,7 +44,7 @@ struct BvhGetter
 
     pointer_type* dest{nullptr};
 
-    CELER_FUNCTION void operator()(ThreadId tid)
+    __device__ void operator()(ThreadId tid)
     {
         CELER_EXPECT(tid == ThreadId{0});
         *dest = vecgeom::cuda::BVHManager::GetBVH(0);
@@ -50,7 +55,7 @@ struct BvhGetter
 //! Copy the navigation table pointer address to global memory
 struct NavIndexGetter
 {
-    using pointer_type = NavIndex_t const*;
+    using pointer_type = VgNavIndex const*;
     static constexpr char const label[] = "navindex";
 
     pointer_type* dest{nullptr};
@@ -59,6 +64,46 @@ struct NavIndexGetter
     {
         CELER_EXPECT(tid == ThreadId{0});
         *dest = vecgeom::globaldevicegeomdata::gNavIndex;
+    }
+};
+
+//---------------------------------------------------------------------------//
+//! Copy the logical volume pointer table
+struct LogicalVolumesGetter
+{
+    using pointer_type = vecgeom::cuda::LogicalVolume const*;
+    static constexpr char const label[] = "logical-volumes";
+
+    pointer_type* dest{nullptr};
+
+    __device__ void operator()(ThreadId tid)
+    {
+        CELER_EXPECT(tid == ThreadId{0});
+#if VECGEOM_VERSION >= 0x020000
+        *dest = vecgeom::globaldevicegeomdata::gDeviceLogicalVolumes;
+#else
+        *dest = nullptr;
+#endif
+    }
+};
+
+//---------------------------------------------------------------------------//
+//! Copy the placed volume pointer table
+struct PlacedVolumesGetter
+{
+    using pointer_type = vecgeom::cuda::VPlacedVolume const*;
+    static constexpr char const label[] = "placed-volumes";
+
+    pointer_type* dest{nullptr};
+
+    __device__ void operator()(ThreadId tid)
+    {
+        CELER_EXPECT(tid == ThreadId{0});
+#if VECGEOM_VERSION >= 0x020000
+        *dest = vecgeom::globaldevicegeomdata::gCompactPlacedVolBuffer;
+#else
+        *dest = nullptr;
+#endif
     }
 };
 
@@ -125,9 +170,9 @@ CudaPointers<CudaBVH_t const> bvh_pointers_device()
 /*!
  * Get pointers to the device BVH after setup, for consistency checking.
  */
-CudaPointers<NavIndex_t const> navindex_pointers_device()
+CudaPointers<VgNavIndex const> navindex_pointers_device()
 {
-    CudaPointers<NavIndex_t const> result;
+    CudaPointers<VgNavIndex const> result;
 
     // Copy from kernel using 1-thread launch
     result.kernel = get_device_pointer<NavIndexGetter>();
@@ -142,6 +187,18 @@ CudaPointers<NavIndex_t const> navindex_pointers_device()
     CELER_DEVICE_API_CALL(DeviceSynchronize());
 
     return result;
+}
+
+void check_other_device_pointers()
+{
+    if constexpr (VECGEOM_VERSION >= 0x020000)
+    {
+        CELER_VALIDATE(get_device_pointer<LogicalVolumesGetter>() != nullptr,
+                       << "failed to copy VG logical volumes to GPU");
+
+        CELER_VALIDATE(get_device_pointer<PlacedVolumesGetter>() != nullptr,
+                       << "failed to copy VG placed volumes to GPU");
+    }
 }
 
 #if CELER_VGNAV == CELER_VGNAV_TUPLE

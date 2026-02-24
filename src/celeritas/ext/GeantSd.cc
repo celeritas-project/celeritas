@@ -6,27 +6,20 @@
 //---------------------------------------------------------------------------//
 #include "GeantSd.hh"
 
-#include <mutex>
-#include <unordered_map>
 #include <utility>
 #include <G4LogicalVolumeStore.hh>
 #include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
-#include "corecel/Config.hh"
-
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Join.hh"
-#include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/ParticleParams.hh"
-
-#include "GeantSetup.hh"
 
 #include "detail/HitProcessor.hh"
 #include "detail/SensDetInserter.hh"
@@ -196,7 +189,7 @@ void GeantSd::setup_volumes(inp::GeantSd const& setup)
         {
             if (G4VSensitiveDetector* sd = lv->GetSensitiveDetector())
             {
-                // Sensitive detector is attached to the master thread
+                // Sensitive detector is attached to the main thread
                 insert_volume(lv, sd);
             }
         }

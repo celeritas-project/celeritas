@@ -81,11 +81,13 @@ jobs:
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --version
-          cmake --preset=${CMAKE_PRESET} \
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
             ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0} ', matrix.cxxstd) || ''}} \
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
+            -DCeleritas_VERSION_STRING="${{
+              github.event.pull_request
+              && format('-pr.{0}', github.event.pull_request.number)
+              || format('-{0}', github.ref_name)
+            }}"
 
       ### BUILD ###
 
@@ -174,10 +176,12 @@ jobs:
       - name: Configure Celeritas
         run: |
           Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
-          cmake --preset=$Env:CMAKE_PRESET `
-            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
-              && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}"
+          cmake --preset=$Env:CMAKE_PRESET --log-level=VERBOSE `
+            -DCeleritas_VERSION_STRING="${{
+              github.event.pull_request
+              && format('-pr.{0}', github.event.pull_request.number)
+              || format('-{0}', github.ref_name)
+            }}"
 
       ### BUILD ###
 

@@ -28,7 +28,8 @@ namespace inp
  * used in MPI parallel (e.g., one process per GPU), each process \em rank has
  * \c tracks total threads.
  *
- * \note The \c primaries was previously named \c auto_flush .
+ * \note The \c primaries was previously named \c auto_flush . It is not used
+ * in standalone EM or optical-only runs.
  * \note Previously, \c SetupOptions and \c celer-g4 treated these quantities
  * as "per stream" whereas \c celer-sim used "per process".
  *
@@ -75,22 +76,42 @@ struct CoreStateCapacity : StateCapacity
     size_type initializers{};
     //! Maximum number of secondaries created per step
     std::optional<size_type> secondaries;
-
-    //! Maximum number of simultaneous events (zero for doing one event at a
-    //! time)
+    //! Maximum number of simultaneous events (zero for one event at a time)
     std::optional<size_type> events;
+
+    //! Return default values
+    static CoreStateCapacity from_default(bool use_device)
+    {
+        CoreStateCapacity result;
+        result.tracks = use_device ? 1048576 : 4096;
+        result.primaries = result.tracks;
+        result.initializers = 8 * result.tracks;
+        result.secondaries = 2 * result.tracks;
+        return result;
+    }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Set up per-process state/buffer capacities for the optical tracking loop.
  *
- * \note \c generators was previously named \c buffer_capacity .
+ * \note \c generators was previously named \c buffer_capacity. It is required
+ * for the offload and direct generators but not the primary generator.
  */
 struct OpticalStateCapacity : StateCapacity
 {
     //! Maximum number of queued photon-generating steps
     size_type generators{};
+
+    //! Return default values
+    static OpticalStateCapacity from_default(bool use_device)
+    {
+        OpticalStateCapacity result;
+        result.tracks = use_device ? 1048576 : 4096;
+        result.primaries = 128 * result.tracks;
+        result.generators = 2 * result.tracks;
+        return result;
+    }
 };
 
 //---------------------------------------------------------------------------//

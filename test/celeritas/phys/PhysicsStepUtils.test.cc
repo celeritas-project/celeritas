@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/phys/PhysicsStepUtils.hh"
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
@@ -22,6 +22,7 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -33,11 +34,10 @@ class PhysicsStepUtilsTest : public MockTestBase
 
   protected:
     using MaterialStateStore
-        = CollectionStateStore<MaterialStateData, MemSpace::host>;
+        = StateDataStore<MaterialStateData, MemSpace::host>;
     using ParticleStateStore
-        = CollectionStateStore<ParticleStateData, MemSpace::host>;
-    using PhysicsStateStore
-        = CollectionStateStore<PhysicsStateData, MemSpace::host>;
+        = StateDataStore<ParticleStateData, MemSpace::host>;
+    using PhysicsStateStore = StateDataStore<PhysicsStateData, MemSpace::host>;
 
     using MevEnergy = units::MevEnergy;
 
@@ -400,7 +400,7 @@ class StepLimiterTest : public PhysicsStepUtilsTest
         PhysicsOptions opts;
 
         opts.light.min_range = inf;  // Use analytic range instead of scaled
-        opts.fixed_step_limiter = 1e-3 * units::centimeter;
+        opts.fixed_step_limiter = 1e-3_cm;
         return opts;
     }
 };

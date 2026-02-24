@@ -13,9 +13,9 @@
 #include "corecel/data/AuxState.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
@@ -48,9 +48,14 @@ class CoreStateInterface
     //! Number of track slots
     virtual size_type size() const = 0;
 
-    //! Access track initialization counters
-    virtual CoreStateCounters const& counters() const = 0;
+    //! Synchronize and copy track initialization counters from device to host
+    //! For host-only code, this replaces the old counters() function
+    [[nodiscard]] virtual CoreStateCounters sync_get_counters() const = 0;
 
+    //! Synchronize and copy track initialization counters from host to device
+    //! For host-only code, this replaces the old counters() function
+    //! since we return a CoreStateCounters object instead of a reference
+    virtual void sync_put_counters(CoreStateCounters const&) = 0;
     //! Access auxiliary state data
     virtual AuxStateVec const& aux() const = 0;
 
@@ -130,11 +135,13 @@ class CoreState final : public CoreStateInterface
 
     //// COUNTERS ////
 
-    //! Track initialization counters
-    CoreStateCounters& counters() { return counters_; }
+    //! Synchronize and copy track initialization counters from device to host
+    [[nodiscard]] CoreStateCounters sync_get_counters() const final;
 
-    //! Track initialization counters
-    CoreStateCounters const& counters() const final { return counters_; }
+    //! Synchronize and copy track initialization counters from host to device
+    //! For host-only code, this copies the local CoreStateCounters back to the
+    //! class, since sync_get_counters() doesn't return a reference
+    void sync_put_counters(CoreStateCounters const&) final;
 
     //// AUXILIARY DATA ////
 
@@ -170,16 +177,13 @@ class CoreState final : public CoreStateInterface
 
   private:
     // State data
-    CollectionStateStore<CoreStateData, M> states_;
+    StateDataStore<CoreStateData, M> states_;
 
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;
 
     // Native pointer to ref data
     Ptr ptr_;
-
-    // Counters for track initialization and activity
-    CoreStateCounters counters_;
 
     // User-added data associated with params
     SPAuxStateVec aux_state_;

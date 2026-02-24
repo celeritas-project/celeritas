@@ -43,6 +43,7 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //!@{
     //! \name Type aliases
     using TrackingResult = GenericGeoTrackingResult;
+    using TrackingTol = GenericGeoTrackingTolerance;
     using VolumeStackResult = GenericGeoVolumeStackResult;
     using GeoTrackView = GeoTrackInterface<real_type>;
     using UPGeoTrack = std::unique_ptr<GeoTrackView>;
@@ -52,6 +53,12 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //// TESTS ////
 
     // Track until exiting the geometry
+    TrackingResult track(Real3 const& pos_cm,
+                         Real3 const& dir,
+                         TrackingTol const& tol,
+                         int max_steps);
+
+    // Track until exiting the geometry (default test tol)
     TrackingResult
     track(Real3 const& pos_cm, Real3 const& dir, int max_steps = 50);
 
@@ -68,14 +75,14 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //! Get the label for this geometry: Geant4, VecGeom, ORANGE
     virtual std::string_view geometry_type() const = 0;
 
-    //! Access the geometry interface
+    //! Access the geometry params interface (todo: rename geo_params?)
     virtual SPConstGeoI geometry_interface() const = 0;
 
     //! Create a track view (TODO: replace geo test base view)
     virtual UPGeoTrack make_geo_track_view_interface() = 0;
 
     // Create a checked track view
-    CheckedGeoTrackView make_checked_track_view();
+    virtual CheckedGeoTrackView make_checked_track_view();
 
     //// CONFIGURABLE INTERFACE ////
 
@@ -84,9 +91,6 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
 
     // Maximum number of local track slots
     virtual size_type num_track_slots() const;
-
-    // Whether surface normals work for the current geometry/test
-    virtual bool supports_surface_normal() const;
 
     // Get the safety tolerance (defaults to SoftEq tol) for tracking result
     virtual GenericGeoTrackingTolerance tracking_tol() const;

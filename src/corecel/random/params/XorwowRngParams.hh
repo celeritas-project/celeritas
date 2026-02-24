@@ -8,8 +8,8 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/random/data/XorwowRngData.hh"
 
 namespace celeritas
@@ -37,7 +37,7 @@ class XorwowRngParams final : public ParamsDataInterface<XorwowRngParamsData>
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<XorwowRngParamsData> data_;
+    ParamsDataStore<XorwowRngParamsData> data_;
 
     //// TYPES ////
 

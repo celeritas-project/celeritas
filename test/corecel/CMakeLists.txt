@@ -101,11 +101,12 @@ celeritas_add_test(math/TridiagonalSolver.test.cc)
 
 celeritas_add_test(random/CachedRngEngine.test.cc)
 celeritas_add_test(random/Histogram.test.cc)
+celeritas_add_test(random/RanluxppRngEngine.test.cc GPU)
 celeritas_add_device_test(random/RngEngine
   LINK_LIBRARIES Celeritas::ExtThrust)
 celeritas_add_test(random/Selector.test.cc)
+celeritas_add_test(random/SplitMix64.test.cc GPU)
 celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
-celeritas_add_test(random/RanluxppRngEngine.test.cc GPU)
 
 celeritas_add_test(random/distribution/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distribution/ExponentialDistribution.test.cc)
@@ -128,6 +129,7 @@ celeritas_add_test(sys/ActionRegistry.test.cc)
 celeritas_add_test(sys/Device.test.cc GPU
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
+celeritas_add_test(sys/DeviceEvent.test.cc GPU)
 celeritas_add_test(sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
   LINK_LIBRARIES nlohmann_json::nlohmann_json

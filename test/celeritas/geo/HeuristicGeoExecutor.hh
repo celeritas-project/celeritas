@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Atomics.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
@@ -20,12 +21,7 @@
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/UnitUtils.hh"
-#include "celeritas/Units.hh"
-#include "celeritas/geo/GeoTrackView.hh"
-
-#if !CELER_DEVICE_SOURCE
-#    include "corecel/cont/ArrayIO.hh"
-#endif
+#include "celeritas/geo/CoreGeoTrackView.hh"
 
 #include "HeuristicGeoData.hh"
 
@@ -37,11 +33,8 @@ namespace test
 
 struct HeuristicGeoExecutor
 {
-    using ParamsRef = NativeCRef<HeuristicGeoParamsData>;
-    using StateRef = NativeRef<HeuristicGeoStateData>;
-
-    ParamsRef params;
-    StateRef state;
+    HeuristicGeoParamsPtr<MemSpace::native> params_ptr;
+    HeuristicGeoStatePtr<MemSpace::native> state_ptr;
 
     CELER_FUNCTION void operator()(ThreadId tid) const
     {
@@ -59,6 +52,11 @@ struct HeuristicGeoExecutor
  */
 CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
 {
+    CELER_EXPECT(params_ptr && state_ptr);
+
+    auto const& params = *params_ptr;
+    auto const& state = *state_ptr;
+
     RngEngine rng(params.rng, state.rng, tid);
     GeoTrackView geo(params.geometry, state.geometry, tid);
     if (state.status[tid] == LifeStatus::unborn)
@@ -146,7 +144,12 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
             }
         }
 
-        if (prop.boundary)
+        if (geo.failed())
+        {
+            state.status[tid] = LifeStatus::dead;
+            return;
+        }
+        else if (prop.boundary)
         {
             geo.move_to_boundary();
             CELER_ASSERT(geo.is_on_boundary());
@@ -155,7 +158,7 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
         {
             // Check for similar assertions in FieldPropagator before loosening
             // this one!
-            CELER_ASSERT(prop.distance == step);
+            CELER_ASSERT(prop.distance <= step);
             CELER_ASSERT(prop.distance > 0);
 #if CELERITAS_DEBUG
             auto orig_pos = geo.pos();

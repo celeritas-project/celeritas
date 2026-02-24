@@ -258,7 +258,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
             nlohmann::json out = opts;
             out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"mucf_physics":false,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true})json",
                 std::string(out.dump()));
         }
         return opts;
@@ -1434,7 +1434,6 @@ TEST_F(TestEm3, volume_names)
 TEST_F(TestEm3, unique_volumes)
 {
     selection_.reader_data = false;
-    selection_.unique_volumes = true;
 
     auto const& volumes = this->imported_data().volumes;
 
@@ -1930,7 +1929,6 @@ TEST_F(Solids, volumes_only)
     selection_.processes = GeantImportDataSelection::none;
     selection_.materials = false;
     selection_.reader_data = false;
-    selection_.unique_volumes = false;
 
     auto const& imported = this->imported_data();
     EXPECT_EQ(0, imported.processes.size());
@@ -1945,13 +1943,14 @@ TEST_F(Solids, volumes_only)
         names.push_back(volume.name);
     }
 
-    static char const* const expected_names[]
-        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
-           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl@0"};
+    static char const* const expected_names[] = {
+        "box500",    "cone1",    "para1",     "sphere1",    "parabol1",
+        "trap1",     "trd1",     "trd2",      "",           "trd3_also",
+        "tube100",   "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1",   "orb1",     "polyhedr1", "hype1",      "elltube1",
+        "ellcone1",  "arb8b",    "arb8a",     "xtru1",      "World",
+        "trd3_refl",
+    };
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -1962,7 +1961,6 @@ TEST_F(Solids, volumes_unique)
     selection_.processes = GeantImportDataSelection::none;
     selection_.materials = false;
     selection_.reader_data = false;
-    selection_.unique_volumes = true;  // emulates accel/SharedParams
 
     auto const& imported = this->imported_data();
 
@@ -1971,13 +1969,14 @@ TEST_F(Solids, volumes_unique)
     {
         names.push_back(volume.name);
     }
-    static char const* const expected_names[]
-        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
-           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl@0"};
+    static char const* const expected_names[] = {
+        "box500",    "cone1",    "para1",     "sphere1",    "parabol1",
+        "trap1",     "trd1",     "trd2",      "",           "trd3_also",
+        "tube100",   "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1",   "orb1",     "polyhedr1", "hype1",      "elltube1",
+        "ellcone1",  "arb8b",    "arb8a",     "xtru1",      "World",
+        "trd3_refl",
+    };
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -2135,30 +2134,27 @@ TEST_F(OpticalSurfaces, surfaces)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MucfBox, run)
+TEST_F(MucfBox, static_data)
 {
     auto const& mucf = this->imported_data().mucf_physics;
     EXPECT_TRUE(mucf);
 
-    static double const expected_muon_energy_cdf_y[] = {1, 1};
-    EXPECT_EQ(2, mucf.muon_energy_cdf.x.size());
-    EXPECT_VEC_EQ(expected_muon_energy_cdf_y, mucf.muon_energy_cdf.y);
+    auto average = [](inp::Grid::VecDbl const& data) -> double {
+        double sum{0};
+        for (auto y : data)
+        {
+            sum += y;
+        }
+        return sum / data.size();
+    };
 
-    auto const& cycle_f0 = mucf.cycle_rates[0];
-    static double const expected_cycle_rate_f0_y[] = {2, 2};
-    EXPECT_TRUE(cycle_f0);
-    EXPECT_EQ(cycle_f0.molecule, MucfMuonicMolecule::deuterium_tritium);
-    EXPECT_EQ("F=0", cycle_f0.spin_label);
-    EXPECT_EQ(2, cycle_f0.rate.x.size());
-    EXPECT_VEC_EQ(expected_cycle_rate_f0_y, cycle_f0.rate.y);
+    static size_t const expected_muon_energy_cdf_size = 21;
+    EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.x.size());
+    EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.y.size());
+    EXPECT_SOFT_EQ(0.55157437567861023, average(mucf.muon_energy_cdf.x));
+    EXPECT_SOFT_EQ(11.250286274435437, average(mucf.muon_energy_cdf.y));
 
-    auto const& cycle_f1 = mucf.cycle_rates[1];
-    static double const expected_cycle_rate_f1_y[] = {3, 3};
-    EXPECT_TRUE(cycle_f1);
-    EXPECT_EQ(cycle_f1.molecule, MucfMuonicMolecule::deuterium_tritium);
-    EXPECT_EQ("F=1", cycle_f1.spin_label);
-    EXPECT_EQ(2, cycle_f1.rate.x.size());
-    EXPECT_VEC_EQ(expected_cycle_rate_f1_y, cycle_f1.rate.y);
+    //! \todo Add real cycle rate data test
 
     EXPECT_TRUE(mucf.atom_transfer.empty());
     EXPECT_TRUE(mucf.atom_spin_flip.empty());

@@ -8,7 +8,7 @@
 
 #include <type_traits>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "geocel/GeoTraits.hh"
 #include "geocel/WrappedGeoTrackView.hh"
 
@@ -69,12 +69,7 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
     // Get a host track view
     WrappedGeoTrack make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});
     //! Get and initialize a single-thread host track view
-    WrappedGeoTrack make_geo_track_view(Real3 const& pos_cm, Real3 dir)
-    {
-        auto tv = this->make_geo_track_view();
-        tv = this->make_initializer(pos_cm, dir);
-        return tv;
-    }
+    WrappedGeoTrack make_geo_track_view(Real3 const& pos_cm, Real3 dir);
 
     //// GenericGeoTestInterface ////
 
@@ -88,7 +83,11 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
   private:
     template<Ownership W, MemSpace M>
     using StateData = typename TraitsT::template StateData<W, M>;
-    using HostStateStore = CollectionStateStore<StateData, MemSpace::host>;
+    // Use host store normally, or placeholder if not configured
+    using HostStateStore
+        = std::conditional_t<is_geometry_configured_v<G>,
+                             StateDataStore<StateData, MemSpace::host>,
+                             int>;
 
     SPConstGeo geo_;
     HostStateStore host_state_;

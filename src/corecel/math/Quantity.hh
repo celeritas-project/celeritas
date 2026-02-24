@@ -13,6 +13,10 @@
 
 #include "detail/QuantityImpl.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include <ostream>
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -74,6 +78,7 @@ namespace celeritas
  * operate in the Celeritas native unit system), use the resulting numeric
  * values in your mathematical expressions, then return a new Quantity class
  * with the resulting value and correct type.
+ * Furthermore, this class is \em not compatible with \c Array.
  */
 template<class UnitT, class ValueT>
 class Quantity
@@ -346,6 +351,21 @@ inline char const* accessor_unit_label()
 {
     return detail::AccessorResultType<T>::unit_type::label();
 }
+
+#if !CELER_DEVICE_COMPILE
+//---------------------------------------------------------------------------//
+/*!
+ * Output an quantity with its label.
+ */
+template<class UnitT, class ValueT>
+std::ostream& operator<<(std::ostream& os, Quantity<UnitT, ValueT> const& q)
+{
+    static_assert(sizeof(UnitT::label()) > 0,
+                  "Unit does not have a 'label' definition");
+    os << q.value() << " [" << UnitT::label() << ']';
+    return os;
+}
+#endif
 
 //---------------------------------------------------------------------------//
 //! True if T is a Quantity

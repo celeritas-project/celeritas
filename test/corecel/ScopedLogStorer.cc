@@ -41,9 +41,7 @@ ScopedLogStorer::ScopedLogStorer(Logger* orig, LogLevel min_level)
     CELER_EXPECT(min_level != LogLevel::size_);
     // Create a new logger that calls our operator(), replace orig and store
     saved_logger_ = std::make_unique<Logger>(
-        std::exchange(*logger_, Logger{std::ref(*this)}));
-    // Catch everything, keep only what we want
-    logger_->level(LogLevel::debug);
+        std::exchange(*logger_, Logger{std::ref(*this), LogLevel::debug}));
 }
 
 //---------------------------------------------------------------------------//
@@ -74,7 +72,7 @@ void ScopedLogStorer::operator()(LogProvenance prov,
                                  std::string msg)
 {
     static LogLevel const debug_level
-        = log_level_from_env("CELER_LOG_SCOPED", LogLevel::warning);
+        = getenv_loglevel("CELER_LOG_SCOPED", LogLevel::warning);
     if (lev >= debug_level)
     {
         if (getenv_flag("CELER_LOG_SCOPED_VERBOSE", false).value)
@@ -107,6 +105,28 @@ void ScopedLogStorer::operator()(LogProvenance prov,
     StringSimplifier simplify{float_digits_};
     messages_.push_back(simplify(std::move(msg)));
     levels_.push_back(to_cstring(lev));
+}
+
+//---------------------------------------------------------------------------//
+//! Delete messages that contain a certain string
+void ScopedLogStorer::remove_if_contains(std::string const& s)
+{
+    auto it_msg = messages_.begin();
+    auto it_lev = levels_.begin();
+
+    while (it_msg != messages_.end())
+    {
+        if (it_msg->find(s) != std::string::npos)
+        {
+            it_msg = messages_.erase(it_msg);
+            it_lev = levels_.erase(it_lev);
+        }
+        else
+        {
+            ++it_msg;
+            ++it_lev;
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

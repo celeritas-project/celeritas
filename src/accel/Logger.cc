@@ -34,7 +34,7 @@ void write_serial(LogProvenance prov, LogLevel lev, std::string msg)
 }
 
 //---------------------------------------------------------------------------//
-//! Tag a singular output with worker/master: should usually be master
+//! Tag a singular output with worker/main: should usually be main
 void write_mt_world(LogProvenance prov, LogLevel lev, std::string msg)
 {
     if (G4Threading::G4GetThreadId() > 0)
@@ -88,11 +88,12 @@ Logger MakeMTWorldLogger(G4RunManager const& runman)
         }
         else
         {
-            // Only master and the first worker write
+            // Only main (and the first worker in MT mode) write
             handle = write_mt_world;
         }
     }
-    return Logger::from_handle_env(std::move(handle), "CELER_LOG");
+    return Logger{std::move(handle),
+                  getenv_loglevel("CELER_LOG", LogLevel::status)};
 }
 
 //---------------------------------------------------------------------------//
@@ -122,7 +123,8 @@ Logger MakeMTSelfLogger(G4RunManager const& runman)
     {
         handle = detail::MtSelfWriter{get_geant_num_threads(runman)};
     }
-    return Logger::from_handle_env(std::move(handle), "CELER_LOG_LOCAL");
+    return Logger{std::move(handle),
+                  getenv_loglevel("CELER_LOG_LOCAL", LogLevel::warning)};
 }
 
 //---------------------------------------------------------------------------//

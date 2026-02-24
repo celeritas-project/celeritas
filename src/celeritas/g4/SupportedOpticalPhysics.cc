@@ -119,9 +119,8 @@ G4String optical_process_type_to_geant_name(OpticalProcessType value)
  * Use `G4OpticalParameters` when available, otherwise use hardcoded
  * checks.
  */
-bool process_is_active(
-    OpticalProcessType process,
-    [[maybe_unused]] SupportedOpticalPhysics::Options const& options)
+bool process_is_active(OpticalProcessType process,
+                       [[maybe_unused]] GeantOpticalPhysicsOptions const& options)
 {
 #if G4VERSION_NUMBER >= 1070
     auto* params = G4OpticalParameters::Instance();
@@ -160,7 +159,8 @@ bool process_is_active(
  * Construct with physics options.
  */
 SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
-    : options_(options)
+    : options_(options.optical)
+    , only_optical_(!(options.em() || options.muon || options.mucf_physics))
 {
 #if G4VERSION_NUMBER >= 1070
     // Use of G4OpticalParameters only from Geant4 10.7
@@ -304,29 +304,40 @@ void SupportedOpticalPhysics::ConstructProcess()
 #endif
 
     // Add photon-generating processes to all particles they apply to
-    // TODO: Eventually replace with Celeritas step collector processes
+    //! \todo Eventually replace with Celeritas step collector processes
+
+    // Only update scintillation properties if there are particles that the
+    // process applies to. \c G4EmSaturation requires both electron and proton
+    // be defined, which is false for Celeritas optical-only runs.
     auto scint = ObservingUniquePtr{std::make_unique<G4Scintillation>()};
+    if (process_is_active(OpticalProcessType::scintillation, options_)
+        && !only_optical_)
+    {
 #if G4VERSION_NUMBER < 1070
-    scint->SetStackPhotons(options_.scintillation.stack_photons);
-    scint->SetTrackSecondariesFirst(
-        options_.scintillation.track_secondaries_first);
-    scint->SetScintillationByParticleType(
-        options_.scintillation.by_particle_type);
-    scint->SetFiniteRiseTime(options_.scintillation.finite_rise_time);
-    scint->SetScintillationTrackInfo(options_.scintillation.track_info);
-    // These two are not in 10.7 and newer, but defaults should be
-    // sufficient for now scint->SetScintillationYieldFactor(fYieldFactor);
-    // scint->SetScintillationExcitationRatio(fExcitationRatio);
+        scint->SetStackPhotons(options_.scintillation.stack_photons);
+        scint->SetTrackSecondariesFirst(
+            options_.scintillation.track_secondaries_first);
+        scint->SetScintillationByParticleType(
+            options_.scintillation.by_particle_type);
+        scint->SetFiniteRiseTime(options_.scintillation.finite_rise_time);
+        scint->SetScintillationTrackInfo(options_.scintillation.track_info);
+        // These two are not in 10.7 and newer, but defaults should be
+        // sufficient for now scint->SetScintillationYieldFactor(fYieldFactor);
+        // scint->SetScintillationExcitationRatio(fExcitationRatio);
 #endif
-    scint->AddSaturation(G4LossTableManager::Instance()->EmSaturation());
+        scint->AddSaturation(G4LossTableManager::Instance()->EmSaturation());
+    }
 
     auto cherenkov = ObservingUniquePtr{std::make_unique<G4Cerenkov>()};
 #if G4VERSION_NUMBER < 1070
-    cherenkov->SetStackPhotons(options_.cherenkov.stack_photons);
-    cherenkov->SetTrackSecondariesFirst(
-        options_.cherenkov.track_secondaries_first);
-    cherenkov->SetMaxNumPhotonsPerStep(options_.cherenkov.max_photons);
-    cherenkov->SetMaxBetaChangePerStep(options_.cherenkov.max_beta_change);
+    if (process_is_active(OpticalProcessType::cherenkov, options_))
+    {
+        cherenkov->SetStackPhotons(options_.cherenkov.stack_photons);
+        cherenkov->SetTrackSecondariesFirst(
+            options_.cherenkov.track_secondaries_first);
+        cherenkov->SetMaxNumPhotonsPerStep(options_.cherenkov.max_photons);
+        cherenkov->SetMaxBetaChangePerStep(options_.cherenkov.max_beta_change);
+    }
 #endif
 
     auto particle_iterator = GetParticleIterator();

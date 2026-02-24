@@ -9,9 +9,9 @@
 #-------------------------------------#
 
 # Administration
-/.github/CODEOWNERS @celeritas-project/code-lead @celeritas-project/core-advisor
+/.github/CODEOWNERS @celeritas-project/code-lead
 /scripts/release/users.json @celeritas-project/code-lead
-/doc/development/administration.rst @celeritas-project/code-lead @celeritas-project/core-advisor
+/doc/development/administration.rst @celeritas-project/code-lead
 
 # CI Infrastructure
 /.github/ @sethrj @pcanal
@@ -23,19 +23,18 @@
 /*/*/inp/ @sethrj
 
 # Core capabilities
-/*/corecel/ @sethrj
 /*/corecel/random/**/Xorwow* @amandalund
 /*/corecel/random/**/Ranlux* @davidsgr @sethrj
 /*/corecel/sys/ @esseivaju
 
 # Physics
-/*/celeritas/decay/ @amandalund @stognini
-/*/celeritas/em/ @amandalund @stognini @whokion
-/*/celeritas/field/ @sethrj @whokion
-/*/celeritas/neutron/ @whokion
-/*/celeritas/optical/ @amandalund @hhollenb @whokion
-/*/celeritas/phys/ @sethrj @amandalund
-/*/celeritas/track/ @amandalund @esseivaju @LSchwiebert
+/*/celeritas/decay/interactor/ @amandalund @stognini
+/*/celeritas/em/interactor/ @amandalund @stognini @whokion
+/*/celeritas/field/*covfie* @esseivaju
+/*/celeritas/*Propagator* @sethrj
+/*/celeritas/neutron/interactor/ @whokion
+/*/celeritas/optical/**/*Interact* @amandalund @hhollenb @whokion
+/*/celeritas/**/*Algorithms* @amandalund @LSchwiebert
 
 # Geometry
 /*/orange/ @elliottbiondo @sethrj
@@ -44,4 +43,3 @@
 # Integration
 /*/celeritas/g4/ @drbenmorgan @stognini
 /*/celeritas/ext/ @drbenmorgan @stognini
-/*/accel/ @drbenmorgan @esseivaju @rahmans1 @Rashika-Gupta @sethrj @stognini @whokion

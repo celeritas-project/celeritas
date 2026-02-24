@@ -22,6 +22,33 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Shared simulation data.
+ */
+template<Ownership W, MemSpace M>
+struct SimParamsData
+{
+    size_type max_steps{};
+    size_type max_step_iters{};
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return max_steps > 0 && max_step_iters > 0;
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    SimParamsData& operator=(SimParamsData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+        max_steps = other.max_steps;
+        max_step_iters = other.max_step_iters;
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Storage for dynamic simulation data.
  */
 template<Ownership W, MemSpace M>
@@ -34,6 +61,7 @@ struct SimStateData
 
     //// DATA ////
 
+    Items<PrimaryId> primary_ids;  //!< Originating primary
     Items<real_type> time;  //!< Time elapsed in lab frame since start of event
     Items<real_type> step_length;
     Items<TrackStatus> status;
@@ -45,8 +73,9 @@ struct SimStateData
     //! Check whether the interface is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !time.empty() && !step_length.empty() && !status.empty()
-               && !post_step_action.empty() && !num_steps.empty();
+        return !primary_ids.empty() && !time.empty() && !step_length.empty()
+               && !status.empty() && !post_step_action.empty()
+               && !num_steps.empty();
     }
 
     //! State size
@@ -57,6 +86,7 @@ struct SimStateData
     SimStateData& operator=(SimStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
+        primary_ids = other.primary_ids;
         time = other.time;
         step_length = other.step_length;
         status = other.status;
@@ -75,6 +105,7 @@ inline void resize(SimStateData<Ownership::value, M>* data, size_type size)
 {
     CELER_EXPECT(size > 0);
 
+    resize(&data->primary_ids, size);
     resize(&data->time, size);
     resize(&data->step_length, size);
 

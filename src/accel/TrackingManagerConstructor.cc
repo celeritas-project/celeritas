@@ -8,6 +8,8 @@
 
 #include <G4BuilderType.hh>
 #include <G4Version.hh>
+
+#include "accel/ExceptionConverter.hh"
 #if G4VERSION_NUMBER >= 1100
 #    include "TrackingManager.hh"
 #endif
@@ -29,7 +31,7 @@ namespace celeritas
  * Error checking is deferred until ConstructProcess.
  */
 TrackingManagerConstructor::TrackingManagerConstructor(
-    SharedParams const* shared, LocalTransporterFromThread get_local)
+    SharedParams const* shared, LocalOffloadFromThread get_local)
     : G4VPhysicsConstructor("offload-physics")
     , shared_(shared)
     , get_local_(get_local)
@@ -49,13 +51,21 @@ TrackingManagerConstructor::TrackingManagerConstructor(
  *
  * Since there's only ever one tracking manager integration, we can just use
  * the behind-the-hood objects.
+ *
+ * \note When calling from a serial run manager in a threaded G4 build, the
+ * thread ID is \c G4Threading::MASTER_ID (-1). When calling from the run
+ * manager of a non-threaded G4 build, the thread is \c
+ * G4Threading::SEQUENTIAL_ID (-2).
  */
 TrackingManagerConstructor::TrackingManagerConstructor(
     TrackingManagerIntegration* tmi)
     : TrackingManagerConstructor(
-          &detail::IntegrationSingleton::instance().shared_params(), [](int) {
+          &detail::IntegrationSingleton::instance().shared_params(),
+          [](int tid) {
+              CELER_EXPECT(tid >= 0
+                           || !G4Threading::IsMultithreadedApplication());
               return &detail::IntegrationSingleton::instance()
-                          .local_transporter();
+                          .local_track_offload();
           })
 {
     CELER_EXPECT(tmi == &TrackingManagerIntegration::Instance());
@@ -95,13 +105,31 @@ void TrackingManagerConstructor::ConstructProcess()
 
     CELER_LOG_LOCAL(debug) << "Activating tracking manager";
 
-    // Note that error checking occurs here to provide better error messages
-    CELER_VALIDATE(
-        shared_ && get_local_,
-        << R"(invalid null inputs given to TrackingManagerConstructor)");
+    TrackOffloadInterface* transporter{nullptr};
+    CELER_TRY_HANDLE(
+        {
+            // Note that error checking occurs here to provide better error
+            // messages
+            CELER_VALIDATE(
+                shared_ && get_local_,
+                << R"(invalid null inputs given to TrackingManagerConstructor)");
 
-    auto* transporter = this->get_local_transporter();
-    CELER_VALIDATE(transporter, << "invalid null local transporter");
+            if (G4Threading::IsWorkerThread()
+                || !G4Threading::IsMultithreadedApplication())
+            {
+                // Don't create or access local transporter on master thread
+                transporter = this->get_local_(G4Threading::G4GetThreadId());
+                CELER_VALIDATE(transporter,
+                               << "invalid null local transporter");
+            }
+        },
+        ExceptionConverter{"celer.tracking.construct"});
+
+    if (!transporter)
+    {
+        // Failure (G4Exception thrown): do not set any tracking managers
+        return;
+    }
 
 #if G4VERSION_NUMBER >= 1100
     // Create *thread-local* tracking manager with pointers to *global*
@@ -128,16 +156,6 @@ void TrackingManagerConstructor::ConstructProcess()
     // Constructor should've prevented this
     CELER_ASSERT_UNREACHABLE();
 #endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the local transporter associated with the current thread ID.
- */
-LocalTransporter* TrackingManagerConstructor::get_local_transporter() const
-{
-    CELER_EXPECT(get_local_);
-    return this->get_local_(G4Threading::G4GetThreadId());
 }
 
 //---------------------------------------------------------------------------//

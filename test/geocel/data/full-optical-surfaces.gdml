@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <!-- Material properties -->
+    <matrix name="RI_vacuum" coldim="2" values="1e-06 1 1e-05 1"/>
+    <matrix name="RI_water" coldim="2" values="1e-06 1.3333 1e-05 1.3333"/>
+    <matrix name="RI_air" coldim="2" values="1e-06 1.1 1e-05 1.1"/>
+    <!-- Bulk absorption (dummy values) -->
+    <matrix name="ABS" coldim="2" values="1e-06 1e8 1e-05 1e8"/>
+    <matrix name="REF" coldim="2" values="1e-06 1 1e-05 1"/>
+    <matrix name="SSC" coldim="2" values="1e-06 0.1 1e-05 0.3"/>
+    <matrix name="SLC" coldim="2" values="1e-06 0.2 1e-05 0.2"/>
+    <matrix name="BSC" coldim="2" values="1e-06 0.3 1e-05 0.1"/>
+  </define>
+
+
+  <materials>
+    <element name="Hydrogen" formula="H"  Z="1.">  <atom value="1.01"/>   </element>
+    <element name="Oxygen"   formula="O"  Z="8.">  <atom value="16.0"/>   </element>
+    <material name="Water" formula="H20" state="liquid">
+        <D unit="g/cm3" value="1.0"/>
+     <composite n="2" ref="Hydrogen"/>
+     <composite n="1" ref="Oxygen"/>
+     <property name="RINDEX" ref="RI_water"/>
+     <property name="ABSLENGTH" ref="ABS"/>
+    </material>
+    <material name="Vacuum" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="Hydrogen"/>
+      <property name="RINDEX" ref="RI_vacuum"/>
+      <property name="ABSLENGTH" ref="ABS"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="cm" name="voxel_box" x="1.0" y="1.0" z="1.0"/>
+    <box lunit="cm" name="container_box" x="100.0" y="100.0" z="100.0"/>
+    <box lunit="cm" name="world_box" x="1000.0" y="1000.0" z="1000.0"/>
+
+    <!-- GLISUR Model -->
+    <opticalsurface name="glisur_dd_polished" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0"/>
+    <opticalsurface name="glisur_dd_ground" model="glisur" finish="ground" type="dielectric_dielectric" value="0.9"/>
+    <opticalsurface name="glisur_dm_polished" model="glisur" finish="polished" type="dielectric_metal" value="1.0"/>
+    <opticalsurface name="glisur_dm_ground" model="glisur" finish="ground" type="dielectric_metal" value="0.7"/>
+
+    <!-- UNIFIED Model -->
+    <opticalsurface name="unified_dd_polished" model="unified" finish="polished" type="dielectric_dielectric" value="0.3"/>
+    <opticalsurface name="unified_dd_ground" model="unified" finish="ground" type="dielectric_dielectric" value="0.4">
+      <property name="SPECULARSPIKECONSTANT" ref="SSC"/>
+      <property name="SPECULARLOBECONSTANT" ref="SLC"/>
+      <property name="BACKSCATTERCONSTANT" ref="BSC"/>
+    </opticalsurface>
+    <opticalsurface name="unified_dd_polishedfrontpainted" model="unified" finish="polishedfrontpainted" type="dielectric_dielectric" value="0.5"/>
+    <opticalsurface name="unified_dd_groundfrontpainted" model="unified" finish="groundfrontpainted" type="dielectric_dielectric" value="0.6"/>
+    <opticalsurface name="unified_dd_polishedbackpainted" model="unified" finish="polishedbackpainted" type="dielectric_dielectric" value="0.7">
+      <property name="REFLECTIVITY" ref="REF"/>
+      <property name="RINDEX" ref="RI_air"/>
+      <property name="SPECULARSPIKECONSTANT" ref="SSC"/>
+      <property name="SPECULARLOBECONSTANT" ref="SLC"/>
+      <property name="BACKSCATTERCONSTANT" ref="BSC"/>
+    </opticalsurface>
+    <opticalsurface name="unified_dd_groundbackpainted" model="unified" finish="groundbackpainted" type="dielectric_dielectric" value="0.8">
+      <property name="REFLECTIVITY" ref="REF"/>
+      <property name="RINDEX" ref="RI_air"/>
+      <property name="SPECULARSPIKECONSTANT" ref="SSC"/>
+      <property name="SPECULARLOBECONSTANT" ref="SLC"/>
+      <property name="BACKSCATTERCONSTANT" ref="BSC"/>
+    </opticalsurface>
+    <opticalsurface name="unified_dm_polished" model="unified" finish="polished" type="dielectric_metal" value="0.9">
+      <property name="REFLECTIVITY" ref="REF"/>
+    </opticalsurface>
+    <opticalsurface name="unified_dm_ground" model="unified" finish="ground" type="dielectric_metal" value="1.0">
+      <property name="REFLECTIVITY" ref="REF"/>
+      <property name="SPECULARSPIKECONSTANT" ref="SSC"/>
+      <property name="SPECULARLOBECONSTANT" ref="SLC"/>
+      <property name="BACKSCATTERCONSTANT" ref="BSC"/>
+    </opticalsurface>
+
+  </solids>
+
+  <structure>
+    <volume name="box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Water"/>
+    </volume>
+
+    <volume name="container">
+      <solidref ref="container_box"/>
+      <materialref ref="Vacuum"/>
+
+      <physvol name="box_pv_1">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="0" y="0" z="0"/>
+      </physvol>
+      <physvol name="box_pv_2">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="2" y="0" z="0"/>
+      </physvol>
+      <physvol name="box_pv_3">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="4" y="0" z="0"/>
+      </physvol>
+      <physvol name="box_pv_4">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="6" y="0" z="0"/>
+      </physvol>
+      <physvol name="box_pv_5">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="0" y="2" z="0"/>
+      </physvol>
+      <physvol name="box_pv_6">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="2" y="2" z="0"/>
+      </physvol>
+      <physvol name="box_pv_7">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="4" y="2" z="0"/>
+      </physvol>
+      <physvol name="box_pv_8">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="6" y="2" z="0"/>
+      </physvol>
+      <physvol name="box_pv_9">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="0" y="4" z="0"/>
+      </physvol>
+      <physvol name="box_pv_10">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="2" y="4" z="0"/>
+      </physvol>
+      <physvol name="box_pv_11">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="4" y="4" z="0"/>
+      </physvol>
+      <physvol name="box_pv_12">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="6" y="4" z="0"/>
+      </physvol>
+    </volume>
+
+    <volume name="world">
+      <solidref ref="world_box"/>
+      <materialref ref="Vacuum"/>
+      <physvol name="container_pv">
+        <volumeref ref="container"/>
+        <position name="pos" unit="cm" x="0" y="0" z="0"/>
+      </physvol>
+    </volume>
+
+    <bordersurface name="surface_1" surfaceproperty="glisur_dd_polished">
+      <physvolref ref="box_pv_1"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_2" surfaceproperty="glisur_dd_ground">
+      <physvolref ref="box_pv_2"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_3" surfaceproperty="glisur_dm_polished">
+      <physvolref ref="box_pv_3"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_4" surfaceproperty="glisur_dm_ground">
+      <physvolref ref="box_pv_4"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_5" surfaceproperty="unified_dd_polished">
+      <physvolref ref="box_pv_5"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_6" surfaceproperty="unified_dd_ground">
+      <physvolref ref="box_pv_6"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_7" surfaceproperty="unified_dd_polishedfrontpainted">
+      <physvolref ref="box_pv_7"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_8" surfaceproperty="unified_dd_groundfrontpainted">
+      <physvolref ref="box_pv_8"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_9" surfaceproperty="unified_dd_polishedbackpainted">
+      <physvolref ref="box_pv_9"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_10" surfaceproperty="unified_dd_groundbackpainted">
+      <physvolref ref="box_pv_10"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_11" surfaceproperty="unified_dm_polished">
+      <physvolref ref="box_pv_11"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_12" surfaceproperty="unified_dm_ground">
+      <physvolref ref="box_pv_12"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+
+
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+
+</gdml>

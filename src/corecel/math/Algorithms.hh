@@ -537,6 +537,8 @@ inline CELER_FUNCTION T fastpow(T a, T b)
 /*!
  * Use fused multiply-add for generic calculations.
  *
+ * \f[ x \gets a \times b + y \f]
+ *
  * This provides a floating point specialization so that \c fma can be used in
  * code that is accelerated for floating point calculations but still works
  * correctly with integer arithmetic.
@@ -725,6 +727,26 @@ CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
     return ::rsqrt(value);
 #else
     return 1.0 / std::sqrt(value);
+#endif
+}
+
+/*!
+ * Calculate the largest integer not greater than value.
+ */
+CELER_FORCEINLINE_FUNCTION float floor(float value)
+{
+    return ::floorf(value);
+}
+
+/*!
+ * Calculate the largest integer not greater than value.
+ */
+CELER_FORCEINLINE_FUNCTION double floor(double value)
+{
+#ifdef CELER_DEVICE_SOURCE
+    return ::floor(value);
+#else
+    return std::floor(value);
 #endif
 }
 

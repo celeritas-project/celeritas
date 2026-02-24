@@ -23,6 +23,7 @@ celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
 set(CELERITAS_USE_COVFIE ${CELERITAS_USE_covfie})
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
+set(CELERITAS_USE_LARSOFT ${CELERITAS_USE_LArSoft})
 set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
 set(CELERITAS_USE_PERFETTO ${CELERITAS_USE_Perfetto})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
@@ -32,6 +33,7 @@ set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 # Start counter from 1 because undefined config have the implicit value of 0 in
 # the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
 # when HIP is in use) will implicitly be zero.
+celeritas_generate_option_config(CELERITAS_CODATA)
 celeritas_generate_option_config(CELERITAS_CORE_GEO)
 celeritas_generate_option_config(CELERITAS_CORE_RNG)
 celeritas_generate_option_config(CELERITAS_OPENMP)
@@ -74,7 +76,8 @@ else()
     string(APPEND CELERITAS_BUILD_TYPE ",pic")
   endif()
 endif()
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
+set(CELERITAS_CONSTANTS "CODATA ${CELERITAS_CODATA}")
+foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS CONSTANTS OPENMP CORE_GEO CORE_RNG)
   string(TOLOWER "${_var}" _lower)
   celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
@@ -85,8 +88,8 @@ if(CELERITAS_USE_CUDA)
 elseif(CELERITAS_USE_HIP)
   set(_gpu_arch "${CMAKE_HIP_ARCHITECTURES}")
 endif()
-# Arch variable may be ;-separated list, so we need to escape the ;
-string(REPLACE ";" "\;" _gpu_arch "${_gpu_arch}")
+# Arch variable may be ;-separated list; replace with plus as in vecgeom below
+string(REPLACE ";" "+" _gpu_arch "${_gpu_arch}")
 celeritas_append_cmake_string("gpu_architectures" "${_gpu_arch}")
 
 list(APPEND CELERITAS_CMAKE_STRINGS "")
@@ -94,7 +97,7 @@ list(APPEND CELERITAS_CMAKE_STRINGS "")
 # Save dependency versions as strings
 set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
 set(HIP_VERSION_STRING "${hip-lang_VERSION}")
-foreach(_pkg CLHEP covfie CUDA HepMC3 HIP Geant4 G4VG ROOT Thrust VecGeom)
+foreach(_pkg CLHEP covfie CUDA HepMC3 HIP Geant4 G4VG LArSoft ROOT Thrust VecGeom)
   string(TOLOWER "${_pkg}" _lower)
   if(DEFINED ${_pkg}_VERSION_STRING)
     set(_value "${${_pkg}_VERSION_STRING}")
@@ -127,12 +130,12 @@ foreach(_dep Geant4 VecGeom HepMC3)
 endforeach()
 
 # Save VecGeom options as always-on macros to simplify testing
+set(CELERITAS_VECGEOM_CONFIG)
+set(_vecgeom_opts)
 if(DEFINED CELERITAS_VecGeom_SURFACE)
   # Override/pretend VecGeom has this option
   set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
 endif()
-set(CELERITAS_VECGEOM_CONFIG)
-set(_vecgeom_opts)
 foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
   if(NOT DEFINED VecGeom_${_opt})
     set(_val "0 /* not defined */")
@@ -152,6 +155,11 @@ foreach(_opt NAV BACKEND)
     list(APPEND _vecgeom_opts "${VecGeom_${_opt}}")
   endif()
 endforeach()
+if(VecGeom_CUDA_ARCHITECTURES)
+  string(REPLACE ";" "+" _cuda_arch "${VecGeom_CUDA_ARCHITECTURES}")
+  list(APPEND _vecgeom_opts "cuda=${_cuda_arch}")
+  unset(_cuda_arch)
+endif()
 if(NOT VecGeom_VECTOR STREQUAL "empty")
   list(APPEND _vecgeom_opts "${VecGeom_VECTOR}")
 endif()
@@ -201,6 +209,7 @@ list(APPEND SOURCES
   grid/GridTypesIO.json.cc
   grid/SplineDerivCalculator.cc
   grid/VectorUtils.cc
+  inp/DistributionsIO.json.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc
@@ -229,6 +238,7 @@ list(APPEND SOURCES
   sys/ActionRegistry.cc
   sys/ActionRegistryOutput.cc
   sys/DeviceIO.json.cc
+  sys/DeviceEvent.cc
   sys/Environment.cc
   sys/KernelRegistry.cc
   sys/KernelRegistryIO.json.cc
@@ -236,6 +246,7 @@ list(APPEND SOURCES
   sys/MemRegistryIO.json.cc
   sys/ScopedMem.cc
   sys/ScopedSignalHandler.cc
+  sys/Stream.cc
   sys/TypeDemangler.cc
   sys/Version.cc
 )
@@ -303,7 +314,6 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     data/Filler.cu
     sys/KernelParamCalculator.device.cc
-    sys/Stream.cu
     sys/detail/AsyncMemoryResource.cu
   )
 endif()
@@ -321,6 +331,11 @@ endif()
 if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
+  )
+  # Build some files as HIP due to rocThrust
+  set_source_files_properties(
+    sys/Stream.cc
+    PROPERTIES LANGUAGE HIP
   )
 endif()
 

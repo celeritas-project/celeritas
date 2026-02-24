@@ -4,15 +4,17 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/geo/GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/data/CollectionStateStore.hh"
+#include <limits>
+
+#include "corecel/data/StateDataStore.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "celeritas_test.hh"
@@ -44,7 +46,7 @@ class GeoMaterialTestBase : virtual public GlobalTestBase
 auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
     -> VecString
 {
-    CollectionStateStore<GeoStateData, MemSpace::host> host_state{
+    StateDataStore<GeoStateData, MemSpace::host> host_state{
         this->geometry()->host_ref(), 1};
     // Geometry track view and mat view
     GeoTrackView geo(
@@ -61,7 +63,7 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
         result.push_back(this->material_name(
             geo_mat_view.material_id(geo.impl_volume_id())));
 
-        geo.find_next_step();
+        geo.find_next_step(std::numeric_limits<real_type>::infinity());
         geo.move_to_boundary();
         geo.cross_boundary();
     }

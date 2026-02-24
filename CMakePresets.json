@@ -8,7 +8,7 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
-        "Celeritas_GIT_DESCRIBE": "",
+        "Celeritas_CGV_CACHE": "",
         "BUILD_TESTING": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_COMPILER_LAUNCHER": {"type": "STRING", "value": "$env{CCACHE_PROGRAM}"},
@@ -47,6 +47,7 @@
         "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_DD4hep":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"}
       }
     },
@@ -145,8 +146,9 @@
       "hidden": true,
       "description": "Enable coverage using GCC/LLVM",
       "cacheVariables": {
-        "CELERITAS_C_FLAGS":    {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage"},
-        "CELERITAS_CXX_FLAGS":  {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage"},
+        "CELERITAS_DEBUG": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_C_FLAGS": {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage"},
+        "CELERITAS_CXX_FLAGS": {"type": "STRING", "value": "-fprofile-arcs;-ftest-coverage;-DCELERITAS_GCOV"},
         "CELERITAS_LINK_FLAGS": {"type": "STRING", "value": "-fprofile-arcs"}
       }
     },

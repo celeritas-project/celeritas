@@ -42,7 +42,7 @@ namespace
 template<MemSpace M>
 auto make_state(StreamId stream, size_type size)
 {
-    using StoreT = CollectionStateStore<GeneratorStateData, M>;
+    using StoreT = StateDataStore<GeneratorStateData, M>;
 
     auto result = std::make_unique<GeneratorState<M>>();
     result->store = StoreT{stream, size};
@@ -59,12 +59,10 @@ auto make_state(StreamId stream, size_type size)
  * Construct and add to core params.
  */
 std::shared_ptr<GeneratorAction>
-GeneratorAction::make_and_insert(::celeritas::CoreParams const& core_params,
-                                 CoreParams const& params,
-                                 size_type capacity)
+GeneratorAction::make_and_insert(CoreParams const& params, size_type capacity)
 {
     ActionRegistry& actions = *params.action_reg();
-    AuxParamsRegistry& aux = *core_params.aux_reg();
+    AuxParamsRegistry& aux = *params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
     auto result = std::make_shared<GeneratorAction>(
         actions.next_id(), aux.next_id(), gen.next_id(), capacity);
@@ -167,7 +165,7 @@ void GeneratorAction::insert_impl(CoreState<M>& state, SpanConstData data) const
     if (aux_state.store.size() < data.size())
     {
         // Reallocate with enough capacity
-        aux_state.store = CollectionStateStore<GeneratorStateData, M>{
+        aux_state.store = StateDataStore<GeneratorStateData, M>{
             state.stream_id(), static_cast<size_type>(data.size())};
     }
 
@@ -204,7 +202,7 @@ void GeneratorAction::step_impl(CoreParams const& params,
             state.stream_id());
     }
 
-    if (state.counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
     {
         // Generate the optical photons from the distribution data
         this->generate(params, state);
@@ -234,8 +232,8 @@ void GeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
-    size_type num_gen
-        = min(state.counters().num_vacancies, aux_state.counters.num_pending);
+    size_type num_gen = min(state.sync_get_counters().num_vacancies,
+                            aux_state.counters.num_pending);
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
@@ -243,8 +241,7 @@ void GeneratorAction::generate(CoreParams const& params,
                                           params.host_ref().cherenkov,
                                           params.host_ref().scintillation,
                                           aux_state.store.ref(),
-                                          aux_state.counters.buffer_size,
-                                          state.counters()};
+                                          aux_state.counters.buffer_size};
         launch_action(num_gen, execute);
     }
     {

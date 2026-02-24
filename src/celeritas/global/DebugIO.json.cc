@@ -6,15 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "DebugIO.json.hh"
 
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
+#include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"

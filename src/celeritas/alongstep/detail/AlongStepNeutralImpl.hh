@@ -6,18 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
-#include "corecel/math/Quantity.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "../AlongStep.hh"
+#include "ElossApplier.hh"  // IWYU pragma: associated
+#include "LinearTrackPropagator.hh"  // IWYU pragma: associated
+#include "MscApplier.hh"  // IWYU pragma: associated
+#include "MscStepLimitApplier.hh"  // IWYU pragma: associated
+#include "PropagationApplier.hh"  // IWYU pragma: associated
+#include "TimeUpdater.hh"  // IWYU pragma: associated
+#include "TrackUpdater.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class CoreTrackView;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -47,22 +47,38 @@ struct NoMsc
  */
 struct NoELoss
 {
-    //! This calculator never returns energy loss
-    CELER_CONSTEXPR_FUNCTION bool is_applicable(CoreTrackView const&)
-    {
-        return false;
-    }
-
     //! No energy loss
-    CELER_FUNCTION auto calc_eloss(CoreTrackView const&, real_type, bool) const
-        -> decltype(auto)
+    CELER_FUNCTION auto operator()(CoreTrackView const&) const -> decltype(auto)
     {
         return zero_quantity();
     }
-
-    //! No slowing down
-    static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return false; }
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform the along-step action using helper functions.
+ */
+struct AlongStepNeutralExecutor
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView& track);
+
+    NoMsc msc;
+    LinearTrackPropagator propagate_track;
+    NoELoss eloss;
+};
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+CELER_FUNCTION void AlongStepNeutralExecutor::operator()(CoreTrackView& track)
+{
+    MscStepLimitApplier{msc}(track);
+    PropagationApplier{propagate_track}(track);
+    MscApplier{msc}(track);
+    TimeUpdater{}(track);
+    ElossApplier{eloss}(track);
+    TrackUpdater{}(track);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

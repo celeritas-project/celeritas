@@ -37,14 +37,13 @@ jobs:
         image: ["rocky-cuda", "ubuntu-rocm"]
         exclude:
           - geometry: "vecgeom"
+            buildtype: "debug" # Build is too large
+          - geometry: "vecgeom"
             image: "ubuntu-rocm" # VecGeom not installed on HIP
           - buildtype: "debug"
-            image: "ubuntu-rocm" # Debug builds don't work with HIP
+            image: "ubuntu-rocm" # Debug device code breaks HIP optimizer
         include:
-          - geometry: "vecgeom"
-            buildtype: "reldeb"
-            image: "rocky-cuda"
-          - buildtype: "reldeb"
+          - buildtype: "ndebug"
             geometry: "vecgeom"
             special: "codecov"
             geant: "11.3"
@@ -133,6 +132,12 @@ jobs:
 
       - name: Install Celeritas
         id: install
+        if: >-
+          ${{
+            !cancelled()
+            && steps.build.outcome == 'success'
+            && matrix.special != 'codecov'
+          }}
         working-directory: build
         run: |
           echo "::group::Install"

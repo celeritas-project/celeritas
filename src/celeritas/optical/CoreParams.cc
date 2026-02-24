@@ -6,20 +6,28 @@
 //---------------------------------------------------------------------------//
 #include "CoreParams.hh"
 
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputRegistry.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/DetectorParams.hh"
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/OpticalSizes.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
 
 #include "CoreState.hh"
 #include "MaterialParams.hh"
 #include "PhysicsParams.hh"
+#include "SimParams.hh"
 #include "action/AlongStepAction.hh"
+#include "action/DetectorAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
@@ -49,10 +57,11 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.geometry = get_ref<M>(*p.geometry);
     ref.material = get_ref<M>(*p.material);
     ref.physics = get_ref<M>(*p.physics);
+    ref.rng = get_ref<M>(*p.rng);
+    ref.sim = get_ref<M>(*p.sim);
     ref.surface = get_ref<M>(*p.surface);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
-    ref.rng = get_ref<M>(*p.rng);
-    // TODO: Get detectors ref
+    ref.detectors = get_ref<M>(*p.detectors);
     if (p.cherenkov)
     {
         ref.cherenkov = get_ref<M>(*p.cherenkov);
@@ -114,8 +123,10 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(material);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(surface_physics);
+    CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
@@ -123,17 +134,43 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
-    // TODO: provide detectors in input, passing from core params
-    detectors_ = input_.detectors;
-    if (!detectors_)
+    if (!input_.aux_reg)
     {
-        detectors_ = std::make_shared<SDParams>();
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
     }
+    if (!input_.output_reg)
+    {
+        input_.output_reg = std::make_shared<OutputRegistry>();
+        insert_system_diagnostics(*input_.output_reg);
+    }
+
+    // Save optical action diagnostic information
+    input_.output_reg->insert(std::make_shared<ActionRegistryOutput>(
+        input_.action_reg, "optical-actions"));
+
+    // Add optical sizes
+    OpticalSizes sizes;
+    sizes.streams = this->max_streams();
+    sizes.generators = input_.capacity.generators;
+    sizes.tracks = input_.capacity.tracks;
+    input_.output_reg->insert(
+        OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
+            OutputInterface::Category::internal,
+            "optical-sizes",
+            std::move(sizes)));
 
     ScopedMem record_mem("optical::CoreParams.construct");
 
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());
+
+    // Construct detector callback action
+    // TODO: Is there a better place to build this?
+    if (input_.optical_detector)
+    {
+        input_.action_reg->insert(std::make_shared<DetectorAction>(
+            input_.action_reg->next_id(), input_.optical_detector.callback));
+    }
 
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
