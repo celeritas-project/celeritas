@@ -40,8 +40,8 @@ endif()
 #-----------------------------------------------------------------------------#
 
 celeritas_add_src_library(larceler
-   LarStandaloneRunner.cc
-   LarDataReader.cc
+  LarStandaloneRunner.cc
+  LarDataReader.cc
 )
 celeritas_target_link_libraries(larceler
   PRIVATE ${PRIVATE_DEPS}
@@ -52,18 +52,29 @@ celeritas_target_link_libraries(larceler
 # Create plugins
 #-----------------------------------------------------------------------------#
 
-macro(celeritas_add_larsoft_plugin basename type link_libraries)
-  set(target "${basename}_${type}")
-  celeritas_add_src_library(${target} MODULE ${basename}.cc)
+# Add an `art` plugin module:
+# - Target name *must* end with _tool or _module
+# - A .fcl file with the same name
+macro(celeritas_add_art_plugin target)
+  celeritas_add_src_library(${target} MODULE ${target}.cc)
   celeritas_target_link_libraries(${target}
     PRIVATE
       cetlib::cetlib
       cetlib_except::cetlib_except
-    ${link_libraries}
+  )
+  # Copy into $BUILD/fcl directory
+  file(COPY "${target}.fcl"
+    DESTINATION "${CELERITAS_FHICL_OUTPUT_DIRECTORY}"
+  )
+  # Install to $PREFIX/fcl
+  install(FILES "${target}.fcl"
+    DESTINATION "${CELERITAS_INSTALL_FHICLDIR}"
+    COMPONENT runtime
   )
 endmacro()
 
-celeritas_add_larsoft_plugin(LarCelerStandalone tool
+celeritas_add_art_plugin(LarCelerStandalone_tool)
+celeritas_target_link_libraries(LarCelerStandalone_tool
   PRIVATE
     larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
     lardataobj::MCBase
@@ -72,7 +83,8 @@ celeritas_add_larsoft_plugin(LarCelerStandalone tool
     Celeritas::larceler
 )
 
-celeritas_add_larsoft_plugin(GeoSimExporter module
+celeritas_add_art_plugin(GeoSimExporter_module)
+celeritas_target_link_libraries(GeoSimExporter_module
   PRIVATE
     ROOT::Tree
     art::Utilities

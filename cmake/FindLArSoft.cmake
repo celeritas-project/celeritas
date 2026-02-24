@@ -10,6 +10,9 @@ Find LArSoft data object model library. This requires
 additional fermilab-related helpers to provide the necessary ``FindX.cmake``
 modules.
 
+TODO: when LArSoft switches to Phlex, make ``art`` or ``phlex`` a COMPONENT,
+and search for dependencies based on the installed version of ``cetmodules``.
+
 #]=======================================================================]
 if(${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
   set(_larsoft_quiet QUIET)
