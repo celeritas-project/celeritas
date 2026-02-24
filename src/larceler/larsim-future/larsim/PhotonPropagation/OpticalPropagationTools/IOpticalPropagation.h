@@ -54,7 +54,7 @@ class phot::IOpticalPropagation
     virtual void endJob() = 0;
 
     // Allow random engines to be propagate downstream to other tools
-    virtual void InitializeTools(CLHEP::HepRandomEngine& poisson,
-                                 CLHEP::HepRandomEngine& scint_time)
+    virtual void
+    InitializeTools(CLHEP::HepRandomEngine&, CLHEP::HepRandomEngine&)
         = 0;
 };

@@ -32,6 +32,11 @@ if(NOT TARGET ${_larsoft_tool_target})
       "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/larceler/larsim-future>"
       "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/larceler/larsim-future>"
   )
+  celeritas_target_link_libraries(OpticalPropagationTools
+    INTERFACE
+      CLHEP::Random
+      lardataobj::Simulation
+  )
   set(_larsoft_tool_target Celeritas::OpticalPropagationTools)
 endif()
 

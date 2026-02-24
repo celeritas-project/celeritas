@@ -126,12 +126,11 @@ void LarCelerStandalone::endJob()
 
 //---------------------------------------------------------------------------//
 /*!
- * Empty initialization.
+ * No RNG initialization is needed.
  */
-void LarCelerStandalone::InitializeTools(CLHEP::HepRandomEngine& poisson,
-                                         CLHEP::HepRandomEngine& scint_time)
+void LarCelerStandalone::InitializeTools(CLHEP::HepRandomEngine&,
+                                         CLHEP::HepRandomEngine&)
 {
-    // No additional tools to initialize
 }
 
 //---------------------------------------------------------------------------//
