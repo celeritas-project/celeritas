@@ -181,7 +181,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
         idx = place_root(roots, r0 - qb, idx);
         idx = place_root(roots, r1 - qb, idx);
         idx = place_root(roots, r2 - qb, idx);
-        idx = place_root(roots, r3 - qb, idx);
+        place_root(roots, r3 - qb, idx);
 
         return roots;
     }
@@ -212,7 +212,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real4 const& abcd) const
     int idx = 0;
     idx = place_root(roots, z0, idx);
     idx = place_root(roots, z1, idx);
-    idx = place_root(roots, z2, idx);
+    place_root(roots, z2, idx);
     return roots;
 }
 
@@ -269,7 +269,7 @@ CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
         idx = place_root(roots, from_pos0, idx);
         if (from_pos0 > 0)
         {
-            idx = place_root(roots, -sqrt_ir0 - qb, idx);
+            place_root(roots, -sqrt_ir0 - qb, idx);
         }
     }
     return roots;
