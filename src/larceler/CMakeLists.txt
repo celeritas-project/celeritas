@@ -57,11 +57,7 @@ celeritas_target_link_libraries(larceler
 # - A .fcl file with the same name
 macro(celeritas_add_art_plugin target)
   celeritas_add_src_library(${target} MODULE ${target}.cc)
-  celeritas_target_link_libraries(${target}
-    PRIVATE
-      cetlib::cetlib
-      cetlib_except::cetlib_except
-  )
+
   # Copy into $BUILD/fcl directory
   file(COPY "${target}.fcl"
     DESTINATION "${CELERITAS_FHICL_OUTPUT_DIRECTORY}"
@@ -76,6 +72,9 @@ endmacro()
 celeritas_add_art_plugin(LarCelerStandalone_tool)
 celeritas_target_link_libraries(LarCelerStandalone_tool
   PRIVATE
+    cetlib::cetlib
+    cetlib_except::cetlib_except
+    art::Utilities
     larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
     lardataobj::MCBase
     ${_larsoft_tool_target}
@@ -108,7 +107,6 @@ endif()
 set(_filename "larceler-env")
 # Configure to run from build directory
 set(CELER_INSTALL_PREFIX "${PROJECT_BINARY_DIR}")
-message("CELER_INSTALL_PREFIX=${CELER_INSTALL_PREFIX}")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}.in"
   "${CELER_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/larceler-env"
@@ -117,13 +115,14 @@ configure_file(
 
 # Set up script to run from dynamic installation prefix after install
 install(CODE "
-  set(CELER_INSTALL_PREFIX \"\$(cd \"\$(dirname \"$0\")\"/.. && pwd)\")
+  set(CELER_INSTALL_PREFIX \"\$(cd \\\"\$(dirname \\\"$0\\\")\\\"/.. && pwd)\")
   set(CELER_LDVAR \"${CELER_LDVAR}\")
   set(CMAKE_INSTALL_LIBDIR \"${CMAKE_INSTALL_LIBDIR}\")
   set(CELERITAS_INSTALL_FHICLDIR \"${CELERITAS_INSTALL_FHICLDIR}\")
+  message(STATUS \"Configuring: \${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${_filename}\")
   configure_file(
     \"${CMAKE_CURRENT_SOURCE_DIR}/${_filename}.in\"
-    \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}\"
+    \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${_filename}\"
     @ONLY
   )
 ")
