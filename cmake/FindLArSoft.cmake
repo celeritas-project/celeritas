@@ -22,7 +22,7 @@ endif()
 
 # Ordered dependencies
 set(_required_vars)
-foreach(_module cetmodules art art_root_io larcore lardataobj)
+foreach(_module cetmodules art art_root_io larcore lardataobj larsim)
   list(APPEND _required_vars ${_module}_DIR)
   if(NOT ${_module}_FOUND)
     find_package(${_module} ${_larsoft_quiet})
@@ -36,7 +36,7 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(${CMAKE_FIND_PACKAGE_NAME}
-  REQUIRED_VARS ${_required_vars}
+  REQUIRED_VARS "${_required_vars}"
 )
 unset(_larsoft_quiet)
 
