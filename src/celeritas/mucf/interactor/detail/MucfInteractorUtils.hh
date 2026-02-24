@@ -61,7 +61,7 @@ inline CELER_FUNCTION Secondary sample_mucf_secondary(ParticleId pid,
     Secondary result;
     result.particle_id = pid;
     result.energy = energy;
-    result.direction = IsotropicDistribution()(rng);
+    result.direction = IsotropicDistribution<real_type>()(rng);
     return result;
 }
 
@@ -79,7 +79,7 @@ inline CELER_FUNCTION Secondary sample_mucf_muon(
     Secondary result;
     result.particle_id = pid;
     result.energy = units::MevEnergy{sample_energy(generate_canonical(rng))};
-    result.direction = IsotropicDistribution()(rng);
+    result.direction = IsotropicDistribution<real_type>()(rng);
     return result;
 }
 

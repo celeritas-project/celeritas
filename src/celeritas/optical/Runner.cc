@@ -37,12 +37,11 @@ Runner::Runner(Input&& osi)
         OutputInterface::Category::input, "*", std::make_shared<Input>(osi));
 
     // Set up the problem from the input
-    auto loaded = setup::standalone_input(osi);
+    loaded_ = setup::standalone_input(osi);
 
     // Save the optical transporter and generator
-    problem_ = std::move(loaded.problem);
-    CELER_ASSERT(problem_.transporter);
-    CELER_ASSERT(problem_.generator);
+    CELER_ASSERT(loaded_.problem.transporter);
+    CELER_ASSERT(loaded_.problem.generator);
     CELER_ASSERT(stream_id < this->params()->max_streams());
 
     // Add problem input to output registry
@@ -77,7 +76,7 @@ auto Runner::operator()() -> Result
 {
     auto generate
         = std::dynamic_pointer_cast<optical::PrimaryGeneratorAction const>(
-            problem_.generator);
+            loaded_.problem.generator);
     CELER_VALIDATE(generate,
                    << "runner call does not match input generator type");
 
@@ -95,7 +94,7 @@ auto Runner::operator()(SpanConstTrackInit data) -> Result
 {
     auto generate
         = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
-            problem_.generator);
+            loaded_.problem.generator);
     CELER_VALIDATE(generate,
                    << "runner call does not match input generator type");
 
@@ -112,7 +111,7 @@ auto Runner::operator()(SpanConstTrackInit data) -> Result
 auto Runner::operator()(SpanConstGenDist data) -> Result
 {
     auto generate = std::dynamic_pointer_cast<optical::GeneratorAction const>(
-        problem_.generator);
+        loaded_.problem.generator);
     CELER_VALIDATE(generate,
                    << "runner call does not match input generator type");
     // Insert optical distributions
@@ -139,14 +138,14 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
  */
 auto Runner::run() const -> Result
 {
-    (*problem_.transporter)(*state_);
+    (*loaded_.problem.transporter)(*state_);
 
     Result result;
     result.counters = state_->accum();
     result.counters.generators.push_back(
-        problem_.generator->counters(*state_->aux()).accum);
+        loaded_.problem.generator->counters(*state_->aux()).accum);
     result.action_times
-        = problem_.transporter->get_action_times(*state_->aux());
+        = loaded_.problem.transporter->get_action_times(*state_->aux());
 
     return result;
 }

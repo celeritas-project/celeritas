@@ -246,12 +246,10 @@ void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
     CELER_ASSERT(pre_step && post_step);
 
     // Create distribution and push to Celeritas
-    // TODO: Get optical material ID
     optical::GeneratorDistributionData data;
     data.step_length = convert_from_geant(step->GetStepLength(), clhep_length);
     data.charge = units::ElementaryCharge{
         static_cast<real_type>(post_step->GetCharge())};
-    data.material = OptMatId(0);
     auto& pre = data.points[StepPoint::pre];
     pre.speed = units::LightSpeed(pre_step->GetBeta());
     pre.time = convert_from_geant(pre_step->GetGlobalTime(), clhep_time);
@@ -266,14 +264,12 @@ void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
     {
         data.type = GeneratorType::cherenkov;
         data.num_photons = num_cherenkov;
-        CELER_ASSERT(data);
         gen_offload.Push(data);
     }
     if (num_scintillation > 0)
     {
         data.type = GeneratorType::scintillation;
         data.num_photons = num_scintillation;
-        CELER_ASSERT(data);
         gen_offload.Push(data);
     }
     CELER_LOG(debug) << "Generating " << num_cherenkov

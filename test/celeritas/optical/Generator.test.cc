@@ -203,7 +203,7 @@ TEST_F(LArSphereGeneratorTest, offload)
     if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
-        EXPECT_EQ(53460, result.counters.steps);
+        EXPECT_EQ(53459, result.counters.steps);
         EXPECT_EQ(15, result.counters.step_iters);
     }
 
