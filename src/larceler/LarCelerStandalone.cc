@@ -38,19 +38,40 @@ make_input_from_config(detail::LarCelerStandaloneConfig const& cfg)
     }
 #endif
 
+    // GPU options
+    if (cfg.device().enable())
+    {
+        celeritas::inp::Device d;
+        d.stack_size = cfg.device().stack_size();
+        d.heap_size = cfg.device().heap_size();
+        result.system.device = d;
+    }
+
     result.problem.model.geometry = cfg.geometry();
     result.problem.generator = inp::OpticalOffloadGenerator{};
 
+    // Optical limits
+    if (auto steps = cfg.optical_limits().steps())
+    {
+        result.problem.limits.steps = steps;
+    }
+    if (auto step_iters = cfg.optical_limits().step_iters())
+    {
+        result.problem.limits.step_iters = step_iters;
+    }
+
     // Optical capacities
     {
-        result.problem.capacity.primaries = 8192;
-        result.problem.capacity.tracks = 128;
-        result.problem.capacity.generators = 32768;
+        auto const& ocfg = cfg.optical_capacity();
+        result.problem.capacity.primaries = ocfg.primaries();
+        result.problem.capacity.tracks = ocfg.tracks();
+        result.problem.capacity.generators = ocfg.generators();
     }
 
     result.problem.num_streams = 1;
-    result.problem.timers.action = true;
-    result.problem.output_file = "celer.out.json";
+    result.problem.seed = cfg.seed();
+    result.problem.timers.action = cfg.action_times();
+    result.problem.output_file = cfg.output_file();
 
     return result;
 }
