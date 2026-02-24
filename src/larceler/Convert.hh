@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file larceler/Convert.hh
+//! \todo Update with #2223
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,10 +12,15 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Quantity.hh"
+#include "celeritas/UnitTypes.hh"
 
 namespace celeritas
 {
-//! \todo Update with #2223
+//---------------------------------------------------------------------------//
+
+using LarsoftTime = Quantity<celeritas::units::Nanosecond, double>;
+using LarsoftLen = Quantity<celeritas::units::Centimeter, double>;
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//

@@ -73,8 +73,6 @@ class LarStandaloneRunner
     VecBTR operator()(VecSED const& edep);
 
   private:
-    using LarsoftTime = Quantity<celeritas::units::Nanosecond, double>;
-    using LarsoftLen = Quantity<celeritas::units::Centimeter, double>;
 
     std::shared_ptr<optical::Runner> runner_;
 };
