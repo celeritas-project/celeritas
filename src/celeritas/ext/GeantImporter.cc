@@ -33,6 +33,7 @@
 #include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
 #include <G4OpAbsorption.hh>
+#include <G4OpBoundaryProcess.hh>
 #include <G4OpMieHG.hh>
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
@@ -1032,6 +1033,13 @@ auto import_processes(GeantImporter::DataSelection selected,
         {
             optical_models.push_back(
                 import_optical_model(optical::ImportModelClass::mie));
+        }
+        else if (import_optical_model
+                 && dynamic_cast<G4OpBoundaryProcess const*>(&process))
+        {
+            // Surface physics importing handled separately from volumetric
+            // discrete importing
+            CELER_DISCARD(process);
         }
 
 #if G4VERSION_NUMBER >= 1070
