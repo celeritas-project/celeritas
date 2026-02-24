@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
+# NOTE: the library should *not* contain any `art` dependencies
 set(SOURCES)
 set(PRIVATE_DEPS
-  fhiclcpp::fhiclcpp
   larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
   lardataobj::MCBase
   Celeritas::geocel
@@ -74,6 +74,7 @@ celeritas_target_link_libraries(LarCelerStandalone_tool
   PRIVATE
     cetlib::cetlib
     cetlib_except::cetlib_except
+    fhiclcpp::fhiclcpp
     art::Utilities
     larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
     lardataobj::MCBase
@@ -86,6 +87,7 @@ celeritas_add_art_plugin(GeoSimExporter_module)
 celeritas_target_link_libraries(GeoSimExporter_module
   PRIVATE
     ROOT::Tree
+    fhiclcpp::fhiclcpp
     art::Utilities
     art_root_io::TFileService_service
     larcore::ServiceUtil

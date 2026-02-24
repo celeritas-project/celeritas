@@ -10,7 +10,8 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
-#include "celeritas/inp/StandaloneInput.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/UnitTypes.hh"
 
 namespace sim
 {
@@ -20,6 +21,10 @@ class OpDetBacktrackerRecord;
 
 namespace celeritas
 {
+namespace inp
+{
+struct OpticalStandaloneInput;
+}
 namespace optical
 {
 class Runner;
@@ -73,11 +78,6 @@ class LarStandaloneRunner
 
     std::shared_ptr<optical::Runner> runner_;
 };
-
-//---------------------------------------------------------------------------//
-// Convert from a FHiCL config input
-inp::OpticalStandaloneInput
-from_config(detail::LarCelerStandaloneConfig const& config);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

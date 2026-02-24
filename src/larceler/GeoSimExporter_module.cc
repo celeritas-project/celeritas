@@ -5,12 +5,6 @@
 //! \file larceler/GeoSimExporter_module.cc
 //---------------------------------------------------------------------------//
 #include <art/Framework/Core/ModuleMacros.h>
-
-#include "GeoSimExporter.hh"
-
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
 #include <art/Framework/Principal/Event.h>
 #include <art/Framework/Principal/Handle.h>
 #include <art/Framework/Principal/Run.h>

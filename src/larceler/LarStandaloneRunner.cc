@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/optical/Runner.hh"
 
 #include "Convert.hh"
@@ -81,63 +82,6 @@ auto LarStandaloneRunner::operator()(VecSED const& sed) -> VecBTR
                      << result.counters.step_iters << " step iterations";
 
     return {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert from a FHiCL config input.
- */
-inp::OpticalStandaloneInput
-from_config(detail::LarCelerStandaloneConfig const& cfg)
-{
-    inp::OpticalStandaloneInput result;
-
-#if 0
-    // FIXME: environment config doesn't yet work
-    {
-        fhicl::ParameterSet const& ps = cfg.environment();
-        for (auto const& key : ps.get_names()) {
-            result.environment[key] = ps.get<std::string>(key);
-        }
-    }
-#endif
-
-    // GPU options
-    if (cfg.device().enable())
-    {
-        celeritas::inp::Device d;
-        d.stack_size = cfg.device().stack_size();
-        d.heap_size = cfg.device().heap_size();
-        result.system.device = d;
-    }
-
-    result.problem.model.geometry = cfg.geometry();
-    result.problem.generator = inp::OpticalOffloadGenerator{};
-
-    // Optical limits
-    if (auto steps = cfg.optical_limits().steps())
-    {
-        result.problem.limits.steps = steps;
-    }
-    if (auto step_iters = cfg.optical_limits().step_iters())
-    {
-        result.problem.limits.step_iters = step_iters;
-    }
-
-    // Optical capacities
-    {
-        auto const& ocfg = cfg.optical_capacity();
-        result.problem.capacity.primaries = ocfg.primaries();
-        result.problem.capacity.tracks = ocfg.tracks();
-        result.problem.capacity.generators = ocfg.generators();
-    }
-
-    result.problem.num_streams = 1;
-    result.problem.seed = cfg.seed();
-    result.problem.timers.action = cfg.action_times();
-    result.problem.output_file = cfg.output_file();
-
-    return result;
 }
 
 //---------------------------------------------------------------------------//

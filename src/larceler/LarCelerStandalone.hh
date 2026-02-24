@@ -11,6 +11,8 @@
 #include <art/Utilities/ToolConfigTable.h>
 #include <larsim/PhotonPropagation/OpticalPropagationTools/IOpticalPropagation.h>
 
+#include "celeritas/inp/StandaloneInput.hh"
+
 #include "LarStandaloneRunner.hh"
 
 #include "detail/LarCelerConfig.hh"
