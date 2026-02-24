@@ -8,7 +8,6 @@
 
 #include <TTree.h>
 #include <art/Framework/Core/EDAnalyzer.h>
-#include <larcore/Geometry/Geometry.h>
 
 #include "SimEnergyDepositData.hh"
 
@@ -55,7 +54,6 @@ class GeoSimExporter : public art::EDAnalyzer
 
   private:
     // Fcl input data
-    geo::GeometryCore const& geometry_;
     int max_edeps_;
 
     TTree* sim_tree_;  // TTree with sim::SimEnergyDeposit data

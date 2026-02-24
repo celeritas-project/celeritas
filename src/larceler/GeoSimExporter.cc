@@ -14,8 +14,8 @@
 #include <canvas/Utilities/InputTag.h>
 #include <fhiclcpp/ParameterSet.h>
 #include <larcore/CoreUtils/ServiceUtil.h>
+#include <larcore/Geometry/Geometry.h>
 #include <larcorealg/Geometry/OpDetGeo.h>
-#include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 #include <messagefacility/MessageLogger/MessageLogger.h>
 
@@ -26,16 +26,17 @@ namespace celeritas
  * Construct with GDML geometry and export its information.
  */
 GeoSimExporter::GeoSimExporter(fhicl::ParameterSet const& pset)
-    : EDAnalyzer{pset}
-    , geometry_(*(lar::providerFrom<geo::Geometry>()))
-    , max_edeps_(pset.get<int>("max_edeps_per_event"))
+    : EDAnalyzer{pset}, max_edeps_(pset.get<int>("max_edeps_per_event"))
 {
     // TTree and ROOT file writing is done automatically by the TFileService
     art::ServiceHandle<art::TFileService const> tfs;
 
     // Geometry information
     auto* det_info = tfs->make<TTree>("detector_info", "detector_info");
-    std::string name = geometry_.DetectorName();
+
+    auto const* geo = lar::providerFrom<geo::Geometry>();
+    CELER_ASSERT(geo);
+    std::string name = geo->DetectorName();
 
     det_info->Branch("name", &name);
     det_info->Fill();
@@ -46,9 +47,9 @@ GeoSimExporter::GeoSimExporter(fhicl::ParameterSet const& pset)
     geo_data->Branch("pos", &pos);
     geo_data->Branch("info", &info);
 
-    for (unsigned int i = 0; i < geometry_.NOpDets(); i++)
+    for (unsigned int i = 0; i < geo->NOpDets(); i++)
     {
-        auto const& opdet = geometry_.OpDetGeoFromOpDet(i);
+        auto const& opdet = geo->OpDetGeoFromOpDet(i);
         auto const& center = opdet.GetCenter();
 
         info = opdet.OpDetInfo(/* indent = */ "", /* verbosity = */ 1);
