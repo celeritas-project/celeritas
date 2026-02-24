@@ -23,40 +23,6 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Fake model as a placeholder for surface models yet to be implemented.
- */
-template<class T>
-class FakeModel : public SurfaceModel
-{
-  public:
-    FakeModel(SurfaceModelId model_id,
-              std::string_view label,
-              std::map<PhysSurfaceId, T> const& surfaces)
-        : SurfaceModel(model_id, label)
-    {
-        layers_.reserve(surfaces.size());
-
-        for (auto const& [surface, input] : surfaces)
-        {
-            CELER_ENSURE(surface);
-            CELER_DISCARD(input);
-            layers_.push_back(surface);
-        }
-
-        CELER_ENSURE(layers_.size() == surfaces.size());
-    }
-
-    void step(CoreParams const&, CoreStateHost&) const final {}
-    void step(CoreParams const&, CoreStateDevice&) const final {}
-
-    VecSurfaceLayer const& get_surfaces() const final { return layers_; }
-
-  private:
-    VecSurfaceLayer layers_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Utility for building built-in surface models from input data.
  *
  * Wraps the call to build a model with a check on whether the input data is
@@ -74,11 +40,6 @@ class BuiltinSurfaceModelBuilder
   public:
     // Construct with storage to fill
     explicit inline BuiltinSurfaceModelBuilder(std::vector<SPModel>& models);
-
-    // Construct a fake surface model
-    template<class T>
-    inline void
-    build_fake(std::string_view label, std::map<PhysSurfaceId, T> const&);
 
     // Construct a built-in surface model
     template<class M>
@@ -118,27 +79,6 @@ void BuiltinSurfaceModelBuilder::build(
     {
         models_.push_back(
             std::make_shared<M>(SurfaceModelId(models_.size()), layer_map));
-        num_surf_ += layer_map.size();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a fake surface model.
- *
- * A temporary utility to build fake surface models that have not yet been
- * implemented.
- */
-template<class T>
-void BuiltinSurfaceModelBuilder::build_fake(
-    std::string_view label, std::map<PhysSurfaceId, T> const& layer_map)
-{
-    if (!layer_map.empty())
-    {
-        CELER_LOG(error) << "Using nonphysical placeholder for '" << label
-                         << "' physics: results will be incorrect";
-        models_.push_back(std::make_shared<FakeModel<T>>(
-            SurfaceModelId(models_.size()), label, layer_map));
         num_surf_ += layer_map.size();
     }
 }
