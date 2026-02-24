@@ -8,45 +8,8 @@ LarCelerStandalone:
 {
     tool_type: LarCelerStandalone
 
-    // GPU options
-    device: {
-        // Activate the GPU
-        enable: false
-        // Per-thread CUDA stack size [B] (ignored if 0)
-        stack_size: 0
-        // Global dynamic CUDA heap size [B] (ignored if 0)
-        heap_size: 0
-    }
-
     // GDML input filename
     geometry: @local::services.Geometry.GDML
-
-    // Optical buffer-size capacities
-    optical_capacity: {
-        // Max primaries buffered before stepping
-        primaries: 8192
-        // Max track slots stepped simultaneously
-        tracks: 128
-        // Max queued photon-generation steps
-        generators: 32768
-    }
-
-    // Optical tracking limits (0 = unlimited)
-    optical_limits: {
-        // Steps per track before killing (0 for unlimited)
-        steps: 1024
-        // Iterations before aborting stepping loop (0 for unlimited)
-        step_iters: 0
-    }
-
-    // Celeritas output filename
-    output_file: "celeritas-output.json"
-
-    // Accumulate elapsed time in actions
-    action_times: true
-
-    // RNG seed
-    seed: 0
 }
 
 END_PROLOG
