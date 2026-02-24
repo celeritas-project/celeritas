@@ -253,6 +253,13 @@ TEST_F(DetectorTest, simple)
            0,  // time
            {},
            ImplVolumeId{0}},
+        TI{E{2e-7},
+           Real3{0, 0, 0},  // pos
+           Real3{1, 0, 0},  // dir
+           Real3{0, 1, 0},  // pol
+           0,  // time
+           {},
+           ImplVolumeId{0}},
     };
 
     // Run test
@@ -268,9 +275,9 @@ TEST_F(DetectorTest, simple)
     real_type const box_size = from_cm(50);
     real_type const flight_time = box_size / constants::c_light;
 
-    static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0};
+    static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0, 1};
     static real_type const expected_energies[]
-        = {1e-6, 2e-6, 3e-6, 4e-6, 5e-6, 6e-6};
+        = {1e-6, 2e-6, 3e-6, 4e-6, 5e-6, 6e-6, 2e-07};
     static real_type const expected_x_positions[] = {
         box_size,
         -box_size,
@@ -278,6 +285,7 @@ TEST_F(DetectorTest, simple)
         0,
         box_size,
         0,
+        box_size,
     };
     static real_type const expected_y_positions[] = {
         0,
@@ -286,12 +294,14 @@ TEST_F(DetectorTest, simple)
         0,
         0,
         -box_size,
+        0,
     };
     static real_type const expected_z_positions[] = {
         0,
         0,
         box_size,
         -box_size,
+        0,
         0,
         0,
     };
@@ -303,9 +313,11 @@ TEST_F(DetectorTest, simple)
         2 * flight_time,
         2 * flight_time,
         2 * flight_time,
+        flight_time,
     };
 
-    static size_type const expected_volume_instance_ids[] = {5, 4, 6, 7, 5, 3};
+    static size_type const expected_volume_instance_ids[]
+        = {5, 4, 6, 7, 5, 3, 5};
 
     if (reference_configuration)
     {
