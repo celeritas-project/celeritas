@@ -6,14 +6,23 @@
 //---------------------------------------------------------------------------//
 #include "LarStandaloneRunner.hh"
 
+#include <memory>
 #include <utility>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/GeantGeoParams.hh"
+#include "geocel/DetectorParams.hh"
+#include "geocel/Types.hh"
+#include "geocel/VolumeParams.hh"
+#include "geocel/detail/LengthUnits.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/Runner.hh"
 
 #include "Convert.hh"
@@ -22,11 +31,43 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with input parameters.
+ * Construct with problem setup and detector ID coordinates.
+ *
+ * The detector "channels" (coordinates) should be input as a vector.
  */
-LarStandaloneRunner::LarStandaloneRunner(Input&& i)
-    : runner_(std::make_shared<optical::Runner>(std::move(i)))
+LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
 {
+    CELER_EXPECT(!det_coords.empty());
+
+    i.problem.detectors.callback
+        = [this](SpanCelerHits h) { return this->hit(h); };
+    runner_ = std::make_shared<optical::Runner>(std::move(i));
+
+    // Map detector coordinates
+    auto geo = runner_->params()->geometry();
+    CELER_ASSERT(geo);
+    auto vols = runner_->params()->volume();
+    CELER_ASSERT(vols);
+    auto dets = runner_->params()->detectors();
+    CELER_ASSERT(dets);
+
+    detids_.resize(det_coords.size());
+    for (auto i : range(det_coords.size()))
+    {
+        auto inst_id = geo->find_volume_instance_at(det_coords[i]);
+        CELER_VALIDATE(inst_id,
+                       << "could not find a volume at " << det_coords[i]
+                       << " [" << lengthunits::native_label << "]");
+        VolumeId vol_id = vols->volume(inst_id);
+        CELER_ASSERT(vol_id);
+        auto det_id = dets->detector_id(vol_id);
+        CELER_VALIDATE(det_id,
+                       << "detector " << i << " point " << det_coords[i]
+                       << " [" << lengthunits::native_label
+                       << "] is not associated with a detector");
+        // Save lar-to-celer mapping
+        detids_[i] = det_id;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -68,10 +109,8 @@ auto LarStandaloneRunner::operator()(VecSED const& sed) -> VecBTR
         gdd.push_back(data);
     }
 
+    // Execute
     auto result = (*runner_)(make_span(std::as_const(gdd)));
-
-    CELER_LOG(error) << "LArSoft interface is incomplete: no hits are "
-                        "simulated";
 
     CELER_ASSERT(result.counters.generators.size() == 1);
     auto const& gen = result.counters.generators.front();

@@ -10,6 +10,7 @@
 #include <art/Framework/Principal/Handle.h>
 #include <larcore/CoreUtils/ServiceUtil.h>
 #include <larcore/Geometry/Geometry.h>
+#include <larcorealg/Geometry/OpDetGeo.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 #include <messagefacility/MessageLogger/MessageLogger.h>
@@ -17,6 +18,7 @@
 #include "corecel/Assert.hh"
 
 #include "LarStandaloneRunner.hh"
+#include "larceler/Convert.hh"
 
 namespace celeritas
 {
@@ -90,12 +92,22 @@ void PDFullSimCeler::beginJob()
     produces<std::vector<sim::OpDetBacktrackerRecord>>();
 
     // Obtain the GDML filename from the LAr geometry service
-    auto geo_handle = lar::providerFrom<geo::Geometry>();
-    CELER_VALIDATE(geo_handle, << "LArSoft geometry is not active");
-    runner_inp_.problem.model.geometry = geo_handle->GDMLFile();
+    auto const* geo = lar::providerFrom<geo::Geometry>();
+    CELER_ASSERT(geo);  // art checks this already
+    runner_inp_.problem.model.geometry = geo->GDMLFile();
+
+    // Load optical detector positions
+    std::vector<Real3> positions;
+    for (auto i : range(geo->NOpDets()))
+    {
+        auto const& opdet = geo->OpDetGeoFromOpDet(i);
+        positions.push_back(
+            convert_from_larsoft<LarsoftLen>(opdet.GetCenter()));
+    }
 
     runner_ = std::make_unique<LarStandaloneRunner>(
-        std::forward<LarStandaloneRunner::Input>(runner_inp_));
+        std::forward<LarStandaloneRunner::Input>(runner_inp_),
+        std::move(positions));
 }
 
 //---------------------------------------------------------------------------//

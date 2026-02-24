@@ -10,6 +10,8 @@
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
+#include "geocel/Types.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
@@ -27,9 +29,13 @@ class LarStandaloneRunnerTestBase : public ::celeritas::test::Test
   protected:
     using Runner = LarStandaloneRunner;
     using Input = inp::OpticalStandaloneInput;
+    using VecReal3 = std::vector<Real3>;
 
     //! Construct input
     virtual Input make_input() const = 0;
+
+    //! Map of larsoft detector ID to actual
+    virtual VecReal3 make_detector_point_map() const = 0;
 
     //! Build runner in the first SetUp of each test suite
     void SetUp() final;
@@ -51,7 +57,8 @@ void LarStandaloneRunnerTestBase::SetUp()
     CELER_ASSERT(test_info);
     std::string test_name{test_info->test_suite_name()};
     pr.lazy_update(test_name, [this]() {
-        return std::make_shared<Runner>(this->make_input());
+        return std::make_shared<Runner>(this->make_input(),
+                                        this->make_detector_point_map());
     });
     runner_ = pr.value();
     CELER_ENSURE(runner_);
@@ -62,7 +69,8 @@ void LarStandaloneRunnerTestBase::SetUp()
 class LarSphereTest : public LarStandaloneRunnerTestBase
 {
     //! Construct input
-    Input make_input() const;
+    Input make_input() const override;
+    VecReal3 make_detector_point_map() const override;
 };
 
 auto LarSphereTest::make_input() const -> Input
@@ -82,6 +90,11 @@ auto LarSphereTest::make_input() const -> Input
     result.problem.generator = inp::OpticalOffloadGenerator{};
     result.geant_setup.cherenkov.enable = false;
     return result;
+}
+
+auto LarSphereTest::make_detector_point_map() const -> VecReal3
+{
+    return {from_cm(Real3{1, 1, 1})};
 }
 
 TEST_F(LarSphereTest, single_sim_edep)
@@ -114,7 +127,12 @@ TEST_F(LarSphereTest, single_sim_edep)
         /* origTrackID = */ 123);
 
     auto response = run({sed});
-    EXPECT_EQ(0, response.size());
+    ASSERT_EQ(1, response.size());
+    auto const& btr = response.front();
+    EXPECT_EQ(0, btr.OpDetNum());
+    auto const& hits = btr.timePDclockSDPsMap();
+    ASSERT_NE(0, hits.size());
+    EXPECT_SOFT_EQ(hits.front().first, 1.0);
 }
 
 //---------------------------------------------------------------------------//

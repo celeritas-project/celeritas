@@ -15,7 +15,9 @@ celeritas_setup_tests(SERIAL
 # TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_add_test(LarStandaloneRunner.test.cc)
+celeritas_add_test(LarStandaloneRunner.test.cc
+  LINK_LIBRARIES lardataobj::Simulation
+)
 celeritas_add_test(LarDataReader.test.cc LINK_LIBRARIES Celeritas::celeritas)
 
 #-----------------------------------------------------------------------------#
