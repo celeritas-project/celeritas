@@ -95,6 +95,37 @@ celeritas_target_link_libraries(GeoSimExporter_module
     lardataobj::MCBase
 )
 
-# TODO: install fcl files to PREFIX/job
+#-----------------------------------------------------------------------------#
+# Set up and install environment script
+#-----------------------------------------------------------------------------#
+
+if(APPLE)
+  set(CELER_LDVAR DYLD_LIBRARY_PATH)
+else()
+  set(CELER_LDVAR LD_LIBRARY_PATH)
+endif()
+
+set(_filename "larceler-env")
+# Configure to run from build directory
+set(CELER_INSTALL_PREFIX "${PROJECT_BINARY_DIR}")
+message("CELER_INSTALL_PREFIX=${CELER_INSTALL_PREFIX}")
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/${_filename}.in"
+  "${CELER_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/larceler-env"
+  @ONLY
+)
+
+# Set up script to run from dynamic installation prefix after install
+install(CODE "
+  set(CELER_INSTALL_PREFIX \"\$(cd \"\$(dirname \"$0\")\"/.. && pwd)\")
+  set(CELER_LDVAR \"${CELER_LDVAR}\")
+  set(CMAKE_INSTALL_LIBDIR \"${CMAKE_INSTALL_LIBDIR}\")
+  set(CELERITAS_INSTALL_FHICLDIR \"${CELERITAS_INSTALL_FHICLDIR}\")
+  configure_file(
+    \"${CMAKE_CURRENT_SOURCE_DIR}/${_filename}.in\"
+    \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}\"
+    @ONLY
+  )
+")
 
 #-----------------------------------------------------------------------------#
