@@ -26,9 +26,9 @@ LarCelerStandalone:
         // Max primaries buffered before stepping
         primaries: 8192
         // Max track slots stepped simultaneously
-        tracks: 524288
+        tracks: 128
         // Max queued photon-generation steps
-        generators: 65536
+        generators: 32768
     }
 
     // Optical tracking limits (0 = unlimited)
