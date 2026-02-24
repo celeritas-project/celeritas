@@ -7,7 +7,7 @@
 #include "orange/surf/Toroid.hh"
 
 #include "corecel/cont/Array.hh"
-#include "corecel/cont/ArrayIO.hh"
+#include "corecel/io/StreamToString.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "orange/surf/Toroid.hh"
 
@@ -86,7 +86,7 @@ TEST(ToroidTest, sense)
     Real3 inner_points[] = {{5, 0, 0}, {0, 5, 0}, {5 * 0.707, 5 * 0.707, 1.9}};
     for (Real3 const& point : inner_points)
     {
-        SCOPED_TRACE("Inner point: " + to_string(point));
+        SCOPED_TRACE("Inner point: " + stream_to_string(point));
         EXPECT_EQ(SignedSense::inside, tor.calc_sense(point + origin));
     }
 
@@ -100,7 +100,7 @@ TEST(ToroidTest, sense)
     };
     for (Real3 const& point : outer_points)
     {
-        SCOPED_TRACE("Outer point: " + to_string(point));
+        SCOPED_TRACE("Outer point: " + stream_to_string(point));
         EXPECT_EQ(SignedSense::outside, tor.calc_sense(point + origin));
     }
 
@@ -111,7 +111,7 @@ TEST(ToroidTest, sense)
     };
     for (Real3 const& point : edge_points)
     {
-        SCOPED_TRACE("Edge point: " + to_string(point));
+        SCOPED_TRACE("Edge point: " + stream_to_string(point));
         EXPECT_EQ(SignedSense::on, tor.calc_sense(point + origin));
     }
 }
