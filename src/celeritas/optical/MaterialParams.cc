@@ -97,7 +97,6 @@ MaterialParams::MaterialParams(Input const& inp)
     NonuniformGridInserter insert_grid(&data.reals, &data.refractive_index);
     NonuniformGridInserter insert_derivative_grid(
         &data.reals, &data.refractive_index_derivative);
-    DerivativeGridCalculator calc_derivative;
     for (auto opt_mat_idx : range(inp.properties.size()))
     {
         auto const& mat = inp.properties[opt_mat_idx];
@@ -125,7 +124,7 @@ MaterialParams::MaterialParams(Input const& inp)
         insert_grid(ri);
 
         // Add refractive index derivative grid
-        insert_derivative_grid(calc_derivative(ri));
+        insert_derivative_grid(construct_derivative_grid(ri));
     }
     CELER_ASSERT(data.refractive_index.size() == inp.properties.size());
     CELER_ASSERT(data.refractive_index_derivative.size()

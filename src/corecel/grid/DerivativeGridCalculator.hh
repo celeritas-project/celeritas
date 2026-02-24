@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/inp/Grid.hh"
-#include "corecel/math/NumericLimits.hh"
 
 namespace celeritas
 {
@@ -25,19 +24,7 @@ namespace celeritas
  * \todo Currently only linearly interpolated grids are supported since they
  * are necessary for calculating group velocity from refractive index.
  */
-class DerivativeGridCalculator
-{
-  public:
-    // Construct with a reference to mutable host data
-    explicit DerivativeGridCalculator(real_type epsilon
-                                      = NumericLimits<real_type>::epsilon());
-
-    // Construct the derivative grid of an imported grid
-    inp::Grid operator()(inp::Grid const&);
-
-  private:
-    real_type epsilon_;
-};
+inp::Grid construct_derivative_grid(inp::Grid const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

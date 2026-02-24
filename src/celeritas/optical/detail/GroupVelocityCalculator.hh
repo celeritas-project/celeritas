@@ -69,7 +69,7 @@ CELER_FUNCTION real_type GroupVelocityCalculator::operator()(Energy energy) cons
           / (r_index + value_as<Energy>(energy) * r_index_deriv);
 
     CELER_ENSURE(group_vel > 0);
-    CELER_ENSURE(group_vel < constants::c_light);
+    CELER_ENSURE(group_vel <= constants::c_light);
 
     return group_vel;
 }

@@ -26,28 +26,23 @@ class DerivativeGridCalculatorTest : public ::celeritas::test::Test
 // Test derivative grid construction
 TEST_F(DerivativeGridCalculatorTest, build)
 {
-    real_type epsilon = 1e-8;
-
     inp::Grid grid;
     grid.x = {0.0, 0.4, 0.9, 1.3};
     grid.y = {-31.0, 12.1, 15.5, 92.0};
 
-    DerivativeGridCalculator build(epsilon);
-    inp::Grid deriv_grid = build(grid);
+    inp::Grid deriv_grid = construct_derivative_grid(grid);
 
     EXPECT_TRUE(deriv_grid);
-    EXPECT_EQ(8, deriv_grid.x.size());
-    EXPECT_EQ(8, deriv_grid.y.size());
 
     static real_type const expected_grid_x[] = {
-        0 - epsilon,
-        0 + epsilon,
-        0.4 - epsilon,
-        0.4 + epsilon,
-        0.9 - epsilon,
-        0.9 + epsilon,
-        1.3 - epsilon,
-        1.3 + epsilon,
+        0,
+        0,
+        0.4,
+        0.4,
+        0.9,
+        0.9,
+        1.3,
+        1.3,
     };
 
     static real_type const expected_grid_y[] = {
@@ -59,6 +54,34 @@ TEST_F(DerivativeGridCalculatorTest, build)
         191.25,
         191.25,
         0,
+    };
+
+    EXPECT_VEC_SOFT_EQ(expected_grid_x, deriv_grid.x);
+    EXPECT_VEC_SOFT_EQ(expected_grid_y, deriv_grid.y);
+}
+
+//---------------------------------------------------------------------------//
+// Test with coincident points
+TEST_F(DerivativeGridCalculatorTest, coincident)
+{
+    inp::Grid grid;
+    grid.x = {0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0};
+    grid.y = {-10.0, 1.0, 2.0, 4.0, 5.0, 7.0, 10.0, 20.0, 100.0, 200.0};
+
+    inp::Grid deriv_grid = construct_derivative_grid(grid);
+
+    EXPECT_TRUE(deriv_grid);
+
+    real_type inf = NumericLimits<real_type>::infinity();
+
+    static real_type const expected_grid_x[] = {
+        0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+        1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0,
+    };
+
+    static real_type const expected_grid_y[] = {
+        0,   11.0, 11.0, inf, inf, inf,  inf,  inf, inf, inf,
+        inf, 3.0,  3.0,  inf, inf, 80.0, 80.0, inf, inf, 0,
     };
 
     EXPECT_VEC_SOFT_EQ(expected_grid_x, deriv_grid.x);

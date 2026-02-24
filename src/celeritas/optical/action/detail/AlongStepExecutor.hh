@@ -23,7 +23,8 @@ namespace detail
 /*!
  * Complete end-of-step activity for a track.
  *
- * - Update track time
+ * - Calculate the group velocity in the material
+ * - Update track time based on step length and group velocity
  * - Update number of steps
  * - Update remaining MFPs to interaction
  */

@@ -266,6 +266,7 @@ TEST_F(DetectorTest, simple)
     // Check results
 
     real_type const box_size = from_cm(50);
+    real_type const flight_time = box_size / constants::c_light;
 
     static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0};
     static real_type const expected_energies[]
@@ -296,13 +297,14 @@ TEST_F(DetectorTest, simple)
     };
     // adjusted by group velocity
     static double const expected_times[] = {
-        2.5016473229623e-09,
-        2.2237050406385e-09,
-        6.1154807303391e-09,
-        3.3356409519815e-09,
-        3.3356409519815e-09,
-        3.3356409519815e-09,
+        1.49995 * flight_time,
+        1.3333 * flight_time,
+        3.66675 * flight_time,
+        2 * flight_time,
+        2 * flight_time,
+        2 * flight_time,
     };
+
     static size_type const expected_volume_instance_ids[] = {5, 4, 6, 7, 5, 3};
 
     if (reference_configuration)

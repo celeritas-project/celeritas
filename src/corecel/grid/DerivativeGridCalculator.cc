@@ -13,19 +13,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a given epsilon value.
- *
- * The provided epsilon value determines the size of the epsilon-neighborhood
- * around grid-points where the derivative might not be well-defined.
- */
-DerivativeGridCalculator::DerivativeGridCalculator(real_type epsilon)
-    : epsilon_(epsilon)
-{
-    CELER_EXPECT(epsilon > 0);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct the derivative grid of an imported grid.
  *
  * For each grid-point x in the input, the (x-epsilon, x+epsilon) is
@@ -37,7 +24,7 @@ DerivativeGridCalculator::DerivativeGridCalculator(real_type epsilon)
  * the epsilon-neighborhood is just the interpolated slope between the
  * grid-points.
  */
-inp::Grid DerivativeGridCalculator::operator()(inp::Grid const& grid)
+inp::Grid construct_derivative_grid(inp::Grid const& grid)
 {
     CELER_EXPECT(grid);
     CELER_VALIDATE(grid.interpolation.type == InterpolationType::linear,
@@ -63,11 +50,11 @@ inp::Grid DerivativeGridCalculator::operator()(inp::Grid const& grid)
     for (size_type i : range(grid.x.size()))
     {
         // Add left-derivative grid-point
-        result.x.push_back(grid.x[i] - epsilon_);
+        result.x.push_back(grid.x[i]);
         result.y.push_back(derivative(i));
 
         // Add right-derivative grid-point
-        result.x.push_back(grid.x[i] + epsilon_);
+        result.x.push_back(grid.x[i]);
         result.y.push_back(derivative(i + 1));
     }
     CELER_ASSERT(result.x.size() == 2 * grid.x.size());
