@@ -57,24 +57,26 @@ celeritas_target_link_libraries(larceler
 # Create plugins
 #-----------------------------------------------------------------------------#
 
-# Add an `art` plugin module:
-# - Target name *must* end with _tool or _module
-# - A .fcl file with the same name
-macro(celeritas_add_art_plugin target)
-  celeritas_add_src_library(${target} MODULE ${target}.cc)
+# Add an `art` plugin: separate the tool definition from the ART instantiation
+macro(celeritas_add_art_plugin basename type)
+  set(tgt_ "${basename}_${type}")
+  celeritas_add_src_library(${tgt_} MODULE
+    "${basename}.cc"
+    "${basename}_${type}.cc"
+  )
 
   # Copy into $BUILD/fcl directory
-  file(COPY "${target}.fcl"
+  file(COPY "${tgt_}.fcl"
     DESTINATION "${CELERITAS_FHICL_OUTPUT_DIRECTORY}"
   )
   # Install to $PREFIX/fcl
-  install(FILES "${target}.fcl"
+  install(FILES "${tgt_}.fcl"
     DESTINATION "${CELERITAS_INSTALL_FHICLDIR}"
     COMPONENT runtime
   )
 endmacro()
 
-celeritas_add_art_plugin(LarCelerStandalone_tool)
+celeritas_add_art_plugin(LarCelerStandalone tool)
 celeritas_target_link_libraries(LarCelerStandalone_tool
   PRIVATE
     cetlib::cetlib
@@ -88,7 +90,7 @@ celeritas_target_link_libraries(LarCelerStandalone_tool
     Celeritas::larceler
 )
 
-celeritas_add_art_plugin(GeoSimExporter_module)
+celeritas_add_art_plugin(GeoSimExporter module)
 celeritas_target_link_libraries(GeoSimExporter_module
   PRIVATE
     ROOT::Tree
