@@ -25,8 +25,8 @@ namespace celeritas
  *
  * An elliptical toroid is a shape created by revolving an axis-aligned ellipse
  * around a central axis. This shape can be used in everything from pipe bends
- * to tokamaks in fusion reactors. Possesses a major radius r, and ellipse
- * radii a and b, as shown in the below diagram:
+ * to tokamaks in fusion reactors. Possesses a major radius \em r, and ellipse
+ * radii \em a and \em b, as shown in the below diagram:
  *
  * \verbatim
        ___   _________   ___
@@ -36,15 +36,18 @@ namespace celeritas
    |-a--+    |   o-----r--+    |
    |         |       |         |
     \       /         \       /
-     \     /           \     /
-       ⁻⁻⁻   ⁻⁻⁻⁻⁻⁻⁻⁻⁻   ⁻⁻⁻
+     \...../...........\...../
+
    \endverbatim
  *
  * This torus can be defined with the following quartic equation:
  * \f[
  *   (x^2 + y^2 + p*y^2 + B_0) - A_0 * (x^2 + y^2) = 0
  * \f]
- * where \f$p = a^2/b^2, A_0 = 4*r^2, and B_0 = (r^2-a^2)\f$.
+ * where \f$p = a^2/b^2 \f$,  \f$A_0 = 4 r^2 \f$, and \f$ B_0 = (r^2-a^2)\f$.
+ *
+ * The intersection is calculated using an algorithm from
+ * \cite{arvo-graphicsgems-1995}.
  */
 class Toroid
 {
@@ -116,22 +119,26 @@ class Toroid
 
   private:
     //// DATA ////
-    // Location of center of toroid
+
+    //! Location of center of toroid
     Real3 origin_;
 
     // Radii
-    real_type r_;  // Radius from origin to center of revolved ellipse (along
-                   // xy plane)
-    real_type a_;  // Horizontal radius of revolved ellipse (along xy plane)
-    real_type b_;  // Vertical radius of revolved ellipse (along z axis)
+    //! Radius from origin to center of revolved ellipse (along xy plane)
+    real_type r_;
+    //! Horizontal radius of revolved ellipse (along xy plane)
+    real_type a_;
+    //! Vertical radius of revolved ellipse (along z axis)
+    real_type b_;
 
     //// HELPER FUNCTIONS ////
+
     // Calculate the coefficients of the polynomial for ray intersection
     inline CELER_FUNCTION Real5 calc_intersection_polynomial(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
-    // Shorthnad to square a number
-    static inline CELER_FUNCTION real_type sq(real_type val);
+    // Shorthand to square a number
+    static CELER_CONSTEXPR_FUNCTION real_type sq(real_type val);
 };
 
 //---------------------------------------------------------------------------//
@@ -206,7 +213,7 @@ CELER_FUNCTION auto Toroid::calc_intersections(Real3 const& pos,
  * Calculate the coefficients of the polynomial corresponding to the given
  * ray's intersections with the toroid.
  *
- * Written referencing Graphics Gems II\cite{arvo_graphics-gems_1995}.
+ * Written referencing Graphics Gems II\cite{arvo-graphicsgems-1995}.
  */
 CELER_FUNCTION auto
 Toroid::calc_intersection_polynomial(Real3 const& pos,
@@ -256,7 +263,7 @@ CELER_FUNCTION auto Toroid::calc_normal(Real3 const& pos) const -> Real3
 /*!
  * Shorthand for power macro for readability, as squares are used frequently
  */
-CELER_FUNCTION real_type Toroid::sq(real_type val)
+CELER_CONSTEXPR_FUNCTION real_type Toroid::sq(real_type val)
 {
     return ipow<2>(val);
 }

@@ -13,6 +13,7 @@
 
 #include "SurfaceTestUtils.hh"
 #include "celeritas_test.hh"
+
 namespace celeritas
 {
 namespace test
@@ -21,6 +22,7 @@ namespace test
 
 using Real3 = Toroid::Real3;
 using Intersections = Toroid::Intersections;
+
 //---------------------------------------------------------------------------//
 /*!
  * Fills a list of fewer than 4 roots with "no real positive root"
@@ -88,19 +90,25 @@ TEST(ToroidTest, sense)
         EXPECT_EQ(SignedSense::inside, tor.calc_sense(point + origin));
     }
 
-    Real3 outer_points[] = {{0, 0, 0},
-                            {0, 3.9, 0},
-                            {3.9, 0, 0},
-                            {-3.9, 0, 0},
-                            {5, 0, 2.1},
-                            {6.1, 0, 0}};
+    static Real3 const outer_points[] = {
+        {0, 0, 0},
+        {0, 3.9, 0},
+        {3.9, 0, 0},
+        {-3.9, 0, 0},
+        {5, 0, 2.1},
+        {6.1, 0, 0},
+    };
     for (Real3 const& point : outer_points)
     {
         SCOPED_TRACE("Outer point: " + to_string(point));
         EXPECT_EQ(SignedSense::outside, tor.calc_sense(point + origin));
     }
 
-    Real3 edge_points[] = {{5.0, 0, 2.0}, {4.0, 0, 0}, {6.0, 0, 0}};
+    static Real3 const edge_points[] = {
+        {5.0, 0, 2.0},
+        {4.0, 0, 0},
+        {6.0, 0, 0},
+    };
     for (Real3 const& point : edge_points)
     {
         SCOPED_TRACE("Edge point: " + to_string(point));
@@ -135,8 +143,7 @@ TEST(ToroidTest, intersect)
     Real3 origin{1, 2, 3};
     Toroid tor{origin, 5, 1, 2};
 
-    SurfaceState on = SurfaceState::on;
-    SurfaceState off = SurfaceState::off;
+    constexpr SurfaceState off = SurfaceState::off;
 
     // Ray through center shouldn't hit
     Real3 s{origin + Real3{0, 0, 2}};
@@ -172,5 +179,7 @@ TEST(ToroidTest, intersect)
     EXPECT_VEC_SOFT_EQ(make_inters({}),
                        sorted(tor.calc_intersections(s, u, off)));
 }
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

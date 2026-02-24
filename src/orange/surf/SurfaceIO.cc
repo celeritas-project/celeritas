@@ -22,7 +22,7 @@
 #include "SimpleQuadric.hh"  // IWYU pragma: associated
 #include "Sphere.hh"  // IWYU pragma: associated
 #include "SphereCentered.hh"  // IWYU pragma: associated
-#include "Toroid.hh"  //IWYU pragma: associated
+#include "Toroid.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
