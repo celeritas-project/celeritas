@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <vector>
+#include <CLHEP/Random/RandPoissonQ.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
@@ -51,4 +52,9 @@ class phot::IOpticalPropagation
 
     // Bring tool back to invalid state
     virtual void endJob() = 0;
+
+    // Allow random engines to be propagate downstream to other tools
+    virtual void InitializeTools(CLHEP::HepRandomEngine& poisson,
+                                 CLHEP::HepRandomEngine& scint_time)
+        = 0;
 };

@@ -71,6 +71,10 @@ class LarCelerStandalone final : public phot::IOpticalPropagation
     // Complete the simulation
     void endJob() final;
 
+    // Allow random engines to be propagate downstream to other tools
+    void InitializeTools(CLHEP::HepRandomEngine& poisson,
+                         CLHEP::HepRandomEngine& scint_time) final;
+
   private:
     LarStandaloneRunner::Input runner_inp_;
     std::unique_ptr<LarStandaloneRunner> runner_;

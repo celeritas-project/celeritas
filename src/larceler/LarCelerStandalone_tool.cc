@@ -125,6 +125,16 @@ void LarCelerStandalone::endJob()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Empty initialization.
+ */
+void LarCelerStandalone::InitializeTools(CLHEP::HepRandomEngine& poisson,
+                                         CLHEP::HepRandomEngine& scint_time)
+{
+    // No additional tools to initialize
+}
+
+//---------------------------------------------------------------------------//
 
 DEFINE_ART_CLASS_TOOL(celeritas::LarCelerStandalone)
 
