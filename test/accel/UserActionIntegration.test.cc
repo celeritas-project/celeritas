@@ -15,6 +15,8 @@
 #include <G4StepPoint.hh>
 
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantGeoParams.hh"
+#include "geocel/GeoOpticalIdMap.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/Convert.hh"
@@ -113,6 +115,9 @@ TEST_F(LarSphere, run)
 class LSOOSteppingAction final : public G4UserSteppingAction
 {
     void UserSteppingAction(G4Step const* step) final;
+
+  private:
+    std::shared_ptr<GeantGeoParams const> geant_geo_;
 };
 
 //---------------------------------------------------------------------------//
@@ -241,6 +246,12 @@ void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
         return;
     }
 
+    if (!geant_geo_)
+    {
+        geant_geo_ = celeritas::global_geant_geo().lock();
+        CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
+    }
+
     auto* pre_step = step->GetPreStepPoint();
     auto* post_step = step->GetPostStepPoint();
     CELER_ASSERT(pre_step && post_step);
@@ -258,18 +269,24 @@ void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
     post.speed = units::LightSpeed(post_step->GetBeta());
     post.time = convert_from_geant(post_step->GetGlobalTime(), clhep_time);
     post.pos = convert_from_geant(post_step->GetPosition(), clhep_length);
+    auto* g4mat = pre_step->GetMaterial();
+    CELER_ASSERT(g4mat);
+    data.material
+        = (*geant_geo_->geo_optical_id_map())[geant_geo_->geant_to_id(*g4mat)];
 
     auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
     if (num_cherenkov > 0)
     {
         data.type = GeneratorType::cherenkov;
         data.num_photons = num_cherenkov;
+        CELER_ASSERT(data);
         gen_offload.Push(data);
     }
     if (num_scintillation > 0)
     {
         data.type = GeneratorType::scintillation;
         data.num_photons = num_scintillation;
+        CELER_ASSERT(data);
         gen_offload.Push(data);
     }
     CELER_LOG(debug) << "Generating " << num_cherenkov
