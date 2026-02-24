@@ -25,7 +25,7 @@ namespace celeritas
  *
  * An elliptical toroid is a shape created by revolving an axis-aligned ellipse
  * around a central axis. This shape can be used in everything from pipe bends
- * to tokamaks in fusion reactors. It ossesses a major radius \em r, and
+ * to tokamaks in fusion reactors. It possesses a major radius \em r, and
  * ellipse radii \em a and \em b, as shown in the below diagram:
  *
  * \verbatim
