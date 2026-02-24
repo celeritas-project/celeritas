@@ -27,16 +27,14 @@ foreach(_module cetmodules art art_root_io larcore lardataobj larsim)
   if(NOT ${_module}_FOUND)
     find_package(${_module} ${_larsoft_quiet})
   endif()
+  if(${_module}_FOUND)
+    set(LArSoft_VERSION ${${_module}_VERSION})
+  endif()
 endforeach()
-
-# Set version from lardataobj
-if(lardataobj_FOUND)
-  set(LArSoft_VERSION ${lardataobj_VERSION})
-endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(${CMAKE_FIND_PACKAGE_NAME}
-  REQUIRED_VARS "${_required_vars}"
+  REQUIRED_VARS ${_required_vars}
 )
 unset(_larsoft_quiet)
 
