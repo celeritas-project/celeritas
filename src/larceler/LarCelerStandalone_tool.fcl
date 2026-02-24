@@ -19,7 +19,7 @@ LarCelerStandalone:
     }
 
     // GDML input filename
-    geometry: @local::gdml_filename
+    geometry: @local::services.Geometry.GDML
 
     // Optical buffer-size capacities
     optical_capacity: {
