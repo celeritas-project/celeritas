@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/DerivativeGridCalculator.hh
+//! \file corecel/grid/DerivativeGridCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
