@@ -31,19 +31,36 @@ make_input_from_config(detail::PDFullSimCelerConfig const& cfg)
 {
     inp::OpticalStandaloneInput result;
 
-    result.problem.generator = inp::OpticalOffloadGenerator{};
-
-    // Optical capacities
+    // GPU options
+    if (cfg.EnableDevice())
     {
-        result.problem.capacity.primaries = 8192;
-        result.problem.capacity.tracks = 128;
-        result.problem.capacity.generators = 32768;
+        celeritas::inp::Device d;
+        d.stack_size = cfg.DeviceStackSize();
+        d.heap_size = cfg.DeviceHeapSize();
+        result.system.device = d;
     }
 
+    result.problem.generator = inp::OpticalOffloadGenerator{};
+
+    // Optical limits
+    if (auto steps = cfg.OpticalLimitSteps())
+    {
+        result.problem.limits.steps = steps;
+    }
+    if (auto step_iters = cfg.OpticalLimitStepIters())
+    {
+        result.problem.limits.step_iters = step_iters;
+    }
+
+    // Optical capacities
+    result.problem.capacity.primaries = cfg.OpticalCapacityPrimaries();
+    result.problem.capacity.tracks = cfg.OpticalCapacityTracks();
+    result.problem.capacity.generators = cfg.OpticalCapacityGenerators();
+
     result.problem.num_streams = 1;
-    result.problem.seed = cfg.seed();
-    result.problem.timers.action = cfg.action_times();
-    result.problem.output_file = cfg.output_file();
+    result.problem.seed = cfg.Seed();
+    result.problem.timers.action = cfg.ActionTimes();
+    result.problem.output_file = cfg.OutputFile();
 
     return result;
 }

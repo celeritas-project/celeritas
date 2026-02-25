@@ -16,7 +16,7 @@
 
 #include "LarStandaloneRunner.hh"
 
-#include "detail/LarCelerConfig.hh"
+#include "detail/PDFullSimCelerConfig.hh"
 
 namespace sim
 {
