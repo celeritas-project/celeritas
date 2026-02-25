@@ -47,7 +47,7 @@ PDFullSimCelerGPU:
     EnableDevice: true
     OpticalCapacityPrimaries: 16777216
     OpticalCapacityTracks: 1048576
-    OpticalCapacityGenerators: 16777216
+    OpticalCapacityGenerators: 131072
 }
 
 END_PROLOG

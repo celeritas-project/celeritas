@@ -81,10 +81,22 @@ set(_fcl_files
   PDFullSimCeler.fcl
 )
 
-# Copy into $BUILD/fcl directory
-file(COPY ${_fcl_files}
-  DESTINATION "${CELERITAS_FHICL_OUTPUT_DIRECTORY}"
-)
+# Copy into $BUILD/fcl directory at build time (re-copies when source changes)
+set(_fcl_outputs)
+foreach(_fcl IN LISTS _fcl_files)
+  set(_src "${CMAKE_CURRENT_SOURCE_DIR}/${_fcl}")
+  set(_dst "${CELERITAS_FHICL_OUTPUT_DIRECTORY}/${_fcl}")
+  add_custom_command(
+    OUTPUT "${_dst}"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${_src}" "${_dst}"
+    DEPENDS "${_src}"
+    COMMENT "Copying FHICL file: ${_fcl}"
+  )
+  list(APPEND _fcl_outputs "${_dst}")
+endforeach()
+
+add_custom_target(larceler_fcl ALL DEPENDS ${_fcl_outputs})
+add_dependencies(larceler larceler_fcl)
 
 # Install to $PREFIX/fcl
 install(FILES ${_fcl_files}
