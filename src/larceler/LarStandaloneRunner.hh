@@ -35,7 +35,7 @@ class Runner;
  * Setup and run a standalone optical simulation.
  *
  * This class manages the interface between LArSoft data objects and Celeritas.
- * It is separated from the LarCelerStandalone plugin to allow testing
+ * It is separated from the PDFullSimCeler plugin to allow testing
  * and extension to future plugin frameworks (e.g., Phlex).
  * Instantiating the class sets up Celeritas shared and state objects using an
  * input configuration, and each call take a set of energy deposition steps and

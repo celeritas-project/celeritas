@@ -17,30 +17,6 @@ set(PUBLIC_DEPS
 )
 
 #-----------------------------------------------------------------------------#
-# Create mock upstream library for building against official LArSoft
-#-----------------------------------------------------------------------------#
-
-set(_larsoft_tool_target larsim::OpticalPropagationTools)
-if(NOT TARGET ${_larsoft_tool_target})
-  message(WARNING "LArSoft version is too old for integrated Celeritas support: "
-    "defining fake plugin target for local testing "
-    "(missing target ${_larsoft_tool_target})"
-  )
-  celeritas_add_interface_library(OpticalPropagationTools)
-  celeritas_target_include_directories(OpticalPropagationTools
-    SYSTEM INTERFACE
-      "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/larceler/larsim-future>"
-      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/larceler/larsim-future>"
-  )
-  celeritas_target_link_libraries(OpticalPropagationTools
-    INTERFACE
-      CLHEP::Random
-      lardataobj::Simulation
-  )
-  set(_larsoft_tool_target Celeritas::OpticalPropagationTools)
-endif()
-
-#-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#
 
@@ -76,19 +52,20 @@ macro(celeritas_add_art_plugin basename type)
   )
 endmacro()
 
-celeritas_add_art_plugin(LarCelerStandalone tool)
-celeritas_target_link_libraries(LarCelerStandalone_tool
+celeritas_add_art_plugin(PDFullSimCeler module)
+celeritas_target_link_libraries(PDFullSimCeler_module
+  PUBLIC
+    Celeritas::larceler
   PRIVATE
     cetlib::cetlib
     cetlib_except::cetlib_except
     fhiclcpp::fhiclcpp
     art::Utilities
+    messagefacility::MF_MessageLogger
     larcore::ServiceUtil
     larcorealg::Geometry
     lardataobj::Simulation
     ${_larsoft_tool_target}
-  PUBLIC
-    Celeritas::larceler
 )
 
 celeritas_add_art_plugin(GeoSimExporter module)

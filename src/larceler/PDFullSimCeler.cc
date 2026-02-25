@@ -2,15 +2,16 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/LarCelerStandalone.cc
+//! \file larceler/PDFullSimCeler.cc
 //---------------------------------------------------------------------------//
-#include "LarCelerStandalone.hh"
+#include "PDFullSimCeler.hh"
 
 #include <memory>
 #include <larcore/CoreUtils/ServiceUtil.h>
 #include <larcore/Geometry/Geometry.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
+#include <messagefacility/MessageLogger/MessageLogger.h>
 
 #include "corecel/Assert.hh"
 #include "celeritas/inp/StandaloneInput.hh"
@@ -26,14 +27,9 @@ namespace
  * Convert from a FHiCL config input.
  */
 inp::OpticalStandaloneInput
-make_input_from_config(detail::LarCelerStandaloneConfig const& cfg)
+make_input_from_config(detail::PDFullSimCelerConfig const& cfg)
 {
     inp::OpticalStandaloneInput result;
-
-    // Obtain the GDML filename from the LAr geometry service
-    auto geo_handle = lar::providerFrom<geo::Geometry>();
-    CELER_VALIDATE(geo_handle, << "LArSoft geometry is not active");
-    result.problem.model.geometry = geo_handle->GDMLFile();
 
     result.problem.generator = inp::OpticalOffloadGenerator{};
 
@@ -57,8 +53,10 @@ make_input_from_config(detail::LarCelerStandaloneConfig const& cfg)
 /*!
  * Construct with fcl parameters.
  */
-LarCelerStandalone::LarCelerStandalone(Parameters const& config)
-    : runner_inp_{make_input_from_config(config())}
+PDFullSimCeler::PDFullSimCeler(Parameters const& config)
+    : art::EDProducer{config}
+    , runner_inp_{make_input_from_config(config())}
+    , sim_tag_{config().SimulationLabel()}
 {
 }
 
@@ -66,9 +64,15 @@ LarCelerStandalone::LarCelerStandalone(Parameters const& config)
 /*!
  * Start Celeritas at the beginning of the job.
  */
-void LarCelerStandalone::beginJob()
+void PDFullSimCeler::beginJob()
 {
     CELER_EXPECT(!runner_);
+
+    // Obtain the GDML filename from the LAr geometry service
+    auto geo_handle = lar::providerFrom<geo::Geometry>();
+    CELER_VALIDATE(geo_handle, << "LArSoft geometry is not active");
+    runner_inp_.problem.model.geometry = geo_handle->GDMLFile();
+
     runner_ = std::make_unique<LarStandaloneRunner>(
         std::forward<LarStandaloneRunner::Input>(runner_inp_));
 }
@@ -77,36 +81,26 @@ void LarCelerStandalone::beginJob()
 /*!
  * Run Celeritas on a single event.
  */
-auto LarCelerStandalone::executeEvent(VecSED const& edeps) -> UPVecBTR
+void PDFullSimCeler::produce(art::Event& e)
 {
     CELER_EXPECT(runner_);
-    CELER_EXPECT(!edeps.empty());
+    auto edep_handle
+        = e.getValidHandle<std::vector<sim::SimEnergyDeposit>>(sim_tag_);
 
+    // Calculate detector response for the input steps
     using VecBTR = LarStandaloneRunner::VecBTR;
-
-    // Calculate detector responsors for the input steps
-    auto& run = *runner_;
-    VecBTR result = run(edeps);
-    return std::make_unique<VecBTR>(std::move(result));
+    VecBTR result = (*runner_)(*edep_handle);
+    event.put(std::make_unique<VecBTR>(std::move(result)));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Free Celeritas memory at the end of the job.
  */
-void LarCelerStandalone::endJob()
+void PDFullSimCeler::endJob()
 {
     CELER_EXPECT(runner_);
     runner_.reset();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * No RNG initialization is needed.
- */
-void LarCelerStandalone::InitializeTools(CLHEP::HepRandomEngine&,
-                                         CLHEP::HepRandomEngine&)
-{
 }
 
 //---------------------------------------------------------------------------//

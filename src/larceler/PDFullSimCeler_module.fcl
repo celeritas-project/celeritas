@@ -1,12 +1,13 @@
 //---------------------------------------------------------------------------//
-// Tool configuration file for the LarCelerStandalone tool
+// Tool configuration file for the PDFullSimCeler tool
 //---------------------------------------------------------------------------//
 
 BEGIN_PROLOG
 
-LarCelerStandalone:
+PDFullSimCeler:
 {
-    tool_type: LarCelerStandalone
+    module_type: PDFullSimCeler
+    SimulationLabel:         "IonAndScint"
 
     // Celeritas output filename
     output_file: "celeritas-output.json"

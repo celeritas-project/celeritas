@@ -8,6 +8,7 @@
 
 #include <string>
 #include <fhiclcpp/types/Atom.h>
+#include <fhiclcpp/types/InputTag.h>
 #include <fhiclcpp/types/Sequence.h>
 #include <fhiclcpp/types/Table.h>
 #include <fhiclcpp/types/TableFragment.h>
@@ -18,9 +19,12 @@ namespace celeritas
 namespace detail
 {
 
-// Top-level config for constructing a LarCelerStandalone
-struct LarCelerStandaloneConfig
+// Top-level config for constructing a PDFullSimCeler
+struct PDFullSimCelerConfig
 {
+    fhicl::Atom<art::InputTag> SimulationLabel{
+        Name("SimulationLabel"), Comment("SimEnergyDeposit event tag")};
+
     fhicl::Atom<std::string> output_file{
         fhicl::Name{"output_file"},
         fhicl::Comment{R"(Celeritas output filename)"}};
