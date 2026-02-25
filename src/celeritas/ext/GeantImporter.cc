@@ -1202,13 +1202,14 @@ ImportOpticalParameters import_optical_parameters()
     CELER_ASSERT(params);
 
     auto to_enum = [](std::string const& time_profile) {
+        using Dist = optical::WlsDistribution;
         if (time_profile == "delta")
         {
-            return WlsTimeProfile::delta;
+            return Dist::delta;
         }
         else if (time_profile == "exponential")
         {
-            return WlsTimeProfile::exponential;
+            return Dist::exponential;
         }
         CELER_NOT_IMPLEMENTED("unknown WLS time profile " + time_profile);
     };
