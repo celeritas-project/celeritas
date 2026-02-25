@@ -11,8 +11,8 @@
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/inp/Physics.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/io/ImportData.hh"
 
 #include "celeritas_test.hh"

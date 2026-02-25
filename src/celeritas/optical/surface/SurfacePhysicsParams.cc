@@ -8,7 +8,7 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
 #include "model/DielectricInteractionModel.hh"

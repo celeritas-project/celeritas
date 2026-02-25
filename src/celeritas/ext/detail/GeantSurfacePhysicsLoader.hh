@@ -8,7 +8,7 @@
 
 #include "corecel/Config.hh"
 
-#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "GeantSurfacePhysicsHelper.hh"

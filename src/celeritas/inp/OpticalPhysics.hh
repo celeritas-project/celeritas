@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/SurfacePhysics.hh
+//! \file celeritas/inp/OpticalPhysics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,6 +20,14 @@ class SurfaceModel;
 
 namespace inp
 {
+//---------------------------------------------------------------------------//
+// VOLUMETRIC (BULK) MODELS
+//---------------------------------------------------------------------------//
+
+struct OpticalBulkPhysics
+{
+};
+
 //---------------------------------------------------------------------------//
 // SURFACE DESCRIPTION: Reflectivity and models for surface normals.
 //---------------------------------------------------------------------------//
