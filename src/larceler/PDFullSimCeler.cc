@@ -91,6 +91,8 @@ void PDFullSimCeler::produce(art::Event& e)
     // Calculate detector response for the input steps
     using VecBTR = LarStandaloneRunner::VecBTR;
     VecBTR result = (*runner_)(*edep_handle);
+
+    // Add to event
     e.put(std::make_unique<VecBTR>(std::move(result)));
 }
 

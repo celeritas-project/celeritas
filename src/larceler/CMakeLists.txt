@@ -17,7 +17,7 @@ set(PUBLIC_DEPS
 )
 
 #-----------------------------------------------------------------------------#
-# Create library
+# Create library for non-ART components
 #-----------------------------------------------------------------------------#
 
 celeritas_add_src_library(larceler
@@ -30,19 +30,19 @@ celeritas_target_link_libraries(larceler
 )
 
 #-----------------------------------------------------------------------------#
-# Create plugins
+# Create ART modules
 #-----------------------------------------------------------------------------#
 
 # Add an `art` plugin: separate the tool definition from the ART instantiation
-macro(celeritas_add_art_plugin basename type)
-  set(tgt_ "${basename}_${type}")
+macro(celeritas_add_art_module basename)
+  set(tgt_ "${basename}_module")
   celeritas_add_src_library(${tgt_} MODULE
     "${basename}.cc"
-    "${basename}_${type}.cc"
+    "${basename}_module.cc"
   )
 endmacro()
 
-celeritas_add_art_plugin(PDFullSimCeler module)
+celeritas_add_art_module(PDFullSimCeler)
 celeritas_target_link_libraries(PDFullSimCeler_module
   PUBLIC
     Celeritas::larceler
@@ -58,7 +58,7 @@ celeritas_target_link_libraries(PDFullSimCeler_module
     ${_larsoft_tool_target}
 )
 
-celeritas_add_art_plugin(GeoSimExporter module)
+celeritas_add_art_module(GeoSimExporter module)
 celeritas_target_link_libraries(GeoSimExporter_module
   PRIVATE
     ROOT::Tree
