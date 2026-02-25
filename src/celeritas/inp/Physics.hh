@@ -78,7 +78,7 @@ struct OpticalPhysics
 
     //!@{
     //! \name Optical surface physics and properties
-    SurfacePhysics surfaces;
+    OpticalSurfacePhysics surfaces;
     //!@}
 
     //! Whether optical physics is enabled

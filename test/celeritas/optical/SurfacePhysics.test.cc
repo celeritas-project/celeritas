@@ -122,7 +122,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
         using namespace celeritas::inp;
         using PSI = PhysSurfaceId;
 
-        SurfacePhysics input;
+        OpticalSurfacePhysics input;
         input.materials = {
             as_id_vec<OptMatId>(3, 1, 2),
             as_id_vec<OptMatId>(2),

@@ -127,7 +127,7 @@ class SurfacePhysicsIntegrationBackscatterTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -150,7 +150,7 @@ class SurfacePhysicsIntegrationAbsorbTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -173,7 +173,7 @@ class SurfacePhysicsIntegrationTransmitTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -196,7 +196,7 @@ class SurfacePhysicsIntegrationFresnelTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -221,7 +221,7 @@ class SurfacePhysicsIntegrationOnlyReflectionPolishedTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -244,7 +244,7 @@ class SurfacePhysicsIntegrationOnlyReflectionGroundTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 

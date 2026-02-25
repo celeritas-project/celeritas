@@ -133,8 +133,8 @@ void check_map(std::map<PhysSurfaceId, T> const& expected,
     }
 }
 
-void check_input(inp::SurfacePhysics const& expected,
-                 inp::SurfacePhysics const& actual)
+void check_input(inp::OpticalSurfacePhysics const& expected,
+                 inp::OpticalSurfacePhysics const& actual)
 {
     // Check number of geometric surfaces
     EXPECT_EQ(expected.materials.size(), actual.materials.size());
@@ -187,7 +187,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
     unified_ground.reflection_grids[Mode::backscatter]
         = {{1e-06, 1e-05}, {0.3, 0.1}};
 
-    SurfacePhysics expected_input;
+    OpticalSurfacePhysics expected_input;
 
 #define MATERIALS(VALUE) expected_input.materials.push_back(VALUE)
 #define ROUGHNESS(TYPE, VALUE) \

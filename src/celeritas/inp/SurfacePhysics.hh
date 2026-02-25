@@ -11,8 +11,6 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/inp/Grid.hh"
-#include "corecel/math/SoftEqual.hh"
-#include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/Types.hh"
 
@@ -290,7 +288,7 @@ struct InteractionModels
  *
  * \todo rename OpticalSurfacePhysics
  */
-struct SurfacePhysics
+struct OpticalSurfacePhysics
 {
     //!@{
     //! \name type aliases

@@ -708,10 +708,10 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
 /*!
  * Import optical surface physics information.
  */
-inp::SurfacePhysics
+inp::OpticalSurfacePhysics
 import_optical_surface_physics(std::vector<ImportOpticalMaterial>& materials)
 {
-    inp::SurfacePhysics result;
+    inp::OpticalSurfacePhysics result;
     auto geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
