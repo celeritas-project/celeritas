@@ -1215,7 +1215,6 @@ ImportOpticalParameters import_optical_parameters()
     iop.wls_time_profile = to_enum(params->GetWLSTimeProfile());
     iop.wls2_time_profile = to_enum(params->GetWLS2TimeProfile());
 
-    //! \todo Set \c scintillation_by_particle when supported
     //! \todo For older Geant4 versions, set based on user input?
 #endif
 

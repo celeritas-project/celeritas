@@ -153,8 +153,7 @@ auto ImportedDataTestBase::build_optical_material() -> SPConstOpticalMaterial
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_scintillation() -> SPConstScintillation
 {
-    return ScintillationParams::from_import(this->imported_data(),
-                                            this->particle());
+    return ScintillationParams::from_import(this->imported_data());
 }
 
 //---------------------------------------------------------------------------//
