@@ -12,7 +12,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/ScopedLogStorer.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"

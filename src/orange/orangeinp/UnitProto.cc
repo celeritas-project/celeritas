@@ -13,7 +13,6 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/JsonUtils.json.hh"  // IWYU pragma: keep

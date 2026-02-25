@@ -11,7 +11,6 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/QuantityIO.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/alongstep/AlongStepCartMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepCylMapFieldMscAction.hh"

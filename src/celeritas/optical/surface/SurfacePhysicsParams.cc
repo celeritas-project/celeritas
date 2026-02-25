@@ -9,12 +9,15 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/inp/SurfacePhysics.hh"
-#include "celeritas/optical/surface/model/GaussianRoughnessModel.hh"
-#include "celeritas/optical/surface/model/SmearRoughnessModel.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
 #include "model/DielectricInteractionModel.hh"
+#include "model/FresnelReflectivityModel.hh"
+#include "model/GaussianRoughnessModel.hh"
+#include "model/GridReflectivityModel.hh"
+#include "model/OnlyReflectionModel.hh"
 #include "model/PolishedRoughnessModel.hh"
+#include "model/SmearRoughnessModel.hh"
 #include "model/TrivialInteractionModel.hh"
 
 #include "detail/BuiltinSurfaceModelBuilder.hh"
@@ -135,7 +138,7 @@ auto SurfacePhysicsParams::build_models(
 
     for (auto step : range(SurfacePhysicsOrder::size_))
     {
-        // Build fake models
+        // Build models
         detail::BuiltinSurfaceModelBuilder build_model{step_models[step]};
         switch (step)
         {
@@ -147,14 +150,18 @@ auto SurfacePhysicsParams::build_models(
                     input.roughness.gaussian);
                 break;
             case SurfacePhysicsOrder::reflectivity:
-                build_model.build_fake("grid", input.reflectivity.grid);
-                build_model.build_fake("fresnel", input.reflectivity.fresnel);
+                build_model.build<GridReflectivityModel>(
+                    input.reflectivity.grid);
+                build_model.build<FresnelReflectivityModel>(
+                    input.reflectivity.fresnel);
                 break;
             case SurfacePhysicsOrder::interaction:
                 build_model.build<DielectricInteractionModel>(
                     input.interaction.dielectric);
                 build_model.build<TrivialInteractionModel>(
                     input.interaction.trivial);
+                build_model.build<OnlyReflectionModel>(
+                    input.interaction.only_reflection);
                 break;
             default:
                 CELER_ASSERT_UNREACHABLE();

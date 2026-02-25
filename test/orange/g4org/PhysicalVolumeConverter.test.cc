@@ -55,15 +55,21 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
 
     G4VPhysicalVolume const& world() const { return *this->geo().world(); }
 
-    G4VPhysicalVolume const& find_vol_instance(std::string const& s)
+    G4VPhysicalVolume const& find_vol_instance(char const* s)
     {
         auto pv_id = this->volumes()->volume_instance_labels().find_unique(s);
         CELER_VALIDATE(pv_id, << "no volume '" << s << "'");
+        return this->get_vol_instance(pv_id);
+    }
+
+    G4VPhysicalVolume const& get_vol_instance(VolumeInstanceId pv_id)
+    {
+        CELER_EXPECT(pv_id);
         auto* g4pv = this->geo().id_to_geant(pv_id);
         CELER_VALIDATE(g4pv,
-                       << "could not find Geant4 physical  volume "
-                          "matching '"
-                       << s << "' volume instance (" << pv_id.get());
+                       << "could not find Geant4 physical volume "
+                          "matching volume instance "
+                       << pv_id.get());
         return *g4pv;
     }
 };
@@ -139,8 +145,27 @@ TEST_F(PhysicalVolumeConverterTest, solids)
     PhysicalVolumeConverter convert{this->geo(), make_options()};
 
     PhysicalVolume world = convert(this->world());
+    ASSERT_TRUE(world.lv);
 
-    EXPECT_EQ(24, world.lv->children.size());
+    // Find reflected volume
+    auto const& children = world.lv->children;
+    EXPECT_EQ(24, children.size());
+    auto iter = std::find_if(
+        children.begin(), children.end(), [this](PhysicalVolume const& pv) {
+            return this->get_label(pv) == Label{"reflected", "0"};
+        });
+    ASSERT_TRUE(iter != children.end());
+    ASSERT_TRUE(iter->lv);
+
+    // Check name
+    auto& refl_lv = *iter->lv;
+    EXPECT_EQ("trd3_refl", this->get_label(refl_lv).name);
+
+    // Check converted
+    ASSERT_TRUE(refl_lv.solid);
+    EXPECT_JSON_EQ(
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"genprism","halfheight":50.0,"lower":[[10.0,-15.0],[10.0,15.0],[-10.0,15.0],[-10.0,-15.0]],"upper":[[20.0,-30.0],[20.0,30.0],[-20.0,30.0],[-20.0,-30.0]]},"label":"trd3"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0]}})json",
+        to_string(*refl_lv.solid));
 }
 
 //---------------------------------------------------------------------------//

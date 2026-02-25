@@ -11,7 +11,6 @@
 #include <sstream>
 
 #include "corecel/ScopedLogStorer.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"

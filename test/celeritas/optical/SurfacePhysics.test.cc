@@ -149,9 +149,18 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
         input.reflectivity = ReflectivityModels{
             {
-                {PSI{0}, GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}}}},
-                {PSI{2}, GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}}}},
-                {PSI{5}, GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}}}},
+                {PSI{0},
+                 GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}},
+                                Grid{{0.0, 1.0}, {0.0, 0.0}},
+                                Grid{}}},
+                {PSI{2},
+                 GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}},
+                                Grid{{0.0, 1.0}, {0.0, 0.0}},
+                                Grid{}}},
+                {PSI{5},
+                 GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}},
+                                Grid{{0.0, 1.0}, {0.0, 0.0}},
+                                Grid{}}},
             },
             {
                 {PSI{1}, FresnelReflection{}},
@@ -173,6 +182,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
                 {PSI{6}, {ReflectionForm::from_lobe(), false}},
                 {PSI{7}, {ReflectionForm::from_spike(), false}},
             },
+            {},
             {},
         };
 
@@ -345,8 +355,8 @@ TEST_F(SurfacePhysicsTest, init_params)
         "roughness-gaussian",
     };
     expected_model_names[SurfacePhysicsOrder::reflectivity] = {
-        "grid",
-        "fresnel",
+        "reflectivity-grid",
+        "reflectivity-fresnel",
     };
     expected_model_names[SurfacePhysicsOrder::interaction] = {
         "interaction-dielectric",

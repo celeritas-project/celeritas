@@ -15,7 +15,6 @@
 #include "corecel/Assert.hh"
 
 #include "LarStandaloneRunner.hh"
-#include "inp/LarStandaloneRunner.hh"
 
 namespace celeritas
 {
@@ -24,7 +23,7 @@ namespace celeritas
  * Construct with fcl parameters.
  */
 LarCelerStandalone::LarCelerStandalone(Parameters const& config)
-    : runner_inp_{inp::from_config(config())}
+    : runner_inp_{from_config(config())}
 {
 }
 
@@ -35,7 +34,8 @@ LarCelerStandalone::LarCelerStandalone(Parameters const& config)
 void LarCelerStandalone::beginJob()
 {
     CELER_EXPECT(!runner_);
-    runner_ = std::make_unique<LarStandaloneRunner>(runner_inp_);
+    runner_ = std::make_unique<LarStandaloneRunner>(
+        std::forward<LarStandaloneRunner::Input>(runner_inp_));
 }
 
 //---------------------------------------------------------------------------//

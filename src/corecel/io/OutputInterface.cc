@@ -11,6 +11,7 @@
 
 #include "EnumStringMapper.hh"
 #include "JsonPimpl.hh"
+#include "StreamToString.hh"
 
 using Category = celeritas::OutputInterface::Category;
 
@@ -40,9 +41,7 @@ char const* to_cstring(Category value)
  */
 std::string to_string(OutputInterface const& output)
 {
-    std::ostringstream os;
-    os << output;
-    return std::move(os).str();
+    return stream_to_string(output);
 }
 
 //---------------------------------------------------------------------------//

@@ -153,6 +153,7 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 celeritas_add_test(mucf/DDMucfInteractor.test.cc)
 celeritas_add_test(mucf/DTMucfInteractor.test.cc)
+celeritas_add_test(mucf/DTMixMucfModel.test.cc)
 celeritas_add_test(mucf/MuonicAtomSelector.test.cc)
 
 #-----------------------------------------------------------------------------#
@@ -490,6 +491,8 @@ celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
 celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat

@@ -7,10 +7,6 @@
 #include "celeritas/mucf/interactor/DDMucfInteractor.hh"
 
 #include "corecel/cont/Range.hh"
-#include "corecel/math/ArrayUtils.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/grid/NonuniformGridBuilder.hh"
-#include "celeritas/inp/MucfPhysics.hh"
 
 #include "MucfInteractorHostTestBase.hh"
 #include "celeritas_test.hh"
@@ -33,44 +29,10 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
   protected:
     void SetUp() override
     {
-        auto const& params = *this->particle_params();
-        this->set_material("hdt_fuel");
-
-        HostVal<DTMixMucfData> host_data;
-
-        // Set up particle IDs
-        host_data.particle_ids.mu_minus = params.find(pdg::mu_minus());
-        host_data.particle_ids.neutron = params.find(pdg::neutron());
-        host_data.particle_ids.proton = params.find(pdg::proton());
-        host_data.particle_ids.he3 = params.find(pdg::he3());
-        host_data.particle_ids.triton = params.find(pdg::triton());
-        host_data.particle_ids.muonic_he3 = params.find(pdg::muonic_he3());
-
-        // Set up particle masses
-        host_data.particle_masses.mu_minus
-            = params.get(host_data.particle_ids.mu_minus).mass();
-        host_data.particle_masses.neutron
-            = params.get(host_data.particle_ids.neutron).mass();
-        host_data.particle_masses.proton
-            = params.get(host_data.particle_ids.proton).mass();
-        host_data.particle_masses.he3
-            = params.get(host_data.particle_ids.he3).mass();
-        host_data.particle_masses.triton
-            = params.get(host_data.particle_ids.triton).mass();
-        host_data.particle_masses.muonic_he3
-            = params.get(host_data.particle_ids.muonic_he3).mass();
-
-        // Set up muon energy CDF
-        auto const inp_data = inp::MucfPhysics::from_default();
-        NonuniformGridBuilder build_grid_record{&host_data.reals};
-        host_data.muon_energy_cdf = build_grid_record(inp_data.muon_energy_cdf);
-
-        // Construct collection
-        data_ = ParamsDataStore<DTMixMucfData>{std::move(host_data)};
-
         // At-rest muon primary
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.0});
         this->set_inc_direction({1, 0, 0});
+        data_ = this->host_data();
     }
 
     // Detailed validation of the interaction result
@@ -82,7 +44,6 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
         // Primary muon should be killed
         EXPECT_EQ(Action::absorbed, interaction.action);
 
-        auto const& host_data = data_.host_ref();
         auto const& sec = interaction.secondaries;
 
         // Verify channel-specific data
@@ -91,12 +52,12 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
             ASSERT_EQ(num_secondaries_[channel], sec.size());
 
             // First particle is the outgoing neutron with 0.75 * 3.3 MeV
-            EXPECT_EQ(host_data.particle_ids.neutron, sec[0].particle_id);
+            EXPECT_EQ(data_.particle_ids.neutron, sec[0].particle_id);
             EXPECT_SOFT_EQ(0.75 * 3.3, sec[0].energy.value());
 
             // Check particles
-            EXPECT_EQ(host_data.particle_ids.mu_minus, sec[1].particle_id);
-            EXPECT_EQ(host_data.particle_ids.he3, sec[2].particle_id);
+            EXPECT_EQ(data_.particle_ids.mu_minus, sec[1].particle_id);
+            EXPECT_EQ(data_.particle_ids.he3, sec[2].particle_id);
 
             // Check approximate energy conservation
             real_type total_kinetic_energy = 0;
@@ -109,9 +70,9 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
 
             // Check momentum conservation
             auto const neutron_p_mag = this->calc_momentum(
-                sec[0].energy, host_data.particle_masses.neutron);
+                sec[0].energy, data_.particle_masses.neutron);
             auto const muon_p_mag = this->calc_momentum(
-                sec[1].energy, host_data.particle_masses.mu_minus);
+                sec[1].energy, data_.particle_masses.mu_minus);
 
             Real3 he3_momentum, total_momentum;
             for (auto i : range(3))
@@ -135,9 +96,9 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
                       interaction.secondaries.size());
 
             // Check particle types
-            EXPECT_EQ(host_data.particle_ids.neutron,
+            EXPECT_EQ(data_.particle_ids.neutron,
                       interaction.secondaries[0].particle_id);
-            EXPECT_EQ(host_data.particle_ids.muonic_he3,
+            EXPECT_EQ(data_.particle_ids.muonic_he3,
                       interaction.secondaries[1].particle_id);
 
             // First particle is the outgoing neutron with 0.75 * 3.3 MeV
@@ -155,16 +116,16 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
             ASSERT_EQ(num_secondaries_[channel], sec.size());
 
             // First particle is the outgoing proton with 0.75 * 4.03 MeV
-            EXPECT_EQ(host_data.particle_ids.proton, sec[0].particle_id);
+            EXPECT_EQ(data_.particle_ids.proton, sec[0].particle_id);
             EXPECT_SOFT_EQ(0.75 * 4.03, sec[0].energy.value());
 
             // Check particles
-            EXPECT_EQ(host_data.particle_ids.mu_minus, sec[1].particle_id);
-            EXPECT_EQ(host_data.particle_ids.triton, sec[2].particle_id);
+            EXPECT_EQ(data_.particle_ids.mu_minus, sec[1].particle_id);
+            EXPECT_EQ(data_.particle_ids.triton, sec[2].particle_id);
 
             // Check approximate energy conservation
-            // The total kinetic energy is only very roughly 4.03 MeV due to
-            // simplistic sampling.
+            // The total kinetic energy is only very roughly 4.03 MeV due
+            // to simplistic sampling.
             real_type total_kinetic_energy = 0;
             for (auto const& s : interaction.secondaries)
             {
@@ -174,9 +135,9 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
 
             // Check momentum conservation
             auto const proton_p_mag = this->calc_momentum(
-                sec[0].energy, host_data.particle_masses.proton);
+                sec[0].energy, data_.particle_masses.proton);
             auto const muon_p_mag = this->calc_momentum(
-                sec[1].energy, host_data.particle_masses.mu_minus);
+                sec[1].energy, data_.particle_masses.mu_minus);
 
             Real3 triton_momentum, total_momentum;
             for (auto i : range(3))
@@ -204,7 +165,7 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
     }
 
   protected:
-    ParamsDataStore<DTMixMucfData> data_;
+    HostCRef<DTMixMucfData> data_;
     EnumArray<Channel, size_type> num_secondaries_{
         3,  // helium3_muon_neutron
         2,  // muonichelium3_neutron
@@ -222,12 +183,9 @@ TEST_F(DDMucfInteractorTest, helium3_muon_neutron)
 
     size_type const num_samples = 4;
     this->resize_secondaries(num_samples * num_secondaries_[channel]);
-
-    // Run interactor
-    DDMucfInteractor interact(
-        data_.host_ref(), channel, this->secondary_allocator());
-
     auto& rng = this->rng();
+
+    DDMucfInteractor interact(data_, channel, this->secondary_allocator());
     for ([[maybe_unused]] auto i : range(num_samples))
     {
         auto result = interact(rng);
@@ -242,12 +200,9 @@ TEST_F(DDMucfInteractorTest, muonichelium3_neutron)
 
     size_type const num_samples = 4;
     this->resize_secondaries(num_samples * num_secondaries_[channel]);
-
-    // Run interactor
-    DDMucfInteractor interact(
-        data_.host_ref(), channel, this->secondary_allocator());
-
     auto& rng = this->rng();
+
+    DDMucfInteractor interact(data_, channel, this->secondary_allocator());
     for ([[maybe_unused]] auto i : range(num_samples))
     {
         auto result = interact(rng);
@@ -262,12 +217,9 @@ TEST_F(DDMucfInteractorTest, tritium_muon_proton)
 
     size_type const num_samples = 4;
     this->resize_secondaries(num_samples * num_secondaries_[channel]);
-
-    // Run interactor
-    DDMucfInteractor interact(
-        data_.host_ref(), channel, this->secondary_allocator());
-
     auto& rng = this->rng();
+
+    DDMucfInteractor interact(data_, channel, this->secondary_allocator());
     for ([[maybe_unused]] auto i : range(num_samples))
     {
         auto result = interact(rng);
@@ -286,9 +238,7 @@ TEST_F(DDMucfInteractorTest, stress_test)
                          DDMucfInteractor::Channel::tritium_muon_proton})
     {
         this->resize_secondaries(num_samples * num_secondaries_[channel]);
-
-        DDMucfInteractor interact(
-            data_.host_ref(), channel, this->secondary_allocator());
+        DDMucfInteractor interact(data_, channel, this->secondary_allocator());
 
         auto& rng = this->rng();
         for ([[maybe_unused]] auto i : range(num_samples))

@@ -8,6 +8,7 @@
 
 #include <iosfwd>
 
+#include "corecel/io/StreamToString.hh"  // IWYU pragma: export
 #include "celeritas/phys/Interaction.hh"
 
 namespace celeritas
@@ -15,6 +16,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Write a host-side Interaction to a stream for debugging.
 std::ostream& operator<<(std::ostream& os, Interaction const& i);
+
+//! Allow printing of pos/dir for convenience
+inline std::string to_string(Real3 const& r)
+{
+    return stream_to_string(r);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

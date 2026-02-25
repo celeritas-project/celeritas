@@ -13,6 +13,8 @@
 
 #include "corecel/Assert.hh"
 
+#include "StreamToString.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -59,7 +61,8 @@ struct GenericToStream
  * Write a variant object's value to a stream.
  */
 template<class T>
-std::ostream& operator<<(std::ostream& os, StreamableVariant<T> const& svar)
+inline std::ostream&
+operator<<(std::ostream& os, StreamableVariant<T> const& svar)
 {
     CELER_ASSUME(!svar.value.valueless_by_exception());
     std::visit(detail::GenericToStream{os}, svar.value);
@@ -71,11 +74,9 @@ std::ostream& operator<<(std::ostream& os, StreamableVariant<T> const& svar)
  * Save a variant object's value to a string.
  */
 template<class T>
-std::string to_string(StreamableVariant<T> const& svar)
+inline std::string to_string(StreamableVariant<T> const& svar)
 {
-    std::ostringstream os;
-    os << svar;
-    return os.str();
+    return stream_to_string(svar);
 }
 
 //---------------------------------------------------------------------------//
