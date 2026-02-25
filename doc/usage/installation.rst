@@ -320,3 +320,22 @@ In such cases, the build script will modify the shell's rc file to source the
 environment script at login.
 
 .. _ccache: https://ccache.dev/
+
+.. _build_ups:
+
+UPS/MRB
+-------
+
+Once inside the apptainer, initialize the UPS packaging system and load LArSoft
+components:
+
+.. sourcecode::
+
+   $ . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+   Setting up larsoft UPS area... /cvmfs/larsoft.opensciencegrid.org
+   Setting up DUNE UPS area... /cvmfs/dune.opensciencegrid.org/products/dune/
+   $ setup larsoft v10_14_01 -q e26:prof
+
+Then create a local build area with Fermilab's MRB tool:
+
+Finally, install Celeritas (or run directly from the build directory):
