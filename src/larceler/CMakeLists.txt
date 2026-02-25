@@ -40,16 +40,6 @@ macro(celeritas_add_art_plugin basename type)
     "${basename}.cc"
     "${basename}_${type}.cc"
   )
-
-  # Copy into $BUILD/fcl directory
-  file(COPY "${tgt_}.fcl"
-    DESTINATION "${CELERITAS_FHICL_OUTPUT_DIRECTORY}"
-  )
-  # Install to $PREFIX/fcl
-  install(FILES "${tgt_}.fcl"
-    DESTINATION "${CELERITAS_INSTALL_FHICLDIR}"
-    COMPONENT runtime
-  )
 endmacro()
 
 celeritas_add_art_plugin(PDFullSimCeler module)
@@ -79,6 +69,22 @@ celeritas_target_link_libraries(GeoSimExporter_module
     larcorealg::Geometry
     lardataobj::Simulation
     Celeritas::corecel
+)
+
+#-----------------------------------------------------------------------------#
+# Install FHICL module/example files
+#-----------------------------------------------------------------------------#
+
+file(GLOB _fcl_files "*.fcl")
+
+# Copy into $BUILD/fcl directory
+file(COPY ${_fcl_files}
+  DESTINATION "${CELERITAS_FHICL_OUTPUT_DIRECTORY}"
+)
+# Install to $PREFIX/fcl
+install(FILES ${_fcl_files}
+  DESTINATION "${CELERITAS_INSTALL_FHICLDIR}"
+  COMPONENT runtime
 )
 
 #-----------------------------------------------------------------------------#
