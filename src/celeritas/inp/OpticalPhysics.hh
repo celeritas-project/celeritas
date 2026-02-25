@@ -285,8 +285,6 @@ struct InteractionModels
  *
  * Interstitial materials are the interstitial materials per geometric surface.
  * The last entry is used as the default surface.
- *
- * \todo rename OpticalSurfacePhysics
  */
 struct OpticalSurfacePhysics
 {
