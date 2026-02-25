@@ -340,13 +340,14 @@ you must start up a suitable Apptainer instance for building and execution. Then
 
 .. tip::
 
-   Use the :samp:`ups list -aK+ {package}` command to list available packages.
+   Use the command :samp:`ups list -aK+ {package}` to list available packages.
 
 You can then build and install Celeritas just like any other CMake package.
 By default it will autodetect available packages, but Celeritas includes
 a preset targeting LArSoft module integration:
 
 .. code::
+
    $ git clone https://github.com/celeritas-project/celeritas.git
    $ cd celeritas
    $ cmake --preset=larsoft .
