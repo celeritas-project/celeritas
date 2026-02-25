@@ -35,26 +35,28 @@ components:
    $ . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
    Setting up larsoft UPS area... /cvmfs/larsoft.opensciencegrid.org
    Setting up DUNE UPS area... /cvmfs/dune.opensciencegrid.org/products/dune/
-   $ setup larsoft v10_14_01 -q e26:prof
    $ setup -B dunesw v10_14_01d00 -q e26:prof
 
-If running
+Finally, load the module/library/FHICL paths provided by Celeritas:
 
 .. sourcecode::
 
-   $ git clone https://github.com/celeritas-project/celeritas.git
-   Cloning into 'celeritas'...
-   # ...
+   $ eval $($SCRATCHDIR/build/celeritas-reldeb-orange/bin/larceler-env)
+   Loaded Celeritas at .../build/celeritas-reldeb-orange
 
-   $ cmake --preset=default . -DCELERITAS_USE_LArSoft=ON
-   # ...
-   -- Build files have been written to: /scratch/sethj/larsoft-dev/celeritas/build-default
+Then you should be able to include Celeritas components.
 
-   $ cmake --preset=default . -DCELERITAS_USE_LArSoft=ON  -DCMAKE_INSTALL_PREFIX=$PWD/install
-   # ...
-   -- Build files have been written to: /scratch/sethj/larsoft-dev/celeritas/build-default
-   $ cd build-default/ && ninja install
+.. sourcecode:: none
 
+   #include "PDFullSimCeler.fcl"
+   #include "standard_g4_dune10kt_1x2x6.fcl"
+
+   dunefd_pdfullsim_cpu: {
+     @table::PDFullSimCeler
+   }
+
+   # Use Celeritas full sim configuration
+   physics.producers.PDFastSim: @local::dunefd_pdfullsim_cpu
 
 DD4HEP
 ------

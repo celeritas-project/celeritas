@@ -29,7 +29,7 @@ PDFullSimCeler:
     // Steps per track before killing (0 for unlimited)
     OpticalLimitSteps: 1024
     // Iterations before aborting stepping loop (0 for unlimited)
-    OpticalLimitStepIters: 0
+    OpticalLimitStepIters: 4096
 
     // Celeritas output filename
     OutputFile: "celeritas-output.json"
@@ -39,6 +39,15 @@ PDFullSimCeler:
 
     // RNG seed
     Seed: 0
+}
+
+PDFullSimCelerGPU:
+{
+    @table::PDFullSimCeler
+    EnableDevice: true
+    OpticalCapacityPrimaries: 16777216
+    OpticalCapacityTracks: 1048576
+    OpticalCapacityGenerators: 16777216
 }
 
 END_PROLOG

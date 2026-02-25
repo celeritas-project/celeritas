@@ -75,7 +75,11 @@ celeritas_target_link_libraries(GeoSimExporter_module
 # Install FHICL module/example files
 #-----------------------------------------------------------------------------#
 
-file(GLOB _fcl_files "*.fcl")
+set(_fcl_files
+  GeoSimExporter.fcl
+  GeoSimExporter_run.fcl
+  PDFullSimCeler.fcl
+)
 
 # Copy into $BUILD/fcl directory
 file(COPY ${_fcl_files}

@@ -119,7 +119,6 @@ void PDFullSimCeler::produce(art::Event& e)
  */
 void PDFullSimCeler::endJob()
 {
-    CELER_EXPECT(runner_);
     runner_.reset();
 }
 
