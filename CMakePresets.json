@@ -17,6 +17,42 @@
       }
     },
     {
+      "name": "full",
+      "displayName": "generic: all external dependencies expected",
+      "inherits": "default",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "minimal",
+      "displayName": "generic: minimal development capabilities",
+      "generator": "Ninja",
+      "inherits": "default",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_DD4hep":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_LArSoft": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": "larsoft",
       "displayName": "deployment: target DUNE analysis with LArSoft",
       "inherits": [".primary", ".ndebug"],
@@ -55,42 +91,6 @@
         "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
-      }
-    },
-    {
-      "name": "full",
-      "displayName": "generic: all external dependencies expected",
-      "inherits": "default",
-      "cacheVariables": {
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
-      }
-    },
-    {
-      "name": "minimal",
-      "displayName": "generic: minimal development capabilities",
-      "generator": "Ninja",
-      "inherits": "default",
-      "cacheVariables": {
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_DD4hep":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_LArSoft": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
