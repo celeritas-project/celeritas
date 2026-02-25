@@ -88,9 +88,10 @@ fi
 # Set up additional tools if running inside an apptainer
 if [ -n "${MRB_PROJECT}" ]; then
   # Do not set up MRB: instead, just load cmake and cetmodules
-  # (larsoft/dune runtime dependencies have already been loaded)
-  setup cmake v3_27_4 -q ${MRB_QUALS}  || return $?
-  setup cetmodules v3_24_01 -q ${MRB_QUALS} || return $?
+  # (larsoft runtime dependencies have already been loaded)
+  # Note that these do not need MRB_QUALS since they're not binary products
+  setup cmake v3_27_4  || return $?
+  setup cetmodules v3_24_01 || return $?
 fi
 
 if [ -n "$CELER_SOURCE_DIR" ]; then
