@@ -126,7 +126,6 @@ void LocalOpticalGenOffload::InitializeEvent(int id)
 void LocalOpticalGenOffload::Push(optical::GeneratorDistributionData const& data)
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(data);
 
     ScopedProfiling profile_this{"push"};
 
