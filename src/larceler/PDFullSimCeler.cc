@@ -86,6 +86,9 @@ void PDFullSimCeler::beginJob()
 {
     CELER_EXPECT(!runner_);
 
+    // Inform LArSoft we're going to make OpBTR
+    produces<std::vector<sim::OpDetBacktrackerRecord>>();
+
     // Obtain the GDML filename from the LAr geometry service
     auto geo_handle = lar::providerFrom<geo::Geometry>();
     CELER_VALIDATE(geo_handle, << "LArSoft geometry is not active");
