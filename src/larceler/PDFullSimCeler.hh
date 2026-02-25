@@ -10,10 +10,9 @@
 #include <memory>
 #include <art/Framework/Core/EDProducer.h>
 #include <art/Utilities/ToolConfigTable.h>
-#include <larsim/PhotonPropagation/OpticalPropagationTools/IOpticalPropagation.h>
 
 #include "corecel/Macros.hh"
-#include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/inp/StandaloneInput.hh"  // IWYU pragma: keep
 
 #include "LarStandaloneRunner.hh"
 

@@ -7,12 +7,8 @@
 #pragma once
 
 #include <string>
+#include <canvas/Utilities/InputTag.h>
 #include <fhiclcpp/types/Atom.h>
-#include <fhiclcpp/types/InputTag.h>
-#include <fhiclcpp/types/Sequence.h>
-#include <fhiclcpp/types/Table.h>
-#include <fhiclcpp/types/TableFragment.h>
-#include <fhiclcpp/types/Tuple.h>
 
 namespace celeritas
 {
@@ -23,7 +19,8 @@ namespace detail
 struct PDFullSimCelerConfig
 {
     fhicl::Atom<art::InputTag> SimulationLabel{
-        Name("SimulationLabel"), Comment("SimEnergyDeposit event tag")};
+        fhicl::Name("SimulationLabel"),
+        fhicl::Comment(R"(SimEnergyDeposit event tag)")};
 
     fhicl::Atom<std::string> output_file{
         fhicl::Name{"output_file"},

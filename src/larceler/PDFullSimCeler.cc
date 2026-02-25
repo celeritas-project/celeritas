@@ -6,7 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "PDFullSimCeler.hh"
 
-#include <memory>
+#include <art/Framework/Principal/Event.h>
+#include <art/Framework/Principal/Handle.h>
 #include <larcore/CoreUtils/ServiceUtil.h>
 #include <larcore/Geometry/Geometry.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
@@ -14,7 +15,6 @@
 #include <messagefacility/MessageLogger/MessageLogger.h>
 
 #include "corecel/Assert.hh"
-#include "celeritas/inp/StandaloneInput.hh"
 
 #include "LarStandaloneRunner.hh"
 
@@ -47,6 +47,7 @@ make_input_from_config(detail::PDFullSimCelerConfig const& cfg)
 
     return result;
 }
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -90,7 +91,7 @@ void PDFullSimCeler::produce(art::Event& e)
     // Calculate detector response for the input steps
     using VecBTR = LarStandaloneRunner::VecBTR;
     VecBTR result = (*runner_)(*edep_handle);
-    event.put(std::make_unique<VecBTR>(std::move(result)));
+    e.put(std::make_unique<VecBTR>(std::move(result)));
 }
 
 //---------------------------------------------------------------------------//

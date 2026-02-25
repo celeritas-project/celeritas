@@ -19,14 +19,18 @@
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 #include <messagefacility/MessageLogger/MessageLogger.h>
 
+#include "corecel/Assert.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with GDML geometry and export its information.
  */
-GeoSimExporter::GeoSimExporter(fhicl::ParameterSet const& pset)
-    : EDAnalyzer{pset}, max_edeps_(pset.get<int>("max_edeps_per_event"))
+GeoSimExporter::GeoSimExporter(Parameters const& config)
+    : art::EDAnalyzer{config}
+    , sim_tag_{config().SimulationLabel()}
+    , max_edeps_(config().MaxEdepsPerEvent())
 {
     // TTree and ROOT file writing is done automatically by the TFileService
     art::ServiceHandle<art::TFileService const> tfs;
@@ -100,10 +104,10 @@ void GeoSimExporter::beginJob()
  * Loop over optional larg4 Geant4 output simulation file event data with
  * \c IonAndScint objects and export test data.
  */
-void GeoSimExporter::analyze(art::Event const& event)
+void GeoSimExporter::analyze(art::Event const& e)
 {
     art::Handle<std::vector<sim::SimEnergyDeposit>> energy_deps;
-    if (!event.getByLabel("IonAndScint", energy_deps))
+    if (!e.getByLabel(sim_tag_, energy_deps))
     {
         mf::LogError("GeoSimExporterModule")
             << "Cannot find IonAndScint label. Either 1) missing input file "

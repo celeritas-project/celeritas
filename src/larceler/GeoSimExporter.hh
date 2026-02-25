@@ -8,6 +8,9 @@
 
 #include <TTree.h>
 #include <art/Framework/Core/EDAnalyzer.h>
+#include <canvas/Utilities/InputTag.h>
+#include <fhiclcpp/types/Atom.h>
+#include <fhiclcpp/types/Sequence.h>
 
 #include "SimEnergyDepositData.hh"
 
@@ -35,8 +38,22 @@ namespace celeritas
 class GeoSimExporter : public art::EDAnalyzer
 {
   public:
+    struct Config
+    {
+        fhicl::Atom<art::InputTag> SimulationLabel{
+            fhicl::Name("SimulationLabel"),
+            fhicl::Comment(R"(SimEnergyDeposit event tag)")};
+
+        fhicl::Atom<int> MaxEdepsPerEvent{
+            fhicl::Name{"MaxEdepsPerEvent"},
+            fhicl::Comment{R"(Maximum to write per event)"},
+            0};
+    };
+    using Parameters = art::EDAnalyzer::Table<Config>;
+
+  public:
     // Construct with input parameters and export geometry data
-    explicit GeoSimExporter(fhicl::ParameterSet const& pset);
+    explicit GeoSimExporter(Parameters const& p);
 
     //!@{
     // Prevent copy and assignment operations
@@ -54,7 +71,8 @@ class GeoSimExporter : public art::EDAnalyzer
 
   private:
     // Fcl input data
-    int max_edeps_;
+    art::InputTag sim_tag_;
+    int max_edeps_{};
 
     TTree* sim_tree_;  // TTree with sim::SimEnergyDeposit data
     SimEnergyDepositData sim_edep_data_;  // TBranch reference data

@@ -67,7 +67,6 @@ celeritas_target_link_libraries(GeoSimExporter_module
     art_root_io::TFileService_service
     larcore::ServiceUtil
     larcorealg::Geometry
-<<<<<<< HEAD
     lardataobj::Simulation
     Celeritas::corecel
 )
@@ -82,18 +81,11 @@ file(GLOB _fcl_files "*.fcl")
 file(COPY ${_fcl_files}
   DESTINATION "${CELERITAS_FHICL_OUTPUT_DIRECTORY}"
 )
+
 # Install to $PREFIX/fcl
 install(FILES ${_fcl_files}
   DESTINATION "${CELERITAS_INSTALL_FHICLDIR}"
   COMPONENT runtime
-||||||| parent of 0f334f47c (Add assertion and remove persistent geo from exporter)
-    larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
-    lardataobj::MCBase
-=======
-    larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
-    lardataobj::MCBase
-    Celeritas::corecel
->>>>>>> 0f334f47c (Add assertion and remove persistent geo from exporter)
 )
 
 #-----------------------------------------------------------------------------#
