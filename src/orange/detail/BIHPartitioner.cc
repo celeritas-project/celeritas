@@ -33,20 +33,29 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from vector of bounding boxes and respective centers.
+ * Construct from all bounding bounding boxes in a universe.
+ *
+ * \param[in] bboxes          All bounding boxes the could be partitioned via
+ *                            calls to operator()
+ * \param[in] centers         The center position of each bounding box
+ * \param[in] num_part_cands  The number of candidate partitions to check per
+ *                            axis
  */
-BIHPartitioner::BIHPartitioner(VecBBox const* bboxes, VecReal3 const* centers)
-    : bboxes_(bboxes), centers_(centers)
+BIHPartitioner::BIHPartitioner(VecBBox const* bboxes,
+                               VecReal3 const* centers,
+                               size_type num_part_cands)
+    : bboxes_(bboxes), centers_(centers), num_part_cands_(num_part_cands)
 {
     CELER_EXPECT(!bboxes_->empty());
     CELER_EXPECT(bboxes_->size() == centers_->size());
+    CELER_EXPECT(num_part_cands_ > 0);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Find a suitable partition for the given bounding boxes.
+ * Find a suitable partition for the given subset of bounding boxes.
  *
- * If no partition is found, an empty partition is return
+ * If no partition is found, an empty partition is returned
  */
 BIHPartitioner::Partition
 BIHPartitioner::operator()(VecIndices const& indices) const
@@ -67,7 +76,7 @@ BIHPartitioner::operator()(VecIndices const& indices) const
 
         auto step_size
             = std::max(static_cast<size_type>(axes_centers[ax].size()
-                                              / (candidates_per_axis_ + 1)),
+                                              / (num_part_cands_ + 1)),
                        size_type{1});
 
         for (auto i = step_size; i < axes_centers[ax].size(); i += step_size)

@@ -265,10 +265,14 @@ struct InteractionModels
     //! Trivial interactions independent of other surface physics
     std::map<PhysSurfaceId, optical::TrivialInteractionMode> trivial;
 
+    //! Strictly reflective interactions of a single type
+    std::map<PhysSurfaceId, optical::ReflectionMode> only_reflection;
+
     // Whether any models are present
     explicit operator bool() const
     {
-        return !dielectric.empty() || !trivial.empty();
+        return !dielectric.empty() || !trivial.empty()
+               || !only_reflection.empty();
     }
 };
 

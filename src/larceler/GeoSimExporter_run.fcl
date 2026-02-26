@@ -1,7 +1,8 @@
 //---------------------------------------------------------------------------//
-// Job execution file for the GeoSimExporterModule module
+// Job execution file for the GeoSimExporter module
 //---------------------------------------------------------------------------//
 #include "services_dune.fcl"
+#include "GeoSimExporter.fcl"
 
 process_name: geoandsimdataexport
 
@@ -23,11 +24,7 @@ physics:
     {
         // Create a path for art to execute
         // This name also doubles as the directory name in the ROOT file
-        data:
-        {
-            module_type: "GeoSimExporterModule"
-            max_edeps_per_event: 10 // Use <= 0 to store all energy deposits
-        }
+        data: @local::GeoSimExporter
     }
 
     // Execution ordering of all analyzers that should be invoked

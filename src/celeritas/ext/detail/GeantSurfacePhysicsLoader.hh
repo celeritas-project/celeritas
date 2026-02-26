@@ -9,6 +9,7 @@
 #include "corecel/Config.hh"
 
 #include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "GeantSurfacePhysicsHelper.hh"
 
@@ -25,7 +26,8 @@ class GeantSurfacePhysicsLoader
 {
   public:
     //! Construct with \c SurfacePhysics input
-    GeantSurfacePhysicsLoader(inp::SurfacePhysics& surface_phys);
+    GeantSurfacePhysicsLoader(inp::SurfacePhysics& surface_phys,
+                              std::vector<ImportOpticalMaterial>& materials);
 
     //! Populate surface physics data
     void operator()(SurfaceId sid);
@@ -33,8 +35,15 @@ class GeantSurfacePhysicsLoader
   private:
     //// DATA ////
     inp::SurfacePhysics& models_;  // Populated by operator()
+    std::vector<ImportOpticalMaterial>& materials_;  // Populated by operator()
+
+    PhysSurfaceId current_surface_{0};
 
     //// HELPER FUNCTIONS ////
+
+    // Insert a value for the current surface into a model map in place
+    template<class T>
+    void emplace(std::map<PhysSurfaceId, T>& m, T&& value);
 
     // Check that unimplemented properties are not present
     void check_unimplemented_properties(
@@ -52,6 +61,12 @@ class GeantSurfacePhysicsLoader
     // Insert reflection form for di/di or di/met
     void insert_interaction(GeantSurfacePhysicsHelper const& helper,
                             inp::ReflectionForm&& rf);
+
+    // Insert gap material and surface for back-painted surfaces
+    void insert_gap_material(GeantSurfacePhysicsHelper const& helper);
+
+    // Insert painted surface (reflection only)
+    void insert_painted_surface(optical::ReflectionMode mode);
 };
 
 //---------------------------------------------------------------------------//

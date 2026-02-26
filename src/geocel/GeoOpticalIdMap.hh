@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeoOpticalIdMap.hh
+//! \file geocel/GeoOpticalIdMap.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,8 +13,6 @@
 #include "celeritas/Types.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -73,5 +71,4 @@ OptMatId GeoOpticalIdMap::operator[](GeoMatId m) const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

@@ -474,8 +474,8 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
     if (reference_configuration)
     {
-        constexpr unsigned int expected_steps = 116;
-        constexpr unsigned int expected_step_iters = 4;
+        constexpr unsigned int expected_steps = 117;
+        constexpr unsigned int expected_step_iters = 5;
         EXPECT_EQ(expected_steps, result.accum.steps);
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
@@ -502,8 +502,8 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (reference_configuration)
     {
-        unsigned int expected_steps = 19310;
-        unsigned int expected_step_iters = 2;
+        unsigned int expected_steps = 19283;
+        unsigned int expected_step_iters = 3;
         EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
@@ -541,7 +541,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     if (reference_configuration)
     {
-        constexpr int ref_steps = 60;
+        constexpr int ref_steps = 59;
         EXPECT_EQ(ref_steps, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());

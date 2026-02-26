@@ -67,11 +67,11 @@ class Runner
     //! Access the shared params
     SPConstParams const& params() const
     {
-        return problem_.transporter->params();
+        return loaded_.problem.transporter->params();
     }
 
   private:
-    setup::OpticalProblemLoaded problem_;
+    setup::OpticalStandaloneLoaded loaded_;
     std::shared_ptr<CoreStateBase> state_;
 
     //// HELPER FUNCTIONS ////

@@ -2,18 +2,21 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/LarCelerStandalone.hh
+//! \file larceler/PDFullSimCeler.hh
 //! \note This file is an `art` plugin and should only be included by its .cc
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
+#include <art/Framework/Core/EDProducer.h>
 #include <art/Utilities/ToolConfigTable.h>
-#include <larsim/PhotonPropagation/OpticalPropagationTools/IOpticalPropagation.h>
+
+#include "corecel/Macros.hh"
+#include "celeritas/inp/StandaloneInput.hh"  // IWYU pragma: keep
 
 #include "LarStandaloneRunner.hh"
 
-#include "detail/LarCelerConfig.hh"
+#include "detail/PDFullSimCelerConfig.hh"
 
 namespace sim
 {
@@ -45,32 +48,38 @@ namespace celeritas
  * \internal
  * \par Parameter set definitions
  *
- * See \c celeritas::detail::LarCelerStandaloneConfig .
+ * See \c celeritas::detail::PDFullSimCelerConfig .
  */
-class LarCelerStandalone final : public phot::IOpticalPropagation
+class PDFullSimCeler final : public art::EDProducer
 {
   public:
     //!@{
     //! \name Type aliases
-    using Config = detail::LarCelerStandaloneConfig;
-    using Parameters = art::ToolConfigTable<Config>;
+    using Config = detail::PDFullSimCelerConfig;
+    using Parameters = art::EDProducer::Table<Config>;
     ///@}
 
   public:
     // Construct with fcl parameters
-    LarCelerStandalone(Parameters const& p);
+    explicit PDFullSimCeler(Parameters const& p);
+    CELER_DELETE_COPY_MOVE(PDFullSimCeler);
 
     // Start simulating events
     void beginJob() final;
 
     // Simulate a single event
-    UPVecBTR executeEvent(VecSED const& edeps) final;
+    void produce(art::Event&) final;
 
-    // Complete the simulation
+    // Tear down optical simulation library
     void endJob() final;
 
   private:
+    //! Runner input for building in beginJob
     LarStandaloneRunner::Input runner_inp_;
+    //! Identifying tag should usually be set to IonAndScint
+    art::InputTag sim_tag_;
+
+    //! Constructed runner to process an event
     std::unique_ptr<LarStandaloneRunner> runner_;
 };
 

@@ -21,11 +21,11 @@ namespace detail
 /*!
  * Partition bounding boxes using a surface area heuristic.
  *
- * The class take a vector of bounding boxes as an input, and outputs a
- * Partition object describing the optional partition. To find the optimal
- * partition, all possible candidate partitions along the x, y, and z axis are
- * evaluated using a cost function. The cost function is based on a standard
- * surface area heuristic.
+ * This class takes a vector of bounding boxes as an input, and outputs a
+ * Partition object describing the optional partition (among those tested). To
+ * find the optimal partition, candidate partitions along the x, y, nd z axis
+ * are evaluated using a cost function. The cost function is based on a
+ * standard surface area heuristic.
  */
 class BIHPartitioner
 {
@@ -38,6 +38,8 @@ class BIHPartitioner
     using VecIndices = std::vector<LocalVolumeId>;
     using Side = BIHInnerNode::Side;
 
+    //! Output struct specifying the indices and bboxes of the left and right
+    //! sides of the partition
     struct Partition
     {
         Axis axis = Axis::size_;
@@ -54,36 +56,39 @@ class BIHPartitioner
                    && bboxes[Side::right];
         }
     };
-
     //!@}
 
   public:
     //! Default constructor
     BIHPartitioner() = default;
 
-    // Construct from vector of bounding boxes and respective centers.
-    explicit BIHPartitioner(VecBBox const* bboxes, VecReal3 const* centers);
+    // Construct from all bounding bounding boxes in a universe
+    explicit BIHPartitioner(VecBBox const* bboxes,
+                            VecReal3 const* centers,
+                            size_type num_part_cands);
 
-    explicit inline operator bool() const
-    {
-        return bboxes_ != nullptr && centers_ != nullptr;
-    }
-
-    // Find a suitable partition for the given bounding boxes
+    // Find a suitable partition for the given subset of bounding boxes
     Partition operator()(VecIndices const& indices) const;
+
+    // True when assigned
+    explicit inline operator bool() const { return bboxes_ != nullptr; }
 
   private:
     /// TYPES ///
     using AxesCenters = std::vector<std::vector<real_type>>;
 
     //// DATA ////
+
+    //! All bounding boxes to be partitioned
     VecBBox const* bboxes_{nullptr};
+    //! The centers of each bounding box
     VecReal3 const* centers_{nullptr};
-    static constexpr size_type candidates_per_axis_{3};
+    //! The number of partition candidates to check per axis
+    size_type num_part_cands_{0};
 
     //// HELPER FUNCTIONS ////
 
-    // Create sorted and uniquified X, Y, Z values of bbox centers
+    // Create sorted and uniquified x, y, z values of bbox centers
     AxesCenters calc_axes_centers(VecIndices const& indices) const;
 
     // Create a partition object
