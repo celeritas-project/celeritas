@@ -9,6 +9,7 @@
 #include <string>
 
 #include "corecel/io/JsonUtils.json.hh"
+#include "celeritas/TypesIO.json.hh"
 
 #include "GeantOpticalPhysicsOptions.hh"
 
