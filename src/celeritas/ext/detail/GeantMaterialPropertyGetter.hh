@@ -21,26 +21,34 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Retrieve and store optical material properties, if present.
+ *
+ * Construct with a pointer to the material properties table (may be null).
+ * All accessors return false if the table is null.
  */
-struct GeantMaterialPropertyGetter
+class GeantMaterialPropertyGetter
 {
+  public:
     using MPT = G4MaterialPropertiesTable;
 
-    MPT const& mpt;
+    //! Construct with a (possibly null) properties table pointer
+    explicit GeantMaterialPropertyGetter(MPT const* mpt) : mpt_{mpt} {}
+
+    //! True if the properties table is non-null
+    explicit operator bool() const { return mpt_ != nullptr; }
 
     //! Get property for a single double
-    bool operator()(double* dst, char const* name, ImportUnits q)
+    bool operator()(double& dst, char const* name, ImportUnits q)
     {
-        if (!mpt.ConstPropertyExists(name))
+        if (!mpt_ || !mpt_->ConstPropertyExists(name))
         {
             return false;
         }
-        *dst = mpt.GetConstProperty(name) * native_value_from_clhep(q);
+        dst = mpt_->GetConstProperty(name) * native_value_from_clhep(q);
         return true;
     }
 
-    //! Get property for a single double
-    bool operator()(double* dst, std::string name, int comp, ImportUnits q)
+    //! Get property for a single double (indexed component)
+    bool operator()(double& dst, std::string name, int comp, ImportUnits q)
     {
         // Geant4 10.6 and earlier require a const char* argument
         name += std::to_string(comp);
@@ -49,18 +57,26 @@ struct GeantMaterialPropertyGetter
 
     //! Get property for a physics vector
     bool
-    operator()(inp::Grid* dst, std::string const& name, Array<ImportUnits, 2> q)
+    operator()(inp::Grid& dst, std::string const& name, Array<ImportUnits, 2> q)
     {
+        if (!mpt_)
+        {
+            return false;
+        }
         // Geant4@10.7: G4MaterialPropertiesTable.GetProperty is not const
         // and <=10.6 require const char*
-        auto const* g4vector = const_cast<MPT&>(mpt).GetProperty(name.c_str());
+        auto const* g4vector
+            = const_cast<MPT*>(mpt_)->GetProperty(name.c_str());
         if (!g4vector)
         {
             return false;
         }
-        *dst = import_physics_vector(*g4vector, q);
+        dst = import_physics_vector(*g4vector, q);
         return true;
     }
+
+  private:
+    MPT const* mpt_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

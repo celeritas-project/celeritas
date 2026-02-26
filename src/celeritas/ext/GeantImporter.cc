@@ -204,9 +204,9 @@ load_gauss_scint(std::string const& prefix,
     ImportGaussianScintComponent gauss{};
 
     bool found_mean = get_property(
-        &gauss.lambda_mean, prefix + "LAMBDAMEAN", comp_idx, ImportUnits::len);
+        gauss.lambda_mean, prefix + "LAMBDAMEAN", comp_idx, ImportUnits::len);
     bool found_sigma = get_property(
-        &gauss.lambda_sigma, prefix + "LAMBDASIGMA", comp_idx, ImportUnits::len);
+        gauss.lambda_sigma, prefix + "LAMBDASIGMA", comp_idx, ImportUnits::len);
 
     CELER_VALIDATE(found_mean == found_sigma,
                    << "only one of " << prefix << "LAMBDAMEAN" << comp_idx
@@ -235,7 +235,7 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
     {
         bool any_found = false;
         auto get = [&](double* dst, std::string const& ext, ImportUnits u) {
-            bool one_found = get_property(dst, prefix + ext, comp_idx, u);
+            bool one_found = get_property(*dst, prefix + ext, comp_idx, u);
             any_found = any_found || one_found;
             return one_found;
         };
@@ -273,7 +273,7 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
                                << ": use CELER_" << prefix;
             spectrum_component = std::move(gauss);
         }
-        if (get_property(&grid, name, {ImportUnits::mev, ImportUnits::unitless}))
+        if (get_property(grid, name, {ImportUnits::mev, ImportUnits::unitless}))
         {
             // If an explicit energy/intensity grid is provided, use it
             spectrum_component = std::move(grid);
@@ -584,10 +584,8 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         G4Material const* material = mt[geo_mat_id.get()];
         CELER_ASSERT(material);
         CELER_ASSERT(geo_mat_id == id_cast<GeoMatId>(material->GetIndex()));
-        auto const* mpt = material->GetMaterialPropertiesTable();
-        CELER_ASSERT(mpt);
-
-        detail::GeantMaterialPropertyGetter get_property{*mpt};
+        detail::GeantMaterialPropertyGetter get_property{
+            material->GetMaterialPropertiesTable()};
 
         // Optical materials should map uniquely
         ImportOpticalMaterial& optical = result[opt_mat_id.get()];
@@ -595,7 +593,7 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
 
         // Save common properties
         bool has_rindex
-            = get_property(&optical.properties.refractive_index,
+            = get_property(optical.properties.refractive_index,
                            "RINDEX",
                            {ImportUnits::mev, ImportUnits::unitless});
         // Existence of RINDEX should correspond to GeoOpticalIdMap
@@ -603,10 +601,10 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         CELER_ASSERT(has_rindex);
 
         // Save scintillation properties
-        get_property(&optical.scintillation.material.yield_per_energy,
+        get_property(optical.scintillation.material.yield_per_energy,
                      "SCINTILLATIONYIELD",
                      ImportUnits::inv_mev);
-        get_property(&optical.scintillation.resolution_scale,
+        get_property(optical.scintillation.resolution_scale,
                      "RESOLUTIONSCALE",
                      ImportUnits::unitless);
         optical.scintillation.material.components
@@ -616,7 +614,7 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         for (auto&& [prefix, pdg] : optical_particles_map())
         {
             ImportScintData::IPSS scint_part_spec;
-            get_property(&scint_part_spec.yield_vector,
+            get_property(scint_part_spec.yield_vector,
                          prefix + "SCINTILLATIONYIELD",
                          {ImportUnits::mev, ImportUnits::inv_mev});
             scint_part_spec.components
@@ -630,10 +628,10 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         }
 
         // Save Rayleigh properties
-        get_property(&optical.rayleigh.scale_factor,
+        get_property(optical.rayleigh.scale_factor,
                      "RS_SCALE_FACTOR",
                      ImportUnits::unitless);
-        get_property(&optical.rayleigh.compressibility,
+        get_property(optical.rayleigh.compressibility,
                      "ISOTHERMAL_COMPRESSIBILITY",
                      ImportUnits::len_time_sq_per_mass);
         if (optical.rayleigh.compressibility == 0
@@ -662,33 +660,33 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         }
 
         // Save WLS properties
-        get_property(&optical.wls.mean_num_photons,
+        get_property(optical.wls.mean_num_photons,
                      "WLSMEANNUMBERPHOTONS",
                      ImportUnits::unitless);
         get_property(
-            &optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
-        get_property(&optical.wls.component,
+            optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
+        get_property(optical.wls.component,
                      "WLSCOMPONENT",
                      {ImportUnits::mev, ImportUnits::unitless});
 
         // Save WLS2 properties
-        get_property(&optical.wls2.mean_num_photons,
+        get_property(optical.wls2.mean_num_photons,
                      "WLSMEANNUMBERPHOTONS2",
                      ImportUnits::unitless);
         get_property(
-            &optical.wls2.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
-        get_property(&optical.wls2.component,
+            optical.wls2.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
+        get_property(optical.wls2.component,
                      "WLSCOMPONENT2",
                      {ImportUnits::mev, ImportUnits::unitless});
 
         // Save Mie properties
-        get_property(&optical.mie.forward_ratio,
+        get_property(optical.mie.forward_ratio,
                      "MIEHG_FORWARD_RATIO",
                      ImportUnits::unitless);
         get_property(
-            &optical.mie.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
+            optical.mie.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
         get_property(
-            &optical.mie.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
+            optical.mie.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
 
         CELER_VALIDATE(optical,
                        << "failed to load valid optical material data for "
