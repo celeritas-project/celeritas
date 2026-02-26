@@ -16,7 +16,6 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Units/SystemOfUnits.h>
-#include <G4Cerenkov.hh>
 #include <G4Element.hh>
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
@@ -75,11 +74,8 @@
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ScopedMem.hh"
-#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
@@ -95,7 +91,7 @@
 #include "GeantSetup.hh"
 
 #include "detail/GeantMaterialPropertyGetter.hh"
-#include "detail/GeantOpticalModelImporter.hh"
+#include "detail/GeantPhysicsLoader.hh"
 #include "detail/GeantProcessImporter.hh"
 #include "detail/GeantSurfacePhysicsLoader.hh"
 
@@ -923,6 +919,13 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
 //---------------------------------------------------------------------------//
 /*!
  * Return a populated \c ImportProcess vector.
+ *
+ * TODO: instead of looping over all particles, loop over all *offload*
+ * particles, i.e. the ones Celeritas is actively stepping through. Warn if
+ * any processes that apply to the particle aren't known to/implemented by
+ * Celeritas. (Ignoring processes can be done as a post-import step.) From the
+ * list of imported processes, we can determine what secondary particle types
+ * are being created, and thence to the list of particle definitions to import.
  */
 auto import_processes(GeantImporter::DataSelection selected,
                       GeoOpticalIdMap const& geo_to_opt,
@@ -940,29 +943,19 @@ auto import_processes(GeantImporter::DataSelection selected,
     auto& optical_models = imported.optical_models;
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
-    std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
-    detail::GeantProcessImporter import_process(
+    detail::GeantProcessImporter legacy_import_process(
         materials, elements, selected.interpolation);
-    detail::GeantOpticalModelImporter import_optical_model(geo_to_opt);
+    detail::GeantPhysicsLoader load_physics(imported, geo_to_opt);
 
     auto append_process = [&](G4ParticleDefinition const& particle,
                               G4VProcess const& process) -> void {
-        // Check for duplicate processes
-        auto [prev, inserted] = visited.insert({&process, &particle});
-
-        if (!inserted)
+        if (load_physics(process))
         {
-            CELER_LOG(debug)
-                << "Skipping process '" << process.GetProcessName()
-                << "' (RTTI: " << demangle_process(process)
-                << ") for particle " << particle.GetParticleName()
-                << ": duplicate of particle "
-                << prev->second->GetParticleName();
+            // We were able to load (or ignore) this specific process
             return;
         }
 
-        // TODO: change this to a map of processes like g4vg/g4org
-
+        // TODO: move implementation to GeantPhysicsLoader
         if (auto const* gg_process
             = dynamic_cast<G4GammaGeneralProcess const*>(&process))
         {
@@ -976,7 +969,8 @@ auto import_processes(GeantImporter::DataSelection selected,
                     = const_cast<G4GammaGeneralProcess*>(gg_process)
                           ->GetEmProcess(to_geant_name(emproc_enum)))
                 {
-                    processes.push_back(import_process(particle, *subprocess));
+                    processes.push_back(
+                        legacy_import_process(particle, *subprocess));
                 }
             }
 #else
@@ -987,77 +981,21 @@ auto import_processes(GeantImporter::DataSelection selected,
         else if (auto const* em_process
                  = dynamic_cast<G4VEmProcess const*>(&process))
         {
-            processes.push_back(import_process(particle, *em_process));
+            processes.push_back(legacy_import_process(particle, *em_process));
         }
         else if (auto const* el_process
                  = dynamic_cast<G4VEnergyLossProcess const*>(&process))
         {
-            processes.push_back(import_process(particle, *el_process));
+            processes.push_back(legacy_import_process(particle, *el_process));
         }
         else if (auto const* msc_process
                  = dynamic_cast<G4VMultipleScattering const*>(&process))
         {
             // Unpack MSC process into multiple MSC models
-            auto new_msc_models = import_process(particle, *msc_process);
+            auto new_msc_models = legacy_import_process(particle, *msc_process);
             msc_models.insert(msc_models.end(),
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
-        }
-        else if (dynamic_cast<G4MuonMinusAtomicCapture const*>(&process))
-        {
-            // G4MuonMinusAtomicCapture is a G4ProcessType::fHadronic
-            // It is also a G4VRestProcess and does not require import data
-            CELER_LOG(debug) << "Initializing default muCF data for particle "
-                             << particle.GetParticleName() << " ("
-                             << particle.GetPDGEncoding() << ')';
-            imported.mucf_physics = inp::MucfPhysics::from_default();
-        }
-        else if (import_optical_model
-                 && dynamic_cast<G4OpAbsorption const*>(&process))
-        {
-            optical_models.push_back(
-                import_optical_model(optical::ImportModelClass::absorption));
-        }
-        else if (import_optical_model
-                 && dynamic_cast<G4OpRayleigh const*>(&process))
-        {
-            optical_models.push_back(
-                import_optical_model(optical::ImportModelClass::rayleigh));
-        }
-        else if (import_optical_model && dynamic_cast<G4OpWLS const*>(&process))
-        {
-            optical_models.push_back(
-                import_optical_model(optical::ImportModelClass::wls));
-        }
-        else if (import_optical_model
-                 && dynamic_cast<G4OpMieHG const*>(&process))
-        {
-            optical_models.push_back(
-                import_optical_model(optical::ImportModelClass::mie));
-        }
-        else if (import_optical_model
-                 && dynamic_cast<G4OpBoundaryProcess const*>(&process))
-        {
-            // Surface physics importing handled separately from volumetric
-            // discrete importing
-            CELER_DISCARD(process);
-        }
-
-#if G4VERSION_NUMBER >= 1070
-        else if (import_optical_model
-                 && dynamic_cast<G4OpWLS2 const*>(&process))
-        {
-            optical_models.push_back(
-                import_optical_model(optical::ImportModelClass::wls2));
-        }
-#endif
-        else if (dynamic_cast<G4Cerenkov const*>(&process))
-        {
-            imported.optical_physics.cherenkov = true;
-        }
-        else if (dynamic_cast<G4Scintillation const*>(&process))
-        {
-            imported.optical_physics.scintillation = true;
         }
         else
         {
