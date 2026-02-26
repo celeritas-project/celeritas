@@ -19,6 +19,7 @@
 
 #include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/inp/Distributions.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "geocel/GeantUtils.hh"
@@ -26,8 +27,10 @@
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
+#include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
+#include "celeritas/optical/Runner.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
@@ -794,6 +797,66 @@ TEST_F(RichSimplified, run)
     Stopwatch timer;
     rm.BeamOn(5);
     CELER_LOG(info) << "BeamOn completed in " << timer() << " seconds";
+}
+
+class Prism : public Test
+{
+  public:
+    void SetUp() override
+    {
+        // Set geometry filename
+        osi_.problem.model.geometry
+            = Test::test_data_path("geocel", "optical-prism.gdml");
+
+        // Set per-process state sizes
+        osi_.problem.capacity = [] {
+            inp::OpticalStateCapacity cap;
+            cap.tracks = 500;
+            cap.primaries = 500;
+            cap.generators = 500;
+            return cap;
+        }();
+
+        // Run on a single stream
+        osi_.problem.num_streams = 1;
+
+        // Set optical physics processes
+        osi_.geant_setup = [] {
+            auto opt = GeantOpticalPhysicsOptions::deactivated();
+            opt.boundary.enable = true;
+            opt.absorption = true;
+            return opt;
+        }();
+    }
+
+  protected:
+    inp::OpticalStandaloneInput osi_;
+};
+
+TEST_F(Prism, primary)
+{
+    // Create primary generator input
+    osi_.problem.generator = [] {
+        inp::OpticalPrimaryGenerator gen;
+        gen.primaries = 500;
+        gen.energy = inp::NormalDistribution{3.0e-6, 1.0e-6};
+        double sqrt2_inv = 0.7071067811865476;  // 1/sqrt(2)
+        double sin60 = 0.86602540378;
+        double sin_20 = 0.34202014332566873;
+        double cos_20 = 0.93969262078590838;
+        double sin_30 = 0.5;
+        double cos_30 = 0.8660254037844387;  // √3/2
+
+        gen.angle = inp::MonodirectionalDistribution{{sin_30, 0, cos_30}};
+        // gen.angle = inp::MonodirectionalDistribution{{sqrt2_inv, 0,
+        // sqrt2_inv}};
+        gen.shape = inp::PointDistribution{{0, 0, -12}};  // check
+
+        return gen;
+    }();
+
+    // Construct the runner and transport optical primaries
+    auto result = optical::Runner(std::move(osi_))();
 }
 
 //---------------------------------------------------------------------------//
