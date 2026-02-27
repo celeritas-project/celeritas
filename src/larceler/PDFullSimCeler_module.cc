@@ -2,27 +2,17 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/TypesIO.json.hh
+//! \file larceler/PDFullSimCeler_module.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include <art/Utilities/ToolMacros.h>
 
-#include <nlohmann/json.hpp>
-
-#include "Types.hh"
-#include "optical/Types.hh"
+#include "PDFullSimCeler.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-void from_json(nlohmann::json const& j, TrackOrder& value);
-void to_json(nlohmann::json& j, TrackOrder const& value);
 
-namespace optical
-{
-//---------------------------------------------------------------------------//
-void from_json(nlohmann::json const&, WlsDistribution&);
-void to_json(nlohmann::json&, WlsDistribution const&);
+DEFINE_ART_MODULE(celeritas::PDFullSimCeler)
 
 //---------------------------------------------------------------------------//
-}  // namespace optical
 }  // namespace celeritas

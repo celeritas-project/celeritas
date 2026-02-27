@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/SurfacePhysics.hh
+//! \file celeritas/inp/OpticalPhysics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,8 +11,6 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/inp/Grid.hh"
-#include "corecel/math/SoftEqual.hh"
-#include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/Types.hh"
 
@@ -287,10 +285,8 @@ struct InteractionModels
  *
  * Interstitial materials are the interstitial materials per geometric surface.
  * The last entry is used as the default surface.
- *
- * \todo rename OpticalSurfacePhysics
  */
-struct SurfacePhysics
+struct OpticalSurfacePhysics
 {
     //!@{
     //! \name type aliases

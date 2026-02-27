@@ -582,7 +582,7 @@ add_custom_target(debug-root-test-data
   COMMENT "Debug ROOT test data"
 )
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
+if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT AND CELERITAS_BUILD_APPS)
   foreach(_filename "four-steel-slabs" "simple-cms")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")

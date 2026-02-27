@@ -6,8 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Types.hh"
-#include "celeritas/Types.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
@@ -86,7 +85,7 @@ struct WavelengthShiftingOptions
     //! Enable the process
     bool enable{true};
     //! Select a model for sampling reemission time
-    WlsTimeProfile time_profile{WlsTimeProfile::delta};
+    optical::WlsDistribution time_profile{optical::WlsDistribution::delta};
 
     //! True if the process is activated
     explicit operator bool() const { return enable; }
@@ -211,12 +210,6 @@ constexpr bool operator==(GeantOpticalPhysicsOptions const& a,
            && a.verbose == b.verbose;
     // clang-format on
 }
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-
-char const* to_cstring(WlsTimeProfile value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

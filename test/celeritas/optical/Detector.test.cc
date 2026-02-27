@@ -76,7 +76,7 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
     {
         PhysSurfaceId phys_surface{0};
 
-        inp::SurfacePhysics input;
+        inp::OpticalSurfacePhysics input;
         input.materials.push_back({});
         input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
         input.reflectivity.fresnel.emplace(phys_surface,
@@ -144,7 +144,7 @@ class SurfaceDetectorTest : public DetectorTest
     {
         PhysSurfaceId phys_surface{0};
 
-        inp::SurfacePhysics input;
+        inp::OpticalSurfacePhysics input;
         input.materials.push_back({});
         input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
         input.reflectivity.grid.emplace(phys_surface, [] {

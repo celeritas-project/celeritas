@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/data/ParamsDataStore.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/optical/surface/SurfaceModel.hh"
 
 #include "GridReflectivityData.hh"

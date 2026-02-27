@@ -708,10 +708,10 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
 /*!
  * Import optical surface physics information.
  */
-inp::SurfacePhysics
+inp::OpticalSurfacePhysics
 import_optical_surface_physics(std::vector<ImportOpticalMaterial>& materials)
 {
-    inp::SurfacePhysics result;
+    inp::OpticalSurfacePhysics result;
     auto geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
@@ -1202,20 +1202,20 @@ ImportOpticalParameters import_optical_parameters()
     CELER_ASSERT(params);
 
     auto to_enum = [](std::string const& time_profile) {
+        using Dist = optical::WlsDistribution;
         if (time_profile == "delta")
         {
-            return WlsTimeProfile::delta;
+            return Dist::delta;
         }
         else if (time_profile == "exponential")
         {
-            return WlsTimeProfile::exponential;
+            return Dist::exponential;
         }
         CELER_NOT_IMPLEMENTED("unknown WLS time profile " + time_profile);
     };
     iop.wls_time_profile = to_enum(params->GetWLSTimeProfile());
     iop.wls2_time_profile = to_enum(params->GetWLS2TimeProfile());
 
-    //! \todo Set \c scintillation_by_particle when supported
     //! \todo For older Geant4 versions, set based on user input?
 #endif
 

@@ -98,23 +98,15 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     CELER_EXPECT(shared_);
     CELER_EXPECT(pre_step_);
 
-    if (shared_.scintillation_by_particle())
-    {
-        //! \todo Implement sampling for particles
-        CELER_ASSERT_UNREACHABLE();
-    }
-    else
-    {
-        // Scintillation will be performed on materials only
-        CELER_ASSERT(pre_step_.material < shared_.materials.size());
-        auto const& material = shared_.materials[pre_step_.material];
+    // Scintillation is performed on materials only
+    CELER_ASSERT(pre_step_.material < shared_.materials.size());
+    auto const& material = shared_.materials[pre_step_.material];
 
-        //! \todo Use visible energy deposition when Birks law is implemented
-        if (material)
-        {
-            mean_num_photons_ = material.yield_per_energy
-                                * energy_deposition.value();
-        }
+    //! \todo Use visible energy deposition when Birks law is implemented
+    if (material)
+    {
+        mean_num_photons_ = material.yield_per_energy
+                            * energy_deposition.value();
     }
 }
 

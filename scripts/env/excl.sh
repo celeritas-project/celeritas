@@ -53,6 +53,7 @@ for _d in build install cache; do
   fi
   unset _scratch
 done
+export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
 
 if [ -n "$CELER_SOURCE_DIR" ]; then
   _clangd="$CELER_SOURCE_DIR/.clangd"
@@ -88,5 +89,3 @@ fi
 
 export PATH=${CELERITAS_ENV}/bin:${PATH}
 export CMAKE_PREFIX_PATH=${CELERITAS_ENV}:${CMAKE_PREFIX_PATH}
-
-export XDG_CACHE_HOME="${SCRATCHDIR}/cache"

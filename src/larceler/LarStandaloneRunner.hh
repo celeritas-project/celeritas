@@ -10,9 +10,8 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
-#include "celeritas/inp/StandaloneInput.hh"
-
-#include "detail/LarCelerConfig.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/UnitTypes.hh"
 
 namespace sim
 {
@@ -22,6 +21,10 @@ class OpDetBacktrackerRecord;
 
 namespace celeritas
 {
+namespace inp
+{
+struct OpticalStandaloneInput;
+}
 namespace optical
 {
 class Runner;
@@ -32,7 +35,7 @@ class Runner;
  * Setup and run a standalone optical simulation.
  *
  * This class manages the interface between LArSoft data objects and Celeritas.
- * It is separated from the LarCelerStandalone plugin to allow testing
+ * It is separated from the PDFullSimCeler plugin to allow testing
  * and extension to future plugin frameworks (e.g., Phlex).
  * Instantiating the class sets up Celeritas shared and state objects using an
  * input configuration, and each call take a set of energy deposition steps and
@@ -75,11 +78,6 @@ class LarStandaloneRunner
 
     std::shared_ptr<optical::Runner> runner_;
 };
-
-//---------------------------------------------------------------------------//
-// Convert from a FHiCL config input
-inp::OpticalStandaloneInput
-from_config(detail::LarCelerStandaloneConfig const& config);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
