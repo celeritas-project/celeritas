@@ -63,13 +63,11 @@
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
@@ -88,7 +86,6 @@
 #include "detail/GeantMaterialPropertyGetter.hh"
 #include "detail/GeantPhysicsLoader.hh"
 #include "detail/GeantProcessImporter.hh"
-#include "detail/GeantSurfacePhysicsLoader.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
 inline constexpr celeritas::PDGNumber g4_optical_pdg{-22};
@@ -690,48 +687,6 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
     }
 
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Import optical surface physics information.
- */
-inp::OpticalSurfacePhysics
-import_optical_surface_physics(std::vector<ImportOpticalMaterial>& materials)
-{
-    inp::OpticalSurfacePhysics result;
-    auto geo = celeritas::global_geant_geo().lock();
-    CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
-
-    MultiExceptionHandler handle;
-    detail::GeantSurfacePhysicsLoader load_surface(result, materials);
-    for (auto sid : range(SurfaceId(geo->num_surfaces())))
-    {
-        CELER_TRY_HANDLE(load_surface(sid), handle);
-    }
-    log_and_rethrow(std::move(handle));
-
-    // Default Geant4 surface
-    size_type num_phys_surfaces{0};
-    for (auto const& mats : result.materials)
-    {
-        num_phys_surfaces += mats.size() + 1;
-    }
-    PhysSurfaceId default_surface(num_phys_surfaces);
-    result.materials.push_back({});
-    result.roughness.polished.emplace(default_surface, inp::NoRoughness{});
-    result.reflectivity.fresnel.emplace(default_surface,
-                                        inp::FresnelReflection{});
-    result.interaction.dielectric.emplace(
-        default_surface,
-        inp::DielectricInteraction::from_dielectric(
-            inp::ReflectionForm::from_spike()));
-
-    CELER_LOG(debug) << "Loaded " << result.materials.size()
-                     << " optical surfaces (" << num_phys_surfaces
-                     << " physics surfaces)";
-    CELER_ENSURE(result || (geo->num_surfaces() == 0));
     return result;
 }
 
@@ -1364,11 +1319,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         {
             imported.em_params = import_em_parameters();
             imported.em_params.interpolation = selected.interpolation;
-        }
-        if (selected.processes & DataSelection::optical)
-        {
-            imported.optical_physics.surfaces
-                = import_optical_surface_physics(imported.optical_materials);
         }
     }
 

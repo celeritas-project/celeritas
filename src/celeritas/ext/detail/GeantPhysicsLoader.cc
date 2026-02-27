@@ -27,12 +27,16 @@
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeoOpticalIdMap.hh"
 #include "celeritas/inp/MucfPhysics.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/optical/Types.hh"
+
+#include "GeantSurfacePhysicsLoader.hh"
 
 namespace celeritas
 {
@@ -150,7 +154,50 @@ void GeantPhysicsLoader::op_absorption(G4VProcess const&)
 //---------------------------------------------------------------------------//
 void GeantPhysicsLoader::op_boundary(G4VProcess const&)
 {
-    // Surface physics importing is handled separately
+    auto& surfaces = imported_.optical_physics.surfaces;
+
+    // Load each geometry surface and print any errors that occur
+    {
+        auto& materials = imported_.optical_materials;
+        if (materials.empty())
+        {
+            CELER_LOG(error) << "Optical boundary process is defined but no "
+                                "optical materials are present";
+            return;
+        }
+
+        auto geo = celeritas::global_geant_geo().lock();
+        CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
+
+        MultiExceptionHandler handle;
+        detail::GeantSurfacePhysicsLoader load_surface(surfaces, materials);
+        for (auto sid : range(SurfaceId(geo->num_surfaces())))
+        {
+            CELER_TRY_HANDLE(load_surface(sid), handle);
+        }
+        log_and_rethrow(std::move(handle));
+    }
+
+    // Add default Geant4 surface
+    size_type num_phys_surfaces{0};
+    for (auto const& mats : surfaces.materials)
+    {
+        num_phys_surfaces += mats.size() + 1;
+    }
+    PhysSurfaceId default_surface(num_phys_surfaces);
+    surfaces.materials.push_back({});
+    surfaces.roughness.polished.emplace(default_surface, inp::NoRoughness{});
+    surfaces.reflectivity.fresnel.emplace(default_surface,
+                                          inp::FresnelReflection{});
+    surfaces.interaction.dielectric.emplace(
+        default_surface,
+        inp::DielectricInteraction::from_dielectric(
+            inp::ReflectionForm::from_spike()));
+
+    CELER_LOG(debug) << "Loaded " << surfaces.materials.size()
+                     << " optical surfaces (" << num_phys_surfaces
+                     << " physics surfaces)";
+    CELER_ENSURE(surfaces);
 }
 
 //---------------------------------------------------------------------------//
