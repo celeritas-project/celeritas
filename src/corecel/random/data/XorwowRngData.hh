@@ -56,9 +56,6 @@ struct XorwowRngParamsData
         return 8 * sizeof(XorwowUInt);
     }
 
-    //! Retrieve the seed as a 64-bit unsigned integer
-    std::uint64_t get_seed() const { return seed[0]; }
-
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const { return true; }
 

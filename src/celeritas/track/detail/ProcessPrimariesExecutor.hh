@@ -76,7 +76,7 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     // Set the RNG state initializer appropriately dispatched on RNG type
     if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
     {
-        celeritas::initialize_rng_state(params->rng.get_seed(),
+        celeritas::initialize_rng_state(params->rng.seed,
                                         ti.sim.event_id.get(),
                                         ti.sim.primary_id.get(),
                                         ti.rng);

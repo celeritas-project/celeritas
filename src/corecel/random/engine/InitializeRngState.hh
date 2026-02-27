@@ -17,14 +17,14 @@ namespace celeritas
  * Fill a XorwowRngEngine state initializer given a seed, event id, and primary
  * id.
  */
-CELER_FUNCTION void
-initialize_rng_state(unsigned int seed,
+CELER_FUNCTION inline void
+initialize_rng_state(XorwowSeed seed,
                      unsigned int event_id,
                      unsigned int primary_id,
                      XorwowRngEngine::RngStateInitializer_t& rng_init)
 {
     // Initialize SplitMix64 with the seed XORed with the track id
-    SplitMix64 rng(seed ^ event_id ^ primary_id);
+    SplitMix64 rng(seed[0] ^ event_id ^ primary_id);
 
     // Fill first two state values
     std::uint64_t val = rng();
@@ -48,8 +48,8 @@ initialize_rng_state(unsigned int seed,
 /*!
  * Fill a Ranluxpp state initializer given a seed, event id, and primary id
  */
-CELER_FUNCTION void
-initialize_rng_state(unsigned int seed,
+CELER_FUNCTION inline void
+initialize_rng_state(RanluxppUInt seed,
                      unsigned int event_id,
                      unsigned int primary_id,
                      RanluxppRngEngine::RngStateInitializer_t& rng_init)
