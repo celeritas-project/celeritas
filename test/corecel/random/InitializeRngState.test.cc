@@ -7,12 +7,26 @@
 #include "corecel/random/engine/InitializeRngState.hh"
 
 #include "celeritas_test.hh"
-// #include "InitializeRngState.test.hh"
 
 namespace celeritas
 {
 namespace test
 {
+
+// Create and initialize SplitMix64
+celeritas::SplitMix64 makeSplitMix64(unsigned int seed,
+                                     unsigned int event_id,
+                                     unsigned int primary_id)
+{
+    celeritas::SplitMix64 rng(seed);
+    rng.advance();
+    rng.xor_state(event_id);
+    rng.advance();
+    rng.xor_state(primary_id);
+    return rng;
+}
+
+//---------------------------------------------------------------------------//
 
 TEST(InitializeRngStateTest, xorwow)
 {
@@ -21,14 +35,15 @@ TEST(InitializeRngStateTest, xorwow)
     unsigned int primary_id = 3;
 
     // Create a reference SplitMix64 engine
-    SplitMix64 rng(seed ^ event_id ^ primary_id);
+    SplitMix64 rng = makeSplitMix64(seed, event_id, primary_id);
 
-    // Draw three numbers and use them to fill the state
-    std::uint64_t val1 = rng();
+    // Draw random numbers
+    std::vector<std::uint64_t> vals(3);
+    vals[0] = rng();
     rng.xor_state(event_id);
-    std::uint64_t val2 = rng();
+    vals[1] = rng();
     rng.xor_state(primary_id);
-    std::uint64_t val3 = rng();
+    vals[2] = rng();
 
     // Check that Xorwow initializer has the expected size
     XorwowRngEngine::RngStateInitializer_t ref_initializer;
@@ -37,18 +52,20 @@ TEST(InitializeRngStateTest, xorwow)
         sizeof(ref_initializer.xorstate[0]) * ref_initializer.xorstate.size()
             + sizeof(ref_initializer.weylstate));
 
-    // Create a reference Xorwow initializer
-    ref_initializer.xorstate[0] = static_cast<XorwowUInt>(val1);
-    ref_initializer.xorstate[1] = static_cast<XorwowUInt>(val1 >> 32);
-    ref_initializer.xorstate[2] = static_cast<XorwowUInt>(val2);
-    ref_initializer.xorstate[3] = static_cast<XorwowUInt>(val2 >> 32);
-    ref_initializer.xorstate[4] = static_cast<XorwowUInt>(val3);
-    ref_initializer.weylstate = static_cast<XorwowUInt>(val3 >> 32);
+    // Fill reference Xorwow initializer
+    ref_initializer.xorstate[0] = static_cast<XorwowUInt>(vals[0]);
+    ref_initializer.xorstate[1] = static_cast<XorwowUInt>(vals[0] >> 32);
+    ref_initializer.xorstate[2] = static_cast<XorwowUInt>(vals[1]);
+    ref_initializer.xorstate[3] = static_cast<XorwowUInt>(vals[1] >> 32);
+    ref_initializer.xorstate[4] = static_cast<XorwowUInt>(vals[2]);
+    ref_initializer.weylstate = static_cast<XorwowUInt>(vals[2] >> 32);
 
     // Create a test initializer
+    XorwowSeed xorwow_seed;
+    xorwow_seed[0] = seed;
     XorwowRngEngine::RngStateInitializer_t test_initializer;
     celeritas::initialize_rng_state(
-        seed, event_id, primary_id, test_initializer);
+        xorwow_seed, event_id, primary_id, test_initializer);
 
     EXPECT_VEC_EQ(ref_initializer.xorstate, test_initializer.xorstate);
     EXPECT_EQ(ref_initializer.weylstate, test_initializer.weylstate);
@@ -63,21 +80,22 @@ TEST(InitializeRngStateTest, ranluxpp)
     unsigned int primary_id = 3;
 
     // Create a reference SplitMix64 engine
-    SplitMix64 rng(seed ^ event_id ^ primary_id);
+    SplitMix64 rng = makeSplitMix64(seed, event_id, primary_id);
 
     // Draw 9 numbers and use them to fill the state
     celeritas::Array<std::uint64_t, 9> rng_vals;
-    rng_vals[0] = rng();
-    rng_vals[1] = rng();
-    rng_vals[2] = rng();
-    rng.xor_state(event_id);
-    rng_vals[3] = rng();
-    rng_vals[4] = rng();
-    rng_vals[5] = rng();
-    rng.xor_state(primary_id);
-    rng_vals[6] = rng();
-    rng_vals[7] = rng();
-    rng_vals[8] = rng();
+    for (int i : celeritas::range(9))
+    {
+        rng_vals[i] = rng();
+        if (i % 2 == 0)
+        {
+            rng.xor_state(event_id);
+        }
+        else
+        {
+            rng.xor_state(primary_id);
+        }
+    }
 
     // Create Ranluxpp initializer
     RanluxppRngEngine::RngStateInitializer_t ref_initializer;
