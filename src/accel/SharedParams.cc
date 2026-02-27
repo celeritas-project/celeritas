@@ -204,12 +204,14 @@ auto SharedParams::GetMode() -> Mode
 auto SharedParams::supported_offload_particles() -> VecG4PD const&
 {
     CELER_EXPECT(G4RunManager::GetRunManager());
-    static VecG4PD const supported_particles = {G4Electron::Definition(),
-                                                G4Positron::Definition(),
-                                                G4Gamma::Definition(),
-                                                G4MuonMinus::Definition(),
-                                                G4MuonPlus::Definition(),
-                                                G4OpticalPhoton::Definition()};
+    static VecG4PD const supported_particles = {
+        G4Electron::Definition(),
+        G4Positron::Definition(),
+        G4Gamma::Definition(),
+        G4MuonMinus::Definition(),
+        G4MuonPlus::Definition(),
+        G4OpticalPhoton::Definition(),
+    };
 
     return supported_particles;
 }
