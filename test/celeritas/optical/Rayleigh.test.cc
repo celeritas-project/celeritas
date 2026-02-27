@@ -183,9 +183,8 @@ TEST_F(RayleighModelTest, interaction_mfp)
         model->build_mfps(mat, builder);
     }
 
-    EXPECT_TABLE_EQ(
-        this->import_model_by_class(ImportModelClass::rayleigh).mfp_table,
-        storage(builder.grid_ids()));
+    EXPECT_TABLE_EQ(this->get_mfp_table(ImportModelClass::rayleigh),
+                    storage(builder.grid_ids()));
 }
 
 //---------------------------------------------------------------------------//

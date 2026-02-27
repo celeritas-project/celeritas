@@ -136,9 +136,8 @@ TEST_F(MieTest, mfp)
         model_->build_mfps(mat, builder);
     }
 
-    EXPECT_TABLE_EQ(
-        this->import_model_by_class(ImportModelClass::mie).mfp_table,
-        storage(builder.grid_ids()));
+    EXPECT_TABLE_EQ(this->get_mfp_table(ImportModelClass::mie),
+                    storage(builder.grid_ids()));
 }
 
 TEST_F(MieTest, stress_test)
