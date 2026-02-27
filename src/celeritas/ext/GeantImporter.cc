@@ -83,6 +83,7 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeoOpticalIdMap.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
@@ -560,7 +561,7 @@ std::vector<ImportElement> import_elements()
  * material ID".
  */
 std::vector<ImportOpticalMaterial>
-import_optical_materials(detail::GeoOpticalIdMap const& geo_to_opt)
+import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
 {
     if (geo_to_opt.empty())
     {
@@ -821,7 +822,7 @@ std::vector<ImportGeoMaterial> import_geo_materials()
  */
 std::vector<ImportPhysMaterial>
 import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
-                      detail::GeoOpticalIdMap const& geo_to_opt)
+                      GeoOpticalIdMap const& geo_to_opt)
 {
     ParticleFilter include_particle{particle_flags};
     auto const& pct = *G4ProductionCutsTable::GetProductionCutsTable();
@@ -924,7 +925,7 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
  * Return a populated \c ImportProcess vector.
  */
 auto import_processes(GeantImporter::DataSelection selected,
-                      detail::GeoOpticalIdMap const& geo_to_opt,
+                      GeoOpticalIdMap const& geo_to_opt,
                       ImportData& imported)
 {
     ParticleFilter include_particle{selected.processes};
@@ -1414,7 +1415,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         ScopedGeantExceptionHandler scoped_exceptions;
         ScopedTimeLog scoped_time;
 
-        detail::GeoOpticalIdMap geo_to_opt;
+        auto geo_to_opt = std::make_shared<GeoOpticalIdMap>();
 
         if (selected.particles != DataSelection::none)
         {
@@ -1424,21 +1425,23 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         {
             if (selected.processes & DataSelection::optical)
             {
-                geo_to_opt
-                    = detail::GeoOpticalIdMap(*G4Material::GetMaterialTable());
+                auto geo = celeritas::global_geant_geo().lock();
+                CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
+
+                geo_to_opt = geo->geo_optical_id_map();
                 imported.optical_materials
-                    = import_optical_materials(geo_to_opt);
+                    = import_optical_materials(*geo_to_opt);
             }
 
             imported.isotopes = import_isotopes();
             imported.elements = import_elements();
             imported.geo_materials = import_geo_materials();
             imported.phys_materials
-                = import_phys_materials(selected.particles, geo_to_opt);
+                = import_phys_materials(selected.particles, *geo_to_opt);
         }
         if (selected.processes != DataSelection::none)
         {
-            import_processes(selected, geo_to_opt, imported);
+            import_processes(selected, *geo_to_opt, imported);
 
             if (have_process(ImportProcessClass::mu_pair_prod))
             {
