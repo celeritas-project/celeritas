@@ -37,7 +37,7 @@ PhysicsParams::from_import(ImportData const& data,
     {
         if (auto builder = importer(model.model_class))
         {
-            input.model_builders.push_back(*builder);
+            input.model_builders.push_back(builder);
         }
     }
     return std::make_shared<PhysicsParams>(std::move(input));
@@ -95,16 +95,12 @@ auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
     VecModels models;
     models.reserve(model_builders.size());
 
-    for (auto const& builder : model_builders)
+    for (auto const& build_model : model_builders)
     {
-        if (!builder)
-        {
-            // if model has no data proceed to the next model
-            continue;
-        }
-        auto action_id = action_reg.next_id();
-        SPConstModel model = builder(action_id);
+        CELER_ASSERT(build_model);
 
+        auto action_id = action_reg.next_id();
+        SPConstModel model = build_model(action_id);
         CELER_ASSERT(model);
         CELER_ASSERT(model->action_id() == action_id);
 

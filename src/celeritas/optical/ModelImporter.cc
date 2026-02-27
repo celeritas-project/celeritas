@@ -55,7 +55,7 @@ ModelImporter::ModelImporter(ImportData const& data,
  * This may return a null model builder (with a warning) if the user
  * specifically requests that the model be omitted.
  */
-auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
+auto ModelImporter::operator()(IMC imc) const -> ModelBuilder
 {
     using BuilderMemFn = ModelBuilder (ModelImporter::*)() const;
     static std::unordered_map<IMC, BuilderMemFn> const builtin_build{
@@ -72,11 +72,10 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
                    << "cannot build unsupported optical model '" << imc << "'");
 
     auto builder_opt = (this->*iter->second)();
-    if (!builder_opt)
-    {
-        CELER_LOG(debug) << "Skipping optical model '" << to_cstring(imc)
-                         << "' (no data)";
-    }
+
+    CELER_LOG(debug) << (builder_opt ? "Constructing" : "Skipping")
+                     << " optical model '" << to_cstring(imc) << "'";
+
     return builder_opt;
 }
 
@@ -95,7 +94,8 @@ auto ModelImporter::build_absorption() const -> ModelBuilder
  */
 auto ModelImporter::build_rayleigh() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     return RayleighModel::make_builder(
         this->imported(),
@@ -109,7 +109,8 @@ auto ModelImporter::build_rayleigh() const -> ModelBuilder
  */
 auto ModelImporter::build_wls() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     WavelengthShiftModel::Input input;
     input.model = ImportModelClass::wls;
@@ -121,7 +122,7 @@ auto ModelImporter::build_wls() const -> ModelBuilder
     if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
     {
         // None of the materials have WLS data
-        return {};
+        return nullptr;
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
@@ -133,7 +134,8 @@ auto ModelImporter::build_wls() const -> ModelBuilder
  */
 auto ModelImporter::build_wls2() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     WavelengthShiftModel::Input input;
     input.model = ImportModelClass::wls2;
@@ -145,7 +147,7 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
     if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
     {
         // None of the materials have WLS2 data
-        return {};
+        return nullptr;
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
@@ -156,7 +158,8 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
  */
 auto ModelImporter::build_mie() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     MieModel::Input input;
     input.model = ImportModelClass::mie;
@@ -168,7 +171,7 @@ auto ModelImporter::build_mie() const -> ModelBuilder
     if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
     {
         // None of the materials have Mie scattering data
-        return {};
+        return nullptr;
     }
     return MieModel::make_builder(this->imported(), std::move(input));
 }

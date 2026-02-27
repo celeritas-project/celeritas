@@ -49,7 +49,7 @@ class ModelImporterTest : public OpticalMockTestBase
 
         // Create a model
         ActionId action_id{0};
-        auto model = (*build)(action_id);
+        auto model = build(action_id);
         ASSERT_TRUE(model);
 
         // Check we have the correct model
