@@ -73,7 +73,6 @@ class ObservingUniquePtr
     T* release_if_owned() noexcept { return uptr_ ? uptr_.release() : ptr_; }
     operator T*() const noexcept { return ptr_; }
     T* operator->() const noexcept { return ptr_; }
-    T* get() const noexcept { return ptr_; }
 
   private:
     std::unique_ptr<T> uptr_;
@@ -337,6 +336,7 @@ void SupportedOpticalPhysics::ConstructProcess()
         // proton be defined, which is false for Celeritas optical-only runs.
         auto scint = ObservingUniquePtr{std::make_unique<G4Scintillation>()};
 #if G4VERSION_NUMBER < 1070
+        // Newer versions set these via G4OpticalParameters
         scint->SetStackPhotons(options_.scintillation.stack_photons);
         scint->SetTrackSecondariesFirst(
             options_.scintillation.track_secondaries_first);
@@ -344,9 +344,8 @@ void SupportedOpticalPhysics::ConstructProcess()
             options_.scintillation.by_particle_type);
         scint->SetFiniteRiseTime(options_.scintillation.finite_rise_time);
         scint->SetScintillationTrackInfo(options_.scintillation.track_info);
-        // These two are not in 10.7 and newer, but defaults should be
-        // sufficient for now scint->SetScintillationYieldFactor(fYieldFactor);
-        // scint->SetScintillationExcitationRatio(fExcitationRatio);
+        // NOTE: scintillation yield factor and excitation ratio are not
+        // present in newer versions
 #endif
         scint->AddSaturation(G4LossTableManager::Instance()->EmSaturation());
 
@@ -366,15 +365,17 @@ void SupportedOpticalPhysics::ConstructProcess()
         });
     }
 
-#if G4VERSION_NUMBER < 1070
     if (process_is_active(OpticalProcessType::cherenkov, options_))
     {
         auto cherenkov = ObservingUniquePtr{std::make_unique<G4Cerenkov>()};
+#if G4VERSION_NUMBER < 1070
+        // Newer versions set these via G4OpticalParameters
         cherenkov->SetStackPhotons(options_.cherenkov.stack_photons);
         cherenkov->SetTrackSecondariesFirst(
             options_.cherenkov.track_secondaries_first);
         cherenkov->SetMaxNumPhotonsPerStep(options_.cherenkov.max_photons);
         cherenkov->SetMaxBetaChangePerStep(options_.cherenkov.max_beta_change);
+#endif
 
         foreach_particle([&cherenkov](G4ParticleDefinition const& p) {
             if (!cherenkov->IsApplicable(p))
@@ -390,7 +391,6 @@ void SupportedOpticalPhysics::ConstructProcess()
                 << "Added Cherenkov physics to " << p.GetParticleName();
         });
     }
-#endif
 }
 
 //---------------------------------------------------------------------------//
