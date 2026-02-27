@@ -67,15 +67,15 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     {std::type_index(typeid(CLASSNAME)), {#CLASSNAME, &GeantPhysicsLoader::METHOD}}
     static TypeHandlerMap const type_to_handler{
         GPL_TYPE_FUNC(G4MuonMinusAtomicCapture, mucf),
-        GPL_TYPE_FUNC(G4Cerenkov,              cerenkov),
-        GPL_TYPE_FUNC(G4Scintillation,         scintillation),
-        GPL_TYPE_FUNC(G4OpAbsorption,          absorption),
-        GPL_TYPE_FUNC(G4OpBoundaryProcess,     boundary),
-        GPL_TYPE_FUNC(G4OpMieHG,               mie),
-        GPL_TYPE_FUNC(G4OpRayleigh,            rayleigh),
-        GPL_TYPE_FUNC(G4OpWLS,                 wls),
+        GPL_TYPE_FUNC(G4Cerenkov,               cerenkov),
+        GPL_TYPE_FUNC(G4Scintillation,          scintillation),
+        GPL_TYPE_FUNC(G4OpMieHG,                mie),
+        GPL_TYPE_FUNC(G4OpAbsorption,           op_absorption),
+        GPL_TYPE_FUNC(G4OpBoundaryProcess,      op_boundary),
+        GPL_TYPE_FUNC(G4OpRayleigh,             op_rayleigh),
+        GPL_TYPE_FUNC(G4OpWLS,                  wls),
 #if G4VERSION_NUMBER >= 1070
-        GPL_TYPE_FUNC(G4OpWLS2,                wls2),
+        GPL_TYPE_FUNC(G4OpWLS2,                 wls2),
 #endif
     };
     // clang-format on
@@ -115,7 +115,15 @@ void GeantPhysicsLoader::scintillation(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-void GeantPhysicsLoader::absorption(G4VProcess const&)
+void GeantPhysicsLoader::mie(G4VProcess const&)
+{
+    CELER_EXPECT(import_optical_model_);
+    imported_.optical_models.push_back(
+        import_optical_model_(optical::ImportModelClass::mie));
+}
+
+//---------------------------------------------------------------------------//
+void GeantPhysicsLoader::op_absorption(G4VProcess const&)
 {
     CELER_EXPECT(import_optical_model_);
     imported_.optical_models.push_back(
@@ -123,7 +131,13 @@ void GeantPhysicsLoader::absorption(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-void GeantPhysicsLoader::rayleigh(G4VProcess const&)
+void GeantPhysicsLoader::op_boundary(G4VProcess const&)
+{
+    // Surface physics importing is handled separately
+}
+
+//---------------------------------------------------------------------------//
+void GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 {
     CELER_EXPECT(import_optical_model_);
     imported_.optical_models.push_back(
@@ -136,20 +150,6 @@ void GeantPhysicsLoader::wls(G4VProcess const&)
     CELER_EXPECT(import_optical_model_);
     imported_.optical_models.push_back(
         import_optical_model_(optical::ImportModelClass::wls));
-}
-
-//---------------------------------------------------------------------------//
-void GeantPhysicsLoader::mie(G4VProcess const&)
-{
-    CELER_EXPECT(import_optical_model_);
-    imported_.optical_models.push_back(
-        import_optical_model_(optical::ImportModelClass::mie));
-}
-
-//---------------------------------------------------------------------------//
-void GeantPhysicsLoader::boundary(G4VProcess const&)
-{
-    // Surface physics importing is handled separately
 }
 
 //---------------------------------------------------------------------------//

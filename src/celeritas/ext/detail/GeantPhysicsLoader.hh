@@ -49,15 +49,18 @@ class GeantPhysicsLoader
     GeantOpticalModelImporter import_optical_model_;
     std::unordered_set<G4VProcess const*> visited_;
 
+    //// PHYSICS LOADERS ////
+
     void mucf(G4VProcess const& p);
-    void absorption(G4VProcess const& p);
-    void rayleigh(G4VProcess const& p);
-    void wls(G4VProcess const& p);
-    void mie(G4VProcess const& p);
-    void boundary(G4VProcess const& p);
-    void wls2(G4VProcess const& p);
     void cerenkov(G4VProcess const& p);
     void scintillation(G4VProcess const& p);
+
+    void mie(G4VProcess const& p);
+    void op_absorption(G4VProcess const& p);
+    void op_boundary(G4VProcess const& p);
+    void op_rayleigh(G4VProcess const& p);
+    void wls(G4VProcess const& p);
+    void wls2(G4VProcess const& p);
 };
 
 //---------------------------------------------------------------------------//
