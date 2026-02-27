@@ -146,7 +146,7 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
         return true;
     }
 
-    using MemberFuncPtr = void (GeantPhysicsLoader::*)(G4VProcess const&);
+    using MemberFuncPtr = size_type (GeantPhysicsLoader::*)(G4VProcess const&);
     using PairNameMfptr = std::pair<char const*, MemberFuncPtr>;
     using TypeHandlerMap = std::unordered_map<std::type_index, PairNameMfptr>;
 
@@ -176,46 +176,77 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
         return false;
     }
     auto&& [name, mfptr] = iter->second;
-    CELER_LOG(debug) << "Loading process " << name << "(\""
-                     << p.GetProcessName() << "\")";
-    (this->*mfptr)(p);
+    size_type result{0};
+    try
+    {
+        result = (this->*mfptr)(p);
+    }
+    catch (...)
+    {
+        CELER_LOG(debug) << "Failed while loading process " << name << "(\""
+                         << p.GetProcessName() << "\")";
+        throw;
+    }
+
+    auto msg
+        = world_logger()(CELER_CODE_PROVENANCE,
+                         result == 0 ? LogLevel::warning : LogLevel::debug);
+    msg << "Loaded ";
+    if (result == 0)
+    {
+        msg << "no";
+    }
+    else
+    {
+        msg << result;
+    }
+    msg << " model data from process " << name << "(\"" << p.GetProcessName()
+        << "\")";
     return true;
 }
 
 //---------------------------------------------------------------------------//
-//! Activate Cherenkov emission
-void GeantPhysicsLoader::cerenkov(G4VProcess const&)
+//! Activate Cherenkov emission (TODO: enable by material)
+size_type GeantPhysicsLoader::cerenkov(G4VProcess const&)
 {
-    imported_.optical_physics.cherenkov = true;
+    auto& model = imported_.optical_physics.cherenkov;
+    model = true;
+    return 1;
 }
 
 //---------------------------------------------------------------------------//
 //! Initialize muon-catalyzed fusion
-void GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
+size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 {
+    auto& model = imported_.mucf_physics;
     // G4MuonMinusAtomicCapture is a G4ProcessType::fHadronic
     // It is also a G4VRestProcess and does not require import data
-    imported_.mucf_physics = inp::MucfPhysics::from_default();
+    model = inp::MucfPhysics::from_default();
+    return model.cycle_rates.size();
 }
 
 //---------------------------------------------------------------------------//
 //! Activate optical scintillation
-void GeantPhysicsLoader::scintillation(G4VProcess const&)
+size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 {
-    imported_.optical_physics.scintillation = true;
+    auto& model = imported_.optical_physics.scintillation;
+    model = true;
+    // TODO: load materials/spectra
+    return 1;
 }
 
 //---------------------------------------------------------------------------//
 //! Activate optical absorption
-void GeantPhysicsLoader::op_absorption(G4VProcess const&)
+size_type GeantPhysicsLoader::op_absorption(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.absorption;
     this->load_mfps(model, "ABSLENGTH");
+    return model.materials.size();
 }
 
 //---------------------------------------------------------------------------//
 //! Activate optical surface physics
-void GeantPhysicsLoader::op_boundary(G4VProcess const&)
+size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
 {
     auto& surfaces = imported_.optical_physics.surfaces;
 
@@ -226,7 +257,7 @@ void GeantPhysicsLoader::op_boundary(G4VProcess const&)
         {
             CELER_LOG(error) << "Optical boundary process is defined but no "
                                 "optical materials are present";
-            return;
+            return 0;
         }
 
         auto geo = celeritas::global_geant_geo().lock();
@@ -257,15 +288,13 @@ void GeantPhysicsLoader::op_boundary(G4VProcess const&)
         inp::DielectricInteraction::from_dielectric(
             inp::ReflectionForm::from_spike()));
 
-    CELER_LOG(debug) << "Loaded " << surfaces.materials.size()
-                     << " optical surfaces (" << num_phys_surfaces
-                     << " physics surfaces)";
     CELER_ENSURE(surfaces);
+    return surfaces.materials.size();
 }
 
 //---------------------------------------------------------------------------//
 //! Activate Mie scattering
-void GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
+size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.mie;
     this->load_mfps(model, "MIEHG");
@@ -280,11 +309,12 @@ void GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
         get_property(
             model_mat.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
     }
+    return model.materials.size();
 }
 
 //---------------------------------------------------------------------------//
 //! Activate rayleigh scattering
-void GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
+size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 {
     // TODO: refactor as variant of MFP grid *or* scale_factor+compressibility
     auto& model = imported_.optical_physics.bulk.rayleigh;
@@ -326,11 +356,12 @@ void GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
             model.materials.emplace(opt_mat_id, std::move(model_mat));
         }
     }
+    return model.materials.size();
 }
 
 //---------------------------------------------------------------------------//
 //! Activate wavelength shifting
-void GeantPhysicsLoader::op_wls(G4VProcess const&)
+size_type GeantPhysicsLoader::op_wls(G4VProcess const&)
 {
 #if G4VERSION_NUMBER >= 1070
     // Save time profile
@@ -354,11 +385,12 @@ void GeantPhysicsLoader::op_wls(G4VProcess const&)
                      "WLSCOMPONENT",
                      {ImportUnits::mev, ImportUnits::unitless});
     }
+    return model.materials.size();
 }
 
 //---------------------------------------------------------------------------//
 //! Activate wavelength shifting additional distribution
-void GeantPhysicsLoader::op_wls2(G4VProcess const&)
+size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
 {
 #if G4VERSION_NUMBER >= 1070
     // Save time profile
@@ -381,6 +413,7 @@ void GeantPhysicsLoader::op_wls2(G4VProcess const&)
                      "WLSCOMPONENT2",
                      {ImportUnits::mev, ImportUnits::unitless});
     }
+    return model.materials.size();
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif

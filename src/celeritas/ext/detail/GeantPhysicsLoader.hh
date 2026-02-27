@@ -46,7 +46,7 @@ class GeantPhysicsLoader
     GeantPhysicsLoader(ImportData& imported,
                        GeoOpticalIdMap const& optical_ids);
 
-    // Load if possible, returning whether it was recognized
+    // Load if possible, returning whether we handled it
     bool operator()(G4VProcess const& p);
 
   private:
@@ -58,17 +58,17 @@ class GeantPhysicsLoader
     //// PHYSICS LOADERS ////
 
     // EM particles
-    void cerenkov(G4VProcess const& p);
-    void muon_minus_atomic_capture(G4VProcess const& p);
-    void scintillation(G4VProcess const& p);
+    size_type cerenkov(G4VProcess const& p);
+    size_type muon_minus_atomic_capture(G4VProcess const& p);
+    size_type scintillation(G4VProcess const& p);
 
     // Optical photons
-    void op_absorption(G4VProcess const& p);
-    void op_boundary(G4VProcess const& p);
-    void op_mie_hg(G4VProcess const& p);
-    void op_rayleigh(G4VProcess const& p);
-    void op_wls(G4VProcess const& p);
-    void op_wls2(G4VProcess const& p);
+    size_type op_absorption(G4VProcess const& p);
+    size_type op_boundary(G4VProcess const& p);
+    size_type op_mie_hg(G4VProcess const& p);
+    size_type op_rayleigh(G4VProcess const& p);
+    size_type op_wls(G4VProcess const& p);
+    size_type op_wls2(G4VProcess const& p);
 
     //// HELPERS ////
 
