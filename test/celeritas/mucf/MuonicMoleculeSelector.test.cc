@@ -134,7 +134,7 @@ TEST_F(MuonicMoleculeSelectorTest, model_data)
     auto const& rates = data_.cycle_rates[mucfmatid_];
 
     MoleculeCountArray molecule_counts;
-    for (auto i : range(num_samples))
+    for ([[maybe_unused]] auto i : range(num_samples))
     {
         // Form muonic atom
         auto muonic_atom = MuonicAtomSelector(
