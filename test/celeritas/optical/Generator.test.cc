@@ -62,6 +62,7 @@ class LArSphereGeneratorTest : public Test
         osi_.geant_setup = [] {
             auto opt = GeantOpticalPhysicsOptions::deactivated();
             opt.absorption = true;
+            opt.boundary = {};
             return opt;
         }();
     }
