@@ -51,16 +51,18 @@ class GeantPhysicsLoader
 
     //// PHYSICS LOADERS ////
 
-    void mucf(G4VProcess const& p);
+    // EM particles
     void cerenkov(G4VProcess const& p);
+    void muon_minus_atomic_capture(G4VProcess const& p);
     void scintillation(G4VProcess const& p);
 
-    void mie(G4VProcess const& p);
+    // Optical photons
     void op_absorption(G4VProcess const& p);
     void op_boundary(G4VProcess const& p);
+    void op_mie_hg(G4VProcess const& p);
     void op_rayleigh(G4VProcess const& p);
-    void wls(G4VProcess const& p);
-    void wls2(G4VProcess const& p);
+    void op_wls(G4VProcess const& p);
+    void op_wls2(G4VProcess const& p);
 };
 
 //---------------------------------------------------------------------------//
