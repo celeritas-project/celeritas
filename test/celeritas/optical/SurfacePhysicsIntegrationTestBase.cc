@@ -47,7 +47,7 @@ auto SurfacePhysicsIntegrationTestBase::select_optical_models() const
 auto SurfacePhysicsIntegrationTestBase::build_optical_surface_physics()
     -> SPConstOpticalSurfacePhysics
 {
-    inp::SurfacePhysics input;
+    inp::OpticalSurfacePhysics input;
 
     this->setup_surface_models(input);
 

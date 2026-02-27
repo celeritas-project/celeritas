@@ -9,7 +9,7 @@
 #include <string>
 
 #include "corecel/io/JsonUtils.json.hh"
-#include "corecel/io/StringEnumMapper.hh"
+#include "celeritas/TypesIO.json.hh"
 
 #include "GeantOpticalPhysicsOptions.hh"
 
@@ -17,20 +17,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 static char const format_str[] = "geant4-optical-physics";
-
-//---------------------------------------------------------------------------//
-void from_json(nlohmann::json const& j, WlsTimeProfile& value)
-{
-    static auto const from_string
-        = StringEnumMapper<WlsTimeProfile>::from_cstring_func(
-            to_cstring, "wls time profile");
-    value = from_string(j.get<std::string>());
-}
-
-void to_json(nlohmann::json& j, WlsTimeProfile const& value)
-{
-    j = std::string{to_cstring(value)};
-}
 
 //---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, CherenkovPhysicsOptions& options)
@@ -151,7 +137,7 @@ void from_json_deprecated(nlohmann::json const& j,
         if (iter->is_string())
         {
             CELER_LOG(warning) << "Deprecated wavelength shifting option type "
-                                  "`WlsTimeProfile` string: refactor as "
+                                  "`WlsDistribution` string: refactor as "
                                   "'WavelengthShiftingOptions'";
             if (iter->get<std::string>() == "none")
             {

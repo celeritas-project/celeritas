@@ -26,10 +26,14 @@ struct BIHBuilder
     //! node)
     size_type depth_limit = 32;
 
+    //! The number of partition candidates to check per axis when partitioning
+    //! a node during BIH construction
+    size_type num_part_cands = 3;
+
     //! Whether the options are valid
     explicit operator bool() const
     {
-        return max_leaf_size >= 1 && depth_limit >= 1;
+        return max_leaf_size >= 1 && depth_limit >= 1 && num_part_cands >= 1;
     }
 };
 

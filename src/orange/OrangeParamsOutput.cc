@@ -10,14 +10,77 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/sys/Environment.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "OrangeInputIO.json.hh"  // IWYU pragma: keep
 #include "OrangeParams.hh"  // IWYU pragma: keep
 #include "OrangeTypesIO.json.hh"  // IWYU pragma: keep
 
+#include "detail/BIHData.hh"
+#include "detail/BIHView.hh"
+
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Create JSON representation of the structure of a BIH tree.
+ */
+nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
+                                       NativeCRef<BIHTreeData> const& storage)
+{
+    using json = nlohmann::json;
+
+    auto out = json::array();
+
+    detail::BIHView view{tree, storage};
+
+    // Handle inner nodes
+    for (auto i : range(tree.inner_nodes.size()))
+    {
+        auto const& inner = view.inner_node(BIHNodeId{i});
+        auto const& left = inner.edges[detail::BIHInnerNode::Side::left];
+        auto const& right = inner.edges[detail::BIHInnerNode::Side::right];
+
+        out.push_back(json::array({"i",
+                                   std::string(1, to_char(inner.axis)),
+                                   json::array({left.child.unchecked_get(),
+                                                right.child.unchecked_get()}),
+                                   json::array({left.bounding_plane_pos,
+                                                right.bounding_plane_pos})}));
+    }
+
+    // Handle leaf nodes
+    size_type offset = tree.inner_nodes.size();
+    for (auto i : range(tree.leaf_nodes.size()))
+    {
+        auto const& leaf = view.leaf_node(BIHNodeId{offset + i});
+        auto vols = json::array();
+        for (auto id : view.leaf_vol_ids(leaf))
+        {
+            vols.push_back(id.unchecked_get());
+        }
+        out.push_back(json::array({"l", std::move(vols)}));
+    }
+
+    // Handle inf vols
+    auto inf_vols = nlohmann::json::array();
+    for (auto id : view.inf_vol_ids())
+    {
+        inf_vols.push_back(id.unchecked_get());
+    }
+
+    return json::object({
+        {"tree", std::move(out)},
+        {"inf_vol_ids", std::move(inf_vols)},
+    });
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from shared orange data.
@@ -109,11 +172,23 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 
         for (auto i : range(data.simple_units.size()))
         {
-            auto const& mdi
-                = data.simple_units[SimpleUnitId{i}].bih_tree.metadata;
+            auto const& unit = data.simple_units[SimpleUnitId{i}];
+            auto const& mdi = unit.bih_tree.metadata;
             finite.push_back(mdi.num_finite_bboxes);
             infinite.push_back(mdi.num_infinite_bboxes);
             depth.push_back(mdi.depth);
+        }
+
+        // Include structure information if requested by the user
+        if (celeritas::getenv_flag("ORANGE_BIH_STRUCTURE", false).value)
+        {
+            auto& structure = make_array("structure");
+            for (auto i : range(data.simple_units.size()))
+            {
+                auto const& unit = data.simple_units[SimpleUnitId{i}];
+                structure.push_back(make_bih_structure_json(
+                    unit.bih_tree, data.bih_tree_data));
+            }
         }
     }
 

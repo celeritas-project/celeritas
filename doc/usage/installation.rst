@@ -4,7 +4,7 @@
 .. **NOTE**: this file is referenced by README.md:
 .. if changing the former, update the latter!!
 
-.. highlight:: cmake
+.. highlight:: console
 
 .. _infrastructure:
 
@@ -109,7 +109,7 @@ Ideally you will build Celeritas with all dependencies to gain the full
 functionality of the code, but there are circumstances in which you may not
 have (or want) all the dependencies or features available. By default, the CMake code in
 Celeritas queries available packages and sets several
-``CELERITAS_USE_{package}``
+:samp:`CELERITAS_USE_{package}`
 options based on what it finds, so you have a good chance of successfully
 configuring Celeritas on the first go. Some optional features
 will error out in the configure if their required
@@ -126,15 +126,15 @@ The interactive ``ccmake`` tool is highly recommended for exploring the
 Celeritas configuration options, since it provides both documentation *and* an
 easy way to toggle through all the valid options.
 
-``CELERITAS_USE_{package}``
+:samp:`CELERITAS_USE_{package}`
   Enable features of the given dependency. The configuration will fail if the
   dependent package is not found.
 
-``CELERITAS_BUILTIN_{package}``
+:samp:`CELERITAS_BUILTIN_{package}`
   Force a package to be built from an internally downloaded copy (when true/on)
   or externally installed code (when false/off).
 
-``CELERITAS_BUILD_{DOCS|TESTS}``
+:samp:`CELERITAS_BUILD_{DOCS|TESTS}`
   Build optional documentation and/or tests.
 
 ``CELERITAS_CORE_GEO``
@@ -221,7 +221,7 @@ variables (``PATH``, ``CMAKE_PREFIX_PATH``, ...) by activating it.
 
 To clone the latest development version of Celeritas:
 
-.. code-block:: console
+.. code::
 
    $ git clone https://github.com/celeritas-project/celeritas.git
 
@@ -230,14 +230,14 @@ or download it from the GitHub-generated `zip file`_.
 Celeritas includes a :ref:`build_script` that helps setting up the code on development machines.
 It includes environment files for quickly getting started on systems including NERSC's Perlmutter_, ORNL's ExCL_ and Frontier_ systems, and ANL's JLSE_.
 
-.. code-block:: console
+.. code::
 
    $ cd celeritas
    $ ./scripts/build.sh base
 
 You can, of course, build manually:
 
-.. code-block:: console
+.. code::
 
    $ cd celeritas
    $ spack env activate celeritas # if using spack
@@ -261,7 +261,7 @@ configure options (debug or release, VecGeom or ORANGE), you can use the
 CMake presets provided by Celeritas via the ``CMakePresets.json`` file for CMake
 3.21 and higher:
 
-.. code-block:: console
+.. code::
 
    $ cmake --preset=default
 
@@ -272,7 +272,7 @@ different expectations for available dependencies.
 
    If your CMake version is too old, you may get an unhelpful message:
 
-   .. code-block:: console
+   .. code::
 
       CMake Error: Could not read presets from celeritas: Unrecognized "version"
       field
@@ -305,7 +305,7 @@ for building Celeritas. It intelligently configures the build environment by:
 The script accepts a preset name as the first argument, followed by any
 additional CMake configuration arguments. For example:
 
-.. code-block:: console
+.. code::
 
    $ ./scripts/build.sh default -DCELERITAS_DEBUG=ON
 
@@ -320,3 +320,35 @@ In such cases, the build script will modify the shell's rc file to source the
 environment script at login.
 
 .. _ccache: https://ccache.dev/
+
+.. _build_ups:
+
+UPS for LArSoft
+---------------
+
+Building Celeritas for LArSoft/DUNE is straightforward. First, as described in :ref:`plugins_larsoft`,
+you must start up a suitable Apptainer instance for building and execution. Then, load the required LArSoft components.
+
+.. code::
+
+   $ . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+   Setting up larsoft UPS area... /cvmfs/larsoft.opensciencegrid.org
+   Setting up DUNE UPS area... /cvmfs/dune.opensciencegrid.org/products/dune/
+   $ setup larsoft v10_14_01 -q e26:prof
+   $ setup cmake v3_27_4  || return $?
+   $ setup cetmodules v3_24_01 || return $?
+
+.. tip::
+
+   Use the command :samp:`ups list -aK+ {package}` to list available packages.
+
+You can then build and install Celeritas just like any other CMake package.
+By default it will autodetect available packages, but Celeritas includes
+a preset targeting LArSoft module integration:
+
+.. code::
+
+   $ git clone https://github.com/celeritas-project/celeritas.git
+   $ cd celeritas
+   $ cmake --preset=larsoft .
+   $ cmake --preset=larsoft --install .

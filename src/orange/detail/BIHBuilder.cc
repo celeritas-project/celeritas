@@ -185,7 +185,8 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         return;
     }
 
-    BIHPartitioner partition(&temp_.bboxes, &temp_.centers);
+    BIHPartitioner partition(
+        &temp_.bboxes, &temp_.centers, inp_.num_part_cands);
 
     if (auto p = partition(indices))
     {

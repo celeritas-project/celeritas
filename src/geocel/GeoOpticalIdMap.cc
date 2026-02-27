@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeoOpticalIdMap.cc
+//! \file geocel/GeoOpticalIdMap.cc
 //---------------------------------------------------------------------------//
 #include "GeoOpticalIdMap.hh"
 
@@ -10,11 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 
-#include "GeantMaterialPropertyGetter.hh"
-
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -50,5 +46,4 @@ GeoOpticalIdMap::GeoOpticalIdMap(G4MaterialTable const& mt)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

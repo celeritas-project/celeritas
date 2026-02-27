@@ -340,8 +340,7 @@ auto build_optical_params(inp::Problem const& p,
     }
     if (p.physics.optical.scintillation)
     {
-        pi.scintillation
-            = ScintillationParams::from_import(imported, core.particle());
+        pi.scintillation = ScintillationParams::from_import(imported);
     }
 
     // Streams and capacities
@@ -402,8 +401,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
     }
     if (p.physics.scintillation)
     {
-        auto particle = ParticleParams::from_import(imported);
-        pi.scintillation = ScintillationParams::from_import(imported, particle);
+        pi.scintillation = ScintillationParams::from_import(imported);
         CELER_ASSERT(pi.scintillation);
     }
 

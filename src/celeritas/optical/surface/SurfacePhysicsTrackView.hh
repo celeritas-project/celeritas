@@ -84,6 +84,12 @@ class SurfacePhysicsTrackView
     // Assign local facet normal
     inline CELER_FUNCTION void facet_normal(Real3 const&);
 
+    // Get reflectivity action for this step
+    inline CELER_FUNCTION ReflectivityAction reflectivity_action() const;
+
+    // Assign reflectivity action for this step
+    inline CELER_FUNCTION void reflectivity_action(ReflectivityAction);
+
     // Construct a traversal view for this track
     inline CELER_FUNCTION SurfaceTraversalView traversal() const;
 
@@ -132,6 +138,7 @@ SurfacePhysicsTrackView::operator=(Initializer const& init)
     states_.facet_normal[track_id_] = init.global_normal;
     states_.pre_volume_material[track_id_] = init.pre_volume_material;
     states_.post_volume_material[track_id_] = init.post_volume_material;
+    states_.reflectivity_action[track_id_] = ReflectivityAction::interact;
     this->traversal() = SurfaceTraversalView::Initializer{};
     return *this;
 }
@@ -239,6 +246,26 @@ CELER_FUNCTION void SurfacePhysicsTrackView::facet_normal(Real3 const& normal)
     CELER_EXPECT(is_soft_unit_vector(normal));
     CELER_EXPECT(dot_product(normal, this->global_normal()) >= 0);
     states_.facet_normal[track_id_] = normal;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the reflectivity action for this step.
+ */
+CELER_FUNCTION ReflectivityAction
+SurfacePhysicsTrackView::reflectivity_action() const
+{
+    return states_.reflectivity_action[track_id_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Assign the reflectivity action for this step.
+ */
+CELER_FUNCTION void
+SurfacePhysicsTrackView::reflectivity_action(ReflectivityAction action)
+{
+    states_.reflectivity_action[track_id_] = action;
 }
 
 //---------------------------------------------------------------------------//

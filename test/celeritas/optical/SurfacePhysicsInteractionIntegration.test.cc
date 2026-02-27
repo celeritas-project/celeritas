@@ -127,7 +127,7 @@ class SurfacePhysicsIntegrationBackscatterTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -150,7 +150,7 @@ class SurfacePhysicsIntegrationAbsorbTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -173,7 +173,7 @@ class SurfacePhysicsIntegrationTransmitTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -196,7 +196,7 @@ class SurfacePhysicsIntegrationFresnelTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -213,6 +213,52 @@ class SurfacePhysicsIntegrationFresnelTest
             phys_surface,
             inp::DielectricInteraction::from_dielectric(
                 inp::ReflectionForm::from_spike()));
+    }
+};
+
+//---------------------------------------------------------------------------//
+class SurfacePhysicsIntegrationOnlyReflectionPolishedTest
+    : public SurfacePhysicsInteractionIntegrationTest
+{
+  public:
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
+    {
+        PhysSurfaceId phys_surface{0};
+
+        // center-top surface
+
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+
+        // Only polished (specular spike) reflection
+
+        input.interaction.only_reflection.emplace(
+            phys_surface, ReflectionMode::specular_spike);
+    }
+};
+
+//---------------------------------------------------------------------------//
+class SurfacePhysicsIntegrationOnlyReflectionGroundTest
+    : public SurfacePhysicsInteractionIntegrationTest
+{
+  public:
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
+    {
+        PhysSurfaceId phys_surface{0};
+
+        // center-top surface
+
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+
+        // Only ground (diffuse lobe) reflection
+
+        input.interaction.only_reflection.emplace(
+            phys_surface, ReflectionMode::diffuse_lobe);
     }
 };
 
@@ -346,6 +392,34 @@ TEST_F(SurfacePhysicsIntegrationFresnelTest, fresnel)
         0u,
         0u,
     };
+
+    this->reference_run(angles, expected);
+}
+
+//---------------------------------------------------------------------------//
+// Only polished reflection
+TEST_F(SurfacePhysicsIntegrationOnlyReflectionPolishedTest, polished)
+{
+    std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
+
+    SurfaceTestResults expected;
+    expected.num_refracted = {0, 0, 0};
+    expected.num_reflected = {100, 100, 100};
+    expected.num_absorbed = {0, 0, 0};
+
+    this->reference_run(angles, expected);
+}
+
+//---------------------------------------------------------------------------//
+// Only ground reflection
+TEST_F(SurfacePhysicsIntegrationOnlyReflectionGroundTest, ground)
+{
+    std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
+
+    SurfaceTestResults expected;
+    expected.num_refracted = {0, 0, 0};
+    expected.num_reflected = {100, 100, 100};
+    expected.num_absorbed = {0, 0, 0};
 
     this->reference_run(angles, expected);
 }

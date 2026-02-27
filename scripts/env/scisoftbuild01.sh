@@ -38,10 +38,31 @@ if ! command -v celerlog >/dev/null 2>&1; then
     printf "%s: %s\n" "$1" "$2" >&2
   }
 fi
+if ! command -v setup  >/dev/null 2>&1; then
+  celerlog debug "Missing 'setup' command: using local UPS"
+  setup ()
+  {
+      . `ups setup "$@"`
+  }
+fi
 if [ -z "${SYSTEM_NAME}" ]; then
   SYSTEM_NAME=$(uname -s)
   celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
 fi
+
+# Set default scratch directory
+export SCRATCHDIR="${SCRATCHDIR:-/scratch/$USER}"
+for _d in build install cache; do
+  # Create build/install in higher-performance local-but-persistent dir
+  _scratch="$SCRATCHDIR/$_d"
+  if ! [ -d "${_scratch}" ]; then
+    celerlog info "Creating scratch directory '${_scratch}'"
+    mkdir -p "${_scratch}" || return $?
+    chmod 700 "${_scratch}" || return $?
+  fi
+  unset _scratch
+done
+export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
 
 if [ -n "${APPTAINER_CONTAINER}" ]; then
   export MRB_PROJECT=larsoft
@@ -64,61 +85,13 @@ if [ -n "${APPTAINER_CONTAINER}" ]; then
   fi
 fi
 
-# Set default scratchdir; /scratch should exist according to excl docs
-export SCRATCHDIR="${SCRATCHDIR:-/scratch/$USER}"
-for _d in build install cache; do
-  # Create build/install in higher-performance local-but-persistent dir
-  _scratch="$SCRATCHDIR/$_d"
-  if ! [ -d "${_scratch}" ]; then
-    celerlog info "Creating scratch directory '${_scratch}'"
-    mkdir -p "${_scratch}" || return $?
-    chmod 700 "${_scratch}" || return $?
-  fi
-  unset _scratch
-done
-
-# Set up larsoft if running inside an apptainer
+# Set up additional tools if running inside an apptainer
 if [ -n "${MRB_PROJECT}" ]; then
-  LARSCRATCHDIR="${SCRATCHDIR}/${MRB_PROJECT}"
-  if [ -d "${LARSCRATCHDIR}" ]; then
-    celerlog debug "MRB dev area already exists at ${LARSCRATCHDIR}"
-  else
-    celerlog info "Creating MRB dev area in ${LARSCRATCHDIR}"
-    mkdir -p "${LARSCRATCHDIR}" || return $?
-    (
-      cd "${LARSCRATCHDIR}"
-      mrb newDev
-    ) || return 1
-    celerlog debug "MRB environment created"
-  fi
-  _setup_filename="${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}_${MRB_PROJECT_VERSION}_${MRB_QUALS//:/_}/setup"
-  if ! [ -f "${_setup_filename}" ]; then
-    celerlog warning "Expected setup file at ${_setup_filename}: MRB may not have been set up correctly"
-    _setup_filename=$(printf %s "${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}"*/setup)
-    if [ -f "${_setup_filename}" ]; then
-      celerlog info "Found setup file ${_setup_filename}"
-    fi
-  fi
-  . "${_setup_filename}"
-fi
-
-# Check out a package so that mrb will load cmake (may be arbitrary?)
-if [ -n "${MRB_SOURCE}" ]; then
-  _pkg=larsim
-  if ! [ -d "${MRB_SOURCE}/${_pkg}" ]; then
-    _tag=LARSOFT_SUITE_${MRB_PROJECT_VERSION}
-    celerlog info "Installing ${_pkg} @${_tag}"
-    mrb g -t ${_tag} ${_pkg}
-  fi
-
-  # Now that a package exists in MRB source, cmake and dependencies can load
-  celerlog info "Activating MRB environment"
-  # Note that this may be a shell script
-  if ! command -v mrbsetenv >/dev/null 2>&1 ; then
-    celerlog warning "mrbsetenv is not defined: run manually in shell"
-  else
-    celerlog debug "MRB setup complete"
-  fi
+  # Do not set up MRB: instead, just load cmake and cetmodules
+  # (larsoft runtime dependencies have already been loaded)
+  # Note that these do not need MRB_QUALS since they're not binary products
+  setup cmake v3_27_4  || return $?
+  setup cetmodules v3_24_01 || return $?
 fi
 
 if [ -n "$CELER_SOURCE_DIR" ]; then
@@ -151,5 +124,3 @@ EOF
     unset _clangd
   fi
 fi
-
-export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
