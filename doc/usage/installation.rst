@@ -164,6 +164,13 @@ easy way to toggle through all the valid options.
   Choose between ``double`` and ``float`` real numbers across the codebase.
   This is currently experimental.
 
+``CELERITAS_RESEED``
+  Choose when the random number generator is reseeded.  Valid options include
+  trackslot and track.  With trackslot, each trackslot gets a unique random
+  number generator.  With track, every particle track gets a unique random
+  number generator.  The track option provides improved reproducibility at
+  greater computational expense.
+
 ``CELERITAS_UNITS``
   Choose the native Celeritas unit system: see :ref:`the unit
   documentation <api_units>`.
