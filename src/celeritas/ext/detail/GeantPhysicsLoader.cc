@@ -15,24 +15,41 @@
 #include <G4OpMieHG.hh>
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
+#include <G4OpticalParameters.hh>
 #include <G4Scintillation.hh>
 #include <G4VProcess.hh>
 #include <G4Version.hh>
+
 #if G4VERSION_NUMBER >= 1070
 #    include <G4OpWLS2.hh>
 #endif
 
+#include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringEnumMapper.hh"
 #include "geocel/GeoOpticalIdMap.hh"
 #include "celeritas/inp/MucfPhysics.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+optical::WlsDistribution geant_to_wls_distribution(std::string const& s)
+{
+    static auto const from_string
+        = StringEnumMapper<optical::WlsDistribution>::from_cstring_func(
+            optical::to_cstring, "wls distribution");
+
+    return from_string(s);
+}
+
+}  // namespace
 //---------------------------------------------------------------------------//
 /*!
  * Construct with reference to data being loaded.
@@ -150,6 +167,16 @@ void GeantPhysicsLoader::wls(G4VProcess const&)
     CELER_EXPECT(import_optical_model_);
     imported_.optical_models.push_back(
         import_optical_model_(optical::ImportModelClass::wls));
+
+#if G4VERSION_NUMBER >= 1070
+    // Save time profile
+    auto* params = G4OpticalParameters::Instance();
+    CELER_ASSERT(params);
+    imported_.optical_params.wls_time_profile
+        = geant_to_wls_distribution(params->GetWLSTimeProfile());
+#else
+    CELER_DISCARD(geant_to_wls_distribution);
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -159,6 +186,12 @@ void GeantPhysicsLoader::wls2(G4VProcess const&)
     CELER_EXPECT(import_optical_model_);
     imported_.optical_models.push_back(
         import_optical_model_(optical::ImportModelClass::wls2));
+
+    // Save time profile
+    auto* params = G4OpticalParameters::Instance();
+    CELER_ASSERT(params);
+    imported_.optical_params.wls_time_profile
+        = geant_to_wls_distribution(params->GetWLS2TimeProfile());
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif

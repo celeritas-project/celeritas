@@ -62,12 +62,6 @@
 #include <G4VRangeToEnergyConverter.hh>
 #include <G4Version.hh>
 
-#include "celeritas/io/ImportUnits.hh"
-#if G4VERSION_NUMBER >= 1070
-#    include <G4OpWLS2.hh>
-#    include <G4OpticalParameters.hh>
-#endif
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
@@ -85,6 +79,7 @@
 #include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportUnits.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantParticleView.hh"
@@ -1127,39 +1122,6 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
 
 //---------------------------------------------------------------------------//
 /*!
- * Import optical parameters.
- */
-ImportOpticalParameters import_optical_parameters()
-{
-    ImportOpticalParameters iop;
-
-#if G4VERSION_NUMBER >= 1070
-    auto* params = G4OpticalParameters::Instance();
-    CELER_ASSERT(params);
-
-    auto to_enum = [](std::string const& time_profile) {
-        using Dist = optical::WlsDistribution;
-        if (time_profile == "delta")
-        {
-            return Dist::delta;
-        }
-        else if (time_profile == "exponential")
-        {
-            return Dist::exponential;
-        }
-        CELER_NOT_IMPLEMENTED("unknown WLS time profile " + time_profile);
-    };
-    iop.wls_time_profile = to_enum(params->GetWLSTimeProfile());
-    iop.wls2_time_profile = to_enum(params->GetWLS2TimeProfile());
-
-    //! \todo For older Geant4 versions, set based on user input?
-#endif
-
-    return iop;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Return a \c ImportData::ImportEmParamsMap .
  */
 ImportEmParameters import_em_parameters()
@@ -1405,7 +1367,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
         if (selected.processes & DataSelection::optical)
         {
-            imported.optical_params = import_optical_parameters();
             imported.optical_physics.surfaces
                 = import_optical_surface_physics(imported.optical_materials);
         }
