@@ -34,10 +34,8 @@ namespace optical
  */
 ModelImporter::ModelImporter(ImportData const& data,
                              SPConstMaterial material,
-                             SPConstCoreMaterial core_material,
-                             UserBuildMap user_build)
+                             SPConstCoreMaterial core_material)
     : input_{nullptr, std::move(material), nullptr, std::move(core_material)}
-    , user_build_map_(std::move(user_build))
     , params_(data.optical_params)
 {
     CELER_EXPECT(input_.material);
@@ -52,18 +50,6 @@ ModelImporter::ModelImporter(ImportData const& data,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct without custom user builders.
- */
-ModelImporter::ModelImporter(ImportData const& data,
-                             SPConstMaterial material,
-                             SPConstCoreMaterial core_material)
-    : ModelImporter(
-          data, std::move(material), std::move(core_material), UserBuildMap{})
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create a \c ModelBuilder for the given model class.
  *
  * This may return a null model builder (with a warning) if the user
@@ -71,13 +57,6 @@ ModelImporter::ModelImporter(ImportData const& data,
  */
 auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
 {
-    // First, look for user-supplied models
-    if (auto user_iter = user_build_map_.find(imc);
-        user_iter != user_build_map_.end())
-    {
-        return user_iter->second(input_);
-    }
-
     using BuilderMemFn = ModelBuilder (ModelImporter::*)() const;
     static std::unordered_map<IMC, BuilderMemFn> const builtin_build{
         {IMC::absorption, &ModelImporter::build_absorption},

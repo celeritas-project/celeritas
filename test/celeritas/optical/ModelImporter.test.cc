@@ -33,13 +33,10 @@ class ModelImporterTest : public OpticalMockTestBase
     using SPConstCoreMaterial
         = std::shared_ptr<::celeritas::MaterialParams const>;
 
-    ModelImporter
-    build_importer(ModelImporter::UserBuildMap const& user_build = {})
+    ModelImporter build_importer()
     {
-        return ModelImporter(this->imported_data(),
-                             this->optical_material(),
-                             this->material(),
-                             user_build);
+        return ModelImporter(
+            this->imported_data(), this->optical_material(), this->material());
     }
 
     template<class ModelT>
@@ -120,24 +117,6 @@ TEST_F(ModelImporterTest, build_wls2)
 
     this->check_import_model<WavelengthShiftModel>(model_importer,
                                                    ImportModelClass::wls2);
-}
-
-//---------------------------------------------------------------------------//
-// Test user ignore options
-TEST_F(ModelImporterTest, warn_and_ignore)
-{
-    ModelImporter::UserBuildMap user_map{
-        {ImportModelClass::absorption,
-         WarnAndIgnoreModel{ImportModelClass::absorption}},
-        {ImportModelClass::wls, WarnAndIgnoreModel{ImportModelClass::wls}},
-    };
-
-    auto model_importer = this->build_importer(user_map);
-
-    EXPECT_FALSE(model_importer(ImportModelClass::absorption));
-    this->check_import_model<RayleighModel>(model_importer,
-                                            ImportModelClass::rayleigh);
-    EXPECT_FALSE(model_importer(ImportModelClass::wls));
 }
 
 //---------------------------------------------------------------------------//
