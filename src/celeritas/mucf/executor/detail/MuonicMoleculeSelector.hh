@@ -143,7 +143,7 @@ MuonicMoleculeSelector::operator()(Engine& rng)
         sampled_times[MMM::deuterium_tritium] = inf;
         sampled_times[MMM::tritium_tritium] = inf;
     }
-    else if (atom_ == MucfMuonicAtom::tritium)
+    else
     {
         // DT and TT fusions are triggered by a muonic tritium
         sampled_times[MMM::deuterium_deuterium] = inf;
