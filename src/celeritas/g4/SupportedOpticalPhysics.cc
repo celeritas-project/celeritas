@@ -243,6 +243,13 @@ SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
     ensure_deactivated(
         options_.wavelength_shifting2, "WLS2", "Geant4 version is too old");
 #endif
+
+    if (options_.scintillation)
+    {
+        // Silence stupid Birks output
+        G4LossTableManager::Instance()->EmSaturation()->SetVerbose(
+            options_.verbose);
+    }
 }
 
 //---------------------------------------------------------------------------//
