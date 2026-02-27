@@ -44,5 +44,18 @@ TEST(SplitMix64Test, xor)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST(SplitMix64Test, advance)
+{
+    celeritas::SplitMix64 sm(12345);
+
+    EXPECT_EQ(2454886589211414944ul, sm());
+    sm.advance();
+    EXPECT_EQ(2205171434679333405ul, sm());
+    sm.advance();
+    EXPECT_EQ(9350289611492784363ul, sm());
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
