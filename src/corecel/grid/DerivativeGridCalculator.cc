@@ -15,14 +15,15 @@ namespace celeritas
 /*!
  * Construct the derivative grid of an imported grid.
  *
- * For each grid-point x in the input, the (x-epsilon, x+epsilon) is
- * constructed. Outside the neighborhood, the derivative is well defined,
- * whereas in the neighborhood it is interpolated between the endpoints of the
- * neighborhood.
+ * Since grid are piecewise functions, the left-derivatives and
+ * right-derivatives might not agree at a grid point. Each x grid-point is
+ * duplicated with the first value taking the left-derivative and the second
+ * taking the right-derivative.
  *
- * Since only linearly interpolated grids are supported, the derivative outside
- * the epsilon-neighborhood is just the interpolated slope between the
- * grid-points.
+ * \todo Currently only linearly interpolated grids are supported since they
+ * are necessary for calculating group velocity from refractive index. The
+ * endpoints of the input grid are assumed to be constant, and thus have 0
+ * derivative.
  */
 inp::Grid construct_derivative_grid(inp::Grid const& grid)
 {
