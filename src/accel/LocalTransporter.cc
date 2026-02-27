@@ -224,10 +224,10 @@ void LocalTransporter::InitializeEvent(int id)
     event_id_ = id_cast<UniqueEventId>(id);
     ++run_accum_.events;
 
-    if (!(G4Threading::IsMultithreadedApplication()
-          && G4MTRunManager::SeedOncePerCommunication()))
+    if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
     {
-        if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
+        if (!(G4Threading::IsMultithreadedApplication()
+              && G4MTRunManager::SeedOncePerCommunication()))
         {
             // Initialize the Geant event reconstruction.
 
