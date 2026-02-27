@@ -201,6 +201,9 @@ void from_json(nlohmann::json const& j, GeantOpticalPhysicsOptions& options)
         return;
     }
 
+    // Reset to default
+    options = {};
+
 #define GOPO_LOAD_OPTION(NAME)                          \
     do                                                  \
     {                                                   \
