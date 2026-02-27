@@ -45,6 +45,7 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
+#if G4VERSION_NUMBER >= 1070
 //! Convert a G4 WLS string to a distribution enum
 optical::WlsDistribution geant_to_wls_distribution(std::string const& s)
 {
@@ -54,6 +55,13 @@ optical::WlsDistribution geant_to_wls_distribution(std::string const& s)
 
     return from_string(s);
 }
+#else
+// WLS2 is not available: define a dummy process in the anonymous namespace to
+// allow us to build the dipatch table below
+class G4OpWLS2 : public G4OpWLS
+{
+};
+#endif
 
 }  // namespace
 
@@ -100,9 +108,7 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
         GPL_TYPE_FUNC(G4OpMieHG,           op_mie_hg),
         GPL_TYPE_FUNC(G4OpRayleigh,        op_rayleigh),
         GPL_TYPE_FUNC(G4OpWLS,             op_wls),
-#if G4VERSION_NUMBER >= 1070
         GPL_TYPE_FUNC(G4OpWLS2,            op_wls2),
-#endif
     };
     // clang-format on
 #undef GPL_TYPE_FUNC
@@ -234,8 +240,6 @@ void GeantPhysicsLoader::op_wls(G4VProcess const&)
     CELER_ASSERT(params);
     imported_.optical_params.wls_time_profile
         = geant_to_wls_distribution(params->GetWLSTimeProfile());
-#else
-    CELER_DISCARD(geant_to_wls_distribution);
 #endif
 }
 
