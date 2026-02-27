@@ -101,19 +101,20 @@ MuonicMoleculeSelector::MuonicMoleculeSelector(MucfMuonicAtom atom,
     {
         case MucfMuonicAtom::deuterium: {
             // Related to DD states F = 1/2 and F = 3/2
-            CELER_EXPECT(spin == HalfSpinInt{1} || spin == HalfSpinInt{3});
+            CELER_EXPECT(spin == spin_one_half()
+                         || spin == spin_three_halves());
             // F = 1/2 and F = 3/2 correspond to indices 0 and 1, respectively
-            cycle_rate_index_ = (spin == HalfSpinInt{1}) ? 0 : 1;
+            cycle_rate_index_ = (spin == spin_one_half()) ? 0 : 1;
             break;
         }
         case MucfMuonicAtom::tritium: {
             // Related to DT states F = 0 and F = 1, and TT state F = 1/2
-            CELER_EXPECT(spin == HalfSpinInt{0} || spin == HalfSpinInt{2}
-                         || spin == HalfSpinInt{1});
+            CELER_EXPECT(spin == spin_zero() || spin == spin_one()
+                         || spin == spin_one_half());
             // DT: F = 0 and F = 1 correspond to indices 0 and 1, respectively
             // TT: F = 1/2 corresponds to index 0
             cycle_rate_index_
-                = (spin == HalfSpinInt{0} || spin == HalfSpinInt{1}) ? 0 : 1;
+                = (spin == spin_zero() || spin == spin_one_half()) ? 0 : 1;
             break;
         }
         default:
