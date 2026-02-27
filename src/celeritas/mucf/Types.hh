@@ -63,28 +63,16 @@ using MucfMatId = OpaqueId<struct MucfMaterialComponent_>;
 //---------------------------------------------------------------------------//
 
 //! State F = 1/2 (dd and tt)
-inline constexpr units::HalfSpinInt spin_one_half()
-{
-    return units::HalfSpinInt{1};
-}
+inline constexpr units::HalfSpinInt spin_one_half{1};
 
 //! State F = 3/2 (dd)
-inline constexpr units::HalfSpinInt spin_three_halves()
-{
-    return units::HalfSpinInt{3};
-}
+inline constexpr units::HalfSpinInt spin_three_halves{3};
 
 //! State F = 0 (dt)
-inline constexpr units::HalfSpinInt spin_zero()
-{
-    return units::HalfSpinInt{0};
-}
+inline constexpr units::HalfSpinInt spin_zero{0};
 
 //! State F = 1 (dt)
-inline constexpr units::HalfSpinInt spin_one()
-{
-    return units::HalfSpinInt{2};
-}
+inline constexpr units::HalfSpinInt spin_one{2};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
