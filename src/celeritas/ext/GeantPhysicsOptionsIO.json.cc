@@ -90,6 +90,16 @@ void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
 
 void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
 {
+    if (j.is_null())
+    {
+        // Null json means deactivated options
+        options = GeantMuonPhysicsOptions::deactivated();
+        return;
+    }
+
+    // Reset to default
+    options = {};
+
 #define GMPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
     GMPO_LOAD_OPTION(pair_production);
     GMPO_LOAD_OPTION(ionization);
@@ -114,6 +124,13 @@ void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
 
 void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)
 {
+    if (!inp)
+    {
+        // Special case for all processes being inactivated
+        j = nullptr;
+        return;
+    }
+
     j = {
         CELER_JSON_PAIR(inp, pair_production),
         CELER_JSON_PAIR(inp, ionization),
