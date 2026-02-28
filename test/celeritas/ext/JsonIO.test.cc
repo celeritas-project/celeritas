@@ -7,7 +7,7 @@
 #include "celeritas/ext/GeantOpticalPhysicsOptions.hh"
 #include "celeritas/ext/GeantOpticalPhysicsOptionsIO.json.hh"
 
-#include "JsonUtils.hh"
+#include "JsonTestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -22,7 +22,7 @@ TEST(JsonIOTest, optical)
 
     char const expected[]
         = R"json({"_format":"geant4-optical-physics","_version":"0.7.0","absorption":true,"boundary":null,"cherenkov":null,"mie_scattering":false,"rayleigh_scattering":false,"scintillation":null,"verbose":false,"wavelength_shifting":null,"wavelength_shifting2":null})json";
-    verify_json_round_trip(input, expected);
+    EXPECT_JSON_ROUND_TRIP(input, expected);
 }
 
 //---------------------------------------------------------------------------//
