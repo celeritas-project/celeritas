@@ -112,6 +112,8 @@ operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
 struct GeantPhysicsOptions
 {
     using MevEnergy = Quantity<units::Mev, double>;
+    using MuonSetup = GeantMuonPhysicsOptions;
+    using OpticalSetup = GeantOpticalPhysicsOptions;
 
     //!@{
     //! \name Gamma physics
@@ -212,14 +214,13 @@ struct GeantPhysicsOptions
     bool verbose{false};
 
     //! Muon EM physics
-    GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
+    MuonSetup muon{MuonSetup::deactivated()};
 
     //! Muon-catalyzed fusion physics
     bool mucf_physics{false};
 
     //! Optical physics options
-    GeantOpticalPhysicsOptions optical{
-        GeantOpticalPhysicsOptions::deactivated()};
+    OpticalSetup optical{OpticalSetup::deactivated()};
 
     //! True if any EM process is activated
     bool em() const
@@ -249,10 +250,10 @@ struct GeantPhysicsOptions
         opt.msc = MscModelSelection::none;
         opt.relaxation = RelaxationSelection::none;
         // Muon
-        opt.muon = GeantMuonPhysicsOptions::deactivated();
+        opt.muon = MuonSetup::deactivated();
         opt.mucf_physics = false;
         // Optical
-        opt.optical = GeantOpticalPhysicsOptions::deactivated();
+        opt.optical = OpticalSetup::deactivated();
         return opt;
     }
 };

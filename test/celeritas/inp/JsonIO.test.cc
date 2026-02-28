@@ -4,8 +4,10 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/inp/JsonIO.test.cc
 //---------------------------------------------------------------------------//
+#include "celeritas/ext/GeantOpticalPhysicsOptionsIO.json.hh"
 #include "celeritas/inp/ControlIO.json.hh"
 #include "celeritas/inp/EventsIO.json.hh"
+#include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
 #include "celeritas/inp/SystemIO.json.hh"
 #include "celeritas/inp/TrackingIO.json.hh"
@@ -28,7 +30,7 @@ TEST(JsonIO, control)
     input.track_order = TrackOrder::init_charge;
     input.seed = 12345;
 
-    char const expected[]
+    static char const expected[]
         = R"json({"capacity":{"events":null,"initializers":32768,"primaries":4096,"secondaries":8192,"tracks":4096},"device_debug":null,"optical_capacity":{"generators":8192,"primaries":524288,"tracks":4096},"seed":12345,"track_order":1,"warm_up":false})json";
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
@@ -39,7 +41,7 @@ TEST(JsonIO, events)
         // Test optical EM generator round trip
         OpticalGenerator input = OpticalEmGenerator{};
 
-        char const expected[] = R"json({"_type":"em"})json";
+        static char const expected[] = R"json({"_type":"em"})json";
         EXPECT_JSON_ROUND_TRIP(input, expected);
     }
     {
@@ -55,7 +57,7 @@ TEST(JsonIO, events)
             return opg;
         }();
 
-        char const expected[]
+        static char const expected[]
             = R"json({"_type":"primary","angle":{"_type":"delta","value":[0.0,0.0,1.0]},"energy":{"_type":"normal","mean":1.0,"stddev":0.0},"primaries":512,"shape":{"_type":"uniform_box","lower":[0.0,0.0,0.0],"upper":[1.0,1.0,1.0]}})json";
         EXPECT_JSON_ROUND_TRIP(input, expected);
 
@@ -76,6 +78,16 @@ TEST(JsonIO, events)
     }
 }
 
+TEST(JsonIO, setup_geant)
+{
+    auto input = GeantSetup::OpticalSetup::deactivated();
+    input.absorption = true;
+
+    static char const expected[]
+        = R"json({"_format":"geant4-optical-physics","_version":"0.7.0","absorption":true,"boundary":null,"cherenkov":null,"mie_scattering":false,"rayleigh_scattering":false,"scintillation":null,"verbose":false,"wavelength_shifting":null,"wavelength_shifting2":null})json";
+    EXPECT_JSON_ROUND_TRIP(input, expected);
+}
+
 TEST(JsonIO, optical_standalone_input)
 {
     OpticalStandaloneInput input;
@@ -84,7 +96,7 @@ TEST(JsonIO, optical_standalone_input)
     input.problem.limits.steps = 1000;
     input.problem.limits.step_iters = 10000;
 
-    char const expected[]
+    static char const expected[]
         = R"json({"_format":"optical-standalone-input","_version":"0.7.0","geant_setup":{"_format":"geant4-optical-physics","_version":"0.7.0","absorption":true,"boundary":{"enable":true,"invoke_sd":false},"cherenkov":{"enable":true,"max_beta_change":10.0,"max_photons":100,"stack_photons":true,"track_secondaries_first":true},"mie_scattering":true,"rayleigh_scattering":true,"scintillation":{"by_particle_type":false,"enable":true,"finite_rise_time":false,"stack_photons":true,"track_info":false,"track_secondaries_first":true},"verbose":false,"wavelength_shifting":{"time_profile":"delta"},"wavelength_shifting2":{"time_profile":"delta"}},"problem":{"capacity":{"generators":8192,"primaries":524288,"tracks":4096},"generator":{"_type":"em"},"limits":{"step_iters":10000,"steps":1000},"model":{"geometry":"geometry.gdml"},"output_file":"-","perfetto_file":null,"seed":0,"timers":{"action":false,"step":false}},"system":{"device":null,"environment":{}}})json";
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
@@ -95,7 +107,7 @@ TEST(JsonIO, system)
     input.environment = {{"TWO", "2"}, {"ONE", "1"}};
     {
         // Without optional device
-        char const expected[]
+        static char const expected[]
             = R"json({"device":null,"environment":{"ONE":"1","TWO":"2"}})json";
         EXPECT_JSON_ROUND_TRIP(input, expected);
     }
@@ -105,7 +117,7 @@ TEST(JsonIO, system)
     input.device->heap_size = 8192;
     {
         // With device
-        char const expected[]
+        static char const expected[]
             = R"json({"device":{"heap_size":8192,"stack_size":1024},"environment":{"ONE":"1","TWO":"2"}})json";
         EXPECT_JSON_ROUND_TRIP(input, expected);
     }
@@ -120,7 +132,7 @@ TEST(JsonIO, tracking)
     input.optical_limits.steps = 0;
     input.optical_limits.step_iters = 0;
 
-    char const expected[]
+    static char const expected[]
         = R"json({"force_step_limit":0.0,"limits":{"field_substeps":100,"step_iters":10000,"steps":1000},"optical_limits":{"step_iters":0,"steps":0}})json";
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
