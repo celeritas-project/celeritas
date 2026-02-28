@@ -126,9 +126,6 @@ std::ostream& operator<<(std::ostream& os, Joined const&);
 // Write a variant node to a stream
 std::ostream& operator<<(std::ostream& os, Node const&);
 
-// Get a string representation of a variant node
-std::string to_string(Node const&);
-
 //---------------------------------------------------------------------------//
 // Helper functions
 //---------------------------------------------------------------------------//

@@ -42,10 +42,11 @@ class ProtoBuilder
     //! Input options for construction
     struct Options
     {
-        //! Manually specify a tracking/construction tolerance
-        Tolerance<> tol;
         //! Save metadata during construction for each universe
         SaveUnivJson save_json;
+
+        //! Remove bounding surfaces from lower-level universes
+        bool implicit_parent_boundary{};
     };
 
   public:
@@ -64,11 +65,23 @@ class ProtoBuilder
     // Get the UniverseId of the universe currently being built
     inline UnivId current_uid() const;
 
-    // Whether or not the current universe is the global universe
+    //! Number of universes
+    UnivId::size_type num_universes() const { return inp_->universes.size(); }
+
+    //! Whether the current universe is the global universe
     bool is_global_universe() const
     {
         return this->current_uid() == orange_global_univ;
     }
+
+    //! Whether to delete exterior boundaries of the current universe
+    bool assume_inside() const
+    {
+        return implicit_parent_boundary_ && !this->is_global_universe();
+    }
+
+    //! Logic notation being constructed
+    LogicNotation logic() const { return inp_->logic; }
 
     // Save debugging data for a universe
     void save_json(JsonPimpl&&) const;
@@ -77,10 +90,10 @@ class ProtoBuilder
     void insert(VariantUniverseInput&& unit);
 
   private:
-    OrangeInput* inp_;
+    OrangeInput* inp_{};
     ProtoMap const& protos_;
     SaveUnivJson save_json_;
-    size_type num_univs_;
+    bool implicit_parent_boundary_{};
 
     // State variables
     size_type num_univs_inserted_{0};
@@ -103,8 +116,8 @@ UnivId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
  */
 UnivId ProtoBuilder::current_uid() const
 {
-    CELER_EXPECT(num_univs_inserted_ < num_univs_);
-    return UnivId{num_univs_ - num_univs_inserted_ - 1};
+    CELER_EXPECT(num_univs_inserted_ < this->num_universes());
+    return UnivId{this->num_universes() - num_univs_inserted_ - 1};
 }
 
 //---------------------------------------------------------------------------//

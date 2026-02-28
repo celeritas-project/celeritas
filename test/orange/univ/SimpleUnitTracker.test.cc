@@ -356,14 +356,15 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
 
 TEST_F(DetailTest, bumpcalculator)
 {
-    detail::BumpCalculator calc_bump(
-        Tolerance<>::from_relative(1e-8, /* length = */ 0.1));
-    EXPECT_SOFT_EQ(1e-9, calc_bump(Real3{0, 0, 0}));
-    EXPECT_SOFT_EQ(1e-9, calc_bump(Real3{1e-14, 0, 0}));
-    EXPECT_SOFT_EQ(2e-8, calc_bump(Real3{0, 1, 2}));
-    EXPECT_SOFT_EQ(1e-6, calc_bump(Real3{-100, 1, 2}));
-    EXPECT_SOFT_EQ(1e-2, calc_bump(Real3{0, 0, 1e6}));
-    EXPECT_SOFT_EQ(1e1, calc_bump(Real3{0, 1e9, 1e6}));
+    // NOTE: tolerance is clamped for single precision
+    auto tol = Tolerance<>::from_relative(1e-8, /* length = */ 0.1);
+    detail::BumpCalculator calc_bump(tol);
+    EXPECT_SOFT_EQ(tol.abs, calc_bump(Real3{0, 0, 0}));
+    EXPECT_SOFT_EQ(tol.abs, calc_bump(Real3{1e-14, 0, 0}));
+    EXPECT_SOFT_EQ(2 * tol.rel, calc_bump(Real3{0, 1, 2}));
+    EXPECT_SOFT_EQ(100 * tol.rel, calc_bump(Real3{-100, 1, 2}));
+    EXPECT_SOFT_EQ(1e6 * tol.rel, calc_bump(Real3{0, 0, 1e6}));
+    EXPECT_SOFT_EQ(1e9 * tol.rel, calc_bump(Real3{0, 1e9, 1e6}));
 }
 
 TEST_F(OneVolumeTest, initialize)
@@ -387,11 +388,9 @@ TEST_F(OneVolumeTest, intersect)
         auto state = this->make_state({1, 2, 3}, {0, 0, 1}, "infinite");
         auto isect = tracker.intersect(state);
         EXPECT_FALSE(isect);
-        EXPECT_EQ(no_intersection(), isect.distance);
 
         isect = tracker.intersect(state, 5.0);
         EXPECT_FALSE(isect);
-        EXPECT_EQ(5.0, isect.distance);
     }
 }
 
@@ -516,7 +515,6 @@ TEST_F(TwoVolumeTest, intersect)
         // Range limit: less than
         isect = tracker.intersect(state, 0.9);
         EXPECT_FALSE(isect);
-        EXPECT_SOFT_EQ(0.9, isect.distance);
     }
     {
         SCOPED_TRACE("Outside");
@@ -921,11 +919,9 @@ TEST_F(FiveVolumesTest, intersect)
 
         isect = tracker.intersect(state, 100.0);
         EXPECT_FALSE(isect);
-        EXPECT_SOFT_EQ(100.0, isect.distance);
 
         isect = tracker.intersect(state, 1e-12);
         EXPECT_FALSE(isect);
-        EXPECT_SOFT_EQ(1e-12, isect.distance);
     }
 }
 

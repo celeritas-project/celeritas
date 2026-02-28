@@ -15,6 +15,8 @@
 #include <G4StepPoint.hh>
 
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantGeoParams.hh"
+#include "geocel/GeoOpticalIdMap.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/Convert.hh"
@@ -113,6 +115,9 @@ TEST_F(LarSphere, run)
 class LSOOSteppingAction final : public G4UserSteppingAction
 {
     void UserSteppingAction(G4Step const* step) final;
+
+  private:
+    std::shared_ptr<GeantGeoParams const> geant_geo_;
 };
 
 //---------------------------------------------------------------------------//
@@ -241,26 +246,33 @@ void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
         return;
     }
 
+    if (!geant_geo_)
+    {
+        geant_geo_ = celeritas::global_geant_geo().lock();
+        CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
+    }
+
     auto* pre_step = step->GetPreStepPoint();
     auto* post_step = step->GetPostStepPoint();
     CELER_ASSERT(pre_step && post_step);
 
     // Create distribution and push to Celeritas
-    // TODO: Get optical material ID
-    // TODO: Does the post-step speed account for only continuous energy
-    // loss or continuous+discrete?
     optical::GeneratorDistributionData data;
-    data.time = convert_from_geant(post_step->GetGlobalTime(), clhep_time);
     data.step_length = convert_from_geant(step->GetStepLength(), clhep_length);
     data.charge = units::ElementaryCharge{
         static_cast<real_type>(post_step->GetCharge())};
-    data.material = OptMatId(0);
-    data.points[StepPoint::pre]
-        = {units::LightSpeed(pre_step->GetBeta()),
-           convert_from_geant(pre_step->GetPosition(), clhep_length)};
-    data.points[StepPoint::post]
-        = {units::LightSpeed(post_step->GetBeta()),
-           convert_from_geant(post_step->GetPosition(), clhep_length)};
+    auto& pre = data.points[StepPoint::pre];
+    pre.speed = units::LightSpeed(pre_step->GetBeta());
+    pre.time = convert_from_geant(pre_step->GetGlobalTime(), clhep_time);
+    pre.pos = convert_from_geant(pre_step->GetPosition(), clhep_length);
+    auto& post = data.points[StepPoint::post];
+    post.speed = units::LightSpeed(post_step->GetBeta());
+    post.time = convert_from_geant(post_step->GetGlobalTime(), clhep_time);
+    post.pos = convert_from_geant(post_step->GetPosition(), clhep_length);
+    auto* g4mat = pre_step->GetMaterial();
+    CELER_ASSERT(g4mat);
+    data.material
+        = (*geant_geo_->geo_optical_id_map())[geant_geo_->geant_to_id(*g4mat)];
 
     auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
     if (num_cherenkov > 0)

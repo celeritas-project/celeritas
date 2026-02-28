@@ -91,21 +91,10 @@ struct ParScintSpectrum
 
 //---------------------------------------------------------------------------//
 /*!
- * Data characterizing the scintillation spectrum for all particles and
- * materials.
+ * Data characterizing the scintillation spectrum for all materials.
  *
- * Sampling using material-only data or particle- and material-dependent data
- * are mutually exclusive. Therefore, either \c materials or \c particles are
- * loaded at the beginning of the simulation, but *never* both at the same
- * time. The \c scintillation_by_particle() function can be used to check that.
- *
- * - \c pid_to_scintpid maps a \c ParticleId to a \c ScintParticleId .
  * - \c resolution_scale is indexed by \c OptMatId .
  * - \c materials stores particle-independent scintillation data.
- * - \c particles stores the scintillation spectrum for each particle type and
- *   material. It has size \c num_particles * \c num_materials and is indexed
- *   by \c ParScintSpectrumId , which can be calculated from a \c OptMatId and
- *   \c ScintParticleId using the \c spectrum_index() helper method.
  */
 template<Ownership W, MemSpace M>
 struct ScintillationData
@@ -146,16 +135,8 @@ struct ScintillationData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !resolution_scale.empty()
-               && (materials.empty() != particles.empty())
-               && (!pid_to_scintpid.empty() == !particles.empty())
-               && (!pid_to_scintpid.empty() == (num_scint_particles > 0));
-    }
-
-    //! Whether sampling must happen by particle type
-    CELER_FUNCTION bool scintillation_by_particle() const
-    {
-        return !particles.empty();
+        return !resolution_scale.empty() && !materials.empty()
+               && pid_to_scintpid.empty() && particles.empty();
     }
 
     //! Retrieve spectrum index given optical particle and material ids

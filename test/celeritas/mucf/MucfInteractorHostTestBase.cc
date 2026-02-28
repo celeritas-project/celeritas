@@ -7,6 +7,7 @@
 #include "MucfInteractorHostTestBase.hh"
 
 #include "celeritas/Units.hh"
+#include "celeritas/grid/NonuniformGridBuilder.hh"
 #include "celeritas/inp/MucfPhysics.hh"
 
 namespace celeritas
@@ -69,27 +70,27 @@ MucfInteractorHostBase::MucfInteractorHostBase()
          protium_mass,
          ElementaryCharge{1},
          stable_decay_constant},
-        {"neutron",
-         pdg::neutron(),
-         neutron_mass,
-         zero_quantity(),
-         stable_decay_constant},
-        {"deuterium",
-         pdg::deuteron(),
-         deuterium_mass,
-         ElementaryCharge{1},
-         stable_decay_constant},
         {"tritium",
          pdg::triton(),
          tritium_mass,
          ElementaryCharge{1},
          native_value_from(tritium_decay_constant)},
+        {"neutron",
+         pdg::neutron(),
+         neutron_mass,
+         zero_quantity(),
+         stable_decay_constant},
         {"alpha",
          pdg::alpha(),
          alpha_mass,
          ElementaryCharge{2},
          stable_decay_constant},
         {"he3", pdg::he3(), he3_mass, ElementaryCharge{2}, stable_decay_constant},
+        {"deuterium",
+         pdg::deuteron(),
+         deuterium_mass,
+         ElementaryCharge{1},
+         stable_decay_constant},
 
         // Muonic atoms
         {"muonic_hydrogen",
@@ -110,12 +111,12 @@ MucfInteractorHostBase::MucfInteractorHostBase()
         {"muonic_alpha",
          pdg::muonic_alpha(),
          alpha_mass + muon_mass,
-         ElementaryCharge{1},
+         ElementaryCharge{2},
          native_value_from(muon_decay_constant)},
         {"muonic_he3",
          pdg::muonic_he3(),
          he3_mass + muon_mass,
-         ElementaryCharge{1},
+         ElementaryCharge{2},
          native_value_from(muon_decay_constant)},
     };
     this->set_particle_params(std::move(par_inp));
@@ -177,6 +178,11 @@ MucfInteractorHostBase::MucfInteractorHostBase()
     };
 
     this->set_material_params(std::move(mat_inp));
+    this->set_material("hdt_fuel");
+
+    // Initialize model from particle and material params
+    model_ = std::make_shared<DTMixMucfModel>(
+        ActionId{0}, *this->particle_params(), *this->material_params());
 }
 
 //---------------------------------------------------------------------------//

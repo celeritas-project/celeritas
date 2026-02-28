@@ -90,7 +90,7 @@ class SurfacePhysicsIntegrationPolishedTest
     : public SurfacePhysicsRoughnessIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -118,7 +118,7 @@ class SurfacePhysicsIntegrationSmearTest
     : public SurfacePhysicsRoughnessIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -146,7 +146,7 @@ class SurfacePhysicsIntegrationGaussianTest
     : public SurfacePhysicsRoughnessIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 

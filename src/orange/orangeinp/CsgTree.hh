@@ -92,6 +92,12 @@ class CsgTree
     //! Special ID of a node that's always 'false'
     static constexpr NodeId false_node_id() { return NodeId{1}; }
 
+    //! Fast check for being a trivial node
+    static constexpr bool is_boolean_node(NodeId n)
+    {
+        return n.unchecked_get() < 2;
+    }
+
   private:
     // Tree structure: nodes may have been simplified
     std::vector<Node> nodes_;

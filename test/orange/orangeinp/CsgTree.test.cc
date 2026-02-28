@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/CsgTree.hh"
 
+#include "corecel/io/StreamToString.hh"
+
 #include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
 
@@ -109,9 +111,12 @@ TEST_F(CsgTreeTest, true_false)
 
     EXPECT_EQ(Node{True{}}, tree_[true_id]);
     EXPECT_EQ(Node{Negated{true_id}}, tree_[false_id]);
+
+    EXPECT_TRUE(tree_.is_boolean_node(true_id));
+    EXPECT_TRUE(tree_.is_boolean_node(false_id));
 }
 
-TEST_F(CsgTreeTest, TEST_IF_CELERITAS_DEBUG(prohibited_insertion))
+TEST_F(CsgTreeTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
     // Try prohibited cases
     EXPECT_THROW(this->insert(Negated{N{5}}), DebugError);
@@ -130,6 +135,8 @@ TEST_F(CsgTreeTest, surfaces)
 
     EXPECT_EQ(N{2}, tree_.find(Surface{S{1}}));
     EXPECT_EQ(N{}, tree_.find(Surface{S{4}}));
+
+    EXPECT_FALSE(tree_.is_boolean_node(N{2}));
 }
 
 TEST_F(CsgTreeTest, negation)
@@ -237,7 +244,7 @@ TEST_F(CsgTreeTest, manual_simplify)
     {
         // Shell combines join
         tree_.exchange(shell, Joined{op_and, {not_inner, inside_outer}});
-        EXPECT_EQ("all{5,9}", to_string(tree_[shell]));
+        EXPECT_EQ("all{5,9}", stream_to_string(tree_[shell]));
     }
     {
         // below mz is false

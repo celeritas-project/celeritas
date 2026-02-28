@@ -153,6 +153,7 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 celeritas_add_test(mucf/DDMucfInteractor.test.cc)
 celeritas_add_test(mucf/DTMucfInteractor.test.cc)
+celeritas_add_test(mucf/DTMixMucfModel.test.cc)
 celeritas_add_test(mucf/MuonicAtomSelector.test.cc)
 
 #-----------------------------------------------------------------------------#
@@ -250,7 +251,7 @@ endif()
 # Field
 
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
- AND (CELERITAS_USE_CUDA OR VecGeom_VERSION VERSION_GREATER_EQUAL "2.0"))
+ AND (CELERITAS_USE_CUDA OR CELERITAS_VecGeom_SURFACE))
   # VecGeom surface cannot rebuild the geometry
   set(_fieldprop_filter
     FILTER
@@ -462,6 +463,8 @@ endfunction()
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
+celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
@@ -488,6 +491,8 @@ celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
 celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -577,7 +582,7 @@ add_custom_target(debug-root-test-data
   COMMENT "Debug ROOT test data"
 )
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
+if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT AND CELERITAS_BUILD_APPS)
   foreach(_filename "four-steel-slabs" "simple-cms")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")

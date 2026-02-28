@@ -27,6 +27,7 @@
 #include "PhysicsParams.hh"
 #include "SimParams.hh"
 #include "action/AlongStepAction.hh"
+#include "action/DetectorAction.hh"
 #include "action/LocateVacanciesAction.hh"
 #include "action/PreStepAction.hh"
 #include "action/TrackingCutAction.hh"
@@ -162,6 +163,14 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());
+
+    // Construct detector callback action
+    // TODO: Is there a better place to build this?
+    if (input_.optical_detector)
+    {
+        input_.action_reg->insert(std::make_shared<DetectorAction>(
+            input_.action_reg->next_id(), input_.optical_detector.callback));
+    }
 
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;

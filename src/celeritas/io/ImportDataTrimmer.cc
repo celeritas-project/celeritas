@@ -7,6 +7,7 @@
 #include "ImportDataTrimmer.hh"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <utility>
 
@@ -25,7 +26,7 @@ void filter_out_infs(std::vector<T>& data)
             = std::min(std::numeric_limits<T>::max(), 1e308);
         for (auto& value : data)
         {
-            if (std::isinf(value) || std::fabs(value) > max_real)
+            if (std::fabs(value) > max_real)
             {
                 value = std::copysign(max_real, value);
             }

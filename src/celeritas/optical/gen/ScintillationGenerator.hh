@@ -59,12 +59,6 @@ class ScintillationGenerator
   public:
     // Construct from scintillation data and distribution parameters
     inline CELER_FUNCTION
-    ScintillationGenerator(MaterialView const&,
-                           NativeCRef<ScintillationData> const& shared,
-                           GeneratorDistributionData const& dist);
-
-    // Construct without material (for testing)
-    inline CELER_FUNCTION
     ScintillationGenerator(NativeCRef<ScintillationData> const& shared,
                            GeneratorDistributionData const& dist);
 
@@ -106,12 +100,6 @@ ScintillationGenerator::ScintillationGenerator(
     , sample_cost_(-1, 1)
     , sample_phi_(0, real_type(2 * constants::pi))
 {
-    if (shared_.scintillation_by_particle())
-    {
-        // TODO: implement sampling for particles
-        CELER_ASSERT_UNREACHABLE();
-    }
-
     CELER_EXPECT(dist_);
     CELER_EXPECT(shared_);
 
@@ -119,22 +107,6 @@ ScintillationGenerator::ScintillationGenerator(
     auto const& post_step = dist_.points[StepPoint::post];
     delta_pos_ = post_step.pos - pre_step.pos;
     delta_speed_ = post_step.speed - pre_step.speed;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from shared scintillation data and distribution parameters.
- *
- * The optical material is unused but required for the Cherenkov and
- * scintillation generators to have the same signature.
- */
-CELER_FUNCTION
-ScintillationGenerator::ScintillationGenerator(
-    MaterialView const&,
-    NativeCRef<ScintillationData> const& shared,
-    GeneratorDistributionData const& dist)
-    : ScintillationGenerator(shared, dist)
-{
 }
 
 //---------------------------------------------------------------------------//
@@ -232,14 +204,19 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);
 
-    // Sample time
-    photon.time
-        = dist_.time
-          + u * dist_.step_length
-                / (native_value_from(dist_.points[StepPoint::pre].speed)
-                   + u * real_type(0.5) * native_value_from(delta_speed_));
-    photon.primary = dist_.primary;
-
+    // Sample the time
+    photon.time = dist_.points[StepPoint::pre].time + u * [&] {
+        if (dist_.points[StepPoint::pre].speed > zero_quantity())
+        {
+            return dist_.step_length
+                   / (native_value_from(dist_.points[StepPoint::pre].speed)
+                      + u * real_type(0.5) * native_value_from(delta_speed_));
+        }
+        // Fall back to using pre- and post-step time if speed isn't available
+        // (e.g. with the LArSoft SimEnergyDeposit)
+        return dist_.points[StepPoint::post].time
+               - dist_.points[StepPoint::pre].time;
+    }();
     if (component.rise_time == 0)
     {
         // Sample exponentially from fall time
@@ -258,6 +235,9 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         } while (RejectionSampler(target)(rng));
         photon.time += scint_time;
     }
+
+    photon.primary = dist_.primary;
+
     return photon;
 }
 

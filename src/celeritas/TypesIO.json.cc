@@ -59,5 +59,23 @@ void to_json(nlohmann::json& j, TrackOrder const& value)
     j = std::string{to_cstring(value)};
 }
 
+namespace optical
+{
 //---------------------------------------------------------------------------//
+//! See optical/Types.hh: to be replaced with corecel/random distribution
+void from_json(nlohmann::json const& j, WlsDistribution& value)
+{
+    static auto const from_string
+        = StringEnumMapper<WlsDistribution>::from_cstring_func(
+            to_cstring, "wls distribution");
+    value = from_string(j.get<std::string>());
+}
+
+void to_json(nlohmann::json& j, WlsDistribution const& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

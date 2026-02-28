@@ -142,7 +142,7 @@ class SurfacePhysicsIntegrationTestBase
     std::shared_ptr<Transporter> transport_;
     std::shared_ptr<DirectGeneratorAction> generate_;
 
-    virtual void setup_surface_models(inp::SurfacePhysics&) const = 0;
+    virtual void setup_surface_models(inp::OpticalSurfacePhysics&) const = 0;
 };
 
 //---------------------------------------------------------------------------//

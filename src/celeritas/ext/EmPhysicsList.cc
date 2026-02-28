@@ -31,14 +31,16 @@ EmPhysicsList::EmPhysicsList(Options const& options)
     this->SetDefaultCutValue(
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
-    // Celeritas-supported EM Physics
-    detail::emplace_physics<SupportedEmStandardPhysics>(*this, options);
+    if (options.em() || options.muon || options.mucf_physics)
+    {
+        // Celeritas-supported EM Physics
+        detail::emplace_physics<SupportedEmStandardPhysics>(*this, options);
+    }
 
     if (options.optical)
     {
         // Celeritas-supported Optical Physics
-        detail::emplace_physics<SupportedOpticalPhysics>(*this,
-                                                         options.optical);
+        detail::emplace_physics<SupportedOpticalPhysics>(*this, options);
     }
 }
 
