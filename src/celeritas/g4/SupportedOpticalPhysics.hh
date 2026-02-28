@@ -33,9 +33,12 @@ class SupportedOpticalPhysics : public G4VPhysicsConstructor
     // Set up process list
     void ConstructProcess() override;
 
+  protected:
+    template<class F>
+    void foreach_particle(F&& apply) const;
+
   private:
     GeantOpticalPhysicsOptions options_;
-    bool only_optical_;
 };
 
 //---------------------------------------------------------------------------//

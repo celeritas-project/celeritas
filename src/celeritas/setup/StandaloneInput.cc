@@ -130,6 +130,16 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
     // Get optical physics options and deactivate everything else
     GeantPhysicsOptions gpo = GeantPhysicsOptions::deactivated();
     gpo.optical = si.geant_setup;
+    if (gpo.optical.cherenkov || gpo.optical.scintillation)
+    {
+        // We currently load (almost) all physics data from Geant4, which means
+        // setting up its physics consistently for the GeantImporter.
+        // Scintillation and Cherenkov processes are for EM tracks to generate
+        // optical photons, so we must have at least some EM physics present.
+        // In the future, if we want to set up Celeritas from pure physics
+        // input data (via inp), we don't need this restriction.
+        gpo.ionization = true;
+    }
 
     // Take geometry file name from problem and set up Geant4
     auto const& geometry = si.problem.model.geometry;
@@ -150,18 +160,21 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
     // Copy optical physics from import data
     si.problem.physics = imported.optical_physics;
 
-    // TODO: Where should these processes be enabled by the user?
-    // inp::OpticalPhysics?  inp::GeantSetup (GeantPhysicsOptions)?
-    // inp::PhysicsFromGeant? Which is meant to be user input and which is
-    // loaded during setup, or are some a combination of both?
-
     // Manually enable Cherenkov and scintillation if set in input since only
     // optical photon processes are imported from Geant4
+    // (TODO: these should be set by GeantImporter based on available
+    // processes.)
     if (std::holds_alternative<inp::OpticalOffloadGenerator>(
             si.problem.generator))
     {
-        si.problem.physics.cherenkov = si.geant_setup.cherenkov.enable;
-        si.problem.physics.scintillation = si.geant_setup.scintillation.enable;
+        auto& ophys = si.problem.physics;
+        ophys.cherenkov = si.geant_setup.cherenkov.enable;
+        ophys.scintillation = si.geant_setup.scintillation.enable;
+        if (!(ophys.cherenkov || ophys.scintillation))
+        {
+            CELER_LOG(error) << "Optical offload generator should not be used "
+                                "without scintillation or Cherenkov physics";
+        }
     }
 
     // Set up optical core params and save geometry
