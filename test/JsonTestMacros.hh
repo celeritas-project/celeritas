@@ -22,29 +22,30 @@ namespace testdetail
 //---------------------------------------------------------------------------//
 //! Verify JSON round-trip serialization.
 template<class T>
-inline ::testing::AssertionResult JsonRoundTrip(char const* expr1,
-                                                char const* expr2,
+inline ::testing::AssertionResult JsonRoundTrip(char const* input_expr,
+                                                char const*,
                                                 T const& input,
                                                 std::string_view expected)
 {
     // Check serialization
     nlohmann::json obj(input);
-    std::string actual_expr{"json("};
-    actual_expr += expr2;
-    actual_expr += ").dump()";
-    ::testing::AssertionResult result
-        = IsJsonEq(expr1, actual_expr.c_str(), expected, obj.dump());
+    ::testing::AssertionResult result = IsJsonEq("", "", expected, obj.dump());
 
-    if (result)
+    if (!result)
     {
-        // Check deserialization since serialization worked
-        auto rt_input = obj.get<T>();
-        // Verify equality by reserializing it rather than operator==
-        result = IsJsonEq(expr1,
-                          "json(reconstructed).dump()",
-                          expected,
-                          nlohmann::json(rt_input).dump());
+        result << "\nSerialization of " << input_expr << " failed";
+        return result;
     }
+
+    // Check deserialization since serialization worked
+    auto rt_input = obj.get<T>();
+    // Verify equality by reserializing it rather than operator==
+    result = IsJsonEq("", "", expected, nlohmann::json(rt_input).dump());
+    if (!result)
+    {
+        result << "\nDeserialization of " << input_expr << " failed";
+    }
+
     return result;
 }
 
