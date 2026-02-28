@@ -239,8 +239,9 @@ SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
     // Only set a global verbosity with same level for all optical processes
     params->SetVerboseLevel(options_.verbose);
 #else
-    ensure_deactivated(
-        options_.wavelength_shifting2, "WLS2", "Geant4 version is too old");
+    ensure_deactivated(options_.wavelength_shifting2.enable,
+                       "WLS2",
+                       "Geant4 version is too old");
 #endif
 
     if (options_.scintillation)
