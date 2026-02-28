@@ -15,13 +15,13 @@
 #include <G4OpMieHG.hh>
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
-#include <G4OpticalParameters.hh>
 #include <G4Scintillation.hh>
 #include <G4VProcess.hh>
 #include <G4Version.hh>
 
 #if G4VERSION_NUMBER >= 1070
 #    include <G4OpWLS2.hh>
+#    include <G4OpticalParameters.hh>
 #endif
 
 #include "corecel/Types.hh"
