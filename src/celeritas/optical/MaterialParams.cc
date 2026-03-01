@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/DerivativeGridCalculator.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
@@ -94,6 +95,8 @@ MaterialParams::MaterialParams(Input const& inp)
 
     HostVal<MaterialParamsData> data;
     NonuniformGridInserter insert_grid(&data.reals, &data.refractive_index);
+    NonuniformGridInserter insert_derivative_grid(
+        &data.reals, &data.refractive_index_derivative);
     for (auto opt_mat_idx : range(inp.properties.size()))
     {
         auto const& mat = inp.properties[opt_mat_idx];
@@ -119,8 +122,13 @@ MaterialParams::MaterialParams(Input const& inp)
                                << opt_mat_idx;
         }
         insert_grid(ri);
+
+        // Add refractive index derivative grid
+        insert_derivative_grid(construct_derivative_grid(ri));
     }
     CELER_ASSERT(data.refractive_index.size() == inp.properties.size());
+    CELER_ASSERT(data.refractive_index_derivative.size()
+                 == inp.properties.size());
 
     for (auto optmat : inp.volume_to_mat)
     {
