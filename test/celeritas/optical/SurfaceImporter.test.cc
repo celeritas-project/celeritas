@@ -34,8 +34,7 @@ class SurfaceImporterTest : public ::celeritas::test::GeantTestBase
     GeantPhysicsOptions build_geant_options() const override
     {
         auto result = GeantTestBase::build_geant_options();
-        result.optical = {};
-        CELER_ENSURE(result.optical);
+        result.optical.emplace();
         return result;
     }
 
