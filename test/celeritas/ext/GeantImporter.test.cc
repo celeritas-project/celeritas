@@ -249,9 +249,10 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
     {
         GeantPhysicsOptions opts;
         opts.relaxation = RelaxationSelection::all;
-        opts.muon.ionization = true;
-        opts.muon.bremsstrahlung = true;
-        opts.muon.pair_production = true;
+        opts.muon.emplace();
+        opts.muon->ionization = true;
+        opts.muon->bremsstrahlung = true;
+        opts.muon->pair_production = true;
         opts.verbose = true;
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {

@@ -90,13 +90,6 @@ void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
 
 void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
 {
-    if (j.is_null())
-    {
-        // Null json means deactivated options
-        options = GeantMuonPhysicsOptions::deactivated();
-        return;
-    }
-
     // Reset to default
     options = {};
 
@@ -124,13 +117,6 @@ void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
 
 void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)
 {
-    if (!inp)
-    {
-        // Special case for all processes being inactivated
-        j = nullptr;
-        return;
-    }
-
     j = {
         CELER_JSON_PAIR(inp, pair_production),
         CELER_JSON_PAIR(inp, ionization),
@@ -164,7 +150,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(msc);
     GPO_LOAD_OPTION(relaxation);
 
-    GPO_LOAD_OPTION(muon);
+    CELER_JSON_LOAD_OPTIONAL(j, options, muon);
     GPO_LOAD_OPTION(mucf_physics);
 
     GPO_LOAD_OPTION(em_bins_per_decade);
@@ -194,7 +180,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 
     GPO_LOAD_OPTION(verbose);
 
-    GPO_LOAD_OPTION(optical);
+    CELER_JSON_LOAD_OPTIONAL(j, options, optical);
 #undef GPO_LOAD_OPTION
 }
 
@@ -219,7 +205,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, msc),
         CELER_JSON_PAIR(inp, relaxation),
 
-        CELER_JSON_PAIR(inp, muon),
+        CELER_JSON_PAIR_OPTIONAL(inp, muon),
         CELER_JSON_PAIR(inp, mucf_physics),
 
         CELER_JSON_PAIR(inp, em_bins_per_decade),
@@ -249,7 +235,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
 
         CELER_JSON_PAIR(inp, verbose),
 
-        CELER_JSON_PAIR(inp, optical),
+        CELER_JSON_PAIR_OPTIONAL(inp, optical),
     };
 
     save_format(j, format_str);

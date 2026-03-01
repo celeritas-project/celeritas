@@ -397,17 +397,16 @@ void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
 //---------------------------------------------------------------------------//
 void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
 {
-    // Set default optical physics
+    // Set default optical physics (all processes enabled)
     auto& optical = phys_inp.optical;
-    optical = {};
+    optical.emplace();
     EXPECT_TRUE(optical);
-    EXPECT_TRUE(optical.cherenkov);
-    EXPECT_TRUE(optical.scintillation);
+    EXPECT_TRUE(optical->cherenkov);
+    EXPECT_TRUE(optical->scintillation);
 
     // Disable WLS which isn't yet working (reemission) in Celeritas
-    using WLSO = WavelengthShiftingOptions;
-    optical.wavelength_shifting = WLSO::deactivated();
-    optical.wavelength_shifting2 = WLSO::deactivated();
+    optical->wavelength_shifting = std::nullopt;
+    optical->wavelength_shifting2 = std::nullopt;
 }
 
 //---------------------------------------------------------------------------//
@@ -533,12 +532,12 @@ auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
 
     // Enable optical physics (scintillation + Cherenkov)
     auto& optical = result.optical;
-    optical = {};
+    optical.emplace();
     EXPECT_TRUE(optical);
-    EXPECT_TRUE(optical.scintillation);
-    EXPECT_TRUE(optical.cherenkov);
-    EXPECT_TRUE(optical.mie_scattering);
-    EXPECT_TRUE(optical.rayleigh_scattering);
+    EXPECT_TRUE(optical->scintillation);
+    EXPECT_TRUE(optical->cherenkov);
+    EXPECT_TRUE(optical->mie_scattering);
+    EXPECT_TRUE(optical->rayleigh_scattering);
 
     return result;
 }
