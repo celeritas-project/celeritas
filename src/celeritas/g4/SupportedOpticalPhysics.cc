@@ -167,9 +167,12 @@ bool process_is_active(OpticalProcessType process,
 /*!
  * Construct with physics options.
  */
-SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
-    : options_(options.optical.value())
+SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& all_options)
 {
+    CELER_VALIDATE(all_options.optical,
+                   << "cannot construct SupportedOpticalPhysics when optical "
+                      "physics is disabled");
+    options_ = all_options.optical.value();
     auto ensure_deactivated = [](auto& opt, char const* name, char const* why) {
         if (opt)
         {
@@ -179,7 +182,7 @@ SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
         }
     };
 
-    if (!(options.em() || options.muon || options.mucf_physics))
+    if (!(all_options.em() || all_options.muon || all_options.mucf_physics))
     {
         static char const* const why = "no EM/muon physics is enabled";
         ensure_deactivated(options_.cherenkov, "Cherenkov", why);
@@ -205,13 +208,12 @@ SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
     activate_process(kWLS2, bool(options_.wavelength_shifting2));
 
     // Cherenkov
-    if (options_.cherenkov)
+    if (auto& opts = options_.cherenkov)
     {
-        params->SetCerenkovStackPhotons(options_.cherenkov->stack_photons);
-        params->SetCerenkovTrackSecondariesFirst(
-            options_.cherenkov->track_secondaries_first);
-        params->SetCerenkovMaxPhotonsPerStep(options_.cherenkov->max_photons);
-        params->SetCerenkovMaxBetaChange(options_.cherenkov->max_beta_change);
+        params->SetCerenkovStackPhotons(opts->stack_photons);
+        params->SetCerenkovTrackSecondariesFirst(opts->track_secondaries_first);
+        params->SetCerenkovMaxPhotonsPerStep(opts->max_photons);
+        params->SetCerenkovMaxBetaChange(opts->max_beta_change);
     }
 
     // Scintillation
