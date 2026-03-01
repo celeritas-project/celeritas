@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "GeantOpticalPhysicsOptionsIO.json.hh"
 
-#include <string>
-
 #include "corecel/io/JsonUtils.json.hh"
 #include "celeritas/TypesIO.json.hh"
 
@@ -76,38 +74,6 @@ void to_json(nlohmann::json& j, WavelengthShiftingOptions const& inp)
 }
 
 //---------------------------------------------------------------------------//
-//! \todo Remove in version 1.0
-void from_json_deprecated(nlohmann::json const& j,
-                          std::optional<WavelengthShiftingOptions>& options,
-                          std::string name)
-{
-    if (auto iter = j.find(name); iter != j.end())
-    {
-        if (iter->is_string())
-        {
-            CELER_LOG(warning) << "Deprecated wavelength shifting option type "
-                                  "`WlsDistribution` string: refactor as "
-                                  "'WavelengthShiftingOptions'";
-            if (iter->get<std::string>() == "none")
-            {
-                options = std::nullopt;
-            }
-            else
-            {
-                WavelengthShiftingOptions wso;
-                iter->get_to(wso.time_profile);
-                options = wso;
-                CELER_ENSURE(options.has_value());
-            }
-        }
-        else
-        {
-            load_json_optional(j, name.c_str(), options);
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, BoundaryPhysicsOptions& options)
 {
 #define GBPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
@@ -134,9 +100,8 @@ void from_json(nlohmann::json const& j, GeantOpticalPhysicsOptions& options)
     check_format(j, format_str);
     CELER_JSON_LOAD_OPTIONAL(j, options, cherenkov);
     CELER_JSON_LOAD_OPTIONAL(j, options, scintillation);
-    from_json_deprecated(j, options.wavelength_shifting, "wavelength_shifting");
-    from_json_deprecated(
-        j, options.wavelength_shifting2, "wavelength_shifting2");
+    CELER_JSON_LOAD_OPTIONAL(j, options, wavelength_shifting);
+    CELER_JSON_LOAD_OPTIONAL(j, options, wavelength_shifting2);
     CELER_JSON_LOAD_OPTIONAL(j, options, boundary);
     CELER_JSON_LOAD_OPTION(j, options, absorption);
     CELER_JSON_LOAD_OPTION(j, options, rayleigh_scattering);
