@@ -197,10 +197,19 @@ void SupportedEmStandardPhysics::ConstructProcess()
     this->add_gamma_processes();
     this->add_e_processes(G4Electron::Definition());
     this->add_e_processes(G4Positron::Definition());
-    if (options_.muon || options_.mucf_physics)
+    if (options_.muon)
     {
         this->add_mu_processes(G4MuonMinus::Definition());
         this->add_mu_processes(G4MuonPlus::Definition());
+    }
+    if (options_.mucf_physics)
+    {
+        // This is a G4VRestProcess with G4ProcessType::fHadronic
+        auto* pm = G4MuonMinus::Definition()->GetProcessManager();
+        CELER_ASSERT(pm);
+        pm->AddRestProcess(new G4MuonMinusAtomicCapture());
+        CELER_LOG(debug) << "Using muon atomic capture with "
+                            "G4MuonMinusAtomicCapture";
     }
 }
 
@@ -465,6 +474,7 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
  */
 void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 {
+    CELER_ASSUME(options_.muon);
     auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
 
     if (options_.muon->pair_production)
@@ -493,16 +503,6 @@ void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
         ph.RegisterProcess(new G4CoulombScattering(), p);
         CELER_LOG(debug) << "Using muon Coulomb scattering with "
                             "G4eCoulombScatteringModel";
-    }
-
-    if (options_.mucf_physics && p == G4MuonMinus::Definition())
-    {
-        // This is a G4VRestProcess with G4ProcessType::fHadronic
-        auto* pm = p->GetProcessManager();
-        CELER_ASSERT(pm);
-        pm->AddRestProcess(new G4MuonMinusAtomicCapture());
-        CELER_LOG(debug) << "Using muon atomic capture with "
-                            "G4MuonMinusAtomicCapture";
     }
 
     if (options_.muon->msc != MscModelSelection::none)
