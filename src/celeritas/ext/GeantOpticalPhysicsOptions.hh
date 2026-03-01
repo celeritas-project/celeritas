@@ -7,6 +7,7 @@
 #pragma once
 
 #include <optional>
+#include <utility>
 
 #include "celeritas/optical/Types.hh"
 
@@ -115,23 +116,21 @@ struct GeantOpticalPhysicsOptions
     //! \name Optical photon creation physics
 
     //! Cherenkov radiation options (null: disabled)
-    std::optional<CherenkovPhysicsOptions> cherenkov{CherenkovPhysicsOptions{}};
+    std::optional<CherenkovPhysicsOptions> cherenkov{std::in_place};
     //! Scintillation options (null: disabled)
-    std::optional<ScintillationPhysicsOptions> scintillation{
-        ScintillationPhysicsOptions{}};
+    std::optional<ScintillationPhysicsOptions> scintillation{std::in_place};
     //!@}
 
     //!@{
     //! \name Optical photon physics
 
     //! Wavelength shifting options (null: disabled)
-    std::optional<WavelengthShiftingOptions> wavelength_shifting{
-        WavelengthShiftingOptions{}};
+    std::optional<WavelengthShiftingOptions> wavelength_shifting{std::in_place};
     //! Second wavelength shifting options (null: disabled)
     std::optional<WavelengthShiftingOptions> wavelength_shifting2{
-        WavelengthShiftingOptions{}};
+        std::in_place};
     //! Boundary process options (null: disabled)
-    std::optional<BoundaryPhysicsOptions> boundary{BoundaryPhysicsOptions{}};
+    std::optional<BoundaryPhysicsOptions> boundary{std::in_place};
     //! Enable absorption
     bool absorption{true};
     //! Enable Rayleigh scattering
