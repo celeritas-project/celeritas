@@ -17,6 +17,7 @@
 
 #include "PersistentSP.hh"
 #include "celeritas_test.hh"
+#include "larceler/Convert.hh"
 
 namespace celeritas
 {
@@ -101,27 +102,26 @@ TEST_F(LarSphereTest, single_sim_edep)
 {
     auto& run = this->runner();
 
-    // TODO: add helper file with unit conversions
-    // - geo::Point_t in cm (larcoreobj/SimpleTypesAndConstants/geo_vectors.h)
-    // - time in ns
-    real_type edep{0.1};
-
     /*
      * See larg4/Services/SimEnergyDepositSD.cc
      * - Number of electrons is arbitrarily set by LArG4
-     * - Length unit is cm
-     * - Time unit is ns
+     * - Length unit is cm (LarsoftLen)
+     * - Time unit is ns (LarsoftTime)
      * - "original" track ID is always same as actual
      */
+    real_type edep{0.1};  // MeV
+    LarsoftTime start_time{1.0};
+    LarsoftTime end_time{2.0};
+
     sim::SimEnergyDeposit sed(
         /* numPhotons = */ 10000,
         /* numElectrons = */ static_cast<int>(edep * 10000),
         /* scintYieldRatio = */ 1.0,
         /* edep = */ edep,
-        /* startPos = */ geo::Point_t{0.1, 0.2, 0.3},
-        /* endPos = */ geo::Point_t{0.15, 0.24, 0.33},
-        /* startTime = */ 1.0,
-        /* endTime = */ 2.0,
+        /* startPos = */ convert_to_larsoft<LarsoftLen>(from_cm(Real3{0.1, 0.2, 0.3})),
+        /* endPos = */ convert_to_larsoft<LarsoftLen>(from_cm(Real3{0.15, 0.24, 0.33})),
+        /* startTime = */ start_time.value(),
+        /* endTime = */ end_time.value(),
         /* trackID = */ 123,
         /* pdgCode = */ pdg::electron().get(),
         /* origTrackID = */ 123);
@@ -132,7 +132,7 @@ TEST_F(LarSphereTest, single_sim_edep)
     EXPECT_EQ(0, btr.OpDetNum());
     auto const& hits = btr.timePDclockSDPsMap();
     ASSERT_NE(0, hits.size());
-    EXPECT_SOFT_EQ(hits.front().first, 1.0);
+    EXPECT_SOFT_EQ(hits.front().first, start_time.value());
 }
 
 //---------------------------------------------------------------------------//
