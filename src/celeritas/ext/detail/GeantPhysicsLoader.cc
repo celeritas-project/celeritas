@@ -206,7 +206,7 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
 }
 
 //---------------------------------------------------------------------------//
-//! Activate Cherenkov emission (TODO: enable by material)
+//! Load Cherenkov emission (TODO: enable by material)
 size_type GeantPhysicsLoader::cerenkov(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.cherenkov;
@@ -226,7 +226,7 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-//! Activate optical scintillation
+//! Load optical scintillation
 size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.scintillation;
@@ -236,7 +236,7 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-//! Activate optical absorption
+//! Load optical absorption
 size_type GeantPhysicsLoader::op_absorption(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.absorption;
@@ -245,7 +245,7 @@ size_type GeantPhysicsLoader::op_absorption(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-//! Activate optical surface physics
+//! Load optical surface physics
 size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
 {
     auto& surfaces = imported_.optical_physics.surfaces;
@@ -293,7 +293,7 @@ size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-//! Activate Mie scattering
+//! Load Mie scattering
 size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.mie;
@@ -313,10 +313,10 @@ size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-//! Activate rayleigh scattering
+//! Load rayleigh scattering
 size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 {
-    // TODO: refactor as variant of MFP grid *or* scale_factor+compressibility
+    // TODO: refactor as variant: MFP grid *or* scale_factor+compressibility
     auto& model = imported_.optical_physics.bulk.rayleigh;
     this->load_mfps(model, "RAYLEIGH");
 
@@ -324,7 +324,7 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
     // as a grid
     for (auto opt_mat_id : range(OptMatId{optical_ids_.num_optical()}))
     {
-        if (model.materials.contains(opt_mat_id))
+        if (model.materials.count(opt_mat_id))
         {
             continue;
         }
@@ -360,7 +360,7 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-//! Activate wavelength shifting
+//! Load wavelength shifting
 size_type GeantPhysicsLoader::op_wls(G4VProcess const&)
 {
 #if G4VERSION_NUMBER >= 1070
@@ -389,7 +389,7 @@ size_type GeantPhysicsLoader::op_wls(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-//! Activate wavelength shifting additional distribution
+//! Load wavelength shifting additional distribution
 size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
 {
 #if G4VERSION_NUMBER >= 1070
@@ -438,7 +438,6 @@ GeantPhysicsLoader::property_getter(OptMatId opt_id) const
  * Returns an empty grid if no properties table exists for the material or
  * the property is not found.
  */
-
 inp::Grid GeantPhysicsLoader::load_mfp(OptMatId opt_id,
                                        std::string const& prop_name) const
 {
