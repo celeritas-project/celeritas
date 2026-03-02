@@ -152,20 +152,19 @@ auto DistOffloadMixin::make_physics_input() const -> PhysicsInput
 
     // Set default optical physics
     auto& optical = result.optical;
-    optical = {};
+    optical.emplace();
 
     if (IntegrationTestBase::test_offload() != TestOffload::g4)
     {
         // Disable generation of Cherenkov and scintillation photons in Geant4,
         // since we're killing or sending to Celeritas
-        optical.cherenkov.stack_photons = false;
-        optical.scintillation.stack_photons = false;
+        optical->cherenkov->stack_photons = false;
+        optical->scintillation->stack_photons = false;
     }
 
     // Disable WLS which isn't yet working (reemission) in Celeritas
-    using WLSO = WavelengthShiftingOptions;
-    optical.wavelength_shifting = WLSO::deactivated();
-    optical.wavelength_shifting2 = WLSO::deactivated();
+    optical->wavelength_shifting = std::nullopt;
+    optical->wavelength_shifting2 = std::nullopt;
 
     return result;
 }

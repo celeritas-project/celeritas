@@ -4,7 +4,9 @@
 "muon": {
  "ionization": true,
  "bremsstrahlung": true,
- "pair_production": true
+ "pair_production": true,
+ "coulomb": false,
+ "msc": "none"
 },
 "eloss_fluctuation": true,
 "em_bins_per_decade": 7,

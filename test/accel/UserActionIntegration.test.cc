@@ -268,14 +268,12 @@ auto LarSphereOpticalTrackOffload::make_physics_input() const -> PhysicsInput
 
     // Set default optical physics
     auto& optical = result.optical;
-    optical = {};
+    optical.emplace();
+    optical->cherenkov->stack_photons = true;
+    optical->scintillation->stack_photons = true;
 
-    optical.cherenkov.stack_photons = true;
-    optical.scintillation.stack_photons = true;
-
-    using WLSO = WavelengthShiftingOptions;
-    optical.wavelength_shifting = WLSO::deactivated();
-    optical.wavelength_shifting2 = WLSO::deactivated();
+    optical->wavelength_shifting = std::nullopt;
+    optical->wavelength_shifting2 = std::nullopt;
 
     return result;
 }
