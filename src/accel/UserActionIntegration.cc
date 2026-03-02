@@ -13,10 +13,10 @@
 #include "corecel/sys/Stopwatch.hh"
 
 #include "ExceptionConverter.hh"
+#include "G4OpticalPhoton.hh"
 #include "TimeOutput.hh"  // IWYU pragma: keep
 
 #include "detail/IntegrationSingleton.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

@@ -206,6 +206,7 @@ list(APPEND SOURCES
   data/AuxParamsRegistry.cc
   data/AuxStateVec.cc
   data/detail/PinnedAllocatorImpl.cc
+  grid/DerivativeGridCalculator.cc
   grid/GridTypes.cc
   grid/GridTypesIO.json.cc
   grid/SplineDerivCalculator.cc

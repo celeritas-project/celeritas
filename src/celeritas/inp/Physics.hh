@@ -8,9 +8,9 @@
 
 #include "Events.hh"
 #include "MucfPhysics.hh"
+#include "OpticalPhysics.hh"
 #include "PhysicsProcess.hh"
 #include "ProcessBuilder.hh"
-#include "SurfacePhysics.hh"
 
 namespace celeritas
 {
@@ -77,8 +77,8 @@ struct OpticalPhysics
     //!@}
 
     //!@{
-    //! \name Optical surface physics and properties
-    SurfacePhysics surfaces;
+    //! \name Physics and properties for optical photons
+    OpticalSurfacePhysics surfaces;
     //!@}
 
     //! Whether optical physics is enabled

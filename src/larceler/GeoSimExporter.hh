@@ -2,13 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file larceler/GeoSimExporterModule.hh
+//! \file larceler/GeoSimExporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <TTree.h>
 #include <art/Framework/Core/EDAnalyzer.h>
-#include <larcore/Geometry/Geometry.h>
+#include <canvas/Utilities/InputTag.h>
+#include <fhiclcpp/types/Atom.h>
+#include <fhiclcpp/types/Sequence.h>
 
 #include "SimEnergyDepositData.hh"
 
@@ -33,18 +35,32 @@ namespace celeritas
  *
  * To store only a subset of events, use the optional `-n [num_events]` flag.
  */
-class GeoSimExporterModule : public art::EDAnalyzer
+class GeoSimExporter : public art::EDAnalyzer
 {
   public:
+    struct Config
+    {
+        fhicl::Atom<art::InputTag> SimulationLabel{
+            fhicl::Name("SimulationLabel"),
+            fhicl::Comment(R"(SimEnergyDeposit event tag)")};
+
+        fhicl::Atom<int> MaxEdepsPerEvent{
+            fhicl::Name{"MaxEdepsPerEvent"},
+            fhicl::Comment{R"(Maximum to write per event)"},
+            0};
+    };
+    using Parameters = art::EDAnalyzer::Table<Config>;
+
+  public:
     // Construct with input parameters and export geometry data
-    explicit GeoSimExporterModule(fhicl::ParameterSet const& pset);
+    explicit GeoSimExporter(Parameters const& p);
 
     //!@{
     // Prevent copy and assignment operations
-    GeoSimExporterModule(GeoSimExporterModule const&) = delete;
-    GeoSimExporterModule(GeoSimExporterModule&&) = delete;
-    GeoSimExporterModule& operator=(GeoSimExporterModule const&) = delete;
-    GeoSimExporterModule& operator=(GeoSimExporterModule&&) = delete;
+    GeoSimExporter(GeoSimExporter const&) = delete;
+    GeoSimExporter(GeoSimExporter&&) = delete;
+    GeoSimExporter& operator=(GeoSimExporter const&) = delete;
+    GeoSimExporter& operator=(GeoSimExporter&&) = delete;
     //!@}
 
     // Create tree with sim energy deposit data
@@ -55,8 +71,8 @@ class GeoSimExporterModule : public art::EDAnalyzer
 
   private:
     // Fcl input data
-    geo::GeometryCore const& geometry_;
-    int max_edeps_;
+    art::InputTag sim_tag_;
+    int max_edeps_{};
 
     TTree* sim_tree_;  // TTree with sim::SimEnergyDeposit data
     SimEnergyDepositData sim_edep_data_;  // TBranch reference data

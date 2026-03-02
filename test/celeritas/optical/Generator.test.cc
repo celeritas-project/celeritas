@@ -62,6 +62,7 @@ class LArSphereGeneratorTest : public Test
         osi_.geant_setup = [] {
             auto opt = GeantOpticalPhysicsOptions::deactivated();
             opt.absorption = true;
+            opt.boundary = {};
             return opt;
         }();
     }
@@ -203,7 +204,7 @@ TEST_F(LArSphereGeneratorTest, offload)
     if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
-        EXPECT_EQ(53460, result.counters.steps);
+        EXPECT_EQ(53459, result.counters.steps);
         EXPECT_EQ(15, result.counters.step_iters);
     }
 

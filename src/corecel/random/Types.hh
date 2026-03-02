@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/OpaqueId.hh"
-#include "corecel/Types.hh"
 
 namespace celeritas
 {

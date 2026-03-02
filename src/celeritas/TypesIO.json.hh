@@ -9,6 +9,7 @@
 #include <nlohmann/json.hpp>
 
 #include "Types.hh"
+#include "optical/Types.hh"
 
 namespace celeritas
 {
@@ -16,5 +17,12 @@ namespace celeritas
 void from_json(nlohmann::json const& j, TrackOrder& value);
 void to_json(nlohmann::json& j, TrackOrder const& value);
 
+namespace optical
+{
 //---------------------------------------------------------------------------//
+void from_json(nlohmann::json const&, WlsDistribution&);
+void to_json(nlohmann::json&, WlsDistribution const&);
+
+//---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

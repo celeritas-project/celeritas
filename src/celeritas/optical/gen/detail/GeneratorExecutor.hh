@@ -62,7 +62,6 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
 
     using DistId = ItemId<GeneratorDistributionData>;
 
-    CoreTrackView track(*params, *state, tid);
     auto counters = state->init.counters.data().get();
 
     // Find the index of the first distribution that has a nonzero number of
@@ -82,8 +81,7 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
     size_type dist_idx = buffer_start - all_offsets.begin()
                          + find_distribution_index(offsets, tid.get());
     CELER_ASSERT(dist_idx < offload.distributions.size());
-    auto const& dist = offload.distributions[DistId(dist_idx)];
-    CELER_ASSERT(dist);
+    auto& dist = offload.distributions[DistId(dist_idx)];
 
     // Create the view to the new track to be initialized
     CoreTrackView vacancy{
@@ -95,18 +93,29 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
             return state->init.vacancies[idx];
         }()};
 
+    if (!dist.material)
+    {
+        // If the optical material hasn't been set, initialize a temporary
+        // geometry state at the pre-step point and use it to find the optical
+        // material ID
+        auto geo = vacancy.geometry();
+        geo = GeoTrackInitializer{dist.points[StepPoint::pre].pos, {1, 0, 0}};
+        dist.material = vacancy.material_record(geo).material_id();
+    }
+    CELER_ASSERT(dist);
+
     // Generate one track from the distribution
-    auto rng = track.rng();
-    auto opt_mat = track.material_record(dist.material);
+    auto rng = vacancy.rng();
     if (dist.type == GeneratorType::cherenkov)
     {
         CELER_ASSERT(cherenkov);
+        auto opt_mat = vacancy.material_record(dist.material);
         vacancy = CherenkovGenerator(opt_mat, cherenkov, dist)(rng);
     }
     else
     {
         CELER_ASSERT(scintillation);
-        vacancy = ScintillationGenerator(opt_mat, scintillation, dist)(rng);
+        vacancy = ScintillationGenerator(scintillation, dist)(rng);
     }
 }
 

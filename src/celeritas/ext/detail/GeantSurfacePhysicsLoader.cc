@@ -202,8 +202,10 @@ load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
 /*!
  * Construct with \c SurfacePhysics input to be filled by \c operator() .
  */
-GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics& models)
-    : models_(models)
+GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(
+    inp::OpticalSurfacePhysics& models,
+    std::vector<ImportOpticalMaterial>& materials)
+    : models_(models), materials_(materials)
 {
 }
 
@@ -215,12 +217,13 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
 {
     CELER_EXPECT(sid);
 
+    models_.materials.push_back({});
+
     GeantSurfacePhysicsHelper helper(sid);
     auto const& surf = helper.surface();
     auto const model = surf.GetModel();
     try
     {
-        this->check_unimplemented_properties(helper);
         switch (model)
         {
             case G4OSM::glisur:
@@ -243,41 +246,46 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
         throw;
     }
 
-    // TODO: Update for interstitial materials
-    models_.materials.push_back({});
-
     CELER_LOG(debug) << "Inserted " << to_cstring(model) << " surface '"
                      << surf.GetName() << "' (id=" << sid.unchecked_get()
                      << ")";
+
+    // Update to the next surface
+    ++current_surface_;
 }
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Check that properties for unimplemented capabilities are not present.
+ * Check that unimplemented properties are not present.
  */
 void GeantSurfacePhysicsLoader::check_unimplemented_properties(
     GeantSurfacePhysicsHelper const& helper) const
 {
     inp::Grid temp;
-    for (std::string name : {"TRANSMITTANCE", "EFFICIENCY"})
+    for (std::string name : {"GROUPVEL"})
     {
         // Check if the property exists on the surface
         if (helper.get_property(&temp, name))
         {
-            // It's OK if it's present but 1 everywhere (note that
-            // G4Physics2DVector clamps output values to the end points, so the
-            // x extents don't matter)
-            if (!std::all_of(temp.y.begin(), temp.y.end(), [](double v) {
-                    return v == 1;
-                }))
-            {
-                CELER_NOT_IMPLEMENTED("unsupported optical '" + name
-                                      + "' property");
-            }
+            CELER_NOT_IMPLEMENTED("unsupported optical '" + name
+                                  + "' surface property");
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert a value for the current surface into a model map in place.
+ */
+template<class T>
+void GeantSurfacePhysicsLoader::emplace(std::map<PhysSurfaceId, T>& m,
+                                        T&& value)
+{
+    auto result = m.emplace(current_surface_, std::forward<T>(value));
+    // Duplicate surfaces are prohibited
+    CELER_ASSERT(result.second);
 }
 
 //---------------------------------------------------------------------------//
@@ -287,18 +295,18 @@ void GeantSurfacePhysicsLoader::check_unimplemented_properties(
 void GeantSurfacePhysicsLoader::insert_glisur(
     GeantSurfacePhysicsHelper const& helper)
 {
-    this->insert_reflectivity(helper);
-
     auto const& surf = helper.surface();
     switch (surf.GetFinish())
     {
         case G4OSF::polished:
-            helper.emplace(models_.roughness.polished, inp::NoRoughness{});
+            this->emplace(models_.roughness.polished, inp::NoRoughness{});
+            this->insert_reflectivity(helper);
             this->insert_interaction(helper, inp::ReflectionForm::from_spike());
             break;
         case G4OSF::ground:
-            helper.emplace(models_.roughness.smear,
-                           inp::SmearRoughness{1. - surf.GetPolish()});
+            this->emplace(models_.roughness.smear,
+                          inp::SmearRoughness{1. - surf.GetPolish()});
+            this->insert_reflectivity(helper);
             this->insert_interaction(helper, inp::ReflectionForm::from_lobe());
             break;
         default:
@@ -319,32 +327,46 @@ void GeantSurfacePhysicsLoader::insert_glisur(
 void GeantSurfacePhysicsLoader::insert_unified(
     GeantSurfacePhysicsHelper const& helper)
 {
-    this->insert_reflectivity(helper);
-
     auto const& surf = helper.surface();
     auto finish = surf.GetFinish();
     switch (finish)
     {
         // ENUMS USED BY DIELECTRIC-DIELECTRIC AND DIELECTRIC-METAL INTERFACES
         case G4OSF::polished:
-            helper.emplace(models_.roughness.polished, inp::NoRoughness{});
+            this->emplace(models_.roughness.polished, inp::NoRoughness{});
+            this->insert_reflectivity(helper);
             this->insert_interaction(helper, inp::ReflectionForm::from_spike());
             break;
         case G4OSF::ground:
-            helper.emplace(models_.roughness.gaussian,
-                           inp::GaussianRoughness{surf.GetSigmaAlpha()});
+            this->emplace(models_.roughness.gaussian,
+                          inp::GaussianRoughness{surf.GetSigmaAlpha()});
+            this->insert_reflectivity(helper);
             this->insert_interaction(helper, load_unified_refl_form(helper));
             break;
 
         // ENUMS ONLY AVAILABLE TO DIELECTRIC-DIELECTRIC INTERFACES
         case G4OSF::polishedfrontpainted:
-            [[fallthrough]];
+            this->insert_reflectivity(helper);
+            this->insert_painted_surface(
+                optical::ReflectionMode::specular_spike);
+            break;
         case G4OSF::groundfrontpainted:
-            [[fallthrough]];
+            this->insert_reflectivity(helper);
+            this->insert_painted_surface(optical::ReflectionMode::diffuse_lobe);
+            break;
         case G4OSF::polishedbackpainted:
-            [[fallthrough]];
+            this->insert_gap_material(helper);
+            this->emplace(models_.reflectivity.fresnel,
+                          inp::FresnelReflection{});
+            this->insert_painted_surface(
+                optical::ReflectionMode::specular_spike);
+            break;
         case G4OSF::groundbackpainted:
-            CELER_NOT_IMPLEMENTED(std::string{"Finish "} + to_cstring(finish));
+            this->insert_gap_material(helper);
+            this->emplace(models_.reflectivity.fresnel,
+                          inp::FresnelReflection{});
+            this->insert_painted_surface(optical::ReflectionMode::diffuse_lobe);
+            break;
         default:
             CELER_VALIDATE(false,
                            << "invalid surface finish " << to_cstring(finish)
@@ -361,13 +383,35 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
 {
     auto& reflectivity = models_.reflectivity;
     inp::GridReflection refl_grid;
-    if (helper.get_property(&refl_grid.reflectivity, "REFLECTIVITY"))
+
+    bool has_refl
+        = helper.get_property(&refl_grid.reflectivity, "REFLECTIVITY");
+    bool has_trans
+        = helper.get_property(&refl_grid.transmittance, "TRANSMITTANCE");
+    bool has_eff = helper.get_property(&refl_grid.efficiency, "EFFICIENCY");
+
+    if (has_refl || has_trans || has_eff)
     {
-        helper.emplace(reflectivity.grid, std::move(refl_grid));
+        // Create default grids for reflectivity / transmittance
+        if (has_refl && !has_trans)
+        {
+            refl_grid.transmittance = inp::Grid::from_constant(0);
+        }
+        else if (has_trans && !has_refl)
+        {
+            refl_grid.reflectivity = inp::Grid::from_constant(0);
+        }
+        else if (!has_trans && !has_refl)
+        {
+            refl_grid.reflectivity = inp::Grid::from_constant(0);
+            refl_grid.transmittance = inp::Grid::from_constant(0);
+        }
+
+        this->emplace(reflectivity.grid, std::move(refl_grid));
     }
     else
     {
-        helper.emplace(reflectivity.fresnel, inp::FresnelReflection{});
+        this->emplace(reflectivity.fresnel, inp::FresnelReflection{});
     }
 }
 
@@ -382,12 +426,12 @@ void GeantSurfacePhysicsLoader::insert_interaction(
     switch (helper.surface().GetType())
     {
         case G4ST::dielectric_dielectric:
-            helper.emplace(
+            this->emplace(
                 interaction.dielectric,
                 inp::DielectricInteraction::from_dielectric(std::move(rf)));
             break;
         case G4ST::dielectric_metal:
-            helper.emplace(
+            this->emplace(
                 interaction.dielectric,
                 inp::DielectricInteraction::from_metal(std::move(rf)));
             break;
@@ -397,6 +441,59 @@ void GeantSurfacePhysicsLoader::insert_interaction(
                            << to_cstring(helper.surface().GetType())
                            << " for surface model");
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert a gap material and surface for back-painted surfaces.
+ *
+ * In Geant4's UNIFIED model, back painted surfaces have an implicit gap
+ * material with its own index of refraction specified in the surface's
+ * material property table. The surface between the original volume and the gap
+ * material is always dielectric-dielectric with Gaussian roughness and uses
+ * the specified grid reflectivity if available. The gap material has a painted
+ * (reflection only) surface between it and the latter material.
+ */
+void GeantSurfacePhysicsLoader::insert_gap_material(
+    GeantSurfacePhysicsHelper const& helper)
+{
+    // Add initial-gap surface
+    this->emplace(models_.roughness.gaussian,
+                  inp::GaussianRoughness{helper.surface().GetSigmaAlpha()});
+    this->insert_reflectivity(helper);
+    this->emplace(models_.interaction.dielectric,
+                  inp::DielectricInteraction::from_dielectric(
+                      load_unified_refl_form(helper)));
+
+    // Add material
+    models_.materials.back().push_back(OptMatId(materials_.size()));
+    ++current_surface_;
+    {
+        ImportOpticalMaterial material;
+        bool has_rindex = helper.get_property(
+            &material.properties.refractive_index, "RINDEX");
+
+        CELER_VALIDATE(has_rindex,
+                       << "back-painted surfaces require RINDEX defined "
+                          "for the interstitial material.");
+        materials_.push_back(std::move(material));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert a painted surface.
+ *
+ * Painted surfaces are strictly reflective interactions that are either spike
+ * or diffuse lobe. Since these only rely on the global normal, in Celeritas we
+ * model these as "polished" (since they don't need a local facet normal) and
+ * with the only reflection interaction.
+ */
+void GeantSurfacePhysicsLoader::insert_painted_surface(
+    optical::ReflectionMode mode)
+{
+    this->emplace(models_.roughness.polished, inp::NoRoughness{});
+    this->emplace(models_.interaction.only_reflection, std::move(mode));
 }
 
 //---------------------------------------------------------------------------//

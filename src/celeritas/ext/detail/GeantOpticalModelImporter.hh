@@ -11,10 +11,9 @@
 #include <vector>
 
 #include "corecel/OpaqueId.hh"
+#include "geocel/GeoOpticalIdMap.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
-
-#include "GeoOpticalIdMap.hh"
 
 class G4VProcess;
 class G4MaterialPropertiesTable;

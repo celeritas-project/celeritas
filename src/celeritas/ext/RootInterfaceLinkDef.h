@@ -64,7 +64,7 @@
 #pragma link C++ class celeritas::inp::ReflectionForm+;
 #pragma link C++ class celeritas::inp::ReflectionForm::ReflectionGrids+;
 #pragma link C++ class celeritas::inp::SmearRoughness+;
-#pragma link C++ class celeritas::inp::SurfacePhysics+;
+#pragma link C++ class celeritas::inp::OpticalSurfacePhysics+;
 #pragma link C++ class celeritas::inp::TwodGrid+;
 #pragma link C++ class celeritas::inp::UniformGrid::GridBound+;
 #pragma link C++ class celeritas::inp::UniformGrid+;

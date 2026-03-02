@@ -55,6 +55,10 @@ class MaterialView
     inline CELER_FUNCTION NonuniformGridCalculator
     make_refractive_index_calculator() const;
 
+    // Access energy-dependent derivative of refractive index
+    inline CELER_FUNCTION NonuniformGridCalculator
+    make_refractive_index_derivative_calculator() const;
+
   private:
     //// DATA ////
 
@@ -127,6 +131,18 @@ MaterialView::make_refractive_index_calculator() const
     CELER_EXPECT(*this);
     return NonuniformGridCalculator(params_.refractive_index[mat_id_],
                                     params_.reals);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access energy-dependent derivative of refractive index.
+ */
+CELER_FUNCTION NonuniformGridCalculator
+MaterialView::make_refractive_index_derivative_calculator() const
+{
+    CELER_EXPECT(*this);
+    return NonuniformGridCalculator(
+        params_.refractive_index_derivative[mat_id_], params_.reals);
 }
 
 //---------------------------------------------------------------------------//

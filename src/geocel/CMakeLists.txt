@@ -51,6 +51,7 @@ if(CELERITAS_USE_Geant4)
     GeantUtils.cc
     GeantGeoUtils.cc
     GeantGdmlLoader.cc
+    GeoOpticalIdMap.cc
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc
     GeantGeoParams.cc
