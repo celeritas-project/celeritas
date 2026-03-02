@@ -90,7 +90,7 @@ auto LarSphereTest::make_input() const -> Input
     }();
     result.problem.num_streams = 1;
     result.problem.generator = inp::OpticalOffloadGenerator{};
-    result.geant_setup.cherenkov.enable = false;
+    result.geant_setup.cherenkov = std::nullopt;
     return result;
 }
 

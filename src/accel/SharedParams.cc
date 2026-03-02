@@ -17,6 +17,7 @@
 #include <G4Gamma.hh>
 #include <G4MuonMinus.hh>
 #include <G4MuonPlus.hh>
+#include <G4OpticalPhoton.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4Positron.hh>
@@ -208,6 +209,7 @@ auto SharedParams::supported_offload_particles() -> VecG4PD const&
         G4Gamma::Definition(),
         G4MuonMinus::Definition(),
         G4MuonPlus::Definition(),
+        G4OpticalPhoton::Definition(),
     };
 
     return supported_particles;

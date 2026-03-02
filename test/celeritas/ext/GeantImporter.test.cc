@@ -11,12 +11,11 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
-#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
-#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -249,9 +248,14 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
     {
         GeantPhysicsOptions opts;
         opts.relaxation = RelaxationSelection::all;
-        opts.muon.ionization = true;
-        opts.muon.bremsstrahlung = true;
-        opts.muon.pair_production = true;
+        opts.muon = [] {
+            GeantMuonPhysicsOptions m;
+            m.ionization = true;
+            m.bremsstrahlung = true;
+            m.pair_production = true;
+            m.msc = MscModelSelection::none;
+            return m;
+        }();
         opts.verbose = true;
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
@@ -354,27 +358,18 @@ class LarSphere : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = GeantImporterTest::build_geant_options();
-        opts.optical = {};
-        CELER_ENSURE(opts.optical);
+        opts.optical.emplace();
         return opts;
     }
 };
 
 //---------------------------------------------------------------------------//
-class LarSphereExtramat : public GeantImporterTest
+class LarSphereExtramat : public LarSphere
 {
   protected:
     std::string_view gdml_basename() const override
     {
         return "lar-sphere-extramat"sv;
-    }
-
-    GeantPhysicsOptions build_geant_options() const override
-    {
-        auto opts = GeantImporterTest::build_geant_options();
-        opts.optical = {};
-        CELER_ENSURE(opts.optical);
-        return opts;
     }
 };
 
@@ -385,12 +380,6 @@ class OpticalSurfaces : public GeantImporterTest
     std::string_view gdml_basename() const override
     {
         return "optical-surfaces"sv;
-    }
-
-    GeantPhysicsOptions build_geant_options() const override
-    {
-        auto opts = GeantImporterTest::build_geant_options();
-        return opts;
     }
 };
 

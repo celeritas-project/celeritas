@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iomanip>
 #include <ostream>
 
 namespace celeritas
