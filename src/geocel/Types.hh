@@ -80,6 +80,21 @@ enum class Axis
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Geometry track state.
+ */
+enum class GeoStatus
+{
+    uninitialized,  //!< Volume not known
+    interior,  //!< In a volume, not logically on a boundary
+    exiting_boundary,  //!< On a boundary, into next volume
+    entering_boundary,  //!< On a boundary, into current volume
+    exterior,  //!< Outside valid problem extents
+    error,  //!< Unrecoverable error condition
+    size_
+};
+
+//---------------------------------------------------------------------------//
 // STRUCTS
 //---------------------------------------------------------------------------//
 /*!
