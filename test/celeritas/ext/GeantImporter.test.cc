@@ -253,6 +253,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
             m.ionization = true;
             m.bremsstrahlung = true;
             m.pair_production = true;
+            m.msc = MscModelSelection::none;
             return m;
         }();
         opts.verbose = true;

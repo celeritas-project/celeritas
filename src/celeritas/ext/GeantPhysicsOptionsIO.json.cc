@@ -90,29 +90,11 @@ void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
 
 void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
 {
-    // Reset to default
-    options = {};
-
-#define GMPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
-    GMPO_LOAD_OPTION(pair_production);
-    GMPO_LOAD_OPTION(ionization);
-    GMPO_LOAD_OPTION(bremsstrahlung);
-    GMPO_LOAD_OPTION(coulomb);
-    if (auto iter = j.find("msc"); iter != j.end())
-    {
-        if (iter->is_boolean())
-        {
-            CELER_LOG(warning) << "Deprecated msc option type 'boolean': "
-                                  "refactor as 'MscModelSelection' string";
-            options.msc = iter->get<bool>() ? MscModelSelection::urban
-                                            : MscModelSelection::none;
-        }
-        else
-        {
-            iter->get_to(options.msc);
-        }
-    }
-#undef GMPO_LOAD_OPTION
+    CELER_JSON_LOAD_OPTION(j, options, pair_production);
+    CELER_JSON_LOAD_OPTION(j, options, ionization);
+    CELER_JSON_LOAD_OPTION(j, options, bremsstrahlung);
+    CELER_JSON_LOAD_OPTION(j, options, coulomb);
+    CELER_JSON_LOAD_OPTION(j, options, msc);
 }
 
 void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)

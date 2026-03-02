@@ -94,10 +94,8 @@ void to_json(nlohmann::json& j, BoundaryPhysicsOptions const& inp)
  */
 void from_json(nlohmann::json const& j, GeantOpticalPhysicsOptions& options)
 {
-    // Reset to default
-    options = {};
-
     check_format(j, format_str);
+
     CELER_JSON_LOAD_OPTIONAL(j, options, cherenkov);
     CELER_JSON_LOAD_OPTIONAL(j, options, scintillation);
     CELER_JSON_LOAD_OPTIONAL(j, options, wavelength_shifting);

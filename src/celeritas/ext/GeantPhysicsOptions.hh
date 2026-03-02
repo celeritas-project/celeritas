@@ -65,7 +65,7 @@ struct GeantMuonPhysicsOptions
     bool coulomb{false};
     //! Enable multiple coulomb scattering and select a model.
     //! Muon MSC currently requires MSC enabled for electrons and positrons
-    MscModelSelection msc{MscModelSelection::none};
+    MscModelSelection msc{MscModelSelection::urban};
 };
 
 //! Equality operator
