@@ -152,6 +152,13 @@ GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d, TrackSlotId p_id)
 }
 
 //---------------------------------------------------------------------------//
+// HELPER FUNCTIONS (HOST)
+//---------------------------------------------------------------------------//
+
+// Get a string corresponding to a geometry track state
+char const* to_cstring(GeoStatus value);
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Convert Axis enum value to int

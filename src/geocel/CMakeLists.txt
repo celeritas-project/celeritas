@@ -12,18 +12,21 @@ set(PUBLIC_DEPS Celeritas::corecel)
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
-  BoundingBoxIO.json.cc
   DetectorParams.cc
   GeoInterface.cc
   GeoParamsOutput.cc
   SurfaceParams.cc
+  Types.cc
+  TypesIO.json.cc
   VolumeParams.cc
   VolumeIdBuilder.cc
   VolumeToString.cc
   detail/SurfaceParamsBuilder.cc
-  inp/ModelIO.json.cc
   rasterize/Color.cc
   rasterize/Image.cc
+  # TODO: merge into Json.cc
+  inp/ModelIO.json.cc
+  BoundingBoxIO.json.cc
   rasterize/ImageIO.json.cc
 )
 
