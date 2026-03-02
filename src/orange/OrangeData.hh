@@ -509,7 +509,7 @@ struct OrangeStateData
     StateItems<UnivLevelId> surface_univ_level;
     StateItems<LocalSurfaceId> surf;
     StateItems<Sense> sense;
-    StateItems<BoundaryResult> boundary;
+    StateItems<GeoStatus> status;
 
     // "Local" state, needed for Shift {num_tracks}
     StateItems<real_type> next_step;
@@ -538,7 +538,7 @@ struct OrangeStateData
             && surface_univ_level.size() == this->size()
             && surf.size() == this->size()
             && sense.size() == this->size()
-            && boundary.size() == this->size()
+            && status.size() == this->size()
             && next_step.size() == this->size()
             && next_univ_level.size() == this->size()
             && next_surf.size() == this->size()
@@ -569,7 +569,7 @@ struct OrangeStateData
         surface_univ_level = other.surface_univ_level;
         surf = other.surf;
         sense = other.sense;
-        boundary = other.boundary;
+        status = other.status;
 
         next_step = other.next_step;
         next_univ_level = other.next_univ_level;
@@ -606,7 +606,7 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->surface_univ_level, num_tracks);
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
-    resize(&data->boundary, num_tracks);
+    resize(&data->status, num_tracks);
 
     resize(&data->next_step, num_tracks);
     resize(&data->next_univ_level, num_tracks);

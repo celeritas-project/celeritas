@@ -162,7 +162,7 @@ class OrangeTrackView
     inline CELER_FUNCTION void univ_level(UnivLevelId);
     inline CELER_FUNCTION void
     surface(UnivLevelId ulev_id, detail::OnLocalSurface surf);
-    inline CELER_FUNCTION void boundary(BoundaryResult);
+    inline CELER_FUNCTION void status(GeoStatus);
 
     inline CELER_FUNCTION void next_step(real_type dist);
     inline CELER_FUNCTION void next_surf(UnivLevelId, detail::OnLocalSurface);
@@ -172,7 +172,7 @@ class OrangeTrackView
     inline CELER_FUNCTION UnivLevelId surface_univ_level() const;
     inline CELER_FUNCTION LocalSurfaceId surf() const;
     inline CELER_FUNCTION Sense sense() const;
-    inline CELER_FUNCTION BoundaryResult boundary() const;
+    inline CELER_FUNCTION GeoStatus status() const;
 
     inline CELER_FUNCTION real_type next_step() const;
     inline CELER_FUNCTION UnivLevelId next_univ_level() const;
@@ -334,7 +334,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     this->univ_level(ulev_id);
 
     // Reset surface/boundary information
-    this->boundary(BoundaryResult::exiting);
+    this->status(GeoStatus::exiting_boundary);
     this->clear_surface();
     this->clear_next();
 
@@ -360,7 +360,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
         this->univ_level(states_.univ_level[other.track_slot_]);
         this->surface(other.surface_univ_level(),
                       {other.surf(), other.sense()});
-        this->boundary(other.boundary());
+        this->status(other.status());
 
         for (auto ulev_id : range(this->univ_level() + 1))
         {
@@ -604,7 +604,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type next_step)
 {
     CELER_EXPECT(next_step > 0);
 
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::entering))
+    if (CELER_UNLIKELY(this->status() == GeoStatus::entering_boundary))
     {
         // On a boundary, headed back in: next step is zero
         return {0, true};
@@ -703,7 +703,7 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
-    CELER_EXPECT(this->boundary() != BoundaryResult::entering);
+    CELER_EXPECT(this->status() != GeoStatus::entering_boundary);
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->has_next_surface());
 
@@ -715,7 +715,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
         axpy(dist, lsa.dir(), &lsa.pos());
     }
 
-    this->boundary(BoundaryResult::entering);
+    this->status(GeoStatus::entering_boundary);
     this->surface(this->next_univ_level(), this->next_surf());
     this->clear_next();
 
@@ -790,7 +790,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::exiting))
+    if (CELER_UNLIKELY(this->status() == GeoStatus::exiting_boundary))
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
@@ -799,7 +799,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     // Cross surface by flipping the sense
     states_.sense[track_slot_] = flip_sense(this->sense());
-    this->boundary(BoundaryResult::exiting);
+    this->status(GeoStatus::exiting_boundary);
 
     // Create local state from post-crossing level and updated sense
     UnivLevelId ulev_id{this->surface_univ_level()};
@@ -923,7 +923,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         {
             // The boundary crossing direction has changed! Reverse our
             // plans to change the logical state and move to a new volume.
-            this->boundary(flip_boundary(this->boundary()));
+            this->status(flip_boundary(this->status()));
         }
     }
 
@@ -1064,10 +1064,10 @@ OrangeTrackView::surface(UnivLevelId ulev_id, detail::OnLocalSurface surf)
     states_.sense[track_slot_] = surf.unchecked_sense();
 }
 
-//! Set the boundary state on the current surface universe level
-CELER_FORCEINLINE_FUNCTION void OrangeTrackView::boundary(BoundaryResult br)
+//! Set the geo status
+CELER_FORCEINLINE_FUNCTION void OrangeTrackView::status(GeoStatus gs)
 {
-    states_.boundary[track_slot_] = br;
+    states_.status[track_slot_] = gs;
 }
 
 //! Set the next step distance
@@ -1106,10 +1106,10 @@ CELER_FORCEINLINE_FUNCTION Sense OrangeTrackView::sense() const
     return states_.sense[track_slot_];
 }
 
-//! The boundary on the current surface
-CELER_FORCEINLINE_FUNCTION BoundaryResult OrangeTrackView::boundary() const
+//! The geo status
+CELER_FORCEINLINE_FUNCTION GeoStatus OrangeTrackView::status() const
 {
-    return states_.boundary[track_slot_];
+    return states_.status[track_slot_];
 }
 
 //! The next step distance
