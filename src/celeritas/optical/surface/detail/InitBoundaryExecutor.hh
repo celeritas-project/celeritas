@@ -81,10 +81,10 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         = select_surface(track.surface(), geo.volume_instance_id());
     if (!oriented_surface)
     {
-        // Kill the track if the post-volume doesn't have a valid optical
-        // material and there's no surface
+        // No custom surface information: use volumetric properties
         if (!post_volume_material)
         {
+            // Post-step is not in an optical material, so we kill the track
             track.sim().status(TrackStatus::killed);
             return;
         }

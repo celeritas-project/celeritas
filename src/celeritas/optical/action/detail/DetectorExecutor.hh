@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/DetectorData.hh"
 
@@ -43,41 +44,48 @@ CELER_FUNCTION void
 DetectorExecutor::operator()(CoreTrackView const& track) const
 {
     auto& hit = detector_state_.detector_hits[track.track_slot_id()];
+    // Clear the hit if inactive, errored, or not detected
+    hit.detector = {};
+
     auto sim = track.sim();
 
-    if (sim.status() == TrackStatus::alive)
+    if (!is_track_valid(sim.status()))
     {
-        auto const detectors = track.detectors();
-
-        auto geometry = track.geometry();
-
-        auto const volume_id = geometry.volume_id();
-        auto const detector_id = detectors.detector_id(volume_id);
-
-        if (detector_id)
-        {
-            // Score a valid hit
-            hit = DetectorHit{detector_id,
-                              track.sim().primary_id(),
-                              track.particle().energy(),
-                              sim.time(),
-                              geometry.pos(),
-                              geometry.volume_instance_id()};
-
-            // Kill the track
-            sim.status(TrackStatus::killed);
-        }
-        else
-        {
-            // Mark that the track is not in a detector
-            hit.detector = {};
-        }
+        // Inactive or errored
+        return;
     }
-    else
+
+    auto geometry = track.geometry();
+    if (geometry.is_outside())
     {
-        // Ensure killed, inactive, and errored tracks don't contribute to hits
-        hit.detector = {};
+        // Killed by leaving geometry; no detection
+        return;
     }
+    if (!geometry.is_on_boundary())
+    {
+        // Optical detectors apply *only* to boundary crossings
+        return;
+    }
+
+    auto const detectors = track.detectors();
+    auto const volume_id = geometry.volume_id();
+    auto const detector_id = detectors.detector_id(volume_id);
+
+    if (!detector_id)
+    {
+        return;
+    }
+
+    // Score a valid hit
+    hit.detector = detector_id;
+    hit.primary = sim.primary_id();
+    hit.energy = track.particle().energy();
+    hit.time = sim.time();
+    hit.position = geometry.pos();
+    hit.volume_instance = geometry.volume_instance_id();
+
+    // Kill the track
+    sim.status(TrackStatus::killed);
 }
 
 //---------------------------------------------------------------------------//
