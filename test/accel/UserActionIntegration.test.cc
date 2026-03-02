@@ -347,5 +347,165 @@ TEST_F(OpNoviceOptical, run)
 }
 
 //---------------------------------------------------------------------------//
+// LAR SPHERE WITH OPTICAL TRACK OFFLOAD
+//---------------------------------------------------------------------------//
+class LSOOTrackingAction final : public G4UserTrackingAction
+{
+  public:
+    void PreUserTrackingAction(G4Track const* track) final
+    {
+        UAI::Instance().PreUserTrackingAction(const_cast<G4Track*>(track));
+
+        auto& local = detail::IntegrationSingleton::instance().local_offload();
+        auto* opt_offload = dynamic_cast<LocalOpticalTrackOffload*>(&local);
+
+        if (opt_offload && opt_offload->Initialized())
+        {
+            pushes_ = opt_offload->num_pushed();
+        }
+    }
+    std::size_t num_pushes() const { return pushes_; }
+
+  private:
+    std::size_t pushes_{0};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Offload optical tracks.
+ */
+class LarSphereOpticalTrackOffload : public LarSphere
+{
+  public:
+    PhysicsInput make_physics_input() const override;
+    PrimaryInput make_primary_input() const override;
+    SetupOptions make_setup_options() override;
+    void EndOfRunAction(G4Run const* run) override;
+    UPTrackAction make_tracking_action() override
+    {
+        auto result = std::make_unique<LSOOTrackingAction>();
+        {
+            static std::mutex mutex;
+            std::lock_guard<std::mutex> lock(mutex);
+            tracking_.push_back(result.get());
+        }
+        return result;
+    }
+
+  private:
+    std::vector<LSOOTrackingAction*> tracking_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Single electron primary.
+ */
+auto LarSphereOpticalTrackOffload::make_primary_input() const -> PrimaryInput
+{
+    auto result = LarSphereIntegrationMixin::make_primary_input();
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({0.1, 0.1, 0}))};
+    result.primaries_per_event = 1;
+    result.energy = inp::MonoenergeticDistribution{1};
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical physics
+ */
+auto LarSphereOpticalTrackOffload::make_physics_input() const -> PhysicsInput
+{
+    auto result = LarSphereIntegrationMixin::make_physics_input();
+
+    // Set default optical physics
+    auto& optical = result.optical;
+    optical = {};
+
+    optical.cherenkov.stack_photons = true;
+    optical.scintillation.stack_photons = true;
+
+    using WLSO = WavelengthShiftingOptions;
+    optical.wavelength_shifting = WLSO::deactivated();
+    optical.wavelength_shifting2 = WLSO::deactivated();
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical tracking offloading.
+ */
+auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
+{
+    auto result = LarSphereIntegrationMixin::make_setup_options();
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32;
+        opt.capacity.generators = opt.capacity.tracks * 8;
+        opt.capacity.primaries = opt.capacity.tracks * 16;
+        opt.generator = inp::OpticalDirectGenerator{};
+        return opt;
+    }();
+
+    // Offload optical photon
+    result.offload_particles
+        = SetupOptions::VecG4PD{G4OpticalPhoton::Definition()};
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test that the optical track offload was successful.
+ */
+void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
+{
+    auto& integration = detail::IntegrationSingleton::instance();
+    auto& local = integration.local_offload();
+
+    auto* opt_offload = dynamic_cast<LocalOpticalTrackOffload*>(&local);
+    if (!G4Threading::IsMultithreadedApplication())
+    {
+        if (opt_offload && opt_offload->Initialized())
+        {
+            std::size_t pushed = opt_offload->num_pushed();
+
+            //  Validate that we intercepted optical tracks
+            EXPECT_GT(pushed, 0) << "should have pushed many optical "
+                                    "tracks";
+        }
+    }
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        std::size_t total_tracks_pushed{0};
+        for (auto* action : tracking_)
+        {
+            total_tracks_pushed += action->num_pushes();
+        }
+
+        CELER_LOG(info) << "Celeritas offloaded  " << total_tracks_pushed
+                        << " optical tracks. ";
+
+        if (integration.mode() == OffloadMode::disabled)
+        {
+            EXPECT_EQ(total_tracks_pushed, 0);
+        }
+    }
+    // Continue cleanup and other checks at end of run
+    LarSphere::EndOfRunAction(run);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(LarSphereOpticalTrackOffload, run)
+{
+    auto& rm = this->run_manager();
+    UAI::Instance().SetOptions(this->make_setup_options());
+
+    rm.Initialize();
+    rm.BeamOn(1);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
