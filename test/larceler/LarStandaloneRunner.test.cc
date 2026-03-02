@@ -79,10 +79,11 @@ auto LarSphereTest::make_input() const -> Input
     Input result;
     result.problem.model.geometry
         = this->test_data_path("geocel", "lar-sphere.gdml");
+    result.detectors = {"detshell"};
     result.problem.limits.steps = 10;
     result.problem.capacity = [] {
         inp::OpticalStateCapacity cap;
-        cap.tracks = 4096;
+        cap.tracks = 16;
         cap.primaries = 8 * cap.tracks;
         cap.generators = 512;
         return cap;
@@ -95,7 +96,10 @@ auto LarSphereTest::make_input() const -> Input
 
 auto LarSphereTest::make_detector_point_map() const -> VecReal3
 {
-    return {from_cm(Real3{1, 1, 1})};
+    return {
+        from_cm(Real3{0, 105, 0}),
+        from_cm(Real3{0, -105, 0}),
+    };
 }
 
 TEST_F(LarSphereTest, single_sim_edep)
@@ -114,12 +118,12 @@ TEST_F(LarSphereTest, single_sim_edep)
     LarsoftTime end_time{2.0};
 
     sim::SimEnergyDeposit sed(
-        /* numPhotons = */ 10000,
-        /* numElectrons = */ static_cast<int>(edep * 10000),
+        /* numPhotons = */ 4,
+        /* numElectrons = */ static_cast<int>(edep * 100),
         /* scintYieldRatio = */ 1.0,
         /* edep = */ edep,
-        /* startPos = */ convert_to_larsoft<LarsoftLen>(from_cm(Real3{0.1, 0.2, 0.3})),
-        /* endPos = */ convert_to_larsoft<LarsoftLen>(from_cm(Real3{0.15, 0.24, 0.33})),
+        /* startPos = */ convert_to_larsoft<LarsoftLen>(from_cm(Real3{-1, -98, 0.0})),
+        /* endPos = */ convert_to_larsoft<LarsoftLen>(from_cm(Real3{1, -98, 0})),
         /* startTime = */ start_time.value(),
         /* endTime = */ end_time.value(),
         /* trackID = */ 123,
@@ -127,12 +131,24 @@ TEST_F(LarSphereTest, single_sim_edep)
         /* origTrackID = */ 123);
 
     auto response = run({sed});
-    ASSERT_EQ(1, response.size());
-    auto const& btr = response.front();
-    EXPECT_EQ(0, btr.OpDetNum());
-    auto const& hits = btr.timePDclockSDPsMap();
-    ASSERT_NE(0, hits.size());
-    EXPECT_SOFT_EQ(hits.front().first, start_time.value());
+    ASSERT_EQ(2, response.size());
+    {
+        // Shouldn't have hits on top detector
+        auto const& btr = response[0];
+        EXPECT_EQ(0, btr.OpDetNum());
+        auto const& hits = btr.timePDclockSDPsMap();
+        EXPECT_EQ(0, hits.size());
+    }
+    {
+        auto const& btr = response[1];
+        auto const& hits = btr.timePDclockSDPsMap();
+        ASSERT_NE(0, hits.size());
+        EXPECT_SOFT_EQ(hits.front().first, start_time.value());
+    }
+
+    // Run again (simulating second event)
+    response = run({sed});
+    ASSERT_EQ(2, response.size());
 }
 
 //---------------------------------------------------------------------------//
