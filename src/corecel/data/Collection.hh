@@ -441,9 +441,6 @@ using StateCollection = Collection<T, W, M, TrackSlotId>;
  * space) but can also be used to copy from device to host. The \c
  * detail::CollectionAssigner class statically checks for allowable
  * transformations and memory moves.
- *
- * TODO: add optimization to do an in-place copy (rather than a new allocation)
- * if the host and destination are the same size.
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
@@ -558,6 +555,30 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) const
     -> SpanConstT
 {
     return {this->storage().data(), this->storage().size()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a const reference collection.
+ *
+ * This effectively makes a Span for accessing a read-only collection.
+ */
+template<class T, MemSpace M, class I>
+inline auto make_ref(Collection<T, Ownership::value, M, I> const& c)
+{
+    Collection<T, Ownership::const_reference, M, I> result;
+    result = c;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a const reference collection.
+ */
+template<class T, MemSpace M, class I>
+inline auto make_const_ref(Collection<T, Ownership::value, M, I> const& c)
+{
+    return make_ref(c);
 }
 
 //---------------------------------------------------------------------------//

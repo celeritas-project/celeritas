@@ -72,7 +72,7 @@ class NonuniformGrid
     inline CELER_FUNCTION SpanConstT values() const;
 
   private:
-    Storage const& storage_;
+    Storage const storage_;
     ItemRangeT offset_;
 };
 
