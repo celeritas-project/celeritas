@@ -64,44 +64,49 @@ struct TransformType
  *
  * \return Number of vacant track slots
  */
-size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
-                         TrackSlotRef<MemSpace::device> const& vacancies,
-                         StreamId stream_id)
+void copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
+                    TrackInitRef<MemSpace::device> const& init,
+                    StreamId stream_id)
 {
-    CELER_EXPECT(status.size() == vacancies.size());
+    CELER_EXPECT(status.size() == init.vacancies.size());
 
     ScopedProfiling profile_this{"copy-if-vacant"};
-#ifdef CELER_USE_THRUST
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
-    auto result = device_pointer_cast(vacancies.data());
+    auto result = device_pointer_cast(init.vacancies.data());
+    auto counters = device_pointer_cast(init.counters.data());
+#ifdef CELER_USE_THRUST
     auto end = thrust::copy_if(thrust_execute_on(stream_id),
                                start,
-                               start + vacancies.size(),
+                               start + init.vacancies.size(),
                                device_pointer_cast(status.data()),
                                result,
                                IsVacant{});
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
-    return end - result;
+    // New size of the vacancy vector
+    auto host_counters
+        = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
+    host_counters.num_vacancies = end - result;
+    Copier<CoreStateCounters, MemSpace::device> copy{{counters.get(), 1},
+                                                     stream_id};
+    copy(MemSpace::host, {&host_counters, 1});
+    stream.sync();
+    return;
 #else
     auto& stream = device().stream(stream_id);
-    DeviceVector<size_type> num_vacancies{1, stream_id};
-    auto start = thrust::make_transform_iterator(
-        thrust::make_counting_iterator<size_type>(0), TransformType{});
 #    if CELER_CUB_HAS_FLAGGEDIF
     // Calling with nullptr causes the function to return the amount of working
-    // space needed instead of invoking the kernel.
+    // space needed instead of invoking the kernel
     size_t temp_storage_bytes = 0;
     auto flags = device_pointer_cast(status.data());
-    auto results = device_pointer_cast(vacancies.data());
     cub::DeviceSelect::FlaggedIf(nullptr,
                                  temp_storage_bytes,
                                  start,
                                  flags,
-                                 results,
-                                 num_vacancies.data(),
-                                 vacancies.size(),
+                                 result,
+                                 &(counters->num_vacancies),
+                                 init.vacancies.size(),
                                  IsVacant{},
                                  stream.get());
     // Allocate temporary storage
@@ -110,9 +115,9 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                  temp_storage_bytes,
                                  start,
                                  flags,
-                                 results,
-                                 num_vacancies.data(),
-                                 vacancies.size(),
+                                 result,
+                                 &(counters->num_vacancies),
+                                 init.vacancies.size(),
                                  IsVacant{},
                                  stream.get());
 #    else
@@ -133,16 +138,15 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                       IsVacant{});
 #        endif
     // Calling with nullptr causes the function to return the amount of working
-    // space needed instead of invoking the kernel.
+    // space needed instead of invoking the kernel
     size_t temp_storage_bytes = 0;
-    auto results = device_pointer_cast(vacancies.data());
     auto cub_error_code = cub::DeviceSelect::Flagged(nullptr,
                                                      temp_storage_bytes,
                                                      start,
                                                      flags.data(),
-                                                     results,
-                                                     num_vacancies.data(),
-                                                     vacancies.size(),
+                                                     result,
+                                                     &(counters->num_vacancies),
+                                                     init.vacancies.size(),
                                                      stream.get());
     CELER_DISCARD(cub_error_code);
     // Allocate temporary storage
@@ -151,18 +155,14 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                                 temp_storage_bytes,
                                                 start,
                                                 flags.data(),
-                                                results,
-                                                num_vacancies.data(),
-                                                vacancies.size(),
+                                                result,
+                                                &(counters->num_vacancies),
+                                                init.vacancies.size(),
                                                 stream.get());
     CELER_DISCARD(cub_error_code);
 #    endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
-
-    auto result = ItemCopier<size_type>{stream_id}(num_vacancies.data());
-
-    stream.sync();
-    return result;
+    return;
 #endif
 }
 

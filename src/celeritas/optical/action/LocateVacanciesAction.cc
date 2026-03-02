@@ -51,13 +51,12 @@ void LocateVacanciesAction::step(CoreParams const&, CoreStateDevice& state) cons
 template<MemSpace M>
 void LocateVacanciesAction::step_impl(CoreState<M>& state) const
 {
-    auto counters = state.sync_get_counters();
-
     // Compact the IDs of the inactive tracks, getting the sorted indices of
     // the empty slots
-    counters.num_vacancies = detail::copy_if_vacant(
-        state.ref().sim.status, state.ref().init.vacancies, state.stream_id());
+    detail::copy_if_vacant(
+        state.ref().sim.status, state.ref().init, state.stream_id());
 
+    auto counters = state.sync_get_counters();
     counters.num_alive = state.size() - counters.num_vacancies;
     state.sync_put_counters(counters);
 }
