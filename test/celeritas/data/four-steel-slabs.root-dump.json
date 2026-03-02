@@ -446,7 +446,6 @@
   },
   "optical_params" : {
     "_typename" : "celeritas::ImportOpticalParameters",
-    "scintillation_by_particle" : false,
     "wls_time_profile" : 0,
     "wls2_time_profile" : 0
   },
@@ -494,7 +493,7 @@
     "cherenkov" : false,
     "scintillation" : false,
     "surfaces" : {
-      "_typename" : "celeritas::inp::SurfacePhysics",
+      "_typename" : "celeritas::inp::OpticalSurfacePhysics",
       "materials" : [[]],
       "roughness" : {
         "_typename" : "celeritas::inp::RoughnessModels",

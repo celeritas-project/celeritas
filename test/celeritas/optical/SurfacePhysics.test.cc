@@ -4,8 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/SurfacePhysics.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/inp/SurfacePhysics.hh"
-
 #include <iostream>
 #include <memory>
 #include <set>
@@ -15,6 +13,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/StateDataStore.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsTrackView.hh"
 
@@ -122,7 +121,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
         using namespace celeritas::inp;
         using PSI = PhysSurfaceId;
 
-        SurfacePhysics input;
+        OpticalSurfacePhysics input;
         input.materials = {
             as_id_vec<OptMatId>(3, 1, 2),
             as_id_vec<OptMatId>(2),

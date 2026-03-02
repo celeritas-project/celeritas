@@ -8,7 +8,7 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/phys/SurfacePhysicsMapBuilder.hh"
 
 #include "model/DielectricInteractionModel.hh"
@@ -49,9 +49,12 @@ num_phys_surfaces(std::vector<std::vector<OptMatId>> const& materials)
 /*!
  * Construct surface physics parameters from input.
  */
-SurfacePhysicsParams::SurfacePhysicsParams(ActionRegistry* action_reg,
-                                           inp::SurfacePhysics const& input)
+SurfacePhysicsParams::SurfacePhysicsParams(
+    ActionRegistry* action_reg, inp::OpticalSurfacePhysics const& input)
 {
+    CELER_VALIDATE(!input.materials.empty(),
+                   << "cannot build optical surface physics when no optical "
+                      "material data is present");
     CELER_EXPECT(action_reg);
 
     // Build actions
@@ -131,7 +134,7 @@ void SurfacePhysicsParams::build_surfaces(
  * Build sub-step surface physics models.
  */
 auto SurfacePhysicsParams::build_models(
-    inp::SurfacePhysics const& input,
+    inp::OpticalSurfacePhysics const& input,
     HostVal<SurfacePhysicsParamsData>& data) const -> SurfaceStepModels
 {
     SurfaceStepModels step_models;

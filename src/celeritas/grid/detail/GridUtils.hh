@@ -8,9 +8,8 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/grid/NonuniformGridData.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
-#include "corecel/grid/UniformGridData.hh"
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
@@ -20,15 +19,11 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<Ownership W>
-using Values = Collection<real_type, W, MemSpace::host>;
-
-//---------------------------------------------------------------------------//
 /*!
  * Calculate the second derivatives or set the polynomial order.
  */
 template<class GridRecord>
-void set_spline(Values<Ownership::value>* values,
+void set_spline(Collection<real_type, Ownership::value, MemSpace::host>* values,
                 DedupeCollectionBuilder<real_type>& reals,
                 inp::Interpolation const& interpolation,
                 GridRecord& data)
@@ -52,7 +47,7 @@ void set_spline(Values<Ownership::value>* values,
                        << "Boundary condition must be specified for "
                           "calculating cubic spline second derivatives");
 
-        Values<Ownership::const_reference> ref(*values);
+        auto ref = make_ref(*values);
         auto deriv = SplineDerivCalculator(interpolation.bc)(data, ref);
         data.derivative = reals.insert_back(deriv.begin(), deriv.end());
     }

@@ -11,8 +11,8 @@
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/inp/Physics.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
 #include "celeritas/io/ImportData.hh"
 
 #include "celeritas_test.hh"
@@ -29,6 +29,14 @@ class SurfaceImporterTest : public ::celeritas::test::GeantTestBase
     std::string_view gdml_basename() const override
     {
         return "full-optical-surfaces";
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto result = GeantTestBase::build_geant_options();
+        result.optical = {};
+        CELER_ENSURE(result.optical);
+        return result;
     }
 
     GeantImportDataSelection build_import_data_selection() const override
@@ -133,8 +141,8 @@ void check_map(std::map<PhysSurfaceId, T> const& expected,
     }
 }
 
-void check_input(inp::SurfacePhysics const& expected,
-                 inp::SurfacePhysics const& actual)
+void check_input(inp::OpticalSurfacePhysics const& expected,
+                 inp::OpticalSurfacePhysics const& actual)
 {
     // Check number of geometric surfaces
     EXPECT_EQ(expected.materials.size(), actual.materials.size());
@@ -187,7 +195,7 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
     unified_ground.reflection_grids[Mode::backscatter]
         = {{1e-06, 1e-05}, {0.3, 0.1}};
 
-    SurfacePhysics expected_input;
+    OpticalSurfacePhysics expected_input;
 
 #define MATERIALS(VALUE) expected_input.materials.push_back(VALUE)
 #define ROUGHNESS(TYPE, VALUE) \

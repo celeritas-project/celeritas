@@ -100,12 +100,6 @@ ScintillationGenerator::ScintillationGenerator(
     , sample_cost_(-1, 1)
     , sample_phi_(0, real_type(2 * constants::pi))
 {
-    if (shared_.scintillation_by_particle())
-    {
-        // TODO: implement sampling for particles
-        CELER_ASSERT_UNREACHABLE();
-    }
-
     CELER_EXPECT(dist_);
     CELER_EXPECT(shared_);
 

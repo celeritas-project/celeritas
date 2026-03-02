@@ -203,7 +203,8 @@ load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
  * Construct with \c SurfacePhysics input to be filled by \c operator() .
  */
 GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(
-    inp::SurfacePhysics& models, std::vector<ImportOpticalMaterial>& materials)
+    inp::OpticalSurfacePhysics& models,
+    std::vector<ImportOpticalMaterial>& materials)
     : models_(models), materials_(materials)
 {
 }

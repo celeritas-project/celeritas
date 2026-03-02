@@ -57,7 +57,7 @@ WavelengthShiftModel::WavelengthShiftModel(ActionId id,
                        || input.model == ImportModelClass::wls2,
                    << "Invalid model '" << input.model
                    << "' for optical wavelength shifting");
-    CELER_VALIDATE(input.time_profile != WlsTimeProfile::size_,
+    CELER_VALIDATE(input.time_profile != WlsDistribution::size_,
                    << "Invalid time profile for model '" << input.model << "'");
 
     SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};

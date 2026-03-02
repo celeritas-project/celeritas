@@ -8,7 +8,7 @@
 
 #include "corecel/inp/Grid.hh"
 #include "geocel/Types.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 
 // Geant4 forward declaration
 class G4OpticalSurface;  // IWYU pragma: keep
