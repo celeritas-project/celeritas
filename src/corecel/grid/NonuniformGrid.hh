@@ -65,11 +65,17 @@ class NonuniformGrid
     // Find the index of the given value (*must* be in bounds)
     inline CELER_FUNCTION size_type find(value_type value) const;
 
+    // Construct a span referring to the grid points
+    inline CELER_FUNCTION SpanConstT values() const;
+
     //! Low-level access to offsets for downstream utilities
     CELER_FORCEINLINE_FUNCTION ItemRangeT offset() const { return offset_; }
 
-    // Construct a span referring to the grid points
-    inline CELER_FUNCTION SpanConstT values() const;
+    //! Low-level access to storage for downstream utilities
+    CELER_FORCEINLINE_FUNCTION Storage const& storage() const
+    {
+        return storage_;
+    }
 
   private:
     Storage const storage_;
