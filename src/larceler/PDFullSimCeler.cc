@@ -96,6 +96,9 @@ void PDFullSimCeler::beginJob()
     CELER_ASSERT(geo);  // art checks this already
     runner_inp_.problem.model.geometry = geo->GDMLFile();
 
+    // Set the special LArG4 detector name for optical detectors
+    runner_inp_.detectors = {"PhotonDetector"};
+
     // Load optical detector positions
     std::vector<Real3> positions;
     for (auto i : range(geo->NOpDets()))
