@@ -89,7 +89,10 @@ class OrangeTrackView
     // Whether the track is exactly on a surface
     inline CELER_FUNCTION bool is_on_boundary() const;
     //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
+    CELER_FORCEINLINE_FUNCTION bool failed() const
+    {
+        return this->status() == GeoStatus::error;
+    }
     // Get the normal vector pointing out of the current volume
     inline CELER_FUNCTION Real3 normal() const;
 
@@ -155,7 +158,6 @@ class OrangeTrackView
     ParamsRef const& params_;
     StateRef const& states_;
     TrackSlotId track_slot_;
-    bool failed_{false};
 
     //// PRIVATE STATE MUTATORS ////
 
@@ -260,7 +262,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         return *this;
     }
 
-    failed_ = false;
+    this->status(GeoStatus::interior);
 
     // Create local state
     detail::LocalState local;
@@ -305,7 +307,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
 #endif
             // Mark as failed and place in local "exterior" to end the search
             // but preserve the current universe level information
-            failed_ = true;
+            this->status(GeoStatus::error);
             tinit.volume = orange_exterior_volume;
         }
 
@@ -333,8 +335,9 @@ OrangeTrackView::operator=(Initializer_t const& init)
     // Save found universe level
     this->univ_level(ulev_id);
 
-    // Reset surface/boundary information
-    this->status(GeoStatus::exiting_boundary);
+    // Reset surface/boundary information (preserve error status if set)
+    if (this->status() != GeoStatus::error)
+        this->status(GeoStatus::exiting_boundary);
     this->clear_surface();
     this->clear_next();
 
@@ -350,8 +353,6 @@ CELER_FUNCTION
 OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
-
-    failed_ = false;
 
     if (track_slot_ != init.parent)
     {
@@ -833,7 +834,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 #endif
         // Mark as failed and place in local "exterior" to end the search
         // but preserve the current level
-        failed_ = true;
+        this->status(GeoStatus::error);
         volume = orange_exterior_volume;
     }
     make_lsa(ulev_id).vol() = volume;
@@ -877,7 +878,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 #endif
             // Mark as failed and place in local "exterior" to end the search
             // but preserve the current level
-            failed_ = true;
+            this->status(GeoStatus::error);
             volume = orange_exterior_volume;
         }
         daughter_id = visit_tracker(
