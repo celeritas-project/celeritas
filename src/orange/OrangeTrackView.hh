@@ -906,6 +906,9 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
  * the boundary, but changing direction so that it goes from pointing outward
  * to inward (or vice versa) will mean that \c cross_boundary will be a
  * null-op.
+ *
+ * \todo Remove geo_normal; instead, compare the local normal and local
+ * direction versus the previous local direction at the lowest surface level.
  */
 CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 {
