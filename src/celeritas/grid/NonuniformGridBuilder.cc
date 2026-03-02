@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "NonuniformGridBuilder.hh"
 
-#include "corecel/Types.hh"
-#include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/io/EnumStringMapper.hh"
 
 #include "detail/GridUtils.hh"

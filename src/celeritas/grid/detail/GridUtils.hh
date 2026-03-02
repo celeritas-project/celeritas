@@ -8,9 +8,8 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/grid/NonuniformGridData.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
-#include "corecel/grid/UniformGridData.hh"
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
