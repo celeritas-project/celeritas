@@ -12,6 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Quantity.hh"
+#include "geocel/Types.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/optical/DetectorData.hh"
 
@@ -19,6 +20,7 @@ namespace sim
 {
 class SimEnergyDeposit;
 class OpDetBacktrackerRecord;
+class OBTRHelper;
 }  // namespace sim
 
 namespace celeritas
@@ -77,11 +79,15 @@ class LarStandaloneRunner
 
   private:
     using SpanCelerHits = Span<optical::DetectorHit const>;
-    using VecDetectorId = std::vector<DetectorId>;
 
     std::shared_ptr<optical::Runner> runner_;
-    // Celeritas detector ID for each LArSoft detector channel
-    VecDetectorId detids_;
+    // Celeritas volume instance ID for each LArSoft detector channel
+    std::vector<VolumeInstanceId> channel_to_geo_;
+    // Hit recorders for each celeritas volume instance ID
+    std::unordered_map<VolumeInstanceId, std::unique_ptr<sim::OBTRHelper>>
+        btr_helpers_;
+
+    void hit(SpanCelerHits);
 };
 
 //---------------------------------------------------------------------------//

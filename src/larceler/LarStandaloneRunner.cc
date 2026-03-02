@@ -29,6 +29,17 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Hide the goofy lvalue "move" implementation of OBTR
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+CELER_FORCEINLINE auto make_obtr(sim::OBTRHelper&& helper)
+{
+    return sim::OpDetBacktrackerRecord(helper);
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with problem setup and detector ID coordinates.
@@ -38,6 +49,7 @@ namespace celeritas
 LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
 {
     CELER_EXPECT(!det_coords.empty());
+    CELER_EXPECT(!i.detectors.empty());
 
     i.problem.detectors.callback
         = [this](SpanCelerHits h) { return this->hit(h); };
@@ -51,22 +63,15 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
     auto dets = runner_->params()->detectors();
     CELER_ASSERT(dets);
 
-    detids_.resize(det_coords.size());
+    channel_to_geo_.resize(det_coords.size());
+    btr_helpers_.reserve(det_coords.size());
     for (auto i : range(det_coords.size()))
     {
         auto inst_id = geo->find_volume_instance_at(det_coords[i]);
         CELER_VALIDATE(inst_id,
                        << "could not find a volume at " << det_coords[i]
                        << " [" << lengthunits::native_label << "]");
-        VolumeId vol_id = vols->volume(inst_id);
-        CELER_ASSERT(vol_id);
-        auto det_id = dets->detector_id(vol_id);
-        CELER_VALIDATE(det_id,
-                       << "detector " << i << " point " << det_coords[i]
-                       << " [" << lengthunits::native_label
-                       << "] is not associated with a detector");
-        // Save lar-to-celer mapping
-        detids_[i] = det_id;
+        channel_to_geo_[i] = inst_id;
     }
 }
 
@@ -83,6 +88,15 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
 auto LarStandaloneRunner::operator()(VecSED const& sed) -> VecBTR
 {
     CELER_EXPECT(!sed.empty());
+
+    // Allocate BTR helpers
+    btr_helpers_.clear();
+    for (auto i : range(channel_to_geo_.size()))
+    {
+        auto&& [iter, inserted] = btr_helpers_.emplace(
+            channel_to_geo_[i], std::make_unique<sim::OBTRHelper>(i));
+        CELER_ASSERT(inserted);
+    }
 
     std::vector<celeritas::optical::GeneratorDistributionData> gdd;
     gdd.reserve(sed.size());
@@ -120,7 +134,44 @@ auto LarStandaloneRunner::operator()(VecSED const& sed) -> VecBTR
                      << result.counters.steps << " steps over "
                      << result.counters.step_iters << " step iterations";
 
-    return {};
+    // Convert BTR helpers to BTRs in the LarSoft order
+    VecBTR btrs;
+    btrs.reserve(btr_helpers_.size());
+    for (VolumeInstanceId vi : channel_to_geo_)
+    {
+        auto iter = btr_helpers_.find(vi);
+        CELER_ASSERT(iter != btr_helpers_.end());
+        CELER_ASSERT(iter->second);
+        btrs.emplace_back(make_obtr(std::move(*iter->second)));
+    }
+    btr_helpers_.clear();
+
+    return btrs;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert Celeritas hits to optical backtracker records.
+ */
+void LarStandaloneRunner::hit(SpanCelerHits hits)
+{
+    CELER_LOG(info) << "Processing " << hits.size() << "hits";
+    for (auto& h : hits)
+    {
+        CELER_ASSERT(h.volume_instance);
+        auto btr_iter = btr_helpers_.find(h.volume_instance);
+        CELER_ASSERT(btr_iter != btr_helpers_.end());
+
+        Real3 larpos{convert_to_larsoft<LarsoftLen>(h.position[0]),
+                     convert_to_larsoft<LarsoftLen>(h.position[1]),
+                     convert_to_larsoft<LarsoftLen>(h.position[2])};
+        btr_iter->second->AddScintillationPhotonsToMap(
+            h.primary.get(),
+            convert_to_larsoft<LarsoftTime>(h.time),
+            /* num photons = */ 1,
+            larpos.data(),
+            value_as<units::MevEnergy>(h.energy));
+    }
 }
 
 //---------------------------------------------------------------------------//
