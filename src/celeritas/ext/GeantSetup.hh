@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include "corecel/Config.hh"
 
@@ -41,11 +42,17 @@ class GeantSetup
     //! \name Type aliases
     using Options = GeantPhysicsOptions;
     using SPGeantGeo = std::shared_ptr<GeantGeoParams>;
+    using SetString = std::unordered_set<std::string>;
     //!@}
 
   public:
     // Construct from a GDML file and physics options
     GeantSetup(std::string const& gdml_filename, Options options);
+
+    // Construct from a GDML file and physics options
+    GeantSetup(std::string const& gdml_filename,
+               Options options,
+               SetString sd_names);
 
     // Default constructor
     GeantSetup() = default;

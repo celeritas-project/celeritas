@@ -144,7 +144,8 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
     // Take geometry file name from problem and set up Geant4
     auto const& geometry = si.problem.model.geometry;
     CELER_ASSUME(std::holds_alternative<std::string>(geometry));
-    GeantSetup geant_setup(std::get<std::string>(geometry), gpo);
+    GeantSetup geant_setup(
+        std::get<std::string>(geometry), gpo, std::move(si.detectors));
 
     // Load geometry, surfaces, regions from Geant4 world pointer
     CELER_ASSERT(geant_setup.geo_params());
