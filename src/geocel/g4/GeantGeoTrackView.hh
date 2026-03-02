@@ -100,9 +100,6 @@ class GeantGeoTrackView
 
     //// OPERATIONS ////
 
-    // Find the distance to the next boundary (infinite max)
-    inline Propagation find_next_step();
-
     // Find the distance to the next boundary, up to and including a step
     inline Propagation find_next_step(real_type max_step);
 
@@ -381,15 +378,6 @@ auto GeantGeoTrackView::normal() const -> Real3
     Real3 result{norm[0], norm[1], norm[2]};
     CELER_ENSURE(is_soft_unit_vector(result));
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the distance to the next geometric boundary.
- */
-CELER_FORCEINLINE Propagation GeantGeoTrackView::find_next_step()
-{
-    return this->find_next_step(numeric_limits<real_type>::infinity());
 }
 
 //---------------------------------------------------------------------------//

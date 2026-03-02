@@ -14,10 +14,12 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct full EmStandardPhysics.
+ * Construct \em full EmStandardPhysics.
  *
  * These are both Celeritas supported physics and additional muon/hadronic
  * EM processes.
+ *
+ * \sa SupportedEmStandardPhysics
  */
 class EmStandardPhysics : public SupportedEmStandardPhysics
 {

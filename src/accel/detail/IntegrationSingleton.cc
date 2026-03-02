@@ -14,6 +14,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "geocel/GeantUtils.hh"
+#include "accel/LocalOpticalTrackOffload.hh"
 
 #include "LoggerImpl.hh"
 #include "../ExceptionConverter.hh"
@@ -106,10 +107,17 @@ LocalOffloadInterface& IntegrationSingleton::local_offload()
         {
             offload = std::make_unique<LocalOpticalGenOffload>();
         }
+        else if (options_.optical
+                 && std::holds_alternative<inp::OpticalDirectGenerator>(
+                     options_.optical->generator))
+
+        {
+            // offloading direct optical tracks
+            CELER_LOG(info) << "Optical track offloading enabled";
+            offload = std::make_unique<LocalOpticalTrackOffload>();
+        }
         else
         {
-            // TODO: if offloading direct optical tracks, return optical
-            // offload
             offload = std::make_unique<LocalTransporter>();
         }
     }

@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
-
-#include "inp/LarStandaloneRunner.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/UnitTypes.hh"
 
 namespace sim
 {
@@ -21,10 +21,13 @@ class OpDetBacktrackerRecord;
 
 namespace celeritas
 {
+namespace inp
+{
+struct OpticalStandaloneInput;
+}
 namespace optical
 {
-class Transporter;
-class CoreStateBase;
+class Runner;
 }  // namespace optical
 
 //---------------------------------------------------------------------------//
@@ -32,7 +35,7 @@ class CoreStateBase;
  * Setup and run a standalone optical simulation.
  *
  * This class manages the interface between LArSoft data objects and Celeritas.
- * It is separated from the LarCelerStandalone plugin to allow testing
+ * It is separated from the PDFullSimCeler plugin to allow testing
  * and extension to future plugin frameworks (e.g., Phlex).
  * Instantiating the class sets up Celeritas shared and state objects using an
  * input configuration, and each call take a set of energy deposition steps and
@@ -57,12 +60,12 @@ class LarStandaloneRunner
     //! \name Type aliases
     using VecSED = std::vector<sim::SimEnergyDeposit>;
     using VecBTR = std::vector<sim::OpDetBacktrackerRecord>;
-    using Input = inp::LarStandaloneRunner;
+    using Input = inp::OpticalStandaloneInput;
     //!@}
 
   public:
     // Set up the problem
-    explicit LarStandaloneRunner(Input const&);
+    explicit LarStandaloneRunner(Input&&);
     // Don't allow copies of this class
     CELER_DEFAULT_MOVE_DELETE_COPY(LarStandaloneRunner);
 
@@ -70,8 +73,10 @@ class LarStandaloneRunner
     VecBTR operator()(VecSED const& edep);
 
   private:
-    std::shared_ptr<optical::Transporter> transporter_;
-    std::shared_ptr<optical::CoreStateBase> state_;
+    using LarsoftTime = Quantity<celeritas::units::Nanosecond, double>;
+    using LarsoftLen = Quantity<celeritas::units::Centimeter, double>;
+
+    std::shared_ptr<optical::Runner> runner_;
 };
 
 //---------------------------------------------------------------------------//

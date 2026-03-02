@@ -323,7 +323,11 @@ GeoMaterialParams::from_import(ImportData const& data,
             if (!inp_vol)
                 continue;
 
-            vol_to_mat[vol_idx] = id_cast<PhysMatId>(inp_vol.phys_material_id);
+            // Note that that volume might not have an associated material
+            vol_to_mat[vol_idx]
+                = inp_vol.phys_material_id == ImportVolume::unspecified
+                      ? PhysMatId{}
+                      : id_cast<PhysMatId>(inp_vol.phys_material_id);
         }
         input.volume_to_mat = std::move(vol_to_mat);
     }
@@ -343,10 +347,12 @@ GeoMaterialParams::from_import(ImportData const& data,
             if (!inp_vol)
                 continue;
 
-            CELER_EXPECT(!inp_vol.name.empty());
+            CELER_ASSERT(!inp_vol.name.empty());
             auto&& [iter, inserted] = label_to_mat.emplace(
                 Label::from_separator(inp_vol.name),
-                id_cast<PhysMatId>(inp_vol.phys_material_id));
+                inp_vol.phys_material_id == ImportVolume::unspecified
+                    ? PhysMatId{}
+                    : id_cast<PhysMatId>(inp_vol.phys_material_id));
             if (!inserted)
             {
                 CELER_LOG(error)

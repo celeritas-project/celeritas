@@ -14,6 +14,10 @@
 #include "Macros.hh"
 #include "Types.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include <ostream>
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -296,6 +300,26 @@ inline CELER_FUNCTION IdT id_cast(U value) noexcept(!CELERITAS_DEBUG)
 
     return IdT{detail::id_cast_impl<typename IdT::size_type, U>(value)};
 }
+
+#if !CELER_DEVICE_COMPILE
+//---------------------------------------------------------------------------//
+/*!
+ * Output an opaque ID's value or a placeholder if unavailable.
+ */
+template<class V, class S>
+std::ostream& operator<<(std::ostream& os, OpaqueId<V, S> const& v)
+{
+    if (v)
+    {
+        os << v.unchecked_get();
+    }
+    else
+    {
+        os << "<null>";
+    }
+    return os;
+}
+#endif
 
 //---------------------------------------------------------------------------//
 // TRAITS

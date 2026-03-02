@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Detector.test.cc
 //---------------------------------------------------------------------------//
+#include <numeric>
 #include <utility>
 #include <vector>
 
@@ -75,7 +76,7 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
     {
         PhysSurfaceId phys_surface{0};
 
-        inp::SurfacePhysics input;
+        inp::OpticalSurfacePhysics input;
         input.materials.push_back({});
         input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
         input.reflectivity.fresnel.emplace(phys_surface,
@@ -129,6 +130,37 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
     std::shared_ptr<DetectorParams> detector_;
 
     inp::OpticalDetector detector_input_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * User-defined grid with non-zero efficiency on a surface to test detector
+ * hits.
+ */
+class SurfaceDetectorTest : public DetectorTest
+{
+  public:
+    SPConstOpticalSurfacePhysics build_optical_surface_physics() override
+    {
+        PhysSurfaceId phys_surface{0};
+
+        inp::OpticalSurfacePhysics input;
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.grid.emplace(phys_surface, [] {
+            inp::GridReflection refl;
+            std::vector<double> xs{1e-6, 2e-5};
+            refl.reflectivity = inp::Grid{xs, {0.0, 0.0}};
+            refl.transmittance = inp::Grid{xs, {0.0, 0.0}};
+            refl.efficiency = inp::Grid{xs, {0.6, 0.6}};
+            return refl;
+        }());
+        input.interaction.trivial.emplace(phys_surface,
+                                          TrivialInteractionMode::transmit);
+
+        return std::make_shared<SurfacePhysicsParams>(
+            this->optical_action_reg().get(), input);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -190,35 +222,42 @@ TEST_F(DetectorTest, simple)
            Real3{0, 0, 0},  // pos
            Real3{-1, 0, 0},  // dir
            Real3{0, 1, 0},  // pol
-           10,  // time
+           0,  // time
            {},
            ImplVolumeId{0}},
         TI{E{3e-6},
            Real3{0, 0, 0},  // pos
            Real3{0, 0, 1},  // dir
            Real3{0, 1, 0},  // pol
-           1,  // time
+           0,  // time
            {},
            ImplVolumeId{0}},
         TI{E{4e-6},
            Real3{0, 0, 0},  // pos
            Real3{0, 0, -1},  // dir
            Real3{0, 1, 0},  // pol
-           20,  // time
+           0,  // time
            {},
            ImplVolumeId{0}},
         TI{E{5e-6},
            Real3{0, 0, 0},  // pos
            Real3{1, 0, 0},  // dir
            Real3{0, 1, 0},  // pol
-           13,  // time
+           0,  // time
            {},
            ImplVolumeId{0}},
         TI{E{6e-6},
            Real3{0, 0, 0},  // pos
            Real3{0, -1, 0},  // dir
            Real3{1, 0, 0},  // pol
-           7,  // time
+           0,  // time
+           {},
+           ImplVolumeId{0}},
+        TI{E{2e-7},
+           Real3{0, 0, 0},  // pos
+           Real3{1, 0, 0},  // dir
+           Real3{0, 1, 0},  // pol
+           0,  // time
            {},
            ImplVolumeId{0}},
     };
@@ -236,9 +275,9 @@ TEST_F(DetectorTest, simple)
     real_type const box_size = from_cm(50);
     real_type const flight_time = box_size / constants::c_light;
 
-    static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0};
+    static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0, 1};
     static real_type const expected_energies[]
-        = {1e-6, 2e-6, 3e-6, 4e-6, 5e-6, 6e-6};
+        = {1e-6, 2e-6, 3e-6, 4e-6, 5e-6, 6e-6, 2e-07};
     static real_type const expected_x_positions[] = {
         box_size,
         -box_size,
@@ -246,6 +285,7 @@ TEST_F(DetectorTest, simple)
         0,
         box_size,
         0,
+        box_size,
     };
     static real_type const expected_y_positions[] = {
         0,
@@ -254,6 +294,7 @@ TEST_F(DetectorTest, simple)
         0,
         0,
         -box_size,
+        0,
     };
     static real_type const expected_z_positions[] = {
         0,
@@ -262,16 +303,21 @@ TEST_F(DetectorTest, simple)
         -box_size,
         0,
         0,
+        0,
     };
-    static real_type const expected_times[] = {
-        0 + flight_time,
-        10 + flight_time,
-        1 + flight_time,
-        20 + flight_time,
-        13 + flight_time,
-        7 + flight_time,
+    // adjusted by group velocity
+    static double const expected_times[] = {
+        1.49995 * flight_time,
+        1.3333 * flight_time,
+        3.66675 * flight_time,
+        2 * flight_time,
+        2 * flight_time,
+        2 * flight_time,
+        flight_time,
     };
-    static size_type const expected_volume_instance_ids[] = {5, 4, 6, 7, 5, 3};
+
+    static size_type const expected_volume_instance_ids[]
+        = {5, 4, 6, 7, 5, 3, 5};
 
     if (reference_configuration)
     {
@@ -339,6 +385,45 @@ TEST_F(DetectorTest, stress)
         static size_type const expected_hits[] = {2673, 2816, 2703};
 
         EXPECT_VEC_EQ(expected_hits, hits);
+        EXPECT_EQ(errored, 0);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// Test surface efficiency propagates hits to detector
+TEST_F(SurfaceDetectorTest, efficiency)
+{
+    // 3 detectors: x, y, z
+    std::vector<size_type> hits(3, 0);
+    size_type errored = 0;
+    detector_input_.callback = StressScorer{hits, errored};
+
+    // Isotropically generate photons
+
+    inp::OpticalPrimaryGenerator gen;
+    gen.primaries = 8192;
+    gen.energy = inp::MonoenergeticDistribution{1e-5};
+    gen.angle = inp::IsotropicDistribution{};
+    gen.shape = inp::PointDistribution{{0, 0, 0}};
+
+    // Run test
+
+    auto generate = PrimaryGeneratorAction::make_and_insert(
+        *this->optical_params(), std::move(gen));
+    this->initialize_run();
+    generate->insert(*state_);
+    (*transport_)(*state_);
+
+    // Check results
+
+    if (reference_configuration)
+    {
+        auto total_hits = std::accumulate(hits.begin(), hits.end(), 0);
+
+        // Expect ~60% of total primaries are detected
+        static size_type const expected_hits = 4894;
+
+        EXPECT_EQ(expected_hits, total_hits);
         EXPECT_EQ(errored, 0);
     }
 }

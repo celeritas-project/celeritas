@@ -11,6 +11,7 @@
 #include <G4UserSteppingAction.hh>
 
 #include "corecel/Assert.hh"
+#include "geocel/GeantGeoParams.hh"
 
 #include "IntegrationTestBase.hh"
 
@@ -44,6 +45,7 @@ class DistOffloadSteppingAction final : public G4UserSteppingAction
 
   private:
     SPCounters counters_;
+    std::shared_ptr<GeantGeoParams const> geant_geo_;
 };
 
 //---------------------------------------------------------------------------//

@@ -15,6 +15,7 @@
 #pragma link C++ class celeritas::ImportData+;
 #pragma link C++ class celeritas::ImportElement+;
 #pragma link C++ class celeritas::ImportEmParameters+;
+#pragma link C++ class celeritas::ImportGaussianScintComponent+;
 #pragma link C++ class celeritas::ImportGeoMaterial+;
 #pragma link C++ class celeritas::ImportIsotope+;
 #pragma link C++ class celeritas::ImportLivermorePE+;
@@ -63,7 +64,7 @@
 #pragma link C++ class celeritas::inp::ReflectionForm+;
 #pragma link C++ class celeritas::inp::ReflectionForm::ReflectionGrids+;
 #pragma link C++ class celeritas::inp::SmearRoughness+;
-#pragma link C++ class celeritas::inp::SurfacePhysics+;
+#pragma link C++ class celeritas::inp::OpticalSurfacePhysics+;
 #pragma link C++ class celeritas::inp::TwodGrid+;
 #pragma link C++ class celeritas::inp::UniformGrid::GridBound+;
 #pragma link C++ class celeritas::inp::UniformGrid+;
@@ -85,6 +86,7 @@
 #pragma link C++ class celeritas::Quantity<celeritas::units::MevPerCsq,double>+;
 #pragma link C++ class celeritas::Quantity<celeritas::units::Amu,double>+;
 #pragma link C++ class celeritas::Quantity<celeritas::units::InvCentimeterCubed,double>+;
+#pragma link C++ class celeritas::Quantity<celeritas::units::HalfSpin,short>+;
 
 
 // Event data used by Geant4/Celeritas offloading applications

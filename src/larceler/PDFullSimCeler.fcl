@@ -1,0 +1,53 @@
+//---------------------------------------------------------------------------//
+// Configuration file for the PDFullSimCeler module
+//---------------------------------------------------------------------------//
+
+BEGIN_PROLOG
+
+PDFullSimCeler:
+{
+    module_type: PDFullSimCeler
+    SimulationLabel: "IonAndScint"
+
+    // GPU options
+    // Activate the GPU
+    EnableDevice: false
+    // Per-thread CUDA stack size [B] (ignored if 0; only needed if using vecgeom)
+    DeviceStackSize: 0
+    // Global dynamic CUDA heap size [B] (ignored if 0; only needed if using vecgeom)
+    DeviceHeapSize: 0
+
+    // Optical buffer-size capacities
+    // Max primaries buffered before stepping
+    OpticalCapacityPrimaries: 8192
+    // Max track slots stepped simultaneously
+    OpticalCapacityTracks: 128
+    // Max queued photon-generation steps
+    OpticalCapacityGenerators: 32768
+
+    // Optical tracking limits (0 = unlimited)
+    // Steps per track before killing (0 for unlimited)
+    OpticalLimitSteps: 1024
+    // Iterations before aborting stepping loop (0 for unlimited)
+    OpticalLimitStepIters: 4096
+
+    // Celeritas output filename
+    OutputFile: "celeritas-output.json"
+
+    // Accumulate elapsed time in actions
+    ActionTimes: true
+
+    // RNG seed
+    Seed: 0
+}
+
+PDFullSimCelerGPU:
+{
+    @table::PDFullSimCeler
+    EnableDevice: true
+    OpticalCapacityPrimaries: 16777216
+    OpticalCapacityTracks: 1048576
+    OpticalCapacityGenerators: 131072
+}
+
+END_PROLOG

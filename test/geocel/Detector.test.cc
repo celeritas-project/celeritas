@@ -4,8 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file geocel/Detector.test.cc
 //---------------------------------------------------------------------------//
-
-#include "corecel/OpaqueIdIO.hh"  // IWYU pragma: keep
 #include "geocel/DetectorParams.hh"
 #include "geocel/DetectorView.hh"
 #include "geocel/VolumeParams.hh"

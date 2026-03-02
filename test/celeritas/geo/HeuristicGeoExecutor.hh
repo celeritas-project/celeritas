@@ -23,10 +23,6 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
 
-#if !CELER_DEVICE_SOURCE
-#    include "corecel/cont/ArrayIO.hh"
-#endif
-
 #include "HeuristicGeoData.hh"
 
 namespace celeritas

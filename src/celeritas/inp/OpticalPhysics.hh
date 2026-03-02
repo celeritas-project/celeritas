@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/SurfacePhysics.hh
+//! \file celeritas/inp/OpticalPhysics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,8 +11,6 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/inp/Grid.hh"
-#include "corecel/math/SoftEqual.hh"
-#include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/Types.hh"
 
@@ -28,15 +26,35 @@ namespace inp
 /*!
  * Model reflectivity as a user-prescribed function of energy.
  *
- * The grid can also be used to represent a constant reflectivity.
+ * As per Geant4 conventions:
+ * - Reflectivity is the probability that a photon undergoes its usual surface
+ * interaction.
+ * - Transmittance is the probability that a photon crosses the surface without
+ * change.
+ * - Efficiency is the quantum efficiency of a detector at the surface. It is
+ * the probability that a photon absorbed will be registered by the detector.
+ *
+ * Only reflectivity and transmittance are defined by the user, while the
+ * remaining probability is the chance for the photon to be absorbed. If the
+ * photon is absorbed and an efficiency grid is defined, then the efficiency
+ * probability is used to determine if the photon is detected.
+ *
+ * The reflectivity and transmittance grids are sampled together and must sum
+ * to between 0 and 1 at every grid point.
+ *
+ * The efficiency grid is sampled independently (if provided), and must be in
+ * the range [0,1].
  */
 struct GridReflection
 {
-    //! Reflectivity values [MeV -> unitless]
+    //! Grid values [MeV -> unitless]
     Grid reflectivity;
+    Grid transmittance;
+
+    Grid efficiency;  //!< optional
 
     // Whether the data are assigned
-    explicit operator bool() const { return static_cast<bool>(reflectivity); }
+    explicit operator bool() const { return reflectivity && transmittance; }
 };
 
 //---------------------------------------------------------------------------//
@@ -247,10 +265,14 @@ struct InteractionModels
     //! Trivial interactions independent of other surface physics
     std::map<PhysSurfaceId, optical::TrivialInteractionMode> trivial;
 
+    //! Strictly reflective interactions of a single type
+    std::map<PhysSurfaceId, optical::ReflectionMode> only_reflection;
+
     // Whether any models are present
     explicit operator bool() const
     {
-        return !dielectric.empty() || !trivial.empty();
+        return !dielectric.empty() || !trivial.empty()
+               || !only_reflection.empty();
     }
 };
 
@@ -263,10 +285,8 @@ struct InteractionModels
  *
  * Interstitial materials are the interstitial materials per geometric surface.
  * The last entry is used as the default surface.
- *
- * \todo rename OpticalSurfacePhysics
  */
-struct SurfacePhysics
+struct OpticalSurfacePhysics
 {
     //!@{
     //! \name type aliases

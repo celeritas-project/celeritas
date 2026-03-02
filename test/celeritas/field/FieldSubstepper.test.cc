@@ -7,7 +7,6 @@
 #include "celeritas/field/FieldSubstepper.hh"
 
 #include "corecel/Types.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"

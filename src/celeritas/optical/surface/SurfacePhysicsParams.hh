@@ -25,7 +25,7 @@ class ActionRegistry;
 
 namespace inp
 {
-struct SurfacePhysics;
+struct OpticalSurfacePhysics;
 }  // namespace inp
 
 namespace optical
@@ -61,7 +61,7 @@ class SurfacePhysicsParams final
   public:
     // Construct surface physics from input
     explicit SurfacePhysicsParams(ActionRegistry* action_reg,
-                                  inp::SurfacePhysics const& input);
+                                  inp::OpticalSurfacePhysics const& input);
 
     //! Access surface physics data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -109,7 +109,7 @@ class SurfacePhysicsParams final
                         HostVal<SurfacePhysicsParamsData>&) const;
 
     // Build sub-step models
-    SurfaceStepModels build_models(inp::SurfacePhysics const&,
+    SurfaceStepModels build_models(inp::OpticalSurfacePhysics const&,
                                    HostVal<SurfacePhysicsParamsData>&) const;
 };
 

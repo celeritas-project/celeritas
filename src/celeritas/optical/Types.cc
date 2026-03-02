@@ -41,5 +41,18 @@ char const* to_cstring(ReflectionMode mode)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the wavelength shifting time model selection.
+ */
+char const* to_cstring(WlsDistribution value)
+{
+    static EnumStringMapper<WlsDistribution> const to_cstring_impl{
+        "delta",
+        "exponential",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas

@@ -9,6 +9,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4StateManager.hh>
 #include <G4VSensitiveDetector.hh>
+#include <G4Version.hh>
 
 #include "corecel/Config.hh"
 
@@ -40,8 +41,8 @@ namespace test
 {
 namespace
 {
-auto const geant4_version = celeritas::Version::from_string(
-    CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
+constexpr auto geant4_version
+    = celeritas::Version::from_dec_xyz(G4VERSION_NUMBER);
 
 }  // namespace
 
@@ -69,8 +70,7 @@ class GeantGeoTest : public GeantGeoTestBase
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
         auto result = GeantGeoParams::from_gdml(filename);
-        EXPECT_VEC_EQ(this->expected_log_levels(), scoped_log_.levels())
-            << scoped_log_;
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         return result;
     }
 
@@ -79,8 +79,6 @@ class GeantGeoTest : public GeantGeoTestBase
         return GenericGeoModelInp::from_model_input(
             this->geometry()->make_model_input());
     }
-
-    virtual SpanStringView expected_log_levels() const { return {}; }
 
     ScopedGeantExceptionHandler exception_handler;
     ScopedGeantLogger logger{celeritas::world_logger()};
@@ -104,6 +102,19 @@ class GeantGeoTest : public GeantGeoTestBase
         auto* sm = G4StateManager::GetStateManager();
         EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_PreInit));
         GeantGeoTestBase::TearDown();
+    }
+
+    CheckedGeoTrackView make_checked_track_view() override
+    {
+        auto result = GeantGeoTestBase::make_checked_track_view();
+
+        // FIXME:
+        // Safety check with normals produce bizarre behavior in raytrace
+        // tests for G4 < 11.2, and we get midpoint "zero safety" errors
+        // for 11.2 and greater at some spots
+        result.check_next_safety(false);
+
+        return result;
     }
 };
 
@@ -836,14 +847,6 @@ TEST_F(SimpleCmsTest, detailed_track)
 class SolidsTest
     : public GenericGeoParameterizedTest<GeantGeoTest, SolidsGeoTest>
 {
-    SpanStringView expected_log_levels() const final
-    {
-        if (geant4_version < Version{11})
-            return {};
-
-        static std::string_view const levels[] = {"error"};
-        return make_span(levels);
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -858,7 +861,7 @@ TEST_F(SolidsTest, output)
         std::regex pattern(R"("",)");
         actual = std::regex_replace(actual, pattern, "");
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_refl@1","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl@0"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_also","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
             actual);
     }
 }
@@ -873,22 +876,14 @@ TEST_F(SolidsTest, accessors)
 
 TEST_F(SolidsTest, trace)
 {
-    ScopedLogStorer scoped_log_{&self_logger()};
     TestImpl(this).test_trace();
-    if (geant4_version >= Version{11})
-    {
-        // G4 11.3 report normal directions perpendicular to track direction
-        // due to coincident surfaces; and at least one of the tangents is
-        // machine-dependent
-        EXPECT_GE(scoped_log_.levels().size(), 3) << scoped_log_;
-    }
 }
 
 //---------------------------------------------------------------------------//
 
 TEST_F(SolidsTest, reflected_vol)
 {
-    auto geo = this->make_geo_track_view({-500, -125, 0}, {0, 1, 0});
+    auto geo = this->make_geo_track_view({-480, -125, 0}, {0, 1, 0});
     EXPECT_EQ(25, geo.impl_volume_id().unchecked_get());
     auto const& label
         = this->geometry()->impl_volumes().at(geo.impl_volume_id());

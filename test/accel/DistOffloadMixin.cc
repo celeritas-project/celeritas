@@ -14,6 +14,7 @@
 #include <G4Step.hh>
 
 #include "corecel/io/Logger.hh"
+#include "geocel/GeoOpticalIdMap.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
@@ -90,6 +91,12 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
         return;
     }
 
+    if (!geant_geo_)
+    {
+        geant_geo_ = celeritas::global_geant_geo().lock();
+        CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
+    }
+
     auto* pre_step = step->GetPreStepPoint();
     auto* post_step = step->GetPostStepPoint();
     CELER_ASSERT(pre_step && post_step);
@@ -99,9 +106,6 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
     data.step_length = convert_from_geant(step->GetStepLength(), clhep_length);
     data.charge = units::ElementaryCharge{
         static_cast<real_type>(post_step->GetCharge())};
-
-    // TODO: map logical volume -> optical matids?
-    data.material = OptMatId(0);
     auto& pre = data.points[StepPoint::pre];
     pre.speed = units::LightSpeed(pre_step->GetBeta());
     pre.time = convert_from_geant(pre_step->GetGlobalTime(), clhep_time);
@@ -110,6 +114,10 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
     post.speed = units::LightSpeed(post_step->GetBeta());
     post.time = convert_from_geant(post_step->GetGlobalTime(), clhep_time);
     post.pos = convert_from_geant(post_step->GetPosition(), clhep_length);
+    auto* g4mat = pre_step->GetMaterial();
+    CELER_ASSERT(g4mat);
+    data.material
+        = (*geant_geo_->geo_optical_id_map())[geant_geo_->geant_to_id(*g4mat)];
 
     auto& local = detail::IntegrationSingleton::instance().local_offload();
     auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
