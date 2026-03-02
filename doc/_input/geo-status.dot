@@ -1,0 +1,35 @@
+digraph GeoStatus {
+  graph [rankdir=LR];
+  node [shape=box];
+
+  // States
+  "uninitialized"       [label="uninitialized\n(volume not known)"];
+  "interior"            [label="interior\n(inside volume, not on boundary)"];
+  "exiting_boundary"    [label="exiting_boundary\n(on boundary, entering next volume)"];
+  "entering_boundary"   [label="entering_boundary\n(on boundary, inside current volume)"];
+  "exterior"            [label="exterior\n(outside valid geometry)"];
+  "error"               [label="error\n(unrecoverable failure)", style=filled, fillcolor=lightcoral];
+
+  // Special start and terminal nodes
+  "uninitialized" [label="", shape=circle, style=filled, fillcolor=black, width=0.2];
+
+  // From uninitialized: operator= places track in geometry
+  "uninitialized" -> "interior"  [label="initialize\n[interior]"];
+  "uninitialized" -> "exiting_boundary"  [label="initialize\n[on boundary]"];
+  "uninitialized" -> "error"             [label="initialize\n[volume not found]"];
+
+  // From interior: propagation
+  "interior" -> "entering_boundary"  [label="move_to_boundary"];
+  "interior" -> "interior"           [label="move_internal"];
+
+  // From exiting_boundary: normal tracking
+  "exiting_boundary" -> "interior"           [label="move_internal"];
+  "exiting_boundary" -> "entering_boundary"  [label="set_dir\n[reentrant]", dir="both"];
+  "exiting_boundary" -> "entering_boundary"  [label="move_to_boundary\n[next surface]"];
+  // TODO: prohibit "exiting_boundary" -> "exiting_boundary"   [label="cross_boundary\n[when reentrant]"];
+
+  // Crossing the surface
+  "entering_boundary" -> "exiting_boundary"  [label="cross_boundary\n[next interior volume]"];
+  "entering_boundary" -> "exterior"          [label="cross_boundary\n[exits geometry]"];
+  "entering_boundary" -> "error"             [label="cross_boundary\n[new volume not found]"];
+}

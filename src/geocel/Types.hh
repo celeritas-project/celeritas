@@ -183,4 +183,12 @@ inline constexpr char to_char(Axis ax)
 }
 
 //---------------------------------------------------------------------------//
+//! Get the lowercase name of the axis.
+CELER_CONSTEXPR_FUNCTION bool is_on_boundary(GeoStatus s)
+{
+    return s == GeoStatus::entering_boundary
+           || s == GeoStatus::exiting_boundary;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
