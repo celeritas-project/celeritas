@@ -110,7 +110,7 @@ struct ImportData
     inp::AtomicRelaxation atomic_relaxation;
 
     // Physics groups
-    inp::OpticalPhysics optical_physics;  //!< DISABLE ROOT
+    inp::OpticalPhysics optical_physics;  //! DISABLE ROOT
 
     // Muon-catalyzed fusion
     inp::MucfPhysics mucf_physics;
