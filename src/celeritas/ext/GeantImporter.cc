@@ -221,8 +221,9 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
     // "ELECTRONSCINTILLATIONYIELD", etc.
     prefix += "SCINTILLATION";
 
+    // Loop over hardcoded Geant4 component indices
     std::vector<ImportScintComponent> components;
-    for (int comp_idx : range(1, 4))
+    for (int comp_idx : {1, 2, 3})
     {
         bool any_found = false;
         auto get = [&](double* dst, std::string const& ext, ImportUnits u) {
@@ -290,6 +291,30 @@ fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
             // default (zero) values and no spectrum, which would otherwise
             // trigger validation errors.
             components.push_back(std::move(comp));
+    }
+    double yield_ratio{0};
+    get_property(yield_ratio, "YIELDRATIO", ImportUnits::unitless);
+    if (yield_ratio > 0)
+    {
+        // Warn for older G4 that respects, error for newer
+        if (components.size() == 2 && components[0].yield_frac == 0
+            && components[1].yield_frac == 0)
+        {
+            constexpr bool g4_ignores_ratio = G4VERSION_NUMBER >= 1100;
+            world_logger()(CELER_CODE_PROVENANCE,
+                           g4_ignores_ratio ? LogLevel::error
+                                            : LogLevel::warning)
+                << "Deprecated property YIELDRATIO=" << yield_ratio
+                << " is ignored by Geant4 11 "
+                   "and higher: set SCINTILLATIONYIELD{1,2}";
+            components[0].yield_frac = yield_ratio;
+            components[1].yield_frac = 1 - yield_ratio;
+        }
+        else
+        {
+            CELER_LOG(warning) << "Ignoring inapplicable 'YIELDRATIO' "
+                                  "property";
+        }
     }
     return components;
 }
