@@ -92,10 +92,12 @@ class RunAction final : public G4UserRunAction
         , exceptions_(
               [this](std::exception_ptr ep) { this->handle_exception(ep); })
     {
+        CELER_EXPECT(test_);
     }
 
     void BeginOfRunAction(G4Run const* run) final
     {
+        CELER_EXPECT(run);
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
         CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
     }
@@ -335,10 +337,8 @@ G4RunManager& IntegrationTestBase::run_manager()
         CELER_VALIDATE(basename == rm.key(),
                        << "cannot create a run manager for two problems in "
                           "one execution: use '--gtest_filter'");
-        return *rm.value();
     }
-
-    rm.set(basename, [&] {
+    rm.lazy_update(basename, [&] {
         CELER_LOG(status) << "Creating run manager";
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
@@ -357,9 +357,19 @@ G4RunManager& IntegrationTestBase::run_manager()
 #endif
         };
         CELER_ASSERT(rm);
+        return rm;
+    });
+
+    static IntegrationTestBase* referenced_test{nullptr};
+    if (referenced_test != this)
+    {
+        // Test callbacks reference the current harness, so multiple tests
+        // cannot run consecutively unless we update the user initialization
+        CELER_LOG(status) << "Setting run manager initialization";
+        ScopedGeantExceptionHandler scoped_exceptions;
 
         // Set up detector
-        rm->SetUserInitialization(new DetectorConstruction{
+        rm.value()->SetUserInitialization(new DetectorConstruction{
             this->test_data_path("geocel", basename + ".gdml"),
             [this](std::string const& sd_name) {
                 return this->make_sens_det(sd_name);
@@ -368,12 +378,12 @@ G4RunManager& IntegrationTestBase::run_manager()
         // Set up physics
         auto phys = this->make_physics_list();
         CELER_ASSERT(phys);
-        rm->SetUserInitialization(phys.release());
+        rm.value()->SetUserInitialization(phys.release());
 
         // Set up runtime initialization
-        rm->SetUserInitialization(new ActionInitialization{this});
-        return rm;
-    }());
+        rm.value()->SetUserInitialization(new ActionInitialization{this});
+        referenced_test = this;
+    }
 
     return *rm.value();
 }
