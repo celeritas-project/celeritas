@@ -95,7 +95,8 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
                        << "invalid imported model class for optical model id '"
                        << model_id << "'");
 
-        // Model MFP vectors may be empty (*may* indicate )
+        // Model MFP vectors may be empty (*may* indicate building from other
+        // properties; but this will be refactored)
         CELER_VALIDATE(
             model.mfp_table.size() == models_.front().mfp_table.size(),
             << "imported optical model id '" << model_id << "' ("
