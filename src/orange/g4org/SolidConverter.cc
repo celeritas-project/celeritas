@@ -281,6 +281,9 @@ bool any_positive(Container const& c)
 //---------------------------------------------------------------------------//
 /*!
  * Convert a Geant4 solid to a CSG object.
+ *
+ * \todo Caching may need to be removed since solids are mutable and are
+ * altered as part of parameterization.
  */
 auto SolidConverter::operator()(arg_type solid_base) -> result_type
 {
