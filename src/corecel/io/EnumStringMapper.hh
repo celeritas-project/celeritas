@@ -11,6 +11,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
 
+#include "StreamUtils.hh"
+
 #include "detail/EnumStringMapperImpl.hh"
 
 namespace celeritas
@@ -67,22 +69,6 @@ char const* EnumStringMapper<T>::operator()(T value) const
 {
     CELER_EXPECT(value <= T::size_);
     return strings_[static_cast<size_type>(value)];
-}
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Write an enum to a stream.
- *
- * \todo Move to corecel/types.hh
- */
-template<class T>
-auto operator<<(std::ostream& os, T value) -> std::enable_if_t<
-    std::is_enum_v<T> && std::is_same_v<decltype(to_cstring(value)), char const*>,
-    std::ostream&>
-{
-    return os << to_cstring(value);
 }
 
 //---------------------------------------------------------------------------//
