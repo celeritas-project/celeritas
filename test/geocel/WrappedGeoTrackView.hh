@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "geocel/GeoTrackInterface.hh"
 
 namespace celeritas
@@ -81,6 +83,17 @@ class WrappedGeoTrackView final
     // Surface state
     bool is_on_boundary() const final { return t_.is_on_boundary(); }
     Real3 normal() const final { return t_.normal(); }
+    GeoStatus geo_status() const final
+    {
+        if constexpr (has_geo_status_<GTV>::value)
+        {
+            return t_.geo_status();
+        }
+        else
+        {
+            return GeoTrackInterface<real_type>::geo_status();
+        }
+    }
 
     // Straight-line movement and boundary crossing
     using GeoTrackInterface<real_type>::find_next_step;
@@ -102,6 +115,18 @@ class WrappedGeoTrackView final
     void move_internal(Real3 const& pos) final { t_.move_internal(pos); }
 
   private:
+    template<class T, class = void>
+    struct has_geo_status_ : std::false_type
+    {
+    };
+    template<class T>
+    struct has_geo_status_<
+        T,
+        std::void_t<decltype(std::declval<T const&>().geo_status())>>
+        : std::true_type
+    {
+    };
+
     GTV t_;
 };
 

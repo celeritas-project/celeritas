@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 
 #include "Types.hh"
@@ -143,6 +144,30 @@ class GeoTrackInterface
      * (previous volume, direction, surface sign) or geometry construction.
      */
     virtual Real3 normal() const = 0;
+
+    /*!
+     * Derive the geometry state from the existing state flags.
+     *
+     * This is a shim for geometry implementations that do not natively track
+     * the full \c GeoStatus. When on a boundary, the sign of the dot product
+     * of the track direction and the surface normal determines whether the
+     * track is exiting (positive: moving along the outward normal) or entering
+     * (negative: has just crossed into the current volume).
+     */
+    virtual GeoStatus geo_status() const
+    {
+        if (this->failed())
+            return GeoStatus::error;
+        if (this->is_outside())
+            return GeoStatus::exterior;
+        if (this->is_on_boundary())
+        {
+            return dot_product(this->dir(), this->normal()) >= 0
+                       ? GeoStatus::exiting_boundary
+                       : GeoStatus::entering_boundary;
+        }
+        return GeoStatus::interior;
+    }
     //!@}
     //!@{
     //! \name Straight-line movement and boundary crossing
