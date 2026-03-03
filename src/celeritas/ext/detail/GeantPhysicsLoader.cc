@@ -153,7 +153,12 @@ void GeantPhysicsLoader::scintillation(G4VProcess const&)
 //! Activate optical absorption
 void GeantPhysicsLoader::op_absorption(G4VProcess const&)
 {
-    CELER_EXPECT(import_optical_model_);
+    if (!import_optical_model_)
+    {
+        CELER_LOG(warning) << "Ignoring inapplicable G4OpAbsorption";
+        return;
+    }
+
     imported_.optical_models.push_back(
         import_optical_model_(optical::ImportModelClass::absorption));
 }
@@ -212,7 +217,12 @@ void GeantPhysicsLoader::op_boundary(G4VProcess const&)
 //! Activate Mie scattering
 void GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 {
-    CELER_EXPECT(import_optical_model_);
+    if (!import_optical_model_)
+    {
+        CELER_LOG(warning) << "Ignoring inapplicable G4OpMieHG";
+        return;
+    }
+
     imported_.optical_models.push_back(
         import_optical_model_(optical::ImportModelClass::mie));
 }
@@ -221,7 +231,12 @@ void GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 //! Activate rayleigh scattering
 void GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 {
-    CELER_EXPECT(import_optical_model_);
+    if (!import_optical_model_)
+    {
+        CELER_LOG(warning) << "Ignoring inapplicable G4OpRayleigh";
+        return;
+    }
+
     imported_.optical_models.push_back(
         import_optical_model_(optical::ImportModelClass::rayleigh));
 }
@@ -230,7 +245,12 @@ void GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 //! Activate wavelength shifting
 void GeantPhysicsLoader::op_wls(G4VProcess const&)
 {
-    CELER_EXPECT(import_optical_model_);
+    if (!import_optical_model_)
+    {
+        CELER_LOG(warning) << "Ignoring inapplicable G4OpWLS";
+        return;
+    }
+
     imported_.optical_models.push_back(
         import_optical_model_(optical::ImportModelClass::wls));
 
@@ -247,8 +267,13 @@ void GeantPhysicsLoader::op_wls(G4VProcess const&)
 //! Activate wavelength shifting additional distribution
 void GeantPhysicsLoader::op_wls2(G4VProcess const&)
 {
+    if (!import_optical_model_)
+    {
+        CELER_LOG(warning) << "Ignoring inapplicable G4OpWLS2";
+        return;
+    }
+
 #if G4VERSION_NUMBER >= 1070
-    CELER_EXPECT(import_optical_model_);
     imported_.optical_models.push_back(
         import_optical_model_(optical::ImportModelClass::wls2));
 
