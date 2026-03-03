@@ -23,6 +23,8 @@ namespace celeritas
  * This component represents one type of scintillation emissions, such as
  * prompt/fast, intermediate, or slow. It can be specific to a material or
  * depend on the incident particle type.
+ *
+ * \todo Could refactor as a distribution sampler: gaussian vs grid
  */
 struct ScintRecord
 {
@@ -31,6 +33,10 @@ struct ScintRecord
     real_type rise_time{};  //!< Rise time
     real_type fall_time{};  //!< Decay time
     ItemId<NonuniformGridRecord> energy_cdf;
+
+    //! Whether this represents a normal distribution
+    CELER_FUNCTION bool is_normal_distribution() const { return !energy_cdf; }
+
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
@@ -110,9 +116,6 @@ struct ScintillationData
 
     //// MEMBER DATA ////
 
-    //! Number of scintillation particles, used by this->spectrum_index
-    size_type num_scint_particles{};
-
     //! Resolution scale for each material [OptMatId]
     OptMatItems<real_type> resolution_scale;
     //! Material-dependent scintillation spectrum data [OptMatId]
@@ -120,10 +123,6 @@ struct ScintillationData
 
     // Cumulative probability of emission as a function of energy [MeV]
     Items<NonuniformGridRecord> energy_cdfs;
-    //! Index between \c ScintParticleId and \c ParticleId
-    ParticleItems<ScintParticleId> pid_to_scintpid;
-    //! Particle/material scintillation spectrum data [ParScintSpectrumId]
-    ParScintSpectrumItems<ParScintSpectrum> particles;
 
     //! Backend storage for real values
     Items<real_type> reals;
@@ -135,19 +134,7 @@ struct ScintillationData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !resolution_scale.empty() && !materials.empty()
-               && pid_to_scintpid.empty() && particles.empty();
-    }
-
-    //! Retrieve spectrum index given optical particle and material ids
-    ParScintSpectrumId spectrum_index(ScintParticleId pid, OptMatId mid) const
-    {
-        // Resolution scale exists independent of material-only data and it's
-        // indexed by optical material id
-        CELER_EXPECT(pid < num_scint_particles);
-        CELER_EXPECT(mid < resolution_scale.size());
-        return ParScintSpectrumId{resolution_scale.size() * pid.get()
-                                  + mid.get()};
+        return !resolution_scale.empty() && !materials.empty();
     }
 
     //! Assign from another set of data
@@ -157,9 +144,6 @@ struct ScintillationData
         CELER_EXPECT(other);
         resolution_scale = other.resolution_scale;
         materials = other.materials;
-        pid_to_scintpid = other.pid_to_scintpid;
-        num_scint_particles = other.num_scint_particles;
-        particles = other.particles;
         energy_cdfs = other.energy_cdfs;
         reals = other.reals;
         scint_records = other.scint_records;

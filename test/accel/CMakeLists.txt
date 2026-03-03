@@ -21,6 +21,7 @@ celeritas_get_g4libs(_g4_libs
 list(APPEND PUBLIC_DEPS ${_g4_libs})
 
 celeritas_add_test_library(testcel_accel
+  DistOffloadMixin.cc
   IntegrationTestBase.cc
 )
 celeritas_target_link_libraries(testcel_accel

@@ -94,4 +94,18 @@ ScintillationParams::ScintillationParams(Input const& input)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Whether any celeritas-only features are present.
+ */
+bool ScintillationParams::is_geant_compatible() const
+{
+    auto const& scint_records
+        = this->host_ref().scint_records[AllItems<ScintRecord>{}];
+    return std::all_of(
+        scint_records.begin(), scint_records.end(), [](ScintRecord const& sr) {
+            return !sr.is_normal_distribution();
+        });
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

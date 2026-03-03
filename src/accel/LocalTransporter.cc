@@ -10,7 +10,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
@@ -224,13 +223,22 @@ void LocalTransporter::InitializeEvent(int id)
     event_id_ = id_cast<UniqueEventId>(id);
     ++run_accum_.events;
 
-    if (!(G4Threading::IsMultithreadedApplication()
-          && G4MTRunManager::SeedOncePerCommunication()))
+    if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
     {
-        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
-        // using the Geant4 event ID for reproducibility. This guarantees that
-        // an event can be reproduced given the event ID.
-        step_->reseed(event_id_);
+        if (!(G4Threading::IsMultithreadedApplication()
+              && G4MTRunManager::SeedOncePerCommunication()))
+        {
+            // Initialize the Geant event reconstruction.
+
+            // Since Geant4 schedules events dynamically, reseed the Celeritas
+            // RNGs using the Geant4 event ID for reproducibility. This
+            // guarantees that an event can be reproduced given the event ID.
+            step_->reseed(event_id_);
+        }
+    }
+    if (hit_processor_)
+    {
+        hit_processor_->track_reconstruction().init_event();
     }
 }
 
@@ -273,6 +281,8 @@ void LocalTransporter::Push(G4Track& g4track)
         track.primary_id
             = hit_processor_->track_reconstruction().acquire(g4track);
     }
+    track.primary_id = celeritas::id_cast<PrimaryId>(
+        track.primary_id.unchecked_get() + g4track.GetTrackID());
 
     track.energy = units::MevEnergy(
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
