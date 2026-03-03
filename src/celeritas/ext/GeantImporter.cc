@@ -1090,6 +1090,14 @@ auto import_processes(GeantImporter::DataSelection selected,
             continue;
         }
 
+        auto* pm = g4_particle_def->GetProcessManager();
+        if (!pm)
+        {
+            CELER_LOG(error)
+                << "Particle '" << g4_particle_def->GetParticleName()
+                << "' has no process manager";
+            continue;
+        }
         G4ProcessVector const& process_list
             = *g4_particle_def->GetProcessManager()->GetProcessList();
 
@@ -1119,7 +1127,12 @@ G4Transportation const* get_transportation(G4ParticleDefinition const* particle)
     CELER_EXPECT(particle);
 
     auto const* pm = particle->GetProcessManager();
-    CELER_ASSERT(pm);
+    if (!pm)
+    {
+        // Catastrophic failure: can happen if run manager setup failed but
+        // Celeritas still tries to load
+        return nullptr;
+    }
 
     // Search through the processes to find transportion (it should be the
     // first one)
@@ -1174,7 +1187,13 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
 
         // Get the transportation process
         auto const* trans = get_transportation(particle_iterator.value());
-        CELER_ASSERT(trans);
+        if (!trans)
+        {
+            CELER_LOG(error)
+                << "Failed to get transportation manager for particle '"
+                << particle_iterator.value()->GetParticleName() << "'";
+            continue;
+        }
 
         // Get the threshold values for killing looping tracks
         ImportLoopingThreshold looping;
