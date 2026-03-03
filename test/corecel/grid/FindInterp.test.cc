@@ -53,8 +53,7 @@ TEST(FindInterpTest, nonuniform)
     Collection<double, Ownership::value, MemSpace::host> data;
     auto build = CollectionBuilder{&data};
     auto const irange = build.insert_back({-2.0, -1.5, 1.5, 2.0, 2.0, 8.0});
-    Collection<double, Ownership::const_reference, MemSpace::host> ref{data};
-    NonuniformGrid<double> grid(irange, ref);
+    NonuniformGrid<double> grid(irange, make_ref(data));
 
     {
         auto interp = find_interp(grid, -2);
@@ -86,8 +85,7 @@ TEST(FindInterpTest, nonuniform_int)
     Collection<int, Ownership::value, MemSpace::host> data;
     auto build = CollectionBuilder{&data};
     auto const irange = build.insert_back({0, 2, 6, 6, 8});
-    Collection<int, Ownership::const_reference, MemSpace::host> ref{data};
-    NonuniformGrid<int> grid(irange, ref);
+    NonuniformGrid<int> grid(irange, make_ref(data));
 
     {
         auto interp = find_interp(grid, 0);
@@ -119,8 +117,7 @@ TEST(FindInterpTest, Quantity)
     auto build = CollectionBuilder{&data};
     auto const irange
         = build.insert_back({Turn{0}, Turn{0.5}, Turn{0.75}, Turn{1}});
-    Collection<Turn, Ownership::const_reference, MemSpace::host> ref{data};
-    NonuniformGrid<Turn> grid(irange, ref);
+    NonuniformGrid<Turn> grid(irange, make_ref(data));
 
     {
         auto interp = find_interp(grid, Turn{0});

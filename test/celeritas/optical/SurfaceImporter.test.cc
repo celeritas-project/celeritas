@@ -31,6 +31,13 @@ class SurfaceImporterTest : public ::celeritas::test::GeantTestBase
         return "full-optical-surfaces";
     }
 
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto result = GeantTestBase::build_geant_options();
+        result.optical.emplace();
+        return result;
+    }
+
     GeantImportDataSelection build_import_data_selection() const override
     {
         auto result = GeantTestBase::build_import_data_selection();

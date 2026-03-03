@@ -4,7 +4,7 @@
   <define>
     <!-- Material properties -->
     <matrix name="RI_vacuum" coldim="2" values="1e-06 1 1e-05 1"/>
-    <matrix name="RI_water" coldim="2" values="1e-06 1.3333 1e-05 1.3333"/>
+    <matrix name="RI_water" coldim="2" values="1e-07 1 5e-07 1 1.5e-06 1.3333 2.5e-06 1.3333 3.5e-06 2 1e-05 2"/>
     <!-- Bulk absorption (dummy values) -->
     <matrix name="ABS" coldim="2" values="1e-06 1e8 1e-05 1e8"/>
     <matrix name="REF" coldim="2" values="1e-06 1 1e-05 1"/>

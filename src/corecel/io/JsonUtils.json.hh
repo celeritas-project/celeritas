@@ -13,7 +13,7 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/OpaqueId.hh"
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/EnumStringMapper.hh"  // IWYU pragma: keep
 #include "corecel/io/Logger.hh"
 
 //---------------------------------------------------------------------------//
@@ -43,7 +43,10 @@
 /*!
  * Load a std::optional field.
  *
- * If the field is missing or null, the optional is reset.
+ * - A non-null value initializes the optional and reads the given value.
+ * - A null value resets the optional to `nullopt`
+ * - If the value is missing from the input, the existing value remains.
+ *   This allows the containing STRUCT to set a custom default value.
  */
 #define CELER_JSON_LOAD_OPTIONAL(OBJ, STRUCT, NAME) \
     ::celeritas::load_json_optional(OBJ, #NAME, STRUCT.NAME);
@@ -126,9 +129,10 @@
 /*!
  * Construct a key/value pair with null value when std::optional is false.
  */
-#define CELER_JSON_PAIR_OPTIONAL(STRUCT, NAME) \
-    {#NAME,                                    \
-     (STRUCT.NAME ? nlohmann::json(*STRUCT.NAME) : nlohmann::json(nullptr))}
+#define CELER_JSON_PAIR_OPTIONAL(STRUCT, NAME)       \
+    {#NAME,                                          \
+     ((STRUCT.NAME) ? nlohmann::json(*(STRUCT.NAME)) \
+                    : nlohmann::json(nullptr))}
 
 //---------------------------------------------------------------------------//
 
@@ -187,14 +191,21 @@ void load_json_optional(nlohmann::json const& j,
                         std::optional<T>& value)
 {
     auto iter = j.find(name);
-    if (iter != j.end() && !iter->is_null())
+    if (iter == j.end())
     {
-        value.emplace();
-        iter->get_to(*value);
+        // Not found: do not touch existing value (allowing class to set its
+        // default)
+    }
+    else if (iter->is_null())
+    {
+        // `null` input -> std::nullopt
+        value.reset();
     }
     else
     {
-        value.reset();
+        // Non-null input: initialize and fill
+        value.emplace();
+        iter->get_to(*value);
     }
 }
 

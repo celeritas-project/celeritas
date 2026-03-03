@@ -2,30 +2,17 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file JsonUtils.hh
+//! \file corecel/grid/DerivativeGridCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <nlohmann/json.hpp>
-
-#include "TestMacros.hh"
+#include "corecel/inp/Grid.hh"
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
-//! Verify JSON round-trip serialization.
-template<class T>
-inline void verify_json_round_trip(T const& input, char const* expected)
-{
-    nlohmann::json obj(input);
-    EXPECT_JSON_EQ(expected, obj.dump());
-
-    auto rt_input = obj.get<T>();
-    EXPECT_JSON_EQ(expected, nlohmann::json(rt_input).dump());
-}
+// Calculate the derivatives of a given grid.
+inp::Grid construct_derivative_grid(inp::Grid const&);
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

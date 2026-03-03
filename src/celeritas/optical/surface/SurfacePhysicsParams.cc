@@ -52,6 +52,9 @@ num_phys_surfaces(std::vector<std::vector<OptMatId>> const& materials)
 SurfacePhysicsParams::SurfacePhysicsParams(
     ActionRegistry* action_reg, inp::OpticalSurfacePhysics const& input)
 {
+    CELER_VALIDATE(!input.materials.empty(),
+                   << "cannot build optical surface physics when no optical "
+                      "material data is present");
     CELER_EXPECT(action_reg);
 
     // Build actions
