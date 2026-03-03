@@ -32,14 +32,24 @@ void OpticalStepGatherAction::step(CoreParams const& params,
     auto& core_state = state.ref();
 
     auto& step_state = step_params_->state_ref<MemSpace::native>(*state.aux());
-    auto execute
+
+    // Launch pre-step executor
+    auto execute_pre
+        = TrackSlotExecutor(params.ptr<MemSpace::native>(),
+                            state.ptr(),
+                            detail::OpticalStepGatherExecutor<StepPoint::pre>{
+                                core_params, core_state, step_state});
+    launch_action(state, execute_pre);
+
+    // Launch post-step executor
+    auto execute_post
         = TrackSlotExecutor(params.ptr<MemSpace::native>(),
                             state.ptr(),
                             detail::OpticalStepGatherExecutor<StepPoint::post>{
                                 core_params, core_state, step_state});
     CELER_LOG(info) << "OpticalStepGatherAction::step State size "
                     << state.size();
-    launch_action(state, execute);
+    launch_action(state, execute_post);
 }
 #if !CELER_USE_DEVICE
 void OpticalStepGatherAction::step(CoreParams const&, CoreStateDevice&) const
