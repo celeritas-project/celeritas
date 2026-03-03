@@ -105,7 +105,7 @@ RunResult::from_btr(std::vector<sim::OpDetBacktrackerRecord> const& response)
 
 void RunResult::print_expected() const
 {
-    std::cout << "ExpectedHits ref;\n"
+    std::cout << "RunResult ref;\n"
               << "ref.num_hits = " << repr(num_hits) << ";\n"
               << "EXPECT_REF_EQ(ref, result);\n";
 }
@@ -194,10 +194,14 @@ TEST_F(LarSphereTest, single_sim_edep)
 
     auto result = RunResult::from_btr(run({sed}));
     result.print_expected();
+    RunResult ref;
+    ref.num_hits = {0, 0};
+    EXPECT_REF_EQ(ref, result);
 
     // Run again (simulating second event)
     result = RunResult::from_btr(run({sed}));
     result.print_expected();
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//

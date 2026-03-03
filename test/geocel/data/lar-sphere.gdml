@@ -43,6 +43,10 @@
     <matrix name="WLSC2" coldim="2" values="1.771e-06 0.3 2.484e-06 0.8"/>
     <matrix name="WLSMNP" coldim="1" values="0.456"/>
     <matrix name="WLSMNP2" coldim="1" values="0.123"/>
+    <!-- Testing dummy values -->
+    <matrix name="DO_NOT_SAMPLE" coldim="2" values="1e-07 1e20 1e-04 1e20"/>
+    <matrix name="NO_SURFACE_REF" coldim="2" values="1e-07 0 1e-04 0"/>
+    <matrix name="NO_SURFACE_TRA" coldim="2" values="1e-07 1 1e-04 1"/>
   </define>
 
   <materials>
@@ -152,6 +156,12 @@
     <sphere lunit="cm" name="det_shell" rmin="100.0" rmax="110.0" startphi="0" deltaphi="360" deltatheta="180" aunit="deg"/>
     <sphere lunit="cm" name="det_shell_top" rmin="100.0" rmax="110.0" startphi="0" deltaphi="180" deltatheta="180" aunit="deg"/>
     <sphere lunit="cm" name="det_shell_bot" rmin="100.0" rmax="110.0" startphi="180" deltaphi="180" deltatheta="180" aunit="deg"/>
+
+    <!-- Disable surface physics (only transmit) -->
+    <opticalsurface name="NO_SURFACE" model="glisur" finish="polished" type="dielectric_dielectric" value="1.0">
+      <property name="REFLECTIVITY" ref="NO_SURFACE_REF"/>
+      <property name="TRANSMITTANCE" ref="NO_SURFACE_TRA"/>
+    </opticalsurface>
   </solids>
 
   <structure>
@@ -172,10 +182,10 @@
     <volume name="detshell">
       <solidref ref="det_shell"/>
       <materialref ref="vacuum"/>
-      <physvol>
+      <physvol name="detshell_top_pv">
         <volumeref ref="detshell_top"/>
       </physvol>
-      <physvol>
+      <physvol name="detshell_bot_pv">
         <volumeref ref="detshell_bot"/>
       </physvol>
     </volume>
@@ -185,10 +195,20 @@
       <physvol>
         <volumeref ref="detshell"/>
       </physvol>
-      <physvol>
+      <physvol name="sphere_pv">
         <volumeref ref="sphere"/>
       </physvol>
     </volume>
+
+    <!-- Disable surface physics on detectors -->
+    <bordersurface name="detshell_top_surface" surface_property="NO_SURFACE">
+      <physvolref ref="detshell_top_pv"/>
+      <physvolref ref="sphere_pv"/>
+    </bordersurface>
+    <bordersurface name="detshell_bot_surface" surface_property="NO_SURFACE">
+      <physvolref ref="detshell_bot_pv"/>
+      <physvolref ref="sphere_pv"/>
+    </bordersurface>
   </structure>
 
   <setup name="Default" version="1.0">
