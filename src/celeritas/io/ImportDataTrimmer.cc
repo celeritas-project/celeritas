@@ -143,16 +143,6 @@ void ImportDataTrimmer::operator()(ImportPhysMaterial&)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportOpticalMaterial& data)
-{
-    if (options_.physics)
-    {
-        (*this)(data.properties.refractive_index);
-        // TODO: trim WLS components?
-    }
-}
-
-//---------------------------------------------------------------------------//
 void ImportDataTrimmer::operator()(ImportModelMaterial& data)
 {
     if (options_.materials)
@@ -244,29 +234,6 @@ void ImportDataTrimmer::operator()(ImportProcess& data)
     (*this)(data.dedx);
 
     CELER_ENSURE(data);
-}
-
-//---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(inp::DielectricInteraction& data)
-{
-    (*this)(data.reflection);
-}
-
-//---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(inp::ReflectionForm& data)
-{
-    for (auto& grid : data.reflection_grids)
-    {
-        filter_out_infs(grid.x);
-        filter_out_infs(grid.y);
-    }
-}
-
-//---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(inp::GridReflection& data)
-{
-    filter_out_infs(data.reflectivity.x);
-    filter_out_infs(data.reflectivity.y);
 }
 
 //---------------------------------------------------------------------------//

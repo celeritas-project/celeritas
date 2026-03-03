@@ -47,7 +47,6 @@ class ImportDataTrimmer
     void operator()(ImportElement& data);
     void operator()(ImportGeoMaterial& data);
     void operator()(ImportModel& data);
-    void operator()(ImportModelMaterial& data);
     void operator()(ImportMscModel& data);
     void operator()(ImportLivermorePE& data);
     void operator()(ImportLivermoreSubshell& data);
@@ -61,8 +60,6 @@ class ImportDataTrimmer
 
     //!@{
     //! Trim objects
-    void operator()(inp::ReflectionForm& data);
-    void operator()(inp::GridReflection& data);
     void operator()(inp::Grid& data);
     void operator()(inp::UniformGrid& data);
     void operator()(ImportPhysicsTable& data);
