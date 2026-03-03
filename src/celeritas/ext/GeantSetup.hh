@@ -83,7 +83,7 @@ class GeantSetup
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 #if !CELERITAS_USE_GEANT4
-inline GeantSetup::GeantSetup(std::string const& s, Options)
+inline GeantSetup::GeantSetup(std::string const&, Options)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
