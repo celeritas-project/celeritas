@@ -31,10 +31,11 @@ GeantSurfacePhysicsHelper::GeantSurfacePhysicsHelper(SurfaceId sid) : sid_(sid)
     auto const* g4log_surf = geo->id_to_geant(sid);
     CELER_ASSERT(g4log_surf);
     auto* g4surf_prop = g4log_surf->GetSurfaceProperty();
-    CELER_ASSERT(g4surf_prop);
     surface_ = dynamic_cast<G4OpticalSurface*>(g4surf_prop);
-    CELER_ASSERT(surface_);
-    mpt_ = surface_->GetMaterialPropertiesTable();
+    if (surface_)
+    {
+        mpt_ = surface_->GetMaterialPropertiesTable();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -43,6 +44,7 @@ GeantSurfacePhysicsHelper::GeantSurfacePhysicsHelper(SurfaceId sid) : sid_(sid)
  */
 G4OpticalSurface const& GeantSurfacePhysicsHelper::surface() const
 {
+    CELER_EXPECT(*this);
     return *surface_;
 }
 
