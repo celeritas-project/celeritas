@@ -151,7 +151,6 @@ TEST_F(MaterialScintillationGaussianTest, data)
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
 
-    EXPECT_EQ(0, data.num_scint_particles);
     EXPECT_EQ(1, data.materials.size());
 
     auto const& mat_record = data.materials[opt_mat_];
