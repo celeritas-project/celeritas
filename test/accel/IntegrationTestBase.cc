@@ -44,6 +44,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/ext/EmPhysicsList.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/SimpleSensitiveDetector.hh"
 #include "celeritas/g4/DetectorConstruction.hh"
 #include "celeritas/inp/Events.hh"
@@ -287,9 +288,25 @@ TestOffload IntegrationTestBase::test_offload()
 }
 
 //---------------------------------------------------------------------------//
-// Default destructor to enable base class deletion and anchor vtable
+/*!
+ * Disable ROOT signal handlers on startup.
+ */
+IntegrationTestBase::IntegrationTestBase()
+{
+    // ROOT injects handlers simply by being linked
+    ScopedRootErrorHandler::disable_signal_handler();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Default destructor to enable base class deletion and anchor vtable.
+ */
 IntegrationTestBase::~IntegrationTestBase() = default;
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a unique filename accounting for the test environment.
+ */
 std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
 {
     std::string new_ext = "-";

@@ -42,10 +42,8 @@ namespace test
 //---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
 {
-#ifndef __APPLE__
-    // ROOT injects handlers simply by being linked on Linux systems
+    // ROOT injects handlers simply by being linked
     ScopedRootErrorHandler::disable_signal_handler();
-#endif
 
     // Create output registry
     output_reg_ = make_shared<OutputRegistry>();
