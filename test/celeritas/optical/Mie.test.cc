@@ -44,13 +44,13 @@ class MieTest : public InteractorHostBase, public OpticalMockTestBase
     {
         auto const& data = this->imported_data();
         MieModel::Input input;
-        input.model = ImportModelClass::mie;
-        for (auto const& mat : data.optical_materials)
+        input.data.resize(data.optical_materials.size());
+        for (auto&& [opt_mat_id, mie] : data.optical_physics.bulk.mie.materials)
         {
-            input.data.push_back(mat.mie);
+            input.data[opt_mat_id.get()] = mie;
         }
-        auto models
-            = std::make_shared<ImportedModels const>(data.optical_models);
+
+        auto models = ImportedModels::from_import(data);
         model_ = std::make_shared<MieModel const>(ActionId{0}, models, input);
         data_ = model_->host_ref();
     }

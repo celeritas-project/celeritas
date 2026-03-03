@@ -93,8 +93,18 @@ void ImportDataTrimmer::operator()(ImportData& data)
         this->for_each(data.livermore_photo.atomic_xs);
         this->for_each(data.atomic_relaxation.atomic_xs);
 
-        this->for_each(data.optical_models);
         this->for_each(data.optical_materials);
+
+        auto trim_mfp = [this](auto& data) {
+            if (options_.materials)
+            {
+                (*this)(data.materials);
+            }
+
+            this->for_each(data.materials);
+        };
+        trim_mfp(data.optical_physics.bulk.absorption);
+        trim_mfp(data.optical_physics.bulk.mie);
     }
 
     if (options_.mupp)
@@ -140,17 +150,6 @@ void ImportDataTrimmer::operator()(ImportOpticalMaterial& data)
         (*this)(data.properties.refractive_index);
         // TODO: trim WLS components?
     }
-}
-
-//---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportOpticalModel& data)
-{
-    if (options_.materials)
-    {
-        (*this)(data.mfp_table);
-    }
-
-    this->for_each(data.mfp_table);
 }
 
 //---------------------------------------------------------------------------//
@@ -383,6 +382,12 @@ void ImportDataTrimmer::operator()(std::map<K, T, C, A>& data)
         }
     }
     data = std::move(result);
+}
+
+template<class MM>
+void ImportDataTrimmer::operator()(celeritas::inp::OpticalModelMaterial<MM>& omm)
+{
+    (*this)(omm.mfp);
 }
 
 //---------------------------------------------------------------------------//

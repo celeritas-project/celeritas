@@ -157,113 +157,106 @@ ImportData const& OpticalMockTestBase::imported_data() const
 void OpticalMockTestBase::build_import_data(ImportData& data) const
 {
     data.units = units::NativeTraits::label();
+    auto& bulk = data.optical_physics.bulk;
     using Compressibility = RealQuantity<MeterCubedPerMeV>;
 
-    auto mat = [&data](std::size_t opt_mat_idx) -> ImportOpticalMaterial& {
+    auto mat_props = [&data](std::size_t opt_mat_idx) -> ImportOpticalProperty& {
         if (opt_mat_idx >= data.optical_materials.size())
             data.optical_materials.resize(opt_mat_idx + 1);
-        return data.optical_materials[opt_mat_idx];
-    };
-    auto model = [&data](std::size_t model_idx) -> ImportOpticalModel& {
-        if (data.optical_models.size() <= model_idx)
-            data.optical_models.resize(model_idx + 1);
-        return data.optical_models[model_idx];
+        return data.optical_materials[opt_mat_idx].properties;
     };
 
+    auto model = [](std::size_t opt_mat_idx, auto&& obm) -> auto& {
+        // NOTE: parens required to return a reference
+        return (obm.materials[OptMatId(opt_mat_idx)]);
+    };
     auto set_mfp = [&](std::size_t mat_idx,
-                       std::size_t model_idx,
+                       auto&& obm,
                        std::pair<std::vector<double>, std::vector<double>> xy) {
-        auto& mfp_table = model(model_idx).mfp_table;
-        if (mfp_table.size() <= mat_idx)
-            mfp_table.resize(mat_idx + 1);
-        mfp_table[mat_idx]
+        model(mat_idx, obm).mfp
             = native_physics_vector_from<units::Mev, units::Centimeter>(
                 std::move(xy.first), std::move(xy.second));
     };
 
-    model(0).model_class = ImportModelClass::absorption;
-    model(1).model_class = ImportModelClass::rayleigh;
-    model(2).model_class = ImportModelClass::wls;
-    model(3).model_class = ImportModelClass::wls2;
-    model(4).model_class = ImportModelClass::mie;
-
-    // Material 0 + absorption model (index 0)
-    mat(0).properties.refractive_index
+    // Material 0
+    mat_props(0).refractive_index
         = native_physics_vector_from<units::ElectronVolt, units::Native>(
             {1.098177, 1.256172, 1.484130},
             {1.3235601610672, 1.3256740639273, 1.3280120256415});
-    mat(0).rayleigh.scale_factor = 1;
-    mat(0).rayleigh.compressibility
+    model(0, bulk.rayleigh).scale_factor = 1;
+    model(0, bulk.rayleigh).compressibility
         = native_value_from(Compressibility{7.658e-23});
-    mat(0).wls.mean_num_photons = 2;
-    mat(0).wls.time_constant = native_value_from(TimeSecond(1e-9));
-    mat(0).wls.component.x = {1.65e-6, 2e-6, 2.4e-6, 2.8e-6, 3.26e-6};
-    mat(0).wls.component.y = {0.15, 0.25, 0.50, 0.40, 0.02};
-    mat(0).wls2.mean_num_photons = 1;
-    mat(0).wls2.time_constant = native_value_from(TimeSecond(21.7e-9));
-    mat(0).wls2.component.x = {
+    model(0, bulk.wls).mean_num_photons = 2;
+    model(0, bulk.wls).time_constant = native_value_from(TimeSecond(1e-9));
+    model(0, bulk.wls).component.x = {1.65e-6, 2e-6, 2.4e-6, 2.8e-6, 3.26e-6};
+    model(0, bulk.wls).component.y = {0.15, 0.25, 0.50, 0.40, 0.02};
+    model(0, bulk.wls2).mean_num_photons = 1;
+    model(0, bulk.wls2).time_constant = native_value_from(TimeSecond(21.7e-9));
+    model(0, bulk.wls2).component.x = {
         1.771e-6, 1.850e-6, 1.901e-6, 2.003e-6, 2.073e-6, 2.141e-6, 2.171e-6};
-    mat(0).wls2.component.y = {0.016, 0.024, 0.040, 0.111, 0.206, 0.325, 0.413};
-    mat(0).mie.forward_g = 0.99;
-    mat(0).mie.backward_g = 0.99;
-    mat(0).mie.forward_ratio = 0.8;
-    set_mfp(0, 0, {{1e-3, 1e-2}, {5.7, 9.3}});
-    set_mfp(0, 1, {{1e-2, 3e2}, {5.7, 9.3}});
-    set_mfp(0, 2, {{1e-3, 2e-3, 5e-1}, {1.3, 4.9, 9.4}});
-    set_mfp(0, 3, {{1e-1, 1e1}, {2.3, 5.4}});
-    set_mfp(0, 4, {{1e-1, 1e1}, {2.3, 5.4}});
+    model(0, bulk.wls2).component.y
+        = {0.016, 0.024, 0.040, 0.111, 0.206, 0.325, 0.413};
+    model(0, bulk.mie).forward_g = 0.99;
+    model(0, bulk.mie).backward_g = 0.99;
+    model(0, bulk.mie).forward_ratio = 0.8;
+    set_mfp(0, bulk.absorption, {{1e-3, 1e-2}, {5.7, 9.3}});
+    set_mfp(0, bulk.rayleigh, {{1e-2, 3e2}, {5.7, 9.3}});
+    set_mfp(0, bulk.wls, {{1e-3, 2e-3, 5e-1}, {1.3, 4.9, 9.4}});
+    set_mfp(0, bulk.wls2, {{1e-1, 1e1}, {2.3, 5.4}});
+    set_mfp(0, bulk.mie, {{1e-1, 1e1}, {2.3, 5.4}});
 
-    // Material 1 + rayleigh model (index 1)
-    mat(1).properties.refractive_index
+    // Material 1
+    mat_props(1).refractive_index
         = native_physics_vector_from<units::ElectronVolt, units::Native>(
             {1.098177, 1.256172, 1.484130},
             {1.3235601610672, 1.3256740639273, 1.3280120256415});
-    mat(1).rayleigh.scale_factor = 1.7;
-    mat(1).rayleigh.compressibility
+    model(1, bulk.rayleigh).scale_factor = 1.7;
+    model(1, bulk.rayleigh).compressibility
         = native_value_from(Compressibility{4.213e-24});
-    set_mfp(1, 0, {{1e-2, 3e2}, {1.2, 10.7}});
-    set_mfp(1, 1, {{1e-3, 1e-2}, {1.2, 10.7}});
-    set_mfp(1, 2, {{1e-2, 3e2}, {5.7, 9.3}});
-    set_mfp(1, 3, {{2e-2, 1e0, 3e2}, {5.7, 6.2, 9.3}});
-    set_mfp(1, 4, {{2e-2, 1e0, 3e2}, {5.7, 6.2, 9.3}});
+    set_mfp(1, bulk.absorption, {{1e-2, 3e2}, {1.2, 10.7}});
+    set_mfp(1, bulk.rayleigh, {{1e-3, 1e-2}, {1.2, 10.7}});
+    set_mfp(1, bulk.wls, {{1e-2, 3e2}, {5.7, 9.3}});
+    set_mfp(1, bulk.wls2, {{2e-2, 1e0, 3e2}, {5.7, 6.2, 9.3}});
+    set_mfp(1, bulk.mie, {{2e-2, 1e0, 3e2}, {5.7, 6.2, 9.3}});
 
-    // Material 2 + wls model (index 2)
-    mat(2).properties.refractive_index
+    // Material 2
+    mat_props(2).refractive_index
         = native_physics_vector_from<units::ElectronVolt, units::Native>(
             {1.098177, 6.812319}, {1.3235601610672, 1.4679465862259});
-    mat(2).rayleigh.scale_factor = 1;
-    mat(2).rayleigh.compressibility
+    model(2, bulk.rayleigh).scale_factor = 1;
+    model(2, bulk.rayleigh).compressibility
         = native_value_from(Compressibility{7.658e-23});
-    set_mfp(2, 0, {{1e-2, 3e2}, {3.1, 5.4}});
-    set_mfp(2, 1, {{1e-3, 2e-3, 5e-1}, {0.1, 7.6, 12.5}});
-    set_mfp(2, 2, {{1e-2, 3e2}, {1.2, 10.7}});
-    set_mfp(2, 3, {{3e-2, 3e2}, {3.2, 9.4}});
-    set_mfp(2, 4, {{3e-2, 3e2}, {3.2, 9.4}});
+    set_mfp(2, bulk.absorption, {{1e-2, 3e2}, {3.1, 5.4}});
+    set_mfp(2, bulk.rayleigh, {{1e-3, 2e-3, 5e-1}, {0.1, 7.6, 12.5}});
+    set_mfp(2, bulk.wls, {{1e-2, 3e2}, {1.2, 10.7}});
+    set_mfp(2, bulk.wls2, {{3e-2, 3e2}, {3.2, 9.4}});
+    set_mfp(2, bulk.mie, {{3e-2, 3e2}, {3.2, 9.4}});
 
-    // Material 3 + wls2 model (index 3)
-    mat(3).properties.refractive_index
+    // Material 3
+    mat_props(3).refractive_index
         = native_physics_vector_from<units::ElectronVolt, units::Native>(
             {1, 2, 5}, {1.3, 1.4, 1.5});
-    mat(3).rayleigh.scale_factor = 2;
-    mat(3).rayleigh.compressibility = native_value_from(Compressibility{1e-20});
-    set_mfp(3, 0, {{2e-3, 5e1, 1e2}, {0.1, 7.6, 12.5}});
-    set_mfp(3, 1, {{2e-3, 5e1, 1e2}, {0.1, 7.6, 12.5}});
-    set_mfp(3, 2, {{2e-3, 5e1, 1e2}, {1.3, 4.9, 9.4}});
-    set_mfp(3, 3, {{2e-3, 2e2}, {4.9, 9.4}});
-    set_mfp(3, 4, {{2e-3, 2e2}, {4.9, 9.4}});
+    model(3, bulk.rayleigh).scale_factor = 2;
+    model(3, bulk.rayleigh).compressibility
+        = native_value_from(Compressibility{1e-20});
+    set_mfp(3, bulk.absorption, {{2e-3, 5e1, 1e2}, {0.1, 7.6, 12.5}});
+    set_mfp(3, bulk.rayleigh, {{2e-3, 5e1, 1e2}, {0.1, 7.6, 12.5}});
+    set_mfp(3, bulk.wls, {{2e-3, 5e1, 1e2}, {1.3, 4.9, 9.4}});
+    set_mfp(3, bulk.wls2, {{2e-3, 2e2}, {4.9, 9.4}});
+    set_mfp(3, bulk.mie, {{2e-3, 2e2}, {4.9, 9.4}});
 
-    // Material 4 + mie model (index 4)
-    mat(4).properties.refractive_index
+    // Material 4
+    mat_props(4).refractive_index
         = native_physics_vector_from<units::ElectronVolt, units::Native>(
             {1.098177, 6.812319}, {1.3235601610672, 1.4679465862259});
-    mat(4).rayleigh.scale_factor = 1.7;
-    mat(4).rayleigh.compressibility
+    model(4, bulk.rayleigh).scale_factor = 1.7;
+    model(4, bulk.rayleigh).compressibility
         = native_value_from(Compressibility{4.213e-24});
-    set_mfp(4, 0, {{1e-3, 2e-3, 5e-1}, {1.3, 4.9, 9.4}});
-    set_mfp(4, 1, {{1e-3, 1e-2}, {3.1, 5.4}});
-    set_mfp(4, 2, {{1e-3, 2e-3, 5e-1}, {1.3, 4.9, 9.4}});
-    set_mfp(4, 3, {{1e-3, 4e-3, 5e-1}, {1.3, 5.9, 8.4}});
-    set_mfp(4, 4, {{1e-3, 4e-3, 5e-1}, {1.3, 5.9, 8.4}});
+    set_mfp(4, bulk.absorption, {{1e-3, 2e-3, 5e-1}, {1.3, 4.9, 9.4}});
+    set_mfp(4, bulk.rayleigh, {{1e-3, 1e-2}, {3.1, 5.4}});
+    set_mfp(4, bulk.wls, {{1e-3, 2e-3, 5e-1}, {1.3, 4.9, 9.4}});
+    set_mfp(4, bulk.wls2, {{1e-3, 4e-3, 5e-1}, {1.3, 5.9, 8.4}});
+    set_mfp(4, bulk.mie, {{1e-3, 4e-3, 5e-1}, {1.3, 5.9, 8.4}});
 }
 
 //---------------------------------------------------------------------------//
@@ -271,17 +264,39 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
  * Get the imported optical model corresponding to the given \c
  * ImportModelClass.
  */
-auto OpticalMockTestBase::get_mfp_table(ImportModelClass imc) const
-    -> VecGrid const&
+auto OpticalMockTestBase::get_mfp_table(ImportModelClass imc) const -> VecGrid
 {
-    auto const& models = this->imported_data().optical_models;
-    auto const iter = std::find_if(
-        models.begin(), models.end(), [imc](ImportOpticalModel const& m) {
-            return m.model_class == imc;
-        });
-    CELER_VALIDATE(iter != models.end(), << "invalid import model");
+    VecGrid result;
+    auto const& bulk = this->imported_data().optical_physics.bulk;
+    auto make_table = [&](auto const& omb) {
+        CELER_ASSERT(omb.model_class == imc);
+        for (auto&& [id, omm] : omb.materials)
+        {
+            result.push_back(omm.mfp);
+        }
+    };
+    switch (imc)
+    {
+        case ImportModelClass::absorption:
+            make_table(bulk.absorption);
+            break;
+        case ImportModelClass::rayleigh:
+            make_table(bulk.rayleigh);
+            break;
+        case ImportModelClass::wls:
+            make_table(bulk.wls);
+            break;
+        case ImportModelClass::wls2:
+            make_table(bulk.wls2);
+            break;
+        case ImportModelClass::mie:
+            make_table(bulk.mie);
+            break;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
 
-    return iter->mfp_table;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

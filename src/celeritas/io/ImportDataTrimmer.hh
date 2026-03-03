@@ -11,6 +11,7 @@
 
 #include "corecel/inp/Grid.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 
 #include "ImportData.hh"
 
@@ -53,7 +54,6 @@ class ImportDataTrimmer
     void operator()(ImportAtomicRelaxation& data);
     void operator()(inp::MuPairProductionEnergyTransferTable& data);
     void operator()(ImportOpticalMaterial& data);
-    void operator()(ImportOpticalModel& data);
     void operator()(inp::Particle& data);
     void operator()(ImportPhysMaterial& data);
     void operator()(ImportProcess& data);
@@ -89,6 +89,9 @@ class ImportDataTrimmer
 
     template<class K, class T, class C, class A>
     void operator()(std::map<K, T, C, A>& m);
+
+    template<class MM>
+    void operator()(celeritas::inp::OpticalModelMaterial<MM>& omm);
 
     template<class T>
     void for_each(std::vector<T>& vec);

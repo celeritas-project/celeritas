@@ -39,7 +39,7 @@ class GeantMaterialPropertyGetter
     //! Get property for a single double
     bool operator()(double& dst, char const* name, ImportUnits q)
     {
-        if (!mpt_ || !mpt_->ConstPropertyExists(name))
+        if (!*this || !mpt_->ConstPropertyExists(name))
         {
             return false;
         }
@@ -50,6 +50,10 @@ class GeantMaterialPropertyGetter
     //! Get property for a single double (indexed component)
     bool operator()(double& dst, std::string name, int comp, ImportUnits q)
     {
+        if (!*this)
+        {
+            return false;
+        }
         // Geant4 10.6 and earlier require a const char* argument
         name += std::to_string(comp);
         return (*this)(dst, name.c_str(), q);
@@ -59,7 +63,7 @@ class GeantMaterialPropertyGetter
     bool
     operator()(inp::Grid& dst, std::string const& name, Array<ImportUnits, 2> q)
     {
-        if (!mpt_)
+        if (!*this)
         {
             return false;
         }

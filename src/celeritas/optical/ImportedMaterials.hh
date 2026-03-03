@@ -27,6 +27,8 @@ namespace optical
  *
  * Stores material properties relevant for Rayleigh scattering and
  * wavelength shifting.
+ *
+ * \deprecated To be deleted soon
  */
 class ImportedMaterials
 {

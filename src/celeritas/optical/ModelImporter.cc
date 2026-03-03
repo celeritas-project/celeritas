@@ -57,6 +57,15 @@ ModelImporter::ModelImporter(ImportData const& data,
  */
 auto ModelImporter::operator()(IMC imc) const -> ModelBuilder
 {
+    // If no builtin model exists, return early
+    if (!input_.imported->builtin_model_id(imc))
+    {
+        CELER_LOG(debug) << "No optical model configured for '"
+                         << to_cstring(imc) << "'";
+        return nullptr;
+    }
+
+    // Construct built-in models
     using BuilderMemFn = ModelBuilder (ModelImporter::*)() const;
     static std::unordered_map<IMC, BuilderMemFn> const builtin_build{
         {IMC::absorption, &ModelImporter::build_absorption},
@@ -66,7 +75,6 @@ auto ModelImporter::operator()(IMC imc) const -> ModelBuilder
         {IMC::mie, &ModelImporter::build_mie},
     };
 
-    // Next, try built-in models
     auto iter = builtin_build.find(imc);
     CELER_VALIDATE(iter != builtin_build.end(),
                    << "cannot build unsupported optical model '" << imc << "'");
@@ -162,7 +170,6 @@ auto ModelImporter::build_mie() const -> ModelBuilder
         return nullptr;
 
     MieModel::Input input;
-    input.model = ImportModelClass::mie;
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
         auto mie_data = input_.import_material->mie(mid);

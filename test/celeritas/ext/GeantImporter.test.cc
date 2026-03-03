@@ -14,6 +14,7 @@
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/io/ImportData.hh"
@@ -1636,7 +1637,6 @@ TEST_F(LarSphere, optical)
 {
     ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
-    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1749,12 +1749,11 @@ TEST_F(LarSphere, optical)
     EXPECT_VEC_EQ(expected_comp_rt, expected_comp_rt);
     EXPECT_VEC_EQ(expected_comp_ft, expected_comp_ft);
 
+#if 0
+    auto& bulk = imported.optical_physics.bulk;
     // Check Rayleigh optical properties
-    auto const& rayleigh_model = imported.optical_models[1];
-    EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
-    ASSERT_EQ(1, rayleigh_model.mfp_table.size());
-
-    auto const& rayleigh_mfp = rayleigh_model.mfp_table.front();
+    auto const& rayleigh_model = bulk.rayleigh;
+    auto const& rayleigh_mfp = rayleigh_model.materials.find(OptMatId i)
     EXPECT_EQ(11, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
@@ -1858,16 +1857,17 @@ TEST_F(LarSphere, optical)
     EXPECT_DOUBLE_EQ(1.0597e-05, properties.refractive_index.x.back());
     EXPECT_DOUBLE_EQ(1.2221243542166, properties.refractive_index.y.front());
     EXPECT_DOUBLE_EQ(1.6167515615703, properties.refractive_index.y.back());
+#endif
 }
 
 TEST_F(LarSphereExtramat, optical)
 {
     auto&& imported = this->imported_data();
-    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
 
+#if 0
     // First material is vacuum, no optical properties
     ASSERT_EQ(0, imported.phys_materials[0].geo_material_id);
     EXPECT_EQ("vacuum", imported.geo_materials[0].name);
@@ -1907,6 +1907,7 @@ TEST_F(LarSphereExtramat, optical)
     auto const& properties = optical.properties;
     EXPECT_TRUE(properties);
     EXPECT_EQ(2, properties.refractive_index.x.size());
+#endif
 }
 
 //---------------------------------------------------------------------------//

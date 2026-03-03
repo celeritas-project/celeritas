@@ -78,6 +78,7 @@ struct OpticalPhysics
 
     //!@{
     //! \name Physics and properties for optical photons
+    OpticalBulkPhysics bulk;
     OpticalSurfacePhysics surfaces;
     //!@}
 

@@ -38,7 +38,7 @@ class OpticalMockTestBase : public GlobalTestBase
     ImportData const& imported_data() const;
 
     // Retrieve imported optical model data by class
-    VecGrid const& get_mfp_table(ImportModelClass) const;
+    VecGrid get_mfp_table(ImportModelClass) const;
 
     //! Number of mock optical materials
     OptMatId::size_type num_optical_materials() const
