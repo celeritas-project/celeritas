@@ -660,7 +660,8 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * only called on the main thread, and the \c SensitiveDetector getter/setter
  * on \c G4LogicalVolume uses a thread-local "split" class, <em>worker threads
  * will not see the sensitive detectors this loader creates</em>. Use \c
- * celeritas::DetectorConstruction if thread-local detectors are needed.
+ * celeritas::DetectorConstruction as part of a Geant4 run manager if
+ * thread-local detectors are needed.
  */
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
@@ -749,8 +750,9 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
         }
     }
 
+    if (ownership_ == Ownership::value)
     {
-        // Close the geometry if needed
+        // Close the geometry if we're managing it
         auto* geo_man = G4GeometryManager::GetInstance();
         CELER_ASSERT(geo_man);
         if (!geo_man->IsGeometryClosed())
