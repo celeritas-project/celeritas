@@ -272,8 +272,18 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         // Set up Geant4
         si.geant_setup = ri.physics_options;
         // Set up processes to spawn optical photons
-        si.geant_setup->optical.cherenkov.enable = ri.optical.cherenkov;
-        si.geant_setup->optical.scintillation.enable = ri.optical.scintillation;
+        if (ri.optical.cherenkov || ri.optical.scintillation)
+        {
+            if (!si.geant_setup->optical)
+                si.geant_setup->optical.emplace();
+        }
+        if (si.geant_setup->optical)
+        {
+            if (!ri.optical.cherenkov)
+                si.geant_setup->optical->cherenkov = std::nullopt;
+            if (!ri.optical.scintillation)
+                si.geant_setup->optical->scintillation = std::nullopt;
+        }
 
         inp::PhysicsFromGeant geant_import;
         CELER_VALIDATE(
