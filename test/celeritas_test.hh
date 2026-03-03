@@ -13,6 +13,9 @@
 // IWYU pragma: begin_exports
 #include "corecel/Config.hh"
 
+#include "corecel/Macros.hh"
+#include "corecel/io/StreamUtils.hh"
+
 #include "Test.hh"
 #include "TestMacros.hh"
 #include "TestMain.hh"

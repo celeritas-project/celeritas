@@ -12,7 +12,7 @@
 #include <type_traits>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/StreamToString.hh"
+#include "corecel/io/StreamUtils.hh"
 
 #include "../ScopedStreamFormat.hh"
 

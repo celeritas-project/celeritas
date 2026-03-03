@@ -13,7 +13,7 @@
 
 #include "corecel/Assert.hh"
 
-#include "StreamToString.hh"
+#include "StreamUtils.hh"
 
 namespace celeritas
 {
