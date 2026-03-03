@@ -155,7 +155,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sed) -> VecBTR
  */
 void LarStandaloneRunner::hit(SpanCelerHits hits)
 {
-    CELER_LOG(info) << "Processing " << hits.size() << "hits";
+    CELER_LOG(debug) << "Processing " << hits.size() << " hits";
     for (auto& h : hits)
     {
         CELER_ASSERT(h.volume_instance);
