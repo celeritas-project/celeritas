@@ -376,30 +376,17 @@ TEST_F(LarSphere, optical)
     EXPECT_VEC_EQ(expected_comp_rt, expected_comp_rt);
     EXPECT_VEC_EQ(expected_comp_ft, expected_comp_ft);
 
-#if 0
     auto& bulk = imported.optical_physics.bulk;
     // Check Rayleigh optical properties
-    auto const& rayleigh_model = bulk.rayleigh;
-    auto const& rayleigh_mfp = rayleigh_model.materials.find(OptMatId i)
+    auto const& rayleigh_mfp = bulk.rayleigh.materials.at(OptMatId{0}).mfp;
     EXPECT_EQ(11, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
     EXPECT_REAL_EQ(32142.9, to_cm(rayleigh_mfp.y.front()));
     EXPECT_REAL_EQ(54.6429, to_cm(rayleigh_mfp.y.back()));
 
-    auto const& rayleigh_mat = optical.rayleigh;
-    EXPECT_TRUE(rayleigh_mat);
-    EXPECT_EQ(1, rayleigh_mat.scale_factor);
-    EXPECT_REAL_EQ(0.024673059861887867 * centimeter * ipow<2>(second) / gram,
-                   rayleigh_mat.compressibility);
-
     // Check absorption optical properties
-    auto const& absorption_model = imported.optical_models[0];
-    EXPECT_EQ(optical::ImportModelClass::absorption,
-              absorption_model.model_class);
-    ASSERT_EQ(1, absorption_model.mfp_table.size());
-
-    auto const& absorption_mfp = absorption_model.mfp_table.front();
+    auto const& absorption_mfp = bulk.absorption.materials.at(OptMatId{0}).mfp;
     EXPECT_EQ(2, absorption_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.3778e-06, absorption_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, absorption_mfp.x.back());
@@ -408,15 +395,11 @@ TEST_F(LarSphere, optical)
 
     {
         // Check WLS optical properties
-        auto const& model = imported.optical_models[3];
-        EXPECT_EQ(optical::ImportModelClass::wls, model.model_class);
-        ASSERT_EQ(1, model.mfp_table.size());
-
-        auto const& mfp = model.mfp_table.front();
+        auto const& mat = bulk.wls.materials.at(OptMatId{0});
+        auto const& mfp = mat.mfp;
         EXPECT_EQ(2, mfp.x.size());
         EXPECT_EQ(mfp.x.size(), mfp.y.size());
 
-        auto const& mat = optical.wls;
         EXPECT_TRUE(mat);
         EXPECT_SOFT_EQ(0.456, mat.mean_num_photons);
         EXPECT_SOFT_EQ(6e-9, to_sec(mat.time_constant));
@@ -439,15 +422,11 @@ TEST_F(LarSphere, optical)
     }
     {
         // Check WLS2 optical properties
-        auto const& model = imported.optical_models[4];
-        EXPECT_EQ(optical::ImportModelClass::wls2, model.model_class);
-        ASSERT_EQ(1, model.mfp_table.size());
-
-        auto const& mfp = model.mfp_table.front();
+        auto const& mat = bulk.wls2.materials.at(OptMatId{0});
+        auto const& mfp = mat.mfp;
         EXPECT_EQ(2, mfp.x.size());
         EXPECT_EQ(mfp.x.size(), mfp.y.size());
 
-        auto const& mat = optical.wls2;
         EXPECT_TRUE(mat);
         EXPECT_REAL_EQ(0.123, mat.mean_num_photons);
         EXPECT_REAL_EQ(6e-9, to_sec(mat.time_constant));
@@ -484,7 +463,6 @@ TEST_F(LarSphere, optical)
     EXPECT_DOUBLE_EQ(1.0597e-05, properties.refractive_index.x.back());
     EXPECT_DOUBLE_EQ(1.2221243542166, properties.refractive_index.y.front());
     EXPECT_DOUBLE_EQ(1.6167515615703, properties.refractive_index.y.back());
-#endif
 }
 
 TEST_F(LarSphereExtramat, optical)
@@ -494,7 +472,6 @@ TEST_F(LarSphereExtramat, optical)
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
 
-#if 0
     // First material is vacuum, no optical properties
     ASSERT_EQ(0, imported.phys_materials[0].geo_material_id);
     EXPECT_EQ("vacuum", imported.geo_materials[0].name);
@@ -509,15 +486,12 @@ TEST_F(LarSphereExtramat, optical)
     // Check scintillation, WLS, and WLS2 optical properties
     auto const& optical = imported.optical_materials[0];
     EXPECT_FALSE(optical.scintillation);
-    EXPECT_FALSE(optical.wls);
-    EXPECT_FALSE(optical.wls2);
+    auto const& bulk = imported.optical_physics.bulk;
+    EXPECT_FALSE(bulk.wls.materials.count(OptMatId{0}));
+    EXPECT_FALSE(bulk.wls2.materials.count(OptMatId{0}));
 
     // Check Rayleigh optical properties
-    auto const& rayleigh_model = imported.optical_models[1];
-    EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
-    ASSERT_EQ(1, rayleigh_model.mfp_table.size());
-
-    auto const& rayleigh_mfp = rayleigh_model.mfp_table.front();
+    auto const& rayleigh_mfp = bulk.rayleigh.materials.at(OptMatId{0}).mfp;
     EXPECT_EQ(2, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
@@ -534,7 +508,6 @@ TEST_F(LarSphereExtramat, optical)
     auto const& properties = optical.properties;
     EXPECT_TRUE(properties);
     EXPECT_EQ(2, properties.refractive_index.x.size());
-#endif
 }
 
 //---------------------------------------------------------------------------//
