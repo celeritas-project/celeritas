@@ -142,7 +142,7 @@ auto LarSphereTest::make_input() const -> Input
     result.problem.model.geometry
         = this->test_data_path("geocel", "lar-sphere.gdml");
     result.detectors = {"detshell"};
-    result.problem.limits.steps = 10;
+    result.problem.limits.steps = 16;
     result.problem.capacity = [] {
         inp::OpticalStateCapacity cap;
         cap.tracks = 16;
@@ -180,7 +180,7 @@ TEST_F(LarSphereTest, single_sim_edep)
     LarsoftTime end_time{2.0};
 
     sim::SimEnergyDeposit sed(
-        /* numPhotons = */ 4,
+        /* numPhotons = */ 32,
         /* numElectrons = */ static_cast<int>(edep * 100),
         /* scintYieldRatio = */ 1.0,
         /* edep = */ edep,
@@ -193,14 +193,14 @@ TEST_F(LarSphereTest, single_sim_edep)
         /* origTrackID = */ 123);
 
     auto result = RunResult::from_btr(run({sed}));
-    result.print_expected();
+    // result.print_expected();
     RunResult ref;
-    ref.num_hits = {0, 0};
+    ref.num_hits = {3, 25};
     EXPECT_REF_EQ(ref, result);
 
     // Run again (simulating second event)
     result = RunResult::from_btr(run({sed}));
-    result.print_expected();
+    ref.num_hits = {5, 22};
     EXPECT_REF_EQ(ref, result);
 }
 

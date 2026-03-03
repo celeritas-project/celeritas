@@ -112,16 +112,16 @@
       <property name="ELECTRONSCINTILLATIONYIELD1" ref="ESY1"/>
       <property name="ELECTRONSCINTILLATIONRISETIME1" ref="ERT1"/>
       <property name="ELECTRONSCINTILLATIONTIMECONSTANT1" ref="ETC1"/>
-      <property name="RAYLEIGH" ref="RAY"/>
+      <property name="RAYLEIGH" ref="DO_NOT_SAMPLE"/>
       <property name="ISOTHERMAL_COMPRESSIBILITY" ref="IC"/>
-      <property name="ABSLENGTH" ref="ABS"/>
+      <property name="ABSLENGTH" ref="DO_NOT_SAMPLE"/>
       <property name="WLSCOMPONENT" ref="WLSC"/>
       <property name="WLSMEANNUMBERPHOTONS" ref="WLSMNP"/>
-      <property name="WLSABSLENGTH" ref="WLSABS"/>
+      <property name="WLSABSLENGTH" ref="DO_NOT_SAMPLE"/>
       <property name="WLSTIMECONSTANT" ref="TC1"/> <!-- Reused for simplicity -->
       <property name="WLSCOMPONENT2" ref="WLSC2"/>
       <property name="WLSMEANNUMBERPHOTONS2" ref="WLSMNP2"/>
-      <property name="WLSABSLENGTH2" ref="WLSABS"/>
+      <property name="WLSABSLENGTH2" ref="DO_NOT_SAMPLE"/>
       <property name="WLSTIMECONSTANT2" ref="TC1"/> <!-- Reused for simplicity -->
     </material>
     <isotope N="204" Z="82" name="Pb204">
