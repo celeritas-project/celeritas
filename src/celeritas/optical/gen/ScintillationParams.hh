@@ -20,6 +20,10 @@ struct ImportData;
 //---------------------------------------------------------------------------//
 /*!
  * Build and manage scintillation data.
+ *
+ * Celeritas contains special Gaussian distributions for scintillation that
+ * aren't supported by Geant4. The \c is_geant_compatible method can be used to
+ * warn the user.
  */
 class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 {
@@ -45,6 +49,9 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 
     // Construct with scintillation components
     explicit ScintillationParams(Input const& input);
+
+    // Whether any celeritas-only features are present
+    bool is_geant_compatible() const;
 
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }

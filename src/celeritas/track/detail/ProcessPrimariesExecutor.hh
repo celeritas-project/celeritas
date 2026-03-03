@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/random/engine/InitializeRngState.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
@@ -71,6 +72,15 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     ti.geo.dir = primary.direction;
     ti.particle.particle_id = primary.particle_id;
     ti.particle.energy = primary.energy;
+
+    // Set the RNG state initializer appropriately dispatched on RNG type
+    if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
+    {
+        celeritas::initialize_rng_state(params->rng.seed,
+                                        ti.sim.event_id.get(),
+                                        ti.sim.primary_id.get(),
+                                        ti.rng);
+    }
 
     // Store the initializer
     size_type idx = counters->num_initializers - primaries.size() + tid.get();

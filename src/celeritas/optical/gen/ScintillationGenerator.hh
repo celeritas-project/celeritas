@@ -129,7 +129,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     }();
 
     real_type energy_val{};
-    if (!component.energy_cdf)
+    if (component.is_normal_distribution())
     {
         // Sample a photon for a single scintillation component, reusing the
         // "spare" value that the wavelength sampler might have stored

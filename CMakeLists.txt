@@ -138,6 +138,15 @@ celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_RESEED
+# Random number generator selection
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+celeritas_setup_option(CELERITAS_RESEED trackslot)
+celeritas_setup_option(CELERITAS_RESEED track)
+celeritas_define_options(CELERITAS_RESEED
+  "RNG reseeding strategy")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_CORE_GEO
 # Runtime geometry selection
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

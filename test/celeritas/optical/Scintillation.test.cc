@@ -149,9 +149,9 @@ class MaterialScintillationTabularTest : public ScintillationTestBase
 TEST_F(MaterialScintillationGaussianTest, data)
 {
     auto const params = this->build_scintillation_params();
+    EXPECT_FALSE(params->is_geant_compatible());
     auto const& data = params->host_ref();
 
-    EXPECT_EQ(0, data.num_scint_particles);
     EXPECT_EQ(1, data.materials.size());
 
     auto const& mat_record = data.materials[opt_mat_];
@@ -503,6 +503,7 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
 TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
 {
     auto const params = this->build_scintillation_params();
+    EXPECT_TRUE(params->is_geant_compatible());
     auto const& data = params->host_ref();
 
     // Iterate components and, when an energy CDF is present, construct grid
