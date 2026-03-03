@@ -10,7 +10,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
@@ -236,6 +235,10 @@ void LocalTransporter::InitializeEvent(int id)
             // guarantees that an event can be reproduced given the event ID.
             step_->reseed(event_id_);
         }
+    }
+    if (hit_processor_)
+    {
+        hit_processor_->track_reconstruction().init_event();
     }
 }
 

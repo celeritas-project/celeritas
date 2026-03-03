@@ -50,7 +50,7 @@ class GeantTrackReconstruction
     // Register mapping from Celeritas PrimaryID to Geant4 track ID
     [[nodiscard]] PrimaryId acquire(G4Track&);
 
-    // Initialize event
+    // Reset primary ID at each event start
     void init_event();
 
     // Restore track information for given primary and particle IDs

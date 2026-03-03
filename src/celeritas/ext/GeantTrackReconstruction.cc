@@ -115,7 +115,7 @@ void GeantTrackReconstruction::clear()
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize a G4Track event
+ * At the start of an event, reset the primary ID counter.
  */
 void GeantTrackReconstruction::init_event()
 {
