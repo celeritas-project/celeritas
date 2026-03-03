@@ -15,11 +15,6 @@
 #include <G4NeutronTrackingCut.hh>
 #include <G4StoppingPhysics.hh>
 #include <G4ios.hh>
-#if G4VERSION_NUMBER >= 1070
-#    include <G4HadronicParameters.hh>
-#else
-#    include <G4HadronicProcessStore.hh>
-#endif
 
 #include "corecel/io/ScopedStreamRedirect.hh"
 #include "celeritas/Quantities.hh"
@@ -45,15 +40,6 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
     this->SetVerboseLevel(verbosity);
     this->SetDefaultCutValue(
         native_value_to<ClhepLen>(options.default_cutoff).value());
-
-    // Suppress Geant4 verbosity when G4ProcessType::fHadronic are enabled
-#if G4VERSION_NUMBER >= 1070
-    auto* had_params = G4HadronicParameters::Instance();
-    had_params->SetVerboseLevel(verbosity);
-#else
-    auto had_store = G4HadronicProcessStore::Instance();
-    had_store->SetVerbose(verbosity);
-#endif
 
     if (options.em() || options.muon || options.mucf_physics)
     {
