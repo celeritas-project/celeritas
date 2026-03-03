@@ -23,6 +23,8 @@ namespace celeritas
  * This component represents one type of scintillation emissions, such as
  * prompt/fast, intermediate, or slow. It can be specific to a material or
  * depend on the incident particle type.
+ *
+ * \todo Could refactor as a distribution sampler: gaussian vs grid
  */
 struct ScintRecord
 {
@@ -31,6 +33,10 @@ struct ScintRecord
     real_type rise_time{};  //!< Rise time
     real_type fall_time{};  //!< Decay time
     ItemId<NonuniformGridRecord> energy_cdf;
+
+    //! Whether this represents a normal distribution
+    CELER_FUNCTION bool is_normal_distribution() const { return !energy_cdf; }
+
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
