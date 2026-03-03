@@ -35,9 +35,10 @@ constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
                                          == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
-class UAITrackingAction final : public G4UserTrackingAction
+class UAITrackingAction : public G4UserTrackingAction
 {
-    void PreUserTrackingAction(G4Track const* track) final
+  public:
+    void PreUserTrackingAction(G4Track const* track) override
     {
         UAI::Instance().PreUserTrackingAction(const_cast<G4Track*>(track));
     }
@@ -197,12 +198,12 @@ TEST_F(OpNoviceOptical, run)
 //---------------------------------------------------------------------------//
 // LAR SPHERE WITH OPTICAL TRACK OFFLOAD
 //---------------------------------------------------------------------------//
-class LSOOTrackingAction final : public G4UserTrackingAction
+class LSOOTrackingAction final : public UAITrackingAction
 {
   public:
     void PreUserTrackingAction(G4Track const* track) final
     {
-        UAI::Instance().PreUserTrackingAction(const_cast<G4Track*>(track));
+        UAITrackingAction::PreUserTrackingAction(track);
 
         auto& local = detail::IntegrationSingleton::instance().local_offload();
         auto* opt_offload = dynamic_cast<LocalOpticalTrackOffload*>(&local);
@@ -310,16 +311,17 @@ void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     auto& local = integration.local_offload();
 
-    auto* opt_offload = dynamic_cast<LocalOpticalTrackOffload*>(&local);
+    auto test_mode = IntegrationTestBase::test_offload();
+
     if (!G4Threading::IsMultithreadedApplication())
     {
-        if (opt_offload && opt_offload->Initialized())
+        if (test_mode == TestOffload::cpu || test_mode == TestOffload::gpu)
         {
-            std::size_t pushed = opt_offload->num_pushed();
+            auto pushed
+                = dynamic_cast<LocalOpticalTrackOffload&>(local).num_pushed();
 
-            //  Validate that we intercepted optical tracks
-            EXPECT_GT(pushed, 0) << "should have pushed many optical "
-                                    "tracks";
+            // Validate that we intercepted optical tracks
+            EXPECT_GT(pushed, 0) << "should have pushed many optical tracks";
         }
     }
     if (G4Threading::IsMultithreadedApplication())
@@ -331,9 +333,9 @@ void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
         }
 
         CELER_LOG(info) << "Celeritas offloaded  " << total_tracks_pushed
-                        << " optical tracks. ";
+                        << " optical tracks";
 
-        if (integration.mode() == OffloadMode::disabled)
+        if (test_mode == TestOffload::g4 || test_mode == TestOffload::ko)
         {
             EXPECT_EQ(total_tracks_pushed, 0);
         }
