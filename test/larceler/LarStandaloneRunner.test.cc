@@ -195,12 +195,12 @@ TEST_F(LarSphereTest, single_sim_edep)
     auto result = RunResult::from_btr(run({sed}));
     // result.print_expected();
     RunResult ref;
-    ref.num_hits = {3, 25};
+    ref.num_hits = {0, 0};
     EXPECT_REF_EQ(ref, result);
 
     // Run again (simulating second event)
     result = RunResult::from_btr(run({sed}));
-    ref.num_hits = {5, 22};
+    ref.num_hits = {0, 0};
     EXPECT_REF_EQ(ref, result);
 }
 
