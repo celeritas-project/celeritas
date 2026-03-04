@@ -69,8 +69,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
 
         (*this)(data.volumes);
 
-        (*this)(data.optical_materials);
-
         (*this)(data.seltzer_berger.atomic_xs);
         (*this)(data.livermore_photo.atomic_xs);
         (*this)(data.atomic_relaxation.atomic_xs);
@@ -92,19 +90,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
         this->for_each(data.seltzer_berger.atomic_xs);
         this->for_each(data.livermore_photo.atomic_xs);
         this->for_each(data.atomic_relaxation.atomic_xs);
-
-        this->for_each(data.optical_materials);
-
-        auto trim_mfp = [this](auto& data) {
-            if (options_.materials)
-            {
-                (*this)(data.materials);
-            }
-
-            this->for_each(data.materials);
-        };
-        trim_mfp(data.optical_physics.bulk.absorption);
-        trim_mfp(data.optical_physics.bulk.mie);
     }
 
     if (options_.mupp)
@@ -112,10 +97,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
         // Reduce the resolution of the muon pair production table
         (*this)(data.mu_production.muppet_table);
     }
-
-    // Trim infinities from grid
-    this->for_each(data.optical_physics.surfaces.reflectivity.grid);
-    this->for_each(data.optical_physics.surfaces.interaction.dielectric);
 }
 
 //---------------------------------------------------------------------------//
@@ -349,12 +330,6 @@ void ImportDataTrimmer::operator()(std::map<K, T, C, A>& data)
         }
     }
     data = std::move(result);
-}
-
-template<class MM>
-void ImportDataTrimmer::operator()(celeritas::inp::OpticalModelMaterial<MM>& omm)
-{
-    (*this)(omm.mfp);
 }
 
 //---------------------------------------------------------------------------//
