@@ -1,5 +1,92 @@
 # ORANGE Agent Instructions
 
+## Geant4-to-ORANGE Conversion (`g4org` namespace)
+
+The `g4org` sub-directory converts an in-memory Geant4 geometry into an `OrangeInput` that is then used to construct `OrangeParams`. The conversion is driven by `Converter`, which takes a `GeantGeoParams` and `VolumeParams` and returns a `Converter::result_type` containing the completed `OrangeInput`.
+
+### Conversion class hierarchy
+
+| Class | Responsibility |
+|---|---|
+| `Converter` | Top-level entry point; owns and sequences the sub-converters |
+| `PhysicalVolumeConverter` | Recursively walks `G4VPhysicalVolume` tree; produces `PhysicalVolume` structs |
+| `LogicalVolumeConverter` | Converts one `G4LogicalVolume` (no daughters) to `LogicalVolume`; caches results |
+| `SolidConverter` | Converts a `G4VSolid` to an `orangeinp::ObjectInterface`; caches results |
+| `Scaler` | Converts CLHEP/Geant4 length units to Celeritas `real_type` (default: mm) |
+| `Transformer` | Converts G4 affine/rotation/translation objects to ORANGE `VariantTransform` (daughter-to-parent convention) |
+
+**Intermediate data structures** (in `g4org/Volume.hh`):
+- `LogicalVolume` — ORANGE equivalent of `G4LogicalVolume`: holds an `ObjectInterface` plus child placements. Will be renamed `Volume`.
+- `PhysicalVolume` — ORANGE equivalent of `G4VPhysicalVolume`: holds a `VolumeInstanceId`, a `VariantTransform`, and a shared `LogicalVolume`. Will be renamed `VolumeInstance`.
+
+**Conversion note:** Geant4 stores "frame" transforms (parent→daughter), but ORANGE requires daughter→parent. `Transformer` inverts as needed.
+
+### Decomposition into unit protos
+
+The converter decomposes the logical volume graph into subgraphs that each become a CSG unit (`UnitProto`):
+
+- **Leaf volumes** (no children) are inlined as material placements into the parent unit.
+- **Singly-placed volumes** without transforms are usually also inlined (controlled by `inp::InlineSingletons`).
+- **Multiply-placed or rotated volumes** become their own unit proto.
+
+Each `UnitProto` is built with a `build` call that produces surfaces, a CSG tree, and bounding boxes. The proto is then inserted by `UnitInserter` during geometry flattening into the final `OrangeInput`.
+
+### Volume mapping (touchable history)
+
+ORANGE must maintain a bijective map from each implementation volume to the Geant4 touchable hierarchy (unique volume instance). This is achieved in four phases:
+
+1. **Proto conversion**: each child placement records its *proto material ID* (parent volume after subtracting children) in the unit proto input.
+2. **Proto build**: proto material IDs are remapped to canonical `VolumeId`s; the result is stored as a *local parent map*.
+3. **Geometry flattening** (`UnitInserter`): produces per-universe *local parent volume* and *local volume level* vectors.
+4. **Runtime traversal**: the full touchable path is reconstructed by summing local volume levels across the universe stack and following parent links backward.
+
+An ORANGE track state is a `[{universe, impl_volume}]` stack. The *local volume level* values at each universe level sum to the canonical depth in the Geant4 hierarchy.
+
+### Configuration
+
+`inp::OrangeGeoFromGeant` (deserialized from the `G4ORG_OPTIONS` environment variable for debugging) controls:
+- `unit_length` and `tol`: length scale and tracking tolerance.
+- `inp::InlineSingletons` enum (`none` / `untransformed` / `unrotated` / `all`): how aggressively to inline single-use volumes into their parent universe.
+
+## ORANGE Construction (`orangeinp` namespace)
+
+ORANGE geometry can also be constructed directly (for tests, SCALE import, and manual setups) using the `orangeinp` API before any `OrangeParams` is built.
+
+### Primitives
+
+`IntersectRegionInterface` is the lowest-level primitive: a CSG intersection of half-spaces built from quadric and planar surfaces. Concrete implementations include `Box`, `Cone`, `Cylinder`, `Sphere`, `Ellipsoid`, `Prism`, `GenPrism`, `Paraboloid`, `Hyperboloid`, `Involute`, `ExtrudedPolygon`, and wedge types (`InfAziWedge`, `InfPolarWedge`).
+
+### Object types
+
+`ObjectInterface` implementations compose intersect regions into more complex CSG objects:
+
+| Class | Description |
+|---|---|
+| `Shape` | Single intersect region; simple convex or quasi-convex volumetric primitive |
+| `Solid` | Hollowed/sliced shape (CSG subtraction of two same-type shapes) |
+| `PolyCone` / `RevolvedPolygon` / `StackedExtrudedPolygon` | Swept or stacked variants |
+| `Transformed` | Applies a rotation/translation to any `ObjectInterface` |
+| `JoinObjects` (`AnyObjects` / `AllObjects`) | CSG union or intersection of a list of objects |
+| `NegatedObject` | CSG complement |
+
+Objects are held as `shared_ptr<ObjectInterface const>` and can be reused in multiple placements.
+
+### Unit proto and build pipeline
+
+`UnitProto` (a "proto-universe") collects `ObjectInterface` placements, background volumes, and daughter universe references. Its `build` call:
+
+1. Transforms and normalizes surfaces (e.g., flips planes to positive orientation, collapses axis-aligned planes).
+2. De-duplicates nearly-coincident surfaces to prevent boundary-crossing errors.
+3. Constructs bounding boxes from convex region hints and simplified surfaces.
+4. Builds the CSG tree with leaf → interior → root nodes.
+5. Simplifies the CSG tree using boundary conditions.
+
+The `UnitInserter` then flattens the `UnitProto` hierarchy into the flat `OrangeInput` arrays consumed by `OrangeParams`.
+
+### Acceleration structure
+
+At runtime, ORANGE uses a **bounding interval hierarchy (BIH)** to accelerate surface intersection queries, avoiding a brute-force search over all surfaces in a unit.
+
 ## Runtime Tracking System
 
 ### State layout (`OrangeStateData`)
@@ -28,7 +115,6 @@ State is split into two tiers:
 | `interior` | Inside a volume, not on a boundary |
 | `exiting_boundary` | On a surface; track is moving outward (default after crossing) |
 | `entering_boundary` | On a surface; track is moving inward (set by `move_to_boundary`) |
-| `exterior` | Outside the global geometry |
 | `error` | Unrecoverable tracking failure; `failed()` returns true |
 
 `flip_boundary` swaps `entering_boundary` ↔ `exiting_boundary` and is called by `set_dir` when a direction change on a surface reverses the crossing sense.
