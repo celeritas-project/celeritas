@@ -32,12 +32,14 @@ namespace celeritas
  * Initialization is performed via the assignment operator using a \c
  * GeoTrackInitializer.
  *
- * - An ephemeral \c failed flag can be set if initialization encountered an
- *   error, which is usually due to the user geometry definition.
- * - Depending on geometry implementation, the track may have a valid geometry
- *   state but is outside the physically relevant region: \c is_outside will be
- *   set.
- * - Otherwise, the track's geometry state is valid for access.
+ * - Initialization may fail, leaving the track with an "error" status.
+ * - Some implementations allow initialization on a boundary, leaving the track
+ *   in an "exiting boundary" state (i.e., the next step is away from the
+ *   boundary).
+ * - Some implementations allow initialization to succeed but be in an
+ *   "unusable" part of the geometry (e.g., ORANGE exterior volume). In this
+ *   case, the canonical volume ID will be 'false' indicating no corresponding
+ *   user-defined geometry region.
  *
  * Tracking to and across volumes along a straight line requires a specific
  * sequence of calls.
@@ -47,14 +49,16 @@ namespace celeritas
  * - Move within the current volume, not crossing a boundary, via \c
  *   move_internal or \c move_to_boundary.
  * - If on a boundary, \c normal can be used to calculate the current surface
- * normal.
- * - If on a boundary, change volumes ("relocate") with \c cross_boundary. This
- *   may cause the particle to leave the geometry, or result in an error that
- * will set the \c failed flag.
+ *   normal. Depending on the implementation, this normal may be "away from"
+ *   the current volume, or its sign may require interpreting based on the \c
+ *   geo_status.
+ * - If exiting a boundary, change volumes ("relocate") with \c cross_boundary.
+ *   The post-crossing status can be \c error or \c exiting_boundary . The
+ *   post-crossing volume may be the exterior (null canonical VolumeId).
  *
- * \note The flag \c is_on_boundary will be true both before \em and after the
- * call to \c cross_boundary, and the surface normal can be calculated in both
- * cases.
+ * \note The free function \c is_on_boundary will be true of the geo status
+ * both before \em and after the call to \c cross_boundary, and the surface
+ * normal can be calculated in both cases.
  *
  * Movement to a nearby but arbitrary point can be done inside a
  * "safety" distance:
@@ -108,20 +112,26 @@ class GeoTrackInterface
     virtual VolumeLevelId volume_level() const = 0;
     //! Get the volume instance ID for all levels
     virtual void volume_instance_id(Span<VolumeInstanceId> levels) const = 0;
-    //!@}
-
-    //! Get the implementation volume ID
-    virtual ImplVolumeId impl_volume_id() const = 0;
 
     /*!
      * Whether the track is outside the valid geometry region.
      *
      * Returns true if the track has left the world (or started outside the
      * outermost known volume).
+     *
+     * \deprecated use \c is_outside(VolumeId) instead
      */
     virtual bool is_outside() const = 0;
+    //!@}
 
-    //! Whether the last operation resulted in an error
+    //! Get the implementation volume ID
+    virtual ImplVolumeId impl_volume_id() const = 0;
+
+    /*!
+     * Whether the last operation resulted in an error.
+     *
+     * \deprecated use \c geo_status == GeoStatus::error instead.
+     */
     virtual bool failed() const = 0;
 
     //!@{
@@ -132,6 +142,8 @@ class GeoTrackInterface
      *
      * Returns true if a track is exactly on the boundary of a volume, capable
      * of changing to another volume without altering the physical position.
+     *
+     * \deprecated use \c is_on_boundary(GeoStatus) or directly query status
      */
     virtual bool is_on_boundary() const = 0;
 
@@ -158,8 +170,6 @@ class GeoTrackInterface
     {
         if (this->failed())
             return GeoStatus::error;
-        if (this->is_outside())
-            return GeoStatus::exterior;
         if (this->is_on_boundary())
         {
             return dot_product(this->dir(), this->normal()) >= 0
@@ -168,6 +178,7 @@ class GeoTrackInterface
         }
         return GeoStatus::interior;
     }
+
     //!@}
     //!@{
     //! \name Straight-line movement and boundary crossing

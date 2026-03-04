@@ -84,6 +84,8 @@ class OrangeTrackView
     // Get the volume instance ID for all universe levels
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
 
+    // Geometry status
+    inline CELER_FUNCTION GeoStatus geo_status() const;
     // Whether the track is outside the valid geometry region
     inline CELER_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
@@ -174,7 +176,6 @@ class OrangeTrackView
     inline CELER_FUNCTION UnivLevelId surface_univ_level() const;
     inline CELER_FUNCTION LocalSurfaceId surf() const;
     inline CELER_FUNCTION Sense sense() const;
-    inline CELER_FUNCTION GeoStatus geo_status() const;
 
     inline CELER_FUNCTION real_type next_step() const;
     inline CELER_FUNCTION UnivLevelId next_univ_level() const;
@@ -336,10 +337,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
     this->univ_level(ulev_id);
 
     // Reset surface/boundary information (preserve error status if set)
-    if (this->geo_status() != GeoStatus::error)
-    {
-        this->geo_status(GeoStatus::interior);
-    }
     this->clear_surface();
     this->clear_next();
 
@@ -553,6 +550,15 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Geometry tracking state.
+ */
+CELER_FORCEINLINE_FUNCTION GeoStatus OrangeTrackView::geo_status() const
+{
+    return states_.status[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether the track is outside the valid geometry region.
  */
 CELER_FUNCTION bool OrangeTrackView::is_outside() const
@@ -579,6 +585,9 @@ CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::is_on_boundary() const
  * The direction of the normal is determined by the sense of the track such
  * that the normal always points out of the volume that the track is currently
  * in.
+ * \todo This doesn't necessarily have the same meaning as in G4; we should
+ * change so that the sign is arbitrary, and downstream use cases can flip
+ * based on the geo status and its dot product with the direction.
  */
 CELER_FUNCTION Real3 OrangeTrackView::normal() const
 {
@@ -602,6 +611,8 @@ CELER_FUNCTION Real3 OrangeTrackView::normal() const
  * physics-based simulation, or the image edge in a rasterization) may reduce
  * the number of surfaces needed to check, sort, or write to temporary memory,
  * thereby speeding up transport.
+ *
+ * \todo Prohibit when GeoStatus::entering_boundary
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type next_step)
 {
@@ -609,7 +620,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type next_step)
 
     if (CELER_UNLIKELY(this->geo_status() == GeoStatus::entering_boundary))
     {
-        // On a boundary, headed back in: next step is zero
+        // On a boundary, headed in: next step is zero
         return {0, true};
     }
 
@@ -722,7 +733,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     this->surface(this->next_univ_level(), this->next_surf());
     this->clear_next();
 
-    CELER_ENSURE(this->is_on_boundary());
+    CELER_ENSURE(this->geo_status() == GeoStatus::entering_boundary);
 }
 
 //---------------------------------------------------------------------------//
@@ -795,7 +806,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    if (CELER_UNLIKELY(this->geo_status() == GeoStatus::exiting_boundary))
+    if (this->geo_status() == GeoStatus::exiting_boundary)
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
@@ -836,7 +847,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
             << univ.unchecked_get() << " at local position " << repr(local.pos)
             << " along local direction " << repr(local.dir);
 #endif
-        // Mark as failed and place in local "exterior" to end the search
+        // Mark as failed and place in *local* "exterior" to end the search
         // but preserve the current level
         this->geo_status(GeoStatus::error);
         volume = orange_exterior_volume;
@@ -898,7 +909,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     // Save final univ_level
     this->univ_level(ulev_id);
 
-    CELER_ENSURE(this->is_on_boundary());
+    CELER_ENSURE(this->geo_status() == GeoStatus::exiting_boundary);
 }
 
 //---------------------------------------------------------------------------//
@@ -1112,12 +1123,6 @@ CELER_FORCEINLINE_FUNCTION LocalSurfaceId OrangeTrackView::surf() const
 CELER_FORCEINLINE_FUNCTION Sense OrangeTrackView::sense() const
 {
     return states_.sense[track_slot_];
-}
-
-//! The geo status
-CELER_FORCEINLINE_FUNCTION GeoStatus OrangeTrackView::geo_status() const
-{
-    return states_.status[track_slot_];
 }
 
 //! The next step distance

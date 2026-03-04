@@ -17,11 +17,9 @@ namespace celeritas
 char const* to_cstring(GeoStatus value)
 {
     static EnumStringMapper<GeoStatus> const to_cstring_impl{
-        "uninitialized",
         "interior",
         "exiting_boundary",
         "entering_boundary",
-        "exterior",
         "error",
     };
     return to_cstring_impl(value);

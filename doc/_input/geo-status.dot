@@ -3,11 +3,9 @@ digraph GeoStatus {
   node [shape=box];
 
   // States
-  "uninitialized"       [label="uninitialized\n(volume not known)"];
   "interior"            [label="interior\n(inside volume, not on boundary)"];
   "exiting_boundary"    [label="exiting_boundary\n(on boundary, entering next volume)"];
   "entering_boundary"   [label="entering_boundary\n(on boundary, inside current volume)"];
-  "exterior"            [label="exterior\n(outside valid geometry)"];
   "error"               [label="error\n(unrecoverable failure)", style=filled, fillcolor=lightcoral];
 
   // Special start and terminal nodes
@@ -30,6 +28,5 @@ digraph GeoStatus {
 
   // Crossing the surface
   "entering_boundary" -> "exiting_boundary"  [label="cross_boundary\n[next interior volume]"];
-  "entering_boundary" -> "exterior"          [label="cross_boundary\n[exits geometry]"];
   "entering_boundary" -> "error"             [label="cross_boundary\n[new volume not found]"];
 }

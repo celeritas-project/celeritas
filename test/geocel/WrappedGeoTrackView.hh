@@ -85,7 +85,7 @@ class WrappedGeoTrackView final
     Real3 normal() const final { return t_.normal(); }
     GeoStatus geo_status() const final
     {
-        if constexpr (has_geo_status_<GTV>::value)
+        if constexpr (HasGeoStatus_<GTV>::value)
         {
             return t_.geo_status();
         }
@@ -115,19 +115,20 @@ class WrappedGeoTrackView final
     void move_internal(Real3 const& pos) final { t_.move_internal(pos); }
 
   private:
+    GTV t_;
+
+    // Determine whether the track has a geo_status accessor
     template<class T, class = void>
-    struct has_geo_status_ : std::false_type
+    struct HasGeoStatus_ : std::false_type
     {
     };
     template<class T>
-    struct has_geo_status_<
+    struct HasGeoStatus_<
         T,
         std::void_t<decltype(std::declval<T const&>().geo_status())>>
         : std::true_type
     {
     };
-
-    GTV t_;
 };
 
 //---------------------------------------------------------------------------//

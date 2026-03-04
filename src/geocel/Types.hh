@@ -81,15 +81,13 @@ enum class Axis
 
 //---------------------------------------------------------------------------//
 /*!
- * Geometry track state.
+ * Geometry state as a track moves across boundaries through the geometry.
  */
-enum class GeoStatus
+enum class GeoStatus : unsigned char
 {
-    uninitialized,  //!< Volume not known
-    interior,  //!< In a volume, not logically on a boundary
+    interior = 0,  //!< In a volume, not logically on a boundary
     exiting_boundary,  //!< On a boundary, into next volume
     entering_boundary,  //!< On a boundary, into current volume
-    exterior,  //!< Outside valid problem extents
     error,  //!< Unrecoverable error condition
     size_
 };
@@ -183,11 +181,18 @@ inline constexpr char to_char(Axis ax)
 }
 
 //---------------------------------------------------------------------------//
-//! Get the lowercase name of the axis.
+//! Whether the geometry is on a boundary
 CELER_CONSTEXPR_FUNCTION bool is_on_boundary(GeoStatus s)
 {
     return s == GeoStatus::entering_boundary
            || s == GeoStatus::exiting_boundary;
+}
+
+//---------------------------------------------------------------------------//
+//! Whether a volume is outside the canonical geometry extents
+CELER_CONSTEXPR_FUNCTION bool is_outside(VolumeId v)
+{
+    return !v;
 }
 
 //---------------------------------------------------------------------------//
