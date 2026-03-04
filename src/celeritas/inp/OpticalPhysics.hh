@@ -79,11 +79,11 @@ struct OpticalBulkPhysics
     //! Absorption models for all materials
     OpticalBulkModel<OpticalBulkAbsorption, IMC::absorption> absorption;
 
-    //! Rayleigh scattering models for all materials
-    OpticalBulkModel<ImportOpticalRayleigh, IMC::rayleigh> rayleigh;
-
     //! Mie scattering models for materials
     OpticalBulkModel<ImportMie, IMC::mie> mie;
+
+    //! Rayleigh scattering models for all materials
+    OpticalBulkModel<ImportOpticalRayleigh, IMC::rayleigh> rayleigh;
 
     //! WLS models (TODO: merge into a single WLS with arbitrary components)
     OpticalBulkModel<ImportWavelengthShift, IMC::wls> wls;
@@ -92,7 +92,7 @@ struct OpticalBulkPhysics
     //! Whether optical physics is enabled
     explicit operator bool() const
     {
-        return absorption || rayleigh || mie || wls || wls2;
+        return absorption || mie || rayleigh || wls || wls2;
     }
 };
 
