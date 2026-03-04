@@ -1,0 +1,24 @@
+//---------------------------------------------------------------------------//
+// Job execution file for the PDFullSimCeler module
+//---------------------------------------------------------------------------//
+#include "services_dune.fcl"
+#include "PDFullSimCeler.fcl"
+
+process_name: pdfullsimceler
+
+// Set up root output filename and geometry
+services:
+{
+    TFileService: { fileName: "pdfullsim-celer.root" }
+    Geometry: @local::dune10kt_1x2x6_v1_geo
+}
+
+// Set up producer and its execution
+physics:
+{
+    producers:
+    {
+        sim: @local::PDFullSimCeler
+    }
+    end_path: [ sim ]
+}
