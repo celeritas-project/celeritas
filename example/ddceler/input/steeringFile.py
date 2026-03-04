@@ -54,8 +54,11 @@ def setup_physics(kernel):
     # Optional: load a covfie binary field map instead of using the DD4hep
     # ConstantField.  Requires CELERITAS_USE_covfie=ON at build time.
     # Coordinates must be in centimetres and field values in tesla.
-    # Example (commented out):
+    # FieldMapCoordType selects the coordinate system:
+    #   "BrBz"   - 2D cylindrical (r,z) with Br,Bz components
+    #   "BxByBz" - 3D Cartesian (x,y,z) with Bx,By,Bz components (default)
     # celer_phys.FieldMapFile = "/path/to/field.covfie"
+    # celer_phys.FieldMapCoordType = "BrBz"
     phys.adopt(celer_phys)
     phys.dump()
     return None
