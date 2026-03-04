@@ -1,0 +1,16 @@
+//---------------------------------------------------------------------------//
+// Configuration file for the PDSimAna module
+//---------------------------------------------------------------------------//
+
+BEGIN_PROLOG
+
+PDSimAna:
+{
+    module_type: PDSimAna
+    SimulationLabel: "IonAndScint" // SimEnergyDeposit
+    ModuleLabel: "PDFastSim" // OpdetBacktrackerRecord
+
+    // TODO: Possibly add run-time histogram definitions
+}
+
+END_PROLOG

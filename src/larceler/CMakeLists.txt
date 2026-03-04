@@ -70,6 +70,17 @@ celeritas_target_link_libraries(GeoSimExporter_module
     Celeritas::corecel
 )
 
+celeritas_add_art_module(PDSimAna module)
+celeritas_target_link_libraries(PDSimAna_module
+  PRIVATE
+    fhiclcpp::fhiclcpp
+    art::Utilities
+    art_root_io::TFileService_service
+    larcore::ServiceUtil
+    lardataobj::Simulation
+    Celeritas::corecel
+)
+
 #-----------------------------------------------------------------------------#
 # Install FHICL module/example files
 #-----------------------------------------------------------------------------#
@@ -78,6 +89,9 @@ set(_fcl_files
   GeoSimExporter.fcl
   GeoSimExporter_run.fcl
   PDFullSimCeler.fcl
+  PDFullSimCeler_run.fcl
+  PDSimAna.fcl
+  PDSimAna_run.fcl
 )
 
 # Copy into $BUILD/fcl directory at build time (re-copies when source changes)
