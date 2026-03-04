@@ -306,10 +306,9 @@ OrangeTrackView::operator=(Initializer_t const& init)
             msg << " in universe " << univ_id.unchecked_get()
                 << " at local position " << repr(local.pos);
 #endif
-            // Mark as failed and place in local "exterior" to end the search
-            // but preserve the current universe level information
+            // Mark as failed
             this->geo_status(GeoStatus::error);
-            tinit.volume = orange_exterior_volume;
+            return *this;
         }
 
         auto lsa = this->make_lsa(ulev_id);
@@ -357,6 +356,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
     {
         // Copy init track's position and logical state
         OrangeTrackView other(params_, states_, init.parent);
+        CELER_ASSERT(other.geo_status() != GeoStatus::error);
         this->univ_level(states_.univ_level[other.track_slot_]);
         this->surface(other.surface_univ_level(),
                       {other.surf(), other.sense()});
@@ -1228,6 +1228,7 @@ CELER_FUNCTION void OrangeTrackView::clear_next()
 CELER_FUNCTION void OrangeTrackView::clear_surface()
 {
     states_.surface_univ_level[track_slot_] = {};
+    this->geo_status(GeoStatus::interior);
     CELER_ENSURE(!this->is_on_boundary());
 }
 
