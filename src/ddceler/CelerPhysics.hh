@@ -25,8 +25,9 @@ namespace dd
  *  - Uniform field (default): reads a \c ConstantField from the DD4hep
  *    detector description and creates a \c UniformAlongStepFactory.
  *  - Covfie field map: when \c FieldMapFile is set to a non-empty path, loads
- *    a binary covfie file (affine → nearest_neighbour → strided → array
- *    pipeline, coordinates in cm, field in T) and creates a
+ *    a binary covfie file (coordinates in cm, field in T).  The
+ *    \c FieldMapCoordType property selects the pipeline and factory:
+ *    "BrBz" uses \c RZMapFieldAlongStepFactory, "BxByBz" (default) uses
  *    \c CartMapFieldAlongStepFactory.  Requires \c CELERITAS_USE_covfie.
  *
  * Steering-file properties:
@@ -34,6 +35,7 @@ namespace dd
  *  - \c InitCapacity  (int)         : initial state-vector capacity
  *  - \c IgnoreProcesses (string[])  : physics processes to bypass
  *  - \c FieldMapFile  (string)      : path to a covfie field-map binary
+ *  - \c FieldMapCoordType (string)  : "BrBz" or "BxByBz" (default)
  */
 class CelerPhysics final : public dd4hep::sim::Geant4PhysicsList
 {
@@ -51,7 +53,9 @@ class CelerPhysics final : public dd4hep::sim::Geant4PhysicsList
     int max_num_tracks_{0};
     int init_capacity_{0};
     std::vector<std::string> ignore_processes_;
-    std::string field_map_file_;  //!< Path to covfie binary field map (optional)
+    std::string field_map_file_;  //!< Path to covfie binary field map
+                                  //!< (optional)
+    std::string field_map_coord_type_{"BxByBz"};  //!< "BrBz" or "BxByBz"
 
     // Make options for Celeritas tracking manager
     SetupOptions make_options();

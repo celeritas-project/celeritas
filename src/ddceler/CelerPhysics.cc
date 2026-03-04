@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "CelerPhysics.hh"
 
+#include <fstream>
 #include <DD4hep/Detector.h>
 #include <DD4hep/FieldTypes.h>
 #include <DDG4/Factories.h>
@@ -21,6 +22,8 @@
 
 #if CELERITAS_USE_COVFIE
 #    include "celeritas/field/CartMapFieldInput.hh"
+#    include "celeritas/field/RZMapFieldInput.hh"
+
 #    include "LoadCovfieField.hh"
 #endif
 
@@ -71,6 +74,7 @@ CelerPhysics::CelerPhysics(Geant4Context* ctxt, std::string const& name)
     declareProperty("InitCapacity", init_capacity_);
     declareProperty("IgnoreProcesses", ignore_processes_);
     declareProperty("FieldMapFile", field_map_file_);
+    declareProperty("FieldMapCoordType", field_map_coord_type_);
 }
 
 //---------------------------------------------------------------------------//
@@ -141,16 +145,36 @@ SetupOptions CelerPhysics::make_options()
     {
         // Covfie field map mode: load binary field file
         CELER_LOG(info) << "Loading covfie field map from '" << field_map_file_
-                        << "'";
+                        << "' (coord_type=" << field_map_coord_type_ << ")";
 
-        auto load_field = [filename = field_map_file_, driver_options] {
-            CartMapFieldInput inp = LoadCovfieField(filename);
-            inp.driver_options = driver_options;
-            return inp;
-        };
-        opts.make_along_step = CartMapFieldAlongStepFactory(load_field);
+        CELER_VALIDATE(field_map_coord_type_ == "BrBz"
+                           || field_map_coord_type_ == "BxByBz",
+                       << "invalid FieldMapCoordType='" << field_map_coord_type_
+                       << "': must be \"BrBz\" or \"BxByBz\"");
 
-        CELER_LOG(info) << "Using covfie CartMapField for along-step";
+        if (field_map_coord_type_ == "BrBz")
+        {
+            auto load_field = [filename = field_map_file_, driver_options] {
+                RZMapFieldInput inp = LoadCovfieFieldBrBz(filename);
+                inp.driver_options = driver_options;
+                std::ofstream("rzmap-field-dump.json") << inp;
+                CELER_LOG(debug) << "Dumped RZMapFieldInput to "
+                                    "rzmap-field-dump.json";
+                return inp;
+            };
+            opts.make_along_step = RZMapFieldAlongStepFactory(load_field);
+            CELER_LOG(info) << "Using covfie RZMapField for along-step";
+        }
+        else
+        {
+            auto load_field = [filename = field_map_file_, driver_options] {
+                CartMapFieldInput inp = LoadCovfieField(filename);
+                inp.driver_options = driver_options;
+                return inp;
+            };
+            opts.make_along_step = CartMapFieldAlongStepFactory(load_field);
+            CELER_LOG(info) << "Using covfie CartMapField for along-step";
+        }
     }
     else
 #endif
@@ -175,16 +199,17 @@ SetupOptions CelerPhysics::make_options()
         Direction field_direction(0, 0, 0);
         for (auto const& mag_component : overlaid_obj->magnetic_components)
         {
-            auto* cartesian_obj
-                = mag_component.data<CartesianField::Object>();
+            auto* cartesian_obj = mag_component.data<CartesianField::Object>();
             auto* const_field
                 = dynamic_cast<ConstantField const*>(cartesian_obj);
 
-            CELER_VALIDATE(
-                const_field,
-                << "Celeritas uniform field mode only supports ConstantField "
-                   "components. Found non-constant field in DD4hep description."
-                   " Set FieldMapFile to use a covfie field map instead.");
+            CELER_VALIDATE(const_field,
+                           << "Celeritas uniform field mode only supports "
+                              "ConstantField "
+                              "components. Found non-constant field in DD4hep "
+                              "description."
+                              " Set FieldMapFile to use a covfie field map "
+                              "instead.");
             field_direction += const_field->direction;
         }
 
