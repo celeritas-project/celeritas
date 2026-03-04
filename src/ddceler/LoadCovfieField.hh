@@ -19,7 +19,7 @@ namespace dd
  * Load a Cartesian magnetic field map from a binary covfie file.
  *
  * The covfie file must have been written with the format:
- *   affine -> nearest_neighbour -> strided -> array (float3)
+ *   affine -> linear -> strided -> array (float3)
  *
  * Coordinates in the file are assumed to be in centimetres and field values
  * in tesla; both are converted to Celeritas native units on load.

@@ -9,10 +9,9 @@
 #include <cstddef>
 #include <fstream>
 #include <string>
-
 #include <covfie/core/backend/primitive/array.hpp>
 #include <covfie/core/backend/transformer/affine.hpp>
-#include <covfie/core/backend/transformer/nearest_neighbour.hpp>
+#include <covfie/core/backend/transformer/linear.hpp>
 #include <covfie/core/backend/transformer/strided.hpp>
 #include <covfie/core/field.hpp>
 #include <covfie/core/vector.hpp>
@@ -32,7 +31,7 @@ namespace
 /*!
  * Covfie field type as written by the covfie \c convert_bfield tool.
  *
- * Pipeline: affine → nearest_neighbour → strided → array(float3)
+ * Pipeline: affine → linear → strided → array(float3)
  *
  * The affine transform matrix has shape [3 × 4]:
  * \verbatim
@@ -45,7 +44,7 @@ namespace
  */
 using storage_t = covfie::backend::array<covfie::vector::float3>;
 using strided_t = covfie::backend::strided<covfie::vector::size3, storage_t>;
-using interp_t = covfie::backend::nearest_neighbour<strided_t>;
+using interp_t = covfie::backend::linear<strided_t>;
 using file_field_t = covfie::field<covfie::backend::affine<interp_t>>;
 
 //---------------------------------------------------------------------------//
@@ -56,7 +55,7 @@ using file_field_t = covfie::field<covfie::backend::affine<interp_t>>;
  * Load a Cartesian magnetic field map from a binary covfie file.
  *
  * The file must have been written with the standard covfie \c convert_bfield
- * pipeline: affine → nearest_neighbour → strided → array(float3).
+ * pipeline: affine → linear → strided → array(float3).
  *
  * Coordinates in the file are in centimetres and field values in tesla.
  * Both are converted to Celeritas native units on load.
@@ -77,8 +76,7 @@ CartMapFieldInput LoadCovfieField(std::string const& filename)
     auto const& mat = affine_data.get_configuration();
 
     // Access the strided backend to read the grid dimensions [nx, ny, nz]
-    auto const& strided_data
-        = affine_data.get_backend().get_backend();
+    auto const& strided_data = affine_data.get_backend().get_backend();
     auto const sizes = strided_data.get_configuration();
 
     std::size_t const nx = sizes[0];
@@ -110,49 +108,51 @@ CartMapFieldInput LoadCovfieField(std::string const& filename)
     CartMapFieldInput inp;
 
     inp.x.min = static_cast<real_type>((-tx / sx) * cm);
-    inp.x.max = static_cast<real_type>(((static_cast<float>(nx) - 1.f - tx) / sx) * cm);
+    inp.x.max = static_cast<real_type>(
+        ((static_cast<float>(nx) - 1.f - tx) / sx) * cm);
     inp.x.num = static_cast<size_type>(nx);
 
     inp.y.min = static_cast<real_type>((-ty / sy) * cm);
-    inp.y.max = static_cast<real_type>(((static_cast<float>(ny) - 1.f - ty) / sy) * cm);
+    inp.y.max = static_cast<real_type>(
+        ((static_cast<float>(ny) - 1.f - ty) / sy) * cm);
     inp.y.num = static_cast<size_type>(ny);
 
     inp.z.min = static_cast<real_type>((-tz / sz) * cm);
-    inp.z.max = static_cast<real_type>(((static_cast<float>(nz) - 1.f - tz) / sz) * cm);
+    inp.z.max = static_cast<real_type>(
+        ((static_cast<float>(nz) - 1.f - tz) / sz) * cm);
     inp.z.num = static_cast<size_type>(nz);
 
     // Allocate field data: layout is [X][Y][Z][3]
     inp.field.resize(static_cast<size_type>(Axis::size_) * nx * ny * nz);
 
-    // Build a view to query the loaded field
+    // Access the strided backend directly to read grid node values without
+    // going through the linear interpolator (which would try to access
+    // out-of-bounds neighbors at the grid boundary)
     file_field_t::view_t field_view{file_field};
+    // Chain: affine → linear → strided
+    auto const& strided_view = field_view.backend().get_backend().get_backend();
 
-    // Iterate over the grid and recover world positions by inverting the
-    // affine transform: pos_i = (idx_i - t_i) / s_i
     for (auto ix : range(nx))
     {
-        float const wx = (static_cast<float>(ix) - tx) / sx;
         for (auto iy : range(ny))
         {
-            float const wy = (static_cast<float>(iy) - ty) / sy;
             for (auto iz : range(nz))
             {
-                float const wz = (static_cast<float>(iz) - tz) / sz;
+                auto const bvec
+                    = strided_view.at({static_cast<std::size_t>(ix),
+                                       static_cast<std::size_t>(iy),
+                                       static_cast<std::size_t>(iz)});
 
-                // Query field at this world position (nearest-neighbour lookup
-                // maps back to the correct grid node)
-                auto const bvec = field_view.at(wx, wy, wz);
+                size_type const base
+                    = static_cast<size_type>((ix * ny + iy) * nz + iz)
+                      * static_cast<size_type>(Axis::size_);
 
-                size_type const base = static_cast<size_type>(
-                    (ix * ny + iy) * nz + iz)
-                    * static_cast<size_type>(Axis::size_);
-
-                inp.field[base + 0]
-                    = static_cast<real_type>(bvec[0]) * to_native_field;
-                inp.field[base + 1]
-                    = static_cast<real_type>(bvec[1]) * to_native_field;
-                inp.field[base + 2]
-                    = static_cast<real_type>(bvec[2]) * to_native_field;
+                inp.field[base + 0] = static_cast<real_type>(bvec[0])
+                                      * to_native_field;
+                inp.field[base + 1] = static_cast<real_type>(bvec[1])
+                                      * to_native_field;
+                inp.field[base + 2] = static_cast<real_type>(bvec[2])
+                                      * to_native_field;
             }
         }
     }
