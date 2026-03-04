@@ -60,7 +60,7 @@ Geant4 surfaces may be configured with the following variables:
     +--------+------------------------------------------------------------------+
 
 .. table:: Model independent surface properties.
-    
+
     +-----------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
     | Name                  | Description                                                                                                                               |
     +=======================+===========================================================================================================================================+
@@ -80,7 +80,7 @@ Geant3's default model, referred to as ``GLISUR``, supports a uniform smear
 roughness for both dielectric-dielectric and dieletric-metal surfaces.
 
 .. table:: Mapping of GLISUR model finishes to Celeritas inputs (in the ``celeritas::inp`` namespace).
- 
+
     +--------------+----------------------------------------------+-------------------------------------+
     | Finish       | Roughness                                    | Reflection Mode                     |
     +==============+==============================================+=====================================+
@@ -148,7 +148,7 @@ Both of which support the ``polished`` and ``ground`` finishes as well:
 
 The UNIFIED model further supports front-painted and back-painted finishes for
 dielectric-dielectric interfaces. A painted surface is entirely reflective with
-a fixed reflection mode. 
+a fixed reflection mode.
 
 .. table:: Mapping of UNIFIED model dielectric-dielectric front-painted finishes to Celeritas inputs (in the ``celeritas::inp`` namespace).
 
@@ -171,7 +171,7 @@ back-painted finishes.
 
 Back-painted surfaces are represented as combinations of the above surfaces,
 with the interstitial material determined by the ``RINDEX`` of the surface
-material property table. 
+material property table.
 
 .. table:: Surface construction of UNIFIED model dielectric-dielectric back-painted finishes in Celeritas.
 
@@ -182,4 +182,3 @@ material property table.
    +-------------------------+--------------------------------------+----------------------------+
    | ``groundbackpainted``   | UNIFIED dielectric-dielectric ground | Ground front-painted       |
    +-------------------------+--------------------------------------+----------------------------+
-

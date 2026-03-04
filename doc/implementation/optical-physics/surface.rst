@@ -59,7 +59,7 @@ to have user-defined grids which determine the frequency at which optical
 photons should bypass the surface. A transmittance value greater than zero
 allows photons to be transmitted across the surface without change, bypassing
 all surface interactions. A reflectivity value below one allows photons to be
-absorbed directly on the surface. 
+absorbed directly on the surface.
 
 While Celeritas supports these grid-based overrides for Geant4 compatibility,
 similar effects for most use cases may be achieved by using Celeritas-specific
