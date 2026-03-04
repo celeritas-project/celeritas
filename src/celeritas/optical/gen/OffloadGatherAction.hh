@@ -97,9 +97,8 @@ class OffloadGatherAction final : public CoreStepActionInterface,
 
     //// HELPER FUNCTIONS ////
 
-    template<MemSpace M>
-    typename TraitsT::template Data<Ownership::reference, M>&
-    get_step_data(CoreState<M>& state) const;
+    typename TraitsT::template Data<Ownership::reference, MemSpace::device>&
+    get_step_data(CoreState<MemSpace::device>& state) const;
 
     //// DATA ////
 
