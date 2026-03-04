@@ -114,9 +114,19 @@ endfunction()
 #----------------------------------------------------------------------------#
 # Add plugins
 
+set(_celerphysics_sources CelerPhysics.cc)
+set(_celerphysics_uses
+  DD4hep::DDG4 Celeritas::accel Celeritas::celeritas Celeritas::corecel
+)
+
+if(CELERITAS_USE_covfie)
+  list(APPEND _celerphysics_sources LoadCovfieField.covfie.cc)
+  list(APPEND _celerphysics_uses Celeritas::Extcovfie)
+endif()
+
 celer_dd4hep_plugin(CelerPhysics
-  SOURCES CelerPhysics.cc
-  USES DD4hep::DDG4 Celeritas::accel Celeritas::celeritas Celeritas::corecel
+  SOURCES ${_celerphysics_sources}
+  USES ${_celerphysics_uses}
 )
 
 celer_dd4hep_plugin(CelerRun

@@ -51,6 +51,11 @@ def setup_physics(kernel):
     celer_phys.InitCapacity = 245760
     # Celeritas does not support single scattering
     celer_phys.IgnoreProcesses = ["CoulombScat"]
+    # Optional: load a covfie binary field map instead of using the DD4hep
+    # ConstantField.  Requires CELERITAS_USE_covfie=ON at build time.
+    # Coordinates must be in centimetres and field values in tesla.
+    # Example (commented out):
+    # celer_phys.FieldMapFile = "/path/to/field.covfie"
     phys.adopt(celer_phys)
     phys.dump()
     return None
