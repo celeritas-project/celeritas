@@ -316,6 +316,10 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(123, host_cref[IntId{0}]);
     EXPECT_EQ(123, host_cref[irange].front());
     EXPECT_EQ(321, host_cref[AllInts<host>{}].back());
+
+    auto host_cref_2 = make_ref(host_val);
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref), decltype(host_cref_2)>));
+    EXPECT_EQ(4, host_cref_2.size());
 }
 
 TEST_F(SimpleCollectionTest, algo_host)

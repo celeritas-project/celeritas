@@ -45,7 +45,7 @@ so that a given surface ID must be present in three separate surface models.
 This "model unfolding" leads to a less simple input definition compared to
 Geant4, but it allows for user-extensible surface physics models.
 
-.. celerstruct:: inp::SurfacePhysics
+.. celerstruct:: inp::OpticalSurfacePhysics
 
 Reflection
 ^^^^^^^^^^

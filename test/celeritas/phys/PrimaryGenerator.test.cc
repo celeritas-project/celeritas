@@ -67,6 +67,7 @@ TEST_F(PrimaryGeneratorTest, basic)
 
     std::vector<int> particle_id;
     std::vector<int> event_id;
+    std::vector<int> primary_id;
 
     for (size_type i = 0; i < inp.num_events; ++i)
     {
@@ -81,6 +82,7 @@ TEST_F(PrimaryGeneratorTest, basic)
             EXPECT_TRUE(is_soft_unit_vector(p.direction));
             particle_id.push_back(p.particle_id.unchecked_get());
             event_id.push_back(p.event_id.unchecked_get());
+            primary_id.push_back(p.primary_id.unchecked_get());
         }
     }
     auto primaries = generate_primaries();
@@ -88,9 +90,11 @@ TEST_F(PrimaryGeneratorTest, basic)
 
     static int const expected_particle_id[] = {0, 1, 0, 0, 1, 0};
     static int const expected_event_id[] = {0, 0, 0, 1, 1, 1};
+    static int const expected_primary_id[] = {0, 1, 2, 0, 1, 2};
 
     EXPECT_VEC_EQ(expected_particle_id, particle_id);
     EXPECT_VEC_EQ(expected_event_id, event_id);
+    EXPECT_VEC_EQ(expected_primary_id, primary_id);
 }
 
 TEST_F(PrimaryGeneratorTest, options)

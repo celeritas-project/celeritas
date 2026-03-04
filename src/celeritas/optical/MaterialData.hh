@@ -30,12 +30,13 @@ struct MaterialParamsData
     template<class T>
     using OpticalMaterialItems = Collection<T, W, M, OptMatId>;
     template<class T>
-    using VolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
+    using ImplVolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
 
     //// MEMBER DATA ////
 
     OpticalMaterialItems<NonuniformGridRecord> refractive_index;
-    VolumeItems<OptMatId> optical_id;
+    OpticalMaterialItems<NonuniformGridRecord> refractive_index_derivative;
+    ImplVolumeItems<OptMatId> optical_id;
     OpticalMaterialItems<PhysMatId> core_material_id;
 
     // Backend data
@@ -46,7 +47,8 @@ struct MaterialParamsData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !refractive_index.empty() && !optical_id.empty()
+        return !refractive_index.empty()
+               && !refractive_index_derivative.empty() && !optical_id.empty()
                && !core_material_id.empty() && !reals.empty();
     }
 
@@ -56,6 +58,7 @@ struct MaterialParamsData
     {
         CELER_EXPECT(other);
         refractive_index = other.refractive_index;
+        refractive_index_derivative = other.refractive_index_derivative;
         optical_id = other.optical_id;
         core_material_id = other.core_material_id;
         reals = other.reals;

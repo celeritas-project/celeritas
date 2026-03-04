@@ -220,9 +220,6 @@ celeritas_add_test(ext/GeantImporter.test.cc
   FILTER ${_import_filter}
 )
 
-celeritas_add_test(ext/JsonIO.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
-
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 

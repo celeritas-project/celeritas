@@ -93,8 +93,8 @@ GeantOpticalModelImporter::import_mfps(std::string const& mfp_property_name) con
     std::vector<inp::Grid> mfps(opt_to_mat_.size());
     for (auto opt_idx : range(mfps.size()))
     {
-        GeantMaterialPropertyGetter get_property{*opt_to_mat_[opt_idx]};
-        get_property(&mfps[opt_idx],
+        GeantMaterialPropertyGetter get_property{opt_to_mat_[opt_idx]};
+        get_property(mfps[opt_idx],
                      mfp_property_name,
                      {ImportUnits::mev, ImportUnits::len});
     }

@@ -183,6 +183,7 @@ auto PrimaryGenerator::operator()() -> result_type
         p.direction = sample_dir_(rng_);
         p.time = 0;
         p.event_id = EventId{event_count_};
+        p.primary_id = PrimaryId{i};
     }
     ++event_count_;
     return result;

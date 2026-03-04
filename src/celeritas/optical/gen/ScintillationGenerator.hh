@@ -100,12 +100,6 @@ ScintillationGenerator::ScintillationGenerator(
     , sample_cost_(-1, 1)
     , sample_phi_(0, real_type(2 * constants::pi))
 {
-    if (shared_.scintillation_by_particle())
-    {
-        // TODO: implement sampling for particles
-        CELER_ASSERT_UNREACHABLE();
-    }
-
     CELER_EXPECT(dist_);
     CELER_EXPECT(shared_);
 
@@ -135,7 +129,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     }();
 
     real_type energy_val{};
-    if (!component.energy_cdf)
+    if (component.is_normal_distribution())
     {
         // Sample a photon for a single scintillation component, reusing the
         // "spare" value that the wavelength sampler might have stored
