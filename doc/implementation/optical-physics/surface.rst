@@ -45,7 +45,7 @@ may be applied to the geometric (macroscopic) surface normal by sampling from a
 .. doxygenclass:: celeritas::optical::SmearRoughnessSampler
 .. doxygenclass:: celeritas::optical::GaussianRoughnessSampler
 
-These samplers use rejection based on the macroscopic surface normal.
+These samplers may use rejection based on the macroscopic surface normal.
 
 .. doxygenclass:: celeritas::optical::EnteringSurfaceNormalSampler
 
@@ -54,8 +54,16 @@ These samplers use rejection based on the macroscopic surface normal.
 Reflectivity
 ------------
 
-Reflectivity can be manually specified via grids, or determined with physical
-properties as part of the later interactions.
+To support custom overrides of standard surface physics, Geant4 allows surfaces
+to have user-defined grids which determine the frequency at which optical
+photons should bypass the surface. A transmittance value greater than zero
+allows photons to be transmitted across the surface without change, bypassing
+all surface interactions. A reflectivity value below one allows photons to be
+absorbed directly on the surface. 
+
+While Celeritas supports these grid-based overrides for Geant4 compatibility,
+similar effects for most use cases may be achieved by using Celeritas-specific
+roughness and interaction models without the need to specify dummy values.
 
 .. doxygenclass:: celeritas::optical::GridReflectivityModel
 .. doxygenclass:: celeritas::optical::FresnelReflectivityModel
@@ -71,7 +79,8 @@ reflection, and refraction on the surface.
 .. doxygenclass:: celeritas::optical::FresnelCalculator
 .. doxygenclass:: celeritas::optical::ReflectionFormCalculator
 .. doxygenclass:: celeritas::optical::DielectricInteractor
-
+.. doxygenstruct:: celeritas::optical::OnlyReflectionExecutor
+.. doxygenclass:: celeritas::optical::TrivialInteractor
 
 .. _surface_boundary_post:
 
