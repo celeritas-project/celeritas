@@ -119,14 +119,39 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the pre-step auxiliary data for this action.
+ */
+template<GeneratorType G>
+template<MemSpace M>
+typename OffloadAction<G>::PreTraitsT::template Data<Ownership::reference, M>&
+OffloadAction<G>::get_pre_step_data(CoreState<M>& state) const
+{
+    return state.template aux_data<PreTraitsT::template Data>(
+        data_.pre_step_id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the pre-post-step auxiliary data for this action.
+ */
+template<GeneratorType G>
+template<MemSpace M>
+typename OffloadAction<G>::PostTraitsT::template Data<Ownership::reference, M>&
+OffloadAction<G>::get_post_step_data(CoreState<M>& state) const
+{
+    return state.template aux_data<PostTraitsT::template Data>(
+        data_.pre_post_step_id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Launch a (host) kernel to generate optical distribution data post-step.
  */
 template<GeneratorType G>
 void OffloadAction<G>::offload(CoreParams const& core_params,
                                CoreStateHost& core_state) const
 {
-    auto& pre_step
-        = core_state.aux_data<PreTraitsT::template Data>(data_.pre_step_id);
+    auto& pre_step = this->get_pre_step_data(core_state);
     auto& gen_state = get<optical::GeneratorState<MemSpace::native>>(
         core_state.aux(), data_.gen_id);
     TrackExecutor execute{
@@ -137,8 +162,7 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                  gen_state.store.ref(),
                  pre_step,
                  (G == GeneratorType::scintillation)
-                     ? core_state.aux_data<PostTraitsT::template Data>(
-                           data_.pre_post_step_id)
+                     ? this->get_post_step_data(core_state)
                      : NativeRef<PostTraitsT::template Data>{},
                  gen_state.counters.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
@@ -159,6 +183,24 @@ void OffloadAction<G>::offload(CoreParams const&, CoreStateDevice&) const
 
 template class OffloadAction<GeneratorType::cherenkov>;
 template class OffloadAction<GeneratorType::scintillation>;
+
+template typename OffloadAction<GeneratorType::cherenkov>::PreTraitsT::
+    template Data<Ownership::reference, MemSpace::device>&
+    OffloadAction<GeneratorType::cherenkov>::get_pre_step_data(
+        CoreState<MemSpace::device>&) const;
+template typename OffloadAction<GeneratorType::scintillation>::PreTraitsT::
+    template Data<Ownership::reference, MemSpace::device>&
+    OffloadAction<GeneratorType::scintillation>::get_pre_step_data(
+        CoreState<MemSpace::device>&) const;
+
+template typename OffloadAction<GeneratorType::cherenkov>::PostTraitsT::
+    template Data<Ownership::reference, MemSpace::device>&
+    OffloadAction<GeneratorType::cherenkov>::get_post_step_data(
+        CoreState<MemSpace::device>&) const;
+template typename OffloadAction<GeneratorType::scintillation>::PostTraitsT::
+    template Data<Ownership::reference, MemSpace::device>&
+    OffloadAction<GeneratorType::scintillation>::get_post_step_data(
+        CoreState<MemSpace::device>&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -65,6 +65,18 @@ auto OffloadGatherAction<S>::create_state(MemSpace m,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get auxiliary step data for this action.
+ */
+template<StepActionOrder S>
+template<MemSpace M>
+typename OffloadGatherAction<S>::TraitsT::template Data<Ownership::reference, M>&
+OffloadGatherAction<S>::get_step_data(CoreState<M>& state) const
+{
+    return state.template aux_data<TraitsT::template Data>(aux_id_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Gather pre-step data.
  */
 template<StepActionOrder S>
@@ -93,5 +105,13 @@ void OffloadGatherAction<S>::step(CoreParams const&, CoreStateDevice&) const
 template class OffloadGatherAction<StepActionOrder::pre>;
 template class OffloadGatherAction<StepActionOrder::pre_post>;
 
+template OffloadGatherAction<StepActionOrder::pre>::TraitsT::
+    template Data<Ownership::reference, MemSpace::device>&
+    OffloadGatherAction<StepActionOrder::pre>::get_step_data(
+        CoreState<MemSpace::device>&) const;
+template OffloadGatherAction<StepActionOrder::pre_post>::TraitsT::
+    template Data<Ownership::reference, MemSpace::device>&
+    OffloadGatherAction<StepActionOrder::pre_post>::get_step_data(
+        CoreState<MemSpace::device>&) const;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

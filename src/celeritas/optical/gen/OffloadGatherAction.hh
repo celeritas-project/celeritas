@@ -95,6 +95,12 @@ class OffloadGatherAction final : public CoreStepActionInterface,
 
     using Executor = typename TraitsT::Executor;
 
+    //// HELPER FUNCTIONS ////
+
+    template<MemSpace M>
+    typename TraitsT::template Data<Ownership::reference, M>&
+    get_step_data(CoreState<M>& state) const;
+
     //// DATA ////
 
     ActionId action_id_;
