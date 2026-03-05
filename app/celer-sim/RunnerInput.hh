@@ -74,7 +74,7 @@ struct RunnerInput
         explicit operator bool() const
         {
             return num_track_slots > 0 && buffer_capacity > 0 && auto_flush > 0
-                   && max_steps > 0;
+                   && max_steps > 0 && (cherenkov || scintillation);
         }
     };
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
@@ -141,7 +141,7 @@ struct RunnerInput
     GeantPhysicsOptions physics_options;
 
     // Options when optical physics is enabled
-    OpticalOptions optical;
+    std::optional<OpticalOptions> optical;
 
     //! Whether the run arguments are valid
     explicit operator bool() const

@@ -124,7 +124,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
         track_order, v.use_device ? TrackOrder::init_charge : TrackOrder::none);
     LDIO_LOAD_OPTION(physics_options);
 
-    LDIO_LOAD_OPTION(optical);
+    CELER_JSON_LOAD_OPTIONAL(j, v, optical)
 
 #undef LDIO_LOAD_DEPRECATED
 #undef LDIO_LOAD_OPTION
@@ -146,6 +146,18 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 #define LDIO_SAVE_WHEN(NAME, COND) CELER_JSON_SAVE_WHEN(j, v, NAME, COND)
 #define LDIO_SAVE_OPTION(NAME) \
     LDIO_SAVE_WHEN(NAME, v.NAME != default_args.NAME)
+#define LDIO_SAVE_OPTIONAL(NAME)  \
+    do                            \
+    {                             \
+        if (v.NAME)               \
+        {                         \
+            j[#NAME] = *(v.NAME); \
+        }                         \
+        else                      \
+        {                         \
+            j[#NAME] = nullptr;   \
+        }                         \
+    } while (0)
 
     j = nlohmann::json::object();
     RunnerInput const default_args;
@@ -201,8 +213,9 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
                    v.physics_file.empty()
                        || !ends_with(v.physics_file, ".root"));
 
-    LDIO_SAVE_WHEN(optical, v.optical);
+    LDIO_SAVE_OPTIONAL(optical);
 
+#undef LDIO_SAVE_OPTIONAL
 #undef LDIO_SAVE_OPTION
 #undef LDIO_SAVE_WHEN
 #undef LDIO_SAVE

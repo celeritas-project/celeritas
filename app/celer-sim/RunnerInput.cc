@@ -197,12 +197,12 @@ inp::Problem load_problem(RunnerInput const& ri)
     {
         p.control.optical_capacity = [&ri] {
             inp::OpticalStateCapacity sc;
-            sc.primaries = ri.optical.auto_flush;
-            sc.tracks = ri.optical.num_track_slots;
-            sc.generators = ri.optical.buffer_capacity;
+            sc.primaries = ri.optical->auto_flush;
+            sc.tracks = ri.optical->num_track_slots;
+            sc.generators = ri.optical->buffer_capacity;
             return sc;
         }();
-        p.tracking.optical_limits.step_iters = ri.optical.max_steps;
+        p.tracking.optical_limits.step_iters = ri.optical->max_steps;
 
         // NOTE: optical physics setup is applied to g4 physics list and
         // then copied from import data (i.e., you can't currently disable it
@@ -272,16 +272,16 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         // Set up Geant4
         si.geant_setup = ri.physics_options;
         // Set up processes to spawn optical photons
-        if (ri.optical.cherenkov || ri.optical.scintillation)
+        if (ri.optical)
         {
             if (!si.geant_setup->optical)
                 si.geant_setup->optical.emplace();
         }
         if (si.geant_setup->optical)
         {
-            if (!ri.optical.cherenkov)
+            if (!ri.optical->cherenkov)
                 si.geant_setup->optical->cherenkov = std::nullopt;
-            if (!ri.optical.scintillation)
+            if (!ri.optical->scintillation)
                 si.geant_setup->optical->scintillation = std::nullopt;
         }
 
