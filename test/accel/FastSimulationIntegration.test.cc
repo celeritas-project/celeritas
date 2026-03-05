@@ -104,9 +104,13 @@ class FSITestBase : virtual public IntegrationTestBase
         new FastSimulationModel(region);
     }
     void BeginOfRunAction(G4Run const* run) override
-    { FSI::Instance().BeginOfRunAction(run); }
+    {
+        FSI::Instance().BeginOfRunAction(run);
+    }
     void EndOfRunAction(G4Run const* run) override
-    { FSI::Instance().EndOfRunAction(run); }
+    {
+        FSI::Instance().EndOfRunAction(run);
+    }
     void BeginOfEventAction(G4Event const*) override {}
     void EndOfEventAction(G4Event const*) override {}
 

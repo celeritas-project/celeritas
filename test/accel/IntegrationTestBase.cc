@@ -241,9 +241,11 @@ class TestDetectorConstruction : public DetectorConstruction
   public:
     TestDetectorConstruction(std::string const& filename,
                              IntegrationTestBase* test)
-        : DetectorConstruction(filename, [test](std::string const& sd_name) {
-            return test->make_sens_det(sd_name);
-        }), test_(test)
+        : DetectorConstruction(filename,
+                               [test](std::string const& sd_name) {
+                                   return test->make_sens_det(sd_name);
+                               })
+        , test_(test)
     {
     }
 
