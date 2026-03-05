@@ -85,7 +85,7 @@ struct OpticalPhysics
     //! Whether optical physics is enabled
     explicit operator bool() const
     {
-        return cherenkov || scintillation || surfaces;
+        return cherenkov || scintillation || bulk || surfaces;
     }
 };
 

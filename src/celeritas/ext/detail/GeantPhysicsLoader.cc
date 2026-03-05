@@ -81,17 +81,17 @@ void load_rayleigh_water(
     inp::OpticalModelMaterial<ImportOpticalRayleigh>& model_mat,
     G4Material const& g4mat)
 {
-    using CLHEP::m3;
-    using CLHEP::MeV;
-    double const betat = 7.658e-23 * m3 / MeV;
-    model_mat.compressibility
-        = betat * native_value_from_clhep(ImportUnits::len_time_sq_per_mass);
-    CELER_LOG(info) << "Setting compressibility of water to "
-                    << model_mat.compressibility << " m^2/N";
+    double const betat = 7.658e-23 * CLHEP::m3 / CLHEP::MeV;
+    constexpr auto units = ImportUnits::len_time_sq_per_mass;
+    model_mat.compressibility = betat * native_value_from_clhep(units);
+    CELER_LOG(warning) << "DEPRECATED: using Geant4 built-in Rayleigh "
+                          "properties for water: setting to "
+                       << model_mat.compressibility << " "
+                       << to_cstring(units);
 
     if (!soft_equal(g4mat.GetTemperature(), 283.15 * CLHEP::kelvin))
     {
-        CELER_LOG(warning)
+        CELER_LOG(error)
             << "Geant4 Rayleigh optical scattering ignores material "
                "temperature for Water (overriding "
             << g4mat.GetTemperature()
