@@ -172,7 +172,7 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
     {
         if (auto builder = importer(imc))
         {
-            input.model_builders.push_back(*builder);
+            input.model_builders.push_back(builder);
         }
     }
 

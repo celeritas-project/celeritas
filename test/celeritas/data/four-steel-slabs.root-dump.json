@@ -449,7 +449,6 @@
     "wls_time_profile" : 0,
     "wls2_time_profile" : 0
   },
-  "optical_models" : [],
   "optical_materials" : [],
   "units" : "cgs",
   "livermore_photo" : {
@@ -487,32 +486,6 @@
   "atomic_relaxation" : {
     "_typename" : "celeritas::inp::AtomicRelaxation",
     "atomic_xs" : []
-  },
-  "optical_physics" : {
-    "_typename" : "celeritas::inp::OpticalPhysics",
-    "cherenkov" : false,
-    "scintillation" : false,
-    "surfaces" : {
-      "_typename" : "celeritas::inp::OpticalSurfacePhysics",
-      "materials" : [],
-      "roughness" : {
-        "_typename" : "celeritas::inp::RoughnessModels",
-        "polished" : [],
-        "smear" : [],
-        "gaussian" : []
-      },
-      "reflectivity" : {
-        "_typename" : "celeritas::inp::ReflectivityModels",
-        "grid" : [],
-        "fresnel" : []
-      },
-      "interaction" : {
-        "_typename" : "celeritas::inp::InteractionModels",
-        "dielectric" : [],
-        "trivial" : [],
-        "only_reflection" : []
-      }
-    }
   },
   "mucf_physics" : {
     "_typename" : "celeritas::inp::MucfPhysics",

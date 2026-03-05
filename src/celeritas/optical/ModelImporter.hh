@@ -33,6 +33,8 @@ class ImportedMaterials;
 //---------------------------------------------------------------------------//
 /*!
  * Construct Celeritas optical model builders from imported data.
+ *
+ * \deprecated To be deleted soon
  */
 class ModelImporter
 {
@@ -58,9 +60,7 @@ class ModelImporter
 
     //!@{
     //! \name User builder type aliases
-    using ModelBuilder = Model::ModelBuilder;
-    using UserBuildFunction
-        = std::function<std::optional<ModelBuilder>(UserBuildInput const&)>;
+    using ModelBuilder = std::function<std::shared_ptr<Model>(ActionId)>;
     //!@}
 
   public:
@@ -70,7 +70,7 @@ class ModelImporter
                   SPConstCoreMaterial core_material);
 
     // Create a model builder from the data
-    std::optional<ModelBuilder> operator()(IMC imc) const;
+    ModelBuilder operator()(IMC imc) const;
 
   private:
     UserBuildInput input_;

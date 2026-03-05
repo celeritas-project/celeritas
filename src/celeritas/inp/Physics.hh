@@ -78,13 +78,14 @@ struct OpticalPhysics
 
     //!@{
     //! \name Physics and properties for optical photons
+    OpticalBulkPhysics bulk;
     OpticalSurfacePhysics surfaces;
     //!@}
 
     //! Whether optical physics is enabled
     explicit operator bool() const
     {
-        return cherenkov || scintillation || surfaces;
+        return cherenkov || scintillation || bulk || surfaces;
     }
 };
 

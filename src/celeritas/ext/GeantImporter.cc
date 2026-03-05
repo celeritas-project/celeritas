@@ -619,66 +619,14 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
             }
         }
 
-        // Save Rayleigh properties
-        get_property(optical.rayleigh.scale_factor,
-                     "RS_SCALE_FACTOR",
-                     ImportUnits::unitless);
-        get_property(optical.rayleigh.compressibility,
-                     "ISOTHERMAL_COMPRESSIBILITY",
-                     ImportUnits::len_time_sq_per_mass);
-        if (optical.rayleigh.compressibility == 0
-            && material->GetName() == "Water")
-        {
-            // Use special default hardcoded value for water
-            // in G4OpRayleigh::CalculateRayleighMeanFreePaths
-            using CLHEP::m3;
-            using CLHEP::MeV;
-            double const betat = 7.658e-23 * m3 / MeV;
-            optical.rayleigh.compressibility
-                = betat
-                  * native_value_from_clhep(ImportUnits::len_time_sq_per_mass);
-            CELER_LOG(info) << "Setting compressibility of water to "
-                            << optical.rayleigh.compressibility << " m^2/N";
-
-            if (!soft_equal(material->GetTemperature(), 283.15 * CLHEP::kelvin))
-            {
-                CELER_LOG(warning)
-                    << "Geant4 Rayleigh optical scattering ignores material "
-                       "temperature for Water (overriding "
-                    << material->GetTemperature()
-                    << " K with 283.15 K) if no `RAYLEIGH` mean free paths "
-                       "are provided";
-            }
-        }
-
         // Save WLS properties
-        get_property(optical.wls.mean_num_photons,
-                     "WLSMEANNUMBERPHOTONS",
-                     ImportUnits::unitless);
-        get_property(
-            optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
-        get_property(optical.wls.component,
-                     "WLSCOMPONENT",
-                     {ImportUnits::mev, ImportUnits::unitless});
+        // (loaded by GeantPhysicsLoader::wls)
 
         // Save WLS2 properties
-        get_property(optical.wls2.mean_num_photons,
-                     "WLSMEANNUMBERPHOTONS2",
-                     ImportUnits::unitless);
-        get_property(
-            optical.wls2.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
-        get_property(optical.wls2.component,
-                     "WLSCOMPONENT2",
-                     {ImportUnits::mev, ImportUnits::unitless});
+        // (loaded by GeantPhysicsLoader::wls2)
 
         // Save Mie properties
-        get_property(optical.mie.forward_ratio,
-                     "MIEHG_FORWARD_RATIO",
-                     ImportUnits::unitless);
-        get_property(
-            optical.mie.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
-        get_property(
-            optical.mie.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
+        // (loaded by GeantPhysicsLoader::mie)
 
         CELER_VALIDATE(optical,
                        << "failed to load valid optical material data for "
@@ -888,7 +836,6 @@ auto import_processes(GeantImporter::DataSelection selected,
 
     auto& processes = imported.processes;
     auto& msc_models = imported.msc_models;
-    auto& optical_models = imported.optical_models;
 
     static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     detail::GeantProcessImporter legacy_import_process(
@@ -993,7 +940,6 @@ auto import_processes(GeantImporter::DataSelection selected,
 
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
     CELER_LOG(debug) << "Loaded " << msc_models.size() << " msc models";
-    CELER_LOG(debug) << "Loaded " << optical_models.size() << " optical models";
 }
 
 //---------------------------------------------------------------------------//

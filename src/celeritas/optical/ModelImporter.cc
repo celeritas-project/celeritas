@@ -55,8 +55,17 @@ ModelImporter::ModelImporter(ImportData const& data,
  * This may return a null model builder (with a warning) if the user
  * specifically requests that the model be omitted.
  */
-auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
+auto ModelImporter::operator()(IMC imc) const -> ModelBuilder
 {
+    // If no builtin model exists, return early
+    if (!input_.imported->builtin_model_id(imc))
+    {
+        CELER_LOG(debug) << "No optical model configured for '"
+                         << to_cstring(imc) << "'";
+        return nullptr;
+    }
+
+    // Construct built-in models
     using BuilderMemFn = ModelBuilder (ModelImporter::*)() const;
     static std::unordered_map<IMC, BuilderMemFn> const builtin_build{
         {IMC::absorption, &ModelImporter::build_absorption},
@@ -66,17 +75,15 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
         {IMC::mie, &ModelImporter::build_mie},
     };
 
-    // Next, try built-in models
     auto iter = builtin_build.find(imc);
     CELER_VALIDATE(iter != builtin_build.end(),
                    << "cannot build unsupported optical model '" << imc << "'");
 
     auto builder_opt = (this->*iter->second)();
-    if (!builder_opt)
-    {
-        CELER_LOG(debug) << "Skipping optical model '" << to_cstring(imc)
-                         << "' (no data)";
-    }
+
+    CELER_LOG(debug) << (builder_opt ? "Constructing" : "Skipping")
+                     << " optical model '" << to_cstring(imc) << "'";
+
     return builder_opt;
 }
 
@@ -95,7 +102,8 @@ auto ModelImporter::build_absorption() const -> ModelBuilder
  */
 auto ModelImporter::build_rayleigh() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     return RayleighModel::make_builder(
         this->imported(),
@@ -109,7 +117,8 @@ auto ModelImporter::build_rayleigh() const -> ModelBuilder
  */
 auto ModelImporter::build_wls() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     WavelengthShiftModel::Input input;
     input.model = ImportModelClass::wls;
@@ -121,7 +130,7 @@ auto ModelImporter::build_wls() const -> ModelBuilder
     if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
     {
         // None of the materials have WLS data
-        return {};
+        return nullptr;
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
@@ -133,7 +142,8 @@ auto ModelImporter::build_wls() const -> ModelBuilder
  */
 auto ModelImporter::build_wls2() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     WavelengthShiftModel::Input input;
     input.model = ImportModelClass::wls2;
@@ -145,7 +155,7 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
     if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
     {
         // None of the materials have WLS2 data
-        return {};
+        return nullptr;
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
@@ -156,10 +166,10 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
  */
 auto ModelImporter::build_mie() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     MieModel::Input input;
-    input.model = ImportModelClass::mie;
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
         auto mie_data = input_.import_material->mie(mid);
@@ -168,7 +178,7 @@ auto ModelImporter::build_mie() const -> ModelBuilder
     if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
     {
         // None of the materials have Mie scattering data
-        return {};
+        return nullptr;
     }
     return MieModel::make_builder(this->imported(), std::move(input));
 }
