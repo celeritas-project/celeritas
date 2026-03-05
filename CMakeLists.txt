@@ -91,7 +91,7 @@ else()
   set(_needs_g4vg OFF)
 endif()
 
-if(BUILD_TESTING OR CELERITAS_BUILD_DOCS)
+if(BUILD_TESTING OR CELERITAS_BUILD_DOCS OR CELERITAS_BUILD_TESTS)
   set(_needs_python ON)
 else()
   set(_needs_python OFF)
