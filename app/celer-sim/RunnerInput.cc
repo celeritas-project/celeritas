@@ -286,6 +286,18 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         }
 
         inp::PhysicsFromGeant geant_import;
+        GeantImportDataSelection::Flags selection
+            = GeantImportDataSelection::em_basic;
+        if (si.geant_setup->muon || si.geant_setup->mucf_physics)
+        {
+            selection |= GeantImportDataSelection::em_ex;
+        }
+        if (si.geant_setup->optical)
+        {
+            selection |= GeantImportDataSelection::optical;
+        }
+        geant_import.data_selection.particles = selection;
+        geant_import.data_selection.processes = selection;
         CELER_VALIDATE(
             ri.poly_spline_order == 1
                 || ri.interpolation == InterpolationType::poly_spline,
