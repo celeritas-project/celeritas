@@ -184,7 +184,7 @@ load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
     for (auto mode : range(optical::ReflectionMode::size_))
     {
         auto& grid = refl_form.reflection_grids[mode];
-        helper.get_property(&grid, labels[mode]);
+        helper.get_property(grid, labels[mode]);
         CELER_VALIDATE(is_probability(grid),
                        << "parameter '" << to_cstring(mode)
                        << "' is not within [0, 1] range");
@@ -267,7 +267,7 @@ void GeantSurfacePhysicsLoader::check_unimplemented_properties(
     for (std::string name : {"GROUPVEL"})
     {
         // Check if the property exists on the surface
-        if (helper.get_property(&temp, name))
+        if (helper.get_property(temp, name))
         {
             CELER_NOT_IMPLEMENTED("unsupported optical '" + name
                                   + "' surface property");
@@ -384,11 +384,10 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
     auto& reflectivity = models_.reflectivity;
     inp::GridReflection refl_grid;
 
-    bool has_refl
-        = helper.get_property(&refl_grid.reflectivity, "REFLECTIVITY");
+    bool has_refl = helper.get_property(refl_grid.reflectivity, "REFLECTIVITY");
     bool has_trans
-        = helper.get_property(&refl_grid.transmittance, "TRANSMITTANCE");
-    bool has_eff = helper.get_property(&refl_grid.efficiency, "EFFICIENCY");
+        = helper.get_property(refl_grid.transmittance, "TRANSMITTANCE");
+    bool has_eff = helper.get_property(refl_grid.efficiency, "EFFICIENCY");
 
     if (has_refl || has_trans || has_eff)
     {
@@ -471,7 +470,7 @@ void GeantSurfacePhysicsLoader::insert_gap_material(
     {
         ImportOpticalMaterial material;
         bool has_rindex = helper.get_property(
-            &material.properties.refractive_index, "RINDEX");
+            material.properties.refractive_index, "RINDEX");
 
         CELER_VALIDATE(has_rindex,
                        << "back-painted surfaces require RINDEX defined "

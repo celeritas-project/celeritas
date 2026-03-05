@@ -167,23 +167,26 @@ bool process_is_active(OpticalProcessType process,
 /*!
  * Construct with physics options.
  */
-SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
-    : options_(options.optical)
+SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& all_options)
 {
-    auto ensure_deactivated = [](bool& v, char const* name, char const* why) {
-        if (v)
+    CELER_VALIDATE(all_options.optical,
+                   << "cannot construct SupportedOpticalPhysics when optical "
+                      "physics is disabled");
+    options_ = all_options.optical.value();
+    auto ensure_deactivated = [](auto& opt, char const* name, char const* why) {
+        if (opt)
         {
             CELER_LOG(error) << "Ignoring incompatible " << name
                              << " optical physics: " << why;
-            v = false;
+            opt = std::nullopt;
         }
     };
 
-    if (!(options.em() || options.muon || options.mucf_physics))
+    if (!(all_options.em() || all_options.muon || all_options.mucf_physics))
     {
         static char const* const why = "no EM/muon physics is enabled";
-        ensure_deactivated(options_.cherenkov.enable, "Cherenkov", why);
-        ensure_deactivated(options_.scintillation.enable, "scintillation", why);
+        ensure_deactivated(options_.cherenkov, "Cherenkov", why);
+        ensure_deactivated(options_.scintillation, "scintillation", why);
     }
 
 #if G4VERSION_NUMBER >= 1070
@@ -205,43 +208,52 @@ SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& options)
     activate_process(kWLS2, bool(options_.wavelength_shifting2));
 
     // Cherenkov
-    params->SetCerenkovStackPhotons(options_.cherenkov.stack_photons);
-    params->SetCerenkovTrackSecondariesFirst(
-        options_.cherenkov.track_secondaries_first);
-    params->SetCerenkovMaxPhotonsPerStep(options_.cherenkov.max_photons);
-    params->SetCerenkovMaxBetaChange(options_.cherenkov.max_beta_change);
+    if (auto& opts = options_.cherenkov)
+    {
+        params->SetCerenkovStackPhotons(opts->stack_photons);
+        params->SetCerenkovTrackSecondariesFirst(opts->track_secondaries_first);
+        params->SetCerenkovMaxPhotonsPerStep(opts->max_photons);
+        params->SetCerenkovMaxBetaChange(opts->max_beta_change);
+    }
 
     // Scintillation
-    params->SetScintStackPhotons(options_.scintillation.stack_photons);
-    params->SetScintTrackSecondariesFirst(
-        options_.scintillation.track_secondaries_first);
-    params->SetScintByParticleType(options_.scintillation.by_particle_type);
-    params->SetScintFiniteRiseTime(options_.scintillation.finite_rise_time);
-    params->SetScintTrackInfo(options_.scintillation.track_info);
+    if (options_.scintillation)
+    {
+        params->SetScintStackPhotons(options_.scintillation->stack_photons);
+        params->SetScintTrackSecondariesFirst(
+            options_.scintillation->track_secondaries_first);
+        params->SetScintByParticleType(
+            options_.scintillation->by_particle_type);
+        params->SetScintFiniteRiseTime(
+            options_.scintillation->finite_rise_time);
+        params->SetScintTrackInfo(options_.scintillation->track_info);
+    }
 
     // WLS
     if (options_.wavelength_shifting)
     {
         params->SetWLSTimeProfile(
-            to_cstring(options_.wavelength_shifting.time_profile));
+            to_cstring(options_.wavelength_shifting->time_profile));
     }
 
     // WLS2
     if (options_.wavelength_shifting2)
     {
         params->SetWLS2TimeProfile(
-            to_cstring(options_.wavelength_shifting2.time_profile));
+            to_cstring(options_.wavelength_shifting2->time_profile));
     }
 
     // boundary
-    params->SetBoundaryInvokeSD(options_.boundary.invoke_sd);
+    if (options_.boundary)
+    {
+        params->SetBoundaryInvokeSD(options_.boundary->invoke_sd);
+    }
 
     // Only set a global verbosity with same level for all optical processes
     params->SetVerboseLevel(options_.verbose);
 #else
-    ensure_deactivated(options_.wavelength_shifting2.enable,
-                       "WLS2",
-                       "Geant4 version is too old");
+    ensure_deactivated(
+        options_.wavelength_shifting2, "WLS2", "Geant4 version is too old");
 #endif
 
     if (options_.scintillation)
@@ -301,7 +313,8 @@ void SupportedOpticalPhysics::ConstructProcess()
         auto boundary
             = ObservingUniquePtr{std::make_unique<G4OpBoundaryProcess>()};
 #if G4VERSION_NUMBER < 1070
-        boundary->SetInvokeSD(options_.boundary.invoke_sd);
+        // Newer versions set these via G4OpticalParameters
+        boundary->SetInvokeSD(options_.boundary->invoke_sd);
 #endif
         process_manager->AddDiscreteProcess(boundary.release());
         process_manager->SetProcessOrderingToLast(boundary, idxPostStep);
@@ -313,7 +326,7 @@ void SupportedOpticalPhysics::ConstructProcess()
         auto wls = std::make_unique<G4OpWLS>();
 #if G4VERSION_NUMBER < 1070
         wls->UseTimeProfile(
-            to_cstring(options_.wavelength_shifting.time_profile));
+            to_cstring(options_.wavelength_shifting->time_profile));
 #endif
         process_manager->AddDiscreteProcess(wls.release());
         CELER_LOG(debug) << "Added optical wavelength shifting process";
@@ -338,13 +351,13 @@ void SupportedOpticalPhysics::ConstructProcess()
         auto scint = ObservingUniquePtr{std::make_unique<G4Scintillation>()};
 #if G4VERSION_NUMBER < 1070
         // Newer versions set these via G4OpticalParameters
-        scint->SetStackPhotons(options_.scintillation.stack_photons);
+        scint->SetStackPhotons(options_.scintillation->stack_photons);
         scint->SetTrackSecondariesFirst(
-            options_.scintillation.track_secondaries_first);
+            options_.scintillation->track_secondaries_first);
         scint->SetScintillationByParticleType(
-            options_.scintillation.by_particle_type);
-        scint->SetFiniteRiseTime(options_.scintillation.finite_rise_time);
-        scint->SetScintillationTrackInfo(options_.scintillation.track_info);
+            options_.scintillation->by_particle_type);
+        scint->SetFiniteRiseTime(options_.scintillation->finite_rise_time);
+        scint->SetScintillationTrackInfo(options_.scintillation->track_info);
         // NOTE: scintillation yield factor and excitation ratio are not
         // present in newer versions
 #endif
@@ -371,11 +384,11 @@ void SupportedOpticalPhysics::ConstructProcess()
         auto cherenkov = ObservingUniquePtr{std::make_unique<G4Cerenkov>()};
 #if G4VERSION_NUMBER < 1070
         // Newer versions set these via G4OpticalParameters
-        cherenkov->SetStackPhotons(options_.cherenkov.stack_photons);
+        cherenkov->SetStackPhotons(options_.cherenkov->stack_photons);
         cherenkov->SetTrackSecondariesFirst(
-            options_.cherenkov.track_secondaries_first);
-        cherenkov->SetMaxNumPhotonsPerStep(options_.cherenkov.max_photons);
-        cherenkov->SetMaxBetaChangePerStep(options_.cherenkov.max_beta_change);
+            options_.cherenkov->track_secondaries_first);
+        cherenkov->SetMaxNumPhotonsPerStep(options_.cherenkov->max_photons);
+        cherenkov->SetMaxBetaChangePerStep(options_.cherenkov->max_beta_change);
 #endif
 
         foreach_particle([&cherenkov](G4ParticleDefinition const& p) {

@@ -58,13 +58,16 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/Transporter.hh"
+#include "celeritas/optical/gen/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/setup/FrameworkInput.hh"
+#include "celeritas/setup/Problem.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/SlotDiagnostic.hh"
@@ -302,6 +305,29 @@ SharedParams::SharedParams(SetupOptions const& options)
     // Construct input and then build the problem setup
     auto framework_inp = to_inp(options);
     loaded_ = setup::framework_input(framework_inp);
+
+    using SPOpticalCore = std::shared_ptr<optical::CoreParams const>;
+    if (auto optical_params = std::visit(
+            Overload{[](setup::ProblemLoaded const& l) -> SPOpticalCore {
+                         return l.optical_collector
+                                    ? l.optical_collector->optical_params()
+                                    : nullptr;
+                     },
+                     [](setup::OpticalProblemLoaded const& l) -> SPOpticalCore {
+                         return l.transporter->params();
+                     }},
+            loaded_.problem))
+    {
+        if (std::shared_ptr<ScintillationParams const> scint
+            = optical_params->scintillation())
+        {
+            if (!scint->is_geant_compatible())
+            {
+                CELER_LOG(error)
+                    << R"(Problem contains Celeritas-specific scintillation representation: results will *not* match Geant4)";
+            }
+        }
+    }
 
     // Load geant4 geometry adapter and save as "global"
     CELER_ASSERT(loaded_.geo);

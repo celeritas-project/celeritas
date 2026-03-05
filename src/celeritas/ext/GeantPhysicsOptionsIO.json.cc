@@ -90,26 +90,11 @@ void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
 
 void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
 {
-#define GMPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
-    GMPO_LOAD_OPTION(pair_production);
-    GMPO_LOAD_OPTION(ionization);
-    GMPO_LOAD_OPTION(bremsstrahlung);
-    GMPO_LOAD_OPTION(coulomb);
-    if (auto iter = j.find("msc"); iter != j.end())
-    {
-        if (iter->is_boolean())
-        {
-            CELER_LOG(warning) << "Deprecated msc option type 'boolean': "
-                                  "refactor as 'MscModelSelection' string";
-            options.msc = iter->get<bool>() ? MscModelSelection::urban
-                                            : MscModelSelection::none;
-        }
-        else
-        {
-            iter->get_to(options.msc);
-        }
-    }
-#undef GMPO_LOAD_OPTION
+    CELER_JSON_LOAD_OPTION(j, options, pair_production);
+    CELER_JSON_LOAD_OPTION(j, options, ionization);
+    CELER_JSON_LOAD_OPTION(j, options, bremsstrahlung);
+    CELER_JSON_LOAD_OPTION(j, options, coulomb);
+    CELER_JSON_LOAD_OPTION(j, options, msc);
 }
 
 void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)
@@ -147,7 +132,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(msc);
     GPO_LOAD_OPTION(relaxation);
 
-    GPO_LOAD_OPTION(muon);
+    CELER_JSON_LOAD_OPTIONAL(j, options, muon);
     GPO_LOAD_OPTION(mucf_physics);
 
     GPO_LOAD_OPTION(em_bins_per_decade);
@@ -177,7 +162,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 
     GPO_LOAD_OPTION(verbose);
 
-    GPO_LOAD_OPTION(optical);
+    CELER_JSON_LOAD_OPTIONAL(j, options, optical);
 #undef GPO_LOAD_OPTION
 }
 
@@ -202,7 +187,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, msc),
         CELER_JSON_PAIR(inp, relaxation),
 
-        CELER_JSON_PAIR(inp, muon),
+        CELER_JSON_PAIR_OPTIONAL(inp, muon),
         CELER_JSON_PAIR(inp, mucf_physics),
 
         CELER_JSON_PAIR(inp, em_bins_per_decade),
@@ -232,7 +217,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
 
         CELER_JSON_PAIR(inp, verbose),
 
-        CELER_JSON_PAIR(inp, optical),
+        CELER_JSON_PAIR_OPTIONAL(inp, optical),
     };
 
     save_format(j, format_str);

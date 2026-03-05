@@ -69,6 +69,7 @@ auto JsonEventReader::operator()() -> result_type
         j.at("position").get_to(p.position);
         j.at("direction").get_to(p.direction);
         p.time = j.at("time").get<real_type>();
+        p.primary_id = id_cast<PrimaryId>(result.size());
         result.push_back(p);
     }
 

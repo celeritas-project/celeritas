@@ -138,6 +138,7 @@ auto RootEventReader::operator()() -> result_type
         primary.time = from_leaf<real_type>(*ttree_->GetLeaf("time"));
         primary.position = from_array_leaf(*ttree_->GetLeaf("pos"));
         primary.direction = from_array_leaf(*ttree_->GetLeaf("dir"));
+        primary.primary_id = id_cast<PrimaryId>(primaries.size());
         primaries.push_back(std::move(primary));
     }
 

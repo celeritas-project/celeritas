@@ -24,60 +24,48 @@ std::shared_ptr<ImportedMaterials>
 ImportedMaterials::from_import(ImportData const& data)
 {
     // If there's no material specific parameters, return a nullptr
-    if (!std::any_of(data.optical_materials.begin(),
-                     data.optical_materials.end(),
-                     [](auto const& mat) {
-                         return mat.rayleigh || mat.wls || mat.wls2 || mat.mie;
-                     }))
+    auto const& bulk_phys = data.optical_physics.bulk;
+    if (!(bulk_phys.mie || bulk_phys.rayleigh || bulk_phys.wls
+          || bulk_phys.wls2))
     {
         return nullptr;
     }
 
+    auto assign_models = [](auto const& model_data, auto& out_vec) {
+        for (auto const& [opt_mat_id, model_mat] : model_data.materials)
+        {
+            CELER_EXPECT(opt_mat_id < out_vec.size());
+            out_vec[opt_mat_id.get()] = model_mat;
+        }
+    };
+
     OptMatId::size_type num_materials = data.optical_materials.size();
+    std::vector<ImportMie> mie(num_materials);
+    std::vector<ImportOpticalRayleigh> rayleigh(num_materials);
+    std::vector<ImportWavelengthShift> wls(num_materials);
+    std::vector<ImportWavelengthShift> wls2(num_materials);
 
-    // Copy over Rayleigh and WLS data
-
-    std::vector<ImportOpticalRayleigh> rayleigh;
-    rayleigh.reserve(num_materials);
-
-    std::vector<ImportWavelengthShift> wls;
-    wls.reserve(num_materials);
-
-    std::vector<ImportWavelengthShift> wls2;
-    wls2.reserve(num_materials);
-
-    std::vector<ImportMie> mie;
-    mie.reserve(num_materials);
-
-    for (auto const& mat : data.optical_materials)
-    {
-        rayleigh.push_back(mat.rayleigh);
-        wls.push_back(mat.wls);
-        wls2.push_back(mat.wls2);
-        mie.push_back(mat.mie);
-    }
-
-    CELER_ENSURE(rayleigh.size() == num_materials);
-    CELER_ENSURE(wls.size() == num_materials);
-    CELER_ENSURE(wls2.size() == num_materials);
-    CELER_ENSURE(mie.size() == num_materials);
+    assign_models(bulk_phys.mie, mie);
+    assign_models(bulk_phys.rayleigh, rayleigh);
+    assign_models(bulk_phys.wls, wls);
+    assign_models(bulk_phys.wls2, wls2);
 
     return std::make_shared<ImportedMaterials>(
-        std::move(rayleigh), std::move(wls), std::move(wls2), std::move(mie));
+        std::move(mie), std::move(rayleigh), std::move(wls), std::move(wls2));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct directly from imported material properties.
  */
-ImportedMaterials::ImportedMaterials(std::vector<ImportOpticalRayleigh> rayleigh,
+ImportedMaterials::ImportedMaterials(std::vector<ImportMie> mie,
+                                     std::vector<ImportOpticalRayleigh> rayleigh,
                                      std::vector<ImportWavelengthShift> wls,
-                                     std::vector<ImportWavelengthShift> wls2,
-                                     std::vector<ImportMie> mie)
-    : rayleigh_(std::move(rayleigh))
+                                     std::vector<ImportWavelengthShift> wls2)
+    : mie_(std::move(mie))
+    , rayleigh_(std::move(rayleigh))
     , wls_(std::move(wls))
     , wls2_(std::move(wls2))
-    , mie_(std::move(mie))
 {
     CELER_EXPECT(!rayleigh_.empty());
     CELER_EXPECT(rayleigh_.size() == wls_.size());

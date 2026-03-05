@@ -7,7 +7,6 @@
 #pragma once
 
 #include <memory>
-#include <set>
 #include <vector>
 
 #include "corecel/OpaqueId.hh"
@@ -27,6 +26,10 @@ namespace optical
  *
  * Constructs a map of built-in optical model classes to their imported model
  * IDs.
+ *
+ * \todo This legacy adapter class manages the MFP data for all optical physics
+ * models. It will be deleted in favor of directly storing MFPs as part of the
+ * model class.
  */
 class ImportedModels
 {

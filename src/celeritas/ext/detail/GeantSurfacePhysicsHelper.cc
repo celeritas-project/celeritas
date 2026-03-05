@@ -61,15 +61,10 @@ G4OpticalSurface const& GeantSurfacePhysicsHelper::surface() const
  * - Backscatter
  * - Surface refractive index
  */
-bool GeantSurfacePhysicsHelper::get_property(inp::Grid* dst,
+bool GeantSurfacePhysicsHelper::get_property(inp::Grid& dst,
                                              std::string const& name) const
 {
-    if (!mpt_)
-    {
-        return false;
-    }
-
-    GeantMaterialPropertyGetter get_property{*mpt_};
+    GeantMaterialPropertyGetter get_property{mpt_};
     auto loaded
         = get_property(dst, name, {ImportUnits::mev, ImportUnits::unitless});
     if (loaded)

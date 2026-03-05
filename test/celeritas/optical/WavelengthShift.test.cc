@@ -7,11 +7,8 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/random/Histogram.hh"
-#include "celeritas/UnitTypes.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/interactor/WavelengthShiftGenerator.hh"
 #include "celeritas/optical/interactor/WavelengthShiftInteractor.hh"
 #include "celeritas/optical/model/WavelengthShiftModel.hh"
@@ -45,12 +42,12 @@ class WavelengthShiftTest : public InteractorHostBase,
         WavelengthShiftModel::Input input;
         input.model = ImportModelClass::wls;
         input.time_profile = time_profile;
-        for (auto const& mat : data.optical_materials)
+        input.data.resize(data.optical_materials.size());
+        for (auto&& [opt_mat_id, wls] : data.optical_physics.bulk.wls.materials)
         {
-            input.data.push_back(mat.wls);
+            input.data[opt_mat_id.get()] = wls;
         }
-        auto models
-            = std::make_shared<ImportedModels const>(data.optical_models);
+        auto models = ImportedModels::from_import(data);
         model_ = std::make_shared<WavelengthShiftModel const>(
             ActionId{0}, models, input);
         data_ = model_->host_ref();

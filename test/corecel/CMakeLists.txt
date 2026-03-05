@@ -102,6 +102,7 @@ celeritas_add_test(math/TridiagonalSolver.test.cc)
 
 celeritas_add_test(random/CachedRngEngine.test.cc)
 celeritas_add_test(random/Histogram.test.cc)
+celeritas_add_test(random/InitializeRngState.test.cc)
 celeritas_add_test(random/RanluxppRngEngine.test.cc GPU)
 celeritas_add_device_test(random/RngEngine
   LINK_LIBRARIES Celeritas::ExtThrust)

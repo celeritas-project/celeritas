@@ -22,7 +22,7 @@ GeantPhysicsOptions
 SurfacePhysicsIntegrationTestBase::build_geant_options() const
 {
     auto result = GeantTestBase::build_geant_options();
-    result.optical = {};
+    result.optical.emplace();
     CELER_ENSURE(result.optical);
     return result;
 }

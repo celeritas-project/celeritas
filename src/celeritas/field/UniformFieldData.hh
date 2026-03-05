@@ -27,11 +27,11 @@ struct UniformFieldParamsData
 {
     using Real3 = Array<real_type, 3>;
     template<class T>
-    using VolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
+    using ImplVolumeItems = celeritas::Collection<T, W, M, ImplVolumeId>;
 
     Real3 field{0, 0, 0};  //!< Field strength (native units)
     FieldDriverOptions options;
-    VolumeItems<char> has_field;  //!< Volumes where field is present
+    ImplVolumeItems<char> has_field;  //!< Volumes where field is present
 
     //! Check whether the data is assigned
     explicit inline CELER_FUNCTION operator bool() const

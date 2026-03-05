@@ -125,7 +125,8 @@ struct ImportScintData
 struct ImportOpticalRayleigh
 {
     double scale_factor{1};  //!< Scale the scattering length (optional)
-    double compressibility{};  //!< Isothermal compressibility
+    double compressibility{0};  //!< Isothermal compressibility
+                                //!< [len-time^2/mass]
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
@@ -202,14 +203,6 @@ struct ImportOpticalMaterial
 {
     ImportOpticalProperty properties;
     ImportScintData scintillation;
-
-    //!@{
-    //! \name Optical process data
-    ImportOpticalRayleigh rayleigh;
-    ImportWavelengthShift wls;
-    ImportWavelengthShift wls2;
-    ImportMie mie;
-    //!@}
 
     //! Whether minimal useful data is stored
     explicit operator bool() const { return static_cast<bool>(properties); }

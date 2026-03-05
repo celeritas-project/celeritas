@@ -36,8 +36,7 @@ class AbsorptionModelTest : public OpticalMockTestBase
     //! Construct absorption model from mock data
     std::shared_ptr<AbsorptionModel const> create_model()
     {
-        auto models = std::make_shared<ImportedModels const>(
-            this->imported_data().optical_models);
+        auto models = ImportedModels::from_import(this->imported_data());
         return std::make_shared<AbsorptionModel const>(ActionId{0}, models);
     }
 };
@@ -85,9 +84,8 @@ TEST_F(AbsorptionModelTest, interaction_mfp)
         model->build_mfps(mat, builder);
     }
 
-    EXPECT_TABLE_EQ(
-        this->import_model_by_class(ImportModelClass::absorption).mfp_table,
-        storage(builder.grid_ids()));
+    EXPECT_TABLE_EQ(this->get_mfp_table(ImportModelClass::absorption),
+                    storage(builder.grid_ids()));
 }
 
 //---------------------------------------------------------------------------//
