@@ -40,7 +40,6 @@ celeritas_optional_package(LArSoft "Build LArSoft data interfaces")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(PNG "Enable PNG output with libpng")
-celeritas_optional_package(Python "Use Python for documentation and testing")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
@@ -92,11 +91,18 @@ else()
   set(_needs_g4vg OFF)
 endif()
 
+if(BUILD_TESTING OR CELERITAS_BUILD_DOCS)
+  set(_needs_python ON)
+else()
+  set(_needs_python OFF)
+endif()
+
 # Automatic options
 celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
 celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
 celeritas_force_package(G4VG ${_needs_g4vg})
 celeritas_force_package(nlohmann_json ON)
+celeritas_force_package(Python ${_needs_python})
 
 #----------------------------------------------------------------------------#
 # PACKAGE-SPECIFIC OPTIONS
@@ -630,9 +636,7 @@ if(CELERITAS_BUILD_DOCS)
     )
   endif()
 
-  if(CELERITAS_USE_Python)
-    celeritas_check_python_module(CELERITAS_USE_Sphinx sphinx)
-  endif()
+  celeritas_check_python_module(CELERITAS_USE_Sphinx sphinx)
   set(Sphinx_FOUND ${CELERITAS_USE_Sphinx})
   if(Sphinx_FOUND)
     celeritas_check_python_module(CELERITAS_USE_Breathe "breathe")
