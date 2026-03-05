@@ -57,13 +57,14 @@ void PDSimAna::beginJob()
 /*!
  * Loop over event data and populate histograms.
  */
-void PDSimAna::analyze(art::Event const& e)
+void PDSimAna::analyze(art::Event const& event)
 {
+    using VecSimEdep = std::vector<sim::SimEnergyDeposit>;
+    using VecOpDetBTR = std::vector<sim::OpDetBacktrackerRecord>;
+
     // Load SimEnergyDeposit and OpDetBacktrackerRecord data
-    auto const& sim_edeps
-        = *(e.getValidHandle<std::vector<sim::SimEnergyDeposit>>(sim_tag_));
-    auto const& opdet_btrs = *(
-        e.getValidHandle<std::vector<sim::OpDetBacktrackerRecord>>(btr_tag_));
+    auto const& sim_edeps = *(event.getValidHandle<VecSimEdep>(sim_tag_));
+    auto const& opdet_btrs = *(event.getValidHandle<VecOpDetBTR>(btr_tag_));
 
     for (auto const& btr : opdet_btrs)
     {
@@ -71,11 +72,11 @@ void PDSimAna::analyze(art::Event const& e)
         double total_btr_energy{0};
         for (auto const& map : btr.timePDclockSDPsMap())
         {
-            // histograms_.hist->Fill(sdp.second.energy());
             auto const& time = map.first;
             auto const& vec_sdp = map.second;
 
             histograms_.pd_time->Fill(time);
+
             double total_sdp_energy{0};
             for (auto const& sdp : vec_sdp)
             {
