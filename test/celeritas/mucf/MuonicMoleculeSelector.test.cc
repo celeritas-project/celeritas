@@ -57,7 +57,7 @@ class MuonicMoleculeSelectorTest
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-TEST_F(MuonicMoleculeSelectorTest, dd_spin_selection)
+TEST_F(MuonicMoleculeSelectorTest, TEST_IF_CELERITAS_DOUBLE(dd_spin_selection))
 {
     CycleRatesArray rates;
 
@@ -83,7 +83,7 @@ TEST_F(MuonicMoleculeSelectorTest, dd_spin_selection)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MuonicMoleculeSelectorTest, dt_spin_selection)
+TEST_F(MuonicMoleculeSelectorTest, TEST_IF_CELERITAS_DOUBLE(dt_spin_selection))
 {
     CycleRatesArray rates;
 
@@ -109,7 +109,7 @@ TEST_F(MuonicMoleculeSelectorTest, dt_spin_selection)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MuonicMoleculeSelectorTest, tt_spin_selection)
+TEST_F(MuonicMoleculeSelectorTest, TEST_IF_CELERITAS_DOUBLE(tt_spin_selection))
 {
     CycleRatesArray rates;
 
