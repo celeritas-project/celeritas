@@ -285,6 +285,49 @@ TEST_F(CylMapFieldTest, all)
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
 
+TEST_F(RZMapFieldTest, TEST_IF_CELER_DEVICE(device))
+{
+    RZMapFieldInput inp;
+    auto filename = this->test_data_path("celeritas", "cms-tiny.field.json");
+    std::ifstream(filename) >> inp;
+
+    int const nsamples = 8;
+
+    // Compute host reference values
+    RZMapFieldParams field_map{inp};
+    RZMapField calc_field(field_map.host_ref());
+
+    real_type delta_z = from_cm(25.0);
+    real_type delta_r = from_cm(12.0);
+
+    std::vector<real_type> host_values;
+    for (int i : range(nsamples))
+    {
+        Real3 field = calc_field(Real3{i * delta_r, i * delta_r, i * delta_z});
+        for (real_type f : field)
+        {
+            host_values.push_back(
+                native_value_to<units::FieldTesla>(f).value());
+        }
+    }
+
+    // Compute device values
+    std::vector<real_type> device_field_values(nsamples * 3);
+    auto span = make_span(device_field_values);
+    rzfield_test(inp, span, nsamples);
+
+    std::vector<real_type> device_values;
+    for (real_type f : device_field_values)
+    {
+        device_values.push_back(native_value_to<units::FieldTesla>(f).value());
+    }
+
+    // Compare device against host (both use covfie when covfie is enabled);
+    // CUDA texture interpolation differs from host covfie linear interpolation
+    constexpr real_type tol = CELERITAS_USE_HIP ? 5e-2 : 2e-2;
+    EXPECT_VEC_NEAR(host_values, device_values, tol);
+}
+
 #if !CELERITAS_USE_COVFIE
 #    define CartMapFieldTest DISABLED_CartMapFieldTest
 #endif
