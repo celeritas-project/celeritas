@@ -142,49 +142,6 @@ class MaterialScintillationTabularTest : public ScintillationTestBase
     }
 };
 
-class ParticleScintillationTest : public ScintillationTestBase
-{
-  public:
-    //! Create scintillation params
-    SPParams build_scintillation_params() override
-    {
-        ScintillationParams::Input inp;
-        inp.resolution_scale.push_back(1);
-
-        // One particle, one component (based on lar-sphere.gdml)
-        inp.pid_to_scintpid.push_back(ScintParticleId(0));
-        ImportParticleScintSpectrum ipss;
-        ipss.yield_vector = this->build_particle_yield();
-        ipss.components = this->build_particle_components();
-        inp.particles.push_back(std::move(ipss));
-
-        return std::make_shared<ScintillationParams>(std::move(inp));
-    }
-
-    //! Create particle yield vector
-    inp::Grid build_particle_yield()
-    {
-        inp::Grid vec;
-        vec.x = {1e-6, 6};
-        vec.y = {3750, 5000};
-        return vec;
-    }
-
-    //! Create particle components
-    VecScintComponents build_particle_components()
-    {
-        std::vector<ImportScintComponent> vec_comps;
-        ImportScintComponent comp;
-        comp.yield_frac = 1;
-        comp.gauss.lambda_mean = from_cm(1e-5);
-        comp.gauss.lambda_sigma = from_cm(1e-6);
-        comp.rise_time = native_value_from(TimeSecond(15e-9));
-        comp.fall_time = native_value_from(TimeSecond(5e-9));
-        vec_comps.push_back(std::move(comp));
-        return vec_comps;
-    }
-};
-
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -192,9 +149,9 @@ class ParticleScintillationTest : public ScintillationTestBase
 TEST_F(MaterialScintillationGaussianTest, data)
 {
     auto const params = this->build_scintillation_params();
+    EXPECT_FALSE(params->is_geant_compatible());
     auto const& data = params->host_ref();
 
-    EXPECT_EQ(0, data.num_scint_particles);
     EXPECT_EQ(1, data.materials.size());
 
     auto const& mat_record = data.materials[opt_mat_];
@@ -243,7 +200,6 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
-    EXPECT_FALSE(data.scintillation_by_particle());
 
     // The particle's energy is necessary for the particle track view but
     // is irrelevant for the test since what matters is the energy
@@ -285,7 +241,6 @@ TEST_F(MaterialScintillationGaussianTest, basic)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
-    EXPECT_FALSE(data.scintillation_by_particle());
 
     auto particle
         = this->make_particle_track_view(post_energy_, pdg::electron());
@@ -484,12 +439,6 @@ TEST_F(MaterialScintillationGaussianTest, time)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ParticleScintillationTest, basic)
-{
-    GTEST_SKIP() << "particle scintillation is not yet implemented";
-}
-
-//---------------------------------------------------------------------------//
 TEST_F(MaterialScintillationGaussianTest, stress_test)
 {
     auto const params = this->build_scintillation_params();
@@ -554,6 +503,7 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
 TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
 {
     auto const params = this->build_scintillation_params();
+    EXPECT_TRUE(params->is_geant_compatible());
     auto const& data = params->host_ref();
 
     // Iterate components and, when an energy CDF is present, construct grid

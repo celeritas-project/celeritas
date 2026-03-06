@@ -7,21 +7,19 @@
 #include "accel/UserActionIntegration.hh"
 
 #include <memory>
-#include <G4Cerenkov.hh>
-#include <G4ProcessManager.hh>
+#include <G4OpticalPhoton.hh>
 #include <G4RunManager.hh>
-#include <G4Scintillation.hh>
 #include <G4Step.hh>
 #include <G4StepPoint.hh>
 
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/g4/Convert.hh"
 #include "accel/LocalOpticalGenOffload.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/detail/IntegrationSingleton.hh"
 
+#include "DistOffloadMixin.hh"
 #include "IntegrationTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -37,9 +35,10 @@ constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
                                          == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
-class UAITrackingAction final : public G4UserTrackingAction
+class UAITrackingAction : public G4UserTrackingAction
 {
-    void PreUserTrackingAction(G4Track const* track) final
+  public:
+    void PreUserTrackingAction(G4Track const* track) override
     {
         UAI::Instance().PreUserTrackingAction(const_cast<G4Track*>(track));
     }
@@ -110,24 +109,22 @@ TEST_F(LarSphere, run)
 //---------------------------------------------------------------------------//
 // LAR SPHERE WITH OPTICAL OFFLOAD
 //---------------------------------------------------------------------------//
-class LSOOSteppingAction final : public G4UserSteppingAction
-{
-    void UserSteppingAction(G4Step const* step) final;
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Offload optical distributions.
+ *
+ * The \c LarSphere base sets up geometry and primaries (electrons), and \c
+ * DistOffloadMixin sets up the correct Geant4 physics and Celeritas run
+ * options.
  */
-class LarSphereOpticalOffload : public LarSphere
+class LarSphereOpticalOffload : public DistOffloadMixin, public LarSphere
 {
   public:
     PrimaryInput make_primary_input() const override;
-    PhysicsInput make_physics_input() const override;
-    SetupOptions make_setup_options() override;
-    UPStepAction make_stepping_action() override
+
+    void EndOfRunAction(G4Run const* run) override
     {
-        return std::make_unique<LSOOSteppingAction>();
+        DistOffloadMixin::EndOfRunAction(run);
+        LarSphere::EndOfRunAction(run);
     }
 };
 
@@ -137,148 +134,13 @@ class LarSphereOpticalOffload : public LarSphere
  */
 auto LarSphereOpticalOffload::make_primary_input() const -> PrimaryInput
 {
-    auto result = LarSphereIntegrationMixin::make_primary_input();
+    auto result = LarSphere::make_primary_input();
 
     result.shape
         = inp::PointDistribution{array_cast<double>(from_cm({0.1, 0.1, 0}))};
-    result.primaries_per_event = 1;
+    result.primaries_per_event = 10;
     result.energy = inp::MonoenergeticDistribution{1};  // [MeV]
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Enable optical physics and disable photon stacking.
- */
-auto LarSphereOpticalOffload::make_physics_input() const -> PhysicsInput
-{
-    auto result = LarSphereIntegrationMixin::make_physics_input();
-
-    // Set default optical physics
-    auto& optical = result.optical;
-    optical = {};
-
-    // Disable generation of Cherenkov and scintillation photons in Geant4
-    optical.cherenkov.stack_photons = false;
-    optical.scintillation.stack_photons = false;
-
-    // Disable WLS which isn't yet working (reemission) in Celeritas
-    using WLSO = WavelengthShiftingOptions;
-    optical.wavelength_shifting = WLSO::deactivated();
-    optical.wavelength_shifting2 = WLSO::deactivated();
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Enable optical tracking with distribution offloading.
- */
-auto LarSphereOpticalOffload::make_setup_options() -> SetupOptions
-{
-    auto result = LarSphereIntegrationMixin::make_setup_options();
-
-    result.optical = [] {
-        OpticalSetupOptions opt;
-        opt.capacity.tracks = 32768;
-        opt.capacity.generators = opt.capacity.tracks * 8;
-        opt.capacity.primaries = opt.capacity.tracks * 16;
-
-        // Enable optical distribution offloading
-        opt.generator = inp::OpticalOffloadGenerator{};
-
-        return opt;
-    }();
-
-    // Don't offload any particles
-    result.offload_particles = SetupOptions::VecG4PD{};
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Stepping action for pushing optical distributions to Celeritas.
- */
-void LSOOSteppingAction::UserSteppingAction(G4Step const* step)
-{
-    CELER_EXPECT(step);
-
-    constexpr double clhep_time{1 / units::nanosecond};
-
-    auto& local = detail::IntegrationSingleton::instance().local_offload();
-    if (!local)
-    {
-        // Offloading is disabled
-        return;
-    }
-
-    if (step->GetStepLength() == 0)
-    {
-        // Skip "no-process"-defined steps
-        return;
-    }
-
-    auto* pm = step->GetTrack()->GetDefinition()->GetProcessManager();
-    CELER_ASSERT(pm);
-
-    // Determine how many Cherenkov and scintillation photons to generate
-    size_type num_cherenkov{0};
-    size_type num_scintillation{0};
-    if (auto const* p = dynamic_cast<G4Cerenkov const*>(pm->GetProcess("Cerenk"
-                                                                       "ov")))
-    {
-        num_cherenkov = p->GetNumPhotons();
-    }
-    if (auto const* p = dynamic_cast<G4Scintillation const*>(
-            pm->GetProcess("Scintillation")))
-    {
-        num_scintillation = p->GetNumPhotons();
-    }
-
-    if (num_cherenkov == 0 && num_scintillation == 0)
-    {
-        return;
-    }
-
-    auto* pre_step = step->GetPreStepPoint();
-    auto* post_step = step->GetPostStepPoint();
-    CELER_ASSERT(pre_step && post_step);
-
-    // Create distribution and push to Celeritas
-    // TODO: Get optical material ID
-    optical::GeneratorDistributionData data;
-    data.step_length = convert_from_geant(step->GetStepLength(), clhep_length);
-    data.charge = units::ElementaryCharge{
-        static_cast<real_type>(post_step->GetCharge())};
-    data.material = OptMatId(0);
-    auto& pre = data.points[StepPoint::pre];
-    pre.speed = units::LightSpeed(pre_step->GetBeta());
-    pre.time = convert_from_geant(pre_step->GetGlobalTime(), clhep_time);
-    pre.pos = convert_from_geant(pre_step->GetPosition(), clhep_length);
-    auto& post = data.points[StepPoint::post];
-    post.speed = units::LightSpeed(post_step->GetBeta());
-    post.time = convert_from_geant(post_step->GetGlobalTime(), clhep_time);
-    post.pos = convert_from_geant(post_step->GetPosition(), clhep_length);
-
-    auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
-    if (num_cherenkov > 0)
-    {
-        data.type = GeneratorType::cherenkov;
-        data.num_photons = num_cherenkov;
-        CELER_ASSERT(data);
-        gen_offload.Push(data);
-    }
-    if (num_scintillation > 0)
-    {
-        data.type = GeneratorType::scintillation;
-        data.num_photons = num_scintillation;
-        CELER_ASSERT(data);
-        gen_offload.Push(data);
-    }
-    CELER_LOG(debug) << "Generating " << num_cherenkov
-                     << " Cherenkov photons and " << num_scintillation
-                     << " scintillation photons";
 }
 
 //---------------------------------------------------------------------------//
@@ -331,6 +193,165 @@ TEST_F(OpNoviceOptical, run)
 
     rm.Initialize();
     rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+// LAR SPHERE WITH OPTICAL TRACK OFFLOAD
+//---------------------------------------------------------------------------//
+class LSOOTrackingAction final : public UAITrackingAction
+{
+  public:
+    void PreUserTrackingAction(G4Track const* track) final
+    {
+        UAITrackingAction::PreUserTrackingAction(track);
+
+        auto& local = detail::IntegrationSingleton::instance().local_offload();
+        auto* opt_offload = dynamic_cast<LocalOpticalTrackOffload*>(&local);
+
+        if (opt_offload && opt_offload->Initialized())
+        {
+            pushes_ = opt_offload->num_pushed();
+        }
+    }
+    std::size_t num_pushes() const { return pushes_; }
+
+  private:
+    std::size_t pushes_{0};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Offload optical tracks.
+ */
+class LarSphereOpticalTrackOffload : public LarSphere
+{
+  public:
+    PhysicsInput make_physics_input() const override;
+    PrimaryInput make_primary_input() const override;
+    SetupOptions make_setup_options() override;
+    void EndOfRunAction(G4Run const* run) override;
+    UPTrackAction make_tracking_action() override
+    {
+        auto result = std::make_unique<LSOOTrackingAction>();
+        {
+            static std::mutex mutex;
+            std::lock_guard<std::mutex> lock(mutex);
+            tracking_.push_back(result.get());
+        }
+        return result;
+    }
+
+  private:
+    std::vector<LSOOTrackingAction*> tracking_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Single electron primary.
+ */
+auto LarSphereOpticalTrackOffload::make_primary_input() const -> PrimaryInput
+{
+    auto result = LarSphere::make_primary_input();
+    result.shape
+        = inp::PointDistribution{array_cast<double>(from_cm({0.1, 0.1, 0}))};
+    result.primaries_per_event = 1;
+    result.energy = inp::MonoenergeticDistribution{1};
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical physics
+ */
+auto LarSphereOpticalTrackOffload::make_physics_input() const -> PhysicsInput
+{
+    auto result = LarSphere::make_physics_input();
+
+    // Set default optical physics
+    auto& optical = result.optical;
+    optical.emplace();
+    optical->cherenkov->stack_photons = true;
+    optical->scintillation->stack_photons = true;
+
+    optical->wavelength_shifting = std::nullopt;
+    optical->wavelength_shifting2 = std::nullopt;
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical tracking offloading.
+ */
+auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
+{
+    auto result = LarSphereIntegrationMixin::make_setup_options();
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32;
+        opt.capacity.generators = opt.capacity.tracks * 8;
+        opt.capacity.primaries = opt.capacity.tracks * 16;
+        opt.generator = inp::OpticalDirectGenerator{};
+        return opt;
+    }();
+
+    // Offload optical photon
+    result.offload_particles
+        = SetupOptions::VecG4PD{G4OpticalPhoton::Definition()};
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test that the optical track offload was successful.
+ */
+void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
+{
+    auto& integration = detail::IntegrationSingleton::instance();
+    auto& local = integration.local_offload();
+
+    auto test_mode = IntegrationTestBase::test_offload();
+
+    if (!G4Threading::IsMultithreadedApplication())
+    {
+        if (test_mode == TestOffload::cpu || test_mode == TestOffload::gpu)
+        {
+            auto pushed
+                = dynamic_cast<LocalOpticalTrackOffload&>(local).num_pushed();
+
+            // Validate that we intercepted optical tracks
+            EXPECT_GT(pushed, 0) << "should have pushed many optical tracks";
+        }
+    }
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        std::size_t total_tracks_pushed{0};
+        for (auto* action : tracking_)
+        {
+            total_tracks_pushed += action->num_pushes();
+        }
+
+        CELER_LOG(info) << "Celeritas offloaded  " << total_tracks_pushed
+                        << " optical tracks";
+
+        if (test_mode == TestOffload::g4 || test_mode == TestOffload::ko)
+        {
+            EXPECT_EQ(total_tracks_pushed, 0);
+        }
+    }
+    // Continue cleanup and other checks at end of run
+    LarSphere::EndOfRunAction(run);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(LarSphereOpticalTrackOffload, run)
+{
+    auto& rm = this->run_manager();
+    UAI::Instance().SetOptions(this->make_setup_options());
+
+    rm.Initialize();
+    rm.BeamOn(1);
 }
 
 //---------------------------------------------------------------------------//

@@ -10,6 +10,7 @@
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
+#include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "PersistentSP.hh"
@@ -25,7 +26,7 @@ class LarStandaloneRunnerTestBase : public ::celeritas::test::Test
 {
   protected:
     using Runner = LarStandaloneRunner;
-    using Input = LarStandaloneRunner::Input;
+    using Input = inp::OpticalStandaloneInput;
 
     //! Construct input
     virtual Input make_input() const = 0;
@@ -79,7 +80,7 @@ auto LarSphereTest::make_input() const -> Input
     }();
     result.problem.num_streams = 1;
     result.problem.generator = inp::OpticalOffloadGenerator{};
-    result.geant_setup.cherenkov.enable = false;
+    result.geant_setup.cherenkov = std::nullopt;
     return result;
 }
 

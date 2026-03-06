@@ -86,6 +86,11 @@ auto StepperTestBase::run(StepperInterface& step,
 {
     // Perform first step
     auto primaries = this->make_primaries(num_primaries);
+    for (auto i : celeritas::range(primaries.size()))
+    {
+        primaries[i].primary_id = id_cast<PrimaryId>(i);
+    }
+
     StepperResult counts;
     CELER_TRY_HANDLE(counts = step(make_span(primaries)),
                      LogContextException{this->output_reg().get()});

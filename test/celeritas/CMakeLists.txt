@@ -220,9 +220,6 @@ celeritas_add_test(ext/GeantImporter.test.cc
   FILTER ${_import_filter}
 )
 
-celeritas_add_test(ext/JsonIO.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
-
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
@@ -468,10 +465,6 @@ celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
-celeritas_add_test(optical/ImportedModelAdapter.test.cc)
-celeritas_add_test(optical/ImportedMaterials.test.cc)
-celeritas_add_test(optical/ModelImporter.test.cc)
-celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/Mie.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
@@ -582,7 +575,7 @@ add_custom_target(debug-root-test-data
   COMMENT "Debug ROOT test data"
 )
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
+if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT AND CELERITAS_BUILD_APPS)
   foreach(_filename "four-steel-slabs" "simple-cms")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")

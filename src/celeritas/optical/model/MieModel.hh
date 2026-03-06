@@ -38,7 +38,6 @@ class MieModel final : public Model
     //! OptMatId
     struct Input
     {
-        ImportModelClass model{ImportModelClass::size_};
         std::vector<ImportMie> data;
     };
 

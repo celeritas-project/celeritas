@@ -82,6 +82,7 @@ list(APPEND SOURCES
   surf/SurfaceClipper.cc
   surf/SurfaceIO.cc
   surf/SurfaceSimplifier.cc
+  surf/Toroid.cc
   surf/VariantSurface.cc
   surf/detail/SurfaceTransformer.cc
   surf/detail/SurfaceTranslator.cc

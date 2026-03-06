@@ -31,11 +31,7 @@ InterpolatorHelper::InterpolatorHelper(inp::Grid const& input)
  */
 real_type InterpolatorHelper::operator()(real_type value) const
 {
-    using ItemsCRef
-        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
-
-    ItemsCRef reals_ref_{reals_};
-    NonuniformGridCalculator interpolate{grid_record_, reals_ref_};
+    NonuniformGridCalculator interpolate{grid_record_, make_ref(reals_)};
     return interpolate(value);
 }
 

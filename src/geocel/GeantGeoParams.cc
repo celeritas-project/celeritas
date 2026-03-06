@@ -7,6 +7,7 @@
 #include "GeantGeoParams.hh"
 
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -38,6 +39,7 @@
 
 #include "GeantGdmlLoader.hh"
 #include "GeantGeoUtils.hh"
+#include "GeoOpticalIdMap.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated
@@ -718,6 +720,8 @@ GeantGeoParams::from_gdml(std::string const& filename)
  */
 GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
     : ownership_{owns}
+    , geo_to_opt_(
+          std::make_shared<GeoOpticalIdMap>(*G4Material::GetMaterialTable()))
 {
     CELER_EXPECT(world);
     data_.world = const_cast<G4VPhysicalVolume*>(world);

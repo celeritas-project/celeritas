@@ -8,7 +8,7 @@
 
 #include "corecel/Config.hh"
 
-#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "GeantSurfacePhysicsHelper.hh"
@@ -19,14 +19,14 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Populate \c inp::SurfacePhysics data from Geant4 by looping over
+ * Populate \c inp::OpticalSurfacePhysics data from Geant4 by looping over
  * \c SurfaceIds .
  */
 class GeantSurfacePhysicsLoader
 {
   public:
     //! Construct with \c SurfacePhysics input
-    GeantSurfacePhysicsLoader(inp::SurfacePhysics& surface_phys,
+    GeantSurfacePhysicsLoader(inp::OpticalSurfacePhysics& surface_phys,
                               std::vector<ImportOpticalMaterial>& materials);
 
     //! Populate surface physics data
@@ -34,7 +34,7 @@ class GeantSurfacePhysicsLoader
 
   private:
     //// DATA ////
-    inp::SurfacePhysics& models_;  // Populated by operator()
+    inp::OpticalSurfacePhysics& models_;  // Populated by operator()
     std::vector<ImportOpticalMaterial>& materials_;  // Populated by operator()
 
     PhysSurfaceId current_surface_{0};
@@ -71,7 +71,9 @@ class GeantSurfacePhysicsLoader
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::SurfacePhysics&) {}
+GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::OpticalSurfacePhysics&)
+{
+}
 
 inline void GeantSurfacePhysicsLoader::operator()(SurfaceId) {}
 #endif

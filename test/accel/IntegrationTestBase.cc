@@ -19,6 +19,8 @@
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StringEnumMapper.hh"
 
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
@@ -96,6 +98,7 @@ class RunAction final : public G4UserRunAction
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
         CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
     }
+
     void EndOfRunAction(G4Run const* run) final
     {
         CELER_LOG_LOCAL(debug) << "RunAction::EndOfRunAction";
@@ -233,8 +236,79 @@ class ActionInitialization final : public G4VUserActionInitialization
     SPTracing tracing_;
 };
 
+class TestDetectorConstruction : public DetectorConstruction
+{
+  public:
+    TestDetectorConstruction(std::string const& filename,
+                             IntegrationTestBase* test)
+        : DetectorConstruction(filename,
+                               [test](std::string const& sd_name) {
+                                   return test->make_sens_det(sd_name);
+                               })
+        , test_(test)
+    {
+    }
+
+    void ConstructSDandField() override
+    {
+        DetectorConstruction::ConstructSDandField();
+        // Allow the test to construct fields, fast sim, etc.
+        test_->ConstructSDandField();
+    }
+
+  private:
+    IntegrationTestBase* test_;
+};
+
 //---------------------------------------------------------------------------//
 }  // namespace
+
+//! Convert TestOffload to string
+char const* to_cstring(TestOffload value)
+{
+    static EnumStringMapper<TestOffload> const map{"g4", "ko", "cpu", "gpu"};
+    return map(value);
+}
+
+//! Convert string to TestOffload
+TestOffload to_test_offload(std::string const& s)
+{
+    static auto const map
+        = StringEnumMapper<TestOffload>::from_cstring_func(to_cstring);
+    return map(s);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test offload type as set by environment variable.
+ */
+TestOffload IntegrationTestBase::test_offload()
+{
+    static TestOffload const result = [] {
+        auto s = celeritas::getenv("CELER_OFFLOAD");
+        if (s.empty())
+        {
+            CELER_LOG(warning) << "Missing environment variable "
+                                  "CELER_OFFLOAD: defaulting to CPU";
+            return TestOffload::cpu;
+        }
+
+        try
+        {
+            return to_test_offload(s);
+        }
+        catch (RuntimeError const& e)
+        {
+            CELER_LOG(critical)
+                << "could not parse environment variable CELER_OFFLOAD: "
+                << e.what();
+            return TestOffload::size_;
+        }
+    }();
+    CELER_VALIDATE(result != TestOffload::size_,
+                   << "invalid input given to CELER_OFFLOAD environment");
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 // Default destructor to enable base class deletion and anchor vtable
@@ -243,7 +317,7 @@ IntegrationTestBase::~IntegrationTestBase() = default;
 std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
 {
     std::string new_ext = "-";
-    new_ext += celeritas::getenv("CELER_OFFLOAD");
+    new_ext += to_cstring(test_offload());
     new_ext += "-";
     new_ext += celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
     new_ext += ext;
@@ -292,11 +366,8 @@ G4RunManager& IntegrationTestBase::run_manager()
         CELER_ASSERT(rm);
 
         // Set up detector
-        rm->SetUserInitialization(new DetectorConstruction{
-            this->test_data_path("geocel", basename + ".gdml"),
-            [this](std::string const& sd_name) {
-                return this->make_sens_det(sd_name);
-            }});
+        rm->SetUserInitialization(new TestDetectorConstruction{
+            this->test_data_path("geocel", basename + ".gdml"), this});
 
         // Set up physics
         auto phys = this->make_physics_list();
@@ -397,32 +468,20 @@ void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
 //---------------------------------------------------------------------------//
 void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
 {
-    // Set default optical physics
+    // Set default optical physics (all processes enabled)
     auto& optical = phys_inp.optical;
-    optical = {};
+    optical.emplace();
     EXPECT_TRUE(optical);
-    EXPECT_TRUE(optical.cherenkov);
-    EXPECT_TRUE(optical.scintillation);
+    EXPECT_TRUE(optical->cherenkov);
+    EXPECT_TRUE(optical->scintillation);
 
     // Disable WLS which isn't yet working (reemission) in Celeritas
-    using WLSO = WavelengthShiftingOptions;
-    optical.wavelength_shifting = WLSO::deactivated();
-    optical.wavelength_shifting2 = WLSO::deactivated();
+    optical->wavelength_shifting = std::nullopt;
+    optical->wavelength_shifting2 = std::nullopt;
 }
 
 //---------------------------------------------------------------------------//
 // TEST PROBLEM MIXINS
-//---------------------------------------------------------------------------//
-/*!
- * Create physics list: default is EM only using make_physics_input.
- */
-auto LarSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
-{
-    PhysicsInput result = Base::make_physics_input();
-    result.em_bins_per_decade = 5;
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Create a 10 MeV electron primary.
@@ -533,12 +592,12 @@ auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
 
     // Enable optical physics (scintillation + Cherenkov)
     auto& optical = result.optical;
-    optical = {};
+    optical.emplace();
     EXPECT_TRUE(optical);
-    EXPECT_TRUE(optical.scintillation);
-    EXPECT_TRUE(optical.cherenkov);
-    EXPECT_TRUE(optical.mie_scattering);
-    EXPECT_TRUE(optical.rayleigh_scattering);
+    EXPECT_TRUE(optical->scintillation);
+    EXPECT_TRUE(optical->cherenkov);
+    EXPECT_TRUE(optical->mie_scattering);
+    EXPECT_TRUE(optical->rayleigh_scattering);
 
     return result;
 }

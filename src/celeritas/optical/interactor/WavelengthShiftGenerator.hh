@@ -62,7 +62,7 @@ class WavelengthShiftGenerator
 
     WlsDistributionData const& distribution_;
     real_type time_constant_;
-    WlsTimeProfile time_profile_;
+    WlsDistribution time_profile_;
     NonuniformGridCalculator calc_cdf_;
 };
 
@@ -122,7 +122,7 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
     // Sample the delta time (based on the exponential relaxation)
     result.time
         = distribution_.time
-          + (time_profile_ == WlsTimeProfile::delta
+          + (time_profile_ == WlsDistribution::delta
                  ? time_constant_
                  : ExponentialDistribution(real_type{1} / time_constant_)(rng));
     result.primary = distribution_.primary;

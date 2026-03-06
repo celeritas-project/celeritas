@@ -87,12 +87,22 @@ enum class ReflectivityAction
     size_ = absorb,
 };
 
+//! Optical photon wavelength shifting time model
+//! \todo replace with OnedDistributionType
+enum class WlsDistribution
+{
+    delta,  //!< Delta function
+    exponential,  //!< Exponential decay
+    size_
+};
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
 char const* to_cstring(SurfacePhysicsOrder);
 char const* to_cstring(ReflectionMode);
+char const* to_cstring(WlsDistribution);
 
 //! Convert sub-surface direction to a sign (+1/-1 for forward/reverse resp.)
 CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)

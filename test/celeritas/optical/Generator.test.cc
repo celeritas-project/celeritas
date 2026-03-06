@@ -60,8 +60,14 @@ class LArSphereGeneratorTest : public Test
 
         // Set optical physics processes
         osi_.geant_setup = [] {
-            auto opt = GeantOpticalPhysicsOptions::deactivated();
-            opt.absorption = true;
+            GeantOpticalPhysicsOptions opt;
+            opt.cherenkov = std::nullopt;
+            opt.scintillation = std::nullopt;
+            opt.wavelength_shifting = std::nullopt;
+            opt.wavelength_shifting2 = std::nullopt;
+            opt.rayleigh_scattering = false;
+            opt.mie_scattering = false;
+            // absorption and boundary remain enabled (defaults)
             return opt;
         }();
     }
@@ -176,8 +182,8 @@ TEST_F(LArSphereGeneratorTest, offload)
     osi_.problem.generator = inp::OpticalOffloadGenerator{};
 
     // Enable Cherenkov and scintillation
-    osi_.geant_setup.cherenkov.enable = true;
-    osi_.geant_setup.scintillation.enable = true;
+    osi_.geant_setup.cherenkov = CherenkovPhysicsOptions{};
+    osi_.geant_setup.scintillation = ScintillationPhysicsOptions{};
 
     // Set number of track slots and number of distributions
     osi_.problem.capacity.tracks = 4096;
@@ -203,7 +209,7 @@ TEST_F(LArSphereGeneratorTest, offload)
     if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
-        EXPECT_EQ(53460, result.counters.steps);
+        EXPECT_EQ(53459, result.counters.steps);
         EXPECT_EQ(15, result.counters.step_iters);
     }
 

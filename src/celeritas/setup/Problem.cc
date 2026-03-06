@@ -340,8 +340,7 @@ auto build_optical_params(inp::Problem const& p,
     }
     if (p.physics.optical.scintillation)
     {
-        pi.scintillation
-            = ScintillationParams::from_import(imported, core.particle());
+        pi.scintillation = ScintillationParams::from_import(imported);
     }
 
     // Streams and capacities
@@ -402,8 +401,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
     }
     if (p.physics.scintillation)
     {
-        auto particle = ParticleParams::from_import(imported);
-        pi.scintillation = ScintillationParams::from_import(imported, particle);
+        pi.scintillation = ScintillationParams::from_import(imported);
         CELER_ASSERT(pi.scintillation);
     }
 
@@ -746,7 +744,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     }
     else
     {
-        CELER_VALIDATE(imported.optical_models.empty(),
+        CELER_VALIDATE(!imported.optical_physics.bulk,
                        << "optical physics models were imported but no "
                           "optical capacity was set. Either define optical "
                           "tracking loop parameters, or ignore optical "

@@ -110,7 +110,7 @@ class SurfacePhysicsIntegrationFresnelTest
     : public SurfacePhysicsReflectivityIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -135,7 +135,7 @@ class SurfacePhysicsIntegrationGridTest
     : public SurfacePhysicsReflectivityIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -165,7 +165,7 @@ class SurfacePhysicsIntegrationEfficiencyTest
     : public SurfacePhysicsReflectivityIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 

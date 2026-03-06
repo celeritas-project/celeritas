@@ -8,7 +8,7 @@
 
 #include "corecel/inp/Grid.hh"
 #include "geocel/Types.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 
 // Geant4 forward declaration
 class G4OpticalSurface;  // IWYU pragma: keep
@@ -35,7 +35,7 @@ class GeantSurfacePhysicsHelper
     G4OpticalSurface const& surface() const;
 
     // Populate Grid optical property from name, in [MeV, unitless]
-    bool get_property(inp::Grid* dst, std::string const& name) const;
+    bool get_property(inp::Grid& dst, std::string const& name) const;
 
   private:
     SurfaceId sid_;

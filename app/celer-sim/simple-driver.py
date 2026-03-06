@@ -122,6 +122,7 @@ if "lar" in geometry_filename:
 
 if "simple-cms" in geometry_filename:
     inp["merge_events"] = True
+    inp["optical"] = None
 
 if physics_filename:
     inp["physics_file"] = physics_filename

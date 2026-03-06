@@ -31,6 +31,7 @@ list(APPEND SOURCES
   GeantStepDiagnostic.cc
   IntegrationBase.cc
   LocalOpticalGenOffload.cc
+  LocalOpticalTrackOffload.cc
   LocalTransporter.cc
   Logger.cc
   PGPrimaryGeneratorAction.cc

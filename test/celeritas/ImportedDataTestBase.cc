@@ -153,8 +153,7 @@ auto ImportedDataTestBase::build_optical_material() -> SPConstOpticalMaterial
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_scintillation() -> SPConstScintillation
 {
-    return ScintillationParams::from_import(this->imported_data(),
-                                            this->particle());
+    return ScintillationParams::from_import(this->imported_data());
 }
 
 //---------------------------------------------------------------------------//
@@ -173,7 +172,7 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
     {
         if (auto builder = importer(imc))
         {
-            input.model_builders.push_back(*builder);
+            input.model_builders.push_back(builder);
         }
     }
 

@@ -29,6 +29,21 @@ namespace celeritas
 struct SetupOptions;
 namespace test
 {
+enum class TestOffload
+{
+    g4,  //!< Run native Geant4
+    ko,  //!< Set up interfaces but kill instead of offloading
+    cpu,  //!< Run on celeritas CPU
+    gpu,  //!< Run on celeritas GPU
+    size_
+};
+
+// Convert TestOffload to string
+char const* to_cstring(TestOffload value);
+
+// Convert string to TestOffload
+TestOffload to_test_offload(std::string const& s);
+
 //---------------------------------------------------------------------------//
 /*!
  * Help set up Geant4 for integration testing.
@@ -67,6 +82,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     //!@}
 
   public:
+    // Test offload type as set by environment variable
+    static TestOffload test_offload();
+
     // Default destructor to enable base class deletion and anchor vtable
     virtual ~IntegrationTestBase();
 
@@ -104,7 +122,8 @@ class IntegrationTestBase : public ::celeritas::test::Test
     virtual void caught_g4_runtime_error(RuntimeError const& e);
 
     //!@{
-    //! \name Dispatch from user run/event actions
+    //! \name Dispatch from user setup/run/event actions
+    virtual void ConstructSDandField() {}
     virtual void BeginOfRunAction(G4Run const* run) = 0;
     virtual void EndOfRunAction(G4Run const* run) = 0;
     virtual void BeginOfEventAction(G4Event const* event) = 0;
@@ -129,7 +148,6 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
   public:
     std::string_view gdml_basename() const final { return "lar-sphere"; }
     PrimaryInput make_primary_input() const override;
-    PhysicsInput make_physics_input() const override;
     UPSensDet make_sens_det(std::string const&) final;
 
     virtual void process_hit(G4Step const*);

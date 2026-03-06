@@ -238,11 +238,10 @@ if(CELERITAS_USE_Geant4)
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
-    ext/detail/GeantOpticalModelImporter.cc
+    ext/detail/GeantPhysicsLoader.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeantSurfacePhysicsHelper.cc
     ext/detail/GeantSurfacePhysicsLoader.cc
-    ext/detail/GeoOpticalIdMap.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
     ext/detail/NaviTouchableUpdater.cc
@@ -412,6 +411,7 @@ celeritas_polysource(optical/surface/model/DielectricInteractionModel)
 celeritas_polysource(optical/surface/model/FresnelReflectivityModel)
 celeritas_polysource(optical/surface/model/GaussianRoughnessModel)
 celeritas_polysource(optical/surface/model/GridReflectivityModel)
+celeritas_polysource(optical/surface/model/OnlyReflectionModel)
 celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
 celeritas_polysource(optical/surface/model/SmearRoughnessModel)
 celeritas_polysource(optical/surface/model/TrivialInteractionModel)
