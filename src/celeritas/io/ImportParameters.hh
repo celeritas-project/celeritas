@@ -120,6 +120,8 @@ struct ImportLoopingThreshold
  *
  * The looping thresholds are particle-dependent and stored in a map where the
  * keys are the PDG number.
+ *
+ * TODO: substeps are also technically particle-dependent
  */
 struct ImportTransParameters
 {
