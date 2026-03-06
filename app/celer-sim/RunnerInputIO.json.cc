@@ -22,6 +22,8 @@
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/inp/ControlIO.json.hh"
+#include "celeritas/inp/TrackingIO.json.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/user/RootStepWriterIO.json.hh"
 
@@ -239,23 +241,15 @@ void to_json(nlohmann::json& j, app::RunnerInput::EventFileSampling const& efs)
 
 void from_json(nlohmann::json const& j, app::RunnerInput::OpticalOptions& oo)
 {
-    CELER_JSON_LOAD_REQUIRED(j, oo, num_track_slots);
-    CELER_JSON_LOAD_REQUIRED(j, oo, buffer_capacity);
-    CELER_JSON_LOAD_REQUIRED(j, oo, auto_flush);
-    CELER_JSON_LOAD_OPTION(j, oo, max_steps);
-    CELER_JSON_LOAD_OPTION(j, oo, cherenkov);
-    CELER_JSON_LOAD_OPTION(j, oo, scintillation);
+    CELER_JSON_LOAD_REQUIRED(j, oo, capacity);
+    CELER_JSON_LOAD_OPTION(j, oo, limits);
 }
 
 void to_json(nlohmann::json& j, app::RunnerInput::OpticalOptions const& oo)
 {
     j = nlohmann::json{
-        CELER_JSON_PAIR(oo, num_track_slots),
-        CELER_JSON_PAIR(oo, buffer_capacity),
-        CELER_JSON_PAIR(oo, auto_flush),
-        CELER_JSON_PAIR(oo, max_steps),
-        CELER_JSON_PAIR(oo, cherenkov),
-        CELER_JSON_PAIR(oo, scintillation),
+        CELER_JSON_PAIR(oo, capacity),
+        CELER_JSON_PAIR(oo, limits),
     };
 }
 
