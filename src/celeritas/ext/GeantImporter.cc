@@ -922,6 +922,21 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
 
 //---------------------------------------------------------------------------//
 /*!
+ * GEt the process list of a particle.
+ */
+G4ProcessVector const& get_process_vec(G4ParticleDefinition const& p)
+{
+    auto const* pm = p.GetProcessManager();
+    CELER_VALIDATE(
+        pm, << "No process manager for '" << p.GetParticleName() << "'");
+
+    auto* pl = pm->GetProcessList();
+    CELER_ENSURE(pl);
+    return *pl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a populated \c ImportProcess vector.
  */
 auto import_processes(GeantImporter::DataSelection selected,
@@ -1090,20 +1105,11 @@ auto import_processes(GeantImporter::DataSelection selected,
             continue;
         }
 
-        auto* pm = g4_particle_def->GetProcessManager();
-        if (!pm)
-        {
-            CELER_LOG(error)
-                << "Particle '" << g4_particle_def->GetParticleName()
-                << "' has no process manager";
-            continue;
-        }
-        G4ProcessVector const& process_list
-            = *g4_particle_def->GetProcessManager()->GetProcessList();
+        auto const& process_vec = get_process_vec(*g4_particle_def);
 
-        for (auto j : range(process_list.size()))
+        for (auto j : range(process_vec.size()))
         {
-            G4VProcess const& process = *process_list[j];
+            G4VProcess const& process = *process_vec[j];
             if (!include_process(process.GetProcessType()))
             {
                 continue;
@@ -1122,21 +1128,10 @@ auto import_processes(GeantImporter::DataSelection selected,
 /*!
  * Get the transportation process for a given particle type.
  */
-G4Transportation const* get_transportation(G4ParticleDefinition const* particle)
+G4Transportation const* find_transportation(G4ParticleDefinition const& p)
 {
-    CELER_EXPECT(particle);
-
-    auto const* pm = particle->GetProcessManager();
-    if (!pm)
-    {
-        // Catastrophic failure: can happen if run manager setup failed but
-        // Celeritas still tries to load
-        return nullptr;
-    }
-
-    // Search through the processes to find transportion (it should be the
-    // first one)
-    auto const& pl = *pm->GetProcessList();
+    // Search through the processes to find transportion
+    auto const& pl = get_process_vec(p);
     for (auto i : range(pl.size()))
     {
         if (auto const* trans = dynamic_cast<G4Transportation const*>(pl[i]))
@@ -1186,14 +1181,8 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
         }
 
         // Get the transportation process
-        auto const* trans = get_transportation(particle_iterator.value());
-        if (!trans)
-        {
-            CELER_LOG(error)
-                << "Failed to get transportation manager for particle '"
-                << particle_iterator.value()->GetParticleName() << "'";
-            continue;
-        }
+        auto const* trans = find_transportation(*particle_iterator.value());
+        CELER_ASSERT(trans);
 
         // Get the threshold values for killing looping tracks
         ImportLoopingThreshold looping;
