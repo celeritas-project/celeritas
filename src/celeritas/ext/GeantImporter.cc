@@ -604,17 +604,14 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         // Particle scintillation properties
         for (auto&& [prefix, pdg] : optical_particles_map())
         {
-            ImportScintData::IPSS scint_part_spec;
-            get_property(scint_part_spec.yield_vector,
-                         prefix + "SCINTILLATIONYIELD",
-                         {ImportUnits::mev, ImportUnits::inv_mev});
-            scint_part_spec.components
-                = fill_vec_import_scint_comp(get_property, prefix);
-
-            if (scint_part_spec)
+            inp::Grid dummy;
+            if (get_property(dummy,
+                             prefix + "SCINTILLATIONYIELD",
+                             {ImportUnits::mev, ImportUnits::inv_mev}))
             {
-                optical.scintillation.particles.insert(
-                    {pdg.get(), std::move(scint_part_spec)});
+                CELER_LOG(error)
+                    << "Unsupported particle-dependent scintillation: "
+                    << prefix << " in " << material->GetName();
             }
         }
 
