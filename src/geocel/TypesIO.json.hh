@@ -13,7 +13,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-void from_json(nlohmann::json const& j, GeoStatus& value);
 void to_json(nlohmann::json& j, GeoStatus const& value);
 
 //---------------------------------------------------------------------------//

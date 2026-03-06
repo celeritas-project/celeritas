@@ -90,11 +90,8 @@ class OrangeTrackView
     inline CELER_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
     inline CELER_FUNCTION bool is_on_boundary() const;
-    //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE_FUNCTION bool failed() const
-    {
-        return this->geo_status() == GeoStatus::error;
-    }
+    // Whether the last operation resulted in an error
+    inline bool failed() const;
     // Get the normal vector pointing out of the current volume
     inline CELER_FUNCTION Real3 normal() const;
 
@@ -306,7 +303,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
             msg << " in universe " << univ_id.unchecked_get()
                 << " at local position " << repr(local.pos);
 #endif
-            // Mark as failed
+            // Mark as failed since ORANGE fills all space, even outside world
             this->geo_status(GeoStatus::error);
             return *this;
         }
@@ -580,6 +577,15 @@ CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the last operation resulted in an error.
+ */
+CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::failed() const
+{
+    return this->geo_status() == GeoStatus::error;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the normal vector of the current surface.
  *
  * The direction of the normal is determined by the sense of the track such
@@ -757,6 +763,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     }
     this->next_step(this->next_step() - dist);
     this->clear_surface();
+
+    CELER_ENSURE(this->geo_status() == GeoStatus::interior);
 }
 
 //---------------------------------------------------------------------------//
@@ -790,6 +798,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
     // Clear surface state and next-step info
     this->clear_surface();
     this->clear_next();
+
+    CELER_ENSURE(this->geo_status() == GeoStatus::interior);
 }
 
 //---------------------------------------------------------------------------//

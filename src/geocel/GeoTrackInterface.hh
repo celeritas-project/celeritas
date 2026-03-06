@@ -37,9 +37,9 @@ namespace celeritas
  *   in an "exiting boundary" state (i.e., the next step is away from the
  *   boundary).
  * - Some implementations allow initialization to succeed but be in an
- *   "unusable" part of the geometry (e.g., ORANGE exterior volume). In this
- *   case, the canonical volume ID will be 'false' indicating no corresponding
- *   user-defined geometry region.
+ *   unphysical part of the geometry (e.g., ORANGE exterior volume). In this
+ *   case, the canonical volume ID will be null, indicating no
+ *   corresponding user-defined geometry region.
  *
  * Tracking to and across volumes along a straight line requires a specific
  * sequence of calls.
@@ -53,8 +53,9 @@ namespace celeritas
  *   the current volume, or its sign may require interpreting based on the \c
  *   geo_status.
  * - If exiting a boundary, change volumes ("relocate") with \c cross_boundary.
- *   The post-crossing status can be \c error or \c exiting_boundary . The
- *   post-crossing volume may be the exterior (null canonical VolumeId).
+ *   The post-crossing status can be \c error, \c exiting_boundary, or \c
+ *   invalid . Some geometries represent the exterior as a null canonical
+ *   VolumeId, and some as an invalid state.
  *
  * \note The free function \c is_on_boundary will be true of the geo status
  * both before \em and after the call to \c cross_boundary, and the surface
@@ -68,6 +69,10 @@ namespace celeritas
  * - Change the direction with \c set_dir. (Note that this will always
  *   invalidate the linear "next step".)
  * - Move to a point with \c move_internal.
+ *
+ * Neither accessors nor mutators should be called in an \c invalid state.
+ * It is allowable but potentially dangerous to call accessors in an \c error
+ * state.
  */
 template<class RealType = ::celeritas::real_type>
 class GeoTrackInterface
@@ -89,6 +94,11 @@ class GeoTrackInterface
      *
      * Takes a \c GeoTrackInitializer object to locate the point in the
      * geometry hierarchy.
+     *
+     * \post \c geo_status() is never \c GeoStatus::entering_boundary : the
+     *   result is \c interior (placed inside a volume), \c exiting_boundary
+     *   (placed on a boundary with direction heading away from it), or \c
+     *   error (volume not found).
      */
     virtual GeoTrackInterface& operator=(Initializer_t const& init) = 0;
 
@@ -103,6 +113,7 @@ class GeoTrackInterface
     //!@}
     //!@{
     //! \name Canonical volume state
+    //! \pre The geo status cannot be \c GeoStatus::invalid
 
     //! Get the canonical volume ID in the current impl volume
     virtual VolumeId volume_id() const = 0;
@@ -119,7 +130,8 @@ class GeoTrackInterface
      * Returns true if the track has left the world (or started outside the
      * outermost known volume).
      *
-     * \deprecated use \c is_outside(VolumeId) instead
+     * \deprecated Check \c geo.geo_status() is not \c invalid and evaluate \c
+     * is_outside(geo.volume_id())
      */
     virtual bool is_outside() const = 0;
     //!@}
@@ -130,7 +142,7 @@ class GeoTrackInterface
     /*!
      * Whether the last operation resulted in an error.
      *
-     * \deprecated use \c geo_status == GeoStatus::error instead.
+     * \deprecated check \c geo_status for \c GeoStatus::error instead.
      */
     virtual bool failed() const = 0;
 
@@ -143,7 +155,7 @@ class GeoTrackInterface
      * Returns true if a track is exactly on the boundary of a volume, capable
      * of changing to another volume without altering the physical position.
      *
-     * \deprecated use \c is_on_boundary(GeoStatus) or directly query status
+     * \deprecated use \c is_on_boundary(geo.geo_status())
      */
     virtual bool is_on_boundary() const = 0;
 
@@ -154,6 +166,8 @@ class GeoTrackInterface
      * the local point when on a boundary. The sign of the surface normal is
      * implementation-dependent; it may change based on the track state
      * (previous volume, direction, surface sign) or geometry construction.
+     *
+     * \pre \c is_on_boundary(geo.geo_status()) must be true
      */
     virtual Real3 normal() const = 0;
 
@@ -203,6 +217,9 @@ class GeoTrackInterface
      * Determines the distance to the next boundary along the track's current
      * direction, up to a given distance. Queries may be more efficient for
      * small distances.
+     *
+     * \pre \c geo_status() is not \c GeoStatus::entering_boundary .
+     * \post The returned distance is in the range \c (0, max_step] .
      */
     virtual Propagation find_next_step(real_type max_step) = 0;
 
@@ -224,6 +241,9 @@ class GeoTrackInterface
      * Moves the track to the boundary of the current volume along the current
      * direction, updating its logical state to indicate that it is on the
      * boundary of the current volume.
+     *
+     * \pre \c geo_status() is not \c GeoStatus::entering_boundary .
+     * \post \c geo_status() is \c GeoStatus::entering_boundary .
      */
     virtual void move_to_boundary() = 0;
 
@@ -232,6 +252,10 @@ class GeoTrackInterface
      *
      * Changes the logical state when on the boundary, updating to the next
      * volume.
+     *
+     * \pre \c geo_status() is \c GeoStatus::entering_boundary .
+     * \post \c geo_status() is \c GeoStatus::exiting_boundary , or \c
+     *   GeoStatus::error if the new volume could not be found.
      */
     virtual void cross_boundary() = 0;
     //!@}
@@ -243,6 +267,8 @@ class GeoTrackInterface
      *
      * Determines the distance to the nearest boundary in any direction (i.e.,
      * the radius of the maximally inscribed sphere).
+     *
+     * \c deprecated: use \c find_safety(inf)
      */
     virtual real_type find_safety() = 0;
 
@@ -250,6 +276,8 @@ class GeoTrackInterface
      * Find the safety at the current position, up to a maximum step distance.
      *
      * The resulting safety should be no larger than the maximum step.
+     *
+     * \pre \c is_on_boundary(geo.geo_status()) must be false
      */
     virtual real_type find_safety(real_type max_step) = 0;
 

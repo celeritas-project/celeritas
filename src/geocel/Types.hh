@@ -82,14 +82,17 @@ enum class Axis
 //---------------------------------------------------------------------------//
 /*!
  * Geometry state as a track moves across boundaries through the geometry.
+ *
+ * \note The enum values are chosen to optimize \c is_on_bounary and
+ * \c is_valid .
  */
-enum class GeoStatus : unsigned char
+enum class GeoStatus : char
 {
+    error = -2,  //!< Unrecoverable error occurred
+    invalid,  //!< Unusable but allowable state
     interior = 0,  //!< In a volume, not logically on a boundary
-    exiting_boundary,  //!< On a boundary, into next volume
+    exiting_boundary = 1,  //!< On a boundary, into next volume
     entering_boundary,  //!< On a boundary, into current volume
-    error,  //!< Unrecoverable error condition
-    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -182,10 +185,16 @@ inline constexpr char to_char(Axis ax)
 
 //---------------------------------------------------------------------------//
 //! Whether the geometry is on a boundary
+CELER_CONSTEXPR_FUNCTION bool is_valid(GeoStatus s)
+{
+    return static_cast<char>(s) >= 0;
+}
+
+//---------------------------------------------------------------------------//
+//! Whether the geometry is on a boundary
 CELER_CONSTEXPR_FUNCTION bool is_on_boundary(GeoStatus s)
 {
-    return s == GeoStatus::entering_boundary
-           || s == GeoStatus::exiting_boundary;
+    return static_cast<char>(s) > 0;
 }
 
 //---------------------------------------------------------------------------//

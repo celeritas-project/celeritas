@@ -4,17 +4,16 @@ digraph GeoStatus {
 
   // States
   "interior"            [label="interior\n(inside volume, not on boundary)"];
-  "exiting_boundary"    [label="exiting_boundary\n(on boundary, entering next volume)"];
-  "entering_boundary"   [label="entering_boundary\n(on boundary, inside current volume)"];
+  "exiting_boundary"    [label="exiting_boundary\n(on boundary, next step moves away from surface)"];
+  "entering_boundary"   [label="entering_boundary\n(on boundary, next step crosses to next volume)"];
   "error"               [label="error\n(unrecoverable failure)", style=filled, fillcolor=lightcoral];
+  "invalid"             [label="invalid\n(unusable but not an error)", style=filled, shape=circle];
 
-  // Special start and terminal nodes
-  "uninitialized" [label="", shape=circle, style=filled, fillcolor=black, width=0.2];
-
-  // From uninitialized: operator= places track in geometry
-  "uninitialized" -> "interior"  [label="initialize\n[interior]"];
-  "uninitialized" -> "exiting_boundary"  [label="initialize\n[on boundary]"];
-  "uninitialized" -> "error"             [label="initialize\n[volume not found]"];
+  // From invalid: operator= places track in geometry
+  "invalid" -> "interior"  [label="initialize\n[interior]"];
+  "invalid" -> "exiting_boundary"  [label="initialize\n[on boundary]"];
+  "invalid" -> "error"             [label="initialize\n[volume not found]"];
+  "invalid" -> "invalid"           [label="initialize\n[volume not found]"];
 
   // From interior: propagation
   "interior" -> "entering_boundary"  [label="move_to_boundary"];
@@ -24,9 +23,11 @@ digraph GeoStatus {
   "exiting_boundary" -> "interior"           [label="move_internal"];
   "exiting_boundary" -> "entering_boundary"  [label="set_dir\n[reentrant]", dir="both"];
   "exiting_boundary" -> "entering_boundary"  [label="move_to_boundary\n[next surface]"];
-  // TODO: prohibit "exiting_boundary" -> "exiting_boundary"   [label="cross_boundary\n[when reentrant]"];
+  // DEPRECATED: should be handled by skipping geo crossing
+ "exiting_boundary" -> "exiting_boundary"   [label="DEPRECATED:\ncross_boundary\n[when reentrant]", color=lightcoral];
 
   // Crossing the surface
   "entering_boundary" -> "exiting_boundary"  [label="cross_boundary\n[next interior volume]"];
   "entering_boundary" -> "error"             [label="cross_boundary\n[new volume not found]"];
+  "entering_boundary" -> "invalid"           [label="cross_boundary\n[exited world (G4, VG)]"];
 }

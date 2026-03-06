@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "Types.hh"
 
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
@@ -16,13 +16,20 @@ namespace celeritas
  */
 char const* to_cstring(GeoStatus value)
 {
-    static EnumStringMapper<GeoStatus> const to_cstring_impl{
-        "interior",
-        "exiting_boundary",
-        "entering_boundary",
-        "error",
-    };
-    return to_cstring_impl(value);
+    switch (value)
+    {
+        case GeoStatus::error:
+            return "error";
+        case GeoStatus::invalid:
+            return "invalid";
+        case GeoStatus::interior:
+            return "interior";
+        case GeoStatus::exiting_boundary:
+            return "exiting_boundary";
+        case GeoStatus::entering_boundary:
+            return "entering_boundary";
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
