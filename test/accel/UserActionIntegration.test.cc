@@ -317,11 +317,12 @@ void LarSphereOpticalTrackOffload::EndOfRunAction(G4Run const* run)
     {
         if (test_mode == TestOffload::cpu || test_mode == TestOffload::gpu)
         {
-            auto pushed
-                = dynamic_cast<LocalOpticalTrackOffload&>(local).num_pushed();
+            auto* loto = dynamic_cast<LocalOpticalTrackOffload*>(&local);
+            CELER_VALIDATE(loto, << "not a local optical track offload");
 
             // Validate that we intercepted optical tracks
-            EXPECT_GT(pushed, 0) << "should have pushed many optical tracks";
+            EXPECT_GT(loto->num_pushed(), 0)
+                << R"(should have pushed many optical tracks)";
         }
     }
     if (G4Threading::IsMultithreadedApplication())

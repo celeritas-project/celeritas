@@ -338,6 +338,9 @@ G4RunManager& IntegrationTestBase::run_manager()
                        << "cannot create a run manager for two problems in "
                           "one execution: use '--gtest_filter'");
     }
+    CELER_VALIDATE(!this->HasFatalFailure(),
+                   << "cannot create run manager: test irrevocably failed");
+
     prm.lazy_update(basename, [&] {
         CELER_LOG(status) << "Creating run manager";
         // Run manager writes output that cannot be redirected with
@@ -366,6 +369,9 @@ G4RunManager& IntegrationTestBase::run_manager()
     static IntegrationTestBase* referenced_test{nullptr};
     if (referenced_test != this)
     {
+        CELER_VALIDATE(referenced_test == nullptr,
+                       << "cannot run multiple integration tests "
+                          "in one execution: use ctest or --gtest_filter");
         // Test callbacks reference the current harness, so multiple tests
         // cannot run consecutively unless we update the user initialization
         CELER_LOG(status) << "Setting run manager initialization";
