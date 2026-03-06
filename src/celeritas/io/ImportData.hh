@@ -92,7 +92,6 @@ struct ImportData
     //!@{
     //! \name Optical data
     ImportOpticalParameters optical_params;
-    std::vector<ImportOpticalModel> optical_models;
     std::vector<ImportOpticalMaterial> optical_materials;
     //!@}
 
@@ -111,7 +110,7 @@ struct ImportData
     inp::AtomicRelaxation atomic_relaxation;
 
     // Physics groups
-    inp::OpticalPhysics optical_physics;
+    inp::OpticalPhysics optical_physics;  //! DISABLE ROOT
 
     // Muon-catalyzed fusion
     inp::MucfPhysics mucf_physics;

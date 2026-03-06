@@ -110,6 +110,14 @@ class OffloadAction final : public CoreStepActionInterface
 
     void offload(CoreParams const&, CoreStateHost&) const;
     void offload(CoreParams const&, CoreStateDevice&) const;
+
+    template<MemSpace M>
+    typename PreTraitsT::template Data<Ownership::reference, M>&
+    get_pre_step_data(CoreState<M>& state) const;
+
+    template<MemSpace M>
+    typename PostTraitsT::template Data<Ownership::reference, M>&
+    get_post_step_data(CoreState<M>& state) const;
 };
 
 //---------------------------------------------------------------------------//

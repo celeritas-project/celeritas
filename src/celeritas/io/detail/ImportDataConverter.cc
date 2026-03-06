@@ -48,11 +48,6 @@ void ImportDataConverter::operator()(ImportData* data)
         (*this)(&m);
     }
 
-    for (auto& m : data->optical_models)
-    {
-        (*this)(&m);
-    }
-
     for (auto& p : data->processes)
     {
         (*this)(&p);
@@ -64,6 +59,9 @@ void ImportDataConverter::operator()(ImportData* data)
     }
 
     (*this)(&data->em_params);
+
+    // NOTE: optical data is not currently stored into ROOT so no
+    // conversion needs to be done
 
     data->units = units::NativeTraits::label();
 }
@@ -137,7 +135,6 @@ void ImportDataConverter::operator()(ImportOpticalMaterial* data)
             comp.fall_time *= time_;
         }
     }
-    data->rayleigh.compressibility *= inv_pressure_;
 }
 
 //---------------------------------------------------------------------------//

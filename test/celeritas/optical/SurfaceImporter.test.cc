@@ -144,7 +144,7 @@ void check_input(inp::OpticalSurfacePhysics const& expected,
                  inp::OpticalSurfacePhysics const& actual)
 {
     // Check number of geometric surfaces
-    EXPECT_EQ(expected.materials.size(), actual.materials.size());
+    ASSERT_EQ(expected.materials.size(), actual.materials.size());
 
     // Compare interstitial materials
     for (auto surface_id : range(expected.materials.size()))

@@ -12,6 +12,8 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/inp/Grid.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/optical/Types.hh"
 
 namespace celeritas
@@ -20,6 +22,80 @@ class SurfaceModel;
 
 namespace inp
 {
+//---------------------------------------------------------------------------//
+// VOLUMETRIC (BULK) MODELS
+//---------------------------------------------------------------------------//
+/*!
+ * Optical material data with an associated MFP grid.
+ *
+ * \todo This will be removed; it's currently just an adapter for old IO data
+ * classes.
+ */
+template<class ModelMat>
+struct OpticalModelMaterial : ModelMat
+{
+    inp::Grid mfp;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A single model for all optical materials.
+ *
+ * Each material instance
+ *
+ * \todo This will be removed; it's currently just an adapter for old IO data
+ * classes.
+ */
+template<class ModelMat, optical::ImportModelClass IMC>
+struct OpticalBulkModel
+{
+    using OMM = OpticalModelMaterial<ModelMat>;
+
+    //! Model class for backward compatibility
+    static constexpr auto model_class = IMC;
+
+    //! Model data for each material
+    std::map<OptMatId, OMM> materials;
+
+    //! True if any materials have the model
+    explicit operator bool() const { return !materials.empty(); }
+};
+
+//! Absorption
+struct OpticalBulkAbsorption
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Optical physics for bulk materials.
+ *
+ * Each optical material can have one or more model that applies to it.
+ */
+struct OpticalBulkPhysics
+{
+    using IMC = optical::ImportModelClass;
+
+    //! Absorption models for all materials
+    OpticalBulkModel<OpticalBulkAbsorption, IMC::absorption> absorption;
+
+    //! Mie scattering models for materials
+    OpticalBulkModel<ImportMie, IMC::mie> mie;
+
+    //! Rayleigh scattering models for all materials
+    OpticalBulkModel<ImportOpticalRayleigh, IMC::rayleigh> rayleigh;
+
+    //! WLS models (TODO: merge into a single WLS with arbitrary components)
+    OpticalBulkModel<ImportWavelengthShift, IMC::wls> wls;
+    OpticalBulkModel<ImportWavelengthShift, IMC::wls2> wls2;
+
+    //! Whether optical physics is enabled
+    explicit operator bool() const
+    {
+        return absorption || mie || rayleigh || wls || wls2;
+    }
+};
+
 //---------------------------------------------------------------------------//
 // SURFACE DESCRIPTION: Reflectivity and models for surface normals.
 //---------------------------------------------------------------------------//

@@ -19,6 +19,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Reduce the amount of imported/exported data for testing.
+ *
+ * \note This is presently used only for ROOT serialization.
  */
 class ImportDataTrimmer
 {
@@ -52,8 +54,6 @@ class ImportDataTrimmer
     void operator()(ImportLivermoreSubshell& data);
     void operator()(ImportAtomicRelaxation& data);
     void operator()(inp::MuPairProductionEnergyTransferTable& data);
-    void operator()(ImportOpticalMaterial& data);
-    void operator()(ImportOpticalModel& data);
     void operator()(inp::Particle& data);
     void operator()(ImportPhysMaterial& data);
     void operator()(ImportProcess& data);
@@ -61,13 +61,10 @@ class ImportDataTrimmer
 
     //!@{
     //! Trim objects
-    void operator()(inp::ReflectionForm& data);
-    void operator()(inp::GridReflection& data);
     void operator()(inp::Grid& data);
     void operator()(inp::UniformGrid& data);
     void operator()(ImportPhysicsTable& data);
     void operator()(inp::TwodGrid& data);
-    void operator()(inp::DielectricInteraction& data);
     //!@}
 
   private:

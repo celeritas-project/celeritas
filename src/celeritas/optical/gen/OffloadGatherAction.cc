@@ -65,6 +65,18 @@ auto OffloadGatherAction<S>::create_state(MemSpace m,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get auxiliary step data for this action.
+ */
+template<StepActionOrder S>
+typename OffloadGatherAction<S>::TraitsT::template Data<Ownership::reference,
+                                                        MemSpace::device>&
+OffloadGatherAction<S>::get_step_data(CoreState<MemSpace::device>& state) const
+{
+    return state.template aux_data<TraitsT::template Data>(aux_id_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Gather pre-step data.
  */
 template<StepActionOrder S>

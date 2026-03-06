@@ -24,6 +24,12 @@ namespace optical
 class MaterialParams;
 
 //---------------------------------------------------------------------------//
+/*!
+ * Bulk physics interaction models for optical photons.
+ *
+ *
+ * \todo Rename BulkPhysicsParams
+ */
 class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
 {
   public:

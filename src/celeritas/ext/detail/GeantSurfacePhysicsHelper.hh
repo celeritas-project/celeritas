@@ -35,7 +35,7 @@ class GeantSurfacePhysicsHelper
     G4OpticalSurface const& surface() const;
 
     // Populate Grid optical property from name, in [MeV, unitless]
-    bool get_property(inp::Grid* dst, std::string const& name) const;
+    bool get_property(inp::Grid& dst, std::string const& name) const;
 
   private:
     SurfaceId sid_;

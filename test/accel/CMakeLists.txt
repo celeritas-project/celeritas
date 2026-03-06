@@ -16,7 +16,7 @@ include(CeleritasG4Tests)
 #-----------------------------------------------------------------------------#
 # Library
 celeritas_get_g4libs(_g4_libs
-  global track tracking run event intercoms digits_hits geometry tasking
+  global track tracking run event intercoms digits_hits geometry tasking physicslists
 )
 list(APPEND PUBLIC_DEPS ${_g4_libs})
 
@@ -96,7 +96,7 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
-foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration)
+foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration FastSimulationIntegration)
   # Add every combination of test for LArSphere.run
   celeritas_add_integration_tests(
     ${_basename} LarSphere run

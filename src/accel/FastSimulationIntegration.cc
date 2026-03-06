@@ -7,7 +7,9 @@
 #include "FastSimulationIntegration.hh"
 
 #include <G4Threading.hh>
+#include <G4Version.hh>
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
 #include "ExceptionConverter.hh"
@@ -31,8 +33,14 @@ FastSimulationIntegration& FastSimulationIntegration::Instance()
  */
 void FastSimulationIntegration::verify_local_setup()
 {
-    // TODO: Loop through regions to ensure at least one has a
-    // celeritas::FastSimulationModel
+    CELER_VALIDATE(G4VERSION_NUMBER >= 1110,
+                   << "the current version of Geant4 (" << G4VERSION_NUMBER
+                   << ") is too old to support the fast simulation offload "
+                      "interface (11.1 or higher is required)");
+
+    // TODO: Check requested offload particles have G4 fast sim process/manager
+
+    // TODO: Check requested regions have our FastSimulationModel attached
 }
 
 //---------------------------------------------------------------------------//
