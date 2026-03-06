@@ -328,17 +328,17 @@ std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
  */
 G4RunManager& IntegrationTestBase::run_manager()
 {
-    static PersistentSP<G4RunManager> rm{"run manager"};
+    static PersistentSP<G4RunManager> prm{"run manager"};
 
     std::string basename{this->gdml_basename()};
 
-    if (rm)
+    if (prm)
     {
-        CELER_VALIDATE(basename == rm.key(),
+        CELER_VALIDATE(basename == prm.key(),
                        << "cannot create a run manager for two problems in "
                           "one execution: use '--gtest_filter'");
     }
-    rm.lazy_update(basename, [&] {
+    prm.lazy_update(basename, [&] {
         CELER_LOG(status) << "Creating run manager";
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
@@ -356,9 +356,12 @@ G4RunManager& IntegrationTestBase::run_manager()
             std::make_shared<G4RunManager>()
 #endif
         };
-        CELER_ASSERT(rm);
+        CELER_ENSURE(rm);
         return rm;
     });
+
+    auto* rm = prm.value().get();
+    CELER_ASSERT(rm);
 
     static IntegrationTestBase* referenced_test{nullptr};
     if (referenced_test != this)
@@ -369,7 +372,7 @@ G4RunManager& IntegrationTestBase::run_manager()
         ScopedGeantExceptionHandler scoped_exceptions;
 
         // Set up detector
-        rm.value()->SetUserInitialization(new DetectorConstruction{
+        rm->SetUserInitialization(new DetectorConstruction{
             this->test_data_path("geocel", basename + ".gdml"),
             [this](std::string const& sd_name) {
                 return this->make_sens_det(sd_name);
@@ -378,14 +381,14 @@ G4RunManager& IntegrationTestBase::run_manager()
         // Set up physics
         auto phys = this->make_physics_list();
         CELER_ASSERT(phys);
-        rm.value()->SetUserInitialization(phys.release());
+        rm->SetUserInitialization(phys.release());
 
         // Set up runtime initialization
-        rm.value()->SetUserInitialization(new ActionInitialization{this});
+        rm->SetUserInitialization(new ActionInitialization{this});
         referenced_test = this;
     }
 
-    return *rm.value();
+    return *rm;
 }
 
 //---------------------------------------------------------------------------//
