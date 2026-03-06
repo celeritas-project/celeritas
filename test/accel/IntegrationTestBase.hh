@@ -122,7 +122,8 @@ class IntegrationTestBase : public ::celeritas::test::Test
     virtual void caught_g4_runtime_error(RuntimeError const& e);
 
     //!@{
-    //! \name Dispatch from user run/event actions
+    //! \name Dispatch from user setup/run/event actions
+    virtual void ConstructSDandField() {}
     virtual void BeginOfRunAction(G4Run const* run) = 0;
     virtual void EndOfRunAction(G4Run const* run) = 0;
     virtual void BeginOfEventAction(G4Event const* event) = 0;

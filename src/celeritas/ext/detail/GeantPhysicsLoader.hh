@@ -6,22 +6,27 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
 #include <unordered_set>
+#include <vector>
 #include <G4Version.hh>
 
 #include "corecel/Config.hh"
 
-#include "GeantOpticalModelImporter.hh"
+#include "geocel/GeoOpticalIdMap.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 
 class G4VProcess;
+class G4MaterialPropertiesTable;
 
 namespace celeritas
 {
 struct ImportData;
-class GeoOpticalIdMap;
 
 namespace detail
 {
+class GeantMaterialPropertyGetter;
 //---------------------------------------------------------------------------//
 /*!
  * Load data from Geant4 physics processes and models.
@@ -41,28 +46,40 @@ class GeantPhysicsLoader
     GeantPhysicsLoader(ImportData& imported,
                        GeoOpticalIdMap const& optical_ids);
 
-    // Load if possible, returning whether it was recognized
+    // Load if possible, returning whether we handled it
     bool operator()(G4VProcess const& p);
 
   private:
     ImportData& imported_;
-    GeantOpticalModelImporter import_optical_model_;
+    GeoOpticalIdMap const& optical_ids_;
+    std::vector<G4Material const*> optical_g4mat_;
     std::unordered_set<G4VProcess const*> visited_;
 
     //// PHYSICS LOADERS ////
 
     // EM particles
-    void cerenkov(G4VProcess const& p);
-    void muon_minus_atomic_capture(G4VProcess const& p);
-    void scintillation(G4VProcess const& p);
+    size_type cerenkov(G4VProcess const& p);
+    size_type muon_minus_atomic_capture(G4VProcess const& p);
+    size_type scintillation(G4VProcess const& p);
 
     // Optical photons
-    void op_absorption(G4VProcess const& p);
-    void op_boundary(G4VProcess const& p);
-    void op_mie_hg(G4VProcess const& p);
-    void op_rayleigh(G4VProcess const& p);
-    void op_wls(G4VProcess const& p);
-    void op_wls2(G4VProcess const& p);
+    size_type op_absorption(G4VProcess const& p);
+    size_type op_boundary(G4VProcess const& p);
+    size_type op_mie_hg(G4VProcess const& p);
+    size_type op_rayleigh(G4VProcess const& p);
+    size_type op_wls(G4VProcess const& p);
+    size_type op_wls2(G4VProcess const& p);
+
+    //// HELPERS ////
+
+    // Make a material table accessor for an optical material
+    GeantMaterialPropertyGetter property_getter(OptMatId) const;
+
+    inp::Grid load_mfp(OptMatId opt_id, std::string const& prop_name) const;
+
+    template<class MM, optical::ImportModelClass IMC>
+    void load_mfps(inp::OpticalBulkModel<MM, IMC>& model,
+                   std::string const& prop_name) const;
 };
 
 //---------------------------------------------------------------------------//

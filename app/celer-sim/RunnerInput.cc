@@ -195,14 +195,8 @@ inp::Problem load_problem(RunnerInput const& ri)
     // Optical options
     if (ri.optical)
     {
-        p.control.optical_capacity = [&ri] {
-            inp::OpticalStateCapacity sc;
-            sc.primaries = ri.optical.auto_flush;
-            sc.tracks = ri.optical.num_track_slots;
-            sc.generators = ri.optical.buffer_capacity;
-            return sc;
-        }();
-        p.tracking.optical_limits.step_iters = ri.optical.max_steps;
+        p.control.optical_capacity = ri.optical->capacity;
+        p.tracking.optical_limits = ri.optical->limits;
 
         // NOTE: optical physics setup is applied to g4 physics list and
         // then copied from import data (i.e., you can't currently disable it
@@ -271,21 +265,24 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
     {
         // Set up Geant4
         si.geant_setup = ri.physics_options;
-        // Set up processes to spawn optical photons
-        if (ri.optical.cherenkov || ri.optical.scintillation)
+
+        CELER_VALIDATE(
+            !si.geant_setup->optical == !ri.optical,
+            << R"(optical setup options require optical physics to be enabled and vice versa)");
+
+        inp::PhysicsFromGeant geant_import;
+        GeantImportDataSelection::Flags selection
+            = GeantImportDataSelection::em_basic;
+        if (si.geant_setup->muon || si.geant_setup->mucf_physics)
         {
-            if (!si.geant_setup->optical)
-                si.geant_setup->optical.emplace();
+            selection |= GeantImportDataSelection::em_ex;
         }
         if (si.geant_setup->optical)
         {
-            if (!ri.optical.cherenkov)
-                si.geant_setup->optical->cherenkov = std::nullopt;
-            if (!ri.optical.scintillation)
-                si.geant_setup->optical->scintillation = std::nullopt;
+            selection |= GeantImportDataSelection::optical;
         }
-
-        inp::PhysicsFromGeant geant_import;
+        geant_import.data_selection.particles = selection;
+        geant_import.data_selection.processes = selection;
         CELER_VALIDATE(
             ri.poly_spline_order == 1
                 || ri.interpolation == InterpolationType::poly_spline,

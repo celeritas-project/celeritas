@@ -236,6 +236,30 @@ class ActionInitialization final : public G4VUserActionInitialization
     SPTracing tracing_;
 };
 
+class TestDetectorConstruction : public DetectorConstruction
+{
+  public:
+    TestDetectorConstruction(std::string const& filename,
+                             IntegrationTestBase* test)
+        : DetectorConstruction(filename,
+                               [test](std::string const& sd_name) {
+                                   return test->make_sens_det(sd_name);
+                               })
+        , test_(test)
+    {
+    }
+
+    void ConstructSDandField() override
+    {
+        DetectorConstruction::ConstructSDandField();
+        // Allow the test to construct fields, fast sim, etc.
+        test_->ConstructSDandField();
+    }
+
+  private:
+    IntegrationTestBase* test_;
+};
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -342,11 +366,8 @@ G4RunManager& IntegrationTestBase::run_manager()
         CELER_ASSERT(rm);
 
         // Set up detector
-        rm->SetUserInitialization(new DetectorConstruction{
-            this->test_data_path("geocel", basename + ".gdml"),
-            [this](std::string const& sd_name) {
-                return this->make_sens_det(sd_name);
-            }});
+        rm->SetUserInitialization(new TestDetectorConstruction{
+            this->test_data_path("geocel", basename + ".gdml"), this});
 
         // Set up physics
         auto phys = this->make_physics_list();

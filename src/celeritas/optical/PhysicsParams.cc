@@ -24,7 +24,7 @@ namespace optical
  * Construct with imported data.
  */
 std::shared_ptr<PhysicsParams>
-PhysicsParams::from_import(ImportData const& data,
+PhysicsParams::from_import(ImportData const& io,
                            SPConstCoreMaterials core_materials,
                            SPConstMaterials materials,
                            SPActionRegistry action_reg)
@@ -32,14 +32,19 @@ PhysicsParams::from_import(ImportData const& data,
     Input input;
     input.materials = materials;
     input.action_registry = action_reg.get();
-    ModelImporter importer{data, materials, core_materials};
-    for (auto const& model : data.optical_models)
-    {
-        if (auto builder = importer(model.model_class))
-        {
-            input.model_builders.push_back(*builder);
-        }
-    }
+    ModelImporter importer{io, materials, core_materials};
+    auto add_model
+        = [&importer, &mb = input.model_builders](auto const& op_bulk_model) {
+              if (auto builder = importer(op_bulk_model.model_class))
+              {
+                  mb.push_back(builder);
+              }
+          };
+    add_model(io.optical_physics.bulk.absorption);
+    add_model(io.optical_physics.bulk.rayleigh);
+    add_model(io.optical_physics.bulk.mie);
+    add_model(io.optical_physics.bulk.wls);
+    add_model(io.optical_physics.bulk.wls2);
     return std::make_shared<PhysicsParams>(std::move(input));
 }
 
@@ -95,16 +100,12 @@ auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
     VecModels models;
     models.reserve(model_builders.size());
 
-    for (auto const& builder : model_builders)
+    for (auto const& build_model : model_builders)
     {
-        if (!builder)
-        {
-            // if model has no data proceed to the next model
-            continue;
-        }
-        auto action_id = action_reg.next_id();
-        SPConstModel model = builder(action_id);
+        CELER_ASSERT(build_model);
 
+        auto action_id = action_reg.next_id();
+        SPConstModel model = build_model(action_id);
         CELER_ASSERT(model);
         CELER_ASSERT(model->action_id() == action_id);
 
