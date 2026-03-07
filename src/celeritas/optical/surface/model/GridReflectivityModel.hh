@@ -20,7 +20,8 @@ namespace optical
 /*!
  * User-defined grid reflectivity model.
  *
- * Allows user-defined grids to override the usual surface physics logic.
+ * Allows user-defined grids (probability as a function of energy) to override
+ * the usual surface physics logic.
  * Following Geant4's conventions, reflectivity is defined as the probability a
  * track continues with the usual surface interaction (not necessarily just
  * reflects). Transmittance is the probability the track moves to the next
@@ -35,6 +36,10 @@ namespace optical
  * transmitted. If the next volume is indeed a detector volume, then it is
  * detected and killed at the surface which matches Geant4's expectation for
  * detection on a surface.
+ *
+ * \todo Refactor into a unified grid that at each point has the probability of
+ * forcing absorption (before entering a potential detector region) or
+ * transmission ?
  */
 class GridReflectivityModel : public SurfaceModel
 {

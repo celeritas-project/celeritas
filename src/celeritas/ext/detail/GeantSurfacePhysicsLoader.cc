@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "GeantSurfacePhysicsLoader.hh"
 
-#include <functional>
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 #include <G4Version.hh>

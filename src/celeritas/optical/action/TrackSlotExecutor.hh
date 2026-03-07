@@ -254,7 +254,7 @@ inline CELER_FUNCTION decltype(auto) make_active_volumetric_thread_executor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a track slot executor that for a given surface step and model.
+ * Construct a track slot executor for a given surface step and model.
  *
  * The executor will launch kernels only on tracks which are undergoing a
  * boundary crossing.
