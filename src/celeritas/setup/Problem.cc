@@ -334,11 +334,11 @@ auto build_optical_params(inp::Problem const& p,
     pi.detectors = core.detectors();
 
     // Photon generating processes
-    if (p.physics.optical.cherenkov)
+    if (p.physics.optical.gen.cherenkov)
     {
         pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
-    if (p.physics.optical.scintillation)
+    if (p.physics.optical.gen.scintillation)
     {
         pi.scintillation = ScintillationParams::from_import(imported);
     }
@@ -395,12 +395,14 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.capacity = p.capacity;
 
     // Photon generating processes are needed to offload via Geant4 optical
-    if (p.physics.cherenkov)
+    if (p.physics.gen.cherenkov)
     {
+        // TODO: pass additional parameters such as step limit
         pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
-    if (p.physics.scintillation)
+    if (p.physics.gen.scintillation)
     {
+        // TODO: pass scintillation input
         pi.scintillation = ScintillationParams::from_import(imported);
         CELER_ASSERT(pi.scintillation);
     }

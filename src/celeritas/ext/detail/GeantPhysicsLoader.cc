@@ -206,11 +206,12 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
 }
 
 //---------------------------------------------------------------------------//
-//! Load Cherenkov emission (TODO: enable by material)
-size_type GeantPhysicsLoader::cerenkov(G4VProcess const&)
+//! Load Cherenkov emission (TODO: enable by material?)
+size_type GeantPhysicsLoader::cerenkov(G4VProcess const& g4vp)
 {
-    auto& model = imported_.optical_physics.cherenkov;
-    model = true;
+    auto& g4c = dynamic_cast<G4Cerenkov const&>(g4vp);
+    CELER_DISCARD(g4c);
+    imported_.optical_physics.gen.cherenkov.emplace();
     return 1;
 }
 
@@ -229,8 +230,9 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 //! Load optical scintillation
 size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 {
-    auto& model = imported_.optical_physics.scintillation;
-    model = true;
+    imported_.optical_physics.gen.scintillation.emplace();
+    auto& s = *imported_.optical_physics.gen.scintillation;
+    CELER_DISCARD(s);
     // TODO: load materials/spectra
     return 1;
 }

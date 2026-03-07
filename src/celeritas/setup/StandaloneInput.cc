@@ -160,17 +160,12 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
     // Copy optical physics from import data
     si.problem.physics = imported.optical_physics;
 
-    // Manually enable Cherenkov and scintillation if set in input since only
-    // optical photon processes are imported from Geant4
-    // (TODO: these should be set by GeantImporter based on available
-    // processes.)
     if (std::holds_alternative<inp::OpticalOffloadGenerator>(
             si.problem.generator))
     {
-        auto& ophys = si.problem.physics;
-        ophys.cherenkov = bool(si.geant_setup.cherenkov);
-        ophys.scintillation = bool(si.geant_setup.scintillation);
-        if (!(ophys.cherenkov || ophys.scintillation))
+        // Check that G4 cherenkov/scintillation were created
+        auto& gen = si.problem.physics.gen;
+        if (!(gen.cherenkov || gen.scintillation))
         {
             CELER_LOG(error) << "Optical offload generator should not be used "
                                 "without scintillation or Cherenkov physics";
