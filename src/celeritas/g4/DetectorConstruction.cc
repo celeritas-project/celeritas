@@ -67,13 +67,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         }
     }
 
+    // Create non-owning Geant4 geo wrapper and save as tracking geometry
     CELER_ASSERT(loaded.world);
-    {
-        // Create non-owning Geant4 geo wrapper and save as tracking geometry
-        geo_ = std::make_shared<GeantGeoParams>(loaded.world,
-                                                Ownership::reference);
-        celeritas::global_geant_geo(geo_);
-    }
+    geo_ = std::make_shared<GeantGeoParams>(loaded.world, Ownership::reference);
+    celeritas::global_geant_geo(geo_);
 
     // Save detectors
     detectors_ = std::move(loaded.detectors);
