@@ -74,44 +74,19 @@ struct ImportMaterialScintSpectrum
 
 //---------------------------------------------------------------------------//
 /*!
- * Store per-particle material scintillation spectrum information.
- *
- * The yield vector is the only necessary element, needed to calculate the
- * yield based on the particle energy-loss during the stepping loop.
- * Components may not be assigned---they are the equivalent of
- * \c k[Particle]ScintillationYield[i] in \c G4MaterialPropertiesIndex.hh
- */
-struct ImportParticleScintSpectrum
-{
-    static constexpr auto x_units{ImportUnits::mev};
-    static constexpr auto y_units{ImportUnits::unitless};
-
-    inp::Grid yield_vector;  //!< Particle yield per energy bin
-    std::vector<ImportScintComponent> components;  //!< Scintillation
-                                                   //!< components
-
-    //! Whether all data are assigned and valid
-    explicit operator bool() const { return static_cast<bool>(yield_vector); }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Store optical properties for scintillation.
  */
 struct ImportScintData
 {
     using PDGint = int;
-    using IPSS = ImportParticleScintSpectrum;
 
     ImportMaterialScintSpectrum material;  //!< Material scintillation data
-    std::map<PDGint, IPSS> particles;  //!< Particle scintillation data
     double resolution_scale{};  //!< Scales the stdev of photon distribution
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return (static_cast<bool>(material) || !particles.empty())
-               && resolution_scale >= 0;
+        return static_cast<bool>(material) && resolution_scale >= 0;
     }
 };
 

@@ -118,23 +118,6 @@ void ImportDataConverter::operator()(ImportOpticalMaterial* data)
         comp.rise_time *= time_;
         comp.fall_time *= time_;
     }
-    for (auto& iter : data->scintillation.particles)
-    {
-        for (auto& comp : iter.second.components)
-        {
-            if (comp.spectrum)
-            {
-                continue;
-            }
-            else
-            {
-                comp.gauss.lambda_mean *= len_;
-                comp.gauss.lambda_sigma *= len_;
-            }
-            comp.rise_time *= time_;
-            comp.fall_time *= time_;
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//

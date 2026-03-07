@@ -1693,62 +1693,6 @@ TEST_F(LarSphere, optical)
     };
     EXPECT_VEC_NEAR(expected_components, components, tol);
 
-    // Particle scintillation
-    EXPECT_EQ(6, scint.particles.size());
-    std::vector<int> pdgs;
-    std::vector<double> yield_vecs;
-    std::vector<size_t> comp_sizes;
-    std::vector<double> comp_y, comp_lm, comp_ls, comp_rt, comp_ft;
-    for (auto const& iter : scint.particles)
-    {
-        pdgs.push_back(iter.first);
-        auto const& part = iter.second;
-        for (auto i : range(part.yield_vector.x.size()))
-        {
-            yield_vecs.push_back(part.yield_vector.x[i]);
-            yield_vecs.push_back(part.yield_vector.y[i]);
-        }
-        comp_sizes.push_back(part.components.size());
-        for (auto comp : part.components)
-        {
-            comp_y.push_back(comp.yield_frac);
-            comp_lm.push_back(to_cm(comp.gauss.lambda_mean));
-            comp_ls.push_back(to_cm(comp.gauss.lambda_sigma));
-            comp_rt.push_back(to_sec(comp.rise_time));
-            comp_ft.push_back(to_sec(comp.fall_time));
-        }
-    }
-    static int const expected_pdgs[]
-        = {11, 90, 2212, 1000010020, 1000010030, 1000020040};
-    static double const expected_yield_vecs[] = {
-        1e-06, 3750, 6, 5000,  // electron
-        1e-06, 2000, 6, 4000,  // ion
-        1e-06, 2500, 6, 4200,  // proton
-        1e-06, 1200, 6, 3000,  // deuteron
-        1e-06, 1500, 6, 3500,  // triton
-        1e-06, 1700, 6, 3700  // alpha
-    };
-    EXPECT_VEC_EQ(expected_pdgs, pdgs);
-    EXPECT_VEC_EQ(expected_yield_vecs, yield_vecs);
-
-    // The electron has one component, the rest has no components
-    static unsigned long const expected_comp_sizes[]
-        = {1ul, 0ul, 0ul, 0ul, 0ul, 0ul};
-    EXPECT_VEC_EQ(expected_comp_sizes, comp_sizes);
-
-    // Electron component data
-    static double const expected_comp_y[] = {4000};
-    static double const expected_comp_lm[] = {1e-05};
-    static double const expected_comp_ls[] = {1e-06};
-    static double const expected_comp_rt[] = {1.5e-08};
-    static double const expected_comp_ft[] = {5e-09};
-
-    EXPECT_VEC_EQ(expected_comp_y, expected_comp_y);
-    EXPECT_VEC_EQ(expected_comp_lm, expected_comp_lm);
-    EXPECT_VEC_EQ(expected_comp_ls, expected_comp_ls);
-    EXPECT_VEC_EQ(expected_comp_rt, expected_comp_rt);
-    EXPECT_VEC_EQ(expected_comp_ft, expected_comp_ft);
-
     auto& bulk = imported.optical_physics.bulk;
     // Check Rayleigh optical properties
     auto const& rayleigh_mfp = bulk.rayleigh.materials.at(OptMatId{0}).mfp;
