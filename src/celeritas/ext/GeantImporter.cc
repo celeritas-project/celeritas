@@ -170,130 +170,6 @@ struct ProcessFilter
 };
 
 //---------------------------------------------------------------------------//
-//! Map particles defined in \c G4MaterialConstPropertyIndex .
-auto& optical_particles_map()
-{
-    static std::unordered_map<std::string, PDGNumber> const map = {
-        {"PROTON", pdg::proton()},
-        {"DEUTERON", pdg::deuteron()},
-        {"TRITON", pdg::triton()},
-        {"ALPHA", pdg::alpha()},
-        {"ION", pdg::ion()},
-        {"ELECTRON", pdg::electron()},
-    };
-    return map;
-}
-
-//---------------------------------------------------------------------------//
-//! Custom-defined scintillation properties approximating to Gaussian
-//! distribution
-ImportGaussianScintComponent
-load_gauss_scint(std::string const& prefix,
-                 detail::GeantMaterialPropertyGetter& get_property,
-                 int comp_idx)
-{
-    ImportGaussianScintComponent gauss{};
-
-    bool found_mean = get_property(
-        gauss.lambda_mean, prefix + "LAMBDAMEAN", comp_idx, ImportUnits::len);
-    bool found_sigma = get_property(
-        gauss.lambda_sigma, prefix + "LAMBDASIGMA", comp_idx, ImportUnits::len);
-
-    CELER_VALIDATE(found_mean == found_sigma,
-                   << "only one of " << prefix << "LAMBDAMEAN" << comp_idx
-                   << " and " << prefix << "LAMBDASIGMA" << comp_idx
-                   << " was found");
-    return gauss;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Populate an \c ImportScintComponent .
- * To retrieve a material-only component simply do not use particle name.
- */
-std::vector<ImportScintComponent>
-fill_vec_import_scint_comp(detail::GeantMaterialPropertyGetter& get_property,
-                           std::string prefix = {})
-{
-    CELER_EXPECT(prefix.empty() || optical_particles_map().count(prefix));
-
-    // All the components below are "SCINTILLATIONYIELD",
-    // "ELECTRONSCINTILLATIONYIELD", etc.
-    prefix += "SCINTILLATION";
-
-    std::vector<ImportScintComponent> components;
-    for (int comp_idx : range(1, 4))
-    {
-        bool any_found = false;
-        auto get = [&](double* dst, std::string const& ext, ImportUnits u) {
-            bool one_found = get_property(*dst, prefix + ext, comp_idx, u);
-            any_found = any_found || one_found;
-            return one_found;
-        };
-
-        ImportScintComponent comp;
-        get(&comp.yield_frac, "YIELD", ImportUnits::inv_mev);
-
-        // Rise time is not defined for particle type in Geant4
-        get(&comp.rise_time, "RISETIME", ImportUnits::time);
-        get(&comp.fall_time, "TIMECONSTANT", ImportUnits::time);
-
-        auto name = prefix + "COMPONENT" + std::to_string(comp_idx);
-        inp::Grid grid;
-
-        using ScintSpectrumComponent
-            = std::variant<std::monostate, ImportGaussianScintComponent, inp::Grid>;
-        ScintSpectrumComponent spectrum_component;
-
-        if (auto gauss
-            = load_gauss_scint("CELER_" + prefix, get_property, comp_idx))
-        {
-            CELER_VALIDATE(
-                std::holds_alternative<std::monostate>(spectrum_component),
-                << "conflicting scintillation spectrum definitions for "
-                << prefix);
-            spectrum_component = std::move(gauss);
-        }
-        if (auto gauss = load_gauss_scint(prefix, get_property, comp_idx))
-        {
-            CELER_VALIDATE(
-                std::holds_alternative<std::monostate>(spectrum_component),
-                << "conflicting/redundant scintillation properties for "
-                << prefix);
-            CELER_LOG(warning) << "Deprecated property prefix " << prefix
-                               << ": use CELER_" << prefix;
-            spectrum_component = std::move(gauss);
-        }
-        if (get_property(grid, name, {ImportUnits::mev, ImportUnits::unitless}))
-        {
-            // If an explicit energy/intensity grid is provided, use it
-            spectrum_component = std::move(grid);
-        }
-
-        if (auto* g
-            = std::get_if<ImportGaussianScintComponent>(&spectrum_component))
-        {
-            comp.gauss = *g;
-        }
-        else if (auto* gr = std::get_if<inp::Grid>(&spectrum_component))
-        {
-            comp.spectrum = *gr;
-        }
-
-        bool has_spectrum
-            = !std::holds_alternative<std::monostate>(spectrum_component);
-        if (any_found || has_spectrum)
-            // Note that the user may be missing some properties: in that
-            // case (if Geant4 didn't warn/error/die already) then we will
-            // rely on the downstream code to validate.
-            // Additionally, this check prevents adding components with only
-            // default (zero) values and no spectrum, which would otherwise
-            // trigger validation errors.
-            components.push_back(std::move(comp));
-    }
-    return components;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Safely switch from G4State [G4Material.hh] to ImportMaterialState.
@@ -591,38 +467,13 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         // construction
         CELER_ASSERT(has_rindex);
 
-        // Save scintillation properties
-        get_property(optical.scintillation.material.yield_per_energy,
-                     "SCINTILLATIONYIELD",
-                     ImportUnits::inv_mev);
-        get_property(optical.scintillation.resolution_scale,
-                     "RESOLUTIONSCALE",
-                     ImportUnits::unitless);
-        optical.scintillation.material.components
-            = fill_vec_import_scint_comp(get_property);
+        // Scintillation properties are loaded by GeantPhysicsLoader
 
-        // Particle scintillation properties
-        for (auto&& [prefix, pdg] : optical_particles_map())
-        {
-            inp::Grid dummy;
-            if (get_property(dummy,
-                             prefix + "SCINTILLATIONYIELD",
-                             {ImportUnits::mev, ImportUnits::inv_mev}))
-            {
-                CELER_LOG(error)
-                    << "Unsupported particle-dependent scintillation: "
-                    << prefix << " in " << material->GetName();
-            }
-        }
+        // WLS properties are loaded by GeantPhysicsLoader
 
-        // Save WLS properties
-        // (loaded by GeantPhysicsLoader::wls)
+        // WLS2 properties are loaded by GeantPhysicsLoader
 
-        // Save WLS2 properties
-        // (loaded by GeantPhysicsLoader::wls2)
-
-        // Save Mie properties
-        // (loaded by GeantPhysicsLoader::mie)
+        // Mie properties are loaded by GeantPhysicsLoader
 
         CELER_VALIDATE(optical,
                        << "failed to load valid optical material data for "

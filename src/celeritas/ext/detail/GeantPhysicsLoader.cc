@@ -231,10 +231,121 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 {
     imported_.optical_physics.gen.scintillation.emplace();
-    auto& s = *imported_.optical_physics.gen.scintillation;
-    CELER_DISCARD(s);
-    // TODO: load materials/spectra
-    return 1;
+    auto& scint_process = *imported_.optical_physics.gen.scintillation;
+
+    size_type num_materials{0};
+    // Loop over optical materials and load scintillation properties
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
+    {
+        auto get_property = this->property_getter(opt_id);
+
+        // Load material-wide properties
+        double yield_per_energy{0};
+        get_property(
+            yield_per_energy, "SCINTILLATIONYIELD", ImportUnits::inv_mev);
+        if (yield_per_energy <= 0)
+        {
+            // No scintillation in this material
+            continue;
+        }
+
+        inp::ScintillationMaterial scint_mat;
+        get_property(scint_mat.resolution_scale,
+                     "RESOLUTIONSCALE",
+                     ImportUnits::unitless);
+
+        // Loop over scintillation components (up to 3)
+        for (int comp_idx : range(1, 4))
+        {
+            bool any_found = false;
+            auto get = [&](double* dst, std::string const& name, ImportUnits u) {
+                bool one_found = get_property(*dst, name, comp_idx, u);
+                any_found = any_found || one_found;
+                return one_found;
+            };
+
+            inp::ScintillationSpectrum spectrum;
+            double yield_frac{0};
+            get(&yield_frac, "SCINTILLATIONYIELD", ImportUnits::inv_mev);
+            get(&spectrum.rise_time, "SCINTILLATIONRISETIME", ImportUnits::time);
+            get(&spectrum.fall_time,
+                "SCINTILLATIONTIMECONSTANT",
+                ImportUnits::time);
+
+            // Load spectrum: explicit grid or Gaussian approximation
+            auto comp_name = "SCINTILLATIONCOMPONENT"
+                             + std::to_string(comp_idx);
+            inp::Grid grid;
+            double lambda_mean{0}, lambda_sigma{0};
+            bool has_grid = get_property(
+                grid, comp_name, {ImportUnits::mev, ImportUnits::unitless});
+            bool has_celer_gauss = get_property(lambda_mean,
+                                                "CELER_"
+                                                "SCINTILLATIONLAMBDAMEAN",
+                                                comp_idx,
+                                                ImportUnits::len)
+                                   && get_property(lambda_sigma,
+                                                   "CELER_"
+                                                   "SCINTILLATIONLAMBDASIGMA",
+                                                   comp_idx,
+                                                   ImportUnits::len);
+            bool has_deprecated_gauss = get_property(lambda_mean,
+                                                     "SCINTILLATIONLAMBDAMEAN",
+                                                     comp_idx,
+                                                     ImportUnits::len)
+                                        && get_property(lambda_sigma,
+                                                        "SCINTILLATIONLAMBDASI"
+                                                        "GMA",
+                                                        comp_idx,
+                                                        ImportUnits::len);
+
+            if (has_celer_gauss && has_deprecated_gauss)
+            {
+                CELER_VALIDATE(false,
+                               << "conflicting/redundant scintillation "
+                                  "properties for component "
+                               << comp_idx);
+            }
+            if (has_deprecated_gauss)
+            {
+                CELER_LOG(warning)
+                    << "Deprecated property prefix SCINTILLATION: use "
+                       "CELER_SCINTILLATION for component "
+                    << comp_idx;
+            }
+            if (has_celer_gauss || has_deprecated_gauss)
+            {
+                CELER_VALIDATE(!has_grid,
+                               << "conflicting scintillation spectrum "
+                                  "definitions for component "
+                               << comp_idx);
+                spectrum.spectrum_distribution
+                    = inp::NormalDistribution{lambda_mean, lambda_sigma};
+                spectrum.spectrum_argument = inp::SpectrumArgument::wavelength;
+            }
+            else if (has_grid)
+            {
+                spectrum.spectrum_distribution = std::move(grid);
+                spectrum.spectrum_argument = inp::SpectrumArgument::energy;
+            }
+
+            bool has_spectrum = has_grid || has_celer_gauss
+                                || has_deprecated_gauss;
+            if (any_found || has_spectrum)
+            {
+                spectrum.yield = yield_per_energy * yield_frac;
+                scint_mat.components.push_back(std::move(spectrum));
+            }
+        }
+
+        if (!scint_mat.components.empty())
+        {
+            scint_process.materials.emplace(opt_id, std::move(scint_mat));
+            ++num_materials;
+        }
+    }
+
+    return num_materials;
 }
 
 //---------------------------------------------------------------------------//

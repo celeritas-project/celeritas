@@ -17,81 +17,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Store scintillation spectrum
- * use Gaussian approximation as a fallbacks
- */
-struct ImportGaussianScintComponent
-{
-    double lambda_mean{};  //!< Mean wavelength [len]
-    double lambda_sigma{};  //!< Standard deviation of wavelength [len]
-    explicit operator bool() const
-    {
-        return (lambda_mean > 0 && lambda_sigma > 0);
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Store basic properties for different scintillation component types
- * Fast/intermediate/slow/etc scintillation components can be used for both
- * particle- and material-dependent spectra, as well as material-only spectra.
- */
-struct ImportScintComponent
-{
-    double yield_frac{};  //!< Fraction of total scintillation yield
-    double rise_time{};  //!< Rise time [time]
-    double fall_time{};  //!< Decay time [time]
-
-    ImportGaussianScintComponent gauss;
-    inp::Grid spectrum;  //! Energy[MeV] vs Intensity grid
-
-    //! Whether all data are assigned and valid
-    explicit operator bool() const
-    {
-        return yield_frac > 0 && rise_time >= 0 && fall_time > 0
-               && (spectrum || gauss);
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Store material-only scintillation spectrum information.
- *
- * In contrast to Geant4, we can have an arbitrary number of components for
- * scintillation spectra.
- */
-struct ImportMaterialScintSpectrum
-{
-    double yield_per_energy{};  //!< Expected num photons per eloss [1/MeV]
-    std::vector<ImportScintComponent> components;
-
-    //! Whether all data are assigned and valid
-    explicit operator bool() const
-    {
-        return yield_per_energy > 0 && !components.empty();
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Store optical properties for scintillation.
- */
-struct ImportScintData
-{
-    using PDGint = int;
-
-    ImportMaterialScintSpectrum material;  //!< Material scintillation data
-    double resolution_scale{};  //!< Scales the stdev of photon distribution
-
-    //! Whether all data are assigned and valid
-    explicit operator bool() const
-    {
-        return static_cast<bool>(material) && resolution_scale >= 0;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Store optical material properties for Rayleigh scattering.
  *
  * The isothermal compressibility is used to calculate the Rayleigh mean free
@@ -177,7 +102,6 @@ struct ImportMie
 struct ImportOpticalMaterial
 {
     ImportOpticalProperty properties;
-    ImportScintData scintillation;
 
     //! Whether minimal useful data is stored
     explicit operator bool() const { return static_cast<bool>(properties); }
