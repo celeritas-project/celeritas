@@ -104,8 +104,7 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
         {
             CELER_VALIDATE(is_monotonic_increasing(make_span(comp.spectrum.x)),
                            << "scintillation spectrum energy grid values are "
-                              "not "
-                              "monotonically increasing");
+                              "not monotonically increasing");
             inp::Grid grid;
             grid.x = comp.spectrum.x;
             grid.y.resize(grid.x.size());
