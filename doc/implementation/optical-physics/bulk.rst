@@ -11,6 +11,8 @@ they happen in the bulk of the material. These processes are stochastic and
 based on the user-provided, wavelength-dependent mean free paths in the optical
 materials.
 
+.. doxygenclass:: celeritas::optical::PhysicsParams
+
 Built-in processes
 ------------------
 

@@ -105,7 +105,7 @@ UNIFIED Model
 ^^^^^^^^^^^^^
 
 The UNIFIED model provides a probabilistic set of possible types of reflection
-a photon may undergo. These are stores as properites on a surface's property
+a photon may undergo. These are stores as properties on a surface's property
 table, which is loaded into Celeritas as a
 :code:`celeritas::inp::ReflectionForm`
 
