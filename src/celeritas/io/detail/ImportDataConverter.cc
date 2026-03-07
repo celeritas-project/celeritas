@@ -103,21 +103,7 @@ void ImportDataConverter::operator()(ImportOpticalMaterial* data)
 {
     CELER_EXPECT(data);
 
-    for (auto& comp : data->scintillation.material.components)
-    {
-        if (comp.spectrum)
-        {
-            continue;
-        }
-        else
-        {
-            comp.gauss.lambda_mean *= len_;
-            comp.gauss.lambda_sigma *= len_;
-        }
-
-        comp.rise_time *= time_;
-        comp.fall_time *= time_;
-    }
+    // No conversions currently needed for optical material properties
 }
 
 //---------------------------------------------------------------------------//

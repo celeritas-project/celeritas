@@ -15,14 +15,12 @@
 #pragma link C++ class celeritas::ImportData+;
 #pragma link C++ class celeritas::ImportElement+;
 #pragma link C++ class celeritas::ImportEmParameters+;
-#pragma link C++ class celeritas::ImportGaussianScintComponent+;
 #pragma link C++ class celeritas::ImportGeoMaterial+;
 #pragma link C++ class celeritas::ImportIsotope+;
 #pragma link C++ class celeritas::ImportLivermorePE+;
 #pragma link C++ class celeritas::ImportLivermoreSubshell+;
 #pragma link C++ class celeritas::ImportLoopingThreshold+;
 #pragma link C++ class celeritas::ImportMatElemComponent+;
-#pragma link C++ class celeritas::ImportMaterialScintSpectrum+;
 #pragma link C++ class celeritas::ImportModel+;
 #pragma link C++ class celeritas::ImportModelMaterial+;
 #pragma link C++ class celeritas::ImportModelMaterial::EnergyBound+;
@@ -36,8 +34,6 @@
 #pragma link C++ class celeritas::ImportPhysMaterial+;
 #pragma link C++ class celeritas::ImportProcess+;
 #pragma link C++ class celeritas::ImportProductionCut+;
-#pragma link C++ class celeritas::ImportScintComponent+;
-#pragma link C++ class celeritas::ImportScintData+;
 #pragma link C++ class celeritas::ImportTransParameters+;
 #pragma link C++ class celeritas::ImportVolume+;
 #pragma link C++ class celeritas::ImportWavelengthShift+;

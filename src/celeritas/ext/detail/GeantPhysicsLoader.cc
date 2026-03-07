@@ -266,7 +266,8 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 
             inp::ScintillationSpectrum spectrum;
             double yield_frac{0};
-            get(&yield_frac, "SCINTILLATIONYIELD", ImportUnits::inv_mev);
+            // Component yields are dimensionless relative weights
+            get(&yield_frac, "SCINTILLATIONYIELD", ImportUnits::unitless);
             get(&spectrum.rise_time, "SCINTILLATIONRISETIME", ImportUnits::time);
             get(&spectrum.fall_time,
                 "SCINTILLATIONTIMECONSTANT",
@@ -333,13 +334,28 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
                                 || has_deprecated_gauss;
             if (any_found || has_spectrum)
             {
+                // yield_frac is a dimensionless relative weight (e.g., 3:1:1)
+                // that must be normalized and scaled by total yield
                 spectrum.yield = yield_per_energy * yield_frac;
                 scint_mat.components.push_back(std::move(spectrum));
             }
         }
 
+        // Normalize component yields to sum properly
         if (!scint_mat.components.empty())
         {
+            double total_frac = 0;
+            for (auto const& comp : scint_mat.components)
+            {
+                total_frac += comp.yield;
+            }
+            // Renormalize so components sum to yield_per_energy
+            double scale = yield_per_energy / total_frac;
+            for (auto& comp : scint_mat.components)
+            {
+                comp.yield *= scale;
+            }
+
             scint_process.materials.emplace(opt_id, std::move(scint_mat));
             ++num_materials;
         }

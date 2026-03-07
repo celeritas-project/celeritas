@@ -340,7 +340,9 @@ auto build_optical_params(inp::Problem const& p,
     }
     if (p.physics.optical.gen.scintillation)
     {
-        pi.scintillation = ScintillationParams::from_import(imported);
+        CELER_ASSERT(imported.optical_physics.gen.scintillation);
+        pi.scintillation = std::make_shared<ScintillationParams>(
+            *pi.material, *imported.optical_physics.gen.scintillation);
     }
 
     // Streams and capacities
@@ -402,8 +404,9 @@ auto build_optical_params(inp::OpticalProblem const& p,
     }
     if (p.physics.gen.scintillation)
     {
-        // TODO: pass scintillation input
-        pi.scintillation = ScintillationParams::from_import(imported);
+        CELER_ASSERT(imported.optical_physics.gen.scintillation);
+        pi.scintillation = std::make_shared<ScintillationParams>(
+            *pi.material, *imported.optical_physics.gen.scintillation);
         CELER_ASSERT(pi.scintillation);
     }
 

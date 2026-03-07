@@ -9,6 +9,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/ScopedLogStorer.hh"
+#include "corecel/inp/Distributions.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/sys/Version.hh"
@@ -33,6 +34,7 @@ namespace
 {
 
 using namespace celeritas::units;
+using celeritas::inp::NormalDistribution;
 
 template<class Iter>
 std::vector<std::string> to_vec_string(Iter iter, Iter end)
@@ -1656,21 +1658,35 @@ TEST_F(LarSphere, optical)
     // example examples/advanced/CaTS/gdml/LArTPC.gdml
 
     // Check scintillation optical properties
-    auto const& optical = imported.optical_materials[0];
-    auto const& scint = optical.scintillation;
+    ASSERT_TRUE(imported.optical_physics.gen.scintillation);
+    auto const& scint_process = *imported.optical_physics.gen.scintillation;
+    ASSERT_TRUE(scint_process.materials.count(OptMatId{0}));
+    auto const& scint = scint_process.materials.at(OptMatId{0});
     EXPECT_TRUE(scint);
 
     // Material scintillation
     constexpr auto tol = SoftEqual<real_type>{}.rel();
     EXPECT_REAL_EQ(1, scint.resolution_scale);
-    EXPECT_REAL_EQ(5000, scint.material.yield_per_energy);
-    EXPECT_EQ(3, scint.material.components.size());
-    std::vector<double> components;
-    for (auto const& comp : scint.material.components)
+    // Total yield is sum of components
+    real_type total_yield = 0;
+    for (auto const& comp : scint.components)
     {
-        components.push_back(comp.yield_frac);
-        components.push_back(to_cm(comp.gauss.lambda_mean));
-        components.push_back(to_cm(comp.gauss.lambda_sigma));
+        total_yield += comp.yield;
+    }
+    EXPECT_REAL_EQ(5000, total_yield);
+    EXPECT_EQ(3, scint.components.size());
+    std::vector<double> components;
+    for (auto const& comp : scint.components)
+    {
+        // Yield fraction: yield / total_yield
+        components.push_back(comp.yield / total_yield);
+        // Spectrum is a variant: extract Normal distribution for wavelength
+        ASSERT_TRUE(std::holds_alternative<NormalDistribution>(
+            comp.spectrum_distribution));
+        auto const& gauss
+            = std::get<NormalDistribution>(comp.spectrum_distribution);
+        components.push_back(to_cm(gauss.mean));
+        components.push_back(to_cm(gauss.stddev));
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
@@ -1773,6 +1789,7 @@ TEST_F(LarSphere, optical)
     // Index of refraction, Rayleigh scattering length, and Sellmeier
     // coefficients in solid and liquid argon and xenon, Nucl.  Instr. Meth.
     // Phys. Res. A 867, 204-208 (2017)
+    auto const& optical = imported.optical_materials[0];
     auto const& properties = optical.properties;
     EXPECT_TRUE(properties);
     EXPECT_EQ(101, properties.refractive_index.x.size());
@@ -1801,8 +1818,12 @@ TEST_F(LarSphereExtramat, optical)
     ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
 
     // Check scintillation, WLS, and WLS2 optical properties
-    auto const& optical = imported.optical_materials[0];
-    EXPECT_FALSE(optical.scintillation);
+    // Scintillation should not be present for this material
+    bool has_scint
+        = imported.optical_physics.gen.scintillation
+          && imported.optical_physics.gen.scintillation->materials.count(
+              OptMatId{0});
+    EXPECT_FALSE(has_scint);
     auto const& bulk = imported.optical_physics.bulk;
     EXPECT_FALSE(bulk.wls.materials.count(OptMatId{0}));
     EXPECT_FALSE(bulk.wls2.materials.count(OptMatId{0}));
@@ -1822,6 +1843,7 @@ TEST_F(LarSphereExtramat, optical)
     // Index of refraction, Rayleigh scattering length, and Sellmeier
     // coefficients in solid and liquid argon and xenon, Nucl.  Instr. Meth.
     // Phys. Res. A 867, 204-208 (2017)
+    auto const& optical = imported.optical_materials[0];
     auto const& properties = optical.properties;
     EXPECT_TRUE(properties);
     EXPECT_EQ(2, properties.refractive_index.x.size());

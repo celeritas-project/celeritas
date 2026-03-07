@@ -15,7 +15,7 @@
 #include "corecel/math/PdfUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 
 #include "../ScintillationData.hh"
 
@@ -40,7 +40,7 @@ class MatScintSpecInserter
     explicit inline MatScintSpecInserter(Data* data);
 
     // Add scintillation data for a single material
-    auto operator()(ImportMaterialScintSpectrum const& mat);
+    auto operator()(inp::ScintillationMaterial const& mat);
 
   private:
     using MatId = OptMatId;
@@ -75,18 +75,32 @@ MatScintSpecInserter::MatScintSpecInserter(Data* data)
 /*!
  * Add scintillation data for a single material.
  */
-auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
+auto MatScintSpecInserter::operator()(inp::ScintillationMaterial const& mat)
 {
-    CELER_EXPECT(mat);
+    if (mat.components.empty())
+    {
+        // No scintillation in this material: add default entry
+        MatScintSpectrum spectrum;
+        spectrum.yield_per_energy = 0;
+        spectrum.components
+            = {scint_records_.size_id(), scint_records_.size_id()};
+        spectrum.yield_pdf = {reals_.size_id(), reals_.size_id()};
+        return materials_.push_back(std::move(spectrum));
+    }
 
-    CELER_VALIDATE(mat.yield_per_energy > 0,
-                   << "invalid yield=" << mat.yield_per_energy
-                   << " for scintillation (should be positive)");
-
+    // Calculate total yield across all components
     double total_yield{0};
+    for (auto const& comp : mat.components)
+    {
+        CELER_VALIDATE(comp.yield > 0,
+                       << "invalid yield=" << comp.yield
+                       << " for scintillation component (should be positive)");
+        total_yield += comp.yield;
+    }
+
     std::vector<double> yield_pdf;
     auto const begin_components = scint_records_.size_id();
-    for (ImportScintComponent const& comp : mat.components)
+    for (auto const& comp : mat.components)
     {
         CELER_VALIDATE(comp.rise_time >= 0,
                        << "invalid rise_time=" << comp.rise_time
@@ -94,43 +108,71 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
         CELER_VALIDATE(comp.fall_time > 0,
                        << "invalid fall_time=" << comp.fall_time
                        << " (should be positive)");
-        CELER_VALIDATE(comp.yield_frac > 0,
-                       << "invalid yield=" << comp.yield_frac);
 
         ScintRecord scint;
         scint.rise_time = comp.rise_time;
         scint.fall_time = comp.fall_time;
-        if (comp.spectrum)
+
+        // Handle spectrum distribution variant
+        if (auto const* norm_dist = std::get_if<inp::NormalDistribution>(
+                &comp.spectrum_distribution))
         {
-            CELER_VALIDATE(is_monotonic_increasing(make_span(comp.spectrum.x)),
+            // Gaussian distribution
+            CELER_VALIDATE(
+                comp.spectrum_argument == inp::SpectrumArgument::wavelength,
+                << "normal distribution scintillation must use wavelength");
+            CELER_VALIDATE(norm_dist->mean > 0,
+                           << "invalid lambda_mean=" << norm_dist->mean
+                           << " for scintillation component (should be "
+                              "positive)");
+            CELER_VALIDATE(norm_dist->stddev > 0,
+                           << "invalid lambda_sigma=" << norm_dist->stddev
+                           << " (should be positive)");
+            scint.lambda_mean = norm_dist->mean;
+            scint.lambda_sigma = norm_dist->stddev;
+        }
+        else if (auto const* grid
+                 = std::get_if<inp::Grid>(&comp.spectrum_distribution))
+        {
+            // Explicit grid
+            CELER_VALIDATE(is_monotonic_increasing(make_span(grid->x)),
                            << "scintillation spectrum energy grid values are "
                               "not monotonically increasing");
-            inp::Grid grid;
-            grid.x = comp.spectrum.x;
-            grid.y.resize(grid.x.size());
-            SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
 
-            integrate_emission(make_span(comp.spectrum.x),
-                               make_span(comp.spectrum.y),
-                               make_span(grid.y));
-            normalize_cdf(make_span(grid.y));
-            scint.energy_cdf = insert_energy_cdf_(grid);
+            inp::Grid cdf_grid;
+            cdf_grid.x = grid->x;
+            cdf_grid.y.resize(grid->x.size());
+
+            if (comp.spectrum_argument == inp::SpectrumArgument::energy)
+            {
+                // Energy-based spectrum: integrate to get CDF
+                SegmentIntegrator integrate_emission{
+                    TrapezoidSegmentIntegrator{}};
+                integrate_emission(make_span(grid->x),
+                                   make_span(grid->y),
+                                   make_span(cdf_grid.y));
+                normalize_cdf(make_span(cdf_grid.y));
+            }
+            else
+            {
+                // Wavelength-based spectrum: convert to energy first
+                CELER_VALIDATE(comp.spectrum_argument
+                                   == inp::SpectrumArgument::wavelength,
+                               << "unknown spectrum argument type");
+                // TODO: implement wavelength->energy conversion for grids
+                CELER_NOT_IMPLEMENTED(
+                    "wavelength-based grid scintillation spectra");
+            }
+
+            scint.energy_cdf = insert_energy_cdf_(cdf_grid);
         }
         else
         {
-            CELER_VALIDATE(comp.gauss.lambda_mean > 0,
-                           << "invalid lambda_mean=" << comp.gauss.lambda_mean
-                           << " for scintillation component (should be "
-                              "positive)");
-            CELER_VALIDATE(comp.gauss.lambda_sigma > 0,
-                           << "invalid lambda_sigma=" << comp.gauss.lambda_sigma
-                           << " (should be positive)");
-            scint.lambda_mean = comp.gauss.lambda_mean;
-            scint.lambda_sigma = comp.gauss.lambda_sigma;
+            CELER_VALIDATE(false, << "invalid spectrum distribution variant");
         }
+
         scint_records_.push_back(scint);
-        yield_pdf.push_back(comp.yield_frac);
-        total_yield += comp.yield_frac;
+        yield_pdf.push_back(comp.yield);
     }
 
     // Normalize yield PDF by total yield
@@ -140,7 +182,7 @@ auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
     }
 
     MatScintSpectrum spectrum;
-    spectrum.yield_per_energy = mat.yield_per_energy;
+    spectrum.yield_per_energy = total_yield;
     spectrum.components = {begin_components, scint_records_.size_id()};
     spectrum.yield_pdf = reals_.insert_back(yield_pdf.begin(), yield_pdf.end());
 
