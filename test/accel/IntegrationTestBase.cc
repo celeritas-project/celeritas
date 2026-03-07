@@ -44,6 +44,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/ext/EmPhysicsList.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/SimpleSensitiveDetector.hh"
 #include "celeritas/g4/DetectorConstruction.hh"
 #include "celeritas/inp/Events.hh"
@@ -91,10 +92,12 @@ class RunAction final : public G4UserRunAction
         , exceptions_(
               [this](std::exception_ptr ep) { this->handle_exception(ep); })
     {
+        CELER_EXPECT(test_);
     }
 
     void BeginOfRunAction(G4Run const* run) final
     {
+        CELER_EXPECT(run);
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
         CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
     }
@@ -311,9 +314,25 @@ TestOffload IntegrationTestBase::test_offload()
 }
 
 //---------------------------------------------------------------------------//
-// Default destructor to enable base class deletion and anchor vtable
+/*!
+ * Disable ROOT signal handlers on startup.
+ */
+IntegrationTestBase::IntegrationTestBase()
+{
+    // ROOT injects handlers simply by being linked
+    ScopedRootErrorHandler::disable_signal_handler();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Default destructor to enable base class deletion and anchor vtable.
+ */
 IntegrationTestBase::~IntegrationTestBase() = default;
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a unique filename accounting for the test environment.
+ */
 std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
 {
     std::string new_ext = "-";
@@ -333,19 +352,20 @@ std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
  */
 G4RunManager& IntegrationTestBase::run_manager()
 {
-    static PersistentSP<G4RunManager> rm{"run manager"};
+    static PersistentSP<G4RunManager> prm{"run manager"};
 
     std::string basename{this->gdml_basename()};
 
-    if (rm)
+    if (prm)
     {
-        CELER_VALIDATE(basename == rm.key(),
+        CELER_VALIDATE(basename == prm.key(),
                        << "cannot create a run manager for two problems in "
                           "one execution: use '--gtest_filter'");
-        return *rm.value();
     }
+    CELER_VALIDATE(!this->HasFatalFailure(),
+                   << "cannot create run manager: test irrevocably failed");
 
-    rm.set(basename, [&] {
+    prm.lazy_update(basename, [&] {
         CELER_LOG(status) << "Creating run manager";
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
@@ -363,7 +383,23 @@ G4RunManager& IntegrationTestBase::run_manager()
             std::make_shared<G4RunManager>()
 #endif
         };
-        CELER_ASSERT(rm);
+        CELER_ENSURE(rm);
+        return rm;
+    });
+
+    auto* rm = prm.value().get();
+    CELER_ASSERT(rm);
+
+    static IntegrationTestBase* referenced_test{nullptr};
+    if (referenced_test != this)
+    {
+        CELER_VALIDATE(referenced_test == nullptr,
+                       << "cannot run multiple integration tests "
+                          "in one execution: use ctest or --gtest_filter");
+        // Test callbacks reference the current harness, so multiple tests
+        // cannot run consecutively unless we update the user initialization
+        CELER_LOG(status) << "Setting run manager initialization";
+        ScopedGeantExceptionHandler scoped_exceptions;
 
         // Set up detector
         rm->SetUserInitialization(new TestDetectorConstruction{
@@ -376,10 +412,10 @@ G4RunManager& IntegrationTestBase::run_manager()
 
         // Set up runtime initialization
         rm->SetUserInitialization(new ActionInitialization{this});
-        return rm;
-    }());
+        referenced_test = this;
+    }
 
-    return *rm.value();
+    return *rm;
 }
 
 //---------------------------------------------------------------------------//

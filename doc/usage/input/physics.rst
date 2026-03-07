@@ -23,14 +23,22 @@ Electromagnetic
 Optical
 -------
 
-Optical photon _generation_ is a part of the standard stepping loop that manages
-EM, decay, and hadronic physics, but its _transport_ has its own separate
+Optical photon *generation* is a part of the standard stepping loop that manages
+EM, decay, and hadronic physics, but its *transport* has its own separate
 stepping loop, where surface physics is the most complex part. Therefore, the
-``OpticalPhysics`` input includes optical photon _generation_ processes (such as
+``OpticalPhysics`` input includes optical photon generation processes (such as
 Cherenkov and scintillation) and surface physics information. The latter
 describing how optical photons should interact with it.
 
 .. celerstruct:: inp::OpticalPhysics
+
+Bulk physics
+^^^^^^^^^^^^
+
+.. celerstruct:: inp::OpticalBulkPhysics
+
+Surface physics
+^^^^^^^^^^^^^^^
 
 Celeritas' surface physics implementation is designed differently from Geant4
 and is meant to reduce code complexity and improve extensibility.
@@ -43,14 +51,16 @@ In Geant4, a single model (e.g. "unified") is a hard-coded combination of:
 Celeritas separates these out into fully configurable surface physics inputs,
 so that a given surface ID must be present in three separate surface models.
 This "model unfolding" leads to a less simple input definition compared to
-Geant4, but it allows for user-extensible surface physics models.
+Geant4, but it allows for user-extensible surface physics models. See
+:ref:`optical_properties` for further details of the importing.
 
 .. celerstruct:: inp::OpticalSurfacePhysics
 
-Reflection
-^^^^^^^^^^
-
 .. celerstruct:: inp::GridReflection
+.. celerstruct:: inp::SmearRoughness
+.. celerstruct:: inp::GaussianRoughness
+.. celerstruct:: inp::ReflectionForm
+.. celerstruct:: inp::DielectricInteraction
 
 
 Processes

@@ -25,6 +25,13 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  * Sample optical photons from user-configurable distributions.
+ *
+ * This samples a user-specified number of photons from user-configurable
+ * distributions specified in \c celeritas::inp::OpticalPrimaryGenerator .
+ *
+ * \internal The \c DistributionVisitor is responsible for managing the
+ * std::variant-like behavior of this class by mapping distribution IDs to
+ * type-deleted data.
  */
 class PrimaryGenerator
 {

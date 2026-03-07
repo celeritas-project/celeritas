@@ -85,6 +85,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Test offload type as set by environment variable
     static TestOffload test_offload();
 
+    // Disable ROOT signal handlers on startup
+    IntegrationTestBase();
+
     // Default destructor to enable base class deletion and anchor vtable
     virtual ~IntegrationTestBase();
 

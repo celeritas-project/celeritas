@@ -107,7 +107,6 @@ GeantSetup::GeantSetup(std::string const& gdml_filename,
     ScopedGeantLogger scoped_logger(celeritas::world_logger());
     ScopedGeantExceptionHandler scoped_exceptions;
 
-    DetectorConstruction const* p_detector = nullptr;
     {
         CELER_LOG(status) << "Initializing Geant4 geometry and physics list";
 
@@ -126,7 +125,6 @@ GeantSetup::GeantSetup(std::string const& gdml_filename,
         }
         auto detector = std::make_unique<DetectorConstruction>(
             gdml_filename, std::move(make_sd));
-        p_detector = detector.get();
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
@@ -153,12 +151,14 @@ GeantSetup::GeantSetup(std::string const& gdml_filename,
     }
 
     {
-        // Create non-owning Geant4 geo wrapper and save as tracking geometry
-        geo_ = std::make_shared<GeantGeoParams>(p_detector->world(),
-                                                Ownership::reference);
-        celeritas::global_geant_geo(geo_);
+        // Save the geometry
+        auto* detcon = dynamic_cast<DetectorConstruction const*>(
+            run_manager_->GetUserDetectorConstruction());
+        CELER_ASSERT(detcon);
+        this->geo_ = detcon->geo();
     }
 
+    CELER_ENSURE(this->geo_);
     CELER_ENSURE(*this);
 }
 

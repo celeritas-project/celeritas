@@ -42,12 +42,6 @@ physics_options = {
     "msc": "urban" if core_geo == "vecgeom" else "none",
     "eloss_fluctuation": True,
     "lpm": True,
-    "optical": {
-        "absorption": True,
-        "rayleigh_scattering": True,
-        "wavelength_shifting": {"enable": True, "time_profile": "exponential"},
-        "wavelength_shifting2": {"enable": True, "time_profile": "exponential"},
-    },
 }
 
 physics_filename = None
@@ -111,14 +105,22 @@ if "lar" in geometry_filename:
     # Volume and surface properties are currently only loaded if Geant4 import
     # is enabled
     physics_filename = None
-    num_optical_tracks = 4096
-    inp["max_steps"] = 2
-    inp["optical"] = {
-        "num_track_slots": num_optical_tracks,
-        "buffer_capacity": 3 * max_steps * num_optical_tracks,
-        "max_steps": 4,
-        "auto_flush": num_optical_tracks,
+    optical_physics = {
+        "absorption": True,
+        "rayleigh_scattering": True,
+        "wavelength_shifting": {"time_profile": "exponential"},
+        "wavelength_shifting2": {"time_profile": "exponential"},
     }
+    physics_options["optical"] = optical_physics
+
+    num_optical_tracks = 4096
+    optical_capacity = {
+        "tracks": num_optical_tracks,
+        "generators": 3 * max_steps * num_optical_tracks,
+        "primaries": num_optical_tracks,
+    }
+    inp["optical"] = {"capacity": optical_capacity, "limits": {"steps": 4}}
+    inp["max_steps"] = 2
 
 if "simple-cms" in geometry_filename:
     inp["merge_events"] = True

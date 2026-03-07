@@ -25,7 +25,7 @@ bool g_has_root_errored_{false};
 
 //---------------------------------------------------------------------------//
 /*!
- * Actual ROOT Error Handler function for Celeritas
+ * Actual ROOT Error Handler function for Celeritas.
  */
 void RootErrorHandler(Int_t rootlevel,
                       Bool_t must_abort,

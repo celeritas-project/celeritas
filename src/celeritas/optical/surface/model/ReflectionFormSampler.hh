@@ -18,6 +18,11 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  * Calculate probability for each reflection mode from UNIFIED model grids.
+ *
+ * \todo Rename ReflectionModeCalculator
+ * \todo If this ends up being expensive, we could use a unified grid (union of
+ * all points on sub-grids) to do a single lookup and interpolate PDFs more
+ * effectively.
  */
 class ReflectionModeSampler
 {

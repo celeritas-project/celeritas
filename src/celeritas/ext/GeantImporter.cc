@@ -53,7 +53,6 @@
 #include <G4Scintillation.hh>
 #include <G4String.hh>
 #include <G4Transportation.hh>
-#include <G4TransportationManager.hh>
 #include <G4Types.hh>
 #include <G4VEnergyLossProcess.hh>
 #include <G4VMultipleScattering.hh>
@@ -814,6 +813,21 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
 
 //---------------------------------------------------------------------------//
 /*!
+ * GEt the process list of a particle.
+ */
+G4ProcessVector const& get_process_vec(G4ParticleDefinition const& p)
+{
+    auto const* pm = p.GetProcessManager();
+    CELER_VALIDATE(
+        pm, << "No process manager for '" << p.GetParticleName() << "'");
+
+    auto* pl = pm->GetProcessList();
+    CELER_ENSURE(pl);
+    return *pl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a populated \c ImportProcess vector.
  *
  * TODO: instead of looping over all particles, loop over all *offload*
@@ -923,12 +937,11 @@ auto import_processes(GeantImporter::DataSelection selected,
             continue;
         }
 
-        G4ProcessVector const& process_list
-            = *g4_particle_def->GetProcessManager()->GetProcessList();
+        auto const& process_vec = get_process_vec(*g4_particle_def);
 
-        for (auto j : range(process_list.size()))
+        for (auto j : range(process_vec.size()))
         {
-            G4VProcess const& process = *process_list[j];
+            G4VProcess const& process = *process_vec[j];
             if (!include_process(process.GetProcessType()))
             {
                 continue;
@@ -946,24 +959,18 @@ auto import_processes(GeantImporter::DataSelection selected,
 /*!
  * Get the transportation process for a given particle type.
  */
-G4Transportation const* get_transportation(G4ParticleDefinition const* particle)
+G4Transportation const& find_transportation(G4ParticleDefinition const& p)
 {
-    CELER_EXPECT(particle);
-
-    auto const* pm = particle->GetProcessManager();
-    CELER_ASSERT(pm);
-
-    // Search through the processes to find transportion (it should be the
-    // first one)
-    auto const& pl = *pm->GetProcessList();
+    // Search through the processes to find transportion
+    auto const& pl = get_process_vec(p);
     for (auto i : range(pl.size()))
     {
         if (auto const* trans = dynamic_cast<G4Transportation const*>(pl[i]))
         {
-            return trans;
+            return *trans;
         }
     }
-    return nullptr;
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -974,14 +981,6 @@ ImportTransParameters
 import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
 {
     ImportTransParameters result;
-
-    // Get the maximum number of substeps in the field propagator
-    auto const* tm = G4TransportationManager::GetTransportationManager();
-    CELER_ASSERT(tm);
-    if (auto const* fp = tm->GetPropagatorInField())
-    {
-        result.max_substeps = fp->GetMaxLoopCount();
-    }
 
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -1005,13 +1004,17 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
         }
 
         // Get the transportation process
-        auto const* trans = get_transportation(particle_iterator.value());
-        CELER_ASSERT(trans);
+        auto const& trans = find_transportation(*particle_iterator.value());
+        if (auto const* fp
+            = const_cast<G4Transportation&>(trans).GetPropagatorInField())
+        {
+            result.max_substeps = fp->GetMaxLoopCount();
+        }
 
         // Get the threshold values for killing looping tracks
         ImportLoopingThreshold looping;
-        looping.threshold_trials = trans->GetThresholdTrials();
-        looping.important_energy = trans->GetThresholdImportantEnergy()
+        looping.threshold_trials = trans.GetThresholdTrials();
+        looping.important_energy = trans.GetThresholdImportantEnergy()
                                    * mev_scale;
         CELER_ASSERT(looping);
         result.looping.insert({pdg.get(), looping});
