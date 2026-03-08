@@ -159,7 +159,7 @@ bool try_load_gaussian_spectrum(GeantMaterialPropertyGetter& get,
 std::optional<inp::ScintillationSpectrum>
 load_scintillation_component(GeantMaterialPropertyGetter& get_property,
                              int comp_idx,
-                             double yield_per_energy)
+                             double total_yield)
 {
     bool any_found = false;
     auto get = [&](double& dst, std::string const& name, ImportUnits u) {
@@ -209,9 +209,8 @@ load_scintillation_component(GeantMaterialPropertyGetter& get_property,
         return std::nullopt;
     }
 
-    // yield_frac is a dimensionless relative weight (e.g., 3:1:1)
-    // that must be normalized and scaled by total yield
-    spectrum.yield = yield_per_energy * yield_frac;
+    // yield_frac is a dimensionless fraction of the total yield
+    spectrum.yield = total_yield * yield_frac;
     return spectrum;
 }
 
@@ -372,21 +371,22 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
     imported_.optical_physics.gen.scintillation.emplace();
     auto& scint_process = *imported_.optical_physics.gen.scintillation;
 
-    size_type num_materials{0};
     // Loop over optical materials and load scintillation properties
     for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
     {
         auto get_property = this->property_getter(opt_id);
 
         // Load material-wide properties
-        double yield_per_energy{0};
-        get_property(
-            yield_per_energy, "SCINTILLATIONYIELD", ImportUnits::inv_mev);
-        if (yield_per_energy <= 0)
+        double total_yield{0};
+        if (!get_property(
+                total_yield, "SCINTILLATIONYIELD", ImportUnits::inv_mev))
         {
             // No scintillation in this material
             continue;
         }
+        CELER_VALIDATE(total_yield > 0,
+                       << "invalid scintillation yield " << total_yield
+                       << " [1/MeV]");
 
         inp::ScintillationMaterial scint_mat;
         get_property(scint_mat.resolution_scale,
@@ -397,7 +397,7 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
         for (int comp_idx : range(1, 4))
         {
             if (auto spectrum = load_scintillation_component(
-                    get_property, comp_idx, yield_per_energy))
+                    get_property, comp_idx, total_yield))
             {
                 scint_mat.components.push_back(std::move(*spectrum));
             }
@@ -406,13 +406,12 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
         // Normalize component yields and add to material map
         if (!scint_mat.components.empty())
         {
-            normalize_component_yields(scint_mat.components, yield_per_energy);
+            normalize_component_yields(scint_mat.components, total_yield);
             scint_process.materials.emplace(opt_id, std::move(scint_mat));
-            ++num_materials;
         }
     }
 
-    return num_materials;
+    return scint_process.materials.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -428,18 +427,18 @@ size_type GeantPhysicsLoader::op_absorption(G4VProcess const&)
 //! Load optical surface physics
 size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
 {
+    auto& materials = imported_.optical_materials;
+    if (materials.empty())
+    {
+        CELER_LOG(error) << "Optical boundary process is defined but no "
+                            "optical materials are present";
+        return 0;
+    }
+
     auto& surfaces = imported_.optical_physics.surfaces;
 
     // Load each geometry surface and print any errors that occur
     {
-        auto& materials = imported_.optical_materials;
-        if (materials.empty())
-        {
-            CELER_LOG(error) << "Optical boundary process is defined but no "
-                                "optical materials are present";
-            return 0;
-        }
-
         auto geo = celeritas::global_geant_geo().lock();
         CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
@@ -496,7 +495,6 @@ size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 //! Load rayleigh scattering
 size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 {
-    // TODO: refactor as variant: MFP grid *or* scale_factor+compressibility
     auto& model = imported_.optical_physics.bulk.rayleigh;
     this->load_mfps(model, "RAYLEIGH");
 
@@ -504,34 +502,38 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
     // as a grid
     for (auto opt_mat_id : range(OptMatId{optical_ids_.num_optical()}))
     {
-        if (model.materials.count(opt_mat_id))
-        {
-            continue;
-        }
+        bool has_mfp = model.materials.count(opt_mat_id);
 
         auto get_property = this->property_getter(opt_mat_id);
         inp::OpticalModelMaterial<ImportOpticalRayleigh> model_mat;
-        bool any_found = false;
-        any_found = get_property(model_mat.scale_factor,
-                                 "RS_SCALE_FACTOR",
-                                 ImportUnits::unitless)
-                    || any_found;
-        any_found = get_property(model_mat.compressibility,
-                                 "ISOTHERMAL_COMPRESSIBILITY",
-                                 ImportUnits::len_time_sq_per_mass)
-                    || any_found;
-        if (!any_found)
+
+        // Check for optional scale factor
+        bool has_scale = get_property(
+            model_mat.scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless);
+        bool has_compr = get_property(model_mat.compressibility,
+                                      "ISOTHERMAL_COMPRESSIBILITY",
+                                      ImportUnits::len_time_sq_per_mass);
+        if (!has_mfp && !has_compr)
         {
+            // Check for G4 special case for water if no other data given
             auto& g4mat = *optical_g4mat_[opt_mat_id.get()];
             if (g4mat.GetName() == "Water")
             {
                 load_rayleigh_water(model_mat, g4mat);
-                any_found = true;
+                has_compr = true;
             }
         }
-        if (any_found)
+
+        constexpr auto to_given_str
+            = [](bool v) { return v ? "provided" : "missing"; };
+        CELER_VALIDATE(!has_mfp || !(has_scale || has_compr),
+                       << "inconsistent Rayleigh input data: MFP ("
+                       << to_given_str(has_mfp)
+                       << ") is incompatible with compressibility ("
+                       << to_given_str(has_compr) << ") with optional scale ("
+                       << to_given_str(has_scale) << ")");
+        if (!has_mfp && has_compr)
         {
-            CELER_VALIDATE(model_mat, << "inconsistent Rayleigh input data");
             // Add non-grid rayleigh
             model.materials.emplace(opt_mat_id, std::move(model_mat));
         }

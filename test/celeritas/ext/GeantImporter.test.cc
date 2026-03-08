@@ -1679,31 +1679,37 @@ TEST_F(LarSphere, optical)
     for (auto const& comp : scint.components)
     {
         // Yield fraction: yield / total_yield
+        // Note that the input data for lar-sphere is *unnormalized*
         components.push_back(comp.yield / total_yield);
         // Spectrum is a variant: extract Normal distribution for wavelength
-        ASSERT_TRUE(std::holds_alternative<NormalDistribution>(
-            comp.spectrum_distribution));
-        auto const& gauss
-            = std::get<NormalDistribution>(comp.spectrum_distribution);
-        components.push_back(to_cm(gauss.mean));
-        components.push_back(to_cm(gauss.stddev));
+        if (auto* gauss
+            = std::get_if<NormalDistribution>(&comp.spectrum_distribution))
+        {
+            components.push_back(to_cm(gauss->mean));
+            components.push_back(to_cm(gauss->stddev));
+        }
+        else if (auto* grid
+                 = std::get_if<inp::Grid>(&comp.spectrum_distribution))
+        {
+            EXPECT_TRUE(*grid);
+            components.push_back(grid->x.size());
+        }
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
     static double const expected_components[] = {
-        3,
+        0.6,
         1.28e-05,
         1e-06,
         1e-08,
         6e-09,
-        1,
+        0.2,
         1.28e-05,
         1e-06,
         1e-08,
         1.5e-06,
-        1,
-        0,
-        0,
+        0.2,
+        51,
         1e-08,
         3e-06,
     };
