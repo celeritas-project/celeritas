@@ -108,13 +108,13 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
     auto& pre = data.points[StepPoint::pre];
     pre.speed = units::LightSpeed(pre_step->GetBeta());
     pre.time = convert_from_geant<units::ClhepTime>(pre_step->GetGlobalTime());
-    pre.pos = convert_from_geant<lengthunits::ClhepLength>(
+    pre.pos = convert_from_geant<lengthunits::ClhepLength, real_type>(
         pre_step->GetPosition());
     auto& post = data.points[StepPoint::post];
     post.speed = units::LightSpeed(post_step->GetBeta());
     post.time
         = convert_from_geant<units::ClhepTime>(post_step->GetGlobalTime());
-    post.pos = convert_from_geant<lengthunits::ClhepLength>(
+    post.pos = convert_from_geant<lengthunits::ClhepLength, real_type>(
         post_step->GetPosition());
     auto* g4mat = pre_step->GetMaterial();
     CELER_ASSERT(g4mat);

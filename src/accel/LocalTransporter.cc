@@ -284,16 +284,15 @@ void LocalTransporter::Push(G4Track& g4track)
     track.primary_id = celeritas::id_cast<PrimaryId>(
         track.primary_id.unchecked_get() + g4track.GetTrackID());
 
-    track.energy = units::MevEnergy(
-        convert_from_geant<units::ClhepEnergy>(g4track.GetKineticEnergy()));
+    track.energy = units::ClhepEnergy{g4track.GetKineticEnergy()};
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '"
                    << g4track.GetDefinition()->GetParticleName()
                    << "' particles");
 
-    track.position
-        = convert_from_geant<lengthunits::ClhepLength>(g4track.GetPosition());
+    track.position = static_array_cast<real_type>(
+        convert_from_geant<lengthunits::ClhepLength>(g4track.GetPosition()));
     track.direction = static_array_cast<real_type>(
         to_array(g4track.GetMomentumDirection()));
     track.time = convert_from_geant<units::ClhepTime>(g4track.GetGlobalTime());

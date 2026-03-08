@@ -11,6 +11,7 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 
@@ -53,11 +54,13 @@ class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
             {
                 G4PrimaryVertex* vtx = event.GetPrimaryVertex(vtx_id);
                 CELER_ASSERT(vtx);
-                auto pos = convert_from_geant<lengthunits::ClhepLength>(
-                    vtx->GetPosition());
+                auto pos = to_cm(
+                    convert_from_geant<lengthunits::ClhepLength, real_type>(
+                        vtx->GetPosition()));
                 result.pos.insert(result.pos.end(), pos.begin(), pos.end());
                 result.time.push_back(
-                    convert_from_geant<units::ClhepTime>(vtx->GetT0()));
+                    convert_from_geant<units::ClhepTime>(vtx->GetT0())
+                    / units::nanosecond);
                 num_primaries += vtx->GetNumberOfParticle();
                 for (auto j : range(vtx->GetNumberOfParticle()))
                 {
