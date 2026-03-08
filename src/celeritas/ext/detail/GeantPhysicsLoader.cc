@@ -101,6 +101,143 @@ void load_rayleigh_water(
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Try to load Gaussian spectrum parameters.
+ *
+ * Checks for CELER_-prefixed properties first, then deprecated unprefixed
+ * versions. Returns true if parameters were found. Validates that both mean
+ * and sigma are present together.
+ */
+bool try_load_gaussian_spectrum(GeantMaterialPropertyGetter& get,
+                                int comp_idx,
+                                double& lambda_mean,
+                                double& lambda_sigma)
+{
+    // Helper to try loading both parameters for a given prefix
+    auto try_prefix = [&](char const* prefix) -> bool {
+        std::string mean_name = std::string(prefix) + "SCINTILLATIONLAMBDAMEAN";
+        std::string sigma_name = std::string(prefix)
+                                 + "SCINTILLATIONLAMBDASIGMA";
+
+        bool has_mean = get(lambda_mean, mean_name, comp_idx, ImportUnits::len);
+        bool has_sigma
+            = get(lambda_sigma, sigma_name, comp_idx, ImportUnits::len);
+
+        CELER_VALIDATE(has_mean == has_sigma,
+                       << "incomplete Gaussian spectrum for component "
+                       << comp_idx << ": both " << mean_name << comp_idx
+                       << " and " << sigma_name << comp_idx
+                       << " must be present");
+
+        return has_mean && has_sigma;
+    };
+
+    bool has_celer_gauss = try_prefix("CELER_");
+    bool has_deprecated_gauss = try_prefix("");
+
+    CELER_VALIDATE(!(has_celer_gauss && has_deprecated_gauss),
+                   << "conflicting/redundant scintillation properties for "
+                      "component "
+                   << comp_idx);
+
+    if (has_deprecated_gauss)
+    {
+        CELER_LOG(warning) << "Deprecated property prefix SCINTILLATION: use "
+                              "CELER_SCINTILLATION for component "
+                           << comp_idx;
+    }
+
+    return has_celer_gauss || has_deprecated_gauss;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load a single scintillation component spectrum.
+ *
+ * Returns an optional spectrum. If no spectrum data is found, returns nullopt.
+ */
+std::optional<inp::ScintillationSpectrum>
+load_scintillation_component(GeantMaterialPropertyGetter& get_property,
+                             int comp_idx,
+                             double yield_per_energy)
+{
+    bool any_found = false;
+    auto get = [&](double& dst, std::string const& name, ImportUnits u) {
+        bool one_found = get_property(dst, name, comp_idx, u);
+        any_found = any_found || one_found;
+        return one_found;
+    };
+
+    inp::ScintillationSpectrum spectrum;
+    double yield_frac{0};
+
+    // Component yields are dimensionless relative weights
+    get(yield_frac, "SCINTILLATIONYIELD", ImportUnits::unitless);
+    get(spectrum.rise_time, "SCINTILLATIONRISETIME", ImportUnits::time);
+    get(spectrum.fall_time, "SCINTILLATIONTIMECONSTANT", ImportUnits::time);
+
+    // Load spectrum: explicit grid or Gaussian approximation
+    auto comp_name = "SCINTILLATIONCOMPONENT" + std::to_string(comp_idx);
+    inp::Grid grid;
+    bool has_grid = get_property(
+        grid, comp_name, {ImportUnits::mev, ImportUnits::unitless});
+
+    double lambda_mean{0}, lambda_sigma{0};
+    bool has_gauss = try_load_gaussian_spectrum(
+        get_property, comp_idx, lambda_mean, lambda_sigma);
+
+    CELER_VALIDATE(!(has_grid && has_gauss),
+                   << "conflicting scintillation spectrum definitions for "
+                      "component "
+                   << comp_idx);
+
+    if (has_gauss)
+    {
+        spectrum.spectrum_distribution
+            = inp::NormalDistribution{lambda_mean, lambda_sigma};
+        spectrum.spectrum_argument = inp::SpectrumArgument::wavelength;
+    }
+    else if (has_grid)
+    {
+        spectrum.spectrum_distribution = std::move(grid);
+        spectrum.spectrum_argument = inp::SpectrumArgument::energy;
+    }
+
+    bool has_spectrum = has_grid || has_gauss;
+    if (!any_found && !has_spectrum)
+    {
+        return std::nullopt;
+    }
+
+    // yield_frac is a dimensionless relative weight (e.g., 3:1:1)
+    // that must be normalized and scaled by total yield
+    spectrum.yield = yield_per_energy * yield_frac;
+    return spectrum;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Normalize component yields to sum to the material's total yield.
+ */
+void normalize_component_yields(
+    std::vector<inp::ScintillationSpectrum>& components,
+    double yield_per_energy)
+{
+    double total_frac = 0;
+    for (auto const& comp : components)
+    {
+        total_frac += comp.yield;
+    }
+
+    // Renormalize so components sum to yield_per_energy
+    double scale = yield_per_energy / total_frac;
+    for (auto& comp : components)
+    {
+        comp.yield *= scale;
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -257,105 +394,17 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
         // Loop over scintillation components (up to 3)
         for (int comp_idx : range(1, 4))
         {
-            bool any_found = false;
-            auto get = [&](double* dst, std::string const& name, ImportUnits u) {
-                bool one_found = get_property(*dst, name, comp_idx, u);
-                any_found = any_found || one_found;
-                return one_found;
-            };
-
-            inp::ScintillationSpectrum spectrum;
-            double yield_frac{0};
-            // Component yields are dimensionless relative weights
-            get(&yield_frac, "SCINTILLATIONYIELD", ImportUnits::unitless);
-            get(&spectrum.rise_time, "SCINTILLATIONRISETIME", ImportUnits::time);
-            get(&spectrum.fall_time,
-                "SCINTILLATIONTIMECONSTANT",
-                ImportUnits::time);
-
-            // Load spectrum: explicit grid or Gaussian approximation
-            auto comp_name = "SCINTILLATIONCOMPONENT"
-                             + std::to_string(comp_idx);
-            inp::Grid grid;
-            double lambda_mean{0}, lambda_sigma{0};
-            bool has_grid = get_property(
-                grid, comp_name, {ImportUnits::mev, ImportUnits::unitless});
-            bool has_celer_gauss = get_property(lambda_mean,
-                                                "CELER_"
-                                                "SCINTILLATIONLAMBDAMEAN",
-                                                comp_idx,
-                                                ImportUnits::len)
-                                   && get_property(lambda_sigma,
-                                                   "CELER_"
-                                                   "SCINTILLATIONLAMBDASIGMA",
-                                                   comp_idx,
-                                                   ImportUnits::len);
-            bool has_deprecated_gauss = get_property(lambda_mean,
-                                                     "SCINTILLATIONLAMBDAMEAN",
-                                                     comp_idx,
-                                                     ImportUnits::len)
-                                        && get_property(lambda_sigma,
-                                                        "SCINTILLATIONLAMBDASI"
-                                                        "GMA",
-                                                        comp_idx,
-                                                        ImportUnits::len);
-
-            if (has_celer_gauss && has_deprecated_gauss)
+            if (auto spectrum = load_scintillation_component(
+                    get_property, comp_idx, yield_per_energy))
             {
-                CELER_VALIDATE(false,
-                               << "conflicting/redundant scintillation "
-                                  "properties for component "
-                               << comp_idx);
-            }
-            if (has_deprecated_gauss)
-            {
-                CELER_LOG(warning)
-                    << "Deprecated property prefix SCINTILLATION: use "
-                       "CELER_SCINTILLATION for component "
-                    << comp_idx;
-            }
-            if (has_celer_gauss || has_deprecated_gauss)
-            {
-                CELER_VALIDATE(!has_grid,
-                               << "conflicting scintillation spectrum "
-                                  "definitions for component "
-                               << comp_idx);
-                spectrum.spectrum_distribution
-                    = inp::NormalDistribution{lambda_mean, lambda_sigma};
-                spectrum.spectrum_argument = inp::SpectrumArgument::wavelength;
-            }
-            else if (has_grid)
-            {
-                spectrum.spectrum_distribution = std::move(grid);
-                spectrum.spectrum_argument = inp::SpectrumArgument::energy;
-            }
-
-            bool has_spectrum = has_grid || has_celer_gauss
-                                || has_deprecated_gauss;
-            if (any_found || has_spectrum)
-            {
-                // yield_frac is a dimensionless relative weight (e.g., 3:1:1)
-                // that must be normalized and scaled by total yield
-                spectrum.yield = yield_per_energy * yield_frac;
-                scint_mat.components.push_back(std::move(spectrum));
+                scint_mat.components.push_back(std::move(*spectrum));
             }
         }
 
-        // Normalize component yields to sum properly
+        // Normalize component yields and add to material map
         if (!scint_mat.components.empty())
         {
-            double total_frac = 0;
-            for (auto const& comp : scint_mat.components)
-            {
-                total_frac += comp.yield;
-            }
-            // Renormalize so components sum to yield_per_energy
-            double scale = yield_per_energy / total_frac;
-            for (auto& comp : scint_mat.components)
-            {
-                comp.yield *= scale;
-            }
-
+            normalize_component_yields(scint_mat.components, yield_per_energy);
             scint_process.materials.emplace(opt_id, std::move(scint_mat));
             ++num_materials;
         }
