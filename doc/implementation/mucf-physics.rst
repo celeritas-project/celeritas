@@ -127,17 +127,20 @@ formation, molecule formation, and fusion.
 .. doxygenclass:: celeritas::DTMixMucfModel
 
 Most of the data is material-dependent, being calculated and cached during model
-construction. All of the cached quantities are calculated and added to
+construction. All the cached quantities are calculated and added to
 host/device data via :cpp:class:`celeritas::detail::MucfMaterialInserter`.
 
 .. doxygenclass:: celeritas::detail::MucfMaterialInserter
 
 The main cycle is managed by the model's
-:cpp:class:`celeritas::DTMixMucfExecutor`, with the Interactors reserved for
-sampling final states of the outgoing secondaries.
+:cpp:class:`celeritas::DTMixMucfExecutor`. The muonic atom selection is handled
+by detail classes, while the Interactors are reserved for sampling final states
+of the outgoing secondaries.
 
 .. note:: Only reactive channels are implemented.
 
+.. doxygenclass:: celeritas::detail::MuonicAtomSelector
+.. doxygenclass:: celeritas::detail::MuonicAtomSpinSelector
 .. doxygenclass:: celeritas::DDMucfInteractor
 .. doxygenclass:: celeritas::DTMucfInteractor
 .. doxygenclass:: celeritas::TTMucfInteractor

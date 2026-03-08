@@ -8,7 +8,7 @@
 
 #include "corecel/inp/Grid.hh"
 #include "geocel/Types.hh"
-#include "celeritas/inp/SurfacePhysics.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 
 // Geant4 forward declaration
 class G4OpticalSurface;  // IWYU pragma: keep
@@ -35,31 +35,13 @@ class GeantSurfacePhysicsHelper
     G4OpticalSurface const& surface() const;
 
     // Populate Grid optical property from name, in [MeV, unitless]
-    bool get_property(inp::Grid* dst, std::string const& name) const;
-
-    // Insert a value into a map in place
-    template<class T>
-    inline void emplace(std::map<PhysSurfaceId, T>& m, T&& value) const;
+    bool get_property(inp::Grid& dst, std::string const& name) const;
 
   private:
     SurfaceId sid_;
     G4OpticalSurface const* surface_;
     G4MaterialPropertiesTable const* mpt_;
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Insert a value into a map for the current surface.
- */
-template<class T>
-inline void GeantSurfacePhysicsHelper::emplace(std::map<PhysSurfaceId, T>& m,
-                                               T&& value) const
-{
-    // TODO: Support multiple physics surfaces per geometric surface
-    auto result = m.emplace(PhysSurfaceId(sid_.get()), std::forward<T>(value));
-    // Duplicate surfaces are prohibited
-    CELER_ASSERT(result.second);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

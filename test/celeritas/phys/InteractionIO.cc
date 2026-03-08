@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "InteractionIO.hh"
 
-#include "corecel/cont/ArrayIO.hh"
-#include "corecel/cont/SpanIO.hh"
 #include "celeritas/Quantities.hh"
 
 #include "SecondaryIO.hh"

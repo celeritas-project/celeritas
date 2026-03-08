@@ -9,8 +9,6 @@
 #include <functional>
 #include <memory>
 #include <optional>
-#include <unordered_map>
-#include <vector>
 
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
@@ -35,6 +33,8 @@ class ImportedMaterials;
 //---------------------------------------------------------------------------//
 /*!
  * Construct Celeritas optical model builders from imported data.
+ *
+ * \deprecated To be deleted soon
  */
 class ModelImporter
 {
@@ -60,30 +60,20 @@ class ModelImporter
 
     //!@{
     //! \name User builder type aliases
-    using ModelBuilder = Model::ModelBuilder;
-    using UserBuildFunction
-        = std::function<std::optional<ModelBuilder>(UserBuildInput const&)>;
-    using UserBuildMap = std::unordered_map<IMC, UserBuildFunction>;
+    using ModelBuilder = std::function<std::shared_ptr<Model>(ActionId)>;
     //!@}
 
   public:
-    // Construct from imported and shared data with user construction
-    ModelImporter(ImportData const& data,
-                  SPConstMaterial material,
-                  SPConstCoreMaterial core_material,
-                  UserBuildMap user_build);
-
     // Construct without custom user builders
     ModelImporter(ImportData const& data,
                   SPConstMaterial material,
                   SPConstCoreMaterial core_material);
 
     // Create a model builder from the data
-    std::optional<ModelBuilder> operator()(IMC imc) const;
+    ModelBuilder operator()(IMC imc) const;
 
   private:
     UserBuildInput input_;
-    UserBuildMap user_build_map_;
     ImportOpticalParameters const& params_;
 
     SPConstImported const& imported() const { return input_.imported; }

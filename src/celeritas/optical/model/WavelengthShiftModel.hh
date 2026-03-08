@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/ImportedModelAdapter.hh"
 #include "celeritas/optical/Model.hh"
@@ -39,7 +39,7 @@ class WavelengthShiftModel : public Model
     {
         ImportModelClass model{ImportModelClass::size_};
         std::vector<ImportWavelengthShift> data;
-        WlsTimeProfile time_profile{WlsTimeProfile::size_};
+        WlsDistribution time_profile{WlsDistribution::size_};
     };
 
   public:
@@ -66,7 +66,7 @@ class WavelengthShiftModel : public Model
 
   private:
     ImportedModelAdapter imported_;
-    CollectionMirror<WavelengthShiftData> data_;
+    ParamsDataStore<WavelengthShiftData> data_;
 };
 
 //---------------------------------------------------------------------------//

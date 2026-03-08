@@ -10,8 +10,8 @@
 #include <memory>
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/io/ImportAtomicRelaxation.hh"
@@ -68,7 +68,7 @@ class AtomicRelaxationParams final
     bool is_auger_enabled_;
 
     // Host/device storage and reference
-    CollectionMirror<AtomicRelaxParamsData> data_;
+    ParamsDataStore<AtomicRelaxParamsData> data_;
 
     // HELPER FUNCTIONS
     using HostData = HostVal<AtomicRelaxParamsData>;

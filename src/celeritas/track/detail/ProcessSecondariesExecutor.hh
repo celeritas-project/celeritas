@@ -132,6 +132,14 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                 CELER_ASSERT(offset > 0
                              && offset <= counters->num_initializers);
 
+                if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
+                {
+                    // If we are reseeding with each track, because this
+                    // secondary is not reusing the primary track, branch the
+                    // rng
+                    ti.rng = track.rng().branch();
+                }
+
                 if (offset <= min(counters->num_secondaries,
                                   counters->num_vacancies)
                     && (params->init.track_order != TrackOrder::init_charge

@@ -37,7 +37,7 @@ class BIHEnclosingVolFinder
 
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
     inline CELER_FUNCTION
-    BIHEnclosingVolFinder(BIHTree const& tree, Storage const& storage);
+    BIHEnclosingVolFinder(BIHTreeRecord const& tree, Storage const& storage);
 
     // Find a volume that satisfies is_inside
     template<class F>
@@ -82,7 +82,7 @@ class BIHEnclosingVolFinder
  * Construct from vector of bounding boxes and storage.
  */
 CELER_FUNCTION
-BIHEnclosingVolFinder::BIHEnclosingVolFinder(BIHTree const& tree,
+BIHEnclosingVolFinder::BIHEnclosingVolFinder(BIHTreeRecord const& tree,
                                              Storage const& storage)
     : view_(tree, storage)
 {

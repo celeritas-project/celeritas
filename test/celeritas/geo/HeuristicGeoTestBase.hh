@@ -19,7 +19,7 @@
 namespace celeritas
 {
 template<template<Ownership, MemSpace> class S, MemSpace M>
-class CollectionStateStore;
+class StateDataStore;
 
 namespace test
 {
@@ -33,7 +33,7 @@ class HeuristicGeoTestBase : public OnlyGeoTestBase
     //!@{
     //! \name Type aliases
     template<MemSpace M>
-    using StateStore = CollectionStateStore<HeuristicGeoStateData, M>;
+    using StateStore = StateDataStore<HeuristicGeoStateData, M>;
     template<MemSpace M>
     using PathLengthRef
         = Collection<real_type, Ownership::reference, M, ImplVolumeId>;

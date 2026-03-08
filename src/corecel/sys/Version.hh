@@ -118,6 +118,7 @@ constexpr Version::Version(size_type major, size_type minor, size_type patch)
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
+// NOTE: constexpr is only defined for std::array in C++20
 
 #define CELER_DEFINE_VERSION_CMP(TOKEN)                                \
     inline bool operator TOKEN(Version const& lhs, Version const& rhs) \
@@ -136,9 +137,6 @@ CELER_DEFINE_VERSION_CMP(>=)
 
 // Write to stream
 std::ostream& operator<<(std::ostream&, Version const&);
-
-// Save as string
-std::string to_string(Version const&);
 
 // Get the Celeritas version as an object
 Version celer_version();

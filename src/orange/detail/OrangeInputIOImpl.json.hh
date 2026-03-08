@@ -3,14 +3,13 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/OrangeInputIOImpl.json.hh
+//! \sa LogicUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "orange/OrangeTypes.hh"
 #include "orange/surf/VariantSurface.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -30,12 +29,6 @@ std::vector<VariantSurface> import_zipped_surfaces(nlohmann::json const& j);
 
 // Write surface data to a JSON object
 nlohmann::json export_zipped_surfaces(std::vector<VariantSurface> const& s);
-
-// Build a logic definition from a C string.
-std::vector<logic_int> string_to_logic(std::string const& s);
-
-// Convert a logic vector to a string
-std::string logic_to_string(std::vector<logic_int> const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

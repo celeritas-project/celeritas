@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "corecel/Constants.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 

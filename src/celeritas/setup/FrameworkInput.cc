@@ -45,10 +45,15 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     // Set up system
     setup::system(fi.system);
 
-    // Load Geant4 geometry wrapper, which saves it as global
-    CELER_ASSERT(celeritas::global_geant_geo().expired());
-    result.geo = GeantGeoParams::from_tracking_manager();
-    CELER_ASSERT(result.geo);
+    // Geometry may have been created via celeritas::DetectorConstruction
+    result.geo = celeritas::global_geant_geo().lock();
+
+    if (!result.geo)
+    {
+        // Load Geant4 geometry wrapper, which saves it as global
+        result.geo = GeantGeoParams::from_tracking_manager();
+        CELER_ASSERT(result.geo);
+    }
 
     // Load Geant4 data from user setup
     ImportData imported;

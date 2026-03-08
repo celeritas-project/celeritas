@@ -10,6 +10,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 
@@ -88,14 +89,45 @@ Tolerance<T> Tolerance<T>::from_relative(real_type rel, real_type length)
                    << "length scale " << length
                    << " is invalid [must be positive]");
 
-    Tolerance<T> result;
-    result.rel = rel;
-    result.abs = rel * length;
+    Tolerance<T> user;
+    user.rel = rel;
+    user.abs = rel * length;
 
-    // Check that the tolerances aren't so low that they're denormalized
-    CELER_ENSURE(result.rel >= std::numeric_limits<T>::min());
-    CELER_ENSURE(result.abs >= std::numeric_limits<T>::min());
+    auto result = user.clamped();
+    if (result.rel != user.rel)
+    {
+        CELER_LOG(warning) << "Clamped relative tolerance " << user.rel
+                           << " to machine epsilon " << result.rel;
+    }
+    if (result.abs != user.abs)
+    {
+        CELER_LOG(warning) << "Clamping absolute tolerance " << user.abs
+                           << " to minimum normal value " << result.abs;
+    }
+
     CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a copy clamped to machine precision.
+ *
+ * Tolerances that are too tight may cause some deduplication logic to fail.
+ * This checks and returns:
+ * - relative error against machine epsilon, i.e., the relative
+ *   difference between two adjacent floating point numbers, and
+ * - absolute error against the floating point minimum, i.e., the smallest
+ *   absolute magnitude that has a non-denormalized value.
+ */
+template<class T>
+auto Tolerance<T>::clamped() const -> Tolerance<T>
+{
+    Tolerance<T> result;
+
+    using LimitsT = std::numeric_limits<T>;
+    result.rel = std::max(this->rel, LimitsT::epsilon());
+    result.abs = std::max(this->abs, LimitsT::min());
     return result;
 }
 

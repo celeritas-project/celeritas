@@ -3,6 +3,7 @@
 *.pyc
 *.swp
 *.temp.org.xml
+*.root
 *~
 .nfs*
 

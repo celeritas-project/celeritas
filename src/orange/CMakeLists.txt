@@ -25,7 +25,8 @@ list(APPEND SOURCES
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
   detail/DepthCalculator.cc
-  detail/LogicUtils.cc
+  detail/ConvertLogic.cc
+  detail/LogicIO.cc
   detail/OrangeInputIOImpl.json.cc
   detail/RectArrayInserter.cc
   detail/SurfacesRecordBuilder.cc
@@ -50,11 +51,11 @@ list(APPEND SOURCES
   orangeinp/Shape.cc
   orangeinp/Solid.cc
   orangeinp/StackedExtrudedPolygon.cc
-  orangeinp/ScaleUtils.cc
   orangeinp/Transformed.cc
   orangeinp/Truncated.cc
   orangeinp/UnitProto.cc
   orangeinp/detail/BoundingZone.cc
+  orangeinp/detail/BuildLogic.cc
   orangeinp/detail/BuildIntersectRegion.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/DeMorganSimplifier.cc
@@ -81,6 +82,7 @@ list(APPEND SOURCES
   surf/SurfaceClipper.cc
   surf/SurfaceIO.cc
   surf/SurfaceSimplifier.cc
+  surf/Toroid.cc
   surf/VariantSurface.cc
   surf/detail/SurfaceTransformer.cc
   surf/detail/SurfaceTranslator.cc

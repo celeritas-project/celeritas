@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
-
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
@@ -29,7 +27,7 @@ class NonuniformGridCalculator
   public:
     //@{
     //! Type aliases
-    using Values
+    using Storage
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     using Grid = NonuniformGrid<real_type>;
     //@}
@@ -37,12 +35,12 @@ class NonuniformGridCalculator
   public:
     // Construct by *inverting* a monotonicially increasing nonuniform grid
     static inline CELER_FUNCTION NonuniformGridCalculator
-    from_inverse(NonuniformGridRecord const& grid, Values const& reals);
+    from_inverse(NonuniformGridRecord const& grid, Storage const& reals);
 
     // Construct from grid data and backend storage
     inline CELER_FUNCTION
     NonuniformGridCalculator(NonuniformGridRecord const& grid,
-                             Values const& reals);
+                             Storage const& reals);
 
     // Find and interpolate the y value from the given x value
     inline CELER_FUNCTION real_type operator()(real_type x) const;
@@ -66,7 +64,6 @@ class NonuniformGridCalculator
 
     //// DATA ////
 
-    Values const& reals_;
     Grid x_grid_;
     RealIds y_offset_;
     RealIds deriv_offset_;
@@ -74,10 +71,16 @@ class NonuniformGridCalculator
     //// HELPER FUNCTIONS ////
 
     // Private constructor implementation
-    inline CELER_FUNCTION NonuniformGridCalculator(Values const& reals,
+    inline CELER_FUNCTION NonuniformGridCalculator(Storage const& reals,
                                                    RealIds x_grid,
                                                    RealIds y_grid,
                                                    RealIds deriv);
+
+    //! Low-level access to storage for downstream utilities
+    CELER_FORCEINLINE_FUNCTION Storage const& storage() const
+    {
+        return x_grid_.storage();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -87,7 +90,7 @@ class NonuniformGridCalculator
  * Construct by \em inverting a monotonicially increasing nonuniform grid.
  */
 CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
-    NonuniformGridRecord const& grid, Values const& reals)
+    NonuniformGridRecord const& grid, Storage const& reals)
 {
     CELER_EXPECT(grid.derivative.empty());
     return NonuniformGridCalculator{reals, grid.value, grid.grid, {}};
@@ -99,7 +102,7 @@ CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
  */
 CELER_FUNCTION
 NonuniformGridCalculator::NonuniformGridCalculator(
-    NonuniformGridRecord const& grid, Values const& reals)
+    NonuniformGridRecord const& grid, Storage const& reals)
     : NonuniformGridCalculator{reals, grid.grid, grid.value, grid.derivative}
 {
     CELER_EXPECT(grid);
@@ -137,8 +140,8 @@ CELER_FUNCTION real_type NonuniformGridCalculator::operator()(real_type x) const
     else
     {
         // Use cubic spline interpolation
-        real_type lower_deriv = reals_[deriv_offset_[lower_idx]];
-        real_type upper_deriv = reals_[deriv_offset_[lower_idx + 1]];
+        real_type lower_deriv = this->storage()[deriv_offset_[lower_idx]];
+        real_type upper_deriv = this->storage()[deriv_offset_[lower_idx + 1]];
 
         result = SplineInterpolator<real_type>(
             {x_grid_[lower_idx], (*this)[lower_idx], lower_deriv},
@@ -154,7 +157,7 @@ CELER_FUNCTION real_type NonuniformGridCalculator::operator()(real_type x) const
 CELER_FUNCTION real_type NonuniformGridCalculator::operator[](size_type index) const
 {
     CELER_EXPECT(index < y_offset_.size());
-    return reals_[y_offset_[index]];
+    return this->storage()[y_offset_[index]];
 }
 
 //---------------------------------------------------------------------------//
@@ -179,7 +182,8 @@ CELER_FUNCTION NonuniformGridCalculator
 NonuniformGridCalculator::make_inverse() const
 {
     CELER_EXPECT(!this->use_spline());
-    return NonuniformGridCalculator{reals_, y_offset_, x_grid_.offset(), {}};
+    return NonuniformGridCalculator{
+        this->storage(), y_offset_, x_grid_.offset(), {}};
 }
 
 //---------------------------------------------------------------------------//
@@ -189,18 +193,15 @@ NonuniformGridCalculator::make_inverse() const
  * Construct from grid data and backend storage.
  */
 CELER_FUNCTION
-NonuniformGridCalculator::NonuniformGridCalculator(Values const& reals,
+NonuniformGridCalculator::NonuniformGridCalculator(Storage const& reals,
                                                    RealIds x_grid,
                                                    RealIds y_grid,
                                                    RealIds deriv)
-    : reals_{reals}
-    , x_grid_{x_grid, reals_}
-    , y_offset_{y_grid}
-    , deriv_offset_(deriv)
+    : x_grid_{x_grid, reals}, y_offset_{y_grid}, deriv_offset_(deriv)
 {
     CELER_EXPECT(!x_grid.empty() && x_grid.size() == y_grid.size());
-    CELER_EXPECT(*x_grid.end() <= reals_.size()
-                 && *y_grid.end() <= reals_.size());
+    CELER_EXPECT(*x_grid.end() <= this->storage().size()
+                 && *y_grid.end() <= this->storage().size());
     CELER_EXPECT(deriv.empty() || deriv.size() == x_grid.size());
 }
 

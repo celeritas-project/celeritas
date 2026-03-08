@@ -53,8 +53,8 @@ class BIHIntersectingVolFinder
     //!@}
 
     // Construct from a vector of bounding boxes and storage for LocalVolumeIds
-    inline CELER_FUNCTION
-    BIHIntersectingVolFinder(BIHTree const& tree, Storage const& storage);
+    inline CELER_FUNCTION BIHIntersectingVolFinder(BIHTreeRecord const& tree,
+                                                   Storage const& storage);
 
     // Calculate the minimum intersection, with supplied maximum search
     // distance
@@ -106,7 +106,7 @@ class BIHIntersectingVolFinder
  */
 CELER_FUNCTION
 BIHIntersectingVolFinder::BIHIntersectingVolFinder(
-    BIHTree const& tree, BIHIntersectingVolFinder::Storage const& storage)
+    BIHTreeRecord const& tree, BIHIntersectingVolFinder::Storage const& storage)
     : view_(tree, storage)
 {
     CELER_EXPECT(tree);

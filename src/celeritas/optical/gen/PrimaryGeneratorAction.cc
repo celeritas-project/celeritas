@@ -71,7 +71,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
     data_.angle = std::visit(insert, inp.angle);
     data_.shape = std::visit(insert, inp.shape);
 
-    params_ = CollectionMirror<DistributionParamsData>{std::move(host_params)};
+    params_ = ParamsDataStore<DistributionParamsData>{std::move(host_params)};
 
     CELER_ENSURE(data_);
     CELER_ENSURE(params_);

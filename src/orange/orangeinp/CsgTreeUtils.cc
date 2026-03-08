@@ -187,7 +187,7 @@ TransformedTree transform_negated_joins(CsgTree const& tree)
     detail::InfixStringBuilder build_impl{tree, &os};
 
     build_impl(n);
-    return os.str();
+    return std::move(os).str();
 }
 
 //---------------------------------------------------------------------------//

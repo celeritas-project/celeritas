@@ -4,8 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/SurfacePhysics.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/inp/SurfacePhysics.hh"
-
 #include <iostream>
 #include <memory>
 #include <set>
@@ -14,7 +12,8 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/VariantUtils.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsTrackView.hh"
 
@@ -122,7 +121,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
         using namespace celeritas::inp;
         using PSI = PhysSurfaceId;
 
-        SurfacePhysics input;
+        OpticalSurfacePhysics input;
         input.materials = {
             as_id_vec<OptMatId>(3, 1, 2),
             as_id_vec<OptMatId>(2),
@@ -149,9 +148,18 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
         input.reflectivity = ReflectivityModels{
             {
-                {PSI{0}, GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}}}},
-                {PSI{2}, GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}}}},
-                {PSI{5}, GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}}}},
+                {PSI{0},
+                 GridReflection{Grid{{0.0, 1.0}, {0.1, 0.3}},
+                                Grid{{0.0, 1.0}, {0.0, 0.0}},
+                                Grid{}}},
+                {PSI{2},
+                 GridReflection{Grid{{0.0, 1.0}, {0.4, 0.5}},
+                                Grid{{0.0, 1.0}, {0.0, 0.0}},
+                                Grid{}}},
+                {PSI{5},
+                 GridReflection{Grid{{0.0, 1.0}, {0.2, 0.9}},
+                                Grid{{0.0, 1.0}, {0.0, 0.0}},
+                                Grid{}}},
             },
             {
                 {PSI{1}, FresnelReflection{}},
@@ -174,6 +182,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
                 {PSI{7}, {ReflectionForm::from_spike(), false}},
             },
             {},
+            {},
         };
 
         return std::make_shared<SurfacePhysicsParams const>(
@@ -183,7 +192,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
     void initialize_states(TrackSlotId::size_type num_tracks)
     {
         surface_physics_state_
-            = CollectionStateStore<SurfacePhysicsStateData, MemSpace::host>(
+            = StateDataStore<SurfacePhysicsStateData, MemSpace::host>(
                 num_tracks);
         CELER_ASSERT(surface_physics_state_.size() == num_tracks);
     }
@@ -197,8 +206,7 @@ class SurfacePhysicsTest : public OpticalMockTestBase
     }
 
   private:
-    CollectionStateStore<SurfacePhysicsStateData, MemSpace::host>
-        surface_physics_state_;
+    StateDataStore<SurfacePhysicsStateData, MemSpace::host> surface_physics_state_;
 };
 
 //---------------------------------------------------------------------------//
@@ -346,8 +354,8 @@ TEST_F(SurfacePhysicsTest, init_params)
         "roughness-gaussian",
     };
     expected_model_names[SurfacePhysicsOrder::reflectivity] = {
-        "grid",
-        "fresnel",
+        "reflectivity-grid",
+        "reflectivity-fresnel",
     };
     expected_model_names[SurfacePhysicsOrder::interaction] = {
         "interaction-dielectric",

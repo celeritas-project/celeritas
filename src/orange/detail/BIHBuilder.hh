@@ -16,6 +16,7 @@
 
 #include "BIHPartitioner.hh"
 #include "../OrangeData.hh"
+#include "../inp/Bih.hh"
 
 namespace celeritas
 {
@@ -23,22 +24,26 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a bounding interval hierarchy from supplied bounding boxes.
+ * Create a bounding interval hierarchy from the supplied bounding boxes.
  *
  * This implementation matches the structure proposed in the original paper
  * \citep{wachter-bih-2006, https://doi.org/10.2312/EGWR/EGSR06/139-149}.
- * Construction is done recursively. At a given recursion depth, if at least
- * \param max_split_size bounding boxes are present, partitioning is attempted.
- * Partitioning is done on the basis of bounding box centers using the "longest
- * dimension" heuristic.  If more than \param max_split_size bounding boxes are
- * present, or if the bounding boxes are are non-partitionable (i.e., they all
- * have the same center), a leaf node is created.
+ * Construction is done recursively. With each recursion, partitioning is done
+ * on the basis of bounding box centers using the "longest dimension"
+ * heuristic. Leaf nodes are created when one of the following criteria are
+ * met:
  *
- * Any bounding boxes that have at least one infinite dimension are stored in
- * inf_vols. In the event that all bounding boxes are infinite, the tree will
- * consist of a single empty leaf node with all volumes in the stored inf_vols.
- * This final case should not occur unless an ORANGE geometry is created via
- * a method where volume bounding boxes are not available.
+ * 1) the number of remaining bounding boxes is max_leaf_size or fewer,
+ * 2) the remaining bounding boxes are non-partitionable (i.e., they all have
+ *    the same center),
+ * 3) the current recursion depth has reached the `depth_limit`.
+ *
+ * Any bounding boxes that have at least one infinite dimension are not stored
+ * on the tree, but rather a separate `inf_vols` structure. In the event that
+ * all bounding boxes are infinite, the tree will consist of a single empty
+ * leaf node with all volumes in the stored `inf_vols`. This final case should
+ * not occur unless an ORANGE geometry is created via a method where volume
+ * bounding boxes are not available.
  *
  * Bounding boxes supplied to this builder should "bumped," i.e. expanded
  * outward by at least floating-point epsilson from the volumes they bound.
@@ -50,17 +55,10 @@ class BIHBuilder
   public:
     //!@{
     //! \name Type aliases
-
-    //! Input parameters
-    struct Input
-    {
-        //! Minimum number of bboxes needed to trigger a partitioning attempt
-        size_type min_split_size;
-    };
-
     using VecBBox = std::vector<FastBBox>;
     using Storage = BIHTreeData<Ownership::value, MemSpace::host>;
     using SetLocalVolId = std::set<LocalVolumeId>;
+    using Input = inp::BIHBuilder;
     //!@}
 
   public:
@@ -68,7 +66,8 @@ class BIHBuilder
     BIHBuilder(Storage* storage, Input inp);
 
     // Create BIH Nodes
-    BIHTree operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
+    BIHTreeRecord
+    operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
 
   private:
     /// TYPES ///
@@ -102,7 +101,9 @@ class BIHBuilder
     void construct_tree(VecIndices const& indices,
                         VecNodes* nodes,
                         BIHNodeId parent,
-                        FastBBox const& bbox);
+                        FastBBox const& bbox,
+                        size_type current_depth,
+                        size_type& depth);
 
     // Separate nodes into inner and leaf vectors and renumber accordingly
     ArrangedNodes arrange_nodes(VecNodes const& nodes) const;

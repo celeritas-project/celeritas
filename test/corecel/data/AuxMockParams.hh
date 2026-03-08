@@ -10,8 +10,8 @@
 
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxParams.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
 #include "AuxMockData.hh"
 
@@ -62,7 +62,7 @@ class AuxMockParams : public AuxParams<AuxMockParamsData, AuxMockStateData>
   private:
     std::string label_;
     AuxId aux_id_;
-    CollectionMirror<AuxMockParamsData> data_;
+    ParamsDataStore<AuxMockParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

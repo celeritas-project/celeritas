@@ -57,7 +57,7 @@ WavelengthShiftModel::WavelengthShiftModel(ActionId id,
                        || input.model == ImportModelClass::wls2,
                    << "Invalid model '" << input.model
                    << "' for optical wavelength shifting");
-    CELER_VALIDATE(input.time_profile != WlsTimeProfile::size_,
+    CELER_VALIDATE(input.time_profile != WlsDistribution::size_,
                    << "Invalid time profile for model '" << input.model << "'");
 
     SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
@@ -97,7 +97,7 @@ WavelengthShiftModel::WavelengthShiftModel(ActionId id,
     CELER_ASSERT(data.energy_cdf.size() == input.data.size());
     CELER_ASSERT(data.wls_record.size() == data.energy_cdf.size());
 
-    data_ = CollectionMirror<WavelengthShiftData>{std::move(data)};
+    data_ = ParamsDataStore<WavelengthShiftData>{std::move(data)};
     CELER_ENSURE(data_);
 }
 

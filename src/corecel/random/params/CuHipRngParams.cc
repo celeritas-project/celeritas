@@ -22,7 +22,7 @@ CuHipRngParams::CuHipRngParams(unsigned int seed)
     HostVal<CuHipRngParamsData> host_data;
     host_data.seed = seed;
     CELER_ASSERT(host_data);
-    data_ = CollectionMirror<CuHipRngParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<CuHipRngParamsData>{std::move(host_data)};
 }
 
 //---------------------------------------------------------------------------//

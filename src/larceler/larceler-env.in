@@ -1,0 +1,34 @@
+#!/bin/sh
+#-------------------------------- -*- sh -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Print environment variables that should be exported to set up Celeritas with
+# LArSoft.
+#
+# Usage:
+#   eval $(larceler-env)        # bash/zsh
+#   eval `larceler-env`         # sh
+#   eval `larceler-env -c`      # csh/tcsh
+#-----------------------------------------------------------------------------#
+
+# Detect shell and define print_var(varname value)
+if [ "${1}" = "-c" ]; then
+  # csh style
+  print_var() {
+    printf "setenv %s \${%s}:%s;\n" "$1" "$1" "$2"
+  }
+else
+  # sh style
+  print_var() {
+    printf "%s=\${%s}:%s; export %s;\n" "$1" "$1" "$2" "$1"
+  }
+fi
+
+prefix="@CELER_INSTALL_PREFIX@"
+
+print_var "CMAKE_PREFIX_PATH" "${prefix}"
+print_var "@CELER_LDVAR@" "${prefix}/@CMAKE_INSTALL_LIBDIR@"
+print_var "CET_PLUGIN_PATH" "${prefix}/@CMAKE_INSTALL_LIBDIR@"
+print_var "FHICL_FILE_PATH" "${prefix}/@CELERITAS_INSTALL_FHICLDIR@"
+printf "printf \"%s\\\\n\" >&2\n" "Loaded Celeritas at ${prefix}"

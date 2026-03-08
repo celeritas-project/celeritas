@@ -7,6 +7,7 @@
 #include "ImportDataTrimmer.hh"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <utility>
 
@@ -25,7 +26,7 @@ void filter_out_infs(std::vector<T>& data)
             = std::min(std::numeric_limits<T>::max(), 1e308);
         for (auto& value : data)
         {
-            if (std::isinf(value) || std::fabs(value) > max_real)
+            if (std::fabs(value) > max_real)
             {
                 value = std::copysign(max_real, value);
             }
@@ -68,8 +69,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
 
         (*this)(data.volumes);
 
-        (*this)(data.optical_materials);
-
         (*this)(data.seltzer_berger.atomic_xs);
         (*this)(data.livermore_photo.atomic_xs);
         (*this)(data.atomic_relaxation.atomic_xs);
@@ -91,9 +90,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
         this->for_each(data.seltzer_berger.atomic_xs);
         this->for_each(data.livermore_photo.atomic_xs);
         this->for_each(data.atomic_relaxation.atomic_xs);
-
-        this->for_each(data.optical_models);
-        this->for_each(data.optical_materials);
     }
 
     if (options_.mupp)
@@ -101,10 +97,6 @@ void ImportDataTrimmer::operator()(ImportData& data)
         // Reduce the resolution of the muon pair production table
         (*this)(data.mu_production.muppet_table);
     }
-
-    // Trim infinities from grid
-    this->for_each(data.optical_physics.surfaces.reflectivity.grid);
-    this->for_each(data.optical_physics.surfaces.interaction.dielectric);
 }
 
 //---------------------------------------------------------------------------//
@@ -129,27 +121,6 @@ void ImportDataTrimmer::operator()(ImportGeoMaterial& data)
 void ImportDataTrimmer::operator()(ImportPhysMaterial&)
 {
     // TODO: remap IDs?
-}
-
-//---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportOpticalMaterial& data)
-{
-    if (options_.physics)
-    {
-        (*this)(data.properties.refractive_index);
-        // TODO: trim WLS components?
-    }
-}
-
-//---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(ImportOpticalModel& data)
-{
-    if (options_.materials)
-    {
-        (*this)(data.mfp_table);
-    }
-
-    this->for_each(data.mfp_table);
 }
 
 //---------------------------------------------------------------------------//
@@ -244,29 +215,6 @@ void ImportDataTrimmer::operator()(ImportProcess& data)
     (*this)(data.dedx);
 
     CELER_ENSURE(data);
-}
-
-//---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(inp::DielectricInteraction& data)
-{
-    (*this)(data.reflection);
-}
-
-//---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(inp::ReflectionForm& data)
-{
-    for (auto& grid : data.reflection_grids)
-    {
-        filter_out_infs(grid.x);
-        filter_out_infs(grid.y);
-    }
-}
-
-//---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(inp::GridReflection& data)
-{
-    filter_out_infs(data.reflectivity.x);
-    filter_out_infs(data.reflectivity.y);
 }
 
 //---------------------------------------------------------------------------//

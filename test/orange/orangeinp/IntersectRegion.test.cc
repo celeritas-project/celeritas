@@ -1707,13 +1707,13 @@ TEST_F(GenPrismTest, variable_twisted)
         "all(+0, -1, -2, +3, +4)",
         "all(+0, -1, -2, +3, +4)",
         "all(+0, -1, -2, +3, +4)",
-        "all(+0, -1, +3, +4, -9)",
+        "all(+0, -1, +3, +4, -5)",
+        "all(+0, -1, -6, +7, +8)",
+        "all(+0, -1, -9, +10, +11)",
         "all(+0, -1, -12, +13, +14)",
         "all(+0, -1, -15, +16, +17)",
         "all(+0, -1, -18, +19, +20)",
         "all(+0, -1, -21, +22, +23)",
-        "all(+0, -1, -24, +25, +26)",
-        "all(+0, -1, -27, +28, +29)",
     };
     static char const* const expected_md_strings[] = {
         "",
@@ -1761,15 +1761,12 @@ TEST_F(GenPrismTest, variable_twisted)
         "J",
     };
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if constexpr (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_FLOAT)
     {
-        // Floating point precision is slightly off in the printout but
-        // otherwise correct; the volume strings are different because some of
-        // the planes show up as "exactly equal" (deleted) versus "nearly
-        // equal" (chained and replaced)
+        // Slight changes in gquadric construction
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     }
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 

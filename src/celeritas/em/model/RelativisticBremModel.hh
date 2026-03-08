@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/AtomicNumber.hh"
@@ -66,7 +66,7 @@ class RelativisticBremModel final : public Model, public StaticConcreteAction
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<RelativisticBremData> data_;
+    ParamsDataStore<RelativisticBremData> data_;
 
     ImportedModelAdapter imported_;
 

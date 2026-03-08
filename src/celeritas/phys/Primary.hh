@@ -27,6 +27,8 @@ struct Primary
     Real3 direction{0, 0, 0};
     real_type time{};
     EventId event_id;
+
+    // Primary id represents Geant4 unique track id for an event
     PrimaryId primary_id;
     real_type weight{1.0};
 };

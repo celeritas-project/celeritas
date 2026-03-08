@@ -8,7 +8,6 @@
 
 #include <cmath>
 
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Repr.hh"
@@ -82,8 +81,7 @@ ImageParams::ImageParams(ImageInput const& inp)
 
     // Allocate storage and "copy" to device
     CELER_ASSERT(scalars);
-    data_
-        = CollectionMirror<ImageParamsData>{HostVal<ImageParamsData>{scalars}};
+    data_ = ParamsDataStore<ImageParamsData>{HostVal<ImageParamsData>{scalars}};
     CELER_ENSURE(data_);
 }
 

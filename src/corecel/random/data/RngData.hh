@@ -28,6 +28,7 @@ template<Ownership W, MemSpace M>
 using RngParamsData = XorwowRngParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using RngStateData = XorwowRngStateData<W, M>;
+using RngStateInitializer = XorwowRngStateInitializer;
 }  // namespace celeritas
 #elif (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
 #    include "RanluxppRngData.hh"
@@ -37,6 +38,7 @@ template<Ownership W, MemSpace M>
 using RngParamsData = RanluxppRngParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using RngStateData = RanluxppRngStateData<W, M>;
+using RngStateInitializer = RanluxppRngStateInitializer;
 }  // namespace celeritas
 #endif
 // IWYU pragma: end_exports

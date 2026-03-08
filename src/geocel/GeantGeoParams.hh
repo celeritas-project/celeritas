@@ -31,6 +31,8 @@ class G4VSensitiveDetector;
 
 namespace celeritas
 {
+class GeoOpticalIdMap;
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage and provide access to a Geant4 geometry model.
@@ -124,6 +126,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
+    // Get the volume instance containing the global point
+    VolumeInstanceId find_volume_instance_at(Real3 const&) const final;
+
     //// SURFACES ////
 
     //! Get the number of surfaces (TODO: maybe live in surface params?)
@@ -150,6 +155,9 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Get the volume instance ID corresponding to a Geant4 physical volume
     inline VolumeInstanceId geant_to_id(G4VPhysicalVolume const& volume) const;
+
+    // Get the mapping from geometry material ID to optical material ID
+    inline std::shared_ptr<GeoOpticalIdMap> const& geo_optical_id_map() const;
 
     //!@{
     //! Access the world volume
@@ -184,6 +192,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Host metadata/access
     ImplVolumeMap impl_volumes_;
     detail::GeantVolumeInstanceMapper vi_mapper_;
+    std::shared_ptr<GeoOpticalIdMap> geo_to_opt_;
     std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;
 
@@ -283,6 +292,16 @@ VolumeId GeantGeoParams::volume_id(ImplVolumeId iv_id) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the mapping from geometry material ID to optical material ID.
+ */
+CELER_FORCEINLINE std::shared_ptr<GeoOpticalIdMap> const&
+GeantGeoParams::geo_optical_id_map() const
+{
+    return geo_to_opt_;
+}
+
+//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
 inline void global_geant_geo(std::shared_ptr<GeantGeoParams const> const&)
 {
@@ -327,6 +346,11 @@ inline GeoMatId GeantGeoParams::geant_to_id(G4Material const&) const
     CELER_ASSERT_UNREACHABLE();
 }
 inline VolumeId GeantGeoParams::geant_to_id(G4LogicalVolume const&) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline VolumeInstanceId
+GeantGeoParams::find_volume_instance_at(Real3 const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

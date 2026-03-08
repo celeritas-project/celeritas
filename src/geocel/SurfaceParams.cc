@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/io/Logger.hh"
 
 #include "SurfaceData.hh"
@@ -37,7 +37,7 @@ SurfaceParams::SurfaceParams(inp::Surfaces const& input,
     std::for_each(input.surfaces.begin(), input.surfaces.end(), insert_surface);
     labels_ = {"surfaces", std::move(surface_labels)};
 
-    data_ = CollectionMirror<SurfaceParamsData>{[&] {
+    data_ = ParamsDataStore<SurfaceParamsData>{[&] {
         // Convert the temporary data to device-compatible format
         HostVal<SurfaceParamsData> host_data;
         host_data.num_surfaces = labels_.size();
@@ -71,7 +71,7 @@ SurfaceParams::SurfaceParams() : labels_{{"surfaces"}, {}}
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template class CollectionMirror<SurfaceParamsData>;
+template class ParamsDataStore<SurfaceParamsData>;
 template class ParamsDataInterface<SurfaceParamsData>;
 
 //---------------------------------------------------------------------------//

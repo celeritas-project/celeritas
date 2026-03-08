@@ -11,7 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/random/data/DistributionData.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
@@ -75,7 +75,7 @@ class PrimaryGeneratorAction final : public GeneratorBase
     //// DATA ////
 
     PrimaryDistributionData data_;
-    CollectionMirror<DistributionParamsData> params_;
+    ParamsDataStore<DistributionParamsData> params_;
 
     //// HELPER FUNCTIONS ////
 

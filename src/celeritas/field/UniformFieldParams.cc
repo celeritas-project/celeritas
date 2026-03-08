@@ -101,7 +101,7 @@ UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
     }
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<UniformFieldParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<UniformFieldParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 
@@ -116,7 +116,7 @@ UniformFieldParams::UniformFieldParams(Input const& inp)
         std::holds_alternative<std::monostate>(inp.volumes),
         << R"(cannot construct volume-dependent field without providing geometry)");
 
-    data_ = CollectionMirror<UniformFieldParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<UniformFieldParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

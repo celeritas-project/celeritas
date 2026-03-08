@@ -13,9 +13,9 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/data/DeviceVector.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 
@@ -316,6 +316,10 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(123, host_cref[IntId{0}]);
     EXPECT_EQ(123, host_cref[irange].front());
     EXPECT_EQ(321, host_cref[AllInts<host>{}].back());
+
+    auto host_cref_2 = make_ref(host_val);
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref), decltype(host_cref_2)>));
+    EXPECT_EQ(4, host_cref_2.size());
 }
 
 TEST_F(SimpleCollectionTest, algo_host)
@@ -492,7 +496,7 @@ TEST_F(AssignmentTest, TEST_IF_CELER_DEVICE(device_host))
 class CollectionTest : public Test
 {
   protected:
-    using MockParamsMirror = CollectionMirror<MockParamsData>;
+    using MockParamsMirror = ParamsDataStore<MockParamsData>;
 
     void SetUp() override
     {

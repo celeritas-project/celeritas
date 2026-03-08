@@ -10,8 +10,8 @@
 #include <string>
 #include <celeritas/global/ActionInterface.hh>
 #include <corecel/data/AuxInterface.hh>
-#include <corecel/data/CollectionMirror.hh>
 #include <corecel/data/ParamsDataInterface.hh>
+#include <corecel/data/ParamsDataStore.hh>
 
 #include "StepDiagnosticData.hh"
 
@@ -136,7 +136,7 @@ class StepDiagnostic final : public CoreStepActionInterface,
 
     StaticActionData sad_;
     AuxId aux_id_;
-    CollectionMirror<StepParamsData> mirror_;
+    ParamsDataStore<StepParamsData> mirror_;
 
     //// HELPER FUNCTIONS ////
     void accum_counters(CoreStateCounters const& counters,

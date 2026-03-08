@@ -50,6 +50,9 @@ class GeantTrackReconstruction
     // Register mapping from Celeritas PrimaryID to Geant4 track ID
     [[nodiscard]] PrimaryId acquire(G4Track&);
 
+    // Reset primary ID at each event start
+    void init_event();
+
     // Restore track information for given primary and particle IDs
     [[nodiscard]] G4Track& view(ParticleId, PrimaryId) const;
 
@@ -82,6 +85,8 @@ class GeantTrackReconstruction
     std::vector<std::unique_ptr<G4Track>> tracks_;
     //! Shared step object
     SPStep step_;
+    //! Starting primary id
+    PrimaryId start_;
 };
 
 //---------------------------------------------------------------------------//

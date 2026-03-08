@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/geo/GeoFwd.hh"
 
 #include "UniformFieldData.hh"
@@ -48,7 +48,7 @@ class UniformFieldParams final
     bool in_all_volumes() const { return data_.host_ref().has_field.empty(); }
 
   private:
-    CollectionMirror<UniformFieldParamsData> data_;
+    ParamsDataStore<UniformFieldParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

@@ -14,8 +14,8 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
@@ -128,6 +128,9 @@ class VecgeomParams final : public GeoParamsInterface,
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
+    // Get the volume instance containing the global point
+    inline VolumeInstanceId find_volume_instance_at(Real3 const&) const final;
+
     //// DATA ACCESS ////
 
     //! Access geometry data on host
@@ -153,7 +156,7 @@ class VecgeomParams final : public GeoParamsInterface,
     BBox bbox_;
 
     // Host/device storage and reference
-    CollectionMirror<VecgeomParamsData> data_;
+    ParamsDataStore<VecgeomParamsData> data_;
 
     //// HELPER FUNCTIONS ////
 
@@ -164,7 +167,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
 //---------------------------------------------------------------------------//
 
-extern template class CollectionMirror<VecgeomParamsData>;
+extern template class ParamsDataStore<VecgeomParamsData>;
 extern template class ParamsDataInterface<VecgeomParamsData>;
 
 //---------------------------------------------------------------------------//
@@ -212,6 +215,17 @@ inline VolumeId VecgeomParams::volume_id(ImplVolumeId iv_id) const
     CELER_EXPECT(!vol_ids.empty());
 
     return vol_ids[iv_id];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance containing the global point.
+ */
+inline VolumeInstanceId
+VecgeomParams::find_volume_instance_at(Real3 const&) const
+{
+    CELER_NOT_IMPLEMENTED(
+        "volume instance lookup for point not yet implemented for VecGeom");
 }
 
 //---------------------------------------------------------------------------//
