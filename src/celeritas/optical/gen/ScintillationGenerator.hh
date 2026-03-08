@@ -79,7 +79,6 @@ class ScintillationGenerator
 
     UniformRealDist sample_cost_;
     UniformRealDist sample_phi_;
-    NormalDistribution<real_type> sample_lambda_;
 
     units::LightSpeed delta_speed_{};
     Real3 delta_pos_{};
@@ -134,13 +133,13 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         // Sample a photon for a single scintillation component, reusing the
         // "spare" value that the wavelength sampler might have stored
         CELER_ASSERT(component.lambda_mean > 0);
-        sample_lambda_ = NormalDistribution{component.lambda_mean,
-                                            component.lambda_sigma};
+        NormalDistribution sample_lambda{component.lambda_mean,
+                                         component.lambda_sigma};
         real_type wavelength;
         do
         {
             // Rejecting the case of very large sigma and/or very small lambda
-            wavelength = sample_lambda_(rng);
+            wavelength = sample_lambda(rng);
         } while (CELER_UNLIKELY(wavelength <= 0));
         energy_val = value_as<units::MevEnergy>(
             detail::wavelength_to_energy(wavelength));
