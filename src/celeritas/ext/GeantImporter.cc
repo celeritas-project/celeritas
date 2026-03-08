@@ -757,8 +757,7 @@ auto import_processes(GeantImporter::DataSelection selected,
         else
         {
             CELER_LOG(error)
-                << "Cannot export unknown process '"
-                << process.GetProcessName()
+                << "Cannot load unknown process '" << process.GetProcessName()
                 << "' (RTTI: " << demangle_process(process) << ")";
         }
     };

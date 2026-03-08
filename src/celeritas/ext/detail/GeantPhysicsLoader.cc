@@ -280,6 +280,8 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     if (!visited_.insert(&p).second)
     {
         // Already inserted
+        CELER_LOG(debug) << "Already loaded process \"" << p.GetProcessName()
+                         << "\"";
         return true;
     }
 
