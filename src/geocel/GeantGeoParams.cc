@@ -892,7 +892,7 @@ VolumeInstanceId
 GeantGeoParams::find_volume_instance_at(Real3 const& point) const
 {
     // Create G4 Navigator
-    auto g4_point = convert_to_geant(point, clhep_length);
+    auto g4_point = convert_to_geant<lengthunits::ClhepLength>(point);
     detail::UPNavigator nav{new G4Navigator()};
     nav->SetWorldVolume(const_cast<G4VPhysicalVolume*>(this->world()));
     auto pv = nav->LocateGlobalPointAndSetup(g4_point,

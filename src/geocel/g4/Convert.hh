@@ -26,7 +26,7 @@ G4ThreeVector convert_to_geant(Array<T, 3> const& v)
 
 //---------------------------------------------------------------------------//
 //! Convert via a quantity to native Geant4 types/units
-template<class Q, class T>
+template<class Q>
 Array<typename Q::value_type, 3> convert_from_geant(G4ThreeVector const& v)
 {
     return native_value_from(make_quantity_array<Q>(to_array(v)));

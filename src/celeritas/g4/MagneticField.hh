@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "geocel/g4/Convert.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantUnits.hh"
 
 namespace celeritas

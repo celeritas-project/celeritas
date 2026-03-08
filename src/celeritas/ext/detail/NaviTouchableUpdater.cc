@@ -189,7 +189,7 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     }
 
     // Reset the position and flip the direction
-    g4pos = convert_to_geant(pos, clhep_length);
+    g4pos = convert_to_geant<lengthunits::ClhepLength>(pos);
     g4dir *= -1;
     find_next_step();
     if (try_cross_boundary())
