@@ -150,15 +150,25 @@ struct ParticleFilter
 struct ProcessFilter
 {
     using DataSelection = celeritas::GeantImporter::DataSelection;
+    using EmSubType = G4EmProcessSubType;
 
     DataSelection::Flags which;
 
-    bool operator()(G4ProcessType pt)
+    bool operator()(G4ProcessType pt, int subtype)
     {
         switch (pt)
         {
             case G4ProcessType::fElectromagnetic:
-                return (which & DataSelection::em);
+                if (which & DataSelection::em)
+                {
+                    return true;
+                }
+                else if (which & DataSelection::optical)
+                {
+                    auto emst = static_cast<EmSubType>(subtype);
+                    return emst == EmSubType::fScintillation
+                           || emst == EmSubType::fCerenkov;
+                }
             case G4ProcessType::fOptical:
                 return (which & DataSelection::optical);
             case G4ProcessType::fHadronic:
@@ -169,7 +179,6 @@ struct ProcessFilter
     }
 };
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 /*!
  * Safely switch from G4State [G4Material.hh] to ImportMaterialState.
@@ -467,13 +476,8 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         // construction
         CELER_ASSERT(has_rindex);
 
-        // Scintillation properties are loaded by GeantPhysicsLoader
-
-        // WLS properties are loaded by GeantPhysicsLoader
-
-        // WLS2 properties are loaded by GeantPhysicsLoader
-
-        // Mie properties are loaded by GeantPhysicsLoader
+        // Most properties are loaded by GeantPhysicsLoader:
+        // Scintillation, WLS, WLS2, Mie
 
         CELER_VALIDATE(optical,
                        << "failed to load valid optical material data for "
@@ -689,7 +693,7 @@ auto import_processes(GeantImporter::DataSelection selected,
                       GeoOpticalIdMap const& geo_to_opt,
                       ImportData& imported)
 {
-    ParticleFilter include_particle{selected.processes};
+    ParticleFilter include_particle{selected.particles};
     ProcessFilter include_process{selected.processes};
 
     auto const& particles = imported.particles;
@@ -789,7 +793,8 @@ auto import_processes(GeantImporter::DataSelection selected,
         for (auto j : range(process_vec.size()))
         {
             G4VProcess const& process = *process_vec[j];
-            if (!include_process(process.GetProcessType()))
+            if (!include_process(process.GetProcessType(),
+                                 process.GetProcessSubType()))
             {
                 continue;
             }
@@ -798,8 +803,8 @@ auto import_processes(GeantImporter::DataSelection selected,
         }
     }
 
-    CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
-    CELER_LOG(debug) << "Loaded " << msc_models.size() << " msc models";
+    CELER_LOG(debug) << "Loaded " << processes.size() << " EM processes";
+    CELER_LOG(debug) << "Loaded " << msc_models.size() << " MSC models";
 }
 
 //---------------------------------------------------------------------------//

@@ -155,6 +155,13 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
     inp::PhysicsFromGeant pfg;
     pfg.data_selection.particles = GeantImportDataSelection::optical;
     pfg.data_selection.processes = GeantImportDataSelection::optical;
+    if (std::holds_alternative<inp::OpticalOffloadGenerator>(
+            si.problem.generator))
+    {
+        // Also have to import Cherenkov/scintillation, which apply
+        // to EM particles
+        pfg.data_selection.particles |= GeantImportDataSelection::em_basic;
+    }
     setup::physics_from(pfg, imported);
 
     // Copy optical physics from import data
