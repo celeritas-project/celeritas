@@ -524,14 +524,16 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
             }
         }
 
-        constexpr auto to_given_str
-            = [](bool v) { return v ? "provided" : "missing"; };
-        CELER_VALIDATE(!has_mfp || !(has_scale || has_compr),
-                       << "inconsistent Rayleigh input data: MFP ("
-                       << to_given_str(has_mfp)
-                       << ") is incompatible with compressibility ("
-                       << to_given_str(has_compr) << ") with optional scale ("
-                       << to_given_str(has_scale) << ")");
+        if (has_mfp && (has_scale || has_compr))
+        {
+            constexpr auto to_given_str
+                = [](bool v) { return v ? "provided" : "missing"; };
+            CELER_LOG(warning)
+                << "Inconsistent Rayleigh input data: compressibility ("
+                << to_given_str(has_compr) << ") with optional scale ("
+                << to_given_str(has_scale)
+                << ") is ignored in favor of MFP grid";
+        }
         if (!has_mfp && has_compr)
         {
             // Add non-grid rayleigh
