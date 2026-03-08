@@ -91,6 +91,21 @@ Key types:
 - `Span<T>`: Non-owning array view
 - `Array<T, N>`: Fixed-size stack array
 
+### Avoiding Code Duplication
+**Critical principle:** Don't Repeat Yourself (DRY). Duplicated code is harder to maintain, test, and debug.
+
+**When you see duplication:**
+- **Extract to helper functions** (anonymous namespace for file-local helpers)
+- **Create reusable functors** for GPU-compatible operations
+- **Use templates** when logic is identical but types differ
+- **Factor out common patterns** into utility functions
+
+**Strategies:**
+- **Long functions (>50 lines):** Break into smaller, focused helper functions
+- **Repeated logic blocks:** Extract to named functions with clear purposes
+- **Similar code patterns:** Identify the varying parts and parameterize
+- **Complex validation:** Create dedicated validation functions
+
 ## Critical Patterns
 
 ### Action/Executor/Interactor
@@ -168,11 +183,14 @@ When adding features, ensure consistency across:
 ## Common Pitfalls
 
 **Don't:**
-- Copy-paste code (refactor into reusable functors instead)
+- **Copy-paste code** — Duplicated code compounds bugs and makes refactoring difficult. Extract to helper functions (anonymous namespace for file-local, or utility headers for reusable). Large functions (>100 lines) are often a sign of missing abstractions.
+- **Leave repeated patterns unrefactored** — If you write similar code 3+ times, extract it. Use lambdas for local helpers, free functions for broader reuse.
 - Use raw integers for indices (use `OpaqueId<T>`)
 - Forget `CELER_FUNCTION` on device code (→ `__host__/__device__` errors)
 
 **Do:**
+- **Refactor before extending** — When adding to duplicated code, first extract the common pattern, then extend it.
+- **Extract validation logic** — Complex validation should be in dedicated functions with descriptive names.
 - Ensure data consistency (input → data → view → executor)
 - Add unit tests for all classes (detail classes excepted)
 - Run `pre-commit run` before committing
