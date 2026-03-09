@@ -404,9 +404,19 @@ auto build_optical_params(inp::OpticalProblem const& p,
     }
     if (p.physics.gen.scintillation)
     {
-        CELER_ASSERT(imported.optical_physics.gen.scintillation);
-        pi.scintillation = std::make_shared<ScintillationParams>(
-            *pi.material, *imported.optical_physics.gen.scintillation);
+        // TODO: unify between imported and problem input
+        std::optional<inp::ScintillationProcess> const& s
+            = imported.optical_physics.gen.scintillation;
+        if (s && !s->empty())
+        {
+            pi.scintillation
+                = std::make_shared<ScintillationParams>(*pi.material, *s);
+        }
+        else
+        {
+            CELER_LOG(warning) << "Disabling user-requested scintillation: no "
+                                  "process data available";
+        }
         CELER_ASSERT(pi.scintillation);
     }
 

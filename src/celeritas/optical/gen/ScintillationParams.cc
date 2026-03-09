@@ -26,7 +26,7 @@ ScintillationParams::ScintillationParams(
     optical::MaterialParams const& optical_mat,
     inp::ScintillationProcess const& process)
 {
-    CELER_EXPECT(process);
+    CELER_EXPECT(!process.materials.empty());
     CELER_EXPECT(optical_mat.num_materials() > 0);
 
     size_type const num_optmats = optical_mat.num_materials();

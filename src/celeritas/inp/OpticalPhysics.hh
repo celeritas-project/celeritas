@@ -98,7 +98,7 @@ struct ScintillationProcess
     std::map<OptMatId, ScintillationMaterial> materials;
 
     //! Whether any scintillating materials are present
-    explicit operator bool() const { return !materials.empty(); }
+    bool empty() const { return materials.empty(); }
 };
 
 //---------------------------------------------------------------------------//

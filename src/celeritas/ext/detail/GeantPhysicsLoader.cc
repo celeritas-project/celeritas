@@ -368,8 +368,7 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 //! Load optical scintillation
 size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 {
-    imported_.optical_physics.gen.scintillation.emplace();
-    auto& scint_process = *imported_.optical_physics.gen.scintillation;
+    inp::ScintillationProcess s;
 
     // Loop over optical materials and load scintillation properties
     for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
@@ -407,11 +406,21 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
         if (!scint_mat.components.empty())
         {
             normalize_component_yields(scint_mat.components, total_yield);
-            scint_process.materials.emplace(opt_id, std::move(scint_mat));
+            s.materials.emplace(opt_id, std::move(scint_mat));
         }
     }
 
-    return scint_process.materials.size();
+    auto num_mats = s.materials.size();
+    if (num_mats == 0)
+    {
+        // Do not create scintillation process
+        CELER_LOG(error) << "Scintillation process was defined with no "
+                            "scintillating materials";
+        return 0;
+    }
+
+    imported_.optical_physics.gen.scintillation = std::move(s);
+    return num_mats;
 }
 
 //---------------------------------------------------------------------------//
