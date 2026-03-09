@@ -37,26 +37,14 @@ class GeantMaterialPropertyGetter
     explicit operator bool() const { return mpt_ != nullptr; }
 
     //! Get property for a single double
-    bool operator()(double& dst, char const* name, ImportUnits q)
+    bool operator()(double& dst, std::string const& name, ImportUnits q)
     {
-        if (!*this || !mpt_->ConstPropertyExists(name))
+        if (!*this || !mpt_->ConstPropertyExists(name.c_str()))
         {
             return false;
         }
-        dst = mpt_->GetConstProperty(name) * native_value_from_clhep(q);
+        dst = mpt_->GetConstProperty(name.c_str()) * native_value_from_clhep(q);
         return true;
-    }
-
-    //! Get property for a single double (indexed component)
-    bool operator()(double& dst, std::string name, int comp, ImportUnits q)
-    {
-        if (!*this)
-        {
-            return false;
-        }
-        // Geant4 10.6 and earlier require a const char* argument
-        name += std::to_string(comp);
-        return (*this)(dst, name.c_str(), q);
     }
 
     //! Get property for a physics vector
