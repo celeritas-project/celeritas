@@ -15,10 +15,14 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Optical surface physics model.
+ * Optical surface physics model base class.
  *
  * Base class for implementing an optical surface physics model for a given
  * physics sub-step. Adds \c step functions to the core \c phys::SurfaceModel.
+ *
+ * Note that these are \em not "actions" added to the action interface.
+ * Instead, they are stored by internally by \c SurfacePhysicsParams and
+ * invoked by \c SurfaceSteppingAction.
  */
 class SurfaceModel : public ::celeritas::SurfaceModel
 {

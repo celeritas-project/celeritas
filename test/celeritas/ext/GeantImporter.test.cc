@@ -11,12 +11,12 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
-#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
-#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -249,16 +249,21 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
     {
         GeantPhysicsOptions opts;
         opts.relaxation = RelaxationSelection::all;
-        opts.muon.ionization = true;
-        opts.muon.bremsstrahlung = true;
-        opts.muon.pair_production = true;
+        opts.muon = [] {
+            GeantMuonPhysicsOptions m;
+            m.ionization = true;
+            m.bremsstrahlung = true;
+            m.pair_production = true;
+            m.msc = MscModelSelection::none;
+            return m;
+        }();
         opts.verbose = true;
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             nlohmann::json out = opts;
             out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"mucf_physics":false,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true})json",
                 std::string(out.dump()));
         }
         return opts;
@@ -354,27 +359,18 @@ class LarSphere : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = GeantImporterTest::build_geant_options();
-        opts.optical = {};
-        CELER_ENSURE(opts.optical);
+        opts.optical.emplace();
         return opts;
     }
 };
 
 //---------------------------------------------------------------------------//
-class LarSphereExtramat : public GeantImporterTest
+class LarSphereExtramat : public LarSphere
 {
   protected:
     std::string_view gdml_basename() const override
     {
         return "lar-sphere-extramat"sv;
-    }
-
-    GeantPhysicsOptions build_geant_options() const override
-    {
-        auto opts = GeantImporterTest::build_geant_options();
-        opts.optical = {};
-        CELER_ENSURE(opts.optical);
-        return opts;
     }
 };
 
@@ -385,12 +381,6 @@ class OpticalSurfaces : public GeantImporterTest
     std::string_view gdml_basename() const override
     {
         return "optical-surfaces"sv;
-    }
-
-    GeantPhysicsOptions build_geant_options() const override
-    {
-        auto opts = GeantImporterTest::build_geant_options();
-        return opts;
     }
 };
 
@@ -1647,7 +1637,6 @@ TEST_F(LarSphere, optical)
 {
     ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
     auto&& imported = this->imported_data();
-    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1760,31 +1749,17 @@ TEST_F(LarSphere, optical)
     EXPECT_VEC_EQ(expected_comp_rt, expected_comp_rt);
     EXPECT_VEC_EQ(expected_comp_ft, expected_comp_ft);
 
+    auto& bulk = imported.optical_physics.bulk;
     // Check Rayleigh optical properties
-    auto const& rayleigh_model = imported.optical_models[1];
-    EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
-    ASSERT_EQ(1, rayleigh_model.mfp_table.size());
-
-    auto const& rayleigh_mfp = rayleigh_model.mfp_table.front();
+    auto const& rayleigh_mfp = bulk.rayleigh.materials.at(OptMatId{0}).mfp;
     EXPECT_EQ(11, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
     EXPECT_REAL_EQ(32142.9, to_cm(rayleigh_mfp.y.front()));
     EXPECT_REAL_EQ(54.6429, to_cm(rayleigh_mfp.y.back()));
 
-    auto const& rayleigh_mat = optical.rayleigh;
-    EXPECT_TRUE(rayleigh_mat);
-    EXPECT_EQ(1, rayleigh_mat.scale_factor);
-    EXPECT_REAL_EQ(0.024673059861887867 * centimeter * ipow<2>(second) / gram,
-                   rayleigh_mat.compressibility);
-
     // Check absorption optical properties
-    auto const& absorption_model = imported.optical_models[0];
-    EXPECT_EQ(optical::ImportModelClass::absorption,
-              absorption_model.model_class);
-    ASSERT_EQ(1, absorption_model.mfp_table.size());
-
-    auto const& absorption_mfp = absorption_model.mfp_table.front();
+    auto const& absorption_mfp = bulk.absorption.materials.at(OptMatId{0}).mfp;
     EXPECT_EQ(2, absorption_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.3778e-06, absorption_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, absorption_mfp.x.back());
@@ -1793,15 +1768,11 @@ TEST_F(LarSphere, optical)
 
     {
         // Check WLS optical properties
-        auto const& model = imported.optical_models[3];
-        EXPECT_EQ(optical::ImportModelClass::wls, model.model_class);
-        ASSERT_EQ(1, model.mfp_table.size());
-
-        auto const& mfp = model.mfp_table.front();
+        auto const& mat = bulk.wls.materials.at(OptMatId{0});
+        auto const& mfp = mat.mfp;
         EXPECT_EQ(2, mfp.x.size());
         EXPECT_EQ(mfp.x.size(), mfp.y.size());
 
-        auto const& mat = optical.wls;
         EXPECT_TRUE(mat);
         EXPECT_SOFT_EQ(0.456, mat.mean_num_photons);
         EXPECT_SOFT_EQ(6e-9, to_sec(mat.time_constant));
@@ -1824,15 +1795,11 @@ TEST_F(LarSphere, optical)
     }
     {
         // Check WLS2 optical properties
-        auto const& model = imported.optical_models[4];
-        EXPECT_EQ(optical::ImportModelClass::wls2, model.model_class);
-        ASSERT_EQ(1, model.mfp_table.size());
-
-        auto const& mfp = model.mfp_table.front();
+        auto const& mat = bulk.wls2.materials.at(OptMatId{0});
+        auto const& mfp = mat.mfp;
         EXPECT_EQ(2, mfp.x.size());
         EXPECT_EQ(mfp.x.size(), mfp.y.size());
 
-        auto const& mat = optical.wls2;
         EXPECT_TRUE(mat);
         EXPECT_REAL_EQ(0.123, mat.mean_num_photons);
         EXPECT_REAL_EQ(6e-9, to_sec(mat.time_constant));
@@ -1874,7 +1841,6 @@ TEST_F(LarSphere, optical)
 TEST_F(LarSphereExtramat, optical)
 {
     auto&& imported = this->imported_data();
-    ASSERT_EQ(5, imported.optical_models.size());
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1893,15 +1859,12 @@ TEST_F(LarSphereExtramat, optical)
     // Check scintillation, WLS, and WLS2 optical properties
     auto const& optical = imported.optical_materials[0];
     EXPECT_FALSE(optical.scintillation);
-    EXPECT_FALSE(optical.wls);
-    EXPECT_FALSE(optical.wls2);
+    auto const& bulk = imported.optical_physics.bulk;
+    EXPECT_FALSE(bulk.wls.materials.count(OptMatId{0}));
+    EXPECT_FALSE(bulk.wls2.materials.count(OptMatId{0}));
 
     // Check Rayleigh optical properties
-    auto const& rayleigh_model = imported.optical_models[1];
-    EXPECT_EQ(optical::ImportModelClass::rayleigh, rayleigh_model.model_class);
-    ASSERT_EQ(1, rayleigh_model.mfp_table.size());
-
-    auto const& rayleigh_mfp = rayleigh_model.mfp_table.front();
+    auto const& rayleigh_mfp = bulk.rayleigh.materials.at(OptMatId{0}).mfp;
     EXPECT_EQ(2, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
@@ -1943,13 +1906,14 @@ TEST_F(Solids, volumes_only)
         names.push_back(volume.name);
     }
 
-    static char const* const expected_names[]
-        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
-           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl@0"};
+    static char const* const expected_names[] = {
+        "box500",    "cone1",    "para1",     "sphere1",    "parabol1",
+        "trap1",     "trd1",     "trd2",      "",           "trd3_also",
+        "tube100",   "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1",   "orb1",     "polyhedr1", "hype1",      "elltube1",
+        "ellcone1",  "arb8b",    "arb8a",     "xtru1",      "World",
+        "trd3_refl",
+    };
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -1968,13 +1932,14 @@ TEST_F(Solids, volumes_unique)
     {
         names.push_back(volume.name);
     }
-    static char const* const expected_names[]
-        = {"box500",     "cone1",    "para1",     "sphere1",    "parabol1",
-           "trap1",      "trd1",     "trd2",      "",           "trd3_refl@1",
-           "tube100",    "boolean1", "polycone1", "genPocone1", "ellipsoid1",
-           "tetrah1",    "orb1",     "polyhedr1", "hype1",      "elltube1",
-           "ellcone1",   "arb8b",    "arb8a",     "xtru1",      "World",
-           "trd3_refl@0"};
+    static char const* const expected_names[] = {
+        "box500",    "cone1",    "para1",     "sphere1",    "parabol1",
+        "trap1",     "trd1",     "trd2",      "",           "trd3_also",
+        "tube100",   "boolean1", "polycone1", "genPocone1", "ellipsoid1",
+        "tetrah1",   "orb1",     "polyhedr1", "hype1",      "elltube1",
+        "ellcone1",  "arb8b",    "arb8a",     "xtru1",      "World",
+        "trd3_refl",
+    };
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -2152,22 +2117,7 @@ TEST_F(MucfBox, static_data)
     EXPECT_SOFT_EQ(0.55157437567861023, average(mucf.muon_energy_cdf.x));
     EXPECT_SOFT_EQ(11.250286274435437, average(mucf.muon_energy_cdf.y));
 
-    // Dummy data
-    auto const& cycle_f0 = mucf.cycle_rates[0];
-    static double const expected_cycle_rate_f0_y[] = {2, 2};
-    EXPECT_TRUE(cycle_f0);
-    EXPECT_EQ(cycle_f0.molecule, MucfMuonicMolecule::deuterium_tritium);
-    EXPECT_EQ("F=0", cycle_f0.spin_label);
-    EXPECT_EQ(2, cycle_f0.rate.x.size());
-    EXPECT_VEC_EQ(expected_cycle_rate_f0_y, cycle_f0.rate.y);
-
-    auto const& cycle_f1 = mucf.cycle_rates[1];
-    static double const expected_cycle_rate_f1_y[] = {3, 3};
-    EXPECT_TRUE(cycle_f1);
-    EXPECT_EQ(cycle_f1.molecule, MucfMuonicMolecule::deuterium_tritium);
-    EXPECT_EQ("F=1", cycle_f1.spin_label);
-    EXPECT_EQ(2, cycle_f1.rate.x.size());
-    EXPECT_VEC_EQ(expected_cycle_rate_f1_y, cycle_f1.rate.y);
+    //! \todo Add real cycle rate data test
 
     EXPECT_TRUE(mucf.atom_transfer.empty());
     EXPECT_TRUE(mucf.atom_spin_flip.empty());

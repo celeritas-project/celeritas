@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/inp/Grid.hh"
 #include "celeritas/GlobalTestBase.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -25,6 +26,8 @@ using namespace ::celeritas::test;
 class OpticalMockTestBase : public GlobalTestBase
 {
   public:
+    using VecGrid = std::vector<inp::Grid>;
+
     // Construct optical material parameters from mock data
     SPConstOpticalMaterial build_optical_material() override;
 
@@ -35,7 +38,7 @@ class OpticalMockTestBase : public GlobalTestBase
     ImportData const& imported_data() const;
 
     // Retrieve imported optical model data by class
-    ImportOpticalModel const& import_model_by_class(ImportModelClass) const;
+    VecGrid get_mfp_table(ImportModelClass) const;
 
     //! Number of mock optical materials
     OptMatId::size_type num_optical_materials() const

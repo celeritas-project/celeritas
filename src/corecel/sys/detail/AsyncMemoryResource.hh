@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/detail/AsyncMemoryResource.device.hh
+//! \file corecel/sys/detail/AsyncMemoryResource.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -32,7 +32,7 @@ void* malloc_async(std::size_t bytes, DeviceStream_t s);
 //! Free memory asynchronously if supported
 void free_async(void* ptr, DeviceStream_t s);
 
-#if CELER_USE_DEVICE
+#if CELER_USE_DEVICE || defined(__DOXYGEN__)
 //---------------------------------------------------------------------------//
 /*!
  * Thrust async memory resource associated with a CUDA/HIP stream.

@@ -13,6 +13,7 @@
 #include "corecel/math/NumericLimits.hh"
 
 #include "Types.hh"
+#include "Utils.hh"
 
 namespace celeritas
 {
@@ -120,18 +121,17 @@ struct CalcSafetyDistance
  * This assumes that each call is to the next face index, starting with face
  * zero.
  */
-template<class F>
 class CalcIntersections
 {
   public:
     //! Construct from the particle point, direction, face ID, and temp storage
-    CELER_FUNCTION CalcIntersections(F&& is_valid_isect,
+    CELER_FUNCTION CalcIntersections(real_type max_dist,
                                      Real3 const& pos,
                                      Real3 const& dir,
                                      FaceId on_face,
                                      bool is_simple,
                                      TempNextFace const& next_face)
-        : is_valid_isect_(celeritas::forward<F>(is_valid_isect))
+        : is_valid_isect_(max_dist)
         , pos_(pos)
         , dir_(dir)
         , on_face_idx_(on_face.unchecked_get())
@@ -188,7 +188,7 @@ class CalcIntersections
   private:
     //// DATA ////
 
-    F is_valid_isect_;
+    IsNotFurtherThan is_valid_isect_;
     Real3 const& pos_;
     Real3 const& dir_;
     size_type const on_face_idx_;
@@ -199,9 +199,6 @@ class CalcIntersections
     size_type face_idx_{0};
     size_type isect_idx_{0};
 };
-
-template<class F, class... Args>
-CELER_FUNCTION CalcIntersections(F&&, Args&&... args) -> CalcIntersections<F>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

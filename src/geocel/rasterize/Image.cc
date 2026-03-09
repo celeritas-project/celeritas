@@ -8,7 +8,6 @@
 
 #include <cmath>
 
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Repr.hh"

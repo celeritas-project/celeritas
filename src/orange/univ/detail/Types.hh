@@ -51,7 +51,7 @@ class OnTface
     CELER_CONSTEXPR_FUNCTION IdT id() const noexcept { return id_; }
 
     //! Get the sense if we're on a face
-    CELER_FUNCTION Sense sense() const
+    CELER_CONSTEXPR_FUNCTION Sense sense() const
     {
         CELER_EXPECT(*this);
         return sense_;
@@ -91,7 +91,7 @@ struct Intersection
     real_type distance = no_intersection();
 
     //! Whether a next surface has been found
-    explicit CELER_FUNCTION operator bool() const
+    explicit CELER_CONSTEXPR_FUNCTION operator bool() const
     {
         return static_cast<bool>(surface);
     }
@@ -117,7 +117,7 @@ struct Initialization
     OnLocalSurface surface;
 
     //! Whether initialization succeeded
-    explicit CELER_FUNCTION operator bool() const
+    explicit CELER_CONSTEXPR_FUNCTION operator bool() const
     {
         return static_cast<bool>(volume);
     }

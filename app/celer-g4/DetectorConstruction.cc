@@ -17,7 +17,6 @@
 #include <G4UniformMagField.hh>
 #include <G4VPhysicalVolume.hh>
 
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/ArrayUtils.hh"

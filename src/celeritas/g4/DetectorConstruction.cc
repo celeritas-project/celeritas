@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGdmlLoader.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/g4/Convert.hh"
 
 namespace celeritas
@@ -66,13 +67,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         }
     }
 
+    // Create non-owning Geant4 geo wrapper and save as tracking geometry
     CELER_ASSERT(loaded.world);
-    world_ = loaded.world;
+    geo_ = std::make_shared<GeantGeoParams>(loaded.world, Ownership::reference);
+    celeritas::global_geant_geo(geo_);
+
+    // Save detectors
     detectors_ = std::move(loaded.detectors);
 
     // TODO: construct shared Celeritas field
 
-    return world_;
+    return loaded.world;
 }
 
 //---------------------------------------------------------------------------//

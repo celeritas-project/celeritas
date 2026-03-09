@@ -8,9 +8,10 @@
 
 #include <map>
 
-#include "celeritas/Constants.hh"
+#include "corecel/inp/Grid.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
+#include "celeritas/optical/Types.hh"
 
 #include "ImportUnits.hh"
 
@@ -119,6 +120,8 @@ struct ImportLoopingThreshold
  *
  * The looping thresholds are particle-dependent and stored in a map where the
  * keys are the PDG number.
+ *
+ * TODO: substeps are also technically particle-dependent
  */
 struct ImportTransParameters
 {
@@ -134,10 +137,7 @@ struct ImportTransParameters
     int max_substeps{1000};
 
     //! Whether parameters are assigned and valid
-    explicit operator bool() const
-    {
-        return max_substeps >= 0 && !looping.empty();
-    }
+    explicit operator bool() const { return max_substeps >= 0; }
 };
 
 //---------------------------------------------------------------------------//
@@ -148,9 +148,10 @@ struct ImportTransParameters
  */
 struct ImportOpticalParameters
 {
-    bool scintillation_by_particle{false};
-    WlsTimeProfile wls_time_profile{WlsTimeProfile::delta};
-    WlsTimeProfile wls2_time_profile{WlsTimeProfile::delta};
+    using Dist = optical::WlsDistribution;
+
+    Dist wls_time_profile{Dist::delta};
+    Dist wls2_time_profile{Dist::delta};
 };
 
 //---------------------------------------------------------------------------//

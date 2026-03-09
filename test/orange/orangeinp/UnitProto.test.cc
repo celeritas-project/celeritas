@@ -11,7 +11,6 @@
 #include <sstream>
 
 #include "corecel/ScopedLogStorer.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
@@ -178,28 +177,6 @@ using LeafTest = UnitProtoTest;
 TEST_F(LeafTest, errors)
 {
     EXPECT_THROW(UnitProto(UnitProto::Input{}), RuntimeError);
-}
-TEST_F(LeafTest, warnings)
-{
-    UnitProto::Input inp;
-    inp.label = "leaf";
-    inp.boundary.interior = std::make_shared<NegatedObject>(
-        "bad-interior", make_cyl("bound", 1.0, 1.0));
-    inp.boundary.zorder = ZOrder::media;
-    append_material(inp, SPConstObject(inp.boundary.interior), 1);
-    UnitProto const proto{std::move(inp)};
-
-    auto opts = this->proto_build_opts();
-    opts.assume_inside = false;
-
-    ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::world_logger(),
-                                                   LogLevel::warning};
-    proto.build(opts);
-    static char const* const expected_log_messages[] = {
-        R"(cannot determine extents of interior 'bad-interior' in 'leaf': negated interior bounds are {{-0.7071,-0.7071,-1}, {0.7071,0.7071,1}})"};
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {"warning"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 // All space is explicitly accounted for

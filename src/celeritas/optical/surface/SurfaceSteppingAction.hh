@@ -14,13 +14,13 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Stepping action for surface physics models during a boundary crossing.
+ * Apply surface physics models during a boundary crossing.
  *
  * Encapsulates all of the surface physics models into a single action, which
  * can be extended to run multiple surface interactions in a single step.
  */
-class SurfaceSteppingAction : public OpticalStepActionInterface,
-                              public ConcreteAction
+class SurfaceSteppingAction final : public OpticalStepActionInterface,
+                                    public ConcreteAction
 {
   public:
     // Construct from action ID

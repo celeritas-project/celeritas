@@ -41,7 +41,7 @@ function(celer_optical_add_test ext gdml backend)
   )
   set(_labels app nomemcheck)
 
-  if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_Python
+  if(NOT CELERITAS_USE_Geant4
      OR CELERITAS_REAL_TYPE STREQUAL "float"
      OR CELERITAS_CORE_GEO STREQUAL "Geant4"
      OR (NOT VecGeom_GDML_FOUND AND CELERITAS_CORE_GEO STREQUAL "VecGeom"))
@@ -69,7 +69,6 @@ function(celer_optical_add_test ext gdml backend)
     ENVIRONMENT "${_env}"
     REQUIRED_FILES "${_driver};${_gdml_inp}"
     LABELS "${_labels}"
-    ${CELER_NEEDS_PYTHON}
     ${_props}
   )
 endfunction()

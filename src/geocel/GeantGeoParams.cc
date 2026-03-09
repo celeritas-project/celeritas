@@ -7,6 +7,7 @@
 #include "GeantGeoParams.hh"
 
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -16,6 +17,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
+#include <G4Navigator.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4Region.hh>
 #include <G4RegionStore.hh>
@@ -37,10 +39,12 @@
 
 #include "GeantGdmlLoader.hh"
 #include "GeantGeoUtils.hh"
+#include "GeoOpticalIdMap.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated
 #include "g4/GeantGeoData.hh"  // IWYU pragma: associated
+#include "g4/detail/GeantGeoNavCollection.hh"
 
 #include "detail/MakeLabelVector.hh"
 
@@ -656,7 +660,8 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * only called on the main thread, and the \c SensitiveDetector getter/setter
  * on \c G4LogicalVolume uses a thread-local "split" class, <em>worker threads
  * will not see the sensitive detectors this loader creates</em>. Use \c
- * celeritas::DetectorConstruction if thread-local detectors are needed.
+ * celeritas::DetectorConstruction as part of a Geant4 run manager if
+ * thread-local detectors are needed.
  */
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
@@ -716,6 +721,8 @@ GeantGeoParams::from_gdml(std::string const& filename)
  */
 GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
     : ownership_{owns}
+    , geo_to_opt_(
+          std::make_shared<GeoOpticalIdMap>(*G4Material::GetMaterialTable()))
 {
     CELER_EXPECT(world);
     data_.world = const_cast<G4VPhysicalVolume*>(world);
@@ -743,8 +750,9 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
         }
     }
 
+    if (ownership_ == Ownership::value)
     {
-        // Close the geometry if needed
+        // Close the geometry if we're managing it
         auto* geo_man = G4GeometryManager::GetInstance();
         CELER_ASSERT(geo_man);
         if (!geo_man->IsGeometryClosed())
@@ -874,6 +882,25 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
 GeoMatId GeantGeoParams::geant_to_id(G4Material const& g4mat) const
 {
     return id_cast<GeoMatId>(g4mat.GetIndex() - this->mat_offset());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance containing the global point.
+ */
+VolumeInstanceId
+GeantGeoParams::find_volume_instance_at(Real3 const& point) const
+{
+    // Create G4 Navigator
+    auto g4_point = convert_to_geant(point, clhep_length);
+    detail::UPNavigator nav{new G4Navigator()};
+    nav->SetWorldVolume(const_cast<G4VPhysicalVolume*>(this->world()));
+    auto pv = nav->LocateGlobalPointAndSetup(g4_point,
+                                             nullptr,
+                                             /* relative search = */ false,
+                                             /* ignore direction = */ true);
+
+    return pv ? this->geant_to_id(*pv) : VolumeInstanceId{};
 }
 
 //---------------------------------------------------------------------------//

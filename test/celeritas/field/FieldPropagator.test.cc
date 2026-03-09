@@ -12,7 +12,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/ScopedLogStorer.hh"
-#include "corecel/cont/ArrayIO.hh"
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
@@ -1521,8 +1521,10 @@ TEST_F(CmseTest, coarse)
     ref.num_integration = {80659, 58282, 41914, 26114};
     ref.messages.resize(ref.num_boundary.size());
 
+    char const* geometry = "unknown";
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
+        geometry = "ORANGE";
         ref.fail_at(1);
         if (CELERITAS_DEBUG)
         {
@@ -1538,17 +1540,9 @@ TEST_F(CmseTest, coarse)
              R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
     }
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-             && !CELERITAS_VECGEOM_SURFACE
-             && CELERITAS_VECGEOM_VERSION < 0x020000)
-    {
-        // VG Solid 2
-        ref.messages[1] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
              && !CELERITAS_VECGEOM_SURFACE)
     {
-        // VG Solid 2
+        geometry = "VecGeom solid";
         ref.messages[1] = {
             R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
     }
@@ -1560,7 +1554,10 @@ TEST_F(CmseTest, coarse)
                         "sensitivity";
     }
 
-    EXPECT_REF_EQ(ref, result) << result;
+    EXPECT_REF_EQ(ref, result)
+        << ansi_color('b') << "Failed geometry: " << ansi_color(' ')
+        << geometry << ":\n"
+        << result;
 }
 
 //---------------------------------------------------------------------------//

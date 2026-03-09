@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "KernelContextException.hh"
 
-#include "corecel/OpaqueIdIO.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/QuantityIO.json.hh"

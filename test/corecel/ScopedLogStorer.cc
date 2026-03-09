@@ -32,12 +32,6 @@ void debug_clog(LogProvenance, LogLevel lev, std::string msg)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct null storer for disassociating before destruction.
- */
-ScopedLogStorer::ScopedLogStorer() = default;
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct reference to log to temporarily replace.
  */
 ScopedLogStorer::ScopedLogStorer(Logger* orig, LogLevel min_level)
@@ -111,6 +105,28 @@ void ScopedLogStorer::operator()(LogProvenance prov,
     StringSimplifier simplify{float_digits_};
     messages_.push_back(simplify(std::move(msg)));
     levels_.push_back(to_cstring(lev));
+}
+
+//---------------------------------------------------------------------------//
+//! Delete messages that contain a certain string
+void ScopedLogStorer::remove_if_contains(std::string const& s)
+{
+    auto it_msg = messages_.begin();
+    auto it_lev = levels_.begin();
+
+    while (it_msg != messages_.end())
+    {
+        if (it_msg->find(s) != std::string::npos)
+        {
+            it_msg = messages_.erase(it_msg);
+            it_lev = levels_.erase(it_lev);
+        }
+        else
+        {
+            ++it_msg;
+            ++it_lev;
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

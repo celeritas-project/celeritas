@@ -124,6 +124,9 @@ CoreStateInterface& IntegrationBase::GetState()
         },
         ExceptionConverter{"celer.get.state"});
 
+    // With a custom ExceptionConverter, we may still reach this point in a
+    // failure mode: assert instead of dereferencing null
+    CELER_ENSURE(lt);
     return lt->GetState();
 }
 //!@}

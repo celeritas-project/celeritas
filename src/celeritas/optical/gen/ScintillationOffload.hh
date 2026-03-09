@@ -89,7 +89,7 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(pre_step)
-    , post_step_({pre_post_step.speed, pos})
+    , post_step_({pre_post_step.speed, sim.time(), pos})
     , shared_(shared)
     , continuous_edep_fraction_(pre_post_step.energy_deposition
                                 / energy_deposition)
@@ -98,23 +98,15 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     CELER_EXPECT(shared_);
     CELER_EXPECT(pre_step_);
 
-    if (shared_.scintillation_by_particle())
-    {
-        //! \todo Implement sampling for particles
-        CELER_ASSERT_UNREACHABLE();
-    }
-    else
-    {
-        // Scintillation will be performed on materials only
-        CELER_ASSERT(pre_step_.material < shared_.materials.size());
-        auto const& material = shared_.materials[pre_step_.material];
+    // Scintillation is performed on materials only
+    CELER_ASSERT(pre_step_.material < shared_.materials.size());
+    auto const& material = shared_.materials[pre_step_.material];
 
-        //! \todo Use visible energy deposition when Birks law is implemented
-        if (material)
-        {
-            mean_num_photons_ = material.yield_per_energy
-                                * energy_deposition.value();
-        }
+    //! \todo Use visible energy deposition when Birks law is implemented
+    if (material)
+    {
+        mean_num_photons_ = material.yield_per_energy
+                            * energy_deposition.value();
     }
 }
 
@@ -148,12 +140,12 @@ ScintillationOffload::operator()(Generator& rng)
     {
         // Assign remaining data
         result.type = GeneratorType::scintillation;
-        result.time = pre_step_.time;
         result.step_length = step_length_;
         result.charge = charge_;
         result.material = pre_step_.material;
         result.continuous_edep_fraction = continuous_edep_fraction_;
         result.points[StepPoint::pre].speed = pre_step_.speed;
+        result.points[StepPoint::pre].time = pre_step_.time;
         result.points[StepPoint::pre].pos = pre_step_.pos;
         result.points[StepPoint::post] = post_step_;
     }

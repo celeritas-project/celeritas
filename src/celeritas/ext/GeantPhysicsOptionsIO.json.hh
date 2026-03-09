@@ -12,13 +12,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct GeantPhysicsOptions;
+struct GeantMuonPhysicsOptions;
 
 //---------------------------------------------------------------------------//
 // Read options from JSON
-void from_json(nlohmann::json const& j, GeantPhysicsOptions& opts);
+void from_json(nlohmann::json const&, GeantPhysicsOptions&);
+void from_json(nlohmann::json const&, GeantMuonPhysicsOptions&);
 
 // Write options to JSON
-void to_json(nlohmann::json& j, GeantPhysicsOptions const& opts);
+void to_json(nlohmann::json&, GeantPhysicsOptions const&);
+void to_json(nlohmann::json&, GeantMuonPhysicsOptions const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

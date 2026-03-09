@@ -39,6 +39,7 @@ celeritas_generate_option_config(CELERITAS_CORE_RNG)
 celeritas_generate_option_config(CELERITAS_OPENMP)
 celeritas_generate_option_config(CELERITAS_REAL_TYPE)
 celeritas_generate_option_config(CELERITAS_UNITS)
+celeritas_generate_option_config(CELERITAS_RESEED)
 
 #----------------------------------------------------------------------------#
 # Detailed build configuration for reproducibility/provenance
@@ -205,6 +206,7 @@ list(APPEND SOURCES
   data/AuxParamsRegistry.cc
   data/AuxStateVec.cc
   data/detail/PinnedAllocatorImpl.cc
+  grid/DerivativeGridCalculator.cc
   grid/GridTypes.cc
   grid/GridTypesIO.json.cc
   grid/SplineDerivCalculator.cc

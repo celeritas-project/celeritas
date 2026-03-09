@@ -8,6 +8,9 @@
 
 #include <nlohmann/json.hpp>
 
+#include "celeritas/ext/GeantOpticalPhysicsOptionsIO.json.hh"
+#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
+
 #include "StandaloneInput.hh"
 
 namespace celeritas

@@ -147,8 +147,6 @@ TEST_F(RectArrayTrackerTest, initialize)
 
 TEST_F(RectArrayTrackerTest, intersect)
 {
-    auto inf = std::numeric_limits<real_type>::infinity();
-
     RectArrayTracker tracker(this->host_params(), RectArrayId{0});
 
     SCOPED_TRACE(
@@ -156,9 +154,7 @@ TEST_F(RectArrayTrackerTest, intersect)
     {
         auto isect = tracker.intersect(
             this->make_state({0.1, 0.1, 0.1}, {-1, 0, 0}, LocalVolumeId{0}));
-        EXPECT_EQ(inf, isect.distance);
-        EXPECT_EQ("[none]", this->id_to_label(UnivId{2}, isect.surface.id()));
-        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_FALSE(isect);
 
         isect = tracker.intersect(
             this->make_state({0.1, 0.1, 0.1}, {1, 0, 0}, LocalVolumeId{0}));
@@ -168,9 +164,7 @@ TEST_F(RectArrayTrackerTest, intersect)
 
         isect = tracker.intersect(
             this->make_state({0.1, 0.1, 0.1}, {0, -1, 0}, LocalVolumeId{0}));
-        EXPECT_EQ(inf, isect.distance);
-        EXPECT_EQ("[none]", this->id_to_label(UnivId{2}, isect.surface.id()));
-        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_FALSE(isect);
 
         isect = tracker.intersect(
             this->make_state({0.1, 0.1, 0.1}, {0, 1, 0}, LocalVolumeId{0}));
@@ -180,9 +174,7 @@ TEST_F(RectArrayTrackerTest, intersect)
 
         isect = tracker.intersect(
             this->make_state({0.1, 0.1, 0.1}, {0, 0, -1}, LocalVolumeId{0}));
-        EXPECT_EQ(inf, isect.distance);
-        EXPECT_EQ("[none]", this->id_to_label(UnivId{2}, isect.surface.id()));
-        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_FALSE(isect);
 
         isect = tracker.intersect(
             this->make_state({0.1, 0.1, 0.1}, {0, 0, 1}, LocalVolumeId{0}));
@@ -202,9 +194,7 @@ TEST_F(RectArrayTrackerTest, intersect)
 
         isect = tracker.intersect(
             this->make_state({10.5, 7.5, 7.5}, {1, 0, 0}, LocalVolumeId{21}));
-        EXPECT_EQ(inf, isect.distance);
-        EXPECT_EQ("[none]", this->id_to_label(UnivId{2}, isect.surface.id()));
-        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_FALSE(isect);
 
         isect = tracker.intersect(
             this->make_state({10.5, 7.5, 7.5}, {0, -1, 0}, LocalVolumeId{21}));
@@ -226,9 +216,7 @@ TEST_F(RectArrayTrackerTest, intersect)
 
         isect = tracker.intersect(
             this->make_state({10.5, 7.5, 7.5}, {0, 0, 1}, LocalVolumeId{21}));
-        EXPECT_EQ(inf, isect.distance);
-        EXPECT_EQ("[none]", this->id_to_label(UnivId{2}, isect.surface.id()));
-        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_FALSE(isect);
     }
 
     SCOPED_TRACE("Intersecting at an angle");
@@ -250,15 +238,13 @@ TEST_F(RectArrayTrackerTest, intersect_max_step)
         auto isect = tracker.intersect(
             this->make_state({0.1, 0.1, 0.1}, {0, 0, -1}, LocalVolumeId{0}),
             0.1);
-        EXPECT_SOFT_EQ(0.1, isect.distance);
-        EXPECT_EQ("[none]", this->id_to_label(UnivId{2}, isect.surface.id()));
-        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_FALSE(isect) << isect.distance;
 
         isect = tracker.intersect(
             this->make_state({0.1, 0.1, 0.1}, {0, 0, -1}, LocalVolumeId{0}),
             0.05);
-        EXPECT_SOFT_EQ(0.05, isect.distance);
-        EXPECT_EQ("[none]", this->id_to_label(UnivId{2}, isect.surface.id()));
+        EXPECT_FALSE(isect) << isect.distance;
+        ;
     }
 }
 

@@ -11,6 +11,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/random/data/RngData.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
@@ -69,6 +70,7 @@ struct TrackInitializer
     SimTrackInitializer sim;
     GeoTrackInitializer geo;
     ParticleTrackInitializer particle;
+    RngStateInitializer rng;
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const

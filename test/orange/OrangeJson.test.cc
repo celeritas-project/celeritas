@@ -77,9 +77,6 @@ class InputBuilderTest : public JsonOrangeTest
         return geometry_basename();
     }
 
-  protected:
-    bool supports_surface_normal_{true};
-
   private:
     std::string basename_;
 };
@@ -779,7 +776,6 @@ TEST_F(InputBuilderTest, globalspheres)
 
 TEST_F(InputBuilderTest, lar_split_detector)
 {
-    auto inf = std::numeric_limits<real_type>::infinity();
     {
         auto result = this->track({0, 0, -14}, {0, 0, 1});
 
@@ -799,7 +795,7 @@ TEST_F(InputBuilderTest, lar_split_detector)
             "outer_region@global",
         };
         ref.distances = {4, 5, 10, 5, 5};
-        ref.halfway_safeties = {2, 2.5, inf, 2.5, 2.5};
+        ref.halfway_safeties = {2, 2.5, 5, 2.5, 2.5};
         ref.bumps = {};
         auto tol = this->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -934,7 +930,7 @@ TEST_F(InputBuilderTest, hierarchy)
         static real_type const expected_distances[]
             = {3, 2, 8, 2, 4, 87.979589711327};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {1.5, 5, 4, 5, 2, 39};
+        static real_type const expected_hw_safety[] = {1.5, 1, 4, 1, 2, 39};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
@@ -971,7 +967,7 @@ TEST_F(InputBuilderTest, incomplete_bb)
 {
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[2,1],"num_finite_bboxes":[2,1],"num_infinite_bboxes":[1,1]},"scalars":{"num_univ_levels":2,"max_faces":6,"max_intersections":6,"max_csg_levels":0,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":6,"inner_nodes":1,"leaf_nodes":3,"local_volume_ids":5},"connectivity_records":8,"daughters":1,"fast_real3s":0,"local_surface_ids":10,"local_volume_ids":4,"logic_ints":37,"obz_records":0,"real_ids":8,"reals":26,"rect_arrays":0,"simple_units":2,"surface_types":8,"transforms":1,"universe_indexer":{"surfaces":3,"volumes":3},"univ_indices":2,"univ_types":2,"volume_ids":6,"volume_instance_ids":6,"volume_records":6},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[2,1],"num_finite_bboxes":[2,2],"num_infinite_bboxes":[1,0]},"scalars":{"max_csg_levels":0,"max_faces":6,"max_intersections":6,"num_univ_levels":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":6,"inner_nodes":1,"leaf_nodes":3,"local_volume_ids":5},"connectivity_records":8,"daughters":1,"fast_real3s":0,"local_surface_ids":10,"local_volume_ids":4,"logic_ints":37,"obz_records":0,"real_ids":8,"reals":26,"rect_arrays":0,"simple_units":2,"surface_types":8,"transforms":1,"univ_indices":2,"univ_types":2,"universe_indexer":{"surfaces":3,"volumes":3},"volume_ids":6,"volume_instance_ids":6,"volume_records":6},"tracking_logic":"infix"})json",
         to_string(out));
 }
 

@@ -74,12 +74,26 @@ geometric_reflected_from(Real3 dir, Real3 const& normal)
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample a valid facet normal by wrapping a roughness calculator.
+ * Sample a valid facet normal by wrapping a roughness sampler.
  *
  * Some facet normal calculators might not produce surface normals valid for
  * optical physics surface crossings (see \c is_entering_surface ). This
  * functor will construct and repeatedly sample the distribution until the
  * track is exiting the sampled facet normal.
+ *
+ * \par Example
+ *
+ * This uses a gaussian roughness distribution to accept only facets that have
+ * a direction where the track is exiting the sampled normal.
+ *
+ * \code
+   EnteringSurfaceNormalSampler<GaussianRoughnessSampler> sample_facet{
+       track.geometry().dir(),
+       s_phys.global_normal(),
+       data.sigma_alpha[sub_model_id]};
+   auto rng = track.rng();
+   s_phys.facet_normal(sample_facet(rng));
+ * \endcode
  */
 template<class Calculator>
 class EnteringSurfaceNormalSampler

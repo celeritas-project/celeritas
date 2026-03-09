@@ -197,10 +197,19 @@ void SupportedEmStandardPhysics::ConstructProcess()
     this->add_gamma_processes();
     this->add_e_processes(G4Electron::Definition());
     this->add_e_processes(G4Positron::Definition());
-    if (options_.muon || options_.mucf_physics)
+    if (options_.muon)
     {
         this->add_mu_processes(G4MuonMinus::Definition());
         this->add_mu_processes(G4MuonPlus::Definition());
+    }
+    if (options_.mucf_physics)
+    {
+        // This is a G4VRestProcess with G4ProcessType::fHadronic
+        auto* pm = G4MuonMinus::Definition()->GetProcessManager();
+        CELER_ASSERT(pm);
+        pm->AddRestProcess(new G4MuonMinusAtomicCapture());
+        CELER_LOG(debug) << "Using muon atomic capture with "
+                            "G4MuonMinusAtomicCapture";
     }
 }
 
@@ -465,56 +474,47 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
  */
 void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
 {
+    CELER_ASSUME(options_.muon);
     auto& ph = *G4PhysicsListHelper::GetPhysicsListHelper();
 
-    if (options_.muon.pair_production)
+    if (options_.muon->pair_production)
     {
         ph.RegisterProcess(new G4MuPairProduction(), p);
         CELER_LOG(debug) << "Using muon pair production with "
                             "G4MuPairProductionModel";
     }
 
-    if (options_.muon.ionization)
+    if (options_.muon->ionization)
     {
         ph.RegisterProcess(new G4MuIonisation(), p);
         CELER_LOG(debug) << "Using muon ionization with G4ICRU73QOModel, "
                             "G4BraggModel, and G4MuBetheBlochModel";
     }
 
-    if (options_.muon.bremsstrahlung)
+    if (options_.muon->bremsstrahlung)
     {
         ph.RegisterProcess(new G4MuBremsstrahlung(), p);
         CELER_LOG(debug) << "Using muon bremsstrahlung with "
                             "G4MuBremsstrahlungModel";
     }
 
-    if (options_.muon.coulomb)
+    if (options_.muon->coulomb)
     {
         ph.RegisterProcess(new G4CoulombScattering(), p);
         CELER_LOG(debug) << "Using muon Coulomb scattering with "
                             "G4eCoulombScatteringModel";
     }
 
-    if (options_.mucf_physics && p == G4MuonMinus::Definition())
-    {
-        // This is a G4VRestProcess with G4ProcessType::fHadronic
-        auto* pm = p->GetProcessManager();
-        CELER_ASSERT(pm);
-        pm->AddRestProcess(new G4MuonMinusAtomicCapture());
-        CELER_LOG(debug) << "Using muon atomic capture with "
-                            "G4MuonMinusAtomicCapture";
-    }
-
-    if (options_.muon.msc != MscModelSelection::none)
+    if (options_.muon->msc != MscModelSelection::none)
     {
         auto process = std::make_unique<G4MuMultipleScattering>();
-        if (options_.muon.msc == MscModelSelection::wentzelvi)
+        if (options_.muon->msc == MscModelSelection::wentzelvi)
         {
             process->SetEmModel(new G4WentzelVIModel());
             CELER_LOG(debug) << "Using muon multiple scattering with "
                                 "G4WentzelVIModel";
         }
-        else if (options_.muon.msc == MscModelSelection::urban)
+        else if (options_.muon->msc == MscModelSelection::urban)
         {
             process->SetEmModel(new G4UrbanMscModel());
             CELER_LOG(debug) << "Using muon multiple scattering with "
@@ -525,7 +525,7 @@ void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
             CELER_VALIDATE(false,
                            << "unsupported muon multiple scattering model "
                               "selection '"
-                           << options_.muon.msc << "'");
+                           << options_.muon->msc << "'");
         }
         ph.RegisterProcess(process.release(), p);
     }

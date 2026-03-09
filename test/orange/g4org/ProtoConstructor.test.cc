@@ -47,13 +47,22 @@ class ProtoConstructorTest : public GeantLoadTestBase
     void SetUp() override
     {
         opts_.unit_length = 0.1;
+        opts_.logic = LogicNotation::infix;
         opts_.tol = Tolerance<>::from_relative(1e-5);
     }
 
     void setup_opts(std::string const& json_str)
     {
         CELER_EXPECT(!json_str.empty());
-        std::istringstream{json_str} >> opts_;
+        try
+        {
+            std::istringstream{json_str} >> opts_;
+        }
+        catch (std::exception const&)
+        {
+            ADD_FAILURE() << "Failed to load JSON options '" << json_str << "'";
+            throw;
+        }
 
         // Check JSON
         auto&& result_str = [&opts = opts_] {
@@ -146,7 +155,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
         opts.assume_inside = opts_.implicit_parent_boundary
                              && (id != orange_global_univ);
         opts.tol = opts_.tol;
-        opts.logic = LogicNotation::infix;
+        opts.logic = opts_.logic;
         return proto->build(opts);
     }
 
@@ -260,14 +269,14 @@ TEST_F(DuneCryostatTest, default)
             "F",
             "all(+6, -7, +8, -9, +10, -11)",
             R"(all(+12, -13, +14, -15, +16, -17, any(-18, +19, -20, +21, -22, +23), any(-18, +19, -20, +21, -24, +25), any(-18, +19, -20, +21, -26, +27), any(-18, +19, -20, +21, -28, +29)))",
-            "all(+12, +20, -21, +22, -23, -31)",
-            "all(+12, +20, -21, +24, -25, -31)",
-            "all(+12, +20, -21, +26, -27, -31)",
-            "all(+12, +20, -21, +28, -29, -31)",
+            "all(+12, +20, -21, +22, -23, -30)",
+            "all(+12, +20, -21, +24, -25, -30)",
+            "all(+12, +20, -21, +26, -27, -30)",
+            "all(+12, +20, -21, +28, -29, -30)",
         };
         static char const* const expected_md_strings[] = {
-            "Cryostat,Cryostat@mx,Cryostat@my,Cryostat@mz",
-            "Cryostat@px,Cryostat@py,Cryostat@pz,[EXTERIOR]",
+            "",
+            "",
             "GaseousArgon@mx",
             "GaseousArgon@px",
             "",
@@ -332,56 +341,82 @@ TEST_F(DuneCryostatTest, default)
             R"(11: {{{-378,628,-872}, {378,678,872}}, {{-378,628,-872}, {378,678,872}}})",
             R"(21: {{{-1.15,-618,-560}, {1.15,-606,-350}}, {{-1.15,-618,-560}, {1.15,-606,-350}}})",
             R"(~33: {{{-1.2,-617,-559}, {1.2,-608,-512}}, {{-1.2,-617,-559}, {1.2,-608,-512}}})",
-            "34: {null, inf}",
+            "34: {null, {{-1.15,-618,-560}, {1.15,-606,-350}}}",
             R"(~39: {{{-1.2,-617,-510}, {1.2,-608,-463}}, {{-1.2,-617,-510}, {1.2,-608,-463}}})",
-            "40: {null, inf}",
+            "40: {null, {{-1.15,-618,-560}, {1.15,-606,-350}}}",
             R"(~45: {{{-1.2,-617,-447}, {1.2,-608,-400}}, {{-1.2,-617,-447}, {1.2,-608,-400}}})",
-            "46: {null, inf}",
+            "46: {null, {{-1.15,-618,-560}, {1.15,-606,-350}}}",
             R"(~51: {{{-1.2,-617,-398}, {1.2,-608,-351}}, {{-1.2,-617,-398}, {1.2,-608,-351}}})",
-            "52: {null, inf}",
+            "52: {null, {{-1.15,-618,-560}, {1.15,-606,-350}}}",
             R"(55: {{{-1.15,-617,-559}, {1.05,-608,-512}}, {{-1.15,-617,-559}, {1.05,-608,-512}}})",
             R"(56: {{{-1.15,-617,-510}, {1.05,-608,-463}}, {{-1.15,-617,-510}, {1.05,-608,-463}}})",
             R"(57: {{{-1.15,-617,-447}, {1.05,-608,-400}}, {{-1.15,-617,-447}, {1.05,-608,-400}}})",
             R"(58: {{{-1.15,-617,-398}, {1.05,-608,-351}}, {{-1.15,-617,-398}, {1.05,-608,-351}}})",
         };
-        static char const* const expected_trans_strings[] = {
-            "0: t=0 -> {}",
-            "1: t=0",
-            "11: t=1 -> {{0,653,0}}",
-            "21: t=2 -> {{0,-612,-455}}",
-            "33: t=2",
-            "34: t=2",
-            "39: t=2",
-            "40: t=2",
-            "45: t=2",
-            "46: t=2",
-            "51: t=2",
-            "52: t=2",
-            "55: t=7 -> {{-0.05,-612,-535}}",
-            "56: t=8 -> {{-0.05,-612,-486}}",
-            "57: t=9 -> {{-0.05,-612,-424}}",
-            "58: t=10 -> {{-0.05,-612,-375}}",
-        };
-        static char const* const expected_fill_strings[]
-            = {"<UNASSIGNED>", "m0", "m1", "m2", "m2", "m2", "m2"};
         static int const expected_volume_nodes[] = {1, 11, 52, 55, 56, 57, 58};
         static char const expected_tree_string[]
-            = R"json(["t",["~",0],["S",6],["S",7],["~",3],["S",8],["S",9],["~",6],["S",10],["S",11],["~",9],["&",[2,4,5,7,8,10]],["S",12],["S",13],["~",13],["S",14],["S",15],["~",16],["S",16],["S",17],["~",19],["&",[12,14,15,17,18,20]],["S",18],["~",22],["S",19],["S",20],["~",25],["S",21],["~",27],["S",22],["~",29],["S",23],["~",31],["|",[23,24,26,27,30,31]],["&",[12,14,15,17,18,20,33]],["S",24],["~",35],["S",25],["~",37],["|",[23,24,26,27,36,37]],["&",[12,14,15,17,18,20,33,39]],["S",26],["~",41],["S",27],["~",43],["|",[23,24,26,27,42,43]],["&",[12,14,15,17,18,20,33,39,45]],["S",28],["~",47],["S",29],["~",49],["|",[23,24,26,27,48,49]],["&",[12,14,15,17,18,20,33,39,45,51]],["S",31],["~",53],["&",[12,25,28,29,32,54]],["&",[12,25,28,35,38,54]],["&",[12,25,28,41,44,54]],["&",[12,25,28,47,50,54]]])json";
+            = R"json(["t",["~",0],["S",6],["S",7],["~",3],["S",8],["S",9],["~",6],["S",10],["S",11],["~",9],["&",[2,4,5,7,8,10]],["S",12],["S",13],["~",13],["S",14],["S",15],["~",16],["S",16],["S",17],["~",19],["&",[12,14,15,17,18,20]],["S",18],["~",22],["S",19],["S",20],["~",25],["S",21],["~",27],["S",22],["~",29],["S",23],["~",31],["|",[23,24,26,27,30,31]],["&",[12,14,15,17,18,20,33]],["S",24],["~",35],["S",25],["~",37],["|",[23,24,26,27,36,37]],["&",[12,14,15,17,18,20,33,39]],["S",26],["~",41],["S",27],["~",43],["|",[23,24,26,27,42,43]],["&",[12,14,15,17,18,20,33,39,45]],["S",28],["~",47],["S",29],["~",49],["|",[23,24,26,27,48,49]],["&",[12,14,15,17,18,20,33,39,45,51]],["S",30],["~",53],["&",[12,25,28,29,32,54]],["&",[12,25,28,35,38,54]],["&",[12,25,28,41,44,54]],["&",[12,25,28,47,50,54]]])json";
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
         EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
-        EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
-        EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-        {
-            // Deduplication changes for single precision
-            EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-            EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-        }
-        EXPECT_EQ(GeoMatId{3}, u.background);
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
+}
+
+TEST_F(DuneCryostatTest, no_simplify)
+{
+    this->setup_opts(R"json({
+"_format": "g4org-options",
+"logic": "postfix",
+"implicit_parent_boundary": false
+})json");
+
+    auto global_proto = this->load("dune-cryostat");
+    ProtoMap protos{*global_proto};
+    ASSERT_LT(1, protos.size());
+    auto u = this->build_unit(protos, UnivId{1});
+
+    static char const* const expected_volume_strings[] = {
+        "!all(+0, -1, +2, -3, +4, -5)",
+        "all(+6, -7, +8, -9, +10, -11)",
+        R"(all(+12, -13, +14, -15, +16, -17, !all(+18, -19, +20, -21, +22, -23), !all(+18, -19, +20, -21, +24, -25), !all(+18, -19, +20, -21, +26, -27), !all(+18, -19, +20, -21, +28, -29)))",
+        "all(+12, +20, -21, +22, -23, -30)",
+        "all(+12, +20, -21, +24, -25, -30)",
+        "all(+12, +20, -21, +26, -27, -30)",
+        "all(+12, +20, -21, +28, -29, -30)"};
+    static char const* const expected_bound_strings[] = {
+        R"(11: {{{-380,-679,-873}, {380,679,873}}, {{-380,-679,-873}, {380,679,873}}})",
+        R"(~12: {{{-380,-679,-873}, {380,679,873}}, {{-380,-679,-873}, {380,679,873}}})",
+        R"(22: {{{-378,628,-872}, {378,678,872}}, {{-378,628,-872}, {378,678,872}}})",
+        R"(32: {{{-1.15,-618,-560}, {1.15,-606,-350}}, {{-1.15,-618,-560}, {1.15,-606,-350}}})",
+        R"(42: {{{-1.2,-617,-559}, {1.2,-608,-512}}, {{-1.2,-617,-559}, {1.2,-608,-512}}})",
+        R"(~43: {{{-1.2,-617,-559}, {1.2,-608,-512}}, {{-1.2,-617,-559}, {1.2,-608,-512}}})",
+        "44: {null, {{-1.15,-618,-560}, {1.15,-606,-350}}}",
+        R"(48: {{{-1.2,-617,-510}, {1.2,-608,-463}}, {{-1.2,-617,-510}, {1.2,-608,-463}}})",
+        R"(~49: {{{-1.2,-617,-510}, {1.2,-608,-463}}, {{-1.2,-617,-510}, {1.2,-608,-463}}})",
+        "50: {null, {{-1.15,-618,-560}, {1.15,-606,-350}}}",
+        R"(54: {{{-1.2,-617,-447}, {1.2,-608,-400}}, {{-1.2,-617,-447}, {1.2,-608,-400}}})",
+        R"(~55: {{{-1.2,-617,-447}, {1.2,-608,-400}}, {{-1.2,-617,-447}, {1.2,-608,-400}}})",
+        "56: {null, {{-1.15,-618,-560}, {1.15,-606,-350}}}",
+        R"(60: {{{-1.2,-617,-398}, {1.2,-608,-351}}, {{-1.2,-617,-398}, {1.2,-608,-351}}})",
+        R"(~61: {{{-1.2,-617,-398}, {1.2,-608,-351}}, {{-1.2,-617,-398}, {1.2,-608,-351}}})",
+        "62: {null, {{-1.15,-618,-560}, {1.15,-606,-350}}}",
+        R"(65: {{{-1.15,-617,-559}, {1.05,-608,-512}}, {{-1.15,-617,-559}, {1.05,-608,-512}}})",
+        R"(66: {{{-1.15,-617,-510}, {1.05,-608,-463}}, {{-1.15,-617,-510}, {1.05,-608,-463}}})",
+        R"(67: {{{-1.15,-617,-447}, {1.05,-608,-400}}, {{-1.15,-617,-447}, {1.05,-608,-400}}})",
+        R"(68: {{{-1.15,-617,-398}, {1.05,-608,-351}}, {{-1.15,-617,-398}, {1.05,-608,-351}}})",
+    };
+    static int const expected_volume_nodes[] = {12, 22, 62, 65, 66, 67, 68};
+    static char const expected_tree_string[]
+        = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["S",3],["~",6],["S",4],["S",5],["~",9],["&",[2,4,5,7,8,10]],["~",11],["S",6],["S",7],["~",14],["S",8],["S",9],["~",17],["S",10],["S",11],["~",20],["&",[13,15,16,18,19,21]],["S",12],["S",13],["~",24],["S",14],["S",15],["~",27],["S",16],["S",17],["~",30],["&",[23,25,26,28,29,31]],["S",18],["S",19],["~",34],["S",20],["S",21],["~",37],["S",22],["S",23],["~",40],["&",[33,35,36,38,39,41]],["~",42],["&",[23,25,26,28,29,31,43]],["S",24],["S",25],["~",46],["&",[33,35,36,38,45,47]],["~",48],["&",[23,25,26,28,29,31,43,49]],["S",26],["S",27],["~",52],["&",[33,35,36,38,51,53]],["~",54],["&",[23,25,26,28,29,31,43,49,55]],["S",28],["S",29],["~",58],["&",[33,35,36,38,57,59]],["~",60],["&",[23,25,26,28,29,31,43,49,55,61]],["S",30],["~",63],["&",[23,36,38,39,41,64]],["&",[23,36,38,45,47,64]],["&",[23,36,38,51,53,64]],["&",[23,36,38,57,59,64]]])json";
+
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+    EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
+    EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 }
 
 //---------------------------------------------------------------------------//
@@ -472,7 +507,7 @@ TEST_F(IntersectionBoxesTest, default)
             "40: {null, {{-1.55,0,1.08}, {3.55,4,6.92}}}",
             "~41: {null, {{-1,0,1.08}, {1,1.5,2}}}",
             "42: {null, {{-1,0,1.08}, {1,1.5,2}}}",
-            "43: {{{-1,0,1.08}, {1,1.5,2}}, {{-50,-50,-50}, {50,50,50}}}",
+            "43: {null, {{-50,-50,-50}, {50,50,50}}}",
         };
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -746,13 +781,9 @@ TEST_F(Testem3Test, default)
 
         auto vols = volume_strings(u);
         ASSERT_EQ(53, vols.size());  // slabs, zero-size 'calo', world, ext
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-        {
-            // Deduplication changes for single precision
-            EXPECT_EQ(
-                R"(all(+0, -1, +2, -3, +4, -5, any(-6, -8, +9, -10, +11, +84)))",
-                vols.back());
-        }
+        EXPECT_EQ(
+            R"(all(+0, -1, +2, -3, +4, -5, any(-6, -8, +9, -10, +11, +60)))",
+            vols.back());
         EXPECT_EQ(GeoMatId{}, u.background);
     }
     {
@@ -765,15 +796,25 @@ TEST_F(Testem3Test, default)
         static char const* const expected_volume_strings[]
             = {"F", "-6", "+6", "F"};
         static char const* const expected_md_strings[] = {
-            R"(Absorber1@mx,Absorber1@my,Absorber1@mz,Absorber2@my,Absorber2@mz,Layer,Layer@mx,Layer@my,Layer@mz,layer.children)",
-            R"(Absorber1@py,Absorber1@pz,Absorber2@px,Absorber2@py,Absorber2@pz,Layer@px,Layer@py,Layer@pz,[EXTERIOR],layer)",
+            "",
+            "",
             "Absorber1@px,Absorber2,Absorber2@mx",
             "Absorber1",
         };
+        static char const* const expected_bound_strings[] = {
+            R"(0: {{{-0.17,-20,-20}, {0.4,20,20}}, {{-0.4,-20,-20}, {0.4,20,20}}})",
+            R"(1: {{{-0.4,-20,-20}, {0.4,20,20}}, {{-0.4,-20,-20}, {0.4,20,20}}})",
+            R"(2: {{{-0.17,-20,-20}, {0.4,20,20}}, {{-0.17,-20,-20}, {0.4,20,20}}})",
+            R"(3: {{{-0.4,-20,-20}, {-0.17,20,20}}, {{-0.4,-20,-20}, {-0.17,20,20}}})",
+        };
+        static char const expected_tree_string[]
+            = R"json(["t",["~",0],["S",6],["~",2]])json";
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+        EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
 }
 
@@ -791,11 +832,6 @@ TEST_F(TilecalPlugTest, default)
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(1, protos.size());
-
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-    {
-        GTEST_SKIP() << "Deduplication slightly changes surface nodes";
-    }
 
     {
         auto u = this->build_unit(protos, UnivId{0});
@@ -818,9 +854,13 @@ TEST_F(TilecalPlugTest, default)
             = {"<UNASSIGNED>", "m1", "m0", "m1"};
         static int const expected_volume_nodes[] = {14, 35, 34, 36};
         static char const expected_tree_string[]
-            = R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["~",6],["S",3],["~",8],["S",4],["~",10],["S",5],["~",12],["|",[3,4,6,8,11,13]],["S",6],["~",15],["|",[4,6,8,11,13,16]],["&",[5,7,9,10,12,15]],["S",9],["~",19],["S",10],["~",21],["|",[8,11,13,15,20,21]],["&",[9,10,12,16,19,22]],["&",[17,23]],["|",[18,24]],["S",13],["~",27],["S",14],["~",29],["S",15],["~",31],["|",[6,11,16,27,29,32]],["&",[7,10,15,28,30,31]],["&",[26,33]],["&",[2,5,7,9,10,12,17,23]]])json";
+            = R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["~",6],["S",3],["~",8],["S",4],["~",10],["S",5],["~",12],["|",[3,4,6,8,11,13]],["S",6],["~",15],["|",[4,6,8,11,13,16]],["&",[5,7,9,10,12,15]],["S",7],["~",19],["S",8],["~",21],["|",[8,11,13,15,20,21]],["&",[9,10,12,16,19,22]],["&",[17,23]],["|",[18,24]],["S",9],["~",27],["S",10],["~",29],["S",11],["~",31],["|",[6,11,16,27,29,32]],["&",[7,10,15,28,30,31]],["&",[26,33]],["&",[2,5,7,9,10,12,17,23]]])json";
 
-        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // Slight change in plane when single precision
+            EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        }
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
@@ -927,14 +967,14 @@ TEST_F(ZnenvTest, default)
         static char const* const expected_volume_strings[]
             = {"F", "-6", "+6", "F"};
         static char const* const expected_md_strings[] = {
-            R"(TGeoBBox0x0,TGeoBBox0x0@mx,TGeoBBox0x0@my,TGeoBBox0x0@mz,TGeoBBox0x0@mx,TGeoBBox0x0@my,TGeoBBox0x0@mz,ZNTX.children)",
-            R"(TGeoBBox0x0@px,TGeoBBox0x0@py,TGeoBBox0x0@pz,TGeoBBox0x0@px,TGeoBBox0x0@py,TGeoBBox0x0@pz,ZNTX,[EXTERIOR])",
+            "",
+            "",
             "TGeoBBox0x0,TGeoBBox0x0@my,TGeoBBox0x0@py",
             "TGeoBBox0x0",
         };
         static char const* const expected_bound_strings[] = {
-            R"(0: {{{-1.76,-3.52,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
-            R"(~1: {{{-1.76,-3.52,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
+            R"(0: {{{-1.76,0,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
+            R"(1: {{{-1.76,-3.52,-50}, {1.76,3.52,50}}, {{-1.76,-3.52,-50}, {1.76,3.52,50}}})",
             R"(2: {{{-1.76,0,-50}, {1.76,3.52,50}}, {{-1.76,0,-50}, {1.76,3.52,50}}})",
             R"(3: {{{-1.76,-3.52,-50}, {1.76,0,50}}, {{-1.76,-3.52,-50}, {1.76,0,50}}})"};
         static char const* const expected_trans_strings[] = {
@@ -1015,7 +1055,7 @@ TEST_F(ZnenvTest, explicit_interior)
 "inline_childless": false,
 "inline_singletons": "none",
 "inline_unions": false,
-"logic": "postfix",
+"logic": "infix",
 "objects_output_file": null,
 "org_output_file": null,
 "tol": {"abs": 0.0001, "rel": 0.001},

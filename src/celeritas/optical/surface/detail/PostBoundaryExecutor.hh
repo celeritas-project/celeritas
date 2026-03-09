@@ -23,6 +23,11 @@ namespace detail
  * Updates the track's state base on whether it is re-entrant in the
  * pre-volume or entrant on the post-volume. The track's surface physics
  * state will be reset.
+ *
+ * \note This is only called if the traversal state is "exiting", as set by
+ * SurfaceInteractionApplier .
+ *
+ * \sa BoundaryAction
  */
 struct PostBoundaryExecutor
 {
@@ -54,6 +59,12 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
     }
 
     track.surface_physics().reset();
+
+    if (!track.material_record().material_id())
+    {
+        // Kill track if it enters an invalid optical material
+        track.sim().status(TrackStatus::killed);
+    }
 
     CELER_ENSURE(!track.surface_physics().is_crossing_boundary());
 }
