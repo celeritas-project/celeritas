@@ -69,11 +69,12 @@ void MagneticField<P, F>::GetFieldValue(G4double const pos[3],
     F calc_field{params_->host_ref()};
 
     // Calculate the magnetic field value in the native Celeritas unit system
-    Real3 field_native = calc_field(convert_from_geant(pos, clhep_length));
+    Real3 field_native
+        = calc_field(convert_from_geant<units::ClhepLength, real_type>(pos));
     for (auto i = 0; i < 3; ++i)
     {
         // Return values of the field vector in native geant4 units
-        field[i] = convert_to_geant(field_native[i], clhep_field);
+        field[i] = convert_to_geant<units::ClhepField>(field_native[i]);
     }
 }
 
