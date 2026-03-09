@@ -71,7 +71,7 @@ validated_field_data(UniformFieldParams::Input const& inp)
 
     HostVal<UniformFieldParamsData> result;
     result.field = native_value_from(
-        make_quantity_array<units::FieldTesla>(inp.strength));
+        make_quantity_array<units::TeslaField>(inp.strength));
     result.options = inp.driver_options;
     return result;
 }

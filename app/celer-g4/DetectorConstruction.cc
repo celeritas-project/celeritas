@@ -179,7 +179,7 @@ auto DetectorConstruction::construct_field() const -> FieldData
         {
             CELER_LOG(info) << "Using a uniform field " << field_val << " [T]";
             auto native_field = native_value_from(
-                make_quantity_array<units::FieldTesla>(field_val));
+                make_quantity_array<units::TeslaField>(field_val));
             g4field = std::make_shared<G4UniformMagField>(
                 native_to_geant<units::ClhepField>(native_field));
         }

@@ -51,8 +51,12 @@ using InvCmXs = RealQuantity<UnitInverse<Centimeter>>;
 using InvCcDensity = RealQuantity<InvCentimeterCubed>;
 using MolCcDensity = RealQuantity<MolPerCentimeterCubed>;
 using GramCcDensity = RealQuantity<GramPerCentimeterCubed>;
-using FieldTesla = RealQuantity<Tesla>;
+using TeslaField = RealQuantity<Tesla>;
 //!@}
+
+// DEPRECATED: remove in v1.0
+using FieldTesla [[deprecated]] = RealQuantity<Tesla>;
+
 //---------------------------------------------------------------------------//
 }  // namespace units
 }  // namespace celeritas
