@@ -1692,7 +1692,7 @@ TEST_F(LarSphere, optical)
                  = std::get_if<inp::Grid>(&comp.spectrum_distribution))
         {
             EXPECT_TRUE(*grid);
-            components.push_back(grid->x.size());
+            components.push_back(static_cast<double>(grid->x.size()));
         }
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
