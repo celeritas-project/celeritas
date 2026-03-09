@@ -82,14 +82,12 @@ Array<T, 3> convert_from_geant(double const vec[3])
 // DEPRECATED
 //---------------------------------------------------------------------------//
 //! Value of a unit Celeritas length in the CLHEP unit system
-[[deprecated]] inline constexpr double clhep_length{1
-                                                    / lengthunits::millimeter};
+inline constexpr double clhep_length{1 / lengthunits::millimeter};
 
 /*!
  * Convert a value from Geant4 with CLHEP units.
  */
-[[deprecated]] constexpr inline double
-convert_from_geant(double val, double units)
+constexpr inline double convert_from_geant(double val, double units)
 {
     return val / units;
 }
@@ -98,8 +96,7 @@ convert_from_geant(double val, double units)
 /*!
  * Convert a 3-vector from Geant4/CLHEP to Celeritas native units.
  */
-[[deprecated]] inline Real3
-convert_from_geant(G4ThreeVector const& vec, double units)
+inline Real3 convert_from_geant(G4ThreeVector const& vec, double units)
 {
     return static_array_cast<real_type>(to_array(vec) / units);
 }
@@ -108,8 +105,7 @@ convert_from_geant(G4ThreeVector const& vec, double units)
 /*!
  * Convert a C array from Geant4/CLHEP to Celeritas native units.
  */
-[[deprecated]] inline Real3
-convert_from_geant(double const vec[3], double units)
+inline Real3 convert_from_geant(double const vec[3], double units)
 {
     return static_array_cast<real_type>(Array{vec[0], vec[1], vec[2]} / units);
 }
@@ -118,8 +114,7 @@ convert_from_geant(double const vec[3], double units)
 /*!
  * Convert a native Celeritas quantity to a Geant4 value with CLHEP units.
  */
-[[deprecated]] constexpr inline double
-convert_to_geant(real_type val, double units)
+constexpr inline double convert_to_geant(real_type val, double units)
 {
     return val * units;
 }
@@ -128,8 +123,7 @@ convert_to_geant(real_type val, double units)
 /*!
  * Convert a native Celeritas 3-vector to a Geant4 equivalent.
  */
-[[deprecated]] inline G4ThreeVector
-convert_to_geant(Real3 const& arr, double units)
+inline G4ThreeVector convert_to_geant(Real3 const& arr, double units)
 {
     return to_g4vector(static_array_cast<double>(arr) * units);
 }
