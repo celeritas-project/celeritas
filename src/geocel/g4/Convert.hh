@@ -72,10 +72,9 @@ Array<T, 3> native_from_geant(G4ThreeVector const& v)
  * Convert a C vector via a quantity from native Geant4 types/units.
  */
 template<class Q, class T = Array<typename Q::value_type, 3>>
-Array<T, 3> native_from_geant(double const vec[3])
+Array<T, 3> native_from_geant(Array<double, 3> const& v)
 {
-    return static_array_cast<T>(native_value_from(
-        make_quantity_array<Q>(Array<double, 3>{vec[0], vec[1], vec[2]})));
+    return static_array_cast<T>(native_value_from(make_quantity_array<Q>(v)));
 }
 
 //---------------------------------------------------------------------------//

@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantUnits.hh"
@@ -71,7 +72,8 @@ void MagneticField<P, F>::GetFieldValue(G4double const pos[3],
 
     // Calculate the magnetic field value in the native Celeritas unit system
     Real3 field_native
-        = calc_field(native_from_geant<units::ClhepLength, real_type>(pos));
+        = calc_field(native_from_geant<units::ClhepLength, real_type>(
+            to_array(Span<G4double const, 3>(pos, 3))));
     for (auto i : range(3))
     {
         // Return values of the field vector in native geant4 units
