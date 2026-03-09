@@ -4,12 +4,11 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/detail/SetGenerated.cu
 //---------------------------------------------------------------------------//
-#include "SetGenerated.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
 
+#include "SetGeneratedExecutor.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
 

@@ -22,7 +22,7 @@
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
-#include "detail/SetGenerated.hh"
+#include "detail/SetGeneratedExecutor.hh"
 
 namespace celeritas
 {
