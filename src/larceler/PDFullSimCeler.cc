@@ -78,6 +78,8 @@ PDFullSimCeler::PDFullSimCeler(Parameters const& config)
     , runner_inp_{make_input_from_config(config())}
     , sim_tag_{config().SimulationLabel()}
 {
+    // Inform LArSoft we're going to make OpBTR
+    produces<std::vector<sim::OpDetBacktrackerRecord>>();
 }
 
 //---------------------------------------------------------------------------//
@@ -87,9 +89,6 @@ PDFullSimCeler::PDFullSimCeler(Parameters const& config)
 void PDFullSimCeler::beginJob()
 {
     CELER_EXPECT(!runner_);
-
-    // Inform LArSoft we're going to make OpBTR
-    produces<std::vector<sim::OpDetBacktrackerRecord>>();
 
     // Obtain the GDML filename from the LAr geometry service
     auto const* geo = lar::providerFrom<geo::Geometry>();
