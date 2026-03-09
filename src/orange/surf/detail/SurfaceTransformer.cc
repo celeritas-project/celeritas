@@ -197,9 +197,9 @@ GeneralQuadric SurfaceTransformer::operator()(GeneralQuadric const& other) const
         constexpr auto Y = to_int(Axis::y);
         constexpr auto Z = to_int(Axis::z);
 
-        Real3 const second = make_array(other.second());
-        Real3 const cross = make_array(other.cross()) / real_type(2);
-        Real3 const first = make_array(other.first()) / real_type(2);
+        Real3 const second = to_array(other.second());
+        Real3 const cross = to_array(other.cross()) / real_type(2);
+        Real3 const first = to_array(other.first()) / real_type(2);
         real_type const zeroth = other.zeroth();
 
         return Mat4{Vec4{zeroth, first[X], first[Y], first[Z]},
