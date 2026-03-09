@@ -31,6 +31,7 @@ template<class Q, class... Args>
 CELER_CONSTEXPR_FUNCTION Array<Q, sizeof...(Args)>
 make_quantity_array(Args const&... args) noexcept
 {
+    static_assert(is_quantity_v<Q>);
     return {Q{args}...};
 }
 
@@ -48,6 +49,7 @@ template<class Q, size_type N>
 CELER_CONSTEXPR_FUNCTION Array<Q, N>
 make_quantity_array(Array<typename Q::value_type, N> const& arr) noexcept
 {
+    static_assert(is_quantity_v<Q>);
     Array<Q, N> result;
     for (size_type i = 0; i < N; ++i)
     {
@@ -84,6 +86,7 @@ native_value_from(Array<Quantity<UnitT, ValueT>, N> const& quant) noexcept
 template<class Q, class T, size_type N>
 CELER_CONSTEXPR_FUNCTION auto native_value_to(Array<T, N> const& value) noexcept
 {
+    static_assert(is_quantity_v<Q>);
     Array<Q, N> result;
     for (size_type i = 0; i < N; ++i)
     {

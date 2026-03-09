@@ -178,8 +178,10 @@ auto DetectorConstruction::construct_field() const -> FieldData
         if (norm(field_val) > 0)
         {
             CELER_LOG(info) << "Using a uniform field " << field_val << " [T]";
+            auto native_field = native_value_from(
+                make_quantity_array<units::FieldTesla>(field_val));
             g4field = std::make_shared<G4UniformMagField>(
-                convert_to_geant<units::ClhepField>(field_val));
+                convert_to_geant<units::ClhepField>(native_field));
         }
 
         inp::UniformField input;
