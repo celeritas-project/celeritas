@@ -139,9 +139,10 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
  * \todo With Cherenkov enabled we would need to determine the incident
  * particle's charge and the pre- and post-step speed.
  */
-auto LarStandaloneRunner::operator()(VecSED const& sed) -> VecBTR
+auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
+    -> VecBTR
 {
-    CELER_EXPECT(!sed.empty());
+    CELER_EXPECT(!sim_energy_deposits.empty());
 
     // Allocate BTR helpers
     btr_helpers_.clear();
@@ -153,28 +154,45 @@ auto LarStandaloneRunner::operator()(VecSED const& sed) -> VecBTR
     }
 
     std::vector<celeritas::optical::GeneratorDistributionData> gdd;
-    gdd.reserve(sed.size());
+    gdd.reserve(sim_energy_deposits.size());
 
-    for (auto const& edep : sed)
+    size_type num_skipped{0};
+    double edep_skipped{0};
+
+    for (auto const& step : sim_energy_deposits)
     {
+        if (step.NumPhotons() == 0)
+        {
+            ++num_skipped;
+            edep_skipped += step.E();
+            continue;
+        }
+
         // Convert LArSoft sim edeps to Celeritas generator distribution data
         celeritas::optical::GeneratorDistributionData data;
         data.type = GeneratorType::scintillation;
-        data.num_photons = edep.NumPhotons();
-        data.primary = to_primary_id(edep.TrackID());
-        data.step_length = convert_from_larsoft<LarsoftLen>(edep.StepLength());
+        data.num_photons = step.NumPhotons();
+        data.primary = to_primary_id(step.TrackID());
+        data.step_length = convert_from_larsoft<LarsoftLen>(step.StepLength());
         // Assume continuous energy loss along the step
         //! \todo For neutral particles, set this to 0 (LED at post-step point)
         data.continuous_edep_fraction = 1;
         data.points[StepPoint::pre].time
-            = convert_from_larsoft<LarsoftTime>(edep.StartT());
+            = convert_from_larsoft<LarsoftTime>(step.StartT());
         data.points[StepPoint::pre].pos
-            = convert_from_larsoft<LarsoftLen>(edep.Start());
+            = convert_from_larsoft<LarsoftLen>(step.Start());
         data.points[StepPoint::post].time
-            = convert_from_larsoft<LarsoftTime>(edep.EndT());
+            = convert_from_larsoft<LarsoftTime>(step.EndT());
         data.points[StepPoint::post].pos
-            = convert_from_larsoft<LarsoftLen>(edep.End());
+            = convert_from_larsoft<LarsoftLen>(step.End());
         gdd.push_back(data);
+    }
+    if (num_skipped > 0)
+    {
+        CELER_LOG(warning)
+            << "Omitting " << num_skipped
+            << " steps that emitted zero photons (total energy deposition: "
+            << edep_skipped << " MeV)";
     }
 
     // Execute
