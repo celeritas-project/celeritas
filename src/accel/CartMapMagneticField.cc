@@ -80,9 +80,8 @@ MakeCartMapFieldInput(G4Field const& field,
     auto field_converter = [](Array<G4double, 3> const& bfield,
                               Array<G4double, 4> const&,
                               real_type cur_bfield[3]) {
-        using ClhepField = Quantity<units::ClhepUnitBField, double>;
-        auto bfield_native
-            = native_value_from(make_quantity_array<ClhepField>(bfield));
+        auto bfield_native = native_value_from(
+            make_quantity_array<units::ClhepField>(bfield));
         std::copy(bfield_native.cbegin(), bfield_native.cend(), cur_bfield);
     };
 

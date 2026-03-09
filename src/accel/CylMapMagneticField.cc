@@ -105,9 +105,8 @@ MakeCylMapFieldInput(G4Field const& field,
     auto field_converter = [](Array<G4double, 3> const& bfield,
                               Array<G4double, 4> const& pos,
                               real_type cur_bfield[3]) {
-        using ClhepField = Quantity<units::ClhepUnitBField, G4double>;
-        auto bfield_native
-            = native_value_from(make_quantity_array<ClhepField>(bfield));
+        auto bfield_native = native_value_from(
+            make_quantity_array<units::ClhepField>(bfield));
         double const phi = std::atan2(pos[1], pos[0]);
         EnumArray<CylAxis, G4double> bfield_cyl;
         cartesian_to_cylindrical(bfield_native, phi, bfield_cyl);
