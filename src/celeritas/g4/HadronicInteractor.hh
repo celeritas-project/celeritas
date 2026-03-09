@@ -35,7 +35,7 @@ class HadronicInteractor
                        G4HadronicProcessType type);
 
     // Process PostStepDoIt
-    G4VParticleChange* PostStepDoIt(G4Track const& track, G4Step const& step);
+    G4VParticleChange& PostStepDoIt(G4Track const& track, G4Step const& step);
 
     // Return the underlying process name
     G4String GetProcessName() const;

@@ -28,18 +28,10 @@ HadronicInteractor::HadronicInteractor(G4ParticleDefinition const& particle,
     auto* proc_store = G4HadronicProcessStore::Instance();
     process_ = proc_store->FindProcess(&particle_, type);
 
-    if (!process_)
-    {
-        G4ExceptionDescription description;
-        description << "Hadronic process of type " << type
-                    << " does not exist for particle "
-                    << particle_.GetParticleName();
-
-        G4Exception("HadronicInteractor::HadronicInteractor",
-                    "ProcessNotFound",
-                    FatalException,
-                    description);
-    }
+    CELER_VALIDATE(process_,
+                   << "Hadronic process of type " << type
+                   << " does not exist for particle "
+                   << particle_.GetParticleName());
 }
 
 //---------------------------------------------------------------------------//
@@ -47,14 +39,17 @@ HadronicInteractor::HadronicInteractor(G4ParticleDefinition const& particle,
  * Invoke the PostStepDoIt action of the Geant4 hadronic process for the given
  * track and step.
  */
-G4VParticleChange*
+G4VParticleChange&
 HadronicInteractor::PostStepDoIt(G4Track const& track, G4Step const& step)
 {
     CELER_EXPECT(track.GetParticleDefinition() == &particle_);
 
     process_->StartTracking(const_cast<G4Track*>(&track));
 
-    return process_->PostStepDoIt(track, step);
+    auto* result = process_->PostStepDoIt(track, step);
+    CELER_ASSERT(result);
+
+    return *result;
 }
 
 //---------------------------------------------------------------------------//
