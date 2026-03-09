@@ -61,7 +61,7 @@ class PrimaryInserter
         // relativistic energy-momentum relation.
         G4PrimaryParticle* primary = new G4PrimaryParticle(par.pid());
 
-        // Set the primary directlon
+        // Set the primary direction
         auto dir = make_unit_vector(Array{p.x(), p.y(), p.z()});
         primary->SetMomentumDirection(to_g4vector(dir));
 

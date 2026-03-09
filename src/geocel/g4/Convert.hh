@@ -38,8 +38,8 @@ double native_to_geant(real_type v)
  *
  * The track position is in native Celeritas units and value types:
  * \code
-    track.position = static_array_cast<real_type>(
-        native_from_geant<lengthunits::ClhepLength>(g4track.GetPosition()));
+    track.position = native_from_geant<lengthunits::ClhepLength, real_type>(
+      g4track.GetPosition());
    \endcode
  */
 template<class Q, class T = typename Q::value_type>
@@ -74,7 +74,7 @@ Array<T, 3> native_from_geant(G4ThreeVector const& v)
 /*!
  * Convert a C vector via a quantity from native Geant4 types/units.
  */
-template<class Q, class T = Array<typename Q::value_type, 3>>
+template<class Q, class T = typename Q::value_type>
 Array<T, 3> native_from_geant(Array<double, 3> const& v)
 {
     return static_array_cast<T>(native_value_from(make_quantity_array<Q>(v)));
@@ -85,14 +85,6 @@ Array<T, 3> native_from_geant(Array<double, 3> const& v)
 //---------------------------------------------------------------------------//
 //! Value of a unit Celeritas length in the CLHEP unit system
 inline constexpr double clhep_length{1 / lengthunits::millimeter};
-
-/*!
- * Convert a value from Geant4 with CLHEP units.
- */
-constexpr inline double convert_from_geant(double val, double units)
-{
-    return val / units;
-}
 
 //---------------------------------------------------------------------------//
 /*!
