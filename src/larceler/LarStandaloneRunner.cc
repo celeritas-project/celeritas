@@ -153,12 +153,11 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
         CELER_ASSERT(inserted);
     }
 
+    // Convert SimEnergyDep input
     std::vector<celeritas::optical::GeneratorDistributionData> gdd;
     gdd.reserve(sim_energy_deposits.size());
-
     size_type num_skipped{0};
     double edep_skipped{0};
-
     for (auto const& step : sim_energy_deposits)
     {
         if (step.NumPhotons() == 0)
@@ -196,6 +195,13 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
             << edep_skipped << " MeV)";
     }
 
+    if (gdd.empty())
+    {
+        CELER_LOG(warning) << "No energy deposition resulted in photons: "
+                              "skipping optical transport";
+        return {};
+    }
+
     // Execute
     auto result = (*runner_)(make_span(std::as_const(gdd)));
 
@@ -203,7 +209,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     auto const& gen = result.counters.generators.front();
     CELER_LOG(debug) << "Transported " << gen.num_generated
                      << " optical photons from " << gen.buffer_size
-                     << " sim energy deposits a total of "
+                     << " sim energy deposits with a total of "
                      << result.counters.steps << " steps over "
                      << result.counters.step_iters << " step iterations";
 

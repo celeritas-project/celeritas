@@ -209,6 +209,28 @@ TEST_F(LarSphereTest, two_sim_edeps)
     EXPECT_REF_EQ(ref, result);
 }
 
+TEST_F(LarSphereTest, zero_photons)
+{
+    auto& run = this->runner();
+
+    sim::SimEnergyDeposit sed(
+        /* numPhotons = */ 0,
+        /* numElectrons = */ 100,
+        /* scintYieldRatio = */ 1.0,
+        /* edep = */ 0.1,
+        /* startPos = */ geo::Point_t{-1, -98, 0.0},  // [cm]
+        /* endPos = */ geo::Point_t{1, -98, 0},  // [cm]
+        /* startTime = */ 1.0,
+        /* endTime = */ 1.1,
+        /* trackID = */ 123456789,
+        /* pdgCode = */ pdg::electron().get(),
+        /* origTrackID = */ 123);
+
+    // No run should occur, BTRs should be empty
+    auto result = run({sed});
+    EXPECT_TRUE(result.empty());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
