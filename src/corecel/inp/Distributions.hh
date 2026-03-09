@@ -17,7 +17,7 @@ namespace inp
 //---------------------------------------------------------------------------//
 //! Sample from a truncated distribution
 template<class Distribution>
-struct Truncated
+struct TruncatedDistribution
 {
     Distribution distribution{};
     double lower{-numeric_limits<double>::infinity()};
@@ -40,7 +40,6 @@ struct NormalDistribution
     double stddev{1};
 };
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 //! Sample a point uniformly on the surface of a unit sphere
 struct IsotropicDistribution

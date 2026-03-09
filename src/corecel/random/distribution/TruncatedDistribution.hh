@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/random/distribution/Truncated.hh
+//! \file corecel/random/distribution/TruncatedDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -22,25 +22,26 @@ namespace celeritas
  * they fall within the truncation bounds.
  */
 template<class Distribution>
-class Truncated
+class TruncatedDistribution
 {
   public:
     //!@{
     //! \name Type aliases
     using real_type = typename Distribution::real_type;
     using result_type = typename Distribution::result_type;
-    using RecordT = TruncatedRecord<typename Distribution::RecordT>;
+    using RecordT = TruncatedDistributionRecord<typename Distribution::RecordT>;
     //!@}
 
   public:
     // Construct with distribution and truncation bounds
+    template<class... Args>
     inline CELER_FUNCTION
-    Truncated(Distribution&& sample, real_type lower, real_type upper);
+    TruncatedDistribution(real_type lower, real_type upper, Args&&... args);
 
     // Construct from record
-    explicit CELER_FUNCTION Truncated(RecordT const& record)
-        : Truncated(
-              Distribution(record.distribution), record.lower, record.upper)
+    explicit CELER_FUNCTION TruncatedDistribution(RecordT const& record)
+        : TruncatedDistribution(
+              record.lower, record.upper, Distribution(record.distribution))
     {
     }
 
@@ -61,10 +62,12 @@ class Truncated
  * Construct with distribution and truncation bounds.
  */
 template<class Distribution>
-CELER_FUNCTION Truncated<Distribution>::Truncated(Distribution&& sample,
-                                                  real_type lower,
-                                                  real_type upper)
-    : sample_(sample), lower_(lower), upper_(upper)
+template<class... Args>
+CELER_FUNCTION
+TruncatedDistribution<Distribution>::TruncatedDistribution(real_type lower,
+                                                           real_type upper,
+                                                           Args&&... args)
+    : sample_(celeritas::forward<Args>(args)...), lower_(lower), upper_(upper)
 {
     CELER_EXPECT(lower < upper);
 }
@@ -75,8 +78,8 @@ CELER_FUNCTION Truncated<Distribution>::Truncated(Distribution&& sample,
  */
 template<class Distribution>
 template<class Generator>
-CELER_FUNCTION auto Truncated<Distribution>::operator()(Generator& rng)
-    -> result_type
+CELER_FUNCTION auto
+TruncatedDistribution<Distribution>::operator()(Generator& rng) -> result_type
 {
     result_type result;
     do

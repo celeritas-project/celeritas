@@ -11,7 +11,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
-#include "corecel/random/distribution/Truncated.hh"
+#include "corecel/random/distribution/TruncatedDistribution.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 
 namespace celeritas
@@ -59,7 +59,7 @@ class GaussianRoughnessSampler
 
   private:
     Real3 normal_;
-    Truncated<NormalDistribution<real_type>> sample_alpha_;
+    TruncatedDistribution<NormalDistribution<real_type>> sample_alpha_;
     real_type f_max_;
 };
 
@@ -73,7 +73,7 @@ CELER_FUNCTION
 GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
                                                    real_type sigma_alpha)
     : normal_(normal)
-    , sample_alpha_({0, sigma_alpha}, -0.5 * constants::pi, 0.5 * constants::pi)
+    , sample_alpha_(-0.5 * constants::pi, 0.5 * constants::pi, 0, sigma_alpha)
     , f_max_(fmin(real_type{1}, 4 * sigma_alpha))
 {
     CELER_EXPECT(sigma_alpha > 0);

@@ -52,9 +52,9 @@ DistributionInserter::operator()(inp::NormalDistribution const& d)
  * Add data for sampling a value from a truncated normal distribution.
  */
 OnedDistributionId DistributionInserter::operator()(
-    inp::Truncated<inp::NormalDistribution> const& d)
+    inp::TruncatedDistribution<inp::NormalDistribution> const& d)
 {
-    TruncatedRecord<NormalDistributionRecord> record;
+    TruncatedDistributionRecord<NormalDistributionRecord> record;
     record.distribution.mean = d.distribution.mean;
     record.distribution.stddev = d.distribution.stddev;
     record.lower = d.lower;

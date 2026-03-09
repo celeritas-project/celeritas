@@ -15,7 +15,7 @@
 #include "corecel/random/distribution/DeltaDistribution.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
-#include "corecel/random/distribution/Truncated.hh"
+#include "corecel/random/distribution/TruncatedDistribution.hh"
 #include "corecel/random/distribution/UniformBoxDistribution.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/inp/Events.hh"
@@ -47,11 +47,12 @@ auto make_energy_sampler(inp::EnergyDistribution const& i)
             [](inp::NormalDistribution const& ge) {
                 return NormalDistribution{ge.mean, ge.stddev};
             },
-            [](inp::Truncated<inp::NormalDistribution> const& d) {
-                return Truncated<NormalDistribution<real_type>>{
-                    {d.distribution.mean, d.distribution.stddev},
+            [](inp::TruncatedDistribution<inp::NormalDistribution> const& d) {
+                return TruncatedDistribution<NormalDistribution<real_type>>{
                     d.lower,
-                    d.upper};
+                    d.upper,
+                    d.distribution.mean,
+                    d.distribution.stddev};
             }}),
         i);
 }

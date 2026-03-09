@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/random/distribution/Truncated.test.cc
+//! \file corecel/random/distribution/TruncatedDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/random/distribution/Truncated.hh"
+#include "corecel/random/distribution/TruncatedDistribution.hh"
 
 #include <random>
 
@@ -23,6 +23,8 @@ namespace test
 
 TEST(TruncatedDistributionTest, normal)
 {
+    using TruncatedNormal = TruncatedDistribution<NormalDistribution<double>>;
+
     DiagnosticRngEngine<std::mt19937> rng;
     int num_samples = 10000;
 
@@ -30,8 +32,7 @@ TEST(TruncatedDistributionTest, normal)
     double stddev = 1.0;
     double lower = -2;
     double upper = 2;
-    Truncated<NormalDistribution<double>> sample_normal{
-        {mean, stddev}, lower, upper};
+    TruncatedNormal sample_normal{lower, upper, mean, stddev};
 
     Histogram histogram(8, {lower, upper});
     for ([[maybe_unused]] int i : range(num_samples))

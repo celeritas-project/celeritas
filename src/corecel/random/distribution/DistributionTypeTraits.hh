@@ -14,7 +14,7 @@
 #include "DeltaDistribution.hh"
 #include "IsotropicDistribution.hh"
 #include "NormalDistribution.hh"
-#include "Truncated.hh"
+#include "TruncatedDistribution.hh"
 #include "UniformBoxDistribution.hh"
 
 namespace celeritas
@@ -38,7 +38,7 @@ struct OnedDistributionTypeTraits;
 CELER_DISTRIB_TRAITS(delta, DeltaDistribution<real_type>);
 CELER_DISTRIB_TRAITS(normal, NormalDistribution<real_type>);
 CELER_DISTRIB_TRAITS(truncated_normal,
-                     Truncated<NormalDistribution<real_type>>);
+                     TruncatedDistribution<NormalDistribution<real_type>>);
 
 #undef CELER_DISTRIB_TRAITS
 

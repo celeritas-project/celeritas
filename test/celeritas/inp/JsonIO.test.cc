@@ -78,7 +78,7 @@ TEST(JsonIO, events)
         EXPECT_EQ(Real3({1, 1, 1}), shape.upper);
     }
     {
-        Truncated<NormalDistribution> input;
+        TruncatedDistribution<NormalDistribution> input;
         input.distribution.mean = 2.0;
         input.distribution.stddev = 1.0;
         input.lower = 0.0;

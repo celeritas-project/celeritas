@@ -21,7 +21,7 @@ namespace celeritas
  * Data for sampling from a truncated distribution.
  */
 template<class DistributionRecord>
-struct TruncatedRecord
+struct TruncatedDistributionRecord
 {
     DistributionRecord distribution{};
     real_type lower{-numeric_limits<real_type>::infinity()};
@@ -90,7 +90,7 @@ struct DistributionParamsData
 
     Items<DeltaDistributionRecord<real_type>> delta_real;
     Items<NormalDistributionRecord> normal;
-    Items<TruncatedRecord<NormalDistributionRecord>> truncated_normal;
+    Items<TruncatedDistributionRecord<NormalDistributionRecord>> truncated_normal;
 
     //! 3D distributions
     ThreedDistributionItems<ThreedDistributionType> threed_types;

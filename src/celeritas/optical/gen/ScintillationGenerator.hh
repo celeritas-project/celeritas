@@ -17,7 +17,7 @@
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
 #include "corecel/random/distribution/Selector.hh"
-#include "corecel/random/distribution/Truncated.hh"
+#include "corecel/random/distribution/TruncatedDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 
@@ -135,8 +135,8 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
 
         // Sample a photon for a single scintillation component
         CELER_ASSERT(component.lambda_mean > 0);
-        auto wavelength = Truncated<NormalDistribution<real_type>>{
-            {component.lambda_mean, component.lambda_sigma}, 0, inf}(rng);
+        auto wavelength = TruncatedDistribution<NormalDistribution<real_type>>{
+            0, inf, component.lambda_mean, component.lambda_sigma}(rng);
         energy_val = value_as<units::MevEnergy>(
             detail::wavelength_to_energy(wavelength));
     }
