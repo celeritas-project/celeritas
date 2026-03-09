@@ -184,7 +184,7 @@
     },
     {
       "name": "ndebug-vecgeom",
-      "displayName": "With vecgeom, clhep, dev g4 in optimized mode",
+      "displayName": "With vecgeom, g4 in optimized mode",
       "inherits": [".ccache", ".spackbase", ".ndebug", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
