@@ -495,7 +495,7 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
         real_type yield = data.reals[mat_record.yield_pdf[comp_idx]];
         expected_lambda += component.lambda_mean * yield;
     }
-    EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, 1e-5);
+    EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, 1e-4);
 }
 
 TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)

@@ -49,8 +49,8 @@ auto make_energy_sampler(inp::EnergyDistribution const& i)
             },
             [](inp::TruncatedDistribution<inp::NormalDistribution> const& d) {
                 return TruncatedDistribution<NormalDistribution<real_type>>{
-                    d.lower,
-                    d.upper,
+                    static_cast<real_type>(d.lower),
+                    static_cast<real_type>(d.upper),
                     d.distribution.mean,
                     d.distribution.stddev};
             }}),
