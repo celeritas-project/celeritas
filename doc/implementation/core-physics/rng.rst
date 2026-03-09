@@ -55,7 +55,6 @@ three-vectors (such as sampling an isotropic direction).
 .. doxygenclass:: celeritas::PowerDistribution
 .. doxygenclass:: celeritas::RadialDistribution
 .. doxygenclass:: celeritas::ReciprocalDistribution
-.. doxygenclass:: celeritas::TruncatedNormalDistribution
 .. doxygenclass:: celeritas::UniformBoxDistribution
 .. doxygenclass:: celeritas::UniformRealDistribution
 
@@ -64,6 +63,7 @@ routines.
 
 .. doxygenclass:: celeritas::RejectionSampler
 .. doxygenclass:: celeritas::Selector
+.. doxygenclass:: celeritas::Truncated
 .. doxygenfunction:: celeritas::make_selector
 .. doxygenfunction:: celeritas::make_unnormalized_selector
 
