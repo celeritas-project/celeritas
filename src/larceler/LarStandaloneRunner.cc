@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "LarStandaloneRunner.hh"
 
+#include <limits>
 #include <memory>
+#include <type_traits>
 #include <utility>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
@@ -38,6 +40,58 @@ CELER_FORCEINLINE auto make_obtr(sim::OBTRHelper&& helper)
 {
     return sim::OpDetBacktrackerRecord(helper);
 }
+
+//! Starting index of a track ID from LArSoft that has a negative value
+constexpr auto neg_trackid_offset{
+    std::numeric_limits<PrimaryId::size_type>::max() / 2u};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert LArSoft track ID to Celeritas primary ID.
+ *
+ * Split unsigned range: [0, half) for non-negative, [half + 1, max - 1) for
+ * negative. The sentinel value (max) is avoided.
+ */
+CELER_FORCEINLINE PrimaryId to_primary_id(int track_id)
+{
+    using size_type = PrimaryId::size_type;
+    using common_uint = std::common_type_t<unsigned int, size_type>;
+
+    CELER_EXPECT(static_cast<common_uint>(std::abs(track_id))
+                 < static_cast<common_uint>(neg_trackid_offset));
+
+    if (track_id >= 0)
+    {
+        // Map non-negative track IDs to lower half
+        return id_cast<PrimaryId>(track_id);
+    }
+
+    // Map negative track IDs to upper half: -1 -> half + 1, -2 -> half+2, etc.
+    // Absolute value of track_id should fit in the upper half range
+    auto uid = neg_trackid_offset + static_cast<size_type>(-track_id);
+    return id_cast<PrimaryId>(uid);
+}
+
+//---------------------------------------------------------------------------//
+//! Convert Celeritas primary ID to LArSoft track ID.
+CELER_FORCEINLINE int to_track_id(PrimaryId primary_id)
+{
+    CELER_EXPECT(primary_id);
+
+    auto const uid = primary_id.get();
+
+    if (uid < neg_trackid_offset)
+    {
+        // Lower half: direct conversion to non-negative int
+        return static_cast<int>(uid);
+    }
+
+    // Upper half: convert to negative int
+    // Compute offset from half_range: 0 -> -1, 1 -> -2, etc.
+    auto offset = uid - neg_trackid_offset;
+    return -static_cast<std::make_signed_t<size_type>>(offset);
+}
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -107,7 +161,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sed) -> VecBTR
         celeritas::optical::GeneratorDistributionData data;
         data.type = GeneratorType::scintillation;
         data.num_photons = edep.NumPhotons();
-        data.primary = id_cast<PrimaryId>(edep.TrackID());
+        data.primary = to_primary_id(edep.TrackID());
         data.step_length = convert_from_larsoft<LarsoftLen>(edep.StepLength());
         // Assume continuous energy loss along the step
         //! \todo For neutral particles, set this to 0 (LED at post-step point)
@@ -166,7 +220,7 @@ void LarStandaloneRunner::hit(SpanCelerHits hits)
                      convert_to_larsoft<LarsoftLen>(h.position[1]),
                      convert_to_larsoft<LarsoftLen>(h.position[2])};
         btr_iter->second->AddScintillationPhotonsToMap(
-            h.primary.get(),
+            to_track_id(h.primary),
             convert_to_larsoft<LarsoftTime>(h.time),
             /* num photons = */ 1,
             larpos.data(),

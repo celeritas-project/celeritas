@@ -7,6 +7,7 @@
 #include "larceler/LarStandaloneRunner.hh"
 
 #include <memory>
+#include <larcoreobj/SimpleTypesAndConstants/geo_vectors.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
@@ -164,7 +165,7 @@ auto LarSphereTest::make_detector_point_map() const -> VecReal3
     };
 }
 
-TEST_F(LarSphereTest, single_sim_edep)
+TEST_F(LarSphereTest, two_sim_edeps)
 {
     auto& run = this->runner();
 
@@ -184,22 +185,26 @@ TEST_F(LarSphereTest, single_sim_edep)
         /* numElectrons = */ static_cast<int>(edep * 100),
         /* scintYieldRatio = */ 1.0,
         /* edep = */ edep,
-        /* startPos = */ convert_to_larsoft<LarsoftLen>(from_cm(Real3{-1, -98, 0.0})),
-        /* endPos = */ convert_to_larsoft<LarsoftLen>(from_cm(Real3{1, -98, 0})),
+        /* startPos = */ geo::Point_t{-1, -98, 0.0},  // [cm]
+        /* endPos = */ geo::Point_t{1, -98, 0},  // [cm]
         /* startTime = */ start_time.value(),
         /* endTime = */ end_time.value(),
-        /* trackID = */ 123,
+        /* trackID = */ 123456789,
         /* pdgCode = */ pdg::electron().get(),
         /* origTrackID = */ 123);
+    // Make another deposit from energy deposited by a nameless offspring
+    // [i.e., no MC truth stored] of Geant4 track ID 1
+    auto sed2 = sed;
+    sed2.setTrackID(-1);
 
-    auto result = RunResult::from_btr(run({sed}));
+    auto result = RunResult::from_btr(run({sed, sed2}));
     // result.print_expected();
     RunResult ref;
     ref.num_hits = {0, 0};
     EXPECT_REF_EQ(ref, result);
 
     // Run again (simulating second event)
-    result = RunResult::from_btr(run({sed}));
+    result = RunResult::from_btr(run({sed2, sed}));
     ref.num_hits = {0, 0};
     EXPECT_REF_EQ(ref, result);
 }
