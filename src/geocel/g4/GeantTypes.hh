@@ -16,7 +16,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Convert a Geant4 vector to a Celeritas array of the same precision
+//! Convert a Geant4 vector to a Celeritas array with full precision
 inline Array<double, 3> to_array(G4ThreeVector const& v)
 {
     return {v.x(), v.y(), v.z()};

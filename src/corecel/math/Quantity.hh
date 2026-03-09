@@ -47,7 +47,7 @@ namespace celeritas
  * \code
    real_type e_mev = value_as<MevEnergy>(energy); // Natural units
    real_type m_mev = value_as<MevMass>(mass); // Natural units
-   MevMomentum momentum{sqrt(ipow<2>(e_mev) + 2 * m_mev) * e_mev)};
+   MevMomentum momentum{sqrt(ipow<2>(e_mev) + 2 * m_mev * e_mev))};
    \endcode
  * The resulting quantity can be converted to the native Celeritas unit system
  * with `native_value_from`, which multiplies in the constant value of

@@ -97,9 +97,9 @@ CELER_CONSTEXPR_FUNCTION auto native_value_to(Array<T, N> const& value) noexcept
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an array of quantities to native values.
+ * Get the values from an array of quantities.
  *
- * This applies native_value_from element-wise to each component.
+ * This applies value_as element-wise to each component.
  */
 template<class Q, size_type N>
 CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
