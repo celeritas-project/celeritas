@@ -17,6 +17,7 @@
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
 #include "corecel/random/distribution/Selector.hh"
+#include "corecel/random/distribution/Truncated.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 
@@ -130,17 +131,12 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     real_type energy_val{};
     if (component.is_normal_distribution())
     {
-        // Sample a photon for a single scintillation component, reusing the
-        // "spare" value that the wavelength sampler might have stored
+        constexpr real_type inf = numeric_limits<real_type>::infinity();
+
+        // Sample a photon for a single scintillation component
         CELER_ASSERT(component.lambda_mean > 0);
-        NormalDistribution sample_lambda{component.lambda_mean,
-                                         component.lambda_sigma};
-        real_type wavelength;
-        do
-        {
-            // Rejecting the case of very large sigma and/or very small lambda
-            wavelength = sample_lambda(rng);
-        } while (CELER_UNLIKELY(wavelength <= 0));
+        auto wavelength = Truncated<NormalDistribution<real_type>>{
+            {component.lambda_mean, component.lambda_sigma}, 0, inf}(rng);
         energy_val = value_as<units::MevEnergy>(
             detail::wavelength_to_energy(wavelength));
     }

@@ -16,6 +16,11 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 
+template<class Distribution>
+void to_json(nlohmann::json& j, Truncated<Distribution> const&);
+template<class Distribution>
+void from_json(nlohmann::json const& j, Truncated<Distribution>&);
+
 template<class T>
 void to_json(nlohmann::json& j, DeltaDistribution<T> const&);
 template<class T>

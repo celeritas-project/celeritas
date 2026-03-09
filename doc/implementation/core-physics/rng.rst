@@ -55,6 +55,7 @@ three-vectors (such as sampling an isotropic direction).
 .. doxygenclass:: celeritas::PowerDistribution
 .. doxygenclass:: celeritas::RadialDistribution
 .. doxygenclass:: celeritas::ReciprocalDistribution
+.. doxygenclass:: celeritas::TruncatedNormalDistribution
 .. doxygenclass:: celeritas::UniformBoxDistribution
 .. doxygenclass:: celeritas::UniformRealDistribution
 

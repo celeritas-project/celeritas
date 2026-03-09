@@ -19,6 +19,7 @@ char const* to_cstring(OnedDistributionType type)
     static EnumStringMapper<OnedDistributionType> const to_cstring_impl{
         "delta",
         "normal",
+        "truncated normal",
     };
     return to_cstring_impl(type);
 }

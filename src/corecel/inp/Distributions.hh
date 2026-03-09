@@ -8,11 +8,22 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/NumericLimits.hh"
 
 namespace celeritas
 {
 namespace inp
 {
+//---------------------------------------------------------------------------//
+//! Sample from a truncated distribution
+template<class Distribution>
+struct Truncated
+{
+    Distribution distribution{};
+    double lower{-numeric_limits<double>::infinity()};
+    double upper{numeric_limits<double>::infinity()};
+};
+
 //---------------------------------------------------------------------------//
 //! "Sample" the given value
 template<class T>
@@ -29,6 +40,7 @@ struct NormalDistribution
     double stddev{1};
 };
 
+//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 //! Sample a point uniformly on the surface of a unit sphere
 struct IsotropicDistribution
