@@ -17,23 +17,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-//! Convert via a quantity to native Geant4 types/units
-template<class Q, class T>
-G4ThreeVector convert_to_geant(Array<T, 3> const& v)
-{
-    return to_g4vector(value_as<Q>(native_value_to<Q>(v)));
-}
-
-//---------------------------------------------------------------------------//
-//! Convert via a quantity to native Geant4 types/units
-template<class Q>
-Array<typename Q::value_type, 3> convert_from_geant(G4ThreeVector const& v)
-{
-    return native_value_from(make_quantity_array<Q>(to_array(v)));
-}
-
-//---------------------------------------------------------------------------//
-//! Convert via a quantity to native Geant4 types/units
+//! Convert a scalar via a quantity to native Geant4 types/units
 template<class Q>
 double convert_to_geant(real_type v)
 {
@@ -41,11 +25,46 @@ double convert_to_geant(real_type v)
 }
 
 //---------------------------------------------------------------------------//
-//! Convert via a quantity to native Geant4 types/units
-template<class Q>
-real_type convert_from_geant(double v)
+/*!
+ * Convert a scalar via a quantity from native Geant4 types/units.
+ *
+ * The first argument (required) is the quantity represented by the Geant4
+ * value, and the second is to allow casting to \c real_type .
+ *
+ * \p Examples
+ *
+ * The track position is in native Celeritas units and value types:
+ * \code
+    track.position = static_array_cast<real_type>(
+        convert_from_geant<lengthunits::ClhepLength>(g4track.GetPosition()));
+   \endcode
+ */
+template<class Q, class T = typename Q::value_type>
+T convert_from_geant(double v)
 {
     return native_value_from(Q(v));
+}
+
+//---------------------------------------------------------------------------//
+//! Convert an array via a quantity to native Geant4 types/units
+template<class Q, class T>
+G4ThreeVector convert_to_geant(Array<T, 3> const& v)
+{
+    return to_g4vector(value_as<Q>(native_value_to<Q>(v)));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert via a quantity from native Geant4 types/units.
+ *
+ * The first argument (required) is the quantity represented by the Geant4
+ * value, and the second is to allow casting to \c real_type .
+ */
+template<class Q, class T = typename Q::value_type>
+Array<T, 3> convert_from_geant(G4ThreeVector const& v)
+{
+    return static_array_cast<T>(
+        native_value_from(make_quantity_array<Q>(to_array(v))));
 }
 
 //---------------------------------------------------------------------------//
