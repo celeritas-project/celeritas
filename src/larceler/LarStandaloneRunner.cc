@@ -185,6 +185,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
             = convert_from_larsoft<LarsoftTime>(step.EndT());
         data.points[StepPoint::post].pos
             = convert_from_larsoft<LarsoftLen>(step.End());
+        CELER_ASSERT(data);
         gdd.push_back(data);
     }
     if (num_skipped > 0)

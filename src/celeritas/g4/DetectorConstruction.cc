@@ -124,12 +124,16 @@ void DetectorConstruction::build_worker_sd() const
         }
 
         // Attach sensitive detectors
+        size_type num_volumes{0};
         for (MapDetCIter iter = start; iter != stop; ++iter)
         {
             iter->second->SetSensitiveDetector(sd.get());
+            ++num_volumes;
         }
         CELER_LOG(info) << "Constructed SensDet='" << sd_name
-                        << "' for volumes '" << vol_names << "'";
+                        << "' and attached to " << num_volumes << " volumes";
+        CELER_LOG(debug) << "Attached '" << sd_name << "' to '" << vol_names
+                         << "'";
 
         // Hand SD to the manager
         sd_manager->AddNewDetector(sd.release());
