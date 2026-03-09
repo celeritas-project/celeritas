@@ -135,9 +135,11 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
     init.energy = units::ClhepEnergy{g4track.GetKineticEnergy()};
     init.position = convert_from_geant<lengthunits::ClhepLength, real_type>(
         g4track.GetPosition());
-    init.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
+    init.direction = static_array_cast<real_type>(
+        to_array(g4track.GetMomentumDirection()));
     init.time = convert_from_geant<units::ClhepTime>(g4track.GetGlobalTime());
-    init.polarization = convert_from_geant(g4track.GetPolarization(), 1);
+    init.polarization
+        = static_array_cast<real_type>(to_array(g4track.GetPolarization()));
 
     ScopedProfiling profile_this{"push"};
 
