@@ -28,6 +28,9 @@ double native_to_geant(real_type v)
 /*!
  * Convert a scalar via a quantity from native Geant4 types/units.
  *
+ * This performs a simultaneous unit conversion (from Geant4 to Celeritas) and
+ * optional type conversion (usually from double to real_type).
+ *
  * The first argument (required) is the quantity represented by the Geant4
  * value, and the second is to allow casting to \c real_type .
  *
@@ -42,7 +45,7 @@ double native_to_geant(real_type v)
 template<class Q, class T = typename Q::value_type>
 T native_from_geant(double v)
 {
-    return native_value_from(Q(v));
+    return static_cast<T>(native_value_from(Q(v)));
 }
 
 //---------------------------------------------------------------------------//
