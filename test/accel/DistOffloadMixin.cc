@@ -102,19 +102,18 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
     // Create distribution and push to Celeritas
     optical::GeneratorDistributionData data;
     data.step_length
-        = convert_from_geant<lengthunits::ClhepLength>(step->GetStepLength());
+        = native_from_geant<lengthunits::ClhepLength>(step->GetStepLength());
     data.charge = units::ElementaryCharge{
         static_cast<real_type>(post_step->GetCharge())};
     auto& pre = data.points[StepPoint::pre];
     pre.speed = units::LightSpeed(pre_step->GetBeta());
-    pre.time = convert_from_geant<units::ClhepTime>(pre_step->GetGlobalTime());
-    pre.pos = convert_from_geant<lengthunits::ClhepLength, real_type>(
+    pre.time = native_from_geant<units::ClhepTime>(pre_step->GetGlobalTime());
+    pre.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
         pre_step->GetPosition());
     auto& post = data.points[StepPoint::post];
     post.speed = units::LightSpeed(post_step->GetBeta());
-    post.time
-        = convert_from_geant<units::ClhepTime>(post_step->GetGlobalTime());
-    post.pos = convert_from_geant<lengthunits::ClhepLength, real_type>(
+    post.time = native_from_geant<units::ClhepTime>(post_step->GetGlobalTime());
+    post.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
         post_step->GetPosition());
     auto* g4mat = pre_step->GetMaterial();
     CELER_ASSERT(g4mat);

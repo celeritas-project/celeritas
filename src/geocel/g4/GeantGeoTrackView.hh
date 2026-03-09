@@ -195,9 +195,9 @@ GeantGeoTrackView::GeantGeoTrackView(ParamsRef const& params,
     , safety_radius_(states.safety_radius[tid])
     , touch_handle_(states.nav_state.touch_handle(tid))
     , navi_(states.nav_state.navigator(tid))
-    , g4pos_(convert_to_geant<ClhepLength>(pos_))
+    , g4pos_(native_to_geant<ClhepLength>(pos_))
     , g4dir_(to_g4vector(dir_))
-    , g4safety_(convert_to_geant<ClhepLength>(safety_radius_))
+    , g4safety_(native_to_geant<ClhepLength>(safety_radius_))
 {
 }
 
@@ -222,7 +222,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     next_step_ = 0;
     safety_radius_ = -1;  // Assume *not* on a boundary
 
-    g4pos_ = convert_to_geant<ClhepLength>(pos_);
+    g4pos_ = native_to_geant<ClhepLength>(pos_);
     g4dir_ = to_g4vector(dir_);
     g4safety_ = -1;
 
@@ -394,7 +394,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(max_step > 0);
 
     // Compute the step
-    real_type g4step = convert_to_geant<ClhepLength>(max_step);
+    real_type g4step = native_to_geant<ClhepLength>(max_step);
     g4step = navi_.ComputeStep(g4pos_, g4dir_, g4step, g4safety_);
 
     if (g4safety_ != 0 && !this->is_on_boundary())
@@ -455,7 +455,7 @@ auto GeantGeoTrackView::find_safety(real_type max_step) -> real_type
     CELER_EXPECT(max_step > 0);
     if (safety_radius_ < max_step)
     {
-        real_type g4step = convert_to_geant<ClhepLength>(max_step);
+        real_type g4step = native_to_geant<ClhepLength>(max_step);
         g4safety_ = navi_.ComputeSafety(g4pos_, g4step);
         safety_radius_ = max(native_value_from(ClhepLength{g4safety_}), 0.0);
     }
@@ -473,7 +473,7 @@ void GeantGeoTrackView::move_to_boundary()
 
     // Move next step
     axpy(next_step_, dir_, &pos_);
-    axpy(convert_to_geant<ClhepLength>(next_step_), g4dir_, &g4pos_);
+    axpy(native_to_geant<ClhepLength>(next_step_), g4dir_, &g4pos_);
     next_step_ = 0;
     safety_radius_ = 0;
     g4safety_ = 0;
@@ -519,7 +519,7 @@ void GeantGeoTrackView::move_internal(real_type dist)
 
     // Move and update next_step
     axpy(dist, dir_, &pos_);
-    axpy(convert_to_geant<ClhepLength>(dist), g4dir_, &g4pos_);
+    axpy(native_to_geant<ClhepLength>(dist), g4dir_, &g4pos_);
     next_step_ -= dist;
     navi_.LocateGlobalPointWithinVolume(g4pos_);
 
@@ -537,7 +537,7 @@ void GeantGeoTrackView::move_internal(real_type dist)
 void GeantGeoTrackView::move_internal(Real3 const& pos)
 {
     pos_ = pos;
-    g4pos_ = convert_to_geant<ClhepLength>(pos_);
+    g4pos_ = native_to_geant<ClhepLength>(pos_);
     next_step_ = 0;
     navi_.LocateGlobalPointWithinVolume(g4pos_);
 

@@ -181,7 +181,7 @@ auto DetectorConstruction::construct_field() const -> FieldData
             auto native_field = native_value_from(
                 make_quantity_array<units::FieldTesla>(field_val));
             g4field = std::make_shared<G4UniformMagField>(
-                convert_to_geant<units::ClhepField>(native_field));
+                native_to_geant<units::ClhepField>(native_field));
         }
 
         inp::UniformField input;
@@ -209,9 +209,9 @@ void DetectorConstruction::ConstructSDandField()
         auto const& field_options = GlobalSetup::Instance()->GetFieldOptions();
         auto chord_finder = std::make_unique<G4ChordFinder>(
             mag_field_.get(),
-            convert_to_geant<lengthunits::ClhepLength>(
+            native_to_geant<lengthunits::ClhepLength>(
                 field_options.minimum_step));
-        chord_finder->SetDeltaChord(convert_to_geant<lengthunits::ClhepLength>(
+        chord_finder->SetDeltaChord(native_to_geant<lengthunits::ClhepLength>(
             field_options.delta_chord));
 
         // Construct the magnetic field
@@ -222,7 +222,7 @@ void DetectorConstruction::ConstructSDandField()
         field_manager->SetChordFinder(chord_finder.release());
         field_manager->SetMinimumEpsilonStep(field_options.epsilon_step);
         field_manager->SetDeltaIntersection(
-            convert_to_geant<lengthunits::ClhepLength>(
+            native_to_geant<lengthunits::ClhepLength>(
                 field_options.delta_intersection));
     }
 

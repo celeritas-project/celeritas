@@ -117,7 +117,7 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
     // Save to output, converting units
     StepStatistics result;
     result.step_length
-        = convert_to_geant<lengthunits::ClhepLength>(data.step_length);
+        = native_to_geant<lengthunits::ClhepLength>(data.step_length);
     result.energy_deposition = data.energy_deposition;
     result.num_steps = host_data.steps;
     result.num_primaries = host_data.generated;

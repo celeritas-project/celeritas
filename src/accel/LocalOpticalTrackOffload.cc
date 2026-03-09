@@ -133,11 +133,11 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
     TrackData init;
 
     init.energy = units::ClhepEnergy{g4track.GetKineticEnergy()};
-    init.position = convert_from_geant<lengthunits::ClhepLength, real_type>(
+    init.position = native_from_geant<lengthunits::ClhepLength, real_type>(
         g4track.GetPosition());
     init.direction = static_array_cast<real_type>(
         to_array(g4track.GetMomentumDirection()));
-    init.time = convert_from_geant<units::ClhepTime>(g4track.GetGlobalTime());
+    init.time = native_from_geant<units::ClhepTime>(g4track.GetGlobalTime());
     init.polarization
         = static_array_cast<real_type>(to_array(g4track.GetPolarization()));
 

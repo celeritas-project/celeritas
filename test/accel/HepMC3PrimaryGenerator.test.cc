@@ -55,11 +55,11 @@ class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
                 G4PrimaryVertex* vtx = event.GetPrimaryVertex(vtx_id);
                 CELER_ASSERT(vtx);
                 auto pos = to_cm(
-                    convert_from_geant<lengthunits::ClhepLength, real_type>(
+                    native_from_geant<lengthunits::ClhepLength, real_type>(
                         vtx->GetPosition()));
                 result.pos.insert(result.pos.end(), pos.begin(), pos.end());
                 result.time.push_back(
-                    convert_from_geant<units::ClhepTime>(vtx->GetT0())
+                    native_from_geant<units::ClhepTime>(vtx->GetT0())
                     / units::nanosecond);
                 num_primaries += vtx->GetNumberOfParticle();
                 for (auto j : range(vtx->GetNumberOfParticle()))

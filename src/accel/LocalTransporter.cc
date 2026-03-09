@@ -292,10 +292,10 @@ void LocalTransporter::Push(G4Track& g4track)
                    << "' particles");
 
     track.position = static_array_cast<real_type>(
-        convert_from_geant<lengthunits::ClhepLength>(g4track.GetPosition()));
+        native_from_geant<lengthunits::ClhepLength>(g4track.GetPosition()));
     track.direction = static_array_cast<real_type>(
         to_array(g4track.GetMomentumDirection()));
-    track.time = convert_from_geant<units::ClhepTime>(g4track.GetGlobalTime());
+    track.time = native_from_geant<units::ClhepTime>(g4track.GetGlobalTime());
     track.weight = g4track.GetWeight();
 
     /*!
