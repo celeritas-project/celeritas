@@ -165,6 +165,8 @@ struct ProcessFilter
                 }
                 else if (which & DataSelection::optical)
                 {
+                    // Also allow the process if it's an optical generation
+                    // process and the user has allowed optical process types
                     auto emst = static_cast<EmSubType>(subtype);
                     return emst == EmSubType::fScintillation
                            || emst == EmSubType::fCerenkov;

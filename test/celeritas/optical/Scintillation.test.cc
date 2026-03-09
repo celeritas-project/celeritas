@@ -206,21 +206,20 @@ TEST_F(MaterialScintillationGaussianTest, data)
         ScintRecord const& comp
             = data.scint_records[mat_record.components[comp_idx]];
         yield_fracs.push_back(data.reals[mat_record.yield_pdf[comp_idx]]);
-        lambda_means.push_back(comp.lambda_mean);
-        lambda_sigmas.push_back(comp.lambda_sigma);
-        rise_times.push_back(comp.rise_time);
-        fall_times.push_back(comp.fall_time);
+        lambda_means.push_back(comp.lambda_mean / nm);
+        lambda_sigmas.push_back(comp.lambda_sigma / nm);
+        rise_times.push_back(comp.rise_time / ns);
+        fall_times.push_back(comp.fall_time / ns);
     }
 
-    // Expected values: yields normalized to fractions
+    // Expected values (O(1) units for testing)
     real_type const total_yield = 5.0;
-    std::vector<real_type> expected_yield_fracs
+    static real_type const expected_yield_fracs[]
         = {2.5 / total_yield, 1.5 / total_yield, 1.0 / total_yield};
-    std::vector<real_type> expected_lambda_means
-        = {100 * nm, 200 * nm, 400 * nm};
-    std::vector<real_type> expected_lambda_sigmas = {5 * nm, 10 * nm, 20 * nm};
-    std::vector<real_type> expected_rise_times = {10 * ns, 0, 10 * ns};
-    std::vector<real_type> expected_fall_times = {6 * ns, 1500 * ns, 3000 * ns};
+    static real_type const expected_lambda_means[] = {100, 200, 400};
+    static real_type const expected_lambda_sigmas[] = {5, 10, 20};
+    static real_type const expected_rise_times[] = {10, 0, 10};
+    static real_type const expected_fall_times[] = {6, 1500, 3000};
 
     EXPECT_VEC_EQ(expected_yield_fracs, yield_fracs);
     EXPECT_VEC_EQ(expected_lambda_means, lambda_means);

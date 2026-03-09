@@ -215,28 +215,6 @@ load_scintillation_component(GeantMaterialPropertyGetter& get_property,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Normalize component yields to sum to the material's total yield.
- */
-void normalize_component_yields(
-    std::vector<inp::ScintillationSpectrum>& components,
-    double yield_per_energy)
-{
-    double total_frac = 0;
-    for (auto const& comp : components)
-    {
-        total_frac += comp.yield;
-    }
-
-    // Renormalize so components sum to yield_per_energy
-    double scale = yield_per_energy / total_frac;
-    for (auto& comp : components)
-    {
-        comp.yield *= scale;
-    }
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -348,6 +326,7 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
 size_type GeantPhysicsLoader::cerenkov(G4VProcess const& g4vp)
 {
     auto& g4c = dynamic_cast<G4Cerenkov const&>(g4vp);
+    // TODO: import step limits
     CELER_DISCARD(g4c);
     imported_.optical_physics.gen.cherenkov.emplace();
     return 1;
@@ -381,6 +360,7 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
                 total_yield, "SCINTILLATIONYIELD", ImportUnits::inv_mev))
         {
             // No scintillation in this material
+            // TODO: check that no other properties are present
             continue;
         }
         CELER_VALIDATE(total_yield > 0,
@@ -401,11 +381,16 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
                 scint_mat.components.push_back(std::move(*spectrum));
             }
         }
+        // TODO: check for deprecated properties
+
+        CELER_VALIDATE(!scint_mat.components.empty(),
+                       << "no scintillation components were present (perhaps "
+                          "the material has only unsupported particle "
+                          "scintillation or legacy G4 fast/slow components?)");
 
         // Normalize component yields and add to material map
         if (!scint_mat.components.empty())
         {
-            normalize_component_yields(scint_mat.components, total_yield);
             s.materials.emplace(opt_id, std::move(scint_mat));
         }
     }
