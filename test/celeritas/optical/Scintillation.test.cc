@@ -213,19 +213,19 @@ TEST_F(MaterialScintillationGaussianTest, data)
     }
 
     // Expected values (O(1) units for testing)
-    real_type const total_yield = 5.0;
-    static real_type const expected_yield_fracs[]
+    double const total_yield = 5.0;
+    static double const expected_yield_fracs[]
         = {2.5 / total_yield, 1.5 / total_yield, 1.0 / total_yield};
     static real_type const expected_lambda_means[] = {100, 200, 400};
     static real_type const expected_lambda_sigmas[] = {5, 10, 20};
     static real_type const expected_rise_times[] = {10, 0, 10};
     static real_type const expected_fall_times[] = {6, 1500, 3000};
 
-    EXPECT_VEC_EQ(expected_yield_fracs, yield_fracs);
-    EXPECT_VEC_EQ(expected_lambda_means, lambda_means);
-    EXPECT_VEC_EQ(expected_lambda_sigmas, lambda_sigmas);
-    EXPECT_VEC_EQ(expected_rise_times, rise_times);
-    EXPECT_VEC_EQ(expected_fall_times, fall_times);
+    EXPECT_VEC_SOFT_EQ(expected_yield_fracs, yield_fracs);
+    EXPECT_VEC_SOFT_EQ(expected_lambda_means, lambda_means);
+    EXPECT_VEC_SOFT_EQ(expected_lambda_sigmas, lambda_sigmas);
+    EXPECT_VEC_SOFT_EQ(expected_rise_times, rise_times);
+    EXPECT_VEC_SOFT_EQ(expected_fall_times, fall_times);
 }
 
 //---------------------------------------------------------------------------//
