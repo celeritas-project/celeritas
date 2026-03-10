@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+
 #include "G4HadronicProcessType.hh"
-#include "G4String.hh"
 
 class G4HadronicProcess;
 class G4VParticleChange;
@@ -26,6 +27,10 @@ namespace celeritas
  * that are not yet implemented on GPU. In such cases, the interaction is
  * processed on the CPU using Geant4 with reconstructed G4Track and G4Step
  * objects.
+ *
+ * Note that this class is expected to be thread-local in a multi-threaded
+ * context to ensure thread-safety and independent processing of hadronic
+ * interactions for each thread.
  */
 class HadronicInteractor
 {
@@ -35,10 +40,10 @@ class HadronicInteractor
                        G4HadronicProcessType type);
 
     // Process PostStepDoIt
-    G4VParticleChange& PostStepDoIt(G4Track const& track, G4Step const& step);
+    G4VParticleChange& operator()(G4Track& track);
 
     // Return the underlying process name
-    G4String GetProcessName() const;
+    std::string process_name() const;
 
   private:
     //// DATA ////

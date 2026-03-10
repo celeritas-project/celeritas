@@ -39,14 +39,12 @@ HadronicInteractor::HadronicInteractor(G4ParticleDefinition const& particle,
  * Invoke the PostStepDoIt action of the Geant4 hadronic process for the given
  * track and step.
  */
-G4VParticleChange&
-HadronicInteractor::PostStepDoIt(G4Track const& track, G4Step const& step)
+G4VParticleChange& HadronicInteractor::operator()(G4Track& track)
 {
     CELER_EXPECT(track.GetParticleDefinition() == &particle_);
 
-    process_->StartTracking(const_cast<G4Track*>(&track));
-
-    auto* result = process_->PostStepDoIt(track, step);
+    process_->StartTracking(&track);
+    auto* result = process_->PostStepDoIt(track, *track.GetStep());
     CELER_ASSERT(result);
 
     return *result;
@@ -56,7 +54,7 @@ HadronicInteractor::PostStepDoIt(G4Track const& track, G4Step const& step)
 /*!
  * Return the process name.
  */
-G4String HadronicInteractor::GetProcessName() const
+std::string HadronicInteractor::process_name() const
 {
     return process_->GetProcessName();
 }
