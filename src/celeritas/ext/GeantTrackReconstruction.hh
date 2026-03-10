@@ -92,7 +92,7 @@ class GeantTrackReconstruction
     //! Shared step object
     SPStep step_;
     //! Starting primary id
-    PrimaryId start_;
+    PrimaryId start_{0};
 };
 
 //---------------------------------------------------------------------------//

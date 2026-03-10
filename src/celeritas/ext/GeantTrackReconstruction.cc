@@ -58,7 +58,7 @@ auto GeantTrackReconstruction::make_g4step() -> SPStep
  */
 GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
                                                    SPStep step)
-    : step_(std::move(step)), start_(0)
+    : step_(std::move(step))
 {
     CELER_EXPECT(step_);
 
@@ -93,18 +93,25 @@ GeantTrackReconstruction::~GeantTrackReconstruction()
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
     {
-        // Ignore anything bad that happens while logging
+        // Ignore anything bad that happens while destroying
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Clear G4Track reconstruction data.
+ *
+ * This should be done when all Celeritas tracks have been completed, since
+ * afterward it will be impossible to reconstruct them.
+ *
+ * The primary ID offset is saved to ensure consistency when flushing before
+ * and event is complete.
  */
 void GeantTrackReconstruction::clear()
 {
-    // Set starting primary id
-    start_ = celeritas::id_cast<PrimaryId>(g4_track_data_.size());
+    // Set primary id offset
+    start_ = start_ + g4_track_data_.size();
+
     for (auto& track : tracks_)
     {
         // Clear the user information to prevent double deletion:
@@ -120,6 +127,7 @@ void GeantTrackReconstruction::clear()
  */
 void GeantTrackReconstruction::init_event()
 {
+    CELER_EXPECT(g4_track_data_.empty());
     start_ = PrimaryId(0);
 }
 
@@ -137,24 +145,19 @@ PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
 
 //---------------------------------------------------------------------------//
 /*!
- * Restore the G4Track from the reconstruction data. Returns the track for the
- * given particle ID with restored primary track information if a valid
- * PrimaryId is provided.
+ * Restore the G4Track from the reconstruction data.
+ *
+ * Returns the track for the given particle ID with restored primary track
+ * information.
  */
 G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
                                         PrimaryId primary_id) const
 {
-    CELER_EXPECT(particle_id < tracks_.size());
+    CELER_EXPECT(primary_id && primary_id >= start_);
+    CELER_EXPECT(primary_id < start_ + g4_track_data_.size());
 
-    G4Track& track = *tracks_[particle_id.unchecked_get()];
-
-    step_->SetTrack(&track);
-
-    if (primary_id)
-    {
-        CELER_ASSERT(primary_id < g4_track_data_.size());
-        g4_track_data_[primary_id.unchecked_get()].restore(track);
-    }
+    G4Track& track = this->view(particle_id);
+    g4_track_data_[primary_id - start_].restore(track);
     return track;
 }
 
@@ -164,7 +167,11 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
  */
 G4Track& GeantTrackReconstruction::view(ParticleId particle_id) const
 {
-    return this->view(particle_id, {});
+    CELER_EXPECT(particle_id < tracks_.size());
+
+    G4Track& track = *tracks_[particle_id.unchecked_get()];
+    step_->SetTrack(&track);
+    return track;
 }
 
 //---------------------------------------------------------------------------//

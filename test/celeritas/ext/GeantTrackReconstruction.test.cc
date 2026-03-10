@@ -214,7 +214,7 @@ TEST_F(GeantTrackReconstructionTest, track_restoration_without_primary)
     GeantTrackReconstruction recon(particles_, step_);
 
     // Restore track without primary information (invalid PrimaryId)
-    G4Track& restored_track = recon.view(ParticleId{0}, PrimaryId{});
+    G4Track& restored_track = recon.view(ParticleId{0});
 
     // Verify basic track properties
     EXPECT_EQ(particles_[0], restored_track.GetDefinition());
@@ -305,7 +305,7 @@ TEST_F(GeantTrackReconstructionTest, multiple_particle_types)
     for (auto i : range(particles_.size()))
     {
         ParticleId particle_id{static_cast<size_type>(i)};
-        G4Track& track = recon.view(particle_id, PrimaryId{});
+        G4Track& track = recon.view(particle_id);
 
         EXPECT_EQ(particles_[i], track.GetDefinition());
         EXPECT_EQ(0, track.GetTrackID());

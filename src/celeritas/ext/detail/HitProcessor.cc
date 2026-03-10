@@ -302,9 +302,12 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     if (!out.particle.empty())
     {
-        G4Track& g4track = track_reconstruction_->view(
-            out.particle[i],
-            !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
+        // Get track corresponding to the particle type, and reload primary
+        // data if possible
+        G4Track& g4track = out.primary_id.empty()
+                               ? track_reconstruction_->view(out.particle[i])
+                               : track_reconstruction_->view(
+                                     out.particle[i], out.primary_id[i]);
         this->update_track(g4track);
     }
 
