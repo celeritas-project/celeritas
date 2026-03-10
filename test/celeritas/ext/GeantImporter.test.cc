@@ -1689,8 +1689,17 @@ TEST_F(OneSteelSphereGG, physics)
 
 TEST_F(LarSphere, optical)
 {
-    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
     auto&& imported = this->imported_data();
+
+    static char const* const expected_log_messages[] = {
+        R"(Inconsistent Rayleigh input data: compressibility (provided) with optional scale (missing) is ignored in favor of MFP grid)",
+        "Loaded no model data from process G4OpMieHG(\"OpMieHG\")",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1859,7 +1868,21 @@ TEST_F(LarSphere, optical)
 
 TEST_F(LarSphereExtramat, optical)
 {
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
     auto&& imported = this->imported_data();
+
+    static char const* const expected_log_messages[] = {
+        "Scintillation process was defined with no scintillating materials",
+        "Loaded no model data from process G4Scintillation(\"Scintillation\")",
+        "Loaded no model data from process G4OpMieHG(\"OpMieHG\")",
+        "Loaded no model data from process G4OpWLS(\"OpWLS\")",
+        "Loaded no model data from process G4OpWLS2(\"OpWLS2\")",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[]
+        = {"error", "warning", "warning", "warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
