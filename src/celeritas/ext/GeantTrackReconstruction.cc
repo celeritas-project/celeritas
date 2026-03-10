@@ -22,6 +22,38 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Restore the G4Track from the reconstruction data. Takes ownership of the
+ * user information by unsetting it in the original track.
+ */
+auto GeantTrackReconstruction::make_g4step() -> SPStep
+{
+    auto step = std::make_shared<G4Step>();
+
+    // Allocate secondary vector, needed to keep some SDs from crashing
+    step->NewSecondaryVector();
+
+    // Set invalid values for unsupported SD attributes
+    step->SetNonIonizingEnergyDeposit(-std::numeric_limits<double>::infinity());
+    for (G4StepPoint* p : {step->GetPreStepPoint(), step->GetPostStepPoint()})
+    {
+        p->SetStepStatus(fUserDefinedLimit);
+        // Time since track was created
+        p->SetLocalTime(std::numeric_limits<double>::infinity());
+        // Time in rest frame since track was created
+        p->SetProperTime(std::numeric_limits<double>::infinity());
+        // Speed (TODO: use ParticleView)
+        p->SetVelocity(std::numeric_limits<double>::infinity());
+        // Safety distance
+        p->SetSafety(std::numeric_limits<double>::infinity());
+        // Polarization (default to zero)
+        p->SetPolarization(G4ThreeVector());
+    }
+
+    return step;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with particle definitions for track reconstruction.
  */
 GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,

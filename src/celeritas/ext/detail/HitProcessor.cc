@@ -30,6 +30,7 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -93,8 +94,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
-    , step_{std::make_shared<G4Step>()}
-    , track_reconstruction_{particles, step_}
     , step_post_status_{
           selection.points[StepPoint::pre].volume_instance_ids
           && selection.points[StepPoint::post].volume_instance_ids}
@@ -106,9 +105,12 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     CELER_LOG(debug) << "Setting up thread-local hit processor for "
                      << detector_volumes_->size() << " sensitive detectors";
 
-    // Allocate secondary vector, needed to keep some SDs from crashing
-    step_->NewSecondaryVector();
+    step_ = GeantTrackReconstruction::make_g4step();
+    CELER_ASSERT(step_);
+    track_reconstruction_
+        = std::make_shared<GeantTrackReconstruction>(particles, step_);
 
+    // Clear unwanted points
 #if G4VERSION_NUMBER >= 1103
 #    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
 #else
@@ -125,7 +127,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         else                                              \
         {                                                 \
             auto* sp = step_->Get##TITLE##StepPoint();    \
-            sp->SetStepStatus(fUserDefinedLimit);         \
             step_points_[StepPoint::LOWER] = sp;          \
         }                                                 \
     } while (0)
@@ -135,6 +136,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 #undef HP_SETUP_POINT
 #undef HP_CLEAR_STEP_POINT
 
+    // Set up touchables
     for (auto p : range(StepPoint::size_))
     {
         if (locate_touchable[p])
@@ -153,27 +155,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
             update_touchable_
                 = std::make_unique<LevelTouchableUpdater>(std::move(ggeo));
         }
-    }
-
-    // Set invalid values for unsupported SD attributes
-    step_->SetNonIonizingEnergyDeposit(
-        -std::numeric_limits<double>::infinity());
-    for (G4StepPoint* p : step_points_)
-    {
-        if (!p)
-        {
-            continue;
-        }
-        // Time since track was created
-        p->SetLocalTime(std::numeric_limits<double>::infinity());
-        // Time in rest frame since track was created
-        p->SetProperTime(std::numeric_limits<double>::infinity());
-        // Speed (TODO: use ParticleView)
-        p->SetVelocity(std::numeric_limits<double>::infinity());
-        // Safety distance
-        p->SetSafety(std::numeric_limits<double>::infinity());
-        // Polarization (default to zero)
-        p->SetPolarization(G4ThreeVector());
     }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
@@ -321,7 +302,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     if (!out.particle.empty())
     {
-        G4Track& g4track = track_reconstruction_.view(
+        G4Track& g4track = track_reconstruction_->view(
             out.particle[i],
             !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
         this->update_track(g4track);

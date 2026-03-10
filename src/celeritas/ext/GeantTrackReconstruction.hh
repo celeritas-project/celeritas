@@ -38,6 +38,9 @@ class GeantTrackReconstruction
     //!@}
 
   public:
+    // Create a G4Step object with cleared data
+    static SPStep make_g4step();
+
     // Construct with particle definitions for track reconstruction
     GeantTrackReconstruction(VecParticle const&, SPStep);
 
