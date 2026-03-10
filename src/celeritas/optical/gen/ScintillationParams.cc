@@ -10,11 +10,10 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/MaterialParams.hh"
 
-#include "detail/MatScintSpecInserter.hh"
+#include "detail/ScintSpectrumInserter.hh"
 
 namespace celeritas
 {
@@ -37,7 +36,7 @@ ScintillationParams::ScintillationParams(
     std::vector<real_type> resolution_scale(num_optmats, 1.0);
 
     // Store material scintillation data
-    detail::MatScintSpecInserter insert_mat{&host_data};
+    detail::ScintSpectrumInserter insert_mat{&host_data};
     for (auto opt_id :
          range(OptMatId{static_cast<OptMatId::size_type>(num_optmats)}))
     {
@@ -52,7 +51,7 @@ ScintillationParams::ScintillationParams(
         else
         {
             // Material has no scintillation: insert empty material
-            insert_mat(inp::ScintillationMaterial{});
+            insert_mat();
         }
     }
 
@@ -60,8 +59,7 @@ ScintillationParams::ScintillationParams(
     CollectionBuilder(&host_data.resolution_scale)
         .insert_back(resolution_scale.begin(), resolution_scale.end());
 
-    CELER_ASSERT(host_data.materials.size()
-                 == host_data.resolution_scale.size());
+    CELER_ASSERT(host_data.spectra.size() == host_data.resolution_scale.size());
 
     // Copy to device
     mirror_ = ParamsDataStore<ScintillationData>{std::move(host_data)};
@@ -75,11 +73,12 @@ ScintillationParams::ScintillationParams(
 bool ScintillationParams::is_geant_compatible() const
 {
     auto const& scint_records
-        = this->host_ref().scint_records[AllItems<ScintRecord>{}];
-    return std::all_of(
-        scint_records.begin(), scint_records.end(), [](ScintRecord const& sr) {
-            return !sr.is_normal_distribution();
-        });
+        = this->host_ref().scint_records[AllItems<ScintDistributionRecord>{}];
+    return std::all_of(scint_records.begin(),
+                       scint_records.end(),
+                       [](ScintDistributionRecord const& sr) {
+                           return !sr.is_normal_distribution();
+                       });
 }
 
 //---------------------------------------------------------------------------//

@@ -191,21 +191,21 @@ TEST_F(MaterialScintillationGaussianTest, data)
     EXPECT_FALSE(params->is_geant_compatible());
     auto const& data = params->host_ref();
 
-    EXPECT_EQ(1, data.materials.size());
+    EXPECT_EQ(1, data.spectra.size());
 
-    auto const& mat_record = data.materials[opt_mat_];
+    auto const& s = data.spectra[ScintSpectrumId{opt_mat_.get()}];
     // Total yield: 2.5 + 1.5 + 1.0 = 5.0
-    EXPECT_REAL_EQ(5.0, mat_record.yield_per_energy);
+    EXPECT_REAL_EQ(5.0, s.yield_per_energy);
     EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
     EXPECT_EQ(3, data.scint_records.size());
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
         rise_times, fall_times;
-    for (auto comp_idx : range(mat_record.components.size()))
+    for (auto comp_idx : range(s.components.size()))
     {
-        ScintRecord const& comp
-            = data.scint_records[mat_record.components[comp_idx]];
-        yield_fracs.push_back(data.reals[mat_record.yield_pdf[comp_idx]]);
+        ScintDistributionRecord const& comp
+            = data.scint_records[s.components[comp_idx]];
+        yield_fracs.push_back(data.reals[s.yield_pdf[comp_idx]]);
         lambda_means.push_back(comp.lambda_mean / nm);
         lambda_sigmas.push_back(comp.lambda_sigma / nm);
         rise_times.push_back(comp.rise_time / ns);
@@ -520,12 +520,11 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
 
     real_type expected_lambda{0};
 
-    auto const& mat_record = data.materials[result.material];
-    for (auto comp_idx : range(mat_record.components.size()))
+    auto const& s = data.spectra[ScintSpectrumId{result.material.get()}];
+    for (auto comp_idx : range(s.components.size()))
     {
-        ScintRecord const& component
-            = data.scint_records[mat_record.components[comp_idx]];
-        real_type yield = data.reals[mat_record.yield_pdf[comp_idx]];
+        auto const& component = data.scint_records[s.components[comp_idx]];
+        real_type yield = data.reals[s.yield_pdf[comp_idx]];
         expected_lambda += component.lambda_mean * yield;
     }
     EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, 1e-4);
@@ -540,7 +539,8 @@ TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
     // Iterate components and, when an energy CDF is present, construct grid
     for (auto i : range(data.scint_records.size()))
     {
-        auto const& rec = data.scint_records[ItemId<ScintRecord>(i)];
+        auto const& rec
+            = data.scint_records[ItemId<ScintDistributionRecord>(i)];
 
         if (rec.energy_cdf)
         {

@@ -116,16 +116,19 @@ ScintillationGenerator::ScintillationGenerator(
 template<class Generator>
 CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rng)
 {
-    // Sample a component
-    ScintRecord const& component = [&] {
-        auto const& mat = shared_.materials[dist_.material];
+    // Sample a spectrum distribution from the spectra component
+    ScintDistributionRecord const& component = [&] {
+        // NOTE: material and spectrum currently have one-to-one correspondence
+        auto spectrum_id = id_cast<ScintSpectrumId>(dist_.material.get());
+        CELER_ASSERT(spectrum_id < shared_.spectra.size());
+        auto const& s = shared_.spectra[spectrum_id];
 
-        auto pdf = shared_.reals[mat.yield_pdf];
+        auto pdf = shared_.reals[s.yield_pdf];
         auto select_idx = make_selector([&pdf](size_type i) { return pdf[i]; },
-                                        mat.yield_pdf.size());
+                                        s.yield_pdf.size());
         size_type component_idx = select_idx(rng);
-        CELER_ASSERT(component_idx < mat.components.size());
-        return shared_.scint_records[mat.components[component_idx]];
+        CELER_ASSERT(component_idx < s.components.size());
+        return shared_.scint_records[s.components[component_idx]];
     }();
 
     real_type energy_val{};

@@ -28,29 +28,30 @@ namespace detail
 /*!
  * Build scintillation spectrum data.
  */
-class MatScintSpecInserter
+class ScintSpectrumInserter
 {
   public:
     //!@{
     //! \name Type aliases
     using Data = HostVal<ScintillationData>;
+    using SpectrumId = ScintSpectrumId;
     //!@}
 
   public:
     // Construct with data to insert into
-    explicit inline MatScintSpecInserter(Data* data);
+    explicit inline ScintSpectrumInserter(Data* data);
 
     // Add scintillation data for a single material
-    auto operator()(inp::ScintillationMaterial const& mat);
+    SpectrumId operator()(inp::ScintillationMaterial const& mat);
+
+    // Add empty scintillation data for a single material
+    SpectrumId operator()();
 
   private:
-    using MatId = OptMatId;
-
     // Index and inserter types for nonuniform grids (use opaque ID for grids)
-    //    using GridInserter = NonuniformGridInserter<GridId>;
-    CollectionBuilder<MatScintSpectrum, MemSpace::host, MatId> materials_;
+    CollectionBuilder<ScintSpectrumRecord, MemSpace::host> spectra_;
     DedupeCollectionBuilder<real_type> reals_;
-    CollectionBuilder<ScintRecord> scint_records_;
+    CollectionBuilder<ScintDistributionRecord> scint_records_;
     using GridId = OpaqueId<NonuniformGridRecord>;
     NonuniformGridInserter<GridId> insert_energy_cdf_;
     CollectionBuilder<NonuniformGridRecord> energy_cdfs_;
@@ -59,9 +60,9 @@ class MatScintSpecInserter
 };
 
 //! Add to spectrum distribution variant
-struct MatScintSpecInserter::SpectrumVisitor
+struct ScintSpectrumInserter::SpectrumVisitor
 {
-    ScintRecord& scint;
+    ScintDistributionRecord& scint;
     NonuniformGridInserter<GridId>& insert_energy_cdf;
     inp::SpectrumArgument spectrum_argument;
 
@@ -75,8 +76,8 @@ struct MatScintSpecInserter::SpectrumVisitor
 /*!
  * Construct with defaults.
  */
-MatScintSpecInserter::MatScintSpecInserter(Data* data)
-    : materials_{&data->materials}
+ScintSpectrumInserter::ScintSpectrumInserter(Data* data)
+    : spectra_{&data->spectra}
     , reals_{&data->reals}
     , scint_records_{&data->scint_records}
     , insert_energy_cdf_(&data->reals, &data->energy_cdfs)
@@ -89,9 +90,10 @@ MatScintSpecInserter::MatScintSpecInserter(Data* data)
 /*!
  * Add scintillation data for a single material.
  */
-auto MatScintSpecInserter::operator()(inp::ScintillationMaterial const& mat)
+auto ScintSpectrumInserter::operator()(inp::ScintillationMaterial const& mat)
+    -> SpectrumId
 {
-    CELER_EXPECT(!mat.components.empty());
+    CELER_EXPECT(mat);
 
     // Calculate total yield across all components
     double total_yield{0};
@@ -114,7 +116,7 @@ auto MatScintSpecInserter::operator()(inp::ScintillationMaterial const& mat)
                        << "invalid fall_time=" << comp.fall_time
                        << " (should be positive)");
 
-        ScintRecord scint;
+        ScintDistributionRecord scint;
         scint.rise_time = comp.rise_time;
         scint.fall_time = comp.fall_time;
 
@@ -132,16 +134,29 @@ auto MatScintSpecInserter::operator()(inp::ScintillationMaterial const& mat)
         y /= total_yield;
     }
 
-    MatScintSpectrum spectrum;
+    ScintSpectrumRecord spectrum;
     spectrum.yield_per_energy = total_yield;
     spectrum.components = {begin_components, scint_records_.size_id()};
     spectrum.yield_pdf = reals_.insert_back(yield_pdf.begin(), yield_pdf.end());
 
     CELER_ENSURE(spectrum.components.size() == mat.components.size());
-    return materials_.push_back(std::move(spectrum));
+    return spectra_.push_back(std::move(spectrum));
 }
 
-void MatScintSpecInserter::SpectrumVisitor::operator()(
+//---------------------------------------------------------------------------//
+/*!
+ * Add an empty record for non-scintillating materials.
+ */
+auto ScintSpectrumInserter::operator()() -> SpectrumId
+{
+    return spectra_.push_back({});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add scintillation data for a single material.
+ */
+void ScintSpectrumInserter::SpectrumVisitor::operator()(
     inp::NormalDistribution const& norm_dist)
 {
     // Gaussian distribution
@@ -159,7 +174,7 @@ void MatScintSpecInserter::SpectrumVisitor::operator()(
     scint.lambda_sigma = norm_dist.stddev;
 }
 
-void MatScintSpecInserter::SpectrumVisitor::operator()(inp::Grid const& grid)
+void ScintSpectrumInserter::SpectrumVisitor::operator()(inp::Grid const& grid)
 {
     // Explicit grid
     CELER_VALIDATE(is_monotonic_increasing(make_span(grid.x)),

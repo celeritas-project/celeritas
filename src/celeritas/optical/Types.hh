@@ -22,6 +22,8 @@ using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
 
 }  // namespace optical
 
+using ScintSpectrumId = OpaqueId<struct ScintSpectrumRecord>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
