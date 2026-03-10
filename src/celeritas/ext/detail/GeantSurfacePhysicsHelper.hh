@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <ostream>
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 
@@ -96,6 +97,18 @@ bool GeantSurfacePhysicsHelper::get_property(inp::Grid& dst,
     auto loaded
         = get_property_(dst, name, {ImportUnits::mev, ImportUnits::unitless});
     return loaded;
+}
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+//! Write surface name and surface id to a stream
+inline std::ostream&
+operator<<(std::ostream& os, GeantSurfacePhysicsHelper const& helper)
+{
+    os << helper.surface().GetName()
+       << " (surface id=" << helper.surface_id().unchecked_get() << ")";
+    return os;
 }
 
 //---------------------------------------------------------------------------//

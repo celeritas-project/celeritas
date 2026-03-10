@@ -32,12 +32,29 @@ GeantScintillationLoader::GeantScintillationLoader(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Load scintillation data for one optical material, printing context on error.
+ */
+void GeantScintillationLoader::operator()(GeantOpticalMatHelper const& helper)
+{
+    try
+    {
+        this->load_one(helper);
+    }
+    catch (std::exception const&)
+    {
+        CELER_LOG(error) << "Failed to load scintillation for " << helper;
+        throw;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Load scintillation data for one optical material.
  *
  * If the material has no scintillation yield the method returns without
  * modifying \c process_ .
  */
-void GeantScintillationLoader::operator()(GeantOpticalMatHelper const& helper)
+void GeantScintillationLoader::load_one(GeantOpticalMatHelper const& helper)
 {
     auto const& get_property = helper.get_property();
 
