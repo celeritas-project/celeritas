@@ -200,13 +200,14 @@ endif()
 #-----------------------------------------------------------------------------#
 # External
 set(_import_filter
+  "DuneCryostat.*"
   "FourSteelSlabs*"
-  "TestEm3*"
-  "OneSteelSphere.*"
-  "OneSteelSphereGG.*"
   "LarSphere.*"
   "LarSphereExtramat.*"
+  "OneSteelSphere.*"
+  "OneSteelSphereGG.*"
   "Solids.*"
+  "TestEm3*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)
   list(REMOVE_ITEM _import_filter
