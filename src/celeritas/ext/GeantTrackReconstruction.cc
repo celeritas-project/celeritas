@@ -22,37 +22,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Restore the G4Track from the reconstruction data. Takes ownership of the
- * user information by unsetting it in the original track.
- */
-GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track)
-    : track_id_{track.GetTrackID()}
-    , parent_id_{track.GetParentID()}
-    , user_info_{track.GetUserInformation()}
-    , creator_process_{track.GetCreatorProcess()}
-{
-    CELER_EXPECT(*this);
-    // Clear user information so that it doesn't get deleted with the G4Track
-    track.SetUserInformation(nullptr);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Restore the G4Track from the reconstruction data. The restored track does
- * not have ownership of the user information, user must take care to reset it
- * before deletion of the track.
- */
-void GeantTrackReconstruction::AcquiredData::restore(G4Track& track) const
-{
-    CELER_EXPECT(*this);
-    track.SetTrackID(track_id_);
-    track.SetParentID(parent_id_);
-    track.SetUserInformation(user_info_.get());
-    track.SetCreatorProcess(creator_process_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct with particle definitions for track reconstruction.
  */
 GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
@@ -155,6 +124,39 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
         g4_track_data_[primary_id.unchecked_get()].restore(track);
     }
     return track;
+}
+
+//---------------------------------------------------------------------------//
+// GEANTTRACKRECONSTRUCTION::ACQUIREDDATA
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the G4Track from the reconstruction data. Takes ownership of the
+ * user information by unsetting it in the original track.
+ */
+GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track)
+    : track_id_{track.GetTrackID()}
+    , parent_id_{track.GetParentID()}
+    , user_info_{track.GetUserInformation()}
+    , creator_process_{track.GetCreatorProcess()}
+{
+    CELER_EXPECT(*this);
+    // Clear user information so that it doesn't get deleted with the G4Track
+    track.SetUserInformation(nullptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the G4Track from the reconstruction data. The restored track does
+ * not have ownership of the user information, user must take care to reset it
+ * before deletion of the track.
+ */
+void GeantTrackReconstruction::AcquiredData::restore(G4Track& track) const
+{
+    CELER_EXPECT(*this);
+    track.SetTrackID(track_id_);
+    track.SetParentID(parent_id_);
+    track.SetUserInformation(user_info_.get());
+    track.SetCreatorProcess(creator_process_);
 }
 
 //---------------------------------------------------------------------------//
