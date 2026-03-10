@@ -187,6 +187,9 @@ load_scintillation_spectrum(GeantMaterialPropertyGetter& get,
                    << "conflicting scintillation spectrum definitions for "
                    << prefix + suffix);
 
+    CELER_VALIDATE(has_props == (has_grid || gaussian),
+                   << "incomplete spectrum parameters provided");
+
     if (gaussian)
     {
         s.spectrum_distribution = std::move(*gaussian);
