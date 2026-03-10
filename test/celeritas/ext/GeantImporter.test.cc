@@ -11,16 +11,19 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/Quantity.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -437,8 +440,8 @@ TEST_F(DuneCryostat, optical)
     selection_.particles = GeantImportDataSelection::optical;
     selection_.processes = GeantImportDataSelection::optical;
     ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
-    auto&& import_data = this->imported_data();
-    CELER_DISCARD(import_data);
+    auto&& imported = this->imported_data();
+    CELER_DISCARD(imported);
 
     static char const* const expected_log_messages[] = {
         "Loaded no model data from process G4OpMieHG(\"OpMieHG\")",
