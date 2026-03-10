@@ -54,7 +54,7 @@ G4VParticleChange& HadronicInteractor::operator()(G4Track& track)
 /*!
  * Return the process name.
  */
-std::string HadronicInteractor::process_name() const
+std::string const& HadronicInteractor::process_name() const
 {
     return process_->GetProcessName();
 }

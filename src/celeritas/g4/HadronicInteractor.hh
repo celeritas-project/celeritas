@@ -43,7 +43,7 @@ class HadronicInteractor
     G4VParticleChange& operator()(G4Track& track);
 
     // Return the underlying process name
-    std::string process_name() const;
+    std::string const& process_name() const;
 
   private:
     //// DATA ////
