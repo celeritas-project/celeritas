@@ -83,8 +83,10 @@ PrimaryGenerator::operator()(Generator& rng)
 
     optical::TrackInitializer result;
     result.energy = units::MevEnergy{sample_with(visit, data_.energy, rng)};
+    CELER_ASSERT(result.energy > zero_quantity());
     result.position = sample_with(visit, data_.shape, rng);
     result.direction = sample_with(visit, data_.angle, rng);
+    CELER_ASSERT(is_soft_unit_vector(result.direction));
     result.primary = {};  // No associated Geant4 primary
     do
     {
@@ -93,7 +95,6 @@ PrimaryGenerator::operator()(Generator& rng)
     } while (CELER_UNLIKELY(
         !is_soft_orthogonal(result.polarization, result.direction)));
 
-    CELER_ENSURE(result.energy > zero_quantity());
     return result;
 }
 

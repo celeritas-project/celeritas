@@ -13,6 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
+#include "corecel/random/distribution/TruncatedDistribution.hh"
 
 #include "EnergyLossHelper.hh"
 
@@ -66,8 +67,7 @@ class EnergyLossGaussianDistribution
     inline CELER_FUNCTION Energy operator()(Generator& rng);
 
   private:
-    real_type const max_loss_;
-    NormalDistribution<real_type> sample_normal_;
+    TruncatedDistribution<NormalDistribution<real_type>> sample_normal_;
 };
 
 //---------------------------------------------------------------------------//
@@ -80,8 +80,8 @@ class EnergyLossGaussianDistribution
  */
 CELER_FUNCTION EnergyLossGaussianDistribution::EnergyLossGaussianDistribution(
     Energy mean_loss, Energy bohr_stddev)
-    : max_loss_(2 * mean_loss.value())
-    , sample_normal_(mean_loss.value(), bohr_stddev.value())
+    : sample_normal_(
+          0, 2 * mean_loss.value(), mean_loss.value(), bohr_stddev.value())
 
 {
     CELER_EXPECT(mean_loss > zero_quantity());
@@ -122,12 +122,7 @@ template<class Generator>
 CELER_FUNCTION auto EnergyLossGaussianDistribution::operator()(Generator& rng)
     -> Energy
 {
-    real_type result;
-    do
-    {
-        result = sample_normal_(rng);
-    } while (result <= 0 || result > max_loss_);
-    return Energy{result};
+    return Energy{sample_normal_(rng)};
 }
 
 //---------------------------------------------------------------------------//
