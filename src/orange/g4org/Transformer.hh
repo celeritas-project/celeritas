@@ -13,7 +13,9 @@
 
 #include "corecel/Macros.hh"
 #include "geocel/Types.hh"
+#include "geocel/g4/Convert.hh"
 #include "orange/transform/NoTransformation.hh"
+#include "orange/transform/Transformation.hh"
 #include "orange/transform/Translation.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -55,14 +57,14 @@ class Transformer
     inline Translation operator()(G4ThreeVector const& t) const;
 
     // Convert a pure rotation
-    inline Transformation operator()(G4RotationMatrix const& rot) const;
+    inline Transformation operator()(G4RotationMatrix const& g4rm) const;
 
     // Convert a translation + rotation
     inline Transformation
-    operator()(G4ThreeVector const& t, G4RotationMatrix const& rot) const;
+    operator()(G4ThreeVector const& t, G4RotationMatrix const& g4rm) const;
 
     // Convert a more general transform (includes reflection)
-    inline Transformation operator()(G4Transform3D const& tran) const;
+    inline Transformation operator()(G4Transform3D const& g4tr) const;
 
     // Convert a general affine transform
     inline VariantTransform variant(G4AffineTransform const& at) const;
@@ -120,25 +122,29 @@ auto Transformer::operator()(G4ThreeVector const& t) const -> Translation
 /*!
  * Create a transform from a translation plus rotation.
  */
-auto Transformer::operator()(G4ThreeVector const& trans,
-                             G4RotationMatrix const& rot) const
+auto Transformer::operator()(G4ThreeVector const& g4t,
+                             G4RotationMatrix const& g4rm) const
     -> Transformation
 {
-    return Transformation{convert_from_geant(rot), scale_.to<Real3>(trans)};
+    SquareMatrixReal3 mat{Real3(g4rm.xx(), g4rm.xy(), g4rm.xz()),
+                          Real3(g4rm.yx(), g4rm.yy(), g4rm.yz()),
+                          Real3(g4rm.zx(), g4rm.zy(), g4rm.zz())};
+
+    return Transformation{mat, scale_.to<Real3>(g4t)};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert a more general transform (including possibly reflection).
  */
-Transformation Transformer::operator()(G4Transform3D const& tran) const
+Transformation Transformer::operator()(G4Transform3D const& g4tr) const
 {
-    SquareMatrixReal3 rot{convert_from_geant(tran.xx(), tran.xy(), tran.xz()),
-                          convert_from_geant(tran.yx(), tran.yy(), tran.yz()),
-                          convert_from_geant(tran.zx(), tran.zy(), tran.zz())};
+    SquareMatrixReal3 mat{Real3(g4tr.xx(), g4tr.xy(), g4tr.xz()),
+                          Real3(g4tr.yx(), g4tr.yy(), g4tr.yz()),
+                          Real3(g4tr.zx(), g4tr.zy(), g4tr.zz())};
 
-    return Transformation{rot,
-                          scale_.to<Real3>(tran.dx(), tran.dy(), tran.dz())};
+    return Transformation{mat,
+                          scale_.to<Real3>(g4tr.dx(), g4tr.dy(), g4tr.dz())};
 }
 
 //---------------------------------------------------------------------------//

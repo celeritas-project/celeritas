@@ -165,7 +165,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     G4VPhysicalVolume* world() { return data_.world; }
     //!@}
 
-    // Get the world extents in Geant4 units
+    // Get the world extents in Geant4 units and precision
     BoundingBox<double> get_clhep_bbox() const;
 
     //// DATA ACCESS ////

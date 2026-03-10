@@ -161,14 +161,14 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         obj["bih_metadata"] = json::object();
         auto& bih_metadata = obj["bih_metadata"];
 
-        auto make_array = [&](std::string key) -> json& {
+        auto insert_array = [&bih_metadata](std::string key) -> json& {
             bih_metadata[key] = json::array();
             return bih_metadata[key];
         };
 
-        auto& finite = make_array("num_finite_bboxes");
-        auto& infinite = make_array("num_infinite_bboxes");
-        auto& depth = make_array("depth");
+        auto& finite = insert_array("num_finite_bboxes");
+        auto& infinite = insert_array("num_infinite_bboxes");
+        auto& depth = insert_array("depth");
 
         for (auto i : range(data.simple_units.size()))
         {
@@ -182,7 +182,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         // Include structure information if requested by the user
         if (celeritas::getenv_flag("ORANGE_BIH_STRUCTURE", false).value)
         {
-            auto& structure = make_array("structure");
+            auto& structure = insert_array("structure");
             for (auto i : range(data.simple_units.size()))
             {
                 auto const& unit = data.simple_units[SimpleUnitId{i}];

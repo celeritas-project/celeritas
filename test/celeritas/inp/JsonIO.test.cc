@@ -5,6 +5,7 @@
 //! \file celeritas/inp/JsonIO.test.cc
 //---------------------------------------------------------------------------//
 // TODO: combine all inp/IO.json
+#include "corecel/inp/DistributionsIO.json.hh"
 #include "celeritas/inp/ControlIO.json.hh"
 #include "celeritas/inp/EventsIO.json.hh"
 #include "celeritas/inp/StandaloneInput.hh"
@@ -75,6 +76,16 @@ TEST(JsonIO, events)
         auto const& shape = std::get<UniformBoxDistribution>(rt_input.shape);
         EXPECT_EQ(Real3({0, 0, 0}), shape.lower);
         EXPECT_EQ(Real3({1, 1, 1}), shape.upper);
+    }
+    {
+        TruncatedDistribution<NormalDistribution> input;
+        input.distribution.mean = 2.0;
+        input.distribution.stddev = 1.0;
+        input.lower = 0.0;
+
+        static char const expected[]
+            = R"json({"_type":"truncated","distribution":{"_type":"normal","mean":2.0,"stddev":1.0},"lower":0.0,"upper":null})json";
+        EXPECT_JSON_ROUND_TRIP(input, expected);
     }
 }
 

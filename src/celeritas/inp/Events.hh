@@ -26,7 +26,9 @@ using MonoenergeticDistribution = DeltaDistribution<double>;
 
 //! Choose an energy distribution for the primary generator
 using EnergyDistribution
-    = std::variant<MonoenergeticDistribution, NormalDistribution>;
+    = std::variant<MonoenergeticDistribution,
+                   NormalDistribution,
+                   TruncatedDistribution<NormalDistribution>>;
 
 //---------------------------------------------------------------------------//
 //! Generate at a single point

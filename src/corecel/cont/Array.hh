@@ -197,6 +197,45 @@ operator<<(std::ostream& os, Array<T, N> const& a)
 #endif
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a C array from type \c T2 to an Array of \c T1.
+ *
+ * The standard library version of this function is available since C++20.
+ */
+template<class T, size_type N>
+CELER_CONSTEXPR_FUNCTION auto to_array(T (&x)[N])
+{
+    static_assert(!std::is_array_v<T>,
+                  "to_array elements cannot be multidimensional");
+    static_assert(std::is_constructible_v<T, T&>,
+                  "to_array elements must be copy constructible");
+
+    Array<std::remove_cv_t<T>, N> result;
+    for (size_type i = 0; i != N; ++i)
+    {
+        result[i] = x[i];
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert an array from type \c T2 to \c T1.
+ */
+template<class T1, class T2, size_type N>
+CELER_CONSTEXPR_FUNCTION Array<T1, N> static_array_cast(Array<T2, N> const& x)
+{
+    Array<T1, N> result;
+    for (size_type i = 0; i != N; ++i)
+    {
+        result[i] = static_cast<T1>(x[i]);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
 
 //---------------------------------------------------------------------------//

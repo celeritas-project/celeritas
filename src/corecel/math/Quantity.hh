@@ -46,14 +46,18 @@ namespace celeritas
  * unnecessary floating point operations involving the speed of light:
  * \code
    real_type e_mev = value_as<MevEnergy>(energy); // Natural units
-   MevMomentum momentum{std::sqrt(e_mev * e_mev
-                                  + 2 * value_as<MevMass>(mass) * e_mev)};
+   real_type m_mev = value_as<MevMass>(mass); // Natural units
+   MevMomentum momentum{sqrt(ipow<2>(e_mev) + 2 * m_mev * e_mev))};
    \endcode
  * The resulting quantity can be converted to the native Celeritas unit system
  * with `native_value_from`, which multiplies in the constant value of
  * ElMomentumUnit:
  * \code
    real_type mom = native_value_from(momentum);
+ * \endcode
+ * Conversion from a native unit to a quantity requires the template argument:
+ * \code
+   auto amu = native_value_to<MevMass>(constants::atomic_mass);
  * \endcode
  *
  * When using a Quantity from another part of the code, e.g. an imported unit

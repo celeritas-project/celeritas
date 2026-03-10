@@ -17,6 +17,25 @@ namespace inp
 //!@{
 //! I/O routines for JSON
 
+template<class Distribution>
+void to_json(nlohmann::json& j, TruncatedDistribution<Distribution> const& v)
+{
+    j = {
+        json_type_pair("truncated"),
+        CELER_JSON_PAIR(v, distribution),
+        CELER_JSON_PAIR(v, lower),
+        CELER_JSON_PAIR(v, upper),
+    };
+}
+
+template<class Distribution>
+void from_json(nlohmann::json const& j, TruncatedDistribution<Distribution>& v)
+{
+    CELER_JSON_LOAD_REQUIRED(j, v, distribution);
+    CELER_JSON_LOAD_OPTION(j, v, lower);
+    CELER_JSON_LOAD_OPTION(j, v, upper);
+}
+
 template<class T>
 void to_json(nlohmann::json& j, DeltaDistribution<T> const& v)
 {
@@ -78,6 +97,10 @@ template void
 from_json(nlohmann::json const&, DeltaDistribution<Array<double, 3>>&);
 template void
 to_json(nlohmann::json&, DeltaDistribution<Array<double, 3>> const&);
+template void
+from_json(nlohmann::json const&, TruncatedDistribution<NormalDistribution>&);
+template void
+to_json(nlohmann::json&, TruncatedDistribution<NormalDistribution> const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace inp
