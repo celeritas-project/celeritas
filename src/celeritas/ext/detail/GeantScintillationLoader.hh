@@ -39,6 +39,9 @@ class GeantScintillationLoader
 
     //// HELPER FUNCTIONS ////
 
+    // Load scintillation data for one optical material (implementation)
+    void load_one(GeantOpticalMatHelper const& helper);
+
     static std::optional<inp::NormalDistribution>
     load_gaussian(GeantMaterialPropertyGetter const& get,
                   std::string const& prefix,

@@ -56,7 +56,7 @@ void GeantScintillationLoader::operator()(GeantOpticalMatHelper const& helper)
  */
 void GeantScintillationLoader::load_one(GeantOpticalMatHelper const& helper)
 {
-    auto const& get_property = helper.get_property();
+    auto const& get_property = helper.property_getter();
 
     // Load material-wide properties
     double total_yield{0};

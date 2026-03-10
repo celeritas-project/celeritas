@@ -245,17 +245,9 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
     // Loop over optical materials and load scintillation properties
     for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
     {
-        CELER_TRY_HANDLE(
-            try {
-                load_material(GeantOpticalMatHelper{
-                    opt_id, optical_g4mat_[opt_id.get()]});
-            } catch (...) {
-                CELER_LOG(error)
-                    << "Failed to load optical material " << opt_id.get()
-                    << " = " << this->property_getter(opt_id);
-                throw;
-            },
-            handle);
+        CELER_TRY_HANDLE(load_material(GeantOpticalMatHelper{
+                             opt_id, optical_g4mat_[opt_id.get()]}),
+                         handle);
     }
     log_and_rethrow(std::move(handle));
 

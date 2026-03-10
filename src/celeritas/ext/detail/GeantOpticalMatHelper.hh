@@ -31,6 +31,9 @@ class GeantOpticalMatHelper
     inline GeantOpticalMatHelper(OptMatId opt_mat_id,
                                  G4Material const* material);
 
+    //! True if this helper is fully constructed and valid
+    explicit operator bool() const { return material_ != nullptr; }
+
     // Get optical material ID
     OptMatId opt_mat_id() const { return opt_mat_id_; }
 
@@ -38,7 +41,11 @@ class GeantOpticalMatHelper
     inline G4Material const& material() const;
 
     // Access the property getter for this material
-    GeantMaterialPropertyGetter const& get_property() const { return getter_; }
+    GeantMaterialPropertyGetter const& property_getter() const
+    {
+        CELER_ASSERT(*this);
+        return getter_;
+    }
 
   private:
     OptMatId opt_mat_id_;
@@ -71,6 +78,7 @@ GeantOpticalMatHelper::GeantOpticalMatHelper(OptMatId opt_mat_id,
  */
 G4Material const& GeantOpticalMatHelper::material() const
 {
+    CELER_ASSERT(*this);
     return *material_;
 }
 
@@ -81,7 +89,7 @@ G4Material const& GeantOpticalMatHelper::material() const
 inline std::ostream&
 operator<<(std::ostream& os, GeantOpticalMatHelper const& helper)
 {
-    os << helper.material().GetName()
+    os << helper.property_getter()
        << " (optical id=" << helper.opt_mat_id().unchecked_get() << ")";
     return os;
 }

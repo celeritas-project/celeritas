@@ -30,11 +30,21 @@ class GeantSurfacePhysicsHelper
     // Construct with SurfaceId; this expects a valid GeantGeoParams
     GeantSurfacePhysicsHelper(SurfaceId sid);
 
+    //! True if this helper is fully constructed and valid
+    explicit operator bool() const { return surface_ != nullptr; }
+
     // Get optical surface id
     SurfaceId surface_id() const { return sid_; }
 
     // Get Geant4 optical surface
     G4OpticalSurface const& surface() const;
+
+    // Access the raw property getter for this surface
+    GeantMaterialPropertyGetter const& property_getter() const
+    {
+        CELER_ASSERT(*this);
+        return get_property_;
+    }
 
     // Populate Grid optical property from name, in [MeV, unitless]
     bool get_property(inp::Grid& dst, std::string const& name) const;
@@ -73,6 +83,7 @@ GeantSurfacePhysicsHelper::GeantSurfacePhysicsHelper(SurfaceId sid) : sid_(sid)
  */
 G4OpticalSurface const& GeantSurfacePhysicsHelper::surface() const
 {
+    CELER_ASSERT(*this);
     return *surface_;
 }
 
@@ -106,7 +117,7 @@ bool GeantSurfacePhysicsHelper::get_property(inp::Grid& dst,
 inline std::ostream&
 operator<<(std::ostream& os, GeantSurfacePhysicsHelper const& helper)
 {
-    os << helper.surface().GetName()
+    os << helper.property_getter()
        << " (surface id=" << helper.surface_id().unchecked_get() << ")";
     return os;
 }
