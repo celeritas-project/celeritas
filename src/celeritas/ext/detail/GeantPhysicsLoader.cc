@@ -21,6 +21,9 @@
 #include <G4VProcess.hh>
 #include <G4Version.hh>
 
+#include "corecel/inp/Distributions.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
+
 #if G4VERSION_NUMBER >= 1070
 #    include <G4OpWLS2.hh>
 #    include <G4OpticalParameters.hh>
@@ -102,68 +105,21 @@ void load_rayleigh_water(
 
 //---------------------------------------------------------------------------//
 /*!
- * Try to load Gaussian spectrum parameters.
- *
- * Checks for CELER_-prefixed properties first, then deprecated unprefixed
- * versions. Returns true if parameters were found. Validates that both mean
- * and sigma are present together.
- */
-bool try_load_gaussian_spectrum(GeantMaterialPropertyGetter& get,
-                                int comp_idx,
-                                double& lambda_mean,
-                                double& lambda_sigma)
-{
-    // Helper to try loading both parameters for a given prefix
-    auto suffix = std::to_string(comp_idx);
-    auto try_prefix = [&](std::string prefix) -> bool {
-        auto mean_name = prefix + "SCINTILLATIONLAMBDAMEAN" + suffix;
-        auto sigma_name = prefix + "SCINTILLATIONLAMBDASIGMA" + suffix;
-
-        bool has_mean = get(lambda_mean, mean_name, ImportUnits::len);
-        bool has_sigma = get(lambda_sigma, sigma_name, ImportUnits::len);
-
-        CELER_VALIDATE(has_mean == has_sigma,
-                       << "incomplete Gaussian spectrum for component "
-                       << comp_idx << ": both " << mean_name << comp_idx
-                       << " and " << sigma_name << comp_idx
-                       << " must be present");
-
-        return has_mean && has_sigma;
-    };
-
-    bool has_celer_gauss = try_prefix("CELER_");
-    bool has_deprecated_gauss = try_prefix("");
-
-    CELER_VALIDATE(!(has_celer_gauss && has_deprecated_gauss),
-                   << "conflicting/redundant scintillation properties for "
-                      "component "
-                   << comp_idx);
-
-    if (has_deprecated_gauss)
-    {
-        CELER_LOG(warning) << "Deprecated property prefix SCINTILLATION: use "
-                              "CELER_SCINTILLATION for component "
-                           << comp_idx;
-    }
-
-    return has_celer_gauss || has_deprecated_gauss;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Load a single scintillation component spectrum.
  *
  * Returns an optional spectrum. If no spectrum data is found, returns nullopt.
  */
 std::optional<inp::ScintillationSpectrum>
-load_scintillation_spectrum(GeantMaterialPropertyGetter& get, int comp_idx)
+load_scintillation_spectrum(GeantMaterialPropertyGetter& get,
+                            std::string const& prefix,
+                            std::string const& suffix)
 {
     CELER_EXPECT(get);
 
     using IU = ImportUnits;
 
-    auto propname = [suffix = std::to_string(comp_idx)](char const* base) {
-        std::string result{"SCINTILLATION"};
+    auto prop = [&prefix, &suffix](char const* base) {
+        std::string result = prefix;
         result += base;
         result += suffix;
         return result;
@@ -173,28 +129,48 @@ load_scintillation_spectrum(GeantMaterialPropertyGetter& get, int comp_idx)
 
     // Component yields are dimensionless relative weights
     bool has_props = false;
-    has_props = get(s.yield, propname("YIELD"), IU::unitless) || has_props;
-    has_props = get(s.rise_time, propname("RISETIME"), IU::time) || has_props;
-    has_props = get(s.fall_time, propname("TIMECONSTANT"), IU::time)
-                || has_props;
+    has_props = get(s.yield, prop("YIELD"), IU::unitless) || has_props;
+    has_props = get(s.rise_time, prop("RISETIME"), IU::time) || has_props;
+    has_props = get(s.fall_time, prop("TIMECONSTANT"), IU::time) || has_props;
 
     // Load spectrum: explicit grid or Gaussian approximation
     inp::Grid grid;
-    bool has_grid = get(grid, propname("COMPONENT"), {IU::mev, IU::unitless});
+    bool has_grid = get(grid, prop("COMPONENT"), {IU::mev, IU::unitless});
 
-    double lambda_mean{0}, lambda_sigma{0};
-    bool has_gauss
-        = try_load_gaussian_spectrum(get, comp_idx, lambda_mean, lambda_sigma);
+    inp::NormalDistribution gaussian;
+    auto load_gaussian = [&](std::string const& newprefix) {
+        auto mean_name = newprefix + "LAMBDAMEAN" + suffix;
+        auto sigma_name = newprefix + "LAMBDASIGMA" + suffix;
 
-    CELER_VALIDATE(
-        !(has_grid && has_gauss),
-        << R"(conflicting scintillation spectrum definitions for component )"
-        << comp_idx);
+        bool has_mean = get(gaussian.mean, mean_name, ImportUnits::len);
+        bool has_sigma = get(gaussian.stddev, sigma_name, ImportUnits::len);
 
-    if (has_gauss)
+        CELER_VALIDATE(has_mean == has_sigma,
+                       << "incomplete Gaussian spectrum for " << newprefix
+                       << suffix << ": both mean and sigma must be present");
+        return has_mean;
+    };
+    bool has_gaussian = load_gaussian("CELER_" + prefix);
+    bool has_depr_gaussian = load_gaussian(prefix);
+
+    CELER_VALIDATE(!(has_gaussian && has_depr_gaussian),
+                   << "conflicting/redundant scintillation properties for "
+                   << prefix << suffix);
+    if (has_depr_gaussian)
     {
-        s.spectrum_distribution
-            = inp::NormalDistribution{lambda_mean, lambda_sigma};
+        has_gaussian = true;
+        CELER_LOG(warning) << "Omitting CELER_ prefix is deprecated: rename "
+                              "optical property to 'CELER_"
+                           << prefix << suffix << '\'';
+    }
+
+    CELER_VALIDATE(!(has_grid && has_gaussian),
+                   << "conflicting scintillation spectrum definitions for "
+                   << prefix + suffix);
+
+    if (has_gaussian)
+    {
+        s.spectrum_distribution = std::move(gaussian);
         s.spectrum_argument = inp::SpectrumArgument::wavelength;
     }
     else if (has_grid)
@@ -202,9 +178,7 @@ load_scintillation_spectrum(GeantMaterialPropertyGetter& get, int comp_idx)
         s.spectrum_distribution = std::move(grid);
         s.spectrum_argument = inp::SpectrumArgument::energy;
     }
-
-    bool has_spectrum = has_grid || has_gauss;
-    if (!has_props && !has_spectrum)
+    else
     {
         return std::nullopt;
     }
@@ -375,13 +349,30 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
         double renorm_yield{0};
         for (int comp_idx : range(1, 4))
         {
-            if (auto s = load_scintillation_spectrum(get_property, comp_idx))
+            if (auto s = load_scintillation_spectrum(
+                    get_property, "SCINTILLATION", std::to_string(comp_idx)))
             {
                 renorm_yield += s->yield;
                 scint_mat.components.push_back(std::move(*s));
             }
         }
-        // TODO: check for deprecated properties
+
+        // Check for deprecated components
+        std::vector<inp::ScintillationSpectrum> deprecated_components;
+        for (auto prefix : {"FAST", "SLOW"})
+        {
+            if (auto s = load_scintillation_spectrum(get_property, prefix, ""))
+            {
+                deprecated_components.push_back(*s);
+            }
+        }
+        if (!deprecated_components.empty())
+        {
+            // TODO: could check whether YIELDRATIO is given (2 components) and
+            // fill in scintillation data accordingly
+            CELER_LOG(warning) << "Ignoring deprecated scintillation "
+                                  "component properties";
+        }
 
         CELER_VALIDATE(!scint_mat.components.empty(),
                        << "no scintillation components were present (perhaps "

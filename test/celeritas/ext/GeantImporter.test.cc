@@ -12,16 +12,19 @@
 #include "corecel/inp/Distributions.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/Quantity.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -273,6 +276,24 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
 };
 
 //---------------------------------------------------------------------------//
+class DuneCryostat : public GeantImporterTest
+{
+  protected:
+    std::string_view gdml_basename() const override
+    {
+        return "dune-cryostat"sv;
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        GeantPhysicsOptions gpo = GeantPhysicsOptions::deactivated();
+        gpo.optical.emplace();
+        gpo.ionization = true;
+        return gpo;
+    }
+};
+
+//---------------------------------------------------------------------------//
 class TestEm3 : public GeantImporterTest
 {
   protected:
@@ -414,6 +435,37 @@ class Solids : public GeantImporterTest
 
 //---------------------------------------------------------------------------//
 // TESTS
+//---------------------------------------------------------------------------//
+
+TEST_F(DuneCryostat, optical)
+{
+    selection_.particles = GeantImportDataSelection::optical;
+    selection_.processes = GeantImportDataSelection::optical;
+    auto&& imported = this->imported_data();
+    EXPECT_FALSE(imported.optical_physics.gen.scintillation);
+}
+
+TEST_F(DuneCryostat, optical_gen)
+{
+    using namespace celeritas::units::literals;
+
+    selection_.particles = GeantImportDataSelection::optical
+                           | GeantImportDataSelection::em_basic;
+    selection_.processes = GeantImportDataSelection::optical;
+    auto&& imported = this->imported_data();
+    auto const& scint = imported.optical_physics.gen.scintillation;
+    ASSERT_TRUE(scint);
+    EXPECT_EQ(1, scint->materials.size());
+
+    ASSERT_TRUE(scint->materials.count(OptMatId{0}));
+    auto const& m = scint->materials.at(OptMatId{0});
+    ASSERT_EQ(2, m.components.size());
+    EXPECT_SOFT_EQ(50000 * 0.8, m.components[0].yield);
+    EXPECT_SOFT_EQ(50000 * 0.2, m.components[1].yield);
+    EXPECT_SOFT_EQ(6, m.components[0].fall_time / 1_ns);
+    EXPECT_SOFT_EQ(1590, m.components[1].fall_time / 1_ns);
+}
+
 //---------------------------------------------------------------------------//
 
 TEST_F(FourSteelSlabsEmStandard, em_particles)
