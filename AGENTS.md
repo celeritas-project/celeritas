@@ -45,7 +45,7 @@ Data flow: Build params on host → copy to device → access via Views
 GPU execution requires data-oriented design with object-oriented interfaces:
 ```cpp
 // Params: immutable setup data
-struct MyParamsData { Collection<Material> materials; };
+struct MyParamsData { Collection<Material> materials; /* ... */ };
 
 // View: lightweight accessor for device code
 class MyView {
@@ -54,6 +54,7 @@ public:
     CELER_FUNCTION Material const& get(MaterialId id) const;
 };
 ```
+Data structs must have `operator bool` to check construction/assignment.
 
 ## Code Conventions
 
@@ -156,7 +157,7 @@ State collections need `resize(size)` operators for track slots.
 ### Creating New Classes
 1. Use `scripts/dev/celeritas-gen.py` for file skeletons
 2. Separate data from behavior: `FooData`, `FooParams`, `FooView`
-3. Add `operator bool()` validation to data structs
+3. Define any nontrivial member function out-of-line, decorating the function *declaration* with `inline`
 4. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
 
 ### Consistency Checklist

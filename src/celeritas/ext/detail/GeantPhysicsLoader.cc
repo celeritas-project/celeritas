@@ -293,7 +293,7 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     }
     catch (...)
     {
-        CELER_LOG(debug) << "Failed while loading process " << name << "(\""
+        CELER_LOG(error) << "Failed while loading process " << name << "(\""
                          << p.GetProcessName() << "\")";
         throw;
     }
@@ -343,9 +343,7 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 {
     inp::ScintillationProcess s;
 
-    // Loop over optical materials and load scintillation properties
-    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
-    {
+    auto load_one = [&](OptMatId opt_id) {
         auto get_property = this->property_getter(opt_id);
 
         // Load material-wide properties
@@ -355,7 +353,7 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
         {
             // No scintillation in this material
             // TODO: check that no other properties are present
-            continue;
+            return;
         }
         CELER_VALIDATE(total_yield > 0,
                        << "invalid scintillation yield " << total_yield
@@ -407,7 +405,23 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
             s.yield *= total_yield / renorm_yield;
         }
         s.materials.emplace(opt_id, std::move(scint_mat));
+    };
+
+    MultiExceptionHandler handle;
+
+    // Loop over optical materials and load scintillation properties
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
+    {
+        CELER_TRY_HANDLE(
+            try { load_one(opt_id); } catch (...) {
+                CELER_LOG(error)
+                    << "Failed to load optical material " << opt_id.get()
+                    << " = " << this->property_getter(opt_id);
+                throw;
+            },
+            handle);
     }
+    log_and_rethrow(std::move(handle));
 
     auto num_mats = s.materials.size();
     if (num_mats == 0)
@@ -619,8 +633,11 @@ GeantMaterialPropertyGetter
 GeantPhysicsLoader::property_getter(OptMatId opt_id) const
 {
     CELER_EXPECT(opt_id < optical_g4mat_.size());
+    G4Material const* mat = optical_g4mat_[opt_id.get()];
+    CELER_ASSERT(mat);
     return GeantMaterialPropertyGetter{
-        optical_g4mat_[opt_id.get()]->GetMaterialPropertiesTable()};
+        optical_g4mat_[opt_id.get()]->GetMaterialPropertiesTable(),
+        mat->GetName()};
 }
 
 //---------------------------------------------------------------------------//

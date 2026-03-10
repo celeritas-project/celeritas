@@ -14,6 +14,8 @@
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
 
+#include "GeantSurfacePhysicsHelper.hh"
+
 using G4ST = G4SurfaceType;
 using G4OSF = G4OpticalSurfaceFinish;
 using G4OSM = G4OpticalSurfaceModel;
