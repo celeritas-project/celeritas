@@ -71,7 +71,6 @@ void LarStandaloneRunnerTestBase::SetUp()
 }
 
 //---------------------------------------------------------------------------//
-
 struct RunResult
 {
     std::vector<int> num_hits;
@@ -130,19 +129,19 @@ void RunResult::print_expected() const
 
 //---------------------------------------------------------------------------//
 
-class LarSphereTest : public LarStandaloneRunnerTestBase
+class DuneCryoTest : public LarStandaloneRunnerTestBase
 {
     //! Construct input
     Input make_input() const override;
     VecReal3 make_detector_point_map() const override;
 };
 
-auto LarSphereTest::make_input() const -> Input
+auto DuneCryoTest::make_input() const -> Input
 {
     Input result;
     result.problem.model.geometry
-        = this->test_data_path("geocel", "lar-sphere.gdml");
-    result.detectors = {"detshell"};
+        = this->test_data_path("geocel", "dune-cryostat.gdml");
+    result.detectors = {"PhotonDetector"};
     result.problem.limits.steps = 16;
     result.problem.capacity = [] {
         inp::OpticalStateCapacity cap;
@@ -157,15 +156,17 @@ auto LarSphereTest::make_input() const -> Input
     return result;
 }
 
-auto LarSphereTest::make_detector_point_map() const -> VecReal3
+auto DuneCryoTest::make_detector_point_map() const -> VecReal3
 {
     return {
-        from_cm(Real3{0, 105, 0}),
-        from_cm(Real3{0, -105, 0}),
+        from_cm(Real3{-0.05, -712.31875, -535.175}),
+        from_cm(Real3{-0.05, -712.31875, -486.375}),
+        from_cm(Real3{-0.05, -712.31875, -423.575}),
+        from_cm(Real3{-0.05, -712.31875, -374.775}),
     };
 }
 
-TEST_F(LarSphereTest, two_sim_edeps)
+TEST_F(DuneCryoTest, two_sim_edeps)
 {
     auto& run = this->runner();
 
@@ -200,16 +201,16 @@ TEST_F(LarSphereTest, two_sim_edeps)
     auto result = RunResult::from_btr(run({sed, sed2}));
     // result.print_expected();
     RunResult ref;
-    ref.num_hits = {0, 0};
+    ref.num_hits = {0, 0, 0, 0};
     EXPECT_REF_EQ(ref, result);
 
     // Run again (simulating second event)
     result = RunResult::from_btr(run({sed2, sed}));
-    ref.num_hits = {0, 0};
+    ref.num_hits = {0, 0, 0, 0};
     EXPECT_REF_EQ(ref, result);
 }
 
-TEST_F(LarSphereTest, zero_photons)
+TEST_F(DuneCryoTest, zero_photons)
 {
     auto& run = this->runner();
 
