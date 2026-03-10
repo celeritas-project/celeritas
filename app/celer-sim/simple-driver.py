@@ -119,7 +119,10 @@ if "lar" in geometry_filename:
         "generators": 3 * max_steps * num_optical_tracks,
         "primaries": num_optical_tracks,
     }
-    inp["optical"] = {"capacity": optical_capacity, "limits": {"steps": 4}}
+    inp["optical"] = {
+        "capacity": optical_capacity,
+        "limits": {"steps": 8, "step_iters": 4},
+    }
     inp["max_steps"] = 2
 
 if "simple-cms" in geometry_filename:
