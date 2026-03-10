@@ -63,6 +63,7 @@ routines.
 
 .. doxygenclass:: celeritas::RejectionSampler
 .. doxygenclass:: celeritas::Selector
+.. doxygenclass:: celeritas::TruncatedDistribution
 .. doxygenfunction:: celeritas::make_selector
 .. doxygenfunction:: celeritas::make_unnormalized_selector
 

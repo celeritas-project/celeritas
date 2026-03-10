@@ -11,10 +11,23 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/random/Types.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Data for sampling from a truncated distribution.
+ */
+template<class DistributionRecord>
+struct TruncatedDistributionRecord
+{
+    DistributionRecord distribution{};
+    real_type lower{-numeric_limits<real_type>::infinity()};
+    real_type upper{numeric_limits<real_type>::infinity()};
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Data for sampling a value from a delta distribution.
@@ -77,6 +90,7 @@ struct DistributionParamsData
 
     Items<DeltaDistributionRecord<real_type>> delta_real;
     Items<NormalDistributionRecord> normal;
+    Items<TruncatedDistributionRecord<NormalDistributionRecord>> truncated_normal;
 
     //! 3D distributions
     ThreedDistributionItems<ThreedDistributionType> threed_types;
@@ -107,6 +121,7 @@ struct DistributionParamsData
         oned_indices = other.oned_indices;
         delta_real = other.delta_real;
         normal = other.normal;
+        truncated_normal = other.truncated_normal;
 
         threed_types = other.threed_types;
         threed_indices = other.threed_indices;

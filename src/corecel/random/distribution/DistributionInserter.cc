@@ -49,6 +49,22 @@ DistributionInserter::operator()(inp::NormalDistribution const& d)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Add data for sampling a value from a truncated normal distribution.
+ */
+OnedDistributionId DistributionInserter::operator()(
+    inp::TruncatedDistribution<inp::NormalDistribution> const& d)
+{
+    TruncatedDistributionRecord<NormalDistributionRecord> record;
+    record.distribution.mean = d.distribution.mean;
+    record.distribution.stddev = d.distribution.stddev;
+    record.lower = d.lower;
+    record.upper = d.upper;
+    auto id = CollectionBuilder{&data_.truncated_normal}.push_back(record);
+    return (*this)(OnedDistributionType::truncated_normal, id.get());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Add data for sampling a point from a 3D delta distribution.
  */
 ThreedDistributionId DistributionInserter::operator()(
