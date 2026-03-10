@@ -423,12 +423,12 @@ size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
 /*!
  * Access material properties for an optical material.
  */
-GeantMaterialPropertyGetter
-GeantPhysicsLoader::property_getter(OptMatId opt_id) const
+auto GeantPhysicsLoader::property_getter(OptMatId opt_id) const -> PropGetter
 {
     CELER_EXPECT(opt_id < optical_g4mat_.size());
-    return GeantMaterialPropertyGetter{
-        optical_g4mat_[opt_id.get()]->GetMaterialPropertiesTable()};
+    G4Material const* mat = optical_g4mat_[opt_id.get()];
+    CELER_ASSERT(mat);
+    return PropGetter{mat->GetMaterialPropertiesTable(), mat->GetName()};
 }
 
 //---------------------------------------------------------------------------//
