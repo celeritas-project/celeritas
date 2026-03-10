@@ -59,6 +59,9 @@ class GeantTrackReconstruction
     // Restore track information for given primary and particle IDs
     [[nodiscard]] G4Track& view(ParticleId, PrimaryId) const;
 
+    // View a track with the given particle ID
+    [[nodiscard]] G4Track& view(ParticleId) const;
+
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
     class AcquiredData

@@ -159,6 +159,15 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * View a track with the given particle ID.
+ */
+G4Track& GeantTrackReconstruction::view(ParticleId particle_id) const
+{
+    return this->view(particle_id, {});
+}
+
+//---------------------------------------------------------------------------//
 // GEANTTRACKRECONSTRUCTION::ACQUIREDDATA
 //---------------------------------------------------------------------------//
 /*!

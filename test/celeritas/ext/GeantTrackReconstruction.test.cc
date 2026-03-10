@@ -230,57 +230,68 @@ TEST_F(GeantTrackReconstructionTest, end_event_cleanup)
 {
     GeantTrackReconstruction recon(particles_, step_);
 
-    // Register some primaries
-    auto primary_track1 = std::make_unique<G4Track>(
-        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
-        0.0,
-        G4ThreeVector(0, 0, 0));
-    primary_track1->SetTrackID(100);
-    auto user_info1 = std::make_unique<MockUserTrackInformation>(10);
-    primary_track1->SetUserInformation(user_info1.release());
+    recon.init_event();
 
-    // Add different process pointers to test multiple process handling
-    auto mock_process1 = std::make_unique<MockProcess>("TestProcess1");
-    primary_track1->SetCreatorProcess(mock_process1.get());
+    constexpr size_type num_primaries{2};
 
-    auto primary_track2 = std::make_unique<G4Track>(
-        new G4DynamicParticle(particles_[1], G4ThreeVector(0, 1, 0)),
-        0.0,
-        G4ThreeVector(0, 0, 0));
-    primary_track2->SetTrackID(200);
-    auto user_info2 = std::make_unique<MockUserTrackInformation>(20);
-    primary_track2->SetUserInformation(user_info2.release());
+    Array<G4ThreeVector, num_primaries> const directions{
+        {G4ThreeVector(1, 0, 0), G4ThreeVector(0, 1, 0)}};
 
-    auto mock_process2 = std::make_unique<MockProcess>("TestProcess2");
-    primary_track2->SetCreatorProcess(mock_process2.get());
+    Array<std::unique_ptr<G4Track>, num_primaries> primaries;
+    Array<std::unique_ptr<MockProcess>, num_primaries> processes;
 
-    PrimaryId id1 = recon.acquire(*primary_track1);
-    PrimaryId id2 = recon.acquire(*primary_track2);
-
-    // Verify primaries are registered
-    EXPECT_EQ(0, id1.unchecked_get());
-    EXPECT_EQ(1, id2.unchecked_get());
-
-    // Restore tracks to verify data exists
-    G4Track& track1 = recon.view(ParticleId{0}, id1);
-    G4Track& track2 = recon.view(ParticleId{1}, id2);
-    EXPECT_EQ(100, track1.GetTrackID());
-    EXPECT_EQ(200, track2.GetTrackID());
-
-    // Verify that different process pointers are correctly restored
-    EXPECT_EQ(mock_process1.get(), track1.GetCreatorProcess());
-    EXPECT_EQ(mock_process2.get(), track2.GetCreatorProcess());
-    EXPECT_NE(track1.GetCreatorProcess(), track2.GetCreatorProcess());
-
-    // End event should clear reconstruction data
-    recon.clear();
-
-    // Verify all tracks have cleared user information
-    for (auto particle_id :
-         range(ParticleId{static_cast<size_type>(particles_.size())}))
+    for (auto i : range(num_primaries))
     {
-        G4Track& track = recon.view(particle_id, PrimaryId{});
-        EXPECT_EQ(nullptr, track.GetUserInformation());
+        processes[i]
+            = std::make_unique<MockProcess>("MockProcess" + std::to_string(i));
+    }
+    EXPECT_NE(processes[0].get(), processes[1].get());
+
+    for (auto event : range(2))
+    {
+        SCOPED_TRACE("event" + std::to_string(event));
+        recon.init_event();
+        for (auto flush : range(3))
+        {
+            // Simulate G4 loop: create track and acquire
+            Array<PrimaryId, num_primaries> primary_ids;
+            for (auto i : range(num_primaries))
+            {
+                // Initialize track
+                auto track = std::make_unique<G4Track>(
+                    new G4DynamicParticle(particles_[i], directions[i]),
+                    0.0,
+                    G4ThreeVector(0, 0, 0));
+                track->SetTrackID(flush * 100 + i);
+                auto user_info
+                    = std::make_unique<MockUserTrackInformation>(10 * i);
+                track->SetUserInformation(user_info.release());
+                track->SetCreatorProcess(processes[i].get());
+
+                primary_ids[i] = recon.acquire(*track);
+                EXPECT_EQ(i + flush * num_primaries,
+                          primary_ids[i].unchecked_get());
+            }
+
+            // Simulate celeritas loop: acquire
+            for (auto i : range(num_primaries))
+            {
+                G4Track& track = recon.view(ParticleId{i}, primary_ids[i]);
+                EXPECT_EQ(flush * 100 + i, track.GetTrackID());
+                EXPECT_EQ(processes[i].get(), track.GetCreatorProcess());
+            }
+
+            // Flush should clear reconstruction data
+            recon.clear();
+
+            // Verify all tracks have cleared user information
+            for (auto particle_id :
+                 range(ParticleId{static_cast<size_type>(particles_.size())}))
+            {
+                G4Track& track = recon.view(particle_id);
+                EXPECT_EQ(nullptr, track.GetUserInformation());
+            }
+        }
     }
 }
 
