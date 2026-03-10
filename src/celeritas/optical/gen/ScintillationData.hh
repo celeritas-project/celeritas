@@ -74,29 +74,6 @@ struct MatScintSpectrum
 
 //---------------------------------------------------------------------------//
 /*!
- * Particle- and material-dependent scintillation spectrum.
- *
- * - \c yield_vector is the characteristic light yield for different energies.
- * - \c yield_pdf is the probability of choosing from a given component.
- * - \c components stores the fast/slow/etc scintillation components for this
- * particle type.
- */
-struct ParScintSpectrum
-{
-    NonuniformGridRecord yield_per_energy;  //! [MeV] -> [1/MeV]
-    ItemRange<real_type> yield_pdf;
-    ItemRange<ScintRecord> components;
-
-    //! Whether all data are assigned and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return yield_per_energy && !yield_pdf.empty()
-               && yield_pdf.size() == components.size();
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Data characterizing the scintillation spectrum for all materials.
  *
  * - \c resolution_scale is indexed by \c OptMatId .
@@ -111,8 +88,6 @@ struct ScintillationData
     using OptMatItems = Collection<T, W, M, OptMatId>;
     template<class T>
     using ParticleItems = Collection<T, W, M, ParticleId>;
-    template<class T>
-    using ParScintSpectrumItems = Collection<T, W, M, ParScintSpectrumId>;
 
     //// MEMBER DATA ////
 
