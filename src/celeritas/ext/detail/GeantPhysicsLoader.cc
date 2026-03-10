@@ -46,6 +46,8 @@
 #include "celeritas/optical/Types.hh"
 
 #include "GeantMaterialPropertyGetter.hh"
+#include "GeantOpticalMatHelper.hh"
+#include "GeantScintillationLoader.hh"
 #include "GeantSurfacePhysicsLoader.hh"
 
 namespace celeritas
@@ -102,112 +104,6 @@ void load_rayleigh_water(
                "are provided";
     }
 }
-std::optional<inp::NormalDistribution>
-load_scintillation_gaussian(GeantMaterialPropertyGetter& get,
-                            std::string const& prefix,
-                            std::string const& suffix)
-{
-    inp::NormalDistribution gaussian;
-    auto load_gaussian = [&](std::string const& newprefix) {
-        auto mean_name = newprefix + "LAMBDAMEAN" + suffix;
-        auto sigma_name = newprefix + "LAMBDASIGMA" + suffix;
-
-        bool has_mean = get(gaussian.mean, mean_name, ImportUnits::len);
-        bool has_sigma = get(gaussian.stddev, sigma_name, ImportUnits::len);
-
-        CELER_VALIDATE(has_mean == has_sigma,
-                       << "incomplete Gaussian spectrum for " << newprefix
-                       << suffix << ": both mean and sigma must be present");
-        return has_mean;
-    };
-    // Load, preferring new variable name
-    bool has_depr_gaussian = load_gaussian(prefix);
-    bool has_gaussian = load_gaussian("CELER_" + prefix);
-    if (!has_gaussian && !has_depr_gaussian)
-    {
-        // Neither is provided
-        return std::nullopt;
-    }
-
-    if (has_depr_gaussian)
-    {
-        if (has_gaussian)
-        {
-            CELER_LOG(warning) << "Ignoring deprecated optical property "
-                                  "(missing CELER_ prefix): "
-                               << prefix << suffix;
-        }
-        else
-        {
-            CELER_LOG(warning)
-                << "Omitting CELER_ prefix is deprecated: rename "
-                   "optical property to 'CELER_"
-                << prefix << suffix << '\'';
-        }
-    }
-    return gaussian;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Load a single scintillation component spectrum.
- *
- * Returns an optional spectrum. If no spectrum data is found, returns nullopt.
- */
-std::optional<inp::ScintillationSpectrum>
-load_scintillation_spectrum(GeantMaterialPropertyGetter& get,
-                            std::string const& prefix,
-                            std::string const& suffix)
-{
-    CELER_EXPECT(get);
-
-    using IU = ImportUnits;
-
-    auto prop = [&prefix, &suffix](char const* base) {
-        std::string result = prefix;
-        result += base;
-        result += suffix;
-        return result;
-    };
-
-    inp::ScintillationSpectrum s;
-
-    // Component yields are dimensionless relative weights
-    bool has_props = false;
-    has_props = get(s.yield, prop("YIELD"), IU::unitless) || has_props;
-    has_props = get(s.rise_time, prop("RISETIME"), IU::time) || has_props;
-    has_props = get(s.fall_time, prop("TIMECONSTANT"), IU::time) || has_props;
-
-    // Load spectrum: explicit grid or Gaussian approximation
-    inp::Grid grid;
-    bool has_grid = get(grid, prop("COMPONENT"), {IU::mev, IU::unitless});
-
-    auto gaussian = load_scintillation_gaussian(get, prefix, suffix);
-    CELER_VALIDATE(!(has_grid && gaussian),
-                   << "conflicting scintillation spectrum definitions for "
-                   << prefix + suffix);
-
-    CELER_VALIDATE(has_props == (has_grid || gaussian),
-                   << "incomplete spectrum parameters provided");
-
-    if (gaussian)
-    {
-        s.spectrum_distribution = std::move(*gaussian);
-        s.spectrum_argument = inp::SpectrumArgument::wavelength;
-    }
-    else if (has_grid)
-    {
-        s.spectrum_distribution = std::move(grid);
-        s.spectrum_argument = inp::SpectrumArgument::energy;
-    }
-    else
-    {
-        return std::nullopt;
-    }
-
-    return s;
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -342,70 +238,7 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 {
     inp::ScintillationProcess s;
-
-    auto load_one = [&](OptMatId opt_id) {
-        auto get_property = this->property_getter(opt_id);
-
-        // Load material-wide properties
-        double total_yield{0};
-        if (!get_property(
-                total_yield, "SCINTILLATIONYIELD", ImportUnits::inv_mev))
-        {
-            // No scintillation in this material
-            // TODO: check that no other properties are present
-            return;
-        }
-        CELER_VALIDATE(total_yield > 0,
-                       << "invalid scintillation yield " << total_yield
-                       << " [1/MeV]");
-
-        inp::ScintillationMaterial scint_mat;
-        get_property(scint_mat.resolution_scale,
-                     "RESOLUTIONSCALE",
-                     ImportUnits::unitless);
-
-        // Loop over scintillation components (up to 3), saving their
-        // yields to renormalize based on total yield
-        double renorm_yield{0};
-        for (int comp_idx : range(1, 4))
-        {
-            if (auto s = load_scintillation_spectrum(
-                    get_property, "SCINTILLATION", std::to_string(comp_idx)))
-            {
-                renorm_yield += s->yield;
-                scint_mat.components.push_back(std::move(*s));
-            }
-        }
-
-        // Check for deprecated components
-        std::vector<inp::ScintillationSpectrum> deprecated_components;
-        for (auto prefix : {"FAST", "SLOW"})
-        {
-            if (auto s = load_scintillation_spectrum(get_property, prefix, ""))
-            {
-                deprecated_components.push_back(*s);
-            }
-        }
-        if (!deprecated_components.empty())
-        {
-            // TODO: could check whether YIELDRATIO is given (2 components) and
-            // fill in scintillation data accordingly
-            CELER_LOG(warning) << "Ignoring deprecated scintillation "
-                                  "component properties";
-        }
-
-        CELER_VALIDATE(!scint_mat.components.empty(),
-                       << "no scintillation components were present (perhaps "
-                          "the material has only unsupported particle "
-                          "scintillation or legacy G4 fast/slow components?)");
-
-        // Normalize component yields
-        for (auto& s : scint_mat.components)
-        {
-            s.yield *= total_yield / renorm_yield;
-        }
-        s.materials.emplace(opt_id, std::move(scint_mat));
-    };
+    GeantScintillationLoader load_material{s};
 
     MultiExceptionHandler handle;
 
@@ -413,7 +246,10 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
     for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
     {
         CELER_TRY_HANDLE(
-            try { load_one(opt_id); } catch (...) {
+            try {
+                load_material(GeantOpticalMatHelper{
+                    opt_id, optical_g4mat_[opt_id.get()]});
+            } catch (...) {
                 CELER_LOG(error)
                     << "Failed to load optical material " << opt_id.get()
                     << " = " << this->property_getter(opt_id);
