@@ -198,6 +198,8 @@ TEST_F(LArSphereGeneratorTest, offload)
 {
     // Generate Cherenkov and scintillation photons
     osi_.problem.generator = inp::OpticalOffloadGenerator{};
+    osi_.geant_setup.cherenkov = CherenkovPhysicsOptions{};
+    osi_.geant_setup.scintillation = ScintillationPhysicsOptions{};
 
     // Set number of track slots and number of distributions
     osi_.problem.capacity.tracks = 4096;
