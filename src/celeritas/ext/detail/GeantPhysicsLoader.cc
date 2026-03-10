@@ -102,6 +102,51 @@ void load_rayleigh_water(
                "are provided";
     }
 }
+std::optional<inp::NormalDistribution>
+load_scintillation_gaussian(GeantMaterialPropertyGetter& get,
+                            std::string const& prefix,
+                            std::string const& suffix)
+{
+    inp::NormalDistribution gaussian;
+    auto load_gaussian = [&](std::string const& newprefix) {
+        auto mean_name = newprefix + "LAMBDAMEAN" + suffix;
+        auto sigma_name = newprefix + "LAMBDASIGMA" + suffix;
+
+        bool has_mean = get(gaussian.mean, mean_name, ImportUnits::len);
+        bool has_sigma = get(gaussian.stddev, sigma_name, ImportUnits::len);
+
+        CELER_VALIDATE(has_mean == has_sigma,
+                       << "incomplete Gaussian spectrum for " << newprefix
+                       << suffix << ": both mean and sigma must be present");
+        return has_mean;
+    };
+    // Load, preferring new variable name
+    bool has_depr_gaussian = load_gaussian(prefix);
+    bool has_gaussian = load_gaussian("CELER_" + prefix);
+    if (!has_gaussian && !has_depr_gaussian)
+    {
+        // Neither is provided
+        return std::nullopt;
+    }
+
+    if (has_depr_gaussian)
+    {
+        if (has_gaussian)
+        {
+            CELER_LOG(warning) << "Ignoring deprecated optical property "
+                                  "(missing CELER_ prefix): "
+                               << prefix << suffix;
+        }
+        else
+        {
+            CELER_LOG(warning)
+                << "Omitting CELER_ prefix is deprecated: rename "
+                   "optical property to 'CELER_"
+                << prefix << suffix << '\'';
+        }
+    }
+    return gaussian;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -137,40 +182,14 @@ load_scintillation_spectrum(GeantMaterialPropertyGetter& get,
     inp::Grid grid;
     bool has_grid = get(grid, prop("COMPONENT"), {IU::mev, IU::unitless});
 
-    inp::NormalDistribution gaussian;
-    auto load_gaussian = [&](std::string const& newprefix) {
-        auto mean_name = newprefix + "LAMBDAMEAN" + suffix;
-        auto sigma_name = newprefix + "LAMBDASIGMA" + suffix;
-
-        bool has_mean = get(gaussian.mean, mean_name, ImportUnits::len);
-        bool has_sigma = get(gaussian.stddev, sigma_name, ImportUnits::len);
-
-        CELER_VALIDATE(has_mean == has_sigma,
-                       << "incomplete Gaussian spectrum for " << newprefix
-                       << suffix << ": both mean and sigma must be present");
-        return has_mean;
-    };
-    bool has_gaussian = load_gaussian("CELER_" + prefix);
-    bool has_depr_gaussian = load_gaussian(prefix);
-
-    CELER_VALIDATE(!(has_gaussian && has_depr_gaussian),
-                   << "conflicting/redundant scintillation properties for "
-                   << prefix << suffix);
-    if (has_depr_gaussian)
-    {
-        has_gaussian = true;
-        CELER_LOG(warning) << "Omitting CELER_ prefix is deprecated: rename "
-                              "optical property to 'CELER_"
-                           << prefix << suffix << '\'';
-    }
-
-    CELER_VALIDATE(!(has_grid && has_gaussian),
+    auto gaussian = load_scintillation_gaussian(get, prefix, suffix);
+    CELER_VALIDATE(!(has_grid && gaussian),
                    << "conflicting scintillation spectrum definitions for "
                    << prefix + suffix);
 
-    if (has_gaussian)
+    if (gaussian)
     {
-        s.spectrum_distribution = std::move(gaussian);
+        s.spectrum_distribution = std::move(*gaussian);
         s.spectrum_argument = inp::SpectrumArgument::wavelength;
     }
     else if (has_grid)
