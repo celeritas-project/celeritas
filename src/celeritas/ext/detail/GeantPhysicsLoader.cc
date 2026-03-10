@@ -143,6 +143,8 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     if (!visited_.insert(&p).second)
     {
         // Already inserted
+        CELER_LOG(debug) << "Already loaded process \"" << p.GetProcessName()
+                         << "\"";
         return true;
     }
 
@@ -183,7 +185,7 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     }
     catch (...)
     {
-        CELER_LOG(debug) << "Failed while loading process " << name << "(\""
+        CELER_LOG(error) << "Failed while loading process " << name << "(\""
                          << p.GetProcessName() << "\")";
         throw;
     }
@@ -248,18 +250,18 @@ size_type GeantPhysicsLoader::op_absorption(G4VProcess const&)
 //! Load optical surface physics
 size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
 {
+    auto& materials = imported_.optical_materials;
+    if (materials.empty())
+    {
+        CELER_LOG(error) << "Optical boundary process is defined but no "
+                            "optical materials are present";
+        return 0;
+    }
+
     auto& surfaces = imported_.optical_physics.surfaces;
 
     // Load each geometry surface and print any errors that occur
     {
-        auto& materials = imported_.optical_materials;
-        if (materials.empty())
-        {
-            CELER_LOG(error) << "Optical boundary process is defined but no "
-                                "optical materials are present";
-            return 0;
-        }
-
         auto geo = celeritas::global_geant_geo().lock();
         CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
