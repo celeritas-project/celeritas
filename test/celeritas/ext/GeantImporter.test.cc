@@ -2175,7 +2175,7 @@ TEST_F(MucfBox, static_data)
     EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.x.size());
     EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.y.size());
     EXPECT_SOFT_EQ(0.55157437567861023, average(mucf.muon_energy_cdf.x));
-    EXPECT_SOFT_EQ(11.250286274435437, average(mucf.muon_energy_cdf.y));
+    EXPECT_SOFT_EQ(0.011250286274435, average(mucf.muon_energy_cdf.y));
 
     //! \todo Add real cycle rate data test
 
