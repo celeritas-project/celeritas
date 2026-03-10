@@ -171,6 +171,10 @@ struct ProcessFilter
                     return emst == EmSubType::fScintillation
                            || emst == EmSubType::fCerenkov;
                 }
+                else
+                {
+                    return false;
+                }
             case G4ProcessType::fOptical:
                 return (which & DataSelection::optical);
             case G4ProcessType::fHadronic:
