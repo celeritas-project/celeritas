@@ -13,18 +13,20 @@
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/DetectorParams.hh"
+#include "geocel/DetectorParams.hh"  // IWYU pragma: keep
 #include "geocel/Types.hh"
-#include "geocel/VolumeParams.hh"
+#include "geocel/VolumeParams.hh"  // IWYU pragma: keep
 #include "geocel/detail/LengthUnits.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
-#include "celeritas/inp/StandaloneInput.hh"
-#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
+#include "celeritas/inp/StandaloneInput.hh"  // IWYU pragma: keep
+#include "celeritas/optical/CoreParams.hh"  // IWYU pragma: keep
 #include "celeritas/optical/Runner.hh"
 
 #include "Convert.hh"
@@ -104,6 +106,10 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
 {
     CELER_EXPECT(!det_coords.empty());
     CELER_EXPECT(!i.detectors.empty());
+
+    CELER_LOG(info) << "Setting up Celeritas optical standalone runner "
+                       "built against LArSoft v"
+                    << cmake::larsoft_version << " components";
 
     i.problem.detectors.callback
         = [this](SpanCelerHits h) { return this->hit(h); };

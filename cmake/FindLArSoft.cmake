@@ -41,34 +41,32 @@ foreach(_var IN LISTS _required_vars)
   string(APPEND _larsoft_fingerprint "|${${_var}}")
 endforeach()
 
-# Read and filter LARSOFT_VERSION from the environment.
-# Converts the UPS-style tag (e.g. v10_14_01) to a dotted version (10.14.1).
-if(DEFINED ENV{LARSOFT_VERSION})
-  set(_larsoft_env_version "$ENV{LARSOFT_VERSION}")
-  string(REGEX REPLACE "^[Vv]" "" _larsoft_env_version "${_larsoft_env_version}")
-  string(REPLACE "_" "." _larsoft_env_version "${_larsoft_env_version}")
-else()
-  set(_larsoft_env_version "")
-endif()
-
 # Cache the version string and invalidate it whenever the package dirs change.
 if(NOT "${_larsoft_fingerprint}" STREQUAL "${_LArSoft_dirs_fingerprint}")
+  # Read and filter LARSOFT_VERSION from the environment.
+  # Converts the UPS-style tag (e.g. v10_14_01) to a dotted version (10.14.1).
+  if(DEFINED ENV{LARSOFT_VERSION})
+    set(_larsoft_env_version "$ENV{LARSOFT_VERSION}")
+    string(REGEX REPLACE "^[Vv]" "" _larsoft_env_version "${_larsoft_env_version}")
+    string(REPLACE "_" "." _larsoft_env_version "${_larsoft_env_version}")
+  else()
+    set(_larsoft_env_version "")
+  endif()
+
   set(_LArSoft_dirs_fingerprint "${_larsoft_fingerprint}"
     CACHE INTERNAL "Fingerprint of LArSoft package dirs for version cache invalidation")
-  set(_LArSoft_version "${_larsoft_env_version}"
+  set(LArSoft_VERSION "${_larsoft_env_version}"
     CACHE INTERNAL "Filtered LArSoft version from LARSOFT_VERSION environment variable")
 endif()
-set(_version_var _LArSoft_version)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(${CMAKE_FIND_PACKAGE_NAME}
-  VERSION_VAR ${_version_var}
+  VERSION_VAR LArSoft_VERSION
   REQUIRED_VARS ${_required_vars}
 )
 unset(_larsoft_quiet)
 unset(_module)
 unset(_required_vars)
-unset(_version_var)
 unset(_larsoft_fingerprint)
 unset(_larsoft_env_version)
 
