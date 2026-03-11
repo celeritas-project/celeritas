@@ -121,6 +121,10 @@ void Transporter::transport_impl(CoreState<M>& state) const
     state.accum().steps += num_steps;
     state.accum().step_iters += num_step_iters;
     ++state.accum().flushes;
+
+    // Accumulate cut/error counters from the last synchronized counters
+    state.accum().num_cut += counters.num_cut;
+    state.accum().num_errored += counters.num_errored;
 }
 
 //---------------------------------------------------------------------------//
