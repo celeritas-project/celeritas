@@ -263,33 +263,33 @@ void LocalTransporter::Push(G4Track& g4track)
         return;
     }
 
-    Primary offloaded;
+    Primary track;
 
     // Generate Celeritas-specific PrimaryID
     if (hit_processor_)
     {
-        offloaded.primary_id
+        track.primary_id
             = hit_processor_->track_processor().register_primary(g4track);
     }
 
-    offloaded.energy = gtv.energy();
-    offloaded.particle_id = particles_->find(gtv.particle().pdg());
-    offloaded.position = gtv.pos();
-    offloaded.direction = gtv.dir();
-    offloaded.time = gtv.time();
-    offloaded.weight = gtv.weight();
+    track.energy = gtv.energy();
+    track.particle_id = particles_->find(gtv.particle().pdg());
+    track.position = gtv.pos();
+    track.direction = gtv.dir();
+    track.time = gtv.time();
+    track.weight = gtv.weight();
 
-    CELER_VALIDATE(offloaded.particle_id,
+    CELER_VALIDATE(track.particle_id,
                    << "cannot offload '" << gtv.particle().name()
                    << "' particles");
 
     /*!
      * \todo Eliminate event ID from primary.
      */
-    offloaded.event_id = EventId{0};
+    track.event_id = EventId{0};
 
-    buffer_.push_back(offloaded);
-    buffer_accum_.energy += offloaded.energy.value();
+    buffer_.push_back(track);
+    buffer_accum_.energy += track.energy.value();
     if (buffer_.size() >= auto_flush_)
     {
         this->Flush();
