@@ -20,6 +20,9 @@ else()
   set(_larsoft_quiet)
 endif()
 
+# Suppress dualing Boost find messages
+set(Boost_FIND_QUIETLY TRUE)
+
 # Ordered dependencies
 set(_required_vars)
 foreach(_module cetmodules art art_root_io larcore lardataobj)
