@@ -56,7 +56,7 @@ CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
 #if !CELER_DEVICE_COMPILE
         CELER_LOG_LOCAL(error) << R"(Track exceeded maximum step count)";
 #endif
-        track.apply_errored();
+        track.apply_cut();
         return;
     }
 
