@@ -225,7 +225,6 @@ endif()
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
     g4/DetectorConstruction.cc
-    g4/HadronicInteractor.cc
     g4/SupportedEmStandardPhysics.cc
     g4/SupportedOpticalPhysics.cc
     g4/detail/GeantBremsstrahlungProcess.cc
@@ -236,6 +235,7 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
     ext/GeantTrackReconstruction.cc
+    ext/HadronicInteractor.cc
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
