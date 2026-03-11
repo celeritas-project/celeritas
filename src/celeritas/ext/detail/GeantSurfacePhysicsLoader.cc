@@ -14,6 +14,8 @@
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
 
+#include "GeantSurfacePhysicsHelper.hh"
+
 using G4ST = G4SurfaceType;
 using G4OSF = G4OpticalSurfaceFinish;
 using G4OSM = G4OpticalSurfaceModel;
@@ -238,9 +240,10 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
     }
     catch (std::exception const& e)
     {
-        CELER_LOG(error) << "Failed to load " << to_cstring(surf.GetFinish())
-                         << " " << to_cstring(surf.GetType()) << " surface "
-                         << surf.GetName() << " with model '"
+        CELER_LOG(error) << "Failed to load surface " << helper << " with "
+                         << to_cstring(surf.GetFinish()) << "/"
+                         << to_cstring(surf.GetType())
+                         << " finish/type and model '"
                          << to_cstring(surf.GetModel()) << "'";
         throw;
     }

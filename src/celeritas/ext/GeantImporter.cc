@@ -576,7 +576,7 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         CELER_ASSERT(material);
         CELER_ASSERT(geo_mat_id == id_cast<GeoMatId>(material->GetIndex()));
         detail::GeantMaterialPropertyGetter get_property{
-            material->GetMaterialPropertiesTable()};
+            material->GetMaterialPropertiesTable(), material->GetName()};
 
         // Optical materials should map uniquely
         ImportOpticalMaterial& optical = result[opt_mat_id.get()];

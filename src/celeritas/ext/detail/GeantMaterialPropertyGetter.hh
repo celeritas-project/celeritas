@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <ostream>
 #include <string>
 #include <G4Material.hh>
 
@@ -30,58 +31,128 @@ class GeantMaterialPropertyGetter
   public:
     using MPT = G4MaterialPropertiesTable;
 
-    //! Construct with a (possibly null) properties table pointer
-    explicit GeantMaterialPropertyGetter(MPT const* mpt) : mpt_{mpt} {}
+    // Default constructor to allow deferred construction
+    GeantMaterialPropertyGetter() = default;
+
+    // Construct with a (possibly null) properties table pointer
+    inline GeantMaterialPropertyGetter(MPT const* mpt, char const* desc);
 
     //! True if the properties table is non-null
     explicit operator bool() const { return mpt_ != nullptr; }
 
-    //! Get property for a single double
-    bool operator()(double& dst, char const* name, ImportUnits q)
-    {
-        if (!*this || !mpt_->ConstPropertyExists(name))
-        {
-            return false;
-        }
-        dst = mpt_->GetConstProperty(name) * native_value_from_clhep(q);
-        return true;
-    }
+    // Get scalar property
+    inline bool
+    operator()(double& dst, std::string const& name, ImportUnits q) const;
 
-    //! Get property for a single double (indexed component)
-    bool operator()(double& dst, std::string name, int comp, ImportUnits q)
-    {
-        if (!*this)
-        {
-            return false;
-        }
-        // Geant4 10.6 and earlier require a const char* argument
-        name += std::to_string(comp);
-        return (*this)(dst, name.c_str(), q);
-    }
+    // Get scalar property for an indexed component
+    inline bool
+    operator()(double& dst, std::string name, int comp, ImportUnits q) const;
 
-    //! Get property for a physics vector
-    bool
-    operator()(inp::Grid& dst, std::string const& name, Array<ImportUnits, 2> q)
+    // Get physics vector property
+    inline bool operator()(inp::Grid& dst,
+                           std::string const& name,
+                           Array<ImportUnits, 2> q) const;
+
+    //! Get the string label
+    char const* c_str() const
     {
-        if (!*this)
-        {
-            return false;
-        }
-        // Geant4@10.7: G4MaterialPropertiesTable.GetProperty is not const
-        // and <=10.6 require const char*
-        auto const* g4vector
-            = const_cast<MPT*>(mpt_)->GetProperty(name.c_str());
-        if (!g4vector)
-        {
-            return false;
-        }
-        dst = import_physics_vector(*g4vector, q);
-        return true;
+        CELER_EXPECT(*this);
+        return desc_;
     }
 
   private:
     MPT const* mpt_{nullptr};
+    char const* desc_{nullptr};
 };
+
+// Write a description of the properties being queried
+inline std::ostream&
+operator<<(std::ostream&, GeantMaterialPropertyGetter const&);
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with a (possibly null) properties table pointer.
+ *
+ * If the table is not null, the description must not be null.
+ */
+GeantMaterialPropertyGetter::GeantMaterialPropertyGetter(MPT const* mpt,
+                                                         char const* desc)
+    : mpt_{mpt}, desc_{desc}
+{
+    CELER_EXPECT(desc_ || (mpt_ == nullptr));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get property for a scalar.
+ */
+bool GeantMaterialPropertyGetter::operator()(double& dst,
+                                             std::string const& name,
+                                             ImportUnits q) const
+{
+    if (!*this || !mpt_->ConstPropertyExists(name.c_str()))
+    {
+        return false;
+    }
+    dst = mpt_->GetConstProperty(name.c_str()) * native_value_from_clhep(q);
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get scalar property for an indexed component.
+ */
+bool GeantMaterialPropertyGetter::operator()(double& dst,
+                                             std::string name,
+                                             int comp,
+                                             ImportUnits q) const
+{
+    if (!*this)
+    {
+        return false;
+    }
+    // Geant4 10.6 and earlier require a const char* argument
+    name += std::to_string(comp);
+    return (*this)(dst, name.c_str(), q);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get property for a physics vector.
+ */
+bool GeantMaterialPropertyGetter::operator()(inp::Grid& dst,
+                                             std::string const& name,
+                                             Array<ImportUnits, 2> q) const
+{
+    if (!*this)
+    {
+        return false;
+    }
+    // Geant4@10.7: G4MaterialPropertiesTable.GetProperty is not const
+    // and <=10.6 require const char*
+    auto const* g4vector = const_cast<MPT*>(mpt_)->GetProperty(name.c_str());
+    if (!g4vector)
+    {
+        return false;
+    }
+    dst = import_physics_vector(*g4vector, q);
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write description or "[INVALID]" if the properties table is null.
+ */
+std::ostream& operator<<(std::ostream& os, GeantMaterialPropertyGetter const& g)
+{
+    if (!g)
+    {
+        return os << "[INVALID]";
+    }
+    return os << g.c_str();
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
