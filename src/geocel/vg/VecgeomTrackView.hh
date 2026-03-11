@@ -25,8 +25,6 @@
 #include "VecgeomData.hh"
 #include "VecgeomTypes.hh"
 
-#include "detail/VecgeomCompatibility.hh"
-
 #if CELERITAS_VECGEOM_SURFACE
 #    include "detail/SurfNavigator.hh"
 #elif CELERITAS_VECGEOM_VERSION < 0x020000
@@ -296,7 +294,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
     // LocatePointIn sets `vgstate_`
     constexpr bool contains_point = true;
     Navigator::LocatePointIn(
-        world, detail::to_vector(pos_), vgstate_, contains_point);
+        world, to_vgvector(pos_), vgstate_, contains_point);
 
     if (CELER_UNLIKELY(vgstate_.IsOutside()))
     {
@@ -452,8 +450,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     }
 
     // TODO: vgnext is simply copied and the boundary flag optionally set
-    next_step_ = Navigator::ComputeStepAndNextVolume(detail::to_vector(pos_),
-                                                     detail::to_vector(dir_),
+    next_step_ = Navigator::ComputeStepAndNextVolume(to_vgvector(pos_),
+                                                     to_vgvector(dir_),
                                                      max_step,
                                                      vgstate_,
                                                      vgnext_
@@ -516,7 +514,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
     CELER_EXPECT(max_radius > 0);
 
     real_type safety = Navigator::ComputeSafety(
-        detail::to_vector(this->pos()), vgstate_, max_radius);
+        to_vgvector(this->pos()), vgstate_, max_radius);
     safety = min<real_type>(safety, max_radius);
 
     // Since the reported "safety" is negative if we've moved slightly beyond
@@ -556,8 +554,8 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-        Navigator::RelocateToNextVolume(detail::to_vector(this->pos_),
-                                        detail::to_vector(this->dir_),
+        Navigator::RelocateToNextVolume(to_vgvector(this->pos_),
+                                        to_vgvector(this->dir_),
 #if CELERITAS_VECGEOM_SURFACE
                                         *next_surf_,
 #endif

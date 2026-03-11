@@ -72,12 +72,16 @@ TEST(DistributionTypeTraitsTest, oned_visit)
 TEST(DistributionTypeTraitsTest, oned_params)
 {
     using VariantDistribution
-        = std::variant<inp::DeltaDistribution<double>, inp::NormalDistribution>;
+        = std::variant<inp::DeltaDistribution<double>,
+                       inp::NormalDistribution,
+                       inp::TruncatedDistribution<inp::NormalDistribution>>;
 
     // Create some distribution inputs
     std::vector<VariantDistribution> distributions;
     distributions.push_back(inp::DeltaDistribution<double>{1.23});
     distributions.push_back(inp::NormalDistribution{10, 1});
+    distributions.push_back(
+        inp::TruncatedDistribution<inp::NormalDistribution>{{2, 1}, 0, 4});
 
     // Construct the distribution params
     HostVal<DistributionParamsData> host;
@@ -115,6 +119,10 @@ TEST(DistributionTypeTraitsTest, oned_params)
             9.6622932956006,
             11.025567998918,
             10.110686567755,
+            1.9943024175889,
+            1.8069462793296,
+            2.4276355236874,
+            1.0480770430625,
         };
         EXPECT_VEC_SOFT_EQ(expected_result, result);
     }

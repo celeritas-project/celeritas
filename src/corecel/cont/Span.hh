@@ -251,7 +251,7 @@ make_span(T const& cont)
 //---------------------------------------------------------------------------//
 //! Construct an array from a fixed-size span
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION auto make_array(Span<T, N> const& s)
+CELER_CONSTEXPR_FUNCTION auto to_array(Span<T, N> s)
 {
     Array<std::remove_cv_t<T>, N> result{};
     for (std::size_t i = 0; i < N; ++i)
@@ -259,6 +259,14 @@ CELER_CONSTEXPR_FUNCTION auto make_array(Span<T, N> const& s)
         result[i] = s[i];
     }
     return result;
+}
+
+// DEPRECATED: remove in v1.0
+template<class T, std::size_t N>
+[[deprecated("use to_array")]] CELER_CONSTEXPR_FUNCTION auto
+make_array(Span<T, N> s)
+{
+    return to_array(s);
 }
 
 #if !CELER_DEVICE_COMPILE

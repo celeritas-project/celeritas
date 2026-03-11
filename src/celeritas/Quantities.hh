@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/math/Quantity.hh"  // IWYU pragma: export
+#include "geocel/detail/LengthQuantities.hh"
 
 #include "UnitTypes.hh"  // IWYU pragma: export
 
@@ -35,15 +36,28 @@ using HalfSpinInt = Quantity<HalfSpin, short int>;
 
 //---------------------------------------------------------------------------//
 //!@{
+//! \name Quantities for Geant4 conversion
+using ClhepLength = ::celeritas::lengthunits::ClhepLength;
+using ClhepField = Quantity<ClhepUnitBField, double>;
+using ClhepTime = Quantity<Nanosecond, double>;
+using ClhepEnergy = Quantity<Mev, double>;
+//!@}
+
+//---------------------------------------------------------------------------//
+//!@{
 //! \name Quantities for manual input and/or test harnesses
 using BarnXs = RealQuantity<Barn>;
-using CmLength = RealQuantity<Centimeter>;
+using CmLength = ::celeritas::lengthunits::CmLength;
 using InvCmXs = RealQuantity<UnitInverse<Centimeter>>;
 using InvCcDensity = RealQuantity<InvCentimeterCubed>;
 using MolCcDensity = RealQuantity<MolPerCentimeterCubed>;
 using GramCcDensity = RealQuantity<GramPerCentimeterCubed>;
-using FieldTesla = RealQuantity<Tesla>;
+using TeslaField = RealQuantity<Tesla>;
 //!@}
+
+// DEPRECATED: remove in v1.0
+using FieldTesla [[deprecated]] = RealQuantity<Tesla>;
+
 //---------------------------------------------------------------------------//
 }  // namespace units
 }  // namespace celeritas

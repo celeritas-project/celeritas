@@ -287,14 +287,14 @@ using LdgSpan = Span<LdgValue<T>, Extent>;
 /*!
  * Construct an array from a fixed-size span, removing LdgValue marker.
  *
- * Note: \code make_array(Span<T,N> const&) \endcode is not reused because:
+ * Note: \code to_array(Span<T,N> const&) \endcode is not reused because:
  * 1. Using this overload reads input data using \c __ldg
- * 2. \code return make_array<T, N>(s) \endcode results in segfault (gcc 11.3).
+ * 2. \code return to_array<T, N>(s) \endcode results in segfault (gcc 11.3).
  *    This might be a compiler bug because temporary lifetime should be
  *    extended until the end of the expression and we return a copy...
  */
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION auto make_array(LdgSpan<T, N> const& s)
+CELER_CONSTEXPR_FUNCTION auto to_array(LdgSpan<T, N> const& s)
 {
     Array<std::remove_cv_t<T>, N> result{};
     for (std::size_t i = 0; i < N; ++i)

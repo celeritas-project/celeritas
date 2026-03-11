@@ -14,7 +14,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// CONSTANTS
+// DEPRECATED: use ClhepField, ClhepTime
 //---------------------------------------------------------------------------//
 //! Value of a unit Celeritas field in the CLHEP unit system
 inline constexpr double clhep_field{1 / units::ClhepTraits::BField::value()};

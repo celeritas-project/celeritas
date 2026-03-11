@@ -54,8 +54,8 @@
 #include "geocel/detail/MakeLabelVector.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
+#include "VecgeomTypes.hh"
 
-#include "detail/VecgeomCompatibility.hh"
 #include "detail/VecgeomSetup.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
@@ -585,7 +585,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
             auto bbox_mgr = ABBoxManager_t::Instance();
             VgReal3 lower, upper;
             bbox_mgr.ComputeABBox(&world, &lower, &upper);
-            return BBox{detail::to_array(lower), detail::to_array(upper)};
+            return BBox{to_array(lower), to_array(upper)};
         }();
     }
 

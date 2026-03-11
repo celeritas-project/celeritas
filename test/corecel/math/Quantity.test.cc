@@ -10,6 +10,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/math/Turn.hh"
 
@@ -227,6 +228,27 @@ TEST(QuantityTest, swappiness)
     }
     EXPECT_EQ(12, native_value_from(dozen));
     EXPECT_EQ(144, native_value_from(gross));
+}
+
+TEST(QuantityTest, array)
+{
+    using Dozen3 = Array<Dozen, 3>;
+    using Int3 = Array<int, 3>;
+
+    auto dozens = make_quantity_array<Dozen>(1, 0, 2);
+    EXPECT_TRUE((std::is_same_v<Dozen3, decltype(dozens)>));
+    EXPECT_EQ(Dozen{2}, dozens[2]);
+    auto d = native_value_from(dozens);
+    EXPECT_TRUE((std::is_same_v<Int3, decltype(d)>));
+    EXPECT_EQ(Int3(12, 0, 24), d);
+
+    auto dozens2 = make_quantity_array<Dozen>(Int3{1, 2, 3});
+    EXPECT_TRUE((std::is_same_v<Dozen3, decltype(dozens2)>));
+    EXPECT_EQ(Int3(12, 24, 36), native_value_from(dozens2));
+
+    auto dva = value_as<Dozen>(dozens2);
+    EXPECT_TRUE((std::is_same_v<Int3, decltype(dva)>));
+    EXPECT_EQ(Int3(1, 2, 3), dva);
 }
 
 TEST(QuantityTest, io)

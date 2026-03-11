@@ -78,6 +78,7 @@
 
 
 // Event data used by Geant4/Celeritas offloading applications
+// DEPRECATED: should live in app
 #pragma link C++ class celeritas::EventData+;
 #pragma link C++ class celeritas::EventHitData+;
 

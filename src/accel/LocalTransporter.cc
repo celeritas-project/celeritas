@@ -252,20 +252,19 @@ void LocalTransporter::Push(G4Track& g4track)
 
     ScopedProfiling profile_this{"push"};
 
+    units::ClhepEnergy const energy{g4track.GetKineticEnergy()};
     if (Real3 pos = convert_from_geant(g4track.GetPosition(), 1);
         !is_inside(bbox_, pos))
     {
         // Primary may have been created by a particle generator outside the
         // geometry
-        double energy
-            = convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV);
         CELER_LOG_LOCAL(error)
-            << "Discarding track outside world bounds: " << energy
-            << " MeV from " << g4track.GetDefinition()->GetParticleName()
-            << " at " << pos << " along "
+            << "Discarding track outside world bounds: " << energy << " from "
+            << g4track.GetDefinition()->GetParticleName() << " at " << pos
+            << " along "
             << convert_from_geant(g4track.GetMomentumDirection(), 1);
 
-        buffer_accum_.lost_energy += energy;
+        buffer_accum_.lost_energy += energy.value();
         ++buffer_accum_.lost_primaries;
         return;
     }
@@ -283,18 +282,19 @@ void LocalTransporter::Push(G4Track& g4track)
     }
     track.primary_id = celeritas::id_cast<PrimaryId>(
         track.primary_id.unchecked_get() + g4track.GetTrackID());
-
-    track.energy = units::MevEnergy(
-        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
+    track.energy = energy;
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '"
                    << g4track.GetDefinition()->GetParticleName()
                    << "' particles");
 
-    track.position = convert_from_geant(g4track.GetPosition(), clhep_length);
-    track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
-    track.time = convert_from_geant(g4track.GetGlobalTime(), clhep_time);
+    track.position = native_from_geant<lengthunits::ClhepLength, real_type>(
+        g4track.GetPosition());
+    track.direction = static_array_cast<real_type>(
+        to_array(g4track.GetMomentumDirection()));
+    track.time = native_from_geant<units::ClhepTime, real_type>(
+        g4track.GetGlobalTime());
     track.weight = g4track.GetWeight();
 
     /*!
@@ -303,7 +303,7 @@ void LocalTransporter::Push(G4Track& g4track)
     track.event_id = EventId{0};
 
     buffer_.push_back(track);
-    buffer_accum_.energy += track.energy.value();
+    buffer_accum_.energy += energy.value();
     if (buffer_.size() >= auto_flush_)
     {
         this->Flush();
@@ -348,15 +348,15 @@ void LocalTransporter::Flush()
     {
         CELER_LOG_LOCAL(debug)
             << "Transporting " << buffer_.size() << " tracks ("
-            << buffer_accum_.energy
-            << " MeV cumulative kinetic energy) from event "
+            << units::ClhepEnergy{buffer_accum_.energy}
+            << " cumulative kinetic energy) from event "
             << event_id_.unchecked_get() << " with Celeritas";
     }
     if (buffer_accum_.lost_primaries > 0)
     {
         CELER_LOG_LOCAL(info)
-            << "Lost " << buffer_accum_.lost_energy
-            << " MeV cumulative kinetic energy from "
+            << "Lost " << units::ClhepEnergy{buffer_accum_.lost_energy}
+            << " cumulative kinetic energy from "
             << buffer_accum_.lost_primaries
             << " primaries that started outside the geometry in event "
             << event_id_.unchecked_get();

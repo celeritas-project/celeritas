@@ -50,7 +50,7 @@ using the Quantity class and helper functions.
 .. doxygentypedef:: celeritas::RealQuantity
 
 .. doxygenfunction:: celeritas::native_value_to
-.. doxygenfunction:: celeritas::native_value_from(Quantity<UnitT, ValueT> quant) noexcept
+.. doxygenfunction:: celeritas::native_value_from
 .. doxygenfunction:: celeritas::value_as
 
 .. doxygenfunction:: celeritas::zero_quantity
@@ -63,6 +63,11 @@ to use ``sincospi`` under the hood for improved precision.
 
 .. doxygentypedef:: celeritas::Turn_t
 .. doxygentypedef:: celeritas::RealTurn
+
+Arrays of quantities can be constructed with the following helper function and
+transformed to/from native values with overloads of the functions above.
+
+.. doxygenfunction:: celeritas::make_quantity_array
 
 .. _api_units:
 

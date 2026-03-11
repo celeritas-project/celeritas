@@ -156,22 +156,26 @@ TEST(UnitsTest, clhep)
         }
 
         double g4_native = 2.5 * CLHEP::tesla;
-        auto celer_native = convert_from_geant(g4_native, clhep_field);
+        auto celer_native = native_from_geant<units::ClhepField>(g4_native);
         EXPECT_SOFT_EQ(2.5_T, celer_native);
-        EXPECT_SOFT_EQ(2.5, native_value_to<FieldTesla>(celer_native).value());
-        EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_field));
+        EXPECT_SOFT_EQ(2.5, native_value_to<TeslaField>(celer_native).value());
+        EXPECT_SOFT_EQ(g4_native,
+                       native_to_geant<units::ClhepField>(celer_native));
     }
     {
         double g4_native = 1.5 * CLHEP::s;
-        auto celer_native = convert_from_geant(g4_native, clhep_time);
+        auto celer_native = native_from_geant<units::ClhepTime>(g4_native);
         EXPECT_SOFT_EQ(1.5_s, celer_native);
-        EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_time));
+        EXPECT_SOFT_EQ(g4_native,
+                       native_to_geant<units::ClhepTime>(celer_native));
     }
     {
         double g4_native = 1.5 * CLHEP::meter;
-        auto celer_native = convert_from_geant(g4_native, clhep_length);
-        EXPECT_SOFT_EQ(1.5_m, celer_native);
-        EXPECT_SOFT_EQ(g4_native, convert_to_geant(celer_native, clhep_length));
+        auto celer_native
+            = native_from_geant<lengthunits::ClhepLength>(g4_native);
+        EXPECT_SOFT_EQ(150_cm, celer_native);
+        EXPECT_SOFT_EQ(g4_native,
+                       native_to_geant<lengthunits::ClhepLength>(celer_native));
     }
 #else
     GTEST_SKIP() << "CLHEP is not available";

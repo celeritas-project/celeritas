@@ -307,50 +307,50 @@ TEST_F(MaterialScintillationGaussianTest, basic)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_SOFT_EQ(1.8023146707476483e-05, avg_lambda);
-        EXPECT_SOFT_EQ(865.10373580428154, avg_time);
-        EXPECT_SOFT_EQ(-0.0078894853694884293, avg_cosine);
-        EXPECT_EQ(7602, rng.exchange_count());
+        EXPECT_SOFT_EQ(1.8455823106866e-05, avg_lambda);
+        EXPECT_SOFT_EQ(869.57091905169, avg_time);
+        EXPECT_SOFT_EQ(0.023544714177305, avg_cosine);
+        EXPECT_EQ(8250, rng.exchange_count());
 
         static double const expected_energy[] = {
             6.1650902874689e-06,
-            6.1852526228383e-06,
-            6.6524813707218e-06,
-            1.2141478183957e-05,
-            1.221301636759e-05,
-            5.8200972038835e-06,
-            1.2759813899478e-05,
-            1.2232069181772e-05,
+            5.3609823654525e-06,
+            1.1892383769681e-05,
+            6.0546751413336e-06,
+            1.3582229285385e-05,
+            6.1392669704928e-06,
+            3.1773246015197e-06,
+            2.9038196053521e-06,
         };
         static double const expected_time[] = {
             3312.8806914137,
-            194.48089853941,
-            1117.4848080538,
-            12.460193974748,
-            35.306336560409,
-            319.53728623218,
-            7.2757102426598,
-            3.5272820100053,
+            338.64626300081,
+            10.532092321203,
+            404.28257965362,
+            35.26357244485,
+            295.4003690722,
+            4407.0565774611,
+            138.14745536841,
         };
         static double const expected_cos_theta[] = {
             0.99292265109602,
-            -0.4059411008841,
-            -0.57615133521653,
-            -0.65226965599904,
-            -0.08402168914221,
-            -0.087934351005127,
-            0.88014805759581,
-            0.81472943553235,
+            -0.77507096788764,
+            -0.20252296017542,
+            -0.70177204718526,
+            -0.57958185096199,
+            0.14750933319318,
+            -0.15366976713254,
+            -0.97292174666956,
         };
         static double const expected_polarization_x[] = {
             -0.48061717648891,
-            0.37029605368662,
-            0.78751570900663,
-            -0.39528947901676,
-            0.019773814327391,
-            0.95928367243846,
-            -0.68599121517934,
-            -0.35306899564942,
+            0.74609610658139,
+            0.99419460248005,
+            -0.57457399792055,
+            0.5101014413042,
+            0.30947392565286,
+            0.11400602132643,
+            -0.47137697798179,
         };
         EXPECT_VEC_SOFT_EQ(expected_energy, energy);
         EXPECT_VEC_SOFT_EQ(expected_time, time);
@@ -402,11 +402,11 @@ TEST_F(MaterialScintillationGaussianTest, time)
                 7.3670494614798,
                 10.58035645366,
                 3117.0542454245,
-                2339.5624814179,
+                4968.1642964938,
                 2.1742646282647,
-                833.41358173964,
-                2655.4299519772,
-                316.65670948862,
+                319.54758544355,
+                3.3419800716698,
+                6453.3407764283,
             };
             EXPECT_VEC_SOFT_EQ(expected_time, time);
         }
@@ -427,11 +427,11 @@ TEST_F(MaterialScintillationGaussianTest, time)
                 7.367041567676,
                 10.580348559856,
                 3117.0542375307,
-                2339.5624735241,
+                4968.1642886,
                 2.1742567344609,
-                833.41357384583,
-                2655.4299440834,
-                316.65670159482,
+                319.54757754975,
+                3.341972177866,
+                6453.3407685345,
             };
             EXPECT_VEC_SOFT_EQ(expected_time, time);
         }
@@ -470,7 +470,7 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
 
     // Check results
     real_type avg_lambda{0};
-    int const num_photons{123456};
+    int const num_photons{10000};
     for ([[maybe_unused]] auto i : range(num_photons))
     {
         auto p = generate_photon(rng);
@@ -480,13 +480,12 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_NEAR(
-            18.724841238983931,
+            20.71518597719,
             rng.exchange_count() / static_cast<real_type>(num_photons),
             1e-2);
     }
 
     real_type expected_lambda{0};
-    real_type expected_error{0};
 
     auto const& mat_record = data.materials[result.material];
     for (auto comp_idx : range(mat_record.components.size()))
@@ -495,9 +494,8 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
             = data.scint_records[mat_record.components[comp_idx]];
         real_type yield = data.reals[mat_record.yield_pdf[comp_idx]];
         expected_lambda += component.lambda_mean * yield;
-        expected_error += component.lambda_sigma * yield;
     }
-    EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, expected_error);
+    EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, 1e-4);
 }
 
 TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)

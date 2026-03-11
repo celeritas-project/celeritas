@@ -6,17 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Config.hh"
-
 #include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
-
-#include "GeantSurfacePhysicsHelper.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+class GeantSurfacePhysicsHelper;
 //---------------------------------------------------------------------------//
 /*!
  * Populate \c inp::OpticalSurfacePhysics data from Geant4 by looping over
@@ -68,15 +65,6 @@ class GeantSurfacePhysicsLoader
     // Insert painted surface (reflection only)
     void insert_painted_surface(optical::ReflectionMode mode);
 };
-
-//---------------------------------------------------------------------------//
-#if !CELERITAS_USE_GEANT4
-GeantSurfacePhysicsLoader::GeantSurfacePhysicsLoader(inp::OpticalSurfacePhysics&)
-{
-}
-
-inline void GeantSurfacePhysicsLoader::operator()(SurfaceId) {}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
