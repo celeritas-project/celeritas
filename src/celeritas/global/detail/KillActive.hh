@@ -50,7 +50,7 @@ KillActiveExecutor::operator()(celeritas::CoreTrackView& track)
 {
     if (track.sim().status() != TrackStatus::inactive)
     {
-        track.apply_cut();
+        track.apply_errored();
     }
 }
 
