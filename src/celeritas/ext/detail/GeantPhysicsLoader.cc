@@ -326,34 +326,40 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
     // as a grid
     for (auto opt_mat_id : range(OptMatId{optical_ids_.num_optical()}))
     {
-        if (model.materials.count(opt_mat_id))
-        {
-            continue;
-        }
+        bool has_mfp = model.materials.count(opt_mat_id);
 
         auto get_property = this->property_getter(opt_mat_id);
         inp::OpticalModelMaterial<ImportOpticalRayleigh> model_mat;
-        bool any_found = false;
-        any_found = get_property(model_mat.scale_factor,
-                                 "RS_SCALE_FACTOR",
-                                 ImportUnits::unitless)
-                    || any_found;
-        any_found = get_property(model_mat.compressibility,
-                                 "ISOTHERMAL_COMPRESSIBILITY",
-                                 ImportUnits::len_time_sq_per_mass)
-                    || any_found;
-        if (!any_found)
+
+        // Check for optional scale factor
+        bool has_scale = get_property(
+            model_mat.scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless);
+        bool has_compr = get_property(model_mat.compressibility,
+                                      "ISOTHERMAL_COMPRESSIBILITY",
+                                      ImportUnits::len_time_sq_per_mass);
+        if (!has_mfp && !has_compr)
         {
+            // Check for G4 special case for water if no other data given
             auto& g4mat = *optical_g4mat_[opt_mat_id.get()];
             if (g4mat.GetName() == "Water")
             {
                 load_rayleigh_water(model_mat, g4mat);
-                any_found = true;
+                has_compr = true;
             }
         }
-        if (any_found)
+
+        if (has_mfp && (has_scale || has_compr))
         {
-            CELER_VALIDATE(model_mat, << "inconsistent Rayleigh input data");
+            constexpr auto to_given_str
+                = [](bool v) { return v ? "provided" : "missing"; };
+            CELER_LOG(warning)
+                << "Inconsistent Rayleigh input data: compressibility ("
+                << to_given_str(has_compr) << ") with optional scale ("
+                << to_given_str(has_scale)
+                << ") is ignored in favor of MFP grid";
+        }
+        if (!has_mfp && has_compr)
+        {
             // Add non-grid rayleigh
             model.materials.emplace(opt_mat_id, std::move(model_mat));
         }

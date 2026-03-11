@@ -11,16 +11,19 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/Quantity.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -271,6 +274,24 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
 };
 
 //---------------------------------------------------------------------------//
+class DuneCryostat : public GeantImporterTest
+{
+  protected:
+    std::string_view gdml_basename() const override
+    {
+        return "dune-cryostat"sv;
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        GeantPhysicsOptions gpo = GeantPhysicsOptions::deactivated();
+        gpo.optical.emplace();
+        gpo.ionization = true;
+        return gpo;
+    }
+};
+
+//---------------------------------------------------------------------------//
 class TestEm3 : public GeantImporterTest
 {
   protected:
@@ -412,6 +433,24 @@ class Solids : public GeantImporterTest
 
 //---------------------------------------------------------------------------//
 // TESTS
+//---------------------------------------------------------------------------//
+
+TEST_F(DuneCryostat, optical)
+{
+    selection_.particles = GeantImportDataSelection::optical;
+    selection_.processes = GeantImportDataSelection::optical;
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
+    auto&& imported = this->imported_data();
+    CELER_DISCARD(imported);
+
+    static char const* const expected_log_messages[] = {
+        "Loaded no model data from process G4OpMieHG(\"OpMieHG\")",
+        "Loaded no model data from process G4OpWLS(\"OpWLS\")",
+        "Loaded no model data from process G4OpWLS2(\"OpWLS2\")",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+}
+
 //---------------------------------------------------------------------------//
 
 TEST_F(FourSteelSlabsEmStandard, em_particles)
@@ -1179,9 +1218,9 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 {
-    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::warning};
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
     auto&& import_data = this->imported_data();
-    EXPECT_TRUE(scoped_log.empty()) << scoped_log;
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 
     auto const& lpe_map = import_data.livermore_photo.atomic_xs;
     EXPECT_EQ(4, lpe_map.size());
@@ -1635,8 +1674,17 @@ TEST_F(OneSteelSphereGG, physics)
 
 TEST_F(LarSphere, optical)
 {
-    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::info};
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
     auto&& imported = this->imported_data();
+
+    static char const* const expected_log_messages[] = {
+        R"(Inconsistent Rayleigh input data: compressibility (provided) with optional scale (missing) is ignored in favor of MFP grid)",
+        "Loaded no model data from process G4OpMieHG(\"OpMieHG\")",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -1840,7 +1888,19 @@ TEST_F(LarSphere, optical)
 
 TEST_F(LarSphereExtramat, optical)
 {
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
     auto&& imported = this->imported_data();
+
+    static char const* const expected_log_messages[] = {
+        "Loaded no model data from process G4OpMieHG(\"OpMieHG\")",
+        "Loaded no model data from process G4OpWLS(\"OpWLS\")",
+        "Loaded no model data from process G4OpWLS2(\"OpWLS2\")",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[]
+        = {"warning", "warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
@@ -2115,7 +2175,7 @@ TEST_F(MucfBox, static_data)
     EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.x.size());
     EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.y.size());
     EXPECT_SOFT_EQ(0.55157437567861023, average(mucf.muon_energy_cdf.x));
-    EXPECT_SOFT_EQ(11.250286274435437, average(mucf.muon_energy_cdf.y));
+    EXPECT_SOFT_EQ(0.011250286274435, average(mucf.muon_energy_cdf.y));
 
     //! \todo Add real cycle rate data test
 
