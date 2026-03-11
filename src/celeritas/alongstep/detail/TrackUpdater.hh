@@ -53,7 +53,8 @@ CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView& track)
             && sim.post_step_action() != track.tracking_cut_action())
         {
 #if !CELER_DEVICE_COMPILE
-            CELER_LOG_LOCAL(error) << R"(Track exceeded maximum step count)";
+            CELER_LOG_LOCAL(debug) << "Track " << track.track_slot_id()
+                                   << " exceeded maximum step count";
 #endif
             track.apply_cut();
             return;

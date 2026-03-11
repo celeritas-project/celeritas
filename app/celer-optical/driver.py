@@ -39,7 +39,7 @@ generator = {
     "_type": "primary",
     "primaries": 1048576,
     "angle": {"_type": "isotropic"},
-    "energy": {"_type": "normal", "mean": 5e-5, "stddev": 5e-6},
+    "energy": {"_type": "normal", "mean": 5e-6, "stddev": 5e-7},
     "shape": {"_type": "delta", "value": [0, 0, 0]},
 }
 
@@ -50,7 +50,7 @@ problem = {
     "seed": 12345,
     "timers": {"action": False},
     "limits": {
-        "step": 8,
+        "steps": 2,
     },
 }
 
