@@ -144,6 +144,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         result.step_times.reserve(std::min(min_alloc, max_steps_));
     }
 
+    CELER_LOG(status) << "Running";
+
     // Abort cleanly for interrupt and user-defined signals
 #ifndef _WIN32
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
@@ -194,6 +196,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             optical_counts = optical_->buffer_counts(aux);
         }
     }
+
+    CELER_LOG(status) << "Run complete";
 
     auto counters = copy_to_host(stepper_->state_ref().init.track_counters);
     result.num_tracks = std::accumulate(counters.data().get(),

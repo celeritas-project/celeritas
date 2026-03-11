@@ -49,6 +49,9 @@ problem = {
     "capacity": capacity,
     "seed": 12345,
     "timers": {"action": False},
+    "limits": {
+        "step": 8,
+    },
 }
 
 inp = {
@@ -64,7 +67,8 @@ with open(inp_file, "w") as f:
     json.dump(inp, f, indent=1)
 
 exe = environ.get("CELERITAS_EXE", "./celer-optical")
-print(f"Running {exe} {inp_file} from {getcwd()}", file=stderr)
+cwd = Path(getcwd())
+print(f"Running {exe} {inp_file} from {cwd}", file=stderr)
 result = subprocess.run(
     [exe, "-"], input=json.dumps(inp).encode(), stdout=subprocess.PIPE
 )
@@ -91,7 +95,7 @@ except json.decoder.JSONDecodeError as e:
     print(f"fatal: {e}")
     exit(1)
 
-out_file = f"{run_name}.out.json"
+out_file = cwd / f"{run_name}.out.json"
 with open(out_file, "w") as f:
     json.dump(j, f, indent=1)
 print(f"Results written to {out_file}", file=stderr)
