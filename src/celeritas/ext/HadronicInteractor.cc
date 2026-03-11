@@ -26,6 +26,8 @@ HadronicInteractor::HadronicInteractor(G4ParticleDefinition const& particle,
     : particle_(particle)
 {
     auto* proc_store = G4HadronicProcessStore::Instance();
+    CELER_ASSERT(proc_store);
+
     process_ = proc_store->FindProcess(&particle_, type);
 
     CELER_VALIDATE(process_,
