@@ -92,12 +92,16 @@ struct OpticalProblem
     OpticalTrackingLimits limits;
     //! Per-process state sizes for optical tracking loop
     OpticalStateCapacity capacity;
+    //! User scoring configuration for optical detectors
+    OpticalDetector detectors;
     //! Number of streams
     size_type num_streams{};
     //! Random number generator seed
     unsigned int seed{};
     //! Set up step or action timers
     Timers timers;
+    //! Write Perfetto tracing data to this filename
+    std::string perfetto_file;
     //! Write Celeritas diagnostics to this file ("-" is stdout)
     std::string output_file{"-"};
 };

@@ -5,12 +5,11 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": ["full"],
+      "inherits": ["larsoft"],
       "binaryDir": "$env{SCRATCHDIR}/build/celeritas-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_LArSoft": {"type": "BOOL", "value": "ON"},

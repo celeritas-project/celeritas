@@ -27,6 +27,8 @@ namespace optical
  *
  * Stores material properties relevant for Rayleigh scattering and
  * wavelength shifting.
+ *
+ * \deprecated To be deleted soon
  */
 class ImportedMaterials
 {
@@ -35,10 +37,10 @@ class ImportedMaterials
     static std::shared_ptr<ImportedMaterials> from_import(ImportData const&);
 
     // Construct directly from imported materials
-    ImportedMaterials(std::vector<ImportOpticalRayleigh> rayleigh,
+    ImportedMaterials(std::vector<ImportMie> mie,
+                      std::vector<ImportOpticalRayleigh> rayleigh,
                       std::vector<ImportWavelengthShift> wls,
-                      std::vector<ImportWavelengthShift> wls2,
-                      std::vector<ImportMie> mie);
+                      std::vector<ImportWavelengthShift> wls2);
 
     // Get number of imported optical materials
     OptMatId::size_type num_materials() const;
@@ -56,10 +58,10 @@ class ImportedMaterials
     ImportMie const& mie(OptMatId mat) const;
 
   private:
+    std::vector<ImportMie> mie_;
     std::vector<ImportOpticalRayleigh> rayleigh_;
     std::vector<ImportWavelengthShift> wls_;
     std::vector<ImportWavelengthShift> wls2_;
-    std::vector<ImportMie> mie_;
 };
 
 //---------------------------------------------------------------------------//

@@ -11,6 +11,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/random/data/RngData.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
@@ -69,6 +70,7 @@ struct TrackInitializer
     SimTrackInitializer sim;
     GeoTrackInitializer geo;
     ParticleTrackInitializer particle;
+    RngStateInitializer rng;
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -95,7 +97,7 @@ struct TrackInitializer
  *   (with one remainder at the end for storing the accumulated number of
  *   secondaries).
  * - \c counters stores the number of tracks with a given status and is updated
- *   during each step of the simulation of the event.
+ *   during each step of the simulation of an event.
  */
 template<Ownership W, MemSpace M>
 struct TrackInitStateData
@@ -120,7 +122,7 @@ struct TrackInitStateData
     // CoreStateCounters)
     Items<TrackInitializer> initializers;
 
-    // Maintain the counters here to allow GPU-resident computation with
+    // Maintain the counters here to allow device-resident computation with
     // synchronization between host and device only at the end of a step or
     // when explicitly requested, such as in the tests
     Items<CoreStateCounters> counters;

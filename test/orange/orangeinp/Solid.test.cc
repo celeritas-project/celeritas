@@ -278,14 +278,12 @@ TEST_F(SolidTest, antiwedge)
         "",
         "cone",
     };
-    // clang-format off
     static char const* const expected_bound_strings[] = {
-        "7: {{{-0.707,-0.707,-10}, {0.707,0.707,10}}, {{-2,-2,-10}, {2,2,10}}}",
+        R"(7: {{{-0.707,-0.707,-10}, {0.707,0.707,10}}, {{-2,-2,-10}, {2,2,10}}})",
         "10: {null, inf}",
         "~11: {null, inf}",
-        "12: {null, {{-2,-2,-10}, {2,2,10}}}",
+        R"(12: {null, {{-2,-2,-10}, {2,2,10}}})",
     };
-    // clang-format on
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -421,10 +419,10 @@ TEST_F(SolidTest, sphere_polar)
     static char const* const expected_volume_strings[] = {
         "all(-0, +1, -2)",
         "all(-0, any(all(+1, +2), all(+2, -1)))",
-        "all(-0, any(all(+1, +2), all(-1, +4)))",
-        "all(-0, -1, -4)",
-        "all(-0, +1, -5, -6)",
-        "all(-0, -1, !all(-5, -6))",
+        "all(-0, any(all(+1, +2), all(-1, +3)))",
+        "all(-0, -1, -3)",
+        "all(-0, +1, -4, -5)",
+        "all(-0, -1, !all(-4, -5))",
     };
     static char const* const expected_md_strings[] = {
         "",
@@ -475,21 +473,16 @@ TEST_F(SolidTest, sphere_polar)
         "25: {{{-inf,-inf,-inf}, {0,0,inf}}, {{-inf,-inf,-inf}, {0,0,inf}}}",
         "26: {{{-8.66,-8.66,0}, {0,0,8.66}}, {{-10,-10,0}, {0,0,10}}}",
         "~27: {{{-inf,-inf,-inf}, {0,0,inf}}, {{-inf,-inf,-inf}, {0,0,inf}}}",
-        "28: {null, {{-inf,-inf,-inf}, {inf,inf,0}}}",
+        "28: {null, {{-10,-10,-10}, {10,10,0}}}",
     };
     static char const expected_tree_string[]
-        = R"json(["t",["~",0],["S",0],["~",2],["S",1],["S",2],["~",5],["&",[4,6]],["&",[3,4,6]],["&",[4,5]],["~",4],["&",[5,10]],["|",[9,11]],["&",[3,12]],["S",4],["&",[10,14]],["|",[9,15]],["&",[3,16]],["~",14],["&",[10,18]],["&",[3,10,18]],["S",5],["~",21],["S",6],["~",23],["&",[22,24]],["&",[3,4,22,24]],["~",25],["&",[3,10,27]]])json";
+        = R"json(["t",["~",0],["S",0],["~",2],["S",1],["S",2],["~",5],["&",[4,6]],["&",[3,4,6]],["&",[4,5]],["~",4],["&",[5,10]],["|",[9,11]],["&",[3,12]],["S",3],["&",[10,14]],["|",[9,15]],["&",[3,16]],["~",14],["&",[10,18]],["&",[3,10,18]],["S",4],["~",21],["S",5],["~",23],["&",[22,24]],["&",[3,4,22,24]],["~",25],["&",[3,10,27]]])json";
 
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
-
-    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        // Surface deduplication removes one of the cones a bit later
-        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-    }
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 }
 
 TEST_F(SolidTest, or_shape)

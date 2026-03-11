@@ -116,7 +116,7 @@ ImportProcessClass to_import_process_class(G4VProcess const& process)
 ImportProcess
 init_process(G4ParticleDefinition const& particle, G4VProcess const& process)
 {
-    CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
+    CELER_LOG(debug) << "Loading process '" << process.GetProcessName()
                      << "' for particle " << particle.GetParticleName() << " ("
                      << particle.GetPDGEncoding() << ')';
 
@@ -344,7 +344,7 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
-            CELER_LOG(debug) << "Saving MSC model '" << model->GetName()
+            CELER_LOG(debug) << "Loading MSC model '" << model->GetName()
                              << "' for particle " << particle.GetParticleName()
                              << " (" << particle.GetPDGEncoding() << ")";
 

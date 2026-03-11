@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
@@ -19,6 +20,42 @@ namespace celeritas
 {
 namespace optical
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Adapter class to construct models from new bulk physics input.
+ *
+ * This pulls the MFP and model type from each bulk physics model.
+ * Model-specific "material" data is managed separately.
+ */
+struct VecModelBuilder
+{
+    std::vector<ImportOpticalModel>& models;
+    std::size_t num_materials;
+
+    template<class MM, optical::ImportModelClass IMC>
+    void operator()(inp::OpticalBulkModel<MM, IMC> const& model)
+    {
+        if (!model)
+        {
+            return;
+        }
+
+        ImportOpticalModel iom;
+        iom.model_class = model.model_class;
+        iom.mfp_table.resize(this->num_materials);
+        for (auto&& [opt_mat, model_mat] : model.materials)
+        {
+            CELER_ASSERT(opt_mat < iom.mfp_table.size());
+            iom.mfp_table[opt_mat.get()] = model_mat.mfp;
+        }
+
+        this->models.emplace_back(std::move(iom));
+    }
+};
+
+}  // namespace
 //---------------------------------------------------------------------------//
 /*!
  * Construct list of imported model from imported data.
@@ -26,7 +63,15 @@ namespace optical
 std::shared_ptr<ImportedModels>
 ImportedModels::from_import(ImportData const& io)
 {
-    return std::make_shared<ImportedModels>(io.optical_models);
+    std::vector<ImportOpticalModel> models;
+    VecModelBuilder add_model{models, io.optical_materials.size()};
+    add_model(io.optical_physics.bulk.absorption);
+    add_model(io.optical_physics.bulk.rayleigh);
+    add_model(io.optical_physics.bulk.mie);
+    add_model(io.optical_physics.bulk.wls);
+    add_model(io.optical_physics.bulk.wls2);
+
+    return std::make_shared<ImportedModels>(std::move(models));
 }
 
 //---------------------------------------------------------------------------//
@@ -50,9 +95,7 @@ ImportedModels::ImportedModels(std::vector<ImportOpticalModel> models)
                        << "invalid imported model class for optical model id '"
                        << model_id << "'");
 
-        // Model MFP vectors may be empty, indicating the model should attempt
-        // to build from optical material data.
-
+        // Model MFP vectors may be empty (*may* indicate )
         CELER_VALIDATE(
             model.mfp_table.size() == models_.front().mfp_table.size(),
             << "imported optical model id '" << model_id << "' ("

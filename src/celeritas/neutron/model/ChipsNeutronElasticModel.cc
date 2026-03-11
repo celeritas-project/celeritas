@@ -69,7 +69,7 @@ ChipsNeutronElasticModel::ChipsNeutronElasticModel(
     CELER_ASSERT(data.coeffs.size() == materials.num_isotopes());
 
     // Move to mirrored data, copying to device
-    mirror_ = CollectionMirror<NeutronElasticData>{std::move(data)};
+    mirror_ = ParamsDataStore<NeutronElasticData>{std::move(data)};
     CELER_ENSURE(this->mirror_);
 }
 

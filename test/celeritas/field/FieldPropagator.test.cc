@@ -12,7 +12,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/ScopedLogStorer.hh"
-#include "corecel/cont/ArrayIO.hh"
+#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
@@ -40,6 +40,7 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 constexpr real_type pi{constants::pi};
 constexpr real_type sqrt_three{constants::sqrt_three};
@@ -114,9 +115,7 @@ class SimpleCmsTest : public FieldPropagatorTestBase
     std::string_view gdml_basename() const override { return "simple-cms"; }
 };
 
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-#    define CmseTest DISABLED_CmseTest
-#endif
+#define CmseTest TEST_IF_CELERITAS_GEANT(CmseTest)
 class CmseTest : public FieldPropagatorTestBase
 {
     std::string_view gdml_basename() const override { return "cmse"; }
@@ -156,8 +155,7 @@ struct HorribleZField
 
 // Field value (native units) for 10 MeV electron/positron to have a radius of
 // 1 cm
-constexpr real_type unit_radius_field_strength{3.5019461121752274
-                                               * units::tesla};
+constexpr real_type unit_radius_field_strength{3.5019461121752274_T};
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -171,7 +169,7 @@ TEST_F(TwoBoxesTest, electron_interior)
     auto particle
         = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
-    UniformZField field(1.0 * units::tesla);
+    UniformZField field(1.0_T);
 
     // Check expected field curvature and geometry cell
     EXPECT_SOFT_EQ(radius, this->calc_field_curvature(particle, geo, field));
@@ -191,21 +189,20 @@ TEST_F(TwoBoxesTest, electron_interior)
                        geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
                        geo.dir());
-    EXPECT_EQ(1, integrate.count());
+    EXPECT_EQ(1, integrate.exchange_count());
     EXPECT_EQ(1, geo.intersect_count());
     EXPECT_EQ(0, geo.safety_count());
 
     // Test the remaining quarter-turn divided into 25 steps
     {
         geo.reset_count();
-        integrate.reset_count();
         real_type step = 0.5 * pi * radius - 1e-2;
         for (auto i : range(25))
         {
             SCOPED_TRACE(i);
             result = propagate(step / 25);
             EXPECT_SOFT_EQ(step / 25, result.distance);
-            EXPECT_EQ(i + 1, integrate.count());
+            EXPECT_EQ(1, integrate.exchange_count());
             EXPECT_FALSE(result.boundary)
                 << "At " << geo.pos() << " along " << geo.dir();
         }
@@ -217,18 +214,16 @@ TEST_F(TwoBoxesTest, electron_interior)
     // Test a very long (next quarter-turn) step
     {
         SCOPED_TRACE("Quarter turn");
-        integrate.reset_count();
         result = propagate(0.5 * pi * radius);
         EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), coarse_eps);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
-        EXPECT_EQ(21, integrate.count());
+        EXPECT_EQ(21, integrate.exchange_count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
     {
         SCOPED_TRACE("Half turn");
-        integrate.reset_count();
         result = propagate(pi * radius);
         // The maximum substep limit in the field propagator was reached before
         // traveling the full distance; propagate again to reach the end
@@ -238,13 +233,12 @@ TEST_F(TwoBoxesTest, electron_interior)
         EXPECT_SOFT_EQ(pi * radius - partial_distance, result.distance);
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
-        EXPECT_EQ(40, integrate.count());
+        EXPECT_EQ(40, integrate.exchange_count());
     }
 
     // Test step that's smaller than driver's minimum (should take one
     // iteration in the propagator loop)
     {
-        integrate.reset_count();
         result = propagate(1e-10);
         EXPECT_REAL_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
@@ -253,7 +247,7 @@ TEST_F(TwoBoxesTest, electron_interior)
                         coarse_eps);
         EXPECT_VEC_NEAR(
             Real3({6.25302065531623e-08, 1, 0}), geo.dir(), coarse_eps);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
     }
 }
 
@@ -303,7 +297,7 @@ TEST_F(TwoBoxesTest, gamma_interior)
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 3}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
     }
     // Move to boundary
     {
@@ -311,13 +305,12 @@ TEST_F(TwoBoxesTest, gamma_interior)
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
 
-        integrate.reset_count();
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(2.0, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 5}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(2, integrate.count());
+        EXPECT_EQ(2, integrate.exchange_count());
     }
     // Cross boundary
     {
@@ -332,13 +325,12 @@ TEST_F(TwoBoxesTest, gamma_interior)
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
 
-        integrate.reset_count();
         auto result = propagate(5.0);
         EXPECT_SOFT_EQ(5.0, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
     }
 }
 
@@ -348,7 +340,7 @@ TEST_F(TwoBoxesTest, gamma_pathological)
     auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
 
     // Construct field (shape and magnitude shouldn't matter)
-    HorribleZField field{1.2345 * units::tesla, 5};
+    HorribleZField field{1.2345_T, 5};
     FieldDriverOptions driver_options;
     auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
@@ -364,7 +356,7 @@ TEST_F(TwoBoxesTest, gamma_pathological)
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
     }
 }
 
@@ -396,7 +388,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
         EXPECT_SOFT_EQ(exact_distance, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -416,7 +408,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
         EXPECT_SOFT_EQ(0.251, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -435,7 +427,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
         EXPECT_SOFT_EQ(0.251, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_EQ(2, integrate.count());
+        EXPECT_EQ(2, integrate.exchange_count());
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -446,7 +438,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
 TEST_F(TwoBoxesTest, electron_super_small_step)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{2});
-    UniformZField field(static_cast<real_type>(1 * units::tesla));
+    UniformZField field(static_cast<real_type>(1_T));
     FieldDriverOptions driver_options;
 
     std::vector<real_type> intersect_distance;
@@ -463,7 +455,7 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
             auto result = propagate(delta);
 
             EXPECT_REAL_EQ(delta, result.distance);
-            EXPECT_EQ(1, integrate.count());
+            EXPECT_EQ(1, integrate.exchange_count());
         }
 
         {
@@ -481,7 +473,7 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
             auto result = propagate(delta);
 
             intersect_distance.push_back(result.distance);
-            EXPECT_EQ(1, integrate.count());
+            EXPECT_EQ(1, integrate.exchange_count());
         }
     }
     static real_type const expected_intersect_distance[]
@@ -862,7 +854,6 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
         axpy(real_type(-1), first_pos, &start_pos);
 
         geo = GeoTrackInitializer{start_pos, {0, 1, 0}};
-        integrate.reset_count();
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
         return propagate(first_step - move_delta);
@@ -883,7 +874,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
 
         auto result = propagate(0.1 * dr, dr);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(first_step - dr, result.distance);
         EXPECT_LT(distance(Real3{-4.9512441890768795, -0.092139178167222446, 0},
                            geo.pos()),
@@ -905,7 +896,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
          */
         auto result = propagate(0.1 * dr, 0);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(-5.0, geo.pos()[0]);
@@ -930,7 +921,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
          */
         auto result = propagate(1e-6 * dr, 0);
         EXPECT_FALSE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(-5.0, geo.pos()[0]);
@@ -955,7 +946,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
 
         auto result = propagate(-0.1 * dr, 0);
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(0.40277704609562048, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, -0.04387770235662955, 0}, geo.pos()),
@@ -975,7 +966,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
          */
         auto result = propagate(-1e-6 * dr, 0);
         EXPECT_TRUE(result.boundary);
-        EXPECT_EQ(1, integrate.count());
+        EXPECT_EQ(1, integrate.exchange_count());
         EXPECT_SOFT_EQ(0.44815824321522935, result.distance);
         EXPECT_LE(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, -4.3877702173875065e-07, 0}, geo.pos()),
@@ -1031,51 +1022,70 @@ TEST_F(TwoBoxesTest,
         for (int i : range(2))
         {
             SCOPED_TRACE(i);
-            auto result = propagate(radius * dtheta);
-            if (result.boundary)
+            Propagation result;
+            result.distance = 0;
+            result.boundary = false;
+
+            try
             {
-                geo.cross_boundary();
+                if (!geo.failed())
+                {
+                    result = propagate(radius * dtheta);
+                }
+            }
+            catch (CheckedGeoError const& e)
+            {
+                CELER_LOG(error) << e.what();
             }
 
-            boundary.push_back(result.boundary);
+            if (result.distance > 0)
+            {
+                boundary.push_back(result.boundary);
+                volumes.push_back(this->volume_name(geo));
+            }
+            else
+            {
+                // Error sentinel
+                boundary.push_back(-1);
+                volumes.push_back("[FAILURE]");
+            }
             distances.push_back(result.distance);
-            substeps.push_back(integrate.count());
-            volumes.push_back(this->volume_name(geo));
-            integrate.reset_count();
+            substeps.push_back(integrate.exchange_count());
         }
     }
 
-    std::vector<int> expected_boundary = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
+    std::vector<int> expected_boundary = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
     std::vector<double> expected_distances = {
         0.0078534718906499,
-        0.0028235332722979,
+        0.0078539816339745,
         0.0044879852658442,
-        0.0028259738005751,
+        0.0044879895051283,
         1e-05,
-        1e-05,
+        1e-06,
         9.9999658622419e-09,
         1e-08,
         9.9981633254417e-12,
         1e-11,
     };
-    std::vector<int> expected_substeps = {1, 25, 1, 12, 1, 1, 1, 1, 1, 1};
+    std::vector<int> expected_substeps = {1, 1, 1, 1, 1, 4, 1, 1, 1, 1};
     std::vector<std::string> expected_volumes = {
-        "world",
         "inner",
-        "world",
         "inner",
-        "world",
-        "world",
-        "world",
-        "world",
-        "world",
-        "world",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
+        "inner",
     };
 
-    EXPECT_VEC_EQ(expected_boundary, boundary);
-    EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps);
-    EXPECT_VEC_EQ(expected_substeps, substeps);
-    EXPECT_VEC_EQ(expected_volumes, volumes);
+    EXPECT_VEC_EQ(expected_boundary, boundary) << repr(boundary);
+    EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps)
+        << repr(distances);
+    EXPECT_VEC_EQ(expected_substeps, substeps) << repr(substeps);
+    EXPECT_VEC_EQ(expected_volumes, volumes) << repr(volumes);
 }
 
 // Heuristic test: plotting points with finer propagation distance show a track
@@ -1096,10 +1106,9 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(nonuniform_field))
     std::vector<int> step_counter;
     for ([[maybe_unused]] auto i : range(8))
     {
-        integrate.reset_count();
         propagate(1.0);
         all_pos.insert(all_pos.end(), geo.pos().begin(), geo.pos().end());
-        step_counter.push_back(integrate.count());
+        step_counter.push_back(integrate.exchange_count());
     }
 
     // clang-format off
@@ -1124,7 +1133,7 @@ TEST_F(LayersTest, revolutions_through_layers)
     auto particle
         = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
-    UniformZField field(1.0 * units::tesla);
+    UniformZField field(1.0_T);
 
     // Build propagator
     FieldDriverOptions driver_options;
@@ -1211,7 +1220,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 {
     auto particle = this->make_particle_view(pdg::electron(),
                                              MevEnergy{4.25402379798713e-01});
-    UniformZField field(real_type(1 * units::tesla));
+    UniformZField field(real_type(1_T));
     FieldDriverOptions driver_options;
 
     auto geo = this->make_geo_track_view(
@@ -1248,6 +1257,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
             // Surface geometry does not intersect the cylinder boundary, so
             // the track keeps going until the "looping" counter is hit
             EXPECT_SOFT_EQ(1.0314309658010318e-13, result.distance);
+            EXPECT_LT(result.distance, 2e-13);
             EXPECT_FALSE(result.looping);
         }
         else
@@ -1267,17 +1277,27 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
     {
         auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
+
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
-        auto result = propagate(30);
+        Propagation result;
+        try
+        {
+            result = propagate(30);
+        }
+        catch (RuntimeError const& e)
+        {
+            FAIL() << e.what();
+        }
+
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_SOFT_NEAR(
-            double{30}, static_cast<double>(integrate.count()), 0.2);
+            double{30}, static_cast<double>(integrate.exchange_count()), 0.2);
 
         if (using_surface_vg)
         {
-            GTEST_SKIP() << "FIXME: VecGeom surface model fails a boundary "
-                            "requirement.";
+            EXPECT_FALSE(geo.is_on_boundary());
+            GTEST_SKIP() << "FIXME: VecGeom surface model fails";
         }
         ASSERT_TRUE(geo.is_on_boundary());
 
@@ -1298,7 +1318,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 
 TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 {
-    UniformZField field(real_type(1 * units::tesla));
+    UniformZField field(real_type(1_T));
     FieldDriverOptions driver_options;
     driver_options.max_substeps = 100;
 
@@ -1315,7 +1335,6 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
     auto calc_radius
         = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
 
-    bool successful_reentry = false;
     {
         auto particle = this->make_particle_view(
             pdg::electron(), MevEnergy{3.27089632881079409e-02});
@@ -1323,11 +1342,12 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             field, particle.charge());
         auto propagate
             = make_field_propagator(integrate, driver_options, particle, geo);
-        auto result = propagate(1.39170198361108938e-05);
+        Propagation result;
+        EXPECT_NO_THROW(result = propagate(1.39170198361108938e-05));
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
-        EXPECT_EQ(2, integrate.count());
+        EXPECT_EQ(2, integrate.exchange_count());
         EXPECT_FALSE(result.looping);
     }
     {
@@ -1337,8 +1357,15 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         geo.set_dir({-1.31178657592616127e-01,
                      -8.29310561920304168e-01,
                      -5.43172303859124073e-01});
-        geo.cross_boundary();  // TODO: hack cross_boundary to handle this case
-        successful_reentry = (this->volume_name(geo) == "em_calorimeter");
+        try
+        {
+            geo.cross_boundary();
+        }
+        catch (CheckedGeoError const& e)
+        {
+            FAIL() << e.what();
+        }
+
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             // ORANGE should successfully reenter. However, under certain
@@ -1348,123 +1375,74 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         }
         else
         {
-            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
-        }
-
-        if (!successful_reentry)
-        {
-            // Note that this is expected behavior in Geant4 and VecGeom, as
-            // it is assumed that the track will actually change volumes at the
-            // boundary (tangent tracks are not the norm and maybe not properly
-            // handled).
-            CELER_LOG(warning) << "Reentry failed for " << cmake::core_geo
-                               << " geometry: post-propagation volume is "
-                               << this->volume_name(geo);
-
-            if (using_solids_vg && CELERITAS_VECGEOM_VERSION < 0x020000)
-            {
-                // FIXME: VecGeom 1.x navigation failure (solids model)
-                EXPECT_EQ("world", this->volume_name(geo));
-            }
-            else
-            {
-                EXPECT_EQ("si_tracker", this->volume_name(geo));
-            }
-
-            // Interestingly, VecGeom surf and solid models see that surface
-            // slightly differently.  Only surface model thinks the surface
-            // was actually crossed, therefore the next step will find distinct
-            // results
-            auto result = geo.find_next_step(1);
-            EXPECT_LT(result.distance, 2e-8);
-
-            if (result.distance < 1e-6)
-            {
-                geo.move_to_boundary();
-                geo.cross_boundary();  // back into em_calorimeter
-            }
-
-            // then they are back to agreement
-            result = geo.find_next_step(1);
-            EXPECT_EQ(result.distance, 1);
-            EXPECT_FALSE(result.boundary);
-            EXPECT_TRUE(geo.is_on_boundary());
-            EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
-        }
-        else
-        {
-            CELER_LOG(debug) << "Reentry succeeded: " << scoped_log_;
+            // FIXME: see GeoTests: TwoBoxesGeoTest::test_tangent
+            GTEST_SKIP();
         }
     }
-    {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger()};
-        auto particle = this->make_particle_view(
-            pdg::electron(), MevEnergy{3.25917780979408864e-02});
-        auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
-            field, particle.charge());
-        auto propagate
-            = make_field_propagator(integrate, driver_options, particle, geo);
+}
 
-        Propagation result;
-        // This absurdly long step is because in the "failed" case the
-        // track thinks it's in the world volume (nearly vacuum)
-        result = propagate(2.12621374950874703e+21);
+//! Get detailed results from field propagation with multiple radii
+struct FieldPropagationResult
+{
+    std::vector<int> num_boundary;
+    std::vector<int> num_step;
+    std::vector<int> num_intercept;
+    std::vector<int> num_integration;
+    std::vector<std::vector<std::string>> messages;
 
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-            && result.boundary != geo.is_on_boundary())
-        {
-            // FIXME: see #882
-            GTEST_SKIP() << "The current fix fails with the Geant4 navigator";
-        }
+    // Add a failure sentinel at a certain index
+    void fail_at(std::size_t index);
+};
 
-        EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_SOFT_NEAR(125, calc_radius(), 1e-2);
-        if (successful_reentry)
-        {
-            // ORANGE and *sometimes* vecgeom/geant4: extremely long
-            // propagation stopped by substep countdown
-            EXPECT_FALSE(result.boundary);
-            EXPECT_TRUE(result.looping);
-            EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+void FieldPropagationResult::fail_at(std::size_t index)
+{
+    CELER_EXPECT(index < num_boundary.size());
+    num_boundary[index] = -1;
+    num_step[index] = -1;
+    num_intercept[index] = -1;
+    num_integration[index] = -1;
+}
 
-            EXPECT_SOFT_EQ(12.02714054426572, result.distance);
-            EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-            EXPECT_EQ(573, integrate.count());
-            EXPECT_TRUE(result.looping);
-        }
-        else
-        {
-            // Repeated substep bisection failed; particle is bumped
-            EXPECT_SOFT_NEAR(result.distance, 12.02714054426572, coarse_eps);
-            // Minor floating point differences could make this 98 or so
-            EXPECT_SOFT_NEAR(
-                real_type(573), real_type(integrate.count()), 0.05);
-            EXPECT_FALSE(result.boundary);  // FIXME: should have reentered
-            EXPECT_TRUE(result.looping);  // FIXME: looping??
+std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
+{
+    // clang-format off
+    os << "/*** FIELD PROPAGATION RESULT ***/\n"
+          "FieldPropagationResult ref;\n"
+       << CELER_REF_ATTR(num_boundary)
+       << CELER_REF_ATTR(num_step)
+       << CELER_REF_ATTR(num_intercept)
+       << CELER_REF_ATTR(num_integration)
+       << CELER_REF_ATTR(messages)
+       << "EXPECT_REF_EQ(ref, result) << result;\n"
+          "/*** END CODE ***/\n";
+    // clang-format on
+    return os;
+}
 
-            if (scoped_log_.empty()) {}
-            else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-            {
-                static char const* const expected_log_levels[] = {"error"};
-                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels())
-                    << scoped_log_;
-            }
-            else if (using_solids_vg)
-            {
-                static char const* const expected_log_messages[] = {
-                    R"(Moved internally from boundary but safety didn't increase: volume 6 from {123.3, -20.82, -40.83} to {123.3, -20.82, -40.83} (distance: 1.000e-6))",
-                };
-                EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-                static char const* const expected_log_levels[] = {"warning"};
-                EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-            }
-            else
-            {
-                ADD_FAILURE() << "Logged warning/error:" << scoped_log_;
-            }
-        }
-    }
+::testing::AssertionResult IsRefEq(char const* expr1,
+                                   char const* expr2,
+                                   FieldPropagationResult const& val1,
+                                   FieldPropagationResult const& val2)
+{
+    AssertionHelper result{expr1, expr2};
+
+#define IRE_COMPARE(ATTR)                                          \
+    if (val1.ATTR != val2.ATTR)                                    \
+    {                                                              \
+        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+                      << " but got " << repr(val2.ATTR);           \
+    }                                                              \
+    else                                                           \
+        CELER_DISCARD(int)
+
+    IRE_COMPARE(num_boundary);
+    IRE_COMPARE(num_step);
+    IRE_COMPARE(num_intercept);
+    IRE_COMPARE(num_integration);
+    IRE_COMPARE(messages);
+
+#undef IRE_COMPARE
+    return result;
 }
 
 TEST_F(CmseTest, coarse)
@@ -1480,18 +1458,18 @@ TEST_F(CmseTest, coarse)
     driver_options.delta_chord = 0.1;
     driver_options.max_substeps = 100;
 
-    std::vector<int> num_boundary;
-    std::vector<int> num_step;
-    std::vector<int> num_intercept;
-    std::vector<int> num_integration;
-
-    ScopedLogStorer scoped_log_{&celeritas::self_logger()};
-    bool failed{false};
+    FieldPropagationResult result;
 
     for (real_type radius : {5, 10, 20, 50})
     {
+        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+                                    LogLevel::warning};
         auto geo = this->make_geo_track_view(
             {2 * radius + real_type{0.01}, 0, -300}, {0, 1, 1});
+        // TODO: define a "reentrant" different propagation status: see
+        // CheckedGeoTrackView, OrangeTrackView
+        geo.check_zero_distance(false);
+
         field = UniformZField(unit_radius_field_strength / radius);
         EXPECT_SOFT_EQ(radius,
                        this->calc_field_curvature(particle, geo, field));
@@ -1501,71 +1479,85 @@ TEST_F(CmseTest, coarse)
 
         int step_count = 0;
         int boundary_count = 0;
-        int const max_steps = 10000;
-        while (!geo.is_outside() && step_count++ < max_steps)
+        constexpr int max_steps = 10000;
+        while (!geo.is_outside() && !geo.failed() && step_count++ < max_steps)
         {
             Propagation result;
             try
             {
                 result = propagate(radius);
+                if (result.boundary)
+                {
+                    ++boundary_count;
+                    geo.cross_boundary();
+                }
             }
-            catch (RuntimeError const& e)
+            catch (CheckedGeoError const& e)
             {
-                // Failure during Geant4 propagation
-                CELER_LOG(error) << e.what();
-                failed = true;
+                CELER_LOG_LOCAL(error) << e.details().what;
                 break;
             }
-            if (result.boundary)
-            {
-                geo.cross_boundary();
-                ++boundary_count;
-            }
         }
-        num_boundary.push_back(boundary_count);
-        num_step.push_back(step_count);
-        num_intercept.push_back(geo.intersect_count());
-        num_integration.push_back(integrate.count());
-        integrate.reset_count();
+        result.num_boundary.push_back(boundary_count);
+        result.num_step.push_back(step_count);
+        result.num_intercept.push_back(geo.intersect_count());
+        result.num_integration.push_back(integrate.exchange_count());
+        result.messages.push_back(std::move(scoped_log_).messages());
+        if (geo.failed())
+        {
+            CELER_LOG(error)
+                << "Failed radius = " << radius << " after "
+                << result.num_boundary.back() << " boundary crossings, "
+                << result.num_step.back() << " steps, "
+                << result.num_intercept.back() << " intersection calls";
+            result.fail_at(result.num_boundary.size() - 1);
+        }
     }
 
-    std::vector<int> expected_num_boundary = {134, 100, 60, 40};
-    std::vector<int> expected_num_step = {10001, 6450, 3236, 1303};
-    std::vector<int> expected_num_intercept = {30419, 19521, 16170, 9956};
-    std::vector<int> expected_num_integration = {80659, 58204, 41914, 26114};
+    FieldPropagationResult ref;
+    ref.num_boundary = {134, 101, 60, 40};
+    ref.num_step = {10001, 6462, 3236, 1303};
+    ref.num_intercept = {30419, 19551, 16170, 9956};
+    ref.num_integration = {80659, 58282, 41914, 26114};
+    ref.messages.resize(ref.num_boundary.size());
 
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4 && failed)
+    char const* geometry = "unknown";
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
-        // FIXME: this happens because of incorrect momentum update
-        expected_num_boundary = {134, 37, 60, 40};
-        expected_num_step = {10001, 179, 3236, 1303};
-        expected_num_intercept = {30419, 615, 16170, 9956};
-        expected_num_integration = {80659, 1670, 41914, 26114};
+        geometry = "ORANGE";
+        ref.fail_at(1);
+        if (CELERITAS_DEBUG)
+        {
+            ref.messages[1] = {
+                R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
+                R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
+                R"(Calculated surface sense at position {10.32, -6.565, 796.9} already matches target sense)",
+            };
+        }
+        ref.messages[1].insert(
+            ref.messages[1].end(),
+            {R"(track failed to cross local surface 91 in universe 0 at local position {10.47, -6.625, 797.1} along local direction {0.6625, -0.2470, 0.7072})",
+             R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
     }
-    else if (using_surface_vg)
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+             && !CELERITAS_VECGEOM_SURFACE)
     {
-        expected_num_boundary = {134, 37, 43, 16};
-        expected_num_step = {10001, 179, 160, 63};
-        expected_num_intercept = {30419, 615, 790, 414};
-        expected_num_integration = {80659, 1670, 1956, 1092};
-        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+        geometry = "VecGeom solid";
+        ref.messages[1] = {
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
     }
-    else if (using_solids_vg)
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+        || CELERITAS_VECGEOM_SURFACE)
     {
-        // Bumped (platform-dependent!): counts change a bit
-        expected_num_boundary[1] = 101;
-        expected_num_step[1] = 6462;
-        expected_num_intercept[1] = 19551;
-        expected_num_integration[1] = 58282;
-        static char const* const expected_log_messages[] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1.000e-4))"};
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages())
-            << scoped_log_;
+        GTEST_SKIP() << "Ignore checks due to reduced-precision numerical "
+                        "sensitivity";
     }
-    EXPECT_VEC_EQ(expected_num_boundary, num_boundary);
-    EXPECT_VEC_EQ(expected_num_step, num_step);
-    EXPECT_VEC_EQ(expected_num_intercept, num_intercept);
-    EXPECT_VEC_EQ(expected_num_integration, num_integration);
+
+    EXPECT_REF_EQ(ref, result)
+        << ansi_color('b') << "Failed geometry: " << ansi_color(' ')
+        << geometry << ":\n"
+        << result;
 }
 
 //---------------------------------------------------------------------------//

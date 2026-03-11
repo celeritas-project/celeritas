@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "MaterialData.hh"
@@ -40,9 +40,6 @@ namespace optical
  * GeoMaterialParams which maps volumes to \c PhysMatId, this class
  * maps the geometry volumes to optical materials for use in the optical
  * tracking loop.
- *
- * When surface models are implemented, surface properties will also be added
- * to this class.
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {
@@ -51,7 +48,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     {
         //! Shared optical material, indexed by \c OptMatId
         std::vector<ImportOpticalProperty> properties;
-        //! Map logical volume ID to optical material ID
+        //! Map impl (TODO!!!) volume ID to optical material ID
         std::vector<OptMatId> volume_to_mat;
         //! Map optical material ID to core material ID
         std::vector<PhysMatId> optical_to_core;
@@ -80,7 +77,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<MaterialParamsData> data_;
+    ParamsDataStore<MaterialParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

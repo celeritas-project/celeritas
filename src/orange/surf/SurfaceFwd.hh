@@ -26,6 +26,7 @@ class PlaneAligned;
 class SimpleQuadric;
 class Sphere;
 class SphereCentered;
+class Toroid;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

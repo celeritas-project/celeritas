@@ -7,7 +7,7 @@
 #include "orange/detail/UniverseIndexer.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "geocel/Types.hh"
 
 #include "celeritas_test.hh"
@@ -37,11 +37,11 @@ class UniverseIndexerTest : public Test
         auto cb_v = make_builder(&data.volumes);
         cb_v.insert_back(volumes.begin(), volumes.end());
 
-        data_ = CollectionMirror<UniverseIndexerData>{std::move(data)};
+        data_ = ParamsDataStore<UniverseIndexerData>{std::move(data)};
     }
 
   protected:
-    CollectionMirror<UniverseIndexerData> data_;
+    ParamsDataStore<UniverseIndexerData> data_;
 };
 
 //---------------------------------------------------------------------------//

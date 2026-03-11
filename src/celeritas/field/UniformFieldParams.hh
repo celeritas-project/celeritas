@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/geo/GeoFwd.hh"
 
 #include "UniformFieldData.hh"
@@ -35,6 +35,9 @@ class UniformFieldParams final
     // Construct with a uniform magnetic field
     UniformFieldParams(CoreGeoParams const& geo, Input const& inp);
 
+    // Construct with a uniform magnetic field with no volume dependency
+    explicit UniformFieldParams(Input const& inp);
+
     //! Access field data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
@@ -45,7 +48,7 @@ class UniformFieldParams final
     bool in_all_volumes() const { return data_.host_ref().has_field.empty(); }
 
   private:
-    CollectionMirror<UniformFieldParamsData> data_;
+    ParamsDataStore<UniformFieldParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

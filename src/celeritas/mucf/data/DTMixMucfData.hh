@@ -30,8 +30,9 @@ struct MucfParticleIds
 
     //!@{
     //! Elementary particles and nuclei
-    ParticleId neutron;
     ParticleId proton;
+    ParticleId triton;
+    ParticleId neutron;
     ParticleId alpha;
     ParticleId he3;
     //!@}
@@ -48,8 +49,50 @@ struct MucfParticleIds
     //! Check whether all particles are assigned
     CELER_FUNCTION explicit operator bool() const
     {
-        return mu_minus && neutron && proton && alpha && he3 && muonic_hydrogen
-               && muonic_alpha && muonic_triton && muonic_he3;
+        return mu_minus && proton && triton && neutron && alpha && he3
+               && muonic_hydrogen && muonic_deuteron && muonic_triton
+               && muonic_alpha && muonic_he3;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Particle masses used by the \c DTMixMucfModel .
+ */
+struct MucfParticleMasses
+{
+    //! Primary
+    units::MevMass mu_minus;
+
+    //!@{
+    //! Elementary particles and nuclei
+    units::MevMass proton;
+    units::MevMass triton;
+    units::MevMass neutron;
+    units::MevMass alpha;
+    units::MevMass he3;
+    //!@}
+
+    //!@{
+    //! Muonic atoms
+    units::MevMass muonic_hydrogen;
+    units::MevMass muonic_deuteron;
+    units::MevMass muonic_triton;
+    units::MevMass muonic_alpha;
+    units::MevMass muonic_he3;
+    //!@}
+
+    //! Check whether all data are assigned
+    CELER_FUNCTION explicit operator bool() const
+    {
+        return mu_minus > zero_quantity() && proton > zero_quantity()
+               && triton > zero_quantity() && neutron > zero_quantity()
+               && alpha > zero_quantity() && he3 > zero_quantity()
+               && muonic_hydrogen > zero_quantity()
+               && muonic_deuteron > zero_quantity()
+               && muonic_triton > zero_quantity()
+               && muonic_alpha > zero_quantity()
+               && muonic_he3 > zero_quantity();
     }
 };
 
@@ -66,18 +109,23 @@ struct DTMixMucfData
     using MaterialItems = Collection<T, W, M, MuCfMatId>;
     using GridRecord = NonuniformGridRecord;
     using CycleTimesArray = EnumArray<MucfMuonicMolecule, Array<real_type, 2>>;
+    using MaterialFractionsArray = EnumArray<MucfIsotope, real_type>;
 
-    //! Particle IDs
-    MucfParticleIds particles;
+    //! Particles
+    MucfParticleIds particle_ids;
+    MucfParticleMasses particle_masses;
 
     //! Muon CDF energy grid for sampling outgoing muCF muons
-    GridRecord muon_energy_cdf;  //! \todo Verify energy unit
+    //! X-axis range is [0, 1) and y-axis is the outgoing muon energy in MeV
+    GridRecord muon_energy_cdf;
     Items<real_type> reals;
 
     //!@{
     //! Material-dependent data calculated at model construction
     //! \c PhysMatId indexed by \c MuCfMatId
     MaterialItems<PhysMatId> mucfmatid_to_matid;
+    //! Isotopic fractions per material: [mat_comp_id][isotope]
+    MaterialItems<MaterialFractionsArray> isotopic_fractions;
     //! Cycle times per material: [mat_comp_id][muonic_molecule][spin_index]
     MaterialItems<CycleTimesArray> cycle_times;  //!< In [s]
     //! \todo Add mean atom spin flip times
@@ -87,9 +135,9 @@ struct DTMixMucfData
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return particles && muon_energy_cdf && !mucfmatid_to_matid.empty()
-               && !cycle_times.empty()
-               && (mucfmatid_to_matid.size() == cycle_times.size());
+        return particle_ids && particle_masses && muon_energy_cdf
+               && !reals.empty() && !mucfmatid_to_matid.empty()
+               && !isotopic_fractions.empty() && !cycle_times.empty();
     }
 
     //! Assign from another set of data
@@ -99,10 +147,12 @@ struct DTMixMucfData
         CELER_EXPECT(other);
 
         //! \todo Finish implementation
-        this->particles = other.particles;
-        this->reals = other.reals;
+        this->particle_ids = other.particle_ids;
+        this->particle_masses = other.particle_masses;
         this->muon_energy_cdf = other.muon_energy_cdf;
+        this->reals = other.reals;
         this->mucfmatid_to_matid = other.mucfmatid_to_matid;
+        this->isotopic_fractions = other.isotopic_fractions;
         this->cycle_times = other.cycle_times;
 
         return *this;

@@ -29,7 +29,7 @@ struct FrameworkLoaded
     //! Loaded problem
     std::variant<ProblemLoaded, OpticalProblemLoaded> problem;
     //! Geant4 geometry wrapper
-    std::shared_ptr<GeantGeoParams> geo;
+    std::shared_ptr<GeantGeoParams const> geo;
     //! Write diagnostic output
     std::string output_file;
 };

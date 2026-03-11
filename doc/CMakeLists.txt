@@ -233,6 +233,9 @@ set(DOXYGEN_CLASS_GRAPH NO)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_INTERNAL_DOCS NO)
+list(APPEND DOXYGEN_EXCLUDE
+  "${PROJECT_SOURCE_DIR}/src/celeritas/io/"
+)
 
 set(DOXYGEN_ALIASES
   "cite{1}=\"\\verbatim embed:rst:inline :cite:p:`\\1` \\endverbatim \""
@@ -270,6 +273,7 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/data/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/executor/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/executor/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/interactor/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/model/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/mucf/model/detail/*.hh"

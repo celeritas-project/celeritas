@@ -81,6 +81,7 @@ DistributionVisitor::operator()(F&& func, OnedDistributionId id)
     {
         CELER_DISTRIB_CASE(delta, delta_real);
         CELER_DISTRIB_CASE(normal, normal);
+        CELER_DISTRIB_CASE(truncated_normal, truncated_normal);
         default:
             CELER_ASSERT_UNREACHABLE();
     }

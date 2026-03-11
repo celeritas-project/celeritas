@@ -8,12 +8,11 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/StackAllocator.hh"
-#include "celeritas/mat/ElementView.hh"
-#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/mucf/data/DTMixMucfData.hh"
 #include "celeritas/phys/Interaction.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
+
+#include "detail/MucfInteractorUtils.hh"
 
 namespace celeritas
 {
@@ -24,6 +23,14 @@ namespace celeritas
  * Fusion channels:
  * - \f$ \alpha + \mu + n \f$
  * - \f$ (\alpha)_\mu + n \f$
+ *
+ * \warning This implementation has an incorrect energy and momentum
+ * conservation implementation. Acceleron assumes an isotropic direction for
+ * both neutron and muon in the \f$ \alpha + \mu + n \f$ channel, which leads
+ * to the alpha particle either conserving energy or momentum but not both
+ * simultaneously. The current implementation results in a roughly correct
+ * total energy within \f$ K_\text{total} = [17.5, 17.9] \f$ MeV, instead of
+ * the expected 17.6 MeV.
  */
 class DTMucfInteractor
 {
@@ -58,17 +65,24 @@ class DTMucfInteractor
         2  // muonicalpha_neutron
     };
 
-    // Sample Interaction secondaries
-    template<class Engine>
-    inline CELER_FUNCTION Span<Secondary>
-    sample_secondaries(Secondary* secondaries /*, other args */, Engine&);
+    // Outgoing neutron kinetic energy
+    inline CELER_FUNCTION units::MevEnergy neutron_kinetic_energy() const
+    {
+        return units::MevEnergy{14.1};
+    }
+
+    // Total fusion kinetic energy
+    inline CELER_FUNCTION units::MevEnergy total_kinetic_energy() const
+    {
+        return units::MevEnergy{17.6};
+    }
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with shared and state data.
+ * Construct with shared data and channel selection.
  */
 CELER_FUNCTION
 DTMucfInteractor::DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
@@ -88,35 +102,61 @@ template<class Engine>
 CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
 {
     // Allocate space for the final fusion channel
-    Secondary* secondaries = allocate_(num_secondaries_[channel_]);
-    if (secondaries == nullptr)
+    Secondary* sec = allocate_(num_secondaries_[channel_]);
+    if (sec == nullptr)
     {
         // Failed to allocate space for secondaries
         return Interaction::from_failure();
     }
 
-    // Kill primary and generate secondaries
+    size_type const neutron_idx{0};  // Both channels
+    size_type const muon_idx{1}, alpha_idx{2};  // Channel::alpha_muon_neutron
+    size_type const muonicalpha_idx{1};  // Channel::muonicalpha_neutron
+
+    IsotropicDistribution sample_isotropic;
+
+    // Neutron is the same on both cases: 14.1 MeV with random direction
+    sec[neutron_idx] = detail::sample_mucf_secondary(
+        data_.particle_ids.neutron, this->neutron_kinetic_energy(), rng);
+
+    switch (channel_)
+    {
+        case Channel::alpha_muon_neutron: {
+            // Muon: random direction with energy sampled from its CDF
+            sec[muon_idx] = detail::sample_mucf_muon(
+                data_.particle_ids.mu_minus,
+                NonuniformGridCalculator{data_.muon_energy_cdf, data_.reals},
+                rng);
+
+            // Alpha: Final state calculated via momentum conservation
+            sec[alpha_idx]
+                = detail::calc_third_secondary(sec[neutron_idx],
+                                               data_.particle_masses.neutron,
+                                               sec[muon_idx],
+                                               data_.particle_masses.mu_minus,
+                                               data_.particle_ids.alpha,
+                                               data_.particle_masses.alpha);
+            break;
+        }
+
+        case Channel::muonicalpha_neutron: {
+            // Muonic alpha: Equal and opposite momentum to neutron
+            sec[muonicalpha_idx].particle_id = data_.particle_ids.muonic_alpha;
+            sec[muonicalpha_idx].energy = this->total_kinetic_energy()
+                                          - this->neutron_kinetic_energy();
+            sec[muonicalpha_idx].direction
+                = detail::opposite(sec[neutron_idx].direction);
+            break;
+        }
+
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+
+    // Kill muon primary and generate fusion secondaries
     Interaction result = Interaction::from_absorption();
-    result.secondaries = this->sample_secondaries(secondaries, rng);
-
+    result.secondaries = {sec, num_secondaries_[channel_]};
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Sample the secondaries of the selected channel.
- *
- * Since secondaries come from an at rest interaction, their final state is
- * a simple combination of random direction + momentum conservation
- */
-template<class Engine>
-CELER_FUNCTION Span<Secondary>
-DTMucfInteractor::sample_secondaries(Secondary* secondaries /*, other args */,
-                                     Engine&)
-{
-    // TODO: switch on channel_
-    CELER_ASSERT_UNREACHABLE();
-    return Span<Secondary>{secondaries, num_secondaries_[channel_]};
 }
 
 //---------------------------------------------------------------------------//

@@ -25,6 +25,9 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Mark active tracks as "errored".
+ *
+ * This is invoked by the \c kill_active free function, which implements
+ * \c Stepper::kill_active .
  */
 struct KillActiveExecutor
 {

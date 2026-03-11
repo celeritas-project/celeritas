@@ -28,6 +28,7 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
@@ -41,10 +42,8 @@ namespace test
 //---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
 {
-#ifndef __APPLE__
-    // ROOT injects handlers simply by being linked on Linux systems
+    // ROOT injects handlers simply by being linked
     ScopedRootErrorHandler::disable_signal_handler();
-#endif
 
     // Create output registry
     output_reg_ = make_shared<OutputRegistry>();
@@ -180,6 +179,12 @@ auto GlobalTestBase::build_optical_action_reg() const -> SPActionRegistry
 }
 
 //---------------------------------------------------------------------------//
+auto GlobalTestBase::build_optical_detector_input() -> inp::OpticalDetector
+{
+    return inp::OpticalDetector{};
+}
+
+//---------------------------------------------------------------------------//
 optical::CoreParams::Input GlobalTestBase::optical_params_input()
 {
     optical::CoreParams::Input inp;
@@ -195,6 +200,7 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.sim = this->optical_sim();
     inp.surface_physics = this->optical_surface_physics();
     inp.detectors = this->detector();
+    inp.optical_detector = this->build_optical_detector_input();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
     inp.capacity = inp::OpticalStateCapacity::from_default(
@@ -235,9 +241,9 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.physics = this->physics();
     inp.rng = this->rng();
     inp.sim = this->sim();
-    inp.surface = surface_;
-    inp.volume = volume_;
-    inp.detectors = detector_;
+    inp.surface = this->surface();
+    inp.volume = this->volume();
+    inp.detectors = this->detector();
     inp.wentzel = this->wentzel();
 
     inp.action_reg = this->action_reg();

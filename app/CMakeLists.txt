@@ -5,14 +5,7 @@
 
 if(BUILD_TESTING)
   celeritas_get_pyenv(CELER_PYTHONENV)
-  if(CELERITAS_USE_Python)
-    set(CELER_PYTHON "$<TARGET_FILE:Python::Interpreter>")
-    set(CELER_NEEDS_PYTHON)
-  else()
-    set(CELER_PYTHONENV)
-    set(CELER_PYTHON "python3")
-    set(CELER_NEEDS_PYTHON DISABLED true)
-  endif()
+  set(CELER_PYTHON "$<TARGET_FILE:Python::Interpreter>")
 
   if(CELERITAS_USE_OpenMP)
     set(CELER_OMP_ENV "OMP_NUM_THREADS=4")
@@ -87,6 +80,7 @@ celeritas_target_link_libraries(celer-export-geant
 add_subdirectory(celer-sim)
 add_subdirectory(celer-g4)
 add_subdirectory(celer-geo)
+add_subdirectory(celer-optical)
 
 #-----------------------------------------------------------------------------#
 # TESTS

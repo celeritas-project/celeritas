@@ -22,6 +22,7 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 void EventIOTestBase::ReadAllResult::print_expected() const
 {
@@ -129,16 +130,16 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                       MevEnergy{1.23},
                       from_cm(Real3{2, 4, 5}),
                       Real3{1, 0, 0},
-                      5.67e-9 * units::second,
+                      5.67e-9_s,
                       EventId{0},
-                      PrimaryId{}};
+                      PrimaryId{0}};
         Primary proton{proton_id,
                        MevEnergy{2.34},
                        from_cm(Real3{3, 5, 8}),
                        Real3{0, 1, 0},
-                       5.78e-9 * units::second,
+                       5.78e-9_s,
                        EventId{0},
-                       PrimaryId{}};
+                       PrimaryId{0}};
         std::vector<Primary> primaries{gamma, proton, gamma, proton};
         primaries[1].position = from_cm(Real3{-3, -4, 5});
         primaries[3].position = primaries[2].position;

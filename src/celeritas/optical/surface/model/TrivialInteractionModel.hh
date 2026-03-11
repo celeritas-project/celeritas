@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/optical/surface/SurfaceModel.hh"
 
 #include "TrivialInteractionData.hh"
@@ -46,7 +46,7 @@ class TrivialInteractionModel : public SurfaceModel
 
   private:
     VecSurfaceLayer surfaces_;
-    CollectionMirror<TrivialInteractionData> data_;
+    ParamsDataStore<TrivialInteractionData> data_;
 };
 
 //---------------------------------------------------------------------------//

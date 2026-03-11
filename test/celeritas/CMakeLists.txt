@@ -25,6 +25,8 @@ else()
   else()
     set(_needs_geant4_11 DISABLE)
   endif()
+  celeritas_get_g4libs(_g4_geo_lib geometry)
+  celeritas_get_g4libs(_g4_global_libs global)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -44,7 +46,7 @@ elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
   set(_needs_orange DISABLE)
-  set(_core_geo_libs testcel_geocel ${Geant4_LIBRARIES})
+  set(_core_geo_libs testcel_geocel ${_g4_geo_lib})
 endif()
 
 set(_all_geo_libs
@@ -80,6 +82,7 @@ set(_sources
   global/StepperTestBase.cc
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
+  mucf/MucfInteractorHostTestBase.cc
   neutron/NeutronTestBase.cc
   optical/OpticalMockTestBase.cc
   optical/OpticalTestBase.cc
@@ -136,15 +139,22 @@ celeritas_setup_tests(SERIAL
 # TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_add_test(Constants.test.cc
-  LINK_LIBRARIES ${Geant4_LIBRARIES})
-celeritas_add_test(Units.test.cc)
+celeritas_add_test(Constants.test.cc LINK_LIBRARIES ${_g4_global_libs})
+celeritas_add_test(Units.test.cc LINK_LIBRARIES ${_g4_global_libs})
 
 #-----------------------------------------------------------------------------#
 # Decay
 
 # Muon
 celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
+
+#-----------------------------------------------------------------------------#
+# MuCF
+
+celeritas_add_test(mucf/DDMucfInteractor.test.cc)
+celeritas_add_test(mucf/DTMucfInteractor.test.cc)
+celeritas_add_test(mucf/DTMixMucfModel.test.cc)
+celeritas_add_test(mucf/MuonicAtomSelector.test.cc)
 
 #-----------------------------------------------------------------------------#
 # EM
@@ -182,6 +192,12 @@ celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
 
 #-----------------------------------------------------------------------------#
+if(CELERITAS_USE_Geant4)
+  celeritas_add_test(g4/MagneticField.test.cc
+    LINK_LIBRARIES ${_g4_geo_lib})
+endif()
+
+#-----------------------------------------------------------------------------#
 # External
 set(_import_filter
   "FourSteelSlabs*"
@@ -214,7 +230,7 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(ext/detail/HitProcessor.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
-  celeritas_add_test(ext/detail/TrackProcessor.test.cc
+  celeritas_add_test(ext/GeantTrackReconstruction.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 
@@ -231,7 +247,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # Field
 
-if(CELERITAS_USE_VecGeom)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
+ AND (CELERITAS_USE_CUDA OR CELERITAS_VecGeom_SURFACE))
   # VecGeom surface cannot rebuild the geometry
   set(_fieldprop_filter
     FILTER
@@ -240,10 +257,6 @@ if(CELERITAS_USE_VecGeom)
     "SimpleCms*"
     "Cmse*"
   )
-else()
-  # Other geometries should run everything (and some tests e.g. CMSE are
-  # disabled)
-  set(_fieldprop_filter)
 endif()
 
 celeritas_add_device_test(field/Fields
@@ -380,6 +393,11 @@ celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
+# Inp
+celeritas_add_test(inp/JsonIO.test.cc
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
+
+#-----------------------------------------------------------------------------#
 # Optical
 
 function(celeritas_standalone_add_tests basename suite test backend)
@@ -442,13 +460,11 @@ endfunction()
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
+celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
-celeritas_add_test(optical/ImportedModelAdapter.test.cc)
-celeritas_add_test(optical/ImportedMaterials.test.cc)
-celeritas_add_test(optical/ModelImporter.test.cc)
-celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/Mie.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
@@ -468,6 +484,8 @@ celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
 celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -557,7 +575,7 @@ add_custom_target(debug-root-test-data
   COMMENT "Debug ROOT test data"
 )
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
+if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT AND CELERITAS_BUILD_APPS)
   foreach(_filename "four-steel-slabs" "simple-cms")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")

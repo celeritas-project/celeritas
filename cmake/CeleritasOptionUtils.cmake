@@ -276,6 +276,11 @@ endmacro()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_check_python_module varname module)
+  if(NOT CELERITAS_USE_Python)
+    set(${varname} "OFF" PARENT_SCOPE)
+    return()
+  endif()
+
   set(_cache_name CELERITAS_CHECK_PYTHON_MODULE_${module})
   if(DEFINED ${_cache_name})
     # We've already checked for this module

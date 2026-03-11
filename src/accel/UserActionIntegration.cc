@@ -13,10 +13,10 @@
 #include "corecel/sys/Stopwatch.hh"
 
 #include "ExceptionConverter.hh"
-#include "TimeOutput.hh"
+#include "G4OpticalPhoton.hh"
+#include "TimeOutput.hh"  // IWYU pragma: keep
 
 #include "detail/IntegrationSingleton.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -66,10 +66,11 @@ void UserActionIntegration::PreUserTrackingAction(G4Track* track)
         if (mode == SharedParams::Mode::enabled)
         {
             // Celeritas is transporting this track
-            CELER_TRY_HANDLE(
-                detail::IntegrationSingleton::local_transporter().Push(*track),
-                ExceptionConverter("celer.track.push",
-                                   &singleton.shared_params()));
+            CELER_TRY_HANDLE(detail::IntegrationSingleton::instance()
+                                 .local_track_offload()
+                                 .Push(*track),
+                             ExceptionConverter("celer.track.push",
+                                                &singleton.shared_params()));
         }
 
         // Either "pushed" or we're in kill_offload mode
@@ -87,7 +88,10 @@ void UserActionIntegration::EndOfEventAction(G4Event const*)
 
     auto& local = singleton.local_offload();
     if (!local)
+    {
+        // No offloading is taking place
         return;
+    }
 
     CELER_TRY_HANDLE(
         local.Flush(),

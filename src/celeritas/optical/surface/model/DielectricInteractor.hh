@@ -29,6 +29,8 @@ namespace optical
  * will use Snell's law to determine the refracted wave direction and
  * polarization. For dielectric-metal interfaces, refracted waves are just
  * absorbed.
+ *
+ * The result is used by \c SurfaceInteractionApplier to update the track.
  */
 class DielectricInteractor
 {

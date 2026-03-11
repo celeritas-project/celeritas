@@ -9,6 +9,7 @@
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
@@ -152,8 +153,7 @@ auto ImportedDataTestBase::build_optical_material() -> SPConstOpticalMaterial
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_scintillation() -> SPConstScintillation
 {
-    return ScintillationParams::from_import(this->imported_data(),
-                                            this->particle());
+    return ScintillationParams::from_import(this->imported_data());
 }
 
 //---------------------------------------------------------------------------//
@@ -172,7 +172,7 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
     {
         if (auto builder = importer(imc))
         {
-            input.model_builders.push_back(*builder);
+            input.model_builders.push_back(builder);
         }
     }
 
@@ -189,22 +189,9 @@ auto ImportedDataTestBase::build_optical_sim() -> SPConstOpticalSim
 auto ImportedDataTestBase::build_optical_surface_physics()
     -> SPConstOpticalSurfacePhysics
 {
-    inp::SurfacePhysics input;
-
-    // TODO: better input construction when we have actual data to import
-    for (auto s : range(PhysSurfaceId{this->surface()->num_surfaces() + 1}))
-    {
-        input.materials.push_back(std::vector<OptMatId>{});
-        input.roughness.polished.emplace(s, inp::NoRoughness{});
-        input.reflectivity.fresnel.emplace(s, inp::FresnelReflection{});
-        input.interaction.dielectric.emplace(
-            s,
-            inp::DielectricInteraction::from_dielectric(
-                inp::ReflectionForm::from_spike()));
-    }
-
     return std::make_shared<optical::SurfacePhysicsParams>(
-        this->optical_action_reg().get(), input);
+        this->optical_action_reg().get(),
+        this->imported_data().optical_physics.surfaces);
 }
 
 //---------------------------------------------------------------------------//

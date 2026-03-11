@@ -67,7 +67,7 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
     CELER_ASSERT(host_data);
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<WentzelVIMscData>{std::move(host_data)};
+    data_ = ParamsDataStore<WentzelVIMscData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

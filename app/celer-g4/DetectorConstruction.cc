@@ -17,7 +17,6 @@
 #include <G4UniformMagField.hh>
 #include <G4VPhysicalVolume.hh>
 
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -179,8 +178,10 @@ auto DetectorConstruction::construct_field() const -> FieldData
         if (norm(field_val) > 0)
         {
             CELER_LOG(info) << "Using a uniform field " << field_val << " [T]";
+            auto native_field = native_value_from(
+                make_quantity_array<units::TeslaField>(field_val));
             g4field = std::make_shared<G4UniformMagField>(
-                convert_to_geant(field_val, CLHEP::tesla));
+                native_to_geant<units::ClhepField>(native_field));
         }
 
         inp::UniformField input;
@@ -208,9 +209,10 @@ void DetectorConstruction::ConstructSDandField()
         auto const& field_options = GlobalSetup::Instance()->GetFieldOptions();
         auto chord_finder = std::make_unique<G4ChordFinder>(
             mag_field_.get(),
-            convert_to_geant(field_options.minimum_step, clhep_length));
-        chord_finder->SetDeltaChord(
-            convert_to_geant(field_options.delta_chord, clhep_length));
+            native_to_geant<lengthunits::ClhepLength>(
+                field_options.minimum_step));
+        chord_finder->SetDeltaChord(native_to_geant<lengthunits::ClhepLength>(
+            field_options.delta_chord));
 
         // Construct the magnetic field
         G4FieldManager* field_manager
@@ -220,7 +222,8 @@ void DetectorConstruction::ConstructSDandField()
         field_manager->SetChordFinder(chord_finder.release());
         field_manager->SetMinimumEpsilonStep(field_options.epsilon_step);
         field_manager->SetDeltaIntersection(
-            convert_to_geant(field_options.delta_intersection, clhep_length));
+            native_to_geant<lengthunits::ClhepLength>(
+                field_options.delta_intersection));
     }
 
     auto sd_type = GlobalSetup::Instance()->input().sd_type;

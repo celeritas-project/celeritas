@@ -94,8 +94,9 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     CELER_EXPECT(lv);
     CELER_EXPECT(touchable);
 
-    auto g4pos = convert_to_geant(pos, clhep_length);
-    auto g4dir = convert_to_geant(dir, 1);
+    auto g4pos
+        = native_to_geant<units::ClhepLength>(static_array_cast<double>(pos));
+    auto g4dir = to_g4vector(static_array_cast<double>(dir));
 
     // Locate pre-step point
     navi_->LocateGlobalPointAndUpdateTouchable(g4pos,
@@ -188,7 +189,7 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     }
 
     // Reset the position and flip the direction
-    g4pos = convert_to_geant(pos, clhep_length);
+    g4pos = native_to_geant<lengthunits::ClhepLength>(pos);
     g4dir *= -1;
     find_next_step();
     if (try_cross_boundary())

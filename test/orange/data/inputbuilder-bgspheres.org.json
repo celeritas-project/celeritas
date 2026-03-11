@@ -1,7 +1,7 @@
 {
 "_format": "ORANGE",
 "_version": 0,
-"logic": "postfix",
+"logic": "infix",
 "tol": {
 "abs": 1e-05,
 "rel": 1e-05
@@ -83,7 +83,7 @@
 "faces": [
 1
 ],
-"logic": "0 ~"
+"logic": "~ 0"
 },
 {
 "bbox": [
@@ -101,17 +101,12 @@
 "faces": [
 2
 ],
-"logic": "0 ~"
+"logic": "~ 0"
 },
 {
 "bbox": null,
-"faces": [
-0,
-1,
-2
-],
-"flags": 6,
-"logic": "* ~",
+"faces": [],
+"flags": 2,
 "zorder": "B"
 }
 ]

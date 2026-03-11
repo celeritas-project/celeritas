@@ -16,8 +16,8 @@
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/io/Label.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -191,7 +191,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     LabelIdMultiMap<IsotopeId> isot_labels_;
 
     // Host/device storage and reference
-    CollectionMirror<MaterialParamsData> data_;
+    ParamsDataStore<MaterialParamsData> data_;
 
     // HELPER FUNCTIONS
     using HostValue = HostVal<MaterialParamsData>;

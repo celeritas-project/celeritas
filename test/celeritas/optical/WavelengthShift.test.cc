@@ -7,11 +7,8 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/random/Histogram.hh"
-#include "celeritas/UnitTypes.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/interactor/WavelengthShiftGenerator.hh"
 #include "celeritas/optical/interactor/WavelengthShiftInteractor.hh"
 #include "celeritas/optical/model/WavelengthShiftModel.hh"
@@ -26,6 +23,7 @@ namespace optical
 {
 namespace test
 {
+using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -38,18 +36,18 @@ class WavelengthShiftTest : public InteractorHostBase,
 
     void SetUp() override {}
 
-    void build_model(WlsTimeProfile time_profile)
+    void build_model(WlsDistribution time_profile)
     {
         auto const& data = this->imported_data();
         WavelengthShiftModel::Input input;
         input.model = ImportModelClass::wls;
         input.time_profile = time_profile;
-        for (auto const& mat : data.optical_materials)
+        input.data.resize(data.optical_materials.size());
+        for (auto&& [opt_mat_id, wls] : data.optical_physics.bulk.wls.materials)
         {
-            input.data.push_back(mat.wls);
+            input.data[opt_mat_id.get()] = wls;
         }
-        auto models
-            = std::make_shared<ImportedModels const>(data.optical_models);
+        auto models = ImportedModels::from_import(data);
         model_ = std::make_shared<WavelengthShiftModel const>(
             ActionId{0}, models, input);
         data_ = model_->host_ref();
@@ -67,12 +65,12 @@ class WavelengthShiftTest : public InteractorHostBase,
 
 TEST_F(WavelengthShiftTest, data)
 {
-    this->build_model(WlsTimeProfile::exponential);
+    this->build_model(WlsDistribution::exponential);
 
     // Test the material properties of WLS
     WlsMaterialRecord wls_record = data_.wls_record[material_id_];
     EXPECT_SOFT_EQ(2, wls_record.mean_num_photons);
-    EXPECT_SOFT_EQ(1 * units::nanosecond, wls_record.time_constant);
+    EXPECT_SOFT_EQ(1_ns, wls_record.time_constant);
 
     // Test the vector property (emission spectrum) of WLS
 
@@ -115,12 +113,12 @@ TEST_F(WavelengthShiftTest, time_profile)
     WlsDistributionData dist;
     dist.num_photons = 1000;
     dist.energy = Energy{2e-6};
-    dist.time = 5.0 * units::nanosecond;
+    dist.time = 5.0_ns;
     dist.material = material_id_;
 
     {
         // Test delta time profile
-        this->build_model(WlsTimeProfile::delta);
+        this->build_model(WlsDistribution::delta);
 
         real_type const expected_time
             = dist.time + data_.wls_record[dist.material].time_constant;
@@ -132,7 +130,7 @@ TEST_F(WavelengthShiftTest, time_profile)
     }
     {
         // Test exponential time profile
-        this->build_model(WlsTimeProfile::exponential);
+        this->build_model(WlsDistribution::exponential);
 
         real_type time_ns = dist.time / units::nanosecond;
         Histogram bin(8, {time_ns, time_ns + 4});
@@ -158,7 +156,7 @@ TEST_F(WavelengthShiftTest, time_profile)
 
 TEST_F(WavelengthShiftTest, wls_basic)
 {
-    this->build_model(WlsTimeProfile::exponential);
+    this->build_model(WlsDistribution::exponential);
 
     int const num_samples = 4;
     auto& rng = this->InteractorHostBase::rng();
@@ -198,7 +196,7 @@ TEST_F(WavelengthShiftTest, wls_basic)
 
 TEST_F(WavelengthShiftTest, wls_stress)
 {
-    this->build_model(WlsTimeProfile::exponential);
+    this->build_model(WlsDistribution::exponential);
 
     int const num_samples = 128;
     auto& rng = this->InteractorHostBase::rng();

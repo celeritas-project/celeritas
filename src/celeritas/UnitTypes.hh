@@ -14,6 +14,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/math/Constant.hh"
 #include "corecel/math/UnitUtils.hh"
+#include "geocel/detail/LengthQuantities.hh"
 
 #include "Constants.hh"
 #include "Types.hh"
@@ -133,18 +134,21 @@ struct Mol
 
 //!@}
 
+//! Spin (in units of hbar/2)
+struct HalfSpin
+{
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        return constants::hbar_planck / 2;
+    }
+    static char const* label() { return "hbar/2"; }
+};
+
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Gaussian units for unit tests
 
-struct Centimeter
-{
-    static CELER_CONSTEXPR_FUNCTION Constant value()
-    {
-        return units::centimeter;
-    }
-    static char const* label() { return "cm"; }
-};
+using Centimeter = ::celeritas::lengthunits::Centimeter;
 
 struct Gram
 {
@@ -218,14 +222,7 @@ struct Tesla
 //!@{
 //! \name CLHEP units
 
-struct Millimeter
-{
-    static CELER_CONSTEXPR_FUNCTION Constant value()
-    {
-        return units::millimeter;
-    }
-    static char const* label() { return "mm"; }
-};
+using Millimeter = ::celeritas::lengthunits::Millimeter;
 
 struct Nanosecond
 {

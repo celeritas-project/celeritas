@@ -94,8 +94,8 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
-    , track_processor_{particles}
-    , step_{&track_processor_.step()}
+    , step_{std::make_shared<G4Step>()}
+    , track_reconstruction_{particles, step_}
     , step_post_status_{
           selection.points[StepPoint::pre].volume_instance_ids
           && selection.points[StepPoint::post].volume_instance_ids}
@@ -107,8 +107,10 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     CELER_LOG(debug) << "Setting up thread-local hit processor for "
                      << detector_volumes_->size() << " sensitive detectors";
 
-    GeantStepView step_view{*step_};
-    for (auto sp : range(StepPoint::size_))
+    // Allocate secondary vector, needed to keep some SDs from crashing
+    step_->NewSecondaryVector();
+
+    for (auto p : range(StepPoint::size_))
     {
         if (!selection.points[sp])
         {
@@ -151,7 +153,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         detectors_[i] = lv->GetSensitiveDetector();
         CELER_VALIDATE(detectors_[i],
                        << "no sensitive detector is attached to volume '"
-                       << StreamableLV{lv};);
+                       << StreamableLV{lv});
     }
 
     CELER_ENSURE(!detectors_.empty());
@@ -283,7 +285,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     if (!out.particle.empty())
     {
-        G4Track& g4track = track_processor_.restore_track(
+        G4Track& g4track = track_reconstruction_.view(
             out.particle[i],
             !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
         CELER_ASSERT(&g4track == step_->GetTrack());
@@ -300,7 +302,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 
     // Hit sensitive detector
-    this->detector(out.detector[i])->Hit(step_);
+    this->detector(out.detector[i])->Hit(step_.get());
 }
 
 //---------------------------------------------------------------------------//

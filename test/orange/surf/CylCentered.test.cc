@@ -10,7 +10,6 @@
 #include <cmath>
 #include <vector>
 
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 

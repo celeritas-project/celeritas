@@ -81,7 +81,14 @@ list(APPEND SOURCES
   grid/TwodGridBuilder.cc
   grid/UniformGridInserter.cc
   grid/XsGridInserter.cc
+  inp/ControlIO.json.cc
+  inp/DiagnosticsIO.json.cc
+  inp/EventsIO.json.cc
   inp/MucfPhysics.cc
+  inp/ProblemIO.json.cc
+  inp/StandaloneInputIO.json.cc
+  inp/SystemIO.json.cc
+  inp/TrackingIO.json.cc
   io/AtomicRelaxationReader.cc
   io/GammaNuclearXsReader.cc
   io/ImportData.cc
@@ -100,6 +107,8 @@ list(APPEND SOURCES
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
+  mucf/model/detail/EquilibrateDensitiesSolver.cc
+  mucf/model/detail/InterpolatorHelper.cc
   mucf/model/detail/MucfMaterialInserter.cc
   mucf/process/MucfProcess.cc
   neutron/model/CascadeOptions.cc
@@ -129,6 +138,7 @@ list(APPEND SOURCES
   optical/surface/SurfaceSteppingAction.cc
   phys/CutoffParams.cc
   phys/detail/EnergyMaxXsCalculator.cc
+  phys/GeneratorCountersIO.json.cc
   phys/GeneratorInterface.cc
   phys/GeneratorRegistry.cc
   phys/ImportedModelAdapter.cc
@@ -186,8 +196,8 @@ if(CELERITAS_USE_covfie)
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
-  # object libraries do not work properly with RDC builds
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    # NOTE: object libraries do not work properly with RDC builds or HIP
     list(APPEND SOURCES ${_celer_covfie_src})
     list(APPEND PRIVATE_DEPS
       Celeritas::BuildFlags
@@ -226,20 +236,18 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSetup.cc
     ext/GeantStepPointView.cc
     ext/GeantStepView.cc
+    ext/GeantTrackReconstruction.cc
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
-    ext/detail/GeantOpticalModelImporter.cc
+    ext/detail/GeantPhysicsLoader.cc
     ext/detail/GeantProcessImporter.cc
-    ext/detail/GeantSurfacePhysicsHelper.cc
     ext/detail/GeantSurfacePhysicsLoader.cc
-    ext/detail/GeoOpticalIdMap.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
     ext/detail/NaviTouchableUpdater.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
-    ext/detail/TrackProcessor.cc
   )
 
   if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
@@ -387,6 +395,7 @@ celeritas_polysource(optical/model/MieModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
+celeritas_polysource(optical/action/DetectorAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)
@@ -400,7 +409,10 @@ celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
 celeritas_polysource(optical/surface/model/DielectricInteractionModel)
+celeritas_polysource(optical/surface/model/FresnelReflectivityModel)
 celeritas_polysource(optical/surface/model/GaussianRoughnessModel)
+celeritas_polysource(optical/surface/model/GridReflectivityModel)
+celeritas_polysource(optical/surface/model/OnlyReflectionModel)
 celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
 celeritas_polysource(optical/surface/model/SmearRoughnessModel)
 celeritas_polysource(optical/surface/model/TrivialInteractionModel)

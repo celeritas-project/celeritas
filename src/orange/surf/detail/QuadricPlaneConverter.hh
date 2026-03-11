@@ -63,7 +63,7 @@ Plane QuadricPlaneConverter::operator()(SimpleQuadric const& sq) const
     CELER_EXPECT(
         !std::all_of(sq.first().begin(), sq.first().end(), soft_zero_));
     // Second-order coefficients are zero: return a plane
-    auto n = make_array(sq.first());
+    auto n = to_array(sq.first());
 
     real_type norm_factor = 1 / celeritas::norm(n);
     n *= norm_factor;

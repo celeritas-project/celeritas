@@ -160,6 +160,9 @@ struct AppliesValidVolumetric
  * does not have a valid next surface model. The surface stepping action is
  * instead used, since tracks exiting the surface will have the post-boundary
  * action set instead.
+ *
+ * For the interaction surface physics step, it should only be executed when
+ * the surface reflectivity action is set to interact.
  */
 struct IsSurfaceModelEqual
 {
@@ -172,7 +175,10 @@ struct IsSurfaceModelEqual
         auto s_phys = track.surface_physics();
         return IsStepActionEqual{s_phys.scalars().surface_stepping_action}(
                    track)
-               && s_phys.interface(step).surface_model_id() == model;
+               && s_phys.interface(step).surface_model_id() == model
+               && (step != SurfacePhysicsOrder::interaction
+                   || s_phys.reflectivity_action()
+                          == ReflectivityAction::interact);
     }
 };
 
@@ -248,7 +254,7 @@ inline CELER_FUNCTION decltype(auto) make_active_volumetric_thread_executor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a track slot executor that for a given surface step and model.
+ * Construct a track slot executor for a given surface step and model.
  *
  * The executor will launch kernels only on tracks which are undergoing a
  * boundary crossing.

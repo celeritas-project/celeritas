@@ -13,6 +13,7 @@
 #include "corecel/sys/Version.hh"
 
 #include "Logger.hh"
+#include "StreamToString.hh"
 
 namespace celeritas
 {
@@ -38,7 +39,7 @@ void save_format(nlohmann::json& j, std::string const& format)
 {
     CELER_EXPECT(j.is_object());
     j["_format"] = format;
-    j["_version"] = to_string(celer_version());
+    j["_version"] = stream_to_string(celer_version());
 }
 
 //---------------------------------------------------------------------------//

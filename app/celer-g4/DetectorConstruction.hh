@@ -27,6 +27,8 @@ namespace app
 //---------------------------------------------------------------------------//
 /*!
  * Construct a detector from a GDML filename set in GlobalSetup.
+ *
+ * \todo Replace with celeritas::DetectorConstruction
  */
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {

@@ -9,7 +9,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/cont/Array.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
@@ -298,7 +298,7 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELER_DEVICE(calc_props))
                   {ParticleId{1}, MevEnergy{10}},
                   {ParticleId{2}, MevEnergy{20}}};
 
-    CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
+    StateDataStore<ParticleStateData, MemSpace::device> pstates(
         particle_params->host_ref(), input.init.size());
     input.params = particle_params->device_ref();
     input.states = pstates.ref();

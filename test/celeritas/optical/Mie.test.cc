@@ -44,13 +44,13 @@ class MieTest : public InteractorHostBase, public OpticalMockTestBase
     {
         auto const& data = this->imported_data();
         MieModel::Input input;
-        input.model = ImportModelClass::mie;
-        for (auto const& mat : data.optical_materials)
+        input.data.resize(data.optical_materials.size());
+        for (auto&& [opt_mat_id, mie] : data.optical_physics.bulk.mie.materials)
         {
-            input.data.push_back(mat.mie);
+            input.data[opt_mat_id.get()] = mie;
         }
-        auto models
-            = std::make_shared<ImportedModels const>(data.optical_models);
+
+        auto models = ImportedModels::from_import(data);
         model_ = std::make_shared<MieModel const>(ActionId{0}, models, input);
         data_ = model_->host_ref();
     }
@@ -136,9 +136,8 @@ TEST_F(MieTest, mfp)
         model_->build_mfps(mat, builder);
     }
 
-    EXPECT_TABLE_EQ(
-        this->import_model_by_class(ImportModelClass::mie).mfp_table,
-        storage(builder.grid_ids()));
+    EXPECT_TABLE_EQ(this->get_mfp_table(ImportModelClass::mie),
+                    storage(builder.grid_ids()));
 }
 
 TEST_F(MieTest, stress_test)

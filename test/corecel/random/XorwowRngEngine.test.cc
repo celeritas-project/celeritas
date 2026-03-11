@@ -13,7 +13,7 @@
 #include <string>
 #include <type_traits>
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/io/HexRepr.hh"
 #include "corecel/io/detail/ReprImpl.hh"
 #include "corecel/random/distribution/detail/GenerateCanonical32.hh"
@@ -121,9 +121,8 @@ namespace test
 class XorwowRngEngineTest : public Test
 {
   protected:
-    using HostStore = CollectionStateStore<XorwowRngStateData, MemSpace::host>;
-    using DeviceStore
-        = CollectionStateStore<XorwowRngStateData, MemSpace::device>;
+    using HostStore = StateDataStore<XorwowRngStateData, MemSpace::host>;
+    using DeviceStore = StateDataStore<XorwowRngStateData, MemSpace::device>;
     using uint_t = XorwowUInt;
 
     void SetUp() override

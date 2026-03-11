@@ -8,6 +8,7 @@
 
 #include <unordered_set>
 #include <utility>
+#include <variant>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
@@ -15,6 +16,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/VolumeCollectionBuilder.hh"
 #include "geocel/VolumeIdBuilder.hh"
@@ -53,6 +55,27 @@ std::unordered_set<VolumeId> make_volume_ids(inp::UniformField const& inp)
     return result;
 }
 
+HostVal<UniformFieldParamsData>
+validated_field_data(UniformFieldParams::Input const& inp)
+{
+    if (inp.units != UnitSystem::si)
+    {
+        CELER_NOT_IMPLEMENTED("field units in other unit systems");
+    }
+    // Interpret field strength in units of Tesla
+    CELER_VALIDATE(norm(inp.strength) > 0,
+                   << "along-step uniform field has zero field strength");
+
+    // Validate field options
+    validate_input(inp.driver_options);
+
+    HostVal<UniformFieldParamsData> result;
+    result.field = native_value_from(
+        make_quantity_array<units::TeslaField>(inp.strength));
+    result.options = inp.driver_options;
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -63,25 +86,7 @@ std::unordered_set<VolumeId> make_volume_ids(inp::UniformField const& inp)
 UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
                                        Input const& inp)
 {
-    if (inp.units != UnitSystem::si)
-    {
-        CELER_NOT_IMPLEMENTED("field units in other unit systems");
-    }
-
-    HostVal<UniformFieldParamsData> host_data;
-
-    // Interpret field strength in units of Tesla
-    CELER_VALIDATE(norm(inp.strength) > 0,
-                   << "along-step uniform field has zero field strength");
-    for (auto i : range(inp.strength.size()))
-    {
-        host_data.field[i]
-            = native_value_from(units::FieldTesla{inp.strength[i]});
-    }
-
-    // Throw a runtime error if any driver options are invalid
-    validate_input(inp.driver_options);
-    host_data.options = inp.driver_options;
+    HostVal<UniformFieldParamsData> host_data = validated_field_data(inp);
 
     // If logical volumes are specified, flag whether or not the field should
     // be present in each volume
@@ -96,7 +101,22 @@ UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
     }
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<UniformFieldParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<UniformFieldParamsData>{std::move(host_data)};
+    CELER_ENSURE(data_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Construct with a uniform magnetic field with no volume dependency.
+ */
+UniformFieldParams::UniformFieldParams(Input const& inp)
+{
+    HostVal<UniformFieldParamsData> host_data = validated_field_data(inp);
+    CELER_VALIDATE(
+        std::holds_alternative<std::monostate>(inp.volumes),
+        << R"(cannot construct volume-dependent field without providing geometry)");
+
+    data_ = ParamsDataStore<UniformFieldParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);
 }
 

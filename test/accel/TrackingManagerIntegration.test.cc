@@ -135,7 +135,7 @@ class TMITestBase : virtual public IntegrationTestBase
     void EndOfEventAction(G4Event const*) override
     {
         auto const& local_transport
-            = detail::IntegrationSingleton::local_transporter();
+            = detail::IntegrationSingleton::instance().local_track_offload();
         EXPECT_EQ(0, local_transport.GetBufferSize());
     }
 
@@ -346,7 +346,7 @@ class LarSphereOptical : public LarSphere
         auto result = LarSphereIntegrationMixin::make_primary_input();
 
         result.shape = inp::PointDistribution{
-            array_cast<double>(from_cm({0.1, 0.1, 0}))};
+            static_array_cast<double>(from_cm({0.1, 0.1, 0}))};
         result.primaries_per_event = 1;
         result.energy = inp::MonoenergeticDistribution{2};  // [MeV]
         return result;
@@ -404,7 +404,8 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     if (integration.mode() == OffloadMode::enabled)
     {
-        auto& local_transporter = integration.local_transporter();
+        auto& local_transporter
+            = dynamic_cast<LocalTransporter&>(integration.local_offload());
         auto const& shared_params = integration.shared_params();
 
         // Check that local/shared data is available before end of run
@@ -518,7 +519,8 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     if (integration.mode() == OffloadMode::enabled)
     {
-        auto& local_transporter = integration.local_transporter();
+        auto& local_transporter
+            = dynamic_cast<LocalTransporter&>(integration.local_offload());
         auto const& shared_params = integration.shared_params();
 
         // Check that local/shared data is available before end of run
@@ -623,10 +625,10 @@ auto OpticalSurfaces::make_primary_input() const -> PrimaryInput
 {
     PrimaryInput result;
     result.pdg = {pdg::positron()};
-    result.shape
-        = inp::PointDistribution{array_cast<double>(from_cm({30, 0, 0}))};
+    result.shape = inp::PointDistribution{
+        static_array_cast<double>(from_cm({30, 0, 0}))};
     result.angle = inp::MonodirectionalDistribution{{-1, 0, 0}};
-    result.energy = inp::MonoenergeticDistribution{10};  // [MeV]
+    result.energy = inp::MonoenergeticDistribution{100};  // [MeV]
     result.primaries_per_event = 1;
     result.num_events = 4;  // Overridden with BeamOn
     return result;
@@ -664,7 +666,8 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     if (integration.mode() == OffloadMode::enabled)
     {
-        auto& local_transporter = integration.local_transporter();
+        auto& local_transporter
+            = dynamic_cast<LocalTransporter&>(integration.local_offload());
         auto const& shared_params = integration.shared_params();
 
         // Check that local/shared data is available before end of run

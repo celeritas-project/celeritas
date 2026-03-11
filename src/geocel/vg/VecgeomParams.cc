@@ -54,8 +54,8 @@
 #include "geocel/detail/MakeLabelVector.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
+#include "VecgeomTypes.hh"
 
-#include "detail/VecgeomCompatibility.hh"
 #include "detail/VecgeomSetup.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
@@ -577,7 +577,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
             }
         }
         CELER_ASSERT(host_data);
-        data_ = CollectionMirror{std::move(host_data)};
+        data_ = ParamsDataStore{std::move(host_data)};
 
         // Save world bbox
         bbox_ = [&world] {
@@ -585,7 +585,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
             auto bbox_mgr = ABBoxManager_t::Instance();
             VgReal3 lower, upper;
             bbox_mgr.ComputeABBox(&world, &lower, &upper);
-            return BBox{detail::to_array(lower), detail::to_array(upper)};
+            return BBox{to_array(lower), to_array(upper)};
         }();
     }
 
@@ -837,6 +837,7 @@ void VecgeomParams::build_volume_tracking()
 
         check_bvh_device_pointers();
         check_navindex_device_pointers();
+        detail::check_other_device_pointers();
 
         device_ownership_ = Ownership::value;
     }
@@ -846,7 +847,7 @@ void VecgeomParams::build_volume_tracking()
 // EXPLICIT TEMPLATE INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template class CollectionMirror<VecgeomParamsData>;
+template class ParamsDataStore<VecgeomParamsData>;
 template class ParamsDataInterface<VecgeomParamsData>;
 
 //---------------------------------------------------------------------------//

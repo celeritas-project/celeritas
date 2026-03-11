@@ -45,9 +45,9 @@ GeneralQuadric::GeneralQuadric(Real3 const& abc,
  */
 GeneralQuadric::GeneralQuadric(SimpleQuadric const& other) noexcept(
     !CELERITAS_DEBUG)
-    : GeneralQuadric{make_array(other.second()),
+    : GeneralQuadric{to_array(other.second()),
                      Real3{0, 0, 0},
-                     make_array(other.first()),
+                     to_array(other.first()),
                      other.zeroth()}
 {
 }

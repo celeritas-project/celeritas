@@ -21,7 +21,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access track data from Geant4 with Celeritas units.
+ * Access track data from Geant4 with Celeritas units and precision.
  *
  * This provides a uniform interface to G4Track data using Celeritas types and
  * units. Geant4 data are all in double precision.
@@ -47,8 +47,7 @@ class GeantTrackView<Ownership::const_reference>
   public:
     //!@{
     //! \name Type aliases
-    using Energy = Quantity<units::Mev, double>;
-    using real_type = double;
+    using Energy = MevEnergy;
     //!@}
 
   public:
@@ -94,7 +93,6 @@ class GeantTrackView<Ownership::reference>
     //!@{
     //! \name Type aliases
     using Energy = typename Base::Energy;
-    using real_type = typename Base::real_type;
     //!@}
 
   public:
@@ -153,7 +151,8 @@ GeantParticleView GeantTrackView<Ownership::const_reference>::particle() const
  */
 Real3 GeantTrackView<Ownership::const_reference>::pos() const
 {
-    return convert_from_geant(t_.GetPosition(), clhep_length);
+    return native_from_geant<lengthunits::ClhepLength, real_type>(
+        g4track.GetPosition());
 }
 
 //---------------------------------------------------------------------------//
@@ -162,7 +161,8 @@ Real3 GeantTrackView<Ownership::const_reference>::pos() const
  */
 Real3 GeantTrackView<Ownership::const_reference>::dir() const
 {
-    return convert_from_geant(t_.GetMomentumDirection(), 1);
+    return static_array_cast<real_type>(
+        to_array(g4track.GetMomentumDirection()));
 }
 
 //---------------------------------------------------------------------------//
@@ -171,7 +171,7 @@ Real3 GeantTrackView<Ownership::const_reference>::dir() const
  */
 auto GeantTrackView<Ownership::const_reference>::energy() const -> Energy
 {
-    return Energy{convert_from_geant(t_.GetKineticEnergy(), CLHEP::MeV)};
+    return ClhepEnergy{t_.GetKineticEnergy()};
 }
 
 //---------------------------------------------------------------------------//
@@ -180,7 +180,8 @@ auto GeantTrackView<Ownership::const_reference>::energy() const -> Energy
  */
 real_type GeantTrackView<Ownership::const_reference>::time() const
 {
-    return convert_from_geant(t_.GetGlobalTime(), clhep_time);
+    return native_from_geant<units::ClhepTime, real_type>(
+        g4track.GetGlobalTime());
 }
 
 //---------------------------------------------------------------------------//

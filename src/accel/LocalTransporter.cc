@@ -10,7 +10,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
@@ -21,7 +20,6 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Types.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
@@ -227,13 +225,22 @@ void LocalTransporter::InitializeEvent(int id)
     event_id_ = id_cast<UniqueEventId>(id);
     ++run_accum_.events;
 
-    if (!(G4Threading::IsMultithreadedApplication()
-          && G4MTRunManager::SeedOncePerCommunication()))
+    if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
     {
-        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
-        // using the Geant4 event ID for reproducibility. This guarantees that
-        // an event can be reproduced given the event ID.
-        step_->reseed(event_id_);
+        if (!(G4Threading::IsMultithreadedApplication()
+              && G4MTRunManager::SeedOncePerCommunication()))
+        {
+            // Initialize the Geant event reconstruction.
+
+            // Since Geant4 schedules events dynamically, reseed the Celeritas
+            // RNGs using the Geant4 event ID for reproducibility. This
+            // guarantees that an event can be reproduced given the event ID.
+            step_->reseed(event_id_);
+        }
+    }
+    if (hit_processor_)
+    {
+        hit_processor_->track_reconstruction().init_event();
     }
 }
 
@@ -265,11 +272,11 @@ void LocalTransporter::Push(G4Track& g4track)
 
     Primary track;
 
-    // Generate Celeritas-specific PrimaryID
+    // Generate Celeritas-specific PrimaryID and capture user info
     if (hit_processor_)
     {
         track.primary_id
-            = hit_processor_->track_processor().register_primary(g4track);
+            = hit_processor_->track_reconstruction().acquire(g4track);
     }
 
     track.energy = gtv.energy();
@@ -278,6 +285,8 @@ void LocalTransporter::Push(G4Track& g4track)
     track.direction = gtv.dir();
     track.time = gtv.time();
     track.weight = gtv.weight();
+    track.primary_id = celeritas::id_cast<PrimaryId>(
+        track.primary_id.unchecked_get() + g4track.GetTrackID());
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '" << gtv.particle().name()
@@ -289,7 +298,7 @@ void LocalTransporter::Push(G4Track& g4track)
     track.event_id = EventId{0};
 
     buffer_.push_back(track);
-    buffer_accum_.energy += track.energy.value();
+    buffer_accum_.energy += energy.value();
     if (buffer_.size() >= auto_flush_)
     {
         this->Flush();
@@ -334,15 +343,15 @@ void LocalTransporter::Flush()
     {
         CELER_LOG_LOCAL(debug)
             << "Transporting " << buffer_.size() << " tracks ("
-            << buffer_accum_.energy
-            << " MeV cumulative kinetic energy) from event "
+            << units::ClhepEnergy{buffer_accum_.energy}
+            << " cumulative kinetic energy) from event "
             << event_id_.unchecked_get() << " with Celeritas";
     }
     if (buffer_accum_.lost_primaries > 0)
     {
         CELER_LOG_LOCAL(info)
-            << "Lost " << buffer_accum_.lost_energy
-            << " MeV cumulative kinetic energy from "
+            << "Lost " << units::ClhepEnergy{buffer_accum_.lost_energy}
+            << " cumulative kinetic energy from "
             << buffer_accum_.lost_primaries
             << " primaries that started outside the geometry in event "
             << event_id_.unchecked_get();
@@ -406,7 +415,7 @@ void LocalTransporter::Flush()
                                    << " hits for event " << event_id_.get();
             run_accum_.hits += num_hits;
         }
-        hit_processor_->track_processor().end_event();
+        hit_processor_->track_reconstruction().clear();
     }
 }
 

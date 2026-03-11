@@ -207,18 +207,8 @@ enum class NuclearFormFactorType
     gaussian,
     size_
 };
-
 //---------------------------------------------------------------------------//
-//! Optical photon wavelength shifting time model
-enum class WlsTimeProfile
-{
-    delta,  //!< Delta function
-    exponential,  //!< Exponential decay
-    size_
-};
-
-//---------------------------------------------------------------------------//
-//! Cylindrical coordinates indices
+//! Cylindrical coordinate indices
 enum class CylAxis
 {
     r = 0,

@@ -25,7 +25,7 @@ XorwowRngParams::XorwowRngParams(unsigned int seed)
     host_data.jump = this->get_jump_poly();
     host_data.jump_subsequence = this->get_jump_subsequence_poly();
     CELER_ASSERT(host_data);
-    data_ = CollectionMirror<XorwowRngParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<XorwowRngParamsData>{std::move(host_data)};
 }
 
 //---------------------------------------------------------------------------//

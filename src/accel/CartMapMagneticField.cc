@@ -4,20 +4,18 @@
 //---------------------------------------------------------------------------//
 //! \file accel/CartMapMagneticField.cc
 //---------------------------------------------------------------------------//
-
 #include "CartMapMagneticField.hh"
 
 #include <algorithm>
 #include <CLHEP/Units/SystemOfUnits.h>
-#include <G4MagneticField.hh>
 #include <corecel/Assert.hh>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/math/ArrayUtils.hh"
-#include "geocel/g4/Convert.hh"
+#include "corecel/math/ArrayQuantity.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantUnits.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/field/CartMapField.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
@@ -27,36 +25,13 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// PIMPL IMPLEMENTATION
-//---------------------------------------------------------------------------//
-
-/*!
- * Implementation struct for CartMapMagneticField.
- *
- * This hides the C++20 dependency (CartMapField) from the header file.
- */
-struct CartMapMagneticField::Impl
-{
-    CartMapMagneticField::SPConstFieldParams params;
-    CartMapField calc_field;
-
-    explicit Impl(CartMapMagneticField::SPConstFieldParams field_params)
-        : params(std::move(field_params))
-        , calc_field(CartMapField{params->ref<MemSpace::native>()})
-    {
-        CELER_EXPECT(params);
-    }
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Generates input for CartMapField params with configurable uniform grid
- * dimensions in native Geant4 units. This must be called after
- * G4RunManager::Initialize as it will retrieve the G4FieldManager's field
- * to sample it.
+ * dimensions in native Geant4 units using an explicit field.
  */
 CartMapFieldParams::Input
-MakeCartMapFieldInput(CartMapFieldGridParams const& params)
+MakeCartMapFieldInput(G4Field const& field,
+                      CartMapFieldGridParams const& params)
 {
     // Validate input parameters
     CELER_VALIDATE(params, << "invalid CartMapFieldGridParams provided");
@@ -64,16 +39,18 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
     CartMapFieldParams::Input field_input;
 
     // Convert from Geant4 units to native units
-    field_input.x.min = convert_from_geant(params.x.min, clhep_length);
-    field_input.x.max = convert_from_geant(params.x.max, clhep_length);
+    // (NOTE: params currently use real_type not double)
+    using ClhepLength = Quantity<units::Millimeter, real_type>;
+    field_input.x.min = native_value_from(ClhepLength{params.x.min});
+    field_input.x.max = native_value_from(ClhepLength{params.x.max});
     field_input.x.num = params.x.num;
 
-    field_input.y.min = convert_from_geant(params.y.min, clhep_length);
-    field_input.y.max = convert_from_geant(params.y.max, clhep_length);
+    field_input.y.min = native_value_from(ClhepLength{params.y.min});
+    field_input.y.max = native_value_from(ClhepLength{params.y.max});
     field_input.y.num = params.y.num;
 
-    field_input.z.min = convert_from_geant(params.z.min, clhep_length);
-    field_input.z.max = convert_from_geant(params.z.max, clhep_length);
+    field_input.z.min = native_value_from(ClhepLength{params.z.min});
+    field_input.z.max = native_value_from(ClhepLength{params.z.max});
     field_input.z.num = params.z.num;
 
     // Prepare field data storage
@@ -91,7 +68,7 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
     G4double const dy = (params.y.max - params.y.min) / (params.y.num - 1);
     G4double const dz = (params.z.max - params.z.min) / (params.z.num - 1);
 
-    // Position calculator for Cartesian grid
+    // Position calculator for Cartesian grid (G4 coords)
     auto position_calculator = [&](size_type ix, size_type iy, size_type iz) {
         G4double x = params.x.min + ix * dx;
         G4double y = params.y.min + iy * dy;
@@ -101,54 +78,49 @@ MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 
     // Field converter for Cartesian coordinates (no transformation needed)
     auto field_converter = [](Array<G4double, 3> const& bfield,
-                              real_type* cur_bfield) {
-        auto bfield_native = convert_from_geant(bfield.data(), clhep_field);
+                              Array<G4double, 4> const&,
+                              real_type cur_bfield[3]) {
+        auto bfield_native = native_value_from(
+            make_quantity_array<units::ClhepField>(bfield));
         std::copy(bfield_native.cbegin(), bfield_native.cend(), cur_bfield);
     };
 
     // Sample field using common utility
-    detail::setup_and_sample_field(
-        field_input.field.data(), dims, position_calculator, field_converter);
+    detail::setup_and_sample_field(field,
+                                   field_input.field.data(),
+                                   dims,
+                                   position_calculator,
+                                   field_converter);
 
     CELER_ENSURE(field_input);
     return field_input;
 }
 
 //---------------------------------------------------------------------------//
-// CARTMAPMAGNETIC FIELD IMPLEMENTATION
-//---------------------------------------------------------------------------//
 /*!
- * Custom deleter implementation for PIMPL idiom.
+ * Generates input for CartMapField params with configurable uniform grid
+ * dimensions in native Geant4 units. This must be called after
+ * G4RunManager::Initialize as it will retrieve the G4FieldManager's field
+ * to sample it.
  */
-void CartMapMagneticField::ImplDeleter::operator()(Impl* ptr) const
+CartMapFieldParams::Input
+MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 {
-    delete ptr;
+    G4Field const* g4field = celeritas::geant_field();
+    CELER_VALIDATE(g4field,
+                   << "no Geant4 global field has been set: cannot build "
+                      "magnetic field map");
+    return MakeCartMapFieldInput(*g4field, params);
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Construct with the Celeritas shared CartMapFieldParams.
- */
-CartMapMagneticField::CartMapMagneticField(SPConstFieldParams field_params)
-    : pimpl_(new Impl(std::move(field_params)))
-{
-}
-
+// CARTMAPMAGNETICFIELD IMPLEMENTATION
 //---------------------------------------------------------------------------//
-/*!
- * Calculate the magnetic field vector at the given position.
- */
-void CartMapMagneticField::GetFieldValue(G4double const pos[3],
-                                         G4double* field) const
+
+Real3 CartAdapterField::operator()(Real3 const& pos) const
 {
-    // Calculate the magnetic field value in the native Celeritas unit system
-    Real3 result = pimpl_->calc_field(convert_from_geant(pos, clhep_length));
-    for (auto i = 0; i < 3; ++i)
-    {
-        // Return values of the field vector in CLHEP::tesla for Geant4
-        auto ft = native_value_to<units::FieldTesla>(result[i]);
-        field[i] = convert_to_geant(ft.value(), CLHEP::tesla);
-    }
+    CartMapField calc_field{data};
+    return calc_field(pos);
 }
 
 //---------------------------------------------------------------------------//

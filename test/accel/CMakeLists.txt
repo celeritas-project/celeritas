@@ -7,16 +7,21 @@ if(NOT CELERITAS_USE_HepMC3)
   set(_needs_hepmc DISABLE)
 endif()
 
+if(NOT CELERITAS_USE_covfie)
+  set(_needs_covfie DISABLE)
+endif()
+
 include(CeleritasG4Tests)
 
 #-----------------------------------------------------------------------------#
 # Library
 celeritas_get_g4libs(_g4_libs
-  global track tracking run event intercoms digits_hits geometry tasking
+  global track tracking run event intercoms digits_hits geometry tasking physicslists
 )
 list(APPEND PUBLIC_DEPS ${_g4_libs})
 
 celeritas_add_test_library(testcel_accel
+  DistOffloadMixin.cc
   IntegrationTestBase.cc
 )
 celeritas_target_link_libraries(testcel_accel
@@ -47,7 +52,10 @@ celeritas_add_test(ExceptionConverter.test.cc)
 celeritas_add_test(HepMC3PrimaryGenerator.test.cc
   ${_needs_hepmc}
   ENVIRONMENT "${CELER_G4ENV}")
-celeritas_add_test(RZMapMagneticField.test.cc)
+
+# Fields
+celeritas_add_test(CartMapMagneticField.test.cc ${_needs_covfie})
+celeritas_add_test(CylMapMagneticField.test.cc)
 
 #-----------------------------------------------------------------------------#
 # INTEGRATION TESTS
@@ -88,7 +96,7 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
-foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration)
+foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration FastSimulationIntegration)
   # Add every combination of test for LArSphere.run
   celeritas_add_integration_tests(
     ${_basename} LarSphere run
@@ -140,6 +148,13 @@ celeritas_add_integration_tests(
 # Test optical surface physics
 celeritas_add_integration_tests(
   TrackingManagerIntegration OpticalSurfaces run
+  OFFLOAD cpu gpu g4
+  RMTYPE ${_optical_rm_type}
+)
+
+# Test with optical physics offloading distributions
+celeritas_add_integration_tests(
+  UserActionIntegration LarSphereOpticalTrackOffload run
   OFFLOAD cpu gpu g4
   RMTYPE ${_optical_rm_type}
 )

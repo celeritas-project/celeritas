@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "corecel/cont/Span.hh"
-#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "MockInteractData.hh"
@@ -50,7 +50,7 @@ class MockInteractAction final : public CoreStepActionInterface
 
   private:
     ActionId id_;
-    CollectionMirror<MockInteractData> data_;
+    ParamsDataStore<MockInteractData> data_;
 };
 
 #if !CELER_USE_DEVICE

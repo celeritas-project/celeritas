@@ -15,7 +15,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/params/RngParams.hh"
 
@@ -164,7 +164,7 @@ TEST(DiagnosticEngineTest, from_reals)
 class DeviceRngEngineTest : public Test
 {
   public:
-    using RngDeviceStore = CollectionStateStore<RngStateData, MemSpace::device>;
+    using RngDeviceStore = StateDataStore<RngStateData, MemSpace::device>;
 
     void SetUp() override { params = std::make_shared<RngParams>(12345); }
 

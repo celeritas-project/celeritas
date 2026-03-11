@@ -21,6 +21,7 @@ list(APPEND SOURCES
   VolumeIdBuilder.cc
   VolumeToString.cc
   detail/SurfaceParamsBuilder.cc
+  inp/ModelIO.json.cc
   rasterize/Color.cc
   rasterize/Image.cc
   rasterize/ImageIO.json.cc
@@ -50,6 +51,7 @@ if(CELERITAS_USE_Geant4)
     GeantUtils.cc
     GeantGeoUtils.cc
     GeantGdmlLoader.cc
+    GeoOpticalIdMap.cc
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc
     GeantGeoParams.cc
