@@ -130,6 +130,8 @@ auto Stepper<M>::operator()() -> result_type
     ScopedProfiling profile_this{"step"};
     auto counters = state_->sync_get_counters();
     counters.num_generated = 0;
+    counters.num_cut = 0;
+    counters.num_errored = 0;
     state_->sync_put_counters(counters);
     actions_->step(*params_, *state_);
     counters = state_->sync_get_counters();
@@ -140,6 +142,8 @@ auto Stepper<M>::operator()() -> result_type
     result.active = counters.num_active;
     result.alive = counters.num_alive;
     result.queued = counters.num_initializers;
+    result.cut = counters.num_cut;
+    result.errored = counters.num_errored;
 
     return result;
 }

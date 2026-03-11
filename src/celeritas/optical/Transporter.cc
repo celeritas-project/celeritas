@@ -107,8 +107,9 @@ void Transporter::transport_impl(CoreState<M>& state) const
                 << counters.num_generated << " generated tracks, "
                 << counters.num_active << " active tracks, "
                 << counters.num_alive << " alive tracks, "
-                << counters.num_vacancies << " vacancies, and "
-                << counters.num_pending << " queued";
+                << counters.num_vacancies << " vacancies, "
+                << counters.num_pending << " queued, " << counters.num_cut
+                << " cut, and " << counters.num_errored << " errored";
 
             this->params()->gen_reg()->reset(*state.aux());
             state.reset();

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/Atomics.hh"
 #include "corecel/random/engine/RngEngine.hh"
 #include "geocel/DetectorView.hh"
 #include "geocel/VolumeSurfaceView.hh"
@@ -90,6 +91,9 @@ class CoreTrackView
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
+
+    // Apply a tracking cut without setting the error state
+    inline CELER_FUNCTION void apply_cut();
 
   private:
     ParamsRef const& params_;
@@ -305,6 +309,19 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
     sim.post_step_action(params_.scalars.tracking_cut_action);
+    atomic_add(&states_.init.counters.data().get()->num_errored, size_type{1});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a tracking cut without setting the error state.
+ */
+CELER_FUNCTION void CoreTrackView::apply_cut()
+{
+    auto sim = this->sim();
+    CELER_EXPECT(is_track_valid(sim.status()));
+    sim.post_step_action(params_.scalars.tracking_cut_action);
+    atomic_add(&states_.init.counters.data().get()->num_cut, size_type{1});
 }
 
 //---------------------------------------------------------------------------//

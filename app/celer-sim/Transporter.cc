@@ -126,6 +126,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         }
         ++result.num_step_iterations;
         result.num_steps += track_counts.active;
+        result.num_cut += track_counts.cut;
+        result.num_errored += track_counts.errored;
         result.max_queued = std::max(result.max_queued, track_counts.queued);
     };
 
