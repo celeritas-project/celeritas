@@ -142,12 +142,13 @@ auto DuneCryoTest::make_input() const -> Input
     result.problem.model.geometry
         = this->test_data_path("geocel", "dune-cryostat.gdml");
     result.detectors = {"PhotonDetector"};
-    result.problem.limits.steps = 16;
+    result.problem.limits.steps = 64;
+    result.problem.limits.step_iters = 8;
     result.problem.capacity = [] {
         inp::OpticalStateCapacity cap;
-        cap.tracks = 16;
+        cap.tracks = 4096;
         cap.primaries = 8 * cap.tracks;
-        cap.generators = 512;
+        cap.generators = 512 * cap.tracks;
         return cap;
     }();
     result.problem.num_streams = 1;
@@ -178,35 +179,33 @@ TEST_F(DuneCryoTest, two_sim_edeps)
      * - "original" track ID is always same as actual
      */
     real_type edep{0.1};  // MeV
-    LarsoftTime start_time{1.0};
-    LarsoftTime end_time{2.0};
-
     sim::SimEnergyDeposit sed(
-        /* numPhotons = */ 32,
+        /* numPhotons = */ 4096,
         /* numElectrons = */ static_cast<int>(edep * 100),
         /* scintYieldRatio = */ 1.0,
-        /* edep = */ edep,
-        /* startPos = */ geo::Point_t{-1, -98, 0.0},  // [cm]
-        /* endPos = */ geo::Point_t{1, -98, 0},  // [cm]
-        /* startTime = */ start_time.value(),
-        /* endTime = */ end_time.value(),
+        /* edep = */ 0.1,  // [MeV]
+        /* startPos = */ geo::Point_t{5, -712, -540.0},  // [cm]
+        /* endPos = */ geo::Point_t{5, -712, -480},  // [cm]
+        /* startTime = */ 1.0,  // [ns]
+        /* endTime = */ 10.0,  // [ns]
         /* trackID = */ 123456789,
         /* pdgCode = */ pdg::electron().get(),
-        /* origTrackID = */ 123);
+        /* origTrackID = */ 123456789);
     // Make another deposit from energy deposited by a nameless offspring
     // [i.e., no MC truth stored] of Geant4 track ID 1
-    auto sed2 = sed;
+    sim::SimEnergyDeposit sed2{sed};
     sed2.setTrackID(-1);
 
-    auto result = RunResult::from_btr(run({sed, sed2}));
-    // result.print_expected();
+    auto raw_result = run({sed, sed2});
+    auto result = RunResult::from_btr(raw_result);
     RunResult ref;
-    ref.num_hits = {0, 0, 0, 0};
+    ref.num_hits = {255, 250, 16, 6};
     EXPECT_REF_EQ(ref, result);
+    // auto hits = raw_result.at(3).TrackIDsAndEnergies(10.0, 20.0); // [ns]
 
     // Run again (simulating second event)
     result = RunResult::from_btr(run({sed2, sed}));
-    ref.num_hits = {0, 0, 0, 0};
+    ref.num_hits = {252, 273, 13, 6};
     EXPECT_REF_EQ(ref, result);
 }
 
