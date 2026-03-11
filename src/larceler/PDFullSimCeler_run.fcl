@@ -6,19 +6,25 @@
 
 process_name: pdfullsimceler
 
-// Set up root output filename and geometry
-services:
-{
-    TFileService: { fileName: "pdfullsim-celer.root" }
+// Set up message logger threshold
+services.message.destinations.console.type: "cout"
+services.message.destinations.console.threshold: "INFO"
+
+// Set up ROOT output filename and geometry
+services: {
     Geometry: @local::dune10kt_1x2x6_v1_geo
 }
+
+// Override default GDML
+services.Geometry.GDML: "dune-rice-sd.gdml"
 
 // Set up producer and its execution
 physics:
 {
     producers:
     {
-        sim: @local::PDFullSimCeler
+        // Path name becomes the art::Event module label
+        celersim: @local::PDFullSimCeler
     }
-    end_path: [ sim ]
+    end_path: [ celersim ]
 }
