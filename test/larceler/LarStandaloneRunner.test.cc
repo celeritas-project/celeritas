@@ -11,18 +11,14 @@
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
-#include "corecel/io/Repr.hh"
-#include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "AssertionHelper.hh"
 #include "PersistentSP.hh"
+#include "RunnerResults.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
-#include "larceler/Convert.hh"
-#include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
 {
@@ -68,63 +64,6 @@ void LarStandaloneRunnerTestBase::SetUp()
     });
     runner_ = pr.value();
     CELER_ENSURE(runner_);
-}
-
-//---------------------------------------------------------------------------//
-struct RunResult
-{
-    std::vector<int> num_hits;
-
-    static RunResult
-    from_btr(std::vector<sim::OpDetBacktrackerRecord> const& records);
-
-    void print_expected() const;
-};
-
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   RunResult const& val1,
-                                   RunResult const& val2);
-
-RunResult
-RunResult::from_btr(std::vector<sim::OpDetBacktrackerRecord> const& response)
-{
-    RunResult result;
-    for (auto i : range(response.size()))
-    {
-        // Shouldn't have hits on top detector
-        auto const& btr = response[i];
-        EXPECT_EQ(i, btr.OpDetNum());
-        auto const& hits = btr.timePDclockSDPsMap();
-        result.num_hits.push_back(hits.size());
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-
-void RunResult::print_expected() const
-{
-    std::cout << "RunResult ref;\n"
-              << "ref.num_hits = " << repr(num_hits) << ";\n"
-              << "EXPECT_REF_EQ(ref, result);\n";
-}
-
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   RunResult const& val1,
-                                   RunResult const& val2)
-{
-    AssertionHelper helper{expr1, expr2};
-
-    if (auto r = ::celeritas::testdetail::IsVecEq(
-            expr1, "num_hits", val1.num_hits, val2.num_hits);
-        !static_cast<bool>(r))
-    {
-        helper.fail() << r.message();
-    }
-
-    return helper;
 }
 
 //---------------------------------------------------------------------------//
