@@ -10,11 +10,11 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/Quantity.hh"
 
 namespace celeritas
 {
-//! \todo Update with #2223
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -38,9 +38,8 @@ real_type convert_from_larsoft(double v)
 template<class Q, class T>
 geo::Point_t convert_to_larsoft(Array<T, 3> const& v)
 {
-    return {value_as<Q>(native_value_to<Q>(v[0])),
-            value_as<Q>(native_value_to<Q>(v[1])),
-            value_as<Q>(native_value_to<Q>(v[2]))};
+    auto const vals = value_as<Q>(native_value_to<Q>(v));
+    return {vals[0], vals[1], vals[2]};
 }
 
 //---------------------------------------------------------------------------//
@@ -48,9 +47,8 @@ geo::Point_t convert_to_larsoft(Array<T, 3> const& v)
 template<class Q>
 Array<typename Q::value_type, 3> convert_from_larsoft(geo::Point_t const& v)
 {
-    return {native_value_from(Q(v.X())),
-            native_value_from(Q(v.Y())),
-            native_value_from(Q(v.Z()))};
+    return native_value_from(
+        make_quantity_array<Q>(Array<double, 3>{v.X(), v.Y(), v.Z()}));
 }
 
 //---------------------------------------------------------------------------//

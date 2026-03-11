@@ -87,8 +87,10 @@ void PGPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
         gun_.SetParticleDefinition(
             G4ParticleTable::GetParticleTable()->FindParticle(
                 pdg_[p.particle_id.unchecked_get()].get()));
-        gun_.SetParticlePosition(convert_to_geant(p.position, clhep_length));
-        gun_.SetParticleMomentumDirection(convert_to_geant(p.direction, 1));
+        gun_.SetParticlePosition(
+            native_to_geant<lengthunits::ClhepLength>(p.position));
+        gun_.SetParticleMomentumDirection(
+            to_g4vector(static_array_cast<double>(p.direction)));
         gun_.SetParticleEnergy(convert_to_geant(p.energy, CLHEP::MeV));
         gun_.GeneratePrimaryVertex(event);
 

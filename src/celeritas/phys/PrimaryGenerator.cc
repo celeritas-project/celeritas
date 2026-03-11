@@ -39,8 +39,7 @@ auto make_energy_sampler(inp::EnergyDistribution const& i)
         return_as<PrimaryGenerator::EnergySampler>(Overload{
             [](inp::MonoenergeticDistribution const& me) {
                 CELER_VALIDATE(me.value > 0,
-                               << "invalid primary generator "
-                                  "energy "
+                               << R"(invalid primary generator energy )"
                                << me.value);
                 return DeltaDistribution{static_cast<real_type>(me.value)};
             },
@@ -64,16 +63,17 @@ auto make_energy_sampler(inp::EnergyDistribution const& i)
 auto make_position_sampler(inp::ShapeDistribution const& i)
 {
     CELER_ASSUME(!i.valueless_by_exception());
-    return std::visit(
-        return_as<PrimaryGenerator::PositionSampler>(Overload{
-            [](inp::PointDistribution const& ps) {
-                return DeltaDistribution{array_cast<real_type>(ps.value)};
-            },
-            [](inp::UniformBoxDistribution const& ubs) {
-                return UniformBoxDistribution{array_cast<real_type>(ubs.lower),
-                                              array_cast<real_type>(ubs.upper)};
-            }}),
-        i);
+    return std::visit(return_as<PrimaryGenerator::PositionSampler>(Overload{
+                          [](inp::PointDistribution const& ps) {
+                              return DeltaDistribution{
+                                  static_array_cast<real_type>(ps.value)};
+                          },
+                          [](inp::UniformBoxDistribution const& ubs) {
+                              return UniformBoxDistribution{
+                                  static_array_cast<real_type>(ubs.lower),
+                                  static_array_cast<real_type>(ubs.upper)};
+                          }}),
+                      i);
 }
 
 //---------------------------------------------------------------------------//
@@ -89,10 +89,11 @@ auto make_direction_sampler(inp::AngleDistribution const& i)
                 return IsotropicDistribution<real_type>{};
             },
             [](inp::MonodirectionalDistribution const& ma) {
-                CELER_VALIDATE(is_soft_unit_vector(ma.value),
-                               << "primary generator angle is "
-                                  "not a unit vector");
-                return DeltaDistribution{array_cast<real_type>(ma.value)};
+                CELER_VALIDATE(
+                    is_soft_unit_vector(ma.value),
+                    << R"(primary generator angle is not a unit vector)");
+                return DeltaDistribution{
+                    static_array_cast<real_type>(ma.value)};
             }}),
         i);
 }

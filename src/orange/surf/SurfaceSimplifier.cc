@@ -111,7 +111,7 @@ SignCount SignCounter::operator()(Span<real_type const, 3> arr) const
 template<class S>
 S negate_coefficients(S const& orig)
 {
-    auto arr = make_array(orig.data());
+    auto arr = to_array(orig.data());
     for (real_type& v : arr)
     {
         v = negate(v);
@@ -381,7 +381,7 @@ auto SurfaceSimplifier::operator()(GeneralQuadric const& gq) const
     {
         // No cross terms
         return SimpleQuadric{
-            make_array(gq.second()), make_array(gq.first()), gq.zeroth()};
+            to_array(gq.second()), to_array(gq.first()), gq.zeroth()};
     }
 
     // Second-order term signs

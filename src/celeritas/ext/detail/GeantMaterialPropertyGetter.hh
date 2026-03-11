@@ -61,8 +61,9 @@ class GeantMaterialPropertyGetter
     char const* desc_{nullptr};
 };
 
-// Write description or [INVALID]
-std::ostream& operator<<(std::ostream&, GeantMaterialPropertyGetter const&);
+// Write a description of the properties being queried
+inline std::ostream&
+operator<<(std::ostream&, GeantMaterialPropertyGetter const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -122,8 +123,7 @@ bool GeantMaterialPropertyGetter::operator()(inp::Grid& dst,
 /*!
  * Write description or "[INVALID]" if the properties table is null.
  */
-inline std::ostream&
-operator<<(std::ostream& os, GeantMaterialPropertyGetter const& g)
+std::ostream& operator<<(std::ostream& os, GeantMaterialPropertyGetter const& g)
 {
     if (!g)
     {

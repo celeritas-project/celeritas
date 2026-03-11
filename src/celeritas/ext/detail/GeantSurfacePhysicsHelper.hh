@@ -72,9 +72,13 @@ GeantSurfacePhysicsHelper::GeantSurfacePhysicsHelper(SurfaceId sid) : sid_(sid)
     auto* g4surf_prop = g4log_surf->GetSurfaceProperty();
     CELER_ASSERT(g4surf_prop);
     surface_ = dynamic_cast<G4OpticalSurface*>(g4surf_prop);
-    CELER_ASSERT(surface_);
-    get_property_ = GeantMaterialPropertyGetter{
-        surface_->GetMaterialPropertiesTable(), surface_->GetName()};
+    if (surface_)
+    {
+        // The surface may not be an optical surface, or it might have no
+        // properties
+        get_property_ = GeantMaterialPropertyGetter{
+            surface_->GetMaterialPropertiesTable(), surface_->GetName()};
+    }
 }
 
 //---------------------------------------------------------------------------//

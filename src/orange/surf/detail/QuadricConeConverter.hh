@@ -105,7 +105,7 @@ QuadricConeConverter::operator()(AxisTag<T>, SimpleQuadric const& sq) const
     real_type const tsq = -second[to_int(T)] / norm;
 
     // Calculate origin from first-order coefficients
-    Real3 origin = make_array(sq.first());
+    Real3 origin = to_array(sq.first());
     origin[to_int(T)] /= -2 * second[to_int(T)];
     origin[to_int(U)] /= -2 * norm;
     origin[to_int(V)] /= -2 * norm;

@@ -56,6 +56,7 @@
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "geocel/g4/GeantTypes.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/orangeinp/PolySolid.hh"
@@ -195,7 +196,7 @@ EnclosedPolar enclosed_pol_from(S const& solid)
     -> std::pair<Turn, Turn>
 {
     CELER_EXPECT(axis.z() > 0);
-    CELER_EXPECT(is_soft_unit_vector(convert_from_geant(axis)));
+    CELER_EXPECT(is_soft_unit_vector(to_array(axis)));
 
     return {native_value_to<Turn>(std::acos(axis.z())),
             atan2turn<real_type>(axis.y(), axis.x())};
@@ -416,8 +417,10 @@ auto SolidConverter::cuttubs(arg_type solid_base) -> result_type
     real_type const hh = scale_(solid.GetZHalfLength());
 
     // Get bottom and top normal vectors
-    auto const b_norm = convert_from_geant(solid.GetLowNorm());
-    auto const t_norm = convert_from_geant(solid.GetHighNorm());
+    auto const b_norm
+        = static_array_cast<real_type>(to_array(solid.GetLowNorm()));
+    auto const t_norm
+        = static_array_cast<real_type>(to_array(solid.GetHighNorm()));
 
     // Optional inner cylinder
     std::optional<CutCylinder> inner;

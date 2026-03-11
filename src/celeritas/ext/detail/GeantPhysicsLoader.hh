@@ -50,6 +50,12 @@ class GeantPhysicsLoader
     bool operator()(G4VProcess const& p);
 
   private:
+    //// TYPES ////
+
+    using PropGetter = GeantMaterialPropertyGetter;
+
+    //// DATA ////
+
     ImportData& imported_;
     GeoOpticalIdMap const& optical_ids_;
     std::vector<G4Material const*> optical_g4mat_;
@@ -73,7 +79,7 @@ class GeantPhysicsLoader
     //// HELPERS ////
 
     // Make a material table accessor for an optical material
-    GeantMaterialPropertyGetter property_getter(OptMatId) const;
+    PropGetter property_getter(OptMatId) const;
 
     inp::Grid load_mfp(OptMatId opt_id, std::string const& prop_name) const;
 

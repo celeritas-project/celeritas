@@ -65,10 +65,11 @@ MakeCylMapFieldInput(G4Field const& field,
     field_input.grid_z.reserve(z_grid.size());
 
     // Convert from geant units to native units
+    using ClhepLength = Quantity<units::Millimeter, double>;
     std::transform(r_grid.cbegin(),
                    r_grid.cend(),
                    std::back_inserter(field_input.grid_r),
-                   [](auto r) { return convert_from_geant(r, clhep_length); });
+                   [](auto r) { return native_value_from(ClhepLength{r}); });
     //  Convert phi values to Turn type
     std::transform(phi_values.cbegin(),
                    phi_values.cend(),
@@ -77,7 +78,7 @@ MakeCylMapFieldInput(G4Field const& field,
     std::transform(z_grid.cbegin(),
                    z_grid.cend(),
                    std::back_inserter(field_input.grid_z),
-                   [](auto z) { return convert_from_geant(z, clhep_length); });
+                   [](auto z) { return native_value_from(ClhepLength{z}); });
 
     size_type const nr = field_input.grid_r.size();
     size_type const nphi = field_input.grid_phi.size();
@@ -104,13 +105,12 @@ MakeCylMapFieldInput(G4Field const& field,
     auto field_converter = [](Array<G4double, 3> const& bfield,
                               Array<G4double, 4> const& pos,
                               real_type cur_bfield[3]) {
+        auto bfield_native = native_value_from(
+            make_quantity_array<units::ClhepField>(bfield));
         double const phi = std::atan2(pos[1], pos[0]);
         EnumArray<CylAxis, G4double> bfield_cyl;
-        cartesian_to_cylindrical(bfield, phi, bfield_cyl);
-        auto bfield_cyl_native
-            = convert_from_geant(bfield_cyl.data(), clhep_field);
-        std::copy(
-            bfield_cyl_native.cbegin(), bfield_cyl_native.cend(), cur_bfield);
+        cartesian_to_cylindrical(bfield_native, phi, bfield_cyl);
+        std::copy(bfield_cyl.cbegin(), bfield_cyl.cend(), cur_bfield);
     };
 
     // Sample field using common utility

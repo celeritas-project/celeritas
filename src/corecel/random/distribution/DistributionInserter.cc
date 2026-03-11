@@ -71,7 +71,7 @@ ThreedDistributionId DistributionInserter::operator()(
     inp::DeltaDistribution<Array<double, 3>> const& d)
 {
     DeltaDistributionRecord<Array<real_type, 3>> record;
-    record.value = array_cast<real_type>(d.value);
+    record.value = static_array_cast<real_type>(d.value);
     auto id = CollectionBuilder{&data_.delta_real3}.push_back(record);
     return (*this)(ThreedDistributionType::delta, id.get());
 }
@@ -96,8 +96,8 @@ ThreedDistributionId
 DistributionInserter::operator()(inp::UniformBoxDistribution const& d)
 {
     UniformBoxDistributionRecord record;
-    record.upper = array_cast<real_type>(d.upper);
-    record.lower = array_cast<real_type>(d.lower);
+    record.upper = static_array_cast<real_type>(d.upper);
+    record.lower = static_array_cast<real_type>(d.lower);
     auto id = CollectionBuilder{&data_.uniform_box}.push_back(record);
     return (*this)(ThreedDistributionType::uniform_box, id.get());
 }
