@@ -13,6 +13,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/ext/detail/OpticalHitProcessorRegistry.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -214,6 +215,13 @@ void ProblemSetup::operator()(inp::Problem& p) const
 
     // Custom user actions
     p.diagnostics.add_user_actions = so.add_user_actions;
+
+    // Wire optical hit callback to thread-local OpticalHitProcessor if enabled
+    if (so.optical && so.optical->geant_sd)
+    {
+        p.scoring.optical_detector.callback
+            = detail::make_optical_hit_callback();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -253,6 +261,12 @@ void OpticalProblemSetup::operator()(inp::OpticalProblem& p) const
     p.seed = CLHEP::HepRandom::getTheSeed();
     p.timers.action = so.action_times;
     p.output_file = so.output_file;
+
+    // Wire optical hit callback to thread-local OpticalHitProcessor if enabled
+    if (so.optical->geant_sd)
+    {
+        p.detectors.callback = detail::make_optical_hit_callback();
+    }
 }
 
 //---------------------------------------------------------------------------//

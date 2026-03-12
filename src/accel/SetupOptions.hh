@@ -128,6 +128,9 @@ struct OpticalSetupOptions
     inp::OpticalGenerator generator;
     //! Limits for the optical stepping loop
     inp::OpticalTrackingLimits limits;
+    //! Whether to bridge optical photon hits back to Geant4 sensitive
+    //! detectors
+    bool geant_sd{false};
 };
 
 //---------------------------------------------------------------------------//

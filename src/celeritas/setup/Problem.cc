@@ -333,6 +333,7 @@ auto build_optical_params(inp::Problem const& p,
         pi.action_reg.get(), p.physics.optical.surfaces);
     pi.detectors = core.detectors();
     pi.volume = core.volume();
+    pi.optical_detector = p.scoring.optical_detector;
 
     // Photon generating processes
     if (p.physics.optical.cherenkov)
