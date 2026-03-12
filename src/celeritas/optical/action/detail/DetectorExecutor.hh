@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/detail/DetectorExecutor.hh
+//! \file celeritas/optical/action/detail/DetectorExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -58,6 +58,7 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
         {
             // Score a valid hit
             hit = DetectorHit{detector_id,
+                              track.sim().primary_id(),
                               track.particle().energy(),
                               sim.time(),
                               geometry.pos(),

@@ -11,6 +11,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
+#include "corecel/random/distribution/TruncatedDistribution.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 
 namespace celeritas
@@ -58,7 +59,7 @@ class GaussianRoughnessSampler
 
   private:
     Real3 normal_;
-    NormalDistribution<real_type> sample_alpha_;
+    TruncatedDistribution<NormalDistribution<real_type>> sample_alpha_;
     real_type f_max_;
 };
 
@@ -72,7 +73,7 @@ CELER_FUNCTION
 GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
                                                    real_type sigma_alpha)
     : normal_(normal)
-    , sample_alpha_(0, sigma_alpha)
+    , sample_alpha_(-0.5 * constants::pi, 0.5 * constants::pi, 0, sigma_alpha)
     , f_max_(fmin(real_type{1}, 4 * sigma_alpha))
 {
     CELER_EXPECT(sigma_alpha > 0);
@@ -92,13 +93,9 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
     real_type sin_alpha{};
     do
     {
-        real_type alpha{};
-        do
-        {
-            // Sample positive angle according to gaussian (chances of having a
-            // nonpositive slope are generally vanishingly small)
-            alpha = std::fabs(sample_alpha_(rng));
-        } while (alpha >= real_type(constants::pi / 2));
+        // Sample positive angle according to gaussian (chances of having a
+        // nonpositive slope are generally vanishingly small)
+        real_type alpha = std::fabs(sample_alpha_(rng));
         sincos(alpha, &sin_alpha, &cos_alpha);
 
         // Transform to polar angle using rejection

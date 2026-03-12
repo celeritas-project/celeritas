@@ -20,9 +20,10 @@ namespace test
 
 void SampledHistogram::print_expected() const
 {
-    std::cout << "SampledHistogram ref;\n";
-    std::cout << "ref.distribution = " << repr(distribution) << ";\n";
-    std::cout << "ref.rng_count = " << repr(rng_count) << ";\n";
+    std::cout << "SampledHistogram ref;\n"
+              << "ref.distribution = " << repr(distribution) << ";\n"
+              << "ref.rng_count = " << repr(rng_count) << ";\n"
+              << "EXPECT_REF_EQ(ref, result);\n";
 }
 
 //---------------------------------------------------------------------------//

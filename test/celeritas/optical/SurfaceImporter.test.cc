@@ -34,8 +34,7 @@ class SurfaceImporterTest : public ::celeritas::test::GeantTestBase
     GeantPhysicsOptions build_geant_options() const override
     {
         auto result = GeantTestBase::build_geant_options();
-        result.optical = {};
-        CELER_ENSURE(result.optical);
+        result.optical.emplace();
         return result;
     }
 
@@ -145,7 +144,7 @@ void check_input(inp::OpticalSurfacePhysics const& expected,
                  inp::OpticalSurfacePhysics const& actual)
 {
     // Check number of geometric surfaces
-    EXPECT_EQ(expected.materials.size(), actual.materials.size());
+    ASSERT_EQ(expected.materials.size(), actual.materials.size());
 
     // Compare interstitial materials
     for (auto surface_id : range(expected.materials.size()))

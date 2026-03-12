@@ -30,6 +30,8 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported data and material/volume data.
+ *
+ * TODO: use logical volumes or geo materials or something!!
  */
 std::shared_ptr<MaterialParams>
 MaterialParams::from_import(ImportData const& data,

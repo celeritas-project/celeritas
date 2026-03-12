@@ -93,7 +93,7 @@ QuadricSphereConverter::operator()(SimpleQuadric const& sq) const
     real_type const inv_norm = 3 / (second[0] + second[1] + second[2]);
     CELER_ASSERT(inv_norm > 0);
 
-    Real3 origin = make_array(sq.first());
+    Real3 origin = to_array(sq.first());
     origin *= real_type{-0.5} * inv_norm;
 
     real_type radius_sq = dot_product(origin, origin) - sq.zeroth() * inv_norm;

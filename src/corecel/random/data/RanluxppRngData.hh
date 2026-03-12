@@ -36,6 +36,7 @@ struct RanluxppRngParamsDataImpl
     RanluxppArray9 advance_sequence;
 
     //// FUNCTIONS ////
+
     //! Whether the data is assigned.
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const
     {

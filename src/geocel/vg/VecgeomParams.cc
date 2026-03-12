@@ -39,6 +39,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
@@ -54,8 +55,9 @@
 #include "geocel/detail/MakeLabelVector.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
+#include "VecgeomTrackView.hh"
+#include "VecgeomTypes.hh"
 
-#include "detail/VecgeomCompatibility.hh"
 #include "detail/VecgeomSetup.hh"
 
 static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
@@ -585,7 +587,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
             auto bbox_mgr = ABBoxManager_t::Instance();
             VgReal3 lower, upper;
             bbox_mgr.ComputeABBox(&world, &lower, &upper);
-            return BBox{detail::to_array(lower), detail::to_array(upper)};
+            return BBox{to_array(lower), to_array(upper)};
         }();
     }
 
@@ -841,6 +843,20 @@ void VecgeomParams::build_volume_tracking()
 
         device_ownership_ = Ownership::value;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume instance containing the global point.
+ */
+inline VolumeInstanceId
+VecgeomParams::find_volume_instance_at(Real3 const& global_point) const
+{
+    using HostStateStore = StateDataStore<VecgeomStateData, MemSpace::host>;
+    HostStateStore states(this->host_ref(), 1);
+    VecgeomTrackView track{this->host_ref(), states.ref(), TrackSlotId{0}};
+    track = VecgeomTrackView::Initializer_t(global_point, Real3{1, 0, 0});
+    return track.volume_instance_id();
 }
 
 //---------------------------------------------------------------------------//

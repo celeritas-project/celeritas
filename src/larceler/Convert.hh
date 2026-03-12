@@ -10,17 +10,23 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/Quantity.hh"
+#include "celeritas/UnitTypes.hh"
 
 namespace celeritas
 {
-//! \todo Update with #2223
+//---------------------------------------------------------------------------//
+
+using LarsoftTime = Quantity<celeritas::units::Nanosecond, double>;
+using LarsoftLen = Quantity<celeritas::units::Centimeter, double>;
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Convert via a quantity to native LArSoft types/units
 template<class Q>
-double convert_to_larsoft(real_type v)
+inline double convert_to_larsoft(real_type v)
 {
     return value_as<Q>(native_value_to<Q>(v));
 }
@@ -28,19 +34,31 @@ double convert_to_larsoft(real_type v)
 //---------------------------------------------------------------------------//
 //! Convert via a quantity from native LArSoft types/units
 template<class Q>
-real_type convert_from_larsoft(double v)
+inline real_type convert_from_larsoft(double v)
 {
     return native_value_from(Q(v));
 }
 
 //---------------------------------------------------------------------------//
-//! Convert via a quantity to native LArSoft types/units
-template<class Q, class T>
-geo::Point_t convert_to_larsoft(Array<T, 3> const& v)
+//! Convert from a Celeritas array to a ROOT point
+inline geo::Point_t to_larpoint(Array<double, 3> const& arr)
 {
-    return {value_as<Q>(native_value_to<Q>(v[0])),
-            value_as<Q>(native_value_to<Q>(v[1])),
-            value_as<Q>(native_value_to<Q>(v[2]))};
+    return {arr[0], arr[1], arr[2]};
+}
+
+//---------------------------------------------------------------------------//
+//! Convert a ROOT point to a Celeritas array
+inline Array<double, 3> to_array(geo::Point_t const& v)
+{
+    return {v.X(), v.Y(), v.Z()};
+}
+
+//---------------------------------------------------------------------------//
+//! Convert via a quantity to native LArSoft types/units
+template<class Q>
+geo::Point_t convert_to_larsoft(Array<double, 3> const& v)
+{
+    return to_larpoint(value_as<Q>(native_value_to<Q>(v)));
 }
 
 //---------------------------------------------------------------------------//
@@ -48,9 +66,7 @@ geo::Point_t convert_to_larsoft(Array<T, 3> const& v)
 template<class Q>
 Array<typename Q::value_type, 3> convert_from_larsoft(geo::Point_t const& v)
 {
-    return {native_value_from(Q(v.X())),
-            native_value_from(Q(v.Y())),
-            native_value_from(Q(v.Z()))};
+    return native_value_from(make_quantity_array<Q>(to_array(v)));
 }
 
 //---------------------------------------------------------------------------//

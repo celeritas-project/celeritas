@@ -120,6 +120,8 @@ struct ImportLoopingThreshold
  *
  * The looping thresholds are particle-dependent and stored in a map where the
  * keys are the PDG number.
+ *
+ * TODO: substeps are also technically particle-dependent
  */
 struct ImportTransParameters
 {
@@ -135,10 +137,7 @@ struct ImportTransParameters
     int max_substeps{1000};
 
     //! Whether parameters are assigned and valid
-    explicit operator bool() const
-    {
-        return max_substeps >= 0 && !looping.empty();
-    }
+    explicit operator bool() const { return max_substeps >= 0; }
 };
 
 //---------------------------------------------------------------------------//

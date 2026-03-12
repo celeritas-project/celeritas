@@ -30,6 +30,9 @@ namespace detail
  * exists between these volumes then the surface ID and normal are filled in
  * the track's surface state data. Otherwise the track is killed at the
  * surface.
+ *
+ * \note See and update documentation in \rstref{Boundary
+ * initialization}{surface_boundary_init} .
  */
 struct InitBoundaryExecutor
 {

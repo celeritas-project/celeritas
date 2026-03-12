@@ -42,10 +42,8 @@ namespace test
 //---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
 {
-#ifndef __APPLE__
-    // ROOT injects handlers simply by being linked on Linux systems
+    // ROOT injects handlers simply by being linked
     ScopedRootErrorHandler::disable_signal_handler();
-#endif
 
     // Create output registry
     output_reg_ = make_shared<OutputRegistry>();
@@ -203,6 +201,7 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.surface_physics = this->optical_surface_physics();
     inp.detectors = this->detector();
     inp.optical_detector = this->build_optical_detector_input();
+    inp.volume = this->volumes();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
     inp.capacity = inp::OpticalStateCapacity::from_default(

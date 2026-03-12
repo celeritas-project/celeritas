@@ -23,6 +23,7 @@ struct DetectorHit
     using Energy = units::MevEnergy;
 
     DetectorId detector{};
+    PrimaryId primary{};
     Energy energy;
     real_type time{};
     Real3 position{};

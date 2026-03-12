@@ -21,6 +21,8 @@
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Tracking.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/RootStepWriterInput.hh"
@@ -60,23 +62,12 @@ struct RunnerInput
 
     struct OpticalOptions
     {
-        // *Per-process* capacities
-        size_type num_track_slots{};  //!< Number of optical loop tracks slots
-        size_type buffer_capacity{};  //!< Number of steps that created photons
-        size_type auto_flush{};  //!< Threshold number of primaries for
-                                 //!< launching optical tracking loop
-        size_type max_steps = static_cast<size_type>(-1);  //!< Step iterations
-
-        // Optical photon generation
-        bool cherenkov{true};
-        bool scintillation{true};
-
-        explicit operator bool() const
-        {
-            return num_track_slots > 0 && buffer_capacity > 0 && auto_flush > 0
-                   && max_steps > 0;
-        }
+        //! Hard cutoffs for counters
+        inp::OpticalTrackingLimits limits;
+        //! Per-process state sizes for optical tracking loop
+        inp::OpticalStateCapacity capacity;
     };
+
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
     static constexpr size_type unspecified{0};
 
@@ -141,7 +132,7 @@ struct RunnerInput
     GeantPhysicsOptions physics_options;
 
     // Options when optical physics is enabled
-    OpticalOptions optical;
+    std::optional<OpticalOptions> optical;
 
     //! Whether the run arguments are valid
     explicit operator bool() const

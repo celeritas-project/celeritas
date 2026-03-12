@@ -70,24 +70,6 @@ class NormalDistribution
     //! Construct with unit deviation and zero mean
     CELER_FUNCTION NormalDistribution() : NormalDistribution{0, 1} {}
 
-    // Initialize with parameters but not spare values
-    inline CELER_FUNCTION NormalDistribution(NormalDistribution const& other);
-
-    // Reset spare value of other distribution
-    inline CELER_FUNCTION
-    NormalDistribution(NormalDistribution&& other) noexcept;
-
-    // Keep spare value but change distribution
-    inline CELER_FUNCTION NormalDistribution&
-    operator=(NormalDistribution const&);
-
-    // Possibly use spare value, change distribution
-    inline CELER_FUNCTION NormalDistribution&
-    operator=(NormalDistribution&&) noexcept;
-
-    // Default destructor (rule of 5)
-    ~NormalDistribution() = default;
-
     // Sample a random number according to the distribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
@@ -115,64 +97,6 @@ NormalDistribution<RealType>::NormalDistribution(real_type mean,
     : mean_(mean), stddev_(stddev)
 {
     CELER_EXPECT(stddev > 0);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize with parameters but not spare values.
- */
-template<class RealType>
-CELER_FUNCTION
-NormalDistribution<RealType>::NormalDistribution(NormalDistribution const& other)
-    : mean_{other.mean_}, stddev_{other.stddev_}
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reset spare value of other distribution.
- */
-template<class RealType>
-CELER_FUNCTION NormalDistribution<RealType>::NormalDistribution(
-    NormalDistribution&& other) noexcept
-    : mean_{other.mean_}
-    , stddev_{other.stddev_}
-    , spare_{other.spare_}
-    , has_spare_{other.has_spare_}
-{
-    other.has_spare_ = false;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Keep spare value but change distribution.
- */
-template<class RealType>
-CELER_FUNCTION NormalDistribution<RealType>&
-NormalDistribution<RealType>::operator=(NormalDistribution const& other)
-{
-    mean_ = other.mean_;
-    stddev_ = other.stddev_;
-    return *this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Possibly use spare value, change distribution.
- */
-template<class RealType>
-CELER_FUNCTION NormalDistribution<RealType>&
-NormalDistribution<RealType>::operator=(NormalDistribution&& other) noexcept
-{
-    mean_ = other.mean_;
-    stddev_ = other.stddev_;
-    if (!has_spare_ && other.has_spare_)
-    {
-        spare_ = other.spare_;
-        has_spare_ = other.has_spare_;
-        other.has_spare_ = false;
-    }
-    return *this;
 }
 
 //---------------------------------------------------------------------------//

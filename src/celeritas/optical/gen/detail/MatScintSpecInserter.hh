@@ -77,7 +77,11 @@ MatScintSpecInserter::MatScintSpecInserter(Data* data)
  */
 auto MatScintSpecInserter::operator()(ImportMaterialScintSpectrum const& mat)
 {
-    CELER_EXPECT(mat);
+    if (!mat)
+    {
+        CELER_LOG(warning) << "Missing scintillation data";
+        return materials_.push_back({});
+    }
 
     CELER_VALIDATE(mat.yield_per_energy > 0,
                    << "invalid yield=" << mat.yield_per_energy

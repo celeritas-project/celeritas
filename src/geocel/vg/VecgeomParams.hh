@@ -129,7 +129,7 @@ class VecgeomParams final : public GeoParamsInterface,
     inline VolumeId volume_id(ImplVolumeId) const final;
 
     // Get the volume instance containing the global point
-    inline VolumeInstanceId find_volume_instance_at(Real3 const&) const final;
+    VolumeInstanceId find_volume_instance_at(Real3 const&) const final;
 
     //// DATA ACCESS ////
 
@@ -215,17 +215,6 @@ inline VolumeId VecgeomParams::volume_id(ImplVolumeId iv_id) const
     CELER_EXPECT(!vol_ids.empty());
 
     return vol_ids[iv_id];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the volume instance containing the global point.
- */
-inline VolumeInstanceId
-VecgeomParams::find_volume_instance_at(Real3 const&) const
-{
-    CELER_NOT_IMPLEMENTED(
-        "volume instance lookup for point not yet implemented for VecGeom");
 }
 
 //---------------------------------------------------------------------------//

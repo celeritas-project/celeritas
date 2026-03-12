@@ -346,7 +346,7 @@ class LarSphereOptical : public LarSphere
         auto result = LarSphereIntegrationMixin::make_primary_input();
 
         result.shape = inp::PointDistribution{
-            array_cast<double>(from_cm({0.1, 0.1, 0}))};
+            static_array_cast<double>(from_cm({0.1, 0.1, 0}))};
         result.primaries_per_event = 1;
         result.energy = inp::MonoenergeticDistribution{2};  // [MeV]
         return result;
@@ -625,8 +625,8 @@ auto OpticalSurfaces::make_primary_input() const -> PrimaryInput
 {
     PrimaryInput result;
     result.pdg = {pdg::positron()};
-    result.shape
-        = inp::PointDistribution{array_cast<double>(from_cm({30, 0, 0}))};
+    result.shape = inp::PointDistribution{
+        static_array_cast<double>(from_cm({30, 0, 0}))};
     result.angle = inp::MonodirectionalDistribution{{-1, 0, 0}};
     result.energy = inp::MonoenergeticDistribution{100};  // [MeV]
     result.primaries_per_event = 1;

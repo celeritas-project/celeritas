@@ -9,7 +9,6 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Types.hh"
 #include "corecel/math/Constant.hh"
 
 namespace celeritas

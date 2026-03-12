@@ -19,6 +19,7 @@ enum class OnedDistributionType
 {
     delta,
     normal,
+    truncated_normal,
     size_
 };
 

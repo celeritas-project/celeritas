@@ -102,13 +102,17 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = id_cast<UniqueEventId>(id);
-    if (!(G4Threading::IsMultithreadedApplication()
-          && G4MTRunManager::SeedOncePerCommunication()))
+    if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
     {
-        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
-        // using the Geant4 event ID for reproducibility. This guarantees that
-        // an event can be reproduced given the event ID.
-        state_->reseed(transport_->params()->rng(), id_cast<UniqueEventId>(id));
+        if (!(G4Threading::IsMultithreadedApplication()
+              && G4MTRunManager::SeedOncePerCommunication()))
+        {
+            // Since Geant4 schedules events dynamically, reseed the Celeritas
+            // RNGs using the Geant4 event ID for reproducibility. This
+            // guarantees that an event can be reproduced given the event ID.
+            state_->reseed(transport_->params()->rng(),
+                           id_cast<UniqueEventId>(id));
+        }
     }
 }
 
@@ -128,15 +132,14 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
     // Convert Geant4 track to optical::TrackInitializer
     TrackData init;
 
-    init.energy = units::MevEnergy(
-        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
-
-    init.position = convert_from_geant(g4track.GetPosition(), CLHEP::cm);
-
-    init.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
-
-    init.time = convert_from_geant(g4track.GetGlobalTime(), CLHEP::second);
-    init.polarization = convert_from_geant(g4track.GetPolarization(), 1);
+    init.energy = units::ClhepEnergy{g4track.GetKineticEnergy()};
+    init.position = native_from_geant<lengthunits::ClhepLength, real_type>(
+        g4track.GetPosition());
+    init.direction = static_array_cast<real_type>(
+        to_array(g4track.GetMomentumDirection()));
+    init.time = native_from_geant<units::ClhepTime>(g4track.GetGlobalTime());
+    init.polarization
+        = static_array_cast<real_type>(to_array(g4track.GetPolarization()));
 
     ScopedProfiling profile_this{"push"};
 

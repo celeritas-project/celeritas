@@ -79,7 +79,7 @@ TEST(CMSParameterizedFieldTest, all)
         Real3 field = calc_field(Real3{i * delta_r, i * delta_r, i * delta_z});
         for (real_type f : field)
         {
-            actual.push_back(native_value_to<units::FieldTesla>(f).value());
+            actual.push_back(native_value_to<units::TeslaField>(f).value());
         }
     }
 
@@ -139,7 +139,7 @@ TEST_F(RZMapFieldTest, all)
         for (real_type f : field)
         {
             // Reference result is in [T]: convert from native units
-            actual.push_back(native_value_to<units::FieldTesla>(f).value());
+            actual.push_back(native_value_to<units::TeslaField>(f).value());
         }
     }
 

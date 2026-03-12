@@ -130,7 +130,7 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
     // Get optical physics options and deactivate everything else
     GeantPhysicsOptions gpo = GeantPhysicsOptions::deactivated();
     gpo.optical = si.geant_setup;
-    if (gpo.optical.cherenkov || gpo.optical.scintillation)
+    if (gpo.optical->cherenkov || gpo.optical->scintillation)
     {
         // We currently load (almost) all physics data from Geant4, which means
         // setting up its physics consistently for the GeantImporter.
@@ -144,7 +144,8 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
     // Take geometry file name from problem and set up Geant4
     auto const& geometry = si.problem.model.geometry;
     CELER_ASSUME(std::holds_alternative<std::string>(geometry));
-    GeantSetup geant_setup(std::get<std::string>(geometry), gpo);
+    GeantSetup geant_setup(
+        std::get<std::string>(geometry), gpo, std::move(si.detectors));
 
     // Load geometry, surfaces, regions from Geant4 world pointer
     CELER_ASSERT(geant_setup.geo_params());
@@ -168,8 +169,8 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
             si.problem.generator))
     {
         auto& ophys = si.problem.physics;
-        ophys.cherenkov = si.geant_setup.cherenkov.enable;
-        ophys.scintillation = si.geant_setup.scintillation.enable;
+        ophys.cherenkov = bool(si.geant_setup.cherenkov);
+        ophys.scintillation = bool(si.geant_setup.scintillation);
         if (!(ophys.cherenkov || ophys.scintillation))
         {
             CELER_LOG(error) << "Optical offload generator should not be used "

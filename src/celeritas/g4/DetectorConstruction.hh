@@ -19,12 +19,13 @@ class G4LogicalVolume;
 
 namespace celeritas
 {
+class GeantGeoParams;
 //---------------------------------------------------------------------------//
 /*!
  * Load a GDML file and construct sensitive detectors.
  *
  * - In \c Construct on the main thread, load the GDML file (including
- *   detectors)
+ *   detectors) and construct a Celeritas geometry wrapper
  * - In \c ConstructSDandField on each worker thread, call the SDBuilder for
  *   each distinct SD name, for all LVs that share the SD name
  *
@@ -39,6 +40,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     //! \name Type aliases
     using UPSD = std::unique_ptr<G4VSensitiveDetector>;
     using SDBuilder = std::function<UPSD(std::string const&)>;
+    using SPGeoParams = std::shared_ptr<GeantGeoParams>;
     //!@}
 
   public:
@@ -55,8 +57,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     //! Get the filename used by the GDML loader
     std::string const& filename() const { return filename_; }
 
-    //! Access the constructed world
-    G4VPhysicalVolume* world() const { return world_; }
+    //! Access the constructed geometry etc
+    SPGeoParams const& geo() const { return geo_; }
 
   private:
     //// TYPES ////
@@ -71,7 +73,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     SDBuilder build_worker_sd_;
 
     // Built during Construct
-    G4VPhysicalVolume* world_{nullptr};
+    std::shared_ptr<GeantGeoParams> geo_;
     MapDetectors detectors_;
 
     //// METHODS ////

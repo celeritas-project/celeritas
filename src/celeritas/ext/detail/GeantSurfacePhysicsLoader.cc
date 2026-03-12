@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "GeantSurfacePhysicsLoader.hh"
 
-#include <functional>
 #include <G4LogicalSurface.hh>
 #include <G4OpticalSurface.hh>
 #include <G4Version.hh>
@@ -14,6 +13,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
+
+#include "GeantSurfacePhysicsHelper.hh"
 
 using G4ST = G4SurfaceType;
 using G4OSF = G4OpticalSurfaceFinish;
@@ -184,7 +185,7 @@ load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
     for (auto mode : range(optical::ReflectionMode::size_))
     {
         auto& grid = refl_form.reflection_grids[mode];
-        helper.get_property(&grid, labels[mode]);
+        helper.get_property(grid, labels[mode]);
         CELER_VALIDATE(is_probability(grid),
                        << "parameter '" << to_cstring(mode)
                        << "' is not within [0, 1] range");
@@ -217,9 +218,16 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
 {
     CELER_EXPECT(sid);
 
+    GeantSurfacePhysicsHelper helper(sid);
+    if (!helper)
+    {
+        CELER_LOG(warning) << "Surface " << sid.get()
+                           << " has no optical surface properties";
+        return;
+    }
+
     models_.materials.push_back({});
 
-    GeantSurfacePhysicsHelper helper(sid);
     auto const& surf = helper.surface();
     auto const model = surf.GetModel();
     try
@@ -239,9 +247,10 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
     }
     catch (std::exception const& e)
     {
-        CELER_LOG(error) << "Failed to load " << to_cstring(surf.GetFinish())
-                         << " " << to_cstring(surf.GetType()) << " surface "
-                         << surf.GetName() << " with model '"
+        CELER_LOG(error) << "Failed to load surface " << helper << " with "
+                         << to_cstring(surf.GetFinish()) << "/"
+                         << to_cstring(surf.GetType())
+                         << " finish/type and model '"
                          << to_cstring(surf.GetModel()) << "'";
         throw;
     }
@@ -267,7 +276,7 @@ void GeantSurfacePhysicsLoader::check_unimplemented_properties(
     for (std::string name : {"GROUPVEL"})
     {
         // Check if the property exists on the surface
-        if (helper.get_property(&temp, name))
+        if (helper.get_property(temp, name))
         {
             CELER_NOT_IMPLEMENTED("unsupported optical '" + name
                                   + "' surface property");
@@ -384,11 +393,10 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
     auto& reflectivity = models_.reflectivity;
     inp::GridReflection refl_grid;
 
-    bool has_refl
-        = helper.get_property(&refl_grid.reflectivity, "REFLECTIVITY");
+    bool has_refl = helper.get_property(refl_grid.reflectivity, "REFLECTIVITY");
     bool has_trans
-        = helper.get_property(&refl_grid.transmittance, "TRANSMITTANCE");
-    bool has_eff = helper.get_property(&refl_grid.efficiency, "EFFICIENCY");
+        = helper.get_property(refl_grid.transmittance, "TRANSMITTANCE");
+    bool has_eff = helper.get_property(refl_grid.efficiency, "EFFICIENCY");
 
     if (has_refl || has_trans || has_eff)
     {
@@ -471,7 +479,7 @@ void GeantSurfacePhysicsLoader::insert_gap_material(
     {
         ImportOpticalMaterial material;
         bool has_rindex = helper.get_property(
-            &material.properties.refractive_index, "RINDEX");
+            material.properties.refractive_index, "RINDEX");
 
         CELER_VALIDATE(has_rindex,
                        << "back-painted surfaces require RINDEX defined "
