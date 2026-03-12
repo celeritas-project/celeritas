@@ -120,8 +120,8 @@
   <!-- ── readout ──────────────────────────────────────────────────────── -->
   <readouts>
     <readout name="WaterHits">
-      <segmentation type="CartesianGridXY" grid_size_x="5*mm" grid_size_y="5*mm"/>
-      <id>system:8,x:24:-12,y:-12</id>
+      <segmentation type="CartesianGridXYZ" grid_size_x="5*mm" grid_size_y="5*mm" grid_size_z="5*mm"/>
+      <id>system:8,x:8:-8,y:-8,z:-8</id>
     </readout>
   </readouts>
 

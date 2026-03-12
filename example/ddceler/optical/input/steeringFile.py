@@ -38,6 +38,7 @@ runner.gun.energy = "1*GeV"
 runner.gun.distribution = "uniform"
 runner.gun.etaMin = 5.0
 runner.gun.etaMax = 5.0
+runner.gun.position = "0 0 -155*mm"
 
 
 def setup_physics(kernel):
