@@ -4,7 +4,6 @@
 """Test harness for celer-sim for use in CMake."""
 
 import json
-import re
 import subprocess
 from os import environ, getcwd, path
 from sys import exit, argv, stderr
@@ -102,25 +101,25 @@ inp = {
 }
 
 if "lar" in geometry_filename:
-    # Volume and surface properties are currently only loaded if Geant4 import
-    # is enabled
+    # Disable physics export: not implemented for optical
     physics_filename = None
-    optical_physics = {
+
+    physics_options["optical"] =  {
         "absorption": True,
         "rayleigh_scattering": True,
-        "wavelength_shifting": {"time_profile": "exponential"},
-        "wavelength_shifting2": {"time_profile": "exponential"},
+        "wavelength_shifting": None,
+        "wavelength_shifting2": None,
     }
-    physics_options["optical"] = optical_physics
 
-    num_optical_tracks = 4096
+    num_optical_tracks = 8192
     optical_capacity = {
         "tracks": num_optical_tracks,
-        "generators": 3 * max_steps * num_optical_tracks,
+        "generators": 4 * max_steps * num_optical_tracks,
         "primaries": num_optical_tracks,
     }
-    inp["optical"] = {"capacity": optical_capacity, "limits": {"steps": 4}}
-    inp["max_steps"] = 2
+    inp["optical"] = {"capacity": optical_capacity, "limits": {
+        "steps": 7, "step_iters": 10}}
+    inp["max_steps"] = 4
 
 if "simple-cms" in geometry_filename:
     inp["merge_events"] = True
@@ -196,7 +195,7 @@ if not use_device:
         "tracks": 32,
     }
 if not use_device and "lar" in geometry_filename:
-    expected_opt_sizes = {"generators": 3145728, "tracks": 4096}
+    expected_opt_sizes = {'generators': 8388608, 'tracks': 8192}
 
 
 if expected_core_sizes:
