@@ -38,6 +38,8 @@ struct CoreScalars
     ActionId tracking_cut_action;
 
     StreamId::size_type max_streams{0};
+    //! Number of volume hierarchy levels per track slot (0 = disabled)
+    size_type num_volume_levels{0};
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const { return max_streams > 0; }
