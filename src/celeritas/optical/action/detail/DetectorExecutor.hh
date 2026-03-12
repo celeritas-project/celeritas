@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/Range.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/DetectorData.hh"
 
@@ -20,10 +21,13 @@ namespace detail
  * Populate detector state buffer at the end of a step.
  *
  * All tracks have hits copied into the state buffer. If the track is not alive
- * or is not in a detector region, an invalid hit is set in the corresponding
- * buffer track slot.
+ * or killed, or is not in a detector region, an invalid hit is set in the
+ * corresponding buffer track slot.
  *
- * When a track generates a valid hit, it is killed (absorbed by the detector).
+ * This action runs at \c user_post, after surface interactions (which absorb
+ * photons and set \c TrackStatus::killed ). Both \c alive and \c killed tracks
+ * are scored, analogous to how the EM \c StepGatherExecutor handles killed
+ * tracks. Inactive and errored tracks are skipped.
  */
 struct DetectorExecutor
 {
@@ -45,37 +49,51 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
     auto& hit = detector_state_.detector_hits[track.track_slot_id()];
     auto sim = track.sim();
 
-    if (sim.status() == TrackStatus::alive)
+    auto const status = sim.status();
+    if (status == TrackStatus::inactive || status == TrackStatus::errored)
     {
-        auto const detectors = track.detectors();
+        // Skip empty slots and errored tracks
+        hit.detector = {};
+        return;
+    }
 
-        auto geometry = track.geometry();
+    auto const detectors = track.detectors();
+    auto geometry = track.geometry();
+    auto const volume_id = geometry.volume_id();
+    auto const detector_id = detectors.detector_id(volume_id);
 
-        auto const volume_id = geometry.volume_id();
-        auto const detector_id = detectors.detector_id(volume_id);
+    if (detector_id)
+    {
+        // Score a valid hit for alive or killed tracks in a detector volume
+        hit = DetectorHit{detector_id,
+                          track.particle().energy(),
+                          sim.time(),
+                          geometry.pos(),
+                          geometry.dir(),
+                          geometry.volume_instance_id()};
 
-        if (detector_id)
+        // Store full volume hierarchy if buffer is allocated
+        auto const num_levels = detector_state_.num_volume_levels;
+        if (num_levels > 0)
         {
-            // Score a valid hit
-            hit = DetectorHit{detector_id,
-                              track.sim().primary_id(),
-                              track.particle().energy(),
-                              sim.time(),
-                              geometry.pos(),
-                              geometry.volume_instance_id()};
-
-            // Kill the track
-            sim.status(TrackStatus::killed);
-        }
-        else
-        {
-            // Mark that the track is not in a detector
-            hit.detector = {};
+            auto const tid = track.track_slot_id();
+            auto all_ids
+                = detector_state_
+                      .volume_instance_ids[AllItems<VolumeInstanceId>{}];
+            auto dst = all_ids.subspan(tid.unchecked_get() * num_levels,
+                                       num_levels);
+            size_type depth = geometry.volume_level().unchecked_get() + 1;
+            CELER_ASSERT(depth <= dst.size());
+            geometry.volume_instance_id(dst.first(depth));
+            for (auto level : range<size_type>(depth, num_levels))
+            {
+                dst[level] = {};
+            }
         }
     }
     else
     {
-        // Ensure killed, inactive, and errored tracks don't contribute to hits
+        // Track is not in a detector volume
         hit.detector = {};
     }
 }
