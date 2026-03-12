@@ -194,6 +194,8 @@ SetupOptions CelerPhysics::make_options()
         opt.capacity.primaries = opt.capacity.generators;
         opt.generator = inp::OpticalEmGenerator{};
         opt.limits = inp::OpticalTrackingLimits{};
+        // Enable Geant4 SD integration so optical hits are bridged back to G4
+        opt.geant_sd = true;
         opts.optical = opt;
 
         CELER_LOG(info) << "Optical photon offloading enabled: tracks="
