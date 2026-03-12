@@ -18,6 +18,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayQuantity.hh"
 #include "geocel/DetectorParams.hh"  // IWYU pragma: keep
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
@@ -240,16 +241,17 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
  */
 void LarStandaloneRunner::hit(SpanCelerHits hits)
 {
-    CELER_LOG(debug) << "Processing " << hits.size() << " hits";
+    CELER_LOG_LOCAL(debug) << "Processing " << hits.size() << " hits";
     for (auto& h : hits)
     {
         CELER_ASSERT(h.volume_instance);
         auto btr_iter = btr_helpers_.find(h.volume_instance);
         CELER_ASSERT(btr_iter != btr_helpers_.end());
 
-        Real3 larpos{convert_to_larsoft<LarsoftLen>(h.position[0]),
-                     convert_to_larsoft<LarsoftLen>(h.position[1]),
-                     convert_to_larsoft<LarsoftLen>(h.position[2])};
+        // Note: BTR call requires a pointer, which ROOT doesn't support, so we
+        // convert to a native quantity
+        auto larpos = value_as<LarsoftLen>(make_quantity_array<LarsoftLen>(
+            static_array_cast<double>(h.position)));
         btr_iter->second->AddScintillationPhotonsToMap(
             to_track_id(h.primary),
             convert_to_larsoft<LarsoftTime>(h.time),
