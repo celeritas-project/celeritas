@@ -334,14 +334,14 @@ TEST_F(SimpleComptonTest, max_steps)
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
 
-    ScopedLogStorer scoped_log{&celeritas::self_logger()};
+    ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::debug};
     auto result = this->run(step, num_primaries);
 
     static char const* const expected_log_levels[]
-        = {"error", "error", "error", "error"};
+        = {"debug", "debug", "debug", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
     ASSERT_EQ(4, scoped_log.messages().size());
-    EXPECT_EQ("Track exceeded maximum step count", scoped_log.messages()[0]);
+    EXPECT_EQ("Track 62 exceeded maximum step count", scoped_log.messages()[0]);
     EXPECT_TRUE(scoped_log.messages()[2].find("\"num_steps\":2")
                 != std::string::npos);
 }
