@@ -35,6 +35,8 @@
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
+#include "celeritas/ext/detail/OpticalHitProcessor.hh"
+#include "celeritas/ext/detail/OpticalHitProcessorRegistry.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
@@ -207,6 +209,14 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
 
     // Save optical pointers if available, for diagnostics
     optical_ = params.problem_loaded().optical_collector;
+
+    // Build thread-local optical hit processor if Geant4 SD integration is
+    // enabled and optical photon generation uses the EmGenerator path
+    if (optical_ && options.optical && options.optical->geant_sd)
+    {
+        optical_hit_processor_
+            = detail::make_optical_hit_processor(*optical_->optical_params());
+    }
 
     CELER_ENSURE(*this);
 }
@@ -486,6 +496,8 @@ void LocalTransporter::Finalize()
         state->ref().geometry.reset();
 #endif
     }
+
+    detail::reset_optical_hit_processor(optical_hit_processor_);
 
     // Flush any remaining performance counters on the worker thread
     TracingSession::flush();
