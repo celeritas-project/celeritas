@@ -243,6 +243,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantSurfacePhysicsLoader.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
+    ext/detail/OpticalHitProcessor.cc
     ext/detail/NaviTouchableUpdater.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
