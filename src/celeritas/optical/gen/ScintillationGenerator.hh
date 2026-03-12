@@ -102,6 +102,7 @@ ScintillationGenerator::ScintillationGenerator(
 {
     CELER_EXPECT(dist_);
     CELER_EXPECT(shared_);
+    CELER_EXPECT(dist_.material < shared.materials.size());
 
     auto const& pre_step = dist_.points[StepPoint::pre];
     auto const& post_step = dist_.points[StepPoint::post];
@@ -122,7 +123,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
 
         auto pdf = shared_.reals[mat.yield_pdf];
         auto select_idx = make_selector([&pdf](size_type i) { return pdf[i]; },
-                                        mat.yield_pdf.size());
+                                        pdf.size());
         size_type component_idx = select_idx(rng);
         CELER_ASSERT(component_idx < mat.components.size());
         return shared_.scint_records[mat.components[component_idx]];
