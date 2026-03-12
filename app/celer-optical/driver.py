@@ -37,7 +37,7 @@ capacity = {
 
 generator = {
     "_type": "primary",
-    "primaries": 1048576,
+    "primaries": 32768,
     "angle": {"_type": "isotropic"},
     "energy": {"_type": "normal", "mean": 5e-6, "stddev": 5e-7},
     "shape": {"_type": "delta", "value": [0, 0, 0]},
@@ -50,7 +50,7 @@ problem = {
     "seed": 12345,
     "timers": {"action": False},
     "limits": {
-        "steps": 2,
+        "steps": 6,
     },
 }
 
@@ -103,13 +103,15 @@ print(f"Results written to {out_file}", file=stderr)
 # Check results
 expected_generators = {
     "buffer_size": 0,
-    "num_generated": 1048576,
+    "num_generated": 32768,
     "num_pending": 0,
 }
 counters = j["result"]["counters"].copy()
 assert counters["flushes"] == 1
 assert len(counters["generators"]) == 1
 assert counters["generators"][0] == expected_generators
+assert counters["num_cut"] > 0
+assert counters["num_errored"] == 0
 
 expected_sizes = {
     "generators": 1,
