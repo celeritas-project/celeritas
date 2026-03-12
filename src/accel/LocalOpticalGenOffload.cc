@@ -14,6 +14,9 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelLauncher.hh"
+#include "accel/detail/UpdatePendingExecutor.hh"
+// #include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -108,17 +111,14 @@ void LocalOpticalGenOffload::InitializeEvent(int id)
     CELER_EXPECT(id >= 0);
 
     event_id_ = id_cast<UniqueEventId>(id);
-    if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
+
+    if (!(G4Threading::IsMultithreadedApplication()
+          && G4MTRunManager::SeedOncePerCommunication()))
     {
-        if (!(G4Threading::IsMultithreadedApplication()
-              && G4MTRunManager::SeedOncePerCommunication()))
-        {
-            // Since Geant4 schedules events dynamically, reseed the Celeritas
-            // RNGs using the Geant4 event ID for reproducibility. This
-            // guarantees that an event can be reproduced given the event ID.
-            state_->reseed(transport_->params()->rng(),
-                           id_cast<UniqueEventId>(id));
-        }
+        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
+        // using the Geant4 event ID for reproducibility. This guarantees that
+        // an event can be reproduced given the event ID.
+        state_->reseed(transport_->params()->rng(), id_cast<UniqueEventId>(id));
     }
 }
 
@@ -189,9 +189,27 @@ void LocalOpticalGenOffload::Flush()
     // Copy the buffered distributions to device
     generate_->insert(*state_, make_span(buffer_));
 
-    auto counters = state_->sync_get_counters();
-    counters.num_pending += num_photons_;
-    state_->sync_put_counters(counters);
+    // Update the number of primaries waiting to be generated based on the
+    // number of photons, using only one thread
+    auto const& optical_params = *transport_->params();
+    // optical::detail::UpdatePendingExecutor execute_thread{
+    // optical_params.ptr<MemSpace::native>(), *s, num_photons_};
+    if (celeritas::device())
+    {
+        // auto* s =
+        // dynamic_cast<optical::CoreState<MemSpace::device>*>(&(*state_));
+        // optical::detail::UpdatePendingExecutor execute_thread{
+        // optical_params.ptr<MemSpace::native>(), s->ptr(), num_photons_};
+        // launch_kernel(1, s->stream_id(), execute_thread);
+    }
+    else
+    {
+        auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&(*state_));
+        optical::detail::UpdatePendingExecutor execute_thread{
+            optical_params.ptr<MemSpace::native>(), s->ptr(), num_photons_};
+        launch_kernel(1, execute_thread);
+    }
+
     num_photons_ = 0;
     buffer_.clear();
 
