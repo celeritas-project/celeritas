@@ -25,7 +25,18 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_em_physics_options(core_geo):
+@dataclass
+class RunConfig:
+    geometry_file: str
+    event_file: str
+    rootout_file: str
+    run_name: str
+    use_device: bool
+    physics_options: dict
+    physics_filename: str | None
+
+
+def get_em_physics_options(core_geo: str):
     return {
         "coulomb_scattering": False,
         "compton_scattering": True,
@@ -63,17 +74,6 @@ def run_geant_export(
         exit(result.returncode)
 
     return physics_filename
-
-
-@dataclass
-class RunConfig:
-    geometry_file: str
-    event_file: str
-    rootout_file: str
-    run_name: str
-    use_device: bool
-    physics_options: dict
-    physics_filename: str | None
 
 
 def build_input(cfg: RunConfig) -> dict:
@@ -218,6 +218,9 @@ def validate_output(j: dict, inp: dict, use_device: bool) -> None:
         }
     if not use_device and "lar" in inp["geometry_file"]:
         expected_opt_sizes = {"generators": 8388608, "tracks": 8192}
+        assert "optical" in run_output
+        cuts = sum(em_step["num_cut"] for em_step in run_output["optical"])
+        assert cuts > 0
 
     if expected_core_sizes:
         assert core_sizes == expected_core_sizes, core_sizes
@@ -225,8 +228,6 @@ def validate_output(j: dict, inp: dict, use_device: bool) -> None:
         opt_sizes = internal["optical-sizes"].copy()
         assert num_streams == opt_sizes.pop("streams")
         assert opt_sizes == expected_opt_sizes, opt_sizes
-
-    print(json.dumps(time, indent=1))
 
 
 def main():
