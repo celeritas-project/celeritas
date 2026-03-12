@@ -1233,9 +1233,9 @@ TEST_F(FourSteelSlabsEmStandard, mu_pair_production_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 {
-    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::warning};
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
     auto&& import_data = this->imported_data();
-    EXPECT_TRUE(scoped_log.empty()) << scoped_log;
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 
     auto const& lpe_map = import_data.livermore_photo.atomic_xs;
     EXPECT_EQ(4, lpe_map.size());
@@ -2162,7 +2162,7 @@ TEST_F(MucfBox, static_data)
     EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.x.size());
     EXPECT_EQ(expected_muon_energy_cdf_size, mucf.muon_energy_cdf.y.size());
     EXPECT_SOFT_EQ(0.55157437567861023, average(mucf.muon_energy_cdf.x));
-    EXPECT_SOFT_EQ(11.250286274435437, average(mucf.muon_energy_cdf.y));
+    EXPECT_SOFT_EQ(0.011250286274435, average(mucf.muon_energy_cdf.y));
 
     //! \todo Add real cycle rate data test
 

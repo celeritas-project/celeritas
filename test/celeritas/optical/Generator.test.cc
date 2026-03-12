@@ -11,6 +11,9 @@
 #include "corecel/Types.hh"
 #include "corecel/random/distribution/PoissonDistribution.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/optical/Runner.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
@@ -34,17 +37,20 @@ constexpr bool reference_configuration
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
 
-class LArSphereGeneratorTest : public Test
+class GeneratorTestBase : public Test
 {
   public:
     using VecDistribution = std::vector<optical::GeneratorDistributionData>;
 
   public:
+    //! Get an identifying key for the geometry (basename, description, etc)
+    virtual std::string gdml_basename() const = 0;
+
     void SetUp() override
     {
         // Set geometry filename
         osi_.problem.model.geometry
-            = Test::test_data_path("geocel", "lar-sphere.gdml");
+            = Test::test_data_path("geocel", this->gdml_basename() + ".gdml");
 
         // Set per-process state sizes
         osi_.problem.capacity = [] {
@@ -71,6 +77,15 @@ class LArSphereGeneratorTest : public Test
             return opt;
         }();
     }
+
+  protected:
+    inp::OpticalStandaloneInput osi_;
+};
+
+class LArSphereGeneratorTest : public GeneratorTestBase
+{
+  public:
+    std::string gdml_basename() const final { return "lar-sphere"; }
 
     //! Buffer host distribution data for Cherenkov and scintillation
     VecDistribution make_distributions(size_type count)
@@ -101,9 +116,12 @@ class LArSphereGeneratorTest : public Test
         }
         return result;
     }
+};
 
-  protected:
-    inp::OpticalStandaloneInput osi_;
+class DuneGeneratorTest : public GeneratorTestBase
+{
+  public:
+    std::string gdml_basename() const final { return "dune-cryostat"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -180,8 +198,6 @@ TEST_F(LArSphereGeneratorTest, offload)
 {
     // Generate Cherenkov and scintillation photons
     osi_.problem.generator = inp::OpticalOffloadGenerator{};
-
-    // Enable Cherenkov and scintillation
     osi_.geant_setup.cherenkov = CherenkovPhysicsOptions{};
     osi_.geant_setup.scintillation = ScintillationPhysicsOptions{};
 
@@ -233,6 +249,39 @@ TEST_F(LArSphereGeneratorTest, offload)
         "tracking-cut",
     };
     EXPECT_VEC_EQ(expected_labels, labels);
+}
+
+TEST_F(DuneGeneratorTest, offload)
+{
+    // Generate Cherenkov and scintillation photons
+    osi_.problem.generator = inp::OpticalOffloadGenerator{};
+    osi_.geant_setup.scintillation.emplace();
+
+    // Enable action times
+    osi_.problem.timers.action = true;
+
+    // Create host distributions and copy to generator
+    optical::GeneratorDistributionData gdd;
+    gdd.type = GeneratorType::scintillation;
+    gdd.num_photons = 4096;
+    gdd.primary = PrimaryId{123};
+    gdd.step_length = 2.0 * units::centimeter;
+    gdd.charge = units::ElementaryCharge{-1};
+    gdd.material = OptMatId{1};  // Should be LAr
+    gdd.continuous_edep_fraction = 1.0;
+    gdd.points[StepPoint::pre] = {units::LightSpeed(0.7),
+                                  1e-9 * units::nanosecond,
+                                  from_cm(Real3{-1, -98, 0})};
+    gdd.points[StepPoint::post] = {units::LightSpeed(0.6),
+                                   3e-9 * units::nanosecond,
+                                   from_cm(Real3{1, -98, 0})};
+    CELER_ASSERT(gdd);
+
+    // Construct the runner and transport the single distribution
+    auto result = optical::Runner(std::move(osi_))({&gdd, 1});
+
+    EXPECT_EQ(1, result.counters.flushes);
+    ASSERT_EQ(1, result.counters.generators.size());
 }
 
 //---------------------------------------------------------------------------//

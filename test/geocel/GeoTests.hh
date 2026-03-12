@@ -85,6 +85,24 @@ class CmseGeoTest
 /*!
  * Test the four-levels geometry.
  */
+class DuneCryostatGeoTest
+{
+  public:
+    static std::string_view gdml_basename() { return "dune-cryostat"; }
+
+    //! Construct with a reference to the GoogleTest
+    DuneCryostatGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
+
+    void test_locate_point() const;
+
+  private:
+    GenericGeoTestInterface* test_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test the four-levels geometry.
+ */
 class FourLevelsGeoTest
 {
   public:

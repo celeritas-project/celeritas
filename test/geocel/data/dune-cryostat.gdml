@@ -306,18 +306,22 @@ Provenance:
     <volume name="volOpDetSensitive_0-0-00x600002d5c1e0">
       <materialref ref="Glass"/>
       <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+      <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
     </volume>
     <volume name="volOpDetSensitive_0-0-10x600002d5c320">
       <materialref ref="Glass"/>
       <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+      <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
     </volume>
     <volume name="volOpDetSensitive_0-0-20x600002d5c460">
       <materialref ref="Glass"/>
       <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+      <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
     </volume>
     <volume name="volOpDetSensitive_0-0-30x600002d5c5a0">
       <materialref ref="Glass"/>
       <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+      <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
     </volume>
     <volume name="volCryostat0x600002d65680">
       <materialref ref="LAr"/>

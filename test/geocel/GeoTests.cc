@@ -11,6 +11,7 @@
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamToString.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Turn.hh"
@@ -513,6 +514,27 @@ void CmseGeoTest::test_trace() const
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
+}
+
+//---------------------------------------------------------------------------//
+// DUNE CRYOSTAT
+//---------------------------------------------------------------------------//
+void DuneCryostatGeoTest::test_locate_point() const
+{
+    auto get_stack = [t = this->test_](Real3 const& pos) {
+        auto result = t->volume_stack(pos);
+        return stream_to_string(join(result.volume_instances.begin(),
+                                     result.volume_instances.end(),
+                                     "/"));
+    };
+    EXPECT_EQ("volDetEnclosure_PV/volCryostat_PV/volOpDetSensitive_0-0-0_PV",
+              get_stack({-0.05, -712.31875, -535.175}));
+    EXPECT_EQ("volDetEnclosure_PV/volCryostat_PV/volOpDetSensitive_0-0-1_PV",
+              get_stack({-0.05, -712.31875, -486.375}));
+    EXPECT_EQ("volDetEnclosure_PV/volCryostat_PV/volOpDetSensitive_0-0-2_PV",
+              get_stack({-0.05, -712.31875, -423.575}));
+    EXPECT_EQ("volDetEnclosure_PV/volCryostat_PV/volOpDetSensitive_0-0-3_PV",
+              get_stack({-0.05, -712.31875, -374.775}));
 }
 
 //---------------------------------------------------------------------------//
