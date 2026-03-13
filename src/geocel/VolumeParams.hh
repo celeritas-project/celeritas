@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "corecel/Macros.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/ParamsDataInterface.hh"
@@ -76,6 +77,8 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
 
     // Construct empty volume params for unit testing: no volumes
     VolumeParams();
+
+    CELER_DEFAULT_MOVE_DELETE_COPY(VolumeParams);
 
     //! Empty if no volumes are present (e.g., ORANGE debugging)
     bool empty() const { return v_labels_.empty(); }
