@@ -74,14 +74,16 @@ struct OrangeParamsScalars
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single implementation volume definition inside a unit.
+ * Data for a single local volume definition inside a unit.
  *
- * Surface IDs are local to the unit.
+ * - This record defines an *implementation volume* which may correspond to
+ *   a canonical "volume instance".
+ * - Surface IDs are local to the unit.
+ * - The encoded logic references the local surface IDs.
  *
  * \sa VolumeView
- * \todo Rename UnitVolumeRecord?
  */
-struct VolumeRecord
+struct LocalVolumeRecord
 {
     ItemRange<LocalSurfaceId> faces;
     ItemRange<logic_int> logic;
@@ -244,7 +246,7 @@ struct TransformRecord
  */
 struct SimpleUnitRecord
 {
-    using VolumeRecordId = ItemId<VolumeRecord>;
+    using VolumeRecordId = ItemId<LocalVolumeRecord>;
     using ConnectivityRecordId = ItemId<ConnectivityRecord>;
     using LocalVolumeIdId = ItemId<LocalVolumeId>;
     using VolDepthUint = ItemId<vol_level_uint>;
@@ -428,7 +430,7 @@ struct OrangeParamsData
     Items<FastReal3> fast_real3s;
     Items<SurfaceType> surface_types;
     Items<ConnectivityRecord> connectivity_records;
-    Items<VolumeRecord> volume_records;
+    Items<LocalVolumeRecord> volume_records;
     Items<Daughter> daughters;
     Items<OrientedBoundingZoneRecord> obz_records;
 

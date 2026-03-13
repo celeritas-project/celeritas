@@ -78,9 +78,9 @@ class VolumeView
 
   private:
     ParamsRef const& params_;
-    VolumeRecord const& def_;
+    LocalVolumeRecord const& def_;
 
-    static inline CELER_FUNCTION VolumeRecord const&
+    static inline CELER_FUNCTION LocalVolumeRecord const&
     volume_record(ParamsRef const&,
                   SimpleUnitRecord const& unit_record,
                   LocalVolumeId id);
@@ -182,7 +182,7 @@ CELER_FUNCTION logic_int VolumeView::max_intersections() const
  */
 CELER_FUNCTION bool VolumeView::internal_surfaces() const
 {
-    return def_.flags & VolumeRecord::internal_surfaces;
+    return def_.flags & LocalVolumeRecord::internal_surfaces;
 }
 
 //---------------------------------------------------------------------------//
@@ -191,7 +191,7 @@ CELER_FUNCTION bool VolumeView::internal_surfaces() const
  */
 CELER_FUNCTION bool VolumeView::implicit_vol() const
 {
-    return def_.flags & VolumeRecord::implicit_vol;
+    return def_.flags & LocalVolumeRecord::implicit_vol;
 }
 
 //---------------------------------------------------------------------------//
@@ -200,7 +200,7 @@ CELER_FUNCTION bool VolumeView::implicit_vol() const
  */
 CELER_FUNCTION bool VolumeView::simple_safety() const
 {
-    return def_.flags & VolumeRecord::simple_safety;
+    return def_.flags & LocalVolumeRecord::simple_safety;
 }
 
 //---------------------------------------------------------------------------//
@@ -210,7 +210,8 @@ CELER_FUNCTION bool VolumeView::simple_safety() const
 CELER_FUNCTION bool VolumeView::simple_intersection() const
 {
     return !(def_.flags
-             & (VolumeRecord::internal_surfaces | VolumeRecord::implicit_vol));
+             & (LocalVolumeRecord::internal_surfaces
+                | LocalVolumeRecord::implicit_vol));
 }
 
 //---------------------------------------------------------------------------//
@@ -219,7 +220,7 @@ CELER_FUNCTION bool VolumeView::simple_intersection() const
  *
  * This is called during construction.
  */
-inline CELER_FUNCTION VolumeRecord const&
+inline CELER_FUNCTION LocalVolumeRecord const&
 VolumeView::volume_record(ParamsRef const& params,
                           SimpleUnitRecord const& unit,
                           LocalVolumeId local_vol_id)

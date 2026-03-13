@@ -132,7 +132,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
     if (value.zorder == ZOrder::background)
     {
         // Background volumes must have this flag and have no logic
-        value.flags |= VolumeRecord::Flags::implicit_vol;
+        value.flags |= LocalVolumeRecord::Flags::implicit_vol;
     }
     else
     {
