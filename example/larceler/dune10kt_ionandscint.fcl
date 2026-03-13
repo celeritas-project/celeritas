@@ -1,0 +1,50 @@
+//---------------------------------------------------------------------------//
+// Job execution for Geant4 and IonAndScint only
+//---------------------------------------------------------------------------//
+#include "LArG4_dune.fcl"
+#include "IonAndScint_dune.fcl"
+#include "services_dune.fcl"
+
+process_name: geantionandscint
+
+source:
+{
+    module_type: RootInput
+    maxEvents:   10
+}
+
+services:
+{
+    TFileService: { fileName: "g4-hist.root" }
+    TimeTracker: {}
+    MemoryTracker:{}
+    RandomNumberGenerator: {}
+    FileCatalogMetadata: @local::art_file_catalog_mc
+
+    @table::dunefd_simulation_services
+}
+
+outputs:
+{
+  out:
+  {
+    module_type: RootOutput
+    fileName:    "%ifb-g4.root"
+    dataTier:    "simulated"
+    compressionLevel: 1
+  }
+}
+
+physics:
+{
+    producers:
+    {
+        largeant:    @local::dunefd_larg4
+        IonAndScint: @local::dunefd_ionandscint
+        rns:         { module_type: "RandomNumberSaver" }
+    }
+    simulate: [ rns, largeant, IonAndScint ]
+    stream:  [ out ]
+    trigger_paths: [ simulate ]
+    end_paths: [ stream ]
+}
