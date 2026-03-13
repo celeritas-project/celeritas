@@ -16,7 +16,6 @@
 #include "corecel/sys/ThreadId.hh"
 
 #include "OrangeTypes.hh"
-#include "SenseUtils.hh"
 
 #include "detail/BIHData.hh"
 
