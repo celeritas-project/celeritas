@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/GeoVolumeView.hh
+//! \file geocel/VolumeView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -23,12 +23,12 @@ namespace celeritas
  * material ID and parent/child edges in the volume instance graph.
  *
  * \code
-   GeoVolumeView view{params.host_ref(), vol_id};
+   VolumeView view{params.host_ref(), vol_id};
    GeoMatId mat = view.material();
    for (VolumeInstanceId vi : view.children()) { ... }
  * \endcode
  */
-class GeoVolumeView
+class VolumeView
 {
   public:
     //!@{
@@ -40,7 +40,7 @@ class GeoVolumeView
   public:
     // Construct with shared data and a volume ID
     explicit inline CELER_FUNCTION
-    GeoVolumeView(ParamsRef const& params, VolumeId vol_id);
+    VolumeView(ParamsRef const& params, VolumeId vol_id);
 
     //! Volume being viewed
     CELER_FUNCTION VolumeId volume_id() const { return vol_id_; }
@@ -68,7 +68,7 @@ class GeoVolumeView
  * Construct with shared data and a volume ID.
  */
 CELER_FUNCTION
-GeoVolumeView::GeoVolumeView(ParamsRef const& params, VolumeId vol_id)
+VolumeView::VolumeView(ParamsRef const& params, VolumeId vol_id)
     : params_(params), vol_id_(vol_id)
 {
     CELER_EXPECT(vol_id_ < params_.volumes.size());
@@ -78,7 +78,7 @@ GeoVolumeView::GeoVolumeView(ParamsRef const& params, VolumeId vol_id)
 /*!
  * Get the geometry material ID for this volume.
  */
-CELER_FUNCTION GeoMatId GeoVolumeView::material() const
+CELER_FUNCTION GeoMatId VolumeView::material() const
 {
     return this->record().material;
 }
@@ -87,7 +87,7 @@ CELER_FUNCTION GeoMatId GeoVolumeView::material() const
 /*!
  * Get the incoming edges (volume instances that place this volume).
  */
-CELER_FUNCTION auto GeoVolumeView::parents() const -> SpanVolInst
+CELER_FUNCTION auto VolumeView::parents() const -> SpanVolInst
 {
     return params_.vi_storage[this->record().parents];
 }
@@ -96,13 +96,13 @@ CELER_FUNCTION auto GeoVolumeView::parents() const -> SpanVolInst
 /*!
  * Get the outgoing edges (child instances placed inside this volume).
  */
-CELER_FUNCTION auto GeoVolumeView::children() const -> SpanVolInst
+CELER_FUNCTION auto VolumeView::children() const -> SpanVolInst
 {
     return params_.vi_storage[this->record().children];
 }
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION VolumeRecord const& GeoVolumeView::record() const
+CELER_FUNCTION VolumeRecord const& VolumeView::record() const
 {
     return params_.volumes[vol_id_];
 }

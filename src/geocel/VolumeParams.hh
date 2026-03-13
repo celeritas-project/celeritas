@@ -14,9 +14,9 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/data/ParamsDataStore.hh"
 
-#include "GeoVolumeView.hh"
 #include "Types.hh"
 #include "VolumeData.hh"
+#include "VolumeView.hh"
 
 namespace celeritas
 {
@@ -47,7 +47,7 @@ struct Volumes;
  * Label-based lookup (volume and volume instance names) is provided through
  * the \c volume_labels and \c volume_instance_labels accessors. Graph
  * properties (material, connectivity, world) are stored in the underlying
- * \c VolumeParamsData and accessed efficiently via \c GeoVolumeView.
+ * \c VolumeParamsData and accessed efficiently via \c VolumeView.
  *
  * \internal Construction requirements:
  * - At least one volume must be defined.
@@ -151,7 +151,7 @@ std::weak_ptr<VolumeParams const> const& global_volumes();
  */
 auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
 {
-    return GeoVolumeView{this->host_ref(), v_id}.parents();
+    return VolumeView{this->host_ref(), v_id}.parents();
 }
 
 //---------------------------------------------------------------------------//
@@ -160,7 +160,7 @@ auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
  */
 auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
 {
-    return GeoVolumeView{this->host_ref(), v_id}.children();
+    return VolumeView{this->host_ref(), v_id}.children();
 }
 
 //---------------------------------------------------------------------------//
@@ -169,7 +169,7 @@ auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
  */
 GeoMatId VolumeParams::material(VolumeId v_id) const
 {
-    return GeoVolumeView{this->host_ref(), v_id}.material();
+    return VolumeView{this->host_ref(), v_id}.material();
 }
 
 //---------------------------------------------------------------------------//
