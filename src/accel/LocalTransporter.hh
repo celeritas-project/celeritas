@@ -13,6 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/phys/Primary.hh"
 
 #include "TrackOffloadInterface.hh"
@@ -128,6 +129,7 @@ class LocalTransporter final : public TrackOffloadInterface
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
+    std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
     std::shared_ptr<OpticalCollector const> optical_;
 
     // Current event ID or manager for obtaining it

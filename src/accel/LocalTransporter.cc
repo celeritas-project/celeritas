@@ -33,6 +33,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSd.hh"
+#include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
@@ -185,6 +186,15 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (auto const& hit_manager = params.hit_manager())
     {
         hit_processor_ = hit_manager->make_local_processor(stream_id);
+        track_reconstruction_ = hit_processor_->track_reconstruction();
+    }
+    else
+    {
+        using VecConstPD = GeantTrackReconstruction::VecParticle;
+        auto const& offload = params.OffloadParticles();
+        track_reconstruction_ = std::make_shared<GeantTrackReconstruction>(
+            VecConstPD(offload.begin(), offload.end()),
+            GeantTrackReconstruction::make_g4step());
     }
 
     // Create stepper
@@ -236,10 +246,7 @@ void LocalTransporter::InitializeEvent(int id)
             step_->reseed(event_id_);
         }
     }
-    if (hit_processor_)
-    {
-        hit_processor_->track_reconstruction().init_event();
-    }
+    track_reconstruction_->init_event();
 }
 
 //---------------------------------------------------------------------------//
@@ -273,20 +280,14 @@ void LocalTransporter::Push(G4Track& g4track)
 
     PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
     track.particle_id = particles_->find(pdg);
-
-    // Generate Celeritas-specific PrimaryID and capture user info
-    if (hit_processor_)
-    {
-        track.primary_id
-            = hit_processor_->track_reconstruction().acquire(g4track);
-    }
-    track.energy = energy;
-
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '"
                    << g4track.GetDefinition()->GetParticleName()
                    << "' particles");
 
+    // Generate Celeritas-specific PrimaryID and capture user info
+    track.primary_id = track_reconstruction_->acquire(g4track);
+    track.energy = energy;
     track.position = native_from_geant<lengthunits::ClhepLength, real_type>(
         g4track.GetPosition());
     track.direction = static_array_cast<real_type>(
@@ -418,8 +419,8 @@ void LocalTransporter::Flush()
                                    << " hits for event " << event_id_.get();
             run_accum_.hits += num_hits;
         }
-        hit_processor_->track_reconstruction().clear();
     }
+    track_reconstruction_->clear();
 }
 
 //---------------------------------------------------------------------------//
