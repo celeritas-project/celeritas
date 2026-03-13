@@ -181,7 +181,8 @@ CoreTrackView::operator=(TrackInitializer const& init)
         {
             // Print an error message if initialization was "successful" but
             // track is outside
-            CELER_LOG_LOCAL(error) << R"(Track started outside the geometry)";
+            CELER_LOG_LOCAL(error) << "Track " << this->track_slot_id().get()
+                                   << " started outside the geometry";
         }
         else
         {
@@ -198,7 +199,8 @@ CoreTrackView::operator=(TrackInitializer const& init)
     if (CELER_UNLIKELY(!matid))
     {
 #if !CELER_DEVICE_COMPILE
-        CELER_LOG_LOCAL(error) << "Track started in an unknown material";
+        CELER_LOG_LOCAL(error) << "Track " << this->track_slot_id().get()
+                               << " started in an unknown material";
 #endif
         this->apply_errored();
         return *this;

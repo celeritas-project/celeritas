@@ -72,7 +72,8 @@ FieldTrackPropagator<Field>::operator()(CoreTrackView& track) const
             {
 #if !CELER_DEVICE_COMPILE
                 CELER_LOG_LOCAL(debug)
-                    << "Track (pid=" << particle.particle_id().get()
+                    << "Track " << track.track_slot_id().get()
+                    << " (pid=" << particle.particle_id().get()
                     << ", E=" << particle.energy().value() << ' '
                     << ParticleTrackView::Energy::unit_type::label()
                     << ") is looping after " << sim.num_looping_steps()
