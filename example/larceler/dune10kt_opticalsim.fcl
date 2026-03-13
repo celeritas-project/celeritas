@@ -3,6 +3,7 @@
 //---------------------------------------------------------------------------//
 #include "services_dune.fcl"
 #include "PDFastSim_dune.fcl"
+#include "PDFullSimCeler.fcl"
 
 process_name: opticalsimulation
 
@@ -33,11 +34,14 @@ outputs:
   }
 }
 
+# Optical simulation options:
+# - @local::dunefd_pdfastsim
+# - @local::PDFullSimCeler
 physics:
 {
     producers:
     {
-        opticalsim: @local::dunefd_pdfastsim
+        opticalsim: @local::PDFullSimCeler
         rns: { module_type: "RandomNumberSaver" }
     }
     simulate: [ rns, opticalsim ]
