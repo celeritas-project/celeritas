@@ -7,12 +7,15 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
+#include "GeoVolumeView.hh"
 #include "Types.hh"
+#include "VolumeData.hh"
 
 namespace celeritas
 {
@@ -40,15 +43,16 @@ struct Volumes;
  * In conjunction with \c GeantGeoParams, this class allows conversion between
  * the Celeritas geometry implementation and the Geant4 geometry navigation.
  *
+ * Label-based lookup (volume and volume instance names) is provided through
+ * the \c volume_labels and \c volume_instance_labels accessors. Graph
+ * properties (material, connectivity, world) are stored in the underlying
+ * \c VolumeParamsData and accessed efficiently via \c GeoVolumeView.
+ *
  * \internal Construction requirements:
  * - At least one volume must be defined.
  * - Material IDs are allowed to be null for testing purposes.
- *
- * \todo We should be able to easily move the ID-related methods to a
- * GPU-friendly view rather than just this metadata class. It's not needed at
- * the moment though.
  */
-class VolumeParams
+class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
 {
   public:
     //!@{
@@ -77,10 +81,13 @@ class VolumeParams
     bool empty() const { return v_labels_.empty(); }
 
     //! World volume
-    VolumeId world() const { return world_; }
+    VolumeId world() const { return mirror_.host_ref().world; }
 
     //! Depth of the volume DAG (a world without children is 1)
-    vol_level_uint num_volume_levels() const { return num_volume_levels_; }
+    vol_level_uint num_volume_levels() const
+    {
+        return mirror_.host_ref().num_volume_levels;
+    }
 
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return v_labels_.size(); }
@@ -109,17 +116,19 @@ class VolumeParams
     // Get the volume being instantiated (outgoing node)
     inline VolumeId volume(VolumeInstanceId vi_id) const;
 
+    //!@{
+    //! \name Data interface
+
+    //! Access volume graph data on the host
+    HostRef const& host_ref() const final { return mirror_.host_ref(); }
+    //! Access volume graph data on the device
+    DeviceRef const& device_ref() const final { return mirror_.device_ref(); }
+    //!@}
+
   private:
     VolumeMap v_labels_;
     VolInstMap vi_labels_;
-
-    VolumeId world_;
-    vol_level_uint num_volume_levels_{0};
-
-    std::vector<std::vector<VolumeInstanceId>> parents_;
-    std::vector<std::vector<VolumeInstanceId>> children_;
-    std::vector<GeoMatId> materials_;
-    std::vector<VolumeId> volumes_;
+    ParamsDataStore<VolumeParamsData> mirror_;
 };
 
 //---------------------------------------------------------------------------//
@@ -139,8 +148,7 @@ std::weak_ptr<VolumeParams const> const& global_volumes();
  */
 auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
 {
-    CELER_EXPECT(v_id < parents_.size());
-    return make_span(parents_[v_id.unchecked_get()]);
+    return GeoVolumeView{this->host_ref(), v_id}.parents();
 }
 
 //---------------------------------------------------------------------------//
@@ -149,8 +157,7 @@ auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
  */
 auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
 {
-    CELER_EXPECT(v_id < children_.size());
-    return make_span(children_[v_id.unchecked_get()]);
+    return GeoVolumeView{this->host_ref(), v_id}.children();
 }
 
 //---------------------------------------------------------------------------//
@@ -159,8 +166,7 @@ auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
  */
 GeoMatId VolumeParams::material(VolumeId v_id) const
 {
-    CELER_EXPECT(v_id < materials_.size());
-    return materials_[v_id.unchecked_get()];
+    return GeoVolumeView{this->host_ref(), v_id}.material();
 }
 
 //---------------------------------------------------------------------------//
@@ -169,8 +175,8 @@ GeoMatId VolumeParams::material(VolumeId v_id) const
  */
 VolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
 {
-    CELER_EXPECT(vi_id < volumes_.size());
-    return volumes_[vi_id.unchecked_get()];
+    CELER_EXPECT(vi_id < this->host_ref().volume_ids.size());
+    return this->host_ref().volume_ids[vi_id];
 }
 
 //---------------------------------------------------------------------------//
