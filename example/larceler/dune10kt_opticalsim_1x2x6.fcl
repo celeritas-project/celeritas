@@ -1,0 +1,12 @@
+//---------------------------------------------------------------------------//
+// Job execution for optical simulation only for DUNE 1x2x6 geometry
+//---------------------------------------------------------------------------//
+#include "dune10kt_opticalsim.fcl"
+
+services: {
+    @table::services
+    @table::dunefd_1x2x6_simulation_services
+}
+
+# Override detector geometry for consistency
+services.Geometry.GDML: "dune10kt_v6_refactored_1x2x6-rice.gdml"

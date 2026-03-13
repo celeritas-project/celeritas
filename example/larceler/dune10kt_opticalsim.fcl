@@ -1,0 +1,47 @@
+//---------------------------------------------------------------------------//
+// Job execution for optical simulation only
+//---------------------------------------------------------------------------//
+#include "services_dune.fcl"
+#include "PDFastSim_dune.fcl"
+
+process_name: opticalsimulation
+
+source:
+{
+    module_type: RootInput
+}
+
+services:
+{
+    TFileService: { fileName: "optsim-hist.root" }
+    TimeTracker: {}
+    MemoryTracker:{}
+    RandomNumberGenerator: {}
+    FileCatalogMetadata: @local::art_file_catalog_mc
+
+    @table::dunefd_simulation_services
+}
+
+outputs:
+{
+  out:
+  {
+    module_type: RootOutput
+    fileName:    "%ifb-optsim.root"
+    dataTier:    "simulated"
+    compressionLevel: 1
+  }
+}
+
+physics:
+{
+    producers:
+    {
+        opticalsim: @local::dunefd_pdfastsim
+        rns: { module_type: "RandomNumberSaver" }
+    }
+    simulate: [ rns, opticalsim ]
+    stream:  [ out ]
+    trigger_paths: [ simulate ]
+    end_paths: [ stream ]
+}
