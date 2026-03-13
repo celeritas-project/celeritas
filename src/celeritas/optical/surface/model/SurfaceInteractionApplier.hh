@@ -73,6 +73,9 @@ SurfaceInteractionApplier<F>::operator()(CoreTrackView const& track) const
             surface_physics.update_traversal_direction(result.direction);
         }
 
+        // Ensure other interactions are taken this step
+        surface_physics.reflectivity_action(ReflectivityAction::transmit);
+
         if (traverse.is_exiting())
         {
             // End boundary crossing if exiting
