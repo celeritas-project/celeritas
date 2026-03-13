@@ -286,7 +286,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         auto tinit = visit_tracker(
             [&local](auto&& t) { return t.initialize(local); }, univ_id);
 
-        if (!tinit.volume || tinit.surface)
+        if (CELER_UNLIKELY(!tinit.volume || tinit.surface))
         {
 #if !CELER_DEVICE_COMPILE
             auto msg = CELER_LOG_LOCAL(error);
@@ -303,9 +303,10 @@ OrangeTrackView::operator=(Initializer_t const& init)
             msg << " in universe " << univ_id.unchecked_get()
                 << " at local position " << repr(local.pos);
 #endif
-            // Mark as failed since ORANGE fills all space, even outside world
+            // Mark as failed and place in *local* "exterior" to end the search
+            // and preserve diagnostic state
             this->geo_status(GeoStatus::error);
-            return *this;
+            tinit.volume = orange_exterior_volume;
         }
 
         auto lsa = this->make_lsa(ulev_id);
@@ -842,6 +843,19 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     }
 
     TrackerVisitor visit_tracker{params_};
+    auto fail = [&] {
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error)
+            << "track failed to cross local surface "
+            << this->surf().unchecked_get() << " in universe "
+            << univ.unchecked_get() << " at local position " << repr(local.pos)
+            << " along local direction " << repr(local.dir);
+#endif
+        // Mark as failed and place in *local* "exterior" to end the search and
+        // preserve diagnostic state
+        this->geo_status(GeoStatus::error);
+        volume = orange_exterior_volume;
+    };
 
     // Update the post-crossing volume by crossing the boundary of the "surface
     // crossing" level
@@ -850,17 +864,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     if (CELER_UNLIKELY(!volume))
     {
         // Boundary crossing failure
-#if !CELER_DEVICE_COMPILE
-        CELER_LOG_LOCAL(error)
-            << "track failed to cross local surface "
-            << this->surf().unchecked_get() << " in universe "
-            << univ.unchecked_get() << " at local position " << repr(local.pos)
-            << " along local direction " << repr(local.dir);
-#endif
-        // Mark as failed and place in *local* "exterior" to end the search
-        // but preserve the current level
-        this->geo_status(GeoStatus::error);
-        volume = orange_exterior_volume;
+        fail();
     }
     make_lsa(ulev_id).vol() = volume;
 
@@ -892,19 +896,11 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         volume = visit_tracker(
             [&local](auto&& t) { return t.initialize(local).volume; }, univ);
 
-        if (!volume)
+        if (CELER_UNLIKELY(!volume))
         {
-#if !CELER_DEVICE_COMPILE
-            auto msg = CELER_LOG_LOCAL(error);
-            msg << "track failed to cross boundary: could not find associated "
-                   "volume in universe "
-                << univ.unchecked_get() << " at local position "
-                << repr(local.pos);
-#endif
-            // Mark as failed and place in local "exterior" to end the search
-            // but preserve the current level
-            this->geo_status(GeoStatus::error);
-            volume = orange_exterior_volume;
+            // Print message, change state, prepare to end loop
+            fail();
+            daughter_id = {};
         }
         daughter_id = visit_tracker(
             [volume](auto&& t) { return t.daughter(volume); }, univ);
@@ -919,7 +915,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     // Save final univ_level
     this->univ_level(ulev_id);
 
-    CELER_ENSURE(this->geo_status() == GeoStatus::exiting_boundary);
+    CELER_ENSURE(this->geo_status() == GeoStatus::exiting_boundary
+                 || this->geo_status() == GeoStatus::error);
 }
 
 //---------------------------------------------------------------------------//
@@ -1005,6 +1002,7 @@ CELER_FORCEINLINE_FUNCTION UnivLevelId OrangeTrackView::univ_level() const
  */
 CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id() const
 {
+    CELER_EXPECT(this->univ_level());
     auto lsa = this->make_lsa();
     return this->make_univ_indexer().global_volume(lsa.univ(), lsa.vol());
 }
