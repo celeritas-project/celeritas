@@ -49,7 +49,7 @@ class JsonOrangeTest : public OrangeGeoTestBase
 
     std::string surface_name(WrappedGeoTrack const& geo) const
     {
-        if (!is_on_boundary(geo.geo_status()))
+        if (!geo.is_on_boundary())
         {
             return "---";
         }
@@ -205,21 +205,24 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     EXPECT_VEC_SOFT_EQ(Real3({-1, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("johnny", this->volume_name(geo));
-    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
 
     // Initialize in daughter universe
     geo = Initializer_t{{0.625, -2, 1}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("c", this->volume_name(geo));
-    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
 
     // Initialize in daughter universe using "this == &other"
     geo = Initializer_t{geo.pos(), {0, 1, 0}, TrackSlotId{0}};
     EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
     EXPECT_EQ("c", this->volume_name(geo));
-    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
 
     {
         // Initialize a separate track slot
@@ -229,7 +232,8 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
         EXPECT_EQ(
             "c", this->params().impl_volumes().at(other.impl_volume_id()).name);
-        EXPECT_EQ(GeoStatus::interior, other.geo_status());
+        EXPECT_FALSE(other.is_outside());
+        EXPECT_FALSE(other.is_on_boundary());
 
         EXPECT_JSON_EQ(
             R"json({"levels":[{"dir":[0.0,1.0,0.0],"pos":[0.625,-2.0,1.0],"universe":"outer","volume":{"impl":"inner_b@outer","local":2}},{"dir":[0.0,1.0,0.0],"pos":[-1.375,0.0,0.5],"universe":"inner","volume":{"impl":"c@inner","local":4}}],"surface":null})json",
@@ -525,11 +529,8 @@ TEST_F(UniversesTest, reentrant)
     // exiting the universe
     geo.set_dir({0, -1, 0});
 
-    // Cannot cross boundary in reentrant state
-    if (CELERITAS_DEBUG)
-    {
-        EXPECT_THROW(geo.cross_boundary(), DebugError);
-    }
+    // Remain in same cell after crossing boundary
+    geo.cross_boundary();
     EXPECT_EQ("inner_c.py", this->surface_name(geo));
     EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
@@ -668,7 +669,8 @@ TEST_F(Geant4Testem15Test, safety)
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
-    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
+    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_FALSE(geo.is_outside());
 
     // Safety at middle should be to the box boundary
     EXPECT_SOFT_EQ(5000.0, geo.find_safety());
