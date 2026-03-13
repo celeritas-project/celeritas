@@ -13,7 +13,7 @@
 #include "corecel/sys/Version.hh"
 
 #include "Logger.hh"
-#include "StreamUtils.hh"
+#include "StreamToString.hh"
 
 namespace celeritas
 {

@@ -10,7 +10,7 @@
 #include <iterator>
 #include <string>
 
-#include "corecel/io/StreamUtils.hh"
+#include "corecel/io/StreamToString.hh"
 
 namespace celeritas
 {

@@ -11,7 +11,7 @@
 
 #include "EnumStringMapper.hh"
 #include "JsonPimpl.hh"
-#include "StreamUtils.hh"
+#include "StreamToString.hh"
 
 using Category = celeritas::OutputInterface::Category;
 
