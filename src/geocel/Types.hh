@@ -83,7 +83,7 @@ enum class Axis
 /*!
  * Geometry state as a track moves across boundaries through the geometry.
  *
- * \note The enum values are chosen to optimize \c is_on_bounary and
+ * \note The enum values are chosen to optimize \c is_on_boundary and
  * \c is_valid .
  */
 enum class GeoStatus : signed char
