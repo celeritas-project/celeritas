@@ -280,8 +280,6 @@ void LocalTransporter::Push(G4Track& g4track)
         track.primary_id
             = hit_processor_->track_reconstruction().acquire(g4track);
     }
-    track.primary_id = celeritas::id_cast<PrimaryId>(
-        track.primary_id.unchecked_get() + g4track.GetTrackID());
     track.energy = energy;
 
     CELER_VALIDATE(track.particle_id,
