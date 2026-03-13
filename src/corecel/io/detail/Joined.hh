@@ -7,7 +7,6 @@
 #pragma once
 
 #include <iosfwd>
-#include <iterator>
 #include <string>
 
 #include "corecel/io/StreamUtils.hh"

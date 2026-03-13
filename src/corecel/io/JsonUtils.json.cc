@@ -9,7 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/Version.hh"
 
 #include "Logger.hh"

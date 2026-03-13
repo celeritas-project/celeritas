@@ -6,10 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iomanip>
 #include <iostream>
 #include <string>
-#include <type_traits>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/StreamUtils.hh"

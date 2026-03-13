@@ -11,8 +11,6 @@
 #include <variant>
 #include <vector>
 
-#include "corecel/io/EnumStringMapper.hh"
-
 namespace celeritas
 {
 namespace orangeinp
