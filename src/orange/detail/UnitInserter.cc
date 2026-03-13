@@ -524,7 +524,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     }
 
     // Save volumes
-    unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::VolumeRecordId>(
+    unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::LocalVolumeRecordId>(
         volume_records_.insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree

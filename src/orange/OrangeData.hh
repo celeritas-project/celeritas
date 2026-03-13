@@ -246,7 +246,7 @@ struct TransformRecord
  */
 struct SimpleUnitRecord
 {
-    using VolumeRecordId = ItemId<LocalVolumeRecord>;
+    using LocalVolumeRecordId = ItemId<LocalVolumeRecord>;
     using ConnectivityRecordId = ItemId<ConnectivityRecord>;
     using LocalVolumeIdId = ItemId<LocalVolumeId>;
     using VolDepthUint = ItemId<vol_level_uint>;
@@ -255,8 +255,8 @@ struct SimpleUnitRecord
     SurfacesRecord surfaces;
     ItemMap<LocalSurfaceId, ConnectivityRecordId> connectivity;
 
-    // Volume data [index by LocalVolumeId]
-    ItemMap<LocalVolumeId, VolumeRecordId> volumes;
+    // Local volume data [index by LocalVolumeId]
+    ItemMap<LocalVolumeId, LocalVolumeRecordId> volumes;
     // For volume instance mapping
     ItemMap<LocalVolumeId, LocalVolumeIdId> local_parent;
     ItemMap<LocalVolumeId, VolDepthUint> local_vol_level;
