@@ -134,9 +134,12 @@ class TMITestBase : virtual public IntegrationTestBase
     void BeginOfEventAction(G4Event const*) override {}
     void EndOfEventAction(G4Event const*) override
     {
-        auto const& local_transport
-            = detail::IntegrationSingleton::instance().local_track_offload();
-        EXPECT_EQ(0, local_transport.GetBufferSize());
+        if (!this->HasFatalFailure())
+        {
+            auto const& local_transport
+                = detail::IntegrationSingleton::instance().local_track_offload();
+            EXPECT_EQ(0, local_transport.GetBufferSize());
+        }
     }
 
     std::function<void()> check_during_run_;
@@ -234,7 +237,7 @@ TEST_F(LarSphere, run)
     CELER_LOG(status) << "Beam on (first run)";
     rm.BeamOn(3);
 
-    if (this->HasFailure())
+    if (this->HasFatalFailure())
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
@@ -402,7 +405,7 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
 void LarSphereOptical::EndOfRunAction(G4Run const* run)
 {
     auto& integration = detail::IntegrationSingleton::instance();
-    if (integration.mode() == OffloadMode::enabled)
+    if (integration.mode() == OffloadMode::enabled && !this->HasFatalFailure())
     {
         auto& local_transporter
             = dynamic_cast<LocalTransporter&>(integration.local_offload());
@@ -517,7 +520,7 @@ class OpNoviceOptical : public OpNoviceIntegrationMixin, public TMITestBase
 void OpNoviceOptical::EndOfRunAction(G4Run const* run)
 {
     auto& integration = detail::IntegrationSingleton::instance();
-    if (integration.mode() == OffloadMode::enabled)
+    if (integration.mode() == OffloadMode::enabled && !this->HasFatalFailure())
     {
         auto& local_transporter
             = dynamic_cast<LocalTransporter&>(integration.local_offload());
@@ -664,7 +667,7 @@ auto OpticalSurfaces::make_setup_options() -> SetupOptions
 void OpticalSurfaces::EndOfRunAction(G4Run const* run)
 {
     auto& integration = detail::IntegrationSingleton::instance();
-    if (integration.mode() == OffloadMode::enabled)
+    if (integration.mode() == OffloadMode::enabled && !this->HasFatalFailure())
     {
         auto& local_transporter
             = dynamic_cast<LocalTransporter&>(integration.local_offload());
@@ -736,7 +739,7 @@ TEST_F(TestEm3, run)
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
 
-    if (this->HasFailure())
+    if (this->HasFatalFailure())
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
