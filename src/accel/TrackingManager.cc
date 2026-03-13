@@ -164,7 +164,8 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
  * the after the main tracking loop has completed.
  *
  * That is done to allow for models that may add "onload" particles back to
- * Geant4.
+ * Geant4. It *may* be called multiple times per event if tracks are
+ * "onloaded".
  */
 void TrackingManager::FlushEvent()
 {

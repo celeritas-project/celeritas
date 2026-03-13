@@ -124,6 +124,9 @@ void GeantTrackReconstruction::clear()
 //---------------------------------------------------------------------------//
 /*!
  * At the start of an event, reset the primary ID counter.
+ *
+ * \pre The track data *must* have been previously flushed with the \c clear
+ * command.
  */
 void GeantTrackReconstruction::init_event()
 {
