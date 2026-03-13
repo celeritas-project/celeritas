@@ -8,6 +8,8 @@
 
 #include <algorithm>
 
+#include "corecel/cont/Range.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
