@@ -86,7 +86,7 @@ enum class Axis
  * \note The enum values are chosen to optimize \c is_on_bounary and
  * \c is_valid .
  */
-enum class GeoStatus : char
+enum class GeoStatus : signed char
 {
     error = -2,  //!< Unrecoverable error occurred
     invalid,  //!< Unusable but allowable state
