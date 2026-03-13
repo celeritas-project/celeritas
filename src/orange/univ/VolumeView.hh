@@ -30,7 +30,7 @@ namespace celeritas
  * tracking time to determine whether a particle is inside the volume. The
  * encoded set of operations is the \c logic accessor.
  */
-class VolumeView
+class LocalVolumeView
 {
   public:
     //@{
@@ -40,9 +40,9 @@ class VolumeView
 
   public:
     // Construct with reference to persistent data
-    inline CELER_FUNCTION VolumeView(ParamsRef const& params,
-                                     SimpleUnitRecord const& unit_record,
-                                     LocalVolumeId id);
+    inline CELER_FUNCTION LocalVolumeView(ParamsRef const& params,
+                                          SimpleUnitRecord const& unit_record,
+                                          LocalVolumeId id);
 
     //// ACCESSORS ////
 
@@ -91,10 +91,11 @@ class VolumeView
  * Construct with reference to persistent data.
  */
 CELER_FUNCTION
-VolumeView::VolumeView(ParamsRef const& params,
-                       SimpleUnitRecord const& unit_record,
-                       LocalVolumeId id)
-    : params_(params), def_(VolumeView::volume_record(params, unit_record, id))
+LocalVolumeView::LocalVolumeView(ParamsRef const& params,
+                                 SimpleUnitRecord const& unit_record,
+                                 LocalVolumeId id)
+    : params_(params)
+    , def_(LocalVolumeView::volume_record(params, unit_record, id))
 {
 }
 
@@ -102,7 +103,7 @@ VolumeView::VolumeView(ParamsRef const& params,
 /*!
  * Number of surfaces bounding this volume.
  */
-CELER_FUNCTION FaceId::size_type VolumeView::num_faces() const
+CELER_FUNCTION FaceId::size_type LocalVolumeView::num_faces() const
 {
     return def_.faces.size();
 }
@@ -113,7 +114,7 @@ CELER_FUNCTION FaceId::size_type VolumeView::num_faces() const
  *
  * This is an O(1) operation.
  */
-CELER_FUNCTION LocalSurfaceId VolumeView::get_surface(FaceId id) const
+CELER_FUNCTION LocalSurfaceId LocalVolumeView::get_surface(FaceId id) const
 {
     CELER_EXPECT(id < this->num_faces());
     auto offset = def_.faces.begin()->unchecked_get();
@@ -133,7 +134,7 @@ CELER_FUNCTION LocalSurfaceId VolumeView::get_surface(FaceId id) const
  *
  * This is an O(log(num_faces)) operation.
  */
-CELER_FUNCTION FaceId VolumeView::find_face(LocalSurfaceId surface) const
+CELER_FUNCTION FaceId LocalVolumeView::find_face(LocalSurfaceId surface) const
 {
     CELER_EXPECT(surface);
     auto surface_list = this->faces();
@@ -153,7 +154,7 @@ CELER_FUNCTION FaceId VolumeView::find_face(LocalSurfaceId surface) const
 /*!
  * Get all the surface IDs corresponding to the faces of this volume.
  */
-CELER_FUNCTION LdgSpan<LocalSurfaceId const> VolumeView::faces() const
+CELER_FUNCTION LdgSpan<LocalSurfaceId const> LocalVolumeView::faces() const
 {
     return params_.local_surface_ids[def_.faces];
 }
@@ -162,7 +163,7 @@ CELER_FUNCTION LdgSpan<LocalSurfaceId const> VolumeView::faces() const
 /*!
  * Get logic definition.
  */
-CELER_FUNCTION LdgSpan<logic_int const> VolumeView::logic() const
+CELER_FUNCTION LdgSpan<logic_int const> LocalVolumeView::logic() const
 {
     return params_.logic_ints[def_.logic];
 }
@@ -171,7 +172,7 @@ CELER_FUNCTION LdgSpan<logic_int const> VolumeView::logic() const
 /*!
  * Get the maximum number of surface intersections.
  */
-CELER_FUNCTION logic_int VolumeView::max_intersections() const
+CELER_FUNCTION logic_int LocalVolumeView::max_intersections() const
 {
     return def_.max_intersections;
 }
@@ -180,7 +181,7 @@ CELER_FUNCTION logic_int VolumeView::max_intersections() const
 /*!
  * Whether the volume has internal surface crossings.
  */
-CELER_FUNCTION bool VolumeView::internal_surfaces() const
+CELER_FUNCTION bool LocalVolumeView::internal_surfaces() const
 {
     return def_.flags & LocalVolumeRecord::internal_surfaces;
 }
@@ -189,7 +190,7 @@ CELER_FUNCTION bool VolumeView::internal_surfaces() const
 /*!
  * Whether the volume is an "implicit complement".
  */
-CELER_FUNCTION bool VolumeView::implicit_vol() const
+CELER_FUNCTION bool LocalVolumeView::implicit_vol() const
 {
     return def_.flags & LocalVolumeRecord::implicit_vol;
 }
@@ -198,7 +199,7 @@ CELER_FUNCTION bool VolumeView::implicit_vol() const
 /*!
  * Whether the safety distance can be calculated with the simple algorithm.
  */
-CELER_FUNCTION bool VolumeView::simple_safety() const
+CELER_FUNCTION bool LocalVolumeView::simple_safety() const
 {
     return def_.flags & LocalVolumeRecord::simple_safety;
 }
@@ -207,7 +208,7 @@ CELER_FUNCTION bool VolumeView::simple_safety() const
 /*!
  * Whether the intersection is the closest interior surface.
  */
-CELER_FUNCTION bool VolumeView::simple_intersection() const
+CELER_FUNCTION bool LocalVolumeView::simple_intersection() const
 {
     return !(def_.flags
              & (LocalVolumeRecord::internal_surfaces
@@ -221,9 +222,9 @@ CELER_FUNCTION bool VolumeView::simple_intersection() const
  * This is called during construction.
  */
 inline CELER_FUNCTION LocalVolumeRecord const&
-VolumeView::volume_record(ParamsRef const& params,
-                          SimpleUnitRecord const& unit,
-                          LocalVolumeId local_vol_id)
+LocalVolumeView::volume_record(ParamsRef const& params,
+                               SimpleUnitRecord const& unit,
+                               LocalVolumeId local_vol_id)
 {
     CELER_EXPECT(local_vol_id < unit.volumes.size());
     return params.volume_records[unit.volumes[local_vol_id]];

@@ -134,10 +134,10 @@ class SimpleUnitTracker
                                                           F&& predicate) const;
 
     inline CELER_FUNCTION Intersection simple_intersect(LocalState const&,
-                                                        VolumeView const&,
+                                                        LocalVolumeView const&,
                                                         size_type) const;
     inline CELER_FUNCTION Intersection complex_intersect(LocalState const&,
-                                                         VolumeView const&,
+                                                         LocalVolumeView const&,
                                                          size_type,
                                                          Sense,
                                                          real_type) const;
@@ -148,7 +148,7 @@ class SimpleUnitTracker
     inline CELER_FUNCTION LocalSurfaceVisitor make_surface_visitor() const;
 
     // Create a Volumes object from the params
-    inline CELER_FUNCTION VolumeView
+    inline CELER_FUNCTION LocalVolumeView
     make_local_volume(LocalVolumeId vol_id) const;
 };
 
@@ -191,7 +191,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     detail::OnFace on_surface;
     auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
         on_surface = {};
-        VolumeView vol = this->make_local_volume(id);
+        LocalVolumeView vol = this->make_local_volume(id);
         auto calc_senses = detail::SenseCalculator(
             this->make_surface_visitor(), vol, state.pos, on_surface);
         return LogicEvaluator(vol.logic())(calc_senses);
@@ -231,7 +231,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
             return false;
         }
 
-        VolumeView vol = this->make_local_volume(id);
+        LocalVolumeView vol = this->make_local_volume(id);
         detail::OnFace face{detail::find_face(vol, state.surface)};
         auto calc_senses = detail::SenseCalculator(
             this->make_surface_visitor(), vol, state.pos, face);
@@ -313,7 +313,7 @@ SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
     CELER_EXPECT(max_dist > 0);
 
     // Resize temporaries based on volume properties
-    VolumeView vol = this->make_local_volume(state.volume);
+    LocalVolumeView vol = this->make_local_volume(state.volume);
     CELER_ASSERT(state.temp_next.size >= vol.max_intersections());
 
     if (vol.implicit_vol())
@@ -391,7 +391,7 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
 {
     CELER_EXPECT(vol_id);
 
-    VolumeView vol = this->make_local_volume(vol_id);
+    LocalVolumeView vol = this->make_local_volume(vol_id);
     if (!vol.simple_safety())
     {
         // Has a tricky surface: we can't use the simple algorithm to calculate
@@ -464,7 +464,7 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::simple_intersect(LocalState const& state,
-                                    VolumeView const& vol,
+                                    LocalVolumeView const& vol,
                                     size_type num_isect) const -> Intersection
 {
     CELER_EXPECT(num_isect > 0);
@@ -529,7 +529,7 @@ SimpleUnitTracker::simple_intersect(LocalState const& state,
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::complex_intersect(LocalState const& state,
-                                     VolumeView const& vol,
+                                     LocalVolumeView const& vol,
                                      size_type num_isect,
                                      Sense target_sense,
                                      real_type max_distance) const
@@ -629,7 +629,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
     auto is_intersecting
         = [this, &state](LocalVolumeId vol_id,
                          real_type cur_max_dist) -> Intersection {
-        VolumeView vol = this->make_local_volume(vol_id);
+        LocalVolumeView vol = this->make_local_volume(vol_id);
 
         detail::CalcIntersections calc_intersections{
             cur_max_dist,
@@ -686,10 +686,10 @@ SimpleUnitTracker::make_surface_visitor() const
 /*!
  * Create a Volume view object from the params for this unit.
  */
-CELER_FORCEINLINE_FUNCTION VolumeView
+CELER_FORCEINLINE_FUNCTION LocalVolumeView
 SimpleUnitTracker::make_local_volume(LocalVolumeId vol_id) const
 {
-    return VolumeView{params_, unit_record_, vol_id};
+    return LocalVolumeView{params_, unit_record_, vol_id};
 }
 
 //---------------------------------------------------------------------------//
