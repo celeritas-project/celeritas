@@ -2,13 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/univ/VolumeView.test.cc
+//! \file orange/univ/LocalVolumeView.test.cc
 //---------------------------------------------------------------------------//
+#include "orange/univ/detail/LocalVolumeView.hh"
+
 #include "corecel/Config.hh"
 
 #include "corecel/cont/Range.hh"
 #include "orange/OrangeGeoTestBase.hh"
-#include "orange/univ/VolumeView.hh"
 
 #include "celeritas_test.hh"
 
@@ -22,7 +23,7 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class VolumeViewTest : public OrangeGeoTestBase
+class VolumeViewTest : public ::celeritas::test::OrangeGeoTestBase
 {
   protected:
     LocalVolumeView make_view(LocalVolumeId v) const

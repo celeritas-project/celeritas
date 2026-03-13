@@ -16,7 +16,7 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
-#include "orange/univ/VolumeView.hh"
+#include "orange/univ/detail/LocalVolumeView.hh"
 #include "orange/univ/detail/Types.hh"
 
 #include "celeritas_test.hh"

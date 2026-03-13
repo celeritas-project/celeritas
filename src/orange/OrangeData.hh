@@ -81,7 +81,7 @@ struct OrangeParamsScalars
  * - Surface IDs are local to the unit.
  * - The encoded logic references the local surface IDs.
  *
- * \sa VolumeView
+ * \sa LocalVolumeView
  */
 struct LocalVolumeRecord
 {

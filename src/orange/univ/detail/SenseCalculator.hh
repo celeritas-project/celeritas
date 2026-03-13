@@ -12,9 +12,9 @@
 #include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
+#include "LocalVolumeView.hh"
 #include "SurfaceFunctors.hh"
 #include "Types.hh"
-#include "../VolumeView.hh"
 
 namespace celeritas
 {

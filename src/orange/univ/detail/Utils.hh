@@ -12,8 +12,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
 
+#include "LocalVolumeView.hh"
 #include "Types.hh"
-#include "../VolumeView.hh"
 
 namespace celeritas
 {
