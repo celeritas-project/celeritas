@@ -91,7 +91,7 @@ class OrangeTrackView
     // Whether the track is exactly on a surface
     inline CELER_FUNCTION bool is_on_boundary() const;
     // Whether the last operation resulted in an error
-    inline bool failed() const;
+    inline CELER_FUNCTION bool failed() const;
     // Get the normal vector pointing out of the current volume
     inline CELER_FUNCTION Real3 normal() const;
 

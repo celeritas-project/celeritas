@@ -83,6 +83,9 @@ enum class Axis
 /*!
  * Geometry state as a track moves across boundaries through the geometry.
  *
+ * The "exiting" and "entering" states are relative to the \em boundary
+ * (surface) that the track is on, \em not the volume.
+ *
  * \note The enum values are chosen to optimize \c is_on_boundary and
  * \c is_valid .
  */
