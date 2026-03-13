@@ -17,22 +17,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Analyzer module that exports detector geometry information and, \em
- * optionally , \c sim::SimEnergyDeposit data to basic ROOT types for use in
- * - Celeritas unit tests (e.g. LarStandaloneRunner); or
- * - Non-LarSoft applications (e.g. a Geant4 offloading app).
- *
- * The simplified TTree does not require dictionaries. Each TTree entry is one
- * event. Each TBranch is a vector of \c sim::SimEnergyDeposit data, and thus
- * each TBranch entry is associated to a \c sim::SimEnergyDeposit object.
- *
- * Usage:
- * Export detector geometry data only:
- * $ lar -c job.fcl
- * Export detector geometry \em and simulation data:
- * $ lar -c job.fcl -s [geant4-output.root]
- *
- * To store only a subset of events, use the optional `-n [num_events]` flag.
+ * Analyzer module that loads \c SimEnergyDeposit and \c OpDetBacktrackerRecord
+ * data from an \c art::Event and generates output data for comparison.
  */
 class PDSimAna : public art::EDAnalyzer
 {
@@ -61,10 +47,10 @@ class PDSimAna : public art::EDAnalyzer
     PDSimAna& operator=(PDSimAna&&) = delete;
     //!@}
 
-    // Create histograms with sim energy deposit data
+    // Initialize output file(s) and data objects
     void beginJob() override;
 
-    // Export simulation data from input file
+    // Read art::Event and generate output data
     void analyze(art::Event const& event) override;
 
   private:
