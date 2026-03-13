@@ -1,33 +1,34 @@
 digraph GeoStatus {
   graph [rankdir=LR];
-  node [shape=box];
+  node [fontsize=11 shape=box];
+  edge [fontsize=10];
 
   // States
-  "interior"            [label="interior\n(inside volume, not on boundary)"];
-  "exiting_boundary"    [label="exiting_boundary\n(on boundary, next step moves away from surface)"];
-  "entering_boundary"   [label="entering_boundary\n(on boundary, next step crosses to next volume)"];
-  "error"               [label="error\n(unrecoverable failure)", style=filled, fillcolor=lightcoral];
-  "invalid"             [label="invalid\n(unusable but not an error)", style=filled, shape=circle];
+  "interior"            [label=<<FONT FACE="Monospace">interior</FONT><BR/>(inside volume,<BR/>not on boundary)>];
+  "exiting_boundary"    [label=<<FONT FACE="Monospace">exiting_boundary</FONT><BR/>(on boundary:<BR/>next step moves<BR/>away from surface)>];
+  "entering_boundary"   [label=<<FONT FACE="Monospace">entering_boundary</FONT><BR/>(on boundary:<BR/>next step crosses<BR/>to next volume)>];
+  "error"               [label=<<FONT FACE="Monospace">error</FONT><BR/>(unrecoverable<BR/>failure)>, style=filled, fillcolor=lightcoral];
+  "invalid"             [label=<<FONT FACE="Monospace">invalid</FONT><BR/>(unusable but<BR/>not an error)>, style=filled, shape=oval];
 
   // From invalid: operator= places track in geometry
-  "invalid" -> "interior"  [label="initialize\n[interior]"];
-  "invalid" -> "exiting_boundary"  [label="initialize\n[on boundary]"];
-  "invalid" -> "error"             [label="initialize\n[volume not found]"];
-  "invalid" -> "invalid"           [label="initialize\n[volume not found]"];
+  "invalid" -> "interior"  [label=<<FONT FACE="Monospace">initialize</FONT><BR/>[interior]>];
+  "invalid" -> "exiting_boundary"  [label=<<FONT FACE="Monospace">initialize</FONT><BR/>[on boundary]>];
+  "invalid" -> "error"             [label=<<FONT FACE="Monospace">initialize</FONT><BR/>[volume not found]>];
+  "invalid" -> "invalid"           [label=<<FONT FACE="Monospace">initialize</FONT><BR/>[not in world (G4, VG)]>];
 
   // From interior: propagation
-  "interior" -> "entering_boundary"  [label="move_to_boundary"];
-  "interior" -> "interior"           [label="move_internal"];
+  "interior" -> "entering_boundary"  [label=<<FONT FACE="Monospace">move_to_boundary</FONT>>];
+  "interior" -> "interior"           [label=<<FONT FACE="Monospace">move_internal</FONT>>];
 
   // From exiting_boundary: normal tracking
-  "exiting_boundary" -> "interior"           [label="move_internal"];
-  "exiting_boundary" -> "entering_boundary"  [label="set_dir\n[reentrant]", dir="both"];
-  "exiting_boundary" -> "entering_boundary"  [label="move_to_boundary\n[next surface]"];
+  "exiting_boundary" -> "interior"           [label=<<FONT FACE="Monospace">move_internal</FONT>>];
+  "exiting_boundary" -> "entering_boundary"  [label=<<FONT FACE="Monospace">set_dir</FONT><BR/>[reentrant]>, dir="both"];
+  "exiting_boundary" -> "entering_boundary"  [label=<<FONT FACE="Monospace">move_to_boundary</FONT><BR/>[next surface]>];
   // DEPRECATED: should be handled by skipping geo crossing
- "exiting_boundary" -> "exiting_boundary"   [label="DEPRECATED:\ncross_boundary\n[when reentrant]", color=lightcoral];
+  "exiting_boundary" -> "exiting_boundary"   [label=<DEPRECATED:<BR/><FONT FACE="Monospace">cross_boundary</FONT><BR/>[when reentrant]>, color=lightcoral];
 
   // Crossing the surface
-  "entering_boundary" -> "exiting_boundary"  [label="cross_boundary\n[next interior volume]"];
-  "entering_boundary" -> "error"             [label="cross_boundary\n[new volume not found]"];
-  "entering_boundary" -> "invalid"           [label="cross_boundary\n[exited world (G4, VG)]"];
+  "entering_boundary" -> "exiting_boundary"  [label=<<FONT FACE="Monospace">cross_boundary</FONT><BR/>[next interior volume]>];
+  "entering_boundary" -> "error"             [label=<<FONT FACE="Monospace">cross_boundary</FONT><BR/>[new volume not found]>];
+  "entering_boundary" -> "invalid"           [label=<<FONT FACE="Monospace">cross_boundary</FONT><BR/>[exited world (G4, VG)]>];
 }
