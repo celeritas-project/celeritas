@@ -4,16 +4,17 @@
 //---------------------------------------------------------------------------//
 //! \file orange/univ/VolumeView.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/univ/VolumeView.hh"
-
 #include "corecel/Config.hh"
 
 #include "corecel/cont/Range.hh"
 #include "orange/OrangeGeoTestBase.hh"
+#include "orange/univ/VolumeView.hh"
 
 #include "celeritas_test.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 namespace test
 {
@@ -105,4 +106,5 @@ TEST_F(VolumeViewTest, five_volumes)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace detail
 }  // namespace celeritas

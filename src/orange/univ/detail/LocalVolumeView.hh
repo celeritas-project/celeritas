@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/univ/VolumeView.hh
+//! \file orange/univ/detail/LocalVolumeView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,6 +13,8 @@
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -231,4 +233,5 @@ LocalVolumeView::volume_record(ParamsRef const& params,
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
