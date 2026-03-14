@@ -193,7 +193,7 @@ TEST_F(MaterialScintillationGaussianTest, data)
 
     EXPECT_EQ(1, data.spectra.size());
 
-    auto const& s = data.spectra[ScintSpectrumId{opt_mat_.get()}];
+    auto const& s = data.spectra[opt_mat_];
     // Total yield: 2.5 + 1.5 + 1.0 = 5.0
     EXPECT_REAL_EQ(5.0, s.yield_per_energy);
     EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
@@ -520,7 +520,7 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
 
     real_type expected_lambda{0};
 
-    auto const& s = data.spectra[ScintSpectrumId{result.material.get()}];
+    auto const& s = data.spectra[result.material];
     for (auto comp_idx : range(s.components.size()))
     {
         auto const& component = data.scint_records[s.components[comp_idx]];

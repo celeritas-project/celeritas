@@ -120,7 +120,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     // Sample a spectrum distribution from the spectra component
     ScintDistributionRecord const& component = [&] {
         // NOTE: material and spectrum currently have one-to-one correspondence
-        auto spectrum_id = id_cast<ScintSpectrumId>(dist_.material.get());
+        auto spectrum_id = dist_.material;
         CELER_ASSERT(spectrum_id < shared_.spectra.size());
         auto const& s = shared_.spectra[spectrum_id];
 

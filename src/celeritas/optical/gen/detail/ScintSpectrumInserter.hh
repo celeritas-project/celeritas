@@ -15,6 +15,7 @@
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/PdfUtils.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/inp/OpticalPhysics.hh"
 
@@ -34,7 +35,7 @@ class ScintSpectrumInserter
     //!@{
     //! \name Type aliases
     using Data = HostVal<ScintillationData>;
-    using SpectrumId = ScintSpectrumId;
+    using SpectrumId = OptMatId;
     //!@}
 
   public:
@@ -49,7 +50,7 @@ class ScintSpectrumInserter
 
   private:
     // Index and inserter types for nonuniform grids (use opaque ID for grids)
-    CollectionBuilder<ScintSpectrumRecord, MemSpace::host> spectra_;
+    CollectionBuilder<ScintSpectrumRecord, MemSpace::host, OptMatId> spectra_;
     DedupeCollectionBuilder<real_type> reals_;
     CollectionBuilder<ScintDistributionRecord> scint_records_;
     using GridId = OpaqueId<NonuniformGridRecord>;

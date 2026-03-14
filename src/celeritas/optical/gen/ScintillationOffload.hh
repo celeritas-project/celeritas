@@ -101,7 +101,7 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     CELER_EXPECT(pre_step_.material);
 
     // Scintillation spectra currently have one-to-one mapping with material
-    auto spectrum_id = id_cast<ScintSpectrumId>(pre_step_.material.get());
+    auto spectrum_id = pre_step_.material;
     CELER_ASSERT(spectrum_id < shared_.spectra.size());
     auto const& spectrum = shared_.spectra[spectrum_id];
 

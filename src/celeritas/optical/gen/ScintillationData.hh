@@ -92,7 +92,7 @@ struct ScintillationData
     //! Resolution scale for each material [OptMatId]
     OptMatItems<real_type> resolution_scale;
     //! Scintillation spectra (currently corresponds directly to OptMatId)
-    Items<ScintSpectrumRecord> spectra;
+    OptMatItems<ScintSpectrumRecord> spectra;
 
     // Cumulative probability of emission as a function of energy [MeV]
     Items<NonuniformGridRecord> energy_cdfs;
