@@ -112,8 +112,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
                 << counters.num_pending << " queued, " << counters.num_cut
                 << " cut, and " << counters.num_errored << " errored";
             // Add all untransported tracks to 'cut' counter
-            counters.num_cut += counters.num_active + counters.num_alive
-                                + counters.num_pending;
+            counters.num_cut += counters.num_active + counters.num_pending;
 
             this->params()->gen_reg()->reset(*state.aux());
             state.reset();
