@@ -260,7 +260,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         return *this;
     }
 
-    // Reset surface/boundary information (setting status to interior)
+    // Reset status and surface information
     this->clear_surface();
     this->clear_next();
     CELER_ASSERT(this->geo_status() == GeoStatus::interior);
@@ -754,6 +754,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(dist > 0 && dist <= this->next_step());
     CELER_EXPECT(dist != this->next_step() || !this->has_next_surface());
+    CELER_EXPECT(this->geo_status() != GeoStatus::error);
 
     // Move and update the next step
     for (auto i : range(this->univ_level() + 1))
@@ -776,6 +777,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
  */
 CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
+    CELER_EXPECT(this->geo_status() != GeoStatus::error);
+
     // Transform all nonlocal universe levels
     auto local_pos = pos;
     auto apply_transform = TransformVisitor{params_};
@@ -1231,10 +1234,12 @@ CELER_FUNCTION void OrangeTrackView::clear_next()
 //---------------------------------------------------------------------------//
 /*!
  * Clear the surface on the current universe level.
+ *
+ * \note If the previous track failed, then the error status will be cleared.
+ * (This is necessary to initialize the geometry.)
  */
 CELER_FUNCTION void OrangeTrackView::clear_surface()
 {
-    CELER_EXPECT(this->geo_status() != GeoStatus::error);
     states_.surface_univ_level[track_slot_] = {};
     this->geo_status(GeoStatus::interior);
     CELER_ENSURE(!this->is_on_boundary());
