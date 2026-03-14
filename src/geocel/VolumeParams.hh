@@ -84,12 +84,12 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     bool empty() const { return v_labels_.empty(); }
 
     //! World volume
-    VolumeId world() const { return mirror_.host_ref().world; }
+    VolumeId world() const { return data_.host_ref().world; }
 
     //! Depth of the volume DAG (a world without children is 1)
     vol_level_uint num_volume_levels() const
     {
-        return mirror_.host_ref().num_volume_levels;
+        return data_.host_ref().num_volume_levels;
     }
 
     //! Number of volumes
@@ -128,15 +128,15 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     //! \name Data interface
 
     //! Access volume graph data on the host
-    HostRef const& host_ref() const final { return mirror_.host_ref(); }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
     //! Access volume graph data on the device
-    DeviceRef const& device_ref() const final { return mirror_.device_ref(); }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
     //!@}
 
   private:
     VolumeMap v_labels_;
     VolInstMap vi_labels_;
-    ParamsDataStore<VolumeParamsData> mirror_;
+    ParamsDataStore<VolumeParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

@@ -184,10 +184,10 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     }
 
     CELER_ENSURE(host_data);
-    mirror_ = ParamsDataStore<VolumeParamsData>{std::move(host_data)};
+    data_ = ParamsDataStore<VolumeParamsData>{std::move(host_data)};
 
-    CELER_ENSURE(mirror_.host_ref().volumes.size() == num_volumes);
-    CELER_ENSURE(mirror_.host_ref().volume_ids.size() == num_volume_instances);
+    CELER_ENSURE(data_.host_ref().volumes.size() == num_volumes);
+    CELER_ENSURE(data_.host_ref().volume_ids.size() == num_volume_instances);
     CELER_ENSURE((this->num_volume_levels() == 0) == this->empty());
 }
 
