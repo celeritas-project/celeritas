@@ -118,8 +118,7 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     inline VolumeId volume(VolumeInstanceId vi_id) const;
 
     //!@{
-    //! \deprecated Use \c get(v_id).parents() / \c get(v_id).material()
-    //! instead
+    //! \deprecated Use \c get instead
     [[deprecated]] inline SpanVolInst parents(VolumeId v_id) const;
     [[deprecated]] inline GeoMatId material(VolumeId v_id) const;
     //!@}
@@ -179,7 +178,6 @@ VolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
 }
 
 //---------------------------------------------------------------------------//
-//!@{ \deprecated
 auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
 {
     return this->get(v_id).parents();
@@ -188,7 +186,6 @@ GeoMatId VolumeParams::material(VolumeId v_id) const
 {
     return this->get(v_id).material();
 }
-//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
