@@ -49,13 +49,13 @@ namespace celeritas
  * - Move within the current volume, not crossing a boundary, via \c
  *   move_internal or \c move_to_boundary.
  * - If on a boundary, \c normal can be used to calculate the current surface
- *   normal. Depending on the implementation, this normal may be "away from"
- *   the current volume, or its sign may require interpreting based on the \c
- *   geo_status.
- * - If exiting a boundary, change volumes ("relocate") with \c cross_boundary.
- *   The post-crossing status can be \c error, \c boundary_out, or \c
- *   invalid . Some geometries represent the exterior as a null canonical
- *   VolumeId, and some as an invalid state.
+ *   normal, but its dot product with the track direction may not be
+ *   meaningful. Use \c geo_status to determine whether the track is incident
+ *   or exiting the boundary.
+ * - If incident into the boundary, change volumes ("relocate") with \c
+ *   cross_boundary.  The post-crossing status can be \c error, \c
+ *   boundary_out, or \c invalid . Some geometries represent the exterior as a
+ *   null canonical VolumeId, and some as an invalid state.
  *
  * \note The free function \c is_on_boundary will be true of the geo status
  * both before \em and after the call to \c cross_boundary, and the surface
