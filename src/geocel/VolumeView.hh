@@ -8,7 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
+#include "corecel/data/LdgIterator.hh"
 #include "geocel/Types.hh"
 
 #include "VolumeData.hh"
@@ -34,7 +34,7 @@ class VolumeView
     //!@{
     //! \name Type aliases
     using ParamsRef = NativeCRef<VolumeParamsData>;
-    using SpanVolInst = Span<VolumeInstanceId const>;
+    using SpanVolInst = LdgSpan<VolumeInstanceId const>;
     //!@}
 
   public:
@@ -58,7 +58,7 @@ class VolumeView
     ParamsRef const& params_;
     VolumeId vol_id_;
 
-    CELER_FORCEINLINE_FUNCTION VolumeRecord const& record() const;
+    inline CELER_FUNCTION VolumeRecord const& record() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -102,7 +102,7 @@ CELER_FUNCTION auto VolumeView::children() const -> SpanVolInst
 }
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION VolumeRecord const& VolumeView::record() const
+CELER_FORCEINLINE_FUNCTION VolumeRecord const& VolumeView::record() const
 {
     return params_.volumes[vol_id_];
 }
