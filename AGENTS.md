@@ -15,18 +15,16 @@ Celeritas is a GPU-accelerated HEP detector physics library for HL-LHC, integrat
 cmake -B build -G Ninja && cd build && ninja && ctest
 ```
 
-### When to Commit
-Commit after major work when:
-- New files compile successfully
-- Refactored code builds without errors
-- Tests pass or aren't affected
-- Work is a logical, complete unit
+Object files and tests may have different paths and test names than you expect (`src/celeritas/ext/GeantImporter.cc` → `src/celeritas/CMakeFiles/celeritas_geant4.dir/ext/GeantImporter.cc.o` and `celeritas/ext/GeantImporter.test.cc` → `test/celeritas/ext_GeantImporter`), and some test executables are run as distinct CTest tests due to environment variables and side effects (`ctest --show-only | grep GeantImporter` → `Test #211: celeritas/ext/GeantImporter:DuneCryostat.*`).
 
-**Commit workflow:**
+### Commit
+**Always** commit after completing a list of tasks.
+
+Document that the commit is AI-assisted and with what tool (e.g., Github Copilot) and model (e.g. Claude Sonnet 3.6)
 ```bash
 git add <files>
 pre-commit run        # Auto-formats code
-git commit -m "Message" --trailer "Assisted-by: GitHub Copilot (<model-name>)"
+git commit -m "Message" --trailer "Assisted-by: <agentic-tool> (<model-name>)"
 ```
 
 ## Architecture
@@ -139,10 +137,9 @@ State collections need `resize(size)` operators for track slots.
 ## Common Patterns
 
 ### Creating New Classes
-1. Use `scripts/dev/celeritas-gen.py` for file skeletons
-2. Separate data from behavior: `FooData`, `FooParams`, `FooView`
-3. Add `operator bool()` validation to data structs
-4. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
+1. Separate data from behavior: `FooData`, `FooParams`, `FooView`
+2. Add `operator bool()` validation to data structs
+3. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
 
 ### Consistency Checklist
 When adding features, ensure consistency across:
@@ -158,13 +155,6 @@ When adding features, ensure consistency across:
 - Citations: `\citep{author-keyword-year}` (refs in `doc/_static/zotero.bib`)
 - Physics constants need units and citations
 
-## Development Tools
-
-- `pre-commit`: Auto-formats (clang-format: 80 cols, East const)
-- `celeritas-gen.py`: Generate file templates
-- `ctest -R <pattern>`: Run specific tests
-- `ninja <target>`: Build specific component
-
 ## Common Pitfalls
 
 **Don't:**
@@ -175,11 +165,3 @@ When adding features, ensure consistency across:
 **Do:**
 - Ensure data consistency (input → data → view → executor)
 - Add unit tests for all classes (detail classes excepted)
-- Run `pre-commit run` before committing
-
-## External Dependencies
-
-Required: Geant4, GoogleTest (tests), CLI11 (apps), nlohmann_json (I/O)
-Optional: VecGeom, ROOT, HepMC3, DD4hep, MPI, OpenMP, Perfetto
-
-See `scripts/spack-packages.yaml` for versions.

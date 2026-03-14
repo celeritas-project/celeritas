@@ -35,6 +35,26 @@ Celeritas is a collaborative project with *collective* ownership.
 .. _GitHub terms of service: https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license
 
 
+AI-authored and -assisted pull requests
+---------------------------------------
+
+As of the year 2026, automated agentic software development tools have advanced
+to the point of providing considerable utility for large software projects.
+They can greatly accelerate the implementation of new features and code
+refactors. However, because the underpinning Large Language Models (LLMs) are
+essentially optimized for generating *plausible* output in *large quantities*,
+they can generate code that is *(1)* incorrect or superfluous while
+superficially seeming necessary and *(2)* unnecessarily complex/verbose. For
+this reason, and for ethical considerations, we make three requirements:
+
+- AI-assisted code commits *must* be tagged with an `Assisted-by` trailer (see
+  [AGENTS file](./AGENTS.md#Commit).
+- Every pull request to Celeritas *must* be submitted in draft mode with a
+  human in the loop.
+- The submitting person *must* perform a review of the submitted code before
+  marking the PR as "ready."
+
+
 Attribution
 -----------
 
