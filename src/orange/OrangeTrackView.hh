@@ -619,13 +619,13 @@ CELER_FUNCTION Real3 OrangeTrackView::normal() const
  * the number of surfaces needed to check, sort, or write to temporary memory,
  * thereby speeding up transport.
  *
- * \todo Prohibit when GeoStatus::entering_boundary
+ * \todo Prohibit when GeoStatus::boundary_inc
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type next_step)
 {
     CELER_EXPECT(next_step > 0);
 
-    if (CELER_UNLIKELY(this->geo_status() == GeoStatus::entering_boundary))
+    if (CELER_UNLIKELY(this->geo_status() == GeoStatus::boundary_inc))
     {
         // On a boundary, headed in: next step is zero
         return {0, true};
@@ -724,7 +724,7 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
-    CELER_EXPECT(this->geo_status() != GeoStatus::entering_boundary);
+    CELER_EXPECT(this->geo_status() != GeoStatus::boundary_inc);
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->has_next_surface());
 
@@ -736,11 +736,11 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
         axpy(dist, lsa.dir(), &lsa.pos());
     }
 
-    this->geo_status(GeoStatus::entering_boundary);
+    this->geo_status(GeoStatus::boundary_inc);
     this->surface(this->next_univ_level(), this->next_surf());
     this->clear_next();
 
-    CELER_ENSURE(this->geo_status() == GeoStatus::entering_boundary);
+    CELER_ENSURE(this->geo_status() == GeoStatus::boundary_inc);
 }
 
 //---------------------------------------------------------------------------//
@@ -810,14 +810,14 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
  * The position *must* be on the boundary following a move-to-boundary. This
  * should only be called once per boundary crossing.
  *
- * \todo Prohibit calling unless entering_boundary.
+ * \todo Prohibit calling unless boundary_inc.
  */
 CELER_FUNCTION void OrangeTrackView::cross_boundary()
 {
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    if (this->geo_status() == GeoStatus::exiting_boundary)
+    if (this->geo_status() == GeoStatus::boundary_out)
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
@@ -826,7 +826,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     // Cross surface by flipping the sense
     states_.sense[track_slot_] = flip_sense(this->sense());
-    this->geo_status(GeoStatus::exiting_boundary);
+    this->geo_status(GeoStatus::boundary_out);
 
     // Create local state from post-crossing level and updated sense
     UnivLevelId ulev_id{this->surface_univ_level()};
@@ -915,7 +915,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     // Save final univ_level
     this->univ_level(ulev_id);
 
-    CELER_ENSURE(this->geo_status() == GeoStatus::exiting_boundary
+    CELER_ENSURE(this->geo_status() == GeoStatus::boundary_out
                  || this->geo_status() == GeoStatus::error);
 }
 

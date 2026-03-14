@@ -53,7 +53,7 @@ namespace celeritas
  *   the current volume, or its sign may require interpreting based on the \c
  *   geo_status.
  * - If exiting a boundary, change volumes ("relocate") with \c cross_boundary.
- *   The post-crossing status can be \c error, \c exiting_boundary, or \c
+ *   The post-crossing status can be \c error, \c boundary_out, or \c
  *   invalid . Some geometries represent the exterior as a null canonical
  *   VolumeId, and some as an invalid state.
  *
@@ -95,8 +95,8 @@ class GeoTrackInterface
      * Takes a \c GeoTrackInitializer object to locate the point in the
      * geometry hierarchy.
      *
-     * \post \c geo_status() is never \c GeoStatus::entering_boundary : the
-     *   result is \c interior (placed inside a volume), \c exiting_boundary
+     * \post \c geo_status() is never \c GeoStatus::boundary_inc : the
+     *   result is \c interior (placed inside a volume), \c boundary_out
      *   (placed on a boundary with direction heading away from it), or \c
      *   error (volume not found).
      */
@@ -187,8 +187,8 @@ class GeoTrackInterface
         if (this->is_on_boundary())
         {
             return dot_product(this->dir(), this->normal()) >= 0
-                       ? GeoStatus::exiting_boundary
-                       : GeoStatus::entering_boundary;
+                       ? GeoStatus::boundary_out
+                       : GeoStatus::boundary_inc;
         }
         return GeoStatus::interior;
     }
@@ -218,7 +218,7 @@ class GeoTrackInterface
      * direction, up to a given distance. Queries may be more efficient for
      * small distances.
      *
-     * \pre \c geo_status() is not \c GeoStatus::entering_boundary .
+     * \pre \c geo_status() is not \c GeoStatus::boundary_inc .
      * \post The returned distance is in the range \c (0, max_step] .
      */
     virtual Propagation find_next_step(real_type max_step) = 0;
@@ -242,8 +242,8 @@ class GeoTrackInterface
      * direction, updating its logical state to indicate that it is on the
      * boundary of the current volume.
      *
-     * \pre \c geo_status() is not \c GeoStatus::entering_boundary .
-     * \post \c geo_status() is \c GeoStatus::entering_boundary .
+     * \pre \c geo_status() is not \c GeoStatus::boundary_inc .
+     * \post \c geo_status() is \c GeoStatus::boundary_inc .
      */
     virtual void move_to_boundary() = 0;
 
@@ -253,8 +253,8 @@ class GeoTrackInterface
      * Changes the logical state when on the boundary, updating to the next
      * volume.
      *
-     * \pre \c geo_status() is \c GeoStatus::entering_boundary .
-     * \post \c geo_status() is \c GeoStatus::exiting_boundary , or \c
+     * \pre \c geo_status() is \c GeoStatus::boundary_inc .
+     * \post \c geo_status() is \c GeoStatus::boundary_out , or \c
      *   GeoStatus::error if the new volume could not be found.
      */
     virtual void cross_boundary() = 0;

@@ -365,8 +365,8 @@ extern template struct Tolerance<double>;
  */
 [[nodiscard]] CELER_CONSTEXPR_FUNCTION GeoStatus flip_boundary(GeoStatus orig)
 {
-    return orig == GeoStatus::entering_boundary ? GeoStatus::exiting_boundary
-                                                : GeoStatus::entering_boundary;
+    return orig == GeoStatus::boundary_inc ? GeoStatus::boundary_out
+                                           : GeoStatus::boundary_inc;
 }
 
 //---------------------------------------------------------------------------//

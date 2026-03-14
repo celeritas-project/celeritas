@@ -108,22 +108,22 @@ State is split into two tiers:
 
 `LevelStateAccessor` (LSA) is the lightweight accessor for the 2D fields. Use `make_lsa()` for the deepest level and `make_lsa(ulev_id)` for a specific level.
 
-### `GeoStatus` values
+### `GeoStatus` values in ORANGE
 
 | Value | Meaning |
 |---|---|
-| `interior` | Inside a volume, not on a boundary |
-| `exiting_boundary` | On a surface; track is moving outward (default after crossing) |
-| `entering_boundary` | On a surface; track is moving inward (set by `move_to_boundary`) |
-| `error` | Unrecoverable tracking failure; `failed()` returns true |
+| `interior` | Inside a volume, not on a surface |
+| `boundary_out` | On a surface; track is moving away from surface (default after crossing) |
+| `boundary_inc` | On a surface; track is moving toward surface (set by `move_to_boundary`) |
+| `error` | Unrecoverable tracking failure |
 
-`flip_boundary` swaps `entering_boundary` ↔ `exiting_boundary` and is called by `set_dir` when a direction change on a surface reverses the crossing sense.
+`flip_boundary` swaps `boundary_inc` ↔ `boundary_out` and is called by `set_dir` when a direction change on a surface reverses the crossing sense.
 
 ### Typical per-step sequence
 
 ```
 find_next_step(max_step)   → sets next_step / next_surf / next_univ_level
-move_to_boundary()         → physically moves; sets geo_status = entering_boundary
+move_to_boundary()         → physically moves; sets geo_status = boundary_inc
 cross_boundary()           → flips sense, re-initializes volume at surface level
                              and re-descends into daughters below
 ```
@@ -151,10 +151,10 @@ ORANGE supports nested universes. The `univ_level` counter (0 = global/world) tr
 
 **`operator=(DetailedInitializer)`** (secondary/copy): copies all per-track and 2D state from the parent slot, then re-rotates the direction down through all universe levels.
 
-**`cross_boundary()`**: flips the sense at the surface level, sets `geo_status = exiting_boundary`, re-initializes the volume via `cross_boundary(local)`, then descends into any daughters below by calling `initialize` at each sub-level.
+**`cross_boundary()`**: flips the sense at the surface level, sets `geo_status = boundary_out`, re-initializes the volume via `cross_boundary(local)`, then descends into any daughters below by calling `initialize` at each sub-level.
 
 ### Key invariants
 
 - `is_on_boundary()` ≡ `surface_univ_level` is nonzero (the null `UnivLevelId{0}` is the global level, so a nonzero value means a surface is recorded).
-- `geo_status == entering_boundary` means the track is pointed back into its current volume; `find_next_step` returns `{0, true}` and `cross_boundary` is a no-op.
+- `geo_status == boundary_inc` means the track is pointed back into its current volume; `find_next_step` returns `{0, true}` and `cross_boundary` is a no-op.
 - On error, `geo_status = error` is preserved through the end of initialization and boundary crossing so `failed()` stays true.

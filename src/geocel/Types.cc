@@ -24,10 +24,10 @@ char const* to_cstring(GeoStatus value)
             return "invalid";
         case GeoStatus::interior:
             return "interior";
-        case GeoStatus::exiting_boundary:
-            return "exiting_boundary";
-        case GeoStatus::entering_boundary:
-            return "entering_boundary";
+        case GeoStatus::boundary_out:
+            return "boundary_out";
+        case GeoStatus::boundary_inc:
+            return "boundary_inc";
     }
     CELER_ASSERT_UNREACHABLE();
 }

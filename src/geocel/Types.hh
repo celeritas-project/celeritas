@@ -83,19 +83,20 @@ enum class Axis
 /*!
  * Geometry state as a track moves across boundaries through the geometry.
  *
- * The "exiting" and "entering" states are relative to the \em boundary
- * (surface) that the track is on, \em not the volume.
+ * The "incoming" (incident) and "outgoing" (exiting) states are relative to
+ * the \em boundary (surface) that the track is on, \em not the volume.
  *
- * \note The enum values are chosen to optimize \c is_on_boundary and
- * \c is_valid .
+ * \note The numeric values of the enumeration are chosen to optimize the free
+ * functions \c is_valid (invalid values are strictly negative) and \c
+ * is_on_boundary (values on the boundary are strictly positive).
  */
 enum class GeoStatus : signed char
 {
     error = -2,  //!< Unrecoverable error occurred
-    invalid,  //!< Unusable but allowable state
-    interior = 0,  //!< In a volume, not logically on a boundary
-    exiting_boundary = 1,  //!< On a boundary, into next volume
-    entering_boundary,  //!< On a boundary, into current volume
+    invalid = -1,  //!< Unusable but allowable state
+    interior = 0,  //!< In a volume, not on a boundary
+    boundary_inc = 1,  //!< On a boundary, pointing into surface
+    boundary_out = 2,  //!< On a boundary, pointing away from surface
 };
 
 //---------------------------------------------------------------------------//

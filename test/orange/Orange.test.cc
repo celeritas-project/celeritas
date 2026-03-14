@@ -204,7 +204,7 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_VEC_SOFT_EQ(Real3({0.5, 0, sqrt_two}), geo.pos());
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
-    EXPECT_EQ(GeoStatus::entering_boundary, geo.geo_status());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
     if (CELERITAS_DEBUG)
     {
         EXPECT_THROW(geo.find_safety(), celeritas::DebugError);
@@ -218,11 +218,11 @@ TEST_F(TwoVolumeTest, simple_track)
     geo.cross_boundary();
     EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
-    EXPECT_EQ(GeoStatus::exiting_boundary, geo.geo_status());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
 
     // Move internally to an arbitrary position
     geo.find_next_step();
-    EXPECT_EQ(GeoStatus::exiting_boundary, geo.geo_status());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
     geo.move_internal({2, 2, 0});
     EXPECT_EQ(ImplSurfaceId{}, this->impl_surface_id(geo));
     EXPECT_EQ(GeoStatus::interior, geo.geo_status());
@@ -379,7 +379,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
         EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
         EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
-        EXPECT_EQ(GeoStatus::entering_boundary, geo.geo_status());
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
 
         // Cross into new volume
         geo.cross_boundary();
@@ -388,9 +388,9 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
     }
     {
         // Propose direction on boundary so we're heading back into volume 1
-        EXPECT_EQ(GeoStatus::exiting_boundary, geo.geo_status());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
         geo.set_dir({-1, 0, 0});
-        EXPECT_EQ(GeoStatus::entering_boundary, geo.geo_status());
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
 
         // Find distance (TODO: this will become an error)
         Propagation next = geo.find_next_step();
@@ -399,7 +399,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 
         // Propose a new direction but still headed back inside
         geo.set_dir({-sqrt_two / 2, sqrt_two / 2, 0});
-        EXPECT_EQ(GeoStatus::entering_boundary, geo.geo_status());
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
         // TODO: this will become an error
         next = geo.find_next_step();
         EXPECT_TRUE(next.boundary);
@@ -407,7 +407,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 
         // Propose a new direction headed outside again
         geo.set_dir({0, 1, 0});
-        EXPECT_EQ(GeoStatus::exiting_boundary, geo.geo_status());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
         next = geo.find_next_step();
         EXPECT_FALSE(next.boundary);
         EXPECT_SOFT_EQ(inf, next.distance);
