@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/VolumeParams.cc
+//! \sa test/geocel/Volume.test.cc
 //---------------------------------------------------------------------------//
 #include "VolumeParams.hh"
 
@@ -11,6 +12,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/ParamsDataStore.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/Types.hh"
 
 #include "VolumeVisitor.hh"
 #include "inp/Model.hh"
@@ -63,6 +65,101 @@ int calc_num_volume_levels(HostVal<VolumeParamsData> const& params)
         },
         params.scalars.world);
     return max_level + 1;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compute the number of unique paths ending at any node in each subtree.
+ *
+ * For a volume V, this equals 1 (the path ending at V itself) plus the sum of
+ * the counts for each child volume:
+ *   num_desc(V) = 1 + sum(num_desc(volume(vi)) for vi in V.children).
+ * The leading 1 accounts for the path that terminates exactly at V without
+ * descending further.  Computed bottom-up via iterative post-order DFS so
+ * that shared sub-volumes (DAG diamonds) are evaluated only once.
+ */
+std::vector<ull_int>
+calc_num_descendants(HostVal<VolumeParamsData> const& params)
+{
+    auto const num_volumes = params.volumes.size();
+    std::vector<ull_int> num_desc(num_volumes, 0);
+
+    // Iterative post-order DFS: pair (volume, fully_expanded)
+    std::vector<std::pair<VolumeId, bool>> stack;
+    if (params.scalars.world)
+    {
+        stack.push_back({params.scalars.world, false});
+    }
+
+    while (!stack.empty())
+    {
+        auto [v, expanded] = stack.back();
+        stack.pop_back();
+
+        if (num_desc[v.unchecked_get()] != 0)
+        {
+            // Already computed; reachable via multiple ancestor paths (DAG)
+            continue;
+        }
+        if (expanded)
+        {
+            // All children computed; accumulate self + children
+            ull_int n = 1;
+            for (VolumeInstanceId vi :
+                 params.vi_storage[params.volumes[v].children])
+            {
+                n += num_desc[params.volume_ids[vi].unchecked_get()];
+            }
+            num_desc[v.unchecked_get()] = n;
+        }
+        else
+        {
+            // Push self again for post-processing, then push uncomputed
+            // children
+            stack.push_back({v, true});
+            for (VolumeInstanceId vi :
+                 params.vi_storage[params.volumes[v].children])
+            {
+                VolumeId child = params.volume_ids[vi];
+                if (num_desc[child.unchecked_get()] == 0)
+                {
+                    stack.push_back({child, false});
+                }
+            }
+        }
+    }
+
+    return num_desc;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Precompute unique-instance offsets for all volume instances.
+ *
+ * For each volume instance \c vi at position \c k in parent volume \c P's
+ * children list, the offset is the sum of \c num_desc[volume(vj)] for all
+ * preceding siblings \c vj (positions 0..k-1). Volume instances not appearing
+ * in any children list receive offset 0.
+ */
+std::vector<ull_int>
+calc_unique_instance_offsets(HostVal<VolumeParamsData> const& params,
+                             std::vector<ull_int> const& num_desc)
+{
+    auto const num_vi = params.volume_ids.size();
+    std::vector<ull_int> offsets(num_vi, 0);
+
+    for (auto vol_idx : range(params.volumes.size()))
+    {
+        ull_int running = 0;
+        for (VolumeInstanceId vi :
+             params.vi_storage[params.volumes[VolumeId{vol_idx}].children])
+        {
+            offsets[vi.unchecked_get()] = running;
+            running += num_desc[params.volume_ids[vi].unchecked_get()];
+        }
+    }
+
+    return offsets;
 }
 
 //---------------------------------------------------------------------------//
@@ -135,16 +232,19 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     // Aggregate parents: scan all volume instances and record which volumes
     // each instance belongs to
     std::vector<std::vector<VolumeInstanceId>> parent_lists(num_volumes);
-    for (auto vi_idx : range(num_volume_instances))
+    for (auto vi : range(VolumeInstanceId{num_volume_instances}))
     {
-        auto const& vol_inst = in.volume_instances[vi_idx];
-        if (!vol_inst)
+        auto const& vi_inp = in.volume_instances[vi.get()];
+        if (!vi_inp)
         {
             continue;
         }
-        CELER_EXPECT(vol_inst.volume < num_volumes);
-        parent_lists[vol_inst.volume.unchecked_get()].push_back(
-            VolumeInstanceId{vi_idx});
+        CELER_VALIDATE(vi_inp.volume < num_volumes,
+                       << "assigned volume (" << vi_inp.volume
+                       << ") is out of range (" << num_volumes
+                       << ") for volume instance " << vi_inp.volume << "='"
+                       << vi_labels_.at(vi) << "'");
+        parent_lists[vi_inp.volume.unchecked_get()].push_back(vi);
     }
 
     // Build host data
@@ -200,6 +300,20 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     if (in.world)
     {
         host_data.scalars.num_volume_levels = calc_num_volume_levels(host_data);
+    }
+
+    // Precompute unique-instance offsets
+    {
+        CollectionBuilder offsets_builder{&host_data.unique_instance_offsets};
+        auto const num_desc = calc_num_descendants(host_data);
+        for (ull_int off : calc_unique_instance_offsets(host_data, num_desc))
+        {
+            offsets_builder.push_back(off);
+        }
+        host_data.scalars.num_unique_instances
+            = host_data.scalars.world
+                  ? num_desc[host_data.scalars.world.unchecked_get()]
+                  : 0;
     }
 
     CELER_ENSURE(host_data);

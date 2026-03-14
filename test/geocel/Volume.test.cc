@@ -433,16 +433,57 @@ TEST_F(MultiLevelTest, io)
                    vols_json_str);
 }
 
+TEST_F(MultiLevelTest, unique_instance)
+{
+    // Check offsets
+    auto const& vols = this->volumes();
+
+    // world_PV (vi 11) is the enclosing instance of the world volume
+    auto world_pv = vols.volume_instance_labels().find_unique("world_PV");
+    EXPECT_EQ(world_pv, vols.world_instance());
+
+    constexpr auto all = AllItems<VolumeUniqueInstanceId::size_type>{};
+    auto offsets = vols.host_ref().unique_instance_offsets[all];
+    static int const expected_offsets[] = {0, 1, 2, 0, 4, 5, 9, 0, 1, 2, 13, 0};
+    EXPECT_VEC_EQ(expected_offsets, offsets);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(MultiLevelTest, offset)
+{
+    auto const& vols = this->volumes();
+    auto const& vi_labels = vols.volume_instance_labels();
+
+    // First child of any volume always has offset 0
+    auto world_pv = vi_labels.find_unique("world_PV");
+    EXPECT_EQ(0u, vols.offset(world_pv));
+    auto topbox1 = vi_labels.find_unique("topbox1");
+    EXPECT_EQ(0u, vols.offset(topbox1));
+
+    // topsph1 follows topbox1 whose subtree has num_desc = 4
+    // (box itself + boxsph1@0, boxsph2@0, boxtri@0)
+    auto topsph1 = vi_labels.find_unique("topsph1");
+    EXPECT_EQ(4u, vols.offset(topsph1));
+
+    // topbox4 follows topbox1+topsph1+topbox2+topbox3; each sph/tri leaf
+    // contributes 1, each box contributes 4 -> 4+1+4+4 = 13
+    auto topbox4 = vi_labels.find_unique("topbox4");
+    EXPECT_EQ(13u, vols.offset(topbox4));
+}
+
 //---------------------------------------------------------------------------//
 using StressTest = StressVolumeTestBase;
 
 TEST_F(StressTest, params)
 {
     auto const& vols = this->volumes();
+
     EXPECT_EQ(num_levels_, vols.num_volumes());
     EXPECT_EQ((num_levels_ - 1) * num_children_ + (num_levels_ - 2),
               vols.num_volume_instances());
     EXPECT_EQ(num_levels_, vols.num_volume_levels());
+    // Stress tree has no world-enclosing instance
+    EXPECT_EQ(VolumeInstanceId{}, vols.world_instance());
 
     // f[leaf]=1; f[n-2]=k+1 (no skip at penultimate level);
     // f[d] = 1 + k*f[d+1] + f[d+2] for d <= n-3 (skip child adds f[d+2])
@@ -458,10 +499,22 @@ TEST_F(StressTest, params)
         }
         return f0;
     }();
+    EXPECT_EQ(num_unique, vols.num_unique_instances());
 
     cout << vols.num_volume_levels() << " levels, " << vols.num_volumes()
          << " volumes, " << vols.num_volume_instances() << " instances, "
          << num_unique << " unique instances" << endl;
+}
+
+TEST_F(StressTest, DISABLED_io)
+{
+    auto filename = this->make_unique_filename(".json");
+    std::string script{celeritas_source_dir};
+    script += "/scripts/user/volumes-to-dot.py";
+
+    std::ofstream{filename} << this->volumes();
+    cout << script << " --ids " << filename << " | dot -Tpdf -o "
+         << "stress-" << num_levels_ << '-' << num_children_ << ".pdf";
 }
 
 //---------------------------------------------------------------------------//
