@@ -34,8 +34,8 @@ namespace celeritas
  *
  * - Initialization may fail, leaving the track with an "error" status.
  * - Some implementations allow initialization on a boundary, leaving the track
- *   in an "exiting boundary" state (i.e., the next step is away from the
- *   boundary).
+ *   in an "outgoing from boundary" state (i.e., the next step is into the
+ *   volume the track initializes inside).
  * - Some implementations allow initialization to succeed but be in an
  *   unphysical part of the geometry (e.g., ORANGE exterior volume). In this
  *   case, the canonical volume ID will be null, indicating no
@@ -51,10 +51,10 @@ namespace celeritas
  * - If on a boundary, \c normal can be used to calculate the current surface
  *   normal, but its dot product with the track direction may not be
  *   meaningful. Use \c geo_status to determine whether the track is incident
- *   or exiting the boundary.
+ *   to or outgoing from the boundary.
  * - If incident into the boundary, change volumes ("relocate") with \c
  *   cross_boundary.  The post-crossing status can be \c error, \c
- *   boundary_out, or \c invalid . Some geometries represent the exterior as a
+ *   boundary_out, or \c invalid. Some geometries represent the exterior as a
  *   null canonical VolumeId, and some as an invalid state.
  *
  * \note The free function \c is_on_boundary will be true of the geo status
@@ -177,8 +177,8 @@ class GeoTrackInterface
      * This is a shim for geometry implementations that do not natively track
      * the full \c GeoStatus. When on a boundary, the sign of the dot product
      * of the track direction and the surface normal determines whether the
-     * track is exiting (positive: moving along the outward normal) or entering
-     * (negative: has just crossed into the current volume).
+     * track is outgoing (positive: moving away from the boundary) or
+     * incident (negative: about to cross into the next volume).
      */
     virtual GeoStatus geo_status() const
     {
