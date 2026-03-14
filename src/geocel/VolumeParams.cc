@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "VolumeParams.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/ParamsDataStore.hh"
@@ -20,14 +21,15 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Accessor wrapping a HostCRef for use with VolumeVisitor.
+ * Accessor wrapping a host VolumeParamsData for use with VolumeVisitor.
  */
-struct HostDataAccessor
+template<Ownership W>
+struct VolumeDataAccessor
 {
     using VolumeRef = VolumeId;
     using VolumeInstanceRef = VolumeInstanceId;
 
-    HostCRef<VolumeParamsData> const& params;
+    VolumeParamsData<W, MemSpace::host> const& params;
 
     VolumeId volume(VolumeInstanceId vi) const
     {
@@ -41,12 +43,12 @@ struct HostDataAccessor
 };
 
 //---------------------------------------------------------------------------//
-int calc_num_volume_levels(HostCRef<VolumeParamsData> const& params)
+int calc_num_volume_levels(HostVal<VolumeParamsData> const& params)
 {
     CELER_EXPECT(params.world);
     int max_level{0};
 
-    VolumeVisitor visit_vol{HostDataAccessor{params}};
+    VolumeVisitor visit_vol{VolumeDataAccessor<Ownership::value>{params}};
     visit_vol(
         [&max_level](VolumeId, int level) {
             CELER_ASSERT(level >= 0);
@@ -178,9 +180,7 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     // Calculate depth via VolumeVisitor
     if (in.world)
     {
-        HostCRef<VolumeParamsData> tmp_ref;
-        tmp_ref = host_data;
-        host_data.num_volume_levels = calc_num_volume_levels(tmp_ref);
+        host_data.num_volume_levels = calc_num_volume_levels(host_data);
     }
 
     CELER_ENSURE(host_data);
