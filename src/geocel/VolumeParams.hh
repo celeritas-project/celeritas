@@ -87,24 +87,18 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     VolumeId world() const { return data_.host_ref().world; }
 
     //! Depth of the volume DAG (a world without children is 1)
-    vol_level_uint num_volume_levels() const
-    {
-        return data_.host_ref().num_volume_levels;
-    }
+    inline vol_level_uint num_volume_levels() const;
 
     //! Number of volumes
     VolumeId::size_type num_volumes() const { return v_labels_.size(); }
 
-    //! Number of volume instances
-    VolumeInstanceId::size_type num_volume_instances() const
-    {
-        return vi_labels_.size();
-    }
+    // Number of volume instances
+    inline VolumeInstanceId::size_type num_volume_instances() const;
 
     //! Get volume metadata
     VolumeMap const& volume_labels() const { return v_labels_; }
 
-    //! Get volume instance metadata
+    // Get volume instance metadata
     VolInstMap const& volume_instance_labels() const { return vi_labels_; }
 
     // Construct a view for accessing volume properties
@@ -151,6 +145,24 @@ std::weak_ptr<VolumeParams const> const& global_volumes();
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Depth of the volume DAG.
+ */
+auto VolumeParams::num_volume_levels() const -> vol_level_uint
+{
+    return data_.host_ref().num_volume_levels;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of volume instances.
+ */
+auto VolumeParams::num_volume_instances() const -> VolumeInstanceId::size_type
+{
+    return vi_labels_.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a lightweight view for accessing volume properties.
  */
 VolumeView VolumeParams::get(VolumeId v_id) const
@@ -177,6 +189,8 @@ VolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
     return this->host_ref().volume_ids[vi_id];
 }
 
+//---------------------------------------------------------------------------//
+// DEPRECATED
 //---------------------------------------------------------------------------//
 auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
 {
