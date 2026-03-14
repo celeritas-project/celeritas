@@ -6,7 +6,7 @@
 // DEPRECATED: remove in 1.0
 #warning "Deprecated: this file is no longer necessary to include"
 
-#include "corecel/io/StreamToString.hh"
+#include "corecel/io/StreamUtils.hh"
 
 #include "Array.hh"
 

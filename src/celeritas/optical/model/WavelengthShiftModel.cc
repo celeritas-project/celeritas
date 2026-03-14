@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
