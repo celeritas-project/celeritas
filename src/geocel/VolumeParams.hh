@@ -107,17 +107,22 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     //! Get volume instance metadata
     VolInstMap const& volume_instance_labels() const { return vi_labels_; }
 
-    // Find all instances of a volume (incoming edges)
-    inline SpanVolInst parents(VolumeId v_id) const;
+    // Construct a view for accessing volume properties
+    inline VolumeView get(VolumeId v_id) const;
 
-    // Get the list of daughter volumes (outgoing edges)
+    // Get the child instance edges from a volume (VolumeAccessor interface)
     inline SpanVolInst children(VolumeId v_id) const;
 
-    // Get the geometry material of a volume
-    inline GeoMatId material(VolumeId v_id) const;
-
-    // Get the volume being instantiated (outgoing node)
+    // Get the volume being instantiated by an instance (VolumeAccessor
+    // interface)
     inline VolumeId volume(VolumeInstanceId vi_id) const;
+
+    //!@{
+    //! \deprecated Use \c get(v_id).parents() / \c get(v_id).material()
+    //! instead
+    [[deprecated]] inline SpanVolInst parents(VolumeId v_id) const;
+    [[deprecated]] inline GeoMatId material(VolumeId v_id) const;
+    //!@}
 
     //!@{
     //! \name Data interface
@@ -147,29 +152,20 @@ std::weak_ptr<VolumeParams const> const& global_volumes();
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Find all instances of a volume (incoming edges).
+ * Construct a lightweight view for accessing volume properties.
  */
-auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
+VolumeView VolumeParams::get(VolumeId v_id) const
 {
-    return VolumeView{this->host_ref(), v_id}.parents();
+    return VolumeView{this->host_ref(), v_id};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the list of daughter volumes (outgoing edges).
+ * Get the child instance edges from a volume.
  */
 auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
 {
-    return VolumeView{this->host_ref(), v_id}.children();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the geometry material of a volume.
- */
-GeoMatId VolumeParams::material(VolumeId v_id) const
-{
-    return VolumeView{this->host_ref(), v_id}.material();
+    return this->get(v_id).children();
 }
 
 //---------------------------------------------------------------------------//
@@ -181,6 +177,18 @@ VolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
     CELER_EXPECT(vi_id < this->host_ref().volume_ids.size());
     return this->host_ref().volume_ids[vi_id];
 }
+
+//---------------------------------------------------------------------------//
+//!@{ \deprecated
+auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
+{
+    return this->get(v_id).parents();
+}
+GeoMatId VolumeParams::material(VolumeId v_id) const
+{
+    return this->get(v_id).material();
+}
+//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

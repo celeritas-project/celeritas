@@ -143,17 +143,17 @@ TEST_F(SingleVolumeTest, params)
     EXPECT_TRUE(params.volume_labels().find_unique("A") == vol_id);
 
     // Verify material assignment
-    EXPECT_EQ(GeoMatId{0}, params.material(vol_id));
+    EXPECT_EQ(GeoMatId{0}, params.get(vol_id).material());
 
     // A single volume should have no parents or children
-    EXPECT_TRUE(params.parents(vol_id).empty());
+    EXPECT_TRUE(params.get(vol_id).parents().empty());
     EXPECT_TRUE(params.children(vol_id).empty());
 
     // Test out-of-bounds access should assert
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(params.material(VolumeId{1}), DebugError);
-        EXPECT_THROW(params.parents(VolumeId{1}), DebugError);
+        EXPECT_THROW(params.get(VolumeId{1}).material(), DebugError);
+        EXPECT_THROW(params.get(VolumeId{1}).parents(), DebugError);
         EXPECT_THROW(params.children(VolumeId{1}), DebugError);
         EXPECT_THROW(params.volume(VolumeInstanceId{0}), DebugError);
     }
@@ -210,9 +210,10 @@ TEST_F(ComplexVolumeTest, params)
     // Loop over all volumes to collect children and parents
     for (auto vol_id : range(VolumeId(params.num_volumes())))
     {
+        auto v = params.get(vol_id);
         children.push_back(id_to_int(params.children(vol_id)));
-        parents.push_back(id_to_int(params.parents(vol_id)));
-        geo_mat.push_back(id_to_int(params.material(vol_id)));
+        parents.push_back(id_to_int(v.parents()));
+        geo_mat.push_back(id_to_int(v.material()));
     }
 
     static std::vector<int> const expected_children[]
