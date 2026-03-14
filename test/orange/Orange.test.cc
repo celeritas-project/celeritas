@@ -9,8 +9,10 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Constants.hh"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Label.hh"
+#include "corecel/io/Logger.hh"
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "orange/Debug.hh"
@@ -168,6 +170,27 @@ TEST_F(TwoVolumeTest, params)
     auto const& bbox = geo.bbox();
     EXPECT_VEC_SOFT_EQ((Real3{-1.5, -1.5, -1.5}), bbox.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1.5, 1.5, 1.5}), bbox.upper());
+}
+
+//! Initializing on a boundary is currently an error
+TEST_F(TwoVolumeTest, init_on_boundary)
+{
+    auto geo = this->make_geo_track_view();
+
+    {
+        ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::error};
+        geo = Initializer_t{{0, 0, 1.5}, {0, 0, 1}};
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static char const* const expected_log_messages[] = {
+                R"(Failed to initialize geometry state: could not find associated volume in universe 0 at local position {0, 0, 1.5})"};
+            EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        }
+        static char const* const expected_log_levels[] = {"error"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    }
+    EXPECT_EQ(GeoStatus::error, geo.geo_status());
 }
 
 TEST_F(TwoVolumeTest, simple_track)

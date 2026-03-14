@@ -260,7 +260,10 @@ OrangeTrackView::operator=(Initializer_t const& init)
         return *this;
     }
 
-    this->geo_status(GeoStatus::interior);
+    // Reset surface/boundary information (setting status to interior)
+    this->clear_surface();
+    this->clear_next();
+    CELER_ASSERT(this->geo_status() == GeoStatus::interior);
 
     // Create local state
     detail::LocalState local;
@@ -320,6 +323,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
         if (daughter_id)
         {
+            CELER_ASSERT(this->geo_status() != GeoStatus::error);
             auto const& daughter = params_.daughters[daughter_id];
             // Apply "transform down" based on stored transform
             apply_transform(transform_down_local, daughter.trans_id);
@@ -327,15 +331,10 @@ OrangeTrackView::operator=(Initializer_t const& init)
             univ_id = daughter.univ_id;
             ++ulev_id;
         }
-
     } while (daughter_id);
 
     // Save found universe level
     this->univ_level(ulev_id);
-
-    // Reset surface/boundary information (preserve error status if set)
-    this->clear_surface();
-    this->clear_next();
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -1235,6 +1234,7 @@ CELER_FUNCTION void OrangeTrackView::clear_next()
  */
 CELER_FUNCTION void OrangeTrackView::clear_surface()
 {
+    CELER_EXPECT(this->geo_status() != GeoStatus::error);
     states_.surface_univ_level[track_slot_] = {};
     this->geo_status(GeoStatus::interior);
     CELER_ENSURE(!this->is_on_boundary());
