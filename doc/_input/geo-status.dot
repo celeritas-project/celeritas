@@ -11,10 +11,10 @@ digraph GeoStatus {
   "invalid"             [label=<<FONT FACE="Monospace">invalid</FONT><BR/>(unusable but<BR/>not an error)>, style=filled, shape=oval];
 
   // From invalid: operator= places track in geometry
-  "invalid" -> "interior"  [label=<<FONT FACE="Monospace">initialize</FONT><BR/>[interior]>];
-  "invalid" -> "boundary_out"  [label=<<FONT FACE="Monospace">initialize</FONT><BR/>[on boundary]>];
-  "invalid" -> "error"             [label=<<FONT FACE="Monospace">initialize</FONT><BR/>[volume not found]>];
-  "invalid" -> "invalid"           [label=<<FONT FACE="Monospace">initialize</FONT><BR/>[not in world (G4, VG)]>];
+  "invalid" -> "interior"  [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(interior)>];
+  "invalid" -> "boundary_out"  [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(on boundary)>];
+  "invalid" -> "error"             [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(volume not found)>];
+  "invalid" -> "invalid"           [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(not in world [G4, VG])>];
 
   // From interior: propagation
   "interior" -> "boundary_inc"  [label=<<FONT FACE="Monospace">move_to_boundary</FONT>>];
@@ -22,13 +22,13 @@ digraph GeoStatus {
 
   // From boundary_out: normal tracking
   "boundary_out" -> "interior"           [label=<<FONT FACE="Monospace">move_internal</FONT>>];
-  "boundary_out" -> "boundary_inc"  [label=<<FONT FACE="Monospace">set_dir</FONT><BR/>[reentrant]>, dir="both"];
-  "boundary_out" -> "boundary_inc"  [label=<<FONT FACE="Monospace">move_to_boundary</FONT><BR/>[next surface]>];
+  "boundary_out" -> "boundary_inc"  [label=<<FONT FACE="Monospace">set_dir</FONT><BR/>(dot product<BR/>with normal<BR/>changes sign)>, dir="both"];
+  "boundary_out" -> "boundary_inc"  [label=<<FONT FACE="Monospace">move_to_boundary</FONT><BR/>(next surface)>];
   // DEPRECATED: should be handled by skipping geo crossing
-  "boundary_out" -> "boundary_out"   [label=<DEPRECATED:<BR/><FONT FACE="Monospace">cross_boundary</FONT><BR/>[when reentrant]>, color=lightcoral];
+  "boundary_out" -> "boundary_out"   [label=<DEPRECATED:<BR/><FONT FACE="Monospace">cross_boundary</FONT><BR/>(when reentrant)>, color=lightcoral];
 
   // Crossing the surface
-  "boundary_inc" -> "boundary_out"  [label=<<FONT FACE="Monospace">cross_boundary</FONT><BR/>[next interior volume]>];
-  "boundary_inc" -> "error"             [label=<<FONT FACE="Monospace">cross_boundary</FONT><BR/>[new volume not found]>];
-  "boundary_inc" -> "invalid"           [label=<<FONT FACE="Monospace">cross_boundary</FONT><BR/>[exited world (G4, VG)]>];
+  "boundary_inc" -> "boundary_out"  [label=<<FONT FACE="Monospace">cross_boundary</FONT><BR/>(next interior volume)>];
+  "boundary_inc" -> "error"             [label=<<FONT FACE="Monospace">cross_boundary</FONT><BR/>(new volume not found)>];
+  "boundary_inc" -> "invalid"           [label=<<FONT FACE="Monospace">cross_boundary</FONT><BR/>(exited world [G4, VG])>];
 }
