@@ -336,9 +336,9 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
         && std::holds_alternative<inp::OpticalOffloadGenerator>(
             so.optical->generator))
     {
-        // Also have to import Cherenkov/scintillation, which apply
-        // to EM particles
-        result.physics_import.data_selection.particles |= GIDS::em_basic;
+        // EM particles (required for scint/cherenkov) must be loaded
+        CELER_ASSERT(result.physics_import.data_selection.particles
+                     & GIDS::em_basic);
     }
 
     if (!so.optical

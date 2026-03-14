@@ -12,8 +12,6 @@
 #include <variant>
 #include <vector>
 
-#include "corecel/Config.hh"
-
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
@@ -406,7 +404,9 @@ auto build_optical_params(inp::OpticalProblem const& p,
     }
     if (p.physics.gen.scintillation)
     {
-        // TODO: unify between imported and problem input
+        // TODO: optical physics is redundantly copied into ImportData:
+        // remove entirely from import when we simplify the bulk physics
+        // construction
         std::optional<inp::ScintillationProcess> const& s
             = imported.optical_physics.gen.scintillation;
         if (s && !s->empty())
@@ -419,7 +419,6 @@ auto build_optical_params(inp::OpticalProblem const& p,
             CELER_LOG(warning) << "Disabling user-requested scintillation: no "
                                   "process data available";
         }
-        CELER_ASSERT(pi.scintillation);
     }
 
     std::move(loaded_model) = {};
