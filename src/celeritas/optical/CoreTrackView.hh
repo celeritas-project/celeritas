@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/Atomics.hh"
 #include "corecel/random/engine/RngEngine.hh"
 #include "geocel/DetectorView.hh"
 #include "geocel/VolumeSurfaceView.hh"
@@ -90,6 +91,13 @@ class CoreTrackView
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
+
+    // Apply a tracking cut without setting the error state
+    inline CELER_FUNCTION void apply_cut();
+
+    // Access global step counters (mutable for atomic operations)
+    inline CELER_FUNCTION CoreStateCounters& counters();
+    inline CELER_FUNCTION CoreStateCounters const& counters() const;
 
   private:
     ParamsRef const& params_;
@@ -291,6 +299,23 @@ CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access the global step counters.
+ */
+CELER_FUNCTION CoreStateCounters& CoreTrackView::counters()
+{
+    return *states_.init.counters.data().get();
+}
+
+//---------------------------------------------------------------------------//
+//! \cond
+CELER_FUNCTION CoreStateCounters const& CoreTrackView::counters() const
+{
+    return *states_.init.counters.data().get();
+}
+//! \endcond
+
+//---------------------------------------------------------------------------//
+/*!
  * Set the 'errored' flag and tracking cut post-step action.
  *
  * \pre This cannot be applied if the current action is *after* post-step. (You
@@ -305,6 +330,19 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
     sim.post_step_action(params_.scalars.tracking_cut_action);
+    atomic_add(&this->counters().num_errored, size_type{1});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a tracking cut without setting the error state.
+ */
+CELER_FUNCTION void CoreTrackView::apply_cut()
+{
+    auto sim = this->sim();
+    CELER_EXPECT(is_track_valid(sim.status()));
+    sim.post_step_action(params_.scalars.tracking_cut_action);
+    atomic_add(&this->counters().num_cut, size_type{1});
 }
 
 //---------------------------------------------------------------------------//

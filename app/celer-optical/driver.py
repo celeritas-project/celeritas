@@ -37,9 +37,9 @@ capacity = {
 
 generator = {
     "_type": "primary",
-    "primaries": 1048576,
+    "primaries": 32768,
     "angle": {"_type": "isotropic"},
-    "energy": {"_type": "normal", "mean": 5e-5, "stddev": 5e-6},
+    "energy": {"_type": "normal", "mean": 5e-6, "stddev": 5e-7},
     "shape": {"_type": "delta", "value": [0, 0, 0]},
 }
 
@@ -49,6 +49,9 @@ problem = {
     "capacity": capacity,
     "seed": 12345,
     "timers": {"action": False},
+    "limits": {
+        "steps": 6,
+    },
 }
 
 inp = {
@@ -64,7 +67,8 @@ with open(inp_file, "w") as f:
     json.dump(inp, f, indent=1)
 
 exe = environ.get("CELERITAS_EXE", "./celer-optical")
-print(f"Running {exe} {inp_file} from {getcwd()}", file=stderr)
+cwd = Path(getcwd())
+print(f"Running {exe} {inp_file} from {cwd}", file=stderr)
 result = subprocess.run(
     [exe, "-"], input=json.dumps(inp).encode(), stdout=subprocess.PIPE
 )
@@ -91,7 +95,7 @@ except json.decoder.JSONDecodeError as e:
     print(f"fatal: {e}")
     exit(1)
 
-out_file = f"{run_name}.out.json"
+out_file = cwd / f"{run_name}.out.json"
 with open(out_file, "w") as f:
     json.dump(j, f, indent=1)
 print(f"Results written to {out_file}", file=stderr)
@@ -99,13 +103,15 @@ print(f"Results written to {out_file}", file=stderr)
 # Check results
 expected_generators = {
     "buffer_size": 0,
-    "num_generated": 1048576,
+    "num_generated": 32768,
     "num_pending": 0,
 }
 counters = j["result"]["counters"].copy()
 assert counters["flushes"] == 1
 assert len(counters["generators"]) == 1
 assert counters["generators"][0] == expected_generators
+assert counters["num_cut"] > 0
+assert counters["num_errored"] == 0
 
 expected_sizes = {
     "generators": 1,
