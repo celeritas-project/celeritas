@@ -10,6 +10,8 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/optical/gen/CherenkovGenerator.hh"
+#include "celeritas/optical/gen/ScintillationGenerator.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/Utils.hh"
 
@@ -82,6 +84,7 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
                          + find_distribution_index(offsets, tid.get());
     CELER_ASSERT(dist_idx < offload.distributions.size());
     auto& dist = offload.distributions[DistId(dist_idx)];
+    CELER_ASSERT(dist);
 
     // Create the view to the new track to be initialized
     CoreTrackView vacancy{
@@ -102,7 +105,7 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
         geo = GeoTrackInitializer{dist.points[StepPoint::pre].pos, {1, 0, 0}};
         dist.material = vacancy.material_record(geo).material_id();
     }
-    CELER_ASSERT(dist);
+    CELER_ASSERT(dist.material);
 
     // Generate one track from the distribution
     auto rng = vacancy.rng();

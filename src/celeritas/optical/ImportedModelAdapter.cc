@@ -8,13 +8,10 @@
 
 #include <algorithm>
 
-#include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/EnumStringMapper.hh"
-#include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
 
 namespace celeritas
 {

@@ -33,7 +33,7 @@ namespace celeritas
  *
  * The \c detectors option reads \c auxiliary tags in the \c structure that
  * have \c auxtype=SensDet and returns a multimap of strings to volume
- * pointers.
+ * pointers. (This can be trivially extended to other keys as well if needed.)
  */
 class GeantGdmlLoader
 {

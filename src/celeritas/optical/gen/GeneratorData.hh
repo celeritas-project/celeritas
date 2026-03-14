@@ -47,6 +47,9 @@ struct GeneratorStepData
  * \c continuous_edep_fraction is the ratio of the energy deposited along the
  * step to the total energy deposition over the step (including the local
  * deposition at the discrete interaction point).
+ *
+ * If the material is not provided, it will be determined during
+ * initialization.
  */
 struct GeneratorDistributionData
 {
@@ -63,7 +66,7 @@ struct GeneratorDistributionData
     explicit CELER_FUNCTION operator bool() const
     {
         return type != GeneratorType::size_ && num_photons > 0
-               && step_length > 0 && material && continuous_edep_fraction >= 0
+               && step_length > 0 && continuous_edep_fraction >= 0
                && continuous_edep_fraction <= 1
                && (points[StepPoint::pre].speed > points[StepPoint::post].speed
                    || (type == GeneratorType::scintillation

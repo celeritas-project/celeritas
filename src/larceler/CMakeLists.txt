@@ -6,8 +6,7 @@
 # NOTE: the library should *not* contain any `art` dependencies
 set(SOURCES)
 set(PRIVATE_DEPS
-  larcoreobj::SimpleTypesAndConstants # Implicit dependency needed by MCBase
-  lardataobj::MCBase
+  lardataobj::Simulation
   Celeritas::geocel
   Celeritas::celeritas
   ROOT::Tree

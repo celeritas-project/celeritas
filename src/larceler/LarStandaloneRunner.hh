@@ -10,13 +10,15 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
-#include "corecel/math/Quantity.hh"
-#include "celeritas/UnitTypes.hh"
+#include "corecel/cont/Span.hh"
+#include "geocel/Types.hh"
+#include "celeritas/optical/DetectorData.hh"
 
 namespace sim
 {
 class SimEnergyDeposit;
 class OpDetBacktrackerRecord;
+class OBTRHelper;
 }  // namespace sim
 
 namespace celeritas
@@ -61,11 +63,12 @@ class LarStandaloneRunner
     using VecSED = std::vector<sim::SimEnergyDeposit>;
     using VecBTR = std::vector<sim::OpDetBacktrackerRecord>;
     using Input = inp::OpticalStandaloneInput;
+    using VecReal3 = std::vector<Real3>;
     //!@}
 
   public:
-    // Set up the problem
-    explicit LarStandaloneRunner(Input&&);
+    // Set up the problem, including detector ID coordinates
+    LarStandaloneRunner(Input&&, VecReal3 const& det_coords);
     // Don't allow copies of this class
     CELER_DEFAULT_MOVE_DELETE_COPY(LarStandaloneRunner);
 
@@ -73,10 +76,16 @@ class LarStandaloneRunner
     VecBTR operator()(VecSED const& edep);
 
   private:
-    using LarsoftTime = Quantity<celeritas::units::Nanosecond, double>;
-    using LarsoftLen = Quantity<celeritas::units::Centimeter, double>;
+    using SpanCelerHits = Span<optical::DetectorHit const>;
 
     std::shared_ptr<optical::Runner> runner_;
+    // Celeritas volume instance ID for each LArSoft detector channel
+    std::vector<VolumeInstanceId> channel_to_geo_;
+    // Hit recorders for each celeritas volume instance ID
+    std::unordered_map<VolumeInstanceId, std::unique_ptr<sim::OBTRHelper>>
+        btr_helpers_;
+
+    void hit(SpanCelerHits);
 };
 
 //---------------------------------------------------------------------------//

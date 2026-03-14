@@ -65,10 +65,14 @@ done
 export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
 
 if [ -n "${APPTAINER_CONTAINER}" ]; then
-  export MRB_PROJECT=larsoft
-  export MRB_PROJECT_VERSION=v10_14_01
-  export MRB_QUALS=e26:prof
   celerlog info "Running in apptainer ${APPTAINER_CONTAINER}"
+  if [ -z "${MRB_PROJECT}" ]; then
+    export MRB_PROJECT=larsoft
+    # NOTE: 10.14 uses Geant4 10.6.1, and 10.20 uses 11.2
+    # export MRB_PROJECT_VERSION=v10_14_01
+    export MRB_PROJECT_VERSION=v10_20_01
+  fi
+  export MRB_QUALS=e26:prof
   if [ -n "${UPS_DIR}" ]; then
     celerlog debug "Dune UPS already set up: ${UPS_DIR}"
   else
@@ -76,8 +80,8 @@ if [ -n "${APPTAINER_CONTAINER}" ]; then
     . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
     celerlog debug "Using UPS_OVERRIDE=${UPS_OVERRIDE}, MRB_PROJECT=${MRB_PROJECT}"
   fi
-  if [ -n "${SETUP_LARCORE}" ]; then
-    celerlog debug "LARCORE is already set up"
+  if [ -n "${SETUP_LARSOFT}" ]; then
+    celerlog debug "LARSOFT is already set up"
   else
     # Set up larsoft build defaults with UPS
     celerlog info "Setting up ${MRB_PROJECT} ${MRB_PROJECT_VERSION} with qualifiers '${MRB_QUALS}'"

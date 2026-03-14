@@ -12,8 +12,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
 
+#include "LocalVolumeView.hh"
 #include "Types.hh"
-#include "../VolumeView.hh"
 
 namespace celeritas
 {
@@ -75,7 +75,7 @@ class BumpCalculator
 /*!
  * Convert an OnLocalSurface (may be null) to an OnFace using a volume view.
  */
-inline CELER_FUNCTION OnFace find_face(VolumeView const& vol,
+inline CELER_FUNCTION OnFace find_face(LocalVolumeView const& vol,
                                        OnLocalSurface surf)
 {
     return {surf ? vol.find_face(surf.id()) : FaceId{}, surf.unchecked_sense()};
@@ -85,7 +85,7 @@ inline CELER_FUNCTION OnFace find_face(VolumeView const& vol,
 /*!
  * Convert an OnFace (may be null) to an OnLocalSurface using a volume view.
  */
-inline CELER_FUNCTION OnLocalSurface get_surface(VolumeView const& vol,
+inline CELER_FUNCTION OnLocalSurface get_surface(LocalVolumeView const& vol,
                                                  OnFace face)
 {
     return {face ? vol.get_surface(face.id()) : LocalSurfaceId{},

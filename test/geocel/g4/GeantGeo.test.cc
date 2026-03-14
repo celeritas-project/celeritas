@@ -324,6 +324,55 @@ TEST_F(CmsEeBackDeeTest, trace)
 }
 
 //---------------------------------------------------------------------------//
+using DuneCryostatTest
+    = GenericGeoParameterizedTest<GeantGeoTest, DuneCryostatGeoTest>;
+
+TEST_F(DuneCryostatTest, model)
+{
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {
+        "volGaseousArgon",
+        "volArapuca_0-0",
+        "volOpDetSensitive_0-0-0",
+        "volOpDetSensitive_0-0-1",
+        "volOpDetSensitive_0-0-2",
+        "volOpDetSensitive_0-0-3",
+        "volCryostat",
+        "volDetEnclosure",
+    };
+    ref.volume.materials = {0, 1, 2, 2, 2, 2, 3, 4};
+    ref.volume.daughters = {{}, {}, {}, {}, {}, {}, {2, 3, 4, 5, 6, 7}, {1}};
+    ref.volume_instance.labels = {
+        "volDetEnclosure_PV",
+        "volCryostat_PV",
+        "volGaseousArgon_PV",
+        "volArapuca_0-0_PV",
+        "volOpDetSensitive_0-0-0_PV",
+        "volOpDetSensitive_0-0-1_PV",
+        "volOpDetSensitive_0-0-2_PV",
+        "volOpDetSensitive_0-0-3_PV",
+    };
+    ref.volume_instance.volumes = {7, 6, 0, 1, 2, 3, 4, 5};
+    ref.world = "volDetEnclosure";
+    ref.surface.labels = {
+        "volOpDetSensitive_0-0-0_Surface",
+        "volOpDetSensitive_0-0-1_Surface",
+        "volOpDetSensitive_0-0-2_Surface",
+        "volOpDetSensitive_0-0-3_Surface",
+    };
+    ref.surface.volumes = {"2", "3", "4", "5"};
+    ref.detector.labels = {"PhotonDetector"};
+    ref.detector.volumes = {{2, 3, 4, 5}};
+    EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(DuneCryostatTest, locate_point)
+{
+    this->impl().test_locate_point();
+}
+
+//---------------------------------------------------------------------------//
 using FourLevelsTest
     = GenericGeoParameterizedTest<GeantGeoTest, FourLevelsGeoTest>;
 
