@@ -175,10 +175,11 @@ class GeoTrackInterface
      * Derive the geometry state from the existing state flags.
      *
      * This is a shim for geometry implementations that do not natively track
-     * the full \c GeoStatus. When on a boundary, the sign of the dot product
-     * of the track direction and the surface normal determines whether the
-     * track is outgoing (positive: moving away from the boundary) or
-     * incident (negative: about to cross into the next volume).
+     * the full \c GeoStatus. When on a boundary, it \b assumes the normal
+     * vector is oriented "outward" from the current volume.
+     * The dot product of the track direction and the surface normal determines
+     * whether the track is incident to the boundary (positive: headed outward
+     * from the volume) or incident (negative: headed into the volume).
      */
     virtual GeoStatus geo_status() const
     {
@@ -187,8 +188,8 @@ class GeoTrackInterface
         if (this->is_on_boundary())
         {
             return dot_product(this->dir(), this->normal()) >= 0
-                       ? GeoStatus::boundary_out
-                       : GeoStatus::boundary_inc;
+                       ? GeoStatus::boundary_inc
+                       : GeoStatus::boundary_out;
         }
         return GeoStatus::interior;
     }
