@@ -8,7 +8,7 @@
 
 #include <ostream>
 
-#include "StreamToString.hh"
+#include "StreamUtils.hh"
 
 namespace celeritas
 {
