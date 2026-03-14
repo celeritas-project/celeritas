@@ -308,16 +308,20 @@ set(_dot_output)
 set(_png_fallback "${CMAKE_CURRENT_SOURCE_DIR}/_static/dot-not-found.png")
 set(_output_base "${CMAKE_CURRENT_SOURCE_DIR}/_static/dot")
 
+# SVG format is available since graphviz 10
+set(_html_fmt svg)
+
 macro(_celer_build_dot inp)
   get_filename_component(basename "${inp}" NAME_WE)
   if(DOXYGEN_DOT_EXECUTABLE)
-    # Generate PNG and PDF for HTML, PDF respectively
-    foreach(_fmt pdf png)
+    # Generate SVG and PDF for HTML, PDF respectively
+    foreach(_fmt pdf ${_html_fmt})
       set(_output "${_output_base}/${basename}.${_fmt}")
       add_custom_command(
         OUTPUT "${_output}"
         COMMAND
-          "${DOXYGEN_DOT_EXECUTABLE}" "-T${_fmt}" "-o${_output}" "${inp}"
+          "${DOXYGEN_DOT_EXECUTABLE}" "-T${_fmt}"
+          "-o" "${_output}" "${inp}"
         COMMENT "Generating dot graph: ${basename}.${_fmt}"
         DEPENDS "${inp}"
         VERBATIM

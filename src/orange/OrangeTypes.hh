@@ -217,23 +217,6 @@ enum class SurfaceState : bool
 
 //---------------------------------------------------------------------------//
 /*!
- * When crossing a boundary, whether the track is entering or exiting the
- * current boundary.
- *
- * After moving to a boundary, the track is considered `entering` the boundary.
- * Changing direction while on a boundary will change whether the track is
- * `entering` or `exiting` relative to the surface normal. When
- * `cross_boundary` is called, the track is only relocated to the new volume if
- * it is `entering` the boundary, after which it is considered `exiting`.
- */
-enum class BoundaryResult : bool
-{
-    entering,
-    exiting
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Chirality of a twirly object (currently only Involute).
  */
 enum class Chirality : bool
@@ -380,10 +363,10 @@ extern template struct Tolerance<double>;
 /*!
  * Change whether a boundary crossing is reentrant or exiting.
  */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION BoundaryResult
-flip_boundary(BoundaryResult orig)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION GeoStatus flip_boundary(GeoStatus orig)
 {
-    return static_cast<BoundaryResult>(!static_cast<bool>(orig));
+    return orig == GeoStatus::boundary_inc ? GeoStatus::boundary_out
+                                           : GeoStatus::boundary_inc;
 }
 
 //---------------------------------------------------------------------------//
