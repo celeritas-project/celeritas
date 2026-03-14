@@ -65,23 +65,22 @@ FieldTrackPropagator<Field>::operator()(CoreTrackView& track) const
     if (p.looping)
     {
         sim.step_length(p.distance);
-        sim.post_step_action([&track, &sim] {
-            auto particle = track.particle();
-            if (particle.is_stable()
-                && sim.is_looping(particle.particle_id(), particle.energy()))
-            {
+        auto particle = track.particle();
+        if (particle.is_stable()
+            && sim.is_looping(particle.particle_id(), particle.energy()))
+        {
 #if !CELER_DEVICE_COMPILE
-                CELER_LOG_LOCAL(debug)
-                    << "Track (pid=" << particle.particle_id().get()
-                    << ", E=" << particle.energy().value() << ' '
-                    << ParticleTrackView::Energy::unit_type::label()
-                    << ") is looping after " << sim.num_looping_steps()
-                    << " steps";
+            CELER_LOG_LOCAL(debug)
+                << "Track (pid=" << particle.particle_id().get()
+                << ", E=" << particle.energy() << ") is looping after "
+                << sim.num_looping_steps() << " steps";
 #endif
-                return track.tracking_cut_action();
-            }
-            return track.propagation_limit_action();
-        }());
+            track.apply_cut();
+        }
+        else
+        {
+            sim.post_step_action(track.propagation_limit_action());
+        }
     }
     return p;
 }

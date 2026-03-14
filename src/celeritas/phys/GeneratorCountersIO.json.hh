@@ -25,17 +25,7 @@ void to_json(nlohmann::json& j, GeneratorCounters<T> const& v)
         CELER_JSON_PAIR(v, num_generated),
     };
 }
-
-template<class T>
-void from_json(nlohmann::json const& j, GeneratorCounters<T>& v)
-{
-    CELER_JSON_LOAD_REQUIRED(j, v, buffer_size);
-    CELER_JSON_LOAD_REQUIRED(j, v, num_pending);
-    CELER_JSON_LOAD_REQUIRED(j, v, num_generated);
-}
-
 void to_json(nlohmann::json& j, CounterAccumStats const&);
-void from_json(nlohmann::json const& j, CounterAccumStats&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

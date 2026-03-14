@@ -16,7 +16,9 @@ cmake -B build -G Ninja && cd build && ninja && ctest
 ```
 
 ### When to Commit
-Commit after major work when:
+
+**Always** commit after agentic, multi-step work (and you *may* commit during
+the work at each to-do). Ideally:
 - New files compile successfully
 - Refactored code builds without errors
 - Tests pass or aren't affected
