@@ -38,6 +38,8 @@ struct VolumeParamsScalars
 {
     //! Root volume of the geometry graph
     VolumeId world;
+    //! Enclosing instance of the world volume (null if world is a true root)
+    VolumeInstanceId world_instance;
     //! Number of logical volumes (nodes)
     VolumeId::size_type num_volumes{0};
     //! Number of volume instances (edges)
@@ -83,6 +85,7 @@ struct VolumeParamsData
     //! Flat backing storage for per-volume parent and child instance lists
     Items<VolumeInstanceId> vi_storage;
 
+    //! Scalar values (world ID, world instance, depths, etc.)
     VolumeParamsScalars scalars;
 
     //// METHODS ////

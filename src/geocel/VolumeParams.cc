@@ -185,6 +185,17 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     host_data.scalars.num_volumes = num_volumes;
     host_data.scalars.num_volume_instances = num_volume_instances;
 
+    // Set world_instance: the enclosing instance of the world volume, if any
+    if (in.world)
+    {
+        auto world_parents
+            = host_data.vi_storage[host_data.volumes[in.world].parents];
+        if (!world_parents.empty())
+        {
+            host_data.scalars.world_instance = world_parents.front();
+        }
+    }
+
     // Calculate depth via VolumeVisitor
     if (in.world)
     {

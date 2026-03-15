@@ -87,6 +87,9 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     //! World volume
     VolumeId world() const { return this->view().world(); }
 
+    // Enclosing instance of the world volume (null if world is a true root)
+    inline VolumeInstanceId world_instance() const;
+
     // Number of volumes
     inline VolumeId::size_type num_volumes() const;
 
@@ -154,6 +157,15 @@ std::ostream& operator<<(std::ostream& os, VolumeParams const& vp);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Enclosing instance of the world volume (null if world is a true root).
+ */
+VolumeInstanceId VolumeParams::world_instance() const
+{
+    return this->view().world_instance();
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Depth of the volume DAG.

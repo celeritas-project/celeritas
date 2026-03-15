@@ -114,6 +114,7 @@ TEST_F(NoVolumeTest, params)
     EXPECT_TRUE(params.empty());
     EXPECT_EQ(0, params.num_volumes());
     EXPECT_EQ(VolumeId{}, params.world());
+    EXPECT_EQ(VolumeInstanceId{}, params.world_instance());
     EXPECT_EQ(0, params.num_volume_levels());
 }
 
@@ -141,6 +142,7 @@ TEST_F(SingleVolumeTest, params)
     EXPECT_EQ(1, params.num_volumes());
     EXPECT_EQ(0, params.num_volume_instances());
     EXPECT_EQ(VolumeId{0}, params.world());
+    EXPECT_EQ(VolumeInstanceId{}, params.world_instance());
     EXPECT_EQ(1, params.num_volume_levels());
     EXPECT_EQ(1, params.volume_labels().size());
     EXPECT_EQ(0, params.volume_instance_labels().size());

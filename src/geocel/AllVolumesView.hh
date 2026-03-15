@@ -39,6 +39,9 @@ class AllVolumesView
     //! Root volume of the geometry graph
     inline CELER_FUNCTION VolumeId world() const;
 
+    //! Enclosing instance of the world volume (null if world is a true root)
+    inline CELER_FUNCTION VolumeInstanceId world_instance() const;
+
     //! Number of logical volumes (nodes)
     inline CELER_FUNCTION VolumeId::size_type num_volumes() const;
 
@@ -77,6 +80,14 @@ CELER_FORCEINLINE_FUNCTION VolumeId AllVolumesView::world() const
     return params_.scalars.world;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Get the enclosing instance of the world volume.
+ */
+CELER_FORCEINLINE_FUNCTION VolumeInstanceId AllVolumesView::world_instance() const
+{
+    return params_.scalars.world_instance;
+}
 //---------------------------------------------------------------------------//
 /*!
  * Get the number of logical volumes.
