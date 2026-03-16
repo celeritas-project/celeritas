@@ -9,6 +9,7 @@
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
+#include "geocel/AllVolumesView.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/VolumeToString.hh"
@@ -234,6 +235,34 @@ TEST_F(ComplexVolumeTest, params)
 
     static int const expected_volume_mapping[] = {1, 2, 2, 2, 3, -1, 4};
     EXPECT_VEC_EQ(expected_volume_mapping, volume_mapping);
+}
+
+TEST_F(ComplexVolumeTest, view)
+{
+    VolumeParams const& params = this->volumes();
+    AllVolumesView vv = params.view();
+
+    // Scalar accessors match params
+    EXPECT_EQ(params.world(), vv.world());
+    EXPECT_EQ(params.num_volume_levels(), vv.num_volume_levels());
+
+    // volume_id maps instance -> logical volume
+    std::vector<int> vol_ids;
+    for (auto vi : range(VolumeInstanceId{params.num_volume_instances()}))
+    {
+        vol_ids.push_back(id_to_int(vv.volume_id(vi)));
+    }
+    static int const expected_vol_ids[] = {1, 2, 2, 2, 3, -1, 4};
+    EXPECT_VEC_EQ(expected_vol_ids, vol_ids);
+
+    // volume() constructs a VolumeView with correct material
+    static int const expected_geo_mat[] = {0, 1, 2, 3, 4};
+    std::vector<int> geo_mat;
+    for (auto v : range(VolumeId{params.num_volumes()}))
+    {
+        geo_mat.push_back(id_to_int(vv.volume(v).material()));
+    }
+    EXPECT_VEC_EQ(expected_geo_mat, geo_mat);
 }
 
 TEST_F(ComplexVolumeTest, volume_to_string)

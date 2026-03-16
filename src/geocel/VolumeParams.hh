@@ -14,6 +14,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/data/ParamsDataStore.hh"
 
+#include "AllVolumesView.hh"
 #include "Types.hh"
 #include "VolumeData.hh"
 #include "VolumeView.hh"
@@ -84,7 +85,7 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     bool empty() const { return v_labels_.empty(); }
 
     //! World volume
-    VolumeId world() const { return data_.host_ref().scalars.world; }
+    VolumeId world() const { return this->view().world(); }
 
     //! Depth of the volume DAG (a world without children is 1)
     inline vol_level_uint num_volume_levels() const;
@@ -100,6 +101,9 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
 
     // Get volume instance metadata
     VolInstMap const& volume_instance_labels() const { return vi_labels_; }
+
+    // Construct view of device-compatible volume data
+    inline AllVolumesView view() const;
 
     // Construct a view for accessing volume properties
     inline VolumeView get(VolumeId v_id) const;
@@ -147,9 +151,9 @@ std::weak_ptr<VolumeParams const> const& global_volumes();
 /*!
  * Depth of the volume DAG.
  */
-auto VolumeParams::num_volume_levels() const -> vol_level_uint
+CELER_FORCEINLINE auto VolumeParams::num_volume_levels() const -> vol_level_uint
 {
-    return data_.host_ref().scalars.num_volume_levels;
+    return this->view().num_volume_levels();
 }
 
 //---------------------------------------------------------------------------//
@@ -163,9 +167,18 @@ auto VolumeParams::num_volume_instances() const -> VolumeInstanceId::size_type
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a device-compatible view of all volume data.
+ */
+CELER_FORCEINLINE AllVolumesView VolumeParams::view() const
+{
+    return AllVolumesView{this->host_ref()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a lightweight view for accessing volume properties.
  */
-VolumeView VolumeParams::get(VolumeId v_id) const
+CELER_FORCEINLINE VolumeView VolumeParams::get(VolumeId v_id) const
 {
     return VolumeView{this->host_ref(), v_id};
 }
