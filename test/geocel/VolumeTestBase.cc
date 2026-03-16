@@ -175,6 +175,71 @@ std::shared_ptr<VolumeParams> MultiLevelVolumeTestBase::build_volumes() const
 
 //---------------------------------------------------------------------------//
 
+std::shared_ptr<VolumeParams> StressVolumeTestBase::build_volumes() const
+{
+    CELER_EXPECT(num_levels_ > 0);
+    using namespace inp;
+    Volumes in;
+
+    // One logical volume per depth level; level 0 is the world (root)
+    // Labels are A, B, C, ... for depths 0, 1, 2, ...
+    auto depth_label
+        = [](unsigned int d) { return std::string(1, char('A' + d)); };
+
+    for (auto d : range(num_levels_ - 1))
+    {
+        Volume v;
+        v.label = depth_label(d);
+        v.material = GeoMatId{0};
+        // Children are the num_children instances pointing to level d+1
+        for (auto c : range(num_children_))
+        {
+            v.children.push_back(VolumeInstanceId{d * num_children_ + c});
+        }
+        // For high enough levels, also add one instance of level d+2
+        if (d + 2 < num_levels_)
+        {
+            v.children.push_back(
+                VolumeInstanceId{(num_levels_ - 1) * num_children_ + d});
+        }
+        in.volumes.push_back(std::move(v));
+    }
+    {
+        // Final (leaf) volume
+        Volume v;
+        v.label = depth_label(num_levels_ - 1);
+        v.material = GeoMatId{0};
+        in.volumes.push_back(std::move(v));
+    }
+    CELER_ASSERT(in.volumes.size() == num_levels_);
+
+    // (num_levels-1)*num_children volume instances
+    // Label format: {"A->B", "N"} for the Nth sibling of B placed in A
+    for (auto d : range(1u, num_levels_))
+    {
+        std::string inst_label = depth_label(d - 1) + "->" + depth_label(d);
+        for (auto c : range(num_children_))
+        {
+            VolumeInstance vi;
+            vi.label = Label{inst_label, std::to_string(c)};
+            vi.volume = VolumeId{d};
+            in.volume_instances.push_back(std::move(vi));
+        }
+    }
+
+    // One skip-level instance per eligible depth: A->C, B->D, etc.
+    for (auto d : range(num_levels_ - 2))
+    {
+        VolumeInstance vi;
+        vi.label = Label{depth_label(d) + "->" + depth_label(d + 2), "0"};
+        vi.volume = VolumeId{d + 2};
+        in.volume_instances.push_back(std::move(vi));
+    }
+
+    in.world = VolumeId{0};
+    return std::make_shared<VolumeParams>(std::move(in));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

@@ -374,5 +374,36 @@ TEST_F(MultiLevelTest, visit)
 }
 
 //---------------------------------------------------------------------------//
+using StressTest = StressVolumeTestBase;
+
+TEST_F(StressTest, params)
+{
+    auto const& vols = this->volumes();
+    EXPECT_EQ(num_levels_, vols.num_volumes());
+    EXPECT_EQ((num_levels_ - 1) * num_children_ + (num_levels_ - 2),
+              vols.num_volume_instances());
+    EXPECT_EQ(num_levels_, vols.num_volume_levels());
+
+    // f[leaf]=1; f[n-2]=k+1 (no skip at penultimate level);
+    // f[d] = 1 + k*f[d+1] + f[d+2] for d <= n-3 (skip child adds f[d+2])
+    ASSERT_GE(num_levels_, 2);
+    auto num_unique = [&] {
+        VolumeUniqueInstanceId::size_type f1{1};
+        VolumeUniqueInstanceId::size_type f0{num_children_ + 1};
+        for ([[maybe_unused]] auto i : range(num_levels_ - 2))
+        {
+            auto f_new = 1 + num_children_ * f0 + f1;
+            f1 = f0;
+            f0 = f_new;
+        }
+        return f0;
+    }();
+
+    cout << vols.num_volume_levels() << " levels, " << vols.num_volumes()
+         << " volumes, " << vols.num_volume_instances() << " instances, "
+         << num_unique << " unique instances" << endl;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
