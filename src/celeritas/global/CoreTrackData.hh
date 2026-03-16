@@ -86,9 +86,10 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        // OPTIONAL: surface, volumes, detectors
+        // Detectors are optional
         return geometry && materials && geo_mats && particles && cutoffs
-               && physics && rng && sim && init && scalars;
+               && physics && rng && sim && surface && volumes && init
+               && scalars;
     }
 
     //! Assign from another set of data

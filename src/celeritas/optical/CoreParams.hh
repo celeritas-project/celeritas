@@ -84,7 +84,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstSim sim;
-        SPConstVolume volume;  //!< Currently host-only
+        SPConstVolume volume;
         SPConstSurface surface;
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;

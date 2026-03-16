@@ -124,11 +124,11 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(geometry);
     CP_VALIDATE_INPUT(material);
     CP_VALIDATE_INPUT(physics);
+    CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(volume);
     CP_VALIDATE_INPUT(surface);
-    CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(gen_reg);
