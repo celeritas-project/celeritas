@@ -9,6 +9,6 @@ services: {
 }
 
 # Override detector geometry for consistency
-services.Geometry.GDML: "dune10kt_v6_refactored_1x2x6-rice.gdml"
-services.AuxDetGeometry.GDML: "dune10kt_v6_refactored_1x2x6-rice.gdml"
-services.LArG4Detector.gdmlFileName_: "dune10kt_v6_refactored_1x2x6-rice.gdml"
+services.Geometry.GDML: "dune10kt_v6_refactored_1x2x6-optical.gdml"
+services.AuxDetGeometry.GDML: "dune10kt_v6_refactored_1x2x6-optical.gdml"
+services.LArG4Detector.gdmlFileName_: "dune10kt_v6_refactored_1x2x6-optical.gdml"
