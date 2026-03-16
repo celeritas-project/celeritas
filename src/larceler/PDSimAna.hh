@@ -56,14 +56,13 @@ class PDSimAna : public art::EDAnalyzer
   private:
     // Fcl input data
     art::InputTag sim_tag_;
-    art::InputTag btr_tag_;
+    art::InputTag obtr_tag_;
 
     struct HistogramStore
     {
-        TH1D* pd_time;
-        TH1D* sdp_energy;
-        TH2D* opdet_energy;
-        TH2D* btr_time_energy;
+        TH1D* btr_time;
+        TH2D* sdp_zy;
+        TH2D* btr_detid_time;
     } histograms_;
 };
 

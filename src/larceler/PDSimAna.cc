@@ -20,6 +20,7 @@
 #include <messagefacility/MessageLogger/MessageLogger.h>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 
 namespace celeritas
 {
@@ -30,7 +31,7 @@ namespace celeritas
 PDSimAna::PDSimAna(Parameters const& config)
     : art::EDAnalyzer{config}
     , sim_tag_{config().SimulationLabel()}
-    , btr_tag_{config().ModuleLabel()}
+    , obtr_tag_{config().ModuleLabel()}
 {
 }
 
@@ -44,13 +45,12 @@ void PDSimAna::beginJob()
     art::ServiceHandle<art::TFileService const> tfs;
 
     // Initialize histograms
-    histograms_.sdp_energy
-        = tfs->make<TH1D>("sdp_energy", "sdp_energy", 100, 0, 0.01);
-    histograms_.pd_time = tfs->make<TH1D>("pd_time", "pd_time", 100, 0, 15e3);
-    histograms_.opdet_energy = tfs->make<TH2D>(
-        "opdet_energy", "opdet_energy", 500, 0, 500, 100, 0, 0.01);
-    histograms_.btr_time_energy = tfs->make<TH2D>(
-        "btr_time_energy", "btr_time_energy", 100, 0, 15e3, 100, 0, 0.01);
+    histograms_.sdp_zy
+        = tfs->make<TH2D>("sdp_zy", "sdp_zy", 145, 0, 1450, 65, -650, 650);
+    histograms_.btr_time = tfs->make<TH1D>(
+        "obtr.timePDclock", "obtr.timePDclock", 100, 0, 15e3);
+    histograms_.btr_detid_time = tfs->make<TH2D>(
+        "btr_opdetid_time", "btr_opdetid_time", 500, 0, 500, 100, 0, 1.2e9);
 }
 
 //---------------------------------------------------------------------------//
@@ -63,30 +63,27 @@ void PDSimAna::analyze(art::Event const& event)
     using VecOpDetBTR = std::vector<sim::OpDetBacktrackerRecord>;
 
     // Load SimEnergyDeposit and OpDetBacktrackerRecord data
-    auto const& sim_edeps = *(event.getValidHandle<VecSimEdep>(sim_tag_));
-    auto const& opdet_btrs = *(event.getValidHandle<VecOpDetBTR>(btr_tag_));
+    auto const& vec_simedep = *(event.getValidHandle<VecSimEdep>(sim_tag_));
+    auto const& vec_obtr = *(event.getValidHandle<VecOpDetBTR>(obtr_tag_));
 
-    for (auto const& btr : opdet_btrs)
+    double total_time{0};
+    for (auto const& btr : vec_obtr)
     {
-        auto opdet_id = btr.OpDetNum();
-        double total_btr_energy{0};
+        auto const opdet_id = btr.OpDetNum();
         for (auto const& map : btr.timePDclockSDPsMap())
         {
             auto const& time = map.first;
             auto const& vec_sdp = map.second;
+            total_time += time;
 
-            histograms_.pd_time->Fill(time);
+            histograms_.btr_time->Fill(time);
 
-            double total_sdp_energy{0};
             for (auto const& sdp : vec_sdp)
             {
-                histograms_.sdp_energy->Fill(sdp.energy);
-                total_btr_energy += sdp.energy;
-                total_sdp_energy += sdp.energy;
+                histograms_.sdp_zy->Fill(sdp.z, sdp.y);
             }
-            histograms_.btr_time_energy->Fill(time, total_sdp_energy);
         }
-        histograms_.opdet_energy->Fill(opdet_id, total_btr_energy);
+        histograms_.btr_detid_time->Fill(opdet_id, total_time);
     }
 }
 
