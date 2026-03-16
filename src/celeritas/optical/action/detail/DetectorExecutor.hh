@@ -24,7 +24,14 @@ namespace detail
  * or is not in a detector region, an invalid hit is set in the corresponding
  * buffer track slot.
  *
+ * Detection can occur after a surface crossing \em or (for coupled EM
+ * problems) if an optical photon is emitted inside a detector region.
+ *
  * When a track generates a valid hit, it is killed (absorbed by the detector).
+ *
+ * \note This is called by \em all track slots, which is necessary to clear the
+ * outgoing detector hits. We could break this into a "reset" kernel that
+ * applies to all slots, and a "fill" kernel that applies only to valid slots.
  */
 struct DetectorExecutor
 {
@@ -54,16 +61,16 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
         // Inactive or errored
         return;
     }
+    if (track.surface_physics().is_crossing_boundary())
+    {
+        // Boundary crossing not yet completed, so not yet detected!
+        return;
+    }
 
     auto geometry = track.geometry();
     if (geometry.is_outside())
     {
         // Killed by leaving geometry; no detection
-        return;
-    }
-    if (!geometry.is_on_boundary())
-    {
-        // Optical detectors apply *only* to boundary crossings
         return;
     }
 
@@ -73,6 +80,7 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
 
     if (!detector_id)
     {
+        // Not in a detector
         return;
     }
 
