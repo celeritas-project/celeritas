@@ -32,7 +32,7 @@ namespace detail
  * surface.
  *
  * \note See and update documentation in \rstref{Boundary
- * initialization}{surface_boundary_init} .
+ * initialization, surface_boundary_init} .
  */
 struct InitBoundaryExecutor
 {
