@@ -9,6 +9,7 @@
 #include "corecel/math/Atomics.hh"
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/AllVolumesView.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
@@ -102,6 +103,9 @@ class CoreTrackView
 
     // HACK: return scalars (maybe have a struct for all actions?)
     inline CELER_FUNCTION CoreScalars const& core_scalars() const;
+
+    // Return a device-compatible view of all volumes
+    inline CELER_FUNCTION AllVolumesView volumes() const;
 
     //// MUTATORS ////
 
@@ -397,6 +401,15 @@ CELER_FUNCTION ActionId CoreTrackView::tracking_cut_action() const
 CELER_FUNCTION CoreScalars const& CoreTrackView::core_scalars() const
 {
     return params_.scalars;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a device-compatible view of all volumes.
+ */
+CELER_FUNCTION AllVolumesView CoreTrackView::volumes() const
+{
+    return AllVolumesView{params_.volumes};
 }
 
 //---------------------------------------------------------------------------//

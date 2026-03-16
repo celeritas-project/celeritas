@@ -63,6 +63,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.surface = get_ref<M>(*p.surface);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.detectors = get_ref<M>(*p.detectors);
+    ref.volumes = get_ref<M>(*p.volume);
     if (p.cherenkov)
     {
         ref.cherenkov = get_ref<M>(*p.cherenkov);

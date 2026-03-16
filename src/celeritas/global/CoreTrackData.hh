@@ -12,6 +12,7 @@
 #include "corecel/random/data/RngData.hh"
 #include "geocel/DetectorData.hh"
 #include "geocel/SurfaceData.hh"
+#include "geocel/VolumeData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/geo/GeoData.hh"
@@ -76,6 +77,7 @@ struct CoreParamsData
     SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
     DetectorParamsData<W, M> detectors;
+    VolumeParamsData<W, M> volumes;
     TrackInitParamsData<W, M> init;
     WentzelOKVIData<W, M> wentzel;
 
@@ -104,6 +106,7 @@ struct CoreParamsData
         sim = other.sim;
         surface = other.surface;
         detectors = other.detectors;
+        volumes = other.volumes;
         init = other.init;
         wentzel = other.wentzel;
         scalars = other.scalars;

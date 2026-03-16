@@ -86,6 +86,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.sim = get_ref<M>(*p.sim);
     // NOTE: volumes do not yet have device data
     ref.surface = get_ref<M>(*p.surface);
+    ref.volumes = get_ref<M>(*p.volume);
     ref.init = get_ref<M>(*p.init);
     ref.detectors = get_ref<M>(*p.detectors);
     if (p.wentzel)

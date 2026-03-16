@@ -22,13 +22,6 @@ namespace celeritas
  * This provides device-accessible accessors over the complete
  * \c VolumeParamsData: scalar graph properties (world ID, depth) and
  * instance-to-volume mapping, as well as per-volume \c VolumeView objects.
- *
- * \code
-   AllVolumesView vols{params.host_ref()};
-   VolumeId world = vols.world();
-   VolumeId vol   = vols.volume_id(vi);
-   GeoMatId mat   = vols.volume(vol).material();
- * \endcode
  */
 class AllVolumesView
 {
