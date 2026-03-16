@@ -32,6 +32,24 @@ struct VolumeRecord
 
 //---------------------------------------------------------------------------//
 /*!
+ * Scalar values for the volume hierarchy graph.
+ */
+struct VolumeParamsScalars
+{
+    //! Root volume of the geometry graph
+    VolumeId world;
+    //! Depth of the volume graph (1 for a world with no children)
+    VolumeLevelId::size_type num_volume_levels{0};
+
+    //! True if scalars are in a consistent populated state
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return static_cast<bool>(world) && num_volume_levels > 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Persistent data for the volume hierarchy graph.
  *
  * This stores the volume DAG (directed acyclic graph) in Collection-based
@@ -61,10 +79,7 @@ struct VolumeParamsData
     //! Flat backing storage for per-volume parent and child instance lists
     Items<VolumeInstanceId> vi_storage;
 
-    //! Root volume of the geometry graph
-    VolumeId world;
-    //! Depth of the volume graph (1 for a world with no children)
-    VolumeLevelId::size_type num_volume_levels{0};
+    VolumeParamsScalars scalars;
 
     //// METHODS ////
 
@@ -74,10 +89,9 @@ struct VolumeParamsData
         if (volumes.empty())
         {
             // Valid empty state (e.g., for testing or ORANGE debugging)
-            return volume_ids.empty() && vi_storage.empty() && !world
-                   && num_volume_levels == 0;
+            return volume_ids.empty() && vi_storage.empty() && !scalars;
         }
-        return static_cast<bool>(world);
+        return static_cast<bool>(scalars);
     }
 
     //! Assign from another set of data
@@ -88,8 +102,7 @@ struct VolumeParamsData
         volumes = other.volumes;
         volume_ids = other.volume_ids;
         vi_storage = other.vi_storage;
-        world = other.world;
-        num_volume_levels = other.num_volume_levels;
+        scalars = other.scalars;
         CELER_ENSURE(*this);
         return *this;
     }

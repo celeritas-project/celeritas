@@ -45,7 +45,7 @@ struct VolumeDataAccessor
 //---------------------------------------------------------------------------//
 int calc_num_volume_levels(HostVal<VolumeParamsData> const& params)
 {
-    CELER_EXPECT(params.world);
+    CELER_EXPECT(params.scalars.world);
     int max_level{0};
 
     VolumeVisitor visit_vol{VolumeDataAccessor<Ownership::value>{params}};
@@ -55,7 +55,7 @@ int calc_num_volume_levels(HostVal<VolumeParamsData> const& params)
             max_level = std::max(max_level, level);
             return true;
         },
-        params.world);
+        params.scalars.world);
     return max_level + 1;
 }
 
@@ -175,12 +175,12 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
 
     // Set scalars
     CELER_EXPECT(!in.world || in.world < in.volumes.size());
-    host_data.world = in.world;
+    host_data.scalars.world = in.world;
 
     // Calculate depth via VolumeVisitor
     if (in.world)
     {
-        host_data.num_volume_levels = calc_num_volume_levels(host_data);
+        host_data.scalars.num_volume_levels = calc_num_volume_levels(host_data);
     }
 
     CELER_ENSURE(host_data);

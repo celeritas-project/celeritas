@@ -84,7 +84,7 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     bool empty() const { return v_labels_.empty(); }
 
     //! World volume
-    VolumeId world() const { return data_.host_ref().world; }
+    VolumeId world() const { return data_.host_ref().scalars.world; }
 
     //! Depth of the volume DAG (a world without children is 1)
     inline vol_level_uint num_volume_levels() const;
@@ -149,7 +149,7 @@ std::weak_ptr<VolumeParams const> const& global_volumes();
  */
 auto VolumeParams::num_volume_levels() const -> vol_level_uint
 {
-    return data_.host_ref().num_volume_levels;
+    return data_.host_ref().scalars.num_volume_levels;
 }
 
 //---------------------------------------------------------------------------//
