@@ -21,9 +21,15 @@ int calc_num_volume_levels(VolumeParams const& params)
     CELER_EXPECT(params.world());
     int max_level{0};
 
+    std::vector<bool> visited(params.num_volumes(), false);
     VolumeVisitor visit_vol{params};
     visit_vol(
-        [&max_level](VolumeId, int level) {
+        [&max_level, &visited](VolumeId v, int level) {
+            if (visited[v.unchecked_get()])
+            {
+                return false;
+            }
+            visited[v.unchecked_get()] = true;
             CELER_ASSERT(level >= 0);
             max_level = std::max(max_level, level);
             return true;

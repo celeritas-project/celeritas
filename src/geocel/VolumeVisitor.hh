@@ -47,7 +47,7 @@ class VolumeAccessorInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Recursively walk through all unique volumes/instances.
+ * Recursively walk depth-first through all unique volumes/instances.
  *
  * \tparam VA Helper class with the same signature as VolumeAccessor above.
  *
