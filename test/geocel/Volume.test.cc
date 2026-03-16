@@ -5,10 +5,16 @@
 //! \file geocel/Volume.test.cc
 //! Test VolumeParams and related utilities
 //---------------------------------------------------------------------------//
+#include <fstream>
 #include <unordered_map>
+
+#include "celeritas_test_config.h"
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
+#include "corecel/io/Join.hh"
+#include "corecel/io/Label.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "geocel/AllVolumesView.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
@@ -401,6 +407,28 @@ TEST_F(MultiLevelTest, visit)
         };
         EXPECT_VEC_EQ(expected_names, mpv.get_names());
     }
+}
+
+TEST_F(MultiLevelTest, io)
+{
+    auto const& vols = this->volumes();
+    auto vols_json_str = stream_to_string(vols);
+    EXPECT_JSON_EQ(R"json({
+"children": [
+[],
+[],
+[0, 1, 2 ],
+[3, 4, 5, 6, 10 ],
+[7, 8, 9 ],
+[],
+[]
+],
+"instance_to_volume": [ 0, 0, 1, 2, 0, 2, 2, 5, 5, 6, 4, 3 ],
+"volume_instances": [ "boxsph1@0", "boxsph2@0", "boxtri@0", "topbox1", "topsph1", "topbox2", "topbox3", "boxsph1@1", "boxsph2@1", "boxtri@1", "topbox4", "world_PV" ],
+"volumes": [ "sph", "tri", "box", "world", "box_refl", "sph_refl", "tri_refl" ],
+"world": 3
+})json",
+                   vols_json_str);
 }
 
 //---------------------------------------------------------------------------//

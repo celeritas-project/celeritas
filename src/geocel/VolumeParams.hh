@@ -146,6 +146,13 @@ void global_volumes(std::shared_ptr<VolumeParams const> const&);
 std::weak_ptr<VolumeParams const> const& global_volumes();
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+// Write volume hierarchy to a stream (defined in IO.json.cc)
+// see scripts/user/volumes-to-dot.py
+std::ostream& operator<<(std::ostream& os, VolumeParams const& vp);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!

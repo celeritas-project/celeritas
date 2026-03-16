@@ -22,6 +22,7 @@ namespace celeritas
  * This GPU-compatible view provides per-volume access to the geometry
  * material ID and parent/child edges in the volume instance graph.
  *
+ * \par Example:
  * \code
    VolumeView view{params.host_ref(), vol_id};
    GeoMatId mat = view.material();
