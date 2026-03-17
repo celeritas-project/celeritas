@@ -58,35 +58,18 @@ struct EmPhysics
  * Optical physics processes, options, and surface definitions.
  *
  * If scintillation or Cherenkov is enabled, optical photons will be generated.
- *
- * \todo Move cherenkov/scintillation to a OpticalGenPhysics class.
  */
 struct OpticalPhysics
 {
-    //!@{
-    /*! \name Optical photon generation from EM particles
-     *
-     *  \todo Replace with physics input data
-     */
-
-    //! Generate Cherenkov photons
-    bool cherenkov{false};
-
-    //! Generate scintillation photons
-    bool scintillation{false};
-    //!@}
-
-    //!@{
-    //! \name Physics and properties for optical photons
+    //! Optionally generate photons from EM processes
+    OpticalGenPhysics gen;
+    //! Optical photons interact inside materials
     OpticalBulkPhysics bulk;
+    //! Optical photons interact with material boundaries
     OpticalSurfacePhysics surfaces;
-    //!@}
 
     //! Whether optical physics is enabled
-    explicit operator bool() const
-    {
-        return cherenkov || scintillation || bulk || surfaces;
-    }
+    explicit operator bool() const { return gen || bulk || surfaces; }
 };
 
 //---------------------------------------------------------------------------//
@@ -98,14 +81,10 @@ struct OpticalPhysics
  * \todo Move particle data from \c celeritas::ImportParticle
  * \todo Add function for injecting user processes for
  *       \c celeritas::PhysicsParams
- * \todo Move \c OpticalGenerator to \c OpticalGenPhysics or elsewhere
- *
- * \todo How to better group these, especially when adding
- * hadronic/photonuclear/decay/...?
  */
 struct Physics
 {
-    //! Physics that applies to offloaded EM particles
+    //! Electromagnetic physics processes
     EmPhysics em;
 
     //! Muon-catalyzed fusion physics

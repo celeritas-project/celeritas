@@ -142,6 +142,9 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     bool is_on_boundary() const final { return t_->is_on_boundary(); }
     Real3 normal() const final { return t_->normal(); }
 
+    // Derive the geometry status from the inner track
+    GeoStatus geo_status() const final;
+
     // Calculate or return the safety up to an infinite distance
     real_type find_safety() final;
 

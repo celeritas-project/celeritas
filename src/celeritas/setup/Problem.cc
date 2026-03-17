@@ -12,8 +12,6 @@
 #include <variant>
 #include <vector>
 
-#include "corecel/Config.hh"
-
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
@@ -335,13 +333,15 @@ auto build_optical_params(inp::Problem const& p,
     pi.volume = core.volume();
 
     // Photon generating processes
-    if (p.physics.optical.cherenkov)
+    if (p.physics.optical.gen.cherenkov)
     {
         pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
-    if (p.physics.optical.scintillation)
+    if (p.physics.optical.gen.scintillation)
     {
-        pi.scintillation = ScintillationParams::from_import(imported);
+        CELER_ASSERT(imported.optical_physics.gen.scintillation);
+        pi.scintillation = std::make_shared<ScintillationParams>(
+            *pi.material, *imported.optical_physics.gen.scintillation);
     }
 
     // Streams and capacities
@@ -397,14 +397,28 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.capacity = p.capacity;
 
     // Photon generating processes are needed to offload via Geant4 optical
-    if (p.physics.cherenkov)
+    if (p.physics.gen.cherenkov)
     {
+        // TODO: pass additional parameters such as step limit
         pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
-    if (p.physics.scintillation)
+    if (p.physics.gen.scintillation)
     {
-        pi.scintillation = ScintillationParams::from_import(imported);
-        CELER_ASSERT(pi.scintillation);
+        // TODO: optical physics is redundantly copied into ImportData:
+        // remove entirely from import when we simplify the bulk physics
+        // construction
+        std::optional<inp::ScintillationProcess> const& s
+            = imported.optical_physics.gen.scintillation;
+        if (s && !s->empty())
+        {
+            pi.scintillation
+                = std::make_shared<ScintillationParams>(*pi.material, *s);
+        }
+        else
+        {
+            CELER_LOG(warning) << "Disabling user-requested scintillation: no "
+                                  "process data available";
+        }
     }
 
     std::move(loaded_model) = {};

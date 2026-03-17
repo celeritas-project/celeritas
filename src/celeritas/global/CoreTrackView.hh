@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/Atomics.hh"
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
@@ -107,6 +108,13 @@ class CoreTrackView
     // Set the 'errored' flag and tracking cut post-step action
     inline CELER_FUNCTION void apply_errored();
 
+    // Apply a tracking cut without setting the error state
+    inline CELER_FUNCTION void apply_cut();
+
+    // Access global step counters (mutable for atomic operations)
+    inline CELER_FUNCTION CoreStateCounters& counters();
+    inline CELER_FUNCTION CoreStateCounters const& counters() const;
+
   private:
     StateRef const& states_;
     ParamsRef const& params_;
@@ -181,7 +189,8 @@ CoreTrackView::operator=(TrackInitializer const& init)
         {
             // Print an error message if initialization was "successful" but
             // track is outside
-            CELER_LOG_LOCAL(error) << R"(Track started outside the geometry)";
+            CELER_LOG_LOCAL(error) << "Track " << this->track_slot_id().get()
+                                   << " started outside the geometry";
         }
         else
         {
@@ -198,7 +207,8 @@ CoreTrackView::operator=(TrackInitializer const& init)
     if (CELER_UNLIKELY(!matid))
     {
 #if !CELER_DEVICE_COMPILE
-        CELER_LOG_LOCAL(error) << "Track started in an unknown material";
+        CELER_LOG_LOCAL(error) << "Track " << this->track_slot_id().get()
+                               << " started in an unknown material";
 #endif
         this->apply_errored();
         return *this;
@@ -391,6 +401,23 @@ CELER_FUNCTION CoreScalars const& CoreTrackView::core_scalars() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access the global step counters.
+ */
+CELER_FUNCTION CoreStateCounters& CoreTrackView::counters()
+{
+    return *states_.init.counters.data().get();
+}
+
+//---------------------------------------------------------------------------//
+//! \cond
+CELER_FUNCTION CoreStateCounters const& CoreTrackView::counters() const
+{
+    return *states_.init.counters.data().get();
+}
+//! \endcond
+
+//---------------------------------------------------------------------------//
+/*!
  * Set the 'errored' flag and tracking cut post-step action.
  *
  * \pre This cannot be applied if the current action is *after* post-step. (You
@@ -404,6 +431,19 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
     sim.status(TrackStatus::errored);
     sim.along_step_action({});
     sim.post_step_action(this->tracking_cut_action());
+    atomic_add(&this->counters().num_errored, size_type{1});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a tracking cut without setting the error state.
+ */
+CELER_FUNCTION void CoreTrackView::apply_cut()
+{
+    auto sim = this->sim();
+    CELER_EXPECT(is_track_valid(sim.status()));
+    sim.post_step_action(this->tracking_cut_action());
+    atomic_add(&this->counters().num_cut, size_type{1});
 }
 
 //---------------------------------------------------------------------------//

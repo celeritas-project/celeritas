@@ -1,5 +1,5 @@
 # Celeritas AI Agent Instructions
-Celeritas is a GPU-accelerated HEP detector physics library for HL-LHC, integrating with Geant4. It's a C++17 codebase with CUDA/HIP device support.
+Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
 
 ## Quick Reference
 
@@ -43,7 +43,7 @@ Data flow: Build params on host → copy to device → access via Views
 GPU execution requires data-oriented design with object-oriented interfaces:
 ```cpp
 // Params: immutable setup data
-struct MyParamsData { Collection<Material> materials; };
+struct MyParamsData { Collection<Material> materials; /* ... */ };
 
 // View: lightweight accessor for device code
 class MyView {
@@ -52,6 +52,7 @@ public:
     CELER_FUNCTION Material const& get(MaterialId id) const;
 };
 ```
+Data structs must have `operator bool` to check construction/assignment.
 
 ## Code Conventions
 
@@ -88,6 +89,21 @@ Key types:
 - `OpaqueId<T>`: Type-safe index (not raw int)
 - `Span<T>`: Non-owning array view
 - `Array<T, N>`: Fixed-size stack array
+
+### Avoiding Code Duplication
+**Critical principle:** Don't Repeat Yourself (DRY). Duplicated code is harder to maintain, test, and debug.
+
+**When you see duplication:**
+- **Extract to helper functions** (anonymous namespace for file-local helpers)
+- **Create reusable functors** for GPU-compatible operations
+- **Use templates** when logic is identical but types differ
+- **Factor out common patterns** into utility functions
+
+**Strategies:**
+- **Long functions (>50 lines):** Break into smaller, focused helper functions
+- **Repeated logic blocks:** Extract to named functions with clear purposes
+- **Similar code patterns:** Identify the varying parts and parameterize
+- **Complex validation:** Create dedicated validation functions
 
 ## Critical Patterns
 
@@ -138,7 +154,7 @@ State collections need `resize(size)` operators for track slots.
 
 ### Creating New Classes
 1. Separate data from behavior: `FooData`, `FooParams`, `FooView`
-2. Add `operator bool()` validation to data structs
+2. Define any nontrivial member function out-of-line, decorating the function *declaration* with `inline`
 3. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
 
 ### Consistency Checklist
@@ -158,10 +174,13 @@ When adding features, ensure consistency across:
 ## Common Pitfalls
 
 **Don't:**
-- Copy-paste code (refactor into reusable functors instead)
+- **Copy-paste code** — Duplicated code compounds bugs and makes refactoring difficult. Extract to helper functions (anonymous namespace for file-local, or utility headers for reusable). Large functions (>100 lines) are often a sign of missing abstractions.
+- **Leave repeated patterns unrefactored** — If you write similar code 3+ times, extract it. Use lambdas for local helpers, free functions for broader reuse.
 - Use raw integers for indices (use `OpaqueId<T>`)
 - Forget `CELER_FUNCTION` on device code (→ `__host__/__device__` errors)
 
 **Do:**
+- **Refactor before extending** — When adding to duplicated code, first extract the common pattern, then extend it.
+- **Extract validation logic** — Complex validation should be in dedicated functions with descriptive names.
 - Ensure data consistency (input → data → view → executor)
 - Add unit tests for all classes (detail classes excepted)

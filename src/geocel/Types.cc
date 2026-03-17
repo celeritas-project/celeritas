@@ -2,28 +2,35 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/GeneratorCountersIO.json.cc
+//! \file geocel/Types.cc
 //---------------------------------------------------------------------------//
-#include "GeneratorCountersIO.json.hh"
+#include "Types.hh"
+
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//!@{
-//! I/O routines for JSON
-
-void to_json(nlohmann::json& j, CounterAccumStats const& v)
+/*!
+ * Get a string corresponding to a geometry track state.
+ */
+char const* to_cstring(GeoStatus value)
 {
-    j = nlohmann::json{
-        CELER_JSON_PAIR(v, generators),
-        CELER_JSON_PAIR(v, steps),
-        CELER_JSON_PAIR(v, step_iters),
-        CELER_JSON_PAIR(v, flushes),
-        CELER_JSON_PAIR(v, num_cut),
-        CELER_JSON_PAIR(v, num_errored),
-    };
+    switch (value)
+    {
+        case GeoStatus::error:
+            return "error";
+        case GeoStatus::invalid:
+            return "invalid";
+        case GeoStatus::interior:
+            return "interior";
+        case GeoStatus::boundary_out:
+            return "boundary_out";
+        case GeoStatus::boundary_inc:
+            return "boundary_inc";
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
-//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

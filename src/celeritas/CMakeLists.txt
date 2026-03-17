@@ -241,6 +241,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantPhysicsLoader.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/GeantScintillationLoader.cc
     ext/detail/GeantSurfacePhysicsLoader.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc

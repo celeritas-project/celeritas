@@ -67,7 +67,8 @@ CELER_FUNCTION void PropagationApplier<TP>::operator()(CoreTrackView& track)
             // magnitude.
 #    if !CELER_DEVICE_COMPILE
             CELER_LOG_LOCAL(error)
-                << "Propagation of step length " << repr(sim.step_length())
+                << "Track " << track.track_slot_id().get()
+                << ": propagation of step length " << repr(sim.step_length())
                 << " due to post-step action "
                 << sim.post_step_action().unchecked_get()
                 << " leading to distance " << repr(p.distance)
