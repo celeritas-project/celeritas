@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
+#include "celeritas_test_config.h"
+
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -37,7 +39,8 @@ class NeutronElasticTest : public NeutronTestBase
         using namespace units;
 
         // Load neutron elastic cross section data
-        std::string data_path = this->test_data_path("celeritas", "");
+        std::string data_path = celeritas_source_dir;
+        data_path += "/test/celeritas/data/neutron-xs/";
         NeutronXsReader read_el_data(NeutronXsType::el, data_path.c_str());
 
         // Set up the default particle: 100 MeV neutron along +z direction
