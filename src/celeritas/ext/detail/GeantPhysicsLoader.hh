@@ -9,9 +9,6 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <G4Version.hh>
-
-#include "corecel/Config.hh"
 
 #include "geocel/GeoOpticalIdMap.hh"
 #include "celeritas/Types.hh"

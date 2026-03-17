@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-
 #include "corecel/Config.hh"
 
 #include "celeritas/io/ImportData.hh"

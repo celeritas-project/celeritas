@@ -21,7 +21,6 @@
 #include <G4VProcess.hh>
 #include <G4Version.hh>
 
-#include "corecel/inp/Distributions.hh"
 #include "celeritas/inp/OpticalPhysics.hh"
 
 #if G4VERSION_NUMBER >= 1070
