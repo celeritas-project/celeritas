@@ -10,13 +10,11 @@ Exit with status 1 if any file was modified or if unrecognized non-ASCII
 characters were found.
 
 When invoked from pre-commit, file selection is handled by the ``files:``
-pattern in the hook configuration.  The ``--types`` option is provided for
-direct invocation and limits processing to files whose extension is in the
-given comma-separated list.
+pattern in the hook configuration.
 
 Usage (standalone)::
 
-    python3 scripts/dev/fix-non-ascii.py --types cc,hh,cu src/celeritas/
+    python3 scripts/dev/fix-non-ascii.py src/celeritas/
 
 Usage (pre-commit)::
 
@@ -123,16 +121,6 @@ def _build_parser():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--types",
-        metavar="EXT",
-        default=None,
-        help=(
-            "comma-separated list of file extensions to process "
-            '(e.g. "cc,hh,cu,cmake"); when omitted all provided files are '
-            'processed; CMakeLists.txt is treated as extension "cmake"'
-        ),
-    )
-    parser.add_argument(
         "filenames",
         nargs="*",
         metavar="FILE",
@@ -144,21 +132,9 @@ def _build_parser():
 def main(argv=None):
     args = _build_parser().parse_args(argv)
 
-    extensions = None
-    if args.types is not None:
-        extensions = {ext.lstrip(".").lower() for ext in args.types.split(",")}
-
     result = 0
     for filename in args.filenames:
         path = Path(filename)
-
-        if extensions is not None:
-            if path.name.lower() == "cmakelists.txt":
-                suffix = "cmake"
-            else:
-                suffix = path.suffix.lstrip(".").lower()
-            if suffix not in extensions:
-                continue
 
         modified, errors = process_file(path)
 
