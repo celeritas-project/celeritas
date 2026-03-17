@@ -73,13 +73,13 @@ struct ImportWavelengthShift
 
 //---------------------------------------------------------------------------//
 /*!
- * Store Mie scattering properties (Henyey–Greenstein model).
+ * Store Mie scattering properties (Henyey-Greenstein model).
  */
 struct ImportMie
 {
-    //! Henyey–Greenstein "g" parameter for forward scattering
+    //! Henyey-Greenstein "g" parameter for forward scattering
     double forward_g{};
-    //! Henyey–Greenstein "g" parameter for backward scattering
+    //! Henyey-Greenstein "g" parameter for backward scattering
     double backward_g{};
     //! Fraction of forward vs backward scattering
     double forward_ratio{};

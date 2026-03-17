@@ -29,7 +29,7 @@ class EmExtraPhysicsHelper;
  * Set up and launch the gamma-nuclear model interaction.
  *
  * The class also builds element cross-section tables using G4PARTICLEXS/gamma
- * (IAEA) data at low energies and CHIPS gamma–nuclear cross sections using
+ * (IAEA) data at low energies and CHIPS gamma-nuclear cross sections using
  * G4GammaNuclearXS above the IAEA upper energy limit (~130 MeV). The CHIPS
  * cross sections are based on the parameterization developed by M. V. Kossov
  * (CERN/ITEP Moscow) for the high energy region (106 MeV < E < 50 GeV) and on

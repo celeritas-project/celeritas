@@ -268,7 +268,7 @@ TEST_F(CylMapFieldTest, all)
         }
     }
 
-    // Expected field values at the 8 sample points (2×2×2 grid in r, phi, z)
+    // Expected field values at the 8 sample points (2x2x2 grid in r, phi, z)
     // clang-format off
     static real_type const expected_field[] = {
         0.002,                0, 3.799975, // r=10cm,  phi=0,    z=-100cm

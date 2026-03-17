@@ -115,7 +115,7 @@ std::shared_ptr<VolumeParams> OpticalVolumeTestBase::build_volumes() const
         },
     };
 
-    // 2) Physical‐volume instances
+    // 2) Physical-volume instances
     in.volume_instances = {
         {"lar_pv", VolumeId{0}},
         {"tube2_below_pv", VolumeId{2}},

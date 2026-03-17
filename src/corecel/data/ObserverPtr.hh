@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Type-safe non-owning pointer.
  *
- * This class is based on WG21 N4282, "A Proposal for the World’s Dumbest Smart
+ * This class is based on WG21 N4282, "A Proposal for the World's Dumbest Smart
  * Pointer, v4". It adds memspace safety similar to Thrust's host/device_ptr.
  *
  * The dereferencing operators can *only* be used from the "native" memspace:

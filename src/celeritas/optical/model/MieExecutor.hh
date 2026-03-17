@@ -40,7 +40,7 @@ CELER_FUNCTION Interaction MieExecutor::operator()(CoreTrackView const& track)
 
     // Access the current particle track (optical photon)
     auto particle = track.particle();
-    // Photon’s current direction
+    // Photon's current direction
     auto const& direction = track.geometry().dir();
     // RNG stream for sampling scattering
     auto rng = track.rng();
