@@ -23,7 +23,7 @@ Object files and tests may have different paths and test names than you expect (
 - Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
 - Always add `\sa {file}` underneath `\file` commands in `src` to indicate the location of tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
 - Document anything "surprising" (i.e., the user has to correct your default behavior) in the AGENTS.md file or other appropriate location
-- Physics constants need units and citations
+- Use **only** ASCII characters in CMake/C++/CUDA/shell files
 
 ### Commit
 **Always** commit immediately when:
