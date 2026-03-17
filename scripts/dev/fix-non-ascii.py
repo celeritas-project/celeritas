@@ -14,7 +14,7 @@ pattern in the hook configuration.
 
 Usage (standalone)::
 
-    python3 scripts/dev/fix-non-ascii.py src/celeritas/
+    python3 scripts/dev/fix-non-ascii.py src/celeritas/Types.hh
 
 Usage (pre-commit)::
 
