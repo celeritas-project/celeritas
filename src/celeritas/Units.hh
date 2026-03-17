@@ -184,45 +184,40 @@ CELER_ICC barn = Constant{1e-24} * centimeter * centimeter;
  * return 2.5_centimeter;
  * \endcode
  *
- * The default UDLs return \c real_type and perform arithmetic at that
- * precision. Use the \c _fp suffix to return a full-precision \c Constant.
+ * Floating-point UDLs evaluate the unit conversion at \c real_type precision
+ * and return \c real_type. Subsequent arithmetic follows the usual C++ type
+ * rules for the other operands. Integer UDLs return \c Constant so exact
+ * values such as \c 2_cm can participate in full-precision arithmetic. For a
+ * full-precision floating-point value, explicitly construct a \c Constant and
+ * multiply by the unit:
+ * \code
+ * using namespace celeritas::units::literals;
+ * return 2.5_const * units::centimeter;
+ * \endcode
  */
 namespace literals
 {
+using namespace celeritas::literals;
 
-#define CELER_DEFINE_UNIT_UDL_TOKEN(                                          \
-    TOKEN, RETTYPE_DOUBLE, EXPR_DOUBLE, RETTYPE_INT, EXPR_INT)                \
-    CELER_CONSTEXPR_FUNCTION RETTYPE_DOUBLE operator""_##TOKEN(long double v) \
-    {                                                                         \
-        return (EXPR_DOUBLE);                                                 \
-    }                                                                         \
-    CELER_CONSTEXPR_FUNCTION RETTYPE_INT operator""_##TOKEN(                  \
-        unsigned long long int v)                                             \
-    {                                                                         \
-        return (EXPR_INT);                                                    \
+#define CELER_DEFINE_UNIT_UDL(SUFFIX, NAME)                               \
+    CELER_CONSTEXPR_FUNCTION real_type operator""_##SUFFIX(long double v) \
+    {                                                                     \
+        return static_cast<real_type>(v) * units::NAME;                   \
+    }                                                                     \
+    CELER_CONSTEXPR_FUNCTION Constant operator""_##SUFFIX(                \
+        unsigned long long int v)                                         \
+    {                                                                     \
+        return v * units::NAME;                                           \
+    }                                                                     \
+    CELER_CONSTEXPR_FUNCTION real_type operator""_##NAME(long double v)   \
+    {                                                                     \
+        return static_cast<real_type>(v) * units::NAME;                   \
+    }                                                                     \
+    CELER_CONSTEXPR_FUNCTION Constant operator""_##NAME(                  \
+        unsigned long long int v)                                         \
+    {                                                                     \
+        return v * units::NAME;                                           \
     }
-
-#define CELER_DEFINE_UNIT_UDL(SUFFIX, NAME)                              \
-    CELER_DEFINE_UNIT_UDL_TOKEN(SUFFIX,                                  \
-                                real_type,                               \
-                                static_cast<real_type>(v) * units::NAME, \
-                                Constant,                                \
-                                v * units::NAME)                         \
-    CELER_DEFINE_UNIT_UDL_TOKEN(NAME,                                    \
-                                real_type,                               \
-                                static_cast<real_type>(v) * units::NAME, \
-                                Constant,                                \
-                                v * units::NAME)                         \
-    CELER_DEFINE_UNIT_UDL_TOKEN(SUFFIX##_fp,                             \
-                                Constant,                                \
-                                static_cast<Constant>(v) * units::NAME,  \
-                                Constant,                                \
-                                v * units::NAME)                         \
-    CELER_DEFINE_UNIT_UDL_TOKEN(NAME##_fp,                               \
-                                Constant,                                \
-                                static_cast<Constant>(v) * units::NAME,  \
-                                Constant,                                \
-                                v * units::NAME)
 
 CELER_DEFINE_UNIT_UDL(cm, centimeter)
 CELER_DEFINE_UNIT_UDL(g, gram)
@@ -246,7 +241,6 @@ CELER_DEFINE_UNIT_UDL(fm, femtometer)
 CELER_DEFINE_UNIT_UDL(b, barn)
 
 #undef CELER_DEFINE_UNIT_UDL
-#undef CELER_DEFINE_UNIT_UDL_TOKEN
 }  // namespace literals
 
 //---------------------------------------------------------------------------//

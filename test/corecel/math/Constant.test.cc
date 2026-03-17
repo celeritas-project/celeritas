@@ -14,6 +14,20 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::literals;
+//---------------------------------------------------------------------------//
+
+TEST(ConstantTest, literal)
+{
+    constexpr auto one = 1_const;
+    constexpr auto frac = 1.25_const;
+
+    EXPECT_TRUE((std::is_same_v<Constant, std::remove_cv_t<decltype(one)>>));
+    EXPECT_TRUE((std::is_same_v<Constant, std::remove_cv_t<decltype(frac)>>));
+    EXPECT_EQ(Constant{1}, one);
+    EXPECT_EQ(Constant{1.25}, frac);
+}
+
 //---------------------------------------------------------------------------//
 
 TEST(ConstantTest, comparison)

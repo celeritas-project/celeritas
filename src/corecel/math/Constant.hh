@@ -25,12 +25,10 @@ namespace celeritas
  *    float(pi) > pi which can lead to errors in Geant4.)
  *
  * This class stores a full-precision (double) value as its "real type" and
- * defines explicit conversion operators that allow it to automatically convert
- * to a lower-precision or real-precision type.
- *
- * Operations with a floating point value returns a value of that precision
- * (performed at that precision level); operations with integers return a
- * full-precision Constant; and operations with Constants return a Constant.
+ * provides explicit conversion operators to floating-point types. Arithmetic
+ * with floating-point operands is performed at that operand's precision;
+ * arithmetic with integers and other Constants preserves the full-precision
+ * Constant type.
  */
 class Constant
 {
@@ -58,6 +56,29 @@ class Constant
   private:
     real_type value_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * \name User-defined literals for full-precision constants
+ *
+ * Usage:
+ * \code
+ * using celeritas::literals::operator"" _const;
+ * auto charge = 1.602176634e-19_const;
+ * \endcode
+ */
+namespace literals
+{
+CELER_CONSTEXPR_FUNCTION Constant operator""_const(long double v)
+{
+    return Constant{static_cast<Constant::real_type>(v)};
+}
+
+CELER_CONSTEXPR_FUNCTION Constant operator""_const(unsigned long long int v)
+{
+    return Constant{static_cast<Constant::real_type>(v)};
+}
+}  // namespace literals
 
 //! Unary negation
 CELER_CONSTEXPR_FUNCTION Constant operator-(Constant lhs) noexcept

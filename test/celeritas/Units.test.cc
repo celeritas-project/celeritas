@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/Units.hh"
 
+#include <type_traits>
+
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/ext/GeantUnits.hh"
 
@@ -98,6 +100,13 @@ TEST(UnitsTest, trait_visitor)
 //---------------------------------------------------------------------------//
 TEST(UnitsTest, literals)
 {
+    EXPECT_TRUE((std::is_same_v<real_type, decltype(2.5_centimeter)>));
+    EXPECT_TRUE((std::is_same_v<Constant, decltype(2_centimeter)>));
+    EXPECT_TRUE((std::is_same_v<real_type, decltype(3.1f * 2.5_cm)>));
+    EXPECT_TRUE((std::is_same_v<double, decltype(3.1 * 2.5_cm)>));
+    EXPECT_TRUE(
+        (std::is_same_v<Constant, decltype(2.5_const * units::centimeter)>));
+
     EXPECT_REAL_EQ(2.5 * units::centimeter, 2.5_centimeter);
     EXPECT_REAL_EQ(2.5 * units::centimeter, 2.5_cm);
     EXPECT_REAL_EQ(3 * units::meter, 3_meter);
@@ -138,9 +147,8 @@ TEST(UnitsTest, literals)
     EXPECT_REAL_EQ(16 * units::nanometer, 16_nm);
     EXPECT_REAL_EQ(17 * units::femtometer, 17_femtometer);
     EXPECT_REAL_EQ(17 * units::femtometer, 17_fm);
-    EXPECT_REAL_EQ(Constant{2.5} * units::centimeter, 2.5_cm_fp);
-    EXPECT_REAL_EQ(Constant{2.5} * units::centimeter, 2.5_centimeter_fp);
-    EXPECT_REAL_EQ(Constant{2} * units::meter, 2_m_fp);
+    EXPECT_REAL_EQ(Constant{2.5} * units::centimeter,
+                   2.5_const * units::centimeter);
 }
 
 //---------------------------------------------------------------------------//
