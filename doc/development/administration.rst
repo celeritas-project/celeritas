@@ -270,7 +270,7 @@ Backport
    This change should be backported to a previous release branch.
 
 Performance
-   This change has a measurable impact on simulation throughput.
+   This change is designed to improve simulation throughput.
 
 AI-assisted
    This pull request contains substantial code additions or changes performed
