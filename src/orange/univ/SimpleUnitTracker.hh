@@ -56,6 +56,7 @@ class SimpleUnitTracker
         = std::conditional_t<orange_tracking_logic == LogicNotation::infix,
                              detail::InfixEvaluator,
                              detail::PostfixEvaluator>;
+    using VolumeView = detail::LocalVolumeView;
     //!@}
 
   public:
@@ -686,8 +687,8 @@ SimpleUnitTracker::make_surface_visitor() const
 /*!
  * Create a Volume view object from the params for this unit.
  */
-CELER_FORCEINLINE_FUNCTION VolumeView
-SimpleUnitTracker::make_local_volume(LocalVolumeId vol_id) const
+CELER_FORCEINLINE_FUNCTION auto
+SimpleUnitTracker::make_local_volume(LocalVolumeId vol_id) const -> VolumeView
 {
     return VolumeView{params_, unit_record_, vol_id};
 }

@@ -2,25 +2,19 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/io/StreamToString.hh
+//! \file geocel/TypesIO.json.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include <sstream>
-#include <string>
+#include "TypesIO.json.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return as a string any object that has an ostream operator.
+ * Write a geometry track state to JSON.
  */
-template<class T>
-inline std::string stream_to_string(T const& item)
+void to_json(nlohmann::json& j, GeoStatus const& value)
 {
-    std::ostringstream os;
-    os << item;
-    return std::move(os).str();
+    j = std::string{to_cstring(value)};
 }
 
 //---------------------------------------------------------------------------//

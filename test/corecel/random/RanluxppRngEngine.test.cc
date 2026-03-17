@@ -73,7 +73,7 @@ TEST(RanluxImpl, compute_power_modulus)
 
     // b = 2^24
     // m = b^24 - b^10 + 1
-    // a = m - (m - 1) / b = b^24 − b^23 − b^10 + b^9 + 1
+    // a = m - (m - 1) / b = b^24 - b^23 - b^10 + b^9 + 1
     // NOTE: b^24 is 1 more than the capacity of RanluxppArray9
     auto const& a = rcarry_a;
     EXPECT_EQ(unity, detail::compute_power_modulus(a, 0));

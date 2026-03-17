@@ -53,6 +53,8 @@ struct CounterAccumStats
     size_type steps{0};
     size_type step_iters{0};
     size_type flushes{0};
+    size_type num_cut{0};  //!< Tracks killed by tracking cuts
+    size_type num_errored{0};  //!< Tracks killed due to errors
 };
 
 //---------------------------------------------------------------------------//

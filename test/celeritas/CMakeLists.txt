@@ -204,7 +204,6 @@ set(_import_filter
   "FourSteelSlabs*"
   "LarSphere.*"
   "LarSphereExtramat.*"
-  "MucfBox.*"
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
   "Solids.*"

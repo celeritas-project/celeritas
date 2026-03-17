@@ -153,7 +153,15 @@ auto ImportedDataTestBase::build_optical_material() -> SPConstOpticalMaterial
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_scintillation() -> SPConstScintillation
 {
-    return ScintillationParams::from_import(this->imported_data());
+    auto const& s = this->imported_data().optical_physics.gen.scintillation;
+    if (s && !s->empty())
+    {
+        auto const& mats = this->optical_material();
+        CELER_ASSERT(mats);
+        return std::make_shared<ScintillationParams>(*mats, *s);
+    }
+    // No materials with scintillation
+    return nullptr;
 }
 
 //---------------------------------------------------------------------------//

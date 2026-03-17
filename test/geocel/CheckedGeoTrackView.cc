@@ -182,6 +182,15 @@ CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Derive the geometry status from the inner track's state.
+ */
+GeoStatus CheckedGeoTrackView::geo_status() const
+{
+    return t_->geo_status();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the safety distance.
  *
  * \return Nonnegative safety value
