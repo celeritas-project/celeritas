@@ -19,7 +19,7 @@ repos:
   - repo: local
     hooks:
     - id: fix-non-ascii
-      name: Fix non-ASCII characters in source files
+      name: fix non-ASCII characters in source files
       language: system
       entry: python3 scripts/dev/fix-non-ascii.py
       types_or: [file]
