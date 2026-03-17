@@ -37,11 +37,7 @@ Do **not** wait to be told to commit. Do **not** skip the commit because the wor
 ```bash
 git add <files>
 pre-commit run        # Auto-formats code; re-add if it modifies files
-git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -F - <<'EOF'
-<subject>
-
-<message>
-EOF
+git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "..."
 ```
 
 **Common failure mode:** Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
