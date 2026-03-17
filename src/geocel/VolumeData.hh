@@ -74,7 +74,7 @@ struct VolumeParamsData
 
     //! Per-volume records (material, parent/child ranges into vi_storage)
     VolumeItems<VolumeRecord> volumes;
-    //! Logical volume for each volume instance (vi → v)
+    //! Logical volume for each volume instance (vi -> v)
     VolInstItems<VolumeId> volume_ids;
     //! Flat backing storage for per-volume parent and child instance lists
     Items<VolumeInstanceId> vi_storage;
