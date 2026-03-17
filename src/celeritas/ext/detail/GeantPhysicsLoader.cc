@@ -537,7 +537,7 @@ size_type GeantPhysicsLoader::mu_pair_production(GeantParticleView const&,
     CELER_ASSERT(el_data);
 
     inp::MuPairProductionEnergyTransferTable table;
-    if (G4VERSION_NUMBER < 1120)
+    if constexpr (G4VERSION_NUMBER < 1120)
     {
         constexpr int element_data_size = 99;
         for (int z = 1; z < element_data_size; ++z)

@@ -78,8 +78,7 @@ class GeantPhysicsLoader
     size_type op_wls2(G4VProcess const& p);
 
     // Per-particle loaders
-    size_type
-    mu_pair_production(GeantParticleView const& particle, G4VProcess const& p);
+    size_type mu_pair_production(GeantParticleView const&, G4VProcess const&);
 
     //// HELPERS ////
 

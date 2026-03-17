@@ -712,14 +712,16 @@ auto import_processes(GeantImporter::DataSelection selected,
 
     auto append_process = [&](G4ParticleDefinition const& particle,
                               G4VProcess const& process) -> void {
-        // Load per-particle data (runs alongside process-level loader)
-        load_physics(GeantParticleView{particle}, process);
-
         if (load_physics(process))
         {
             // We were able to load (or ignore) this specific process
             return;
         }
+
+        // Load per-particle data (runs alongside process-level loader)
+        // TODO: should call legacy_import_process if needed, and return early
+        // if data is imported
+        load_physics(GeantParticleView{particle}, process);
 
         // TODO: move implementation to GeantPhysicsLoader
         if (auto const* gg_process
