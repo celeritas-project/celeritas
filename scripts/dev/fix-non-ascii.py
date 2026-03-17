@@ -41,12 +41,16 @@ _REPLACEMENTS = {
     "\u2012": "-",  # ‒ FIGURE DASH
     "\u2013": "-",  # – EN DASH
     "\u2014": "--",  # — EM DASH
+    "\u2018": "'",  # ' LEFT SINGLE QUOTATION MARK
+    "\u2019": "'",  # ' RIGHT SINGLE QUOTATION MARK
+    "\u201c": '"',  # " LEFT DOUBLE QUOTATION MARK
+    "\u201d": '"',  # " RIGHT DOUBLE QUOTATION MARK
     "\u2026": "...",  # … HORIZONTAL ELLIPSIS
+    "\u2190": "<-",  # ← LEFT ARROW
+    "\u2192": "->",  # → RIGHT ARROW
     "\u21d0": "<=",  # ⇐ LEFTWARDS DOUBLE ARROW
     "\u21d2": "=>",  # ⇒ RIGHTWARDS DOUBLE ARROW
     "\u21d4": "<=>",  # ⇔ LEFT RIGHT DOUBLE ARROW
-    "\u2190": "<-",  # ← LEFT ARROW
-    "\u2192": "->",  # → RIGHT ARROW
     "\u2212": "-",  # − MINUS SIGN
 }
 
