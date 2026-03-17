@@ -7,6 +7,7 @@
 #pragma once
 
 #include <iterator>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
@@ -72,8 +73,9 @@ template<class VA>
 class VolumeVisitor
 {
   public:
-    using VolumeRef = typename VA::VolumeRef;
-    using VolumeInstanceRef = typename VA::VolumeInstanceRef;
+    using VolAccessT = std::remove_reference_t<VA>;
+    using VolumeRef = typename VolAccessT::VolumeRef;
+    using VolumeInstanceRef = typename VolAccessT::VolumeInstanceRef;
 
     //! Construct from accessor for obtaining volumes
     explicit VolumeVisitor(VA va) : accessor_(std::forward<VA>(va)) {}
@@ -143,6 +145,15 @@ auto make_visit_volume_once(F&& visit)
 {
     return VisitVolumeOnce<T, F>{std::forward<F>(visit)};
 }
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+template<class VA>
+VolumeVisitor(VA&&) -> VolumeVisitor<VA>;
+template<class VA>
+VolumeVisitor(VA const&) -> VolumeVisitor<VA const&>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

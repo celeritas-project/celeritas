@@ -8,6 +8,7 @@
 
 #include "corecel/math/Atomics.hh"
 #include "corecel/random/engine/RngEngine.hh"
+#include "geocel/AllVolumesView.hh"
 #include "geocel/DetectorView.hh"
 #include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
@@ -82,6 +83,9 @@ class CoreTrackView
 
     // Return a sensitive detector view
     inline CELER_FUNCTION DetectorView detectors() const;
+
+    // Return a device-compatible view of all volumes
+    inline CELER_FUNCTION AllVolumesView volumes() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
@@ -268,6 +272,15 @@ CELER_FUNCTION auto CoreTrackView::surface_physics() const
 CELER_FUNCTION auto CoreTrackView::detectors() const -> DetectorView
 {
     return DetectorView{params_.detectors};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a device-compatible view of all volumes.
+ */
+CELER_FUNCTION AllVolumesView CoreTrackView::volumes() const
+{
+    return AllVolumesView{params_.volumes};
 }
 
 //---------------------------------------------------------------------------//
