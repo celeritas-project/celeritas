@@ -6,6 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "VolumeParams.hh"
 
+#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/io/Logger.hh"
 
 #include "VolumeVisitor.hh"
@@ -16,19 +20,42 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-int calc_num_volume_levels(VolumeParams const& params)
+/*!
+ * Accessor wrapping a host VolumeParamsData for use with VolumeVisitor.
+ */
+template<Ownership W>
+struct VolumeDataAccessor
 {
-    CELER_EXPECT(params.world());
+    using VolumeRef = VolumeId;
+    using VolumeInstanceRef = VolumeInstanceId;
+
+    VolumeParamsData<W, MemSpace::host> const& params;
+
+    VolumeId volume(VolumeInstanceId vi) const
+    {
+        return params.volume_ids[vi];
+    }
+
+    Span<VolumeInstanceId const> children(VolumeId v) const
+    {
+        return params.vi_storage[params.volumes[v].children];
+    }
+};
+
+//---------------------------------------------------------------------------//
+int calc_num_volume_levels(HostVal<VolumeParamsData> const& params)
+{
+    CELER_EXPECT(params.scalars.world);
     int max_level{0};
 
-    VolumeVisitor visit_vol{params};
+    VolumeVisitor visit_vol{VolumeDataAccessor<Ownership::value>{params}};
     visit_vol(
         [&max_level](VolumeId, int level) {
             CELER_ASSERT(level >= 0);
             max_level = std::max(max_level, level);
             return true;
         },
-        params.world());
+        params.scalars.world);
     return max_level + 1;
 }
 
@@ -96,67 +123,84 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
 
     // TODO: warn about duplicate labels (see LabelIdMultiMap::duplicates)
 
-    // Unzip volume properties
-    materials_.resize(this->num_volumes());
-    children_.resize(this->num_volumes());
-    for (auto vol_idx : range(this->num_volumes()))
-    {
-        materials_[vol_idx] = in.volumes[vol_idx].material;
+    auto const num_volumes = this->num_volumes();
+    auto const num_volume_instances = this->num_volume_instances();
 
-        // Set children instances
-        auto const& vol_children = in.volumes[vol_idx].children;
-        CELER_EXPECT(std::all_of(
-            vol_children.begin(), vol_children.end(), [this](auto const& id) {
-                return id < this->num_volume_instances();
-            }));
-        children_[vol_idx].assign(vol_children.begin(), vol_children.end());
-    }
-
-    // Unzip volume instances and add parent relationships
-    volumes_.resize(this->num_volume_instances());
-    parents_.resize(this->num_volumes());
-    for (auto vi_idx : range(this->num_volume_instances()))
+    // Aggregate parents: scan all volume instances and record which volumes
+    // each instance belongs to
+    std::vector<std::vector<VolumeInstanceId>> parent_lists(num_volumes);
+    for (auto vi_idx : range(num_volume_instances))
     {
         auto const& vol_inst = in.volume_instances[vi_idx];
         if (!vol_inst)
         {
-            // Skip null volume instance
             continue;
         }
-
-        // Store the logical volume that this physical volume instantiates
-        volumes_[vi_idx] = vol_inst.volume;
-
-        // Add this instance as a parent of its referenced volume
-        CELER_EXPECT(vol_inst.volume < this->num_volumes());
-        parents_[vol_inst.volume.unchecked_get()].push_back(
+        CELER_EXPECT(vol_inst.volume < num_volumes);
+        parent_lists[vol_inst.volume.unchecked_get()].push_back(
             VolumeInstanceId{vi_idx});
     }
 
-    // Save world
-    CELER_EXPECT(!in.world || in.world < in.volumes.size());
-    world_ = in.world;
+    // Build host data
+    HostVal<VolumeParamsData> host_data;
+    CollectionBuilder vol_builder{&host_data.volumes};
+    CollectionBuilder vi_ids_builder{&host_data.volume_ids};
+    CollectionBuilder vi_storage_builder{&host_data.vi_storage};
 
-    // Calculate additional properties
-    if (world_)
+    // Build per-volume records
+    for (auto vol_idx : range(num_volumes))
     {
-        num_volume_levels_ = calc_num_volume_levels(*this);
+        auto const& vol_children = in.volumes[vol_idx].children;
+        CELER_EXPECT(std::all_of(
+            vol_children.begin(), vol_children.end(), [&](auto const& id) {
+                return id < num_volume_instances;
+            }));
+
+        VolumeRecord rec;
+        rec.material = in.volumes[vol_idx].material;
+        rec.children = vi_storage_builder.insert_back(vol_children.begin(),
+                                                      vol_children.end());
+        auto const& parents = parent_lists[vol_idx];
+        rec.parents
+            = vi_storage_builder.insert_back(parents.begin(), parents.end());
+        vol_builder.push_back(rec);
     }
 
-    CELER_ENSURE(this->num_volumes() == in.volumes.size());
-    CELER_ENSURE(this->num_volume_instances() == in.volume_instances.size());
-    CELER_ENSURE(v_labels_.size() == this->num_volumes());
-    CELER_ENSURE(vi_labels_.size() == this->num_volume_instances());
-    CELER_ENSURE(materials_.size() == this->num_volumes());
-    CELER_ENSURE(parents_.size() == this->num_volumes());
-    CELER_ENSURE(children_.size() == this->num_volumes());
-    CELER_ENSURE(volumes_.size() == this->num_volume_instances());
+    // Build volume_ids: map VolumeInstanceId -> VolumeId
+    for (auto vi_idx : range(num_volume_instances))
+    {
+        auto const& vol_inst = in.volume_instances[vi_idx];
+        vi_ids_builder.push_back(vol_inst ? vol_inst.volume : VolumeId{});
+    }
+
+    // Set scalars
+    CELER_EXPECT(!in.world || in.world < in.volumes.size());
+    host_data.scalars.world = in.world;
+
+    // Calculate depth via VolumeVisitor
+    if (in.world)
+    {
+        host_data.scalars.num_volume_levels = calc_num_volume_levels(host_data);
+    }
+
+    CELER_ENSURE(host_data);
+    data_ = ParamsDataStore<VolumeParamsData>{std::move(host_data)};
+
+    CELER_ENSURE(data_.host_ref().volumes.size() == num_volumes);
+    CELER_ENSURE(data_.host_ref().volume_ids.size() == num_volume_instances);
     CELER_ENSURE((this->num_volume_levels() == 0) == this->empty());
 }
 
 //---------------------------------------------------------------------------//
 //! Construct with no volumes, often for unit testing
 VolumeParams::VolumeParams() : VolumeParams{inp::Volumes{}} {}
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class ParamsDataStore<VolumeParamsData>;
+template class ParamsDataInterface<VolumeParamsData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

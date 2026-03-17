@@ -54,16 +54,16 @@ class RayleighModel final : public Model, public StaticConcreteAction
     void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! Access Rayleigh data on the host
-    HostRef const& host_ref() const { return mirror_.host_ref(); }
+    HostRef const& host_ref() const { return data_.host_ref(); }
 
     //! Access Rayleigh data on the device
-    DeviceRef const& device_ref() const { return mirror_.device_ref(); }
+    DeviceRef const& device_ref() const { return data_.device_ref(); }
 
   private:
     //// DATA ////
 
     // Host/device storage and reference
-    ParamsDataStore<RayleighData> mirror_;
+    ParamsDataStore<RayleighData> data_;
 
     ImportedModelAdapter imported_;
 
