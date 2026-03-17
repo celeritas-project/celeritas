@@ -144,6 +144,9 @@ class LocalTransporter final : public TrackOffloadInterface
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
+
+    //// HELPER FUNCTIONS ////
+    void flush_impl();
 };
 
 //---------------------------------------------------------------------------//

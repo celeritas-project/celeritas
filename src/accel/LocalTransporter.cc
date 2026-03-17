@@ -238,14 +238,14 @@ void LocalTransporter::InitializeEvent(int id)
         if (!(G4Threading::IsMultithreadedApplication()
               && G4MTRunManager::SeedOncePerCommunication()))
         {
-            // Initialize the Geant event reconstruction.
-
             // Since Geant4 schedules events dynamically, reseed the Celeritas
             // RNGs using the Geant4 event ID for reproducibility. This
             // guarantees that an event can be reproduced given the event ID.
             step_->reseed(event_id_);
         }
     }
+
+    // Initialize Geant4 event reconstruction and primary ID mapping
     track_reconstruction_->init_event();
 }
 
@@ -275,6 +275,25 @@ void LocalTransporter::Push(G4Track& g4track)
         ++buffer_accum_.lost_primaries;
         return;
     }
+
+    // Always check the event ID when pushing EM tracks, since the
+    // GeantTrackReconstruction needs to be initialized before we "acquire" the
+    // track
+    if (CELER_UNLIKELY(!event_id_))
+    {
+        if (CELER_UNLIKELY(!event_manager_))
+        {
+            // Cache the event manager
+            event_manager_ = G4EventManager::GetEventManager();
+            CELER_ASSERT(event_manager_);
+        }
+
+        G4Event const* event = event_manager_->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        // Reseed (if applicable) and reset the track reconstruction
+        this->InitializeEvent(event->GetEventID());
+    }
+    CELER_ASSERT(event_id_);
 
     Primary track;
 
@@ -316,34 +335,10 @@ void LocalTransporter::Push(G4Track& g4track)
 void LocalTransporter::Flush()
 {
     CELER_EXPECT(*this);
-    if (buffer_.empty())
-    {
-        return;
-    }
 
     ScopedProfiling profile_this("flush");
 
-    if (event_manager_ || !event_id_)
-    {
-        if (CELER_UNLIKELY(!event_manager_))
-        {
-            // Save the event manager pointer, thereby marking that
-            // *subsequent* events need to have their IDs checked as well
-            event_manager_ = G4EventManager::GetEventManager();
-            CELER_ASSERT(event_manager_);
-        }
-
-        G4Event const* event = event_manager_->GetConstCurrentEvent();
-        CELER_ASSERT(event);
-        if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
-        {
-            // The event ID has changed: reseed it
-            this->InitializeEvent(event->GetEventID());
-        }
-    }
-    CELER_ASSERT(event_id_);
-
-    if (celeritas::device())
+    if (celeritas::device() && !buffer_.empty())
     {
         CELER_LOG_LOCAL(debug)
             << "Transporting " << buffer_.size() << " tracks ("
@@ -367,6 +362,22 @@ void LocalTransporter::Flush()
         (*dump_primaries_)(buffer_);
     }
 
+    if (!buffer_.empty())
+    {
+        // Run Celeritas
+        this->flush_impl();
+    }
+
+    // Clear any saved user information but do *not* reset the primary counter
+    track_reconstruction_->clear();
+    // Reset the event ID so that the next "push" will get it from the event
+    // manager in case this is the end of the event
+    event_id_ = {};
+}
+
+void LocalTransporter::flush_impl()
+{
+    CELER_EXPECT(!buffer_.empty());
     if (run_accum_.steps == 0)
     {
         CELER_LOG_LOCAL(status)
@@ -420,7 +431,6 @@ void LocalTransporter::Flush()
             run_accum_.hits += num_hits;
         }
     }
-    track_reconstruction_->clear();
 }
 
 //---------------------------------------------------------------------------//
