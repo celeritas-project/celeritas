@@ -1,0 +1,42 @@
+digraph G {
+  graph [rankdir=TB compound=true];
+  node [shape=box];
+
+  {
+    "geant4-direct"  [label="G4 optical primaries", style=dashed];
+  }
+
+  subgraph cluster_main_celeritas_loop {
+    label="Celeritas EM stepping loop";
+    "offload-gather";
+    "scintillation-offload";
+    "cherenkov-offload";
+  }
+
+  subgraph cluster_main_g4_loop {
+    style=dashed label="Geant4 stepping loop";
+    "geant4-scint"   [label="Geant4 scintillation"];
+    "geant4-ceren"   [label="Geant4 cherenkov"];
+  }
+
+
+  // Subgraph: Optical photon generation
+  subgraph cluster_photon_gen {
+    label="Generators";
+    "scintillation-gen" [label="Scintillation"];
+    "cherenkov-gen"     [label="Cherenkov"];
+    "primary" [label="Primary distribution"];
+  }
+
+  "offload-gather"     -> "scintillation-offload";
+  "offload-gather"     -> "cherenkov-offload"    ;
+
+  "scintillation-offload" -> "scintillation-gen";
+  "cherenkov-offload"     -> "cherenkov-gen"    ;
+  "geant4-scint"          -> "scintillation-gen";
+  "geant4-ceren"          -> "cherenkov-gen"    ;
+
+  "photons" [label="Optical tracks"];
+  "scintillation-gen" -> "photons" [ltail="cluster_photon_gen"];
+  "geant4-direct" -> "photons";
+}

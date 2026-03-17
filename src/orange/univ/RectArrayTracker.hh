@@ -84,7 +84,7 @@ class RectArrayTracker
     inline CELER_FUNCTION Initialization
     initialize(LocalState const& state) const;
 
-    // Calculate distance-to-intercept for the next surface
+    // DEPRECATED: search for intersection without limit
     inline CELER_FUNCTION Intersection intersect(LocalState const& state) const;
 
     // Calculate distance-to-intercept for the next surface, with max distance
@@ -109,11 +109,6 @@ class RectArrayTracker
     RectArrayRecord const& record_;
 
     //// METHODS ////
-
-    // Calculate distance-to-intercept for the next surface.
-    template<class F>
-    inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
-                                                      F) const;
 
     // Find the index of axis (x/y/z) we are about to cross
     inline CELER_FUNCTION size_type find_surface_axis_idx(LocalSurfaceId s) const;
@@ -209,13 +204,15 @@ RectArrayTracker::cross_boundary(LocalState const& state) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance-to-intercept for the next surface.
+ * Search for an intersection without a distance limit.
+ *
+ * \deprecated Provide a physically reasonable upper bound to the distance
+ * to reduce search cost and avoid a redundant method.
  */
-CELER_FUNCTION auto RectArrayTracker::intersect(LocalState const& state) const
-    -> Intersection
+CELER_FORCEINLINE_FUNCTION auto
+RectArrayTracker::intersect(LocalState const& state) const -> Intersection
 {
-    Intersection result = this->intersect_impl(state, detail::IsFinite{});
-    return result;
+    return this->intersect(state, NumericLimits<real_type>::max());
 }
 
 //---------------------------------------------------------------------------//
@@ -227,12 +224,41 @@ RectArrayTracker::intersect(LocalState const& state, real_type max_dist) const
     -> Intersection
 {
     CELER_EXPECT(max_dist > 0);
-    Intersection result
-        = this->intersect_impl(state, detail::IsNotFurtherThan{max_dist});
-    if (!result)
+    CELER_EXPECT(state.volume);
+
+    auto coords
+        = VolumeInverseIndexer{record_.dims}(state.volume.unchecked_get());
+
+    Intersection result{{}, max_dist};
+    SurfaceIndexer to_index(record_.surface_indexer_data);
+
+    for (auto ax : range(Axis::size_))
     {
-        result.distance = max_dist;
+        auto dir = state.dir[to_int(ax)];
+
+        // Ignore any stationary axis
+        if (dir == 0)
+        {
+            continue;
+        }
+
+        size_type target_coord = coords[to_int(ax)] + static_cast<int>(dir > 0);
+        real_type target_value = this->make_grid(ax)[target_coord];
+
+        real_type dist = (target_value - state.pos[to_int(ax)])
+                         / state.dir[to_int(ax)];
+
+        if (dist > 0 && detail::IsNotFurtherThan{result.distance}(dist))
+        {
+            result.distance = dist;
+
+            auto local_surface = LocalSurfaceId(
+                to_index({static_cast<size_type>(to_int(ax)), target_coord}));
+            result.surface
+                = {local_surface, dir > 0 ? Sense::inside : Sense::outside};
+        }
     }
+
     return result;
 }
 
@@ -294,58 +320,6 @@ RectArrayTracker::daughter(LocalVolumeId vol) const
 {
     CELER_EXPECT(vol && vol.get() < this->num_volumes());
     return record_.daughters[vol];
-}
-
-//---------------------------------------------------------------------------//
-// PRIVATE INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Calculate distance-to-intercept for the next surface.
- */
-template<class F>
-CELER_FUNCTION auto
-RectArrayTracker::intersect_impl(LocalState const& state, F is_valid) const
-    -> Intersection
-{
-    CELER_EXPECT(state.volume);
-
-    auto coords
-        = VolumeInverseIndexer{record_.dims}(state.volume.unchecked_get());
-
-    Intersection result;
-    Sense sense;
-    SurfaceIndexer to_index(record_.surface_indexer_data);
-
-    for (auto ax : range(Axis::size_))
-    {
-        auto dir = state.dir[to_int(ax)];
-
-        // Ignore any stationary axis
-        if (dir == 0)
-        {
-            continue;
-        }
-
-        auto target_coord = coords[to_int(ax)] + static_cast<int>(dir > 0);
-
-        auto target_value = this->make_grid(ax)[target_coord];
-
-        real_type dist
-            = (target_value - static_cast<real_type>(state.pos[to_int(ax)]))
-              / state.dir[to_int(ax)];
-
-        if (dist > 0 && is_valid(dist) && dist < result.distance)
-        {
-            result.distance = dist;
-
-            sense = dir > 0 ? Sense::inside : Sense::outside;
-            auto local_surface = LocalSurfaceId(
-                to_index({static_cast<size_type>(to_int(ax)), target_coord}));
-            result.surface = detail::OnLocalSurface(local_surface, sense);
-        }
-    }
-
-    return result;
 }
 
 //---------------------------------------------------------------------------//

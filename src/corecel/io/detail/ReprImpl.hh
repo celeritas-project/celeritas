@@ -6,13 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iomanip>
 #include <iostream>
-#include <sstream>
 #include <string>
-#include <type_traits>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/StreamUtils.hh"
 
 #include "../ScopedStreamFormat.hh"
 
@@ -41,7 +39,7 @@ struct Repr
  * Write a streamable object to a stream.
  */
 template<class T>
-std::ostream& operator<<(std::ostream& os, Repr<T> const& s)
+inline std::ostream& operator<<(std::ostream& os, Repr<T> const& s)
 {
     ScopedStreamFormat save_fmt(&os);
     ReprTraits<T>::init(os);
@@ -63,11 +61,9 @@ std::ostream& operator<<(std::ostream& os, Repr<T> const& s)
  * Convert a streamable object to a string.
  */
 template<class T>
-std::string to_string(Repr<T> const& s)
+inline std::string to_string(Repr<T> const& s)
 {
-    std::ostringstream os;
-    os << s;
-    return os.str();
+    return stream_to_string(s);
 }
 
 //---------------------------------------------------------------------------//

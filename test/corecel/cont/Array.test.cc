@@ -120,6 +120,27 @@ TEST(ArrayTest, two_level)
     EXPECT_VEC_EQ((Int3{7, 8, 9}), x[2]);
 }
 
+TEST(ArrayTest, to_array)
+{
+    long vals[] = {1, 2, 3};
+    auto arr = to_array(vals);
+    EXPECT_TRUE((std::is_same_v<Array<long, 3>, decltype(arr)>));
+    EXPECT_VEC_EQ((Array{1, 2, 3}), arr);
+}
+
+TEST(ArrayTest, casts)
+{
+    // Test up- and down-casting
+    Array<double, 2> dbl = {1.4, 3.1};
+    auto flt = static_array_cast<float>(dbl);
+    EXPECT_TRUE((std::is_same_v<Array<float, 2>, decltype(flt)>));
+    EXPECT_VEC_EQ((Array{1.4f, 3.1f}), flt);
+
+    flt[1] = 2.3f;
+    dbl = static_array_cast<double>(flt);
+    EXPECT_DOUBLE_EQ(static_cast<double>(2.3f), dbl[1]);
+}
+
 TEST(EnumArrayTest, all)
 {
     EnumArray<Color, int> x = {1, 3, 2};

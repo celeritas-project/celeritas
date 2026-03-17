@@ -25,17 +25,16 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  * Pre- and post-step data for sampling optical photons.
+ *
+ * The post-step time is only needed as a fallback to sample the scintillation
+ * photon emission time when the particle speed is not available (e.g. when
+ * generating photons from the LArSoft \c SimEnergyDeposit).
  */
 struct GeneratorStepData
 {
     units::LightSpeed speed;
+    real_type time{};
     Real3 pos{};
-
-    //! Check whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return speed > zero_quantity();
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -48,13 +47,15 @@ struct GeneratorStepData
  * \c continuous_edep_fraction is the ratio of the energy deposited along the
  * step to the total energy deposition over the step (including the local
  * deposition at the discrete interaction point).
+ *
+ * If the material is not provided, it will be determined during
+ * initialization.
  */
 struct GeneratorDistributionData
 {
     GeneratorType type{GeneratorType::size_};  //!< Cherenkov or scintillation
     size_type num_photons{};  //!< Sampled number of photons to generate
     PrimaryId primary;  //!< For correlating to G4 tracks
-    real_type time{};  //!< Pre-step time
     real_type step_length{};
     units::ElementaryCharge charge;
     OptMatId material;
@@ -65,8 +66,12 @@ struct GeneratorDistributionData
     explicit CELER_FUNCTION operator bool() const
     {
         return type != GeneratorType::size_ && num_photons > 0
-               && step_length > 0 && material && continuous_edep_fraction >= 0
-               && continuous_edep_fraction <= 1;
+               && step_length > 0 && continuous_edep_fraction >= 0
+               && continuous_edep_fraction <= 1
+               && (points[StepPoint::pre].speed > points[StepPoint::post].speed
+                   || (type == GeneratorType::scintillation
+                       && points[StepPoint::post].time
+                              > points[StepPoint::pre].time));
     }
 };
 

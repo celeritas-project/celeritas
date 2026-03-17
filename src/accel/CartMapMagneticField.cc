@@ -12,11 +12,10 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/ArrayQuantity.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "geocel/g4/Convert.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantUnits.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/field/CartMapField.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
@@ -40,16 +39,18 @@ MakeCartMapFieldInput(G4Field const& field,
     CartMapFieldParams::Input field_input;
 
     // Convert from Geant4 units to native units
-    field_input.x.min = convert_from_geant(params.x.min, clhep_length);
-    field_input.x.max = convert_from_geant(params.x.max, clhep_length);
+    // (NOTE: params currently use real_type not double)
+    using ClhepLength = Quantity<units::Millimeter, real_type>;
+    field_input.x.min = native_value_from(ClhepLength{params.x.min});
+    field_input.x.max = native_value_from(ClhepLength{params.x.max});
     field_input.x.num = params.x.num;
 
-    field_input.y.min = convert_from_geant(params.y.min, clhep_length);
-    field_input.y.max = convert_from_geant(params.y.max, clhep_length);
+    field_input.y.min = native_value_from(ClhepLength{params.y.min});
+    field_input.y.max = native_value_from(ClhepLength{params.y.max});
     field_input.y.num = params.y.num;
 
-    field_input.z.min = convert_from_geant(params.z.min, clhep_length);
-    field_input.z.max = convert_from_geant(params.z.max, clhep_length);
+    field_input.z.min = native_value_from(ClhepLength{params.z.min});
+    field_input.z.max = native_value_from(ClhepLength{params.z.max});
     field_input.z.num = params.z.num;
 
     // Prepare field data storage
@@ -67,7 +68,7 @@ MakeCartMapFieldInput(G4Field const& field,
     G4double const dy = (params.y.max - params.y.min) / (params.y.num - 1);
     G4double const dz = (params.z.max - params.z.min) / (params.z.num - 1);
 
-    // Position calculator for Cartesian grid
+    // Position calculator for Cartesian grid (G4 coords)
     auto position_calculator = [&](size_type ix, size_type iy, size_type iz) {
         G4double x = params.x.min + ix * dx;
         G4double y = params.y.min + iy * dy;
@@ -79,7 +80,8 @@ MakeCartMapFieldInput(G4Field const& field,
     auto field_converter = [](Array<G4double, 3> const& bfield,
                               Array<G4double, 4> const&,
                               real_type cur_bfield[3]) {
-        auto bfield_native = convert_from_geant(bfield.data(), clhep_field);
+        auto bfield_native = native_value_from(
+            make_quantity_array<units::ClhepField>(bfield));
         std::copy(bfield_native.cbegin(), bfield_native.cend(), cur_bfield);
     };
 

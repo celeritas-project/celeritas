@@ -185,7 +185,7 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
         = u * dist_.step_length
           / (native_value_from(dist_.points[StepPoint::pre].speed)
              + u * real_type(0.5) * native_value_from(delta_speed_));
-    photon.time = dist_.time + delta_time;
+    photon.time = dist_.points[StepPoint::pre].time + delta_time;
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);
     photon.primary = dist_.primary;

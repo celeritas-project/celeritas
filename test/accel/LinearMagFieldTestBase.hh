@@ -10,7 +10,6 @@
 #include <G4MagneticField.hh>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/ArrayIO.hh"  // IWYU pragma: keep
 #include "corecel/math/ArrayOperators.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
@@ -84,7 +83,7 @@ class LinearMagFieldTestBase : public ::celeritas::test::Test
     {
         auto params = std::make_shared<LinearMagFieldParams>([] {
             LinearMagFieldData d;
-            d.scale = native_value_from(units::FieldTesla{1.5})
+            d.scale = native_value_from(units::TeslaField{1.5})
                       / native_value_from(units::CmLength{1});
             d.origin = from_cm({0.7, 1.1, -2.5});
             return d;

@@ -178,10 +178,8 @@ ORANGE_INSTANTIATE_OP(ConeAligned);
 bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
                                   SimpleQuadric const& b) const
 {
-    return this->soft_eq_distance(make_array(a.second()),
-                                  make_array(b.second()))
-           && this->soft_eq_distance(make_array(a.first()),
-                                     make_array(b.first()))
+    return this->soft_eq_distance(to_array(a.second()), to_array(b.second()))
+           && this->soft_eq_distance(to_array(a.first()), to_array(b.first()))
            && soft_eq_(a.zeroth(), b.zeroth());
 }
 
@@ -194,12 +192,9 @@ bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
 bool SoftSurfaceEqual::operator()(GeneralQuadric const& a,
                                   GeneralQuadric const& b) const
 {
-    return this->soft_eq_distance(make_array(a.second()),
-                                  make_array(b.second()))
-           && this->soft_eq_distance(make_array(a.cross()),
-                                     make_array(b.cross()))
-           && this->soft_eq_distance(make_array(a.first()),
-                                     make_array(b.first()))
+    return this->soft_eq_distance(to_array(a.second()), to_array(b.second()))
+           && this->soft_eq_distance(to_array(a.cross()), to_array(b.cross()))
+           && this->soft_eq_distance(to_array(a.first()), to_array(b.first()))
            && soft_eq_(a.zeroth(), b.zeroth());
 }
 

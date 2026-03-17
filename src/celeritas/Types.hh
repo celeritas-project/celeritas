@@ -207,16 +207,6 @@ enum class NuclearFormFactorType
     gaussian,
     size_
 };
-
-//---------------------------------------------------------------------------//
-//! Optical photon wavelength shifting time model
-enum class WlsTimeProfile
-{
-    delta,  //!< Delta function
-    exponential,  //!< Exponential decay
-    size_
-};
-
 //---------------------------------------------------------------------------//
 //! Cylindrical coordinate indices
 enum class CylAxis
@@ -230,7 +220,8 @@ enum class CylAxis
 //---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
-//! Step length and limiting action to take
+//! Step length and limiting action to take (TODO: remove; used only by
+//! PhysicsStepUtils)
 struct StepLimit
 {
     real_type step{};

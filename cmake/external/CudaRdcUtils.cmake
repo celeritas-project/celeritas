@@ -27,8 +27,8 @@ relocatable device code and most importantly linking against those libraries.
   - A object library used to compile the source code and share the result with
     the static and shared library
   - A static library used as input to ``nvcc -dlink``
-  - A shared “intermediary” library containing all the ``.o`` files but NO ``nvcc -dlink`` result
-  - A shared “final” library containing the result of ``nvcc -dlink`` and linked against the "intermediary" shared library.
+  - A shared "intermediary" library containing all the ``.o`` files but NO ``nvcc -dlink`` result
+  - A shared "final" library containing the result of ``nvcc -dlink`` and linked against the "intermediary" shared library.
 
   An executable needs to load exactly one result of ``nvcc -dlink`` whose input
   needs to be the ``.o`` files from all the CUDA libraries it uses/depends-on.
@@ -180,7 +180,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
   # This is used for the final libraries because of the following:
   #   * userlib_with_rdc.so has undefined symbols found in userlib_with_rdc_final (the result of nvlink)
-  #   * userlib_with_rdc_final.so requires the userlib_with_rdc’s object files as input to nvlink
+  #   * userlib_with_rdc_final.so requires the userlib_with_rdc's object files as input to nvlink
   #   * userlib_with_rdc_final.so also requires userlib_with_rdc.so for user's code.
   #   * user executable requires userlib_with_rdc.so due to direct dependencies.
   # So the link line order to produce the user executable as to be:
@@ -1112,7 +1112,7 @@ function(cuda_rdc_target_link_libraries target)
            # We need to explicit list the RDC library without the compiler might complain with:
            #    error adding symbols: DSO missing from command line
            # This DSO missing from command line message will be displayed when the linker
-           # does not find the required symbol with it’s normal search but the symbol is
+           # does not find the required symbol with it's normal search but the symbol is
            # available in one of the dependencies of a directly specified dynamic library.
            # In the past the linker considered symbols in dependencies of specified languages
            # to be available. But that changed in some later version and now the linker

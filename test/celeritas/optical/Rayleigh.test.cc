@@ -53,8 +53,7 @@ class RayleighModelTest : public OpticalMockTestBase
     //! Create Rayleigh model from mock data
     std::shared_ptr<RayleighModel const> create_model()
     {
-        auto models = std::make_shared<ImportedModels const>(
-            this->imported_data().optical_models);
+        auto models = ImportedModels::from_import(this->imported_data());
         return std::make_shared<RayleighModel const>(
             ActionId{0}, models, RayleighModel::Input{});
     }
@@ -183,9 +182,8 @@ TEST_F(RayleighModelTest, interaction_mfp)
         model->build_mfps(mat, builder);
     }
 
-    EXPECT_TABLE_EQ(
-        this->import_model_by_class(ImportModelClass::rayleigh).mfp_table,
-        storage(builder.grid_ids()));
+    EXPECT_TABLE_EQ(this->get_mfp_table(ImportModelClass::rayleigh),
+                    storage(builder.grid_ids()));
 }
 
 //---------------------------------------------------------------------------//

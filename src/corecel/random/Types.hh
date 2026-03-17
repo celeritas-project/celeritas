@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/OpaqueId.hh"
-#include "corecel/Types.hh"
 
 namespace celeritas
 {
@@ -20,6 +19,7 @@ enum class OnedDistributionType
 {
     delta,
     normal,
+    truncated_normal,
     size_
 };
 

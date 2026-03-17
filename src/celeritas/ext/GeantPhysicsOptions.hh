@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
+
 #include "corecel/Types.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
@@ -48,7 +50,8 @@ enum class RelaxationSelection
 
 //---------------------------------------------------------------------------//
 /*!
- * Construction options for Geant muon EM physics.
+ * Construction options for Geant muon EM physics (use \c std::nullopt to
+ * disable).
  */
 struct GeantMuonPhysicsOptions
 {
@@ -63,25 +66,6 @@ struct GeantMuonPhysicsOptions
     //! Enable multiple coulomb scattering and select a model.
     //! Muon MSC currently requires MSC enabled for electrons and positrons
     MscModelSelection msc{MscModelSelection::urban};
-
-    //! True if any process is activated
-    explicit operator bool() const
-    {
-        return pair_production || ionization || bremsstrahlung || coulomb
-               || msc != MscModelSelection::none;
-    }
-
-    //! Initialize with no physics
-    static GeantMuonPhysicsOptions deactivated()
-    {
-        GeantMuonPhysicsOptions opt;
-        opt.pair_production = false;
-        opt.ionization = false;
-        opt.bremsstrahlung = false;
-        opt.coulomb = false;
-        opt.msc = MscModelSelection::none;
-        return opt;
-    }
 };
 
 //! Equality operator
@@ -112,6 +96,8 @@ operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
 struct GeantPhysicsOptions
 {
     using MevEnergy = Quantity<units::Mev, double>;
+    using MuonSetup = GeantMuonPhysicsOptions;
+    using OpticalSetup = GeantOpticalPhysicsOptions;
 
     //!@{
     //! \name Gamma physics
@@ -147,12 +133,6 @@ struct GeantPhysicsOptions
     //! Enable atomic relaxation and select a model
     RelaxationSelection relaxation{RelaxationSelection::none};
     //!@}
-
-    //! Muon EM physics
-    GeantMuonPhysicsOptions muon{GeantMuonPhysicsOptions::deactivated()};
-
-    //! Muon-catalyzed fusion physics
-    bool mucf_physics{false};
 
     //!@{
     //! \name Physics options
@@ -217,9 +197,24 @@ struct GeantPhysicsOptions
     //! Print detailed Geant4 output
     bool verbose{false};
 
-    //! Optical physics options
-    GeantOpticalPhysicsOptions optical{
-        GeantOpticalPhysicsOptions::deactivated()};
+    //! Muon EM physics (null: disabled)
+    std::optional<MuonSetup> muon;
+
+    //! Muon-catalyzed fusion physics
+    bool mucf_physics{false};
+
+    //! Optical physics options (null: disabled)
+    std::optional<OpticalSetup> optical;
+
+    //! True if any EM process is activated
+    bool em() const
+    {
+        return compton_scattering || photoelectric || rayleigh_scattering
+               || gamma_conversion || gamma_general || coulomb_scattering
+               || ionization || annihilation
+               || brems != BremsModelSelection::none
+               || msc != MscModelSelection::none;
+    }
 
     //! Initialize with no physics
     static GeantPhysicsOptions deactivated()
@@ -238,10 +233,8 @@ struct GeantPhysicsOptions
         opt.brems = BremsModelSelection::none;
         opt.msc = MscModelSelection::none;
         opt.relaxation = RelaxationSelection::none;
-        // Muon
-        opt.muon = GeantMuonPhysicsOptions::deactivated();
-        // Optical
-        opt.optical = GeantOpticalPhysicsOptions::deactivated();
+        // Muon and Optical default to nullopt (disabled)
+        opt.mucf_physics = false;
         return opt;
     }
 };

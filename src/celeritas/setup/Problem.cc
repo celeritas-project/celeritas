@@ -12,8 +12,6 @@
 #include <variant>
 #include <vector>
 
-#include "corecel/Config.hh"
-
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
@@ -332,16 +330,18 @@ auto build_optical_params(inp::Problem const& p,
     pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
         pi.action_reg.get(), p.physics.optical.surfaces);
     pi.detectors = core.detectors();
+    pi.volume = core.volume();
 
     // Photon generating processes
-    if (p.physics.optical.cherenkov)
+    if (p.physics.optical.gen.cherenkov)
     {
         pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
-    if (p.physics.optical.scintillation)
+    if (p.physics.optical.gen.scintillation)
     {
-        pi.scintillation
-            = ScintillationParams::from_import(imported, core.particle());
+        CELER_ASSERT(imported.optical_physics.gen.scintillation);
+        pi.scintillation = std::make_shared<ScintillationParams>(
+            *pi.material, *imported.optical_physics.gen.scintillation);
     }
 
     // Streams and capacities
@@ -389,21 +389,36 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
         pi.action_reg.get(), p.physics.surfaces);
     pi.detectors = std::move(loaded_model.detector);
+    pi.optical_detector = p.detectors;
+    pi.volume = std::move(loaded_model.volume);
 
     // Streams and capacities
     pi.max_streams = p.num_streams;
     pi.capacity = p.capacity;
 
     // Photon generating processes are needed to offload via Geant4 optical
-    if (p.physics.cherenkov)
+    if (p.physics.gen.cherenkov)
     {
+        // TODO: pass additional parameters such as step limit
         pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
-    if (p.physics.scintillation)
+    if (p.physics.gen.scintillation)
     {
-        auto particle = ParticleParams::from_import(imported);
-        pi.scintillation = ScintillationParams::from_import(imported, particle);
-        CELER_ASSERT(pi.scintillation);
+        // TODO: optical physics is redundantly copied into ImportData:
+        // remove entirely from import when we simplify the bulk physics
+        // construction
+        std::optional<inp::ScintillationProcess> const& s
+            = imported.optical_physics.gen.scintillation;
+        if (s && !s->empty())
+        {
+            pi.scintillation
+                = std::make_shared<ScintillationParams>(*pi.material, *s);
+        }
+        else
+        {
+            CELER_LOG(warning) << "Disabling user-requested scintillation: no "
+                                  "process data available";
+        }
     }
 
     std::move(loaded_model) = {};
@@ -745,7 +760,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     }
     else
     {
-        CELER_VALIDATE(imported.optical_models.empty(),
+        CELER_VALIDATE(!imported.optical_physics.bulk,
                        << "optical physics models were imported but no "
                           "optical capacity was set. Either define optical "
                           "tracking loop parameters, or ignore optical "

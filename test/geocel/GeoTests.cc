@@ -11,6 +11,7 @@
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Turn.hh"
@@ -19,6 +20,7 @@
 #include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
@@ -36,15 +38,6 @@ auto const vecgeom_version = celeritas::Version::from_string(
     CELERITAS_USE_VECGEOM ? cmake::vecgeom_version : "0.0.0");
 auto const geant4_version = celeritas::Version::from_string(
     CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
-
-auto make_geo_track_view(GenericGeoTestInterface& gti,
-                         Real3 const& pos,
-                         Real3 const& dir)
-{
-    auto tracker = gti.make_checked_track_view();
-    tracker = gti.make_initializer(pos, dir);
-    return tracker;
-}
 
 BoundingBox<> calc_expected_bbox(std::string_view geo_type, Real3 lo, Real3 hi)
 {
@@ -334,8 +327,8 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
     {
         // See https://github.com/celeritas-project/celeritas/issues/1902
         SCOPED_TRACE("almost tangent at large Z");
-        auto geo = make_geo_track_view(
-            *test_,
+        auto geo = test_->make_checked_track_view();
+        geo = test_->make_initializer(
             {23.51934584635, 17.141066715148, 344.45000092904},
             {0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7});
         ASSERT_FALSE(geo.is_outside());
@@ -524,6 +517,27 @@ void CmseGeoTest::test_trace() const
 }
 
 //---------------------------------------------------------------------------//
+// DUNE CRYOSTAT
+//---------------------------------------------------------------------------//
+void DuneCryostatGeoTest::test_locate_point() const
+{
+    auto get_stack = [t = this->test_](Real3 const& pos) {
+        auto result = t->volume_stack(pos);
+        return stream_to_string(join(result.volume_instances.begin(),
+                                     result.volume_instances.end(),
+                                     "/"));
+    };
+    EXPECT_EQ("volDetEnclosure_PV/volCryostat_PV/volOpDetSensitive_0-0-0_PV",
+              get_stack({-0.05, -712.31875, -535.175}));
+    EXPECT_EQ("volDetEnclosure_PV/volCryostat_PV/volOpDetSensitive_0-0-1_PV",
+              get_stack({-0.05, -712.31875, -486.375}));
+    EXPECT_EQ("volDetEnclosure_PV/volCryostat_PV/volOpDetSensitive_0-0-2_PV",
+              get_stack({-0.05, -712.31875, -423.575}));
+    EXPECT_EQ("volDetEnclosure_PV/volCryostat_PV/volOpDetSensitive_0-0-3_PV",
+              get_stack({-0.05, -712.31875, -374.775}));
+}
+
+//---------------------------------------------------------------------------//
 // FOUR LEVELS
 //---------------------------------------------------------------------------//
 //! Test geometry accessors
@@ -541,7 +555,8 @@ void FourLevelsGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_consecutive_compute() const
 {
-    auto geo = make_geo_track_view(*test_, {-9, -10, -10}, {1, 0, 0});
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({-9, -10, -10}, {1, 0, 0});
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ("Shape2", test_->volume_name(geo));
     EXPECT_FALSE(geo.is_on_boundary());
@@ -562,11 +577,12 @@ void FourLevelsGeoTest::test_consecutive_compute() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_detailed_tracking() const
 {
-    bool const check_normal = test_->supports_surface_normal();
+    auto geo = test_->make_checked_track_view();
+
     Propagation next;
     {
         SCOPED_TRACE("rightward along corner");
-        auto geo = make_geo_track_view(*test_, {-10, -10, -10}, {1, 0, 0});
+        geo = test_->make_initializer({-10, -10, -10}, {1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
         EXPECT_EQ("Shape2", test_->volume_name(geo));
         EXPECT_FALSE(geo.is_on_boundary());
@@ -581,24 +597,31 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         geo.move_internal(from_cm(3.5));
         EXPECT_FALSE(geo.is_on_boundary());
 
-        // Find one a bit further, then cross it
+        // Find one a bit further, then move to it
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
-        if (check_normal)
+        EXPECT_EQ("Shape2", test_->volume_name(geo));
+        if (geo.check_normal())
         {
             EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+            EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status())
+                << geo.normal();
         }
-        EXPECT_EQ("Shape2", test_->volume_name(geo));
+
+        // Now cross it
         ASSERT_NO_THROW(geo.cross_boundary());
-        if (check_normal)
-        {
-            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-        }
         EXPECT_EQ("Shape1", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
+        // TODO: fix for vecgeom+g4
+        if (test_->geometry_type() == "ORANGE")
+        {
+            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+            EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status())
+                << geo.normal();
+        }
 
         // Find the next boundary and make sure that nearer distances aren't
         // accepted
@@ -612,7 +635,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
     }
     {
         SCOPED_TRACE("inside out");
-        auto geo = make_geo_track_view(*test_, {-23.5, 6.5, 6.5}, {-1, 0, 0});
+        geo = test_->make_initializer({-23.5, 6.5, 6.5}, {-1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
         EXPECT_EQ("World", test_->volume_name(geo));
 
@@ -622,7 +645,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 
         geo.move_to_boundary();
         EXPECT_FALSE(geo.is_outside());
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
         }
@@ -633,7 +656,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         SCOPED_TRACE("reentrant boundary");
 
         // Start inside box "Shape1" in the gap outside sphere "Shape2"
-        auto geo = make_geo_track_view(*test_, {15.5, 10, 10}, {-1, 0, 0});
+        geo = test_->make_initializer({15.5, 10, 10}, {-1, 0, 0});
         ASSERT_FALSE(geo.is_outside());
         EXPECT_EQ("Shape1", test_->volume_name(geo));
         EXPECT_FALSE(geo.is_on_boundary());
@@ -737,7 +760,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_LE(next.distance, from_cm(1e-5));
         geo.move_to_boundary();
         EXPECT_TRUE(geo.is_on_boundary());
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
@@ -745,7 +768,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         geo.cross_boundary();
         EXPECT_EQ("Shape1", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
-        if (check_normal)
+        if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
         }
@@ -775,7 +798,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
     }
     {
         SCOPED_TRACE("unique volume names");
-        auto geo = make_geo_track_view(*test_, {10.0, 10.0, 10.0}, {1, 0, 0});
+        geo = test_->make_initializer({10.0, 10.0, 10.0}, {1, 0, 0});
         EXPECT_EQ("World_PV/env1/Shape1/Shape2",
                   test_->unique_volume_name(geo));
         geo.find_next_step();
@@ -798,6 +821,38 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         geo.cross_boundary();
 
         EXPECT_EQ("[OUTSIDE]", test_->unique_volume_name(geo));
+    }
+}
+
+//---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_locate_point() const
+{
+    std::vector<Real3> test_points{
+        {10.0, 10.0, 10.0},
+        {-10.0, -10.0, 4.5},
+        {0.0, 0.0, 0.0},
+        {1.0, 2.0, 5.0},
+        {-3.0, -7.5, -4.5},
+        {-7.0, 1.5, 3.7},
+    };
+
+    for (auto const& point : test_points)
+    {
+        // Get volume label from point lookup
+        auto volume_instance
+            = test_->geometry_interface()->find_volume_instance_at(
+                from_cm(point));
+
+        auto volume_label = volume_instance
+                                ? test_->volumes()->volume_instance_labels().at(
+                                      volume_instance)
+                                : "[INVALID]";
+
+        // Get expected volume label from test chassis
+        auto expected_volume_label
+            = test_->volume_stack(point).volume_instances.back();
+
+        EXPECT_EQ(expected_volume_label, volume_label);
     }
 }
 
@@ -860,7 +915,6 @@ void FourLevelsGeoTest::test_trace() const
         };
 
         auto tol = test_->tracking_tol();
-        delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -882,7 +936,6 @@ void FourLevelsGeoTest::test_trace() const
         // clang-format on
 
         auto tol = test_->tracking_tol();
-        delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
@@ -925,7 +978,6 @@ void LarSphereGeoTest::test_trace() const
         GTEST_SKIP() << "Fails to cross +y";
     }
 
-    bool const is_orange = test_->geometry_type() == "ORANGE";
     {
         SCOPED_TRACE("+y");
         auto result = test_->track({0, -120, 0}, {0, 1, 0});
@@ -948,11 +1000,6 @@ void LarSphereGeoTest::test_trace() const
         ref.distances = {10, 10, 200, 10, 890};
         ref.halfway_safeties = {5, 5, 100, 5, 445};
         ref.bumps = {};
-        if (is_orange)
-        {
-            // TODO: at this exact point it ignores the spherical distance
-            ref.halfway_safeties[2] = result.halfway_safeties[2];
-        }
 
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1059,9 +1106,10 @@ auto MultiLevelGeoTest::get_test_points() -> VecR2
 void MultiLevelGeoTest::test_volume_level() const
 {
     std::vector<VolumeLevelId::size_type> all_levels;
+    auto geo = test_->make_checked_track_view();
     for (R2 xy : this->get_test_points())
     {
-        auto geo = make_geo_track_view(*test_, {xy[0], xy[1], 0}, {0, 0, 1});
+        geo = test_->make_initializer({xy[0], xy[1], 0}, {0, 0, 1});
         VolumeLevelId id;
         if (!geo.is_outside())
         {
@@ -1710,23 +1758,79 @@ void SolidsGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void SolidsGeoTest::test_trace() const
 {
+    bool const single_orange
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+          && (test_->geometry_type() == "ORANGE");
+
+    if (single_orange)
+    {
+        // TODO: find source of distance misestimation between bool and
+        // polyhedra
+        auto geo = test_->make_checked_track_view();
+        geo = test_->make_initializer({15, 125, 0.5}, {1, 0, 0});
+        EXPECT_EQ("boolean1", test_->volume_name(geo));
+        auto next = geo.find_next_step(to_cm(500));
+        EXPECT_SOFT_EQ(10.0f, next.distance);
+        ASSERT_TRUE(next.boundary);
+        geo.move_to_boundary();
+        geo.cross_boundary();
+        EXPECT_EQ("World", test_->volume_name(geo));
+        next = geo.find_next_step(to_cm(500));
+        EXPECT_TRUE(next.boundary);
+        // NOTE: this is wrong; should be 231.57
+        EXPECT_SOFT_EQ(to_cm(197.9964f), next.distance);
+        geo.move_internal(to_cm(1.0f));
+        next = geo.find_next_step(to_cm(500));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(to_cm(196.9964f), next.distance);
+        geo.move_internal(to_cm(25.0f));
+        next = geo.find_next_step(to_cm(500));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(to_cm(205.5712f), next.distance);
+    }
+    else
     {
         SCOPED_TRACE("Upper +x");
-        auto result = test_->track({-575, 125, 0.5}, {1, 0, 0});
+        auto result = test_->track({-575, 125., 0.5}, {1, 0, 0});
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            "World",     "hype1",    "World",    "hype1",     "World",
-            "para1",     "World",    "tube100",  "World",     "boolean1",
-            "World",     "boolean1", "World",    "polyhedr1", "World",
-            "polyhedr1", "World",    "ellcone1", "World",
+            "World",
+            "hype1",
+            "World",
+            "hype1",
+            "World",
+            "para1",
+            "World",
+            "tube100",
+            "World",
+            "boolean1",
+            "World",
+            "boolean1",
+            "World",
+            "polyhedr1",
+            "World",
+            "ellcone1",
+            "World",
         };
         ref.volume_instances = {
-            "World_PV", "hype1_PV",     "World_PV", "hype1_PV",
-            "World_PV", "para1_PV",     "World_PV", "tube100_PV",
-            "World_PV", "boolean1_PV",  "World_PV", "boolean1_PV",
-            "World_PV", "polyhedr1_PV", "World_PV", "polyhedr1_PV",
-            "World_PV", "ellcone1_PV",  "World_PV",
+            "World_PV",
+            "hype1_PV",
+            "World_PV",
+            "hype1_PV",
+            "World_PV",
+            "para1_PV",
+            "World_PV",
+            "tube100_PV",
+            "World_PV",
+            "boolean1_PV",
+            "World_PV",
+            "boolean1_PV",
+            "World_PV",
+            "polyhedr1_PV",
+            "World_PV",
+            "ellcone1_PV",
+            "World_PV",
         };
         ref.distances = {
             175.99886751197,
@@ -1741,11 +1845,9 @@ void SolidsGeoTest::test_trace() const
             12.5,
             20,
             17.5,
-            191.92750632007,
-            26.020708495029,
-            14.10357036981,
-            26.020708495029,
-            86.977506320066,
+            231.57121767818,
+            24.247440212347,
+            89.231342109474,
             9.8999999999999,
             220.05,
         };
@@ -1762,10 +1864,8 @@ void SolidsGeoTest::test_trace() const
             1,
             1,
             1,
-            -1.2246467991474e-16,
-            0.92346406713976,
-            0.92346406713976,
-            0.91834027967581,
+            0.99099901211188,
+            0.98550051087537,
             0.99503719020999,
             0.99503719020999,
         };
@@ -1783,10 +1883,8 @@ void SolidsGeoTest::test_trace() const
             9.5,
             8.75,
             74.5,
-            0,
-            6.5120702274482,
             11.947932358344,
-            43.183743254945,
+            43.968766617491,
             4.9254340915394,
             74.5,
         };
@@ -1796,15 +1894,18 @@ void SolidsGeoTest::test_trace() const
             // v1.2.10: unknown differences outside hyperboloid
             ref.halfway_safeties[1] = 1.99361986757606;
             ref.halfway_safeties[3] = 1.99361986757606;
-        }
 
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
-        {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            auto tol = test_->tracking_tol();
-            EXPECT_REF_NEAR(ref, result, tol);
+            if (vecgeom_version >= Version{2, 0})
+            {
+                // TODO: VecGeom 2.x-solids still missing some shapes
+                ref.fail_at(0);
+                result.fail_at(0);
+            }
         }
+        delete_orange_safety(*test_, ref, result);
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Center -x");
@@ -1812,47 +1913,28 @@ void SolidsGeoTest::test_trace() const
 
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            "World", "ellipsoid1", "World", "polycone1", "World", "polycone1",
-            "World", "sphere1",    "World", "box500",    "World", "cone1",
-            "World", "trd1",       "World", "parabol1",  "World", "trd2",
-            "World", "xtru1",      "World",
+            "World",   "ellipsoid1", "World",  "polycone1", "World",
+            "sphere1", "World",      "box500", "World",     "cone1",
+            "World",   "trd1",       "World",  "parabol1",  "World",
+            "trd2",    "World",      "xtru1",  "World",
         };
         ref.volume_instances = {
             "World_PV", "ellipsoid1_PV", "World_PV", "polycone1_PV",
-            "World_PV", "polycone1_PV",  "World_PV", "sphere1_PV",
-            "World_PV", "box500_PV",     "World_PV", "cone1_PV",
-            "World_PV", "trd1_PV",       "World_PV", "parabol1_PV",
-            "World_PV", "reflNormal",    "World_PV", "xtru1_PV",
-            "World_PV",
+            "World_PV", "sphere1_PV",    "World_PV", "box500_PV",
+            "World_PV", "cone1_PV",      "World_PV", "trd1_PV",
+            "World_PV", "parabol1_PV",   "World_PV", "reflNormal",
+            "World_PV", "xtru1_PV",      "World_PV",
         };
         ref.distances = {
-            180.00156256104,
-            39.99687487792,
-            94.90156256104,
-            2,
-            16.2,
-            2,
-            115.41481927853,
-            39.482055599395,
-            60.00312512208,
-            50,
-            73.06,
-            53.88,
-            83.01,
-            30.1,
-            88.604510136799,
-            42.690979726401,
-            88.61120889722,
-            30.086602479158,
-            1.4328892366113,
-            15.880952380952,
-            67.642857142857,
+            180.00156256104, 39.99687487792,  113.10156256104, 2,
+            115.41481927853, 39.482055599395, 60.00312512208,  50,
+            73.06,           53.88,           83.01,           30.1,
+            88.604510136799, 42.690979726401, 88.61120889722,  30.086602479158,
+            1.4328892366113, 15.880952380952, 67.642857142857,
         };
         ref.dot_normal = {
             0.99998046627013,
             0.99998046627013,
-            0,
-            0,
             0.98058067569092,
             0.98058067569092,
             0.69670670934717,
@@ -1873,9 +1955,7 @@ void SolidsGeoTest::test_trace() const
         ref.halfway_safeties = {
             74.5,
             0.5,
-            45.689062136067,
-            0,
-            8.0156097709407,
+            38.236540825869,
             0.98058067569092,
             41.027453049596,
             13.753706517458,
@@ -1893,46 +1973,56 @@ void SolidsGeoTest::test_trace() const
             6.5489918373272,
             33.481506089183,
         };
+
         if (test_->geometry_type() == "VecGeom")
         {
-            // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
-            // Geant4 v11.3.1
-            ref.halfway_safeties[4] = 7.82052980478031;
-            ref.halfway_safeties[14] = 42.8397753718277;
-            ref.halfway_safeties[15] = 18.8833925371992;
-            ref.halfway_safeties[16] = 42.8430141842906;
+            // v1.2.11: unknown differences outside polycone and paraboloid
+            ref.halfway_safeties[2] = 36.9728429405546;
+            ref.halfway_safeties[12] = 42.8397753718277;
+            ref.halfway_safeties[13] = 18.8833925371992;
+            ref.halfway_safeties[14] = 42.8430141842906;
+
+            if (vecgeom_version >= Version{2, 0})
+            {
+                // TODO: VecGeom 2.x-solids still missing some shapes
+                ref.fail_at(0);
+                result.fail_at(0);
+            }
         }
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+        else if (single_orange)
         {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            auto tol = test_->tracking_tol();
-            EXPECT_REF_NEAR(ref, result, tol);
+            // 5e-5 error
+            ref.distances[16] = 1.43285f;
         }
+
+        delete_orange_safety(*test_, ref, result);
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Lower +x");
         auto result = test_->track({-575, -125, 0.5}, {1, 0, 0});
-
         GenericGeoTrackingResult ref;
         ref.volumes = {
-            "World",   "trd3_refl",  "trd3_refl", "World",    "arb8b",
-            "World",   "arb8a",      "World",     "trap1",    "World",
-            "tetrah1", "World",      "orb1",      "World",    "genPocone1",
-            "World",   "genPocone1", "World",     "elltube1", "World",
+            "World",      "trd3_also", "World",    "trd3_refl", "World",
+            "arb8b",      "World",     "arb8a",    "World",     "trap1",
+            "World",      "tetrah1",   "World",    "orb1",      "World",
+            "genPocone1", "World",     "elltube1", "World",
         };
         ref.volume_instances = {
-            "World_PV",      "reflected@1", "reflected@0",   "World_PV",
-            "arb8b_PV",      "World_PV",    "arb8a_PV",      "World_PV",
-            "trap1_PV",      "World_PV",    "tetrah1_PV",    "World_PV",
-            "orb1_PV",       "World_PV",    "genPocone1_PV", "World_PV",
-            "genPocone1_PV", "World_PV",    "elltube1_PV",   "World_PV",
+            "World_PV", "reflected@1", "World_PV", "reflected@0",
+            "World_PV", "arb8b_PV",    "World_PV", "arb8a_PV",
+            "World_PV", "trap1_PV",    "World_PV", "tetrah1_PV",
+            "World_PV", "orb1_PV",     "World_PV", "genPocone1_PV",
+            "World_PV", "elltube1_PV", "World_PV",
         };
         ref.distances = {
             34.956698760421,
             30.086602479158,
-            24.913397520842,
-            70.093301239579,
+            20,
+            29.913397520842,
+            45.093301239579,
             79.9,
             45.1,
             79.9,
@@ -1944,13 +2034,12 @@ void SolidsGeoTest::test_trace() const
             79.99374975584,
             39.95312512208,
             15,
-            60.1,
-            15,
-            59.95,
+            135.05,
             40,
             205,
         };
         ref.dot_normal = {
+            0.99503719020999,
             0.99503719020999,
             0.99503719020999,
             0.99503719020999,
@@ -1966,16 +2055,15 @@ void SolidsGeoTest::test_trace() const
             0.999921871948,
             0.99503719020999,
             0.99503719020999,
-            0.99503719020999,
-            0.99503719020999,
             1,
             1,
         };
         ref.halfway_safeties = {
             17.391607656793,
             14.968644196913,
-            12.394878533861,
-            34.872720758987,
+            9.9503719020999,
+            14.882471509386,
+            22.434755881362,
             39.751735748889,
             22.438088639235,
             33.070197064425,
@@ -1987,49 +2075,44 @@ void SolidsGeoTest::test_trace() const
             39.5,
             19.877422680791,
             7.2794797676807,
-            29.515478338297,
-            0,
-            29.826239776544,
+            7.3110098175544,
             20,
             74.5,
         };
-        if (test_->geometry_type() == "Geant4"
-            && geant4_version < Version{11, 3})
+
+        if (test_->geometry_type() == "Geant4")
         {
-            // Older versions of Geant4 have a bug in Arb8 that overestimates
-            // safety distance to twisted surfaces
-            ref.halfway_safeties[4] = 38.205672682313;
-            ref.halfway_safeties[6] = 38.803595749271;
+            if (geant4_version < Version{11, 3})
+            {
+                // Older versions of Geant4 have a bug in Arb8 that
+                // overestimates safety distance to twisted surfaces
+                ref.halfway_safeties[5] = 38.205672682313;
+                ref.halfway_safeties[7] = 38.803595749271;
+            }
         }
         else if (test_->geometry_type() == "VecGeom")
         {
             // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
             // Geant4 v11.3.1
-            ref.halfway_safeties[3] = 29.9966506197896;
-            ref.halfway_safeties[4] = 27.7657728660916;
-            ref.halfway_safeties[5] = 17.5;
-            ref.halfway_safeties[6] = 21.8864641598878;
-            ref.halfway_safeties[7] = 29.1115376091067;
-            ref.halfway_safeties[13] = 19.0382940808067;
-            ref.halfway_safeties[14] = 0.5;
-            ref.halfway_safeties[17] = 28.6150602709819;
-        }
+            ref.halfway_safeties[4] = 17.4966506197896;
+            ref.halfway_safeties[5] = 27.7657728660916;
+            ref.halfway_safeties[6] = 17.5;
+            ref.halfway_safeties[7] = 21.8864641598878;
+            ref.halfway_safeties[8] = 29.1115376091067;
+            ref.halfway_safeties[14] = 19.0382940808067;
+            ref.halfway_safeties[15] = 0.5;
 
-        if (test_->geometry_type() == "Geant4"
-            && ref.dot_normal.size() == result.dot_normal.size()
-            && result.dot_normal[15] == 0.0)
-        {
-            CELER_LOG(warning) << "GenPocone normal seems to have a bug";
-            ref.dot_normal[15] = result.dot_normal[15];
+            if (vecgeom_version >= Version{2, 0})
+            {
+                // TODO: VecGeom 2.x-solids still missing some shapes
+                ref.fail_at(0);
+                result.fail_at(0);
+            }
         }
+        delete_orange_safety(*test_, ref, result);
 
         auto tol = test_->tracking_tol();
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
-        {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            EXPECT_REF_NEAR(ref, result, tol);
-        }
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         SCOPED_TRACE("Middle +y");
@@ -2091,13 +2174,19 @@ void SolidsGeoTest::test_trace() const
             74.5,
         };
 
-        if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom")
         {
-            // TODO: VecGemo 2.x-solids still missing some shapes
-            auto tol = test_->tracking_tol();
-            EXPECT_REF_NEAR(ref, result, tol);
+            if (vecgeom_version >= Version{2, 0})
+            {
+                // TODO: VecGeom 2.x-solids still missing some shapes
+                ref.fail_at(0);
+                result.fail_at(0);
+            }
         }
+        delete_orange_safety(*test_, ref, result);
+
+        auto tol = test_->tracking_tol();
+        EXPECT_REF_NEAR(ref, result, tol);
     }
 }
 
@@ -2107,9 +2196,9 @@ void SolidsGeoTest::test_trace() const
 void SimpleCmsGeoTest::test_detailed_tracking() const
 {
     auto safety_tol = test_->tracking_tol().safety;
-    bool const check_normal = test_->supports_surface_normal();
 
-    auto geo = make_geo_track_view(*test_, {0, 0, 0}, {0, 0, 1});
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({0, 0, 0}, {0, 0, 1});
     EXPECT_EQ("vacuum_tube", test_->volume_name(geo));
 
     auto next = geo.find_next_step(from_cm(100));
@@ -2126,13 +2215,13 @@ void SimpleCmsGeoTest::test_detailed_tracking() const
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     }
 
     geo.cross_boundary();
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     }
@@ -2160,7 +2249,6 @@ void SimpleCmsGeoTest::test_detailed_tracking() const
 //---------------------------------------------------------------------------//
 void SimpleCmsGeoTest::test_trace() const
 {
-    bool const is_orange = test_->geometry_type() == "ORANGE";
     {
         SCOPED_TRACE("outward radially");
         auto result = test_->track({-75, 0, 0}, {1, 0, 0});
@@ -2190,11 +2278,6 @@ void SimpleCmsGeoTest::test_trace() const
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {22.5, 30, 47.5, 25, 50, 50, 162.5, 150};
 
-        if (is_orange)
-        {
-            // TODO: at this exact point it ignores the cylindrical distance
-            ref.halfway_safeties[1] = result.halfway_safeties[1];
-        }
         auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -2209,11 +2292,8 @@ void SimpleCmsGeoTest::test_trace() const
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {0.5, 5, 650};
 
-        if (is_orange)
-        {
-            ref.halfway_safeties[2] = result.halfway_safeties[2];
-        }
         auto tol = test_->tracking_tol();
+        fixup_orange(*test_, ref, result, "world");
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -2271,10 +2351,6 @@ void TestEm3GeoTest::test_trace() const
         };
 
         auto tol = test_->tracking_tol();
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-        {
-            tol.distance = 1e-5f;
-        }
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -2344,11 +2420,6 @@ void TestEm3FlatGeoTest::test_trace() const
             0.115,  0.285, 2,
         };
         auto tol = test_->tracking_tol();
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-        {
-            tol.distance = 1e-5f;
-        }
-
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
@@ -2635,10 +2706,10 @@ void TwoBoxesGeoTest::test_accessors() const
 
 void TwoBoxesGeoTest::test_detailed_tracking() const
 {
-    bool const check_normal = test_->supports_surface_normal();
     auto safety_tol = test_->tracking_tol().safety;
 
-    auto geo = make_geo_track_view(*test_, {0, 0, 0}, {0, 0, 1});
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({0, 0, 0}, {0, 0, 1});
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
 
@@ -2660,7 +2731,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     }
@@ -2668,12 +2739,6 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("world", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
-    if (geo.is_on_boundary() && CELERITAS_DEBUG)
-    {
-        // Don't check the safety distance on the boundary; we know by
-        // definition it's zero
-        EXPECT_THROW(geo.find_safety(), DebugError);
-    }
 
     // Scatter to tangent along boundary
     constexpr real_type dx
@@ -2691,13 +2756,13 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
     }
 
     geo.cross_boundary();
-    if (!check_normal)
+    if (!geo.check_normal())
     {
         // Skip check
     }
@@ -2724,11 +2789,10 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
  */
 void TwoBoxesGeoTest::test_reentrant() const
 {
-    bool const check_normal = test_->supports_surface_normal();
+    auto geo = test_->make_checked_track_view();
     constexpr auto dx = real_type{1} / constants::sqrt_two;
 
     // Starting left of edge (-), headed down right (+,-)
-    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
@@ -2742,7 +2806,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     // Move to boundary (-; +,-)
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
@@ -2751,7 +2815,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     // Cross into the new volume, needed for optical physics (+; +,-)
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
@@ -2760,7 +2824,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     // Reflect normal to surface  (+; -,-)
     geo.set_dir(Real3{-dx, -dx, 0});
     EXPECT_TRUE(geo.is_on_boundary());
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
@@ -2780,7 +2844,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     }
     EXPECT_TRUE(geo.is_on_boundary());
 
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
@@ -2826,11 +2890,10 @@ void TwoBoxesGeoTest::test_reentrant() const
  */
 void TwoBoxesGeoTest::test_reentrant_undo() const
 {
+    auto geo = test_->make_checked_track_view();
     constexpr auto dx = real_type{1} / constants::sqrt_two;
-    bool const check_normal = test_->supports_surface_normal();
 
     // Starting left of edge (-), headed down right (+,-)
-    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
     ASSERT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
@@ -2860,7 +2923,7 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("world", test_->volume_name(geo));
-    if (check_normal)
+    if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }

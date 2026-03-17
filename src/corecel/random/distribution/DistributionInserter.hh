@@ -26,6 +26,8 @@ class DistributionInserter
     // Add 1D distribution data
     OnedDistributionId operator()(inp::DeltaDistribution<double> const&);
     OnedDistributionId operator()(inp::NormalDistribution const&);
+    OnedDistributionId
+    operator()(inp::TruncatedDistribution<inp::NormalDistribution> const&);
 
     // Add 3D distribution data
     ThreedDistributionId

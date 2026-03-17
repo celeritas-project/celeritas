@@ -54,6 +54,7 @@ celeritas_add_test(data/AuxInterface.test.cc
   SOURCES data/AuxMockParams.cc)
 
 # Grid
+celeritas_add_test(grid/DerivativeGridCalculator.test.cc)
 celeritas_add_test(grid/FindInterp.test.cc)
 celeritas_add_test(grid/Interpolator.test.cc)
 celeritas_add_test(grid/NonuniformGrid.test.cc)
@@ -101,6 +102,7 @@ celeritas_add_test(math/TridiagonalSolver.test.cc)
 
 celeritas_add_test(random/CachedRngEngine.test.cc)
 celeritas_add_test(random/Histogram.test.cc)
+celeritas_add_test(random/InitializeRngState.test.cc)
 celeritas_add_test(random/RanluxppRngEngine.test.cc GPU)
 celeritas_add_device_test(random/RngEngine
   LINK_LIBRARIES Celeritas::ExtThrust)
@@ -119,6 +121,7 @@ celeritas_add_test(random/distribution/PowerDistribution.test.cc)
 celeritas_add_test(random/distribution/RadialDistribution.test.cc)
 celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
 celeritas_add_test(random/distribution/RejectionSampler.test.cc)
+celeritas_add_test(random/distribution/TruncatedDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
 celeritas_add_test(random/distribution/DistributionTypeTraits.test.cc)

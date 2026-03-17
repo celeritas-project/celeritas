@@ -11,7 +11,6 @@
 #include <type_traits>
 
 #include "corecel/OpaqueId.hh"
-#include "corecel/cont/SpanIO.hh"
 #include "corecel/data/LdgIterator.hh"
 #include "corecel/sys/TypeDemangler.hh"
 

@@ -28,7 +28,6 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -39,11 +38,39 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Placeholder SD class for generating model data from GDML
+class GdmlSensitiveDetector final : public G4VSensitiveDetector
+{
+  public:
+    GdmlSensitiveDetector(std::string const& name) : G4VSensitiveDetector{name}
+    {
+    }
+
+    void Initialize(G4HCofThisEvent*) final {}
+    bool ProcessHits(G4Step*, G4TouchableHistory*) final { return false; }
+};
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a GDML file and physics options.
  */
 GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
+    : GeantSetup{gdml_filename, std::move(options), {}}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a GDML file and physics options.
+ */
+GeantSetup::GeantSetup(std::string const& gdml_filename,
+                       Options options,
+                       SetString sd_names)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
     ScopedProfiling profile_this{"initialize-geant"};
@@ -80,15 +107,24 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     ScopedGeantLogger scoped_logger(celeritas::world_logger());
     ScopedGeantExceptionHandler scoped_exceptions;
 
-    DetectorConstruction const* p_detector = nullptr;
     {
         CELER_LOG(status) << "Initializing Geant4 geometry and physics list";
 
         // Construct the geometry
         DetectorConstruction::SDBuilder make_sd;
-        auto detector
-            = std::make_unique<DetectorConstruction>(gdml_filename, make_sd);
-        p_detector = detector.get();
+        if (!sd_names.empty())
+        {
+            using UPSD = DetectorConstruction::UPSD;
+            make_sd = [all_sd = std::move(sd_names)](
+                          std::string const& name) -> UPSD {
+                if (!all_sd.count(name))
+                    return nullptr;
+                // Create an SD for the corresponding SensDet aux value
+                return std::make_unique<GdmlSensitiveDetector>(name);
+            };
+        }
+        auto detector = std::make_unique<DetectorConstruction>(
+            gdml_filename, std::move(make_sd));
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
@@ -115,12 +151,14 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
     }
 
     {
-        // Create non-owning Geant4 geo wrapper and save as tracking geometry
-        geo_ = std::make_shared<GeantGeoParams>(p_detector->world(),
-                                                Ownership::reference);
-        celeritas::global_geant_geo(geo_);
+        // Save the geometry
+        auto* detcon = dynamic_cast<DetectorConstruction const*>(
+            run_manager_->GetUserDetectorConstruction());
+        CELER_ASSERT(detcon);
+        this->geo_ = detcon->geo();
     }
 
+    CELER_ENSURE(this->geo_);
     CELER_ENSURE(*this);
 }
 

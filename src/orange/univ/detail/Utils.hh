@@ -11,10 +11,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/NumericLimits.hh"
 
+#include "LocalVolumeView.hh"
 #include "Types.hh"
-#include "../VolumeView.hh"
 
 namespace celeritas
 {
@@ -22,18 +21,6 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 // FUNCTION-LIKE CLASSES
-//---------------------------------------------------------------------------//
-/*!
- * Predicate for partitioning valid (finite positive) from invalid distances.
- */
-struct IsFinite
-{
-    CELER_FORCEINLINE_FUNCTION bool operator()(real_type distance) const
-    {
-        return distance < numeric_limits<real_type>::max();
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Predicate for selecting distances closer to or equal to a maximum.
@@ -88,7 +75,7 @@ class BumpCalculator
 /*!
  * Convert an OnLocalSurface (may be null) to an OnFace using a volume view.
  */
-inline CELER_FUNCTION OnFace find_face(VolumeView const& vol,
+inline CELER_FUNCTION OnFace find_face(LocalVolumeView const& vol,
                                        OnLocalSurface surf)
 {
     return {surf ? vol.find_face(surf.id()) : FaceId{}, surf.unchecked_sense()};
@@ -98,7 +85,7 @@ inline CELER_FUNCTION OnFace find_face(VolumeView const& vol,
 /*!
  * Convert an OnFace (may be null) to an OnLocalSurface using a volume view.
  */
-inline CELER_FUNCTION OnLocalSurface get_surface(VolumeView const& vol,
+inline CELER_FUNCTION OnLocalSurface get_surface(LocalVolumeView const& vol,
                                                  OnFace face)
 {
     return {face ? vol.get_surface(face.id()) : LocalSurfaceId{},

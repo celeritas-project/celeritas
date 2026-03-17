@@ -35,16 +35,22 @@ class UnitInserter
     //!@{
     //! \name Type aliases
     using Data = HostVal<OrangeParamsData>;
+    using Input = UnitInput;
     //!@}
 
   public:
+    //! Number of surfaces created by the input
+    static auto num_surfaces(Input const& i) { return i.surfaces.size(); }
+    //! Number of volumes created by the input
+    static auto num_volumes(Input const& i) { return i.volumes.size(); }
+
     // Construct from full parameter data
     UnitInserter(UniverseInserter* insert_universe,
                  Data* orange_data,
                  ConstructionOptions const* opts);
 
     // Create a simple unit and store in in OrangeParamsData
-    UnivId operator()(UnitInput&& inp);
+    UnivId operator()(Input&& inp);
 
   private:
     Data* orange_data_{nullptr};
@@ -63,20 +69,20 @@ class UnitInserter
     DedupeCollectionBuilder<real_type> reals_;
     DedupeCollectionBuilder<SurfaceType> surface_types_;
     CollectionBuilder<ConnectivityRecord> connectivity_records_;
-    CollectionBuilder<VolumeRecord> volume_records_;
+    CollectionBuilder<LocalVolumeRecord> volume_records_;
     CollectionBuilder<OrientedBoundingZoneRecord> obz_records_;
     CollectionBuilder<Daughter> daughters_;
     BoundingBoxBumper<fast_real_type, real_type> calc_bumped_;
 
     //// HELPER METHODS ////
 
-    VolumeRecord
+    LocalVolumeRecord
     insert_volume(SurfacesRecord const& unit, VolumeInput const& v);
 
-    void process_daughter(VolumeRecord* vol_record,
+    void process_daughter(LocalVolumeRecord* vol_record,
                           DaughterInput const& daughter_input);
 
-    void process_obz_record(VolumeRecord* vol_record,
+    void process_obz_record(LocalVolumeRecord* vol_record,
                             OrientedBoundingZoneInput const& obz_input);
 };
 

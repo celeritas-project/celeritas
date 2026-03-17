@@ -12,8 +12,6 @@
 #include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Types.hh"
 
-#include "../Types.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -23,14 +21,20 @@ namespace celeritas
  * This component represents one type of scintillation emissions, such as
  * prompt/fast, intermediate, or slow. It can be specific to a material or
  * depend on the incident particle type.
+ *
+ * \todo Refactor energy/wavelength as a distribution sampler: gaussian vs grid
  */
-struct ScintRecord
+struct ScintDistributionRecord
 {
-    real_type lambda_mean{};  //!< Mean wavelength
-    real_type lambda_sigma{};  //!< Standard deviation of wavelength
-    real_type rise_time{};  //!< Rise time
-    real_type fall_time{};  //!< Decay time
+    real_type lambda_mean{};  //!< Mean wavelength [len]
+    real_type lambda_sigma{};  //!< Standard deviation of wavelength [len]
+    real_type rise_time{};  //!< Rise time [time]
+    real_type fall_time{};  //!< Decay time [time]
     ItemId<NonuniformGridRecord> energy_cdf;
+
+    //! Whether this represents a normal distribution
+    CELER_FUNCTION bool is_normal_distribution() const { return !energy_cdf; }
+
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
@@ -42,21 +46,23 @@ struct ScintRecord
 
 //---------------------------------------------------------------------------//
 /*!
- * Material-dependent scintillation spectrum.
+ * Unnormalized scintillation spectrum as a sum of independent components.
  *
- * - \c yield_per_energy is the characteristic light yield of the material in
- *   [1/MeV] units. The total light yield per step is the characteristic light
- *   yield multiplied by the energy deposition, which results in a (unitless)
- *   number of photons.
+ * \todo The yield and resolution scale should live together (used for sampling
+ * the number of photons) and be separated from the normalized spectrum (used
+ * during generation, represented as a sum of components).
+ *
+ * - \c yield_per_energy is the average number of photons released by a unit of
+ *   locally deposited energy.
  * - \c yield_pdf is the probability of choosing from a given component.
  * - \c components stores the different scintillation components
  *   (fast/slow/etc) for this material.
  */
-struct MatScintSpectrum
+struct ScintSpectrumRecord
 {
     real_type yield_per_energy{};  //!< [1/MeV]
     ItemRange<real_type> yield_pdf;
-    ItemRange<ScintRecord> components;
+    ItemRange<ScintDistributionRecord> components;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -68,44 +74,10 @@ struct MatScintSpectrum
 
 //---------------------------------------------------------------------------//
 /*!
- * Particle- and material-dependent scintillation spectrum.
+ * Data characterizing the scintillation spectrum for all materials.
  *
- * - \c yield_vector is the characteristic light yield for different energies.
- * - \c yield_pdf is the probability of choosing from a given component.
- * - \c components stores the fast/slow/etc scintillation components for this
- * particle type.
- */
-struct ParScintSpectrum
-{
-    NonuniformGridRecord yield_per_energy;  //! [MeV] -> [1/MeV]
-    ItemRange<real_type> yield_pdf;
-    ItemRange<ScintRecord> components;
-
-    //! Whether all data are assigned and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return yield_per_energy && !yield_pdf.empty()
-               && yield_pdf.size() == components.size();
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Data characterizing the scintillation spectrum for all particles and
- * materials.
- *
- * Sampling using material-only data or particle- and material-dependent data
- * are mutually exclusive. Therefore, either \c materials or \c particles are
- * loaded at the beginning of the simulation, but *never* both at the same
- * time. The \c scintillation_by_particle() function can be used to check that.
- *
- * - \c pid_to_scintpid maps a \c ParticleId to a \c ScintParticleId .
  * - \c resolution_scale is indexed by \c OptMatId .
  * - \c materials stores particle-independent scintillation data.
- * - \c particles stores the scintillation spectrum for each particle type and
- *   material. It has size \c num_particles * \c num_materials and is indexed
- *   by \c ParScintSpectrumId , which can be calculated from a \c OptMatId and
- *   \c ScintParticleId using the \c spectrum_index() helper method.
  */
 template<Ownership W, MemSpace M>
 struct ScintillationData
@@ -114,59 +86,28 @@ struct ScintillationData
     using Items = Collection<T, W, M>;
     template<class T>
     using OptMatItems = Collection<T, W, M, OptMatId>;
-    template<class T>
-    using ParticleItems = Collection<T, W, M, ParticleId>;
-    template<class T>
-    using ParScintSpectrumItems = Collection<T, W, M, ParScintSpectrumId>;
 
     //// MEMBER DATA ////
 
-    //! Number of scintillation particles, used by this->spectrum_index
-    size_type num_scint_particles{};
-
     //! Resolution scale for each material [OptMatId]
     OptMatItems<real_type> resolution_scale;
-    //! Material-dependent scintillation spectrum data [OptMatId]
-    OptMatItems<MatScintSpectrum> materials;
+    //! Scintillation spectra (currently corresponds directly to OptMatId)
+    OptMatItems<ScintSpectrumRecord> spectra;
 
     // Cumulative probability of emission as a function of energy [MeV]
     Items<NonuniformGridRecord> energy_cdfs;
-    //! Index between \c ScintParticleId and \c ParticleId
-    ParticleItems<ScintParticleId> pid_to_scintpid;
-    //! Particle/material scintillation spectrum data [ParScintSpectrumId]
-    ParScintSpectrumItems<ParScintSpectrum> particles;
 
     //! Backend storage for real values
     Items<real_type> reals;
     //! Backend storage for scintillation components
-    Items<ScintRecord> scint_records;
+    Items<ScintDistributionRecord> scint_records;
 
     //// MEMBER FUNCTIONS ////
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !resolution_scale.empty()
-               && (materials.empty() != particles.empty())
-               && (!pid_to_scintpid.empty() == !particles.empty())
-               && (!pid_to_scintpid.empty() == (num_scint_particles > 0));
-    }
-
-    //! Whether sampling must happen by particle type
-    CELER_FUNCTION bool scintillation_by_particle() const
-    {
-        return !particles.empty();
-    }
-
-    //! Retrieve spectrum index given optical particle and material ids
-    ParScintSpectrumId spectrum_index(ScintParticleId pid, OptMatId mid) const
-    {
-        // Resolution scale exists independent of material-only data and it's
-        // indexed by optical material id
-        CELER_EXPECT(pid < num_scint_particles);
-        CELER_EXPECT(mid < resolution_scale.size());
-        return ParScintSpectrumId{resolution_scale.size() * pid.get()
-                                  + mid.get()};
+        return !resolution_scale.empty() && !spectra.empty();
     }
 
     //! Assign from another set of data
@@ -175,10 +116,7 @@ struct ScintillationData
     {
         CELER_EXPECT(other);
         resolution_scale = other.resolution_scale;
-        materials = other.materials;
-        pid_to_scintpid = other.pid_to_scintpid;
-        num_scint_particles = other.num_scint_particles;
-        particles = other.particles;
+        spectra = other.spectra;
         energy_cdfs = other.energy_cdfs;
         reals = other.reals;
         scint_records = other.scint_records;

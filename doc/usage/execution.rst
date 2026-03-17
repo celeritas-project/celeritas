@@ -16,6 +16,7 @@ uses of Celeritas, including as a library and when unit testing.
    :caption: Execution
 
    execution/applications.rst
+   execution/plugins.rst
    execution/utilities.rst
    execution/environment.rst
    execution/profiling.rst

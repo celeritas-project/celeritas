@@ -13,13 +13,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
-
-//! Opaque index to a scintillation particle id
-using ScintParticleId = OpaqueId<struct ScintParticle_>;
-
-//! Opaque index to a scintillation spectrum
-using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
-
 namespace optical
 {
 
@@ -28,6 +21,8 @@ namespace optical
 using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
 
 }  // namespace optical
+
+using ScintSpectrumId = OpaqueId<struct ScintSpectrumRecord>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -47,9 +42,9 @@ namespace optical
 //! Ordering of surface physics boundary crossing models
 enum class SurfacePhysicsOrder
 {
-    roughness,
-    reflectivity,
-    interaction,
+    roughness,  //!< Sample a facet normal
+    reflectivity,  //!< Select physics override
+    interaction,  //!< Apply reflection and refraction
     size_
 };
 
@@ -78,12 +73,31 @@ enum class TrivialInteractionMode
     backscatter,  //!< back scatter
 };
 
+//! Results of a reflectivity substep
+enum class ReflectivityAction
+{
+    transmit,  //!< transmit with no change
+    interact,  //!< continue to sample surface interaction
+    absorb,  //!< absorb on surface
+    size_ = absorb,
+};
+
+//! Optical photon wavelength shifting time model
+//! \todo replace with OnedDistributionType
+enum class WlsDistribution
+{
+    delta,  //!< Delta function
+    exponential,  //!< Exponential decay
+    size_
+};
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
 char const* to_cstring(SurfacePhysicsOrder);
 char const* to_cstring(ReflectionMode);
+char const* to_cstring(WlsDistribution);
 
 //! Convert sub-surface direction to a sign (+1/-1 for forward/reverse resp.)
 CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)

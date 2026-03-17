@@ -19,6 +19,8 @@
 #include <G4Version.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StringEnumMapper.hh"
 
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
@@ -42,6 +44,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/ext/EmPhysicsList.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/SimpleSensitiveDetector.hh"
 #include "celeritas/g4/DetectorConstruction.hh"
 #include "celeritas/inp/Events.hh"
@@ -89,13 +92,16 @@ class RunAction final : public G4UserRunAction
         , exceptions_(
               [this](std::exception_ptr ep) { this->handle_exception(ep); })
     {
+        CELER_EXPECT(test_);
     }
 
     void BeginOfRunAction(G4Run const* run) final
     {
+        CELER_EXPECT(run);
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
         CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
     }
+
     void EndOfRunAction(G4Run const* run) final
     {
         CELER_LOG_LOCAL(debug) << "RunAction::EndOfRunAction";
@@ -233,17 +239,104 @@ class ActionInitialization final : public G4VUserActionInitialization
     SPTracing tracing_;
 };
 
+class TestDetectorConstruction : public DetectorConstruction
+{
+  public:
+    TestDetectorConstruction(std::string const& filename,
+                             IntegrationTestBase* test)
+        : DetectorConstruction(filename,
+                               [test](std::string const& sd_name) {
+                                   return test->make_sens_det(sd_name);
+                               })
+        , test_(test)
+    {
+    }
+
+    void ConstructSDandField() override
+    {
+        DetectorConstruction::ConstructSDandField();
+        // Allow the test to construct fields, fast sim, etc.
+        test_->ConstructSDandField();
+    }
+
+  private:
+    IntegrationTestBase* test_;
+};
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
+//! Convert TestOffload to string
+char const* to_cstring(TestOffload value)
+{
+    static EnumStringMapper<TestOffload> const map{"g4", "ko", "cpu", "gpu"};
+    return map(value);
+}
+
+//! Convert string to TestOffload
+TestOffload to_test_offload(std::string const& s)
+{
+    static auto const map
+        = StringEnumMapper<TestOffload>::from_cstring_func(to_cstring);
+    return map(s);
+}
+
 //---------------------------------------------------------------------------//
-// Default destructor to enable base class deletion and anchor vtable
+/*!
+ * Test offload type as set by environment variable.
+ */
+TestOffload IntegrationTestBase::test_offload()
+{
+    static TestOffload const result = [] {
+        auto s = celeritas::getenv("CELER_OFFLOAD");
+        if (s.empty())
+        {
+            CELER_LOG(warning) << "Missing environment variable "
+                                  "CELER_OFFLOAD: defaulting to CPU";
+            return TestOffload::cpu;
+        }
+
+        try
+        {
+            return to_test_offload(s);
+        }
+        catch (RuntimeError const& e)
+        {
+            CELER_LOG(critical)
+                << "could not parse environment variable CELER_OFFLOAD: "
+                << e.what();
+            return TestOffload::size_;
+        }
+    }();
+    CELER_VALIDATE(result != TestOffload::size_,
+                   << "invalid input given to CELER_OFFLOAD environment");
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Disable ROOT signal handlers on startup.
+ */
+IntegrationTestBase::IntegrationTestBase()
+{
+    // ROOT injects handlers simply by being linked
+    ScopedRootErrorHandler::disable_signal_handler();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Default destructor to enable base class deletion and anchor vtable.
+ */
 IntegrationTestBase::~IntegrationTestBase() = default;
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a unique filename accounting for the test environment.
+ */
 std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
 {
     std::string new_ext = "-";
-    new_ext += celeritas::getenv("CELER_OFFLOAD");
+    new_ext += to_cstring(test_offload());
     new_ext += "-";
     new_ext += celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
     new_ext += ext;
@@ -259,19 +352,20 @@ std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
  */
 G4RunManager& IntegrationTestBase::run_manager()
 {
-    static PersistentSP<G4RunManager> rm{"run manager"};
+    static PersistentSP<G4RunManager> prm{"run manager"};
 
     std::string basename{this->gdml_basename()};
 
-    if (rm)
+    if (prm)
     {
-        CELER_VALIDATE(basename == rm.key(),
+        CELER_VALIDATE(basename == prm.key(),
                        << "cannot create a run manager for two problems in "
                           "one execution: use '--gtest_filter'");
-        return *rm.value();
     }
+    CELER_VALIDATE(!this->HasFatalFailure(),
+                   << "cannot create run manager: test irrevocably failed");
 
-    rm.set(basename, [&] {
+    prm.lazy_update(basename, [&] {
         CELER_LOG(status) << "Creating run manager";
         // Run manager writes output that cannot be redirected with
         // GeantLoggerAdapter: capture all output from this section
@@ -289,14 +383,27 @@ G4RunManager& IntegrationTestBase::run_manager()
             std::make_shared<G4RunManager>()
 #endif
         };
-        CELER_ASSERT(rm);
+        CELER_ENSURE(rm);
+        return rm;
+    });
+
+    auto* rm = prm.value().get();
+    CELER_ASSERT(rm);
+
+    static IntegrationTestBase* referenced_test{nullptr};
+    if (referenced_test != this)
+    {
+        CELER_VALIDATE(referenced_test == nullptr,
+                       << "cannot run multiple integration tests "
+                          "in one execution: use ctest or --gtest_filter");
+        // Test callbacks reference the current harness, so multiple tests
+        // cannot run consecutively unless we update the user initialization
+        CELER_LOG(status) << "Setting run manager initialization";
+        ScopedGeantExceptionHandler scoped_exceptions;
 
         // Set up detector
-        rm->SetUserInitialization(new DetectorConstruction{
-            this->test_data_path("geocel", basename + ".gdml"),
-            [this](std::string const& sd_name) {
-                return this->make_sens_det(sd_name);
-            }});
+        rm->SetUserInitialization(new TestDetectorConstruction{
+            this->test_data_path("geocel", basename + ".gdml"), this});
 
         // Set up physics
         auto phys = this->make_physics_list();
@@ -305,10 +412,10 @@ G4RunManager& IntegrationTestBase::run_manager()
 
         // Set up runtime initialization
         rm->SetUserInitialization(new ActionInitialization{this});
-        return rm;
-    }());
+        referenced_test = this;
+    }
 
-    return *rm.value();
+    return *rm;
 }
 
 //---------------------------------------------------------------------------//
@@ -397,32 +504,20 @@ void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
 //---------------------------------------------------------------------------//
 void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
 {
-    // Set default optical physics
+    // Set default optical physics (all processes enabled)
     auto& optical = phys_inp.optical;
-    optical = {};
+    optical.emplace();
     EXPECT_TRUE(optical);
-    EXPECT_TRUE(optical.cherenkov);
-    EXPECT_TRUE(optical.scintillation);
+    EXPECT_TRUE(optical->cherenkov);
+    EXPECT_TRUE(optical->scintillation);
 
     // Disable WLS which isn't yet working (reemission) in Celeritas
-    using WLSO = WavelengthShiftingOptions;
-    optical.wavelength_shifting = WLSO::deactivated();
-    optical.wavelength_shifting2 = WLSO::deactivated();
+    optical->wavelength_shifting = std::nullopt;
+    optical->wavelength_shifting2 = std::nullopt;
 }
 
 //---------------------------------------------------------------------------//
 // TEST PROBLEM MIXINS
-//---------------------------------------------------------------------------//
-/*!
- * Create physics list: default is EM only using make_physics_input.
- */
-auto LarSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
-{
-    PhysicsInput result = Base::make_physics_input();
-    result.em_bins_per_decade = 5;
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Create a 10 MeV electron primary.
@@ -432,8 +527,8 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
     PrimaryInput result;
     result.pdg = {pdg::electron()};
     result.energy = inp::MonoenergeticDistribution{10};  // [MeV]
-    result.shape
-        = inp::PointDistribution{array_cast<double>(from_cm({99, 0.1, 0}))};
+    result.shape = inp::PointDistribution{
+        static_array_cast<double>(from_cm({99, 0.1, 0}))};
     result.angle = inp::IsotropicDistribution{};
     result.num_events = 4;  // Overridden with BeamOn
     result.primaries_per_event = 10;
@@ -503,8 +598,8 @@ auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
     PrimaryInput result;
     result.pdg = {pdg::electron()};
     result.energy = inp::MonoenergeticDistribution{100};  // [MeV]
-    result.shape
-        = inp::PointDistribution{array_cast<double>(from_cm({-22, 0, 0}))};
+    result.shape = inp::PointDistribution{
+        static_array_cast<double>(from_cm({-22, 0, 0}))};
     result.angle = inp::MonodirectionalDistribution{{1, 0, 0}};
     result.num_events = 2;
     result.primaries_per_event = 1;
@@ -533,12 +628,12 @@ auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
 
     // Enable optical physics (scintillation + Cherenkov)
     auto& optical = result.optical;
-    optical = {};
+    optical.emplace();
     EXPECT_TRUE(optical);
-    EXPECT_TRUE(optical.scintillation);
-    EXPECT_TRUE(optical.cherenkov);
-    EXPECT_TRUE(optical.mie_scattering);
-    EXPECT_TRUE(optical.rayleigh_scattering);
+    EXPECT_TRUE(optical->scintillation);
+    EXPECT_TRUE(optical->cherenkov);
+    EXPECT_TRUE(optical->mie_scattering);
+    EXPECT_TRUE(optical->rayleigh_scattering);
 
     return result;
 }
@@ -552,8 +647,8 @@ auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
     PrimaryInput result;
     result.pdg = {pdg::positron()};
     result.energy = inp::MonoenergeticDistribution{0.5};  // [MeV]
-    result.shape
-        = inp::PointDistribution{array_cast<double>(from_cm({0., 0., 0.}))};
+    result.shape = inp::PointDistribution{
+        static_array_cast<double>(from_cm({0., 0., 0.}))};
     result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};
     result.num_events = 12;  // Overridden with BeamOn
     result.primaries_per_event = 10;

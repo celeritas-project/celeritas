@@ -50,7 +50,7 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     "CELER_CORE_GEO=${CELERITAS_CORE_GEO}"
   )
 
-  if(CELERITAS_USE_Geant4 AND CELERITAS_USE_HepMC3 AND CELERITAS_USE_Python
+  if(CELERITAS_USE_Geant4 AND CELERITAS_USE_HepMC3
       AND (NOT CELERITAS_CORE_GEO STREQUAL "Geant4")
       AND (VecGeom_GDML_FOUND OR NOT (CELERITAS_CORE_GEO STREQUAL "VecGeom")))
     set(_needs_deps)
@@ -80,7 +80,6 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     LABELS "app;nomemcheck;gpu"
     ${_needs_deps}
     ${_needs_device}
-    ${CELER_NEEDS_PYTHON}
   )
 
   # Enable ROOT output for the celer-sim-cpu test when ROOT is available

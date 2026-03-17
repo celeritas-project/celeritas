@@ -56,6 +56,9 @@
 #define PRINT_EXPECTED(data) \
     ::celeritas::testdetail::print_expected(data, #data)
 
+//! Helper for printing expected values in reference structs
+#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(ref.ATTR) << ";\n"
+
 //! JSON string equality (soft equal for floats)
 #define EXPECT_JSON_EQ(expected, actual) \
     EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsJsonEq, expected, actual)

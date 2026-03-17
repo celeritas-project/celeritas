@@ -153,6 +153,7 @@ celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
 celeritas_add_test(mucf/DDMucfInteractor.test.cc)
 celeritas_add_test(mucf/DTMucfInteractor.test.cc)
+celeritas_add_test(mucf/DTMixMucfModel.test.cc)
 celeritas_add_test(mucf/MuonicAtomSelector.test.cc)
 
 #-----------------------------------------------------------------------------#
@@ -199,13 +200,14 @@ endif()
 #-----------------------------------------------------------------------------#
 # External
 set(_import_filter
+  "DuneCryostat.*"
   "FourSteelSlabs*"
-  "TestEm3*"
-  "OneSteelSphere.*"
-  "OneSteelSphereGG.*"
   "LarSphere.*"
   "LarSphereExtramat.*"
+  "OneSteelSphere.*"
+  "OneSteelSphereGG.*"
   "Solids.*"
+  "TestEm3*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)
   list(REMOVE_ITEM _import_filter
@@ -218,9 +220,6 @@ celeritas_add_test(ext/GeantImporter.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
   FILTER ${_import_filter}
 )
-
-celeritas_add_test(ext/JsonIO.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
@@ -250,7 +249,7 @@ endif()
 # Field
 
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
- AND (CELERITAS_USE_CUDA OR VecGeom_VERSION VERSION_GREATER_EQUAL "2.0"))
+ AND (CELERITAS_USE_CUDA OR CELERITAS_VecGeom_SURFACE))
   # VecGeom surface cannot rebuild the geometry
   set(_fieldprop_filter
     FILTER
@@ -430,15 +429,17 @@ function(celeritas_standalone_add_tests basename suite test backend)
   set(_env ${CELER_G4ENV})
   set(_labels "unit")
 
-  if("${backend}" STREQUAL "cpu")
+  if(backend STREQUAL "cpu")
     if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
       list(APPEND _env "CELER_DISABLE_DEVICE=1")
     endif()
-  elseif("${backend}" STREQUAL "gpu")
-    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-      list(APPEND _test_props RESOURCE_LOCK gpu)
-      list(APPEND _labels gpu)
-    else()
+  elseif(backend STREQUAL "gpu")
+    # Set option to disable GPU environment
+    celeritas_get_disable_device(CELER_DISABLE_DEVICE)
+
+    list(APPEND _test_props RESOURCE_LOCK gpu)
+    list(APPEND _labels gpu)
+    if(CELER_DISABLE_DEVICE)
       list(APPEND _test_props DISABLED TRUE)
     endif()
   else()
@@ -462,13 +463,12 @@ endfunction()
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
+celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
-celeritas_add_test(optical/ImportedModelAdapter.test.cc)
-celeritas_add_test(optical/ImportedMaterials.test.cc)
-celeritas_add_test(optical/ModelImporter.test.cc)
-celeritas_add_test(optical/MfpBuilder.test.cc)
 celeritas_add_test(optical/Mie.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
@@ -488,6 +488,8 @@ celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
 celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -577,7 +579,7 @@ add_custom_target(debug-root-test-data
   COMMENT "Debug ROOT test data"
 )
 
-if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
+if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT AND CELERITAS_BUILD_APPS)
   foreach(_filename "four-steel-slabs" "simple-cms")
     set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
     set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")

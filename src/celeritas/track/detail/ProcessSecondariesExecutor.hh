@@ -76,9 +76,9 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 
     // Offset in the vector of track initializers
     auto& data = state->init;
-    auto counters = state->init.counters.data().get();
-    CELER_ASSERT(data.secondary_counts[tid] <= counters->num_secondaries);
-    size_type offset = counters->num_secondaries - data.secondary_counts[tid];
+    auto const& counters = track.counters();
+    CELER_ASSERT(data.secondary_counts[tid] <= counters.num_secondaries);
+    size_type offset = counters.num_secondaries - data.secondary_counts[tid];
 
     // Save the parent ID since it will be overwritten if a secondary is
     // initialized in this slot
@@ -129,11 +129,18 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             }
             else
             {
-                CELER_ASSERT(offset > 0
-                             && offset <= counters->num_initializers);
+                CELER_ASSERT(offset > 0 && offset <= counters.num_initializers);
 
-                if (offset <= min(counters->num_secondaries,
-                                  counters->num_vacancies)
+                if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
+                {
+                    // If we are reseeding with each track, because this
+                    // secondary is not reusing the primary track, branch the
+                    // rng
+                    ti.rng = track.rng().branch();
+                }
+
+                if (offset <= min(counters.num_secondaries,
+                                  counters.num_vacancies)
                     && (params->init.track_order != TrackOrder::init_charge
                         || sim.status() == TrackStatus::alive))
                 {
@@ -148,7 +155,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 
                 // Store the track initializer
                 data.initializers[ItemId<TrackInitializer>{
-                    counters->num_initializers - offset}]
+                    counters.num_initializers - offset}]
                     = ti;
 
                 --offset;

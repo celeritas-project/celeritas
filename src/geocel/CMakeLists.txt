@@ -12,18 +12,22 @@ set(PUBLIC_DEPS Celeritas::corecel)
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
-  BoundingBoxIO.json.cc
   DetectorParams.cc
   GeoInterface.cc
   GeoParamsOutput.cc
   SurfaceParams.cc
+  Types.cc
+  TypesIO.json.cc
   VolumeParams.cc
+  VolumeParamsIO.json.cc
   VolumeIdBuilder.cc
   VolumeToString.cc
   detail/SurfaceParamsBuilder.cc
-  inp/ModelIO.json.cc
   rasterize/Color.cc
   rasterize/Image.cc
+  # TODO: merge into Json.cc
+  inp/ModelIO.json.cc
+  BoundingBoxIO.json.cc
   rasterize/ImageIO.json.cc
 )
 
@@ -51,6 +55,7 @@ if(CELERITAS_USE_Geant4)
     GeantUtils.cc
     GeantGeoUtils.cc
     GeantGdmlLoader.cc
+    GeoOpticalIdMap.cc
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc
     GeantGeoParams.cc

@@ -53,7 +53,7 @@ struct OrientedBoundingZoneInput
  */
 struct VolumeInput
 {
-    using Flags = VolumeRecord::Flags;
+    using Flags = LocalVolumeRecord::Flags;
     using VariantLabel = std::variant<Label, VolumeInstanceId>;
 
     //! Volume label or instance ID
@@ -192,6 +192,13 @@ using VariantUniverseInput = std::variant<UnitInput, RectArrayInput>;
 //---------------------------------------------------------------------------//
 /*!
  * Construction definition for a full ORANGE geometry.
+ *
+ * The tolerance \c tol should be the same as at construction time: it will
+ * be used at runtime to bump tracks if needed.
+ *
+ * The \c logic is used to convert to the runtime tracking implementation.
+ * If set to \c LogicNotation::infix, the input logic \em must be simplified
+ * to remove negation of parenthesized elements.
  */
 struct OrangeInput
 {

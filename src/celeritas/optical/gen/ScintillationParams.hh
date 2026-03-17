@@ -9,60 +9,34 @@
 #include "corecel/Types.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/data/ParamsDataStore.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 
 #include "ScintillationData.hh"
 
 namespace celeritas
 {
-class ParticleParams;
-struct ImportData;
+namespace optical
+{
+class MaterialParams;
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Build and manage scintillation data.
  *
- * When not imported from Geant4 (which uses
- *  \c G4OpticalParameters::GetScintByParticleType to select what data must be
- * stored), the manually constructed \c Input data must store *either* material
- * or particle data, never both.
+ * Celeritas contains special Gaussian distributions for scintillation that
+ * aren't supported by Geant4. The \c is_geant_compatible method can be used to
+ * warn the user.
  */
 class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstParticles = std::shared_ptr<ParticleParams const>;
-    //!@}
+    // Construct with optical materials and scintillation process data
+    ScintillationParams(optical::MaterialParams const& optical_mat,
+                        inp::ScintillationProcess const& process);
 
-    //! Scintillation data for all materials and particles
-    struct Input
-    {
-        std::vector<double> resolution_scale;
-
-        //! Material-only spectra
-        std::vector<ImportMaterialScintSpectrum> materials;
-
-        //! Particle and material spectra [ParScintSpectrumId]
-        std::vector<ImportParticleScintSpectrum> particles;
-        //! Map \c ParticleId to \c ScintParticleId
-        std::vector<ScintParticleId> pid_to_scintpid;
-
-        explicit operator bool() const
-        {
-            return (pid_to_scintpid.empty() == particles.empty())
-                   && !resolution_scale.empty()
-                   && (materials.empty() != particles.empty());
-        }
-    };
-
-  public:
-    // Construct with imported data and particle params
-    static std::shared_ptr<ScintillationParams>
-    from_import(ImportData const& data, SPConstParticles particle_params);
-
-    // Construct with scintillation components
-    explicit ScintillationParams(Input const& input);
+    // Whether any celeritas-only features are present
+    bool is_geant_compatible() const;
 
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }

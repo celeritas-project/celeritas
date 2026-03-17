@@ -67,7 +67,6 @@ function(celer_app_test ext)
     REQUIRED_FILES "${_driver};${_model}"
     LABELS "${_labels}"
     ${_props} ${_extra_props}
-    ${CELER_NEEDS_PYTHON}
   )
 endfunction()
 

@@ -130,11 +130,22 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
     // Get optical physics options and deactivate everything else
     GeantPhysicsOptions gpo = GeantPhysicsOptions::deactivated();
     gpo.optical = si.geant_setup;
+    if (gpo.optical->cherenkov || gpo.optical->scintillation)
+    {
+        // We currently load (almost) all physics data from Geant4, which means
+        // setting up its physics consistently for the GeantImporter.
+        // Scintillation and Cherenkov processes are for EM tracks to generate
+        // optical photons, so we must have at least some EM physics present.
+        // In the future, if we want to set up Celeritas from pure physics
+        // input data (via inp), we don't need this restriction.
+        gpo.ionization = true;
+    }
 
     // Take geometry file name from problem and set up Geant4
     auto const& geometry = si.problem.model.geometry;
     CELER_ASSUME(std::holds_alternative<std::string>(geometry));
-    GeantSetup geant_setup(std::get<std::string>(geometry), gpo);
+    GeantSetup geant_setup(
+        std::get<std::string>(geometry), gpo, std::move(si.detectors));
 
     // Load geometry, surfaces, regions from Geant4 world pointer
     CELER_ASSERT(geant_setup.geo_params());
@@ -145,23 +156,28 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
     inp::PhysicsFromGeant pfg;
     pfg.data_selection.particles = GeantImportDataSelection::optical;
     pfg.data_selection.processes = GeantImportDataSelection::optical;
+    if (std::holds_alternative<inp::OpticalOffloadGenerator>(
+            si.problem.generator))
+    {
+        // Also have to import Cherenkov/scintillation, which apply
+        // to EM particles
+        pfg.data_selection.particles |= GeantImportDataSelection::em_basic;
+    }
     setup::physics_from(pfg, imported);
 
     // Copy optical physics from import data
     si.problem.physics = imported.optical_physics;
 
-    // TODO: Where should these processes be enabled by the user?
-    // inp::OpticalPhysics?  inp::GeantSetup (GeantPhysicsOptions)?
-    // inp::PhysicsFromGeant? Which is meant to be user input and which is
-    // loaded during setup, or are some a combination of both?
-
-    // Manually enable Cherenkov and scintillation if set in input since only
-    // optical photon processes are imported from Geant4
     if (std::holds_alternative<inp::OpticalOffloadGenerator>(
             si.problem.generator))
     {
-        si.problem.physics.cherenkov = si.geant_setup.cherenkov.enable;
-        si.problem.physics.scintillation = si.geant_setup.scintillation.enable;
+        // Check that G4 cherenkov/scintillation were created
+        auto& gen = si.problem.physics.gen;
+        if (!(gen.cherenkov || gen.scintillation))
+        {
+            CELER_LOG(error) << "Optical offload generator should not be used "
+                                "without scintillation or Cherenkov physics";
+        }
     }
 
     // Set up optical core params and save geometry

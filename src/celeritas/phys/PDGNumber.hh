@@ -123,7 +123,7 @@ CELER_DEFINE_PDGNUMBER(tau_plus, -15)
 // Gauge bosons
 CELER_DEFINE_PDGNUMBER(gamma, 22)
 
-// Codes 81–100 are reserved for generator-specific pseudoparticles
+// Codes 81-100 are reserved for generator-specific pseudoparticles
 CELER_DEFINE_PDGNUMBER(ion, 90)
 
 // Light mesons

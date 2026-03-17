@@ -8,11 +8,12 @@
 
 #include <algorithm>
 
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/model/MieModel.hh"
 
@@ -34,10 +35,8 @@ namespace optical
  */
 ModelImporter::ModelImporter(ImportData const& data,
                              SPConstMaterial material,
-                             SPConstCoreMaterial core_material,
-                             UserBuildMap user_build)
+                             SPConstCoreMaterial core_material)
     : input_{nullptr, std::move(material), nullptr, std::move(core_material)}
-    , user_build_map_(std::move(user_build))
     , params_(data.optical_params)
 {
     CELER_EXPECT(input_.material);
@@ -52,32 +51,22 @@ ModelImporter::ModelImporter(ImportData const& data,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct without custom user builders.
- */
-ModelImporter::ModelImporter(ImportData const& data,
-                             SPConstMaterial material,
-                             SPConstCoreMaterial core_material)
-    : ModelImporter(
-          data, std::move(material), std::move(core_material), UserBuildMap{})
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create a \c ModelBuilder for the given model class.
  *
  * This may return a null model builder (with a warning) if the user
  * specifically requests that the model be omitted.
  */
-auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
+auto ModelImporter::operator()(IMC imc) const -> ModelBuilder
 {
-    // First, look for user-supplied models
-    if (auto user_iter = user_build_map_.find(imc);
-        user_iter != user_build_map_.end())
+    // If no builtin model exists, return early
+    if (!input_.imported->builtin_model_id(imc))
     {
-        return user_iter->second(input_);
+        CELER_LOG(debug) << "No optical model configured for '"
+                         << to_cstring(imc) << "'";
+        return nullptr;
     }
 
+    // Construct built-in models
     using BuilderMemFn = ModelBuilder (ModelImporter::*)() const;
     static std::unordered_map<IMC, BuilderMemFn> const builtin_build{
         {IMC::absorption, &ModelImporter::build_absorption},
@@ -87,17 +76,15 @@ auto ModelImporter::operator()(IMC imc) const -> std::optional<ModelBuilder>
         {IMC::mie, &ModelImporter::build_mie},
     };
 
-    // Next, try built-in models
     auto iter = builtin_build.find(imc);
     CELER_VALIDATE(iter != builtin_build.end(),
                    << "cannot build unsupported optical model '" << imc << "'");
 
     auto builder_opt = (this->*iter->second)();
-    if (!builder_opt)
-    {
-        CELER_LOG(debug) << "Skipping optical model '" << to_cstring(imc)
-                         << "' (no data)";
-    }
+
+    CELER_LOG(debug) << (builder_opt ? "Constructing" : "Skipping")
+                     << " optical model '" << to_cstring(imc) << "'";
+
     return builder_opt;
 }
 
@@ -116,7 +103,8 @@ auto ModelImporter::build_absorption() const -> ModelBuilder
  */
 auto ModelImporter::build_rayleigh() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     return RayleighModel::make_builder(
         this->imported(),
@@ -130,7 +118,8 @@ auto ModelImporter::build_rayleigh() const -> ModelBuilder
  */
 auto ModelImporter::build_wls() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     WavelengthShiftModel::Input input;
     input.model = ImportModelClass::wls;
@@ -142,7 +131,7 @@ auto ModelImporter::build_wls() const -> ModelBuilder
     if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
     {
         // None of the materials have WLS data
-        return {};
+        return nullptr;
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
@@ -154,7 +143,8 @@ auto ModelImporter::build_wls() const -> ModelBuilder
  */
 auto ModelImporter::build_wls2() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     WavelengthShiftModel::Input input;
     input.model = ImportModelClass::wls2;
@@ -166,7 +156,7 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
     if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
     {
         // None of the materials have WLS2 data
-        return {};
+        return nullptr;
     }
     return WavelengthShiftModel::make_builder(this->imported(),
                                               std::move(input));
@@ -177,10 +167,10 @@ auto ModelImporter::build_wls2() const -> ModelBuilder
  */
 auto ModelImporter::build_mie() const -> ModelBuilder
 {
-    CELER_EXPECT(input_.import_material);
+    if (!input_.import_material)
+        return nullptr;
 
     MieModel::Input input;
-    input.model = ImportModelClass::mie;
     for (auto mid : range(OptMatId{input_.import_material->num_materials()}))
     {
         auto mie_data = input_.import_material->mie(mid);
@@ -189,7 +179,7 @@ auto ModelImporter::build_mie() const -> ModelBuilder
     if (!std::any_of(input.data.begin(), input.data.end(), Identity{}))
     {
         // None of the materials have Mie scattering data
-        return {};
+        return nullptr;
     }
     return MieModel::make_builder(this->imported(), std::move(input));
 }
@@ -201,7 +191,7 @@ auto ModelImporter::build_mie() const -> ModelBuilder
 auto WarnAndIgnoreModel::operator()(UserBuildInput const&) const
     -> std::optional<ModelBuilder>
 {
-    CELER_LOG(warning) << "Omitting '" << model
+    CELER_LOG(warning) << "Omitting '" << to_cstring(model)
                        << "' from the optical physics model list";
     return std::nullopt;
 }

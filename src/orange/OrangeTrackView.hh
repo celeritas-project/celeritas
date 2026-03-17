@@ -84,19 +84,18 @@ class OrangeTrackView
     // Get the volume instance ID for all universe levels
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
 
+    // Geometry status
+    inline CELER_FUNCTION GeoStatus geo_status() const;
     // Whether the track is outside the valid geometry region
     inline CELER_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
     inline CELER_FUNCTION bool is_on_boundary() const;
-    //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
+    // Whether the last operation resulted in an error
+    inline CELER_FUNCTION bool failed() const;
     // Get the normal vector pointing out of the current volume
     inline CELER_FUNCTION Real3 normal() const;
 
     //// OPERATIONS ////
-
-    // Find the distance to the next boundary
-    inline CELER_FUNCTION Propagation find_next_step();
 
     // Find the distance to the next boundary, up to and including a step
     inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
@@ -158,27 +157,26 @@ class OrangeTrackView
     ParamsRef const& params_;
     StateRef const& states_;
     TrackSlotId track_slot_;
-    bool failed_{false};
 
     //// PRIVATE STATE MUTATORS ////
 
     inline CELER_FUNCTION void univ_level(UnivLevelId);
-    inline CELER_FUNCTION void boundary(BoundaryResult);
+    inline CELER_FUNCTION void
+    surface(UnivLevelId ulev_id, detail::OnLocalSurface surf);
+    inline CELER_FUNCTION void geo_status(GeoStatus);
+
     inline CELER_FUNCTION void next_step(real_type dist);
-    inline CELER_FUNCTION void next_surf(detail::OnLocalSurface const&);
-    inline CELER_FUNCTION void next_surface_level(UnivLevelId);
+    inline CELER_FUNCTION void next_surf(UnivLevelId, detail::OnLocalSurface);
 
     //// PRIVATE STATE ACCESSORS ////
 
-    inline CELER_FUNCTION UnivLevelId const& surface_univ_level() const;
-    inline CELER_FUNCTION LocalSurfaceId const& surf() const;
-    inline CELER_FUNCTION Sense const& sense() const;
-    inline CELER_FUNCTION BoundaryResult const& boundary() const;
-    inline CELER_FUNCTION real_type const& next_step() const;
-    inline CELER_FUNCTION detail::OnLocalSurface next_surf() const;
+    inline CELER_FUNCTION UnivLevelId surface_univ_level() const;
+    inline CELER_FUNCTION LocalSurfaceId surf() const;
+    inline CELER_FUNCTION Sense sense() const;
 
-    // The universe level of the next surface to be encountered
-    inline CELER_FUNCTION UnivLevelId next_surface_univ_level() const;
+    inline CELER_FUNCTION real_type next_step() const;
+    inline CELER_FUNCTION UnivLevelId next_univ_level() const;
+    inline CELER_FUNCTION detail::OnLocalSurface next_surf() const;
 
     //// HELPER FUNCTIONS ////
 
@@ -204,10 +202,6 @@ class OrangeTrackView
 
     // Invalidate the next distance-to-boundary and surface
     inline CELER_FUNCTION void clear_next();
-
-    // Assign the surface at the current universe level
-    inline CELER_FUNCTION void
-    surface(UnivLevelId ulev_id, detail::OnLocalSurface surf);
 
     // Clear the surface at the current universe level
     inline CELER_FUNCTION void clear_surface();
@@ -266,7 +260,10 @@ OrangeTrackView::operator=(Initializer_t const& init)
         return *this;
     }
 
-    failed_ = false;
+    // Reset status and surface information
+    this->clear_surface();
+    this->clear_next();
+    CELER_ASSERT(this->geo_status() == GeoStatus::interior);
 
     // Create local state
     detail::LocalState local;
@@ -292,7 +289,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         auto tinit = visit_tracker(
             [&local](auto&& t) { return t.initialize(local); }, univ_id);
 
-        if (!tinit.volume || tinit.surface)
+        if (CELER_UNLIKELY(!tinit.volume || tinit.surface))
         {
 #if !CELER_DEVICE_COMPILE
             auto msg = CELER_LOG_LOCAL(error);
@@ -309,9 +306,9 @@ OrangeTrackView::operator=(Initializer_t const& init)
             msg << " in universe " << univ_id.unchecked_get()
                 << " at local position " << repr(local.pos);
 #endif
-            // Mark as failed and place in local "exterior" to end the search
-            // but preserve the current universe level information
-            failed_ = true;
+            // Mark as failed and place in *local* "exterior" to end the search
+            // and preserve diagnostic state
+            this->geo_status(GeoStatus::error);
             tinit.volume = orange_exterior_volume;
         }
 
@@ -326,6 +323,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
         if (daughter_id)
         {
+            CELER_ASSERT(this->geo_status() != GeoStatus::error);
             auto const& daughter = params_.daughters[daughter_id];
             // Apply "transform down" based on stored transform
             apply_transform(transform_down_local, daughter.trans_id);
@@ -333,16 +331,10 @@ OrangeTrackView::operator=(Initializer_t const& init)
             univ_id = daughter.univ_id;
             ++ulev_id;
         }
-
     } while (daughter_id);
 
     // Save found universe level
     this->univ_level(ulev_id);
-
-    // Reset surface/boundary information
-    this->boundary(BoundaryResult::exiting);
-    this->clear_surface();
-    this->clear_next();
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -357,16 +349,15 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    failed_ = false;
-
     if (track_slot_ != init.parent)
     {
         // Copy init track's position and logical state
         OrangeTrackView other(params_, states_, init.parent);
+        CELER_ASSERT(other.geo_status() != GeoStatus::error);
         this->univ_level(states_.univ_level[other.track_slot_]);
         this->surface(other.surface_univ_level(),
                       {other.surf(), other.sense()});
-        this->boundary(other.boundary());
+        this->geo_status(other.geo_status());
 
         for (auto ulev_id : range(this->univ_level() + 1))
         {
@@ -556,6 +547,15 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Geometry tracking state.
+ */
+CELER_FORCEINLINE_FUNCTION GeoStatus OrangeTrackView::geo_status() const
+{
+    return states_.status[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether the track is outside the valid geometry region.
  */
 CELER_FUNCTION bool OrangeTrackView::is_outside() const
@@ -577,11 +577,23 @@ CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the last operation resulted in an error.
+ */
+CELER_FORCEINLINE_FUNCTION bool OrangeTrackView::failed() const
+{
+    return this->geo_status() == GeoStatus::error;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the normal vector of the current surface.
  *
  * The direction of the normal is determined by the sense of the track such
  * that the normal always points out of the volume that the track is currently
  * in.
+ * \todo This doesn't necessarily have the same meaning as in G4; we should
+ * change so that the sign is arbitrary, and downstream use cases can flip
+ * based on the geo status and its dot product with the direction.
  */
 CELER_FUNCTION Real3 OrangeTrackView::normal() const
 {
@@ -599,62 +611,119 @@ CELER_FUNCTION Real3 OrangeTrackView::normal() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the distance to the next geometric boundary.
- */
-CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
-{
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::entering))
-    {
-        // On a boundary, headed back in: next step is zero
-        return {0, true};
-    }
-
-    // Find intersection at the root level: always the first simple unit
-    auto global_isect = [this] {
-        SimpleUnitTracker t{params_, SimpleUnitId{0}};
-        return t.intersect(this->make_local_state(orange_global_univ_level));
-    }();
-    // Find intersection for all deeper universe levels
-    return this->find_next_step_impl(global_isect);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Find a nearby distance to the next geometric boundary up to a distance.
  *
- * This may reduce the number of surfaces needed to check, sort, or write to
- * temporary memory, thereby speeding up transport.
+ * Providing the "next step" (e.g., from the next collision point in a
+ * physics-based simulation, or the image edge in a rasterization) may reduce
+ * the number of surfaces needed to check, sort, or write to temporary memory,
+ * thereby speeding up transport.
+ *
+ * \todo Prohibit when GeoStatus::boundary_inc
  */
-CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
+CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type next_step)
 {
-    CELER_EXPECT(max_step > 0);
+    CELER_EXPECT(next_step > 0);
 
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::entering))
+    if (CELER_UNLIKELY(this->geo_status() == GeoStatus::boundary_inc))
     {
-        // On a boundary, headed back in: next step is zero
+        // On a boundary, headed in: next step is zero
         return {0, true};
     }
 
-    // Find intersection at the root level: always the first simple unit
-    auto global_isect = [this, &max_step] {
-        SimpleUnitTracker t{params_, SimpleUnitId{0}};
-        return t.intersect(this->make_local_state(orange_global_univ_level),
-                           max_step);
-    }();
+    // The level with minimum distance to intersection
+    TrackerVisitor visit_tracker{params_};
+    UnivLevelId next_ulev{};
+    detail::OnLocalSurface next_local_surf{};
 
-    // Find intersection for all further levels
-    auto result = this->find_next_step_impl(global_isect);
-    CELER_ENSURE(result.distance <= max_step);
+    // Find the nearest intersection from 0 to current
+    // univ_level inclusive, preferring the most global level
+    // (i.e., lowest univ_id)
+    // TODO: reverse the loop and use IsNotFurtherThan; this means smaller
+    // distance checks that will eliminate work at the global level
+    for (auto ulev_id : range(this->univ_level() + 1))
+    {
+        // Find intersection for this local universe
+        auto local_isect = visit_tracker(
+            [local_state = this->make_local_state(ulev_id), next_step](
+                auto&& t) { return t.intersect(local_state, next_step); },
+            this->make_lsa(ulev_id).univ());
+
+        if (local_isect && local_isect.distance < next_step)
+        {
+            next_step = local_isect.distance;
+            next_local_surf = local_isect.surface;
+            next_ulev = ulev_id;
+        }
+    }
+
+    this->next_step(next_step);
+    this->next_surf(next_ulev, next_local_surf);
+
+    Propagation result;
+    result.distance = next_step;
+    result.boundary = static_cast<bool>(next_ulev);
+
+    CELER_ENSURE(result.distance <= next_step);
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find the distance to the nearest boundary in any direction.
+ *
+ * The safety distance at a given point is the minimum safety distance over all
+ * universe levels, since surface deduplication can potentionally elide
+ * bounding surfaces at more deeply embedded universe levels.
+ */
+CELER_FUNCTION real_type OrangeTrackView::find_safety()
+{
+    CELER_EXPECT(!this->is_on_boundary());
+
+    TrackerVisitor visit_tracker{params_};
+
+    // If we're intersecting a surface, the safety cannot be more than that.
+    // Use that as a bound for degenerate cases such as starting in the exact
+    // center of a sphere (where the safety can't correctly be calculated).
+    // This fixes incorrectly large safety when a next step has been found,
+    // necessary for CheckedGeoTrackView::find_next_step and more consistent in
+    // general .
+    real_type min_safety_dist = this->has_next_surface()
+                                    ? this->next_step()
+                                    : NumericLimits<real_type>::infinity();
+
+    for (auto ulev_id : range(this->univ_level() + 1))
+    {
+        auto lsa = this->make_lsa(ulev_id);
+        auto local_safety = visit_tracker(
+            [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
+            lsa.univ());
+        min_safety_dist = celeritas::min(min_safety_dist, local_safety);
+    }
+    return min_safety_dist;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to the nearest nearby boundary.
+ *
+ * Since we currently support only "simple" safety distances, we can't
+ * eliminate anything by checking only nearby surfaces.
+ */
+CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
+{
+    return this->find_safety();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Move to the next straight-line boundary but do not change volume.
+ *
+ * Even though this does not change the universe or volume, it \em may change
+ * the universe of the current surface.
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
-    CELER_EXPECT(this->boundary() != BoundaryResult::entering);
+    CELER_EXPECT(this->geo_status() != GeoStatus::boundary_inc);
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->has_next_surface());
 
@@ -666,11 +735,11 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
         axpy(dist, lsa.dir(), &lsa.pos());
     }
 
-    this->boundary(BoundaryResult::entering);
-    this->surface(this->next_surface_univ_level(), this->next_surf());
+    this->geo_status(GeoStatus::boundary_inc);
+    this->surface(this->next_univ_level(), this->next_surf());
     this->clear_next();
 
-    CELER_ENSURE(this->is_on_boundary());
+    CELER_ENSURE(this->geo_status() == GeoStatus::boundary_inc);
 }
 
 //---------------------------------------------------------------------------//
@@ -685,6 +754,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(dist > 0 && dist <= this->next_step());
     CELER_EXPECT(dist != this->next_step() || !this->has_next_surface());
+    CELER_EXPECT(this->geo_status() != GeoStatus::error);
 
     // Move and update the next step
     for (auto i : range(this->univ_level() + 1))
@@ -694,6 +764,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     }
     this->next_step(this->next_step() - dist);
     this->clear_surface();
+
+    CELER_ENSURE(this->geo_status() == GeoStatus::interior);
 }
 
 //---------------------------------------------------------------------------//
@@ -705,6 +777,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
  */
 CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
+    CELER_EXPECT(this->geo_status() != GeoStatus::error);
+
     // Transform all nonlocal universe levels
     auto local_pos = pos;
     auto apply_transform = TransformVisitor{params_};
@@ -727,6 +801,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
     // Clear surface state and next-step info
     this->clear_surface();
     this->clear_next();
+
+    CELER_ENSURE(this->geo_status() == GeoStatus::interior);
 }
 
 //---------------------------------------------------------------------------//
@@ -735,13 +811,15 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
  *
  * The position *must* be on the boundary following a move-to-boundary. This
  * should only be called once per boundary crossing.
+ *
+ * \todo Prohibit calling unless boundary_inc.
  */
 CELER_FUNCTION void OrangeTrackView::cross_boundary()
 {
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    if (CELER_UNLIKELY(this->boundary() == BoundaryResult::exiting))
+    if (this->geo_status() == GeoStatus::boundary_out)
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
@@ -750,7 +828,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     // Cross surface by flipping the sense
     states_.sense[track_slot_] = flip_sense(this->sense());
-    this->boundary(BoundaryResult::exiting);
+    this->geo_status(GeoStatus::boundary_out);
 
     // Create local state from post-crossing level and updated sense
     UnivLevelId ulev_id{this->surface_univ_level()};
@@ -767,6 +845,19 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     }
 
     TrackerVisitor visit_tracker{params_};
+    auto fail = [&] {
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error)
+            << "track failed to cross local surface "
+            << this->surf().unchecked_get() << " in universe "
+            << univ.unchecked_get() << " at local position " << repr(local.pos)
+            << " along local direction " << repr(local.dir);
+#endif
+        // Mark as failed and place in *local* "exterior" to end the search and
+        // preserve diagnostic state
+        this->geo_status(GeoStatus::error);
+        volume = orange_exterior_volume;
+    };
 
     // Update the post-crossing volume by crossing the boundary of the "surface
     // crossing" level
@@ -775,17 +866,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     if (CELER_UNLIKELY(!volume))
     {
         // Boundary crossing failure
-#if !CELER_DEVICE_COMPILE
-        CELER_LOG_LOCAL(error)
-            << "track failed to cross local surface "
-            << this->surf().unchecked_get() << " in universe "
-            << univ.unchecked_get() << " at local position " << repr(local.pos)
-            << " along local direction " << repr(local.dir);
-#endif
-        // Mark as failed and place in local "exterior" to end the search
-        // but preserve the current level
-        failed_ = true;
-        volume = orange_exterior_volume;
+        fail();
     }
     make_lsa(ulev_id).vol() = volume;
 
@@ -794,7 +875,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     local.volume = {};
     local.surface = {};
 
-    // Starting with the current level (i.e., next_surface_univ_level), iterate
+    // Starting with the current level (i.e., next_univ_level), iterate
     // down into the deepest level: *initializing* not *crossing*
     auto daughter_id = visit_tracker(
         [volume](auto&& t) { return t.daughter(volume); }, univ);
@@ -817,19 +898,11 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         volume = visit_tracker(
             [&local](auto&& t) { return t.initialize(local).volume; }, univ);
 
-        if (!volume)
+        if (CELER_UNLIKELY(!volume))
         {
-#if !CELER_DEVICE_COMPILE
-            auto msg = CELER_LOG_LOCAL(error);
-            msg << "track failed to cross boundary: could not find associated "
-                   "volume in universe "
-                << univ.unchecked_get() << " at local position "
-                << repr(local.pos);
-#endif
-            // Mark as failed and place in local "exterior" to end the search
-            // but preserve the current level
-            failed_ = true;
-            volume = orange_exterior_volume;
+            // Print message, change state, prepare to end loop
+            fail();
+            daughter_id = {};
         }
         daughter_id = visit_tracker(
             [volume](auto&& t) { return t.daughter(volume); }, univ);
@@ -844,7 +917,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     // Save final univ_level
     this->univ_level(ulev_id);
 
-    CELER_ENSURE(this->is_on_boundary());
+    CELER_ENSURE(this->geo_status() == GeoStatus::boundary_out
+                 || this->geo_status() == GeoStatus::error);
 }
 
 //---------------------------------------------------------------------------//
@@ -856,6 +930,9 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
  * the boundary, but changing direction so that it goes from pointing outward
  * to inward (or vice versa) will mean that \c cross_boundary will be a
  * null-op.
+ *
+ * \todo Remove use of geo_normal; instead, compare the local normal and local
+ * direction versus the previous local direction at the lowest surface level.
  */
 CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 {
@@ -874,7 +951,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         {
             // The boundary crossing direction has changed! Reverse our
             // plans to change the logical state and move to a new volume.
-            this->boundary(flip_boundary(this->boundary()));
+            this->geo_status(flip_boundary(this->geo_status()));
         }
     }
 
@@ -927,6 +1004,7 @@ CELER_FORCEINLINE_FUNCTION UnivLevelId OrangeTrackView::univ_level() const
  */
 CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id() const
 {
+    CELER_EXPECT(this->univ_level());
     auto lsa = this->make_lsa();
     return this->make_univ_indexer().global_volume(lsa.univ(), lsa.vol());
 }
@@ -957,7 +1035,7 @@ CELER_FUNCTION ImplSurfaceId OrangeTrackView::next_impl_surface_id() const
         return {};
     }
 
-    auto lsa = this->make_lsa(this->next_surface_univ_level());
+    auto lsa = this->make_lsa(this->next_univ_level());
     return this->make_univ_indexer().global_surface(lsa.univ(),
                                                     this->next_surf().id());
 }
@@ -998,7 +1076,7 @@ OrangeTrackView::make_lsa(UnivLevelId ulev_id) const -> LSA
 }
 
 //---------------------------------------------------------------------------//
-// PRIVATE MUTABLE STATE ACCESSORS
+// PRIVATE STATE MUTATORS
 //---------------------------------------------------------------------------//
 //! The track's current universe level
 CELER_FORCEINLINE_FUNCTION void OrangeTrackView::univ_level(UnivLevelId ulev_id)
@@ -1006,13 +1084,22 @@ CELER_FORCEINLINE_FUNCTION void OrangeTrackView::univ_level(UnivLevelId ulev_id)
     states_.univ_level[track_slot_] = ulev_id;
 }
 
-//! The boundary on the current surface universe level
-CELER_FORCEINLINE_FUNCTION void OrangeTrackView::boundary(BoundaryResult br)
+//! Assign the surface on the current universe level
+CELER_FORCEINLINE_FUNCTION void
+OrangeTrackView::surface(UnivLevelId ulev_id, detail::OnLocalSurface surf)
 {
-    states_.boundary[track_slot_] = br;
+    states_.surface_univ_level[track_slot_] = ulev_id;
+    states_.surf[track_slot_] = surf.id();
+    states_.sense[track_slot_] = surf.unchecked_sense();
 }
 
-//! The next step distance
+//! Set the geo status
+CELER_FORCEINLINE_FUNCTION void OrangeTrackView::geo_status(GeoStatus gs)
+{
+    states_.status[track_slot_] = gs;
+}
+
+//! Set the next step distance
 CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_step(real_type dist)
 {
     states_.next_step[track_slot_] = dist;
@@ -1020,52 +1107,44 @@ CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_step(real_type dist)
 
 //! The next surface to be encountered
 CELER_FORCEINLINE_FUNCTION void
-OrangeTrackView::next_surf(detail::OnLocalSurface const& s)
+OrangeTrackView::next_surf(UnivLevelId ulev_id, detail::OnLocalSurface s)
 {
+    states_.next_univ_level[track_slot_] = ulev_id;
     states_.next_surf[track_slot_] = s.id();
     states_.next_sense[track_slot_] = s.unchecked_sense();
 }
 
-//! The universe level of the next surface to be encountered
-CELER_FORCEINLINE_FUNCTION void
-OrangeTrackView::next_surface_level(UnivLevelId ulev_id)
-{
-    states_.next_univ_level[track_slot_] = ulev_id;
-}
-
 //---------------------------------------------------------------------------//
-// PRIVATE CONST STATE ACCESSORS
+// PRIVATE STATE ACCESSORS
 //---------------------------------------------------------------------------//
 //! The universe level of the current surface
-CELER_FORCEINLINE_FUNCTION UnivLevelId const&
-OrangeTrackView::surface_univ_level() const
+CELER_FORCEINLINE_FUNCTION UnivLevelId OrangeTrackView::surface_univ_level() const
 {
     return states_.surface_univ_level[track_slot_];
 }
 
 //! The local surface on the current surface univ_level
-CELER_FORCEINLINE_FUNCTION LocalSurfaceId const& OrangeTrackView::surf() const
+CELER_FORCEINLINE_FUNCTION LocalSurfaceId OrangeTrackView::surf() const
 {
     return states_.surf[track_slot_];
 }
 
 //! The sense on the current surface
-CELER_FORCEINLINE_FUNCTION Sense const& OrangeTrackView::sense() const
+CELER_FORCEINLINE_FUNCTION Sense OrangeTrackView::sense() const
 {
     return states_.sense[track_slot_];
 }
 
-//! The boundary on the current surface
-CELER_FORCEINLINE_FUNCTION BoundaryResult const&
-OrangeTrackView::boundary() const
-{
-    return states_.boundary[track_slot_];
-}
-
 //! The next step distance
-CELER_FORCEINLINE_FUNCTION real_type const& OrangeTrackView::next_step() const
+CELER_FORCEINLINE_FUNCTION real_type OrangeTrackView::next_step() const
 {
     return states_.next_step[track_slot_];
+}
+
+//! The universe level of the next surface to be encountered
+CELER_FORCEINLINE_FUNCTION UnivLevelId OrangeTrackView::next_univ_level() const
+{
+    return states_.next_univ_level[track_slot_];
 }
 
 //! The next surface to be encountered
@@ -1075,102 +1154,8 @@ OrangeTrackView::next_surf() const
     return {states_.next_surf[track_slot_], states_.next_sense[track_slot_]};
 }
 
-//! The universe level of the next surface to be encountered
-CELER_FORCEINLINE_FUNCTION UnivLevelId
-OrangeTrackView::next_surface_univ_level() const
-{
-    return states_.next_univ_level[track_slot_];
-}
-
 //---------------------------------------------------------------------------//
 // PRIVATE HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Iterate over universe levels 1 to N to find the next step.
- *
- * Caller is responsible for finding the candidate next step on level 0, and
- * passing the resultant Intersection object as an argument.
- */
-CELER_FUNCTION Propagation
-OrangeTrackView::find_next_step_impl(detail::Intersection isect)
-{
-    TrackerVisitor visit_tracker{params_};
-
-    // The level with minimum distance to intersection
-    UnivLevelId min_univ_level{0};
-
-    // Find the nearest intersection from 0 to current
-    // univ_level inclusive, preferring the shallowest univ_level
-    // (i.e., lowest univ_id)
-    for (auto ulev_id : range(UnivLevelId{1}, this->univ_level() + 1))
-    {
-        auto univ_id = this->make_lsa(ulev_id).univ();
-        auto local_isect = visit_tracker(
-            [local_state = this->make_local_state(ulev_id), &isect](auto&& t) {
-                return t.intersect(local_state, isect.distance);
-            },
-            univ_id);
-
-        if (local_isect.distance < isect.distance)
-        {
-            isect = local_isect;
-            min_univ_level = ulev_id;
-        }
-    }
-
-    this->next_step(isect.distance);
-    this->next_surf(isect.surface);
-    if (isect)
-    {
-        // Save univ_level corresponding to the intersection
-        this->next_surface_level(min_univ_level);
-    }
-
-    Propagation result;
-    result.distance = isect.distance;
-    result.boundary = static_cast<bool>(isect);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the distance to the nearest boundary in any direction.
- *
- * The safety distance at a given point is the minimum safety distance over all
- * universe levels, since surface deduplication can potentionally elide
- * bounding surfaces at more deeply embedded universe levels.
- */
-CELER_FUNCTION real_type OrangeTrackView::find_safety()
-{
-    CELER_EXPECT(!this->is_on_boundary());
-
-    TrackerVisitor visit_tracker{params_};
-
-    real_type min_safety_dist = numeric_limits<real_type>::infinity();
-
-    for (auto ulev_id : range(this->univ_level() + 1))
-    {
-        auto lsa = this->make_lsa(ulev_id);
-        auto sd = visit_tracker(
-            [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
-            lsa.univ());
-        min_safety_dist = celeritas::min(min_safety_dist, sd);
-    }
-    return min_safety_dist;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the distance to the nearest nearby boundary.
- *
- * Since we currently support only "simple" safety distances, we can't
- * eliminate anything by checking only nearby surfaces.
- */
-CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
-{
-    return this->find_safety();
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Set up intersection scratch space.
@@ -1248,23 +1233,15 @@ CELER_FUNCTION void OrangeTrackView::clear_next()
 
 //---------------------------------------------------------------------------//
 /*!
- * Assign the surface on the current universe level.
- */
-CELER_FUNCTION void
-OrangeTrackView::surface(UnivLevelId ulev_id, detail::OnLocalSurface surf)
-{
-    states_.surface_univ_level[track_slot_] = ulev_id;
-    states_.surf[track_slot_] = surf.id();
-    states_.sense[track_slot_] = surf.unchecked_sense();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Clear the surface on the current universe level.
+ *
+ * \note If the previous track failed, then the error status will be cleared.
+ * (This is necessary to initialize the geometry.)
  */
 CELER_FUNCTION void OrangeTrackView::clear_surface()
 {
     states_.surface_univ_level[track_slot_] = {};
+    this->geo_status(GeoStatus::interior);
     CELER_ENSURE(!this->is_on_boundary());
 }
 

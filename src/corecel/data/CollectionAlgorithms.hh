@@ -35,6 +35,9 @@ void fill(T&& value, Collection<T, W, M, I>* col)
 //---------------------------------------------------------------------------//
 /*!
  * Fill the collection with sequentially increasing values starting from zero.
+ *
+ * \todo Make this a kernel launch rather than a local allocation and
+ * synchronous copy.
  */
 template<class T, Ownership W, MemSpace M, class I>
 void fill_sequence(Collection<T, W, M, I>* dst, StreamId stream)

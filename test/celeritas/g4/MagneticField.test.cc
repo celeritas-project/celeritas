@@ -82,7 +82,7 @@ TEST_F(MagneticFieldTest, nonuniform)
 {
     auto params = std::make_shared<TestFieldParams>([] {
         TestFieldData d;
-        d.strength = native_value_from(units::FieldTesla{1.5});
+        d.strength = native_value_from(units::TeslaField{1.5});
         d.z_offset = native_value_from(units::CmLength{0.7});
         return d;
     }());

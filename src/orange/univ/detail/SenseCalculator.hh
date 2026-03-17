@@ -12,9 +12,9 @@
 #include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
+#include "LocalVolumeView.hh"
 #include "SurfaceFunctors.hh"
 #include "Types.hh"
-#include "../VolumeView.hh"
 
 namespace celeritas
 {
@@ -41,7 +41,7 @@ class SenseCalculator
   public:
     // Construct from persistent, current, and temporary data
     inline CELER_FUNCTION SenseCalculator(LocalSurfaceVisitor const& visit,
-                                          VolumeView const& vol,
+                                          LocalVolumeView const& vol,
                                           Real3 const& pos,
                                           OnFace& face);
 
@@ -54,7 +54,7 @@ class SenseCalculator
     LocalSurfaceVisitor visit_;
 
     //! Volume to calculate senses for
-    VolumeView const& vol_;
+    LocalVolumeView const& vol_;
 
     //! Local position
     Real3 const& pos_;
@@ -71,7 +71,7 @@ class SenseCalculator
  */
 CELER_FUNCTION
 SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
-                                 VolumeView const& vol,
+                                 LocalVolumeView const& vol,
                                  Real3 const& pos,
                                  OnFace& face)
     : visit_{visit}, vol_{vol}, pos_{pos}, face_{face}

@@ -11,7 +11,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/Types.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
@@ -73,7 +73,7 @@ struct WavelengthShiftData
     OpticalMaterialItems<NonuniformGridRecord> energy_cdf;
 
     // Time profile model
-    WlsTimeProfile time_profile{WlsTimeProfile::size_};
+    WlsDistribution time_profile{WlsDistribution::size_};
 
     // Backend data
     Items<real_type> reals;
@@ -84,7 +84,7 @@ struct WavelengthShiftData
     explicit CELER_FUNCTION operator bool() const
     {
         return !wls_record.empty() && !energy_cdf.empty()
-               && time_profile != WlsTimeProfile::size_;
+               && time_profile != WlsDistribution::size_;
     }
 
     //! Assign from another set of data

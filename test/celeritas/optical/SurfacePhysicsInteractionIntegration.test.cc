@@ -127,7 +127,7 @@ class SurfacePhysicsIntegrationBackscatterTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -150,7 +150,7 @@ class SurfacePhysicsIntegrationAbsorbTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -173,7 +173,7 @@ class SurfacePhysicsIntegrationTransmitTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -196,7 +196,7 @@ class SurfacePhysicsIntegrationFresnelTest
     : public SurfacePhysicsInteractionIntegrationTest
 {
   public:
-    void setup_surface_models(inp::SurfacePhysics& input) const final
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
 
@@ -213,6 +213,85 @@ class SurfacePhysicsIntegrationFresnelTest
             phys_surface,
             inp::DielectricInteraction::from_dielectric(
                 inp::ReflectionForm::from_spike()));
+    }
+};
+
+//---------------------------------------------------------------------------//
+class SurfacePhysicsIntegrationOnlyReflectionPolishedTest
+    : public SurfacePhysicsInteractionIntegrationTest
+{
+  public:
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
+    {
+        PhysSurfaceId phys_surface{0};
+
+        // center-top surface
+
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+
+        // Only polished (specular spike) reflection
+
+        input.interaction.only_reflection.emplace(
+            phys_surface, ReflectionMode::specular_spike);
+    }
+};
+
+//---------------------------------------------------------------------------//
+class SurfacePhysicsIntegrationOnlyReflectionGroundTest
+    : public SurfacePhysicsInteractionIntegrationTest
+{
+  public:
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
+    {
+        PhysSurfaceId phys_surface{0};
+
+        // center-top surface
+
+        input.materials.push_back({});
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+
+        // Only ground (diffuse lobe) reflection
+
+        input.interaction.only_reflection.emplace(
+            phys_surface, ReflectionMode::diffuse_lobe);
+    }
+};
+
+//---------------------------------------------------------------------------//
+class SurfacePhysicsIntegrationBackPaintedTest
+    : public SurfacePhysicsInteractionIntegrationTest
+{
+  public:
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
+    {
+        PhysSurfaceId phys_surface{0};
+
+        // center-top surface
+
+        input.materials.push_back({OptMatId{1}});
+
+        // Material-Gap surface
+        input.roughness.gaussian.emplace(phys_surface,
+                                         inp::GaussianRoughness{0.3});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.dielectric.emplace(
+            phys_surface,
+            inp::DielectricInteraction::from_dielectric(
+                inp::ReflectionForm::from_lobe()));
+
+        // Gap-Painted surface
+        phys_surface++;
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.only_reflection.emplace(
+            phys_surface, ReflectionMode::specular_spike);
     }
 };
 
@@ -307,45 +386,86 @@ TEST_F(SurfacePhysicsIntegrationFresnelTest, fresnel)
         0u,
     };
     expected.num_reflected = {
-        2u,
-        0u,
-        3u,
-        4u,
-        15u,
-        11u,
-        9u,
-        17u,
-        18u,
-        34u,
-        27u,
-        42u,
-        60u,
-        100u,
-        100u,
-        100u,
-        100u,
-        100u,
+        8,
+        8,
+        8,
+        19,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
     };
     expected.num_refracted = {
-        98u,
-        100u,
-        97u,
-        96u,
-        85u,
-        89u,
-        91u,
-        83u,
-        82u,
-        66u,
-        73u,
-        58u,
-        40u,
-        0u,
-        0u,
-        0u,
-        0u,
-        0u,
+        92,
+        92,
+        92,
+        81,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
     };
+
+    this->reference_run(angles, expected);
+}
+
+//---------------------------------------------------------------------------//
+// Only polished reflection
+TEST_F(SurfacePhysicsIntegrationOnlyReflectionPolishedTest, polished)
+{
+    std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
+
+    SurfaceTestResults expected;
+    expected.num_refracted = {0, 0, 0};
+    expected.num_reflected = {100, 100, 100};
+    expected.num_absorbed = {0, 0, 0};
+
+    this->reference_run(angles, expected);
+}
+
+//---------------------------------------------------------------------------//
+// Only ground reflection
+TEST_F(SurfacePhysicsIntegrationOnlyReflectionGroundTest, ground)
+{
+    std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
+
+    SurfaceTestResults expected;
+    expected.num_refracted = {0, 0, 0};
+    expected.num_reflected = {100, 100, 100};
+    expected.num_absorbed = {0, 0, 0};
+
+    this->reference_run(angles, expected);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SurfacePhysicsIntegrationBackPaintedTest, backpainted)
+{
+    std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
+
+    SurfaceTestResults expected;
+    expected.num_refracted = {0, 0, 0};
+    expected.num_reflected = {100, 100, 100};
+    expected.num_absorbed = {0, 0, 0};
 
     this->reference_run(angles, expected);
 }

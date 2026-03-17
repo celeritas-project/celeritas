@@ -38,6 +38,12 @@
 #    define CELER_VGNAV CELER_VGNAV_PATH
 #endif
 
+#ifdef VECGEOM_SINGLE_PRECISION
+static_assert(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT);
+#else
+static_assert(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE);
+#endif
+
 namespace vecgeom
 {
 #if VECGEOM_VERSION >= 0x020000
@@ -134,6 +140,30 @@ using VgNavStateImpl = VgNavIndex;
 
 //! High level VecGeom navigation state
 using VgNavState = vecgeom::NavigationState;
+
+//---------------------------------------------------------------------------//
+// CONVERSION FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Create a Vector3D from a length-3 array.
+ */
+template<class T>
+inline CELER_FUNCTION auto to_vgvector(Array<T, 3> const& a)
+    -> VgVector3<T, MemSpace::native>
+{
+    return {a[0], a[1], a[2]};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a length-3 array from a VecGeom vector.
+ */
+template<class T>
+inline CELER_FUNCTION auto to_array(vecgeom::Vector3D<T> const& vgv)
+    -> Array<T, 3>
+{
+    return {vgv[0], vgv[1], vgv[2]};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

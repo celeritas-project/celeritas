@@ -31,12 +31,12 @@ constexpr real_type mm{::celeritas::lengthunits::millimeter};
 
 Real3 from_geant(G4ThreeVector const& tv)
 {
-    return convert_from_geant(tv);
+    return static_array_cast<real_type>(to_array(tv));
 }
 
 G4ThreeVector to_geant(Real3 const& rv)
 {
-    return {rv[0], rv[1], rv[2]};
+    return to_g4vector(static_array_cast<double>(rv));
 }
 
 class TransformerTest : public ::celeritas::test::Test
@@ -68,13 +68,10 @@ TEST_F(TransformerTest, affine_transform)
 
     // Construct Celeritas matrix
     auto const mat = make_rotation(rot_axis, rot_turn);
-    {
-        auto actual = convert_from_geant(g4mat);
-        // Check raw matrix conversion
-        EXPECT_VEC_SOFT_EQ(mat[0], actual[0]);
-        EXPECT_VEC_SOFT_EQ(mat[1], actual[1]);
-        EXPECT_VEC_SOFT_EQ(mat[2], actual[2]);
-    }
+    // Check raw matrix conversion
+    EXPECT_VEC_SOFT_EQ(mat[0], Real3(g4mat.xx(), g4mat.xy(), g4mat.xz()));
+    EXPECT_VEC_SOFT_EQ(mat[1], Real3(g4mat.yx(), g4mat.yy(), g4mat.yz()));
+    EXPECT_VEC_SOFT_EQ(mat[2], Real3(g4mat.zx(), g4mat.zy(), g4mat.zz()));
     EXPECT_VEC_SOFT_EQ(gemv(mat, Real3{1, 0, 0}),
                        from_geant(g4mat(G4ThreeVector(1, 0, 0))));
 

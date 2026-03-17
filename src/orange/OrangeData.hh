@@ -16,7 +16,6 @@
 #include "corecel/sys/ThreadId.hh"
 
 #include "OrangeTypes.hh"
-#include "SenseUtils.hh"
 
 #include "detail/BIHData.hh"
 
@@ -38,10 +37,7 @@ inline constexpr UnivId orange_global_univ{0};
 inline constexpr UnivLevelId orange_global_univ_level{0};
 
 //! Logic notation used for boolean expressions
-CELER_FUNCTION inline constexpr auto orange_tracking_logic()
-{
-    return LogicNotation::infix;
-}
+inline constexpr auto orange_tracking_logic{LogicNotation::infix};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -64,9 +60,6 @@ struct OrangeParamsScalars
     // Soft comparison and dynamic "bumping" values
     Tolerance<> tol;
 
-    // Logic expression notation
-    LogicNotation logic{};
-
     // Raw pointers to externally owned memory for debug output
     OrangeParams const* host_geo_params{nullptr};
     VolumeParams const* host_volume_params{nullptr};
@@ -81,14 +74,16 @@ struct OrangeParamsScalars
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single implementation volume definition inside a unit.
+ * Data for a single local volume definition inside a unit.
  *
- * Surface IDs are local to the unit.
+ * - This record defines an *implementation volume* which may correspond to
+ *   a canonical "volume instance".
+ * - Surface IDs are local to the unit.
+ * - The encoded logic references the local surface IDs.
  *
- * \sa VolumeView
- * \todo Rename UnitVolumeRecord?
+ * \sa LocalVolumeView
  */
-struct VolumeRecord
+struct LocalVolumeRecord
 {
     ItemRange<LocalSurfaceId> faces;
     ItemRange<logic_int> logic;
@@ -251,7 +246,7 @@ struct TransformRecord
  */
 struct SimpleUnitRecord
 {
-    using VolumeRecordId = ItemId<VolumeRecord>;
+    using LocalVolumeRecordId = ItemId<LocalVolumeRecord>;
     using ConnectivityRecordId = ItemId<ConnectivityRecord>;
     using LocalVolumeIdId = ItemId<LocalVolumeId>;
     using VolDepthUint = ItemId<vol_level_uint>;
@@ -260,14 +255,14 @@ struct SimpleUnitRecord
     SurfacesRecord surfaces;
     ItemMap<LocalSurfaceId, ConnectivityRecordId> connectivity;
 
-    // Volume data [index by LocalVolumeId]
-    ItemMap<LocalVolumeId, VolumeRecordId> volumes;
+    // Local volume data [index by LocalVolumeId]
+    ItemMap<LocalVolumeId, LocalVolumeRecordId> volumes;
     // For volume instance mapping
     ItemMap<LocalVolumeId, LocalVolumeIdId> local_parent;
     ItemMap<LocalVolumeId, VolDepthUint> local_vol_level;
 
     // Bounding Interval Hierarchy tree parameters
-    detail::BIHTree bih_tree;
+    detail::BIHTreeRecord bih_tree;
 
     LocalVolumeId background{};  //!< Default if not in any other volume
     bool simple_safety{};
@@ -435,7 +430,7 @@ struct OrangeParamsData
     Items<FastReal3> fast_real3s;
     Items<SurfaceType> surface_types;
     Items<ConnectivityRecord> connectivity_records;
-    Items<VolumeRecord> volume_records;
+    Items<LocalVolumeRecord> volume_records;
     Items<Daughter> daughters;
     Items<OrientedBoundingZoneRecord> obz_records;
 
@@ -515,11 +510,11 @@ struct OrangeStateData
     StateItems<UnivLevelId> surface_univ_level;
     StateItems<LocalSurfaceId> surf;
     StateItems<Sense> sense;
-    StateItems<BoundaryResult> boundary;
+    StateItems<GeoStatus> status;
 
     // "Local" state, needed for Shift {num_tracks}
-    StateItems<UnivLevelId> next_univ_level;
     StateItems<real_type> next_step;
+    StateItems<UnivLevelId> next_univ_level;
     StateItems<LocalSurfaceId> next_surf;
     StateItems<Sense> next_sense;
 
@@ -544,9 +539,9 @@ struct OrangeStateData
             && surface_univ_level.size() == this->size()
             && surf.size() == this->size()
             && sense.size() == this->size()
-            && boundary.size() == this->size()
-            && next_univ_level.size() == this->size()
+            && status.size() == this->size()
             && next_step.size() == this->size()
+            && next_univ_level.size() == this->size()
             && next_surf.size() == this->size()
             && next_sense.size() == this->size()
             && pos.size() >= this->size()
@@ -575,10 +570,10 @@ struct OrangeStateData
         surface_univ_level = other.surface_univ_level;
         surf = other.surf;
         sense = other.sense;
-        boundary = other.boundary;
+        status = other.status;
 
-        next_univ_level = other.next_univ_level;
         next_step = other.next_step;
+        next_univ_level = other.next_univ_level;
         next_surf = other.next_surf;
         next_sense = other.next_sense;
 
@@ -612,10 +607,10 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->surface_univ_level, num_tracks);
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
-    resize(&data->boundary, num_tracks);
+    resize(&data->status, num_tracks);
 
-    resize(&data->next_univ_level, num_tracks);
     resize(&data->next_step, num_tracks);
+    resize(&data->next_univ_level, num_tracks);
     resize(&data->next_surf, num_tracks);
     resize(&data->next_sense, num_tracks);
 

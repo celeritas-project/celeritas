@@ -6,15 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <utility>
-#include <vector>
-
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/inp/Grid.hh"
-#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -23,6 +19,9 @@ namespace celeritas
  * Construct a nonuniform grid.
  *
  * This uses a deduplicating inserter for real values to improve caching.
+ *
+ * \todo Move to corecel/grid
+ * \todo Take grid by capturing and eliminate duplicate points.
  */
 class NonuniformGridBuilder
 {

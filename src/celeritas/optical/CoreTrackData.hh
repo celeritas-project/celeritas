@@ -11,10 +11,12 @@
 #include "corecel/random/data/RngData.hh"
 #include "geocel/DetectorData.hh"
 #include "geocel/SurfaceData.hh"
+#include "geocel/VolumeData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 
 #include "CoreTrackDataFwd.hh"
+#include "DetectorData.hh"
 #include "MaterialData.hh"
 #include "ParticleData.hh"
 #include "PhysicsData.hh"
@@ -52,10 +54,11 @@ struct CoreParamsData
     GeoParamsData<W, M> geometry;
     MaterialParamsData<W, M> material;
     PhysicsParamsData<W, M> physics;
+    SurfacePhysicsParamsData<W, M> surface_physics;
     RngParamsData<W, M> rng;
     SimParamsData<W, M> sim;
     SurfaceParamsData<W, M> surface;
-    SurfacePhysicsParamsData<W, M> surface_physics;
+    VolumeParamsData<W, M> volumes;
     DetectorParamsData<W, M> detectors;
     CherenkovData<W, M> cherenkov;
     ScintillationData<W, M> scintillation;
@@ -65,8 +68,8 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && material && physics && surface && surface_physics
-               && rng && sim && scalars;
+        return geometry && material && physics && surface_physics && rng && sim
+               && surface && volumes && scalars;
     }
 
     //! Assign from another set of data
@@ -77,10 +80,11 @@ struct CoreParamsData
         geometry = other.geometry;
         material = other.material;
         physics = other.physics;
+        surface_physics = other.surface_physics;
         rng = other.rng;
         sim = other.sim;
         surface = other.surface;
-        surface_physics = other.surface_physics;
+        volumes = other.volumes;
         detectors = other.detectors;
         cherenkov = other.cherenkov;
         scintillation = other.scintillation;
@@ -102,9 +106,10 @@ struct CoreStateData
     GeoStateData<W, M> geometry;
     ParticleStateData<W, M> particle;
     PhysicsStateData<W, M> physics;
+    SurfacePhysicsStateData<W, M> surface_physics;
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;
-    SurfacePhysicsStateData<W, M> surface_physics;
+    DetectorStateData<W, M> detectors;
     TrackInitStateData<W, M> init;
 
     //! Unique identifier for "thread-local" data.
@@ -116,8 +121,8 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && particle && physics && rng && sim && surface_physics
-               && init && stream_id;
+        return geometry && particle && physics && rng && detectors && sim
+               && surface_physics && init && stream_id;
     }
 
     //! Assign from another set of data
@@ -128,9 +133,10 @@ struct CoreStateData
         geometry = other.geometry;
         particle = other.particle;
         physics = other.physics;
+        surface_physics = other.surface_physics;
         rng = other.rng;
         sim = other.sim;
-        surface_physics = other.surface_physics;
+        detectors = other.detectors;
         init = other.init;
         stream_id = other.stream_id;
         return *this;

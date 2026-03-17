@@ -26,6 +26,9 @@ namespace
 //! Return correctly sized volume labels
 std::vector<Label> make_volume_labels(RectArrayInput const& inp)
 {
+    CELER_EXPECT(std::all_of(inp.grid.begin(),
+                             inp.grid.end(),
+                             [](auto const& g) { return g.size() >= 2; }));
     std::vector<Label> result;
     for (auto i : range(inp.grid[to_int(Axis::x)].size() - 1))
     {
@@ -52,6 +55,34 @@ std::vector<Label> make_volume_labels(RectArrayInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Number of surfaces created by the input.
+ */
+std::size_t RectArrayInserter::num_surfaces(Input const& i)
+{
+    std::size_t result{0};
+    for (auto ax : range(Axis::size_))
+    {
+        result += i.grid[to_int(ax)].size();
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of volumes created by the input.
+ */
+std::size_t RectArrayInserter::num_volumes(Input const& i)
+{
+    std::size_t result{1};
+    for (auto ax : range(Axis::size_))
+    {
+        result *= i.grid[to_int(ax)].size() - 1;
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from full parameter data.
  */
 RectArrayInserter::RectArrayInserter(UniverseInserter* insert_universe,
@@ -70,7 +101,7 @@ RectArrayInserter::RectArrayInserter(UniverseInserter* insert_universe,
 /*!
  * Create a rect array unit and return its ID.
  */
-UnivId RectArrayInserter::operator()(RectArrayInput const& inp)
+UnivId RectArrayInserter::operator()(RectArrayInput&& inp)
 {
     CELER_VALIDATE(
         inp, << "rect array '" << inp.label << "' is not properly constructed");
@@ -83,7 +114,7 @@ UnivId RectArrayInserter::operator()(RectArrayInput const& inp)
 
     for (auto ax : range(Axis::size_))
     {
-        std::vector<double> grid = inp.grid[to_int(ax)];
+        auto& grid = inp.grid[to_int(ax)];
         CELER_VALIDATE(grid.size() >= 2,
                        << "grid for " << to_char(ax) << " axis in '"
                        << inp.label << "' is too small (size " << grid.size()
@@ -94,6 +125,7 @@ UnivId RectArrayInserter::operator()(RectArrayInput const& inp)
 
         // Suppress the outer grid boundaries to avoid coincident surfaces with
         // other universes
+        // FIXME: replace with bump using orange_data.scalars.tol
         grid.front() = -std::numeric_limits<real_type>::infinity();
         grid.back() = std::numeric_limits<real_type>::infinity();
 
@@ -104,13 +136,11 @@ UnivId RectArrayInserter::operator()(RectArrayInput const& inp)
         record.grid[to_int(ax)] = reals_.insert_back(grid.begin(), grid.end());
 
         // Create surface labels
-        for (auto i : range(inp.grid[to_int(ax)].size()))
+        for (auto i : range(grid.size()))
         {
-            Label sl;
-            sl.name = std::string("{" + std::string(1, to_char(ax)) + ","
-                                  + std::to_string(i) + "}");
-            sl.ext = inp.label.name;
-            surface_labels.push_back(std::move(sl));
+            auto name = std::string("{" + std::string(1, to_char(ax)) + ","
+                                    + std::to_string(i) + "}");
+            surface_labels.emplace_back(std::move(name), inp.label.name);
         }
     }
 
@@ -139,11 +169,16 @@ UnivId RectArrayInserter::operator()(RectArrayInput const& inp)
     CELER_ASSERT(record);
     rect_arrays_.push_back(record);
 
+    // Save labels and clear input
+    auto vol_labels = make_volume_labels(inp);
+    Label unit_label{std::move(inp.label)};
+    std::move(inp) = {};
+
     // Construct universe
     return (*insert_universe_)(UnivType::rect_array,
-                               inp.label,
+                               std::move(unit_label),
                                std::move(surface_labels),
-                               make_volume_labels(inp));
+                               std::move(vol_labels));
 }
 
 //---------------------------------------------------------------------------//

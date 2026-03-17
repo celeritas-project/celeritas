@@ -143,20 +143,21 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
     // Failed: print nice error message
     ::testing::AssertionResult result = ::testing::AssertionFailure();
 
-    result << "Value of: " << actual_expr << "\n  Actual: " << actual
-           << "\nExpected: " << expected_expr << "\nWhich is: " << expected;
+    result << "Value of: " << actual_expr << "\n  Actual: " << repr(actual)
+           << "\nExpected: " << expected_expr
+           << "\nWhich is: " << repr(expected);
 
     if (std::fabs(actual - expected) > comp.abs())
     {
         result << '\n'
-               << "- absolute error " << actual - expected
-               << " exceeds tolerance " << comp.abs();
+               << "- absolute error " << repr(actual - expected)
+               << " exceeds tolerance " << repr(comp.abs());
     }
     if (expected != 0
         && std::fabs(actual - expected) > std::fabs(expected) * comp.rel())
     {
-        result << "\n- relative error " << actual / expected - 1
-               << " exceeds tolerance " << comp.rel();
+        result << "\n- relative error " << repr(actual / expected - 1)
+               << " exceeds tolerance " << repr(comp.rel());
     }
     return result;
 }

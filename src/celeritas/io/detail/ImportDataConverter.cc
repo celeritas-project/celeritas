@@ -48,11 +48,6 @@ void ImportDataConverter::operator()(ImportData* data)
         (*this)(&m);
     }
 
-    for (auto& m : data->optical_models)
-    {
-        (*this)(&m);
-    }
-
     for (auto& p : data->processes)
     {
         (*this)(&p);
@@ -64,6 +59,9 @@ void ImportDataConverter::operator()(ImportData* data)
     }
 
     (*this)(&data->em_params);
+
+    // NOTE: optical data is not currently stored into ROOT so no
+    // conversion needs to be done
 
     data->units = units::NativeTraits::label();
 }
@@ -105,39 +103,7 @@ void ImportDataConverter::operator()(ImportOpticalMaterial* data)
 {
     CELER_EXPECT(data);
 
-    for (auto& comp : data->scintillation.material.components)
-    {
-        if (comp.spectrum)
-        {
-            continue;
-        }
-        else
-        {
-            comp.gauss.lambda_mean *= len_;
-            comp.gauss.lambda_sigma *= len_;
-        }
-
-        comp.rise_time *= time_;
-        comp.fall_time *= time_;
-    }
-    for (auto& iter : data->scintillation.particles)
-    {
-        for (auto& comp : iter.second.components)
-        {
-            if (comp.spectrum)
-            {
-                continue;
-            }
-            else
-            {
-                comp.gauss.lambda_mean *= len_;
-                comp.gauss.lambda_sigma *= len_;
-            }
-            comp.rise_time *= time_;
-            comp.fall_time *= time_;
-        }
-    }
-    data->rayleigh.compressibility *= inv_pressure_;
+    // No conversions currently needed for optical material properties
 }
 
 //---------------------------------------------------------------------------//

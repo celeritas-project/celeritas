@@ -7,9 +7,9 @@
 #pragma once
 
 #include <iosfwd>
-#include <iterator>
-#include <sstream>
 #include <string>
+
+#include "corecel/io/StreamUtils.hh"
 
 namespace celeritas
 {
@@ -62,7 +62,7 @@ struct Joined
 
 //---------------------------------------------------------------------------//
 template<class I, class C, class S>
-std::ostream& operator<<(std::ostream& os, Joined<I, C, S> const& j)
+inline std::ostream& operator<<(std::ostream& os, Joined<I, C, S> const& j)
 {
     auto iter = j.first;
     auto op = j.op;
@@ -85,11 +85,9 @@ std::ostream& operator<<(std::ostream& os, Joined<I, C, S> const& j)
 
 //---------------------------------------------------------------------------//
 template<class I, class C, class S>
-std::string to_string(Joined<I, C, S> const& j)
+inline std::string to_string(Joined<I, C, S> const& j)
 {
-    std::ostringstream os;
-    os << j;
-    return std::move(os).str();
+    return stream_to_string(j);
 }
 
 //---------------------------------------------------------------------------//

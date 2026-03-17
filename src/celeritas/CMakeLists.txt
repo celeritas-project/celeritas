@@ -107,6 +107,8 @@ list(APPEND SOURCES
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
+  mucf/model/detail/EquilibrateDensitiesSolver.cc
+  mucf/model/detail/InterpolatorHelper.cc
   mucf/model/detail/MucfMaterialInserter.cc
   mucf/process/MucfProcess.cc
   neutron/model/CascadeOptions.cc
@@ -233,14 +235,14 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
     ext/GeantTrackReconstruction.cc
+    ext/HadronicInteractor.cc
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
-    ext/detail/GeantOpticalModelImporter.cc
+    ext/detail/GeantPhysicsLoader.cc
     ext/detail/GeantProcessImporter.cc
-    ext/detail/GeantSurfacePhysicsHelper.cc
+    ext/detail/GeantScintillationLoader.cc
     ext/detail/GeantSurfacePhysicsLoader.cc
-    ext/detail/GeoOpticalIdMap.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
     ext/detail/NaviTouchableUpdater.cc
@@ -393,6 +395,7 @@ celeritas_polysource(optical/model/MieModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
+celeritas_polysource(optical/action/DetectorAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/TrackingCutAction)
@@ -406,7 +409,10 @@ celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
 celeritas_polysource(optical/surface/model/DielectricInteractionModel)
+celeritas_polysource(optical/surface/model/FresnelReflectivityModel)
 celeritas_polysource(optical/surface/model/GaussianRoughnessModel)
+celeritas_polysource(optical/surface/model/GridReflectivityModel)
+celeritas_polysource(optical/surface/model/OnlyReflectionModel)
 celeritas_polysource(optical/surface/model/PolishedRoughnessModel)
 celeritas_polysource(optical/surface/model/SmearRoughnessModel)
 celeritas_polysource(optical/surface/model/TrivialInteractionModel)

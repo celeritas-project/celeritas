@@ -127,8 +127,8 @@ ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
  */
 SimpleQuadric SurfaceTranslator::operator()(SimpleQuadric const& other) const
 {
-    auto const second = make_array(other.second());
-    auto first = make_array(other.first());
+    auto const second = to_array(other.second());
+    auto first = to_array(other.first());
     real_type zeroth = other.zeroth();
     auto const& origin = tr_.translation();
 
@@ -156,9 +156,9 @@ GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
     constexpr auto Y = to_int(Axis::y);
     constexpr auto Z = to_int(Axis::z);
 
-    Real3 const second = make_array(other.second());
-    Real3 const cross = make_array(other.cross()) / real_type(2);
-    Real3 const first = make_array(other.first()) / real_type(2);
+    Real3 const second = to_array(other.second());
+    Real3 const cross = to_array(other.cross()) / real_type(2);
+    Real3 const first = to_array(other.first()) / real_type(2);
 
     // Nonlinear components of the quadric matrix
     SquareMatrix<real_type, 3> nonl{Real3{second[X], cross[X], cross[Z]},
@@ -175,7 +175,7 @@ GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
                           - dot_product(tr_.translation(), newfirst + first);
 
     return GeneralQuadric{
-        second, make_array(other.cross()), real_type(2) * newfirst, newzeroth};
+        second, to_array(other.cross()), real_type(2) * newfirst, newzeroth};
 }
 
 //---------------------------------------------------------------------------//

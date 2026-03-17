@@ -310,7 +310,7 @@ TEST_F(CsgObjectTest, subtraction)
         R"(3: {{{-0.866,-0.866,-0.866}, {0.866,0.866,0.866}}, {{-1,-1,-1}, {1,1,1}}})",
         R"(~4: {{{-0.433,-0.433,0.567}, {0.433,0.433,1.43}}, {{-0.5,-0.5,0.5}, {0.5,0.5,1.5}}})",
         R"(5: {{{-0.433,-0.433,0.567}, {0.433,0.433,1.43}}, {{-0.5,-0.5,0.5}, {0.5,0.5,1.5}}})",
-        "6: {null, inf}",
+        "6: {null, {{-1,-1,-1}, {1,1,1}}}",
     };
     static char const* const expected_trans_strings[]
         = {"3: t=0 -> {}", "4: t=0", "5: t=1 -> {{0,0,1}}", "6: t=0"};
@@ -458,6 +458,51 @@ TEST_F(CsgObjectTest, subtraction_atlas)
     EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 }
 
+// Test the multiple nested subtractios
+TEST_F(CsgObjectTest, subtraction_nested)
+{
+    auto aout = make_shape<Box>("ArapucaOut", Real3{1.15, 5.9, 104.6});
+    auto ain = make_shape<Box>("ArapucaIn", Real3{1.2, 4.65, 23.4});
+    auto awall0 = make_subtraction(
+        "ArapucaWalls0", aout, this->make_translated(ain, {0.0, 0.0, -80.2}));
+    auto awall1 = make_subtraction(
+        "ArapucaWalls1", awall0, this->make_translated(ain, {0.0, 0.0, -31.4}));
+    auto awall2 = make_subtraction(
+        "ArapucaWalls2", awall1, this->make_translated(ain, {0.0, 0.0, 31.4}));
+    auto awalls = make_subtraction(
+        "ArapucaWalls", awall2, this->make_translated(ain, {0.0, 0.0, 80.2}));
+
+    EXPECT_JSON_EQ(
+        R"json({"_type":"all","daughters":[{"_type":"all","daughters":[{"_type":"all","daughters":[{"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"box","halfwidths":[1.15,5.9,104.6]},"label":"ArapucaOut"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"translation","data":[0.0,0.0,-80.2]}},"label":""}],"label":"ArapucaWalls0"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"translation","data":[0.0,0.0,-31.4]}},"label":""}],"label":"ArapucaWalls1"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"translation","data":[0.0,0.0,31.4]}},"label":""}],"label":"ArapucaWalls2"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.2,4.65,23.4]},"label":"ArapucaIn"},"transform":{"_type":"translation","data":[0.0,0.0,80.2]}},"label":""}],"label":"ArapucaWalls"})json",
+        to_string(*awalls));
+
+    this->build_volume(*awalls);
+
+    // this->print_expected();
+
+    static char const* const expected_volume_strings[] = {
+        R"(all(+0, -1, +2, -3, +4, -5, !all(+6, -7, +8, -9, +10, -11), !all(+6, -7, +8, -9, +12, -13), !all(+6, -7, +8, -9, +14, -15), !all(+6, -7, +8, -9, +16, -17)))"};
+    static char const* const expected_bound_strings[] = {
+        R"(11: {{{-1.15,-5.9,-105}, {1.15,5.9,105}}, {{-1.15,-5.9,-105}, {1.15,5.9,105}}})",
+        R"(21: {{{-1.2,-4.65,-104}, {1.2,4.65,-56.8}}, {{-1.2,-4.65,-104}, {1.2,4.65,-56.8}}})",
+        R"(~22: {{{-1.2,-4.65,-104}, {1.2,4.65,-56.8}}, {{-1.2,-4.65,-104}, {1.2,4.65,-56.8}}})",
+        "23: {null, {{-1.15,-5.9,-105}, {1.15,5.9,105}}}",
+        R"(27: {{{-1.2,-4.65,-54.8}, {1.2,4.65,-8}}, {{-1.2,-4.65,-54.8}, {1.2,4.65,-8}}})",
+        R"(~28: {{{-1.2,-4.65,-54.8}, {1.2,4.65,-8}}, {{-1.2,-4.65,-54.8}, {1.2,4.65,-8}}})",
+        "29: {null, {{-1.15,-5.9,-105}, {1.15,5.9,105}}}",
+        R"(33: {{{-1.2,-4.65,8}, {1.2,4.65,54.8}}, {{-1.2,-4.65,8}, {1.2,4.65,54.8}}})",
+        R"(~34: {{{-1.2,-4.65,8}, {1.2,4.65,54.8}}, {{-1.2,-4.65,8}, {1.2,4.65,54.8}}})",
+        "35: {null, {{-1.15,-5.9,-105}, {1.15,5.9,105}}}",
+        R"(39: {{{-1.2,-4.65,56.8}, {1.2,4.65,104}}, {{-1.2,-4.65,56.8}, {1.2,4.65,104}}})",
+        R"(~40: {{{-1.2,-4.65,56.8}, {1.2,4.65,104}}, {{-1.2,-4.65,56.8}, {1.2,4.65,104}}})",
+        "41: {null, {{-1.15,-5.9,-105}, {1.15,5.9,105}}}",
+    };
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+}
+
 TEST_F(CsgObjectTest, rdv)
 {
     auto apple = this->make_sphere("apple", 1.0);
@@ -468,7 +513,6 @@ TEST_F(CsgObjectTest, rdv)
 
     this->build_volume(
         *make_rdv("bitten", {{Sense::inside, apple}, {Sense::outside, bite}}));
-    // XXX low-level transform conflicts with lack of transform for this RDV
     this->build_volume(*make_rdv("forgotten", {{Sense::inside, apple2}}));
     this->build_volume(
         *make_rdv("air", {{Sense::outside, apple}, {Sense::outside, apple2}}));
@@ -495,7 +539,7 @@ TEST_F(CsgObjectTest, rdv)
         R"(3: {{{-0.866,-0.866,-0.866}, {0.866,0.866,0.866}}, {{-1,-1,-1}, {1,1,1}}})",
         R"(~4: {{{-0.433,-0.433,0.567}, {0.433,0.433,1.43}}, {{-0.5,-0.5,0.5}, {0.5,0.5,1.5}}})",
         R"(5: {{{-0.433,-0.433,0.567}, {0.433,0.433,1.43}}, {{-0.5,-0.5,0.5}, {0.5,0.5,1.5}}})",
-        "6: {null, inf}",
+        "6: {null, {{-1,-1,-1}, {1,1,1}}}",
         R"(~7: {{{-1.08,-1.08,2.92}, {1.08,1.08,5.08}}, {{-1.25,-1.25,2.75}, {1.25,1.25,5.25}}})",
         R"(8: {{{-1.08,-1.08,2.92}, {1.08,1.08,5.08}}, {{-1.25,-1.25,2.75}, {1.25,1.25,5.25}}})",
         "9: {null, inf}",

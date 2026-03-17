@@ -38,6 +38,7 @@ void from_json(nlohmann::json const& j, EnergyDistribution& v)
 {
     EIO_LOAD_VARIANT(delta, MonoenergeticDistribution);
     EIO_LOAD_VARIANT(normal, NormalDistribution);
+    EIO_LOAD_VARIANT(truncated, TruncatedDistribution<NormalDistribution>);
     CELER_VALIDATE(false, << "invalid EnergyDistribution input");
 }
 

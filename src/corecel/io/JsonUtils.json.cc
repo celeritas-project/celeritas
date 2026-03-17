@@ -9,10 +9,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/Version.hh"
 
 #include "Logger.hh"
+#include "StreamUtils.hh"
 
 namespace celeritas
 {
@@ -38,7 +39,7 @@ void save_format(nlohmann::json& j, std::string const& format)
 {
     CELER_EXPECT(j.is_object());
     j["_format"] = format;
-    j["_version"] = to_string(celer_version());
+    j["_version"] = stream_to_string(celer_version());
 }
 
 //---------------------------------------------------------------------------//

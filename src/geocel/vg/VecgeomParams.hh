@@ -128,6 +128,9 @@ class VecgeomParams final : public GeoParamsInterface,
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 
+    // Get the volume instance containing the global point
+    VolumeInstanceId find_volume_instance_at(Real3 const&) const final;
+
     //// DATA ACCESS ////
 
     //! Access geometry data on host

@@ -60,7 +60,7 @@ acceptance of all terms of the Geant4 Software license.
 
   <position name="posTessel1"    x="-5000" y=" 1250" z="0" unit="mm" />
   <position name="posDirect"     x="-5000" y="    0" z="0" unit="mm" />
-  <position name="posReflect"    x="-5000" y="-1250" z="0" unit="mm" />
+  <position name="trd3_refl_pos" x="-4750" y="-1250" z="0" unit="mm" />
   <position name="posXtru1"      x="-5250" y="    0" z="0" unit="mm" />
 
   <position name="v0" unit="mm"  x=" 400" y=" 400" z="-500" />
@@ -155,13 +155,13 @@ acceptance of all terms of the Geant4 Software license.
 
   <orb name="shOrb1" lunit="mm" r="400.0"/>
 
-  <polycone name="testpolyc" lunit="mm" aunit="deg" deltaphi="270.0" startphi="0.0">
+  <polycone name="testpolyc" lunit="mm" aunit="deg" deltaphi="270.0" startphi="22.5">
     <zplane z="-500.0" rmin="160.0" rmax="250.0"/>
     <zplane z="   0.0" rmin=" 80.0" rmax="100.0"/>
     <zplane z=" 500.0" rmin="180.0" rmax="200.0"/>
   </polycone>
 
-  <genericPolycone name="testgenpoly" lunit="mm" aunit="deg" deltaphi="240.0" startphi="0.0">
+  <genericPolycone name="testgenpoly" lunit="mm" aunit="deg" deltaphi="240.0" startphi="11.25">
     <rzpoint r="300.0" z="-500.0" />
     <rzpoint r="450.0" z="   0.0" />
     <rzpoint r="500.0" z=" 500.0" />
@@ -175,7 +175,7 @@ acceptance of all terms of the Geant4 Software license.
     <zplane z=" 500.0" rmin="350.0" rmax="500.0"/>
   </polycone-->
 
-  <polyhedra name="testph" lunit="mm" aunit="deg" deltaphi="270." numsides="6" startphi="180." >
+  <polyhedra name="testph" lunit="mm" aunit="deg" deltaphi="270." numsides="6" startphi="195." >
      <zplane z="-500.0" rmin="50.0" rmax="250.0"/>
      <zplane z=" 500.0" rmin="80.0" rmax="360.0"/>
   </polyhedra>
@@ -249,7 +249,7 @@ acceptance of all terms of the Geant4 Software license.
    <solidref ref="trd3"/>
   </volume>
 
-  <volume name="trd3_refl">
+  <volume name="trd3_also">
    <materialref ref="Water"/>
    <solidref ref="trd3"/>
   </volume>
@@ -392,14 +392,14 @@ acceptance of all terms of the Geant4 Software license.
 
    <physvol name="reflected0x1234">
      <volumeref ref="trd3"/>
-     <positionref ref="posReflect"/>
+     <positionref ref="trd3_refl_pos"/>
      <rotationref ref="rotatebyx"/>
      <scale x="1" y="1" z="-1"/>
    </physvol>
 
    <physvol name="reflected0x567890ab">
-     <volumeref ref="trd3_refl"/>
-     <position name="trd3_refl_pos" unit="mm" x="-5250" y="-1250" z="0"/>
+     <volumeref ref="trd3_also"/>
+     <position name="trd3_also_pos" unit="mm" x="-5250" y="-1250" z="0"/>
      <rotationref ref="rotatebyx"/>
    </physvol>
 
@@ -512,7 +512,7 @@ acceptance of all terms of the Geant4 Software license.
       <auxiliary auxtype="volume" auxvalue="trd1"/>
       <auxiliary auxtype="volume" auxvalue="trd2"/>
       <auxiliary auxtype="volume" auxvalue="trd3"/>
-      <auxiliary auxtype="volume" auxvalue="trd3_refl"/>
+      <auxiliary auxtype="volume" auxvalue="trd3_also"/>
     </auxiliary>
  </userinfo>
  <setup name="Default" version="1.0">

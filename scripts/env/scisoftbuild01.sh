@@ -38,33 +38,19 @@ if ! command -v celerlog >/dev/null 2>&1; then
     printf "%s: %s\n" "$1" "$2" >&2
   }
 fi
+if ! command -v setup  >/dev/null 2>&1; then
+  celerlog debug "Missing 'setup' command: using local UPS"
+  setup ()
+  {
+      . `ups setup "$@"`
+  }
+fi
 if [ -z "${SYSTEM_NAME}" ]; then
   SYSTEM_NAME=$(uname -s)
   celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
 fi
 
-if [ -n "${APPTAINER_CONTAINER}" ]; then
-  export MRB_PROJECT=larsoft
-  export MRB_PROJECT_VERSION=v10_14_01
-  export MRB_QUALS=e26:prof
-  celerlog info "Running in apptainer ${APPTAINER_CONTAINER}"
-  if [ -n "${UPS_DIR}" ]; then
-    celerlog debug "Dune UPS already set up: ${UPS_DIR}"
-  else
-    celerlog info "Setting up DUNE UPS"
-    . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
-    celerlog debug "Using UPS_OVERRIDE=${UPS_OVERRIDE}, MRB_PROJECT=${MRB_PROJECT}"
-  fi
-  if [ -n "${SETUP_LARCORE}" ]; then
-    celerlog debug "LARCORE is already set up"
-  else
-    # Set up larsoft build defaults with UPS
-    celerlog info "Setting up ${MRB_PROJECT} ${MRB_PROJECT_VERSION} with qualifiers '${MRB_QUALS}'"
-    setup ${MRB_PROJECT} ${MRB_PROJECT_VERSION} -q ${MRB_QUALS} || return $?
-  fi
-fi
-
-# Set default scratchdir; /scratch should exist according to excl docs
+# Set default scratch directory
 export SCRATCHDIR="${SCRATCHDIR:-/scratch/$USER}"
 for _d in build install cache; do
   # Create build/install in higher-performance local-but-persistent dir
@@ -76,49 +62,40 @@ for _d in build install cache; do
   fi
   unset _scratch
 done
+export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
 
-# Set up larsoft if running inside an apptainer
-if [ -n "${MRB_PROJECT}" ]; then
-  LARSCRATCHDIR="${SCRATCHDIR}/${MRB_PROJECT}"
-  if [ -d "${LARSCRATCHDIR}" ]; then
-    celerlog debug "MRB dev area already exists at ${LARSCRATCHDIR}"
+if [ -n "${APPTAINER_CONTAINER}" ]; then
+  celerlog info "Running in apptainer ${APPTAINER_CONTAINER}"
+  if [ -z "${MRB_PROJECT}" ]; then
+    export MRB_PROJECT=larsoft
+    # NOTE: 10.14 uses Geant4 10.6.1, and 10.20 uses 11.2
+    # export MRB_PROJECT_VERSION=v10_14_01
+    export MRB_PROJECT_VERSION=v10_20_01
+  fi
+  export MRB_QUALS=e26:prof
+  if [ -n "${UPS_DIR}" ]; then
+    celerlog debug "Dune UPS already set up: ${UPS_DIR}"
   else
-    celerlog info "Creating MRB dev area in ${LARSCRATCHDIR}"
-    mkdir -p "${LARSCRATCHDIR}" || return $?
-    (
-      cd "${LARSCRATCHDIR}"
-      mrb newDev
-    ) || return 1
-    celerlog debug "MRB environment created"
+    celerlog info "Setting up DUNE UPS"
+    . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+    celerlog debug "Using UPS_OVERRIDE=${UPS_OVERRIDE}, MRB_PROJECT=${MRB_PROJECT}"
   fi
-  _setup_filename="${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}_${MRB_PROJECT_VERSION}_${MRB_QUALS//:/_}/setup"
-  if ! [ -f "${_setup_filename}" ]; then
-    celerlog warning "Expected setup file at ${_setup_filename}: MRB may not have been set up correctly"
-    _setup_filename=$(printf %s "${LARSCRATCHDIR}/localProducts_${MRB_PROJECT}"*/setup)
-    if [ -f "${_setup_filename}" ]; then
-      celerlog info "Found setup file ${_setup_filename}"
-    fi
+  if [ -n "${SETUP_LARSOFT}" ]; then
+    celerlog debug "LARSOFT is already set up"
+  else
+    # Set up larsoft build defaults with UPS
+    celerlog info "Setting up ${MRB_PROJECT} ${MRB_PROJECT_VERSION} with qualifiers '${MRB_QUALS}'"
+    setup ${MRB_PROJECT} ${MRB_PROJECT_VERSION} -q ${MRB_QUALS} || return $?
   fi
-  . "${_setup_filename}"
 fi
 
-# Check out a package so that mrb will load cmake (may be arbitrary?)
-if [ -n "${MRB_SOURCE}" ]; then
-  _pkg=larsim
-  if ! [ -d "${MRB_SOURCE}/${_pkg}" ]; then
-    _tag=LARSOFT_SUITE_${MRB_PROJECT_VERSION}
-    celerlog info "Installing ${_pkg} @${_tag}"
-    mrb g -t ${_tag} ${_pkg}
-  fi
-
-  # Now that a package exists in MRB source, cmake and dependencies can load
-  celerlog info "Activating MRB environment"
-  # Note that this may be a shell script
-  if ! command -v mrbsetenv >/dev/null 2>&1 ; then
-    celerlog warning "mrbsetenv is not defined: run manually in shell"
-  else
-    celerlog debug "MRB setup complete"
-  fi
+# Set up additional tools if running inside an apptainer
+if [ -n "${MRB_PROJECT}" ]; then
+  # Do not set up MRB: instead, just load cmake and cetmodules
+  # (larsoft runtime dependencies have already been loaded)
+  # Note that these do not need MRB_QUALS since they're not binary products
+  setup cmake v3_27_4  || return $?
+  setup cetmodules v3_24_01 || return $?
 fi
 
 if [ -n "$CELER_SOURCE_DIR" ]; then
@@ -151,5 +128,3 @@ EOF
     unset _clangd
   fi
 fi
-
-export XDG_CACHE_HOME="${SCRATCHDIR}/cache"

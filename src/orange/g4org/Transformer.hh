@@ -11,7 +11,12 @@
 #include <G4ThreeVector.hh>
 #include <G4Transform3D.hh>
 
+#include "corecel/Macros.hh"
 #include "geocel/Types.hh"
+#include "geocel/g4/Convert.hh"
+#include "orange/transform/NoTransformation.hh"
+#include "orange/transform/Transformation.hh"
+#include "orange/transform/Translation.hh"
 #include "orange/transform/VariantTransform.hh"
 
 #include "Scaler.hh"
@@ -52,17 +57,21 @@ class Transformer
     inline Translation operator()(G4ThreeVector const& t) const;
 
     // Convert a pure rotation
-    inline Transformation operator()(G4RotationMatrix const& rot) const;
+    inline Transformation operator()(G4RotationMatrix const& g4rm) const;
 
     // Convert a translation + rotation
     inline Transformation
-    operator()(G4ThreeVector const& t, G4RotationMatrix const& rot) const;
+    operator()(G4ThreeVector const& t, G4RotationMatrix const& g4rm) const;
 
     // Convert a more general transform (includes reflection)
-    inline Transformation operator()(G4Transform3D const& tran) const;
+    inline Transformation operator()(G4Transform3D const& g4tr) const;
 
-    // Convert an affine transform
-    inline Transformation operator()(G4AffineTransform const& at) const;
+    // Convert a general affine transform
+    inline VariantTransform variant(G4AffineTransform const& at) const;
+
+    // Construct dynamically
+    inline VariantTransform
+    variant(G4ThreeVector const& t, G4RotationMatrix const* rot) const;
 
   private:
     //// DATA ////
@@ -89,6 +98,10 @@ inline SquareMatrixReal3 convert_from_geant(G4RotationMatrix const& rot);
 inline SquareMatrixReal3 transposed_from_geant(G4RotationMatrix const& rot);
 
 //---------------------------------------------------------------------------//
+// Whether a vector has zero magnitude
+inline bool is_zero(G4ThreeVector const& vec);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -109,38 +122,74 @@ auto Transformer::operator()(G4ThreeVector const& t) const -> Translation
 /*!
  * Create a transform from a translation plus rotation.
  */
-auto Transformer::operator()(G4ThreeVector const& trans,
-                             G4RotationMatrix const& rot) const
+auto Transformer::operator()(G4ThreeVector const& g4t,
+                             G4RotationMatrix const& g4rm) const
     -> Transformation
 {
-    return Transformation{convert_from_geant(rot), scale_.to<Real3>(trans)};
+    SquareMatrixReal3 mat{Real3(g4rm.xx(), g4rm.xy(), g4rm.xz()),
+                          Real3(g4rm.yx(), g4rm.yy(), g4rm.yz()),
+                          Real3(g4rm.zx(), g4rm.zy(), g4rm.zz())};
+
+    return Transformation{mat, scale_.to<Real3>(g4t)};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert a more general transform (including possibly reflection).
  */
-Transformation Transformer::operator()(G4Transform3D const& tran) const
+Transformation Transformer::operator()(G4Transform3D const& g4tr) const
 {
-    SquareMatrixReal3 rot{convert_from_geant(tran.xx(), tran.xy(), tran.xz()),
-                          convert_from_geant(tran.yx(), tran.yy(), tran.yz()),
-                          convert_from_geant(tran.zx(), tran.zy(), tran.zz())};
+    SquareMatrixReal3 mat{Real3(g4tr.xx(), g4tr.xy(), g4tr.xz()),
+                          Real3(g4tr.yx(), g4tr.yy(), g4tr.yz()),
+                          Real3(g4tr.zx(), g4tr.zy(), g4tr.zz())};
 
-    return Transformation{rot,
-                          scale_.to<Real3>(tran.dx(), tran.dy(), tran.dz())};
+    return Transformation{mat,
+                          scale_.to<Real3>(g4tr.dx(), g4tr.dy(), g4tr.dz())};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create a transform from an affine transform.
  *
- * The affine transform's stored rotation matrix is \em inverted!
+ * The affine transform's stored rotation matrix is \em inverted! Also, this
+ * is frequently used when the rotation is identity, so we make a special case.
  */
-auto Transformer::operator()(G4AffineTransform const& affine) const
-    -> Transformation
+auto Transformer::variant(G4AffineTransform const& affine) const
+    -> VariantTransform
 {
-    return Transformation{transposed_from_geant(affine.NetRotation()),
-                          scale_.to<Real3>(affine.NetTranslation())};
+    if (!affine.NetRotation().isIdentity())
+    {
+        return Transformation{transposed_from_geant(affine.NetRotation()),
+                              scale_.to<Real3>(affine.NetTranslation())};
+    }
+    if (!is_zero(affine.NetTranslation()))
+    {
+        return Translation{scale_.to<Real3>(affine.NetTranslation())};
+    }
+    return NoTransformation{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a transform from a translation and optional rotation.
+ */
+auto Transformer::variant(G4ThreeVector const& trans,
+                          G4RotationMatrix const* rot) const -> VariantTransform
+{
+    if (rot)
+    {
+        // Do another check for the identity matrix (parameterized volumes
+        // often have one)
+        if (!rot->isIdentity())
+        {
+            return (*this)(trans, *rot);
+        }
+    }
+    if (!is_zero(trans))
+    {
+        return (*this)(trans);
+    }
+    return NoTransformation{};
 }
 
 //---------------------------------------------------------------------------//
@@ -183,6 +232,15 @@ SquareMatrixReal3 transposed_from_geant(G4RotationMatrix const& rot)
     return {convert_from_geant(rot.xx(), rot.yx(), rot.zx()),
             convert_from_geant(rot.xy(), rot.yy(), rot.zy()),
             convert_from_geant(rot.xz(), rot.yz(), rot.zz())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether a vector has zero magnitude.
+ */
+CELER_FORCEINLINE bool is_zero(G4ThreeVector const& vec)
+{
+    return vec[0] == 0 && vec[1] == 0 && vec[2] == 0;
 }
 
 //---------------------------------------------------------------------------//
