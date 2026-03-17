@@ -36,6 +36,7 @@ _UTF8_BOM = b"\xef\xbb\xbf"
 
 # Mapping of unicode character to ASCII replacement.
 _REPLACEMENTS = {
+    "\u00d7": "x",  # × MULTIPLICATION SIGN
     "\u2010": "-",  # ‐ HYPHEN
     "\u2011": "-",  # ‑ NON-BREAKING HYPHEN
     "\u2012": "-",  # ‒ FIGURE DASH
