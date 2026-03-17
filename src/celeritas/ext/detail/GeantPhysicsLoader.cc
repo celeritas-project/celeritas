@@ -11,6 +11,7 @@
 #include <G4Cerenkov.hh>
 #include <G4Material.hh>
 #include <G4MaterialPropertiesTable.hh>
+#include <G4MuPairProduction.hh>
 #include <G4MuonMinusAtomicCapture.hh>
 #include <G4OpAbsorption.hh>
 #include <G4OpBoundaryProcess.hh>
@@ -48,6 +49,7 @@
 #include "GeantOpticalMatHelper.hh"
 #include "GeantScintillationLoader.hh"
 #include "GeantSurfacePhysicsLoader.hh"
+#include "../GeantParticleView.hh"
 
 namespace celeritas
 {
@@ -207,6 +209,64 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     }
     msg << " model data from process " << name << "(\"" << p.GetProcessName()
         << "\")";
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load per-particle data from a process, returning whether it was recognized.
+ *
+ * Returns \c true if the process type is known and \c false otherwise.
+ */
+bool GeantPhysicsLoader::operator()(GeantParticleView const& particle,
+                                    G4VProcess const& p)
+{
+    using MemberFuncPtr = size_type (GeantPhysicsLoader::*)(
+        GeantParticleView const&, G4VProcess const&);
+    using PairNameMfptr = std::pair<char const*, MemberFuncPtr>;
+    using TypeHandlerMap = std::unordered_map<std::type_index, PairNameMfptr>;
+
+    // clang-format off
+#define GPL_TYPE_FUNC_P(CLASSNAME, METHOD) \
+    {std::type_index(typeid(CLASSNAME)), {#CLASSNAME, &GeantPhysicsLoader::METHOD}}
+    static TypeHandlerMap const type_to_handler{
+        GPL_TYPE_FUNC_P(G4MuPairProduction, mu_pair_production),
+    };
+    // clang-format on
+#undef GPL_TYPE_FUNC_P
+
+    auto iter = type_to_handler.find(std::type_index(typeid(p)));
+    if (iter == type_to_handler.end())
+    {
+        return false;
+    }
+    auto&& [name, mfptr] = iter->second;
+    size_type result{0};
+    try
+    {
+        result = (this->*mfptr)(particle, p);
+    }
+    catch (...)
+    {
+        CELER_LOG(error) << "Failed while loading per-particle process "
+                         << name << "(\"" << p.GetProcessName() << "\")";
+        throw;
+    }
+
+    auto msg
+        = world_logger()(CELER_CODE_PROVENANCE,
+                         result == 0 ? LogLevel::warning : LogLevel::debug);
+    msg << "Loaded ";
+    if (result == 0)
+    {
+        msg << "no";
+    }
+    else
+    {
+        msg << result;
+    }
+    msg << " per-particle model data from process " << name << "(\""
+        << p.GetProcessName() << "\")";
     return true;
 }
 
@@ -450,6 +510,18 @@ size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Placeholder for loading muon pair production data per particle type.
+ *
+ * \todo Import the per-particle energy transfer sampling table.
+ */
+size_type GeantPhysicsLoader::mu_pair_production(GeantParticleView const&,
+                                                 G4VProcess const&)
+{
+    return 0;
 }
 
 //---------------------------------------------------------------------------//
