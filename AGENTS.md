@@ -11,11 +11,19 @@ Celeritas is a particle physics library for detector simulation. It's a C++17 co
 - `accel/`: Geant4 integration layer
 
 ### Build & Test
+Most code relies on external user-installed packages (Geant4), so prefer to use a local environment's build directory. To build a minimal version from scratch:
 ```bash
 cmake -B build -G Ninja && cd build && ninja && ctest
 ```
 
 Object files and tests may have different paths and test names than you expect (`src/celeritas/ext/GeantImporter.cc` → `src/celeritas/CMakeFiles/celeritas_geant4.dir/ext/GeantImporter.cc.o` and `celeritas/ext/GeantImporter.test.cc` → `test/celeritas/ext_GeantImporter`), and some test executables are run as distinct CTest tests due to environment variables and side effects (`ctest --show-only | grep GeantImporter` → `Test #211: celeritas/ext/GeantImporter:DuneCryostat.*`).
+
+### Document
+- Add Doxygen documentation to **definitions**, not declarations, when adding code
+- Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
+- Always add `\sa {file}` underneath `\file` commands in `src` to indicate the location of tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
+- Document anything "surprising" (i.e., the user has to correct your default behavior) in the AGENTS.md file or other appropriate location
+- Physics constants need units and citations
 
 ### Commit
 **Always** commit after completing a list of tasks.
@@ -160,16 +168,9 @@ State collections need `resize(size)` operators for track slots.
 ### Consistency Checklist
 When adding features, ensure consistency across:
 - **Input**: `inp::Foo` constructs the data
-- **Data**: Members, `operator bool()`, `operator=`, resize (for states)
+- **Data**: Members, `operator bool()`, `operator=`, `resize` (for states)
 - **View**: Lightweight accessor with `CELER_FUNCTION` methods
 - **Executor/Interactor**: Physics implementation
-
-## Documentation
-
-- Doxygen comments go on **definitions**, not declarations
-- `operator()` behavior documented in class comment
-- Citations: `\citep{author-keyword-year}` (refs in `doc/_static/zotero.bib`)
-- Physics constants need units and citations
 
 ## Common Pitfalls
 
