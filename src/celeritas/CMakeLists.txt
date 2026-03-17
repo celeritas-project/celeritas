@@ -113,6 +113,7 @@ list(APPEND SOURCES
   mucf/process/MucfProcess.cc
   neutron/model/CascadeOptions.cc
   neutron/model/CascadeOptionsIO.json.cc
+  neutron/process/NeutronCaptureProcess.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CoreParams.cc
@@ -389,6 +390,7 @@ celeritas_polysource(global/detail/KillActive)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(mucf/model/DTMixMucfModel)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
+celeritas_polysource(neutron/model/NeutronCaptureModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/MieModel)
