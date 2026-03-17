@@ -24,7 +24,6 @@ Usage (pre-commit)::
 """
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
@@ -51,12 +50,25 @@ _REPLACEMENTS = {
     "\u2212": "-",  # − MINUS SIGN
 }
 
-# Single compiled pattern matching any replaceable character.
-_REPLACEMENTS_RE = re.compile("[" + re.escape("".join(_REPLACEMENTS)) + "]")
+# C-level translation table: maps each replaceable codepoint to its ASCII string.
+_REPLACEMENTS_TABLE = str.maketrans({ord(k): v for k, v in _REPLACEMENTS.items()})
 
 # ---------------------------------------------------------------------------
 # Per-file processing
 # ---------------------------------------------------------------------------
+
+
+def _find_non_ascii_errors(path, text):
+    """Return a list of error strings for any non-ASCII characters in *text*."""
+    errors = []
+    for lineno, line in enumerate(text.splitlines(), 1):
+        for col, ch in enumerate(line, 1):
+            if ord(ch) > 127:
+                errors.append(
+                    f"{path}:{lineno}:{col}: "
+                    f"non-ASCII character U+{ord(ch):04X} ({ch!r})"
+                )
+    return errors
 
 
 def process_file(path):
@@ -79,19 +91,15 @@ def process_file(path):
     except UnicodeDecodeError as exc:
         return False, [f"{path}: cannot decode as UTF-8: {exc}"]
 
-    text = _REPLACEMENTS_RE.sub(lambda m: _REPLACEMENTS[m.group()], text)
+    text = text.translate(_REPLACEMENTS_TABLE)
 
     new_raw = text.encode("utf-8")
     modified = bom_stripped or (new_raw != data)
 
-    errors = []
-    for lineno, line in enumerate(text.splitlines(), 1):
-        for col, ch in enumerate(line, 1):
-            if ord(ch) > 127:
-                errors.append(
-                    f"{path}:{lineno}:{col}: "
-                    f"non-ASCII character U+{ord(ch):04X} ({ch!r})"
-                )
+    if text.isascii():
+        errors = []
+    else:
+        errors = _find_non_ascii_errors(path, text)
 
     if modified:
         path.write_bytes(new_raw)
