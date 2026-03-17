@@ -38,6 +38,10 @@ struct VolumeParamsScalars
 {
     //! Root volume of the geometry graph
     VolumeId world;
+    //! Number of logical volumes (nodes)
+    VolumeId::size_type num_volumes{0};
+    //! Number of volume instances (edges)
+    VolumeInstanceId::size_type num_volume_instances{0};
     //! Depth of the volume graph (1 for a world with no children)
     VolumeLevelId::size_type num_volume_levels{0};
 

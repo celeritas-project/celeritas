@@ -87,14 +87,14 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     //! World volume
     VolumeId world() const { return this->view().world(); }
 
-    //! Depth of the volume DAG (a world without children is 1)
-    inline vol_level_uint num_volume_levels() const;
-
-    //! Number of volumes
-    VolumeId::size_type num_volumes() const { return v_labels_.size(); }
+    // Number of volumes
+    inline VolumeId::size_type num_volumes() const;
 
     // Number of volume instances
     inline VolumeInstanceId::size_type num_volume_instances() const;
+
+    //! Depth of the volume DAG (a world without children is 1)
+    inline vol_level_uint num_volume_levels() const;
 
     //! Get volume metadata
     VolumeMap const& volume_labels() const { return v_labels_; }
@@ -158,9 +158,9 @@ std::ostream& operator<<(std::ostream& os, VolumeParams const& vp);
 /*!
  * Depth of the volume DAG.
  */
-CELER_FORCEINLINE auto VolumeParams::num_volume_levels() const -> vol_level_uint
+CELER_FORCEINLINE auto VolumeParams::num_volumes() const -> VolumeId::size_type
 {
-    return this->view().num_volume_levels();
+    return this->view().num_volumes();
 }
 
 //---------------------------------------------------------------------------//
@@ -169,7 +169,16 @@ CELER_FORCEINLINE auto VolumeParams::num_volume_levels() const -> vol_level_uint
  */
 auto VolumeParams::num_volume_instances() const -> VolumeInstanceId::size_type
 {
-    return vi_labels_.size();
+    return this->view().num_volume_instances();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Depth of the volume DAG.
+ */
+CELER_FORCEINLINE auto VolumeParams::num_volume_levels() const -> vol_level_uint
+{
+    return this->view().num_volume_levels();
 }
 
 //---------------------------------------------------------------------------//
@@ -187,7 +196,7 @@ CELER_FORCEINLINE AllVolumesView VolumeParams::view() const
  */
 CELER_FORCEINLINE VolumeView VolumeParams::get(VolumeId v_id) const
 {
-    return VolumeView{this->host_ref(), v_id};
+    return this->view().volume(v_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -205,8 +214,7 @@ auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
  */
 VolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
 {
-    CELER_EXPECT(vi_id < this->host_ref().volume_ids.size());
-    return this->host_ref().volume_ids[vi_id];
+    return this->view().volume_id(vi_id);
 }
 
 //---------------------------------------------------------------------------//

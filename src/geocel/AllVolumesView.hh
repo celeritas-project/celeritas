@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/AllVolumesView.hh
+//! \sa test/geocel/Volume.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -38,6 +39,13 @@ class AllVolumesView
     //! Root volume of the geometry graph
     inline CELER_FUNCTION VolumeId world() const;
 
+    //! Number of logical volumes (nodes)
+    inline CELER_FUNCTION VolumeId::size_type num_volumes() const;
+
+    //! Number of volume instances (edges)
+    inline CELER_FUNCTION VolumeInstanceId::size_type
+    num_volume_instances() const;
+
     //! Depth of the volume graph (1 for a world with no children)
     inline CELER_FUNCTION VolumeLevelId::size_type num_volume_levels() const;
 
@@ -67,6 +75,26 @@ AllVolumesView::AllVolumesView(ParamsRef const& params) : params_(params) {}
 CELER_FORCEINLINE_FUNCTION VolumeId AllVolumesView::world() const
 {
     return params_.scalars.world;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the number of logical volumes.
+ */
+CELER_FORCEINLINE_FUNCTION VolumeId::size_type
+AllVolumesView::num_volumes() const
+{
+    return params_.scalars.num_volumes;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the number of volume instances.
+ */
+CELER_FORCEINLINE_FUNCTION VolumeInstanceId::size_type
+AllVolumesView::num_volume_instances() const
+{
+    return params_.scalars.num_volume_instances;
 }
 
 //---------------------------------------------------------------------------//
