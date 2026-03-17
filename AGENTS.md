@@ -26,16 +26,20 @@ Object files and tests may have different paths and test names than you expect (
 - Physics constants need units and citations
 
 ### Commit
-**Always** commit after completing a list of tasks.
+**Always** commit immediately when:
+- All todos in the current task list are marked done, **or**
+- The user says something like "done", "that's it", "looks good", or stops giving follow-up instructions for the current feature/refactor, **or**
+- The conversation turn ends with all requested changes implemented and verified
 
-**Commit workflow:**
+Do **not** wait to be told to commit. Do **not** skip the commit because the work spanned multiple conversation turns. If you reach the end of a task and haven't committed, do it before yielding back to the user.
+
 ```bash
 git add <files>
-pre-commit run        # Auto-formats code
-git commit --trailer "Assisted-by: GitHub Copilot (<model-name>)" -F - <<'EOF'
-...
-EOF
+pre-commit run        # Auto-formats code; re-add if it modifies files
+git commit -m "Message" --trailer "Assisted-by: <agentic-tool> (<model-name>)"
 ```
+
+**Common failure mode:** Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
 
 ## Architecture
 Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
