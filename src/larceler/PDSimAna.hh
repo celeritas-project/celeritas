@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
 #include <TH1D.h>
 #include <TH2D.h>
 #include <art/Framework/Core/EDAnalyzer.h>
@@ -50,6 +51,9 @@ class PDSimAna : public art::EDAnalyzer
     // Initialize output file(s) and data objects
     void beginJob() override;
 
+    // Write data to disk if needed
+    void endJob() override;
+
     // Read art::Event and generate output data
     void analyze(art::Event const& event) override;
 
@@ -60,9 +64,14 @@ class PDSimAna : public art::EDAnalyzer
 
     struct HistogramStore
     {
+        using PDG = int;
+        using PdgMap = std::map<PDG, TH1D*>;
+
+        PdgMap step_len;
         TH1D* btr_time;
         TH2D* sdp_zy;
         TH2D* btr_detid_time;
+        TH2D* btr_detid_logtime;
     } histograms_;
 };
 
