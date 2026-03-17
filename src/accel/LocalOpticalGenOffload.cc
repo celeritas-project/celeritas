@@ -9,19 +9,13 @@
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 
-#include "corecel/io/OutputInterfaceAdapter.hh"
-#include "corecel/io/OutputRegistry.hh"
-#include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"
-#include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
-#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"

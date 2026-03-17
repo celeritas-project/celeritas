@@ -14,8 +14,6 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
-#include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/Transporter.hh"
 
