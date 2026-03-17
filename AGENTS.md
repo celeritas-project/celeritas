@@ -33,10 +33,15 @@ Object files and tests may have different paths and test names than you expect (
 
 Do **not** wait to be told to commit. Do **not** skip the commit because the work spanned multiple conversation turns. If you reach the end of a task and haven't committed, do it before yielding back to the user.
 
+**Commit workflow:**
 ```bash
 git add <files>
 pre-commit run        # Auto-formats code; re-add if it modifies files
-git commit -m "Message" --trailer "Assisted-by: <agentic-tool> (<model-name>)"
+git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -F - <<'EOF'
+<subject>
+
+<message>
+EOF
 ```
 
 **Common failure mode:** Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
