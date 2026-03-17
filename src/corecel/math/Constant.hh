@@ -63,7 +63,7 @@ class Constant
  *
  * Usage:
  * \code
- * using celeritas::literals::operator"" _const;
+ * using namespace celeritas::literals;
  * auto charge = 1.602176634e-19_const;
  * \endcode
  */
