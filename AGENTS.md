@@ -28,11 +28,13 @@ Object files and tests may have different paths and test names than you expect (
 ### Commit
 **Always** commit after completing a list of tasks.
 
-Document that the commit is AI-assisted and with what tool (e.g., Github Copilot) and model (e.g. Claude Sonnet 3.6)
+**Commit workflow:**
 ```bash
 git add <files>
 pre-commit run        # Auto-formats code
-git commit -m "Message" --trailer "Assisted-by: <agentic-tool> (<model-name>)"
+git commit --trailer "Assisted-by: GitHub Copilot (<model-name>)" -F - <<'EOF'
+...
+EOF
 ```
 
 ## Architecture
@@ -94,7 +96,7 @@ Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // V
 
 Key types:
 - `Collection<T>`: GPU-compatible array with ownership semantics
-- `OpaqueId<T>`: Type-safe index (not raw int)
+- `OpaqueId<T>`: Type-safe index (not raw int), can be incremented and compared with unsigned ints
 - `Span<T>`: Non-owning array view
 - `Array<T, N>`: Fixed-size stack array
 
@@ -185,3 +187,4 @@ When adding features, ensure consistency across:
 - **Extract validation logic** — Complex validation should be in dedicated functions with descriptive names.
 - Ensure data consistency (input → data → view → executor)
 - Add unit tests for all classes (detail classes excepted)
+- Run `pre-commit run` before committing
