@@ -9,9 +9,11 @@
 #include <typeindex>
 #include <unordered_map>
 #include <G4Cerenkov.hh>
+#include <G4ElementData.hh>
 #include <G4Material.hh>
 #include <G4MaterialPropertiesTable.hh>
 #include <G4MuPairProduction.hh>
+#include <G4MuPairProductionModel.hh>
 #include <G4MuonMinusAtomicCapture.hh>
 #include <G4OpAbsorption.hh>
 #include <G4OpBoundaryProcess.hh>
@@ -40,6 +42,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/inp/MucfPhysics.hh"
 #include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
@@ -47,6 +50,7 @@
 
 #include "GeantMaterialPropertyGetter.hh"
 #include "GeantOpticalMatHelper.hh"
+#include "GeantProcessImporter.hh"
 #include "GeantScintillationLoader.hh"
 #include "GeantSurfacePhysicsLoader.hh"
 #include "../GeantParticleView.hh"
@@ -514,13 +518,68 @@ size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
 
 //---------------------------------------------------------------------------//
 /*!
- * Placeholder for loading muon pair production data per particle type.
+ * Load per-particle muon pair production sampling table.
  *
- * \todo Import the per-particle energy transfer sampling table.
+ * This is called once for mu- and once for mu+. On the first call the table
+ * is imported and stored. On the second call the table is validated to be
+ * identical and skipped.
  */
 size_type GeantPhysicsLoader::mu_pair_production(GeantParticleView const&,
-                                                 G4VProcess const&)
+                                                 G4VProcess const& g4vp)
 {
+    using IU = ImportUnits;
+
+    auto& g4proc = dynamic_cast<G4MuPairProduction const&>(g4vp);
+    auto* model = dynamic_cast<G4MuPairProductionModel*>(g4proc.EmModel());
+    CELER_ASSERT(model);
+
+    G4ElementData* el_data = model->GetElementData();
+    CELER_ASSERT(el_data);
+
+    inp::MuPairProductionEnergyTransferTable table;
+    if (G4VERSION_NUMBER < 1120)
+    {
+        constexpr int element_data_size = 99;
+        for (int z = 1; z < element_data_size; ++z)
+        {
+            if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
+            {
+                table.atomic_number.push_back(AtomicNumber{z});
+                table.grids.push_back(detail::import_physics_2dvector(
+                    *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+            }
+        }
+    }
+    else
+    {
+        // The muon pair production model in newer Geant4 versions initializes
+        // and accesses the element data by Z index rather than Z number
+        using Z = AtomicNumber;
+        table.atomic_number = {Z{1}, Z{4}, Z{13}, Z{29}, Z{92}};
+        for (int i : range(table.atomic_number.size()))
+        {
+            G4Physics2DVector const* pv = el_data->GetElement2DData(i);
+            CELER_ASSERT(pv);
+            table.grids.push_back(detail::import_physics_2dvector(
+                *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+        }
+    }
+
+    CELER_ASSERT(table);
+
+    auto& mu_production = imported_.mu_production;
+    if (!mu_production)
+    {
+        // First particle (mu- or mu+): store the table
+        mu_production.muppet_table = std::move(table);
+        return mu_production.muppet_table.grids.size();
+    }
+
+    // Second particle: validate tables agree
+    CELER_VALIDATE(
+        mu_production.muppet_table.atomic_number == table.atomic_number
+            && mu_production.muppet_table.grids == table.grids,
+        << "muon pair production sampling tables for mu- and mu+ differ");
     return 0;
 }
 
