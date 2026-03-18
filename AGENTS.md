@@ -27,12 +27,12 @@ Commit immediately when all todos are done. Do not wait to be told. Do not defer
 2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
 3. **Compile**: confirm the build still succeeds.
 
-The commit message body must include a quoted copy of the immediately preceding user prompt (excluding any metadata or file attachments — plain text only):
+The commit message subject must use imperative mood ("Add X", "Fix Y", "Update Z" — not "Added" or "Adds"). The body must include a quoted copy of the immediately preceding user prompt (excluding any metadata or file attachments — plain text only):
 
 ```bash
 git add <files>
 pre-commit run        # Auto-formats code; re-add if it modifies files
-git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "...
+git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "Imperative action clause
 
 Prompt: <verbatim user prompt text, wrapped in quotes>"
 ```
