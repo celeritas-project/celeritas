@@ -3,7 +3,11 @@ Celeritas is a particle physics library for detector simulation. It's a C++17 co
 
 ## Mandatory Behaviors
 
-These two behaviors apply unconditionally, every session. Read them before starting any task.
+These three behaviors apply unconditionally, every session. Read them before starting any task.
+
+### Before any modification — verify code state
+
+**Avoid mixing user changes with assistant changes**. Before calling any file-editing tool for the first time in a session — including when transitioning from analysis to applying edits — check the repository for uncommitted changes and commit with `git commit -a --no-verify -m "WIP: user changes"` if so. Alert the user if this happens.
 
 ### After any user correction — update this file
 
@@ -170,15 +174,6 @@ Collection<Foo, Ownership::value, MemSpace::host> foos;           // Owns data
 Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // View
 ```
 
-### Avoiding Code Duplication
-
-Don't Repeat Yourself. When you encounter duplication:
-- **File-local helpers**: anonymous-namespace free functions or lambdas
-- **Reusable logic**: utility header or templated function
-- **GPU-compatible operations**: functors decorated with `CELER_FUNCTION`
-
-Functions should rarely exceed ~100 lines. Large functions are a sign of missing abstractions.
-
 ## Common Patterns
 
 ### Creating New Classes
@@ -199,5 +194,5 @@ Functions should rarely exceed ~100 lines. Large functions are a sign of missing
 | Leave repeated patterns unrefactored | Refactor before extending: extract the common pattern first |
 | Write functions over ~100 lines | Break into focused helper functions with descriptive names |
 | Use raw integers for public indices | Use `OpaqueId<T>` |
-| Omit `CELER_FUNCTION` on device-callable code | Always decorate; omitting causes `__host__/__device__` errors |
+| Omit `CELER_FUNCTION` from View member functions | Always decorate functions that can be called on device |
 | Edit files via terminal commands or Python scripts | Use agentic tools; the terminal is for building and testing only |
