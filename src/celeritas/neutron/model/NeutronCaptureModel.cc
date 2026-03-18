@@ -11,7 +11,6 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
-// #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/neutron/executor/NeutronCaptureExecutor.hh"
 #include "celeritas/phys/InteractionApplier.hh"
