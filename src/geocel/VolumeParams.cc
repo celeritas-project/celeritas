@@ -7,9 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "VolumeParams.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/data/ParamsDataStore.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/Types.hh"
@@ -21,6 +23,10 @@ namespace celeritas
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+// Note: ull_int is used in this file as shorthand
+static_assert(std::is_same_v<ull_int, VolumeUniqueInstanceId::size_type>);
+
 //---------------------------------------------------------------------------//
 /*!
  * Accessor wrapping a host VolumeParamsData for use with VolumeVisitor.
@@ -210,7 +216,15 @@ std::weak_ptr<VolumeParams const> const& global_volumes()
  */
 VolumeParams::VolumeParams(inp::Volumes const& in)
 {
+    CELER_VALIDATE(in.volumes.empty() != static_cast<bool>(in.world),
+                   << "missing world volume (or unused volumes provided)");
+    CELER_VALIDATE(!in.world || in.world < in.volumes.size(),
+                   << "world volume ID " << in.world
+                   << " is out of range (num_volumes = " << in.volumes.size()
+                   << ")");
+
     // Build label maps
+    // TODO: LabelIdMultiMap helper function
     auto extract_labels = [](auto const& items) {
         std::vector<Label> labels;
         labels.reserve(items.size());
@@ -225,7 +239,6 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
         = VolInstMap("volume_instance", extract_labels(in.volume_instances));
 
     // TODO: warn about duplicate labels (see LabelIdMultiMap::duplicates)
-
     auto const num_volumes = v_labels_.size();
     auto const num_volume_instances = vi_labels_.size();
 
@@ -237,12 +250,13 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
         auto const& vi_inp = in.volume_instances[vi.get()];
         if (!vi_inp)
         {
+            // TODO: in practice we should prohibit unused volume instances
             continue;
         }
         CELER_VALIDATE(vi_inp.volume < num_volumes,
                        << "assigned volume (" << vi_inp.volume
                        << ") is out of range (" << num_volumes
-                       << ") for volume instance " << vi_inp.volume << "='"
+                       << ") for volume instance " << vi << "='"
                        << vi_labels_.at(vi) << "'");
         parent_lists[vi_inp.volume.unchecked_get()].push_back(vi);
     }
@@ -251,7 +265,22 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     HostVal<VolumeParamsData> host_data;
     CollectionBuilder vol_builder{&host_data.volumes};
     CollectionBuilder vi_ids_builder{&host_data.volume_ids};
-    CollectionBuilder vi_storage_builder{&host_data.vi_storage};
+    DedupeCollectionBuilder vi_storage_builder{&host_data.vi_storage};
+
+    // Set basic scalars
+    host_data.scalars.world = in.world;
+    host_data.scalars.num_volumes = num_volumes;
+    host_data.scalars.num_volume_instances = num_volume_instances;
+    if (in)
+    {
+        // Set the enclosing instance of the world volume (if any)
+        CELER_ASSERT(in.world < parent_lists.size());
+        auto const& world_parents = parent_lists[in.world.get()];
+        if (!world_parents.empty())
+        {
+            host_data.scalars.world_instance = world_parents.front();
+        }
+    }
 
     // Build per-volume records
     for (auto vol_idx : range(num_volumes))
@@ -276,44 +305,21 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
     for (auto vi_idx : range(num_volume_instances))
     {
         auto const& vol_inst = in.volume_instances[vi_idx];
-        vi_ids_builder.push_back(vol_inst ? vol_inst.volume : VolumeId{});
+        vi_ids_builder.push_back(vol_inst.volume);
     }
 
-    // Set scalars
-    CELER_EXPECT(!in.world || in.world < in.volumes.size());
-    host_data.scalars.world = in.world;
-    host_data.scalars.num_volumes = num_volumes;
-    host_data.scalars.num_volume_instances = num_volume_instances;
-
-    // Set world_instance: the enclosing instance of the world volume, if any
-    if (in.world)
+    if (in)
     {
-        auto world_parents
-            = host_data.vi_storage[host_data.volumes[in.world].parents];
-        if (!world_parents.empty())
-        {
-            host_data.scalars.world_instance = world_parents.front();
-        }
-    }
-
-    // Calculate depth via VolumeVisitor
-    if (in.world)
-    {
+        // Calculate depth via VolumeVisitor
         host_data.scalars.num_volume_levels = calc_num_volume_levels(host_data);
-    }
 
-    // Precompute unique-instance offsets
-    {
+        // Compute unique-instance offsets
         CollectionBuilder offsets_builder{&host_data.unique_instance_offsets};
         auto const num_desc = calc_num_descendants(host_data);
-        for (ull_int off : calc_unique_instance_offsets(host_data, num_desc))
-        {
-            offsets_builder.push_back(off);
-        }
         host_data.scalars.num_unique_instances
-            = host_data.scalars.world
-                  ? num_desc[host_data.scalars.world.unchecked_get()]
-                  : 0;
+            = num_desc[host_data.scalars.world.get()];
+        auto const offsets = calc_unique_instance_offsets(host_data, num_desc);
+        offsets_builder.insert_back(offsets.begin(), offsets.end());
     }
 
     CELER_ENSURE(host_data);

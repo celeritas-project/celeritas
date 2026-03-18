@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
 #include "corecel/io/Label.hh"
 
 #include "Range.hh"
@@ -48,6 +49,8 @@ namespace celeritas
 template<class I>
 class LabelIdMultiMap
 {
+    static_assert(is_opaque_id_v<I>, "invalid template type");
+
   public:
     //!@{
     //! \name Type aliases
