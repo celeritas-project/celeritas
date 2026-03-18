@@ -278,6 +278,7 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
         auto const& world_parents = parent_lists[in.world.get()];
         if (!world_parents.empty())
         {
+            CELER_ASSERT(world_parents.size() == 1);
             host_data.scalars.world_instance = world_parents.front();
         }
     }
