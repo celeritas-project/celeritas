@@ -20,7 +20,7 @@ Do **not** just acknowledge the correction and move on. If you skip updating AGE
 
 ### After any completed task — commit
 
-Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. This applies to AGENTS.md-only changes too — do not skip the commit step because "it's just documentation."
+Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. Do not batch documentation changes.
 
 **Pre-commit checklist — execute in order:**
 1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API — including adding a method to an existing class — add or update tests there. This applies to *all* changes, not just new classes.
