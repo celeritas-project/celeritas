@@ -1,30 +1,12 @@
 # Celeritas AI Agent Instructions
 Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
 
-## Quick Reference
+## Mandatory Behaviors
 
-### File Organization
-- `corecel/`: GPU abstractions, data structures, utilities
-- `geocel/`: Geometry interfaces (ORANGE, VecGeom, Geant4)
-- `orange/`: Native Celeritas geometry engine
-- `celeritas/`: Physics (EM processes, particles, materials)
-- `accel/`: Geant4 integration layer
+These two behaviors apply unconditionally, every session. Read them before starting any task.
 
-### Build & Test
-Most code relies on external user-installed packages (Geant4), so prefer to use a local environment's build directory. To build a minimal version from scratch:
-```bash
-cmake -B build -G Ninja && cd build && ninja && ctest
-```
+### After any user correction — update this file
 
-Object files and tests may have different paths and test names than you expect (`src/celeritas/ext/GeantImporter.cc` → `src/celeritas/CMakeFiles/celeritas_geant4.dir/ext/GeantImporter.cc.o` and `celeritas/ext/GeantImporter.test.cc` → `test/celeritas/ext_GeantImporter`), and some test executables are run as distinct CTest tests due to environment variables and side effects (`ctest --show-only | grep GeantImporter` → `Test #211: celeritas/ext/GeantImporter:DuneCryostat.*`).
-
-### Document
-- Add Doxygen documentation to **definitions**, not declarations, when adding code
-- Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
-- Always add `\sa {file}` underneath `\file` commands in `src` to indicate the location of tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
-- Use **only** ASCII characters in CMake/C++/CUDA/shell files
-
-### Update AGENTS.md after user corrections
 **When the user corrects your behavior** (tells you something you should have done, points out a missed step, or says you should have known better), your **very next action** must be:
 1. Identify the root cause: *at what decision point* did the existing instruction fail to trigger the right behavior?
 2. Edit AGENTS.md so the corrected behavior is a concrete, checkable step at that decision point — not vague prose buried elsewhere.
@@ -32,20 +14,15 @@ Object files and tests may have different paths and test names than you expect (
 
 Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
 
-### Commit
-**Always** commit immediately when:
-- All todos in the current task list are marked done, **or**
-- The user says something like "done", "that's it", "looks good", or stops giving follow-up instructions for the current feature/refactor, **or**
-- The conversation turn ends with all requested changes implemented and verified
+### After any completed task — commit
 
-Do **not** wait to be told to commit. Do **not** skip the commit because the work spanned multiple conversation turns. If you reach the end of a task and haven't committed, do it before yielding back to the user.
+Commit immediately when all todos are done, the work is verified, or the user signals completion ("done", "looks good", etc.). Do not wait to be told. Do not defer across turns.
 
-**Pre-commit checklist** (run through this before every commit):
-1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API, add or update tests there. This applies to all changes — not just new classes.
+**Pre-commit checklist — execute in order:**
+1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API — including adding a method to an existing class — add or update tests there. This applies to *all* changes, not just new classes.
 2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
 3. **Compile**: confirm the build still succeeds.
 
-**Commit workflow:**
 ```bash
 git add <files>
 pre-commit run        # Auto-formats code; re-add if it modifies files
@@ -55,6 +32,34 @@ git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "..."
 **Common failure modes:**
 - Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
 - Skipping the test-file check because the change "only" added a method to an existing class rather than creating a new one. Always check.
+
+---
+
+## File Organization
+
+- `corecel/`: GPU abstractions, data structures, utilities
+- `geocel/`: Geometry interfaces (ORANGE, VecGeom, Geant4)
+- `orange/`: Native Celeritas geometry engine
+- `celeritas/`: Physics (EM processes, particles, materials)
+- `accel/`: Geant4 integration layer
+
+## Build & Test
+
+Most code relies on external user-installed packages (Geant4), so prefer to use a local environment's build directory. To build a minimal version from scratch:
+```bash
+cmake -B build -G Ninja && cd build && ninja && ctest
+```
+
+Object files and tests may have different paths and test names than you expect (`src/celeritas/ext/GeantImporter.cc` → `src/celeritas/CMakeFiles/celeritas_geant4.dir/ext/GeantImporter.cc.o` and `celeritas/ext/GeantImporter.test.cc` → `test/celeritas/ext_GeantImporter`), and some test executables are run as distinct CTest tests due to environment variables and side effects (`ctest --show-only | grep GeantImporter` → `Test #211: celeritas/ext/GeantImporter:DuneCryostat.*`).
+
+## Documentation
+
+- Add Doxygen documentation to **definitions**, not declarations, when adding code
+- Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
+- Always add `\sa {file}` underneath `\file` commands in `src` to indicate the location of tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
+- Use **only** ASCII characters in CMake/C++/CUDA/shell files
+
+---
 
 ## Architecture
 Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
@@ -68,8 +73,6 @@ Celeritas separates immutable setup from mutable runtime data:
 
 Data flow: Build params on host → copy to device → access via Views
 
-### Data-Oriented Design with Views
-GPU execution requires data-oriented design with object-oriented interfaces:
 ```cpp
 // Params: immutable setup data
 struct MyParamsData { Collection<Material> materials; /* ... */ };
@@ -82,59 +85,6 @@ public:
 };
 ```
 Data structs must have `operator bool` to check construction/assignment.
-
-## Code Conventions
-
-### Naming
-- **Classes/structs**: `CapWords` (e.g., `PhysicsTrackView`)
-- **Functions/variables**: `snake_case`
-- **Private members**: trailing underscore (`data_`)
-- **Type-safe IDs**: `FooId` for `Foo` items
-- **Input classes**: Match what they construct (e.g., `inp::Material` → `Material`)
-
-### File Extensions
-- `.hh`: Headers (host-device compatible with `CELER_FUNCTION`)
-- `.cc`: Host-only implementation
-- `.cu`: CUDA kernels (HIP-compatible via macros)
-- `.test.cc`: Unit tests (mirror `src/` structure in `test/`)
-
-**Most code is `.cc` - only kernel launches need `.cu`**
-
-### Assertions
-- `CELER_EXPECT`: Preconditions (function entry)
-- `CELER_ASSERT`: Internal invariants (debug only)
-- `CELER_ENSURE`: Postconditions (function exit)
-- `CELER_VALIDATE`: User input validation (always on)
-
-### Type-Safe Indices & Collections
-```cpp
-using FooId = OpaqueId<Foo>;
-Collection<Foo, Ownership::value, MemSpace::host> foos;  // Owns data
-Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // View
-```
-
-Key types:
-- `Collection<T>`: GPU-compatible array with ownership semantics
-- `OpaqueId<T>`: Type-safe index (not raw int), can be incremented and compared with unsigned ints
-- `Span<T>`: Non-owning array view
-- `Array<T, N>`: Fixed-size stack array
-
-### Avoiding Code Duplication
-**Critical principle:** Don't Repeat Yourself (DRY). Duplicated code is harder to maintain, test, and debug.
-
-**When you see duplication:**
-- **Extract to helper functions** (anonymous namespace for file-local helpers)
-- **Create reusable functors** for GPU-compatible operations
-- **Use templates** when logic is identical but types differ
-- **Factor out common patterns** into utility functions
-
-**Strategies:**
-- **Long functions (>50 lines):** Break into smaller, focused helper functions
-- **Repeated logic blocks:** Extract to named functions with clear purposes
-- **Similar code patterns:** Identify the varying parts and parameterize
-- **Complex validation:** Create dedicated validation functions
-
-## Critical Patterns
 
 ### Action/Executor/Interactor
 The stepping loop uses three layers:
@@ -179,30 +129,80 @@ struct MyParamsData {
 
 State collections need `resize(size)` operators for track slots.
 
+## Code Conventions
+
+### Naming
+
+| Concept | Convention | Example |
+|---------|-----------|--------|
+| Classes/structs | `CapWords` | `PhysicsTrackView` |
+| Functions/variables | `snake_case` | `calc_energy` |
+| Private members | trailing underscore | `data_` |
+| Type-safe IDs | `FooId` | `MaterialId` |
+| Input classes | match what they construct | `inp::Material` → `Material` |
+
+### File Extensions
+
+| Extension | Purpose |
+|-----------|--------|
+| `.hh` | Headers, host+device compatible (use `CELER_FUNCTION`) |
+| `.cc` | Host-only implementation — **most code goes here**, not `.cu` |
+| `.cu` | CUDA kernel launches only (HIP-compatible via macros) |
+| `.test.cc` | Unit tests, mirroring `src/` under `test/` |
+
+### Assertions
+
+| Macro | When to use |
+|-------|------------|
+| `CELER_EXPECT` | Preconditions at function entry |
+| `CELER_ASSERT` | Internal invariants (debug only) |
+| `CELER_ENSURE` | Postconditions at function exit |
+| `CELER_VALIDATE` | User input validation (always active) |
+
+### Type-Safe Indices & Collections
+
+| Type | Purpose |
+|------|--------|
+| `OpaqueId<T>` | Type-safe index — never use raw integers for indices |
+| `Collection<T>` | GPU-compatible array with ownership semantics |
+| `Span<T>` | Non-owning array view |
+| `Array<T, N>` | Fixed-size stack array |
+
+```cpp
+using FooId = OpaqueId<Foo>;
+Collection<Foo, Ownership::value, MemSpace::host> foos;           // Owns data
+Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // View
+```
+
+### Avoiding Code Duplication
+
+Don't Repeat Yourself. When you encounter duplication:
+- **File-local helpers**: anonymous-namespace free functions or lambdas
+- **Reusable logic**: utility header or templated function
+- **GPU-compatible operations**: functors decorated with `CELER_FUNCTION`
+
+Functions should rarely exceed ~100 lines. Large functions are a sign of missing abstractions.
+
 ## Common Patterns
 
 ### Creating New Classes
 1. Separate data from behavior: `FooData`, `FooParams`, `FooView`
 2. Define any nontrivial member function out-of-line, decorating the function *declaration* with `inline`
 3. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
-
-### Consistency Checklist
-When adding features, ensure consistency across:
-- **Input**: `inp::Foo` constructs the data
-- **Data**: Members, `operator bool()`, `operator=`, `resize` (for states)
-- **View**: Lightweight accessor with `CELER_FUNCTION` methods
-- **Executor/Interactor**: Physics implementation
+4. Ensure consistency across the stack:
+   - **Input**: `inp::Foo` constructs the data
+   - **Data**: Members, `operator bool()`, `operator=`, `resize` (for states)
+   - **View**: Lightweight accessor with `CELER_FUNCTION` methods
+   - **Executor/Interactor**: Physics implementation
 
 ## Common Pitfalls
 
-**Don't:**
-- **Copy-paste code** — Duplicated code compounds bugs and makes refactoring difficult. Extract to helper functions (anonymous namespace for file-local, or utility headers for reusable). Large functions (>100 lines) are often a sign of missing abstractions.
-- **Leave repeated patterns unrefactored** — If you write similar code 3+ times, extract it. Use lambdas for local helpers, free functions for broader reuse.
-- Use raw integers for indices (use `OpaqueId<T>`)
-- Forget `CELER_FUNCTION` on device code (→ `__host__/__device__` errors)
-
-**Do:**
-- **Refactor before extending** — When adding to duplicated code, first extract the common pattern, then extend it.
-- **Limit function sizes** — Long functions and complex expressions should be broken into smaller steps using self-documenting, readable helper functions. Functions should rarely be more than 100 lines, and expressions rarely more than 2 lines.
-- Ensure data consistency (input → data → view → executor)
-- Add unit tests for all classes (detail classes excepted)
+| Don't | Do instead |
+|-------|-----------|
+| Copy-paste code across call sites | Extract to helper function (anonymous namespace for file-local, utility header for reusable) |
+| Leave repeated patterns unrefactored | Refactor before extending: extract the common pattern first |
+| Write functions over ~100 lines | Break into focused helper functions with descriptive names |
+| Use raw integers for indices | Use `OpaqueId<T>` |
+| Omit `CELER_FUNCTION` on device-callable code | Always decorate; omitting causes `__host__/__device__` errors |
+| Skip tests when adding a method to an existing class | Check `test/` for every public API change, not just new classes |
+| Defer the commit while the user asks follow-ups | Commit each self-contained feature immediately after verification |
