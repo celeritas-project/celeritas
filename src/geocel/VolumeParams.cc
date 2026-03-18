@@ -87,47 +87,50 @@ int calc_num_volume_levels(HostVal<VolumeParamsData> const& params)
 std::vector<ull_int>
 calc_num_descendants(HostVal<VolumeParamsData> const& params)
 {
+    CELER_EXPECT(params.scalars.world);
+
     auto const num_volumes = params.volumes.size();
-    std::vector<ull_int> num_desc(num_volumes, 0);
+    std::vector<ull_int> num_descendents(num_volumes, 0);
+
+    auto num_desc = [&num_descendents](VolumeId v) -> ull_int& {
+        CELER_EXPECT(v < num_descendents.size());
+        return num_descendents[v.unchecked_get()];
+    };
 
     // Iterative post-order DFS: pair (volume, fully_expanded)
-    std::vector<std::pair<VolumeId, bool>> stack;
-    if (params.scalars.world)
-    {
-        stack.push_back({params.scalars.world, false});
-    }
+    std::vector<std::pair<VolumeId, bool>> stack
+        = {{params.scalars.world, false}};
 
     while (!stack.empty())
     {
         auto [v, expanded] = stack.back();
         stack.pop_back();
 
-        if (num_desc[v.unchecked_get()] != 0)
+        if (num_desc(v) != 0)
         {
             // Already computed; reachable via multiple ancestor paths (DAG)
             continue;
         }
+        auto children = params.vi_storage[params.volumes[v].children];
         if (expanded)
         {
             // All children computed; accumulate self + children
             ull_int n = 1;
-            for (VolumeInstanceId vi :
-                 params.vi_storage[params.volumes[v].children])
+            for (VolumeInstanceId vi : children)
             {
-                n += num_desc[params.volume_ids[vi].unchecked_get()];
+                n += num_desc(params.volume_ids[vi]);
             }
-            num_desc[v.unchecked_get()] = n;
+            num_desc(v) = n;
         }
         else
         {
             // Push self again for post-processing, then push uncomputed
             // children
             stack.push_back({v, true});
-            for (VolumeInstanceId vi :
-                 params.vi_storage[params.volumes[v].children])
+            for (VolumeInstanceId vi : children)
             {
                 VolumeId child = params.volume_ids[vi];
-                if (num_desc[child.unchecked_get()] == 0)
+                if (num_desc(child) == 0)
                 {
                     stack.push_back({child, false});
                 }
@@ -135,7 +138,7 @@ calc_num_descendants(HostVal<VolumeParamsData> const& params)
         }
     }
 
-    return num_desc;
+    return num_descendents;
 }
 
 //---------------------------------------------------------------------------//
