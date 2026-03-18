@@ -6,15 +6,12 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
-#include "celeritas_test_config.h"
-
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/grid/TwodGridCalculator.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/neutron/interactor/NeutronInelasticInteractor.hh"
 #include "celeritas/neutron/interactor/detail/CascadeCollider.hh"
@@ -44,9 +41,7 @@ class NeutronInelasticTest : public NeutronTestBase
         using namespace units;
 
         // Load neutron elastic cross section data
-        std::string data_path = celeritas_source_dir;
-        data_path += "/test/celeritas/data/neutron-xs/";
-        NeutronXsReader read_el_data(NeutronXsType::inel, data_path.c_str());
+        auto xs_reader = make_xs_reader(NeutronXsType::inel);
 
         // Set up the default particle: 100 MeV neutron along +z direction
         auto const& particles = *this->particle_params();
@@ -56,12 +51,8 @@ class NeutronInelasticTest : public NeutronTestBase
         // Build the model with the default material
         this->set_material("HeCu");
         CascadeOptions options;
-        model_
-            = std::make_shared<NeutronInelasticModel>(ActionId{0},
-                                                      particles,
-                                                      *this->material_params(),
-                                                      options,
-                                                      read_el_data);
+        model_ = std::make_shared<NeutronInelasticModel>(
+            ActionId{0}, particles, *this->material_params(), options, xs_reader);
     }
 
   protected:

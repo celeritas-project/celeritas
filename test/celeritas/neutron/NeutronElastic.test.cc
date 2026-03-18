@@ -6,13 +6,10 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
-#include "celeritas_test_config.h"
-
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/neutron/interactor/ChipsNeutronElasticInteractor.hh"
 #include "celeritas/neutron/model/ChipsNeutronElasticModel.hh"
@@ -39,9 +36,7 @@ class NeutronElasticTest : public NeutronTestBase
         using namespace units;
 
         // Load neutron elastic cross section data
-        std::string data_path = celeritas_source_dir;
-        data_path += "/test/celeritas/data/neutron-xs/";
-        NeutronXsReader read_el_data(NeutronXsType::el, data_path.c_str());
+        auto xs_reader = make_xs_reader(NeutronXsType::el);
 
         // Set up the default particle: 100 MeV neutron along +z direction
         auto const& particles = *this->particle_params();
@@ -51,7 +46,7 @@ class NeutronElasticTest : public NeutronTestBase
         // Set up the default material
         this->set_material("HeCu");
         model_ = std::make_shared<ChipsNeutronElasticModel>(
-            ActionId{0}, particles, *this->material_params(), read_el_data);
+            ActionId{0}, particles, *this->material_params(), xs_reader);
     }
 
   protected:

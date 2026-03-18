@@ -6,12 +6,9 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
-#include "celeritas_test_config.h"
-
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/neutron/model/NeutronCaptureModel.hh"
 #include "celeritas/neutron/xs/NeutronCaptureMicroXsCalculator.hh"
@@ -37,9 +34,7 @@ class NeutronCaptureTest : public NeutronTestBase
 
         // Load neutron capture cross section test data (filtered and reduced
         // by a factor of 5 from the original datase
-        std::string data_path = celeritas_source_dir;
-        data_path += "/test/celeritas/data/neutron-xs/";
-        NeutronXsReader read_cap_data(NeutronXsType::cap, data_path.c_str());
+        auto xs_reader = make_xs_reader(NeutronXsType::cap);
 
         // Set up the default particle: 100 MeV neutron along +z direction
         auto const& particles = *this->particle_params();
@@ -49,7 +44,7 @@ class NeutronCaptureTest : public NeutronTestBase
         // Set up the default material
         this->set_material("HeCu");
         model_ = std::make_shared<NeutronCaptureModel>(
-            ActionId{0}, particles, *this->material_params(), read_cap_data);
+            ActionId{0}, particles, *this->material_params(), xs_reader);
     }
 
   protected:
