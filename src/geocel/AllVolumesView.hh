@@ -97,6 +97,7 @@ CELER_FORCEINLINE_FUNCTION VolumeInstanceId AllVolumesView::world_instance() con
 {
     return params_.scalars.world_instance;
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the number of logical volumes.
