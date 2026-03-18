@@ -406,7 +406,6 @@ TEST_F(SurfaceDetectorTest, efficiency)
     gen.shape = inp::PointDistribution{{0, 0, 0}};
 
     // Run test
-
     auto generate = PrimaryGeneratorAction::make_and_insert(
         *this->optical_params(), std::move(gen));
     this->initialize_run();
@@ -414,11 +413,11 @@ TEST_F(SurfaceDetectorTest, efficiency)
     (*transport_)(*state_);
 
     // Check results
+    auto total_hits = std::accumulate(hits.begin(), hits.end(), size_type{0});
+    EXPECT_GT(total_hits, 0);
 
-    if (reference_configuration)
+    if constexpr (reference_configuration)
     {
-        auto total_hits = std::accumulate(hits.begin(), hits.end(), 0);
-
         // Expect ~60% of total primaries are detected
         static size_type const expected_hits = 4894;
 
