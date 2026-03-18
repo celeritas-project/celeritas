@@ -224,19 +224,9 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
                    << ")");
 
     // Build label maps
-    // TODO: LabelIdMultiMap helper function
-    auto extract_labels = [](auto const& items) {
-        std::vector<Label> labels;
-        labels.reserve(items.size());
-        for (auto const& item : items)
-        {
-            labels.push_back(item.label);
-        }
-        return labels;
-    };
-    v_labels_ = VolumeMap("volume", extract_labels(in.volumes));
-    vi_labels_
-        = VolInstMap("volume_instance", extract_labels(in.volume_instances));
+    v_labels_ = VolumeMap::from_labeled_items("volume", in.volumes);
+    vi_labels_ = VolInstMap::from_labeled_items("volume_instance",
+                                                in.volume_instances);
 
     // TODO: warn about duplicate labels (see LabelIdMultiMap::duplicates)
     auto const num_volumes = v_labels_.size();

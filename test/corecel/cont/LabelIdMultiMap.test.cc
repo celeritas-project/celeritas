@@ -90,6 +90,27 @@ TEST(LabelIdMultiMapTest, some_labels)
     EXPECT_THROW(cats.find_unique("fluffy"), RuntimeError);
 }
 
+TEST(LabelIdMultiMapTest, from_labeled_items)
+{
+    struct NamedCat
+    {
+        Label label;
+        int age{0};
+    };
+    std::vector<NamedCat> const items = {
+        {{"dexter"}, 3},
+        {{"fluffy", "jr"}, 1},
+        {{"fluffy", "sr"}, 7},
+    };
+    auto cats = CatMultiMap::from_labeled_items("cat", items);
+    EXPECT_TRUE(cats);
+    EXPECT_EQ(3, cats.size());
+    EXPECT_EQ(CatId{0}, cats.find_exact("dexter"));
+    EXPECT_EQ(CatId{1}, cats.find_exact(Label{"fluffy", "jr"}));
+    EXPECT_EQ(CatId{2}, cats.find_exact(Label{"fluffy", "sr"}));
+    EXPECT_THROW(cats.find_unique("fluffy"), RuntimeError);
+}
+
 TEST(LabelIdMultiMapTest, shuffled_labels)
 {
     std::vector<Label> const labels = {
