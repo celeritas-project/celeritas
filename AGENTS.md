@@ -22,7 +22,24 @@ Do **not** just acknowledge the correction and move on. If you skip updating AGE
 
 Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. Do not batch documentation changes.
 
-Follow the `commit-procedure` skill for the full checklist (tests, format, compile) and commit message format.
+**Pre-commit checklist — execute in order:**
+1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API — including adding a method to an existing class — add or update tests there. This applies to *all* changes, not just new classes.
+2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
+3. **Compile**: confirm the build still succeeds.
+
+The commit message subject must use imperative mood ("Add X", "Fix Y", "Update Z" — not "Added" or "Adds"). The body must include a quoted copy of the immediately preceding user prompt (excluding any metadata or file attachments — plain text only):
+
+```bash
+git add <files>
+pre-commit run        # Auto-formats code; re-add if it modifies files
+git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "Imperative action clause
+
+Prompt: <verbatim user prompt text, wrapped in quotes>"
+```
+
+**Common failure modes:**
+- Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
+- Skipping the test-file check because the change "only" added a method to an existing class rather than creating a new one. Always check.
 
 ## File Organization
 
