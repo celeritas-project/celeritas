@@ -17,7 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate neutron capture cross sections from NeutronCaptureXsData
+ * Calculate neutron capture cross sections from NeutronCaptureData
  */
 class NeutronCaptureMicroXsCalculator
 {
