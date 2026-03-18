@@ -189,7 +189,6 @@ When adding features, ensure consistency across:
 
 **Do:**
 - **Refactor before extending** — When adding to duplicated code, first extract the common pattern, then extend it.
-- **Extract validation logic** — Complex validation should be in dedicated functions with descriptive names.
+- **Limit function sizes** — Long functions and complex expressions should be broken into smaller steps using self-documenting, readable helper functions. Functions should rarely be more than 100 lines, and expressions rarely more than 2 lines.
 - Ensure data consistency (input → data → view → executor)
 - Add unit tests for all classes (detail classes excepted)
-- Run `pre-commit run` before committing
