@@ -33,8 +33,6 @@ git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "..."
 - Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
 - Skipping the test-file check because the change "only" added a method to an existing class rather than creating a new one. Always check.
 
----
-
 ## File Organization
 
 - `corecel/`: GPU abstractions, data structures, utilities
@@ -58,8 +56,6 @@ Object files and tests may have different paths and test names than you expect (
 - Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
 - Always add `\sa {file}` underneath `\file` commands in `src` to indicate the location of tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
 - Use **only** ASCII characters in CMake/C++/CUDA/shell files
-
----
 
 ## Architecture
 Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
@@ -202,7 +198,7 @@ Functions should rarely exceed ~100 lines. Large functions are a sign of missing
 | Copy-paste code across call sites | Extract to helper function (anonymous namespace for file-local, utility header for reusable) |
 | Leave repeated patterns unrefactored | Refactor before extending: extract the common pattern first |
 | Write functions over ~100 lines | Break into focused helper functions with descriptive names |
-| Use raw integers for indices | Use `OpaqueId<T>` |
+| Use raw integers for public indices | Use `OpaqueId<T>` |
 | Omit `CELER_FUNCTION` on device-callable code | Always decorate; omitting causes `__host__/__device__` errors |
-| Skip tests when adding a method to an existing class | Check `test/` for every public API change, not just new classes |
-| Defer the commit while the user asks follow-ups | Commit each self-contained feature immediately after verification |
+| Edit files via terminal commands or Python scripts | Use `replace_string_in_file` / `multi_replace_string_in_file`; the terminal is for building and testing only |
+| Use `create_file` on a file that already exists | Use an edit tool; `create_file` fails on existing files |
