@@ -16,7 +16,7 @@ Do **not** just acknowledge the correction and move on. If you skip updating AGE
 
 ### After any completed task — commit
 
-Commit immediately when all todos are done, the work is verified, or the user signals completion ("done", "looks good", etc.). Do not wait to be told. Do not defer across turns.
+Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns.
 
 **Pre-commit checklist — execute in order:**
 1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API — including adding a method to an existing class — add or update tests there. This applies to *all* changes, not just new classes.
@@ -200,5 +200,4 @@ Functions should rarely exceed ~100 lines. Large functions are a sign of missing
 | Write functions over ~100 lines | Break into focused helper functions with descriptive names |
 | Use raw integers for public indices | Use `OpaqueId<T>` |
 | Omit `CELER_FUNCTION` on device-callable code | Always decorate; omitting causes `__host__/__device__` errors |
-| Edit files via terminal commands or Python scripts | Use `replace_string_in_file` / `multi_replace_string_in_file`; the terminal is for building and testing only |
-| Use `create_file` on a file that already exists | Use an edit tool; `create_file` fails on existing files |
+| Edit files via terminal commands or Python scripts | Use agentic tools; the terminal is for building and testing only |
