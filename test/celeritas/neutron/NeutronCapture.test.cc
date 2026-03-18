@@ -33,7 +33,7 @@ class NeutronCaptureTest : public NeutronTestBase
         using namespace units;
 
         // Load neutron capture cross section test data (filtered and reduced
-        // by a factor of 5 from the original datase
+        // by a factor of 5 from the original dataset)
         auto xs_reader = make_xs_reader(NeutronXsType::cap);
 
         // Set up the default particle: 100 MeV neutron along +z direction
@@ -67,7 +67,7 @@ TEST_F(NeutronCaptureTest, micro_xs)
     HostCRef<NeutronCaptureData> const& shared = model_->host_ref();
     EXPECT_EQ(shared.micro_xs[el_id].grid.size(), 72);
 
-    // Microscopic cross section (\f$ mm^{2} \f$) in [1e-05:10] (MeV)
+    // Microscopic cross section (units::BarnXs) in [1e-05:10] (MeV)
     std::vector<real_type> const expected_micro_xs = {0.182047284051,
                                                       0.042861326708155,
                                                       0.0087698603105641,

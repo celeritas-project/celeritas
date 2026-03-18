@@ -69,7 +69,7 @@ TEST_F(NeutronElasticTest, micro_xs)
     NeutronElasticRef const& shared = model_->host_ref();
     EXPECT_EQ(shared.micro_xs[el_id].grid.size(), 181);
 
-    // Microscopic cross section (\f$ mm^{2} \f$) in [1e-05:1e+4] (MeV)
+    // Microscopic cross section (units::BarnXs) in [1e-05:1e+4] (MeV)
     std::vector<real_type> const expected_micro_xs = {7.7754820698300016,
                                                       7.5491116936558775,
                                                       5.5794984695350172,
