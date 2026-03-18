@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/LabelIdMultiMap.hh"
 
+#include <iostream>
+#include <sstream>
+
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
 
@@ -22,6 +25,15 @@ namespace
 using CatId = OpaqueId<struct Cat_>;
 using CatMultiMap = LabelIdMultiMap<CatId>;
 using VecLabel = CatMultiMap::VecLabel;
+
+std::ostream& operator<<(std::ostream& os, CatId const& cat)
+{
+    os << "CatId{";
+    if (cat)
+        os << cat.unchecked_get();
+    os << "}";
+    return os;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
