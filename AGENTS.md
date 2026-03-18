@@ -22,8 +22,15 @@ Object files and tests may have different paths and test names than you expect (
 - Add Doxygen documentation to **definitions**, not declarations, when adding code
 - Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
 - Always add `\sa {file}` underneath `\file` commands in `src` to indicate the location of tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
-- Document anything "surprising" (i.e., the user has to correct your default behavior) in the AGENTS.md file or other appropriate location
 - Use **only** ASCII characters in CMake/C++/CUDA/shell files
+
+### Update AGENTS.md after user corrections
+**When the user corrects your behavior** (tells you something you should have done, points out a missed step, or says you should have known better), your **very next action** must be:
+1. Identify the root cause: *at what decision point* did the existing instruction fail to trigger the right behavior?
+2. Edit AGENTS.md so the corrected behavior is a concrete, checkable step at that decision point — not vague prose buried elsewhere.
+3. Include the AGENTS.md change in the current or next commit.
+
+Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
 
 ### Commit
 **Always** commit immediately when:
@@ -33,6 +40,11 @@ Object files and tests may have different paths and test names than you expect (
 
 Do **not** wait to be told to commit. Do **not** skip the commit because the work spanned multiple conversation turns. If you reach the end of a task and haven't committed, do it before yielding back to the user.
 
+**Pre-commit checklist** (run through this before every commit):
+1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API, add or update tests there. This applies to all changes — not just new classes.
+2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
+3. **Compile**: confirm the build still succeeds.
+
 **Commit workflow:**
 ```bash
 git add <files>
@@ -40,7 +52,9 @@ pre-commit run        # Auto-formats code; re-add if it modifies files
 git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "..."
 ```
 
-**Common failure mode:** Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
+**Common failure modes:**
+- Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
+- Skipping the test-file check because the change "only" added a method to an existing class rather than creating a new one. Always check.
 
 ## Architecture
 Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
