@@ -150,6 +150,7 @@ struct ImportOpticalParameters
 {
     using Dist = optical::WlsDistribution;
 
+    // TODO: move to wls model
     Dist wls_time_profile{Dist::delta};
     Dist wls2_time_profile{Dist::delta};
 };

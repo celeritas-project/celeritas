@@ -126,8 +126,9 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
 
     ++num_pushed_;
 
-    CELER_EXPECT(g4track.GetDefinition());
-    CELER_EXPECT(g4track.GetDefinition()->GetParticleName() == "opticalphoton");
+    CELER_EXPECT(g4track.GetParticleDefinition());
+    CELER_EXPECT(g4track.GetParticleDefinition()->GetParticleName()
+                 == "opticalphoton");
 
     // Convert Geant4 track to optical::TrackInitializer
     TrackData init;

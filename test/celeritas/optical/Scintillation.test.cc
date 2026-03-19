@@ -13,6 +13,9 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
@@ -31,6 +34,9 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
+using celeritas::inp::Grid;
+using celeritas::inp::NormalDistribution;
+using celeritas::inp::SpectrumArgument;
 using celeritas::test::from_cm;
 using celeritas::test::to_cm;
 using TimeSecond = celeritas::RealQuantity<celeritas::units::Second>;
@@ -49,7 +55,6 @@ class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
     using MevEnergy = units::MevEnergy;
     using LightSpeed = units::LightSpeed;
     using SPParams = std::shared_ptr<ScintillationParams>;
-    using VecScintComponents = std::vector<ImportScintComponent>;
     //!@}
 
   protected:
@@ -82,31 +87,54 @@ class MaterialScintillationGaussianTest : public ScintillationTestBase
     //! Create scintillation params
     SPParams build_scintillation_params() override
     {
-        ScintillationParams::Input inp;
-        inp.resolution_scale.push_back(1);
-
-        // One material, three components
-        ImportMaterialScintSpectrum mat_spec;
-        mat_spec.yield_per_energy = 5;
-        mat_spec.components = this->build_material_components();
-        inp.materials.push_back(std::move(mat_spec));
-
-        return std::make_shared<ScintillationParams>(std::move(inp));
-    }
-
-    //! Create material components
-    std::vector<ImportScintComponent> build_material_components()
-    {
         static constexpr real_type nm{units::meter * 1e-9};
         static constexpr real_type ns{units::nanosecond};
 
-        // Note second component has zero rise time
-        std::vector<ImportScintComponent> comps;
-        comps.push_back({0.5, 10 * ns, 6 * ns, {100 * nm, 5 * nm}, {}});
-        comps.push_back({0.3, 0, 1500 * ns, {200 * nm, 10 * nm}, {}});
-        comps.push_back({0.2, 10 * ns, 3000 * ns, {400 * nm, 20 * nm}, {}});
+        // Build optical material params with minimal refractive index
+        optical::MaterialParams::Input mat_input;
+        ImportOpticalProperty prop;
+        // Simple refractive index: n=1.5 across visible spectrum [1-5 eV]
+        prop.refractive_index.x = {1.0, 5.0};
+        prop.refractive_index.y = {1.5, 1.5};
+        mat_input.properties.push_back(prop);
+        mat_input.volume_to_mat = {OptMatId{0}};
+        mat_input.optical_to_core = {PhysMatId{0}};
+        auto optical_mat
+            = std::make_shared<optical::MaterialParams>(std::move(mat_input));
 
-        return comps;
+        // Build scintillation process with three components
+        // Total yield: 2.5 + 1.5 + 1.0 = 5.0 photons/MeV
+        inp::ScintillationProcess process;
+        inp::ScintillationMaterial scint_mat;
+        scint_mat.resolution_scale = 1.0;
+
+        inp::ScintillationSpectrum comp1;
+        comp1.yield = 2.5;  // 50% of total (was yield_frac=0.5 with total=5)
+        comp1.rise_time = 10 * ns;
+        comp1.fall_time = 6 * ns;
+        comp1.spectrum_distribution = NormalDistribution{100 * nm, 5 * nm};
+        comp1.spectrum_argument = SpectrumArgument::wavelength;
+        scint_mat.components.push_back(comp1);
+
+        inp::ScintillationSpectrum comp2;
+        comp2.yield = 1.5;  // 30% of total (was yield_frac=0.3 with total=5)
+        comp2.rise_time = 0;
+        comp2.fall_time = 1500 * ns;
+        comp2.spectrum_distribution = NormalDistribution{200 * nm, 10 * nm};
+        comp2.spectrum_argument = SpectrumArgument::wavelength;
+        scint_mat.components.push_back(comp2);
+
+        inp::ScintillationSpectrum comp3;
+        comp3.yield = 1.0;  // 20% of total (was yield_frac=0.2 with total=5)
+        comp3.rise_time = 10 * ns;
+        comp3.fall_time = 3000 * ns;
+        comp3.spectrum_distribution = NormalDistribution{400 * nm, 20 * nm};
+        comp3.spectrum_argument = SpectrumArgument::wavelength;
+        scint_mat.components.push_back(comp3);
+
+        process.materials[OptMatId{0}] = scint_mat;
+
+        return std::make_shared<ScintillationParams>(*optical_mat, process);
     }
 };
 
@@ -116,29 +144,37 @@ class MaterialScintillationTabularTest : public ScintillationTestBase
     //! Create scintillation params
     SPParams build_scintillation_params() override
     {
-        ScintillationParams::Input inp;
-        inp.resolution_scale.push_back(1);
-
-        // One material, three components
-        ImportMaterialScintSpectrum mat_spec;
-        mat_spec.yield_per_energy = 5;
-        mat_spec.components = this->build_material_components();
-        inp.materials.push_back(std::move(mat_spec));
-
-        return std::make_shared<ScintillationParams>(std::move(inp));
-    }
-
-    //! Create material components
-    std::vector<ImportScintComponent> build_material_components()
-    {
         static constexpr real_type ns{units::nanosecond};
 
-        // Note these components are in tabular form
-        std::vector<ImportScintComponent> comps;
-        comps.push_back(
-            {0.2, 10 * ns, 1500 * ns, {}, {{1.0, 2.0, 3.0}, {0.5, 0.3, 0.2}}});
+        // Build optical material params with minimal refractive index
+        optical::MaterialParams::Input mat_input;
+        ImportOpticalProperty prop;
+        // Simple refractive index: n=1.5 across visible spectrum [1-5 eV]
+        prop.refractive_index.x = {1.0, 5.0};
+        prop.refractive_index.y = {1.5, 1.5};
+        mat_input.properties.push_back(prop);
+        mat_input.volume_to_mat = {OptMatId{0}};
+        mat_input.optical_to_core = {PhysMatId{0}};
+        auto optical_mat
+            = std::make_shared<optical::MaterialParams>(std::move(mat_input));
 
-        return comps;
+        // Build scintillation process with tabular spectrum
+        inp::ScintillationProcess process;
+        inp::ScintillationMaterial scint_mat;
+        scint_mat.resolution_scale = 1.0;
+
+        inp::ScintillationSpectrum comp;
+        comp.yield = 1.0;  // Total 1.0 photons/MeV (was yield_frac=0.2 with
+                           // total=5)
+        comp.rise_time = 10 * ns;
+        comp.fall_time = 1500 * ns;
+        comp.spectrum_distribution = Grid{{1.0, 2.0, 3.0}, {0.5, 0.3, 0.2}};
+        comp.spectrum_argument = SpectrumArgument::energy;
+        scint_mat.components.push_back(comp);
+
+        process.materials[OptMatId{0}] = scint_mat;
+
+        return std::make_shared<ScintillationParams>(*optical_mat, process);
     }
 };
 
@@ -148,51 +184,48 @@ class MaterialScintillationTabularTest : public ScintillationTestBase
 
 TEST_F(MaterialScintillationGaussianTest, data)
 {
+    static constexpr real_type nm{units::meter * 1e-9};
+    static constexpr real_type ns{units::nanosecond};
+
     auto const params = this->build_scintillation_params();
     EXPECT_FALSE(params->is_geant_compatible());
     auto const& data = params->host_ref();
 
-    EXPECT_EQ(1, data.materials.size());
+    EXPECT_EQ(1, data.spectra.size());
 
-    auto const& mat_record = data.materials[opt_mat_];
-    EXPECT_REAL_EQ(5, mat_record.yield_per_energy);
+    auto const& s = data.spectra[opt_mat_];
+    // Total yield: 2.5 + 1.5 + 1.0 = 5.0
+    EXPECT_REAL_EQ(5.0, s.yield_per_energy);
     EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
     EXPECT_EQ(3, data.scint_records.size());
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
         rise_times, fall_times;
-    for (auto comp_idx : range(mat_record.components.size()))
+    for (auto comp_idx : range(s.components.size()))
     {
-        ScintRecord const& comp
-            = data.scint_records[mat_record.components[comp_idx]];
-        yield_fracs.push_back(data.reals[mat_record.yield_pdf[comp_idx]]);
-        lambda_means.push_back(comp.lambda_mean);
-        lambda_sigmas.push_back(comp.lambda_sigma);
-        rise_times.push_back(comp.rise_time);
-        fall_times.push_back(comp.fall_time);
+        ScintDistributionRecord const& comp
+            = data.scint_records[s.components[comp_idx]];
+        yield_fracs.push_back(data.reals[s.yield_pdf[comp_idx]]);
+        lambda_means.push_back(comp.lambda_mean / nm);
+        lambda_sigmas.push_back(comp.lambda_sigma / nm);
+        rise_times.push_back(comp.rise_time / ns);
+        fall_times.push_back(comp.fall_time / ns);
     }
 
-    real_type norm{0};
-    for (auto const& comp : this->build_material_components())
-    {
-        norm += comp.yield_frac;
-    }
-    std::vector<real_type> expected_yield_fracs, expected_lambda_means,
-        expected_lambda_sigmas, expected_rise_times, expected_fall_times;
-    for (auto const& comp : this->build_material_components())
-    {
-        expected_yield_fracs.push_back(comp.yield_frac / norm);
-        expected_lambda_means.push_back(comp.gauss.lambda_mean);
-        expected_lambda_sigmas.push_back(comp.gauss.lambda_sigma);
-        expected_rise_times.push_back(comp.rise_time);
-        expected_fall_times.push_back(comp.fall_time);
-    }
+    // Expected values (O(1) units for testing)
+    double const total_yield = 5.0;
+    static double const expected_yield_fracs[]
+        = {2.5 / total_yield, 1.5 / total_yield, 1.0 / total_yield};
+    static real_type const expected_lambda_means[] = {100, 200, 400};
+    static real_type const expected_lambda_sigmas[] = {5, 10, 20};
+    static real_type const expected_rise_times[] = {10, 0, 10};
+    static real_type const expected_fall_times[] = {6, 1500, 3000};
 
-    EXPECT_VEC_EQ(expected_yield_fracs, yield_fracs);
-    EXPECT_VEC_EQ(expected_lambda_means, lambda_means);
-    EXPECT_VEC_EQ(expected_lambda_sigmas, lambda_sigmas);
-    EXPECT_VEC_EQ(expected_rise_times, rise_times);
-    EXPECT_VEC_EQ(expected_fall_times, fall_times);
+    EXPECT_VEC_SOFT_EQ(expected_yield_fracs, yield_fracs);
+    EXPECT_VEC_SOFT_EQ(expected_lambda_means, lambda_means);
+    EXPECT_VEC_SOFT_EQ(expected_lambda_sigmas, lambda_sigmas);
+    EXPECT_VEC_SOFT_EQ(expected_rise_times, rise_times);
+    EXPECT_VEC_SOFT_EQ(expected_fall_times, fall_times);
 }
 
 //---------------------------------------------------------------------------//
@@ -487,12 +520,11 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
 
     real_type expected_lambda{0};
 
-    auto const& mat_record = data.materials[result.material];
-    for (auto comp_idx : range(mat_record.components.size()))
+    auto const& s = data.spectra[result.material];
+    for (auto comp_idx : range(s.components.size()))
     {
-        ScintRecord const& component
-            = data.scint_records[mat_record.components[comp_idx]];
-        real_type yield = data.reals[mat_record.yield_pdf[comp_idx]];
+        auto const& component = data.scint_records[s.components[comp_idx]];
+        real_type yield = data.reals[s.yield_pdf[comp_idx]];
         expected_lambda += component.lambda_mean * yield;
     }
     EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, 1e-4);
@@ -507,7 +539,8 @@ TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
     // Iterate components and, when an energy CDF is present, construct grid
     for (auto i : range(data.scint_records.size()))
     {
-        auto const& rec = data.scint_records[ItemId<ScintRecord>(i)];
+        auto const& rec
+            = data.scint_records[ItemId<ScintDistributionRecord>(i)];
 
         if (rec.energy_cdf)
         {

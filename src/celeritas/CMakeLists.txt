@@ -237,11 +237,13 @@ if(CELERITAS_USE_Geant4)
     ext/GeantStepPointView.cc
     ext/GeantStepView.cc
     ext/GeantTrackReconstruction.cc
+    ext/HadronicInteractor.cc
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantPhysicsLoader.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/GeantScintillationLoader.cc
     ext/detail/GeantSurfacePhysicsLoader.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc

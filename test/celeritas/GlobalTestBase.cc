@@ -201,6 +201,7 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.surface_physics = this->optical_surface_physics();
     inp.detectors = this->detector();
     inp.optical_detector = this->build_optical_detector_input();
+    inp.volume = this->volumes();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
     inp.capacity = inp::OpticalStateCapacity::from_default(

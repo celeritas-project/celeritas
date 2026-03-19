@@ -16,7 +16,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportProcess.hh"

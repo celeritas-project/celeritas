@@ -56,7 +56,7 @@ using celeritas::test::from_cm;
 
 //---------------------------------------------------------------------------//
 /*!
- * Tabulated refractive index in water as a function of photon wavelength [μm].
+ * Tabulated refractive index in water as a function of photon wavelength [um].
  *
  * M. Daimon and A. Masumura. Measurement of the refractive index of distilled
  * water from the near-infrared region to the ultraviolet region, Appl. Opt.
@@ -176,7 +176,7 @@ class CherenkovWaterTest : public CherenkovTest
 
 TEST_F(CherenkovWaterTest, angle_integral)
 {
-    // Check conversion: 1 μm wavelength is approximately 1.2398 eV
+    // Check conversion: 1 um wavelength is approximately 1.2398 eV
     EXPECT_SOFT_EQ(1.2398419843320026e-6, um_to_mev(1));
 
     auto const& grid = params->host_ref().angle_integral[material_id];

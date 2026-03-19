@@ -332,6 +332,14 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
                            | (includes_muon() ? GIDS::em : GIDS::em_basic);
     result.physics_import.data_selection.particles = selection;
     result.physics_import.data_selection.processes = selection;
+    if (so.optical
+        && std::holds_alternative<inp::OpticalOffloadGenerator>(
+            so.optical->generator))
+    {
+        // EM particles (required for scint/cherenkov) must be loaded
+        CELER_ASSERT(result.physics_import.data_selection.particles
+                     & GIDS::em_basic);
+    }
 
     if (!so.optical
         || std::holds_alternative<inp::OpticalEmGenerator>(

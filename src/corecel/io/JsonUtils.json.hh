@@ -13,8 +13,8 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/OpaqueId.hh"
-#include "corecel/io/EnumStringMapper.hh"  // IWYU pragma: keep
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"  // IWYU pragma: keep
 
 //---------------------------------------------------------------------------//
 // MACROS

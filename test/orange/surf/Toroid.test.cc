@@ -7,7 +7,7 @@
 #include "orange/surf/Toroid.hh"
 
 #include "corecel/cont/Array.hh"
-#include "corecel/io/StreamToString.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "orange/surf/Toroid.hh"
 

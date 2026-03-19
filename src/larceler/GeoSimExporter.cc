@@ -20,6 +20,7 @@
 #include <messagefacility/MessageLogger/MessageLogger.h>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 
 namespace celeritas
 {
@@ -39,7 +40,7 @@ GeoSimExporter::GeoSimExporter(Parameters const& config)
     auto* det_info = tfs->make<TTree>("detector_info", "detector_info");
 
     auto const* geo = lar::providerFrom<geo::Geometry>();
-    CELER_ASSERT(geo);
+    CELER_ASSERT(geo);  // art checks this already
     std::string name = geo->DetectorName();
 
     det_info->Branch("name", &name);
@@ -51,7 +52,7 @@ GeoSimExporter::GeoSimExporter(Parameters const& config)
     geo_data->Branch("pos", &pos);
     geo_data->Branch("info", &info);
 
-    for (unsigned int i = 0; i < geo->NOpDets(); i++)
+    for (auto i : range(geo->NOpDets()))
     {
         auto const& opdet = geo->OpDetGeoFromOpDet(i);
         auto const& center = opdet.GetCenter();

@@ -37,3 +37,18 @@ The track view provides access to the thread-local state.
 
 .. doxygenclass:: celeritas::GeoTrackInterface
    :members:
+
+The track has a status that updates as it moves through the geometry.
+
+.. doxygenenum:: celeritas::GeoStatus
+
+These states can change by calling methods in
+:cpp:class:`celeritas::GeoTrackInterface`, as described in :numref:`fig-orangeinp-types`.
+
+.. _fig-geo-status:
+
+.. figure:: /_static/dot/geo-status.*
+   :align: center
+   :width: 80%
+
+   Allowable transitions and contexts for the geometry status.

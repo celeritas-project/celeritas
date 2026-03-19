@@ -13,13 +13,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
-
-//! Opaque index to a scintillation particle id
-using ScintParticleId = OpaqueId<struct ScintParticle_>;
-
-//! Opaque index to a scintillation spectrum
-using ParScintSpectrumId = OpaqueId<struct ParScintSpectrum>;
-
 namespace optical
 {
 
@@ -28,6 +21,8 @@ namespace optical
 using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
 
 }  // namespace optical
+
+using ScintSpectrumId = OpaqueId<struct ScintSpectrumRecord>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS

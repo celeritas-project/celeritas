@@ -6,12 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "SortTracksAction.hh"
 
-#include <algorithm>
-#include <iterator>
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"

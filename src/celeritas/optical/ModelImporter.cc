@@ -8,11 +8,12 @@
 
 #include <algorithm>
 
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/model/MieModel.hh"
 
@@ -190,7 +191,7 @@ auto ModelImporter::build_mie() const -> ModelBuilder
 auto WarnAndIgnoreModel::operator()(UserBuildInput const&) const
     -> std::optional<ModelBuilder>
 {
-    CELER_LOG(warning) << "Omitting '" << model
+    CELER_LOG(warning) << "Omitting '" << to_cstring(model)
                        << "' from the optical physics model list";
     return std::nullopt;
 }

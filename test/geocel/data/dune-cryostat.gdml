@@ -14,20 +14,20 @@ Provenance:
     <matrix coldim="2" name="EFFICIENCY" values="7.74901e-06 1 1.15758e-05 1"/>
     <matrix coldim="2" name="RINDEX" values="7.74901e-06 1.31339 7.8059e-06 1.31557 7.86362e-06 1.31785 7.92221e-06 1.32024 7.98168e-06 1.32275 8.04204e-06 1.32537 8.10333e-06 1.32812 8.52254e-06 1.34978 8.5914e-06 1.35389 8.66138e-06 1.35825 8.73251e-06 1.36289 8.80482e-06 1.36784 8.87834e-06 1.37312 8.95309e-06 1.37877 9.02911e-06 1.38483 9.10644e-06 1.39134 9.1851e-06 1.39836 9.26514e-06 1.40596 9.34658e-06 1.41419 9.42946e-06 1.42315 9.51383e-06 1.43294 9.59972e-06 1.44366 9.68717e-06 1.45548 9.77624e-06 1.46856 9.86695e-06 1.48311 9.95937e-06 1.49941 1.00535e-05 1.51777 1.01495e-05 1.53863 1.02473e-05 1.56254 1.0347e-05 1.59021 1.04487e-05 1.62264 1.05524e-05 1.66119 1.06582e-05 1.70778 1.07661e-05 1.76532 1.08762e-05 1.83828 1.09886e-05 1.9341 1.11033e-05 2.06612 1.12205e-05 2.26121 1.13402e-05 2.58422 1.14624e-05 3.25186 1.15758e-05 5.44987"/>
 
+    <matrix coldim="2" name="GLASS_RINDEX" values="7.74901e-06 1.5 1.15758e-05 1.5"/>
+
     <matrix name="ABSLENGTH" coldim="2" values="7.74901*eV 10.0*m 7.88202*eV 10.0*m 8.01968*eV 10.0*m 8.16222*eV 10.0*m 8.30993*eV 10.0*m 8.46308*eV 10.0*m 8.62199*eV 10.0*m 8.78697*eV 10.0*m 8.9584*eV 10.0*m 9.13664*eV 10.0*m 9.32212*eV 10.0*m 9.51529*eV 10.0*m 9.71663*eV 10.0*m 9.92668*eV 10.0*m 10.146*eV 10.0*m 10.3752*eV 10.0*m 10.6151*eV 10.0*m 10.8663*eV 10.0*m 11.1296*eV 10.0*m 11.4061*eV 10.0*m 11.6373*eV 10.0*m" />
     <matrix name="RAYLEIGH" coldim="2" values="7.74901*eV 90.0*cm 7.88202*eV 90.0*cm 8.01968*eV 90.0*cm 8.16222*eV 90.0*cm 8.30993*eV 90.0*cm 8.46308*eV 90.0*cm 8.62199*eV 90.0*cm 8.78697*eV 90.0*cm 8.9584*eV 90.0*cm 9.13664*eV 90.0*cm 9.32212*eV 90.0*cm 9.51529*eV 90.0*cm 9.71663*eV 90.0*cm 9.92668*eV 90.0*cm 10.146*eV 90.0*cm 10.3752*eV 90.0*cm 10.6151*eV 90.0*cm 10.8663*eV 90.0*cm 11.1296*eV 90.0*cm 11.4061*eV 90.0*cm 11.6373*eV 90.0*cm" />
     <matrix coldim="2" name="GROUPVEL" values="7.74901e-06 187.379 1.15758e-05 0.622401"/>
-    <matrix coldim="2" name="SCINTILLATIONCOMPONENT1" values="7.74901e-06 0.00286978 9.65527e-06 0.0398606 1.01667e-05 0.0332247 1.06781e-05 0.0196762 1.11896e-05 0.0090939 1.1608e-05 0.00422473"/>
-    <matrix coldim="2" name="SCINTILLATIONCOMPONENT2" values="7.74901e-06 0.000238409 1.05852e-05 0.0220979 1.10966e-05 0.0106224 1.1608e-05 0.00422473"/>
-    <matrix coldim="2" name="FASTCOMPONENT" values="7.74901e-06 0.000238409 8.26045e-06 0.00347484 8.77188e-06 0.0163804 9.28332e-06 0.0341885 9.79475e-06 0.0394953 1.03062e-05 0.0296612 1.08176e-05 0.0162842 1.13291e-05 0.00712565 1.1608e-05 0.00422473"/>
-    <matrix coldim="2" name="SLOWCOMPONENT" values="7.74901e-06 0.000238409 8.26045e-06 0.00347484 8.77188e-06 0.0163804 9.28332e-06 0.0341885 9.79475e-06 0.0394953 1.03062e-05 0.0296612 1.08176e-05 0.0162842 1.1608e-05 0.00422473"/>
     <matrix coldim="2" name="REEMISSIONPROB" values="7.74901e-06 0.000238409 8.26045e-06 0.00347484 8.77188e-06 0.0163804 9.28332e-06 0.0341885 9.79475e-06 0.0394953 1.03062e-05 0.0296612 1.08176e-05 0.0162842 1.13291e-05 0.00712565 1.1608e-05 0.00422473"/>
     <matrix coldim="1" name="SCINTILLATIONYIELD" values="50000"/>
     <matrix coldim="1" name="RESOLUTIONSCALE" values="1"/>
+    <matrix coldim="2" name="SCINTILLATIONCOMPONENT1" values="7.74901e-06 0.00286978 9.65527e-06 0.0398606 1.01667e-05 0.0332247 1.06781e-05 0.0196762 1.11896e-05 0.0090939 1.1608e-05 0.00422473"/>
+    <matrix coldim="2" name="SCINTILLATIONCOMPONENT2" values="7.74901e-06 0.000238409 1.05852e-05 0.0220979 1.10966e-05 0.0106224 1.1608e-05 0.00422473"/>
     <matrix coldim="1" name="SCINTILLATIONTIMECONSTANT1" values="6"/>
     <matrix coldim="1" name="SCINTILLATIONTIMECONSTANT2" values="1590"/>
-    <matrix coldim="1" name="FASTTIMECONSTANT" values="6"/>
-    <matrix coldim="1" name="SLOWTIMECONSTANT" values="1590"/>
+    <matrix coldim="1" name="SCINTILLATIONYIELD1" values="40000"/>
+    <matrix coldim="1" name="SCINTILLATIONYIELD2" values="10000"/>
     <matrix coldim="1" name="YIELDRATIO" values="0.8"/>
   </define>
 
@@ -202,7 +202,9 @@ Provenance:
       <fraction n="0.0518" ref="Ti50"/>
     </element>
     <material name="Glass" state="solid">
+      <!-- TODO: does material reflectivity get used?? -->
       <property name="REFLECTIVITY" ref="REFLECTIVITY"/>
+      <property name="RINDEX" ref="GLASS_RINDEX"/>
       <T unit="K" value="293.15"/>
       <MEE unit="eV" value="132.767300903927"/>
       <D unit="g/cm3" value="2.74351"/>
@@ -222,15 +224,17 @@ Provenance:
       <property name="GROUPVEL" ref="GROUPVEL"/>
       <property name="SCINTILLATIONCOMPONENT1" ref="SCINTILLATIONCOMPONENT1"/>
       <property name="SCINTILLATIONCOMPONENT2" ref="SCINTILLATIONCOMPONENT2"/>
-      <property name="FASTCOMPONENT" ref="FASTCOMPONENT"/>
-      <property name="SLOWCOMPONENT" ref="SLOWCOMPONENT"/>
+      <property name="FASTCOMPONENT" ref="SCINTILLATIONCOMPONENT1"/>
+      <property name="SLOWCOMPONENT" ref="SCINTILLATIONCOMPONENT2"/>
       <property name="REEMISSIONPROB" ref="REEMISSIONPROB"/>
-      <property name="SCINTILLATIONYIELD" ref="SCINTILLATIONYIELD"/>
       <property name="RESOLUTIONSCALE" ref="RESOLUTIONSCALE"/>
       <property name="SCINTILLATIONTIMECONSTANT1" ref="SCINTILLATIONTIMECONSTANT1"/>
       <property name="SCINTILLATIONTIMECONSTANT2" ref="SCINTILLATIONTIMECONSTANT2"/>
-      <property name="FASTTIMECONSTANT" ref="FASTTIMECONSTANT"/>
-      <property name="SLOWTIMECONSTANT" ref="SLOWTIMECONSTANT"/>
+      <property name="FASTTIMECONSTANT" ref="SCINTILLATIONTIMECONSTANT1"/>
+      <property name="SLOWTIMECONSTANT" ref="SCINTILLATIONTIMECONSTANT2"/>
+      <property name="SCINTILLATIONYIELD" ref="SCINTILLATIONYIELD"/>
+      <property name="SCINTILLATIONYIELD1" ref="SCINTILLATIONYIELD1"/>
+      <property name="SCINTILLATIONYIELD2" ref="SCINTILLATIONYIELD2"/>
       <property name="YIELDRATIO" ref="YIELDRATIO"/>
       <T unit="K" value="293.15"/>
       <MEE unit="eV" value="188"/>
@@ -302,18 +306,22 @@ Provenance:
     <volume name="volOpDetSensitive_0-0-00x600002d5c1e0">
       <materialref ref="Glass"/>
       <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+      <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
     </volume>
     <volume name="volOpDetSensitive_0-0-10x600002d5c320">
       <materialref ref="Glass"/>
       <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+      <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
     </volume>
     <volume name="volOpDetSensitive_0-0-20x600002d5c460">
       <materialref ref="Glass"/>
       <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+      <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
     </volume>
     <volume name="volOpDetSensitive_0-0-30x600002d5c5a0">
       <materialref ref="Glass"/>
       <solidref ref="ArapucaAcceptanceWindow0x600003756840"/>
+      <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
     </volume>
     <volume name="volCryostat0x600002d65680">
       <materialref ref="LAr"/>

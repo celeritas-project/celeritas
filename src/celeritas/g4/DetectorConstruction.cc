@@ -13,6 +13,7 @@
 #include <G4VSensitiveDetector.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -102,26 +103,37 @@ void DetectorConstruction::build_worker_sd() const
 {
     CELER_LOG_LOCAL(debug) << R"(Constructing sensitive detectors)";
     auto* sd_manager = G4SDManager::GetSDMpointer();
+    auto get_vol_name = [](MapDetectors::value_type const& sdname_vol) {
+        CELER_ASSERT(sdname_vol.second);
+        return sdname_vol.second->GetName();
+    };
 
     foreach_detector(detectors_, [&](MapDetCIter start, MapDetCIter stop) {
+        auto const& sd_name = start->first;
+        auto vol_names = join(start, stop, "', '", get_vol_name);
+
         // Construct an SD based on the name
-        UPSD sd = build_worker_sd_(start->first);
+        UPSD sd = build_worker_sd_(sd_name);
         if (!sd)
         {
             CELER_LOG(warning)
-                << "No SD specified for volume '" << start->first << "'";
+                << "No SensDet='" << start->first
+                << "' construction specified: ignoring for volumes '"
+                << vol_names << "'";
             return;
         }
 
         // Attach sensitive detectors
+        size_type num_volumes{0};
         for (MapDetCIter iter = start; iter != stop; ++iter)
         {
-            CELER_LOG_LOCAL(debug)
-                << "Attaching '" << iter->first << "'@" << sd.get()
-                << " to volume '" << iter->second->GetName() << "'@"
-                << static_cast<void const*>(iter->second);
             iter->second->SetSensitiveDetector(sd.get());
+            ++num_volumes;
         }
+        CELER_LOG(info) << "Constructed SensDet='" << sd_name
+                        << "' and attached to " << num_volumes << " volumes";
+        CELER_LOG(debug) << "Attached '" << sd_name << "' to '" << vol_names
+                         << "'";
 
         // Hand SD to the manager
         sd_manager->AddNewDetector(sd.release());

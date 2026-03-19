@@ -8,9 +8,13 @@
 
 #include <algorithm>
 #include <map>
+#include <optional>
+#include <variant>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/inp/Distributions.hh"
 #include "corecel/inp/Grid.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
@@ -22,6 +26,96 @@ class SurfaceModel;
 
 namespace inp
 {
+//---------------------------------------------------------------------------//
+// OPTICAL PHOTON GENERATION
+//---------------------------------------------------------------------------//
+//! Limit steps to ensure high-quality cherenkov emission (NOT YET USED)
+struct CherenkovStepLimit
+{
+    //! Limit based on speed loss
+    units::LightSpeed max_speed_loss{};
+
+    //! Limit based on average number of photons to be emitted
+    real_type max_photons{};
+};
+
+//! Configure cherenkov emission
+struct CherenkovProcess
+{
+    //! Limit steps
+    std::optional<CherenkovStepLimit> step_limit;
+};
+
+//---------------------------------------------------------------------------//
+//! Sampling quantity given as an argument to optical distributions
+enum class SpectrumArgument
+{
+    wavelength,  //!< Units: [len]
+    energy,  //!< Units: [MeV]
+    size_
+};
+
+//! Allowable scintillation spectrum distributions
+using SpectrumDistribution = std::variant<NormalDistribution, Grid>;
+
+/*!
+ * A single unnormalized scintillation distribution in energy and time.
+ *
+ * The distribution is scaled by \c yield, with a biexponential time
+ * distribution, and a wavelength/energy spectrum.
+ */
+struct ScintillationSpectrum
+{
+    //! Expected number of photons per energy deposition [1/MeV]
+    double yield{};
+
+    //! Exponential rise constant (none if zero) [time]
+    double rise_time{};
+    //! Exponential decay constant [time]
+    double fall_time{};
+
+    //! Normalized emission spectrum form (gaussian, continuous grid)
+    SpectrumDistribution spectrum_distribution;
+    //! Emission spectrum type/units (wavelength, energy)
+    SpectrumArgument spectrum_argument;
+};
+
+//! A scintillation material can have one or more intensity component spectra
+struct ScintillationMaterial
+{
+    //! Accumulate multiple spectrum components in a material
+    std::vector<ScintillationSpectrum> components;
+    //! Multiplicative stdev constant for sampling the number of total photons
+    double resolution_scale{1};
+
+    //! Whether any scintillation is present
+    explicit operator bool() const { return !components.empty(); }
+};
+
+//! Emit optical photons proportional to local energy deposition
+struct ScintillationProcess
+{
+    std::map<OptMatId, ScintillationMaterial> materials;
+
+    //! Whether any scintillating materials are present
+    bool empty() const { return materials.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Optical photon generation from other particles.
+ */
+struct OpticalGenPhysics
+{
+    //! Enable Cherenkov emission
+    std::optional<CherenkovProcess> cherenkov;
+    //! Enable optical scintillation
+    std::optional<ScintillationProcess> scintillation;
+
+    //! Whether optical generation is enabled
+    explicit operator bool() const { return cherenkov || scintillation; }
+};
+
 //---------------------------------------------------------------------------//
 // VOLUMETRIC (BULK) MODELS
 //---------------------------------------------------------------------------//

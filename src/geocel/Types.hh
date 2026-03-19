@@ -80,6 +80,26 @@ enum class Axis
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Geometry state as a track moves across boundaries through the geometry.
+ *
+ * The "incoming" (incident) and "outgoing" (exiting) states are relative to
+ * the \em boundary (surface) that the track is on, \em not the volume.
+ *
+ * \note The numeric values of the enumeration are chosen to optimize the free
+ * functions \c is_valid (invalid values are strictly negative) and \c
+ * is_on_boundary (values on the boundary are strictly positive).
+ */
+enum class GeoStatus : signed char
+{
+    error = -2,  //!< Unrecoverable error occurred
+    invalid = -1,  //!< Unusable but allowable state
+    interior = 0,  //!< In a volume, not on a boundary
+    boundary_inc = 1,  //!< On a boundary, pointing into surface
+    boundary_out = 2,  //!< On a boundary, pointing away from surface
+};
+
+//---------------------------------------------------------------------------//
 // STRUCTS
 //---------------------------------------------------------------------------//
 /*!
@@ -137,6 +157,13 @@ GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d, TrackSlotId p_id)
 }
 
 //---------------------------------------------------------------------------//
+// HELPER FUNCTIONS (HOST)
+//---------------------------------------------------------------------------//
+
+// Get a string corresponding to a geometry track state
+char const* to_cstring(GeoStatus value);
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Convert Axis enum value to int
@@ -158,6 +185,27 @@ inline CELER_FUNCTION Axis to_axis(int a)
 inline constexpr char to_char(Axis ax)
 {
     return "xyz\a"[static_cast<int>(ax)];
+}
+
+//---------------------------------------------------------------------------//
+//! Whether the geometry is on a boundary
+CELER_CONSTEXPR_FUNCTION bool is_valid(GeoStatus s)
+{
+    return static_cast<char>(s) >= 0;
+}
+
+//---------------------------------------------------------------------------//
+//! Whether the geometry is on a boundary
+CELER_CONSTEXPR_FUNCTION bool is_on_boundary(GeoStatus s)
+{
+    return static_cast<char>(s) > 0;
+}
+
+//---------------------------------------------------------------------------//
+//! Whether a volume is outside the canonical geometry extents
+CELER_CONSTEXPR_FUNCTION bool is_outside(VolumeId v)
+{
+    return !v;
 }
 
 //---------------------------------------------------------------------------//
