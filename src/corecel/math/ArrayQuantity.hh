@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/math/ArrayQuantity.hh
 //! \brief Create and convert arrays of quantities
+//! \sa corecel/math/Quantity.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
