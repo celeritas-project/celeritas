@@ -127,7 +127,7 @@ auto operator<<(std::ostream& os, Array<Q, N> const& q)
     -> std::enable_if_t<is_quantity_v<Q>, std::ostream&>
 {
     using UnitT = typename Q::unit_type;
-    os << q.value() << " [" << UnitT::label() << ']';
+    os << value_as(q) << " [" << UnitT::label() << ']';
     return os;
 }
 #endif
