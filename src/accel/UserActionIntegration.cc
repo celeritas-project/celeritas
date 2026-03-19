@@ -60,7 +60,8 @@ void UserActionIntegration::PreUserTrackingAction(G4Track* track)
         return;
 
     auto const& particles = singleton.shared_params().OffloadParticles();
-    if (std::find(particles.begin(), particles.end(), track->GetDefinition())
+    if (std::find(
+            particles.begin(), particles.end(), track->GetParticleDefinition())
         != particles.end())
     {
         if (mode == SharedParams::Mode::enabled)

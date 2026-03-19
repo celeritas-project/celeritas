@@ -103,7 +103,8 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 
     if (auto* track = step->GetTrack())
     {
-        hits_.particle.push_back(track->GetDefinition()->GetParticleName());
+        hits_.particle.push_back(
+            track->GetParticleDefinition()->GetParticleName());
         double weight = track->GetWeight();
         CELER_ASSERT(weight > 0);
         edep *= weight;

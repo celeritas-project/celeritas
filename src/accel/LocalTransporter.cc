@@ -260,8 +260,8 @@ void LocalTransporter::Push(G4Track& g4track)
         // geometry
         CELER_LOG_LOCAL(error)
             << "Discarding track outside world bounds: " << energy << " from "
-            << g4track.GetDefinition()->GetParticleName() << " at " << pos
-            << " along "
+            << g4track.GetParticleDefinition()->GetParticleName() << " at "
+            << pos << " along "
             << convert_from_geant(g4track.GetMomentumDirection(), 1);
 
         buffer_accum_.lost_energy += energy.value();
@@ -271,7 +271,7 @@ void LocalTransporter::Push(G4Track& g4track)
 
     Primary track;
 
-    PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
+    PDGNumber const pdg{g4track.GetParticleDefinition()->GetPDGEncoding()};
     track.particle_id = particles_->find(pdg);
 
     // Generate Celeritas-specific PrimaryID and capture user info
@@ -286,7 +286,7 @@ void LocalTransporter::Push(G4Track& g4track)
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '"
-                   << g4track.GetDefinition()->GetParticleName()
+                   << g4track.GetParticleDefinition()->GetParticleName()
                    << "' particles");
 
     track.position = native_from_geant<lengthunits::ClhepLength, real_type>(

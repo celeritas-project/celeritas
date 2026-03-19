@@ -204,7 +204,7 @@ TEST_F(GeantTrackReconstructionTest, track_restoration)
     EXPECT_EQ(99, restored_user_info->value());
 
     // Verify particle type
-    EXPECT_EQ(particles_[1], restored_track.GetDefinition());
+    EXPECT_EQ(particles_[1], restored_track.GetParticleDefinition());
 }
 
 //---------------------------------------------------------------------------//
@@ -217,7 +217,7 @@ TEST_F(GeantTrackReconstructionTest, track_restoration_without_primary)
     G4Track& restored_track = recon.view(ParticleId{0}, PrimaryId{});
 
     // Verify basic track properties
-    EXPECT_EQ(particles_[0], restored_track.GetDefinition());
+    EXPECT_EQ(particles_[0], restored_track.GetParticleDefinition());
     EXPECT_EQ(0, restored_track.GetTrackID());
     EXPECT_EQ(0, restored_track.GetParentID());
     EXPECT_EQ(nullptr, restored_track.GetUserInformation());
@@ -296,7 +296,7 @@ TEST_F(GeantTrackReconstructionTest, multiple_particle_types)
         ParticleId particle_id{static_cast<size_type>(i)};
         G4Track& track = recon.view(particle_id, PrimaryId{});
 
-        EXPECT_EQ(particles_[i], track.GetDefinition());
+        EXPECT_EQ(particles_[i], track.GetParticleDefinition());
         EXPECT_EQ(0, track.GetTrackID());
         EXPECT_EQ(0, track.GetParentID());
     }
