@@ -50,7 +50,7 @@ class GeantTrackView<Ownership::const_reference>
     using Length = lengthunits::ClhepLength;
     using Time = units::ClhepTime;
     using Real3 = Array<double, 3>;
-    using CmLength3 = Array<Length, 3>;
+    using ClhepLength3 = Array<Length, 3>;
     //!@}
 
   public:
@@ -61,7 +61,7 @@ class GeantTrackView<Ownership::const_reference>
     inline GeantParticleView particle() const;
 
     // Position in CLHEP length units (mm)
-    inline auto pos() const -> CmLength3;
+    inline auto pos() const -> ClhepLength3;
 
     // Momentum direction (unit vector)
     inline auto dir() const -> Real3;
@@ -99,7 +99,7 @@ class GeantTrackView<Ownership::reference>
     using Length = typename Base::Length;
     using Time = typename Base::Time;
     using Real3 = typename Base::Real3;
-    using CmLength3 = typename Base::CmLength3;
+    using ClhepLength3 = typename Base::ClhepLength3;
     //!@}
 
   public:
@@ -114,7 +114,7 @@ class GeantTrackView<Ownership::reference>
     using Base::weight;
 
     // Mutators
-    inline void pos(CmLength3 const& position);
+    inline void pos(ClhepLength3 const& position);
     inline void dir(Real3 const& direction);
     inline void energy(Energy e);
     inline void time(Time t);
@@ -156,7 +156,7 @@ GeantParticleView GeantTrackView<Ownership::const_reference>::particle() const
 /*!
  * Get position in CLHEP length units (mm).
  */
-auto GeantTrackView<Ownership::const_reference>::pos() const -> CmLength3
+auto GeantTrackView<Ownership::const_reference>::pos() const -> ClhepLength3
 {
     return make_quantity_array<Length>(to_array(this->track().GetPosition()));
 }
@@ -194,7 +194,7 @@ auto GeantTrackView<Ownership::const_reference>::time() const -> Time
 /*!
  * Set position in CLHEP length units (mm).
  */
-void GeantTrackView<Ownership::reference>::pos(CmLength3 const& position)
+void GeantTrackView<Ownership::reference>::pos(ClhepLength3 const& position)
 {
     this->track().SetPosition(to_g4vector(value_as<Length>(position)));
 }
