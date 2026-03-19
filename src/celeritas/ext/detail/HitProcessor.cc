@@ -351,7 +351,7 @@ void HitProcessor::update_track(G4Track& track) const
     // Copy data from step to track
     track.SetStepLength(step_->GetStepLength());
 
-    GeantParticleView par{*track.GetParticleDefinition()};
+    GeantParticleView pv{*track.GetParticleDefinition()};
 
     for (G4StepPoint* p : step_points_)
     {
@@ -361,8 +361,8 @@ void HitProcessor::update_track(G4Track& track) const
         }
 
         // Copy data from track to step points
-        p->SetMass(par.mass().value());
-        p->SetCharge(par.charge().value());
+        p->SetMass(pv.mass().value());
+        p->SetCharge(pv.charge().value());
     }
 
     if (G4StepPoint* pre_step = step_points_[StepPoint::pre])
