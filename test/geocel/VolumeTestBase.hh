@@ -109,5 +109,31 @@ class MultiLevelVolumeTestBase : public virtual VolumeTestBase
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Base for stress tests with a uniform tree of configurable depth and width.
+ *
+ * The volume hierarchy is a regular tree: each non-leaf volume has exactly
+ * \c num_children child instances pointing one level down, plus one additional
+ * instance pointing two levels down (a "skip" child) when the volume is at
+ * least two levels above the leaves. There is one logical volume per depth
+ * level (level 0 = world, level \c depth-1 = leaf), for a total of \c depth
+ * volumes, \c (depth-1)*num_children regular instances, and \c (depth-2) skip
+ * instances.
+ *
+ * Regular instance labels use \c Label{"X->Y", "N"} where X and Y are depth
+ * labels and N is the sibling index (0 to num_children-1). Skip instance
+ * labels use \c Label{"X->Z", "0"} where Z is two levels below X.
+ */
+class StressVolumeTestBase : public virtual VolumeTestBase
+{
+  public:
+    static constexpr unsigned int num_levels_{4};
+    static constexpr unsigned int num_children_{1024};
+
+  protected:
+    std::shared_ptr<VolumeParams> build_volumes() const override;
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

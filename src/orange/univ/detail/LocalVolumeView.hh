@@ -31,6 +31,8 @@ namespace detail
  * Polish Notation-type operations (push, negate, and, or) that is evaluated at
  * tracking time to determine whether a particle is inside the volume. The
  * encoded set of operations is the \c logic accessor.
+ *
+ * \todo Rename or put in detail namespace!
  */
 class LocalVolumeView
 {

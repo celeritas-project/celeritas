@@ -1,5 +1,5 @@
 # Celeritas AI Agent Instructions
-Celeritas is a GPU-accelerated HEP detector physics library for HL-LHC, integrating with Geant4. It's a C++17 codebase with CUDA/HIP device support.
+Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
 
 ## Quick Reference
 
@@ -11,25 +11,36 @@ Celeritas is a GPU-accelerated HEP detector physics library for HL-LHC, integrat
 - `accel/`: Geant4 integration layer
 
 ### Build & Test
+Most code relies on external user-installed packages (Geant4), so prefer to use a local environment's build directory. To build a minimal version from scratch:
 ```bash
 cmake -B build -G Ninja && cd build && ninja && ctest
 ```
 
-### When to Commit
+Object files and tests may have different paths and test names than you expect (`src/celeritas/ext/GeantImporter.cc` → `src/celeritas/CMakeFiles/celeritas_geant4.dir/ext/GeantImporter.cc.o` and `celeritas/ext/GeantImporter.test.cc` → `test/celeritas/ext_GeantImporter`), and some test executables are run as distinct CTest tests due to environment variables and side effects (`ctest --show-only | grep GeantImporter` → `Test #211: celeritas/ext/GeantImporter:DuneCryostat.*`).
 
-**Always** commit after agentic, multi-step work (and you *may* commit during
-the work at each to-do). Ideally:
-- New files compile successfully
-- Refactored code builds without errors
-- Tests pass or aren't affected
-- Work is a logical, complete unit
+### Document
+- Add Doxygen documentation to **definitions**, not declarations, when adding code
+- Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
+- Always add `\sa {file}` underneath `\file` commands in `src` to indicate the location of tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
+- Document anything "surprising" (i.e., the user has to correct your default behavior) in the AGENTS.md file or other appropriate location
+- Use **only** ASCII characters in CMake/C++/CUDA/shell files
+
+### Commit
+**Always** commit immediately when:
+- All todos in the current task list are marked done, **or**
+- The user says something like "done", "that's it", "looks good", or stops giving follow-up instructions for the current feature/refactor, **or**
+- The conversation turn ends with all requested changes implemented and verified
+
+Do **not** wait to be told to commit. Do **not** skip the commit because the work spanned multiple conversation turns. If you reach the end of a task and haven't committed, do it before yielding back to the user.
 
 **Commit workflow:**
 ```bash
 git add <files>
-pre-commit run        # Auto-formats code
-git commit -m "Message" --trailer "Assisted-by: GitHub Copilot (<model-name>)"
+pre-commit run        # Auto-formats code; re-add if it modifies files
+git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "..."
 ```
+
+**Common failure mode:** Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
 
 ## Architecture
 Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
@@ -90,7 +101,7 @@ Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // V
 
 Key types:
 - `Collection<T>`: GPU-compatible array with ownership semantics
-- `OpaqueId<T>`: Type-safe index (not raw int)
+- `OpaqueId<T>`: Type-safe index (not raw int), can be incremented and compared with unsigned ints
 - `Span<T>`: Non-owning array view
 - `Array<T, N>`: Fixed-size stack array
 
@@ -157,31 +168,16 @@ State collections need `resize(size)` operators for track slots.
 ## Common Patterns
 
 ### Creating New Classes
-1. Use `scripts/dev/celeritas-gen.py` for file skeletons
-2. Separate data from behavior: `FooData`, `FooParams`, `FooView`
-3. Define any nontrivial member function out-of-line, decorating the function *declaration* with `inline`
-4. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
+1. Separate data from behavior: `FooData`, `FooParams`, `FooView`
+2. Define any nontrivial member function out-of-line, decorating the function *declaration* with `inline`
+3. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
 
 ### Consistency Checklist
 When adding features, ensure consistency across:
 - **Input**: `inp::Foo` constructs the data
-- **Data**: Members, `operator bool()`, `operator=`, resize (for states)
+- **Data**: Members, `operator bool()`, `operator=`, `resize` (for states)
 - **View**: Lightweight accessor with `CELER_FUNCTION` methods
 - **Executor/Interactor**: Physics implementation
-
-## Documentation
-
-- Doxygen comments go on **definitions**, not declarations
-- `operator()` behavior documented in class comment
-- Citations: `\citep{author-keyword-year}` (refs in `doc/_static/zotero.bib`)
-- Physics constants need units and citations
-
-## Development Tools
-
-- `pre-commit`: Auto-formats (clang-format: 80 cols, East const)
-- `celeritas-gen.py`: Generate file templates
-- `ctest -R <pattern>`: Run specific tests
-- `ninja <target>`: Build specific component
 
 ## Common Pitfalls
 
@@ -197,10 +193,3 @@ When adding features, ensure consistency across:
 - Ensure data consistency (input → data → view → executor)
 - Add unit tests for all classes (detail classes excepted)
 - Run `pre-commit run` before committing
-
-## External Dependencies
-
-Required: Geant4, GoogleTest (tests), CLI11 (apps), nlohmann_json (I/O)
-Optional: VecGeom, ROOT, HepMC3, DD4hep, MPI, OpenMP, Perfetto
-
-See `scripts/spack-packages.yaml` for versions.
