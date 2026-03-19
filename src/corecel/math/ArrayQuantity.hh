@@ -121,13 +121,15 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
 //---------------------------------------------------------------------------//
 /*!
  * Output a quantity array with its label.
+ *
+ * This overload is more specialized than the generic Array operator<< and is
+ * therefore preferred by partial ordering for Quantity element types.
  */
-template<class Q, size_type N>
-auto operator<<(std::ostream& os, Array<Q, N> const& q)
-    -> std::enable_if_t<is_quantity_v<Q>, std::ostream&>
+template<class UnitT, class ValueT, size_type N>
+std::ostream&
+operator<<(std::ostream& os, Array<Quantity<UnitT, ValueT>, N> const& q)
 {
-    using UnitT = typename Q::unit_type;
-    os << value_as(q) << " [" << UnitT::label() << ']';
+    os << value_as<Quantity<UnitT, ValueT>>(q) << " [" << UnitT::label() << ']';
     return os;
 }
 #endif
