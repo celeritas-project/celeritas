@@ -1,16 +1,10 @@
 //---------------------------------------------------------------------------//
-// Job execution for optical simulation only
+// Job execution for optical fast simulation on DUNE 1x2x6 geometry
 //---------------------------------------------------------------------------//
 #include "services_dune.fcl"
 #include "PDFastSim_dune.fcl"
-#include "PDFullSimCeler.fcl"
 
 process_name: opticalsimulation
-
-source:
-{
-    module_type: RootInput
-}
 
 services:
 {
@@ -20,7 +14,17 @@ services:
     RandomNumberGenerator: {}
     FileCatalogMetadata: @local::art_file_catalog_mc
 
-    @table::dunefd_simulation_services
+    @table::dunefd_1x2x6_simulation_services
+}
+
+# Override detector geometry for consistency
+services.Geometry.GDML: "dune10kt_v6_refactored_1x2x6-optical.gdml"
+services.AuxDetGeometry.GDML: "dune10kt_v6_refactored_1x2x6-optical.gdml"
+services.LArG4Detector.gdmlFileName_: "dune10kt_v6_refactored_1x2x6-optical.gdml"
+
+source:
+{
+    module_type: RootInput
 }
 
 outputs:
@@ -28,23 +32,20 @@ outputs:
   out:
   {
     module_type: RootOutput
-    fileName:    "%ifb-optsim.root"
+    fileName:    "%ifb-opticalsim.root"
     dataTier:    "simulated"
     compressionLevel: 1
   }
 }
 
-# Optical simulation options:
-# - @local::dunefd_pdfastsim
-# - @local::PDFullSimCeler
 physics:
 {
     producers:
     {
-        opticalsim: @local::PDFullSimCeler
+        OpticalSim: @local::dunefd_pdfastsim
         rns: { module_type: "RandomNumberSaver" }
     }
-    simulate: [ rns, opticalsim ]
+    simulate: [ rns, OpticalSim ]
     stream:  [ out ]
     trigger_paths: [ simulate ]
     end_paths: [ stream ]
