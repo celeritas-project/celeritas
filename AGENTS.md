@@ -62,7 +62,7 @@ Object files and tests may have different paths and test names than you expect (
 
 - Add Doxygen documentation to **definitions**, not declarations, when adding code
 - Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
-- Always add `\sa {file}` underneath `\file` commands in `src` to indicate the location of tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
+- Always add `\sa {file}.test.cc` underneath `\file {file}.hh` to locate tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
 - Use **only** ASCII characters in CMake/C++/CUDA/shell files
 
 ## Architecture
