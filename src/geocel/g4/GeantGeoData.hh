@@ -72,15 +72,15 @@ struct GeantGeoStateData
     using real_type = double;
     using Real3 = Array<double, 3>;
     template<class T>
-    using Items = celeritas::StateCollection<T, W, MemSpace::host>;
+    using StateItems = celeritas::StateCollection<T, W, MemSpace::host>;
 
     //// DATA ////
 
     // Collections
-    Items<Real3> pos;
-    Items<Real3> dir;
-    Items<real_type> next_step;
-    Items<real_type> safety_radius;
+    StateItems<Real3> pos;
+    StateItems<Real3> dir;
+    StateItems<real_type> next_step;
+    StateItems<real_type> safety_radius;
 
     // Wrapper for G4TouchableHistory and G4Navigator
     detail::GeantGeoNavCollection<W, M> nav_state;

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/g4/GeantGeoTrackView.hh
+//! \sa geocel/g4/GeantGeo.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
