@@ -94,7 +94,6 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         global_normal = -global_normal;
     }
 
-    // Note that the
     surface_physics = [&] {
         SurfacePhysicsTrackView::Initializer init;
         init.surface = oriented_surface.surface;
