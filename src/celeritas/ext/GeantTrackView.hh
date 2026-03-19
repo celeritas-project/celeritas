@@ -47,12 +47,12 @@ class GeantTrackView<Ownership::const_reference>
   public:
     //!@{
     //! \name Type aliases
-    using Energy = MevEnergy;
+    using Energy = units::MevEnergy;
     //!@}
 
   public:
     // Construct from G4Track
-    explicit GeantTrackView(G4Track const& track) : t_(track) {}
+    explicit GeantTrackView(G4Track const& track) : this->track()(track) {}
 
     // Get particle definition view
     inline GeantParticleView particle() const;
@@ -70,7 +70,7 @@ class GeantTrackView<Ownership::const_reference>
     inline real_type time() const;
 
     //! Statistical weight
-    real_type weight() const { return t_.GetWeight(); }
+    real_type weight() const { return this->track().GetWeight(); }
 
     //! Access the G4 track directly
     G4Track const& track() const { return t_; }
@@ -141,8 +141,8 @@ GeantTrackView(G4Track&) -> GeantTrackView<Ownership::reference>;
  */
 GeantParticleView GeantTrackView<Ownership::const_reference>::particle() const
 {
-    CELER_EXPECT(t_.GetDefinition());
-    return GeantParticleView{*t_.GetDefinition()};
+    CELER_EXPECT(this->track().GetDefinition());
+    return GeantParticleView{*this->track().GetDefinition()};
 }
 
 //---------------------------------------------------------------------------//
@@ -152,7 +152,7 @@ GeantParticleView GeantTrackView<Ownership::const_reference>::particle() const
 Real3 GeantTrackView<Ownership::const_reference>::pos() const
 {
     return native_from_geant<lengthunits::ClhepLength, real_type>(
-        g4track.GetPosition());
+        this->track().GetPosition());
 }
 
 //---------------------------------------------------------------------------//
@@ -162,7 +162,7 @@ Real3 GeantTrackView<Ownership::const_reference>::pos() const
 Real3 GeantTrackView<Ownership::const_reference>::dir() const
 {
     return static_array_cast<real_type>(
-        to_array(g4track.GetMomentumDirection()));
+        to_array(this->track().GetMomentumDirection()));
 }
 
 //---------------------------------------------------------------------------//
@@ -171,7 +171,7 @@ Real3 GeantTrackView<Ownership::const_reference>::dir() const
  */
 auto GeantTrackView<Ownership::const_reference>::energy() const -> Energy
 {
-    return ClhepEnergy{t_.GetKineticEnergy()};
+    return Energy{this->track().GetKineticEnergy()};
 }
 
 //---------------------------------------------------------------------------//
@@ -181,7 +181,7 @@ auto GeantTrackView<Ownership::const_reference>::energy() const -> Energy
 real_type GeantTrackView<Ownership::const_reference>::time() const
 {
     return native_from_geant<units::ClhepTime, real_type>(
-        g4track.GetGlobalTime());
+        this->track().GetGlobalTime());
 }
 
 //---------------------------------------------------------------------------//
