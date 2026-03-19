@@ -28,14 +28,14 @@ Commit immediately when all todos are done. Do not wait to be told. Do not defer
 3. **Compile**: confirm the build still succeeds.
 
 Inline `-m` strings break with multi-line messages in the shell. Instead,
-write the commit message to `build/commit_msg.txt` (gitignored, always
+write the commit message to `<build>/commit_msg.txt` (gitignored, always
 present) and commit with `-F`:
 
 ```bash
 git add -a
 pre-commit run || git add -a
 # Write message to file first, then commit
-git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -F build/commit_msg.txt
+git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -F <build>/commit_msg.txt
 ```
 
 The commit message format for `build/commit_msg.txt`:
