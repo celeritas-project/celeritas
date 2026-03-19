@@ -15,6 +15,10 @@
 
 #include "Quantity.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include <ostream>
+#endif
+
 namespace celeritas
 {
 
@@ -112,6 +116,21 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
     }
     return result;
 }
+
+#if !CELER_DEVICE_COMPILE
+//---------------------------------------------------------------------------//
+/*!
+ * Output a quantity array with its label.
+ */
+template<class Q, size_type N>
+auto operator<<(std::ostream& os, Array<Q, N> const& q)
+    -> std::enable_if_t<is_quantity_v<Q>, std::ostream&>
+{
+    using UnitT = typename Q::unit_type;
+    os << q.value() << " [" << UnitT::label() << ']';
+    return os;
+}
+#endif
 
 //! \endcond
 //---------------------------------------------------------------------------//
