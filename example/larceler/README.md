@@ -15,14 +15,14 @@ evt-gen["GENIE
 genie-data[("art::Event
     EventGen")]
 det-edep["LArG4 + IonAndScint
-    dune10kt_larg4_1x2x6.fcl"]
+    larg4_dune10kt_1x2x6.fcl"]
 edep-data[("art::Event
     SimEnergyDeposit
     (label: IonAndScint)")]
 det-optical-fast["Optical fast simulation
-    dune10kt_opticalsim_1x2x6.fcl"]
+    opticalsim_dune10kt_1x2x6.fcl"]
 det-optical-full["Celeritas optical transport
-    dune10kt_opticalsim_celeritas_1x2x6.fcl"]
+    opticalsim_celeritas_dune10kt_1x2x6.fcl"]
 optical-data[("art::Event
     OpDetBackTrackerRecord
     (label: opticalsim)")]
@@ -48,7 +48,7 @@ GENIE event.**
 $ lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 1 -o genie-output.root
 # Run LArG4 + IonAndScint
 $ lar -c larg4_dune10kt_1x2x6.fcl -s genie-output.root -o larg4-output.root
-# Run fast simulation and Celeritas
+# Run FastSim and Celeritas optical simulations
 $ lar -c opticalsim_dune10kt_1x2x6.fcl -s larg4-output.root -o fastsim-output.root
 $ lar -c opticalsim_celeritas_dune10kt_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
 # Generate analysis files
@@ -68,7 +68,9 @@ $ lar -c prodgenie_nu_dune10kt_1x2x6.fcl [optional: -n num_events] -o genie-outp
 - If `-n` is not used, the default number of events is set to 10 (defined
   upstream in
   [prodgenie_common_dunefd.fcl](https://internal.dunescience.org/doxygen/prodgenie__common__dunefd_8fcl_source.html))
-- The GENIE input configuration is also upstream, at [genie_dune.fcl](https://internal.dunescience.org/doxygen/genie__dune_8fcl_source.html) (see `Configurations for 1x2x6 geometry`)
+- The GENIE input configuration is also upstream, at
+  [genie_dune.fcl](https://internal.dunescience.org/doxygen/genie__dune_8fcl_source.html)
+  (see `Configurations for 1x2x6 geometry`)
 
 # Running LArG4 + IonAndScint
 
@@ -95,7 +97,9 @@ $ lar -c dune10k_optical_1x2x6.fcl -s larg4-output.root -o fastsim-output.root
 $ lar -c dune10k_optical_celeritas_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
 ```
 
-- Celeritas geometry requires correct optical material information and correct `SensDet` data assigned to the Arapucas (see e.g. below). The updated GDML is available in
+- Celeritas geometry requires correct optical material information and correct
+  `SensDet` data assigned to the Arapucas (see e.g. below). The updated GDML is
+  available in [TODO: benchmarks?]
 ```diff
 <volume name="volOpDetSensitive_0-0-0">
   <materialref ref="LAr"/>
