@@ -236,6 +236,8 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
                                               g4dir_,
                                               touch_handle_(),
                                               /* relative_search = */ false);
+    this->geo_status(this->is_outside() ? GeoStatus::invalid
+                                        : GeoStatus::interior);
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -267,6 +269,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
         touch_handle_ = other.touch_handle_;
         navi_.ResetHierarchyAndLocate(
             g4pos_, g4dir_, dynamic_cast<G4TouchableHistory&>(*touch_handle_()));
+        this->geo_status(state_.status[init.parent]);
     }
 
     // Set up the next state and initialize the direction
@@ -370,19 +373,10 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 //---------------------------------------------------------------------------//
 /*!
  * Geometry tracking status.
- *
- * This is derived from existing tracking flags to capture the current behavior
- * without modifying the boundary logic. The \c status field in state data will
- * be populated once the boundary operations are updated to set it explicitly.
  */
 GeoStatus GeantGeoTrackView::geo_status() const
 {
-    if (this->is_outside())
-        return GeoStatus::invalid;
-    if (this->is_on_boundary())
-        return just_crossed_boundary_ ? GeoStatus::boundary_out
-                                      : GeoStatus::boundary_inc;
-    return GeoStatus::interior;
+    return state_.status[tid_];
 }
 
 //---------------------------------------------------------------------------//
@@ -503,6 +497,7 @@ void GeantGeoTrackView::move_to_boundary()
     g4safety_ = 0;
     navi_.SetGeometricallyLimitedStep();
     just_crossed_boundary_ = false;
+    this->geo_status(GeoStatus::boundary_inc);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -525,6 +520,7 @@ void GeantGeoTrackView::cross_boundary()
         touch_handle_,
         /* relative_search = */ true);
     just_crossed_boundary_ = true;
+    this->geo_status(GeoStatus::boundary_out);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -549,6 +545,7 @@ void GeantGeoTrackView::move_internal(real_type dist)
 
     safety_radius_ = -1;
     g4safety_ = 0;
+    this->geo_status(GeoStatus::interior);
 }
 
 //---------------------------------------------------------------------------//
@@ -567,6 +564,7 @@ void GeantGeoTrackView::move_internal(Real3 const& pos)
 
     safety_radius_ = -1;
     g4safety_ = 0;
+    this->geo_status(GeoStatus::interior);
 }
 
 //---------------------------------------------------------------------------//
@@ -579,6 +577,18 @@ void GeantGeoTrackView::move_internal(Real3 const& pos)
 void GeantGeoTrackView::set_dir(Real3 const& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
+
+    if (this->is_on_boundary())
+    {
+        // Changing direction on a boundary may reverse whether the track
+        // will cross the surface; update stored status to match.
+        Real3 const norm = this->normal();
+        auto const new_status = dot_product(norm, newdir) >= 0
+                                    ? GeoStatus::boundary_inc
+                                    : GeoStatus::boundary_out;
+        this->geo_status(new_status);
+    }
+
     dir_ = newdir;
     g4dir_ = to_g4vector(newdir);
     next_step_ = 0;

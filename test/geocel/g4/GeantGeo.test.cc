@@ -498,11 +498,10 @@ TEST_F(FourLevelsTest, safety)
 TEST_F(FourLevelsTest, geo_status)
 {
     auto geo = this->make_geo_track_view();
-    real_type const c = from_cm(1);
     real_type const far = from_cm(100);
 
     // Inside a volume -> interior
-    geo = {{c, c, c}, {1, 0, 0}};
+    geo = {from_cm({-10, -10, -10}), {1, 0, 0}};
     EXPECT_EQ(GeoStatus::interior, geo.geo_status());
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
@@ -512,13 +511,25 @@ TEST_F(FourLevelsTest, geo_status)
     EXPECT_EQ(GeoStatus::invalid, geo.geo_status());
     EXPECT_TRUE(geo.is_outside());
 
-    // After move_to_boundary: status is not yet updated (boundary ops
-    // not yet wired up), but it should not be an error
-    geo = {{c, c, c}, {1, 0, 0}};
-    geo.find_next_step(from_cm(100));
+    // move_to_boundary -> boundary_inc (heading out of current volume)
+    geo = {from_cm({-10, -10, -10}), {1, 0, 0}};
+    geo.find_next_step(from_cm(4));
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_NE(GeoStatus::error, geo.geo_status());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+
+    // cross_boundary -> boundary_out (now in the next volume)
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+
+    // move_internal -> interior
+    // (uses a fresh init since the track above used exact step)
+    geo = {from_cm({-10, -10, -10}), {1, 0, 0}};
+    geo.find_next_step(from_cm(4));
+    geo.move_internal(from_cm(2));
+    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 }
 
 //---------------------------------------------------------------------------//
