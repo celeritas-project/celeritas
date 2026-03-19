@@ -14,6 +14,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
+#include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"
@@ -123,11 +124,10 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
 void LocalOpticalTrackOffload::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
+    GeantParticleView pv{*g4track.GetParticleDefinition()};
+    CELER_EXPECT(pv.is_optical_photon());
 
     ++num_pushed_;
-
-    CELER_EXPECT(g4track.GetDefinition());
-    CELER_EXPECT(g4track.GetDefinition()->GetParticleName() == "opticalphoton");
 
     // Convert Geant4 track to optical::TrackInitializer
     TrackData init;

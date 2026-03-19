@@ -42,6 +42,7 @@ struct GeantTestBase::ImportSetup
     std::shared_ptr<GeantGeoParams> geo;
     GeantPhysicsOptions options{};
     GeantImportDataSelection selection{};
+    GeantSetup::SetString sd_names{};
     ImportData imported;
     ScopedGeantExceptionHandler scoped_exceptions;
 };
@@ -64,21 +65,6 @@ bool GeantTestBase::is_ci_build()
     return clhep >= Version{2, 4, 6} && clhep < Version{2, 5}
            && g4 >= Version{11, 3} && g4 < Version{11, 4};
 }
-
-//---------------------------------------------------------------------------//
-//! Whether Geant4 dependencies match those on Wildstyle
-bool GeantTestBase::is_wildstyle_build()
-{
-    return GeantTestBase::is_ci_build();
-}
-
-//---------------------------------------------------------------------------//
-//! Whether Geant4 dependencies match those on Summit
-bool GeantTestBase::is_summit_build()
-{
-    return GeantTestBase::is_ci_build();
-}
-
 //---------------------------------------------------------------------------//
 // PROTECTED MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -146,6 +132,7 @@ auto GeantTestBase::load(std::string const& filename) const
 {
     GeantPhysicsOptions opts = this->build_geant_options();
     GeantImportDataSelection sel = this->build_import_data_selection();
+    GeantSetup::SetString sd_names = this->build_sd_names();
 
     using PersistentImportSetup = PersistentSP<GeantTestBase::ImportSetup>;
 
@@ -158,7 +145,9 @@ auto GeantTestBase::load(std::string const& filename) const
                        << "load was called before build_geant_geo");
         i = std::make_shared<ImportSetup>();
         i->options = opts;
-        i->import = std::make_unique<GeantImporter>(GeantSetup{filename, opts});
+        i->sd_names = sd_names;
+        i->import = std::make_unique<GeantImporter>(
+            GeantSetup{filename, opts, std::move(sd_names)});
         i->geo = i->import->geo_params();
         CELER_ASSERT(i->geo);
         CELER_ASSERT(!celeritas::global_geant_geo().expired());
@@ -180,6 +169,9 @@ auto GeantTestBase::load(std::string const& filename) const
         CELER_ASSERT(i);
         CELER_VALIDATE(opts == i->options,
                        << "cannot change physics options after setup "
+                       << explanation);
+        CELER_VALIDATE(sd_names == i->sd_names,
+                       << "cannot change sensitive detector names after setup "
                        << explanation);
 
         if (sel == i->selection)
@@ -204,6 +196,12 @@ auto GeantTestBase::load(std::string const& filename) const
 
     CELER_ENSURE(i);
     return *i;
+}
+
+//---------------------------------------------------------------------------//
+auto GeantTestBase::build_sd_names() const -> GeantSetup::SetString
+{
+    return {};
 }
 
 //---------------------------------------------------------------------------//

@@ -16,6 +16,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Repr.hh"
+#include "celeritas/ext/GeantParticleView.hh"
 
 using std::cout;
 
@@ -103,7 +104,8 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 
     if (auto* track = step->GetTrack())
     {
-        hits_.particle.push_back(track->GetDefinition()->GetParticleName());
+        GeantParticleView pv{*track->GetParticleDefinition()};
+        hits_.particle.push_back(pv.name());
         double weight = track->GetWeight();
         CELER_ASSERT(weight > 0);
         edep *= weight;

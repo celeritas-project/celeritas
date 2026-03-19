@@ -81,15 +81,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         = select_surface(track.surface(), geo.volume_instance_id());
     if (!oriented_surface)
     {
-        // Kill the track if the post-volume doesn't have a valid optical
-        // material and there's no surface
-        if (!post_volume_material)
-        {
-            track.sim().status(TrackStatus::killed);
-            return;
-        }
-
-        // Use default surface data
+        // Use default surface properties: typically dielectric-dielectric
         oriented_surface.surface = surface_physics.scalars().default_surface;
         oriented_surface.orientation = SubsurfaceDirection::forward;
     }
@@ -102,12 +94,16 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         global_normal = -global_normal;
     }
 
-    surface_physics
-        = SurfacePhysicsTrackView::Initializer{oriented_surface.surface,
-                                               oriented_surface.orientation,
-                                               global_normal,
-                                               pre_volume_material,
-                                               post_volume_material};
+    surface_physics = [&] {
+        SurfacePhysicsTrackView::Initializer init;
+        init.surface = oriented_surface.surface;
+        init.orientation = oriented_surface.orientation;
+        init.global_normal = global_normal;
+        init.pre_volume_material = pre_volume_material;
+        // Note that post-volume material may be null
+        init.post_volume_material = post_volume_material;
+        return init;
+    }();
 
     CELER_ASSERT(
         is_entering_surface(geo.dir(), surface_physics.global_normal()));
