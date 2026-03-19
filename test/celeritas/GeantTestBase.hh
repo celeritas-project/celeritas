@@ -9,6 +9,7 @@
 #include <iosfwd>
 
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantSetup.hh"
 
 #include "ImportedDataTestBase.hh"
 
@@ -17,7 +18,6 @@ class G4VPhysicalVolume;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-struct GeantPhysicsOptions;
 struct GeantImportDataSelection;
 
 namespace test
@@ -38,6 +38,7 @@ class GeantTestBase : public ImportedDataTestBase
 
   protected:
     virtual GeantPhysicsOptions build_geant_options() const;
+    virtual GeantSetup::SetString build_sd_names() const;
 
     SPConstTrackInit build_init() override;
     SPConstAction build_along_step() override;

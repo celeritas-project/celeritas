@@ -66,6 +66,11 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
         return result;
     }
 
+    GeantSetup::SetString build_sd_names() const override
+    {
+        return {"x-detectors", "y-detectors", "z-detectors"};
+    }
+
     std::vector<IMC> select_optical_models() const override
     {
         return {IMC::absorption};
