@@ -55,6 +55,12 @@
 #include "GeantSurfacePhysicsLoader.hh"
 #include "../GeantParticleView.hh"
 
+// clang-format off
+//! Dispatch-table entry macro: maps a G4 class to a member function handler
+#define GPL_TYPE_FUNC(CLASSNAME, METHOD) \
+    {std::type_index(typeid(CLASSNAME)), {#CLASSNAME, &GeantPhysicsLoader::METHOD}}
+// clang-format on
+
 namespace celeritas
 {
 namespace detail
@@ -109,6 +115,27 @@ void load_rayleigh_water(
                "are provided";
     }
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a log message for the number of items loaded from a process.
+ */
+Logger::Message make_loaded_msg(LogProvenance prov, size_type result)
+{
+    auto msg = world_logger()(
+        std::move(prov), result == 0 ? LogLevel::warning : LogLevel::debug);
+    msg << "Loaded ";
+    if (result == 0)
+    {
+        msg << "no";
+    }
+    else
+    {
+        msg << result;
+    }
+    return msg;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -162,8 +189,6 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     using TypeHandlerMap = std::unordered_map<std::type_index, PairNameMfptr>;
 
     // clang-format off
-#define GPL_TYPE_FUNC(CLASSNAME, METHOD) \
-    {std::type_index(typeid(CLASSNAME)), {#CLASSNAME, &GeantPhysicsLoader::METHOD}}
     static TypeHandlerMap const type_to_handler{
         // EM particles
         GPL_TYPE_FUNC(G4Cerenkov,               cerenkov),
@@ -178,7 +203,6 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
         GPL_TYPE_FUNC(G4OpWLS2,            op_wls2),
     };
     // clang-format on
-#undef GPL_TYPE_FUNC
 
     auto iter = type_to_handler.find(std::type_index(typeid(p)));
     if (iter == type_to_handler.end())
@@ -199,19 +223,8 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
         throw;
     }
 
-    auto msg
-        = world_logger()(CELER_CODE_PROVENANCE,
-                         result == 0 ? LogLevel::warning : LogLevel::debug);
-    msg << "Loaded ";
-    if (result == 0)
-    {
-        msg << "no";
-    }
-    else
-    {
-        msg << result;
-    }
-    msg << " model data from process " << name << "(\"" << p.GetProcessName()
+    make_loaded_msg(CELER_CODE_PROVENANCE, result)
+        << " model data from process " << name << "(\"" << p.GetProcessName()
         << "\")";
     return true;
 }
@@ -231,13 +244,10 @@ bool GeantPhysicsLoader::operator()(GeantParticleView const& particle,
     using TypeHandlerMap = std::unordered_map<std::type_index, PairNameMfptr>;
 
     // clang-format off
-#define GPL_TYPE_FUNC_P(CLASSNAME, METHOD) \
-    {std::type_index(typeid(CLASSNAME)), {#CLASSNAME, &GeantPhysicsLoader::METHOD}}
     static TypeHandlerMap const type_to_handler{
-        GPL_TYPE_FUNC_P(G4MuPairProduction, mu_pair_production),
+        GPL_TYPE_FUNC(G4MuPairProduction, mu_pair_production),
     };
     // clang-format on
-#undef GPL_TYPE_FUNC_P
 
     auto iter = type_to_handler.find(std::type_index(typeid(p)));
     if (iter == type_to_handler.end())
@@ -253,24 +263,15 @@ bool GeantPhysicsLoader::operator()(GeantParticleView const& particle,
     catch (...)
     {
         CELER_LOG(error) << "Failed while loading per-particle process "
-                         << name << "(\"" << p.GetProcessName() << "\")";
+                         << name << "(\"" << p.GetProcessName()
+                         << "\") for particle \"" << particle.name() << "\"";
         throw;
     }
 
-    auto msg
-        = world_logger()(CELER_CODE_PROVENANCE,
-                         result == 0 ? LogLevel::warning : LogLevel::debug);
-    msg << "Loaded ";
-    if (result == 0)
-    {
-        msg << "no";
-    }
-    else
-    {
-        msg << result;
-    }
-    msg << " per-particle model data from process " << name << "(\""
-        << p.GetProcessName() << "\")";
+    make_loaded_msg(CELER_CODE_PROVENANCE, result)
+        << " per-particle model data from process " << name << "(\""
+        << p.GetProcessName() << "\") for particle \"" << particle.name()
+        << "\"";
     return true;
 }
 
@@ -634,3 +635,5 @@ void GeantPhysicsLoader::load_mfps(inp::OpticalBulkModel<MM, IMC>& model,
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
+
+#undef GPL_TYPE_FUNC
