@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/detail/GeantPhysicsLoader.hh
+//! \sa test/celeritas/ext/GeantImporter.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
