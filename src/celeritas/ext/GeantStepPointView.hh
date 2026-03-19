@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4StepPoint.hh>
 
 #include "corecel/Assert.hh"
@@ -32,7 +31,9 @@ class GeantStepPointView
   public:
     //!@{
     //! \name Type aliases
-    using Energy = Quantity<units::Mev, double>;
+    using Energy = units::ClhepEnergy;
+    using Length = lengthunits::ClhepLength;
+    using Time = units::ClhepTime;
     using real_type = double;
     //!@}
 
@@ -43,17 +44,17 @@ class GeantStepPointView
     //!@{
     //! \name Accessors
 
-    // Position in native Celeritas length units
-    inline Real3 pos() const;
+    // Position in CLHEP length units (mm)
+    inline Array<Length, 3> pos() const;
 
     // Momentum direction (unit vector)
-    inline Real3 dir() const;
+    inline Array<double, 3> dir() const;
 
     // Kinetic energy [MeV]
     inline Energy energy() const;
 
-    // Global time in native Celeritas time units
-    inline real_type time() const;
+    // Global time in CLHEP time units (ns)
+    inline Time time() const;
 
     //! Statistical weight
     real_type weight() const { return sp_.GetWeight(); }
@@ -62,17 +63,17 @@ class GeantStepPointView
     //!@{
     //! \name Mutators
 
-    // Set position in native Celeritas length units
-    inline void pos(Real3 const& position);
+    // Set position in CLHEP length units (mm)
+    inline void pos(Array<Length, 3> const& position);
 
     // Set momentum direction (unit vector)
-    inline void dir(Real3 const& direction);
+    inline void dir(Array<double, 3> const& direction);
 
     // Set kinetic energy [MeV]
     inline void energy(Energy kinetic_energy);
 
-    // Set global time in native Celeritas time units
-    inline void time(real_type global_time);
+    // Set global time in CLHEP time units (ns)
+    inline void time(Time global_time);
 
     // Set statistical weight
     void weight(real_type w) { sp_.SetWeight(w); }
@@ -104,18 +105,18 @@ class GeantStepPointView
 /*!
  * Get position in native Celeritas length units.
  */
-Real3 GeantStepPointView::pos() const
+Array<GeantStepPointView::Length, 3> GeantStepPointView::pos() const
 {
-    return convert_from_geant(sp_.GetPosition(), clhep_length);
+    return make_quantity_array<Length>(to_array(sp_.GetPosition()));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get momentum direction.
  */
-Real3 GeantStepPointView::dir() const
+Array<double, 3> GeantStepPointView::dir() const
 {
-    return convert_from_geant(sp_.GetMomentumDirection(), 1);
+    return to_array(sp_.GetMomentumDirection());
 }
 
 //---------------------------------------------------------------------------//
@@ -124,34 +125,34 @@ Real3 GeantStepPointView::dir() const
  */
 GeantStepPointView::Energy GeantStepPointView::energy() const
 {
-    return Energy{convert_from_geant(sp_.GetKineticEnergy(), CLHEP::MeV)};
+    return Energy{sp_.GetKineticEnergy()};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get global time in native Celeritas time units.
  */
-real_type GeantStepPointView::time() const
+GeantStepPointView::Time GeantStepPointView::time() const
 {
-    return convert_from_geant(sp_.GetGlobalTime(), clhep_time);
+    return Time{sp_.GetGlobalTime()};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set position in native Celeritas length units.
  */
-void GeantStepPointView::pos(Real3 const& position)
+void GeantStepPointView::pos(Array<Length, 3> const& position)
 {
-    sp_.SetPosition(convert_to_geant(position, clhep_length));
+    sp_.SetPosition(to_g4vector(value_as<Length>(position)));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set momentum direction.
  */
-void GeantStepPointView::dir(Real3 const& direction)
+void GeantStepPointView::dir(Array<double, 3> const& direction)
 {
-    sp_.SetMomentumDirection(convert_to_geant(direction, 1));
+    sp_.SetMomentumDirection(to_g4vector(direction));
 }
 
 //---------------------------------------------------------------------------//
@@ -161,7 +162,7 @@ void GeantStepPointView::dir(Real3 const& direction)
 void GeantStepPointView::energy(Energy kinetic_energy)
 {
     CELER_EXPECT(kinetic_energy >= zero_quantity());
-    sp_.SetKineticEnergy(convert_to_geant(kinetic_energy.value(), CLHEP::MeV));
+    sp_.SetKineticEnergy(kinetic_energy.value());
     // TODO: update speed based on mass, KE
 }
 
@@ -169,10 +170,9 @@ void GeantStepPointView::energy(Energy kinetic_energy)
 /*!
  * Set global time in native Celeritas time units.
  */
-void GeantStepPointView::time(real_type global_time)
+void GeantStepPointView::time(Time global_time)
 {
-    CELER_EXPECT(global_time >= 0);
-    sp_.SetGlobalTime(convert_to_geant(global_time, clhep_time));
+    sp_.SetGlobalTime(global_time.value());
 }
 
 //---------------------------------------------------------------------------//

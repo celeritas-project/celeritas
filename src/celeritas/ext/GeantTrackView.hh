@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Track.hh>
 
 #include "corecel/Types.hh"
@@ -15,7 +14,6 @@
 #include "celeritas/UnitTypes.hh"
 
 #include "GeantParticleView.hh"
-#include "GeantUnits.hh"
 
 namespace celeritas
 {
@@ -47,27 +45,30 @@ class GeantTrackView<Ownership::const_reference>
   public:
     //!@{
     //! \name Type aliases
-    using Energy = units::MevEnergy;
+    using real_type = double;
+    using Energy = units::ClhepEnergy;
+    using Length = lengthunits::ClhepLength;
+    using Time = units::ClhepTime;
     //!@}
 
   public:
     // Construct from G4Track
-    explicit GeantTrackView(G4Track const& track) : this->track()(track) {}
+    explicit GeantTrackView(G4Track const& track) : t_(track) {}
 
     // Get particle definition view
     inline GeantParticleView particle() const;
 
-    // Position in native Celeritas length units
-    inline Real3 pos() const;
+    // Position in CLHEP length units (mm)
+    inline Array<Length, 3> pos() const;
 
     // Momentum direction (unit vector)
-    inline Real3 dir() const;
+    inline Array<double, 3> dir() const;
 
     // Kinetic energy [MeV]
     inline Energy energy() const;
 
-    // Global time in native Celeritas time units
-    inline real_type time() const;
+    // Global time in CLHEP time units (ns)
+    inline Time time() const;
 
     //! Statistical weight
     real_type weight() const { return this->track().GetWeight(); }
@@ -93,6 +94,8 @@ class GeantTrackView<Ownership::reference>
     //!@{
     //! \name Type aliases
     using Energy = typename Base::Energy;
+    using Length = typename Base::Length;
+    using Time = typename Base::Time;
     //!@}
 
   public:
@@ -107,10 +110,10 @@ class GeantTrackView<Ownership::reference>
     using Base::weight;
 
     // Mutators
-    inline void pos(Real3 const& position);
-    inline void dir(Real3 const& direction);
+    inline void pos(Array<Length, 3> const& position);
+    inline void dir(Array<double, 3> const& direction);
     inline void energy(Energy e);
-    inline void time(real_type t);
+    inline void time(Time t);
 
     //! Set statistical weight
     void weight(real_type w) { this->track().SetWeight(w); }
@@ -147,22 +150,21 @@ GeantParticleView GeantTrackView<Ownership::const_reference>::particle() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get position in native Celeritas length units.
+ * Get position in CLHEP length units (mm).
  */
-Real3 GeantTrackView<Ownership::const_reference>::pos() const
+Array<GeantTrackView<Ownership::const_reference>::Length, 3>
+GeantTrackView<Ownership::const_reference>::pos() const
 {
-    return native_from_geant<lengthunits::ClhepLength, real_type>(
-        this->track().GetPosition());
+    return make_quantity_array<Length>(to_array(this->track().GetPosition()));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get momentum direction.
  */
-Real3 GeantTrackView<Ownership::const_reference>::dir() const
+Array<double, 3> GeantTrackView<Ownership::const_reference>::dir() const
 {
-    return static_array_cast<real_type>(
-        to_array(this->track().GetMomentumDirection()));
+    return to_array(this->track().GetMomentumDirection());
 }
 
 //---------------------------------------------------------------------------//
@@ -176,32 +178,31 @@ auto GeantTrackView<Ownership::const_reference>::energy() const -> Energy
 
 //---------------------------------------------------------------------------//
 /*!
- * Get global time in native Celeritas time units.
+ * Get global time in CLHEP time units (ns).
  */
-real_type GeantTrackView<Ownership::const_reference>::time() const
+auto GeantTrackView<Ownership::const_reference>::time() const -> Time
 {
-    return native_from_geant<units::ClhepTime, real_type>(
-        this->track().GetGlobalTime());
+    return Time{this->track().GetGlobalTime()};
 }
 
 //---------------------------------------------------------------------------//
 // INLINE MUTATOR DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Set position in native Celeritas length units.
+ * Set position in CLHEP length units (mm).
  */
-void GeantTrackView<Ownership::reference>::pos(Real3 const& position)
+void GeantTrackView<Ownership::reference>::pos(Array<Length, 3> const& position)
 {
-    this->track().SetPosition(convert_to_geant(position, clhep_length));
+    this->track().SetPosition(to_g4vector(value_as<Length>(position)));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set momentum direction.
  */
-void GeantTrackView<Ownership::reference>::dir(Real3 const& direction)
+void GeantTrackView<Ownership::reference>::dir(Array<double, 3> const& direction)
 {
-    this->track().SetMomentumDirection(convert_to_geant(direction, 1));
+    this->track().SetMomentumDirection(to_g4vector(direction));
 }
 
 //---------------------------------------------------------------------------//
@@ -210,16 +211,16 @@ void GeantTrackView<Ownership::reference>::dir(Real3 const& direction)
  */
 void GeantTrackView<Ownership::reference>::energy(Energy e)
 {
-    this->track().SetKineticEnergy(convert_to_geant(e.value(), CLHEP::MeV));
+    this->track().SetKineticEnergy(e.value());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Set global time in native Celeritas time units.
+ * Set global time in CLHEP time units (ns).
  */
-void GeantTrackView<Ownership::reference>::time(real_type t)
+void GeantTrackView<Ownership::reference>::time(Time t)
 {
-    this->track().SetGlobalTime(convert_to_geant(t, clhep_time));
+    this->track().SetGlobalTime(t.value());
 }
 #endif
 

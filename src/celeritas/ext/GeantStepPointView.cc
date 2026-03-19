@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantStepPointView.hh"
 
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4LogicalVolume.hh>
 
 namespace celeritas

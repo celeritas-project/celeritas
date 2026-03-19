@@ -6,12 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Step.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/math/Quantity.hh"
-#include "geocel/g4/Convert.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/UnitTypes.hh"
 
@@ -31,7 +29,8 @@ class GeantStepView
   public:
     //!@{
     //! \name Type aliases
-    using Energy = Quantity<units::Mev, double>;
+    using Energy = units::ClhepEnergy;
+    using Length = lengthunits::ClhepLength;
     using real_type = double;
     //!@}
 
@@ -45,8 +44,8 @@ class GeantStepView
     // Total energy deposited during step [MeV]
     inline Energy energy_deposition() const;
 
-    // Step length in native Celeritas length units
-    inline real_type step_length() const;
+    // Step length in CLHEP length units (mm)
+    inline Length step_length() const;
 
     // Pre-step point accessor
     inline GeantStepPointView pre_step() const;
@@ -67,8 +66,8 @@ class GeantStepView
     // Set total energy deposited during step [MeV]
     inline void energy_deposition(Energy edep);
 
-    // Set step length in native Celeritas length units
-    inline void step_length(real_type length);
+    // Set step length in CLHEP length units (mm)
+    inline void step_length(Length length);
 
     // Update track from step data
     void update_track();
@@ -90,16 +89,16 @@ class GeantStepView
  */
 auto GeantStepView::energy_deposition() const -> Energy
 {
-    return Energy{convert_from_geant(s_.GetTotalEnergyDeposit(), CLHEP::MeV)};
+    return Energy{s_.GetTotalEnergyDeposit()};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get step length in native Celeritas length units.
+ * Get step length in CLHEP length units (mm).
  */
-real_type GeantStepView::step_length() const
+GeantStepView::Length GeantStepView::step_length() const
 {
-    return convert_from_geant(s_.GetStepLength(), clhep_length);
+    return Length{s_.GetStepLength()};
 }
 
 //---------------------------------------------------------------------------//
@@ -108,16 +107,16 @@ real_type GeantStepView::step_length() const
  */
 void GeantStepView::energy_deposition(Energy edep)
 {
-    s_.SetTotalEnergyDeposit(convert_to_geant(edep.value(), CLHEP::MeV));
+    s_.SetTotalEnergyDeposit(edep.value());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set step length in native Celeritas length units.
  */
-void GeantStepView::step_length(real_type length)
+void GeantStepView::step_length(Length length)
 {
-    s_.SetStepLength(convert_to_geant(length, clhep_length));
+    s_.SetStepLength(length.value());
     if (s_.GetTrack())
     {
         // Set on track as well
