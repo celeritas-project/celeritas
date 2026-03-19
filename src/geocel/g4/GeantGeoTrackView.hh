@@ -38,7 +38,7 @@ namespace celeritas
  * duplicating the "geant4" position and direction that are also stored under
  * the hood in the heavyweight navigator.
  *
- * For a description of ordering requirements, see: \sa OrangeTrackView .
+ * \sa GeoTrackInterface
  */
 class GeantGeoTrackView
 {
