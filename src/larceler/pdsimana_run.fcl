@@ -5,17 +5,16 @@
 
 process_name: pdsimana
 
-// Set up message logger threshold
+# Set up message logger threshold to info
 services.message.destinations.console.type: "cout"
 services.message.destinations.console.threshold: "INFO"
 
-// Set up root output fileName
 services:
 {
-    TFileService: { fileName: "pdsimana-output.root" }
+    TFileService: { fileName: "%ifb-ana-output.root" }
 }
 
-// Set up analyzer execution
+# Set up analyzer execution
 physics:
 {
     analyzers:

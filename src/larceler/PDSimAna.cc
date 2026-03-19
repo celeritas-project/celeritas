@@ -66,17 +66,35 @@ void PDSimAna::beginJob()
         = tfs->make<TH2D>("sdp_zy", "sdp_zy", 145, 0, 1450, 65, -650, 650);
     histograms_.btr_time
         = tfs->make<TH1D>("btr_timepdclock", "btr_timepdclock", 100, 0, 50e3);
-    histograms_.btr_detid_time = tfs->make<TH2D>("btr_time_opdetid_energy",
-                                                 "btr_time_opdetid_energy",
-                                                 100,
-                                                 0,
-                                                 20e3,
-                                                 480,
-                                                 0,
-                                                 480);
-    histograms_.btr_detid_logtime
+    histograms_.btr_detid_time_energy
+        = tfs->make<TH2D>("btr_time_opdetid_energy",
+                          "btr_time_opdetid_energy",
+                          100,
+                          0,
+                          20e3,
+                          480,
+                          0,
+                          480);
+    histograms_.btr_detid_logtime_energy
         = tfs->make<TH2D>("btr_logtime_opdetid_energy",
                           "btr_logtime_opdetid_energy",
+                          100,
+                          make_log_bins(100, 10, 20e3),
+                          480,
+                          0,
+                          480);
+    histograms_.btr_detid_time_numphotons
+        = tfs->make<TH2D>("btr_time_opdetid_numphotons",
+                          "btr_time_opdetid_numphotons",
+                          100,
+                          0,
+                          20e3,
+                          480,
+                          0,
+                          480);
+    histograms_.btr_detid_logtime_numphotons
+        = tfs->make<TH2D>("btr_logtime_opdetid_numphotons",
+                          "btr_logtime_opdetid_numphotons",
                           100,
                           make_log_bins(100, 10, 20e3),
                           480,
@@ -125,17 +143,25 @@ void PDSimAna::analyze(art::Event const& event)
             auto const& vec_sdp = map.second;  // vector of SDP objects
 
             double total_energy_per_timeclock{0};
+            double total_numphotons_per_timeclock{0};
             for (auto const& sdp : vec_sdp)
             {
                 histograms_.sdp_zy->Fill(sdp.z, sdp.y);  // [cm]
                 total_energy_per_timeclock += sdp.energy;  // [MeV]
+                total_numphotons_per_timeclock += sdp.numPhotons;
             }
 
             histograms_.btr_time->Fill(time);
-            histograms_.btr_detid_time->Fill(
+
+            histograms_.btr_detid_time_energy->Fill(
                 time, opdet_id, total_energy_per_timeclock);
-            histograms_.btr_detid_logtime->Fill(
+            histograms_.btr_detid_logtime_energy->Fill(
                 time, opdet_id, total_energy_per_timeclock);
+
+            histograms_.btr_detid_time_numphotons->Fill(
+                time, opdet_id, total_numphotons_per_timeclock);
+            histograms_.btr_detid_logtime_numphotons->Fill(
+                time, opdet_id, total_numphotons_per_timeclock);
         }
     }
 }
