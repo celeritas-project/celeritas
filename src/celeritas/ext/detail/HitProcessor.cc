@@ -218,11 +218,12 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     if (!out.energy_deposition.empty())
     {
         step_view.energy_deposition(
-            GeantStepView::Energy{out.energy_deposition[i]});
+            GeantStepView::Energy{out.energy_deposition[i].value()});
     }
     if (!out.step_length.empty())
     {
-        step_view.step_length(out.step_length[i]);
+        step_view.step_length(
+            native_value_to<GeantStepView::Length>(out.step_length[i]));
     }
 
     for (auto sp : range(StepPoint::size_))
@@ -251,22 +252,30 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         auto const& celer_sp = out.points[sp];
         GeantStepPointView sp_view{*g4sp};
 
-#define HP_SET_STEP_POINT_ATTR(ATTR)    \
-    if (!celer_sp.ATTR.empty())         \
-    {                                   \
-        sp_view.ATTR(celer_sp.ATTR[i]); \
-    }
-
-        HP_SET_STEP_POINT_ATTR(time);
-        HP_SET_STEP_POINT_ATTR(pos);
-        HP_SET_STEP_POINT_ATTR(energy);
-        HP_SET_STEP_POINT_ATTR(dir);
+        if (!celer_sp.time.empty())
+        {
+            sp_view.time(
+                native_value_to<GeantStepPointView::Time>(celer_sp.time[i]));
+        }
+        if (!celer_sp.pos.empty())
+        {
+            sp_view.pos(
+                native_value_to<GeantStepPointView::Length>(celer_sp.pos[i]));
+        }
+        if (!celer_sp.energy.empty())
+        {
+            sp_view.energy(
+                GeantStepPointView::Energy{celer_sp.energy[i].value()});
+        }
+        if (!celer_sp.dir.empty())
+        {
+            sp_view.dir(static_array_cast<double>(celer_sp.dir[i]));
+        }
         if (!out.weight.empty())
         {
             // Celeritas weight does not currently change across a step
             sp_view.weight(out.weight[i]);
         }
-#undef HP_SET_STEP_POINT_ATTR
 
         // Copy attributes from logical volume
         if (sp == StepPoint::pre)

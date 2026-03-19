@@ -256,7 +256,8 @@ void LocalTransporter::Push(G4Track& g4track)
 
     GeantTrackView gtv{g4track};
 
-    if (!is_inside(bbox_, gtv.pos()))
+    if (!is_inside(bbox_,
+                   static_array_cast<real_type>(native_value_from(gtv.pos()))))
     {
         // Primary may have been created by a particle generator outside the
         // geometry
@@ -281,9 +282,9 @@ void LocalTransporter::Push(G4Track& g4track)
 
     track.energy = gtv.energy();
     track.particle_id = particles_->find(gtv.particle().pdg());
-    track.position = gtv.pos();
-    track.direction = gtv.dir();
-    track.time = gtv.time();
+    track.position = static_array_cast<real_type>(native_value_from(gtv.pos()));
+    track.direction = static_array_cast<real_type>(gtv.dir());
+    track.time = static_cast<real_type>(native_value_from(gtv.time()));
     track.weight = gtv.weight();
     track.primary_id = celeritas::id_cast<PrimaryId>(
         track.primary_id.unchecked_get() + g4track.GetTrackID());
