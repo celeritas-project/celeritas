@@ -310,7 +310,8 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
             result.pdg = pdg;
             result.mass = particle_view.mass();
             result.charge = particle_view.charge();
-            result.decay_constant = particle_view.decay_constant();
+            result.decay_constant
+                = native_value_from(particle_view.decay_constant());
             return result;
         }());
     }
