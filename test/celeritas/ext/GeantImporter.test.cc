@@ -457,8 +457,8 @@ TEST_F(DuneCryostat, optical_gen)
     ASSERT_TRUE(scint);
     EXPECT_EQ(1, scint->materials.size());
 
-    ASSERT_TRUE(scint->materials.count(OptMatId{1}));
-    auto const& m = scint->materials.at(OptMatId{1});
+    ASSERT_TRUE(scint->materials.count(OptMatId{0}));
+    auto const& m = scint->materials.at(OptMatId{0});
     ASSERT_EQ(2, m.components.size());
     EXPECT_SOFT_EQ(50000 * 0.8, m.components[0].yield);
     EXPECT_SOFT_EQ(50000 * 0.2, m.components[1].yield);

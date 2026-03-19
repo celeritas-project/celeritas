@@ -11,7 +11,7 @@
 #include <G4Version.hh>
 
 #include "corecel/math/Quantity.hh"
-#include "celeritas/UnitTypes.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantUnits.hh"
