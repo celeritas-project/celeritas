@@ -56,6 +56,10 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
     {
         auto result = GeantTestBase::build_geant_options();
         result.optical.emplace();
+        result.optical->scintillation = std::nullopt;
+        result.optical->mie_scattering = false;
+        result.optical->wavelength_shifting = std::nullopt;
+        result.optical->wavelength_shifting2 = std::nullopt;
         return result;
     }
 
@@ -64,6 +68,11 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
         auto result = GeantTestBase::build_import_data_selection();
         result.processes |= GeantImportDataSelection::optical;
         return result;
+    }
+
+    GeantSetup::SetString build_sd_names() const override
+    {
+        return {"x-detectors", "y-detectors", "z-detectors"};
     }
 
     std::vector<IMC> select_optical_models() const override
@@ -85,23 +94,6 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
 
         return std::make_shared<SurfacePhysicsParams>(
             this->optical_action_reg().get(), input);
-    }
-
-    SPConstDetectors detector() override
-    {
-        if (!detector_)
-        {
-            inp::Detectors input{{
-                {"y-detectors", {VolumeId{1}, VolumeId{2}}},
-                {"x-detectors", {VolumeId{3}, VolumeId{4}}},
-                {"z-detectors", {VolumeId{5}, VolumeId{6}}},
-            }};
-
-            detector_ = std::make_shared<DetectorParams>(std::move(input),
-                                                         *this->volume());
-        }
-
-        return detector_;
     }
 
     inp::OpticalDetector build_optical_detector_input() override

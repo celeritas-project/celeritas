@@ -10,16 +10,17 @@
 #include <G4Version.hh>
 
 #include "corecel/math/Quantity.hh"
-#include "celeritas/UnitTypes.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access invariant particle data from Geant4 with Celeritas units.
+ * Access invariant particle data from Geant4 with exact quantities.
  *
- * Geant4 data are all in double precision.
+ * This annotates the Geant4 view with the correct Quantities for seamless
+ * integration with Celeritas.
  */
 class GeantParticleView
 {
@@ -28,6 +29,8 @@ class GeantParticleView
     //! \name Type aliases
     using Charge = Quantity<units::EElectron, double>;
     using Mass = Quantity<units::MevPerCsq, double>;
+    using Energy = units::ClhepEnergy;
+    using InvClhepTime = Quantity<UnitInverse<units::Nanosecond>, double>;
     using real_type = double;
     //!@}
 
@@ -47,8 +50,8 @@ class GeantParticleView
     //! Charge [elemental charge e+]
     Charge charge() const { return Charge{pd_.GetPDGCharge()}; }
 
-    // Decay constant [1/s]
-    inline real_type decay_constant() const;
+    // Decay constant
+    inline InvClhepTime decay_constant() const;
 
     // Whether it is antimatter
     inline bool is_antiparticle() const;
@@ -62,21 +65,17 @@ class GeantParticleView
 
 //---------------------------------------------------------------------------//
 /*!
- * Decay constant [1/s].
+ * Decay constant.
  */
-auto GeantParticleView::decay_constant() const -> real_type
+auto GeantParticleView::decay_constant() const -> InvClhepTime
 {
     if (pd_.GetPDGStable())
     {
         // Decay constant of zero is an infinite half-life, i.e., stable
-        return 0;
+        return zero_quantity();
     }
 
-    // CLHEP time unit system
-    using Time = Quantity<units::ClhepTraits::Time, double>;
-
-    // Decay constant is 1/lifetime
-    return 1 / native_value_from(Time{pd_.GetPDGLifeTime()});
+    return InvClhepTime{1 / pd_.GetPDGLifeTime()};
 }
 
 //---------------------------------------------------------------------------//
