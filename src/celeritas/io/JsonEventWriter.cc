@@ -10,12 +10,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.json.hh"
-#include "corecel/io/Join.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Primary.hh"
 
 namespace celeritas
 {
