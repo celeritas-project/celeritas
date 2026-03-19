@@ -1,6 +1,4 @@
 {
-"_format": "geant-physics",
-"_units": "cgs",
 "compton_scattering": true,
 "coulomb_scattering": false,
 "photoelectric": false,

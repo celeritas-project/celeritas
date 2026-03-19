@@ -1,6 +1,4 @@
 {
-"_format": "geant-physics",
-"_units": "cgs",
 "brems": "all",
 "coulomb_scattering": true,
 "muon": {
