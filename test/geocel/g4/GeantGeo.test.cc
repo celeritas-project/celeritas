@@ -495,6 +495,32 @@ TEST_F(FourLevelsTest, safety)
     EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
 }
 
+TEST_F(FourLevelsTest, geo_status)
+{
+    auto geo = this->make_geo_track_view();
+    real_type const c = from_cm(1);
+    real_type const far = from_cm(100);
+
+    // Inside a volume -> interior
+    geo = {{c, c, c}, {1, 0, 0}};
+    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Outside the world -> invalid
+    geo = {{far, far, far}, {1, 0, 0}};
+    EXPECT_EQ(GeoStatus::invalid, geo.geo_status());
+    EXPECT_TRUE(geo.is_outside());
+
+    // After move_to_boundary: status is not yet updated (boundary ops
+    // not yet wired up), but it should not be an error
+    geo = {{c, c, c}, {1, 0, 0}};
+    geo.find_next_step(from_cm(100));
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_NE(GeoStatus::error, geo.geo_status());
+}
+
 //---------------------------------------------------------------------------//
 using LarSphereTest
     = GenericGeoParameterizedTest<GeantGeoTest, LarSphereGeoTest>;

@@ -81,6 +81,7 @@ struct GeantGeoStateData
     StateItems<Real3> dir;
     StateItems<real_type> next_step;
     StateItems<real_type> safety_radius;
+    StateItems<GeoStatus> status;
 
     // Wrapper for G4TouchableHistory and G4Navigator
     detail::GeantGeoNavCollection<W, M> nav_state;
@@ -93,6 +94,7 @@ struct GeantGeoStateData
         return this->size() > 0 && dir.size() == this->size()
                && next_step.size() == this->size()
                && safety_radius.size() == this->size()
+               && status.size() == this->size()
                && nav_state.size() == this->size();
     }
 
@@ -111,6 +113,7 @@ struct GeantGeoStateData
         dir = other.dir;
         next_step = other.next_step;
         safety_radius = other.safety_radius;
+        status = other.status;
         nav_state = other.nav_state;
         return *this;
     }
@@ -134,6 +137,7 @@ inline void resize(GeantGeoStateData<Ownership::value, MemSpace::host>* data,
     resize(&data->dir, size);
     resize(&data->next_step, size);
     resize(&data->safety_radius, size);
+    resize(&data->status, size);
     data->nav_state.resize(size, params.world, stream_id);
 
     CELER_ENSURE(data);

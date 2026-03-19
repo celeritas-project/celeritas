@@ -90,6 +90,8 @@ class GeantGeoTrackView
     // Get the implementation volume ID
     inline ImplVolumeId impl_volume_id() const;
 
+    // Geometry tracking status
+    inline GeoStatus geo_status() const;
     // Whether the track is outside the valid geometry region
     inline bool is_outside() const;
     // Whether the track is exactly on a surface
@@ -173,6 +175,9 @@ class GeantGeoTrackView
 
     // Whether any next distance-to-boundary has been found
     inline bool has_next_step() const;
+
+    // Set the geometry tracking status
+    inline void geo_status(GeoStatus);
 
     //! Get a pointer to the current volume; null if outside
     inline G4LogicalVolume const* volume() const;
@@ -360,6 +365,24 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_outside() const
 CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 {
     return safety_radius_ == 0.0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Geometry tracking status.
+ *
+ * This is derived from existing tracking flags to capture the current behavior
+ * without modifying the boundary logic. The \c status field in state data will
+ * be populated once the boundary operations are updated to set it explicitly.
+ */
+GeoStatus GeantGeoTrackView::geo_status() const
+{
+    if (this->is_outside())
+        return GeoStatus::invalid;
+    if (this->is_on_boundary())
+        return just_crossed_boundary_ ? GeoStatus::boundary_out
+                                      : GeoStatus::boundary_inc;
+    return GeoStatus::interior;
 }
 
 //---------------------------------------------------------------------------//
@@ -581,6 +604,13 @@ G4NavigationHistory const* GeantGeoTrackView::nav_history() const
 CELER_FORCEINLINE bool GeantGeoTrackView::has_next_step() const
 {
     return next_step_ != 0;
+}
+
+//---------------------------------------------------------------------------//
+//! Set the geometry tracking status
+void GeantGeoTrackView::geo_status(GeoStatus gs)
+{
+    state_.status[tid_] = gs;
 }
 
 //---------------------------------------------------------------------------//
