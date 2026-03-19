@@ -64,21 +64,6 @@ bool GeantTestBase::is_ci_build()
     return clhep >= Version{2, 4, 6} && clhep < Version{2, 5}
            && g4 >= Version{11, 3} && g4 < Version{11, 4};
 }
-
-//---------------------------------------------------------------------------//
-//! Whether Geant4 dependencies match those on Wildstyle
-bool GeantTestBase::is_wildstyle_build()
-{
-    return GeantTestBase::is_ci_build();
-}
-
-//---------------------------------------------------------------------------//
-//! Whether Geant4 dependencies match those on Summit
-bool GeantTestBase::is_summit_build()
-{
-    return GeantTestBase::is_ci_build();
-}
-
 //---------------------------------------------------------------------------//
 // PROTECTED MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//

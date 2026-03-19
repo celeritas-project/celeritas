@@ -41,7 +41,7 @@
     <volume name="center_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Water"/>
-  </volume>
+    </volume>
 
     <volume name="top_box">
       <solidref ref="voxel_box"/>

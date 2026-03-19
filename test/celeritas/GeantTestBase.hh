@@ -34,8 +34,6 @@ class GeantTestBase : public ImportedDataTestBase
     //!@{
     //! Whether the Geant4 configuration match a certain machine
     static bool is_ci_build();
-    static bool is_wildstyle_build();
-    static bool is_summit_build();
     //!@}
 
   protected:
