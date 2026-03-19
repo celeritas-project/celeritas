@@ -23,7 +23,6 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/math/QuantityIO.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
@@ -299,7 +298,7 @@ void LocalTransporter::Push(G4Track& g4track)
     track.event_id = EventId{0};
 
     buffer_.push_back(track);
-    buffer_accum_.energy += energy.value();
+    buffer_accum_.energy += gtv.energy().value();
     if (buffer_.size() >= auto_flush_)
     {
         this->Flush();

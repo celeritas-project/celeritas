@@ -25,7 +25,6 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/math/QuantityIO.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -110,7 +109,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     // Allocate secondary vector, needed to keep some SDs from crashing
     step_->NewSecondaryVector();
 
-    for (auto p : range(StepPoint::size_))
+    GeantStepView step_view{*step_};
+
+    for (auto sp : range(StepPoint::size_))
     {
         if (!selection.points[sp])
         {
