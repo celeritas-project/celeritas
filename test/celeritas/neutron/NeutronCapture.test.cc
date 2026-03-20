@@ -74,19 +74,21 @@ TEST_F(NeutronCaptureTest, micro_xs)
                                                       0.053880959700332,
                                                       0.024311284787054,
                                                       0.013574271991922,
-                                                      0.00090554516078186};
+                                                      0.00090554516078186,
+                                                      0.000596438029};
 
-    size_t i = 0;
+    std::vector<real_type> micro_xs;
     for (auto energy : geomspace(1e-5, 10.0, 7))
     {
-        XsCalculator calc_micro_xs(shared, MevEnergy{energy});
-        EXPECT_SOFT_EQ(calc_micro_xs(el_id).value(), expected_micro_xs[i]);
-        ++i;
+        XsCalculator calc_micro_xs(shared, MevEnergy(energy));
+        micro_xs.push_back(calc_micro_xs(el_id).value());
     }
 
     // Check the capture cross section at the upper bound (20 MeV)
-    XsCalculator calc_upper_xs(shared, MevEnergy{20});
-    EXPECT_SOFT_EQ(calc_upper_xs(el_id).value(), 0.000596438029);
+    XsCalculator calc_upper_xs(shared, MevEnergy(20));
+    micro_xs.push_back(calc_upper_xs(el_id).value());
+
+    EXPECT_VEC_SOFT_EQ(expected_micro_xs, micro_xs);
 }
 
 TEST_F(NeutronCaptureTest, macro_xs)
@@ -103,21 +105,21 @@ TEST_F(NeutronCaptureTest, macro_xs)
                                                       0.0037379948959393,
                                                       0.0016865968788258,
                                                       0.00094171595578094,
-                                                      6.2822251701714e-05};
+                                                      6.2822251701714e-05,
+                                                      4.1377925277976e-05};
 
-    size_t i = 0;
+    std::vector<real_type> macro_xs;
     for (auto energy : geomspace(1e-5, 10.0, 7))
     {
-        EXPECT_SOFT_EQ(
-            native_value_to<units::InvCmXs>(calc_xs(MevEnergy{energy})).value(),
-            expected_macro_xs[i]);
-        ++i;
+        macro_xs.push_back(
+            native_value_to<units::InvCmXs>(calc_xs(MevEnergy(energy))).value());
     }
 
     // Check the macroscopic cross section at the upper bound (20 MeV)
-    EXPECT_SOFT_EQ(
-        native_value_to<units::InvCmXs>(calc_xs(MevEnergy{20})).value(),
-        4.1377925277976e-05);
+    macro_xs.push_back(
+        native_value_to<units::InvCmXs>(calc_xs(MevEnergy(20))).value());
+
+    EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
 
 //---------------------------------------------------------------------------//
