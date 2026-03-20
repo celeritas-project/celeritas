@@ -237,19 +237,34 @@ void OpticalHitProcessor::process_hit(optical::DetectorHit const& hit,
         }
     }
 
-    // Populate step point attributes
+    // Populate step point attributes.
+    // Pre- and post-step points are set to the same position because Celeritas
+    // optical hits represent a single point. DD4hep SDs compute cell IDs and
+    // contribution positions from the midpoint (pre+post)/2, so pre must equal
+    // post to get the correct result.
     double const g4_energy = convert_to_geant(hit.energy.value(), CLHEP::MeV);
+    G4ThreeVector const g4_pos = convert_to_geant(hit.position, clhep_length);
+    G4ThreeVector const g4_dir = convert_to_geant(hit.direction, 1.0);
     step_point_->SetGlobalTime(convert_to_geant(hit.time, clhep_time));
-    step_point_->SetPosition(convert_to_geant(hit.position, clhep_length));
-    step_point_->SetMomentumDirection(convert_to_geant(hit.direction, 1.0));
+    step_point_->SetPosition(g4_pos);
+    step_point_->SetMomentumDirection(g4_dir);
     step_point_->SetKineticEnergy(g4_energy);
+    step_->GetPreStepPoint()->SetPosition(g4_pos);
+    step_->GetPreStepPoint()->SetMomentumDirection(g4_dir);
+    step_->GetPreStepPoint()->SetKineticEnergy(g4_energy);
 
     // Set energy deposit so calorimeter SDs record this hit
     step_->SetTotalEnergyDeposit(g4_energy);
 
-    // Set step point material from the logical volume
+    // Set step point material from the logical volume.
+    // G4Track::GetMaterialCutsCouple() reads from the pre-step point, so set
+    // it on both points so SDs that go via the track (e.g. DD4hep
+    // Geant4StepHandler / G4EmSaturation) don't dereference null.
+    auto* couple = lv->GetMaterialCutsCouple();
     step_point_->SetMaterial(lv->GetMaterial());
-    step_point_->SetMaterialCutsCouple(lv->GetMaterialCutsCouple());
+    step_point_->SetMaterialCutsCouple(couple);
+    step_->GetPreStepPoint()->SetMaterial(lv->GetMaterial());
+    step_->GetPreStepPoint()->SetMaterialCutsCouple(couple);
     step_point_->SetSensitiveDetector(lv->GetSensitiveDetector());
 
     // Update track to reflect post-step state
