@@ -236,7 +236,7 @@ void AtlasHgtdGeoTest::test_trace() const
             // Initialization is exactly on a surface with single precision
             auto up_view = test_->make_geo_track_view_interface();
             *up_view = test_->make_initializer(pos, dir);
-            EXPECT_TRUE(up_view->failed());
+            EXPECT_EQ(GeoStatus::error, up_view->geo_status());
             GTEST_SKIP() << "ORANGE single precision starts on a boundary";
         }
 
@@ -331,9 +331,9 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
         geo = test_->make_initializer(
             {23.51934584635, 17.141066715148, 344.45000092904},
             {0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7});
-        ASSERT_FALSE(geo.is_outside());
+        ASSERT_EQ(GeoStatus::interior, geo.geo_status());
         EXPECT_EQ("SPlate", test_->volume_name(geo));
-        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
         // Find next boundary
         auto next = geo.find_next_step(from_cm(2.0));
@@ -342,7 +342,7 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
         geo.move_to_boundary();
         EXPECT_SOFT_EQ(344.45, to_cm(geo.pos()[2]));
         EXPECT_EQ("SPlate", test_->volume_name(geo));
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
         geo.cross_boundary();
         if (test_->geometry_type() == "VecGeom" && vecgeom_version < Version{2})
         {
@@ -353,20 +353,20 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
             return;
         }
         EXPECT_EQ("HGTD", test_->volume_name(geo));
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
 
         // Suppose safety distance results in small step limit
         next = geo.find_next_step(from_cm(5e-9));
         EXPECT_SOFT_EQ(5e-9, to_cm(next.distance));
         geo.move_internal(from_cm(5e-9));
-        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
         EXPECT_EQ("HGTD", test_->volume_name(geo));
 
         // Should be able to continue stepping as normal
         next = geo.find_next_step(from_cm(1e-6));
         EXPECT_SOFT_EQ(1e-6, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
-        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
         EXPECT_EQ("HGTD", test_->volume_name(geo));
     }
 }
@@ -557,9 +557,10 @@ void FourLevelsGeoTest::test_consecutive_compute() const
 {
     auto geo = test_->make_checked_track_view();
     geo = test_->make_initializer({-9, -10, -10}, {1, 0, 0});
-    ASSERT_FALSE(geo.is_outside());
+    ASSERT_EQ(GeoStatus::interior, geo.geo_status());
+    ASSERT_NE(VolumeId{}, geo.volume_id());
     EXPECT_EQ("Shape2", test_->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
     auto next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
@@ -583,9 +584,10 @@ void FourLevelsGeoTest::test_detailed_tracking() const
     {
         SCOPED_TRACE("rightward along corner");
         geo = test_->make_initializer({-10, -10, -10}, {1, 0, 0});
-        ASSERT_FALSE(geo.is_outside());
+        ASSERT_EQ(GeoStatus::interior, geo.geo_status());
+        ASSERT_NE(VolumeId{}, geo.volume_id());
         EXPECT_EQ("Shape2", test_->volume_name(geo));
-        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
         // Check for surfaces up to a distance of 4 units away
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
@@ -595,14 +597,14 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
         geo.move_internal(from_cm(3.5));
-        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
         // Find one a bit further, then move to it
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
         EXPECT_EQ("Shape2", test_->volume_name(geo));
         if (geo.check_normal())
         {
@@ -614,7 +616,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         // Now cross it
         ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("Shape1", test_->volume_name(geo));
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
         // TODO: fix for vecgeom+g4
         if (test_->geometry_type() == "ORANGE")
         {
@@ -628,7 +630,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         ASSERT_NO_THROW(next = geo.find_next_step());
         EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(0.5)));
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
@@ -636,7 +638,8 @@ void FourLevelsGeoTest::test_detailed_tracking() const
     {
         SCOPED_TRACE("inside out");
         geo = test_->make_initializer({-23.5, 6.5, 6.5}, {-1, 0, 0});
-        ASSERT_FALSE(geo.is_outside());
+        ASSERT_EQ(GeoStatus::interior, geo.geo_status());
+        ASSERT_NE(VolumeId{}, geo.volume_id());
         EXPECT_EQ("World", test_->volume_name(geo));
 
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(2)));
@@ -657,9 +660,10 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 
         // Start inside box "Shape1" in the gap outside sphere "Shape2"
         geo = test_->make_initializer({15.5, 10, 10}, {-1, 0, 0});
-        ASSERT_FALSE(geo.is_outside());
+        ASSERT_EQ(GeoStatus::interior, geo.geo_status());
+        ASSERT_NE(VolumeId{}, geo.volume_id());
         EXPECT_EQ("Shape1", test_->volume_name(geo));
-        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
         // Check for surfaces: we should hit the outside of the sphere Shape2
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1.0)));
@@ -667,86 +671,52 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         // Move left to the boundary but scatter perpendicularly, tangent
         // upward to the sphere
         geo.move_to_boundary();
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
         geo.set_dir({0, 1, 0});
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
         EXPECT_EQ("Shape1", test_->volume_name(geo));
 
         // Find the next step (to top edge of Shape1) but then scatter back
         // toward the sphere
-        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(10.0)));
-        if (test_->geometry_type() == "VecGeom" && using_solids_vg
-            && vecgeom_version >= Version{2, 0})
-        {
-            // Solids VG navig issues here - both v1,v2 work the same though
-            EXPECT_GT(1e-12, to_cm(next.distance));
-            GTEST_SKIP() << "FIXME: VG_solids navig issues: 1e-13 vs. 6";
-        }
+        EXPECT_NO_THROW(next = geo.find_next_step(from_cm(10.0)));
         EXPECT_SOFT_EQ(6, to_cm(next.distance));
         geo.set_dir({-1, 0, 0});
         EXPECT_VEC_SOFT_EQ((Real3{15, 10, 10}), to_cm(geo.pos()));
         EXPECT_EQ("Shape1", test_->volume_name(geo));
-        EXPECT_TRUE(geo.is_on_boundary());
-
-        // Check the distance to the sphere boundary again, then scatter
-        // into the sphere (this may be a "bump": 1e-13 for surface VG, Geant4;
-        // 1e-8 for volume VG; BUT exactly zero for ORANGE thanks to
-        // "reentrant" logic)
-        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(20.0)));
-        EXPECT_LE(next.distance, to_cm(1e-8));
-        ASSERT_TRUE(next.boundary);
-        if (next.distance > 0)
-        {
-            // ORANGE will not accept a zero-distance move-to-boundary call
-            geo.move_to_boundary();
-        }
-        else if (CELERITAS_DEBUG)
-        {
-            EXPECT_THROW(geo.move_to_boundary(), DebugError);
-        }
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+        // CANNOT check the distance to the sphere boundary
 
         // Enter the spehre
         ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("Shape2", test_->volume_name(geo));
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
 
+        // Make reentrant again
         geo.set_dir(Real3{1, 0, 0});
-        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
-        {
-            // Assertion failure in NavStateTuple::PushDaughterImpl:
-            // trying to push into a daughter but there are none
-            // (pv ID 1)
-            GTEST_SKIP() << "FIXME: vecgeom surface breaks";
-        }
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+        EXPECT_NO_THROW(geo.cross_boundary());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+        EXPECT_EQ("Shape1", test_->volume_name(geo));
 
-        ASSERT_NO_THROW(geo.cross_boundary());
-        if (test_->geometry_type() == "VecGeom")
-        {
-            // FIXME: boundary crossing doesn't change volume like it
-            // should
-            EXPECT_EQ("Shape2", test_->volume_name(geo));
-        }
-        else
-        {
-            EXPECT_EQ("Shape1", test_->volume_name(geo));
-        }
+        // And do it one more time
         geo.set_dir(Real3{-1, 0, 0});
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
         ASSERT_NO_THROW(geo.cross_boundary());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
         EXPECT_EQ("Shape2", test_->volume_name(geo));
 
         // Now move just barely inside the sphere
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1e-6)));
         EXPECT_FALSE(next.boundary);
         geo.move_internal(next.distance);
-        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
         // Exit the sphere
         geo.set_dir({1, 0, 0});
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1)));
         EXPECT_LE(next.distance, from_cm(1e-5));
         geo.move_to_boundary();
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
         if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
@@ -754,7 +724,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 
         geo.cross_boundary();
         EXPECT_EQ("Shape1", test_->volume_name(geo));
-        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
         if (geo.check_normal())
         {
             EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
@@ -765,12 +735,12 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         geo.cross_boundary();
         EXPECT_EQ("Shape1", test_->volume_name(geo));
 
+        // Test relocation without direction change on surface
         constexpr auto dx = real_type{1} / constants::sqrt_two;
 
-        // No crossing if direction on boundary is not reentrant
+        // Check non-reenteant direction
         geo.set_dir(Real3{dx, dx, 0});
-        geo.cross_boundary();
-        EXPECT_EQ("Shape1", test_->volume_name(geo));
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
     }
     {
         SCOPED_TRACE("unique volume names");
@@ -2190,7 +2160,7 @@ void SimpleCmsGeoTest::test_detailed_tracking() const
     EXPECT_TRUE(next.boundary);
 
     geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
     EXPECT_FALSE(geo.is_outside());
     if (geo.check_normal())
     {
@@ -2706,14 +2676,14 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_TRUE(next.boundary);
 
     geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
     EXPECT_FALSE(geo.is_outside());
     if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     }
     geo.cross_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
     EXPECT_EQ("world", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
 
@@ -2732,7 +2702,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_TRUE(next.boundary);
     EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
     geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
     if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
@@ -2771,9 +2741,9 @@ void TwoBoxesGeoTest::test_reentrant() const
 
     // Starting left of edge (-), headed down right (+,-)
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
-    ASSERT_FALSE(geo.is_outside());
+    ASSERT_EQ(GeoStatus::interior, geo.geo_status());
     EXPECT_EQ("inner", test_->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
     // Check for surfaces up to a distance of 4 units away
     auto next = geo.find_next_step(from_cm(4.0));
@@ -2782,7 +2752,7 @@ void TwoBoxesGeoTest::test_reentrant() const
 
     // Move to boundary (-; +,-)
     geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
     if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
@@ -2791,7 +2761,7 @@ void TwoBoxesGeoTest::test_reentrant() const
 
     // Cross into the new volume, needed for optical physics (+; +,-)
     geo.cross_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
     if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
@@ -2800,45 +2770,19 @@ void TwoBoxesGeoTest::test_reentrant() const
 
     // Reflect normal to surface  (+; -,-)
     geo.set_dir(Real3{-dx, -dx, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
     if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
     EXPECT_EQ("world", test_->volume_name(geo));
-
-    // Cross back into previous volume (-; -,-)
-    // Typical case
     ASSERT_NO_THROW(geo.cross_boundary());
-    EXPECT_TRUE(geo.is_on_boundary());
-
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
     if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
 
-    if (test_->geometry_type() == "VecGeom")
-    {
-        // VecGeom 1.2.11 seems to fail reentry *sometimes*: on the CI builds,
-        // spack passes but docker fails (relwithdebinfo and debug)
-        if ("world" == test_->volume_name(geo))
-        {
-            GTEST_SKIP() << "Unexpected failure to cross volume";
-        }
-        if ("[OUTSIDE]" == test_->volume_name(geo))
-        {
-            GTEST_SKIP() << "FIXME: Unexpected track location.";
-        }
-    }
-
-    if (test_->geometry_type() == "VecGeom" && using_surface_vg)
-    {
-        // VecGeom with surfaces seems to have issues here
-        EXPECT_EQ("[OUTSIDE]", test_->volume_name(geo));
-        {
-            GTEST_SKIP() << "FIXME: VecGeom v2.x-surface misses inner volume.";
-        }
-    }
     EXPECT_EQ("inner", test_->volume_name(geo));
 
     // Find the next boundary and make sure that nearer distances aren't
@@ -2846,7 +2790,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(10 * dx, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
 }
 
 /*!
@@ -2864,8 +2808,9 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
     // Starting left of edge (-), headed down right (+,-)
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
     ASSERT_FALSE(geo.is_outside());
+    ASSERT_EQ(GeoStatus::interior, geo.geo_status());
     EXPECT_EQ("inner", test_->volume_name(geo));
-    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
     // Check for surfaces up to a distance of 4 units away
     auto next = geo.find_next_step(from_cm(4.0));
@@ -2874,22 +2819,22 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
 
     // Propagate: move to boundary (-; +,-)
     geo.move_to_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
     EXPECT_EQ("inner", test_->volume_name(geo));
 
     // Momentum update: point back inward (-; -,-)
     geo.set_dir(Real3{-dx, -dx, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
     EXPECT_EQ("inner", test_->volume_name(geo));
 
     // Scatter: point back out (-; +,-)
     geo.set_dir(Real3{dx, -dx, 0});
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
     EXPECT_EQ("inner", test_->volume_name(geo));
 
     // Crossing *will* change volumes (+; +,-)
     geo.cross_boundary();
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
     EXPECT_EQ("world", test_->volume_name(geo));
     if (geo.check_normal())
     {
@@ -2900,7 +2845,7 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(10.0, to_cm(next.distance));
     EXPECT_FALSE(next.boundary);
-    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
 }
 
 /*!
@@ -2921,6 +2866,7 @@ void TwoBoxesGeoTest::test_tangent() const
         SCOPED_TRACE("in first volume");
         geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
         ASSERT_FALSE(geo.is_outside());
+        ASSERT_EQ(GeoStatus::interior, geo.geo_status());
         EXPECT_EQ("inner", test_->volume_name(geo));
         EXPECT_FALSE(geo.is_on_boundary());
 
