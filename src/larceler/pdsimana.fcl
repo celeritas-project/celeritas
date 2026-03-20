@@ -10,8 +10,8 @@ BEGIN_PROLOG
 PDSimAna:
 {
     module_type: PDSimAna
-    SimulationLabel: "IonAndScint" // SimEnergyDeposit
-    ModuleLabel: "OpticalSim" // OpdetBacktrackerRecord
+    SimulationLabel: "IonAndScint" # SimEnergyDeposit
+    ModuleLabel: "OpticalSim" # OpdetBacktrackerRecord
 
     # TODO: Possibly add runtime histogram definitions
 }

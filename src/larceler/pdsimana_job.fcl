@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
 // Job execution file for the PDSimAna module
 //---------------------------------------------------------------------------//
-#include "PDSimAna.fcl"
+#include "pdsimana.fcl"
 
 process_name: pdsimana
 
@@ -11,7 +11,7 @@ services.message.destinations.console.threshold: "INFO"
 
 services:
 {
-    TFileService: { fileName: "%ifb-ana-output.root" }
+    TFileService: { fileName: "%ifb-ana.root" }
 }
 
 # Set up analyzer execution

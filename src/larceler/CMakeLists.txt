@@ -86,12 +86,12 @@ celeritas_target_link_libraries(PDSimAna_module
 #-----------------------------------------------------------------------------#
 
 set(_fcl_files
-  GeoSimExporter.fcl
-  GeoSimExporter_run.fcl
-  PDFullSimCeler.fcl
-  PDFullSimCeler_run.fcl
-  PDSimAna.fcl
-  PDSimAna_run.fcl
+  geosimexporter.fcl
+  geosimexporter_job.fcl
+  pdfullsimceler.fcl
+  pdfullsimceler_job.fcl
+  pdsimana.fcl
+  pdsimana_job.fcl
 )
 
 # Copy into $BUILD/fcl directory at build time (re-copies when source changes)
