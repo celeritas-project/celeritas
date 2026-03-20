@@ -139,6 +139,7 @@ struct VecgeomStateData
     // Physical state
     StateItems<Real3> pos;
     StateItems<Real3> dir;
+    StateItems<Real3> normal;
 
     // Logical volumetric state
     VgStateItems state;
@@ -149,6 +150,9 @@ struct VecgeomStateData
     // Surface state
     StateItems<VgSurfaceInt> next_surf;  // Empty unless using surface model
 
+    // Geometry tracking status
+    StateItems<GeoStatus> status;
+
     //// METHODS ////
 
     //! True if sizes are consistent and states are assigned
@@ -157,11 +161,13 @@ struct VecgeomStateData
         // clang-format off
         return pos.size() > 0
             && dir.size() == pos.size()
+            && normal.size() == pos.size()
             && state.size() == pos.size()
             && boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
             && next_state.size() == pos.size()
             && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
-            && next_surf.size() == (CELERITAS_VECGEOM_SURFACE ? pos.size() : 0);
+            && next_surf.size() == (CELERITAS_VECGEOM_SURFACE ? pos.size() : 0)
+            && status.size() == pos.size();
         // clang-format on
     }
 
@@ -175,11 +181,13 @@ struct VecgeomStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
+        normal = other.normal;
         state = other.state;
         boundary = other.boundary;
         next_state = other.next_state;
         next_boundary = other.next_boundary;
         next_surf = other.next_surf;
+        status = other.status;
         return *this;
     }
 };

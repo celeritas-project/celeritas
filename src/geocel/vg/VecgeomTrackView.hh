@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/VecgeomTrackView.hh
+//! \sa geocel/vg/Vecgeom.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -124,10 +125,12 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
     CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
-    //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
+    // Geometry tracking status
+    inline CELER_FUNCTION GeoStatus geo_status() const;
+    // Whether the last operation resulted in an error
+    inline CELER_FUNCTION bool failed() const;
     // Get the normal vector of the current surface
-    inline CELER_FUNCTION Real3 normal() const;
+    inline CELER_FUNCTION Real3 const& normal() const;
 
     //// OPERATIONS ////
 
@@ -180,12 +183,12 @@ class VecgeomTrackView
     NavStateWrapper vgnext_;
     Real3& pos_;
     Real3& dir_;
+    Real3& normal_;
     VgSurfaceInt* next_surf_{nullptr};
     //!@}
 
     // Temporary data
     real_type next_step_{0};
-    bool failed_{false};
 
     //// HELPER FUNCTIONS ////
 
@@ -194,6 +197,9 @@ class VecgeomTrackView
 
     // Whether the next distance-to-boundary is to a surface
     inline CELER_FUNCTION bool is_next_boundary() const;
+
+    // Set the geometry tracking status
+    inline CELER_FUNCTION void geo_status(GeoStatus);
 
     // Get a reference to the current volume instance
     inline CELER_FUNCTION VgPlacedVol const& physical_volume() const;
@@ -230,6 +236,7 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
 #endif
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
+    , normal_(states.normal[tid])
 {
     if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
@@ -253,7 +260,7 @@ CELER_FUNCTION VecgeomTrackView&
 VecgeomTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
-    failed_ = false;
+    this->geo_status(GeoStatus::interior);
 
     // Initialize direction
     dir_ = init.dir;
@@ -303,7 +310,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
         msg << "Failed to initialize geometry state at " << repr(pos_) << ' '
             << lengthunits::native_label;
 #endif
-        failed_ = true;
+        this->geo_status(GeoStatus::error);
     }
 
     return *this;
@@ -429,10 +436,10 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
 /*!
  * Get the surface normal of the boundary the track is currently on.
  */
-CELER_FUNCTION Real3 VecgeomTrackView::normal() const
+CELER_FUNCTION Real3 const& VecgeomTrackView::normal() const
 {
-    // FIXME: temporarily return a bogus but valid surface normal
-    return this->dir();
+    CELER_EXPECT(this->is_on_boundary());
+    return normal_;
 }
 
 //---------------------------------------------------------------------------//
@@ -619,6 +626,24 @@ CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Geometry tracking status.
+ */
+CELER_FUNCTION GeoStatus VecgeomTrackView::geo_status() const
+{
+    return state_.status[tid_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the last operation resulted in an error.
+ */
+CELER_FUNCTION bool VecgeomTrackView::failed() const
+{
+    return this->geo_status() == GeoStatus::error;
+}
+
+//---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -644,6 +669,15 @@ CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
     {
         return vgnext_.IsOnBoundary();
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the geometry tracking status.
+ */
+CELER_FUNCTION void VecgeomTrackView::geo_status(GeoStatus gs)
+{
+    state_.status[tid_] = gs;
 }
 
 //---------------------------------------------------------------------------//

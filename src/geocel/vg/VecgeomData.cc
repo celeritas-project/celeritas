@@ -39,6 +39,7 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 
     resize(&data->pos, size);
     resize(&data->dir, size);
+    resize(&data->normal, size);
     resize(&data->state, size);
     resize(&data->next_state, size);
     if constexpr (M == MemSpace::device)
@@ -65,6 +66,7 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
     {
         resize(&data->next_surf, size);
     }
+    resize(&data->status, size);
 
     CELER_ENSURE(data);
 }
