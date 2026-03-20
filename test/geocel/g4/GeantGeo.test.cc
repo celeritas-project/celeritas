@@ -892,12 +892,7 @@ TEST_F(SimpleCmsTest, detailed_track)
 {
     ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_detailed_tracking();
-    if (geant4_version >= Version{11})
-    {
-        // G4 11.3: "Accuracy error or slightly inaccurate position shift."
-        static char const* const expected_log_levels[] = {"error", "error"};
-        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
-    }
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
 //---------------------------------------------------------------------------//
