@@ -68,8 +68,13 @@ bool LevelTouchableUpdater::operator()(SpanVolInst ids,
     // Use the volume instances to reconstruct a nav history
     update_history_(ids, nav_hist_.get());
 
+    // Guard against null top volume (e.g. all IDs were null/trimmed)
+    G4VPhysicalVolume* top = nav_hist_->GetTopVolume();
+    if (!top)
+        return false;
+
     // Copy to the given touchable
-    touchable->UpdateYourself(nav_hist_->GetTopVolume(), nav_hist_.get());
+    touchable->UpdateYourself(top, nav_hist_.get());
     return true;
 }
 
