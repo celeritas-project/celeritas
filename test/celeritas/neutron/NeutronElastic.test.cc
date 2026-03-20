@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
-#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
@@ -81,13 +81,12 @@ TEST_F(NeutronElasticTest, micro_xs)
                                                       0.47825608538126163,
                                                       0.5046348286147897};
 
-    real_type energy = 1e-5;
-    real_type const factor = 1e+1;
-    for (auto i : range(expected_micro_xs.size()))
+    size_t i = 0;
+    for (auto energy : geomspace(1e-5, 1e+4, 10))
     {
         XsCalculator calc_micro_xs(shared, MevEnergy{energy});
         EXPECT_SOFT_EQ(calc_micro_xs(el_id).value(), expected_micro_xs[i]);
-        energy *= factor;
+        ++i;
     }
 
     // Check the elastic cross section at the upper bound (20 GeV)
@@ -113,14 +112,13 @@ TEST_F(NeutronElasticTest, macro_xs)
                                                       0.081439808202180136,
                                                       0.033470862079907314};
 
-    real_type energy = 1e-5;
-    real_type const factor = 1e+1;
-    for (auto i : range(expected_macro_xs.size()))
+    size_t i = 0;
+    for (auto energy : geomspace(1e-5, 1e+3, 9))
     {
         EXPECT_SOFT_EQ(
             native_value_to<units::InvCmXs>(calc_xs(MevEnergy{energy})).value(),
             expected_macro_xs[i]);
-        energy *= factor;
+        ++i;
     }
 
     // Check the CHIPS macroscopic cross section at the upper bound (20 GeV)

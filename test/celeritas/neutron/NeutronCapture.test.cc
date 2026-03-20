@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
-#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/neutron/model/NeutronCaptureModel.hh"
@@ -76,13 +76,12 @@ TEST_F(NeutronCaptureTest, micro_xs)
                                                       0.013574271991922,
                                                       0.00090554516078186};
 
-    real_type energy = 1e-5;
-    real_type const factor = 1e+1;
-    for (auto i : range(expected_micro_xs.size()))
+    size_t i = 0;
+    for (auto energy : geomspace(1e-5, 10.0, 7))
     {
         XsCalculator calc_micro_xs(shared, MevEnergy{energy});
         EXPECT_SOFT_EQ(calc_micro_xs(el_id).value(), expected_micro_xs[i]);
-        energy *= factor;
+        ++i;
     }
 
     // Check the capture cross section at the upper bound (20 MeV)
@@ -106,14 +105,13 @@ TEST_F(NeutronCaptureTest, macro_xs)
                                                       0.00094171595578094,
                                                       6.2822251701714e-05};
 
-    real_type energy = 1e-5;
-    real_type const factor = 1e+1;
-    for (auto i : range(expected_macro_xs.size()))
+    size_t i = 0;
+    for (auto energy : geomspace(1e-5, 10.0, 7))
     {
         EXPECT_SOFT_EQ(
             native_value_to<units::InvCmXs>(calc_xs(MevEnergy{energy})).value(),
             expected_macro_xs[i]);
-        energy *= factor;
+        ++i;
     }
 
     // Check the macroscopic cross section at the upper bound (20 MeV)

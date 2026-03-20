@@ -6,10 +6,10 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
-#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/grid/TwodGridCalculator.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
@@ -86,13 +86,12 @@ TEST_F(NeutronInelasticTest, micro_xs)
                                                       0.81016638725225387,
                                                       0.84789596907525477};
 
-    real_type energy = 1e-4;
-    real_type const factor = 1e+1;
-    for (auto i : range(expected_micro_xs.size()))
+    size_t i = 0;
+    for (auto energy : geomspace(1e-4, 1e+3, 8))
     {
         XsCalculator calc_micro_xs(shared, MevEnergy{energy});
         EXPECT_SOFT_EQ(calc_micro_xs(el_id).value(), expected_micro_xs[i]);
-        energy *= factor;
+        ++i;
     }
 
     // Check the elastic cross section at the upper bound (20 GeV)
@@ -117,14 +116,13 @@ TEST_F(NeutronInelasticTest, macro_xs)
                                                       0.056850427191922973,
                                                       0.059657345679963072};
 
-    real_type energy = 1e-4;
-    real_type const factor = 1e+1;
-    for (auto i : range(expected_macro_xs.size()))
+    size_t i = 0;
+    for (auto energy : geomspace(1e-4, 1e+3, 8))
     {
         EXPECT_SOFT_EQ(
             native_value_to<units::InvCmXs>(calc_xs(MevEnergy{energy})).value(),
             expected_macro_xs[i]);
-        energy *= factor;
+        ++i;
     }
 
     // Check the neutron inelastic interaction cross section at the upper bound
