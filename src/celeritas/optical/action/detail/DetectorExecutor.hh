@@ -100,17 +100,6 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
         // Track is not in a detector volume
         hit.detector = {};
     }
-
-    // Score a valid hit
-    hit.detector = detector_id;
-    hit.primary = sim.primary_id();
-    hit.energy = track.particle().energy();
-    hit.time = sim.time();
-    hit.position = geometry.pos();
-    hit.volume_instance = geometry.volume_instance_id();
-
-    // Kill the track
-    sim.status(TrackStatus::killed);
 }
 
 //---------------------------------------------------------------------------//
