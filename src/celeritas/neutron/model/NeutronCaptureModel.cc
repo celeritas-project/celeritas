@@ -12,7 +12,6 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/neutron/executor/NeutronCaptureExecutor.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
