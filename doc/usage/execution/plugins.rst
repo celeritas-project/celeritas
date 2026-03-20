@@ -72,6 +72,14 @@ GeoSimExporter
 This analysis module exports detector geometry data and energy deposition data
 for internal testing.
 
+PDSimAna module
+^^^^^^^^^^^^^^^
+
+The result from an optical simulation can be analyzed with the ``PDSimAna``
+module, which reads ``OpdetBacktrackerRecord`` data products to produce analysis
+plots. The FHiCL file ``pdsimana.fcl`` configures the module, and
+``pdsimana_job.fcl`` executes the module.
+
 DD4HEP
 ------
 
