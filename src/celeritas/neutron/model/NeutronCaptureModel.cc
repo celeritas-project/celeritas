@@ -87,15 +87,9 @@ auto NeutronCaptureModel::micro_xs(Applicability) const -> XsTable
 /*!
  * Apply the interaction kernel.
  */
-void NeutronCaptureModel::step(CoreParams const& params,
-                               CoreStateHost& state) const
+void NeutronCaptureModel::step(CoreParams const&, CoreStateHost&) const
 {
-    auto execute = make_action_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        this->action_id(),
-        InteractionApplier{NeutronCaptureExecutor{this->host_ref()}});
-    return launch_action(*this, params, state, execute);
+    CELER_NOT_IMPLEMENTED("Neutron capture interaction");
 }
 
 //---------------------------------------------------------------------------//
