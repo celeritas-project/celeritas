@@ -124,6 +124,24 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
+TEST_F(FourLevelsTest, reentrant)
+{
+    this->impl().test_detailed_tracking();
+}
+
+TEST_F(FourLevelsTest, reentrant_normal)
+{
+    ScopedLogStorer scoped_log_{&self_logger()};
+    this->impl().test_detailed_tracking();
+
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+}
+
+TEST_F(FourLevelsTest, safety)
+{
+    this->impl().test_safety();
+}
+
 //---------------------------------------------------------------------------//
 using LarSphereTest
     = GenericGeoParameterizedTest<GeantOrangeTest, LarSphereGeoTest>;

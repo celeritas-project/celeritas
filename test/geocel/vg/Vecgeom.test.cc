@@ -232,43 +232,7 @@ TEST_F(FourLevelsTest, levels)
 
 TEST_F(FourLevelsTest, safety)
 {
-    auto geo = this->make_geo_track_view();
-    std::vector<real_type> safeties;
-    std::vector<real_type> lim_safeties;
-
-    for (auto i : range(11))
-    {
-        real_type r = 2.0 * i + 0.1;
-        geo = {from_cm({r, r, r}), {1, 0, 0}};
-
-        if (!geo.is_outside())
-        {
-            geo.find_next_step();
-            safeties.push_back(to_cm(geo.find_safety()));
-            lim_safeties.push_back(to_cm(geo.find_safety(from_cm(1.5))));
-        }
-    }
-
-    auto const safety_tol = this->tracking_tol().safety;
-
-    static double const expected_safeties[] = {
-        2.9,
-        0.9,
-        0.1,
-        1.7549981495186,
-        1.7091034656191,
-        4.8267949192431,
-        1.3626933041054,
-        1.9,
-        0.1,
-        1.1,
-        3.1,
-    };
-    EXPECT_VEC_NEAR(expected_safeties, safeties, safety_tol);
-
-    static double const expected_lim_safeties[]
-        = {1.5, 0.9, 0.1, 1.5, 1.5, 1.5, 1.3626933041054, 1.5, 0.1, 1.1, 1.5};
-    EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, safety_tol);
+    this->impl().test_safety();
 }
 
 TEST_F(FourLevelsTest, trace)

@@ -428,11 +428,6 @@ TEST_F(FourLevelsTest, model)
     EXPECT_REF_EQ(ref, result);
 }
 
-TEST_F(FourLevelsTest, trace)
-{
-    this->impl().test_trace();
-}
-
 TEST_F(FourLevelsTest, consecutive_compute)
 {
     this->impl().test_consecutive_compute();
@@ -454,53 +449,27 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
+TEST_F(FourLevelsTest, reentrant)
+{
+    this->impl().test_detailed_tracking();
+}
+
+TEST_F(FourLevelsTest, reentrant_normal)
+{
+    ScopedLogStorer scoped_log_{&self_logger()};
+    this->impl().test_detailed_tracking();
+
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+}
+
 TEST_F(FourLevelsTest, safety)
 {
-    auto geo = this->make_geo_track_view();
-    std::vector<real_type> safeties;
-    std::vector<real_type> lim_safeties;
+    this->impl().test_safety();
+}
 
-    for (auto i : range(11))
-    {
-        real_type r = from_cm(2.0 * i + 0.1);
-        geo = {{r, r, r}, {1, 0, 0}};
-        if (!geo.is_outside())
-        {
-            geo.find_next_step();
-            safeties.push_back(to_cm(geo.find_safety()));
-            lim_safeties.push_back(to_cm(geo.find_safety(from_cm(1.5))));
-        }
-    }
-
-    static double const expected_safeties[] = {
-        2.9,
-        0.9,
-        0.1,
-        1.7549981495186,
-        1.7091034656191,
-        4.8267949192431,
-        1.3626933041054,
-        1.9,
-        0.1,
-        1.1,
-        3.1,
-    };
-    EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
-
-    static double const expected_lim_safeties[] = {
-        2.9,
-        0.9,
-        0.1,
-        1.7549981495186,
-        1.7091034656191,
-        4.8267949192431,
-        1.3626933041054,
-        1.9,
-        0.1,
-        1.1,
-        3.1,
-    };
-    EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
+TEST_F(FourLevelsTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//

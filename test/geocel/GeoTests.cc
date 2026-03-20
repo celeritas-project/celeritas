@@ -581,7 +581,6 @@ void FourLevelsGeoTest::test_detailed_tracking() const
     auto geo = test_->make_checked_track_view();
 
     Propagation next;
-    if (0)
     {
         SCOPED_TRACE("rightward along corner");
         geo = test_->make_initializer({-10, -10, -10}, {1, 0, 0});
@@ -636,7 +635,6 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
     }
-    if (0)
     {
         SCOPED_TRACE("inside out");
         geo = test_->make_initializer({-23.5, 6.5, 6.5}, {-1, 0, 0});
@@ -656,112 +654,6 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         }
         ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_TRUE(geo.is_outside());
-    }
-    {
-        SCOPED_TRACE("reentrant boundary");
-
-        // Start inside box "Shape1" in the gap outside sphere "Shape2"
-        geo = test_->make_initializer({15.5, 10, 10}, {-1, 0, 0});
-        ASSERT_EQ(GeoStatus::interior, geo.geo_status());
-        ASSERT_NE(VolumeId{}, geo.volume_id());
-        EXPECT_EQ("Shape1", test_->volume_name(geo));
-
-        // Check for surfaces: we should hit the outside of the sphere Shape2
-        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1.0)));
-        EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-        // Move left to the boundary but scatter perpendicularly, tangent
-        // upward to the sphere (which is conVEX at this point)
-        geo.move_to_boundary();
-        if (geo.check_normal())
-        {
-            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-        }
-        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
-        geo.set_dir({0, 1, 0});
-        // XXX: the only way the geometry can get the geo_status correct
-        // (except by happenstance) is to know the *CONVEXITY* at the current
-        // point: the sphere curves away, so we're pointed "outside". If we're
-        // on a plane and scatter exactly along it, we're better off staying in
-        // the original volume too, but the correct behavior might be to bump.
-        if (geo.geo_status() == GeoStatus::boundary_out)
-        {
-            // Find the next step (to top edge of Shape1)
-            EXPECT_NO_THROW(next = geo.find_next_step(from_cm(10.0)));
-            EXPECT_SOFT_EQ(6, to_cm(next.distance));
-        }
-        // Return to inbound direction
-        geo.set_dir({-1, 0, 0});
-        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
-        // CANNOT check the distance to the sphere boundary
-
-        // Enter the spehre
-        ASSERT_NO_THROW(geo.cross_boundary());
-        ASSERT_EQ("Shape2", test_->volume_name(geo));
-        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
-
-        // Try perpendicular from *inside*: should be into the boundary
-        geo.set_dir({0, 1, 0});
-        if (geo.geo_status() == GeoStatus::boundary_out)
-        {
-            // Shouldn't *actually* be headed out: but if we've "bumped" inside
-            // then it's allowable to be a small distance
-            EXPECT_NO_THROW(next = geo.find_next_step(from_cm(10.0)));
-            EXPECT_SOFT_EQ(0, to_cm(next.distance));
-            EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
-        }
-        geo.set_dir({-1, 0, 0});
-        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
-
-        // Make reentrant again and cross (rightward)
-        geo.set_dir(Real3{1, 0, 0});
-        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
-        EXPECT_NO_THROW(geo.cross_boundary());
-        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
-        ASSERT_EQ("Shape1", test_->volume_name(geo));
-
-        // And do it one more time
-        geo.set_dir(Real3{-1, 0, 0});
-        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
-        ASSERT_NO_THROW(geo.cross_boundary());
-        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
-        ASSERT_EQ("Shape2", test_->volume_name(geo));
-
-        // Now move just barely inside the sphere
-        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1e-6)));
-        EXPECT_FALSE(next.boundary);
-        geo.move_internal(next.distance);
-        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
-
-        // Exit the sphere
-        geo.set_dir({1, 0, 0});
-        ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1)));
-        EXPECT_LE(next.distance, from_cm(1e-5));
-        geo.move_to_boundary();
-        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
-        if (geo.check_normal())
-        {
-            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-        }
-
-        geo.cross_boundary();
-        EXPECT_EQ("Shape1", test_->volume_name(geo));
-        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
-        if (geo.check_normal())
-        {
-            EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-        }
-        EXPECT_EQ("Shape1", test_->volume_name(geo));
-
-        // No crossing if direction not changed
-        geo.cross_boundary();
-        EXPECT_EQ("Shape1", test_->volume_name(geo));
-
-        // Test relocation without direction change on surface
-        constexpr auto dx = real_type{1} / constants::sqrt_two;
-
-        // Check non-reenteant direction
-        geo.set_dir(Real3{dx, dx, 0});
-        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
     }
     {
         SCOPED_TRACE("unique volume names");
@@ -789,6 +681,121 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 
         EXPECT_EQ("[OUTSIDE]", test_->unique_volume_name(geo));
     }
+}
+
+//---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_reentrant() const
+{
+    auto geo = test_->make_checked_track_view();
+    SCOPED_TRACE("reentrant boundary");
+
+    // Start inside box "Shape1" in the gap outside sphere "Shape2"
+    geo = test_->make_initializer({15.5, 10, 10}, {-1, 0, 0});
+    ASSERT_EQ(GeoStatus::interior, geo.geo_status());
+    ASSERT_NE(VolumeId{}, geo.volume_id());
+    EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+    // Check for surfaces: we should hit the outside of the sphere Shape2
+    Propagation next;
+    ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1.0)));
+    EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
+    // Move left to the boundary but scatter perpendicularly, tangent
+    // upward to the sphere (which is conVEX at this point)
+    geo.move_to_boundary();
+    if (geo.check_normal())
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+
+    // Enter the spehre
+    ASSERT_NO_THROW(geo.cross_boundary());
+    ASSERT_EQ("Shape2", test_->volume_name(geo));
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+
+    // Make reentrant again and cross (rightward)
+    geo.set_dir(Real3{1, 0, 0});
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+    EXPECT_NO_THROW(geo.cross_boundary());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+    ASSERT_EQ("Shape1", test_->volume_name(geo));
+
+    // And do it one more time
+    geo.set_dir(Real3{-1, 0, 0});
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+    ASSERT_NO_THROW(geo.cross_boundary());
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+    if (test_->geometry_type() == "Geant4")
+    {
+        // Seems that Geant4 rejects the previously crossed volume to avoid
+        // infinite loops, and puts us inside the parent volume
+        EXPECT_EQ("Envelope", test_->volume_name(geo));
+    }
+
+    ASSERT_EQ("Shape2", test_->volume_name(geo));
+
+    // Now move just barely inside the sphere
+    ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1e-6)));
+    EXPECT_FALSE(next.boundary);
+    geo.move_internal(next.distance);
+    EXPECT_EQ(GeoStatus::interior, geo.geo_status());
+
+    // Exit the sphere after the opposite-direction bump
+    geo.set_dir({1, 0, 0});
+    ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1)));
+    EXPECT_LE(next.distance, from_cm(1e-5));
+    geo.move_to_boundary();
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+    if (geo.check_normal())
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+
+    geo.cross_boundary();
+    EXPECT_EQ("Shape1", test_->volume_name(geo));
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+    if (geo.check_normal())
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+    EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+    // No crossing if direction not changed
+    // TODO: this will be deleted soon
+    geo.cross_boundary();
+    EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+    // Test relocation without direction change on surface
+    constexpr auto dx = real_type{1} / constants::sqrt_two;
+
+    // Check non-reentrant direction
+    geo.set_dir(Real3{dx, dx, 0});
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+}
+
+//---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_reentrant_normal() const
+{
+    SCOPED_TRACE("normal to boundary");
+
+    // Start same as "reentrant" test above
+    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    geo = test_->make_initializer({15.5, 10, 10}, {-1, 0, 0});
+    ASSERT_EQ(GeoStatus::interior, geo.geo_status());
+    ASSERT_EQ("Shape1", test_->volume_name(geo));
+    Propagation next;
+    ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1.0)));
+    EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
+    geo.move_to_boundary();
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+
+    // We CANNOT scatter normal to a surface: the ONLY way the geometry can
+    // get the geo_status correct (except by happenstance) is to know the
+    // *CONVEXITY* at the current point: the sphere curves away, so we're
+    // pointed "outside". If we're on a plane and scatter exactly along it,
+    // we cannot move safely because we'll still be on the surface.
+    EXPECT_THROW(geo.set_dir({0, 1, 0}), CheckedGeoError);
+    EXPECT_EQ(GeoStatus::error, geo.geo_status());
 }
 
 //---------------------------------------------------------------------------//
@@ -821,6 +828,57 @@ void FourLevelsGeoTest::test_locate_point() const
 
         EXPECT_EQ(expected_volume_label, volume_label);
     }
+}
+
+//---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_safety() const
+{
+    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+
+    std::vector<real_type> safeties;
+    std::vector<real_type> lim_safeties;
+
+    for (auto i : range(11))
+    {
+        real_type r = 2.0 * i + 0.1;
+        geo = test_->make_initializer({r, r, r}, {1, 0, 0});
+        if (!geo.is_outside())
+        {
+            geo.find_next_step();
+            safeties.push_back(to_cm(geo.find_safety()));
+            lim_safeties.push_back(to_cm(geo.find_safety(from_cm(1.5))));
+        }
+    }
+
+    static double const expected_safeties[] = {
+        2.9,
+        0.9,
+        0.1,
+        1.7549981495186,
+        1.7091034656191,
+        4.8267949192431,
+        1.3626933041054,
+        1.9,
+        0.1,
+        1.1,
+        3.1,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
+
+    static double const expected_lim_safeties[] = {
+        2.9,
+        0.9,
+        0.1,
+        1.7549981495186,
+        1.7091034656191,
+        4.8267949192431,
+        1.3626933041054,
+        1.9,
+        0.1,
+        1.1,
+        3.1,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
 }
 
 //---------------------------------------------------------------------------//

@@ -651,8 +651,17 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
 
         // Evaluate whether the direction dotted with the surface normal
         // changes (i.e. heading from inside to outside or vice versa).
-        if ((dot_product(norm, newdir) >= 0)
-            != (dot_product(norm, this->dir()) >= 0))
+        auto new_dot = dot_product(norm, newdir);
+        if (CELER_UNLIKELY(new_dot == 0))
+        {
+            CELER_LOG_LOCAL(error)
+                << "track direction cannot change to " << newdir
+                << " which is perpendicular to the current surface normal";
+            this->geo_status(GeoStatus::error);
+            return;
+        }
+        else if ((dot_product(norm, newdir) > 0)
+                 != (dot_product(norm, this->dir()) > 0))
         {
             // The boundary crossing direction has changed! Reverse our
             // plans to change the logical state and move to a new volume.
