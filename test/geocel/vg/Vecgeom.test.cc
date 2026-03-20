@@ -238,7 +238,7 @@ TEST_F(FourLevelsTest, reentrant)
 TEST_F(FourLevelsTest, reentrant_normal)
 {
     ScopedLogStorer scoped_log_{&self_logger()};
-    this->impl().test_detailed_tracking();
+    this->impl().test_reentrant_normal();
 
     scoped_log_.print_expected();
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;

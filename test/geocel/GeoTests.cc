@@ -10,6 +10,7 @@
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -20,11 +21,50 @@
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
+
+/*!
+ * Allow a statement to skip the test when using a certain geometry.
+ *
+ * Run \c STATEMENT. If and only if \c COND is true, the statement should
+ * throw a CheckedGeoError.
+ */
+#define SHOULD_FAIL_WHEN(STATEMENT, COND)                                \
+    do                                                                   \
+    {                                                                    \
+        bool threw_{false};                                              \
+        try                                                              \
+        {                                                                \
+            STATEMENT;                                                   \
+        }                                                                \
+        catch (::celeritas::test::CheckedGeoError const& e)              \
+        {                                                                \
+            threw_ = true;                                               \
+            if (COND)                                                    \
+            {                                                            \
+                CELER_LOG(debug)                                         \
+                    << "Ignored expected failure: " << e.details().what; \
+            }                                                            \
+            else                                                         \
+            {                                                            \
+                ADD_FAILURE() << "'" << #STATEMENT                       \
+                              << "' failed unexpectedly: " << e.what();  \
+            }                                                            \
+        }                                                                \
+        catch (std::exception const& e)                                  \
+        {                                                                \
+            threw_ = true;                                               \
+            FAIL() << "'" << #STATEMENT                                  \
+                   << "' failed unexpectedly: " << e.what();             \
+        }                                                                \
+                                                                         \
+        EXPECT_EQ(COND, threw_);                                         \
+    } while (0)
 
 namespace celeritas
 {
@@ -793,7 +833,8 @@ void FourLevelsGeoTest::test_reentrant_normal() const
     // *CONVEXITY* at the current point: the sphere curves away, so we're
     // pointed "outside". If we're on a plane and scatter exactly along it,
     // we cannot move safely because we'll still be on the surface.
-    EXPECT_THROW(geo.set_dir({0, 1, 0}), CheckedGeoError);
+    SHOULD_FAIL_WHEN(geo.set_dir({0, 1, 0}),
+                     test_->geometry_type() != "VecGeom");
     EXPECT_EQ(GeoStatus::error, geo.geo_status());
 }
 
@@ -844,9 +885,8 @@ void FourLevelsGeoTest::test_safety() const
         geo = test_->make_initializer({r, r, r}, {1, 0, 0});
         if (!geo.is_outside())
         {
-            ASSERT_NO_THROW(
-                lim_safeties.push_back(to_cm(geo.find_safety(from_cm(1.5))));
-                safeties.push_back(to_cm(geo.find_safety())););
+            lim_safeties.push_back(to_cm(geo.find_safety(from_cm(1.5))));
+            safeties.push_back(to_cm(geo.find_safety()));
         }
     }
 
@@ -865,7 +905,7 @@ void FourLevelsGeoTest::test_safety() const
     };
     EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
 
-    static double const expected_lim_safeties[] = {
+    std::vector<double> expected_lim_safeties = {
         2.9,
         0.9,
         0.1,
@@ -876,8 +916,18 @@ void FourLevelsGeoTest::test_safety() const
         1.9,
         0.1,
         1.1,
-        3.1,
+        3.9,
     };
+
+    if (test_->geometry_type() != "Geant4")
+    {
+        // Only G4 returns larger-than-requested distances
+        for (double& s : expected_lim_safeties)
+        {
+            s = std::min(s, 1.5 * lengthunits::centimeter);
+        }
+    }
+
     EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
 }
 

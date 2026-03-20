@@ -457,13 +457,12 @@ TEST_F(FourLevelsTest, reentrant)
 TEST_F(FourLevelsTest, reentrant_normal)
 {
     ScopedLogStorer scoped_log_{&self_logger()};
-    this->impl().test_detailed_tracking();
+    this->impl().test_reentrant_normal();
 
     static char const* const expected_log_messages[] = {
-        R"(Finding next step up to 4 [cm] when previous step 4 [cm] was already calculated)",
-        R"(Finding next step up to 0.5 [cm] when previous step 1 [cm] was already calculated)"};
+        R"(track direction cannot change to {0,1,0} which is perpendicular to the current surface normal)"};
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {"warning", "warning"};
+    static char const* const expected_log_levels[] = {"error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 

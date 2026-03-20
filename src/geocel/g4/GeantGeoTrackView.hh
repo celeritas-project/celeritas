@@ -103,8 +103,8 @@ class GeantGeoTrackView
     inline bool is_outside() const;
     // Whether the track is exactly on a surface
     inline bool is_on_boundary() const;
-    //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE bool failed() const { return false; }
+    // Whether the last operation resulted in an error
+    inline bool failed() const;
     // Get the normal vector of the current surface
     inline Real3 const& normal() const;
 
@@ -379,6 +379,15 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_outside() const
 CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 {
     return safety_radius_ == 0.0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the last operation resulted in an error.
+ */
+CELER_FORCEINLINE_FUNCTION bool GeantGeoTrackView::failed() const
+{
+    return this->geo_status() == GeoStatus::error;
 }
 
 //---------------------------------------------------------------------------//

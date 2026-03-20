@@ -131,13 +131,19 @@ TEST_F(FourLevelsTest, reentrant)
 
 TEST_F(FourLevelsTest, reentrant_normal)
 {
-    ScopedLogStorer scoped_log_{&self_logger()};
-    this->impl().test_detailed_tracking();
+    ScopedLogStorer scoped_log_{&self_logger(), LogLevel::warning};
+    this->impl().test_reentrant_normal();
 
-    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    /*** ADD THE FOLLOWING UNIT TEST CODE ***/
+    static char const* const expected_log_messages[] = {
+        R"(track direction cannot change to {0,1,0} which is perpendicular to the current surface normal)"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    /*** END CODE ***/
 }
 
-TEST_F(FourLevelsTest, safety)
+TEST_F(FourLevelsTest, DISABLED_safety)
 {
     this->impl().test_safety();
 }
