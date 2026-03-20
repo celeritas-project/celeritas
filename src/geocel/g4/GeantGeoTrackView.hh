@@ -76,14 +76,6 @@ class GeantGeoTrackView
     // Initialize the state
     inline GeantGeoTrackView& operator=(Initializer_t const& init);
 
-    //// STATIC ACCESSORS ////
-
-    //! A tiny push to make sure tracks do not get stuck at boundaries
-    static constexpr real_type extra_push()
-    {
-        return 1e-12 * lengthunits::millimeter;
-    }
-
     //// ACCESSORS ////
 
     //!@{
@@ -418,6 +410,12 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
 
+    if (this->geo_status() == GeoStatus::boundary_inc)
+    {
+        // On a boundary, headed in: next step is zero
+        return {0, true};
+    }
+
     if (this->geo_status() == GeoStatus::boundary_out)
     {
         if (!this->is_dir_exiting())
@@ -449,8 +447,6 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     if (result.distance <= max_step)
     {
         result.boundary = true;
-        result.distance
-            = celeritas::max<real_type>(result.distance, this->extra_push());
         CELER_ENSURE(result.distance > 0);
     }
     else
@@ -464,9 +460,8 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     next_step_ = result.distance;
 
     CELER_ENSURE(result.distance > 0);
-    CELER_ENSURE(result.distance <= max(max_step, this->extra_push()));
-    CELER_ENSURE(result.boundary || result.distance == max_step
-                 || max_step < this->extra_push());
+    CELER_ENSURE(result.distance <= max_step);
+    CELER_ENSURE(result.boundary || result.distance == max_step);
     CELER_ENSURE(this->has_next_step());
     return result;
 }
