@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/g4/GeantGeo.test.cc
+//! \note Most of the tests in this file actually live in GeoTests.cc
 //---------------------------------------------------------------------------//
 #include <regex>
 #include <string_view>
@@ -81,22 +82,29 @@ class GeantGeoTest : public GeantGeoTestBase
     }
 
     ScopedGeantExceptionHandler exception_handler;
-    ScopedGeantLogger logger{celeritas::world_logger()};
+    std::optional<ScopedGeantLogger> logger{std::in_place,
+                                            celeritas::world_logger()};
 
     void SetUp() override
     {
-        GeantGeoTestBase::SetUp();
+        // Load the geometry
         ASSERT_TRUE(this->geometry());
 
         auto* sm = G4StateManager::GetStateManager();
         CELER_ASSERT(sm);
         // Have ScopedGeantExceptionHandler treat tracking errors like runtime
         EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_EventProc));
+
+        // Use *local* logger during tracking
+        logger.emplace(celeritas::self_logger());
     }
 
     void TearDown() override
     {
         ASSERT_TRUE(this->geometry());
+
+        // Use global logger during teardown
+        logger.emplace(celeritas::world_logger());
 
         // Restore G4 state just in case it matters
         auto* sm = G4StateManager::GetStateManager();
