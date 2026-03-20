@@ -557,6 +557,12 @@ void GeantGeoTrackView::cross_boundary()
         // volume/surface. This is logically equivalent to a reflection.
         return;
     }
+    if (!this->is_dir_exiting())
+    {
+        // Reentering after leaving volume but not moving: we have to search
+        // for the boundary again
+        navi_.ComputeStep(g4pos_, g4dir_, 1e-9, g4safety_);
+    }
 
     navi_.SetGeometricallyLimitedStep();
     navi_.LocateGlobalPointAndUpdateTouchableHandle(
