@@ -457,14 +457,21 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     result.distance = native_value_from(ClhepLength{g4step});
     if (result.distance <= max_step)
     {
+        if (CELER_UNLIKELY(result.distance == 0))
+        {
+            CELER_LOG_LOCAL(warning) << "Boundary direction was inconsistent";
+            // Oops, we might be on the inside of a concave object (boundary
+            // direction was incorrect)
+            this->geo_status(GeoStatus::boundary_inc);
+            // On a boundary, headed in: next step is zero
+            return {0, true};
+        }
         result.boundary = true;
-        CELER_ENSURE(result.distance > 0);
     }
     else
     {
         // No intersection in range -> G4Navigator returns kInfinity
         result.distance = max_step;
-        CELER_ENSURE(result.distance > 0);
     }
 
     // Save the next step
@@ -686,11 +693,14 @@ CELER_FORCEINLINE bool GeantGeoTrackView::has_next_step() const
 //---------------------------------------------------------------------------//
 /*!
  * Whether the track direction is exiting the current volume.
+ *
+ * If the normal direction is \em perpendicular to the direction of travel,
+ * our status should probably be marked as an error (and bump away?)
  */
 bool GeantGeoTrackView::is_dir_exiting() const
 {
     CELER_EXPECT(this->is_on_boundary());
-    return dot_product(normal_, dir_) >= 0;
+    return dot_product(normal_, dir_) > 0;
 }
 
 //---------------------------------------------------------------------------//

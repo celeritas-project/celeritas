@@ -253,11 +253,15 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
                    << "cannot change direction while outside");
 
     bool started_on_boundary = t_->is_on_boundary();
+    ImplVolumeId impl_vol = t_->impl_volume_id();
     t_->set_dir(newdir);
     CGTV_VALIDATE_NOT_FAILED(*this, "set_dir");
     CGTV_VALIDATE(*this,
                   started_on_boundary == t_->is_on_boundary(),
                   << "boundary state changed during set_dir");
+    CGTV_VALIDATE(*this,
+                  impl_vol == t_->impl_volume_id(),
+                  << "volume changed during set_dir");
     next_boundary_.reset();
 }
 
