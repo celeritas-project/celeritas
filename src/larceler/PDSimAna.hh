@@ -69,10 +69,7 @@ class PDSimAna : public art::EDAnalyzer
 
         PdgMap step_len;
         TH1D* btr_time;
-        TH2D* sdp_zy;
-        TH2D* btr_detid_time_energy;
         TH2D* btr_detid_logtime_energy;
-        TH2D* btr_detid_time_numphotons;
         TH2D* btr_detid_logtime_numphotons;
     } histograms_;
 };
