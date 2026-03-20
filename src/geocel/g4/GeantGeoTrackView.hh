@@ -25,6 +25,11 @@
 #include "Convert.hh"
 #include "GeantGeoData.hh"
 
+#if 1
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/StreamUtils.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -249,6 +254,8 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     this->geo_status(this->is_outside() ? GeoStatus::invalid
                                         : GeoStatus::interior);
 
+    CELER_LOG_LOCAL(info) << "initialized: status is " << this->geo_status();
+
     CELER_ENSURE(!this->has_next_step());
     return *this;
 }
@@ -410,6 +417,9 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
 
+    CELER_LOG_LOCAL(info) << "finding next step: status is "
+                          << this->geo_status();
+
     if (this->geo_status() == GeoStatus::boundary_inc)
     {
         // On a boundary, headed in: next step is zero
@@ -420,6 +430,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     {
         if (!this->is_dir_exiting())
         {
+            CELER_LOG_LOCAL(diagnostic) << "relocating before ComputeStep";
             // We moved to a boundary but ended up not crossing it. Tell the
             // navigator to "relocate" to avoid a warning: it the current
             // position is likely outside the last calculated safety, but we
@@ -520,6 +531,9 @@ void GeantGeoTrackView::move_to_boundary()
     CELER_ASSERT(this->is_dir_exiting());
     this->geo_status(GeoStatus::boundary_inc);
 
+    CELER_LOG_LOCAL(info) << "moved to boundary: status is "
+                          << this->geo_status();
+
     CELER_ENSURE(this->is_on_boundary());
 }
 
@@ -533,8 +547,12 @@ void GeantGeoTrackView::cross_boundary()
 {
     CELER_EXPECT(this->is_on_boundary());
 
+    CELER_LOG_LOCAL(info) << "about to cross boundary: status is "
+                          << this->geo_status();
+
     if (this->geo_status() == GeoStatus::boundary_out)
     {
+        CELER_LOG_LOCAL(info) << "skipped boundary crossing";
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
         return;
@@ -548,6 +566,9 @@ void GeantGeoTrackView::cross_boundary()
         /* relative_search = */ true);
 
     this->geo_status(GeoStatus::boundary_out);
+
+    CELER_LOG_LOCAL(info) << "crossed boundary: status is "
+                          << this->geo_status();
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -605,6 +626,9 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
 
+    CELER_LOG_LOCAL(info) << "set_dir " << newdir << ": status is "
+                          << this->geo_status();
+
     GeoStatus status{this->geo_status()};
     if (::celeritas::is_on_boundary(status))
     {
@@ -620,6 +644,9 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
             // The boundary crossing direction has changed! Reverse our
             // plans to change the logical state and move to a new volume.
             this->geo_status(flip_boundary(this->geo_status()));
+
+            CELER_LOG_LOCAL(info)
+                << "set_dir updated status: " << this->geo_status();
         }
     }
 
