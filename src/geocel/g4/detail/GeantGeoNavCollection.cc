@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/g4/GeantGeoData.hh"
 
 namespace celeritas
 {
@@ -36,9 +37,9 @@ template struct G4ExternDeleter<G4Navigator>;
  * thread-local allocators in Geant4.
  */
 void GeantGeoNavCollection<Ownership::value, MemSpace::host>::resize(
-    size_type size, G4VPhysicalVolume* world, StreamId sid)
+    HostCRef<GeantGeoParamsData> const& params, StreamId sid, size_type size)
 {
-    CELER_EXPECT(world);
+    CELER_EXPECT(params);
     CELER_EXPECT(sid.get() == static_cast<size_type>(get_geant_thread_id()));
 
     // Add navigation states to collection
@@ -49,7 +50,11 @@ void GeantGeoNavCollection<Ownership::value, MemSpace::host>::resize(
         this->touch_handles[i].reset(new G4TouchableHandle);
         *this->touch_handles[i] = new G4TouchableHistory;
         this->navigators[i].reset(new G4Navigator);
-        this->navigators[i]->SetWorldVolume(world);
+        this->navigators[i]->SetWorldVolume(params.world);
+        if (params.nav_verbosity_ > 0)
+        {
+            this->navigators[i]->SetVerboseLevel(params.nav_verbosity_);
+        }
     }
 }
 

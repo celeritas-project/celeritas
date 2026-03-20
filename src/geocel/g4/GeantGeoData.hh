@@ -30,8 +30,7 @@ class GeantVolumeInstanceMapper;
 /*!
  * Geant4 data is all global.
  */
-template<Ownership W, MemSpace M>
-struct GeantGeoParamsData
+struct GeantGeoParamsDataBase
 {
     //! Pointer to the Geant4 world
     G4VPhysicalVolume* world{nullptr};
@@ -43,12 +42,19 @@ struct GeantGeoParamsData
     //! Instance mapper owned by GeantGeoParams
     detail::GeantVolumeInstanceMapper const* vi_mapper{nullptr};
 
+    //! Navigator verbosity
+    int nav_verbosity_{0};
+
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
     {
         return world != nullptr && vi_mapper != nullptr;
     }
+};
 
+template<Ownership W, MemSpace M>
+struct GeantGeoParamsData : GeantGeoParamsDataBase
+{
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     GeantGeoParamsData& operator=(GeantGeoParamsData<W2, M2>&)
@@ -79,6 +85,7 @@ struct GeantGeoStateData
     // Collections
     StateItems<Real3> pos;
     StateItems<Real3> dir;
+    StateItems<Real3> normal;
     StateItems<real_type> next_step;
     StateItems<real_type> safety_radius;
     StateItems<GeoStatus> status;
@@ -92,6 +99,7 @@ struct GeantGeoStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return this->size() > 0 && dir.size() == this->size()
+               && normal.size() == this->size()
                && next_step.size() == this->size()
                && safety_radius.size() == this->size()
                && status.size() == this->size()
@@ -111,6 +119,7 @@ struct GeantGeoStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
+        normal = other.normal;
         next_step = other.next_step;
         safety_radius = other.safety_radius;
         status = other.status;
@@ -135,10 +144,11 @@ inline void resize(GeantGeoStateData<Ownership::value, MemSpace::host>* data,
 
     resize(&data->pos, size);
     resize(&data->dir, size);
+    resize(&data->normal, size);
     resize(&data->next_step, size);
     resize(&data->safety_radius, size);
     resize(&data->status, size);
-    data->nav_state.resize(size, params.world, stream_id);
+    data->nav_state.resize(params, stream_id, size);
 
     CELER_ENSURE(data);
 }
