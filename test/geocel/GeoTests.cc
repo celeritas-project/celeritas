@@ -711,41 +711,28 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_EQ("Shape2", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
-        if (test_->geometry_type() == "Geant4")
+        geo.set_dir(Real3{1, 0, 0});
+        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
         {
-            // TODO: Geant4 does not allow crossing to new volume and returning
-            // to old
-            if (CELERITAS_DEBUG)
-            {
-                EXPECT_THROW(geo.cross_boundary(), DebugError);
-            }
+            // Assertion failure in NavStateTuple::PushDaughterImpl:
+            // trying to push into a daughter but there are none
+            // (pv ID 1)
+            GTEST_SKIP() << "FIXME: vecgeom surface breaks";
+        }
+
+        ASSERT_NO_THROW(geo.cross_boundary());
+        if (test_->geometry_type() == "VecGeom")
+        {
+            // FIXME: boundary crossing doesn't change volume like it
+            // should
+            EXPECT_EQ("Shape2", test_->volume_name(geo));
         }
         else
         {
-            geo.set_dir(Real3{1, 0, 0});
-            if (test_->geometry_type() == "VecGeom"
-                && CELERITAS_VECGEOM_SURFACE)
-            {
-                // Assertion failure in NavStateTuple::PushDaughterImpl:
-                // trying to push into a daughter but there are none
-                // (pv ID 1)
-                GTEST_SKIP() << "FIXME: vecgeom surface breaks";
-            }
-
-            ASSERT_NO_THROW(geo.cross_boundary());
-            if (test_->geometry_type() == "VecGeom")
-            {
-                // FIXME: boundary crossing doesn't change volume like it
-                // should
-                EXPECT_EQ("Shape2", test_->volume_name(geo));
-            }
-            else
-            {
-                EXPECT_EQ("Shape1", test_->volume_name(geo));
-            }
-            geo.set_dir(Real3{-1, 0, 0});
-            ASSERT_NO_THROW(geo.cross_boundary());
+            EXPECT_EQ("Shape1", test_->volume_name(geo));
         }
+        geo.set_dir(Real3{-1, 0, 0});
+        ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("Shape2", test_->volume_name(geo));
 
         // Now move just barely inside the sphere
@@ -774,27 +761,16 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         }
         EXPECT_EQ("Shape1", test_->volume_name(geo));
 
-        // Test relocation without direction change on surface
-        if (test_->geometry_type() == "Geant4")
-        {
-            if (CELERITAS_DEBUG)
-            {
-                EXPECT_THROW(geo.cross_boundary(), DebugError);
-            }
-        }
-        else
-        {
-            // No crossing if direction not changed
-            geo.cross_boundary();
-            EXPECT_EQ("Shape1", test_->volume_name(geo));
+        // No crossing if direction not changed
+        geo.cross_boundary();
+        EXPECT_EQ("Shape1", test_->volume_name(geo));
 
-            constexpr auto dx = real_type{1} / constants::sqrt_two;
+        constexpr auto dx = real_type{1} / constants::sqrt_two;
 
-            // No crossing if direction on boundary is not reentrant
-            geo.set_dir(Real3{dx, dx, 0});
-            geo.cross_boundary();
-            EXPECT_EQ("Shape1", test_->volume_name(geo));
-        }
+        // No crossing if direction on boundary is not reentrant
+        geo.set_dir(Real3{dx, dx, 0});
+        geo.cross_boundary();
+        EXPECT_EQ("Shape1", test_->volume_name(geo));
     }
     {
         SCOPED_TRACE("unique volume names");
@@ -2832,17 +2808,8 @@ void TwoBoxesGeoTest::test_reentrant() const
     EXPECT_EQ("world", test_->volume_name(geo));
 
     // Cross back into previous volume (-; -,-)
-    if (CELERITAS_DEBUG && test_->geometry_type() == "Geant4")
-    {
-        // GeantGTV has an extra check because we know it can't do this :(
-        EXPECT_THROW(geo.cross_boundary(), DebugError);
-        GTEST_SKIP() << "Consecutive boundary crossing fails for G4";
-    }
-    else
-    {
-        // Typical case
-        ASSERT_NO_THROW(geo.cross_boundary());
-    }
+    // Typical case
+    ASSERT_NO_THROW(geo.cross_boundary());
     EXPECT_TRUE(geo.is_on_boundary());
 
     if (geo.check_normal())
@@ -2964,12 +2931,20 @@ void TwoBoxesGeoTest::test_tangent() const
 
         // Move to boundary (-; +,-)
         geo.move_to_boundary();
+        if (geo.check_normal())
+        {
+            EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+        }
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_EQ("inner", test_->volume_name(geo));
 
         // Reflect normal to surface (-; -,-)
         geo.set_dir(Real3{-dx, -dx, 0});
         EXPECT_TRUE(geo.is_on_boundary());
+        if (geo.check_normal())
+        {
+            EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+        }
         EXPECT_EQ("inner", test_->volume_name(geo));
     }
 
@@ -2978,16 +2953,14 @@ void TwoBoxesGeoTest::test_tangent() const
         SCOPED_TRACE("trying to cross");
         ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_TRUE(geo.is_on_boundary());
-        if (test_->geometry_type() == "Geant4")
+        if (test_->geometry_type() == "VecGeom"
+            && "world" == test_->volume_name(geo))
         {
-            // FIXME: Geant4 changes volumes :(
-            EXPECT_EQ("world", test_->volume_name(geo));
             GTEST_SKIP() << "Unexpected boundary crossing";
         }
-        else if (test_->geometry_type() == "VecGeom"
-                 && "world" == test_->volume_name(geo))
+        if (geo.check_normal())
         {
-            GTEST_SKIP() << "Unexpected boundary crossing";
+            EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
         }
         EXPECT_EQ("inner", test_->volume_name(geo));
     }
