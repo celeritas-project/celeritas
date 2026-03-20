@@ -56,6 +56,7 @@ class SimpleUnitTracker
         = std::conditional_t<orange_tracking_logic == LogicNotation::infix,
                              detail::InfixEvaluator,
                              detail::PostfixEvaluator>;
+    using VolumeView = detail::LocalVolumeView;
     //!@}
 
   public:
@@ -625,7 +626,6 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
                                         real_type max_distance) const
     -> Intersection
 {
-    CELER_DISCARD(max_distance);  // FIXME
     auto is_intersecting
         = [this, &state](LocalVolumeId vol_id,
                          real_type cur_max_dist) -> Intersection {
@@ -669,7 +669,8 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
     detail::BIHIntersectingVolFinder find_intersection{unit_record_.bih_tree,
                                                        params_.bih_tree_data};
 
-    return find_intersection({state.pos, state.dir}, is_intersecting);
+    return find_intersection(
+        {state.pos, state.dir}, is_intersecting, max_distance);
 }
 
 //---------------------------------------------------------------------------//
@@ -686,8 +687,8 @@ SimpleUnitTracker::make_surface_visitor() const
 /*!
  * Create a Volume view object from the params for this unit.
  */
-CELER_FORCEINLINE_FUNCTION VolumeView
-SimpleUnitTracker::make_local_volume(LocalVolumeId vol_id) const
+CELER_FORCEINLINE_FUNCTION auto
+SimpleUnitTracker::make_local_volume(LocalVolumeId vol_id) const -> VolumeView
 {
     return VolumeView{params_, unit_record_, vol_id};
 }

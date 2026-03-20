@@ -267,7 +267,7 @@ TEST_F(DuneGeneratorTest, offload)
     gdd.primary = PrimaryId{123};
     gdd.step_length = 2.0 * units::centimeter;
     gdd.charge = units::ElementaryCharge{-1};
-    gdd.material = OptMatId{1};  // Should be LAr
+    gdd.material = OptMatId{0};  // Should be LAr
     gdd.continuous_edep_fraction = 1.0;
     gdd.points[StepPoint::pre] = {units::LightSpeed(0.7),
                                   1e-9 * units::nanosecond,

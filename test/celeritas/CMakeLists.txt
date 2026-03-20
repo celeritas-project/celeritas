@@ -204,7 +204,6 @@ set(_import_filter
   "FourSteelSlabs*"
   "LarSphere.*"
   "LarSphereExtramat.*"
-  "MucfBox.*"
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
   "Solids.*"
@@ -499,6 +498,7 @@ celeritas_add_device_test(mat/Material
 
 #-----------------------------------------------------------------------------#
 # Neutron
+celeritas_add_test(neutron/NeutronCapture.test.cc ${_needs_double})
 celeritas_add_test(neutron/NeutronElastic.test.cc ${_needs_double})
 celeritas_add_test(neutron/NeutronInelastic.test.cc ${_needs_double})
 

@@ -14,8 +14,6 @@
 #include "corecel/inp/Grid.hh"
 #include "celeritas/Types.hh"
 
-#include "XsGridData.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

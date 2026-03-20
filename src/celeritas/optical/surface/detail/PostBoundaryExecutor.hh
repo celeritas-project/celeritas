@@ -62,7 +62,8 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
 
     if (!track.material_record().material_id())
     {
-        // Kill track if it enters an invalid optical material
+        // Kill track if it enters an invalid optical material after crossing
+        // through a custom physics surface
         track.sim().status(TrackStatus::killed);
     }
 

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/cont/Range.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/DetectorData.hh"
 
@@ -47,6 +48,9 @@ CELER_FUNCTION void
 DetectorExecutor::operator()(CoreTrackView const& track) const
 {
     auto& hit = detector_state_.detector_hits[track.track_slot_id()];
+    // Clear the hit if inactive, errored, or not detected
+    hit.detector = {};
+
     auto sim = track.sim();
 
     auto const status = sim.status();
@@ -96,6 +100,17 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
         // Track is not in a detector volume
         hit.detector = {};
     }
+
+    // Score a valid hit
+    hit.detector = detector_id;
+    hit.primary = sim.primary_id();
+    hit.energy = track.particle().energy();
+    hit.time = sim.time();
+    hit.position = geometry.pos();
+    hit.volume_instance = geometry.volume_instance_id();
+
+    // Kill the track
+    sim.status(TrackStatus::killed);
 }
 
 //---------------------------------------------------------------------------//

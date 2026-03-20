@@ -11,6 +11,7 @@
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/PoissonDistribution.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
@@ -97,15 +98,17 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     CELER_EXPECT(step_length_ > 0);
     CELER_EXPECT(shared_);
     CELER_EXPECT(pre_step_);
+    CELER_EXPECT(pre_step_.material);
 
-    // Scintillation is performed on materials only
-    CELER_ASSERT(pre_step_.material < shared_.materials.size());
-    auto const& material = shared_.materials[pre_step_.material];
+    // Scintillation spectra currently have one-to-one mapping with material
+    auto spectrum_id = pre_step_.material;
+    CELER_ASSERT(spectrum_id < shared_.spectra.size());
+    auto const& spectrum = shared_.spectra[spectrum_id];
 
     //! \todo Use visible energy deposition when Birks law is implemented
-    if (material)
+    if (spectrum)
     {
-        mean_num_photons_ = material.yield_per_energy
+        mean_num_photons_ = spectrum.yield_per_energy
                             * energy_deposition.value();
     }
 }

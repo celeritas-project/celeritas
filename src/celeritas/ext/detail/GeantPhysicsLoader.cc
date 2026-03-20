@@ -21,6 +21,9 @@
 #include <G4VProcess.hh>
 #include <G4Version.hh>
 
+#include "corecel/inp/Distributions.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
+
 #if G4VERSION_NUMBER >= 1070
 #    include <G4OpWLS2.hh>
 #    include <G4OpticalParameters.hh>
@@ -43,6 +46,8 @@
 #include "celeritas/optical/Types.hh"
 
 #include "GeantMaterialPropertyGetter.hh"
+#include "GeantOpticalMatHelper.hh"
+#include "GeantScintillationLoader.hh"
 #include "GeantSurfacePhysicsLoader.hh"
 
 namespace celeritas
@@ -99,7 +104,6 @@ void load_rayleigh_water(
                "are provided";
     }
 }
-
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -208,11 +212,13 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
 }
 
 //---------------------------------------------------------------------------//
-//! Load Cherenkov emission (TODO: enable by material)
-size_type GeantPhysicsLoader::cerenkov(G4VProcess const&)
+//! Load Cherenkov emission (TODO: enable by material?)
+size_type GeantPhysicsLoader::cerenkov(G4VProcess const& g4vp)
 {
-    auto& model = imported_.optical_physics.cherenkov;
-    model = true;
+    auto& g4c = dynamic_cast<G4Cerenkov const&>(g4vp);
+    // TODO: import step limits
+    CELER_DISCARD(g4c);
+    imported_.optical_physics.gen.cherenkov.emplace();
     return 1;
 }
 
@@ -231,10 +237,31 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 //! Load optical scintillation
 size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 {
-    auto& model = imported_.optical_physics.scintillation;
-    model = true;
-    // TODO: load materials/spectra
-    return 1;
+    inp::ScintillationProcess s;
+    GeantScintillationLoader load_material{s};
+
+    MultiExceptionHandler handle;
+
+    // Loop over optical materials and load scintillation properties
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
+    {
+        CELER_TRY_HANDLE(load_material(GeantOpticalMatHelper{
+                             opt_id, optical_g4mat_[opt_id.get()]}),
+                         handle);
+    }
+    log_and_rethrow(std::move(handle));
+
+    auto num_mats = s.materials.size();
+    if (num_mats == 0)
+    {
+        // Do not create scintillation process
+        CELER_LOG(error) << "Scintillation process was defined with no "
+                            "scintillating materials";
+        return 0;
+    }
+
+    imported_.optical_physics.gen.scintillation = std::move(s);
+    return num_mats;
 }
 
 //---------------------------------------------------------------------------//
@@ -318,7 +345,6 @@ size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 //! Load rayleigh scattering
 size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 {
-    // TODO: refactor as variant: MFP grid *or* scale_factor+compressibility
     auto& model = imported_.optical_physics.bulk.rayleigh;
     this->load_mfps(model, "RAYLEIGH");
 

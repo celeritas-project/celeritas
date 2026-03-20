@@ -10,83 +10,56 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/io/ImportData.hh"
+#include "celeritas/optical/MaterialParams.hh"
 
-#include "detail/MatScintSpecInserter.hh"
+#include "detail/ScintSpectrumInserter.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with imported data.
+ * Construct with optical materials and scintillation process data.
  */
-std::shared_ptr<ScintillationParams>
-ScintillationParams::from_import(ImportData const& data)
+ScintillationParams::ScintillationParams(
+    optical::MaterialParams const& optical_mat,
+    inp::ScintillationProcess const& process)
 {
-    CELER_EXPECT(!data.optical_materials.empty());
+    CELER_EXPECT(!process.materials.empty());
+    CELER_EXPECT(optical_mat.num_materials() > 0);
 
-    if (!std::any_of(data.optical_materials.begin(),
-                     data.optical_materials.end(),
-                     [](auto const& iter) {
-                         return static_cast<bool>(iter.scintillation);
-                     }))
-    {
-        // No scintillation data present
-        CELER_LOG(info) << "Skipping scintillation process: no scintillating "
-                           "materials are present";
-        return nullptr;
-    }
-
-    size_type const num_optmats = data.optical_materials.size();
-
-    Input input;
-    input.materials.resize(num_optmats);
-    input.resolution_scale.resize(num_optmats);
-    for (auto opt_idx : range(num_optmats))
-    {
-        ImportOpticalMaterial const& opt_mat = data.optical_materials[opt_idx];
-        input.resolution_scale[opt_idx]
-            = opt_mat.scintillation.resolution_scale;
-        input.materials[opt_idx] = opt_mat.scintillation.material;
-    }
-
-    return std::make_shared<ScintillationParams>(std::move(input));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with scintillation input data.
- */
-ScintillationParams::ScintillationParams(Input const& input)
-{
-    CELER_EXPECT(input);
-    CELER_EXPECT(!input.resolution_scale.empty());
-    CELER_VALIDATE(input.materials.size() == input.resolution_scale.size(),
-                   << "material and resolution scales do not match");
+    size_type const num_optmats = optical_mat.num_materials();
 
     HostVal<ScintillationData> host_data;
 
-    // Store resolution scale
-    for (auto const& val : input.resolution_scale)
-    {
-        CELER_VALIDATE(val >= 0,
-                       << "invalid resolution_scale=" << val
-                       << " for scintillation (should be nonnegative)");
-    }
-    CollectionBuilder(&host_data.resolution_scale)
-        .insert_back(input.resolution_scale.begin(),
-                     input.resolution_scale.end());
+    // Initialize resolution scale for all materials (default to 1.0)
+    std::vector<real_type> resolution_scale(num_optmats, 1.0);
 
     // Store material scintillation data
-    detail::MatScintSpecInserter insert_mat{&host_data};
-    for (auto const& mat : input.materials)
+    detail::ScintSpectrumInserter insert_mat{&host_data};
+    for (auto opt_id :
+         range(OptMatId{static_cast<OptMatId::size_type>(num_optmats)}))
     {
-        insert_mat(mat);
+        auto iter = process.materials.find(opt_id);
+        if (iter != process.materials.end())
+        {
+            // Material has scintillation data
+            auto const& scint_mat = iter->second;
+            resolution_scale[opt_id.get()] = scint_mat.resolution_scale;
+            insert_mat(scint_mat);
+        }
+        else
+        {
+            // Material has no scintillation: insert empty material
+            insert_mat();
+        }
     }
-    CELER_ASSERT(host_data.materials.size()
-                 == host_data.resolution_scale.size());
+
+    // Store resolution scale
+    CollectionBuilder(&host_data.resolution_scale)
+        .insert_back(resolution_scale.begin(), resolution_scale.end());
+
+    CELER_ASSERT(host_data.spectra.size() == host_data.resolution_scale.size());
 
     // Copy to device
     mirror_ = ParamsDataStore<ScintillationData>{std::move(host_data)};
@@ -100,11 +73,12 @@ ScintillationParams::ScintillationParams(Input const& input)
 bool ScintillationParams::is_geant_compatible() const
 {
     auto const& scint_records
-        = this->host_ref().scint_records[AllItems<ScintRecord>{}];
-    return std::all_of(
-        scint_records.begin(), scint_records.end(), [](ScintRecord const& sr) {
-            return !sr.is_normal_distribution();
-        });
+        = this->host_ref().scint_records[AllItems<ScintDistributionRecord>{}];
+    return std::all_of(scint_records.begin(),
+                       scint_records.end(),
+                       [](ScintDistributionRecord const& sr) {
+                           return !sr.is_normal_distribution();
+                       });
 }
 
 //---------------------------------------------------------------------------//

@@ -263,6 +263,39 @@ class SurfacePhysicsIntegrationOnlyReflectionGroundTest
 };
 
 //---------------------------------------------------------------------------//
+class SurfacePhysicsIntegrationBackPaintedTest
+    : public SurfacePhysicsInteractionIntegrationTest
+{
+  public:
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
+    {
+        PhysSurfaceId phys_surface{0};
+
+        // center-top surface
+
+        input.materials.push_back({OptMatId{1}});
+
+        // Material-Gap surface
+        input.roughness.gaussian.emplace(phys_surface,
+                                         inp::GaussianRoughness{0.3});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.dielectric.emplace(
+            phys_surface,
+            inp::DielectricInteraction::from_dielectric(
+                inp::ReflectionForm::from_lobe()));
+
+        // Gap-Painted surface
+        phys_surface++;
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.only_reflection.emplace(
+            phys_surface, ReflectionMode::specular_spike);
+    }
+};
+
+//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 // Only back-scattering
@@ -413,6 +446,19 @@ TEST_F(SurfacePhysicsIntegrationOnlyReflectionPolishedTest, polished)
 //---------------------------------------------------------------------------//
 // Only ground reflection
 TEST_F(SurfacePhysicsIntegrationOnlyReflectionGroundTest, ground)
+{
+    std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
+
+    SurfaceTestResults expected;
+    expected.num_refracted = {0, 0, 0};
+    expected.num_reflected = {100, 100, 100};
+    expected.num_absorbed = {0, 0, 0};
+
+    this->reference_run(angles, expected);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SurfacePhysicsIntegrationBackPaintedTest, backpainted)
 {
     std::vector<RealTurn> angles{RealTurn{0}, 30 * degree, 60 * degree};
 
