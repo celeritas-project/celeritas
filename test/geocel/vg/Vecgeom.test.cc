@@ -230,6 +230,20 @@ TEST_F(FourLevelsTest, levels)
     EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
 }
 
+TEST_F(FourLevelsTest, reentrant)
+{
+    this->impl().test_detailed_tracking();
+}
+
+TEST_F(FourLevelsTest, reentrant_normal)
+{
+    ScopedLogStorer scoped_log_{&self_logger()};
+    this->impl().test_detailed_tracking();
+
+    scoped_log_.print_expected();
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+}
+
 TEST_F(FourLevelsTest, safety)
 {
     this->impl().test_safety();

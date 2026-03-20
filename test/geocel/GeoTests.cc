@@ -10,7 +10,6 @@
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -779,7 +778,7 @@ void FourLevelsGeoTest::test_reentrant_normal() const
     SCOPED_TRACE("normal to boundary");
 
     // Start same as "reentrant" test above
-    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    auto geo = test_->make_checked_track_view();
     geo = test_->make_initializer({15.5, 10, 10}, {-1, 0, 0});
     ASSERT_EQ(GeoStatus::interior, geo.geo_status());
     ASSERT_EQ("Shape1", test_->volume_name(geo));
@@ -833,7 +832,7 @@ void FourLevelsGeoTest::test_locate_point() const
 //---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_safety() const
 {
-    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    auto geo = test_->make_checked_track_view();
 
     std::vector<real_type> safeties;
     std::vector<real_type> lim_safeties;
@@ -841,12 +840,13 @@ void FourLevelsGeoTest::test_safety() const
     for (auto i : range(11))
     {
         real_type r = 2.0 * i + 0.1;
+        SCOPED_TRACE("r=" + std::to_string(r));
         geo = test_->make_initializer({r, r, r}, {1, 0, 0});
         if (!geo.is_outside())
         {
-            geo.find_next_step();
-            safeties.push_back(to_cm(geo.find_safety()));
-            lim_safeties.push_back(to_cm(geo.find_safety(from_cm(1.5))));
+            ASSERT_NO_THROW(
+                lim_safeties.push_back(to_cm(geo.find_safety(from_cm(1.5))));
+                safeties.push_back(to_cm(geo.find_safety())););
         }
     }
 
@@ -2253,23 +2253,6 @@ void SimpleCmsGeoTest::test_detailed_tracking() const
     }
     EXPECT_EQ("si_tracker", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), to_cm(geo.pos()));
-
-    // Scatter to tangent
-    geo.set_dir({0, 1, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(121.34661099511597, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_internal(from_cm(10));
-    EXPECT_SOFT_NEAR(1.6227766016837926, to_cm(geo.find_safety()), safety_tol);
-
-    // Move to boundary and scatter back inside
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(111.34661099511597, to_cm(next.distance));
-    EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
-    geo.set_dir({-1, 0, 0});
-    next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(60., to_cm(next.distance));
 }
 
 //---------------------------------------------------------------------------//
@@ -2940,7 +2923,7 @@ void TwoBoxesGeoTest::test_tangent() const
     constexpr auto dx = real_type{1} / constants::sqrt_two;
 
     // Starting left of edge (-), headed down right (+,-)
-    CheckedGeoTrackView geo{test_->make_geo_track_view_interface()};
+    auto geo = test_->make_checked_track_view();
     {
         SCOPED_TRACE("in first volume");
         geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});

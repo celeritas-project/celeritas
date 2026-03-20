@@ -17,6 +17,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
