@@ -33,11 +33,11 @@ namespace optical
  * material parameters, if available.
  */
 RayleighModel::RayleighModel(ActionId id,
-                             inp::OpticalBulkRayleigh const& input,
+                             inp::OpticalBulkRayleigh input,
                              SPConstMaterials const& materials,
                              SPConstCoreMaterials const& core_materials)
     : Model(id, "optical-rayleigh", "interact by optical Rayleigh")
-    , input_(input)
+    , input_(std::move(input))
     , materials_(materials)
     , core_materials_(core_materials)
 {

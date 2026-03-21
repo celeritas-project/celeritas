@@ -37,7 +37,7 @@ class WavelengthShiftModel : public Model
   public:
     // Construct with WLS input data
     WavelengthShiftModel(ActionId,
-                         inp::OpticalBulkWavelengthShift const&,
+                         inp::OpticalBulkWavelengthShift,
                          SPConstMaterials const&,
                          std::string label);
 
@@ -57,7 +57,7 @@ class WavelengthShiftModel : public Model
     DeviceRef const& device_ref() const { return data_.device_ref(); }
 
   private:
-    inp::OpticalBulkWavelengthShift const& input_;
+    inp::OpticalBulkWavelengthShift input_;
     ParamsDataStore<WavelengthShiftData> data_;
 };
 

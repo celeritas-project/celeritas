@@ -24,9 +24,9 @@ namespace optical
 /*!
  * Construct the model from input data.
  */
-AbsorptionModel::AbsorptionModel(ActionId id,
-                                 inp::OpticalBulkAbsorption const& input)
-    : Model(id, "absorption", "interact by optical absorption"), input_(input)
+AbsorptionModel::AbsorptionModel(ActionId id, inp::OpticalBulkAbsorption input)
+    : Model(id, "absorption", "interact by optical absorption")
+    , input_(std::move(input))
 {
     CELER_VALIDATE(input_, << "invalid input for optical absorption model");
 }

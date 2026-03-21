@@ -36,7 +36,7 @@ class RayleighModel : public Model
   public:
     // Construct with imported data and imported material parameters
     RayleighModel(ActionId,
-                  inp::OpticalBulkRayleigh const&,
+                  inp::OpticalBulkRayleigh,
                   SPConstMaterials const&,
                   SPConstCoreMaterials const&);
 
@@ -50,7 +50,7 @@ class RayleighModel : public Model
     void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
-    inp::OpticalBulkRayleigh const& input_;
+    inp::OpticalBulkRayleigh input_;
     SPConstMaterials materials_;
     SPConstCoreMaterials core_materials_;
 };

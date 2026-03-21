@@ -22,10 +22,10 @@ class AbsorptionModel final : public Model
 {
   public:
     // Construct with input data
-    AbsorptionModel(ActionId id, inp::OpticalBulkAbsorption const& input);
+    AbsorptionModel(ActionId, inp::OpticalBulkAbsorption);
 
     // Build the mean free paths for this model
-    void build_mfps(OptMatId mat, MfpBuilder&) const final;
+    void build_mfps(OptMatId, MfpBuilder&) const final;
 
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -34,7 +34,7 @@ class AbsorptionModel final : public Model
     void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
-    inp::OpticalBulkAbsorption const& input_;
+    inp::OpticalBulkAbsorption input_;
 };
 
 //---------------------------------------------------------------------------//

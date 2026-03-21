@@ -32,12 +32,11 @@ namespace optical
 /*!
  * Construct the model from imported data and imported material parameters.
  */
-WavelengthShiftModel::WavelengthShiftModel(
-    ActionId id,
-    inp::OpticalBulkWavelengthShift const& input,
-    SPConstMaterials const& materials,
-    std::string label)
-    : Model(id, label, "interact by WLS"), input_(input)
+WavelengthShiftModel::WavelengthShiftModel(ActionId id,
+                                           inp::OpticalBulkWavelengthShift input,
+                                           SPConstMaterials const& materials,
+                                           std::string label)
+    : Model(id, label, "interact by WLS"), input_(std::move(input))
 {
     CELER_EXPECT(materials);
 
@@ -73,8 +72,8 @@ WavelengthShiftModel::WavelengthShiftModel(
         inp::Grid grid;
         grid.x = iter->second.component.x;
         grid.y.resize(grid.x.size());
-        integrate_emission(make_span(iter->second.component.x),
-                           make_span(iter->second.component.y),
+        integrate_emission(make_span(std::as_const(iter->second.component.x)),
+                           make_span(std::as_const(iter->second.component.y)),
                            make_span(grid.y));
         normalize_cdf(make_span(grid.y));
 

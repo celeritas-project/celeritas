@@ -36,10 +36,10 @@ class MieModel final : public Model
 
   public:
     // Construct with mie scattering input data
-    MieModel(ActionId, inp::OpticalBulkMie const&, SPConstMaterials const&);
+    MieModel(ActionId, inp::OpticalBulkMie, SPConstMaterials const&);
 
     // Build the mean free paths for this model
-    void build_mfps(OptMatId mat, MfpBuilder& build) const final;
+    void build_mfps(OptMatId, MfpBuilder&) const final;
 
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -54,7 +54,7 @@ class MieModel final : public Model
     DeviceRef const& device_ref() const { return data_.device_ref(); }
 
   private:
-    inp::OpticalBulkMie const& input_;
+    inp::OpticalBulkMie input_;
     ParamsDataStore<MieData> data_;
 };
 
