@@ -13,7 +13,6 @@
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/GeantImportVolumeResult.hh"
