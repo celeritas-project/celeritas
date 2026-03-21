@@ -113,7 +113,7 @@ void OpticalPhysicsTest::build_import_data(ImportData& data) const
         for (size_type i : range(n + 1))
         {
             grid.x.push_back(15 * std::log(double(i) / n + 1));
-            grid.y.push_back(ipow<2>(i));
+            grid.y.push_back(ipow<2>(double(i)));
         }
         return grid;
     };
