@@ -83,6 +83,7 @@ auto OpticalMockTestBase::build_optical_material() -> SPConstOpticalMaterial
     {
         input.properties.push_back(mat.properties);
     }
+    CELER_ASSERT(!input.properties.empty());
 
     // Volume -> optical material mapping with some redundancies
     for (auto opt_mat : range(8))
@@ -178,6 +179,9 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
                 std::move(xy.first), std::move(xy.second));
     };
 
+    bulk.wls.time_profile = WlsDistribution::delta;
+    bulk.wls2.time_profile = WlsDistribution::delta;
+
     // Material 0
     mat_props(0).refractive_index
         = native_physics_vector_from<units::ElectronVolt, units::Native>(
@@ -269,7 +273,6 @@ auto OpticalMockTestBase::get_mfp_table(ImportModelClass imc) const -> VecGrid
     VecGrid result;
     auto const& bulk = this->imported_data().optical_physics.bulk;
     auto make_table = [&](auto const& omb) {
-        CELER_ASSERT(omb.model_class == imc);
         for (auto&& [id, omm] : omb.materials)
         {
             result.push_back(omm.mfp);

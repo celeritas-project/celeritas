@@ -38,18 +38,12 @@ class WavelengthShiftTest : public InteractorHostBase,
 
     void build_model(WlsDistribution time_profile)
     {
-        auto const& data = this->imported_data();
-        WavelengthShiftModel::Input input;
-        input.model = ImportModelClass::wls;
+        auto const& data = this->imported_data().optical_physics.bulk.wls;
+        inp::OpticalBulkWavelengthShift input;
         input.time_profile = time_profile;
-        input.data.resize(data.optical_materials.size());
-        for (auto&& [opt_mat_id, wls] : data.optical_physics.bulk.wls.materials)
-        {
-            input.data[opt_mat_id.get()] = wls;
-        }
-        auto models = ImportedModels::from_import(data);
+        input.materials[material_id_] = data.materials.at(material_id_);
         model_ = std::make_shared<WavelengthShiftModel const>(
-            ActionId{0}, models, input);
+            ActionId{0}, input, this->optical_material(), "wls");
         data_ = model_->host_ref();
     }
 

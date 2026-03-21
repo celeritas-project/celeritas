@@ -31,6 +31,11 @@ class LArSphereBase : public GeantTestBase
     {
         auto result = GeantTestBase::build_geant_options();
         result.optical.emplace();
+        result.optical->mie_scattering = false;
+        // Disable Rayleigh model due to PR #2038
+        result.optical->rayleigh_scattering = false;
+        result.optical->wavelength_shifting = std::nullopt;
+        result.optical->wavelength_shifting2 = std::nullopt;
         return result;
     }
 
@@ -39,12 +44,6 @@ class LArSphereBase : public GeantTestBase
         auto result = GeantTestBase::build_import_data_selection();
         result.processes |= GeantImportDataSelection::optical;
         return result;
-    }
-
-    std::vector<IMC> select_optical_models() const override
-    {
-        // Disable Rayleigh model due to PR #2038
-        return {IMC::absorption /*, IMC::rayleigh*/};
     }
 };
 

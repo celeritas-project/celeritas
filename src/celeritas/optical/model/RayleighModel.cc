@@ -12,7 +12,6 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/ImportedMaterials.hh"
 #include "celeritas/optical/InteractionApplier.hh"
 #include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/MfpBuilder.hh"
@@ -28,34 +27,24 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a model builder for Rayleigh scattering from imported data and
- * material parameters.
- */
-auto RayleighModel::make_builder(SPConstImported imported, Input input)
-    -> ModelBuilder
-{
-    CELER_EXPECT(imported);
-    return [imported = std::move(imported),
-            input = std::move(input)](ActionId id) {
-        return std::make_shared<RayleighModel>(id, imported, input);
-    };
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct the model from imported data and imported material parameters.
  *
  * Uses \c RayleighMfpCalculator to calculate missing imported MFPs from
  * material parameters, if available.
  */
-RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
+RayleighModel::RayleighModel(ActionId id,
+                             inp::OpticalBulkRayleigh const& input,
+                             SPConstMaterials const& materials,
+                             SPConstCoreMaterials const& core_materials)
     : Model(id, "optical-rayleigh", "interact by optical Rayleigh")
-    , imported_(ImportModelClass::rayleigh, std::move(imported))
-    , input_(std::move(input))
+    , input_(input)
+    , materials_(materials)
+    , core_materials_(core_materials)
 {
-    CELER_EXPECT(!input_
-                 || input_.materials->num_materials()
-                        == imported_.num_materials());
+    CELER_EXPECT(materials_);
+    CELER_EXPECT(core_materials_);
+
+    CELER_VALIDATE(input_, << "invalid input for optical Rayleigh model");
 }
 
 //---------------------------------------------------------------------------//
@@ -64,36 +53,40 @@ RayleighModel::RayleighModel(ActionId id, SPConstImported imported, Input input)
  */
 void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
-    CELER_EXPECT(mat < imported_.num_materials());
+    CELER_EXPECT(mat < materials_->num_materials());
 
-    if (auto const& mfp = imported_.mfp(mat))
+    if (auto iter = input_.materials.find(mat); iter != input_.materials.end())
     {
-        // User explicitly provided Rayleigh MFP
-        build(mfp);
-    }
-    else if (input_ && input_.imported_materials->rayleigh(mat))
-    {
-        // MFPs can be calculated from user given propcerties
-        auto mat_view = input_.materials->get(mat);
-        auto core_mat_view
-            = input_.core_materials->get(mat_view.core_material_id());
-        CELER_VALIDATE(core_mat_view.temperature() > 0,
-                       << "calculating Rayleigh MFPs from material parameters "
-                          "requires positive temperatures");
-
-        RayleighMfpCalculator calc_mfp(
-            mat_view, input_.imported_materials->rayleigh(mat), core_mat_view);
-        auto energy = calc_mfp.grid().values();
-
-        // Use index of refraction energy grid as calculated MFP energy grid
-        inp::Grid grid;
-        grid.x = {energy.begin(), energy.end()};
-        grid.y.reserve(grid.x.size());
-        for (real_type e : grid.x)
+        CELER_ASSERT(iter->second);
+        if (auto const& mfp = iter->second.mfp)
         {
-            grid.y.push_back(calc_mfp(units::MevEnergy{e}));
+            // User explicitly provided Rayleigh MFP
+            build(mfp);
         }
-        build(grid);
+        else
+        {
+            // MFPs can be calculated from user given propcerties
+            auto mat_view = materials_->get(mat);
+            auto core_mat_view
+                = core_materials_->get(mat_view.core_material_id());
+            CELER_VALIDATE(core_mat_view.temperature() > 0,
+                           << "calculating Rayleigh MFPs from material "
+                              "parameters requires positive temperatures");
+
+            RayleighMfpCalculator calc_mfp(
+                mat_view, iter->second, core_mat_view);
+            auto energy = calc_mfp.grid().values();
+
+            // Use refractive index energy grid as calculated MFP energy grid
+            inp::Grid grid;
+            grid.x = {energy.begin(), energy.end()};
+            grid.y.reserve(grid.x.size());
+            for (auto e : grid.x)
+            {
+                grid.y.push_back(calc_mfp(units::MevEnergy{e}));
+            }
+            build(grid);
+        }
     }
     else
     {
