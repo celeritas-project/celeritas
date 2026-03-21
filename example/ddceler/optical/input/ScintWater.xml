@@ -61,10 +61,21 @@
       3.54*eV  0.00
     "/>
 
+    <!-- Air refractive index: required by G4OpBoundaryProcess so that photons
+         reaching the water/air interface are transmitted rather than totally
+         internally reflected due to missing RINDEX in the surrounding medium. -->
+    <matrix name="RINDEX_Air" coldim="2" values="
+      1.77*eV  1.0
+      4.14*eV  1.0
+    "/>
+
   </properties>
 
   <!-- ── materials ────────────────────────────────────────────────────── -->
   <materials>
+    <material name="Air">
+      <property name="RINDEX" ref="RINDEX_Air"/>
+    </material>
     <material name="ScintWater">
       <D type="density" unit="g/cm3" value="1.0"/>
       <composite n="2" ref="H"/>
@@ -86,6 +97,11 @@
     <constant name="world_x"    value="world_size"/>
     <constant name="world_y"    value="world_size"/>
     <constant name="world_z"    value="world_size"/>
+    <!-- Required by DD4hep ParticleHandler for MC-truth link initialisation.
+         This geometry has no tracker volume so these are set to zero; the
+         tracker-region cuts will never actually fire. -->
+    <constant name="tracker_region_rmax" value="0"/>
+    <constant name="tracker_region_zmax" value="0"/>
   </define>
 
   <!-- ── step limits ──────────────────────────────────────────────────── -->
