@@ -9,12 +9,14 @@
 
 #include <VecGeom/base/Version.h>
 // NOTE: must include Global before most other vecgeom/veccore includes
+#include <type_traits>
 #include <VecGeom/base/Global.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
@@ -169,6 +171,7 @@ class VecgeomTrackView
 #else
     using NavStateWrapper = detail::VgNavStateWrapper;
 #endif
+    using NavStateRef = std::add_lvalue_reference_t<NavStateWrapper>;
 
     //// DATA ////
 
@@ -198,9 +201,6 @@ class VecgeomTrackView
     // Whether the next distance-to-boundary is to a surface
     inline CELER_FUNCTION bool is_next_boundary() const;
 
-    // Whether the track direction is exiting the current volume
-    inline CELER_FUNCTION bool is_dir_exiting() const;
-
     // Set the geometry tracking status
     inline CELER_FUNCTION void geo_status(GeoStatus);
 
@@ -209,6 +209,9 @@ class VecgeomTrackView
 
     // Get a reference to the current volume
     inline CELER_FUNCTION VgLogVol const& logical_volume() const;
+
+    // Update the cached normal from the given state, if possible
+    [[nodiscard]] inline CELER_FUNCTION bool update_normal(NavStateRef);
 
     static CELER_CONSTEXPR_FUNCTION VgSurfaceInt null_surface()
     {
@@ -555,6 +558,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
  */
 CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
 {
+    CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->is_next_boundary());
 
@@ -563,41 +567,28 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     next_step_ = 0;
     vgstate_.SetBoundaryState(true);
 
-    // Compute and cache the exit surface normal using VecGeom's Normal()
+    // Save the normal
+    // Try exiting volume: on boundary of current volume
+    bool success = this->update_normal(vgstate_);
+    if (!success && !vgnext_.IsOutside())
     {
-        auto const& pv = this->physical_volume();
-        auto const* tr = pv.GetTransformation();
-        CELER_ASSERT(tr);
-
-        // Transform position to local coordinates and compute local normal
-        auto local_pos = tr->Transform(to_vgvector(pos_));
-        vecgeom::Vector3D<real_type> local_normal{};
-        CELER_ASSERT(pv.GetUnplacedVolume());
-        bool normal_valid
-            = pv.GetUnplacedVolume()->Normal(local_pos, local_normal);
-        if (CELER_UNLIKELY(!normal_valid))
-        {
+        // Try next/blocking volume, possibly a daughter volume
+        success = this->update_normal(vgnext_);
+    }
+    if (CELER_UNLIKELY(!success))
+    {
 #if !CELER_DEVICE_COMPILE
-            CELER_LOG_LOCAL(error)
-                << "Calculated local normal " << repr(to_array(local_normal))
-                << " on surface of " << pv.GetLabel() << " at local position "
-                << repr(to_array(local_pos)) << " is invalid";
+        CELER_LOG_LOCAL(error)
+            << "Failed to calculate normal on surface between "
+            << vgstate_.Top()->GetLabel() << " and "
+            << (vgnext_.IsOutside() ? "[OUTSIDE]" : vgnext_.Top()->GetLabel());
 #endif
-            // Fall back to the travel direction as an approximation
-            normal_ = dir_;
-        }
-        else
-        {
-            // Transform normal back to global coordinates
-            vecgeom::Vector3D<real_type> global_normal;
-            tr->InverseTransformDirection(local_normal, global_normal);
-            normal_ = to_array(global_normal);
-        }
+        // Fall back to the travel direction as an approximation
+        normal_ = dir_;
     }
     this->geo_status(GeoStatus::boundary_inc);
 
     CELER_ENSURE(this->is_on_boundary());
-    CELER_ENSURE(this->is_dir_exiting());
 }
 
 //---------------------------------------------------------------------------//
@@ -759,19 +750,6 @@ CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the track direction is exiting the current volume.
- *
- * Returns true when the direction dotted with the cached surface normal is
- * positive (i.e., the track is traveling away from the current volume).
- */
-CELER_FUNCTION bool VecgeomTrackView::is_dir_exiting() const
-{
-    CELER_EXPECT(this->is_on_boundary());
-    return dot_product(normal_, dir_) > 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set the geometry tracking status.
  */
 CELER_FUNCTION void VecgeomTrackView::geo_status(GeoStatus gs)
@@ -798,6 +776,38 @@ CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
 CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
 {
     return *this->physical_volume().GetLogicalVolume();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update the cached normal from the given state, if possible.
+ *
+ * \return Whether the current position is on a volume boundary for the given
+ * state "top".
+ */
+[[nodiscard]] CELER_FUNCTION bool
+VecgeomTrackView::update_normal(NavStateRef state)
+{
+    CELER_EXPECT(state.IsOnBoundary());
+    CELER_EXPECT(!state.IsOutside());
+
+    VgPlacedVol const* pv = state.Top();
+    CELER_ASSERT(pv);
+    vecgeom::Transformation3D tr;
+    vgstate_.TopMatrix(tr);
+
+    // Transform position to local coordinates and compute local normal
+    auto local_pos = tr.Transform(to_vgvector(pos_));
+    VgReal3 local_normal;
+    CELER_ASSERT(pv->GetUnplacedVolume());
+    bool success = pv->GetUnplacedVolume()->Normal(local_pos, local_normal);
+    if (success)
+    {
+        VgReal3 global_normal;
+        tr.InverseTransformDirection(local_normal, global_normal);
+        normal_ = to_array(global_normal);
+    }
+    return success;
 }
 
 //---------------------------------------------------------------------------//

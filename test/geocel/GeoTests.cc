@@ -836,8 +836,7 @@ void FourLevelsGeoTest::test_reentrant_normal() const
     // *CONVEXITY* at the current point: the sphere curves away, so we're
     // pointed "outside". If we're on a plane and scatter exactly along it,
     // we cannot move safely because we'll still be on the surface.
-    SHOULD_FAIL_WHEN(geo.set_dir({0, 1, 0}),
-                     test_->geometry_type() != "VecGeom");
+    SHOULD_FAIL_WHEN(geo.set_dir({0, 1, 0}), true);
     EXPECT_EQ(GeoStatus::error, geo.geo_status());
 }
 

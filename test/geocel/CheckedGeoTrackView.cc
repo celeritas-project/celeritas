@@ -14,6 +14,7 @@
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/VolumeParams.hh"
 
@@ -308,7 +309,7 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
         && result.distance > this->safety_tol() && !started_on_boundary)
     {
         real_type safety = t_->find_safety(distance);
-        if (!(safety <= result.distance))
+        if (!(safety <= result.distance || soft_equal(safety, result.distance)))
         {
             CELER_LOG_LOCAL(warning)
                 << "Calculated safety " << safety << NativeLength{}
