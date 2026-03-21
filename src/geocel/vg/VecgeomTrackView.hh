@@ -198,6 +198,9 @@ class VecgeomTrackView
     // Whether the next distance-to-boundary is to a surface
     inline CELER_FUNCTION bool is_next_boundary() const;
 
+    // Whether the track direction is exiting the current volume
+    inline CELER_FUNCTION bool is_dir_exiting() const;
+
     // Set the geometry tracking status
     inline CELER_FUNCTION void geo_status(GeoStatus);
 
@@ -451,6 +454,12 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
 
+    if (this->geo_status() == GeoStatus::boundary_inc)
+    {
+        // Already sitting on the boundary ready to cross: next step is zero
+        return {0, true};
+    }
+
     if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
         *next_surf_ = null_surface();
@@ -476,6 +485,17 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     }
 
     next_step_ = max(next_step_, this->extra_push());
+
+    if (this->is_next_boundary()
+        && CELER_UNLIKELY(next_step_ == this->extra_push()))
+    {
+        // Distance was zero after the extra push: boundary direction is
+        // inconsistent (e.g. on the inside of a concave object)
+        CELER_LOG_LOCAL(warning) << "Boundary direction was inconsistent";
+        this->geo_status(GeoStatus::boundary_inc);
+        next_step_ = 0;
+        return {0, true};
+    }
 
     if (!this->is_next_boundary())
     {
@@ -543,7 +563,13 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     next_step_ = 0;
     vgstate_.SetBoundaryState(true);
 
+    // Cache the exit normal direction.
+    // TODO: replace with an actual surface normal from VecGeom navigator
+    normal_ = dir_;
+    this->geo_status(GeoStatus::boundary_inc);
+
     CELER_ENSURE(this->is_on_boundary());
+    CELER_ENSURE(this->is_dir_exiting());
 }
 
 //---------------------------------------------------------------------------//
@@ -556,6 +582,13 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 {
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->is_on_boundary());
+
+    if (this->geo_status() == GeoStatus::boundary_out)
+    {
+        // Direction was changed while on the boundary so we are no longer
+        // crossing: logically equivalent to a reflection, nothing to update.
+        return;
+    }
     CELER_EXPECT(this->is_next_boundary());
 
     // Relocate to next tracking volume (maybe across multiple boundaries)
@@ -570,6 +603,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     }
 
     vgstate_ = vgnext_;
+    this->geo_status(GeoStatus::boundary_out);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -591,6 +625,7 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
     axpy(dist, dir_, &pos_);
     next_step_ -= dist;
     vgstate_.SetBoundaryState(false);
+    this->geo_status(GeoStatus::interior);
 
     CELER_ENSURE(!this->is_on_boundary());
 }
@@ -607,6 +642,7 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
     pos_ = pos;
     next_step_ = 0;
     vgstate_.SetBoundaryState(false);
+    this->geo_status(GeoStatus::interior);
 
     CELER_ENSURE(!this->is_on_boundary());
 }
@@ -621,6 +657,28 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
 CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
+
+    GeoStatus status{this->geo_status()};
+    if (::celeritas::is_on_boundary(status))
+    {
+        // Changing direction on a boundary may reverse whether the track
+        // will cross the surface; update stored status to match.
+        auto new_dot = dot_product(normal_, newdir);
+        if (CELER_UNLIKELY(new_dot == 0))
+        {
+            CELER_LOG_LOCAL(error)
+                << "track direction cannot change to " << newdir
+                << " which is perpendicular to the current surface normal";
+            this->geo_status(GeoStatus::error);
+            return;
+        }
+        else if ((new_dot > 0) != (dot_product(normal_, dir_) > 0))
+        {
+            // The boundary crossing direction has changed; flip our plans.
+            this->geo_status(flip_boundary(status));
+        }
+    }
+
     dir_ = newdir;
     next_step_ = 0;
 }
@@ -669,6 +727,19 @@ CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
     {
         return vgnext_.IsOnBoundary();
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the track direction is exiting the current volume.
+ *
+ * Returns true when the direction dotted with the cached surface normal is
+ * positive (i.e., the track is traveling away from the current volume).
+ */
+CELER_FUNCTION bool VecgeomTrackView::is_dir_exiting() const
+{
+    CELER_EXPECT(this->is_on_boundary());
+    return dot_product(normal_, dir_) > 0;
 }
 
 //---------------------------------------------------------------------------//
