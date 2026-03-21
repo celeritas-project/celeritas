@@ -470,15 +470,8 @@ TEST_F(FourLevelsTest, safety)
 {
     ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_safety();
-    static char const* const expected_log_messages[] = {
-        R"(Returned safety 2.9 [cm] exceeds requested search distance 1.5 [cm])",
-        R"(Returned safety 1.755 [cm] exceeds requested search distance 1.5 [cm])",
-        R"(Returned safety 1.709 [cm] exceeds requested search distance 1.5 [cm])",
-        R"(Returned safety 4.827 [cm] exceeds requested search distance 1.5 [cm])",
-        R"(Returned safety 1.9 [cm] exceeds requested search distance 1.5 [cm])",
-        R"(Returned safety 3.9 [cm] exceeds requested search distance 1.5 [cm])",
-    };
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    // Don't test messages, which are unit system-dependent (they come from the
+    // CheckedGeoTrackView)
     static char const* const expected_log_levels[]
         = {"warning", "warning", "warning", "warning", "warning", "warning"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
