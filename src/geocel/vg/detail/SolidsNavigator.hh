@@ -11,8 +11,7 @@
 #include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Global.h>
 #include <VecGeom/base/Version.h>
-#include <VecGeom/navigation/GlobalLocator.h>
-#include <VecGeom/navigation/VNavigator.h>
+#include <VecGeom/navigation/BVHNavigator.h>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -38,79 +37,56 @@ class SolidsNavigator
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
 
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    using NavState = vecgeom::NavStatePath;
-#else
     using NavState = detail::VgNavStateWrapper;
-#endif
+    using NavImpl = vecgeom::BVHNavigator;
 
     //-----------------------------------------------------------------------//
     // Locate a point in the geometry hierarchy
     CELER_FUNCTION static void
     LocatePointIn(VgPlacedVol const* vol,
-                  VgReal3 const& point,
-                  NavState& nav,
+                  VgReal3 const& localpos,
+                  NavState& state,
                   bool top,
                   VgPlacedVol const* exclude = nullptr)
     {
-        ScopedVgNavState temp_nav{nav};
-        if (exclude)
-        {
-            // Exclude the volume from the search
-            vecgeom::GlobalLocator::LocateGlobalPointExclVolume(
-                vol, exclude, point, temp_nav, top);
-        }
-        else
-        {
-            // TODO: eliminate this branch by always using Excl
-            // Locate the point in the volume hierarchy
-            vecgeom::GlobalLocator::LocateGlobalPoint(
-                vol, point, temp_nav, top);
-        }
+        ScopedVgNavState temp_state{state};
+        NavImpl::LocatePointIn(vol, localpos, temp_state, top, exclude);
     }
 
     //-----------------------------------------------------------------------//
-    // FIXME: this *crosses* the volume
     CELER_FUNCTION static vg_real_type
-    ComputeStepAndNextVolume(VgReal3 const& glpos,
-                             VgReal3 const& gldir,
+    ComputeStepAndNextVolume(VgReal3 const& pos,
+                             VgReal3 const& dir,
                              vg_real_type step_limit,
                              NavState const& in_state,
                              NavState& out_state)
     {
-        auto* curr_volume = in_state.Top()->GetLogicalVolume();
-
-        // simple dispatch implementation
-        ScopedVgNavState temp_out_state{out_state};
-        auto* navigator = curr_volume->GetNavigator();
-        real_type step = navigator->ComputeStepAndPropagatedState(
-            glpos, gldir, step_limit, in_state, temp_out_state);
-
-        return step;
+        ScopedVgNavState temp_state{out_state};
+        // Use 1000 * kTolerance like ADePT
+        constexpr vg_real_type search_bump{1e-5};
+        return NavImpl::ComputeStepAndNextVolume(
+            pos, dir, step_limit, in_state, temp_state, search_bump);
     }
 
     //-----------------------------------------------------------------------//
     // Computes the isotropic safety from the globalpoint
-    CELER_FUNCTION static double
-    ComputeSafety(VgReal3 const& glpos,
-                  NavState const& curr,
-                  vg_real_type safety
+    CELER_FUNCTION static vg_real_type
+    ComputeSafety(VgReal3 const& pos,
+                  NavState const& state,
+                  vg_real_type limit
                   = std::numeric_limits<vg_real_type>::infinity())
     {
-        auto* navigator = curr.Top()->GetLogicalVolume()->GetNavigator();
-        real_type result
-            = navigator->GetSafetyEstimator()->ComputeSafety(glpos, curr);
-        result = vecCore::math::Min(result, safety);
-
-        return result;
+        return NavImpl::ComputeSafety(pos, state, limit);
     }
 
     //-----------------------------------------------------------------------//
     // Relocate a state that was returned from ComputeStepAndNextVolume
-    CELER_FUNCTION static void
-    RelocateToNextVolume(VgReal3 const&, VgReal3 const&, NavState&)
+    CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& pos,
+                                                    VgReal3 const& dir,
+                                                    NavState& state)
     {
-        // Relocation is done previously :(
+        ScopedVgNavState temp_state{state};
+        return NavImpl::RelocateToNextVolume(pos, dir, temp_state);
     }
 };
 
