@@ -15,6 +15,7 @@
 "lowest_electron_energy": 0.1,
 "apply_cuts": true,
 "lpm": true,
+"optical": null,
 "min_energy": [
  0.1,
  "MeV"

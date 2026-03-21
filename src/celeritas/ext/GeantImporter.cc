@@ -10,8 +10,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <tuple>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -25,8 +23,6 @@
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4MscStepLimitType.hh>
-#include <G4MuPairProduction.hh>
-#include <G4MuPairProductionModel.hh>
 #include <G4MuonMinusAtomicCapture.hh>
 #include <G4Navigator.hh>
 #include <G4NuclearFormfactorType.hh>
@@ -723,6 +719,11 @@ auto import_processes(GeantImporter::DataSelection selected,
             return;
         }
 
+        // Load per-particle data (runs alongside process-level loader)
+        // TODO: should call legacy_import_process if needed, and return early
+        // if data is imported
+        load_physics(GeantParticleView{particle}, process);
+
         // TODO: move implementation to GeantPhysicsLoader
         if (auto const* gg_process
             = dynamic_cast<G4GammaGeneralProcess const*>(&process))
@@ -927,65 +928,6 @@ ImportEmParameters import_em_parameters()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the sampling table for electron-positron pair production by muons.
- */
-inp::MuPairProductionEnergyTransferTable import_mupp_table(PDGNumber pdg)
-{
-    CELER_EXPECT(pdg == pdg::mu_minus() || pdg == pdg::mu_plus());
-
-    using IU = ImportUnits;
-
-    G4ParticleDefinition const* pdef
-        = G4ParticleTable::GetParticleTable()->FindParticle(pdg.get());
-    CELER_ASSERT(pdef);
-
-    auto const* process = dynamic_cast<G4MuPairProduction const*>(
-        pdef->GetProcessManager()->GetProcess(
-            to_geant_name(ImportProcessClass::mu_pair_prod)));
-    CELER_ASSERT(process);
-    CELER_ASSERT(process->NumberOfModels() == 1);
-
-    auto* model = dynamic_cast<G4MuPairProductionModel*>(process->EmModel());
-    CELER_ASSERT(model);
-
-    G4ElementData* el_data = model->GetElementData();
-    CELER_ASSERT(el_data);
-
-    inp::MuPairProductionEnergyTransferTable result;
-    if (G4VERSION_NUMBER < 1120)
-    {
-        constexpr int element_data_size = 99;
-        for (int z = 1; z < element_data_size; ++z)
-        {
-            if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
-            {
-                result.atomic_number.push_back(AtomicNumber{z});
-                result.grids.push_back(detail::import_physics_2dvector(
-                    *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
-            }
-        }
-    }
-    else
-    {
-        // The muon pair production model in newer Geant4 versions initializes
-        // and accesses the element data by Z index rather than Z number
-        using Z = AtomicNumber;
-        result.atomic_number = {Z{1}, Z{4}, Z{13}, Z{29}, Z{92}};
-        for (int i : range(result.atomic_number.size()))
-        {
-            G4Physics2DVector const* pv = el_data->GetElement2DData(i);
-            CELER_ASSERT(pv);
-            result.grids.push_back(detail::import_physics_2dvector(
-                *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
-        }
-    }
-
-    CELER_ENSURE(result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Return a populated \c ImportVolume vector.
  */
 std::vector<ImportVolume> import_volumes()
@@ -1063,14 +1005,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         << "materials and particles must be enabled if requesting processes");
     ImportData imported;
 
-    auto have_process = [&imported](ImportProcessClass ipc) {
-        return std::any_of(imported.processes.begin(),
-                           imported.processes.end(),
-                           [ipc](ImportProcess const& ip) {
-                               return ip.process_class == ipc;
-                           });
-    };
-
     {
         CELER_LOG(status) << "Transferring data from Geant4";
         ScopedGeantExceptionHandler scoped_exceptions;
@@ -1103,19 +1037,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         if (selected.processes != DataSelection::none)
         {
             import_processes(selected, *geo_to_opt, imported);
-
-            if (have_process(ImportProcessClass::mu_pair_prod))
-            {
-                auto mu_minus = import_mupp_table(pdg::mu_minus());
-                auto mu_plus = import_mupp_table(pdg::mu_plus());
-                CELER_VALIDATE(mu_minus.atomic_number == mu_plus.atomic_number
-                                   && mu_minus.grids == mu_plus.grids,
-                               << "muon pair production sampling tables for "
-                                  "mu- and mu+ differ");
-                inp::MuPairProductionModel mupp_model;
-                mupp_model.muppet_table = std::move(mu_minus);
-                imported.mu_production = std::move(mupp_model);
-            }
         }
 
         imported.volumes = import_volumes();

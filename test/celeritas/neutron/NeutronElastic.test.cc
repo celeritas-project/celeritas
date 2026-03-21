@@ -6,11 +6,10 @@
 //---------------------------------------------------------------------------//
 #include <memory>
 
-#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/neutron/interactor/ChipsNeutronElasticInteractor.hh"
 #include "celeritas/neutron/model/ChipsNeutronElasticModel.hh"
@@ -37,8 +36,7 @@ class NeutronElasticTest : public NeutronTestBase
         using namespace units;
 
         // Load neutron elastic cross section data
-        std::string data_path = this->test_data_path("celeritas", "");
-        NeutronXsReader read_el_data(NeutronXsType::el, data_path.c_str());
+        auto xs_reader = make_xs_reader(NeutronXsType::el);
 
         // Set up the default particle: 100 MeV neutron along +z direction
         auto const& particles = *this->particle_params();
@@ -48,7 +46,7 @@ class NeutronElasticTest : public NeutronTestBase
         // Set up the default material
         this->set_material("HeCu");
         model_ = std::make_shared<ChipsNeutronElasticModel>(
-            ActionId{0}, particles, *this->material_params(), read_el_data);
+            ActionId{0}, particles, *this->material_params(), xs_reader);
     }
 
   protected:
@@ -71,7 +69,7 @@ TEST_F(NeutronElasticTest, micro_xs)
     NeutronElasticRef const& shared = model_->host_ref();
     EXPECT_EQ(shared.micro_xs[el_id].grid.size(), 181);
 
-    // Microscopic cross section (\f$ mm^{2} \f$) in [1e-05:1e+4] (MeV)
+    // Microscopic cross section (units::BarnXs) in [1e-05:1e+4] (MeV)
     std::vector<real_type> const expected_micro_xs = {7.7754820698300016,
                                                       7.5491116936558775,
                                                       5.5794984695350172,
@@ -81,20 +79,21 @@ TEST_F(NeutronElasticTest, micro_xs)
                                                       1.8991353788659384,
                                                       1.1644431495712948,
                                                       0.47825608538126163,
-                                                      0.5046348286147897};
+                                                      0.5046348286147897,
+                                                      0.46700000000000008};
 
-    real_type energy = 1e-5;
-    real_type const factor = 1e+1;
-    for (auto i : range(expected_micro_xs.size()))
+    std::vector<real_type> micro_xs;
+    for (auto energy : geomspace(1e-5, 1e+4, 10))
     {
-        XsCalculator calc_micro_xs(shared, MevEnergy{energy});
-        EXPECT_SOFT_EQ(calc_micro_xs(el_id).value(), expected_micro_xs[i]);
-        energy *= factor;
+        XsCalculator calc_micro_xs(shared, MevEnergy(energy));
+        micro_xs.push_back(calc_micro_xs(el_id).value());
     }
 
     // Check the elastic cross section at the upper bound (20 GeV)
-    XsCalculator calc_upper_xs(shared, MevEnergy{2e+4});
-    EXPECT_SOFT_EQ(calc_upper_xs(el_id).value(), 0.46700000000000008);
+    XsCalculator calc_upper_xs(shared, MevEnergy(2e+4));
+    micro_xs.push_back(calc_upper_xs(el_id).value());
+
+    EXPECT_VEC_SOFT_EQ(expected_micro_xs, micro_xs);
 }
 
 TEST_F(NeutronElasticTest, macro_xs)
@@ -113,22 +112,21 @@ TEST_F(NeutronElasticTest, macro_xs)
                                                       0.28363890447070578,
                                                       0.1425404724303469,
                                                       0.081439808202180136,
-                                                      0.033470862079907314};
+                                                      0.033470862079907314,
+                                                      0.036279681208164501};
 
-    real_type energy = 1e-5;
-    real_type const factor = 1e+1;
-    for (auto i : range(expected_macro_xs.size()))
+    std::vector<real_type> macro_xs;
+    for (auto energy : geomspace(1e-5, 1e+3, 9))
     {
-        EXPECT_SOFT_EQ(
-            native_value_to<units::InvCmXs>(calc_xs(MevEnergy{energy})).value(),
-            expected_macro_xs[i]);
-        energy *= factor;
+        macro_xs.push_back(
+            native_value_to<units::InvCmXs>(calc_xs(MevEnergy(energy))).value());
     }
 
     // Check the CHIPS macroscopic cross section at the upper bound (20 GeV)
-    EXPECT_SOFT_EQ(
-        native_value_to<units::InvCmXs>(calc_xs(MevEnergy{2000})).value(),
-        0.036279681208164501);
+    macro_xs.push_back(
+        native_value_to<units::InvCmXs>(calc_xs(MevEnergy(2000))).value());
+
+    EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
 
 TEST_F(NeutronElasticTest, diff_xs_coeffs)

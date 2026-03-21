@@ -3,15 +3,13 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/detail/GeantPhysicsLoader.hh
+//! \sa test/celeritas/ext/GeantImporter.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <G4Version.hh>
-
-#include "corecel/Config.hh"
 
 #include "geocel/GeoOpticalIdMap.hh"
 #include "celeritas/Types.hh"
@@ -23,6 +21,7 @@ class G4MaterialPropertiesTable;
 namespace celeritas
 {
 struct ImportData;
+class GeantParticleView;
 
 namespace detail
 {
@@ -49,6 +48,9 @@ class GeantPhysicsLoader
     // Load if possible, returning whether we handled it
     bool operator()(G4VProcess const& p);
 
+    // Load per-particle data if possible, returning whether we handled it
+    bool operator()(GeantParticleView const& particle, G4VProcess const& p);
+
   private:
     //// TYPES ////
 
@@ -63,18 +65,21 @@ class GeantPhysicsLoader
 
     //// PHYSICS LOADERS ////
 
-    // EM particles
+    // EM particles (once per process)
     size_type cerenkov(G4VProcess const& p);
     size_type muon_minus_atomic_capture(G4VProcess const& p);
     size_type scintillation(G4VProcess const& p);
 
-    // Optical photons
+    // Optical photons (once per process)
     size_type op_absorption(G4VProcess const& p);
     size_type op_boundary(G4VProcess const& p);
     size_type op_mie_hg(G4VProcess const& p);
     size_type op_rayleigh(G4VProcess const& p);
     size_type op_wls(G4VProcess const& p);
     size_type op_wls2(G4VProcess const& p);
+
+    // Per-particle loaders
+    size_type mu_pair_production(GeantParticleView const&, G4VProcess const&);
 
     //// HELPERS ////
 
