@@ -737,7 +737,7 @@ void FourLevelsGeoTest::test_reentrant() const
     ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1.0)));
     EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
     // Move left to the boundary but scatter perpendicularly, tangent
-    // upward to the sphere (which is conVEX at this point)
+    // upward to the sphere (which is convex at this point)
     geo.move_to_boundary();
     if (geo.check_normal())
     {
@@ -745,7 +745,7 @@ void FourLevelsGeoTest::test_reentrant() const
     }
     EXPECT_TRUE(geo.is_on_boundary());
 
-    // Enter the spehre
+    // Enter the sphere
     ASSERT_NO_THROW(geo.cross_boundary());
     ASSERT_EQ("Shape2", test_->volume_name(geo));
     EXPECT_TRUE(geo.is_on_boundary());
@@ -767,6 +767,7 @@ void FourLevelsGeoTest::test_reentrant() const
         // Seems that Geant4 rejects the previously crossed volume to avoid
         // infinite loops, and puts us inside the parent volume
         EXPECT_EQ("Envelope", test_->volume_name(geo));
+        GTEST_SKIP() << "Multiple bumps at a point fail with Geant4";
     }
 
     ASSERT_EQ("Shape2", test_->volume_name(geo));
@@ -925,7 +926,7 @@ void FourLevelsGeoTest::test_safety() const
         // Only G4 returns larger-than-requested distances
         for (double& s : expected_lim_safeties)
         {
-            s = std::min(s, 1.5 * lengthunits::centimeter);
+            s = std::min(s, 1.5);
         }
     }
 

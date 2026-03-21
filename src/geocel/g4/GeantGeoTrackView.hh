@@ -431,7 +431,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
         if (!this->is_dir_exiting())
         {
             // We moved to a boundary but ended up not crossing it. Tell the
-            // navigator to "relocate" to avoid a warning: it the current
+            // navigator to "relocate" to avoid a warning: the current
             // position is likely outside the last calculated safety, but we
             // know it's correct because we did it via a straight-line distance
             // that's valid.

@@ -451,7 +451,7 @@ TEST_F(FourLevelsTest, locate_point)
 
 TEST_F(FourLevelsTest, reentrant)
 {
-    this->impl().test_detailed_tracking();
+    this->impl().test_reentrant();
 }
 
 TEST_F(FourLevelsTest, reentrant_normal)
@@ -468,7 +468,20 @@ TEST_F(FourLevelsTest, reentrant_normal)
 
 TEST_F(FourLevelsTest, safety)
 {
+    ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_safety();
+    static char const* const expected_log_messages[] = {
+        R"(Returned safety 2.9 [cm] exceeds requested search distance 1.5 [cm])",
+        R"(Returned safety 1.755 [cm] exceeds requested search distance 1.5 [cm])",
+        R"(Returned safety 1.709 [cm] exceeds requested search distance 1.5 [cm])",
+        R"(Returned safety 4.827 [cm] exceeds requested search distance 1.5 [cm])",
+        R"(Returned safety 1.9 [cm] exceeds requested search distance 1.5 [cm])",
+        R"(Returned safety 3.9 [cm] exceeds requested search distance 1.5 [cm])",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[]
+        = {"warning", "warning", "warning", "warning", "warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 TEST_F(FourLevelsTest, trace)

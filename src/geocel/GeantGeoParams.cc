@@ -769,7 +769,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
     {
         data_.nav_verbosity_ = std::stoi(verb);
         CELER_VALIDATE(data_.nav_verbosity_ >= 0,
-                       << "G4_GEO_VERBOSE verbosity " << data_.nav_verbosity_
+                       << "G4_GEO_VERBOSITY=" << data_.nav_verbosity_
                        << " is out of range");
     }
 
