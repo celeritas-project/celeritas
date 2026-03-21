@@ -563,9 +563,37 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     next_step_ = 0;
     vgstate_.SetBoundaryState(true);
 
-    // Cache the exit normal direction.
-    // TODO: replace with an actual surface normal from VecGeom navigator
-    normal_ = dir_;
+    // Compute and cache the exit surface normal using VecGeom's Normal()
+    {
+        auto const& pv = this->physical_volume();
+        auto const* tr = pv.GetTransformation();
+        CELER_ASSERT(tr);
+
+        // Transform position to local coordinates and compute local normal
+        auto local_pos = tr->Transform(to_vgvector(pos_));
+        vecgeom::Vector3D<real_type> local_normal{};
+        CELER_ASSERT(pv.GetUnplacedVolume());
+        bool normal_valid
+            = pv.GetUnplacedVolume()->Normal(local_pos, local_normal);
+        if (CELER_UNLIKELY(!normal_valid))
+        {
+#if !CELER_DEVICE_COMPILE
+            CELER_LOG_LOCAL(error)
+                << "Calculated local normal " << repr(to_array(local_normal))
+                << " on surface of " << pv.GetLabel() << " at local position "
+                << repr(to_array(local_pos)) << " is invalid";
+#endif
+            // Fall back to the travel direction as an approximation
+            normal_ = dir_;
+        }
+        else
+        {
+            // Transform normal back to global coordinates
+            vecgeom::Vector3D<real_type> global_normal;
+            tr->InverseTransformDirection(local_normal, global_normal);
+            normal_ = to_array(global_normal);
+        }
+    }
     this->geo_status(GeoStatus::boundary_inc);
 
     CELER_ENSURE(this->is_on_boundary());
