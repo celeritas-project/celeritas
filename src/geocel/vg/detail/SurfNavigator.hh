@@ -90,12 +90,7 @@ class SurfNavigator
                              NavState& out_state,
                              VgSurfaceInt& hitsurf)
     {
-        if (step_limit <= 0)
-        {
-            in_state.CopyTo(&out_state);
-            out_state.SetBoundaryState(false);
-            return step_limit;
-        }
+        CELER_EXPECT(step_limit > 0);
 
         ScopedVgNavState temp_out_state{out_state};
         auto step = vgbrep::protonav::BVHSurfNavigator<

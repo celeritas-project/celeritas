@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/VecgeomTrackView.hh
-//! \sa geocel/vg/Vecgeom.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -92,11 +91,6 @@ class VecgeomTrackView
     // Initialize the state
     inline CELER_FUNCTION VecgeomTrackView&
     operator=(Initializer_t const& init);
-
-    //// STATIC ACCESSORS ////
-
-    //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
 
     //// ACCESSORS ////
 
@@ -192,6 +186,12 @@ class VecgeomTrackView
 
     // Temporary data
     real_type next_step_{0};
+    //! Tolerance used for solid model relocation bump
+    static constexpr vg_real_type relocate_bump_
+        = CELERITAS_VECGEOM_SURFACE                ? 0
+          : std::is_same_v<vg_real_type, float>    ? 1e-4f
+          : std::is_same_v<vgbvh_real_type, float> ? 1e-5f
+                                                   : 1e-8;
 
     //// HELPER FUNCTIONS ////
 
@@ -209,6 +209,9 @@ class VecgeomTrackView
 
     // Get a reference to the current volume
     inline CELER_FUNCTION VgLogVol const& logical_volume() const;
+
+    // Construct a bumped real3
+    inline CELER_FUNCTION VgReal3 make_bumped_pos(vg_real_type bump) const;
 
     // Update the cached normal from the given state, if possible
     [[nodiscard]] inline CELER_FUNCTION bool update_normal(NavStateRef);
@@ -480,6 +483,22 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 #endif
     );
 
+    if (next_step_ == 0)
+    {
+        // Possibly reentrant boundary?
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(debug);
+        msg << "Possibly reentrant boundary at " << repr(pos_) << ' '
+            << lengthunits::native_label << " along " << repr(dir_);
+#endif
+        this->geo_status(GeoStatus::boundary_out);
+
+        Propagation result;
+        result.distance = 0;
+        result.boundary = true;
+        return result;
+    }
+
     if constexpr (CELERITAS_VECGEOM_SURFACE)
     {
         // Our accessor uses the next_surf_ state, but the temporary used for
@@ -487,14 +506,15 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
         CELER_ASSERT((*next_surf_ != null_surface()) == vgnext_.IsOnBoundary());
     }
 
-    next_step_ = max(next_step_, this->extra_push());
-
-    if (this->is_next_boundary()
-        && CELER_UNLIKELY(next_step_ == this->extra_push()))
+    if (next_step_ == 0 && this->geo_status() == GeoStatus::boundary_out)
     {
         // Distance was zero after the extra push: boundary direction is
         // inconsistent (e.g. on the inside of a concave object)
-        CELER_LOG_LOCAL(warning) << "Boundary direction was inconsistent";
+
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(warning)
+            << "Boundary direction was inconsistent at " << repr(pos_);
+#endif
         this->geo_status(GeoStatus::boundary_inc);
         next_step_ = 0;
         return {0, true};
@@ -505,7 +525,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
         // Soft equivalence between distance and max step is because the
         // BVH navigator subtracts and then re-adds a bump distance to the
         // step
-        CELER_ASSERT(soft_equal(next_step_, max(max_step, this->extra_push())));
+        CELER_ASSERT(soft_equal(next_step_, max_step));
         next_step_ = max_step;
     }
 
@@ -515,9 +535,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 
     CELER_ENSURE(this->has_next_step());
     CELER_ENSURE(result.distance > 0);
-    CELER_ENSURE(result.distance <= max(max_step, this->extra_push()));
-    CELER_ENSURE(result.boundary || result.distance == max_step
-                 || max_step < this->extra_push());
+    CELER_ENSURE(result.distance <= max_step);
+    CELER_ENSURE(result.boundary || result.distance == max_step);
     return result;
 }
 
@@ -613,12 +632,25 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-        Navigator::RelocateToNextVolume(to_vgvector(this->pos_),
+        Navigator::RelocateToNextVolume(this->make_bumped_pos(relocate_bump_),
                                         to_vgvector(this->dir_),
 #if CELERITAS_VECGEOM_SURFACE
                                         *next_surf_,
 #endif
                                         vgnext_);
+    }
+
+    // Relocation should have changed volume
+    if (CELER_UNLIKELY(vgstate_.HasSamePathAsOther(vgnext_)))
+    {
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(error);
+        msg << "Failed to cross boundary: unique volume instance is the same "
+               "before and after at "
+            << repr(pos_) << ' ' << lengthunits::native_label;
+#endif
+        this->geo_status(GeoStatus::error);
+        return;
     }
 
     vgstate_ = vgnext_;
@@ -636,7 +668,6 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
  */
 CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
-    CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(dist > 0 && dist <= next_step_);
     CELER_EXPECT(dist != next_step_ || !this->is_next_boundary());
 
@@ -672,6 +703,9 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
  *
  * This happens after a scattering event or movement inside a magnetic field.
  * It resets the calculated distance-to-boundary.
+ *
+ * \todo If on a boundary, determine as with ORANGE whether we should cancel
+ * the surface crossing.
  */
 CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 {
@@ -776,6 +810,27 @@ CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
 CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
 {
     return *this->physical_volume().GetLogicalVolume();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * If not using the surface model, return a bumped position.
+ */
+CELER_FUNCTION VgReal3 VecgeomTrackView::make_bumped_pos(vg_real_type bump) const
+{
+    CELER_EXPECT(bump >= 0);
+    if (CELERITAS_VECGEOM_SURFACE)
+    {
+        // Surface relocation is exact, assuming a well constructed geometry
+        return to_vgvector(pos_);
+    }
+
+    VgReal3 bumped_pos;
+    for (auto i : range(3))
+    {
+        bumped_pos[i] = fma(bump, dir_[i], pos_[i]);
+    }
+    return bumped_pos;
 }
 
 //---------------------------------------------------------------------------//
