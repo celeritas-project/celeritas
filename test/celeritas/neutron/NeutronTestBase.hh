@@ -10,11 +10,14 @@
 #include <random>
 #include <vector>
 
+#include "celeritas_test_config.h"
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -104,6 +107,16 @@ class NeutronTestBase : public Test
     {
         rng_.reset_count();
         return rng_;
+    }
+    //!@}
+
+    //!@{
+    //! Construct a NeutronXsReader for the given type using shared test data
+    NeutronXsReader make_xs_reader(NeutronXsType type) const
+    {
+        std::string data_path = celeritas_source_dir;
+        data_path += "/test/celeritas/data/neutron-xs/";
+        return NeutronXsReader(type, data_path.c_str());
     }
     //!@}
 

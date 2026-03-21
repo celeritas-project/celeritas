@@ -15,7 +15,7 @@
 
 #include "GeantSetup.hh"
 
-// Geant4 forward declaration
+// Geant4 forward declarations
 class G4VPhysicalVolume;  // IWYU pragma: keep
 class G4ParticleDefinition;  // IWYU pragma: keep
 
@@ -64,9 +64,9 @@ struct GeantImportDataSelection
    \endcode
  * or to import from an existing, initialized Geant4 state:
  * \code
- *  GeantImport import(world_volume);
+    GeantImporter import(world_volume);
     ImportData data = import();
- *  \endcode
+   \endcode
  */
 class GeantImporter final : public ImporterInterface
 {
@@ -112,8 +112,8 @@ inline constexpr bool operator==(GeantImporter::DataSelection const& lhs,
     // clang-format on
 }
 
-inline bool operator!=(GeantImporter::DataSelection const& lhs,
-                       GeantImporter::DataSelection const& rhs)
+inline constexpr bool operator!=(GeantImporter::DataSelection const& lhs,
+                                 GeantImporter::DataSelection const& rhs)
 {
     return !(lhs == rhs);
 }
