@@ -19,6 +19,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
@@ -225,8 +227,9 @@ void LocalTransporter::InitializeEvent(int id)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
+    CELER_EXPECT(id != event_id_);
 
-    event_id_ = id_cast<UniqueEventId>(id);
+    event_id_ = id;
     ++run_accum_.events;
 
     if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
@@ -237,7 +240,7 @@ void LocalTransporter::InitializeEvent(int id)
             // Since Geant4 schedules events dynamically, reseed the Celeritas
             // RNGs using the Geant4 event ID for reproducibility. This
             // guarantees that an event can be reproduced given the event ID.
-            step_->reseed(event_id_);
+            step_->reseed(id_cast<UniqueEventId>(event_id_));
         }
     }
 
@@ -272,10 +275,10 @@ void LocalTransporter::Push(G4Track& g4track)
         return;
     }
 
-    // Always check the event ID when pushing EM tracks, since the
+    // Always check the event ID when pushing the first EM track, since the
     // GeantTrackReconstruction needs to be initialized before we "acquire" the
     // track
-    if (CELER_UNLIKELY(!event_id_))
+    if (CELER_UNLIKELY(buffer_.empty()))
     {
         if (CELER_UNLIKELY(!event_manager_))
         {
@@ -286,10 +289,15 @@ void LocalTransporter::Push(G4Track& g4track)
 
         G4Event const* event = event_manager_->GetConstCurrentEvent();
         CELER_ASSERT(event);
-        // Reseed (if applicable) and reset the track reconstruction
-        this->InitializeEvent(event->GetEventID());
+        auto event_id = event->GetEventID();
+        CELER_ASSERT(event_id >= 0);
+        if (event_id_ != event_id)
+        {
+            // Reseed (if applicable) and reset the track reconstruction
+            this->InitializeEvent(event_id);
+        }
     }
-    CELER_ASSERT(event_id_);
+    CELER_ASSERT(event_id_ >= 0);
 
     Primary track;
 
@@ -339,8 +347,8 @@ void LocalTransporter::Flush()
         CELER_LOG_LOCAL(debug)
             << "Transporting " << buffer_.size() << " tracks ("
             << units::ClhepEnergy{buffer_accum_.energy}
-            << " cumulative kinetic energy) from event "
-            << event_id_.unchecked_get() << " with Celeritas";
+            << " cumulative kinetic energy) from event " << event_id_
+            << " with Celeritas";
     }
     if (buffer_accum_.lost_primaries > 0)
     {
@@ -349,7 +357,7 @@ void LocalTransporter::Flush()
             << " cumulative kinetic energy from "
             << buffer_accum_.lost_primaries
             << " primaries that started outside the geometry in event "
-            << event_id_.unchecked_get();
+            << event_id_;
     }
 
     if (dump_primaries_)
@@ -368,7 +376,7 @@ void LocalTransporter::Flush()
     track_reconstruction_->clear();
     // Reset the event ID so that the next "push" will get it from the event
     // manager in case this is the end of the event
-    event_id_ = {};
+    event_id_ = -1;
 }
 
 void LocalTransporter::flush_impl()
@@ -423,7 +431,7 @@ void LocalTransporter::flush_impl()
         if (num_hits > 0)
         {
             CELER_LOG_LOCAL(debug) << "Reconstituted " << num_hits
-                                   << " hits for event " << event_id_.get();
+                                   << " hits for event " << event_id_;
             run_accum_.hits += num_hits;
         }
     }

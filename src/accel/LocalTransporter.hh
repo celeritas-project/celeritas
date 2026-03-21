@@ -132,8 +132,8 @@ class LocalTransporter final : public TrackOffloadInterface
     std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
     std::shared_ptr<OpticalCollector const> optical_;
 
-    // Current event ID or manager for obtaining it
-    UniqueEventId event_id_;
+    // Last seen event ID and manager for obtaining it
+    int event_id_{-1};
     G4EventManager* event_manager_{nullptr};
 
     size_type auto_flush_{};
