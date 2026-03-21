@@ -126,7 +126,7 @@ TEST_F(FourLevelsTest, locate_point)
 
 TEST_F(FourLevelsTest, reentrant)
 {
-    this->impl().test_detailed_tracking();
+    this->impl().test_reentrant();
 }
 
 TEST_F(FourLevelsTest, reentrant_normal)
