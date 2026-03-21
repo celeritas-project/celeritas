@@ -81,13 +81,9 @@ def setup_physics(kernel):
     celer_phys.IgnoreProcesses = ["CoulombScat"]
     # OpticalGenerators defaults to OpticalTracks * 8 = 16384
     celer_phys.OpticalTracks = 2048
-    # "em" (default): optical photons generated inline as EM secondaries
-    # "direct": pre-existing G4 optical tracks offloaded to Celeritas
-    celer_phys.OpticalGenerator = "direct"
     phys.adopt(celer_phys)
     phys.dump()
     return None
 
 
 runner.physics.setupUserPhysics(setup_physics)
-runner.part.userParticleHandler = ""
