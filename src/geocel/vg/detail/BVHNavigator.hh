@@ -136,6 +136,8 @@ class BVHNavigator
                              NavState const& in_state,
                              NavState& out_state)
     {
+        CELER_EXPECT(step_limit > 0);
+
         // See VecgeomTrackView::relocate_bump_ ; this is from the VG 2.0
         // boundary, setting external push to zero
 #ifdef VECGEOM_FLOAT_PRECISION
@@ -143,19 +145,6 @@ class BVHNavigator
 #else
         static constexpr vg_real_type kBoundaryPush = 10 * 1e-9;
 #endif
-
-        // If we are on the boundary, push a bit more
-        vg_real_type push = in_state.IsOnBoundary() ? kBoundaryPush : 0;
-
-        if (step_limit < push)
-        {
-            // Go as far as the step limit says, assuming there is no boundary.
-            // TODO: DELETE
-            in_state.CopyTo(&out_state);
-            out_state.SetBoundaryState(false);
-            return step_limit;
-        }
-        step_limit -= push;
 
         // calculate local point/dir from global point/dir
         VgReal3 localpoint;
@@ -166,14 +155,10 @@ class BVHNavigator
         in_state.TopMatrix(m);
         localpoint = m.Transform(globalpoint);
         localdir = m.TransformDirection(globaldir);
-        // The user may want to move point from boundary before computing the
-        // step
-        localpoint += push * localdir;
 
         VgPlacedVol const* hitcandidate = nullptr;
         vg_real_type step = ComputeStepAndHit(
             localpoint, localdir, step_limit, in_state, out_state, hitcandidate);
-        step += push;
 
         if (out_state.IsOnBoundary())
         {
@@ -250,13 +235,7 @@ class BVHNavigator
                       NavState& out_state,
                       VgPlacedVol const*& hitcandidate)
     {
-        if (step_limit <= 0)
-        {
-            // We don't need to ask any solid, step not limited by geometry.
-            in_state.CopyTo(&out_state);
-            out_state.SetBoundaryState(false);
-            return 0;
-        }
+        CELER_EXPECT(step_limit > 0);
 
         vg_real_type step = step_limit;
         VgPlacedVol const* pvol = in_state.Top();
