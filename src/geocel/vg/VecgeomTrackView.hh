@@ -471,7 +471,6 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
         *next_surf_ = null_surface();
     }
 
-    // TODO: vgnext is simply copied and the boundary flag optionally set
     next_step_ = Navigator::ComputeStepAndNextVolume(to_vgvector(pos_),
                                                      to_vgvector(dir_),
                                                      max_step,
@@ -600,7 +599,8 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
         CELER_LOG_LOCAL(error)
             << "Failed to calculate normal on surface between "
             << vgstate_.Top()->GetLabel() << " and "
-            << (vgnext_.IsOutside() ? "[OUTSIDE]" : vgnext_.Top()->GetLabel());
+            << (vgnext_.IsOutside() ? "[OUTSIDE]" : vgnext_.Top()->GetLabel())
+            << " at " << pos_;
 #endif
         // Fall back to the travel direction as an approximation
         normal_ = dir_;
