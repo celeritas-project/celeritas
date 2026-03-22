@@ -863,13 +863,6 @@ VecgeomTrackView::update_normal(NavStateRef state)
         tr.InverseTransformDirection(local_normal, global_normal);
         normal_ = to_array(global_normal);
     }
-    else
-    {
-        CELER_LOG_LOCAL(debug)
-            << "Failed to calculate normal for " << pv->GetName()
-            << " at local point " << to_array(local_pos)
-            << ": local normal is " << to_array(local_normal);
-    }
     return success;
 }
 
