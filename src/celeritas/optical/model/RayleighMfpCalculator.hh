@@ -69,7 +69,7 @@ class RayleighMfpCalculator
     // Construct from material and Rayleigh properties
     inline CELER_FUNCTION
     RayleighMfpCalculator(MaterialView const& material,
-                          inp::OpticalRayleighMaterial const& rayleigh,
+                          inp::OpticalRayleighAnalytic const& rayleigh,
                           ::celeritas::MaterialView const& core_material);
 
     // Calculate the MFP for the given energy
@@ -97,7 +97,7 @@ class RayleighMfpCalculator
  */
 RayleighMfpCalculator::RayleighMfpCalculator(
     MaterialView const& material,
-    inp::OpticalRayleighMaterial const& rayleigh,
+    inp::OpticalRayleighAnalytic const& rayleigh,
     ::celeritas::MaterialView const& core_material)
     : calc_rindex_(material.make_refractive_index_calculator())
     , density_fluctuation_(

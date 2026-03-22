@@ -19,6 +19,17 @@ namespace optical
 namespace test
 {
 using namespace ::celeritas::test;
+
+struct MeterCubedPerMeV
+{
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        return ipow<3>(units::meter) / units::Mev::value();
+    }
+
+    static char const* label() { return "m^3/MeV"; }
+};
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -33,6 +44,8 @@ class RayleighMfpCalculatorTest : public OpticalMockTestBase
 // Check calculated MFPs match expected ones
 TEST_F(RayleighMfpCalculatorTest, mfp_table)
 {
+    using Compressibility = RealQuantity<MeterCubedPerMeV>;
+
     static constexpr auto expected_mfps = native_array_from<units::CmLength>(
         // clang-format off
         1189584.7068151, 682569.13017288, 343507.60086802, 12005096.767467,
@@ -43,17 +56,27 @@ TEST_F(RayleighMfpCalculatorTest, mfp_table)
     );
 
     auto core_materials = this->material();
-    auto const& all_rayleigh
-        = this->imported_data().optical_physics.bulk.rayleigh;
+
+    size_type num_materials = 5;
+    CELER_ASSERT(this->optical_material()->num_materials() == num_materials);
+    std::vector<inp::OpticalRayleighAnalytic> rayleigh(num_materials);
+    rayleigh[0].compressibility = native_value_from(Compressibility{7.658e-23});
+    rayleigh[1].scale_factor = 1.7;
+    rayleigh[1].compressibility = native_value_from(Compressibility{4.213e-24});
+    rayleigh[2].compressibility = native_value_from(Compressibility{7.658e-23});
+    rayleigh[3].scale_factor = 2;
+    rayleigh[3].compressibility = native_value_from(Compressibility{1e-20});
+    rayleigh[4].scale_factor = 1.7;
+    rayleigh[4].compressibility = native_value_from(Compressibility{4.213e-24});
 
     std::vector<real_type> mfps;
     mfps.reserve(expected_mfps.size());
 
-    for (auto&& [opt_mat, rayleigh] : all_rayleigh.materials)
+    for (auto opt_mat : range(OptMatId(num_materials)))
     {
         RayleighMfpCalculator calc_mfp(
             this->optical_material()->get(opt_mat),
-            rayleigh,
+            rayleigh[opt_mat.get()],
             this->material()->get(::celeritas::PhysMatId(opt_mat.get())));
 
         auto energies = calc_mfp.grid().values();

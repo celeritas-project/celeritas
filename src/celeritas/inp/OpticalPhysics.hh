@@ -159,12 +159,9 @@ struct MieMaterial
 
 //---------------------------------------------------------------------------//
 /*!
- * Rayleigh scattering properties for a single material.
- *
- * The isothermal compressibility is used to calculate the Rayleigh mean free
- * path if no mean free paths are provided.
+ * Rayleigh scattering properties for calculating the MFP analytically.
  */
-struct OpticalRayleighMaterial
+struct OpticalRayleighAnalytic
 {
     //! Scale the scattering length
     std::optional<double> scale_factor;
@@ -172,14 +169,27 @@ struct OpticalRayleighMaterial
     //! Isothermal compressibility [len-time^2/mass]
     double compressibility{0};
 
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return (!scale_factor || *scale_factor > 0) && compressibility > 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Rayleigh scattering properties for a single material.
+ */
+struct OpticalRayleighMaterial
+{
     //! Mean free path grid [MeV, len]
-    inp::Grid mfp;
+    std::variant<inp::Grid, OpticalRayleighAnalytic> mfp;
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return (!scale_factor || *scale_factor > 0)
-               && (compressibility > 0 || mfp);
+        return std::visit([](auto const& v) { return static_cast<bool>(v); },
+                          mfp);
     }
 };
 

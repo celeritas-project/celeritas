@@ -7,6 +7,7 @@
 #include "RayleighModel.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -58,35 +59,33 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
     if (auto iter = input_.materials.find(mat); iter != input_.materials.end())
     {
         CELER_ASSERT(iter->second);
-        if (auto const& mfp = iter->second.mfp)
-        {
-            // User explicitly provided Rayleigh MFP
-            build(mfp);
-        }
-        else
-        {
-            // MFPs can be calculated from user given propcerties
-            auto mat_view = materials_->get(mat);
-            auto core_mat_view
-                = core_materials_->get(mat_view.core_material_id());
-            CELER_VALIDATE(core_mat_view.temperature() > 0,
-                           << "calculating Rayleigh MFPs from material "
-                              "parameters requires positive temperatures");
+        std::visit(
+            (Overload{[&](inp::Grid const& grid) { build(grid); },
+                      [&](inp::OpticalRayleighAnalytic const& analytic) {
+                          // MFPs can be calculated from user given propcerties
+                          auto mat_view = materials_->get(mat);
+                          auto core_mat_view = core_materials_->get(
+                              mat_view.core_material_id());
+                          CELER_VALIDATE(core_mat_view.temperature() > 0,
+                                         << "calculating Rayleigh MFPs from "
+                                            "material parameters requires "
+                                            "positive temperatures");
 
-            RayleighMfpCalculator calc_mfp(
-                mat_view, iter->second, core_mat_view);
-            auto energy = calc_mfp.grid().values();
+                          RayleighMfpCalculator calc_mfp(
+                              mat_view, analytic, core_mat_view);
+                          auto energy = calc_mfp.grid().values();
 
-            // Use refractive index energy grid as calculated MFP energy grid
-            inp::Grid grid;
-            grid.x = {energy.begin(), energy.end()};
-            grid.y.reserve(grid.x.size());
-            for (auto e : grid.x)
-            {
-                grid.y.push_back(calc_mfp(units::MevEnergy{e}));
-            }
-            build(grid);
-        }
+                          // Use refractive index energy grid for MFP
+                          inp::Grid grid;
+                          grid.x = {energy.begin(), energy.end()};
+                          grid.y.reserve(grid.x.size());
+                          for (auto e : grid.x)
+                          {
+                              grid.y.push_back(calc_mfp(units::MevEnergy{e}));
+                          }
+                          build(grid);
+                      }}),
+            iter->second.mfp);
     }
     else
     {

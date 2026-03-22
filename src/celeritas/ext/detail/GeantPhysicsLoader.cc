@@ -93,16 +93,15 @@ class G4OpWLS2 : public G4OpWLS
  * This is from an implementation detail in \c
  * G4OpRayleigh::CalculateRayleighMeanFreePaths .
  */
-void load_rayleigh_water(inp::OpticalRayleighMaterial& model_mat,
+void load_rayleigh_water(inp::OpticalRayleighAnalytic& analytic,
                          G4Material const& g4mat)
 {
     double const betat = 7.658e-23 * CLHEP::m3 / CLHEP::MeV;
     constexpr auto units = ImportUnits::len_time_sq_per_mass;
-    model_mat.compressibility = betat * native_value_from_clhep(units);
+    analytic.compressibility = betat * native_value_from_clhep(units);
     CELER_LOG(warning) << "DEPRECATED: using Geant4 built-in Rayleigh "
                           "properties for water: setting compressibility to "
-                       << model_mat.compressibility << " "
-                       << to_cstring(units);
+                       << analytic.compressibility << " " << to_cstring(units);
 
     if (!soft_equal(g4mat.GetTemperature(), 283.15 * CLHEP::kelvin))
     {
@@ -433,18 +432,18 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
         auto get_property = this->property_getter(opt_id);
         inp::OpticalRayleighMaterial model_mat;
 
-        model_mat.mfp = this->load_mfp(opt_id, "RAYLEIGH");
-        bool has_compr = get_property(model_mat.compressibility,
-                                      "ISOTHERMAL_COMPRESSIBILITY",
-                                      ImportUnits::len_time_sq_per_mass);
-        if (!model_mat.mfp && !has_compr)
+        auto grid = this->load_mfp(opt_id, "RAYLEIGH");
+        inp::OpticalRayleighAnalytic analytic;
+        get_property(analytic.compressibility,
+                     "ISOTHERMAL_COMPRESSIBILITY",
+                     ImportUnits::len_time_sq_per_mass);
+        if (!grid && !analytic)
         {
             // Check for G4 special case for water if no other data given
             auto& g4mat = *optical_g4mat_[opt_id.get()];
             if (g4mat.GetName() == "Water")
             {
-                load_rayleigh_water(model_mat, g4mat);
-                has_compr = true;
+                load_rayleigh_water(analytic, g4mat);
             }
             else
             {
@@ -456,18 +455,28 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
         double scale_factor;
         if (get_property(scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless))
         {
-            model_mat.scale_factor = scale_factor;
+            analytic.scale_factor = scale_factor;
         }
 
-        if (model_mat.mfp && (model_mat.scale_factor || has_compr))
+        if (grid && (analytic.scale_factor || analytic))
         {
             constexpr auto to_given_str
                 = [](bool v) { return v ? "provided" : "missing"; };
             CELER_LOG(warning)
                 << "Inconsistent Rayleigh input data: compressibility ("
-                << to_given_str(has_compr) << ") with optional scale ("
-                << to_given_str(static_cast<bool>(model_mat.scale_factor))
+                << to_given_str(analytic.compressibility)
+                << ") with optional scale ("
+                << to_given_str(static_cast<bool>(analytic.scale_factor))
                 << ") is ignored in favor of MFP grid";
+        }
+
+        if (grid)
+        {
+            model_mat.mfp = grid;
+        }
+        else
+        {
+            model_mat.mfp = analytic;
         }
         CELER_ASSERT(model_mat);
         model.materials.emplace(opt_id, std::move(model_mat));
