@@ -388,10 +388,11 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
         // VecGeom fails to cross the boundary! the internal bump along the
         // path of travel doesn't change the Z coordinate, so it assumes
         // the updated point is still inside the original volume.
-        bool is_vg1 = vecgeom_version < Version{2}
-                      && test_->geometry_type() == "VecGeom";
-        SHOULD_FAIL_WHEN(geo.cross_boundary(), is_vg1);
-        if (is_vg1)
+        // When we implement geometry error mitigation in the tracking loop,
+        // we'll be able to bump forward and try again.
+        bool is_vg = test_->geometry_type() == "VecGeom";
+        SHOULD_FAIL_WHEN(geo.cross_boundary(), is_vg);
+        if (is_vg)
         {
             EXPECT_EQ("SPlate", test_->volume_name(geo));
             return;
@@ -2784,7 +2785,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_SOFT_EQ(1.25, to_cm(next.distance));
     EXPECT_FALSE(next.boundary);
 
-    geo.move_internal(from_cm(1.25));
+    geo.move_internal(next.distance);
     real_type expected_safety = 5 - 1.25;
     EXPECT_SOFT_NEAR(expected_safety, to_cm(geo.find_safety()), safety_tol);
 
@@ -2806,7 +2807,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_EQ("world", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
 
-    // Scatter to tangent along boundary
+    // Scatter *nearly* tangent along boundary
     constexpr real_type dx
         = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-8 : 1e-4);
     geo.set_dir({dx, 1, 0});
@@ -2815,35 +2816,42 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_TRUE(next.boundary);
     geo.move_internal(from_cm(2));
 
-    // Scatter back inside
+    // Scatter back inside from 2*dx away from the boundary
     geo.set_dir({-1, 0, 0});
     next = geo.find_next_step(from_cm(1000));
     EXPECT_TRUE(next.boundary);
     EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
-    geo.move_to_boundary();
+    if (next.distance > 0)
+    {
+        geo.move_to_boundary();
+    }
     EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
     if (geo.check_normal())
     {
         EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
     }
 
-    geo.cross_boundary();
-    if (!geo.check_normal())
-    {
-        // Skip check
-    }
-    else if (test_->geometry_type() == "Geant4")
-    {
-        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
-    }
-    else
+    EXPECT_NO_THROW(geo.cross_boundary());
+    if (test_->geometry_type() == "ORANGE")
     {
         EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+    }
+    else if (geo.check_normal())
+    {
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
     }
 
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
+    if (using_solids_vg && vecgeom_version >= Version{2, 0})
+    {
+        // Zero-distance movement means it's not quite on the boundary
+        EXPECT_VEC_SOFT_EQ(Real3({5 + 2 * dx, 2, 1.25}), to_cm(geo.pos()));
+    }
+    else
+    {
+        EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
+    }
 }
 
 /*!
@@ -2901,17 +2909,10 @@ void TwoBoxesGeoTest::test_reentrant() const
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
-    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2, 0})
+    if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
     {
-        if (CELERITAS_VECGEOM_SURFACE)
-        {
-            EXPECT_TRUE(geo.is_outside());
-        }
-        else
-        {
-            EXPECT_EQ("world", test_->volume_name(geo));
-        }
-        GTEST_SKIP() << "Unexpected vg2 behavior";
+        EXPECT_TRUE(geo.is_outside());
+        GTEST_SKIP() << "Unexpected vg2 surface behavior";
     }
     EXPECT_EQ("inner", test_->volume_name(geo));
 

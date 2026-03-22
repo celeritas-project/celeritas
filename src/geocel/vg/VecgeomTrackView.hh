@@ -490,7 +490,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
         msg << "Possibly reentrant boundary at " << repr(pos_) << ' '
             << lengthunits::native_label << " along " << repr(dir_);
 #endif
-        this->geo_status(GeoStatus::boundary_out);
+        this->geo_status(GeoStatus::boundary_inc);
+        vgstate_.SetBoundaryState(true);
 
         Propagation result;
         result.distance = 0;
@@ -861,6 +862,13 @@ VecgeomTrackView::update_normal(NavStateRef state)
         VgReal3 global_normal;
         tr.InverseTransformDirection(local_normal, global_normal);
         normal_ = to_array(global_normal);
+    }
+    else
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Failed to calculate normal for " << pv->GetName()
+            << " at local point " << to_array(local_pos)
+            << ": local normal is " << to_array(local_normal);
     }
     return success;
 }
