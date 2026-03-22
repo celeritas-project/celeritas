@@ -79,7 +79,7 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
                           inp::Grid grid;
                           grid.x = {energy.begin(), energy.end()};
                           grid.y.reserve(grid.x.size());
-                          for (auto e : grid.x)
+                          for (real_type e : grid.x)
                           {
                               grid.y.push_back(calc_mfp(units::MevEnergy{e}));
                           }
