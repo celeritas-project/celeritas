@@ -228,7 +228,7 @@ class LarSphereOpticalTrackOffload : public LarSphere
   public:
     PhysicsInput make_physics_input() const override;
     PrimaryInput make_primary_input() const override;
-    SetupOptions make_setup_options() override;
+    SetupOptions make_setup_options() const override;
     void EndOfRunAction(G4Run const* run) override;
     UPTrackAction make_tracking_action() override
     {
@@ -283,7 +283,7 @@ auto LarSphereOpticalTrackOffload::make_physics_input() const -> PhysicsInput
 /*!
  * Enable optical tracking offloading.
  */
-auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
+auto LarSphereOpticalTrackOffload::make_setup_options() const -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
     result.optical = [] {

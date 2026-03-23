@@ -333,7 +333,8 @@ IntegrationTestBase::~IntegrationTestBase() = default;
 /*!
  * Construct a unique filename accounting for the test environment.
  */
-std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
+std::string
+IntegrationTestBase::make_unique_filename(std::string_view ext) const
 {
     std::string new_ext = "-";
     new_ext += to_cstring(test_offload());
@@ -460,7 +461,7 @@ auto IntegrationTestBase::make_stepping_action() -> UPStepAction
 /*!
  * Create Celeritas setup options.
  */
-SetupOptions IntegrationTestBase::make_setup_options()
+SetupOptions IntegrationTestBase::make_setup_options() const
 {
     celeritas::SetupOptions opts;
 
@@ -516,8 +517,10 @@ void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
     optical->wavelength_shifting2 = std::nullopt;
 }
 
-//---------------------------------------------------------------------------//
-// TEST PROBLEM MIXINS
+//===========================================================================//
+// TEST INTEGRATION MIXINS
+//===========================================================================//
+// LarSphere
 //---------------------------------------------------------------------------//
 /*!
  * Create a 10 MeV electron primary.
@@ -574,6 +577,74 @@ void LarSphereIntegrationMixin::process_hit(G4Step const* step)
 }
 
 //---------------------------------------------------------------------------//
+// OpNovice
+//---------------------------------------------------------------------------//
+/*!
+ * Create physics list
+ */
+auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
+{
+    auto result = Base::make_physics_input();
+
+    // Enable optical physics (scintillation + Cherenkov)
+    auto& optical = result.optical;
+    optical.emplace();
+    EXPECT_TRUE(optical);
+    EXPECT_TRUE(optical->scintillation);
+    EXPECT_TRUE(optical->cherenkov);
+    EXPECT_TRUE(optical->mie_scattering);
+    EXPECT_TRUE(optical->rayleigh_scattering);
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a 0.5 MeV positron primary.
+ */
+auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
+{
+    PrimaryInput result;
+    result.pdg = {pdg::positron()};
+    result.energy = inp::MonoenergeticDistribution{0.5};  // [MeV]
+    result.shape = inp::PointDistribution{
+        static_array_cast<double>(from_cm({0., 0., 0.}))};
+    result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};
+    result.num_events = 12;  // Overridden with BeamOn
+    result.primaries_per_event = 10;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable optical physics options
+ */
+SetupOptions OpNoviceIntegrationMixin::make_setup_options() const
+{
+    auto result = Base::make_setup_options();
+    result.sd.enabled = false;
+    result.optical = [] {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = 32768;
+        opt.capacity.generators = 32768 * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        return opt;
+    }();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return null pointer for the sensitive detector
+ */
+auto OpNoviceIntegrationMixin::make_sens_det(std::string const&) -> UPSensDet
+{
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+// TestEm3
+//---------------------------------------------------------------------------//
 /*!
  * Create physics list: default is EM only using make_physics_input.
  */
@@ -616,70 +687,6 @@ auto TestEm3IntegrationMixin::make_sens_det(std::string const& sd_name)
     EXPECT_EQ("lAr", sd_name);
 
     return std::make_unique<SimpleSensitiveDetector>(sd_name);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create physics list
- */
-auto OpNoviceIntegrationMixin::make_physics_input() const -> PhysicsInput
-{
-    auto result = Base::make_physics_input();
-
-    // Enable optical physics (scintillation + Cherenkov)
-    auto& optical = result.optical;
-    optical.emplace();
-    EXPECT_TRUE(optical);
-    EXPECT_TRUE(optical->scintillation);
-    EXPECT_TRUE(optical->cherenkov);
-    EXPECT_TRUE(optical->mie_scattering);
-    EXPECT_TRUE(optical->rayleigh_scattering);
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a 0.5 MeV positron primary.
- */
-auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
-{
-    PrimaryInput result;
-    result.pdg = {pdg::positron()};
-    result.energy = inp::MonoenergeticDistribution{0.5};  // [MeV]
-    result.shape = inp::PointDistribution{
-        static_array_cast<double>(from_cm({0., 0., 0.}))};
-    result.angle = inp::MonodirectionalDistribution{{1., 0., 0.}};
-    result.num_events = 12;  // Overridden with BeamOn
-    result.primaries_per_event = 10;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return null pointer for the sensitive detector
- */
-auto OpNoviceIntegrationMixin::make_sens_det(std::string const&) -> UPSensDet
-{
-    return nullptr;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Enable optical physics options
- */
-SetupOptions OpNoviceIntegrationMixin::make_setup_options()
-{
-    auto result = Base::make_setup_options();
-    result.sd.enabled = false;
-    result.optical = [] {
-        OpticalSetupOptions opt;
-        opt.capacity.tracks = 32768;
-        opt.capacity.generators = 32768 * 8;
-        opt.capacity.primaries = opt.capacity.generators;
-        return opt;
-    }();
-    return result;
 }
 
 //---------------------------------------------------------------------------//

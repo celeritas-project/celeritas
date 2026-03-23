@@ -352,7 +352,7 @@ class LarSphereOptical : public LarSphere
         return result;
     }
 
-    SetupOptions make_setup_options() override;
+    SetupOptions make_setup_options() const override;
 
     void EndOfRunAction(G4Run const* run) override;
 
@@ -377,7 +377,7 @@ class LarSphereOptical : public LarSphere
 /*!
  * Enable optical tracking.
  */
-auto LarSphereOptical::make_setup_options() -> SetupOptions
+auto LarSphereOptical::make_setup_options() const -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
 
@@ -613,7 +613,7 @@ class OpticalSurfaces : public TMITestBase
     }
 
     PrimaryInput make_primary_input() const override;
-    SetupOptions make_setup_options() override;
+    SetupOptions make_setup_options() const override;
     void EndOfRunAction(G4Run const* run) override;
 };
 
@@ -638,7 +638,7 @@ auto OpticalSurfaces::make_primary_input() const -> PrimaryInput
 /*!
  * Enable optical tracking.
  */
-auto OpticalSurfaces::make_setup_options() -> SetupOptions
+auto OpticalSurfaces::make_setup_options() const -> SetupOptions
 {
     auto result = TMITestBase::make_setup_options();
 

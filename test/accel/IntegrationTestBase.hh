@@ -92,7 +92,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
     virtual ~IntegrationTestBase();
 
     // Make a unique filename that incorporates run env information
-    std::string make_unique_filename(std::string_view ext) override;
+    std::string make_unique_filename(std::string_view ext) const override;
 
     // Lazily create and/or access the run manager
     G4RunManager& run_manager();
@@ -106,6 +106,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Create options for EM physics setup
     virtual PhysicsInput make_physics_input() const;
 
+    // Create Celeritas setup options
+    virtual SetupOptions make_setup_options() const;
+
     // Create physics list: default is EM only using make_physics_input
     virtual UPPhysicsList make_physics_list() const;
 
@@ -114,9 +117,6 @@ class IntegrationTestBase : public ::celeritas::test::Test
 
     // Create optional stepping action (local, default null)
     virtual UPStepAction make_stepping_action();
-
-    // Create Celeritas setup options
-    virtual SetupOptions make_setup_options();
 
     // Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file
     virtual UPSensDet make_sens_det(std::string const& sd_name);
@@ -157,19 +157,6 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
 };
 
 //---------------------------------------------------------------------------//
-//! Generate TestEM3 geometry with 100 MeV electrons
-class TestEm3IntegrationMixin : virtual public IntegrationTestBase
-{
-    using Base = IntegrationTestBase;
-
-  public:
-    std::string_view gdml_basename() const final { return "testem3"; }
-    PrimaryInput make_primary_input() const override;
-    PhysicsInput make_physics_input() const override;
-    UPSensDet make_sens_det(std::string const&) override;
-};
-
-//---------------------------------------------------------------------------//
 //! Generate Op-Novice geometry with 500 keV positrons and no sensitive
 //! detector
 class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
@@ -180,8 +167,21 @@ class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
     std::string_view gdml_basename() const final { return "op-novice"; }
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
+    SetupOptions make_setup_options() const override;
     UPSensDet make_sens_det(std::string const&) override;
-    SetupOptions make_setup_options() override;
+};
+
+//---------------------------------------------------------------------------//
+//! Generate TestEM3 geometry with 100 MeV electrons
+class TestEm3IntegrationMixin : virtual public IntegrationTestBase
+{
+    using Base = IntegrationTestBase;
+
+  public:
+    std::string_view gdml_basename() const final { return "testem3"; }
+    PrimaryInput make_primary_input() const override;
+    PhysicsInput make_physics_input() const override;
+    UPSensDet make_sens_det(std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//

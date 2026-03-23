@@ -174,7 +174,7 @@ auto DistOffloadMixin::make_physics_input() const -> PhysicsInput
 /*!
  * Enable optical tracking with distribution offloading.
  */
-auto DistOffloadMixin::make_setup_options() -> SetupOptions
+auto DistOffloadMixin::make_setup_options() const -> SetupOptions
 {
     auto result = IntegrationTestBase::make_setup_options();
 
