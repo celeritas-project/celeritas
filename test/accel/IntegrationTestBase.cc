@@ -241,7 +241,15 @@ class ActionInitialization final : public G4VUserActionInitialization
 class SensitiveDetector final : public G4VSensitiveDetector
 {
   public:
-    using HitFunction = IntegrationTestBase::HitFunction;
+    using HitFunction = IntegrationTestBase::LocalHitFunc;
+
+    static std::unique_ptr<G4VSensitiveDetector>
+    from_hit_function(std::string sd_name, HitFunction&& f)
+    {
+        if (!f)
+            return nullptr;
+        return std::make_unique<SensitiveDetector>(sd_name, std::move(f));
+    }
 
     SensitiveDetector(std::string const& name, HitFunction&& f)
         : G4VSensitiveDetector(name), hit_func_{std::move(f)}
@@ -270,12 +278,9 @@ class TestDetectorConstruction : public DetectorConstruction
         : DetectorConstruction(filename,
                                [test](std::string const& sd_name)
                                    -> std::unique_ptr<G4VSensitiveDetector> {
-                                   auto f = test->make_hit_callback(
-                                       g4_worker_stream(), sd_name);
-                                   if (!f)
-                                       return nullptr;
-                                   return std::make_unique<SensitiveDetector>(
-                                       sd_name, std::move(f));
+                                   return SensitiveDetector::from_hit_function(
+                                       sd_name,
+                                       test->make_hit_callback(sd_name));
                                })
         , test_(test)
     {
@@ -544,9 +549,10 @@ SetupOptions IntegrationTestBase::make_setup_options() const
 //---------------------------------------------------------------------------//
 /*!
  * Create an optional thread-local sensitive detector.
+ *
+ * The default is to not create any SDs for any detector name.
  */
-auto IntegrationTestBase::make_hit_callback(StreamId, std::string const&)
-    -> HitFunction
+auto IntegrationTestBase::make_hit_callback(std::string const&) -> LocalHitFunc
 {
     return {};
 }
@@ -604,11 +610,10 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 
 //---------------------------------------------------------------------------//
 /*!
- * Create THREAD-LOCAL sensitive detectors.
+ * Create sensitive detector callback for a detector name.
  */
-auto LarSphereIntegrationMixin::make_hit_callback(StreamId,
-                                                  std::string const& sd_name)
-    -> HitFunction
+auto LarSphereIntegrationMixin::make_hit_callback(std::string const& sd_name)
+    -> LocalHitFunc
 {
     EXPECT_EQ("detshell", sd_name);
     return [this](StreamId sid, G4Step& step) { this->process_hit(sid, step); };
@@ -699,8 +704,8 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options() const
 /*!
  * Return null pointer for the sensitive detector
  */
-auto OpNoviceIntegrationMixin::make_hit_callback(StreamId, std::string const&)
-    -> HitFunction
+auto OpNoviceIntegrationMixin::make_hit_callback(std::string const&)
+    -> LocalHitFunc
 {
     return {};
 }
@@ -744,9 +749,8 @@ auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
 /*!
  * Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file.
  */
-auto TestEm3IntegrationMixin::make_hit_callback(StreamId,
-                                                std::string const& sd_name)
-    -> HitFunction
+auto TestEm3IntegrationMixin::make_hit_callback(std::string const& sd_name)
+    -> LocalHitFunc
 {
     EXPECT_EQ("lAr", sd_name);
     return [](StreamId, G4Step&) { /* No-op but still adds an SD */ };

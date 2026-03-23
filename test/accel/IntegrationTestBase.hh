@@ -82,7 +82,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
     using UPPhysicsList = std::unique_ptr<G4VModularPhysicsList>;
     using UPTrackAction = std::unique_ptr<G4UserTrackingAction>;
     using UPStepAction = std::unique_ptr<G4UserSteppingAction>;
-    using HitFunction = std::function<void(StreamId, G4Step&)>;
+    using LocalHitFunc = std::function<void(StreamId, G4Step&)>;
     //!@}
 
   public:
@@ -126,7 +126,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
     virtual UPStepAction make_stepping_action(StreamId);
 
     // Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file
-    virtual HitFunction make_hit_callback(StreamId, std::string const& sd_name);
+    virtual LocalHitFunc make_hit_callback(std::string const& sd_name);
 
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError
     virtual void caught_g4_runtime_error(RuntimeError const& e);
@@ -161,7 +161,7 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
   public:
     std::string_view gdml_basename() const final { return "lar-sphere"; }
     PrimaryInput make_primary_input() const override;
-    HitFunction make_hit_callback(StreamId, std::string const&) final;
+    LocalHitFunc make_hit_callback(std::string const&) final;
 
     virtual void process_hit(StreamId, G4Step const&);
 };
@@ -178,7 +178,7 @@ class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
     SetupOptions make_setup_options() const override;
-    HitFunction make_hit_callback(StreamId, std::string const&) override;
+    LocalHitFunc make_hit_callback(std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//
@@ -191,7 +191,7 @@ class TestEm3IntegrationMixin : virtual public IntegrationTestBase
     std::string_view gdml_basename() const final { return "testem3"; }
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
-    HitFunction make_hit_callback(StreamId, std::string const&) override;
+    LocalHitFunc make_hit_callback(std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//
