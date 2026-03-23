@@ -587,7 +587,7 @@ auto LarSphereIntegrationMixin::make_sens_det(StreamId stream_id,
 
     EXPECT_EQ("detshell", sd_name);
     return std::make_unique<ShimSensitiveDetector>(
-        sd_name, stream_id, [this](StreamId sid, G4Step const* step) {
+        sd_name, stream_id, [this](StreamId sid, G4Step const& step) {
             this->process_hit(sid, step);
         });
 }
@@ -596,17 +596,16 @@ auto LarSphereIntegrationMixin::make_sens_det(StreamId stream_id,
 /*!
  * Process a hit locally.
  */
-void LarSphereIntegrationMixin::process_hit(StreamId, G4Step const* step)
+void LarSphereIntegrationMixin::process_hit(StreamId, G4Step const& step)
 {
-    if (CELER_UNLIKELY(!step || !step->GetTrack()))
+    if (CELER_UNLIKELY(!step.GetTrack()))
     {
         // Reduce testing overhead: google assertions allocate memory
-        ASSERT_TRUE(step);
-        ASSERT_TRUE(step->GetTrack());
+        ASSERT_TRUE(step.GetTrack());
         return;
     }
 
-    auto& track = *step->GetTrack();
+    auto& track = *step.GetTrack();
     if (CELER_UNLIKELY(!(track.GetWeight() > 0) || !track.GetVolume()
                        || !track.GetNextVolume()))
     {

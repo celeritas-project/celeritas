@@ -29,7 +29,7 @@ class ShimSensitiveDetector final : public G4VSensitiveDetector
   public:
     //!@{
     //! \name Type aliases
-    using HitProcessor = std::function<void(StreamId, G4Step const*)>;
+    using HitProcessor = std::function<void(StreamId, G4Step const&)>;
     //!@}
 
   public:
@@ -48,7 +48,7 @@ class ShimSensitiveDetector final : public G4VSensitiveDetector
     bool ProcessHits(G4Step* step, G4TouchableHistory*) final
     {
         CELER_EXPECT(stream_);
-        process_hit_(stream_, step);
+        process_hit_(stream_, *step);
         return true;  // ignored by Geant4
     }
 
