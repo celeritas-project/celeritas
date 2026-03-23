@@ -10,6 +10,7 @@
 #include <string_view>
 
 #include "corecel/Assert.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/inp/Events.hh"
 
@@ -43,6 +44,9 @@ char const* to_cstring(TestOffload value);
 
 // Convert string to TestOffload
 TestOffload to_test_offload(std::string const& s);
+
+// Get a stream ID corresponding to the current worker thread
+StreamId g4_worker_stream();
 
 //---------------------------------------------------------------------------//
 /*!
@@ -97,6 +101,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Lazily create and/or access the run manager
     G4RunManager& run_manager();
 
+    // Number of worker threads being run, available after run manager creation
+    StreamId::size_type num_threads() const;
+
     //! Set the GDML filename (in test/geocel/data without ".gdml")
     virtual std::string_view gdml_basename() const = 0;
 
@@ -132,6 +139,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     virtual void BeginOfEventAction(G4Event const* event) = 0;
     virtual void EndOfEventAction(G4Event const* event) = 0;
     //!@}
+
+  private:
+    StreamId num_threads_;
 };
 
 //---------------------------------------------------------------------------//

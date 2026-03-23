@@ -283,6 +283,28 @@ TestOffload to_test_offload(std::string const& s)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a stream ID corresponding to the current worker thread.
+ *
+ * The result is null if this is the "master" thread in MT or if the run
+ * manager hasn't been started.
+ */
+StreamId g4_worker_stream()
+{
+    if (!G4Threading::IsMultithreadedApplication())
+    {
+        return StreamId{0};
+    }
+    if (G4Threading::IsMasterThread())
+    {
+        return {};
+    }
+    int tid = G4Threading::G4GetThreadId();
+    CELER_ASSERT(tid >= 0);
+    return id_cast<StreamId>(tid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Test offload type as set by environment variable.
  */
 TestOffload IntegrationTestBase::test_offload()
@@ -416,7 +438,19 @@ G4RunManager& IntegrationTestBase::run_manager()
         referenced_test = this;
     }
 
+    num_threads_ = id_cast<StreamId>(get_geant_num_threads(*rm));
     return *rm;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of worker threads being run, available after run manager creation.
+ */
+StreamId::size_type IntegrationTestBase::num_threads() const
+{
+    CELER_VALIDATE(num_threads_, << "run manager has not been created");
+
+    return num_threads_.get();
 }
 
 //---------------------------------------------------------------------------//
