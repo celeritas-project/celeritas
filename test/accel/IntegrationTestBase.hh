@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string_view>
 
@@ -22,7 +23,6 @@ class G4UserSteppingAction;
 class G4UserTrackingAction;
 class G4Event;
 class G4VModularPhysicsList;
-class G4VSensitiveDetector;
 class G4Step;
 
 namespace celeritas
@@ -82,7 +82,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
     using UPPhysicsList = std::unique_ptr<G4VModularPhysicsList>;
     using UPTrackAction = std::unique_ptr<G4UserTrackingAction>;
     using UPStepAction = std::unique_ptr<G4UserSteppingAction>;
-    using UPSensDet = std::unique_ptr<G4VSensitiveDetector>;
+    using HitFunction = std::function<void(StreamId, G4Step&)>;
     //!@}
 
   public:
@@ -126,7 +126,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
     virtual UPStepAction make_stepping_action(StreamId);
 
     // Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file
-    virtual UPSensDet make_sens_det(StreamId, std::string const& sd_name);
+    virtual HitFunction make_sens_det(StreamId, std::string const& sd_name);
 
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError
     virtual void caught_g4_runtime_error(RuntimeError const& e);
@@ -161,7 +161,7 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
   public:
     std::string_view gdml_basename() const final { return "lar-sphere"; }
     PrimaryInput make_primary_input() const override;
-    UPSensDet make_sens_det(StreamId, std::string const&) final;
+    HitFunction make_sens_det(StreamId, std::string const&) final;
 
     virtual void process_hit(StreamId, G4Step const&);
 };
@@ -178,7 +178,7 @@ class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
     SetupOptions make_setup_options() const override;
-    UPSensDet make_sens_det(StreamId, std::string const&) override;
+    HitFunction make_sens_det(StreamId, std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//
@@ -191,7 +191,7 @@ class TestEm3IntegrationMixin : virtual public IntegrationTestBase
     std::string_view gdml_basename() const final { return "testem3"; }
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
-    UPSensDet make_sens_det(StreamId, std::string const&) override;
+    HitFunction make_sens_det(StreamId, std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//

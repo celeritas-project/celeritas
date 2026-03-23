@@ -45,7 +45,6 @@
 #include "celeritas/Units.hh"
 #include "celeritas/ext/EmPhysicsList.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/ext/SimpleSensitiveDetector.hh"
 #include "celeritas/g4/DetectorConstruction.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -54,7 +53,6 @@
 #include "accel/SetupOptions.hh"
 
 #include "PersistentSP.hh"
-#include "ShimSensitiveDetector.hh"
 
 using SPTracing = std::shared_ptr<celeritas::TracingSession>;
 
@@ -240,16 +238,45 @@ class ActionInitialization final : public G4VUserActionInitialization
     SPTracing tracing_;
 };
 
+class SensitiveDetector final : public G4VSensitiveDetector
+{
+  public:
+    using HitFunction = IntegrationTestBase::HitFunction;
+
+    SensitiveDetector(std::string const& name, HitFunction&& f)
+        : G4VSensitiveDetector(name), hit_func_{std::move(f)}
+    {
+        CELER_EXPECT(hit_func_);
+    }
+
+    void Initialize(G4HCofThisEvent*) final { this->clear(); }
+    bool ProcessHits(G4Step* step, G4TouchableHistory*) final
+    {
+        CELER_EXPECT(step);
+        hit_func_(g4_worker_stream(), *step);
+        return true;
+    }
+
+  private:
+    HitFunction hit_func_;
+};
+
+//---------------------------------------------------------------------------//
 class TestDetectorConstruction : public DetectorConstruction
 {
   public:
     TestDetectorConstruction(std::string const& filename,
                              IntegrationTestBase* test)
-        : DetectorConstruction(filename,
-                               [test](std::string const& sd_name) {
-                                   return test->make_sens_det(
-                                       g4_worker_stream(), sd_name);
-                               })
+        : DetectorConstruction(
+              filename,
+              [test](std::string const& sd_name)
+                  -> std::unique_ptr<G4VSensitiveDetector> {
+                  auto f = test->make_sens_det(g4_worker_stream(), sd_name);
+                  if (!f)
+                      return nullptr;
+                  return std::make_unique<SensitiveDetector>(sd_name,
+                                                             std::move(f));
+              })
         , test_(test)
     {
     }
@@ -519,9 +546,9 @@ SetupOptions IntegrationTestBase::make_setup_options() const
  * Create an optional thread-local sensitive detector.
  */
 auto IntegrationTestBase::make_sens_det(StreamId, std::string const&)
-    -> UPSensDet
+    -> HitFunction
 {
-    return nullptr;
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -579,17 +606,12 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 /*!
  * Create THREAD-LOCAL sensitive detectors.
  */
-auto LarSphereIntegrationMixin::make_sens_det(StreamId stream_id,
+auto LarSphereIntegrationMixin::make_sens_det(StreamId,
                                               std::string const& sd_name)
-    -> UPSensDet
+    -> HitFunction
 {
-    CELER_EXPECT(stream_id || G4Threading::IsMasterThread());
-
     EXPECT_EQ("detshell", sd_name);
-    return std::make_unique<ShimSensitiveDetector>(
-        sd_name, stream_id, [this](StreamId sid, G4Step const& step) {
-            this->process_hit(sid, step);
-        });
+    return [this](StreamId sid, G4Step& step) { this->process_hit(sid, step); };
 }
 
 //---------------------------------------------------------------------------//
@@ -678,9 +700,9 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options() const
  * Return null pointer for the sensitive detector
  */
 auto OpNoviceIntegrationMixin::make_sens_det(StreamId, std::string const&)
-    -> UPSensDet
+    -> HitFunction
 {
-    return nullptr;
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -724,11 +746,10 @@ auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
  */
 auto TestEm3IntegrationMixin::make_sens_det(StreamId,
                                             std::string const& sd_name)
-    -> UPSensDet
+    -> HitFunction
 {
     EXPECT_EQ("lAr", sd_name);
-
-    return std::make_unique<SimpleSensitiveDetector>(sd_name);
+    return {};
 }
 
 //---------------------------------------------------------------------------//
