@@ -22,7 +22,7 @@ StreamId g4_worker_stream();
 
 //---------------------------------------------------------------------------//
 /*!
- * Forward hits to a \c std::function.
+ * Thread-local instance to forward hits to a \c std::function.
  */
 class ShimSensitiveDetector final : public G4VSensitiveDetector
 {
@@ -35,9 +35,11 @@ class ShimSensitiveDetector final : public G4VSensitiveDetector
   public:
     // Construct with name, stream count, and hit function
     ShimSensitiveDetector(std::string const& name,
-                          StreamId::size_type,
+                          StreamId stream,
                           HitProcessor&& process_hit)
-        : G4VSensitiveDetector(name), process_hit_{std::move(process_hit)}
+        : G4VSensitiveDetector(name)
+        , stream_{stream}
+        , process_hit_{std::move(process_hit)}
     {
         CELER_EXPECT(process_hit_);
     }
@@ -45,11 +47,13 @@ class ShimSensitiveDetector final : public G4VSensitiveDetector
     void Initialize(G4HCofThisEvent*) final { this->clear(); }
     bool ProcessHits(G4Step* step, G4TouchableHistory*) final
     {
-        process_hit_(g4_worker_stream(), step);
+        CELER_EXPECT(stream_);
+        process_hit_(stream_, step);
         return true;  // ignored by Geant4
     }
 
   private:
+    StreamId stream_;
     HitProcessor process_hit_;
 };
 

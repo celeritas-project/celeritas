@@ -579,13 +579,15 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 /*!
  * Create THREAD-LOCAL sensitive detectors.
  */
-auto LarSphereIntegrationMixin::make_sens_det(StreamId,
+auto LarSphereIntegrationMixin::make_sens_det(StreamId stream_id,
                                               std::string const& sd_name)
     -> UPSensDet
 {
+    CELER_EXPECT(stream_id || G4Threading::IsMasterThread());
+
     EXPECT_EQ("detshell", sd_name);
     return std::make_unique<ShimSensitiveDetector>(
-        sd_name, this->num_threads(), [this](StreamId sid, G4Step const* step) {
+        sd_name, stream_id, [this](StreamId sid, G4Step const* step) {
             this->process_hit(sid, step);
         });
 }
