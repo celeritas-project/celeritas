@@ -27,6 +27,7 @@
 #else
 #    include <G4MTRunManager.hh>
 #endif
+#include <G4UserSteppingAction.hh>
 
 #include "corecel/Config.hh"
 
@@ -178,6 +179,27 @@ class EventAction final : public G4UserEventAction
 };
 
 //---------------------------------------------------------------------------//
+class SteppingAction final : public G4UserSteppingAction
+{
+  public:
+    using StepCallback = IntegrationTestBase::StepCallback;
+
+    explicit SteppingAction(StepCallback&& f) : callback_{std::move(f)}
+    {
+        CELER_EXPECT(callback_);
+    }
+
+    void UserSteppingAction(G4Step const* step) final
+    {
+        CELER_EXPECT(step);
+        callback_(g4_worker_stream(), *step);
+    }
+
+  private:
+    StepCallback callback_;
+};
+
+//---------------------------------------------------------------------------//
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
@@ -223,13 +245,9 @@ class ActionInitialization final : public G4VUserActionInitialization
                                    << demangle_type(*track_action);
             this->SetUserAction(track_action.release());
         }
-        if (auto stepping_action
-            = test_->make_stepping_action(g4_worker_stream()))
+        if (auto step_cb = test_->make_step_callback())
         {
-            TypeDemangler<G4UserSteppingAction> demangle_type;
-            CELER_LOG_LOCAL(debug) << "Setting step action of type "
-                                   << demangle_type(*stepping_action);
-            this->SetUserAction(stepping_action.release());
+            this->SetUserAction(new SteppingAction{std::move(step_cb)});
         }
     }
 
@@ -238,6 +256,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     SPTracing tracing_;
 };
 
+//---------------------------------------------------------------------------//
 class SensitiveDetector final : public G4VSensitiveDetector
 {
   public:
@@ -520,9 +539,9 @@ auto IntegrationTestBase::make_tracking_action(StreamId) -> UPTrackAction
 /*!
  * Create optional stepping action (local, default null).
  */
-auto IntegrationTestBase::make_stepping_action(StreamId) -> UPStepAction
+auto IntegrationTestBase::make_step_callback() -> StepCallback
 {
-    return nullptr;
+    return {};
 }
 
 //---------------------------------------------------------------------------//

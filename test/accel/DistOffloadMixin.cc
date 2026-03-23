@@ -7,6 +7,7 @@
 #include "DistOffloadMixin.hh"
 
 #include <memory>
+#include <mutex>
 #include <G4Cerenkov.hh>
 #include <G4ProcessManager.hh>
 #include <G4Scintillation.hh>
@@ -34,28 +35,6 @@ T const* find_process(G4ProcessManager* pm, std::string const& name)
 {
     return dynamic_cast<T const*>(pm->GetProcess(name));
 }
-
-//---------------------------------------------------------------------------//
-
-class SteppingAction final : public G4UserSteppingAction
-{
-  public:
-    SteppingAction(StreamId stream, DistOffloadCounter* counter)
-        : stream_{stream}, counter_{counter}
-    {
-        CELER_EXPECT(counter_);
-    }
-
-    void UserSteppingAction(G4Step const* step) final
-    {
-        CELER_EXPECT(step);
-        (*counter_)(stream_, *step);
-    }
-
-  private:
-    StreamId stream_;
-    DistOffloadCounter* counter_;
-};
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -233,7 +212,7 @@ auto DistOffloadMixin::make_setup_options() const -> SetupOptions
 }
 
 //---------------------------------------------------------------------------//
-auto DistOffloadMixin::make_stepping_action(StreamId stream) -> UPStepAction
+auto DistOffloadMixin::make_step_callback() -> StepCallback
 {
     static std::mutex mu_;
     std::lock_guard scoped_lock{mu_};
@@ -241,7 +220,8 @@ auto DistOffloadMixin::make_stepping_action(StreamId stream) -> UPStepAction
     {
         counter_.emplace(this->num_streams());
     }
-    return std::make_unique<SteppingAction>(stream, &*counter_);
+    auto* ctr = &*counter_;
+    return [ctr](StreamId stream, G4Step const& step) { (*ctr)(stream, step); };
 }
 
 //---------------------------------------------------------------------------//

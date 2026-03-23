@@ -19,7 +19,6 @@
 
 class G4RunManager;
 class G4Run;
-class G4UserSteppingAction;
 class G4UserTrackingAction;
 class G4Event;
 class G4VModularPhysicsList;
@@ -81,8 +80,8 @@ class IntegrationTestBase : public ::celeritas::test::Test
     using PhysicsInput = celeritas::GeantPhysicsOptions;
     using UPPhysicsList = std::unique_ptr<G4VModularPhysicsList>;
     using UPTrackAction = std::unique_ptr<G4UserTrackingAction>;
-    using UPStepAction = std::unique_ptr<G4UserSteppingAction>;
     using LocalHitFunc = std::function<void(StreamId, G4Step&)>;
+    using StepCallback = std::function<void(StreamId, G4Step const&)>;
     //!@}
 
   public:
@@ -122,10 +121,10 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Create optional tracking action (local, default null)
     virtual UPTrackAction make_tracking_action(StreamId);
 
-    // Create optional stepping action (local, default null)
-    virtual UPStepAction make_stepping_action(StreamId);
+    // Create an optional shared step callback
+    virtual StepCallback make_step_callback();
 
-    // Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file
+    // Create a shared callback for an SD name in the GDML file
     virtual LocalHitFunc make_hit_callback(std::string const& sd_name);
 
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError

@@ -10,7 +10,6 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <G4UserSteppingAction.hh>
 
 #include "corecel/Assert.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -63,7 +62,7 @@ class DistOffloadMixin : virtual public IntegrationTestBase
   public:
     PhysicsInput make_physics_input() const override;
     SetupOptions make_setup_options() const override;
-    UPStepAction make_stepping_action(StreamId) override;
+    StepCallback make_step_callback() override;
 
     // Check counters at end-of-run on master
     void EndOfRunAction(G4Run const* run) override;
