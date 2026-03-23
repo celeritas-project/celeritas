@@ -749,7 +749,7 @@ auto TestEm3IntegrationMixin::make_sens_det(StreamId,
     -> HitFunction
 {
     EXPECT_EQ("lAr", sd_name);
-    return {};
+    return [](StreamId, G4Step&) { /* No-op but still adds an SD */ };
 }
 
 //---------------------------------------------------------------------------//
