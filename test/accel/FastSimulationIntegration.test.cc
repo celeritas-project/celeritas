@@ -139,9 +139,9 @@ class LarSphere : public LarSphereIntegrationMixin, public FSITestBase
         }
     }
 
-    virtual void process_hit(G4Step const* step) override
+    virtual void process_hit(StreamId sid, G4Step const* step) override
     {
-        LarSphereIntegrationMixin::process_hit(step);
+        LarSphereIntegrationMixin::process_hit(sid, step);
         ASSERT_TRUE(step);
 
         // Check the weight is consistent with our modification at

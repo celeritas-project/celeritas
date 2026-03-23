@@ -585,15 +585,16 @@ auto LarSphereIntegrationMixin::make_sens_det(StreamId,
 {
     EXPECT_EQ("detshell", sd_name);
     return std::make_unique<ShimSensitiveDetector>(
-        sd_name,
-        [this](G4Step const* step) { return this->process_hit(step); });
+        sd_name, this->num_threads(), [this](StreamId sid, G4Step const* step) {
+            this->process_hit(sid, step);
+        });
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Process a hit locally.
  */
-void LarSphereIntegrationMixin::process_hit(G4Step const* step)
+void LarSphereIntegrationMixin::process_hit(StreamId, G4Step const* step)
 {
     if (CELER_UNLIKELY(!step || !step->GetTrack()))
     {

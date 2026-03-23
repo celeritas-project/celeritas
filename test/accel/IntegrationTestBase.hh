@@ -163,7 +163,7 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
     PrimaryInput make_primary_input() const override;
     UPSensDet make_sens_det(StreamId, std::string const&) final;
 
-    virtual void process_hit(G4Step const*);
+    virtual void process_hit(StreamId, G4Step const*);
 };
 
 //---------------------------------------------------------------------------//
