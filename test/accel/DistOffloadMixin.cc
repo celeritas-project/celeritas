@@ -7,7 +7,6 @@
 #include "DistOffloadMixin.hh"
 
 #include <memory>
-#include <mutex>
 #include <G4Cerenkov.hh>
 #include <G4ProcessManager.hh>
 #include <G4Scintillation.hh>
@@ -214,12 +213,7 @@ auto DistOffloadMixin::make_setup_options() const -> SetupOptions
 //---------------------------------------------------------------------------//
 auto DistOffloadMixin::make_step_callback() -> StepCallback
 {
-    static std::mutex mu_;
-    std::lock_guard scoped_lock{mu_};
-    if (!counter_)
-    {
-        counter_.emplace(this->num_streams());
-    }
+    counter_.emplace(this->num_streams());
     auto* ctr = &*counter_;
     return [ctr](StreamId stream, G4Step const& step) { (*ctr)(stream, step); };
 }

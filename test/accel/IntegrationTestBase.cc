@@ -202,8 +202,11 @@ class SteppingAction final : public G4UserSteppingAction
 //---------------------------------------------------------------------------//
 class ActionInitialization final : public G4VUserActionInitialization
 {
+    using StepCallback = IntegrationTestBase::StepCallback;
+
   public:
-    explicit ActionInitialization(IntegrationTestBase* test) : test_{test}
+    explicit ActionInitialization(IntegrationTestBase* test)
+        : test_{test}, step_cb_{test->make_step_callback()}
     {
         if (CELERITAS_USE_PERFETTO && ScopedProfiling::enabled())
         {
@@ -245,15 +248,16 @@ class ActionInitialization final : public G4VUserActionInitialization
                                    << demangle_type(*track_action);
             this->SetUserAction(track_action.release());
         }
-        if (auto step_cb = test_->make_step_callback())
+        if (step_cb_)
         {
-            this->SetUserAction(new SteppingAction{std::move(step_cb)});
+            this->SetUserAction(new SteppingAction{StepCallback{step_cb_}});
         }
     }
 
   private:
     IntegrationTestBase* test_;
     SPTracing tracing_;
+    StepCallback step_cb_;
 };
 
 //---------------------------------------------------------------------------//
