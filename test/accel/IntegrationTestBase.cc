@@ -267,16 +267,16 @@ class TestDetectorConstruction : public DetectorConstruction
   public:
     TestDetectorConstruction(std::string const& filename,
                              IntegrationTestBase* test)
-        : DetectorConstruction(
-              filename,
-              [test](std::string const& sd_name)
-                  -> std::unique_ptr<G4VSensitiveDetector> {
-                  auto f = test->make_sens_det(g4_worker_stream(), sd_name);
-                  if (!f)
-                      return nullptr;
-                  return std::make_unique<SensitiveDetector>(sd_name,
-                                                             std::move(f));
-              })
+        : DetectorConstruction(filename,
+                               [test](std::string const& sd_name)
+                                   -> std::unique_ptr<G4VSensitiveDetector> {
+                                   auto f = test->make_hit_callback(
+                                       g4_worker_stream(), sd_name);
+                                   if (!f)
+                                       return nullptr;
+                                   return std::make_unique<SensitiveDetector>(
+                                       sd_name, std::move(f));
+                               })
         , test_(test)
     {
     }
@@ -467,7 +467,7 @@ G4RunManager& IntegrationTestBase::run_manager()
         referenced_test = this;
     }
 
-    num_threads_ = id_cast<StreamId>(get_geant_num_threads(*rm));
+    num_streams_ = id_cast<StreamId>(get_geant_num_threads(*rm));
     return *rm;
 }
 
@@ -475,11 +475,11 @@ G4RunManager& IntegrationTestBase::run_manager()
 /*!
  * Number of worker threads being run, available after run manager creation.
  */
-StreamId::size_type IntegrationTestBase::num_threads() const
+StreamId::size_type IntegrationTestBase::num_streams() const
 {
-    CELER_VALIDATE(num_threads_, << "run manager has not been created");
+    CELER_VALIDATE(num_streams_, << "run manager has not been created");
 
-    return num_threads_.get();
+    return num_streams_.get();
 }
 
 //---------------------------------------------------------------------------//
@@ -545,7 +545,7 @@ SetupOptions IntegrationTestBase::make_setup_options() const
 /*!
  * Create an optional thread-local sensitive detector.
  */
-auto IntegrationTestBase::make_sens_det(StreamId, std::string const&)
+auto IntegrationTestBase::make_hit_callback(StreamId, std::string const&)
     -> HitFunction
 {
     return {};
@@ -606,8 +606,8 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 /*!
  * Create THREAD-LOCAL sensitive detectors.
  */
-auto LarSphereIntegrationMixin::make_sens_det(StreamId,
-                                              std::string const& sd_name)
+auto LarSphereIntegrationMixin::make_hit_callback(StreamId,
+                                                  std::string const& sd_name)
     -> HitFunction
 {
     EXPECT_EQ("detshell", sd_name);
@@ -699,7 +699,7 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options() const
 /*!
  * Return null pointer for the sensitive detector
  */
-auto OpNoviceIntegrationMixin::make_sens_det(StreamId, std::string const&)
+auto OpNoviceIntegrationMixin::make_hit_callback(StreamId, std::string const&)
     -> HitFunction
 {
     return {};
@@ -744,8 +744,8 @@ auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
 /*!
  * Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file.
  */
-auto TestEm3IntegrationMixin::make_sens_det(StreamId,
-                                            std::string const& sd_name)
+auto TestEm3IntegrationMixin::make_hit_callback(StreamId,
+                                                std::string const& sd_name)
     -> HitFunction
 {
     EXPECT_EQ("lAr", sd_name);
