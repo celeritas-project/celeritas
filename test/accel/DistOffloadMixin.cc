@@ -7,7 +7,6 @@
 #include "DistOffloadMixin.hh"
 
 #include <memory>
-#include <mutex>
 #include <G4Cerenkov.hh>
 #include <G4ProcessManager.hh>
 #include <G4Scintillation.hh>
@@ -37,25 +36,46 @@ T const* find_process(G4ProcessManager* pm, std::string const& name)
 }
 
 //---------------------------------------------------------------------------//
+
+class SteppingAction final : public G4UserSteppingAction
+{
+  public:
+    SteppingAction(StreamId stream, DistOffloadCounter* counter)
+        : stream_{stream}, counter_{counter}
+    {
+        CELER_EXPECT(counter_);
+    }
+
+    void UserSteppingAction(G4Step const* step) final
+    {
+        CELER_EXPECT(step);
+        (*counter_)(stream_, *step);
+    }
+
+  private:
+    StreamId stream_;
+    DistOffloadCounter* counter_;
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
- * Stepping action for pushing optical distributions to Celeritas.
+ * Process a G4 step: count particles and offload optical distributions.
  */
-void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
+void DistOffloadCounter::operator()(StreamId stream, G4Step const& step)
 {
-    CELER_EXPECT(step);
-
-    // Geant4
-    GeantParticleView pv{*step->GetTrack()->GetParticleDefinition()};
+    // Count all tracks by type
+    GeantParticleView pv{*step.GetTrack()->GetParticleDefinition()};
+    auto& ctrs = counters_[stream.get()];
     if (pv.is_optical_photon())
     {
-        ++counters_->optical;
+        ++ctrs.optical;
     }
     else
     {
-        ++counters_->other;
+        ++ctrs.other;
     }
 
     if (IntegrationTestBase::test_offload() == TestOffload::g4)
@@ -63,13 +83,13 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
         return;
     }
 
-    if (step->GetStepLength() == 0)
+    if (step.GetStepLength() == 0)
     {
         // Skip "no-process"-defined steps
         return;
     }
 
-    auto* pm = step->GetTrack()->GetParticleDefinition()->GetProcessManager();
+    auto* pm = step.GetTrack()->GetParticleDefinition()->GetProcessManager();
     CELER_ASSERT(pm);
 
     // Determine how many Cherenkov and scintillation photons to generate
@@ -89,20 +109,19 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
         return;
     }
 
-    if (!geant_geo_)
-    {
+    std::call_once(geant_geo_once_, [this] {
         geant_geo_ = celeritas::global_geant_geo().lock();
         CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
-    }
+    });
 
-    auto* pre_step = step->GetPreStepPoint();
-    auto* post_step = step->GetPostStepPoint();
+    auto* pre_step = step.GetPreStepPoint();
+    auto* post_step = step.GetPostStepPoint();
     CELER_ASSERT(pre_step && post_step);
 
     // Create distribution and push to Celeritas
     optical::GeneratorDistributionData data;
     data.step_length
-        = native_from_geant<lengthunits::ClhepLength>(step->GetStepLength());
+        = native_from_geant<lengthunits::ClhepLength>(step.GetStepLength());
     data.charge = units::ElementaryCharge{
         static_cast<real_type>(post_step->GetCharge())};
     auto& pre = data.points[StepPoint::pre];
@@ -139,6 +158,23 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
     CELER_LOG(debug) << "Generating " << num_cherenkov
                      << " Cherenkov photons and " << num_scintillation
                      << " scintillation photons";
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sum all per-stream counters.
+ *
+ * This is not thread safe: call only from the master thread at end of run.
+ */
+StepCounters DistOffloadCounter::merged() const
+{
+    StepCounters result;
+    for (auto const& c : counters_)
+    {
+        result.optical += c.optical;
+        result.other += c.other;
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -197,13 +233,15 @@ auto DistOffloadMixin::make_setup_options() const -> SetupOptions
 }
 
 //---------------------------------------------------------------------------//
-auto DistOffloadMixin::make_stepping_action(StreamId) -> UPStepAction
+auto DistOffloadMixin::make_stepping_action(StreamId stream) -> UPStepAction
 {
     static std::mutex mu_;
     std::lock_guard scoped_lock{mu_};
-    auto local_ctrs = std::make_shared<StepCounters>();
-    counters_.push_back(local_ctrs);
-    return std::make_unique<DistOffloadSteppingAction>(std::move(local_ctrs));
+    if (!counter_)
+    {
+        counter_.emplace(this->num_streams());
+    }
+    return std::make_unique<SteppingAction>(stream, &*counter_);
 }
 
 //---------------------------------------------------------------------------//
@@ -214,7 +252,7 @@ void DistOffloadMixin::EndOfRunAction(G4Run const*)
 {
     if (G4Threading::IsMasterThread())
     {
-        auto counters = this->merge_step_counters();
+        auto counters = counter_->merged();
         EXPECT_NE(counters.other, 0);
         if (IntegrationTestBase::test_offload() != TestOffload::g4)
         {
@@ -229,23 +267,6 @@ void DistOffloadMixin::EndOfRunAction(G4Run const*)
         CELER_LOG(info) << "Total Geant4 steps: " << counters.optical
                         << " optical, " << counters.other << " other";
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Sum counters across all threads.
- *
- * This is not thread safe: do it only in the master end of run.
- */
-StepCounters DistOffloadMixin::merge_step_counters() const
-{
-    StepCounters result;
-    for (auto const& c : counters_)
-    {
-        result.optical += c->optical;
-        result.other += c->other;
-    }
-    return result;
 }
 
 }  // namespace test

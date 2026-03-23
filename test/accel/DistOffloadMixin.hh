@@ -8,6 +8,8 @@
 
 #include <cstdint>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <G4UserSteppingAction.hh>
 
 #include "corecel/Assert.hh"
@@ -27,25 +29,29 @@ struct StepCounters
 
 //---------------------------------------------------------------------------//
 /*!
- * Offload Cherenkov and scintillation tracks at every step.
+ * Count and offload Cherenkov/scintillation distributions across all streams.
+ *
+ * Call operator() at each G4 step (indexed by StreamId).
+ * Call merged() on the master thread at end of run to aggregate.
  */
-class DistOffloadSteppingAction final : public G4UserSteppingAction
+class DistOffloadCounter
 {
   public:
-    using SPCounters = std::shared_ptr<StepCounters>;
-
-    // Construct with thread-local counter reference.
-    explicit DistOffloadSteppingAction(SPCounters counters)
-        : counters_{counters}
+    explicit DistOffloadCounter(StreamId::size_type num_streams)
+        : counters_(num_streams)
     {
-        CELER_EXPECT(counters);
     }
 
-    void UserSteppingAction(G4Step const*) final;
+    // Process a G4 step on the given stream
+    void operator()(StreamId, G4Step const&);
+
+    // Sum all per-stream counters (call only from master at end of run)
+    StepCounters merged() const;
 
   private:
-    SPCounters counters_;
+    std::vector<StepCounters> counters_;
     std::shared_ptr<GeantGeoParams const> geant_geo_;
+    std::once_flag geant_geo_once_;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,12 +68,8 @@ class DistOffloadMixin : virtual public IntegrationTestBase
     // Check counters at end-of-run on master
     void EndOfRunAction(G4Run const* run) override;
 
-    // Calculate and return sum across all threads
-    // NOT thread safe (do only in end of run for master)
-    StepCounters merge_step_counters() const;
-
   private:
-    std::vector<DistOffloadSteppingAction::SPCounters> counters_;
+    std::optional<DistOffloadCounter> counter_;
 };
 
 //---------------------------------------------------------------------------//
