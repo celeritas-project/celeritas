@@ -197,7 +197,7 @@ auto DistOffloadMixin::make_setup_options() const -> SetupOptions
 }
 
 //---------------------------------------------------------------------------//
-auto DistOffloadMixin::make_stepping_action() -> UPStepAction
+auto DistOffloadMixin::make_stepping_action(StreamId) -> UPStepAction
 {
     static std::mutex mu_;
     std::lock_guard scoped_lock{mu_};

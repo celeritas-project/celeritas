@@ -120,13 +120,13 @@ class IntegrationTestBase : public ::celeritas::test::Test
     virtual UPPhysicsList make_physics_list() const;
 
     // Create optional tracking action (local, default null)
-    virtual UPTrackAction make_tracking_action();
+    virtual UPTrackAction make_tracking_action(StreamId);
 
     // Create optional stepping action (local, default null)
-    virtual UPStepAction make_stepping_action();
+    virtual UPStepAction make_stepping_action(StreamId);
 
     // Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file
-    virtual UPSensDet make_sens_det(std::string const& sd_name);
+    virtual UPSensDet make_sens_det(StreamId, std::string const& sd_name);
 
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError
     virtual void caught_g4_runtime_error(RuntimeError const& e);
@@ -161,7 +161,7 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
   public:
     std::string_view gdml_basename() const final { return "lar-sphere"; }
     PrimaryInput make_primary_input() const override;
-    UPSensDet make_sens_det(std::string const&) final;
+    UPSensDet make_sens_det(StreamId, std::string const&) final;
 
     virtual void process_hit(G4Step const*);
 };
@@ -178,7 +178,7 @@ class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
     SetupOptions make_setup_options() const override;
-    UPSensDet make_sens_det(std::string const&) override;
+    UPSensDet make_sens_det(StreamId, std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//
@@ -191,7 +191,7 @@ class TestEm3IntegrationMixin : virtual public IntegrationTestBase
     std::string_view gdml_basename() const final { return "testem3"; }
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
-    UPSensDet make_sens_det(std::string const&) override;
+    UPSensDet make_sens_det(StreamId, std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//

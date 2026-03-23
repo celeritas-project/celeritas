@@ -72,7 +72,7 @@ class UAITestBase : virtual public IntegrationTestBase
 
         EXPECT_EQ(0, local.GetBufferSize());
     }
-    UPTrackAction make_tracking_action() override
+    UPTrackAction make_tracking_action(StreamId) override
     {
         return std::make_unique<UAITrackingAction>();
     }
@@ -230,7 +230,7 @@ class LarSphereOpticalTrackOffload : public LarSphere
     PrimaryInput make_primary_input() const override;
     SetupOptions make_setup_options() const override;
     void EndOfRunAction(G4Run const* run) override;
-    UPTrackAction make_tracking_action() override
+    UPTrackAction make_tracking_action(StreamId) override
     {
         auto result = std::make_unique<LSOOTrackingAction>();
         {

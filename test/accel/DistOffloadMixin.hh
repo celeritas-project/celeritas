@@ -57,7 +57,7 @@ class DistOffloadMixin : virtual public IntegrationTestBase
   public:
     PhysicsInput make_physics_input() const override;
     SetupOptions make_setup_options() const override;
-    UPStepAction make_stepping_action() override;
+    UPStepAction make_stepping_action(StreamId) override;
 
     // Check counters at end-of-run on master
     void EndOfRunAction(G4Run const* run) override;

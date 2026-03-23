@@ -218,14 +218,15 @@ class ActionInitialization final : public G4VUserActionInitialization
         this->SetUserAction(new PGPrimaryGeneratorAction{std::move(pg_inp)});
 
         // User actions
-        if (auto track_action = test_->make_tracking_action())
+        if (auto track_action = test_->make_tracking_action(g4_worker_stream()))
         {
             TypeDemangler<G4UserTrackingAction> demangle_type;
             CELER_LOG_LOCAL(debug) << "Setting track action of type "
                                    << demangle_type(*track_action);
             this->SetUserAction(track_action.release());
         }
-        if (auto stepping_action = test_->make_stepping_action())
+        if (auto stepping_action
+            = test_->make_stepping_action(g4_worker_stream()))
         {
             TypeDemangler<G4UserSteppingAction> demangle_type;
             CELER_LOG_LOCAL(debug) << "Setting step action of type "
@@ -246,7 +247,8 @@ class TestDetectorConstruction : public DetectorConstruction
                              IntegrationTestBase* test)
         : DetectorConstruction(filename,
                                [test](std::string const& sd_name) {
-                                   return test->make_sens_det(sd_name);
+                                   return test->make_sens_det(
+                                       g4_worker_stream(), sd_name);
                                })
         , test_(test)
     {
@@ -477,7 +479,7 @@ auto IntegrationTestBase::make_physics_list() const -> UPPhysicsList
 /*!
  * Create optional tracking action (local, default null).
  */
-auto IntegrationTestBase::make_tracking_action() -> UPTrackAction
+auto IntegrationTestBase::make_tracking_action(StreamId) -> UPTrackAction
 {
     return nullptr;
 }
@@ -486,7 +488,7 @@ auto IntegrationTestBase::make_tracking_action() -> UPTrackAction
 /*!
  * Create optional stepping action (local, default null).
  */
-auto IntegrationTestBase::make_stepping_action() -> UPStepAction
+auto IntegrationTestBase::make_stepping_action(StreamId) -> UPStepAction
 {
     return nullptr;
 }
@@ -516,7 +518,8 @@ SetupOptions IntegrationTestBase::make_setup_options() const
 /*!
  * Create an optional thread-local sensitive detector.
  */
-auto IntegrationTestBase::make_sens_det(std::string const&) -> UPSensDet
+auto IntegrationTestBase::make_sens_det(StreamId, std::string const&)
+    -> UPSensDet
 {
     return nullptr;
 }
@@ -576,7 +579,8 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 /*!
  * Create THREAD-LOCAL sensitive detectors.
  */
-auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
+auto LarSphereIntegrationMixin::make_sens_det(StreamId,
+                                              std::string const& sd_name)
     -> UPSensDet
 {
     EXPECT_EQ("detshell", sd_name);
@@ -671,7 +675,8 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options() const
 /*!
  * Return null pointer for the sensitive detector
  */
-auto OpNoviceIntegrationMixin::make_sens_det(std::string const&) -> UPSensDet
+auto OpNoviceIntegrationMixin::make_sens_det(StreamId, std::string const&)
+    -> UPSensDet
 {
     return nullptr;
 }
@@ -715,7 +720,8 @@ auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
 /*!
  * Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file.
  */
-auto TestEm3IntegrationMixin::make_sens_det(std::string const& sd_name)
+auto TestEm3IntegrationMixin::make_sens_det(StreamId,
+                                            std::string const& sd_name)
     -> UPSensDet
 {
     EXPECT_EQ("lAr", sd_name);

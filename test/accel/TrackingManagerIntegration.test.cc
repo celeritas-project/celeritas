@@ -356,7 +356,7 @@ class LarSphereOptical : public LarSphere
 
     void EndOfRunAction(G4Run const* run) override;
 
-    UPTrackAction make_tracking_action() override
+    UPTrackAction make_tracking_action(StreamId) override
     {
         auto result = std::make_unique<CounterTrackingAction>();
         {
@@ -490,7 +490,7 @@ class OpNoviceOptical : public OpNoviceIntegrationMixin, public TMITestBase
 {
   public:
     void EndOfRunAction(G4Run const* run) override;
-    UPTrackAction make_tracking_action() override
+    UPTrackAction make_tracking_action(StreamId) override
     {
         auto result = std::make_unique<CounterTrackingAction>();
         {
