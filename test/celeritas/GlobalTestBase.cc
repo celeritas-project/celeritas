@@ -173,6 +173,12 @@ auto GlobalTestBase::build_aux_reg() const -> SPUserRegistry
 }
 
 //---------------------------------------------------------------------------//
+auto GlobalTestBase::build_gen_reg() const -> SPGenRegistry
+{
+    return make_shared<GeneratorRegistry>();
+}
+
+//---------------------------------------------------------------------------//
 auto GlobalTestBase::build_optical_action_reg() const -> SPActionRegistry
 {
     return make_shared<ActionRegistry>();
@@ -194,7 +200,7 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.surface = this->core()->surface();
     inp.action_reg = this->optical_action_reg();
     inp.output_reg = this->core()->output_reg();
-    inp.gen_reg = make_shared<GeneratorRegistry>();
+    inp.gen_reg = this->gen_reg();
     inp.aux_reg = this->core()->aux_reg();
     inp.physics = this->optical_physics();
     inp.sim = this->optical_sim();

@@ -131,16 +131,13 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
+    CP_VALIDATE_INPUT(aux_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
 
-    if (!input_.aux_reg)
-    {
-        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
-    }
     if (!input_.output_reg)
     {
         input_.output_reg = std::make_shared<OutputRegistry>();

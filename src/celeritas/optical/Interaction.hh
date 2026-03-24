@@ -37,7 +37,6 @@ struct Interaction
     Real3 direction;  //!< Post-interaction direction
     Real3 polarization;  //!< Post-interaction polarization
     Action action{Action::scattered};  //!< Flags for interaction result
-    WlsDistributionData distribution;  //!< Data for generating WLS secondaries
 
     //! Return an interaction representing an absorbed process
     static inline CELER_FUNCTION Interaction from_absorption();

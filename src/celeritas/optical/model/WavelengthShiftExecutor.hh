@@ -24,6 +24,8 @@ struct WavelengthShiftExecutor
     inline CELER_FUNCTION Interaction operator()(CoreTrackView const&);
 
     NativeCRef<WavelengthShiftData> data;
+    NativeRef<WlsGeneratorStateData> aux_data;
+    size_type buffer_size;
 };
 
 //---------------------------------------------------------------------------//
@@ -36,10 +38,11 @@ WavelengthShiftExecutor::operator()(CoreTrackView const& track)
     auto particle = track.particle();
     auto sim = track.sim();
     auto mat_id = track.material_record().material_id();
+    size_type dist_idx = buffer_size + track.track_slot_id().get();
     auto rng = track.rng();
 
     WavelengthShiftInteractor interact{
-        data, particle, sim, track.geometry().pos(), mat_id};
+        data, aux_data, particle, sim, track.geometry().pos(), mat_id, dist_idx};
 
     return interact(rng);
 }

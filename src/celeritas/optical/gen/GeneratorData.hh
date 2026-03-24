@@ -129,10 +129,11 @@ struct GeneratorStateData
  * This is a functor rather than a function because it's used for the thrust
  * reduction and scan.
  */
+template<class T>
 struct GetNumPhotons
 {
     // Return the number of photons to generate
-    CELER_FUNCTION size_type operator()(GeneratorDistributionData const& data) const
+    CELER_FUNCTION size_type operator()(T const& data) const
     {
         return data.num_photons;
     }

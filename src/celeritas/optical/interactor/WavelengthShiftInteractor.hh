@@ -28,7 +28,8 @@ namespace optical
  * The number of photons is sampled from a Poisson distribution. The secondary
  * photons are sampled later by the \c WavelengthShiftGenerator.
  *
- * \todo Initialize the first secondary directly in the parent's track slot.
+ * \todo See if initializing the first photon directly in this track slot
+ * improves performance
  */
 class WavelengthShiftInteractor
 {
@@ -36,17 +37,21 @@ class WavelengthShiftInteractor
     // Construct with shared and state data
     inline CELER_FUNCTION
     WavelengthShiftInteractor(NativeCRef<WavelengthShiftData> const& shared,
+                              NativeRef<WlsGeneratorStateData> data,
                               ParticleTrackView const& particle,
                               SimTrackView const& sim,
                               Real3 const& pos,
-                              OptMatId const& mat_id);
+                              OptMatId const& mat_id,
+                              size_type distribution_idx);
 
     // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
+    NativeRef<WlsGeneratorStateData> data_;
     PoissonDistribution<real_type> sample_num_photons_;
+    size_type distribution_idx_;
     WlsDistributionData distribution_;
 };
 
@@ -59,14 +64,21 @@ class WavelengthShiftInteractor
 CELER_FUNCTION
 WavelengthShiftInteractor::WavelengthShiftInteractor(
     NativeCRef<WavelengthShiftData> const& shared,
+    NativeRef<WlsGeneratorStateData> data,
     ParticleTrackView const& particle,
     SimTrackView const& sim,
     Real3 const& pos,
-    OptMatId const& mat_id)
-    : sample_num_photons_(shared.wls_record[mat_id].mean_num_photons)
+    OptMatId const& mat_id,
+    size_type distribution_idx)
+    : data_(data)
+    , sample_num_photons_(shared.wls_record[mat_id].mean_num_photons)
+    , distribution_idx_(distribution_idx)
 {
+    CELER_EXPECT(data_);
     CELER_EXPECT(mat_id);
+    CELER_EXPECT(distribution_idx_ < data_.distributions.size());
 
+    distribution_.type = shared.type;
     distribution_.energy = particle.energy();
     distribution_.time = sim.time();
     distribution_.position = pos;
@@ -83,15 +95,13 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
 {
-    // Sample the number of photons generated from WLS.
     Interaction result = Interaction::from_absorption();
-    size_type num_photons = sample_num_photons_(rng);
-    if (num_photons > 0)
-    {
-        result.distribution = distribution_;
-        result.distribution.num_photons = num_photons;
-        CELER_ASSERT(result.distribution);
-    }
+
+    // Sample the number of photons generated from WLS.
+    distribution_.num_photons = sample_num_photons_(rng);
+    CELER_ASSERT(distribution_ || distribution_.num_photons == 0);
+    data_.distributions[ItemId<WlsDistributionData>(distribution_idx_)]
+        = distribution_;
     return result;
 }
 

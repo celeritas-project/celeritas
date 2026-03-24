@@ -33,6 +33,8 @@ enum class GeneratorType
 {
     cherenkov,
     scintillation,
+    wls,
+    wls2,
     size_
 };
 
@@ -95,6 +97,7 @@ enum class WlsDistribution
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
+char const* to_cstring(GeneratorType);
 char const* to_cstring(SurfacePhysicsOrder);
 char const* to_cstring(ReflectionMode);
 char const* to_cstring(WlsDistribution);

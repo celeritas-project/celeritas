@@ -43,6 +43,7 @@ class WentzelOKVIParams;
 
 class ActionRegistry;
 class AuxParamsRegistry;
+class GeneratorRegistry;
 class OutputRegistry;
 
 class CoreParams;
@@ -100,6 +101,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
+    using SPGenRegistry = SP<GeneratorRegistry>;
     using SPOutputRegistry = SP<OutputRegistry>;
     using SPUserRegistry = SP<AuxParamsRegistry>;
 
@@ -140,6 +142,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstTrackInit const& init();
     inline SPConstWentzelOKVI const& wentzel();
     inline SPActionRegistry const& action_reg();
+    inline SPGenRegistry const& gen_reg();
     inline SPUserRegistry const& aux_reg();
     inline SPConstCore const& core();
     inline SPConstCherenkov const& cherenkov();
@@ -163,6 +166,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstTrackInit const& init() const;
     inline SPConstWentzelOKVI const& wentzel() const;
     inline SPActionRegistry const& action_reg() const;
+    inline SPGenRegistry const& gen_reg() const;
     inline SPUserRegistry const& aux_reg() const;
     inline SPConstCore const& core() const;
     inline SPConstCherenkov const& cherenkov() const;
@@ -230,6 +234,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
   private:
     SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
+    SPGenRegistry build_gen_reg() const;
     SPUserRegistry build_aux_reg() const;
     SPConstCore build_core();
     SPActionRegistry build_optical_action_reg() const;
@@ -243,6 +248,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     SPConstCutoff cutoff_;
     SPConstPhysics physics_;
     SPActionRegistry action_reg_;
+    SPGenRegistry gen_reg_;
     SPUserRegistry aux_reg_;
     SPConstAction along_step_;
     SPConstRng rng_;
@@ -315,6 +321,7 @@ DEF_GTB_ACCESSORS(SPConstRng, rng)
 DEF_GTB_ACCESSORS(SPConstSim, sim)
 DEF_GTB_ACCESSORS(SPConstTrackInit, init)
 DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
+DEF_GTB_ACCESSORS(SPGenRegistry, gen_reg)
 DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
 DEF_GTB_ACCESSORS(SPConstCore, core)
 DEF_GTB_ACCESSORS(SPConstCherenkov, cherenkov)

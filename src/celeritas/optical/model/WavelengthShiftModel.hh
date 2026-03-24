@@ -37,9 +37,10 @@ class WavelengthShiftModel : public Model
   public:
     // Construct with WLS input data
     WavelengthShiftModel(ActionId,
+                         AuxId,
                          inp::OpticalBulkWavelengthShift,
                          SPConstMaterials const&,
-                         std::string label);
+                         GeneratorType type);
 
     // Build the mean free paths for this model
     void build_mfps(OptMatId, MfpBuilder&) const final;
@@ -59,6 +60,7 @@ class WavelengthShiftModel : public Model
   private:
     inp::OpticalBulkWavelengthShift input_;
     ParamsDataStore<WavelengthShiftData> data_;
+    AuxId aux_id_;
 };
 
 //---------------------------------------------------------------------------//
