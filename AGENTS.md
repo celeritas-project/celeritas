@@ -2,7 +2,6 @@
 Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
 
 ## Mandatory Behaviors
-
 These three behaviors apply unconditionally, every session. Read them before starting any task.
 
 ### Before any modification — verify code state
@@ -19,7 +18,6 @@ These three behaviors apply unconditionally, every session. Read them before sta
 Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
 
 ### After any completed task — commit
-
 Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. Do not batch documentation changes.
 
 **Pre-commit checklist — execute in order:**
@@ -69,6 +67,8 @@ cmake -B build -G Ninja && cd build && ninja && ctest
 ```
 
 Object files and tests may have different paths and test names than you expect (`src/celeritas/ext/GeantImporter.cc` → `src/celeritas/CMakeFiles/celeritas_geant4.dir/ext/GeantImporter.cc.o` and `celeritas/ext/GeantImporter.test.cc` → `test/celeritas/ext_GeantImporter`), and some test executables are run as distinct CTest tests due to environment variables and side effects (`ctest --show-only | grep GeantImporter` → `Test #211: celeritas/ext/GeantImporter:DuneCryostat.*`).
+
+To debug a test, use `ctest --show-only` to determine paths and env vars to create a `launch.json` file.
 
 ## Documentation
 
