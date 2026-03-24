@@ -27,15 +27,26 @@ Commit immediately when all todos are done. Do not wait to be told. Do not defer
 2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
 3. **Compile**: confirm the build still succeeds.
 
+Inline `-m` strings break with multi-line messages in the shell. Instead,
+write the commit message to `<build>/commit_msg.txt` (gitignored, always
+present) and commit with `-F`:
+
 ```bash
 git add -a
 pre-commit run || git add -a
-git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "<Imperative-mood subject, no tags>
+# Write message to file first, then commit
+git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -F <build>/commit_msg.txt
+```
+
+The commit message format for `build/commit_msg.txt`:
+
+```
+<Imperative-mood subject, no tags>
 
 <Body summarizes changes>
 
 Prompt: <verbatim user prompt plain text, wrapped in quotes, no metadata or
-attachments>"
+attachments>
 ```
 
 **Common failure modes:**
