@@ -80,8 +80,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
     using PhysicsInput = celeritas::GeantPhysicsOptions;
     using UPPhysicsList = std::unique_ptr<G4VModularPhysicsList>;
     using UPTrackAction = std::unique_ptr<G4UserTrackingAction>;
-    using LocalHitFunc = std::function<void(StreamId, G4Step&)>;
-    using StepCallback = std::function<void(StreamId, G4Step const&)>;
+    using LocalStepFunc = std::function<void(StreamId, G4Step const&)>;
     //!@}
 
   public:
@@ -121,11 +120,11 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Create optional tracking action (local, default null)
     virtual UPTrackAction make_tracking_action(StreamId);
 
-    // Create an optional shared step callback
-    virtual StepCallback make_step_callback();
+    // Create an optional shared step callback (default none)
+    virtual LocalStepFunc make_step_callback();
 
     // Create a shared callback for an SD name in the GDML file
-    virtual LocalHitFunc make_hit_callback(std::string const& sd_name);
+    virtual LocalStepFunc make_hit_callback(std::string const& sd_name);
 
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError
     virtual void caught_g4_runtime_error(RuntimeError const& e);
@@ -160,7 +159,7 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
   public:
     std::string_view gdml_basename() const final { return "lar-sphere"; }
     PrimaryInput make_primary_input() const override;
-    LocalHitFunc make_hit_callback(std::string const&) final;
+    LocalStepFunc make_hit_callback(std::string const&) final;
 
     virtual void process_hit(StreamId, G4Step const&);
 };
@@ -177,7 +176,7 @@ class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
     SetupOptions make_setup_options() const override;
-    LocalHitFunc make_hit_callback(std::string const&) override;
+    LocalStepFunc make_hit_callback(std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//
@@ -190,7 +189,7 @@ class TestEm3IntegrationMixin : virtual public IntegrationTestBase
     std::string_view gdml_basename() const final { return "testem3"; }
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
-    LocalHitFunc make_hit_callback(std::string const&) override;
+    LocalStepFunc make_hit_callback(std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//
