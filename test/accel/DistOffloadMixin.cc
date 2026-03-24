@@ -46,6 +46,7 @@ void DistOffloadMixin::step(StreamId stream, G4Step const& step)
 {
     // Count all tracks by type
     GeantParticleView pv{*step.GetTrack()->GetParticleDefinition()};
+    CELER_ASSERT(stream < counters_.size());
     auto& ctrs = counters_[stream.get()];
     if (pv.is_optical_photon())
     {
@@ -194,6 +195,7 @@ auto DistOffloadMixin::make_setup_options() const -> SetupOptions
 //---------------------------------------------------------------------------//
 auto DistOffloadMixin::make_step_callback() -> StepCallback
 {
+    counters_.resize(this->num_streams());
     return [this](StreamId sid, G4Step const& step) { this->step(sid, step); };
 }
 
