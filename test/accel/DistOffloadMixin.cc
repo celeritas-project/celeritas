@@ -12,6 +12,7 @@
 #include <G4Step.hh>
 
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantGeoParams.hh"  // IWYU pragma: keep
 #include "geocel/GeoOpticalIdMap.hh"  // IWYU pragma: keep
 #include "geocel/g4/Convert.hh"
@@ -87,11 +88,6 @@ void DistOffloadMixin::step(StreamId stream, G4Step const& step)
     {
         return;
     }
-
-    std::call_once(geant_geo_once_, [this] {
-        geant_geo_ = celeritas::global_geant_geo().lock();
-    });
-    CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
 
     auto* pre_step = step.GetPreStepPoint();
     auto* post_step = step.GetPostStepPoint();
@@ -195,8 +191,21 @@ auto DistOffloadMixin::make_setup_options() const -> SetupOptions
 //---------------------------------------------------------------------------//
 auto DistOffloadMixin::make_step_callback() -> LocalStepFunc
 {
-    counters_.resize(this->num_streams());
     return [this](StreamId sid, G4Step const& step) { this->step(sid, step); };
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Save geant geo at run beginning and resize to number of stream.
+ */
+void DistOffloadMixin::BeginOfRunAction(G4Run const*)
+{
+    if (g4_worker_stream() == StreamId{0})
+    {
+        counters_.resize(this->num_streams());
+        geant_geo_ = celeritas::global_geant_geo().lock();
+        CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
+    }
 }
 
 //---------------------------------------------------------------------------//

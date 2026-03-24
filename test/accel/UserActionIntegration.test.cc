@@ -114,12 +114,19 @@ TEST_F(LarSphere, run)
  *
  * The \c LarSphere base sets up geometry and primaries (electrons), and \c
  * DistOffloadMixin sets up the correct Geant4 physics and Celeritas run
- * options.
+ * options. Because \c LarSphere sets up celeritas, it should be called on the
+ * "outside" of the begin/end run.
  */
 class LarSphereOpticalOffload : public DistOffloadMixin, public LarSphere
 {
   public:
     PrimaryInput make_primary_input() const override;
+
+    void BeginOfRunAction(G4Run const* run) override
+    {
+        LarSphere::BeginOfRunAction(run);
+        DistOffloadMixin::BeginOfRunAction(run);
+    }
 
     void EndOfRunAction(G4Run const* run) override
     {

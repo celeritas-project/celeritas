@@ -8,7 +8,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <mutex>
 
 #include "IntegrationTestBase.hh"
 
@@ -34,13 +33,14 @@ class DistOffloadMixin : virtual public IntegrationTestBase
     SetupOptions make_setup_options() const override;
     LocalStepFunc make_step_callback() override;
 
+    // Initialize counters at beginning: call *after* UAI BeginOfRunAction
+    void BeginOfRunAction(G4Run const* run) override;
     // Check counters at end-of-run on master
     void EndOfRunAction(G4Run const* run) override;
 
   private:
     std::vector<StepCounters> counters_;
     std::shared_ptr<GeantGeoParams const> geant_geo_;
-    std::once_flag geant_geo_once_;
 
     // Process a G4 step on the given stream
     void step(StreamId, G4Step const&);
