@@ -6,14 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "DistOffloadMixin.hh"
 
-#include <memory>
 #include <G4Cerenkov.hh>
 #include <G4ProcessManager.hh>
 #include <G4Scintillation.hh>
 #include <G4Step.hh>
 
 #include "corecel/io/Logger.hh"
-#include "geocel/GeoOpticalIdMap.hh"
+#include "geocel/GeantGeoParams.hh"  // IWYU pragma: keep
+#include "geocel/GeoOpticalIdMap.hh"  // IWYU pragma: keep
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
@@ -42,7 +42,7 @@ T const* find_process(G4ProcessManager* pm, std::string const& name)
 /*!
  * Process a G4 step: count particles and offload optical distributions.
  */
-void DistOffloadCounter::operator()(StreamId stream, G4Step const& step)
+void DistOffloadMixin::step(StreamId stream, G4Step const& step)
 {
     // Count all tracks by type
     GeantParticleView pv{*step.GetTrack()->GetParticleDefinition()};
@@ -89,8 +89,8 @@ void DistOffloadCounter::operator()(StreamId stream, G4Step const& step)
 
     std::call_once(geant_geo_once_, [this] {
         geant_geo_ = celeritas::global_geant_geo().lock();
-        CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
     });
+    CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
 
     auto* pre_step = step.GetPreStepPoint();
     auto* post_step = step.GetPostStepPoint();
@@ -114,8 +114,8 @@ void DistOffloadCounter::operator()(StreamId stream, G4Step const& step)
         post_step->GetPosition());
     auto* g4mat = pre_step->GetMaterial();
     CELER_ASSERT(g4mat);
-    data.material
-        = (*geant_geo_->geo_optical_id_map())[geant_geo_->geant_to_id(*g4mat)];
+    auto const& geo = *geant_geo_;
+    data.material = (*geo.geo_optical_id_map())[geo.geant_to_id(*g4mat)];
 
     auto& local = detail::IntegrationSingleton::instance().local_offload();
     auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
@@ -138,25 +138,6 @@ void DistOffloadCounter::operator()(StreamId stream, G4Step const& step)
                      << " scintillation photons";
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Sum all per-stream counters.
- *
- * This is not thread safe: call only from the master thread at end of run.
- */
-StepCounters DistOffloadCounter::merged() const
-{
-    StepCounters result;
-    for (auto const& c : counters_)
-    {
-        result.optical += c.optical;
-        result.other += c.other;
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-// DistOffloadMixin
 //---------------------------------------------------------------------------//
 /*!
  * Enable optical physics and disable photon stacking.
@@ -213,9 +194,7 @@ auto DistOffloadMixin::make_setup_options() const -> SetupOptions
 //---------------------------------------------------------------------------//
 auto DistOffloadMixin::make_step_callback() -> StepCallback
 {
-    counter_.emplace(this->num_streams());
-    auto* ctr = &*counter_;
-    return [ctr](StreamId stream, G4Step const& step) { (*ctr)(stream, step); };
+    return [this](StreamId sid, G4Step const& step) { this->step(sid, step); };
 }
 
 //---------------------------------------------------------------------------//
@@ -226,7 +205,12 @@ void DistOffloadMixin::EndOfRunAction(G4Run const*)
 {
     if (G4Threading::IsMasterThread())
     {
-        auto counters = counter_->merged();
+        StepCounters counters;
+        for (auto const& c : counters_)
+        {
+            counters.optical += c.optical;
+            counters.other += c.other;
+        }
         EXPECT_NE(counters.other, 0);
         if (IntegrationTestBase::test_offload() != TestOffload::g4)
         {
@@ -240,6 +224,7 @@ void DistOffloadMixin::EndOfRunAction(G4Run const*)
         }
         CELER_LOG(info) << "Total Geant4 steps: " << counters.optical
                         << " optical, " << counters.other << " other";
+        geant_geo_.reset();
     }
 }
 

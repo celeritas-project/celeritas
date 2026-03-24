@@ -9,48 +9,18 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
-#include <optional>
-
-#include "corecel/Assert.hh"
-#include "geocel/GeantGeoParams.hh"
 
 #include "IntegrationTestBase.hh"
 
 namespace celeritas
 {
+class GeantGeoParams;
 namespace test
 {
 struct StepCounters
 {
     std::uint64_t optical{0};
     std::uint64_t other{0};
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Count and offload Cherenkov/scintillation distributions across all streams.
- *
- * Call operator() at each G4 step (indexed by StreamId).
- * Call merged() on the master thread at end of run to aggregate.
- */
-class DistOffloadCounter
-{
-  public:
-    explicit DistOffloadCounter(StreamId::size_type num_streams)
-        : counters_(num_streams)
-    {
-    }
-
-    // Process a G4 step on the given stream
-    void operator()(StreamId, G4Step const&);
-
-    // Sum all per-stream counters (call only from master at end of run)
-    StepCounters merged() const;
-
-  private:
-    std::vector<StepCounters> counters_;
-    std::shared_ptr<GeantGeoParams const> geant_geo_;
-    std::once_flag geant_geo_once_;
 };
 
 //---------------------------------------------------------------------------//
@@ -68,7 +38,12 @@ class DistOffloadMixin : virtual public IntegrationTestBase
     void EndOfRunAction(G4Run const* run) override;
 
   private:
-    std::optional<DistOffloadCounter> counter_;
+    std::vector<StepCounters> counters_;
+    std::shared_ptr<GeantGeoParams const> geant_geo_;
+    std::once_flag geant_geo_once_;
+
+    // Process a G4 step on the given stream
+    void step(StreamId, G4Step const&);
 };
 
 //---------------------------------------------------------------------------//
