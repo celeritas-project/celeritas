@@ -37,6 +37,8 @@ class DetectorAction final : public OpticalStepActionInterface,
     //!@{
     //! \name Type aliases
     using SpanHitFunc = inp::OpticalDetector::SpanHitFunc;
+    // DEPRECATED: remove in v0.7
+    using CallbackFunc [[deprecated]] = SpanHitFunc;
     //!@}
 
   public:

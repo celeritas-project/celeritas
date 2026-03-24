@@ -163,6 +163,8 @@ struct OpticalDetector
     //!@{
     //! \name Type aliases
     using SpanHitFunc = std::function<void(Span<optical::DetectorHit const>)>;
+    // DEPRECATED: remove in v0.7
+    using HitCallbackFunc [[deprecated]] = SpanHitFunc;
     //!@}
 
     //! Hit callback function for optical detectors
