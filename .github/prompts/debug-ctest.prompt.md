@@ -12,7 +12,7 @@ Ask the user for the CTest test name if they haven't already provided one.
 Then run:
 
 ```bash
-python scripts/dev/set-launch-from-ctest.py "<test-name>"
+python scripts/dev/debug-ctest.py "<test-name>"
 ```
 
 If multiple tests match (the script will print an error listing them), ask the
@@ -22,7 +22,7 @@ If a `--build-dir` override is needed (e.g. the test lives in a non-default
 build directory), pass it:
 
 ```bash
-python scripts/dev/set-launch-from-ctest.py --build-dir <dir> "<test-name>"
+python scripts/dev/debug-ctest.py --build-dir <dir> "<test-name>"
 ```
 
 After the script succeeds, briefly confirm which test was selected.
