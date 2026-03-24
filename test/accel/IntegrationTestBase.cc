@@ -299,57 +299,19 @@ class SensitiveDetector final : public G4VSensitiveDetector
 };
 
 //---------------------------------------------------------------------------//
-class MakeSensitiveDetector
-{
-  public:
-    using HitFunction = SensitiveDetector::HitFunction;
-
-    explicit MakeSensitiveDetector(IntegrationTestBase* test) : test_{test} {}
-
-    std::unique_ptr<G4VSensitiveDetector> operator()(std::string const& sd_name)
-    {
-        auto&& [callback, inserted] = [&]() -> std::pair<HitFunction, bool> {
-            {
-                std::shared_lock<std::shared_mutex> lock{cb_mutex_};
-                auto iter = hit_callbacks_.find(sd_name);
-                if (iter != hit_callbacks_.end())
-                {
-                    return {iter->second, false};
-                }
-            }
-            std::unique_lock<std::shared_mutex> lock{cb_mutex_};
-            auto [iter, inserted] = hit_callbacks_.try_emplace(sd_name);
-            if (inserted)
-            {
-                iter->second = test_->make_hit_callback(sd_name);
-            }
-            return {iter->second, inserted};
-        }();
-
-        if (inserted)
-        {
-            CELER_LOG(info)
-                << "Created SD '" << sd_name << "' with callback "
-                << demangled_typeid_name(callback.target_type().name());
-        }
-
-        return SensitiveDetector::from_hit_function(sd_name,
-                                                    HitFunction{callback});
-    }
-
-  private:
-    IntegrationTestBase* test_;
-    std::shared_mutex cb_mutex_;
-    std::unordered_map<std::string, HitFunction> hit_callbacks_;
-};
-
-//---------------------------------------------------------------------------//
 class TestDetectorConstruction : public DetectorConstruction
 {
   public:
     TestDetectorConstruction(std::string const& filename,
                              IntegrationTestBase* test)
-        : DetectorConstruction(filename, MakeSensitiveDetector{test})
+        : DetectorConstruction(filename,
+                               [test](std::string const& sd_name)
+                                   -> std::unique_ptr<G4VSensitiveDetector> {
+                                   return SensitiveDetector::from_hit_function(
+                                       sd_name,
+                                       test->make_hit_callback(sd_name));
+                               })
+
         , test_(test)
     {
     }
