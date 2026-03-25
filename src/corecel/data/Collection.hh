@@ -106,7 +106,7 @@ namespace celeritas
  *
  * Finally, note that the templated type aliases \c HostVal, \c HostCRef,
  * \c DeviceRef, etc. are useful for functions that are specialized on
- MemSpace.
+ * \c MemSpace.
  */
 
 //! Opaque ID representing a single element of a container.
