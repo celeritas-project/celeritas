@@ -120,10 +120,10 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Create optional tracking action (local, default null)
     virtual UPTrackAction make_tracking_action(StreamId);
 
-    // Create an optional shared step callback (default null)
+    // Create an optional shared "stepping action" (default null)
     virtual LocalStepFunc make_step_callback();
 
-    // Create a shared callback for an SD name in the GDML file (default null)
+    // Create a "sensitive detector" based on GDML tags (default null)
     virtual LocalStepFunc make_hit_callback(std::string const& sd_name);
 
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError

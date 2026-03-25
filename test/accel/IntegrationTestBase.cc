@@ -187,7 +187,8 @@ class SteppingAction final : public G4UserSteppingAction
   public:
     using StepCallback = IntegrationTestBase::LocalStepFunc;
 
-    explicit SteppingAction(StepCallback f) : callback_{std::move(f)}
+    explicit SteppingAction(StreamId sid, StepCallback f)
+        : sid_{sid}, callback_{std::move(f)}
     {
         CELER_EXPECT(callback_);
     }
@@ -195,10 +196,12 @@ class SteppingAction final : public G4UserSteppingAction
     void UserSteppingAction(G4Step const* step) final
     {
         CELER_EXPECT(step);
-        callback_(g4_worker_stream(), *step);
+        CELER_EXPECT(sid_);
+        callback_(sid_, *step);
     }
 
   private:
+    StreamId sid_;
     StepCallback callback_;
 };
 
@@ -208,6 +211,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     using StepCallback = IntegrationTestBase::LocalStepFunc;
 
   public:
+    // NOTE: step callback construction *could* be deferred to build
     explicit ActionInitialization(IntegrationTestBase* test)
         : test_{test}, step_cb_{test->make_step_callback()}
     {
@@ -256,7 +260,8 @@ class ActionInitialization final : public G4VUserActionInitialization
             CELER_LOG_LOCAL(debug)
                 << "Setting step action of type "
                 << demangled_typeid_name(step_cb_.target_type().name());
-            this->SetUserAction(new SteppingAction{step_cb_});
+            this->SetUserAction(
+                new SteppingAction{g4_worker_stream(), step_cb_});
         }
     }
 
@@ -548,7 +553,11 @@ auto IntegrationTestBase::make_tracking_action(StreamId) -> UPTrackAction
 
 //---------------------------------------------------------------------------//
 /*!
- * Create optional stepping action (local, default null).
+ * Create an optional "stepping action".
+ *
+ * This is called once during problem setup, before the run begins. The
+ * resulting callback is executed at every step at runtime, using the local
+ * stream ID.
  */
 auto IntegrationTestBase::make_step_callback() -> LocalStepFunc
 {
@@ -578,9 +587,10 @@ SetupOptions IntegrationTestBase::make_setup_options() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Create an optional thread-local sensitive detector.
+ * Create an optional "thread-local" sensitive detector callback.
  *
- * The default is to not create any SDs for any detector name.
+ * The default is to not create any SDs for any detector name. Currently the
+ * function is invoked by each thread at runtime.
  */
 auto IntegrationTestBase::make_hit_callback(std::string const&) -> LocalStepFunc
 {
