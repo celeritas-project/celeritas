@@ -17,7 +17,6 @@
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
-#include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"
@@ -746,6 +745,39 @@ TEST_F(TestEm3, run)
 
     CELER_LOG(status) << "Beam on (first run)";
     rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+// WATERSPHERE
+//---------------------------------------------------------------------------//
+class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
+{
+  public:
+    void process_hit(G4Step const*) override { /* null-op */ }
+};
+
+/*!
+ * Check that the test runs.
+ */
+TEST_F(WaterSphere, run_small_flush)
+{
+    auto& rm = this->run_manager();
+
+    TMI::Instance().SetOptions([this] {
+        auto opts = this->make_setup_options();
+        opts.auto_flush = 16;
+        return opts;
+    }());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    ASSERT_FALSE(this->HasFatalFailure());
+
+    CELER_LOG(status) << "Beam on";
+    rm.BeamOn(1);
+
+    rm.BeamOn(10);
 }
 
 //---------------------------------------------------------------------------//
