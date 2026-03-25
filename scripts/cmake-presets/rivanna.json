@@ -32,6 +32,14 @@
       }
     },
     {
+      "name": "rivanna-debug",
+      "description": "Build on UVA's Rivanna HPC (debug)",
+      "inherits": [".base", ".debug"],
+      "cacheVariables": {
+          "CMAKE_CXX_FLAGS": "-march=x86-64-v3"
+      }
+    },
+    {
       "name": "rivanna-gpu",
       "description": "Build on UVA's Rivanna HPC, optimized for A100 nodes",
       "inherits": [".base", ".ndebug"],
@@ -48,6 +56,7 @@
       "nativeToolOptions": ["-k0"]
     },
     {"name": "rivanna", "configurePreset": "rivanna", "inherits": "base"},
+    {"name": "rivanna-debug", "configurePreset": "rivanna-debug", "inherits": "base"},
     {"name": "rivanna-gpu", "configurePreset": "rivanna-gpu", "inherits": "base"}
   ],
   "testPresets": [
@@ -55,9 +64,11 @@
       "name": "base",
       "configurePreset": ".base",
       "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8},
+      "environment": {"CELER_DISABLE_DEVICE": "1"}
     },
     {"name": "rivanna", "configurePreset": "rivanna", "inherits": "base"},
+    {"name": "rivanna-debug", "configurePreset": "rivanna-debug", "inherits": "base"},
     {"name": "rivanna-gpu", "configurePreset": "rivanna-gpu", "inherits": "base"}
   ]
 }
