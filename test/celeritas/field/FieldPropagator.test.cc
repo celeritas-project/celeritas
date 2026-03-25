@@ -549,7 +549,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
 
         auto geo = this->make_checked_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
-        geo.cross_boundary();
+        EXPECT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("world", this->volume_name(geo));
     }
     {
@@ -1543,6 +1543,13 @@ TEST_F(CmseTest, coarse)
              && !CELERITAS_VECGEOM_SURFACE)
     {
         geometry = "VecGeom solid";
+        if (CELERITAS_VECGEOM_VERSION >= 0x020000)
+        {
+            ref.num_boundary[1] = 104;
+            ref.num_step[1] = 6477;
+            ref.num_intercept[1] = 19564;
+            ref.num_integration[1] = 58306;
+        }
         // Ignore messages about normals etc.
         ref.messages = {};
         result.messages = {};
