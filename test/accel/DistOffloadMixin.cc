@@ -111,6 +111,7 @@ void DistOffloadMixin::step(StreamId stream, G4Step const& step)
         post_step->GetPosition());
     auto* g4mat = pre_step->GetMaterial();
     CELER_ASSERT(g4mat);
+    CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
     auto const& geo = *geant_geo_;
     data.material = (*geo.geo_optical_id_map())[geo.geant_to_id(*g4mat)];
 
@@ -196,7 +197,10 @@ auto DistOffloadMixin::make_step_callback() -> LocalStepFunc
 
 //---------------------------------------------------------------------------//
 /*!
- * Save geant geo at run beginning and resize to number of stream.
+ * Save geant geo at run beginning and resize to number of streams.
+ *
+ * \todo It might be better if we add a \c initialize(StreamId::size_type)
+ * method to the integration test harness.
  */
 void DistOffloadMixin::BeginOfRunAction(G4Run const*)
 {
@@ -204,7 +208,6 @@ void DistOffloadMixin::BeginOfRunAction(G4Run const*)
     {
         counters_.resize(this->num_streams());
         geant_geo_ = celeritas::global_geant_geo().lock();
-        CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
     }
 }
 
