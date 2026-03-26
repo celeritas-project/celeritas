@@ -92,7 +92,7 @@ class RunAction final : public G4UserRunAction
         : test_{test}
         , tracing_{std::move(tracing)}
         , exceptions_(
-              [this](std::exception_ptr ep) { this->handle_exception(ep); })
+              [this](std::exception_ptr ep) { test_->handle_exception(ep); })
     {
         CELER_EXPECT(test_);
     }
@@ -101,45 +101,17 @@ class RunAction final : public G4UserRunAction
     {
         CELER_EXPECT(run);
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
-        CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
+        CELER_TRY_HANDLE(test_->BeginOfRunAction(run), test_->handle_exception);
     }
 
     void EndOfRunAction(G4Run const* run) final
     {
         CELER_LOG_LOCAL(debug) << "RunAction::EndOfRunAction";
-        CELER_TRY_HANDLE(test_->EndOfRunAction(run), this->handle_exception);
+        CELER_TRY_HANDLE(test_->EndOfRunAction(run), test_->handle_exception);
         if (tracing_)
         {
             CELER_LOG_LOCAL(debug) << "Flushing Perfetto trace";
             tracing_->flush();
-        }
-    }
-
-    void handle_exception(std::exception_ptr ep)
-    {
-        try
-        {
-            std::rethrow_exception(ep);
-        }
-        catch (RuntimeError const& e)
-        {
-            auto const& d = e.details();
-            if (cstring_equal(d.which, "Geant4"))
-            {
-                // GeantExceptionHandler wrapped this error
-                test_->caught_g4_runtime_error(e);
-            }
-            else
-            {
-                // Some other error
-                FAIL() << ansi_color('r') << "Caught runtime error from "
-                       << thread_description() << ansi_color(' ') << ": "
-                       << e.what();
-            }
-        }
-        catch (std::exception const& e)
-        {
-            FAIL() << "From " << thread_description() << ": " << e.what();
         }
     }
 
@@ -600,6 +572,9 @@ auto IntegrationTestBase::make_hit_callback(std::string const&) -> LocalStepFunc
 //---------------------------------------------------------------------------//
 /*!
  * Fail when GeantExceptionHandler catches a celeritas RuntimeError.
+ *
+ * This default behavior can be overridden by child classes to check failure
+ * modes.
  */
 void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
 {
@@ -608,6 +583,38 @@ void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
     FAIL() << ansi_color('R') << "GeantExceptionHandler caught runtime error ("
            << thread_label() << ',' << d.condition << ")" << ansi_color(' ')
            << ": from " << d.file << ": " << d.what;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print debug info about an exception, and call `caught_g4_runtime_error`.
+ */
+void IntegrationTestBase::handle_exception(std::exception_ptr ep)
+{
+    try
+    {
+        std::rethrow_exception(ep);
+    }
+    catch (RuntimeError const& e)
+    {
+        auto const& d = e.details();
+        if (cstring_equal(d.which, "Geant4"))
+        {
+            // GeantExceptionHandler wrapped this error
+            this->caught_g4_runtime_error(e);
+        }
+        else
+        {
+            // Some other error
+            FAIL() << ansi_color('r') << "Caught runtime error from "
+                   << thread_description() << ansi_color(' ') << ": "
+                   << e.what();
+        }
+    }
+    catch (std::exception const& e)
+    {
+        FAIL() << "From " << thread_description() << ": " << e.what();
+    }
 }
 
 //---------------------------------------------------------------------------//

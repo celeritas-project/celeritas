@@ -129,6 +129,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError
     virtual void caught_g4_runtime_error(RuntimeError const& e);
 
+    // Print debug info about an exception, call the above if geant4
+    void handle_exception(std::exception_ptr ep);
+
     //!@{
     //! \name Dispatch from user setup/run/event actions
     virtual void ConstructSDandField() {}
