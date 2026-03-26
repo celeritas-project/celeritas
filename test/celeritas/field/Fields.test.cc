@@ -285,6 +285,229 @@ TEST_F(CylMapFieldTest, all)
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
 
+}  // namespace test
+}  // namespace celeritas
+
+//---------------------------------------------------------------------------//
+// COVFIE IMPORT TESTS
+//---------------------------------------------------------------------------//
+
+#if !CELERITAS_USE_COVFIE
+#    define CovfieCartImportTest DISABLED_CovfieCartImportTest
+#    define CovfieRZImportTest DISABLED_CovfieRZImportTest
+#endif
+
+using CovfieCartImportTest = ::celeritas::test::Test;
+using CovfieRZImportTest = ::celeritas::test::Test;
+
+#if CELERITAS_USE_COVFIE
+
+#    include <covfie/core/algebra/affine.hpp>
+#    include <covfie/core/backend/primitive/array.hpp>
+#    include <covfie/core/backend/transformer/affine.hpp>
+#    include <covfie/core/backend/transformer/linear.hpp>
+#    include <covfie/core/backend/transformer/strided.hpp>
+#    include <covfie/core/field.hpp>
+#    include <covfie/core/parameter_pack.hpp>
+#    include <covfie/core/vector.hpp>
+
+#    include "celeritas/field/LoadCovfieField.hh"
+
+namespace
+{
+//---------------------------------------------------------------------------//
+// Arbitrary stateless backend for serialization (see
+// LoadCovfieField.covfie.cc)
+template<class B>
+using deserialization_interp_t = ::covfie::backend::linear<B>;
+
+//---------------------------------------------------------------------------//
+// Helper: write a tiny 3D covfie field (nx x ny x nz) to a file.
+// Field values: Bx = ix, By = iy, Bz = iz (float).
+// Grid bounds: [0, nx-1] x [0, ny-1] x [0, nz-1] in native units.
+void write_cart_covfie(std::string const& path,
+                       std::size_t nx,
+                       std::size_t ny,
+                       std::size_t nz)
+{
+    using storage_t = ::covfie::backend::array<::covfie::vector::float3>;
+    using strided_t
+        = ::covfie::backend::strided<::covfie::vector::size3, storage_t>;
+    using field_t = ::covfie::field<
+        ::covfie::backend::affine<deserialization_interp_t<strided_t>>>;
+
+    // Identity affine: translate=0, scale=1 (grid coords == world coords)
+    auto translation = ::covfie::algebra::affine<3>::translation(0.f, 0.f, 0.f);
+    auto scaling = ::covfie::algebra::affine<3>::scaling(1.f, 1.f, 1.f);
+
+    field_t field(::covfie::make_parameter_pack(
+        field_t::backend_t::configuration_t(scaling * translation),
+        field_t::backend_t::backend_t::configuration_t{},
+        field_t::backend_t::backend_t::backend_t::configuration_t{nx, ny, nz}));
+
+    // Fill: Bx=ix, By=iy, Bz=iz
+    field_t::view_t fv(field);
+    auto& strided_view = fv.backend().get_backend().get_backend();
+    for (std::size_t ix = 0; ix < nx; ++ix)
+    {
+        for (std::size_t iy = 0; iy < ny; ++iy)
+        {
+            for (std::size_t iz = 0; iz < nz; ++iz)
+            {
+                auto& v = strided_view.at({ix, iy, iz});
+                v[0] = static_cast<float>(ix);
+                v[1] = static_cast<float>(iy);
+                v[2] = static_cast<float>(iz);
+            }
+        }
+    }
+
+    std::ofstream ofs(path, std::ofstream::binary);
+    CELER_ASSERT(ofs.good());
+    field.dump(ofs);
+}
+
+//---------------------------------------------------------------------------//
+// Helper: write a tiny 2D covfie field (nr x nz) to a file.
+// Field values: Br = ir, Bz = iz (float).
+// Grid bounds: [0, nr-1] x [0, nz-1] in native units.
+void write_rz_covfie(std::string const& path, std::size_t nr, std::size_t nz)
+{
+    using storage_t = ::covfie::backend::array<::covfie::vector::float2>;
+    using strided_t
+        = ::covfie::backend::strided<::covfie::vector::size2, storage_t>;
+    using field_t = ::covfie::field<
+        ::covfie::backend::affine<deserialization_interp_t<strided_t>>>;
+
+    auto translation = ::covfie::algebra::affine<2>::translation(0.f, 0.f);
+    auto scaling = ::covfie::algebra::affine<2>::scaling(1.f, 1.f);
+
+    field_t field(::covfie::make_parameter_pack(
+        field_t::backend_t::configuration_t(scaling * translation),
+        field_t::backend_t::backend_t::configuration_t{},
+        field_t::backend_t::backend_t::backend_t::configuration_t{nr, nz}));
+
+    field_t::view_t fv(field);
+    auto& strided_view = fv.backend().get_backend().get_backend();
+    for (std::size_t ir = 0; ir < nr; ++ir)
+    {
+        for (std::size_t iz = 0; iz < nz; ++iz)
+        {
+            auto& v = strided_view.at({ir, iz});
+            v[0] = static_cast<float>(ir);
+            v[1] = static_cast<float>(iz);
+        }
+    }
+
+    std::ofstream ofs(path, std::ofstream::binary);
+    CELER_ASSERT(ofs.good());
+    field.dump(ofs);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
+TEST_F(CovfieCartImportTest, load_2x3x4)
+{
+    auto path = this->make_unique_filename(".covfie");
+    write_cart_covfie(path, 2, 3, 4);
+
+    auto inp = ::celeritas::load_covfie_cart_field(path);
+
+    // Check grid dimensions
+    EXPECT_EQ(2u, inp.x.num);
+    EXPECT_EQ(3u, inp.y.num);
+    EXPECT_EQ(4u, inp.z.num);
+
+    // Check grid bounds (identity affine: [0, n-1])
+    EXPECT_SOFT_EQ(0.0, inp.x.min);
+    EXPECT_SOFT_EQ(1.0, inp.x.max);
+    EXPECT_SOFT_EQ(0.0, inp.y.min);
+    EXPECT_SOFT_EQ(2.0, inp.y.max);
+    EXPECT_SOFT_EQ(0.0, inp.z.min);
+    EXPECT_SOFT_EQ(3.0, inp.z.max);
+
+    // Check total field size: 3 * 2 * 3 * 4 = 72
+    EXPECT_EQ(72u, inp.field.size());
+
+    // Check field values at corners to verify stride ordering [X][Y][Z][3]
+    // At (ix=0, iy=0, iz=0): base = 0, expect (0, 0, 0)
+    EXPECT_SOFT_EQ(0.0, inp.field[0]);
+    EXPECT_SOFT_EQ(0.0, inp.field[1]);
+    EXPECT_SOFT_EQ(0.0, inp.field[2]);
+
+    // At (ix=1, iy=0, iz=0): base = (1*3 + 0)*4 + 0 = 12, offset*3 = 36
+    EXPECT_SOFT_EQ(1.0, inp.field[36]);  // Bx = ix = 1
+    EXPECT_SOFT_EQ(0.0, inp.field[37]);  // By = iy = 0
+    EXPECT_SOFT_EQ(0.0, inp.field[38]);  // Bz = iz = 0
+
+    // At (ix=0, iy=2, iz=3): base = (0*3 + 2)*4 + 3 = 11, offset*3 = 33
+    EXPECT_SOFT_EQ(0.0, inp.field[33]);  // Bx = 0
+    EXPECT_SOFT_EQ(2.0, inp.field[34]);  // By = 2
+    EXPECT_SOFT_EQ(3.0, inp.field[35]);  // Bz = 3
+
+    // At (ix=1, iy=2, iz=3): base = (1*3 + 2)*4 + 3 = 23, offset*3 = 69
+    EXPECT_SOFT_EQ(1.0, inp.field[69]);  // Bx = 1
+    EXPECT_SOFT_EQ(2.0, inp.field[70]);  // By = 2
+    EXPECT_SOFT_EQ(3.0, inp.field[71]);  // Bz = 3
+
+    // Check validity
+    EXPECT_TRUE(static_cast<bool>(inp));
+}
+
+TEST_F(CovfieRZImportTest, load_2x3)
+{
+    auto path = this->make_unique_filename(".covfie");
+    write_rz_covfie(path, 2, 3);
+
+    auto inp = ::celeritas::load_covfie_rz_field(path);
+
+    // Check grid dimensions
+    EXPECT_EQ(2u, inp.num_grid_r);
+    EXPECT_EQ(3u, inp.num_grid_z);
+
+    // Check grid bounds (identity affine: r=[0,1], z=[0,2])
+    EXPECT_SOFT_EQ(0.0, inp.min_r);
+    EXPECT_SOFT_EQ(1.0, inp.max_r);
+    EXPECT_SOFT_EQ(0.0, inp.min_z);
+    EXPECT_SOFT_EQ(2.0, inp.max_z);
+
+    // Check total field size: 2 * 3 = 6
+    EXPECT_EQ(6u, inp.field_r.size());
+    EXPECT_EQ(6u, inp.field_z.size());
+
+    // Check field values with [Z][R] indexing (R stride 1)
+    // At (ir=0, iz=0): idx = 0*2 + 0 = 0
+    EXPECT_SOFT_EQ(0.0, inp.field_r[0]);  // Br = ir = 0
+    EXPECT_SOFT_EQ(0.0, inp.field_z[0]);  // Bz = iz = 0
+
+    // At (ir=1, iz=0): idx = 0*2 + 1 = 1
+    EXPECT_SOFT_EQ(1.0, inp.field_r[1]);  // Br = ir = 1
+    EXPECT_SOFT_EQ(0.0, inp.field_z[1]);  // Bz = iz = 0
+
+    // At (ir=0, iz=2): idx = 2*2 + 0 = 4
+    EXPECT_SOFT_EQ(0.0, inp.field_r[4]);  // Br = ir = 0
+    EXPECT_SOFT_EQ(2.0, inp.field_z[4]);  // Bz = iz = 2
+
+    // At (ir=1, iz=2): idx = 2*2 + 1 = 5
+    EXPECT_SOFT_EQ(1.0, inp.field_r[5]);  // Br = ir = 1
+    EXPECT_SOFT_EQ(2.0, inp.field_z[5]);  // Bz = iz = 2
+
+    // Check validity
+    EXPECT_TRUE(static_cast<bool>(inp));
+}
+
+#endif  // CELERITAS_USE_COVFIE
+
+namespace celeritas
+{
+namespace test
+{
+
+//---------------------------------------------------------------------------//
+// CART MAP FIELD TESTS (covfie-only)
+//---------------------------------------------------------------------------//
+
 #if !CELERITAS_USE_COVFIE
 #    define CartMapFieldTest DISABLED_CartMapFieldTest
 #endif
