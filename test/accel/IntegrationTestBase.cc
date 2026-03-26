@@ -157,9 +157,9 @@ class EventAction final : public G4UserEventAction
 class SteppingAction final : public G4UserSteppingAction
 {
   public:
-    using StepCallback = IntegrationTestBase::LocalStepFunc;
+    using LocalStepFunc = IntegrationTestBase::LocalStepFunc;
 
-    explicit SteppingAction(StreamId sid, StepCallback f)
+    explicit SteppingAction(StreamId sid, LocalStepFunc f)
         : sid_{sid}, callback_{std::move(f)}
     {
         CELER_EXPECT(callback_);
@@ -174,13 +174,13 @@ class SteppingAction final : public G4UserSteppingAction
 
   private:
     StreamId sid_;
-    StepCallback callback_;
+    LocalStepFunc callback_;
 };
 
 //---------------------------------------------------------------------------//
 class ActionInitialization final : public G4VUserActionInitialization
 {
-    using StepCallback = IntegrationTestBase::LocalStepFunc;
+    using LocalStepFunc = IntegrationTestBase::LocalStepFunc;
 
   public:
     // NOTE: step callback construction *could* be deferred to build
@@ -240,24 +240,24 @@ class ActionInitialization final : public G4VUserActionInitialization
   private:
     IntegrationTestBase* test_;
     SPTracing tracing_;
-    StepCallback step_cb_;
+    LocalStepFunc step_cb_;
 };
 
 //---------------------------------------------------------------------------//
 class SensitiveDetector final : public G4VSensitiveDetector
 {
   public:
-    using HitFunction = IntegrationTestBase::LocalStepFunc;
+    using LocalStepFunc = IntegrationTestBase::LocalStepFunc;
 
     static std::unique_ptr<G4VSensitiveDetector>
-    from_hit_function(std::string sd_name, HitFunction&& f)
+    from_hit_function(std::string sd_name, LocalStepFunc&& f)
     {
         if (!f)
             return nullptr;
         return std::make_unique<SensitiveDetector>(sd_name, std::move(f));
     }
 
-    SensitiveDetector(std::string const& name, HitFunction&& f)
+    SensitiveDetector(std::string const& name, LocalStepFunc&& f)
         : G4VSensitiveDetector(name), hit_func_{std::move(f)}
     {
         CELER_EXPECT(hit_func_);
@@ -272,7 +272,7 @@ class SensitiveDetector final : public G4VSensitiveDetector
     }
 
   private:
-    HitFunction hit_func_;
+    LocalStepFunc hit_func_;
 };
 
 //---------------------------------------------------------------------------//
