@@ -28,7 +28,7 @@
       "description": "Build on UVA's Rivanna HPC",
       "inherits": [".base", ".ndebug"],
       "cacheVariables": {
-          "CMAKE_CXX_FLAGS": "-march=x86-64-v3"
+        "CMAKE_CXX_FLAGS": "-march=x86-64-v3"
       }
     },
     {
@@ -36,7 +36,8 @@
       "description": "Build on UVA's Rivanna HPC (debug)",
       "inherits": [".base", ".debug"],
       "cacheVariables": {
-          "CMAKE_CXX_FLAGS": "-march=x86-64-v3"
+        "CMAKE_CXX_FLAGS": "-march=x86-64-v3",
+        "CMAKE_CUDA_FLAGS": "-lineinfo -Xptxas=-v -Xcompiler -Wno-psabi"
       }
     }
   ],
