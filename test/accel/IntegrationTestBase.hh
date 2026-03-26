@@ -29,6 +29,7 @@ namespace celeritas
 struct SetupOptions;
 namespace test
 {
+//! Enum for querying how we're testing
 enum class TestOffload
 {
     g4,  //!< Run native Geant4
@@ -37,15 +38,6 @@ enum class TestOffload
     gpu,  //!< Run on celeritas GPU
     size_
 };
-
-// Convert TestOffload to string
-char const* to_cstring(TestOffload value);
-
-// Convert string to TestOffload
-TestOffload to_test_offload(std::string const& s);
-
-// Get a stream ID corresponding to the current worker thread
-StreamId g4_worker_stream();
 
 //---------------------------------------------------------------------------//
 /*!
@@ -149,6 +141,16 @@ class IntegrationTestBase : public ::celeritas::test::Test
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
+// Convert TestOffload to string
+char const* to_cstring(TestOffload value);
+
+// Convert string to TestOffload
+TestOffload to_test_offload(std::string const& s);
+
+// Get a stream ID corresponding to the current worker thread
+StreamId g4_worker_stream();
+
+// Update a physics input to enable all optical physics *except* wls
 void enable_optical_physics(IntegrationTestBase::PhysicsInput&);
 
 //---------------------------------------------------------------------------//

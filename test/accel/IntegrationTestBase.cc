@@ -307,21 +307,6 @@ class TestDetectorConstruction : public DetectorConstruction
 //---------------------------------------------------------------------------//
 }  // namespace
 
-//! Convert TestOffload to string
-char const* to_cstring(TestOffload value)
-{
-    static EnumStringMapper<TestOffload> const map{"g4", "ko", "cpu", "gpu"};
-    return map(value);
-}
-
-//! Convert string to TestOffload
-TestOffload to_test_offload(std::string const& s)
-{
-    static auto const map
-        = StringEnumMapper<TestOffload>::from_cstring_func(to_cstring);
-    return map(s);
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Get a stream ID corresponding to the current worker thread.
@@ -620,6 +605,22 @@ void IntegrationTestBase::handle_exception(std::exception_ptr ep)
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
+//! Convert TestOffload to string
+char const* to_cstring(TestOffload value)
+{
+    static EnumStringMapper<TestOffload> const map{"g4", "ko", "cpu", "gpu"};
+    return map(value);
+}
+
+//! Convert string to TestOffload
+TestOffload to_test_offload(std::string const& s)
+{
+    static auto const map
+        = StringEnumMapper<TestOffload>::from_cstring_func(to_cstring);
+    return map(s);
+}
+
+//! Update a physics input to enable all optical physics *except* wls
 void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
 {
     // Set default optical physics (all processes enabled)
