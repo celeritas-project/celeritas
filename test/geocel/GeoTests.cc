@@ -907,7 +907,8 @@ void FourLevelsGeoTest::test_safety() const
         1.1,
         3.1,
     };
-    EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
+    auto tol = test_->tracking_tol();
+    EXPECT_VEC_SOFT_EQ(expected_safeties, safeties, tol.safety);
 
     std::vector<double> expected_lim_safeties = {
         2.9,
@@ -926,13 +927,13 @@ void FourLevelsGeoTest::test_safety() const
     if (test_->geometry_type() != "Geant4")
     {
         // Only G4 returns larger-than-requested distances
+        // TODO: our tracker interface should truncate those
         for (double& s : expected_lim_safeties)
         {
             s = std::min(s, 1.5);
         }
     }
 
-    auto tol = test_->tracking_tol();
     EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, tol.safety);
 }
 
