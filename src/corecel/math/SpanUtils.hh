@@ -1,0 +1,298 @@
+//------------------------------- -*- C++ -*- -------------------------------//
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file corecel/math/SpanUtils.hh
+//! \brief Math functions using celeritas::Span
+//! \sa SpanUtils.test.cc
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include <cstddef>
+
+#include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
+
+#include "ArrayUtils.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+// Copy all elements from src to dst
+template<class T, std::size_t N>
+inline CELER_FUNCTION void copy(Span<T const, N> src, Span<T, N> dst);
+
+//---------------------------------------------------------------------------//
+// Fill all elements of dst with value
+template<class T, std::size_t N>
+inline CELER_FUNCTION void fill(T value, Span<T, N> dst);
+
+//---------------------------------------------------------------------------//
+// Perform y <- ax + y
+template<class T, std::size_t N>
+inline CELER_FUNCTION void axpy(T a, Span<T const, N> x, Span<T, N> y);
+
+//---------------------------------------------------------------------------//
+// Calculate dot product of two vectors
+template<class T, std::size_t N>
+[[nodiscard]] inline CELER_FUNCTION T dot_product(Span<T const, N> x,
+                                                  Span<T const, N> y);
+
+//---------------------------------------------------------------------------//
+// Calculate cross product of two space vectors, writing result to dst
+template<class T>
+inline CELER_FUNCTION void
+cross_product(Span<T const, 3> x, Span<T const, 3> y, Span<T, 3> dst);
+
+//---------------------------------------------------------------------------//
+// Calculate the Euclidean (2) norm of a vector
+template<class T, std::size_t N>
+[[nodiscard]] inline CELER_FUNCTION T norm(Span<T const, N> v);
+
+//---------------------------------------------------------------------------//
+// Write a unit-magnitude version of v into dst
+template<class T, std::size_t N>
+inline CELER_FUNCTION void make_unit_vector(Span<T const, N> v, Span<T, N> dst);
+
+//---------------------------------------------------------------------------//
+// Write x - (x . y) * y for a unit vector y into dst
+template<class T, std::size_t N>
+inline CELER_FUNCTION void
+make_orthogonal(Span<T const, N> x, Span<T const, N> y, Span<T, N> dst);
+
+//---------------------------------------------------------------------------//
+// Check whether two vectors are approximately orthogonal
+template<class T, std::size_t N>
+[[nodiscard]] inline CELER_FUNCTION bool
+is_soft_orthogonal(Span<T const, N> x, Span<T const, N> y);
+
+//---------------------------------------------------------------------------//
+// Check whether two vectors are approximately collinear
+template<class T, std::size_t N>
+[[nodiscard]] inline CELER_FUNCTION bool
+is_soft_collinear(Span<T const, N> x, Span<T const, N> y);
+
+//---------------------------------------------------------------------------//
+// Calculate the Euclidean (2) distance between two points
+template<class T, std::size_t N>
+[[nodiscard]] inline CELER_FUNCTION T distance(Span<T const, N> x,
+                                               Span<T const, N> y);
+
+//---------------------------------------------------------------------------//
+// Write a Cartesian unit vector from spherical coordinates into dst
+template<class T>
+inline CELER_FUNCTION void from_spherical(T costheta, T phi, Span<T, 3> dst);
+
+//---------------------------------------------------------------------------//
+// Rotate dir by the rotation defined by rot, writing result to dst
+template<class T>
+inline CELER_FUNCTION void
+rotate(Span<T const, 3> dir, Span<T const, 3> rot, Span<T, 3> dst);
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+namespace detail
+{
+//---------------------------------------------------------------------------//
+//! Load a const span into a fixed-size array.
+template<class T, std::size_t N>
+CELER_FUNCTION Array<T, N> load_array(Span<T const, N> s)
+{
+    Array<T, N> result;
+    for (std::size_t i = 0; i != N; ++i)
+        result[i] = s[i];
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+//! Store a fixed-size array into a span.
+template<class T, std::size_t N>
+CELER_FUNCTION void store_array(Array<T, N> const& a, Span<T, N> dst)
+{
+    for (std::size_t i = 0; i != N; ++i)
+        dst[i] = a[i];
+}
+//---------------------------------------------------------------------------//
+}  // namespace detail
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy all elements from src to dst.
+ *
+ * \pre src and dst must not overlap.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION void copy(Span<T const, N> src, Span<T, N> dst)
+{
+    for (std::size_t i = 0; i != N; ++i)
+        dst[i] = src[i];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Fill all elements of dst with a constant value.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION void fill(T value, Span<T, N> dst)
+{
+    for (std::size_t i = 0; i != N; ++i)
+        dst[i] = value;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Increment a vector span by another vector span multiplied by a scalar.
+ *
+ * \f[
+ * y \gets \alpha x + y
+ * \f]
+ *
+ * \pre x and y must not overlap.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION void axpy(T a, Span<T const, N> x, Span<T, N> y)
+{
+    Array<T, N> xa = detail::load_array(x);
+    Array<T, N> ya = detail::load_array(Span<T const, N>{y.data(), N});
+    ::celeritas::axpy(a, xa, &ya);
+    detail::store_array(ya, y);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Dot product of two vector spans.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION T dot_product(Span<T const, N> x, Span<T const, N> y)
+{
+    return ::celeritas::dot_product(detail::load_array(x),
+                                    detail::load_array(y));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Cross product of two space vector spans, written into dst.
+ *
+ * \pre x, y, and dst must not overlap.
+ */
+template<class T>
+CELER_FUNCTION void
+cross_product(Span<T const, 3> x, Span<T const, 3> y, Span<T, 3> dst)
+{
+    detail::store_array(::celeritas::cross_product(detail::load_array(x),
+                                                   detail::load_array(y)),
+                        dst);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the Euclidean (2) norm of a vector span.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION T norm(Span<T const, N> v)
+{
+    return ::celeritas::norm(detail::load_array(v));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write a unit-magnitude version of v into dst.
+ *
+ * \pre v and dst must not overlap.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION void make_unit_vector(Span<T const, N> v, Span<T, N> dst)
+{
+    detail::store_array(::celeritas::make_unit_vector(detail::load_array(v)),
+                        dst);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write the component of x orthogonal to the unit vector y into dst.
+ *
+ * In this implementation, y must be normalized, and the result is not
+ * normalized.
+ *
+ * \f[
+   \mathbf{x}' \gets \mathbf{x} - (\mathbf{x} \cdot \mathbf{y}) \mathbf{y}
+   \, , \quad \|\mathbf{y}\| = 1
+ * \f]
+ *
+ * \pre x, y, and dst must not overlap.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION void
+make_orthogonal(Span<T const, N> x, Span<T const, N> y, Span<T, N> dst)
+{
+    detail::store_array(::celeritas::make_orthogonal(detail::load_array(x),
+                                                     detail::load_array(y)),
+                        dst);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check whether two unit vector spans are approximately orthogonal.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION bool is_soft_orthogonal(Span<T const, N> x, Span<T const, N> y)
+{
+    return ::celeritas::is_soft_orthogonal(detail::load_array(x),
+                                           detail::load_array(y));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check whether two unit vector spans are approximately collinear.
+ *
+ * \pre Spans must represent normalized vectors.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION bool is_soft_collinear(Span<T const, N> x, Span<T const, N> y)
+{
+    return ::celeritas::is_soft_collinear(detail::load_array(x),
+                                          detail::load_array(y));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the Euclidean (2) distance between two point spans.
+ */
+template<class T, std::size_t N>
+CELER_FUNCTION T distance(Span<T const, N> x, Span<T const, N> y)
+{
+    return ::celeritas::distance(detail::load_array(x), detail::load_array(y));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write a Cartesian unit vector from spherical coordinates into dst.
+ *
+ * Theta is the angle between the z axis and the outgoing vector, and phi is
+ * the angle between the x axis and the projection onto the x-y plane.
+ */
+template<class T>
+CELER_FUNCTION void from_spherical(T costheta, T phi, Span<T, 3> dst)
+{
+    detail::store_array(::celeritas::from_spherical(costheta, phi), dst);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Rotate a direction span by the rotation defined by rot, writing to dst.
+ *
+ * \pre dir, rot, and dst must not overlap.
+ * \sa celeritas::rotate in ArrayUtils.hh for the full description.
+ */
+template<class T>
+CELER_FUNCTION void
+rotate(Span<T const, 3> dir, Span<T const, 3> rot, Span<T, 3> dst)
+{
+    detail::store_array(
+        ::celeritas::rotate(detail::load_array(dir), detail::load_array(rot)),
+        dst);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas
