@@ -184,7 +184,7 @@ TEST_F(DetectorTest, simple)
 
     // Set geometry filename
     osi_.problem.model.geometry
-        = Test::test_data_path("geocel", "optical-box-det.gdml");
+        = Test::test_data_path("geocel", "optical-box-det-tra.gdml");
 
     // Create direct generator input
     osi_.problem.generator = celeritas::inp::OpticalDirectGenerator{};
@@ -286,7 +286,7 @@ TEST_F(DetectorTest, stress)
 
     // Set geometry filename
     osi_.problem.model.geometry
-        = Test::test_data_path("geocel", "optical-box-det.gdml");
+        = Test::test_data_path("geocel", "optical-box-det-tra.gdml");
 
     // Isotropically generate photons
     osi_.problem.generator = [] {
@@ -323,7 +323,7 @@ TEST_F(DetectorTest, efficiency)
 
     // Set geometry filename
     osi_.problem.model.geometry
-        = Test::test_data_path("geocel", "optical-box-g4-det.gdml");
+        = Test::test_data_path("geocel", "optical-box-det-eff.gdml");
 
     // Isotropically generate photons
     osi_.problem.generator = [] {
