@@ -26,15 +26,19 @@ Commit immediately when all todos are done. Do not wait to be told. Do not defer
 3. **Compile**: confirm the build still succeeds.
 
 Inline `-m` strings break with multi-line messages in the shell. Instead,
-write the commit message to `<build>/commit_msg.txt` (gitignored, always
-present) and commit with `-F`:
+write the commit message to `<build>/commit_msg.txt` (gitignored) and use
+the helper script. Use `create_file` to write it (never exists after a
+successful commit):
 
 ```bash
-git add -a
-pre-commit run || git add -a
-# Write message to file first, then commit
-git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -F <build>/commit_msg.txt
+# Write message to file first, then commit (script handles add/format/rm)
+scripts/dev/agent-commit.sh <build>/commit_msg.txt
 ```
+
+The script runs `git add -A`, `pre-commit run`, `git commit --trailer
+"Assisted-by: GitHub Copilot"`, and `rm <build>/commit_msg.txt`. Pass
+`--no-verify` as an extra argument only if pre-commit is already known to
+pass.
 
 The commit message format for `build/commit_msg.txt`:
 
@@ -67,8 +71,6 @@ cmake -B build -G Ninja && cd build && ninja && ctest
 ```
 
 Object files and tests may have different paths and test names than you expect (`src/celeritas/ext/GeantImporter.cc` → `src/celeritas/CMakeFiles/celeritas_geant4.dir/ext/GeantImporter.cc.o` and `celeritas/ext/GeantImporter.test.cc` → `test/celeritas/ext_GeantImporter`), and some test executables are run as distinct CTest tests due to environment variables and side effects (`ctest --show-only | grep GeantImporter` → `Test #211: celeritas/ext/GeantImporter:DuneCryostat.*`).
-
-To debug a test, use `ctest --show-only` to determine paths and env vars to create a `launch.json` file.
 
 ## Documentation
 
