@@ -6,9 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "TrackingManager.hh"
 
+#include <G4EventManager.hh>
 #include <G4ProcessManager.hh>
 #include <G4ProcessVector.hh>
 #include <G4Track.hh>
+#include <G4TrackingManager.hh>
+#include <G4UserTrackingAction.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -125,6 +128,15 @@ void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
  * Offload the incoming track to Celeritas.
  *
  * This will \em not be called in the "master" thread of an MT run.
+ *
+ * Because the custom tracking manager completely bypasses Geant4's standard
+ * \c G4TrackingManager::ProcessOneTrack , the \c G4UserTrackingAction
+ * callbacks are never fired. Frameworks such as DD4hep register MC-truth
+ * bookkeeping (e.g.\ \c Geant4ParticleHandler ) on those callbacks, and
+ * missing them leads to an inconsistent particle record and crashes at
+ * end-of-event. We therefore manually invoke the pre- and post-tracking
+ * user actions around the offload so that every intercepted track is still
+ * visible to the rest of the framework.
  */
 void TrackingManager::HandOverOneTrack(G4Track* track)
 {
@@ -144,6 +156,18 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
         validated_ = true;
     }
 
+    // Notify user tracking actions (e.g. DD4hep's ParticleHandler) so they
+    // can maintain MC truth bookkeeping for this track even though it will
+    // not be stepped by the standard G4TrackingManager.
+    G4UserTrackingAction* user_action = G4EventManager::GetEventManager()
+                                            ->GetTrackingManager()
+                                            ->GetUserTrackingAction();
+
+    if (user_action)
+    {
+        user_action->PreUserTrackingAction(track);
+    }
+
     if (*transport_)
     {
         // Offload this track to Celeritas for transport
@@ -151,8 +175,16 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
                          ExceptionConverter("celer.track.push", params_));
     }
 
-    // G4VTrackingManager takes ownership, so kill Geant4 track
+    // Mark track as killed before firing the post-action so that framework
+    // bookkeeping sees the correct final status.
     track->SetTrackStatus(fStopAndKill);
+
+    if (user_action)
+    {
+        user_action->PostUserTrackingAction(track);
+    }
+
+    // G4VTrackingManager owns the track; delete it now
     delete track;
 }
 

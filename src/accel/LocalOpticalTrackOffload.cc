@@ -16,7 +16,8 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/global/CoreParams.hh"
+#include "celeritas/ext/detail/OpticalHitProcessor.hh"
+#include "celeritas/ext/detail/OpticalHitProcessorRegistry.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/Transporter.hh"
 
@@ -25,6 +26,7 @@
 
 namespace celeritas
 {
+
 //---------------------------------------------------------------------------//
 /*!
  * Offload Geant4 optical photon tracks to Celeritas
@@ -78,6 +80,13 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
     {
         state_->aux() = std::make_shared<AuxStateVec>(
             *optical_params.aux_reg(), memspace, stream_id, capacity.tracks);
+    }
+
+    // Build thread-local optical hit processor if Geant4 SD integration is
+    // enabled
+    if (options.optical->geant_sd)
+    {
+        hit_processor_ = detail::make_optical_hit_processor(optical_params);
     }
 
     CELER_ENSURE(*this);
@@ -217,6 +226,8 @@ void LocalOpticalTrackOffload::Finalize()
     CELER_LOG(info) << "Finalizing Celeritas after " << num_pushed_
                     << " optical tracks pushed over " << num_flushed_
                     << " flushes";
+
+    detail::reset_optical_hit_processor(hit_processor_);
 
     *this = {};
 

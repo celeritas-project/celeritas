@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/DetectorData.hh"
@@ -21,17 +22,13 @@ namespace detail
  * Populate detector state buffer at the end of a step.
  *
  * All tracks have hits copied into the state buffer. If the track is not alive
- * or is not in a detector region, an invalid hit is set in the corresponding
- * buffer track slot.
+ * or killed, or is not in a detector region, an invalid hit is set in the
+ * corresponding buffer track slot.
  *
- * Detection can occur after a surface crossing \em or (for coupled EM
- * problems) if an optical photon is emitted inside a detector region.
- *
- * When a track generates a valid hit, it is killed (absorbed by the detector).
- *
- * \note This is called by \em all track slots, which is necessary to clear the
- * outgoing detector hits. We could break this into a "reset" kernel that
- * applies to all slots, and a "fill" kernel that applies only to valid slots.
+ * This action runs at \c user_post, after surface interactions (which absorb
+ * photons and set \c TrackStatus::killed ). Both \c alive and \c killed tracks
+ * are scored, analogous to how the EM \c StepGatherExecutor handles killed
+ * tracks. Inactive and errored tracks are skipped.
  */
 struct DetectorExecutor
 {
@@ -56,44 +53,53 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
 
     auto sim = track.sim();
 
-    if (!is_track_valid(sim.status()))
+    auto const status = sim.status();
+    if (status == TrackStatus::inactive || status == TrackStatus::errored)
     {
-        // Inactive or errored
-        return;
-    }
-    if (track.surface_physics().is_crossing_boundary())
-    {
-        // Boundary crossing not yet completed, so not yet detected!
-        return;
-    }
-
-    auto geometry = track.geometry();
-    if (geometry.is_outside())
-    {
-        // Killed by leaving geometry; no detection
+        // Skip empty slots and errored tracks
+        hit.detector = {};
         return;
     }
 
     auto const detectors = track.detectors();
+    auto geometry = track.geometry();
     auto const volume_id = geometry.volume_id();
     auto const detector_id = detectors.detector_id(volume_id);
 
-    if (!detector_id)
+    if (detector_id)
     {
-        // Not in a detector
-        return;
+        // Score a valid hit for alive or killed tracks in a detector volume
+        hit = DetectorHit{detector_id,
+                          track.particle().energy(),
+                          sim.time(),
+                          geometry.pos(),
+                          geometry.dir(),
+                          geometry.volume_instance_id()};
+
+        // Store full volume hierarchy if buffer is allocated
+        auto const num_levels = detector_state_.num_volume_levels;
+        if (num_levels > 0)
+        {
+            auto const tid = track.track_slot_id();
+            auto all_ids
+                = detector_state_
+                      .volume_instance_ids[AllItems<VolumeInstanceId>{}];
+            auto dst = all_ids.subspan(tid.unchecked_get() * num_levels,
+                                       num_levels);
+            size_type depth = geometry.volume_level().unchecked_get() + 1;
+            CELER_ASSERT(depth <= dst.size());
+            geometry.volume_instance_id(dst.first(depth));
+            for (auto level : range<size_type>(depth, num_levels))
+            {
+                dst[level] = {};
+            }
+        }
     }
-
-    // Score a valid hit
-    hit.detector = detector_id;
-    hit.primary = sim.primary_id();
-    hit.energy = track.particle().energy();
-    hit.time = sim.time();
-    hit.position = geometry.pos();
-    hit.volume_instance = geometry.volume_instance_id();
-
-    // Kill the track
-    sim.status(TrackStatus::killed);
+    else
+    {
+        // Track is not in a detector volume
+        hit.detector = {};
+    }
 }
 
 //---------------------------------------------------------------------------//

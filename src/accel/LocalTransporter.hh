@@ -26,6 +26,7 @@ namespace celeritas
 namespace detail
 {
 class HitProcessor;
+class OpticalHitProcessor;
 }  // namespace detail
 
 struct SetupOptions;
@@ -128,6 +129,7 @@ class LocalTransporter final : public TrackOffloadInterface
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
+    std::shared_ptr<detail::OpticalHitProcessor> optical_hit_processor_;
     std::shared_ptr<OpticalCollector const> optical_;
 
     // Current event ID or manager for obtaining it

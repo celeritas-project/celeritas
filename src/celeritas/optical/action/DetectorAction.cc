@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "DetectorAction.hh"
 
+#include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 
 #include "ActionLauncher.hh"
@@ -44,17 +46,41 @@ void DetectorAction::step(CoreParams const& params, CoreStateHost& state) const
                               detail::DetectorExecutor{state.ref().detectors}};
     launch_action(state, execute);
 
+    auto const& det_state = state.ref().detectors;
     auto all_hits
-        = state.ref()
-              .detectors.detector_hits[AllItems<DetectorHit, MemSpace::host>{}];
+        = det_state.detector_hits[AllItems<DetectorHit, MemSpace::host>{}];
 
-    VecHit temp_hits(all_hits.size());
-    // Copy all valid hits, erasing remaining part of the vector
-    temp_hits.erase(
-        std::copy_if(
-            all_hits.begin(), all_hits.end(), temp_hits.begin(), Identity{}),
-        temp_hits.end());
-    this->callback_hits(temp_hits);
+    HitsOutput out;
+    out.num_volume_levels = det_state.num_volume_levels;
+
+    // Reserve to avoid repeated allocation
+    out.hits.reserve(all_hits.size());
+    if (out.num_volume_levels > 0)
+    {
+        out.volume_instance_ids.reserve(all_hits.size()
+                                        * out.num_volume_levels);
+    }
+
+    auto all_vol_ids
+        = det_state
+              .volume_instance_ids[AllItems<VolumeInstanceId, MemSpace::host>{}];
+
+    for (auto i : range(all_hits.size()))
+    {
+        if (all_hits[i])
+        {
+            out.hits.push_back(all_hits[i]);
+            if (out.num_volume_levels > 0)
+            {
+                auto src = all_vol_ids.subspan(i * out.num_volume_levels,
+                                               out.num_volume_levels);
+                out.volume_instance_ids.insert(
+                    out.volume_instance_ids.end(), src.begin(), src.end());
+            }
+        }
+    }
+
+    this->callback_hits(std::move(out));
 }
 
 //---------------------------------------------------------------------------//
@@ -73,26 +99,57 @@ void DetectorAction::step(CoreParams const&, CoreStateDevice&) const
  * state, followed by an asynchronous callback.
  */
 auto DetectorAction::load_hits_sync(CoreStateDevice const& state) const
-    -> VecHit
+    -> HitsOutput
 {
-    auto const& native_hits = state.ref().detectors.detector_hits;
-    VecHit temp_hits(native_hits.size());
+    auto const& det_state = state.ref().detectors;
+    auto const& native_hits = det_state.detector_hits;
+    std::vector<DetectorHit> temp_hits(native_hits.size());
 
-    // Ensure the kernel copied into the device buffer before copying out
-    celeritas::device().stream(state.stream_id()).sync();
-
-    // Copy all track hits to host from device
+    // Copy all track hits to host from device (async, same stream as kernel)
     copy_to_host(native_hits, make_span(temp_hits), state.stream_id());
+
+    // Copy volume hierarchy if allocated
+    std::vector<VolumeInstanceId> temp_vol_ids;
+    if (det_state.num_volume_levels > 0)
+    {
+        temp_vol_ids.resize(det_state.volume_instance_ids.size());
+        copy_to_host(det_state.volume_instance_ids,
+                     make_span(temp_vol_ids),
+                     state.stream_id());
+    }
 
     // Ensure copy is complete
     celeritas::device().stream(state.stream_id()).sync();
 
-    // Erase all hits with invalid detector ID
-    temp_hits.erase(
-        std::remove_if(temp_hits.begin(), temp_hits.end(), LogicalNot{}),
-        temp_hits.end());
+    // Filter valid hits and collect corresponding volume slices
+    HitsOutput out;
+    out.num_volume_levels = det_state.num_volume_levels;
+    out.hits.reserve(temp_hits.size());
+    if (out.num_volume_levels > 0)
+    {
+        out.volume_instance_ids.reserve(temp_hits.size()
+                                        * out.num_volume_levels);
+    }
 
-    return temp_hits;
+    for (auto i : range(temp_hits.size()))
+    {
+        if (temp_hits[i])
+        {
+            out.hits.push_back(temp_hits[i]);
+            if (out.num_volume_levels > 0)
+            {
+                auto beg
+                    = temp_vol_ids.begin()
+                      + static_cast<std::ptrdiff_t>(i * out.num_volume_levels);
+                out.volume_instance_ids.insert(
+                    out.volume_instance_ids.end(),
+                    beg,
+                    beg + static_cast<std::ptrdiff_t>(out.num_volume_levels));
+            }
+        }
+    }
+
+    return out;
 }
 
 //---------------------------------------------------------------------------//
@@ -103,12 +160,14 @@ auto DetectorAction::load_hits_sync(CoreStateDevice const& state) const
  * callback function. The callback is only executed when a non-zero number of
  * valid hits occurs.
  */
-void DetectorAction::callback_hits(VecHit const& hits) const
+void DetectorAction::callback_hits(HitsOutput&& out) const
 {
     // Send hits to the callback function, if there are any
-    if (!hits.empty())
+    if (!out.hits.empty())
     {
-        callback_(make_span(hits));
+        CELER_LOG_LOCAL(debug) << "Dispatching " << out.hits.size()
+                               << " optical detector hits to callback";
+        callback_(out);
     }
 }
 

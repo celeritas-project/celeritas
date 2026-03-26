@@ -178,6 +178,22 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
 
+    // Set volume hierarchy depth for optical hit touchable reconstruction
+    if (input_.optical_detector)
+    {
+        auto const& vol_params = celeritas::global_volumes().lock();
+        CELER_VALIDATE(vol_params,
+                       << "VolumeParams not available while building optical "
+                          "CoreParams with detector callback");
+        scalars.num_volume_levels = vol_params->num_volume_levels();
+        CELER_VALIDATE(scalars.num_volume_levels > 0,
+                       << "geometry type does not support volume instance IDs "
+                          "(required for optical hit touchable "
+                          "reconstruction)");
+        CELER_LOG(debug) << "Optical hit detector: num_volume_levels="
+                         << scalars.num_volume_levels;
+    }
+
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);
     if (celeritas::device())

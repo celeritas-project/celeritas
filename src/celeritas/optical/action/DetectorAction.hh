@@ -50,12 +50,12 @@ class DetectorAction final : public OpticalStepActionInterface,
     void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
-    StepActionOrder order() const final { return StepActionOrder::post; }
+    StepActionOrder order() const final { return StepActionOrder::user_post; }
 
   private:
     //// TYPES ////
 
-    using VecHit = std::vector<DetectorHit>;
+    using HitsOutput = DetectorHitsOutput;
 
     //// DATA ////
 
@@ -63,11 +63,11 @@ class DetectorAction final : public OpticalStepActionInterface,
 
     //// HELPER FUNCTIONS ////
 
-    // Copy hits from device
-    VecHit load_hits_sync(CoreStateDevice const&) const;
+    // Copy hits from device and return as output struct
+    HitsOutput load_hits_sync(CoreStateDevice const&) const;
 
-    // Send hits to the callback
-    void callback_hits(VecHit const&) const;
+    // Build output and send to the callback
+    void callback_hits(HitsOutput&&) const;
 };
 
 //---------------------------------------------------------------------------//

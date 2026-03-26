@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/TrackInitializer.hh"
@@ -14,6 +17,8 @@
 #include "TrackOffloadInterface.hh"
 
 class G4EventManager;
+class G4LogicalVolume;
+
 namespace celeritas
 {
 namespace optical
@@ -21,6 +26,11 @@ namespace optical
 class CoreStateBase;
 class Transporter;
 }  // namespace optical
+
+namespace detail
+{
+class OpticalHitProcessor;
+}
 
 struct SetupOptions;
 class SharedParams;
@@ -78,6 +88,9 @@ class LocalOpticalTrackOffload final : public TrackOffloadInterface
   private:
     // Transport pending optical tracks
     std::shared_ptr<optical::Transporter> transport_;
+
+    // Thread-local Geant4 SD hit processor (null if geant_sd is disabled)
+    std::shared_ptr<detail::OpticalHitProcessor> hit_processor_;
 
     // Thread-local state data
     std::shared_ptr<optical::CoreStateBase> state_;

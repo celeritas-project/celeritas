@@ -11,6 +11,7 @@
 #include <DDG4/Factories.h>
 #include <DDG4/Geant4ActionPhase.h>
 #include <DDG4/Geant4Kernel.h>
+#include <G4OpticalPhoton.hh>
 
 #include "corecel/io/Logger.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
@@ -63,6 +64,9 @@ CelerPhysics::CelerPhysics(Geant4Context* ctxt, std::string const& name)
     declareProperty("MaxNumTracks", max_num_tracks_);
     declareProperty("InitCapacity", init_capacity_);
     declareProperty("IgnoreProcesses", ignore_processes_);
+    declareProperty("OpticalTracks", optical_tracks_);
+    declareProperty("OpticalGenerators", optical_generators_);
+    declareProperty("OpticalGenerator", optical_generator_);
 }
 
 //---------------------------------------------------------------------------//
@@ -180,6 +184,43 @@ SetupOptions CelerPhysics::make_options()
     };
     opts.make_along_step = UniformAlongStepFactory(make_field_input);
     opts.sd.ignore_zero_deposition = false;
+
+    // Configure optical photon offloading if requested
+    if (optical_tracks_ > 0)
+    {
+        OpticalSetupOptions opt;
+        opt.capacity.tracks = optical_tracks_;
+        opt.capacity.generators = (optical_generators_ > 0)
+                                      ? optical_generators_
+                                      : optical_tracks_ * 8;
+        opt.capacity.primaries = opt.capacity.generators;
+        if (optical_generator_.empty() || optical_generator_ == "em")
+        {
+            opt.generator = inp::OpticalEmGenerator{};
+        }
+        else if (optical_generator_ == "direct")
+        {
+            opt.generator = inp::OpticalDirectGenerator{};
+            // Direct mode: optical photons are the only offloaded particle.
+            // Override the default list (e-, e+, gamma) so the tracking
+            // manager intercepts G4OpticalPhoton tracks.
+            opts.offload_particles = {G4OpticalPhoton::OpticalPhoton()};
+        }
+        else
+        {
+            CELER_VALIDATE(false,
+                           << "unknown OpticalGenerator='" << optical_generator_
+                           << "'; valid values are 'em' and 'direct'");
+        }
+        opt.limits = inp::OpticalTrackingLimits{};
+        // Enable Geant4 SD integration so optical hits are bridged back to G4
+        opt.geant_sd = true;
+        opts.optical = opt;
+
+        CELER_LOG(info) << "Optical photon offloading enabled: tracks="
+                        << opt.capacity.tracks
+                        << ", generators=" << opt.capacity.generators;
+    }
 
     // Save diagnostic file to a unique name
     opts.output_file = "ddceler.out.json";
