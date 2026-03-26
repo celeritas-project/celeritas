@@ -147,9 +147,6 @@ char const* to_cstring(TestOffload value);
 // Convert string to TestOffload
 TestOffload to_test_offload(std::string const& s);
 
-// Get a stream ID corresponding to the current worker thread
-StreamId g4_worker_stream();
-
 // Update a physics input to enable all optical physics *except* wls
 void enable_optical_physics(IntegrationTestBase::PhysicsInput&);
 

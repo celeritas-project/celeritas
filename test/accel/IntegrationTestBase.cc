@@ -7,14 +7,10 @@
 #include "IntegrationTestBase.hh"
 
 #include <exception>
-#include <G4StateManager.hh>
-#include <G4Threading.hh>
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
-#include <G4UserSteppingAction.hh>
 #include <G4UserTrackingAction.hh>
 #include <G4VSensitiveDetector.hh>
-#include <G4VStateDependent.hh>
 #include <G4VUserActionInitialization.hh>
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
@@ -49,6 +45,10 @@
 #include "celeritas/ext/EmPhysicsList.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/g4/DetectorConstruction.hh"
+#include "celeritas/g4/SensitiveDetector.hh"
+#include "celeritas/g4/StateDependent.hh"
+#include "celeritas/g4/SteppingAction.hh"
+#include "celeritas/g4/Threading.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "accel/AlongStepFactory.hh"
@@ -153,30 +153,6 @@ class EventAction final : public G4UserEventAction
 };
 
 //---------------------------------------------------------------------------//
-class SteppingAction final : public G4UserSteppingAction
-{
-  public:
-    using LocalStepFunc = IntegrationTestBase::LocalStepFunc;
-
-    explicit SteppingAction(StreamId sid, LocalStepFunc f)
-        : sid_{sid}, callback_{std::move(f)}
-    {
-        CELER_EXPECT(callback_);
-    }
-
-    void UserSteppingAction(G4Step const* step) final
-    {
-        CELER_EXPECT(step);
-        CELER_EXPECT(sid_);
-        callback_(sid_, *step);
-    }
-
-  private:
-    StreamId sid_;
-    LocalStepFunc callback_;
-};
-
-//---------------------------------------------------------------------------//
 class ActionInitialization final : public G4VUserActionInitialization
 {
     using LocalStepFunc = IntegrationTestBase::LocalStepFunc;
@@ -243,64 +219,6 @@ class ActionInitialization final : public G4VUserActionInitialization
 };
 
 //---------------------------------------------------------------------------//
-class SensitiveDetector final : public G4VSensitiveDetector
-{
-  public:
-    using LocalStepFunc = IntegrationTestBase::LocalStepFunc;
-
-    static std::unique_ptr<G4VSensitiveDetector>
-    from_hit_function(std::string sd_name, LocalStepFunc&& f)
-    {
-        if (!f)
-            return nullptr;
-        return std::make_unique<SensitiveDetector>(sd_name, std::move(f));
-    }
-
-    SensitiveDetector(std::string const& name, LocalStepFunc&& f)
-        : G4VSensitiveDetector(name), hit_func_{std::move(f)}
-    {
-        CELER_EXPECT(hit_func_);
-    }
-
-    void Initialize(G4HCofThisEvent*) final { this->clear(); }
-    bool ProcessHits(G4Step* step, G4TouchableHistory*) final
-    {
-        CELER_EXPECT(step);
-        hit_func_(g4_worker_stream(), *step);
-        return true;
-    }
-
-  private:
-    LocalStepFunc hit_func_;
-};
-
-class StateDependent : public G4VStateDependent
-{
-  public:
-    using AppState = G4ApplicationState;
-    using LocalStateChangeFunc
-        = std::function<void(StreamId, AppState, AppState)>;
-
-  public:
-    StateDependent(StreamId, LocalStateChangeFunc cb);
-
-    G4bool Notify(G4ApplicationState state);
-
-  private:
-    StreamId local_stream_;
-    LocalStateChangeFunc cb_;
-};
-
-G4bool StateDependent::Notify(G4ApplicationState state)
-{
-    G4StateManager* sm = G4StateManager::GetStateManager();
-    CELER_ASSERT(sm);
-    G4ApplicationState prev = sm->GetPreviousState();
-    this->cb_(local_stream_, prev, state);
-    return true;
-}
-
-//---------------------------------------------------------------------------//
 class TestDetectorConstruction : public DetectorConstruction
 {
   public:
@@ -331,28 +249,6 @@ class TestDetectorConstruction : public DetectorConstruction
 
 //---------------------------------------------------------------------------//
 }  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a stream ID corresponding to the current worker thread.
- *
- * The result is null if this is the "master" thread in MT or if the run
- * manager hasn't been started.
- */
-StreamId g4_worker_stream()
-{
-    if (!G4Threading::IsMultithreadedApplication())
-    {
-        return StreamId{0};
-    }
-    if (G4Threading::IsMasterThread())
-    {
-        return {};
-    }
-    int tid = G4Threading::G4GetThreadId();
-    CELER_ASSERT(tid >= 0);
-    return id_cast<StreamId>(tid);
-}
 
 //---------------------------------------------------------------------------//
 /*!
