@@ -10,7 +10,6 @@
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
 #include <G4UserTrackingAction.hh>
-#include <G4VSensitiveDetector.hh>
 #include <G4VUserActionInitialization.hh>
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
@@ -25,7 +24,6 @@
 #else
 #    include <G4MTRunManager.hh>
 #endif
-#include <G4UserSteppingAction.hh>
 
 #include "corecel/Config.hh"
 

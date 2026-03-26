@@ -15,7 +15,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * Dispatch Geant4 step data to a thread-local callback function.
+ *
+ * This stepping action wraps a user-provided function, calling it for each
+ * step with the current worker stream ID and the step data.
  */
 class SteppingAction final : public G4UserSteppingAction
 {
@@ -26,18 +29,11 @@ class SteppingAction final : public G4UserSteppingAction
     //!@}
 
   public:
-    explicit SteppingAction(StreamId sid, LocalStepFunc f)
-        : sid_{sid}, callback_{std::move(f)}
-    {
-        CELER_EXPECT(callback_);
-    }
+    // Construct with a stream ID and per-step callback
+    explicit SteppingAction(StreamId sid, LocalStepFunc f);
 
-    void UserSteppingAction(G4Step const* step) final
-    {
-        CELER_EXPECT(step);
-        CELER_EXPECT(sid_);
-        callback_(sid_, *step);
-    }
+    // Dispatch a step to the user callback
+    void UserSteppingAction(G4Step const* step) final;
 
   private:
     StreamId sid_;

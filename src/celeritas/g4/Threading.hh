@@ -12,7 +12,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-// Get a stream ID corresponding to the current worker thread
+// Get a stream ID corresponding to the current Geant4 worker thread
 StreamId g4_worker_stream();
 
 //---------------------------------------------------------------------------//

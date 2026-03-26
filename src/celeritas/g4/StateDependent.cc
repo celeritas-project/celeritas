@@ -8,9 +8,24 @@
 
 #include <G4StateManager.hh>
 
+#include "corecel/Assert.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct with a stream ID and state-change callback.
+ */
+StateDependent::StateDependent(StreamId sid, LocalStateChangeFunc cb)
+    : local_stream_{sid}, cb_{std::move(cb)}
+{
+    CELER_EXPECT(cb_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Dispatch a state transition notification to the user callback.
+ */
 G4bool StateDependent::Notify(G4ApplicationState state)
 {
     G4StateManager* sm = G4StateManager::GetStateManager();

@@ -9,11 +9,16 @@
 #include <functional>
 #include <G4VStateDependent.hh>
 
+#include "corecel/sys/ThreadId.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Receive notifications when the Geant4 application state changes.
  *
+ * This wrapper calls a user-provided function for the given worker stream
+ * whenever the simulation transitions between Geant4 application states.
  */
 class StateDependent : public G4VStateDependent
 {
@@ -23,11 +28,14 @@ class StateDependent : public G4VStateDependent
     using AppState = G4ApplicationState;
     using LocalStateChangeFunc
         = std::function<void(StreamId, AppState, AppState)>;
+    //!@}
 
   public:
-    StateDependent(StreamId, LocalStateChangeFunc cb);
+    // Construct with a stream ID and state-change callback
+    StateDependent(StreamId sid, LocalStateChangeFunc cb);
 
-    G4bool Notify(G4ApplicationState state);
+    // Invoke the callback when the Geant4 state changes
+    G4bool Notify(G4ApplicationState state) final;
 
   private:
     StreamId local_stream_;

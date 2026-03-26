@@ -7,6 +7,8 @@
 #pragma once
 
 #include <functional>
+#include <memory>
+#include <string>
 #include <G4VSensitiveDetector.hh>
 
 #include "corecel/sys/ThreadId.hh"
@@ -15,7 +17,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Wrap a local
+ * Wrap a local step function as a Geant4 sensitive detector.
+ *
+ * The given function is called for each completed step inside the sensitive
+ * volume, receiving the current worker stream ID and the step data.
  */
 class SensitiveDetector : public G4VSensitiveDetector
 {
@@ -23,28 +28,20 @@ class SensitiveDetector : public G4VSensitiveDetector
     //!@{
     //! \name Type aliases
     using LocalStepFunc = std::function<void(StreamId, G4Step const&)>;
+    //!@}
 
+  public:
+    // Construct from a step callback, or return null if no callback given
     static std::unique_ptr<G4VSensitiveDetector>
-    from_hit_function(std::string sd_name, LocalStepFunc f)
-    {
-        if (!f)
-            return nullptr;
-        return std::make_unique<SensitiveDetector>(sd_name, std::move(f));
-    }
+    from_hit_function(std::string sd_name, LocalStepFunc f);
 
-    SensitiveDetector(std::string const& name, LocalStepFunc f)
-        : G4VSensitiveDetector(name), hit_func_{std::move(f)}
-    {
-        CELER_EXPECT(hit_func_);
-    }
+    // Construct with a detector name and step callback
+    SensitiveDetector(std::string const& name, LocalStepFunc f);
 
-    void Initialize(G4HCofThisEvent*) final { this->clear(); }
-    bool ProcessHits(G4Step* step, G4TouchableHistory*) final
-    {
-        CELER_EXPECT(step);
-        hit_func_(g4_worker_stream(), *step);
-        return true;
-    }
+    // Clear hit collection at the beginning of each event
+    void Initialize(G4HCofThisEvent*) final;
+    // Call the step function for each step in this volume
+    G4bool ProcessHits(G4Step* step, G4TouchableHistory*) final;
 
   private:
     LocalStepFunc hit_func_;
