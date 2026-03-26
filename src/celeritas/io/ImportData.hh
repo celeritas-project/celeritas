@@ -91,7 +91,6 @@ struct ImportData
 
     //!@{
     //! \name Optical data
-    ImportOpticalParameters optical_params;
     std::vector<ImportOpticalMaterial> optical_materials;
     //!@}
 

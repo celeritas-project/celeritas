@@ -93,17 +93,15 @@ class G4OpWLS2 : public G4OpWLS
  * This is from an implementation detail in \c
  * G4OpRayleigh::CalculateRayleighMeanFreePaths .
  */
-void load_rayleigh_water(
-    inp::OpticalModelMaterial<ImportOpticalRayleigh>& model_mat,
-    G4Material const& g4mat)
+void load_rayleigh_water(inp::OpticalRayleighAnalytic& analytic,
+                         G4Material const& g4mat)
 {
     double const betat = 7.658e-23 * CLHEP::m3 / CLHEP::MeV;
     constexpr auto units = ImportUnits::len_time_sq_per_mass;
-    model_mat.compressibility = betat * native_value_from_clhep(units);
+    analytic.compressibility = betat * native_value_from_clhep(units);
     CELER_LOG(warning) << "DEPRECATED: using Geant4 built-in Rayleigh "
-                          "properties for water: setting to "
-                       << model_mat.compressibility << " "
-                       << to_cstring(units);
+                          "properties for water: setting compressibility to "
+                       << analytic.compressibility << " " << to_cstring(units);
 
     if (!soft_equal(g4mat.GetTemperature(), 283.15 * CLHEP::kelvin))
     {
@@ -333,7 +331,16 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 size_type GeantPhysicsLoader::op_absorption(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.absorption;
-    this->load_mfps(model, "ABSLENGTH");
+    CELER_ASSERT(!model);
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
+    {
+        if (auto mfp = this->load_mfp(opt_id, "ABSLENGTH"))
+        {
+            inp::AbsorptionMaterial model_mat;
+            model_mat.mfp = std::move(mfp);
+            model.materials.emplace(opt_id, std::move(model_mat));
+        }
+    }
     return model.materials.size();
 }
 
@@ -390,17 +397,23 @@ size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
 size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.mie;
-    this->load_mfps(model, "MIEHG");
-    for (auto&& [opt_mat_id, model_mat] : model.materials)
+    CELER_ASSERT(!model);
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
     {
-        auto get_property = this->property_getter(opt_mat_id);
-        get_property(model_mat.forward_ratio,
-                     "MIEHG_FORWARD_RATIO",
-                     ImportUnits::unitless);
-        get_property(
-            model_mat.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
-        get_property(
-            model_mat.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
+        if (auto mfp = this->load_mfp(opt_id, "MIEHG"))
+        {
+            auto get_property = this->property_getter(opt_id);
+            inp::MieMaterial model_mat;
+            model_mat.mfp = std::move(mfp);
+            get_property(model_mat.forward_ratio,
+                         "MIEHG_FORWARD_RATIO",
+                         ImportUnits::unitless);
+            get_property(
+                model_mat.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
+            get_property(
+                model_mat.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
+            model.materials.emplace(opt_id, std::move(model_mat));
+        }
     }
     return model.materials.size();
 }
@@ -410,49 +423,63 @@ size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.rayleigh;
-    this->load_mfps(model, "RAYLEIGH");
+    CELER_ASSERT(!model);
 
     // Look for additional material data or special cases if MFP isn't provided
     // as a grid
-    for (auto opt_mat_id : range(OptMatId{optical_ids_.num_optical()}))
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
     {
-        bool has_mfp = model.materials.count(opt_mat_id);
+        auto get_property = this->property_getter(opt_id);
+        inp::OpticalRayleighMaterial model_mat;
 
-        auto get_property = this->property_getter(opt_mat_id);
-        inp::OpticalModelMaterial<ImportOpticalRayleigh> model_mat;
-
-        // Check for optional scale factor
-        bool has_scale = get_property(
-            model_mat.scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless);
-        bool has_compr = get_property(model_mat.compressibility,
-                                      "ISOTHERMAL_COMPRESSIBILITY",
-                                      ImportUnits::len_time_sq_per_mass);
-        if (!has_mfp && !has_compr)
+        auto grid = this->load_mfp(opt_id, "RAYLEIGH");
+        inp::OpticalRayleighAnalytic analytic;
+        get_property(analytic.compressibility,
+                     "ISOTHERMAL_COMPRESSIBILITY",
+                     ImportUnits::len_time_sq_per_mass);
+        if (!grid && !analytic)
         {
             // Check for G4 special case for water if no other data given
-            auto& g4mat = *optical_g4mat_[opt_mat_id.get()];
+            auto& g4mat = *optical_g4mat_[opt_id.get()];
             if (g4mat.GetName() == "Water")
             {
-                load_rayleigh_water(model_mat, g4mat);
-                has_compr = true;
+                load_rayleigh_water(analytic, g4mat);
+            }
+            else
+            {
+                continue;
             }
         }
 
-        if (has_mfp && (has_scale || has_compr))
+        // Check for optional scale factor
+        double scale_factor;
+        if (get_property(scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless))
+        {
+            analytic.scale_factor = scale_factor;
+        }
+
+        if (grid && (analytic.scale_factor || analytic))
         {
             constexpr auto to_given_str
                 = [](bool v) { return v ? "provided" : "missing"; };
             CELER_LOG(warning)
                 << "Inconsistent Rayleigh input data: compressibility ("
-                << to_given_str(has_compr) << ") with optional scale ("
-                << to_given_str(has_scale)
+                << to_given_str(analytic.compressibility)
+                << ") with optional scale ("
+                << to_given_str(static_cast<bool>(analytic.scale_factor))
                 << ") is ignored in favor of MFP grid";
         }
-        if (!has_mfp && has_compr)
+
+        if (grid)
         {
-            // Add non-grid rayleigh
-            model.materials.emplace(opt_mat_id, std::move(model_mat));
+            model_mat.mfp = grid;
         }
+        else
+        {
+            model_mat.mfp = analytic;
+        }
+        CELER_ASSERT(model_mat);
+        model.materials.emplace(opt_id, std::move(model_mat));
     }
     return model.materials.size();
 }
@@ -461,28 +488,34 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 //! Load wavelength shifting
 size_type GeantPhysicsLoader::op_wls(G4VProcess const&)
 {
+    auto& model = imported_.optical_physics.bulk.wls;
+    CELER_ASSERT(!model);
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
+    {
+        if (auto mfp = this->load_mfp(opt_id, "WLSABSLENGTH"))
+        {
+            auto get_property = this->property_getter(opt_id);
+            inp::WavelengthShiftMaterial model_mat;
+            model_mat.mfp = std::move(mfp);
+            get_property(model_mat.mean_num_photons,
+                         "WLSMEANNUMBERPHOTONS",
+                         ImportUnits::unitless);
+            get_property(
+                model_mat.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
+            get_property(model_mat.component,
+                         "WLSCOMPONENT",
+                         {ImportUnits::mev, ImportUnits::unitless});
+            model.materials.emplace(opt_id, std::move(model_mat));
+        }
+    }
 #if G4VERSION_NUMBER >= 1070
     // Save time profile
     auto* params = G4OpticalParameters::Instance();
     CELER_ASSERT(params);
-    imported_.optical_params.wls_time_profile
-        = geant_to_wls_distribution(params->GetWLSTimeProfile());
+    model.time_profile = geant_to_wls_distribution(params->GetWLSTimeProfile());
+#else
+    model.time_profile = optical::WlsDistribution::delta;
 #endif
-
-    auto& model = imported_.optical_physics.bulk.wls;
-    this->load_mfps(model, "WLSABSLENGTH");
-    for (auto&& [opt_mat_id, model_mat] : model.materials)
-    {
-        auto get_property = this->property_getter(opt_mat_id);
-        get_property(model_mat.mean_num_photons,
-                     "WLSMEANNUMBERPHOTONS",
-                     ImportUnits::unitless);
-        get_property(
-            model_mat.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
-        get_property(model_mat.component,
-                     "WLSCOMPONENT",
-                     {ImportUnits::mev, ImportUnits::unitless});
-    }
     return model.materials.size();
 }
 
@@ -491,26 +524,32 @@ size_type GeantPhysicsLoader::op_wls(G4VProcess const&)
 size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
 {
 #if G4VERSION_NUMBER >= 1070
+    auto& model = imported_.optical_physics.bulk.wls2;
+    CELER_ASSERT(!model);
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
+    {
+        if (auto mfp = this->load_mfp(opt_id, "WLSABSLENGTH2"))
+        {
+            auto get_property = this->property_getter(opt_id);
+            inp::WavelengthShiftMaterial model_mat;
+            model_mat.mfp = std::move(mfp);
+            get_property(model_mat.mean_num_photons,
+                         "WLSMEANNUMBERPHOTONS2",
+                         ImportUnits::unitless);
+            get_property(
+                model_mat.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
+            get_property(model_mat.component,
+                         "WLSCOMPONENT2",
+                         {ImportUnits::mev, ImportUnits::unitless});
+            model.materials.emplace(opt_id, std::move(model_mat));
+        }
+    }
     // Save time profile
     auto* params = G4OpticalParameters::Instance();
     CELER_ASSERT(params);
-    imported_.optical_params.wls_time_profile
+    model.time_profile
         = geant_to_wls_distribution(params->GetWLS2TimeProfile());
 
-    auto& model = imported_.optical_physics.bulk.wls2;
-    this->load_mfps(model, "WLSABSLENGTH2");
-    for (auto&& [opt_mat_id, model_mat] : model.materials)
-    {
-        auto get_property = this->property_getter(opt_mat_id);
-        get_property(model_mat.mean_num_photons,
-                     "WLSMEANNUMBERPHOTONS2",
-                     ImportUnits::unitless);
-        get_property(
-            model_mat.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
-        get_property(model_mat.component,
-                     "WLSCOMPONENT2",
-                     {ImportUnits::mev, ImportUnits::unitless});
-    }
     return model.materials.size();
 #else
     CELER_ASSERT_UNREACHABLE();
@@ -610,26 +649,6 @@ inp::Grid GeantPhysicsLoader::load_mfp(OptMatId opt_id,
     inp::Grid mfp;
     get_property(mfp, prop_name, {ImportUnits::mev, ImportUnits::len});
     return mfp;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Loop over optical materials and populate model.materials with MFP grids.
- */
-template<class MM, optical::ImportModelClass IMC>
-void GeantPhysicsLoader::load_mfps(inp::OpticalBulkModel<MM, IMC>& model,
-                                   std::string const& prop_name) const
-{
-    CELER_EXPECT(model.materials.empty());
-    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
-    {
-        if (auto mfp = this->load_mfp(opt_id, prop_name))
-        {
-            inp::OpticalModelMaterial<MM> model_mat;
-            model_mat.mfp = std::move(mfp);
-            model.materials.emplace(opt_id, std::move(model_mat));
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//

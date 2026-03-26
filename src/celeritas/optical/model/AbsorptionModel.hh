@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/optical/ImportedModelAdapter.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/optical/Model.hh"
 #include "celeritas/optical/Types.hh"
 
@@ -21,20 +21,11 @@ namespace optical
 class AbsorptionModel final : public Model
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstImported = std::shared_ptr<ImportedModels const>;
-    //!@}
-
-  public:
-    // Create a model builder for absorption
-    static ModelBuilder make_builder(SPConstImported);
-
-    // Construct with imported data
-    AbsorptionModel(ActionId id, SPConstImported imported);
+    // Construct with input data
+    AbsorptionModel(ActionId, inp::OpticalBulkAbsorption);
 
     // Build the mean free paths for this model
-    void build_mfps(OptMatId mat, MfpBuilder&) const final;
+    void build_mfps(OptMatId, MfpBuilder&) const final;
 
     // Execute the model with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -43,7 +34,7 @@ class AbsorptionModel final : public Model
     void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
-    ImportedModelAdapter imported_;
+    inp::OpticalBulkAbsorption input_;
 };
 
 //---------------------------------------------------------------------------//

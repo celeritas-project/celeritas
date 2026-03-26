@@ -16,7 +16,6 @@
 #include "celeritas/optical/PhysicsStepUtils.hh"
 #include "celeritas/optical/PhysicsTrackView.hh"
 
-#include "OpticalMockModels.hh"
 #include "OpticalMockTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -42,18 +41,14 @@ class OpticalPhysicsTest : public OpticalMockTestBase
 
     SPConstOpticalPhysics build_optical_physics() override
     {
-        PhysicsParams::Input input;
-
-        for ([[maybe_unused]] auto i : range(num_models))
-        {
-            input.model_builders.push_back(MockModelBuilder{});
-        }
-
-        input.materials = this->optical_material();
-        input.action_registry = this->optical_action_reg().get();
-
-        return std::make_shared<PhysicsParams const>(std::move(input));
+        return std::make_shared<PhysicsParams const>(
+            this->imported_data().optical_physics.bulk,
+            this->optical_material(),
+            this->material(),
+            this->optical_action_reg());
     }
+
+    void build_import_data(ImportData&) const override;
 
     PhysicsTrackView
     make_track_view(OptMatId mat, TrackSlotId slot = TrackSlotId{0})
@@ -102,6 +97,73 @@ class OpticalPhysicsTest : public OpticalMockTestBase
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create mock imported data in-place.
+ */
+void OpticalPhysicsTest::build_import_data(ImportData& data) const
+{
+    using TimeSecond = celeritas::RealQuantity<celeritas::units::Second>;
+
+    // Create a mock MFP grid
+    auto get_mfp = [](ModelId mod_id, OptMatId mat_id) {
+        size_type n = (mod_id.get() + 1) * 10 + mat_id.get();
+        inp::Grid grid;
+        grid.x.reserve(n + 1);
+        grid.y.reserve(n + 1);
+        for (size_type i : range(n + 1))
+        {
+            grid.x.push_back(15 * std::log(double(i) / n + 1));
+            grid.y.push_back(ipow<2>(double(i)));
+        }
+        return grid;
+    };
+
+    data.units = units::NativeTraits::label();
+    auto& bulk = data.optical_physics.bulk;
+
+    size_type num_materials = 5;
+    for (auto mat_id : range(OptMatId(num_materials)))
+    {
+        {
+            data.optical_materials.resize(mat_id.get() + 1);
+            auto& mat_prop = data.optical_materials[mat_id.get()].properties;
+            mat_prop.refractive_index.x = {1, 2, 5};
+            mat_prop.refractive_index.y = {1.3, 1.4, 1.5};
+        }
+        {
+            inp::AbsorptionMaterial model_mat;
+            model_mat.mfp = get_mfp(ModelId{0}, mat_id);
+            bulk.absorption.materials.emplace(mat_id, std::move(model_mat));
+        }
+        {
+            inp::MieMaterial model_mat;
+            model_mat.forward_g = 0.99;
+            model_mat.backward_g = 0.99;
+            model_mat.forward_ratio = 0.8;
+            model_mat.mfp = get_mfp(ModelId{1}, mat_id);
+            bulk.mie.materials.emplace(mat_id, std::move(model_mat));
+        }
+        {
+            inp::OpticalRayleighMaterial model_mat;
+            model_mat.mfp = get_mfp(ModelId{2}, mat_id);
+            bulk.rayleigh.materials.emplace(mat_id, std::move(model_mat));
+        }
+        {
+            inp::WavelengthShiftMaterial model_mat;
+            model_mat.mean_num_photons = 2;
+            model_mat.time_constant = native_value_from(TimeSecond(1e-9));
+            model_mat.component.x = {1.65e-6, 2e-6, 2.4e-6, 2.8e-6, 3.26e-6};
+            model_mat.component.y = {0.15, 0.25, 0.50, 0.40, 0.02};
+            model_mat.mfp = get_mfp(ModelId{3}, mat_id);
+            bulk.wls.materials.emplace(mat_id, std::move(model_mat));
+        }
+    }
+    bulk.wls.time_profile = WlsDistribution::delta;
+
+    CELER_ENSURE(bulk.absorption && bulk.rayleigh && bulk.mie && bulk.wls);
+}
+
+//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 // Test optical physics parameter accessors.
@@ -128,19 +190,19 @@ TEST_F(OpticalPhysicsTest, physics_params)
 
     // Check model names
     static std::string_view expected_names[] = {
-        "mock-1",
-        "mock-2",
-        "mock-3",
-        "mock-4",
+        "absorption",
+        "optical-mie",
+        "optical-rayleigh",
+        "wls",
     };
     EXPECT_VEC_EQ(expected_names, model_names);
 
     // Check model descriptions
     static std::string_view expected_descs[] = {
-        "mock-description-1",
-        "mock-description-2",
-        "mock-description-3",
-        "mock-description-4",
+        "interact by optical absorption",
+        "interact by optical Mie scattering",
+        "interact by optical Rayleigh",
+        "interact by WLS",
     };
     EXPECT_VEC_EQ(expected_descs, model_descs);
 

@@ -11,7 +11,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/optical/MaterialView.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
@@ -69,7 +69,7 @@ class RayleighMfpCalculator
     // Construct from material and Rayleigh properties
     inline CELER_FUNCTION
     RayleighMfpCalculator(MaterialView const& material,
-                          ImportOpticalRayleigh const& rayleigh,
+                          inp::OpticalRayleighAnalytic const& rayleigh,
                           ::celeritas::MaterialView const& core_material);
 
     // Calculate the MFP for the given energy
@@ -97,13 +97,13 @@ class RayleighMfpCalculator
  */
 RayleighMfpCalculator::RayleighMfpCalculator(
     MaterialView const& material,
-    ImportOpticalRayleigh const& rayleigh,
+    inp::OpticalRayleighAnalytic const& rayleigh,
     ::celeritas::MaterialView const& core_material)
     : calc_rindex_(material.make_refractive_index_calculator())
-    , density_fluctuation_(rayleigh.scale_factor * rayleigh.compressibility
-                           * core_material.temperature()
-                           * celeritas::constants::k_boltzmann
-                           / (6 * celeritas::constants::pi))
+    , density_fluctuation_(
+          (rayleigh.scale_factor ? *rayleigh.scale_factor : 1)
+          * rayleigh.compressibility * core_material.temperature()
+          * celeritas::constants::k_boltzmann / (6 * celeritas::constants::pi))
 {
     CELER_EXPECT(rayleigh);
     CELER_EXPECT(material.material_id() == core_material.optical_material_id());

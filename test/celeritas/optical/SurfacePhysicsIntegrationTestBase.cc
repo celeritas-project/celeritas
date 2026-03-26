@@ -23,6 +23,10 @@ SurfacePhysicsIntegrationTestBase::build_geant_options() const
 {
     auto result = GeantTestBase::build_geant_options();
     result.optical.emplace();
+    result.optical->mie_scattering = false;
+    result.optical->rayleigh_scattering = false;
+    result.optical->wavelength_shifting = std::nullopt;
+    result.optical->wavelength_shifting2 = std::nullopt;
     CELER_ENSURE(result.optical);
     return result;
 }
@@ -34,13 +38,6 @@ SurfacePhysicsIntegrationTestBase::build_import_data_selection() const
     auto result = GeantTestBase::build_import_data_selection();
     result.processes |= GeantImportDataSelection::optical;
     return result;
-}
-
-//---------------------------------------------------------------------------//
-auto SurfacePhysicsIntegrationTestBase::select_optical_models() const
-    -> std::vector<IMC>
-{
-    return {IMC::absorption};
 }
 
 //---------------------------------------------------------------------------//

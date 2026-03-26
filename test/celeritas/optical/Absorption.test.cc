@@ -31,14 +31,13 @@ class AbsorptionInteractorTest : public ::celeritas::test::Test
 class AbsorptionModelTest : public OpticalMockTestBase
 {
   protected:
-    void SetUp() override {}
-
-    //! Construct absorption model from mock data
-    std::shared_ptr<AbsorptionModel const> create_model()
+    void SetUp() override
     {
-        auto models = ImportedModels::from_import(this->imported_data());
-        return std::make_shared<AbsorptionModel const>(ActionId{0}, models);
+        model = std::make_shared<AbsorptionModel const>(
+            ActionId{0}, this->imported_data().optical_physics.bulk.absorption);
     }
+
+    std::shared_ptr<AbsorptionModel const> model;
 };
 
 //---------------------------------------------------------------------------//
@@ -48,7 +47,6 @@ class AbsorptionModelTest : public OpticalMockTestBase
 TEST_F(AbsorptionInteractorTest, basic)
 {
     // A simple regression test to make sure the interaction is absorbed
-
     AbsorptionInteractor interact;
     Interaction result = interact();
 
@@ -63,8 +61,6 @@ TEST_F(AbsorptionInteractorTest, basic)
 // Check model name and description are properly initialized
 TEST_F(AbsorptionModelTest, description)
 {
-    auto model = create_model();
-
     EXPECT_EQ(ActionId{0}, model->action_id());
     EXPECT_EQ("absorption", model->label());
     EXPECT_EQ("interact by optical absorption", model->description());
@@ -76,9 +72,7 @@ TEST_F(AbsorptionModelTest, interaction_mfp)
 {
     OwningGridAccessor storage;
 
-    auto model = create_model();
     auto builder = storage.create_mfp_builder();
-
     for (auto mat : range(OptMatId(this->num_optical_materials())))
     {
         model->build_mfps(mat, builder);

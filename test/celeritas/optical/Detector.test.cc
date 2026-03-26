@@ -58,6 +58,7 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
         result.optical.emplace();
         result.optical->scintillation = std::nullopt;
         result.optical->mie_scattering = false;
+        result.optical->rayleigh_scattering = false;
         result.optical->wavelength_shifting = std::nullopt;
         result.optical->wavelength_shifting2 = std::nullopt;
         return result;
@@ -73,11 +74,6 @@ class DetectorTest : public ::celeritas::test::GeantTestBase
     GeantSetup::SetString build_sd_names() const override
     {
         return {"x-detectors", "y-detectors", "z-detectors"};
-    }
-
-    std::vector<IMC> select_optical_models() const override
-    {
-        return {IMC::absorption};
     }
 
     SPConstOpticalSurfacePhysics build_optical_surface_physics() override

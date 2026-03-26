@@ -87,10 +87,6 @@ class GeantPhysicsLoader
     PropGetter property_getter(OptMatId) const;
 
     inp::Grid load_mfp(OptMatId opt_id, std::string const& prop_name) const;
-
-    template<class MM, optical::ImportModelClass IMC>
-    void load_mfps(inp::OpticalBulkModel<MM, IMC>& model,
-                   std::string const& prop_name) const;
 };
 
 //---------------------------------------------------------------------------//
