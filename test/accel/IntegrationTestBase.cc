@@ -7,15 +7,14 @@
 #include "IntegrationTestBase.hh"
 
 #include <exception>
-#include <mutex>
-#include <shared_mutex>
-#include <unordered_map>
+#include <G4StateManager.hh>
 #include <G4Threading.hh>
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
 #include <G4UserSteppingAction.hh>
 #include <G4UserTrackingAction.hh>
 #include <G4VSensitiveDetector.hh>
+#include <G4VStateDependent.hh>
 #include <G4VUserActionInitialization.hh>
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
@@ -274,6 +273,32 @@ class SensitiveDetector final : public G4VSensitiveDetector
   private:
     LocalStepFunc hit_func_;
 };
+
+class StateDependent : public G4VStateDependent
+{
+  public:
+    using AppState = G4ApplicationState;
+    using LocalStateChangeFunc
+        = std::function<void(StreamId, AppState, AppState)>;
+
+  public:
+    StateDependent(StreamId, LocalStateChangeFunc cb);
+
+    G4bool Notify(G4ApplicationState state);
+
+  private:
+    StreamId local_stream_;
+    LocalStateChangeFunc cb_;
+};
+
+G4bool StateDependent::Notify(G4ApplicationState state)
+{
+    G4StateManager* sm = G4StateManager::GetStateManager();
+    CELER_ASSERT(sm);
+    G4ApplicationState prev = sm->GetPreviousState();
+    this->cb_(local_stream_, prev, state);
+    return true;
+}
 
 //---------------------------------------------------------------------------//
 class TestDetectorConstruction : public DetectorConstruction
