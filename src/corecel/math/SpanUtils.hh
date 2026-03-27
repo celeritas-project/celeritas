@@ -29,7 +29,7 @@ namespace celeritas
  * overlap.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION void copy(Span<T const, N> src, Span<T, N> dst)
+inline CELER_FUNCTION void copy(Span<T const, N> src, Span<T, N> dst)
 {
     for (std::size_t i = 0; i != N; ++i)
         dst[i] = src[i];
@@ -40,7 +40,7 @@ CELER_FUNCTION void copy(Span<T const, N> src, Span<T, N> dst)
  * Fill all elements of dst with a constant value.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION void fill(T value, Span<T, N> dst)
+inline CELER_FUNCTION void fill(T value, Span<T, N> dst)
 {
     for (std::size_t i = 0; i != N; ++i)
         dst[i] = value;
@@ -57,7 +57,7 @@ CELER_FUNCTION void fill(T value, Span<T, N> dst)
  * \pre x and y must not overlap.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION void axpy(T a, Span<T const, N> x, Span<T, N> y)
+inline CELER_FUNCTION void axpy(T a, Span<T const, N> x, Span<T, N> y)
 {
     Array<T, N> xa = detail::load_array(x);
     Array<T, N> ya = detail::load_array(Span<T const, N>{y.data(), N});
@@ -70,7 +70,7 @@ CELER_FUNCTION void axpy(T a, Span<T const, N> x, Span<T, N> y)
  * Dot product of two vector spans.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION T dot_product(Span<T const, N> x, Span<T const, N> y)
+inline CELER_FUNCTION T dot_product(Span<T const, N> x, Span<T const, N> y)
 {
     return dot_product(detail::load_array(x), detail::load_array(y));
 }
@@ -82,7 +82,7 @@ CELER_FUNCTION T dot_product(Span<T const, N> x, Span<T const, N> y)
  * \pre x, y, and dst must not overlap.
  */
 template<class T>
-CELER_FUNCTION void
+inline CELER_FUNCTION void
 cross_product(Span<T const, 3> x, Span<T const, 3> y, Span<T, 3> dst)
 {
     detail::store_array(
@@ -94,7 +94,7 @@ cross_product(Span<T const, 3> x, Span<T const, 3> y, Span<T, 3> dst)
  * Calculate the Euclidean (2) norm of a vector span.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION T norm(Span<T const, N> v)
+inline CELER_FUNCTION T norm(Span<T const, N> v)
 {
     return norm(detail::load_array(v));
 }
@@ -106,7 +106,7 @@ CELER_FUNCTION T norm(Span<T const, N> v)
  * \pre v and dst must not overlap.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION void make_unit_vector(Span<T const, N> v, Span<T, N> dst)
+inline CELER_FUNCTION void make_unit_vector(Span<T const, N> v, Span<T, N> dst)
 {
     detail::store_array(make_unit_vector(detail::load_array(v)), dst);
 }
@@ -126,7 +126,7 @@ CELER_FUNCTION void make_unit_vector(Span<T const, N> v, Span<T, N> dst)
  * \pre x, y, and dst must not overlap.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION void
+inline CELER_FUNCTION void
 make_orthogonal(Span<T const, N> x, Span<T const, N> y, Span<T, N> dst)
 {
     detail::store_array(
@@ -138,7 +138,8 @@ make_orthogonal(Span<T const, N> x, Span<T const, N> y, Span<T, N> dst)
  * Check whether two unit vector spans are approximately orthogonal.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION bool is_soft_orthogonal(Span<T const, N> x, Span<T const, N> y)
+inline CELER_FUNCTION bool
+is_soft_orthogonal(Span<T const, N> x, Span<T const, N> y)
 {
     return is_soft_orthogonal(detail::load_array(x), detail::load_array(y));
 }
@@ -150,7 +151,8 @@ CELER_FUNCTION bool is_soft_orthogonal(Span<T const, N> x, Span<T const, N> y)
  * \pre Spans must represent normalized vectors.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION bool is_soft_collinear(Span<T const, N> x, Span<T const, N> y)
+inline CELER_FUNCTION bool
+is_soft_collinear(Span<T const, N> x, Span<T const, N> y)
 {
     return is_soft_collinear(detail::load_array(x), detail::load_array(y));
 }
@@ -160,7 +162,7 @@ CELER_FUNCTION bool is_soft_collinear(Span<T const, N> x, Span<T const, N> y)
  * Calculate the Euclidean (2) distance between two point spans.
  */
 template<class T, std::size_t N>
-CELER_FUNCTION T distance(Span<T const, N> x, Span<T const, N> y)
+inline CELER_FUNCTION T distance(Span<T const, N> x, Span<T const, N> y)
 {
     return distance(detail::load_array(x), detail::load_array(y));
 }
@@ -173,7 +175,7 @@ CELER_FUNCTION T distance(Span<T const, N> x, Span<T const, N> y)
  * the angle between the x axis and the projection onto the x-y plane.
  */
 template<class T>
-CELER_FUNCTION void from_spherical(T costheta, T phi, Span<T, 3> dst)
+inline CELER_FUNCTION void from_spherical(T costheta, T phi, Span<T, 3> dst)
 {
     detail::store_array(from_spherical(costheta, phi), dst);
 }
@@ -186,7 +188,7 @@ CELER_FUNCTION void from_spherical(T costheta, T phi, Span<T, 3> dst)
  * \sa celeritas::rotate in ArrayUtils.hh for the full description.
  */
 template<class T>
-CELER_FUNCTION void
+inline CELER_FUNCTION void
 rotate(Span<T const, 3> dir, Span<T const, 3> rot, Span<T, 3> dst)
 {
     detail::store_array(
