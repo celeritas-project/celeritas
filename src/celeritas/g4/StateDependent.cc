@@ -31,7 +31,33 @@ G4bool StateDependent::Notify(G4ApplicationState state)
     G4StateManager* sm = G4StateManager::GetStateManager();
     CELER_ASSERT(sm);
     G4ApplicationState prev = sm->GetPreviousState();
-    this->cb_(local_stream_, prev, state);
+    // Map (previous, requested) Geant4 states to our semantic enum.
+    StateDependent::GeantStateChange change
+        = StateDependent::GeantStateChange::unknown;
+
+    if ((prev == G4State_PreInit && state == G4State_Init)
+        || (prev == G4State_Idle && state == G4State_Init))
+    {
+        change = StateDependent::GeantStateChange::initialize;
+    }
+    else if (prev == G4State_Idle && state == G4State_GeomClosed)
+    {
+        change = StateDependent::GeantStateChange::begin_run;
+    }
+    else if (prev == G4State_GeomClosed && state == G4State_EventProc)
+    {
+        change = StateDependent::GeantStateChange::begin_event;
+    }
+    else if (prev == G4State_EventProc && state == G4State_GeomClosed)
+    {
+        change = StateDependent::GeantStateChange::end_event;
+    }
+    else if (prev == G4State_GeomClosed && state == G4State_Idle)
+    {
+        change = StateDependent::GeantStateChange::end_run;
+    }
+
+    this->cb_(local_stream_, change);
     return true;
 }
 

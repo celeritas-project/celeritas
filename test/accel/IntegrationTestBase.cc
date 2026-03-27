@@ -178,7 +178,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
         this->SetUserAction(new RunAction{test_, tracing_});
-        test_->initialize(StreamId{}, StreamId::size_type num_threads) 
+        test_->initialize(StreamId{}, StreamId::size_type num_threads)
     }
 
     void Build() const final
