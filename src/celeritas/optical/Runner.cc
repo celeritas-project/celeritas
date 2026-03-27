@@ -11,6 +11,7 @@
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/setup/Problem.hh"
 
 #include "CoreParams.hh"
@@ -142,8 +143,13 @@ auto Runner::run() const -> Result
 
     Result result;
     result.counters = state_->accum();
-    result.counters.generators.push_back(
-        loaded_.problem.generator->counters(*state_->aux()).accum);
+    for (auto gen_id : range(GeneratorId(this->params()->gen_reg()->size())))
+    {
+        auto const gen = this->params()->gen_reg()->at(gen_id);
+        CELER_ASSERT(gen);
+        result.counters.generators.push_back(
+            gen->counters(*state_->aux()).accum);
+    }
     result.action_times
         = loaded_.problem.transporter->get_action_times(*state_->aux());
 
