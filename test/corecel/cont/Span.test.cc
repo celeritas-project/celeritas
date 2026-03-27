@@ -12,6 +12,7 @@
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
 
 #include "celeritas_test.hh"
@@ -20,20 +21,7 @@ namespace celeritas
 {
 namespace test
 {
-namespace
-{
 //---------------------------------------------------------------------------//
-
-template<class T, std::size_t E>
-std::string span_to_string(Span<T, E> const& s)
-{
-    std::ostringstream os;
-    os << s;
-    return os.str();
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
 
 TEST(SpanTest, fixed_size_zero)
 {
@@ -42,7 +30,7 @@ TEST(SpanTest, fixed_size_zero)
     EXPECT_EQ(0, empty_span.size());
     EXPECT_TRUE(empty_span.empty());
     EXPECT_EQ(sizeof(int*), sizeof(empty_span));
-    EXPECT_EQ("{}", span_to_string(empty_span));
+    EXPECT_EQ("{}", stream_to_string(empty_span));
 
     {
         auto templ_subspan = empty_span.subspan<0, 0>();
@@ -89,7 +77,7 @@ TEST(SpanTest, fixed_size)
     int local_data[] = {123, 456};
     Span<int, 2> local_span(local_data);
     EXPECT_EQ(sizeof(int*), sizeof(local_span));
-    EXPECT_EQ("{123,456}", span_to_string(local_span));
+    EXPECT_EQ("{123,456}", stream_to_string(local_span));
 
     EXPECT_EQ(local_data, local_span.begin());
     EXPECT_EQ(local_data + 2, local_span.end());
@@ -140,7 +128,7 @@ TEST(SpanTest, dynamic_size)
     int local_data[] = {123, 456, 789};
     Span<int> local_span(local_data);
     EXPECT_EQ(sizeof(int*) + sizeof(std::size_t), sizeof(local_span));
-    EXPECT_EQ("{123,456,789}", span_to_string(local_span));
+    EXPECT_EQ("{123,456,789}", stream_to_string(local_span));
 
     EXPECT_EQ(local_data, local_span.begin());
     EXPECT_EQ(local_data + 3, local_span.end());
