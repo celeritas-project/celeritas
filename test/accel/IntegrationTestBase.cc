@@ -178,7 +178,9 @@ class ActionInitialization final : public G4VUserActionInitialization
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
         this->SetUserAction(new RunAction{test_, tracing_});
+        test_->initialize(StreamId{}, StreamId::size_type num_threads) 
     }
+
     void Build() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
@@ -384,17 +386,6 @@ G4RunManager& IntegrationTestBase::run_manager()
 
     num_streams_ = id_cast<StreamId>(get_geant_num_threads(*rm));
     return *rm;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Number of worker threads being run, available after run manager creation.
- */
-StreamId::size_type IntegrationTestBase::num_streams() const
-{
-    CELER_VALIDATE(num_streams_, << "run manager has not been created");
-
-    return num_streams_.get();
 }
 
 //---------------------------------------------------------------------------//
