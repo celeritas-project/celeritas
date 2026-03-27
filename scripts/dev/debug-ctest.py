@@ -25,6 +25,8 @@ LLDB_COMMANDS = """
 command script import ${workspaceFolder}/scripts/dev/celerlldb.py --allow-reload
 type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
 type synthetic add -x "^celeritas::ItemRange<.+>$" --python-class celerlldb.ItemRangeSynthetic
+break set --name celeritas::throw_debug_error
+break set --name celeritas::throw_runtime_error
 """.strip().splitlines()
 
 
@@ -133,10 +135,11 @@ def main():
     if launch_path.exists():
         with open(launch_path, "r") as f:
             launch = json.loads(strip_jsonc_comments(f))
-        launch["configurations"][0] = config
     else:
         launch_path.parent.mkdir(parents=True, exist_ok=True)
-        launch = {"version": "0.2.0", "configurations": [config]}
+        launch = {"version": "0.2.0"}
+    all_config = launch.get("configurations", [])
+    launch["configurations"] = [config] + all_config  # type: ignore
 
     launch_path.write_text(json.dumps(launch, indent=4) + "\n")
     print(f"Updated {launch_path}", file=sys.stderr)

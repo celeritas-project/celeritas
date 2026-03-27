@@ -1,8 +1,7 @@
 ---
-mode: agent
+agent: 'agent'
 description: Update .vscode/launch.json to debug a specific CTest test by name
-tools:
-  - run_in_terminal
+tools: execute/getTerminalOutput, execute/runInTerminal
 ---
 
 Update `.vscode/launch.json` so its first debug configuration runs the CTest
