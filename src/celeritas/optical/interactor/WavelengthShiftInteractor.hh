@@ -52,6 +52,7 @@ class WavelengthShiftInteractor
     NativeRef<WlsGeneratorStateData> data_;
     PoissonDistribution<real_type> sample_num_photons_;
     size_type distribution_idx_;
+    units::MevEnergy emission_threshold_;
     WlsDistributionData distribution_;
 };
 
@@ -73,6 +74,7 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
     : data_(data)
     , sample_num_photons_(shared.wls_record[mat_id].mean_num_photons)
     , distribution_idx_(distribution_idx)
+    , emission_threshold_(shared.reals[shared.energy_cdf[mat_id].grid.front()])
 {
     CELER_EXPECT(data_);
     CELER_EXPECT(mat_id);
@@ -97,8 +99,17 @@ CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
 {
     Interaction result = Interaction::from_absorption();
 
-    // Sample the number of photons generated from WLS.
-    distribution_.num_photons = sample_num_photons_(rng);
+    if (distribution_.energy <= emission_threshold_)
+    {
+        // If the incident particle energy is below the lower bound of the
+        // emitted energy sampling grid, don't emit any photons
+        distribution_.num_photons = 0;
+    }
+    else
+    {
+        // Sample the number of photons generated from WLS.
+        distribution_.num_photons = sample_num_photons_(rng);
+    }
     CELER_ASSERT(distribution_ || distribution_.num_photons == 0);
     data_.distributions[ItemId<WlsDistributionData>(distribution_idx_)]
         = distribution_;
