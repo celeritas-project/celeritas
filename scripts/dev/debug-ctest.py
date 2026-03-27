@@ -12,6 +12,13 @@ The test name can be a full CTest name (e.g.
 ``accel/UserActionIntegration:LarSphereOpticalOffload.run:g4:mt``) or a
 substring that uniquely matches one test.  The first configuration in
 ``.vscode/launch.json`` is replaced with settings extracted from CTest.
+
+NOTE: this script currently works only for LLDB (LLVM debugger). It can be
+updated in the future to work for GDB as well.
+
+ALSO NOTE: the VScode debugger choice ``lldb-dap`` requires an extension to
+work: see
+https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.lldb-dap
 """
 
 import argparse
