@@ -126,22 +126,31 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     auto& counters = aux_state.counters;
     auto& buffer = aux_state.store.ref().distributions;
 
+    auto num_pending_prev = counters.num_pending;
+
     // Compact the buffer, returning the total number of valid distributions
     counters.buffer_size = celeritas::detail::remove_if_invalid(
         buffer, 0, counters.buffer_size + state.size(), state.stream_id());
 
-    if (counters.buffer_size > 0 && state.sync_get_counters().num_vacancies)
+    if (counters.buffer_size > 0)
     {
-        // If this process created photons and there is room in the track state
-        // to generate them, calculate the cumulative sum of the number of
-        // photons in the buffered distributions. This is used to determine
-        // which thread will generate photons from which distribution
+        // If this process created photons, calculate the cumulative sum of the
+        // number of photons in the buffered distributions. This is used to
+        // determine which thread will generate photons from which distribution
         counters.num_pending = detail::inclusive_scan_photons(
             aux_state.store.ref().distributions,
             aux_state.store.ref().offsets,
             counters.buffer_size,
             state.stream_id());
+    }
 
+    // Update the core state counters with the number of new pending tracks
+    auto core_counters = state.sync_get_counters();
+    core_counters.num_pending += counters.num_pending - num_pending_prev;
+    state.sync_put_counters(core_counters);
+
+    if (counters.num_pending > 0 && core_counters.num_vacancies > 0)
+    {
         // Generate the optical photons from the distribution data
         this->generate(params, state);
 
