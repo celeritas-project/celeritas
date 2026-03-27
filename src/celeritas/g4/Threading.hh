@@ -12,8 +12,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
+// Get a stream ID corresponding to the *main* thread (master or worker 0)
+StreamId geant_main_stream();
+
 // Get a stream ID corresponding to the current Geant4 worker thread
-StreamId g4_stream();
+StreamId geant_stream();
+
+// Get the number of threads after initialization
+StreamId::size_type geant_num_threads();
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

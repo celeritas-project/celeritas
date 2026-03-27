@@ -92,6 +92,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Lazily create and/or access the run manager
     G4RunManager& run_manager();
 
+    // Print debug info about an exception, call the above if geant4
+    void handle_exception(std::exception_ptr ep);
+
     //! Set the GDML filename (in test/geocel/data without ".gdml")
     virtual std::string_view gdml_basename() const = 0;
 
@@ -116,8 +119,8 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Create a "sensitive detector" based on GDML tags (default null)
     virtual LocalStepFunc make_hit_callback(std::string const& sd_name);
 
-    //! Initialize on every thread with the number of threads
-    virtual void initialize(StreamId, StreamId::size_type num_threads) = 0;
+    //! Initialize once with the number of threads
+    virtual void initialize(StreamId::size_type num_threads) = 0;
 
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError
     virtual void caught_g4_runtime_error(RuntimeError const& e);
@@ -130,10 +133,6 @@ class IntegrationTestBase : public ::celeritas::test::Test
     virtual void BeginOfEventAction(G4Event const* event) = 0;
     virtual void EndOfEventAction(G4Event const* event) = 0;
     //!@}
-
-  protected:
-    // Print debug info about an exception, call the above if geant4
-    void handle_exception(std::exception_ptr ep);
 };
 
 //---------------------------------------------------------------------------//

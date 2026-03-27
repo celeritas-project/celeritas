@@ -205,7 +205,7 @@ auto DistOffloadMixin::make_step_callback() -> LocalStepFunc
  */
 void DistOffloadMixin::BeginOfRunAction(G4Run const*)
 {
-    if (g4_stream() == StreamId{0})
+    if (geant_stream() == StreamId{0})
     {
         counters_.resize(this->num_streams());
         geant_geo_ = celeritas::global_geant_geo().lock();

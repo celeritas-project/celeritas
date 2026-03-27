@@ -7,6 +7,7 @@
 #include "IntegrationTestBase.hh"
 
 #include <exception>
+#include <memory>
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
 #include <G4UserTrackingAction.hh>
@@ -18,6 +19,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/StringEnumMapper.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
@@ -92,6 +94,21 @@ class RunAction final : public G4UserRunAction
               [this](std::exception_ptr ep) { test_->handle_exception(ep); })
     {
         CELER_EXPECT(test_);
+
+        // Add a state dependent to call 'initailize' once on the main thread.
+        // It's in the run manager because the StateDependent has to be
+        // destroyed on the same thread it's created.
+        if (geant_stream() == geant_main_stream())
+        {
+            state_dep_ = std::make_unique<StateDependent>(
+                [t = test_](StreamId sid, GeantStateChange change) {
+                    if (change == GeantStateChange::initialize
+                        && sid == geant_main_stream())
+                    {
+                        t->initialize(geant_num_threads());
+                    }
+                });
+        }
     }
 
     void BeginOfRunAction(G4Run const* run) final
@@ -116,6 +133,7 @@ class RunAction final : public G4UserRunAction
     IntegrationTestBase* test_;
     SPTracing tracing_;
     ScopedGeantExceptionHandler exceptions_;
+    std::unique_ptr<StateDependent> state_dep_;
 };
 
 //---------------------------------------------------------------------------//
@@ -178,7 +196,6 @@ class ActionInitialization final : public G4VUserActionInitialization
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
         this->SetUserAction(new RunAction{test_, tracing_});
-        test_->initialize(StreamId{}, StreamId::size_type num_threads)
     }
 
     void Build() const final
@@ -195,7 +212,7 @@ class ActionInitialization final : public G4VUserActionInitialization
         this->SetUserAction(new PGPrimaryGeneratorAction{std::move(pg_inp)});
 
         // User actions
-        if (auto track_action = test_->make_tracking_action(g4_stream()))
+        if (auto track_action = test_->make_tracking_action(geant_stream()))
         {
             TypeDemangler<G4UserTrackingAction> demangle_type;
             CELER_LOG_LOCAL(debug) << "Setting track action of type "
@@ -207,7 +224,7 @@ class ActionInitialization final : public G4VUserActionInitialization
             CELER_LOG_LOCAL(debug)
                 << "Setting step action of type "
                 << demangled_typeid_name(step_cb_.target_type().name());
-            this->SetUserAction(new SteppingAction{g4_stream(), step_cb_});
+            this->SetUserAction(new SteppingAction{geant_stream(), step_cb_});
         }
     }
 
@@ -384,7 +401,6 @@ G4RunManager& IntegrationTestBase::run_manager()
         referenced_test = this;
     }
 
-    num_streams_ = id_cast<StreamId>(get_geant_num_threads(*rm));
     return *rm;
 }
 
